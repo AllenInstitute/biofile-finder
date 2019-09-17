@@ -1,0 +1,140 @@
+buildscript {
+    ext {
+        artifactoryContextUrl = "https://artifactory.corp.alleninstitute.org/artifactory"
+    }
+    repositories {
+        mavenLocal()
+        maven {
+            url "${artifactoryContextUrl}/maven-virtual"
+        }
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.hibernate.build.gradle:gradle-maven-publish-auth:2.0.1")
+        classpath("org.alleninstitute.aics:gradle-plugins:2.0.11")
+    }
+}
+
+plugins {
+    id "com.dorongold.task-tree" version "1.3.1"
+    id "com.moowork.node" version "1.2.0"
+}
+
+apply plugin: "maven-publish"
+apply plugin: "maven-publish-auth"
+apply plugin: "org.alleninstitute.git-info"
+
+node {
+    version = "10.16.3"
+    npmVersion = "6.11.3"
+    download = true
+    nodeModulesDir = file("${project.projectDir}")
+}
+
+project.version = "0.1.x"
+project.group = "org.alleninstitute.aics"
+
+ext {
+    env = System.getenv("DEPLOYMENT_ENV") ?: "dev"
+    npmBin = "${projectDir}/node_modules/.bin"
+
+    // Repo settings
+    artifactoryBaseUrl = "https://artifactory.corp.alleninstitute.org/artifactory"
+
+    // TGZ Publishing
+    distParentDir = file("$projectDir/dist")
+    artifactVersion = gitInfo.branch != "master" ? "${gitInfo.branch.tokenize("/").join("-")}" : project.version
+    artifactName = "${project.name}-${ext.artifactVersion}.tgz"
+}
+
+wrapper {
+    gradleVersion "5.6.2"
+    distributionType Wrapper.DistributionType.BIN
+}
+
+task format(type: NodeTask) {
+    dependsOn npmInstall
+
+    script = file("${npmBin}/prettier")
+    args = "--write src/**/*".tokenize()
+}
+
+task lint(type: NodeTask) {
+    dependsOn npmInstall
+
+    script = file("${npmBin}/eslint")
+    args = ["src/**/*.{js,jsx,ts,tsx}"]
+}
+
+task start(type: NodeTask) {
+    dependsOn npmInstall
+
+    script = file("${npmBin}/webpack-dev-server")
+    args = "--config ./webpack/webpack.config.js --env.env ${env}".tokenize()
+}
+
+task test(type: NodeTask) {
+    dependsOn npmInstall
+
+    environment = [
+            BABEL_ENV: "commonjs",
+            TS_NODE_FILES: true,
+            TS_NODE_PROJECT: "tsconfig.commonjs.json",
+            NODE_ENV: "production",
+    ]
+    script = file("${npmBin}/mocha")
+    args = "--opts mocha.opts src/**/test/*".tokenize()
+}
+
+task typeCheck(type: NodeTask) {
+    dependsOn npmInstall
+
+    script = file("${npmBin}/tsc")
+    args = "-p tsconfig.json --noEmit".tokenize()
+}
+
+///////////////////////////
+// Build and publish
+//////////////////////////
+
+task bundle(type: NodeTask) {
+    dependsOn npmInstall
+    script = file("${npmBin}/webpack")
+    args = "--config ./webpack/webpack.config.js --env.env ${env}".tokenize()
+}
+
+/// Publishing
+task packageForPublish(type: Tar) {
+    dependsOn bundle
+
+    from distParentDir
+    destinationDir file("${projectDir}")
+    archiveName "$artifactName"
+    compression Compression.GZIP
+}
+
+task artifactClean(type: Delete) {
+    delete "$artifactName"
+}
+
+task snapshotPublish {
+    description "Create production module and publish to snapshot repo in artifactory"
+    group "AICS Publishing"
+    dependsOn packageForPublish, "publishMvnModulePublicationToSnapshotsRepoRepository"
+}
+
+publishing {
+    publications {
+        mvnModule(MavenPublication) {
+            version artifactVersion
+            artifact packageForPublish
+        }
+    }
+
+    repositories {
+        maven {
+            name = "snapshotsRepo"
+            url "${artifactoryBaseUrl}/maven-snapshot-local"
+        }
+    }
+}
