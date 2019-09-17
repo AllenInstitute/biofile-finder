@@ -1,0 +1,5 @@
+# Browsers that we support
+
+last 1 version  # last version of each browser
+> 1%  # that has at least 1% market share in global usage statistics
+not dead  # that are still receiving official support from their vendor

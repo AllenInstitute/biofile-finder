@@ -1,0 +1,24 @@
+{
+  "plugins": [
+    "@babel/plugin-proposal-class-properties",
+    ["babel-plugin-import", {
+      "camel2DashComponentName": false,
+      "libraryDirectory": "",
+      "libraryName": "lodash"
+    }, "lodash"]
+  ],
+  "presets": [
+    "@babel/preset-react",
+    ["@babel/preset-env", {
+        "corejs": 3,
+        "modules": false,
+        "useBuiltIns": "usage"
+    }],
+    "@babel/preset-typescript"
+  ],
+  "env": {
+    "commonjs": {
+      "presets": [["@babel/preset-env", { "modules": true }]]
+    }
+  }
+}
