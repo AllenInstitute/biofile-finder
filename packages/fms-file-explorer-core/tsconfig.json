@@ -1,6 +1,11 @@
 {
-  "extends": "./tsconfig.base",
+  "extends": "../../tsconfig",
   "compilerOptions": {
-    "module": "ES6"
-  }
+    "declaration": true,
+    "declarationDir": "type-declarations",
+    "noEmit": false
+  },
+  "include": [
+    "src/**/*"
+  ]
 }

@@ -80,9 +80,7 @@ module.exports = ({ analyze, env } = {}) => ({
             // e.g., importing antd component css
             {
                 test: /\.css/,
-                include: [
-                    path.resolve(__dirname, "../", "node_modules")
-                ],
+                include: /node_modules/,
                 use: [
                     { loader: MiniCssExtractPlugin.loader },
                     { loader: "css-loader" },
@@ -108,7 +106,8 @@ module.exports = ({ analyze, env } = {}) => ({
     },
     plugins: getPluginsByEnv(env, analyze),
     resolve: {
-        extensions: [".ts", ".tsx", ".js", ".jsx", ".json"]
+        extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
+        symlinks: false,
     },
     stats: analyze ? "none" : stats,
 });

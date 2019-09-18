@@ -3,6 +3,13 @@
   "version": "0.1.0",
   "description": "",
   "main": "src/index.tsx",
+  "scripts": {
+    "bundle": "webpack --config ./webpack/webpack.config.js",
+    "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
+    "precommit": "lint-staged",
+    "start": "webpack-dev-server --config ./webpack/webpack.config.js",
+    "typeCheck": "tsc -p tsconfig.json --noEmit"
+  },
   "repository": {
     "type": "git",
     "url": ""
@@ -60,16 +67,9 @@
     "webpack-dev-server": "3.8.0"
   },
   "dependencies": {
-    "axios": "0.19.0",
-    "classnames": "2.2.6",
-    "core-js": "3.2.1",
-    "lodash": "4.17.15",
-    "normalize.css": "8.0.1",
+    "fms-file-explorer-core": "*",
     "react": "16.9.0",
     "react-dom": "16.9.0",
-    "react-redux": "7.1.1",
-    "redux": "4.0.4",
-    "redux-logic": "2.1.1",
-    "reselect": "4.0.0"
+    "react-redux": "7.1.1"
   }
 }

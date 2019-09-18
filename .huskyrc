@@ -1,0 +1,3 @@
+"hooks": {
+    "pre-commit": "lerna run precommit"
+}

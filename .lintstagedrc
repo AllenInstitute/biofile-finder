@@ -1,0 +1,5 @@
+{
+  "linters": {
+    "packages/**/src/**/*.{ts,tsx,js,jsx}": ["prettier --write", "git add"]
+  }
+}

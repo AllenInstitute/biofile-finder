@@ -13,6 +13,7 @@ module.exports = {
         "project": "./tsconfig.json"
     },
     "plugins": ["@typescript-eslint"],
+    "root": true,
     "rules": {
         "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/explicit-member-accessibility": "off",

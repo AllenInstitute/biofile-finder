@@ -1,2 +1,13 @@
+.DS_Store
+.idea
 node_modules
+es
+dist
+type-declarations
+npm-debug.log
+.gradle
+build
+*.iml
+.project
+.settings
 .vscode
