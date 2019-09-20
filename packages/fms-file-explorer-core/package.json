@@ -19,16 +19,16 @@
     "registry": "https://artifactory.corp.alleninstitute.org/artifactory/api/npm/npm-local/"
   },
   "scripts": {
-    "build": "npm run clean && npm run generateTypes && npm run transpileTS && npm run transpilePCSS",
+    "build": "npm run clean && npm run generateTypes && npm run transpile:ts && npm run transpile:pcss",
     "clean": "rimraf es type-declarations",
     "format": "prettier --write src/**/*",
     "generateTypes": "tsc --emitDeclarationOnly",
     "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
     "precommit": "lint-staged",
     "prepublish": "npm run build",
-    "test": "BABEL_ENV=commonjs && TS_NODE_FILES=true && TS_NODE_PROJECT=tsconfig.commonjs.json && NODE_ENV=production && mocha --opts mocha.opts src/**/test/*",
-    "transpilePCSS": "postcss 'src/**/*.css' --base src --dir es --verbose",
-    "transpileTS": "babel src --out-dir es --extensions .ts,.tsx --ignore src/**/*.test.ts",
+    "test": "BABEL_ENV=commonjs TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*",
+    "transpile:pcss": "postcss 'src/**/*.css' --base src --dir es --verbose",
+    "transpile:ts": "babel src --out-dir es --extensions .ts,.tsx --ignore src/**/*.test.ts",
     "typeCheck": "tsc --noEmit"
   },
   "author": "",
