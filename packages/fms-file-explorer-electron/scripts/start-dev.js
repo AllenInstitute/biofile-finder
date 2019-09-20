@@ -9,7 +9,7 @@
  * processes spawned herein.
  */
 
-const child_process = require("child_process");
+const childProcess = require("child_process");
 const { promises: fsPromises } = require("fs");
 const http = require("http");
 const path = require("path");
@@ -32,7 +32,7 @@ async function makeBuildDirectory() {
 
 function startWebpackDevServer() {
     console.log("Starting webpack-dev-server");
-    child_process.spawn(
+    childProcess.spawn(
         'npx',
         [
             'webpack-dev-server',
@@ -83,7 +83,7 @@ async function checkIfWebpackDevServerIsReady() {
 
 function startBabelWatch() {
     console.log("Starting babel watch of src/main.ts");
-    child_process.spawn(
+    childProcess.spawn(
         "npx",
         [
             "babel",
@@ -103,7 +103,7 @@ function startBabelWatch() {
 
 function startElectron() {
     console.log("Starting electron");
-    child_process.spawn(
+    childProcess.spawn(
         "npx",
         [
             "electron",
