@@ -5,7 +5,7 @@
   "main": "dist/main.js",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/fms-file-explorer/browse"
   },
   "scripts": {
     "bundle": "webpack --config ./webpack/webpack.config.js --env.env production",
