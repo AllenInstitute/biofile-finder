@@ -8,6 +8,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const webpack = require('webpack');
 
 const Env = require('./constants').Env;
+const devServer = require('./constants').devServer;
 
 const BASE_PLUGINS = [
     new ForkTsCheckerWebpackPlugin({
@@ -32,6 +33,12 @@ const PLUGINS_BY_ENV = {
     ],
     [Env.STAGE]: [
         new webpack.NamedModulesPlugin()
+    ],
+    [Env.DEVELOPMENT]: [
+        new webpack.DefinePlugin({
+            'process.env.NODE_ENV': JSON.stringify('development'),
+            'process.env.WEBPACK_DEV_SERVER_PORT': JSON.stringify(devServer.port),
+        }),
     ]
 };
 

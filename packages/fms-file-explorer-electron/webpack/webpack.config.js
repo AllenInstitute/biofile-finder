@@ -12,14 +12,14 @@ const getPluginsByEnv = require("./plugins");
 module.exports = ({ analyze, env } = {}) => ({
     devtool: env !== Env.PRODUCTION && "source-map",
     devServer: {
-        contentBase: path.join(__dirname, "../", "dist"),
+        contentBase: path.join(__dirname, "../", "dist", "renderer"),
         disableHostCheck: true,
         host: devServer.host,
         port: devServer.port,
         stats,
     },
     entry: {
-        app: "./src/index.tsx"
+        app: "./src/renderer.tsx"
     },
     mode: env === Env.PRODUCTION ? "production" : "development",
     module: {
@@ -80,9 +80,7 @@ module.exports = ({ analyze, env } = {}) => ({
             // e.g., importing antd component css
             {
                 test: /\.css/,
-                include: [
-                    path.resolve(__dirname, "../", "node_modules")
-                ],
+                include: /node_modules/,
                 use: [
                     { loader: MiniCssExtractPlugin.loader },
                     { loader: "css-loader" },
@@ -103,12 +101,13 @@ module.exports = ({ analyze, env } = {}) => ({
         }
     },
     output: {
-        path: path.resolve(__dirname, "../", "dist"),
+        path: path.resolve(__dirname, "../", "dist", "renderer"),
         filename: "[name].[chunkhash].js"
     },
     plugins: getPluginsByEnv(env, analyze),
     resolve: {
-        extensions: [".ts", ".tsx", ".js", ".jsx", ".json"]
+        extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
+        symlinks: false,
     },
     stats: analyze ? "none" : stats,
 });

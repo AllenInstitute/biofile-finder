@@ -2,10 +2,20 @@
   "name": "fms-file-explorer-electron",
   "version": "0.1.0",
   "description": "",
-  "main": "src/index.tsx",
+  "main": "dist/main.js",
   "repository": {
     "type": "git",
     "url": ""
+  },
+  "scripts": {
+    "bundle": "webpack --config ./webpack/webpack.config.js --env.env production",
+    "precommit": "lint-staged",
+    "makeDistDir": "mkdir -p dist",
+    "start": "node ./scripts/start-dev.js",
+    "start:electron": "NODE_ENV=development WEBPACK_DEV_SERVER_PORT=9001 electron .",
+    "start:devserver": "webpack-dev-server --config ./webpack/webpack.config.js --env.env dev",
+    "transpile": "babel src/main.ts --source-maps --env-name commonjs --out-file dist/main.js",
+    "typeCheck": "tsc -p tsconfig.json --noEmit"
   },
   "author": "",
   "license": "ISC",
@@ -60,16 +70,10 @@
     "webpack-dev-server": "3.8.0"
   },
   "dependencies": {
-    "axios": "0.19.0",
-    "classnames": "2.2.6",
-    "core-js": "3.2.1",
-    "lodash": "4.17.15",
-    "normalize.css": "8.0.1",
+    "electron": "6.0.9",
+    "fms-file-explorer-core": "*",
     "react": "16.9.0",
     "react-dom": "16.9.0",
-    "react-redux": "7.1.1",
-    "redux": "4.0.4",
-    "redux-logic": "2.1.1",
-    "reselect": "4.0.0"
+    "react-redux": "7.1.1"
   }
 }

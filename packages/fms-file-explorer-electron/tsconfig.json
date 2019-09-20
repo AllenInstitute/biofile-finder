@@ -1,6 +1,6 @@
 {
-  "extends": "./tsconfig.base",
-  "compilerOptions": {
-    "module": "ES6"
-  }
+  "extends": "../../tsconfig",
+  "include": [
+    "src/**/*"
+  ]
 }
