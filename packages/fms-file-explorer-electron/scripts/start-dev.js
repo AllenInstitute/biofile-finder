@@ -1,3 +1,14 @@
+/**
+ * The purpose of this script is to coordinate the start up of all of the processes necessary for development
+ * in the context of Electron. This includes:
+ *   - webpack-dev-server, which watches, recompiles, and serves code run in Electron's renderer process
+ *   - babel, which compiles the code run in Electron's main process
+ *   - electron itself, which should only be started when the others are up and running
+ *
+ * This script is intended to be run in the foreground. Sending a SIGINT to this script will clean up the child
+ * processes spawned herein.
+ */
+
 const child_process = require("child_process");
 const { promises: fsPromises } = require("fs");
 const http = require("http");
@@ -20,7 +31,7 @@ async function makeBuildDirectory() {
 }
 
 function startWebpackDevServer() {
-    console.log("starting webpack-dev-server");
+    console.log("Starting webpack-dev-server");
     child_process.spawn(
         'npx',
         [
