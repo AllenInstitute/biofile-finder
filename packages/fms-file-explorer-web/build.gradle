@@ -52,55 +52,12 @@ wrapper {
     distributionType Wrapper.DistributionType.BIN
 }
 
-task format(type: NodeTask) {
-    dependsOn npmInstall
-
-    script = file("${npmBin}/prettier")
-    args = "--write src/**/*".tokenize()
-}
-
-task lint(type: NodeTask) {
-    dependsOn npmInstall
-
-    script = file("${npmBin}/eslint")
-    args = ["src/**/*.{js,jsx,ts,tsx}"]
-}
-
-task start(type: NodeTask) {
-    dependsOn npmInstall
-
-    script = file("${npmBin}/webpack-dev-server")
-    args = "--config ./webpack/webpack.config.js --env.env ${env}".tokenize()
-}
-
-task test(type: NodeTask) {
-    dependsOn npmInstall
-
-    environment = [
-            BABEL_ENV: "commonjs",
-            TS_NODE_FILES: true,
-            TS_NODE_PROJECT: "tsconfig.commonjs.json",
-            NODE_ENV: "production",
-    ]
-    script = file("${npmBin}/mocha")
-    args = "--opts mocha.opts src/**/test/*".tokenize()
-}
-
-task typeCheck(type: NodeTask) {
-    dependsOn npmInstall
-
-    script = file("${npmBin}/tsc")
-    args = "-p tsconfig.json --noEmit".tokenize()
-}
-
 ///////////////////////////
 // Build and publish
 //////////////////////////
 
-task bundle(type: NodeTask) {
-    dependsOn npmInstall
-    script = file("${npmBin}/webpack")
-    args = "--config ./webpack/webpack.config.js --env.env ${env}".tokenize()
+task bundle(type: NpmTask) {
+    args = "run bundle".tokenize()
 }
 
 /// Publishing

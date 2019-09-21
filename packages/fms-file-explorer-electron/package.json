@@ -9,11 +9,15 @@
   },
   "scripts": {
     "bundle": "webpack --config ./webpack/webpack.config.js --env.env production",
-    "precommit": "lint-staged",
+    "clean": "rimraf dist",
+    "format": "prettier --write src/**/*",
+    "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
     "makeDistDir": "mkdir -p dist",
+    "precommit": "lint-staged",
     "start": "node ./scripts/start-dev.js",
     "start:electron": "NODE_ENV=development WEBPACK_DEV_SERVER_PORT=9001 electron .",
     "start:devserver": "webpack-dev-server --config ./webpack/webpack.config.js --env.env dev",
+    "test": "BABEL_ENV=commonjs TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*",
     "transpile": "babel src/main.ts --source-maps --env-name commonjs --out-file dist/main.js",
     "typeCheck": "tsc -p tsconfig.json --noEmit"
   },
