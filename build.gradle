@@ -1,0 +1,36 @@
+/**
+ This Gradle file exists primarily to run package.json scripts on Jenkins workers. Gradle effectively provides a
+ project-specific install of NodeJS and NPM.
+
+ On dev machines, it is expected that NodeJS and NPM are managed by the developer by a tool such as NVM. Though a
+ developer may choose to use these Gradle tasks instead.
+ */
+
+plugins {
+    id "com.dorongold.task-tree" version "1.3.1"
+    id "com.moowork.node" version "1.2.0"
+}
+
+node {
+    version = "10.16.3"
+    npmVersion = "6.11.3"
+    download = true
+    nodeModulesDir = file("${project.projectDir}")
+}
+
+wrapper {
+    gradleVersion "5.6.2"
+    distributionType Wrapper.DistributionType.BIN
+}
+
+task lint(type: NpmTask) {
+    args = "run lint".tokenize()
+}
+
+task test(type: NpmTask) {
+    args = "run test".tokenize()
+}
+
+task typeCheck(type: NpmTask) {
+    args = "run typeCheck".tokenize()
+}

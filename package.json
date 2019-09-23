@@ -1,6 +1,11 @@
 {
   "name": "root",
   "private": true,
+  "scripts": {
+    "lint": "lerna run lint",
+    "test": "lerna run test",
+    "typeCheck": "lerna run typeCheck"
+  },
   "devDependencies": {
     "husky": "3.0.5",
     "lerna": "3.16.4"
