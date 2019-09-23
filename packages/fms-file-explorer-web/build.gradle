@@ -1,11 +1,8 @@
 buildscript {
-    ext {
-        artifactoryContextUrl = "https://artifactory.corp.alleninstitute.org/artifactory"
-    }
     repositories {
         mavenLocal()
         maven {
-            url "${artifactoryContextUrl}/maven-virtual"
+            url "https://artifactory.corp.alleninstitute.org/artifactory/maven-virtual"
         }
         mavenCentral()
     }
@@ -31,16 +28,12 @@ node {
     nodeModulesDir = file("${project.projectDir}")
 }
 
-project.version = "0.1.x"
+def packageJson = new File("package.json")
+def parsed = new groovy.json.JsonSlurper().parseText(packageJson.text)
+project.version = parsed.version
 project.group = "org.alleninstitute.aics"
 
 ext {
-    env = System.getenv("DEPLOYMENT_ENV") ?: "dev"
-    npmBin = "${projectDir}/node_modules/.bin"
-
-    // Repo settings
-    artifactoryBaseUrl = "https://artifactory.corp.alleninstitute.org/artifactory"
-
     // TGZ Publishing
     distParentDir = file("$projectDir/dist")
     artifactVersion = gitInfo.branch != "master" ? "${gitInfo.branch.tokenize("/").join("-")}" : project.version
@@ -91,7 +84,7 @@ publishing {
     repositories {
         maven {
             name = "snapshotsRepo"
-            url "${artifactoryBaseUrl}/maven-snapshot-local"
+            url "https://artifactory.corp.alleninstitute.org/artifactory/maven-snapshot-local"
         }
     }
 }
