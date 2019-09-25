@@ -36,5 +36,5 @@ task typeCheck(type: NpmTask) {
 }
 
 task version(type: NpmTask) {
-    args = "run version:all --bump major".tokenize()
+    args = "run version -- ${bump}".tokenize()
 }
