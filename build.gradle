@@ -35,6 +35,11 @@ task typeCheck(type: NpmTask) {
     args = "run typeCheck".tokenize()
 }
 
+/**
+ * Like others in this file, this task is only intended to be run in CI.
+ * It requires a `-Pbump` commandline arg. The options available are the same as the {bump} positional arg to
+ * `lerna version`.
+ */
 task version(type: NpmTask) {
     args = "run version -- ${bump}".tokenize()
 }
