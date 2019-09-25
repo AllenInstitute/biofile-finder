@@ -1,11 +1,23 @@
-String GIT_TAG_SENTINEL = "invalid_git_tag"  // used as default value for GIT_TAG parameter, and checked for in validation stage
-
+// JOB_TYPE constants
 String BUILD_ARTIFACT = "BUILD_ARTIFACT"
 String DEPLOY_ARTIFACT = "DEPLOY_ARTIFACT"
 String PROMOTE_ARTIFACT = "PROMOTE_ARTIFACT"
 
-String STAGING_DEPLOYMENT = "staging"  // matches value from jenkinstools.deploy.DeployEnv enum
-String PRODUCTION_DEPLOYMENT = "production"  // matches value from jenkinstools.deploy.DeployEnv enum
+// VERSION_BUMP_TYPE constants
+// The values of these constants must match the acceptable args to `lerna version`
+String MAJOR_VERSION_BUMP = "major"
+String MINOR_VERSION_BUMP = "minor"
+String PATCH_VERSION_BUMP = "patch"
+
+// DEPLOYMENT_TYPE constants
+// The values of these constants must match values from jenkinstools.deploy.DeployEnv enum
+String STAGING_DEPLOYMENT = "staging"
+String PRODUCTION_DEPLOYMENT = "production"
+
+// GIT_TAG constant
+// Used as default value for GIT_TAG parameter, and checked for in validation stage
+String GIT_TAG_SENTINEL = "invalid_git_tag"
+
 Map DEPLOYMENT_TARGET_TO_S3_BUCKET = [(STAGING_DEPLOYMENT): "staging.<CHANGE-ME>.allencell.org", (PRODUCTION_DEPLOYMENT): "production.<CHANGE-ME>.allencell.org"]
 Map DEPLOYMENT_TARGET_TO_MAVEN_REPO = [(STAGING_DEPLOYMENT): "maven-snapshot-local", (PRODUCTION_DEPLOYMENT): "maven-release-local"]
 
@@ -28,6 +40,7 @@ pipeline {
         // N.b.: For choice parameters, the first choice is the default value
         // See https://github.com/jenkinsci/jenkins/blob/master/war/src/main/webapp/help/parameter/choice-choices.html
         choice(name: "JOB_TYPE", choices: [BUILD_ARTIFACT, PROMOTE_ARTIFACT, DEPLOY_ARTIFACT], description: "Which type of job this is.")
+        choice(name: "VERSION_BUMP_TYPE", choices: [PATCH_VERSION_BUMP, MINOR_VERSION_BUMP, MAJOR_VERSION_BUMP], description: "Which kind of version bump to perform.")
         choice(name: "DEPLOYMENT_TYPE", choices: [STAGING_DEPLOYMENT, PRODUCTION_DEPLOYMENT], description: "Target environment for deployment. Will determine which S3 bucket assets are deployed to and how the release history is written. This is only used if JOB_TYPE is ${DEPLOY_ARTIFACT}.")
         gitParameter(name: "GIT_TAG", defaultValue: GIT_TAG_SENTINEL, type: "PT_TAG", sortMode: "DESCENDING_SMART", description: "Select a Git tag specifying the artifact which should be promoted or deployed. This is only used if JOB_TYPE is ${PROMOTE_ARTIFACT} or ${DEPLOY_ARTIFACT}")
     }
@@ -82,7 +95,7 @@ pipeline {
                 DEPLOYMENT_ENV = "staging"
             }
             steps {
-                sh "./gradlew -i snapshotPublish"
+                // TODO. Will call a lerna command to build artifacts in all repos.
             }
         }
 
@@ -96,9 +109,10 @@ pipeline {
                 DEPLOYMENT_ENV = "production"
             }
             steps {
-                sh "${PYTHON} ${VENV_BIN}/manage_version -t gradle -s prepare"
-                sh "./gradlew -i snapshotPublish"
-                sh "${PYTHON} ${VENV_BIN}/manage_version -t gradle -s tag"
+                // Increment version
+                sh "./gradlew version -Pbump ${params.VERSION_BUMP_TYPE}"
+
+                // TODO. Will call a lerna command to build artifacts in all repos.
             }
         }
 
@@ -120,6 +134,7 @@ pipeline {
                     ARTIFACTORY_REPO = DEPLOYMENT_TARGET_TO_MAVEN_REPO[params.DEPLOYMENT_TYPE]
                     S3_BUCKET = DEPLOYMENT_TARGET_TO_S3_BUCKET[params.DEPLOYMENT_TYPE]
                 }
+                // TODO.
                 sh "${PYTHON} ${VENV_BIN}/deploy_artifact -d --branch=${env.BRANCH_NAME} --deploy-env=${params.DEPLOYMENT_TYPE} maven-tgz S3 --artifactory-repo=${ARTIFACTORY_REPO} --bucket=${S3_BUCKET} ${params.GIT_TAG}"
             }
         }
