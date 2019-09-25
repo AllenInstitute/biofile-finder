@@ -34,3 +34,7 @@ task test(type: NpmTask) {
 task typeCheck(type: NpmTask) {
     args = "run typeCheck".tokenize()
 }
+
+task version(type: NpmTask) {
+    args = "run version:all --bump major".tokenize()
+}
