@@ -23,6 +23,11 @@ wrapper {
     distributionType Wrapper.DistributionType.BIN
 }
 
+ext {
+    // Default version bump performed by `version` task. Can be overriden by commandline `-Pbump` flag.
+    bump = project.properties["bump"] ?: "patch"
+}
+
 task lint(type: NpmTask) {
     args = "run lint".tokenize()
 }
@@ -37,8 +42,8 @@ task typeCheck(type: NpmTask) {
 
 /**
  * Like others in this file, this task is only intended to be run in CI.
- * It requires a `-Pbump` commandline arg. The options available are the same as the {bump} positional arg to
- * `lerna version`.
+ * It takes a `-Pbump` commandline arg, and defaults to "patch," as defined in `ext`. The options available are the
+ * same as the {bump} positional arg to `lerna version`.
  */
 task version(type: NpmTask) {
     args = "run version -- ${bump}".tokenize()
