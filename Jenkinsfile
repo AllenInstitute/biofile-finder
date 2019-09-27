@@ -102,7 +102,7 @@ pipeline {
 
                 // Build artifacts in all repos that have changed since last release (prior to running version command
                 // above) and publish those artifacts appropriately.
-                sh "./gradlew publishArtifact -Pscope='${CHANGED_SCOPES}'"
+                sh "./gradlew publishArtifact -Pscope='${CHANGED_SCOPES}' -PignoreScope='--ignore=fms-file-explorer-core'"
             }
         }
 

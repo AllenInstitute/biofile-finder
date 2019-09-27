@@ -29,6 +29,8 @@ ext {
 
     // Default scope filter that can be applied to any `lerna run` command. Can be overriden by commandline `-Pscope` flag.
     scope = project.properties["scope"] ?: ""
+
+    ignoreScope = project.properties["ignoreScope"] ?: ""
 }
 
 task build(type: NpmTask) {
@@ -44,7 +46,7 @@ task lint(type: NpmTask) {
 }
 
 task publishArtifact(type: NpmTask) {
-    args = "run publishArtifact -- ${scope}".tokenize()
+    args = "run publishArtifact -- ${scope} ${ignoreScope}".tokenize()
 }
 
 task setup(type: NpmTask) {
