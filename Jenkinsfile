@@ -93,11 +93,18 @@ pipeline {
                 equals expected: BUILD_ARTIFACT, actual: params.JOB_TYPE
             }
             environment {
-                CHANGED_SCOPES = sh(script: './gradlew changedScopes', returnStdout: true).trim()
                 DEPLOYMENT_ENV = "staging"
             }
             steps {
-                // Build artifacts in all repos that have changed since last release and publish those artifacts appropriately.
+                script {
+                    CHANGED_SCOPES = sh(script: "./gradlew changedScopes", returnStdout: true).trim()
+                }
+
+                // Increment version (as a prerelease)
+                sh "./gradlew version -Pbump=prerelease"
+
+                // Build artifacts in all repos that have changed since last release (prior to running version command
+                // above) and publish those artifacts appropriately.
                 sh "./gradlew publishArtifact -Pscope=${CHANGED_SCOPES}"
             }
         }
@@ -113,7 +120,7 @@ pipeline {
             }
             steps {
                 script {
-                    CHANGED_SCOPES = sh(script: './gradlew changedScopes', returnStdout: true).trim()
+                    CHANGED_SCOPES = sh(script: "./gradlew changedScopes", returnStdout: true).trim()
                 }
 
                 // Increment version
