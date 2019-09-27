@@ -95,7 +95,8 @@ pipeline {
                 DEPLOYMENT_ENV = "staging"
             }
             steps {
-                // TODO. Will call a lerna command to build artifacts in all repos.
+                // Call a lerna command to build artifacts in all repos and publish those artifacts appropriately.
+                sh "./gradlew publishArtifact"
             }
         }
 

@@ -8,6 +8,7 @@
     "url": "https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/fms-file-explorer/browse"
   },
   "scripts": {
+    "build": "npm-run-all --print-label clean makeDistDir --parallel bundle transpile",
     "bundle": "webpack --config ./webpack/webpack.config.js --env.env production",
     "clean": "rimraf dist",
     "format": "prettier --write src/**/*",
@@ -61,10 +62,12 @@
     "mini-css-extract-plugin": "0.8.0",
     "mocha": "6.2.0",
     "mock-css-modules": "1.0.0",
+    "npm-run-all": "4.1.5",
     "postcss-flexbugs-fixes": "4.1.0",
     "postcss-loader": "3.0.0",
     "postcss-preset-env": "6.7.0",
     "prettier": "1.18.2",
+    "rimraf": "3.0.0",
     "sinon": "7.4.2",
     "ts-node": "8.4.1",
     "typescript": "3.6.3",

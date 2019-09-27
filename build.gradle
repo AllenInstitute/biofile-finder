@@ -28,8 +28,16 @@ ext {
     bump = project.properties["bump"] ?: "patch"
 }
 
+task build(type: NpmTask) {
+    args = "run build".tokenize()
+}
+
 task lint(type: NpmTask) {
     args = "run lint".tokenize()
+}
+
+task publishArtifact(type: NpmTask) {
+    args = "run "
 }
 
 task test(type: NpmTask) {
