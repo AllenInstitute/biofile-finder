@@ -37,7 +37,7 @@ task lint(type: NpmTask) {
 }
 
 task publishArtifact(type: NpmTask) {
-    args = "run "
+    args = "run publishArtifact".tokenize()
 }
 
 task test(type: NpmTask) {

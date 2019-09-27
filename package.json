@@ -4,9 +4,10 @@
   "scripts": {
     "build": "lerna run build",
     "lint": "lerna run lint",
+    "publishArtifact": "lerna run publishArtifact",
     "test": "lerna run test",
     "typeCheck": "lerna run typeCheck",
-    "version": "lerna version --yes --no-commit-hooks --exact --no-push"
+    "version": "lerna version --yes --no-commit-hooks --exact"
   },
   "devDependencies": {
     "husky": "3.0.5",
