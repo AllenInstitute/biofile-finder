@@ -5,6 +5,7 @@
     "build": "lerna run build",
     "lint": "lerna run lint",
     "publishArtifact": "lerna run publishArtifact --scope=$(./scripts/get-changed-packages.js)",
+    "setup": "lerna bootstrap --hoist",
     "test": "lerna run test",
     "typeCheck": "lerna run typeCheck",
     "version": "lerna version --yes --no-commit-hooks --exact"

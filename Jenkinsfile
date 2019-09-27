@@ -53,7 +53,8 @@ pipeline {
             steps {
                 this.notifyBB("INPROGRESS")
                 // without credentialsId, the git parameters plugin fails to communicate with the repo
-                git url: "${env.GIT_URL}", branch: "${env.BRANCH_NAME}", credentialsId:"9b2bb39a-1b3e-40cd-b1fd-fee01ebef965"
+                git url: "${env.GIT_URL}", branch: "${env.BRANCH_NAME}", credentialsId: "9b2bb39a-1b3e-40cd-b1fd-fee01ebef965"
+                sh "./gradlew setup"
             }
         }
 

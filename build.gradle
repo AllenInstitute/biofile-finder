@@ -40,6 +40,10 @@ task publishArtifact(type: NpmTask) {
     args = "run publishArtifact".tokenize()
 }
 
+task setup(type: NpmTask) {
+    args = "run setup".tokenize()
+}
+
 task test(type: NpmTask) {
     args = "run test".tokenize()
 }
