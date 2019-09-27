@@ -7,15 +7,18 @@ const packageJson = require("../package.json");
 
 const { archiveName, archiveVersion } = require("./package-for-publish");
 
-const url = `https://artifactory.corp.alleninstitute.org/artifactory/maven-snapshot-local/org/alleninstitute/aics/${packageJson.name}/${archiveVersion}/${archiveName}`;
+const ARTIFACTORY_HOST = "artifactory.corp.alleninstitute.org";
+const ARTIFACTORY_PATH = `artifactory/maven-snapshot-local/org/alleninstitute/aics/${packageJson.name}/${archiveVersion}/${archiveName}`;
+const url = `https://${ARTIFACTORY_HOST}/${ARTIFACTORY_PATH}`;
 
-childProcess.execFile("curl", [
+childProcess.exec([
+    "curl",
     "-H", `"X-JFrog-Art-Api: ${process.env.ARTIFACTORY_API_KEY}"`,
     "-T", path.resolve(__dirname, "../", archiveName),
     "-X", "PUT",
     "--fail",
     url
-], (error, stdout, stderr) => {
+].join(" "), (error, stdout, stderr) => {
     if (error) {
         console.error(`Failed to PUT ${archiveName} into Artifactory`);
         console.error(error);
