@@ -26,10 +26,17 @@ wrapper {
 ext {
     // Default version bump performed by `version` task. Can be overriden by commandline `-Pbump` flag.
     bump = project.properties["bump"] ?: "patch"
+
+    // Default scope filter that can be applied to any `lerna run` command. Can be overriden by commandline `-Pscope` flag.
+    scope = project.properties["scope"] ?: ""
 }
 
 task build(type: NpmTask) {
     args = "run build".tokenize()
+}
+
+task changedScopes(type: NpmTask) {
+    args = "run changedScopes".tokenize()
 }
 
 task lint(type: NpmTask) {
@@ -37,7 +44,7 @@ task lint(type: NpmTask) {
 }
 
 task publishArtifact(type: NpmTask) {
-    args = "run publishArtifact".tokenize()
+    args = "run publishArtifact -- ${scope}".tokenize()
 }
 
 task setup(type: NpmTask) {

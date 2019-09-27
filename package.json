@@ -3,8 +3,9 @@
   "private": true,
   "scripts": {
     "build": "lerna run build",
+    "changedScopes": "./scripts/get-changed-scopes.js",
     "lint": "lerna run lint",
-    "publishArtifact": "lerna run publishArtifact --scope=$(./scripts/get-changed-packages.js)",
+    "publishArtifact": "lerna run publishArtifact",
     "setup": "lerna bootstrap --hoist",
     "test": "lerna run test",
     "typeCheck": "lerna run typeCheck",

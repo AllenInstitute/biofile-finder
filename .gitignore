@@ -11,3 +11,4 @@ build
 .project
 .settings
 .vscode
+*.log

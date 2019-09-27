@@ -93,11 +93,12 @@ pipeline {
                 equals expected: BUILD_ARTIFACT, actual: params.JOB_TYPE
             }
             environment {
+                CHANGED_SCOPES = sh(script: './gradlew changedScopes', returnStdout: true).trim()
                 DEPLOYMENT_ENV = "staging"
             }
             steps {
-                // Call a lerna command to build artifacts in all repos and publish those artifacts appropriately.
-                sh "./gradlew publishArtifact"
+                // Build artifacts in all repos that have changed since last release and publish those artifacts appropriately.
+                sh "./gradlew publishArtifact -Pscope=${CHANGED_SCOPES}"
             }
         }
 
@@ -111,10 +112,16 @@ pipeline {
                 DEPLOYMENT_ENV = "production"
             }
             steps {
-                // Increment version
-                sh "./gradlew version -Pbump ${params.VERSION_BUMP_TYPE}"
+                script {
+                    CHANGED_SCOPES = sh(script: './gradlew changedScopes', returnStdout: true).trim()
+                }
 
-                // TODO. Will call a lerna command to build artifacts in all repos.
+                // Increment version
+                sh "./gradlew version -Pbump=${params.VERSION_BUMP_TYPE}"
+
+                // Build artifacts in all repos that have changed since last release (prior to running version command
+                // above) and publish those artifacts appropriately.
+                sh "./gradlew publishArtifact -Pscope='${CHANGED_SCOPES}'"
             }
         }
 
