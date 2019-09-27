@@ -12,3 +12,4 @@ build
 .settings
 .vscode
 *.log
+*.tgz
