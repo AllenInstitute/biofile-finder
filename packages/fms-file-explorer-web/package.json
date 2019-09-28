@@ -9,7 +9,9 @@
     "format": "prettier --write src/**/*",
     "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
     "precommit": "lint-staged",
-    "publishArtifact": "./scripts/package-for-publish.js && ./scripts/publish-to-artifactory.js",
+    "packageForPublish": "./scripts/package-for-publish.js",
+    "publishToArtifactory": "./scripts/publish-to-artifactory.js",
+    "publishArtifact": "npm-run-all --sequential packageForPublish publishToArtifactory",
     "start": "webpack-dev-server --config ./webpack/webpack.config.js --env.env dev",
     "test": "BABEL_ENV=commonjs TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*",
     "typeCheck": "tsc -p tsconfig.json --noEmit"
@@ -58,6 +60,7 @@
     "mini-css-extract-plugin": "0.8.0",
     "mocha": "6.2.0",
     "mock-css-modules": "1.0.0",
+    "npm-run-all": "4.1.5",
     "postcss-flexbugs-fixes": "4.1.0",
     "postcss-loader": "3.0.0",
     "postcss-preset-env": "6.7.0",
