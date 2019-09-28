@@ -49,9 +49,8 @@ pipeline {
         PYTHON = "${VENV_BIN}/python3"
 
         // HACK until we can find a better way to work with project-local versions of nodejs on Jenkins (e.g., nvm or nave)
+        // When that day comes, this project no longer has a need for Gradle.
         NODE = "./.gradle/nodejs/node-v10.16.3-linux-x64/bin/node"
-        NPM = "./.gradle/npm/npm-v6.11.3/bin/npm"
-        NPX = "./.gradle/npm/npm-v6.11.3/bin/npx"
     }
     stages {
         stage ("initialize") {
@@ -99,6 +98,7 @@ pipeline {
             }
             environment {
                 DEPLOYMENT_ENV = "staging"
+                ARTIFACTORY_API_KEY = credentials("ci_publisher")
             }
             steps {
                 script {
@@ -119,6 +119,7 @@ pipeline {
             }
             environment {
                 DEPLOYMENT_ENV = "production"
+                ARTIFACTORY_API_KEY = credentials("ci_publisher")
             }
             steps {
                 script {
@@ -130,7 +131,7 @@ pipeline {
 
                 // Build artifacts in all repos that have changed since last release (prior to running version command
                 // above) and publish those artifacts appropriately.
-                sh "./gradlew publishArtifact -Pscope='${CHANGED_SCOPES}'"
+                sh "./gradlew publishArtifact -Pscope=\"${CHANGED_SCOPES}\""
             }
         }
 
