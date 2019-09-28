@@ -25,8 +25,10 @@ childProcess.exec([
         console.error(`Failed to PUT ${archiveName} into Artifactory`);
         console.error(error);
         console.error(stderr);
+        process.exit(1);
     } else {
         console.log(`Successfully PUT ${archiveName} into Artifactory`);
         console.log(stdout);
+        process.exit(0);
     }
 });
