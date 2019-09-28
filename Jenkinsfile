@@ -135,6 +135,7 @@ pipeline {
             }
         }
 
+        // TODO
         stage ("promote") {
             when {
                 equals expected: PROMOTE_ARTIFACT, actual: params.JOB_TYPE
@@ -144,7 +145,8 @@ pipeline {
             }
         }
 
-        stage ("deploy") {
+        // TODO
+        stage ("deploy:web") {
             when {
                 equals expected: DEPLOY_ARTIFACT, actual: params.JOB_TYPE
             }
@@ -153,7 +155,7 @@ pipeline {
                     ARTIFACTORY_REPO = DEPLOYMENT_TARGET_TO_MAVEN_REPO[params.DEPLOYMENT_TYPE]
                     S3_BUCKET = DEPLOYMENT_TARGET_TO_S3_BUCKET[params.DEPLOYMENT_TYPE]
                 }
-                // TODO.
+
                 sh "${PYTHON} ${VENV_BIN}/deploy_artifact -d --branch=${env.BRANCH_NAME} --deploy-env=${params.DEPLOYMENT_TYPE} maven-tgz S3 --artifactory-repo=${ARTIFACTORY_REPO} --bucket=${S3_BUCKET} ${params.GIT_TAG}"
             }
         }
