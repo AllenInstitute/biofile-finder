@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const styles = require("./style.css");
+const styles = require("./style.module.css");
 
 export default class App extends React.Component<{}, {}> {
     public render(): JSX.Element {

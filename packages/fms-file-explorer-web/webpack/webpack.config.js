@@ -38,7 +38,7 @@ module.exports = ({ analyze, env } = {}) => ({
             // this rule processes any CSS written for this project and contained in src/
             // it applies PostCSS plugins and converts it to CSS Modules
             {
-                test: /\.css/,
+                test: /\.module.css/,
                 include: [
                     path.resolve(__dirname, "../", "src")
                 ],
@@ -75,15 +75,36 @@ module.exports = ({ analyze, env } = {}) => ({
                 ],
             },
 
-            // this rule will handle any css imports out of node_modules; it does not apply PostCSS,
+            // this rule will handle any vanilla CSS imports out of node_modules; it does not apply PostCSS,
             // nor does it convert the imported css to CSS Modules
-            // e.g., importing antd component css
+            // use case: importing antd component css
             {
-                test: /\.css/,
+                test: (filepath) => filepath.endsWith(".css") && !filepath.endsWith(".module.css"),
                 include: /node_modules/,
                 use: [
                     { loader: MiniCssExtractPlugin.loader },
                     { loader: "css-loader" },
+                ],
+            },
+
+            // this rule will handle any CSS Module imports out of node_modules; it does not apply PostCSS
+            // use case: importing CSS Modules from fms-file-explorer-core
+            {
+                test: /\.module.css/,
+                include: /node_modules/,
+                use: [
+                    { loader: MiniCssExtractPlugin.loader },
+                    {
+                        loader: "css-loader",
+                        options: {
+                            importLoaders: 1,
+                            localsConvention: "camelCase",
+                            modules: {
+                                localIdentName: "[name]__[local]--[hash:base64:5]",
+                            },
+                            sourceMap: env !== Env.PRODUCTION
+                        }
+                    },
                 ],
             },
         ]
