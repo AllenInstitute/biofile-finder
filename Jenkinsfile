@@ -1,7 +1,8 @@
 // JOB_TYPE constants
-String BUILD_ARTIFACT = "BUILD_ARTIFACT"
-String DEPLOY_ARTIFACT = "DEPLOY_ARTIFACT"
-String PROMOTE_ARTIFACT = "PROMOTE_ARTIFACT"
+String INTEGRATION = "Integration build"
+String VERSION_BUILD_PUBLISH_ARTIFACT = "Version, build, and publish artifact"
+String DEPLOY_ARTIFACT = "Deploy artifact"  // TODO
+String PROMOTE_ARTIFACT = "Promote artifact"  // TODO
 
 // VERSION_BUMP_TYPE constants
 // The values of these constants must match the acceptable args to `lerna version`
@@ -28,21 +29,17 @@ pipeline {
         disableConcurrentBuilds()
         timeout(time: 1, unit: "HOURS")
     }
-    agent {
-        node {
-            label "docker"
-        }
-    }
+    agent any
     triggers {
         pollSCM("H */4 * * 1-5")
     }
     parameters {
         // N.b.: For choice parameters, the first choice is the default value
         // See https://github.com/jenkinsci/jenkins/blob/master/war/src/main/webapp/help/parameter/choice-choices.html
-        choice(name: "JOB_TYPE", choices: [BUILD_ARTIFACT, PROMOTE_ARTIFACT, DEPLOY_ARTIFACT], description: "Which type of job this is.")
-        choice(name: "VERSION_BUMP_TYPE", choices: [PATCH_VERSION_BUMP, MINOR_VERSION_BUMP, MAJOR_VERSION_BUMP], description: "Which kind of version bump to perform.")
+        choice(name: "JOB_TYPE", choices: [INTEGRATION, VERSION_BUILD_PUBLISH_ARTIFACT], description: "Which type of job this is.")
+        choice(name: "VERSION_BUMP_TYPE", choices: [PATCH_VERSION_BUMP, MINOR_VERSION_BUMP, MAJOR_VERSION_BUMP], description: "Which kind of version bump to perform. Only valid when JOB_TYPE is ${VERSION_BUILD_PUBLISH_ARTIFACT}.")
         choice(name: "DEPLOYMENT_TYPE", choices: [STAGING_DEPLOYMENT, PRODUCTION_DEPLOYMENT], description: "Target environment for deployment. Will determine which S3 bucket assets are deployed to and how the release history is written. This is only used if JOB_TYPE is ${DEPLOY_ARTIFACT}.")
-        gitParameter(name: "GIT_TAG", defaultValue: GIT_TAG_SENTINEL, type: "PT_TAG", sortMode: "DESCENDING_SMART", description: "Select a Git tag specifying the artifact which should be promoted or deployed. This is only used if JOB_TYPE is ${PROMOTE_ARTIFACT} or ${DEPLOY_ARTIFACT}")
+        gitParameter(name: "GIT_TAG", defaultValue: GIT_TAG_SENTINEL, type: "PT_TAG", sortMode: "DESCENDING_SMART", description: "Select a Git tag specifying the artifact which should be promoted or deployed. This is only used if JOB_TYPE is ${PROMOTE_ARTIFACT} or ${DEPLOY_ARTIFACT}.")
     }
     environment {
         VENV_BIN = "/local1/virtualenvs/jenkinstools/bin"
@@ -79,44 +76,24 @@ pipeline {
             }
         }
 
-        stage ("lint, typeCheck, and test") {
+        stage ("integration: lint, typeCheck, test, and build") {
             when {
                 expression { !IGNORE_AUTHORS.contains(gitAuthor()) }
-                equals expected: BUILD_ARTIFACT, actual: params.JOB_TYPE
+                equals expected: INTEGRATION, actual: params.JOB_TYPE
             }
             steps {
                 sh "./gradlew lint"
                 sh "./gradlew typeCheck"
                 sh "./gradlew test"
+                sh "./gradlew build"
             }
         }
 
-        stage ("build and push: non-master branch") {
-            when {
-                expression { !IGNORE_AUTHORS.contains(gitAuthor()) }
-                not { branch "master" }
-                equals expected: BUILD_ARTIFACT, actual: params.JOB_TYPE
-            }
-            environment {
-                DEPLOYMENT_ENV = "staging"
-                ARTIFACTORY_API_KEY = credentials("ci_publisher")
-            }
-            steps {
-                script {
-                    CHANGED_SCOPES = sh(script: "${NODE} ./scripts/get-changed-scopes.js", returnStdout: true).trim()
-                }
-
-                // Build artifacts in all repos that have changed since last release (prior to running version command
-                // above) and publish those artifacts appropriately.
-                sh "./gradlew publishArtifact -Pscope=\"${CHANGED_SCOPES}\" -PignoreScope=\"--ignore=fms-file-explorer-core\""
-            }
-        }
-
-        stage ("build and push: master branch") {
+        stage ("version, build, and publish") {
             when {
                 expression { !IGNORE_AUTHORS.contains(gitAuthor()) }
                 branch "master"
-                equals expected: BUILD_ARTIFACT, actual: params.JOB_TYPE
+                equals expected: VERSION_BUILD_PUBLISH_ARTIFACT, actual: params.JOB_TYPE
             }
             environment {
                 DEPLOYMENT_ENV = "production"
