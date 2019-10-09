@@ -4,14 +4,14 @@
   "description": "",
   "main": "src/index.tsx",
   "scripts": {
-    "bundle": "webpack --config ./webpack/webpack.config.js --env.env production",
+    "build": "webpack --config ./webpack/webpack.config.js --env.env production",
     "clean": "rimraf dist",
     "format": "prettier --write src/**/*",
     "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
     "precommit": "lint-staged",
     "packageForPublish": "./scripts/package-for-publish.js",
     "publishToArtifactory": "./scripts/publish-to-artifactory.js",
-    "publishArtifact": "npm-run-all --sequential packageForPublish publishToArtifactory",
+    "publishArtifact": "npm-run-all --sequential build packageForPublish publishToArtifactory",
     "start": "webpack-dev-server --config ./webpack/webpack.config.js --env.env dev",
     "test": "BABEL_ENV=commonjs TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*",
     "typeCheck": "tsc -p tsconfig.json --noEmit"
