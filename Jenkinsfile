@@ -37,9 +37,9 @@ pipeline {
         // N.b.: For choice parameters, the first choice is the default value
         // See https://github.com/jenkinsci/jenkins/blob/master/war/src/main/webapp/help/parameter/choice-choices.html
         choice(name: "JOB_TYPE", choices: [INTEGRATION, VERSION_BUILD_PUBLISH_ARTIFACT], description: "Which type of job this is.")
-        choice(name: "VERSION_BUMP_TYPE", choices: [PATCH_VERSION_BUMP, MINOR_VERSION_BUMP, MAJOR_VERSION_BUMP], description: "Which kind of version bump to perform. Only valid when JOB_TYPE is ${VERSION_BUILD_PUBLISH_ARTIFACT}.")
-        choice(name: "DEPLOYMENT_TYPE", choices: [STAGING_DEPLOYMENT, PRODUCTION_DEPLOYMENT], description: "Target environment for deployment. Will determine which S3 bucket assets are deployed to and how the release history is written. This is only used if JOB_TYPE is ${DEPLOY_ARTIFACT}.")
-        gitParameter(name: "GIT_TAG", defaultValue: GIT_TAG_SENTINEL, type: "PT_TAG", sortMode: "DESCENDING_SMART", description: "Select a Git tag specifying the artifact which should be promoted or deployed. This is only used if JOB_TYPE is ${PROMOTE_ARTIFACT} or ${DEPLOY_ARTIFACT}.")
+        choice(name: "VERSION_BUMP_TYPE", choices: [PATCH_VERSION_BUMP, MINOR_VERSION_BUMP, MAJOR_VERSION_BUMP], description: "Which kind of version bump to perform. Only valid when JOB_TYPE is '${VERSION_BUILD_PUBLISH_ARTIFACT}'.")
+        choice(name: "DEPLOYMENT_TYPE", choices: [STAGING_DEPLOYMENT, PRODUCTION_DEPLOYMENT], description: "Target environment for deployment. Will determine which S3 bucket assets are deployed to and how the release history is written. This is only used if JOB_TYPE is '${DEPLOY_ARTIFACT}'.")
+        gitParameter(name: "GIT_TAG", defaultValue: GIT_TAG_SENTINEL, type: "PT_TAG", sortMode: "DESCENDING_SMART", description: "Select a Git tag specifying the artifact which should be promoted or deployed. This is only used if JOB_TYPE is '${PROMOTE_ARTIFACT}' or '${DEPLOY_ARTIFACT}'.")
     }
     environment {
         VENV_BIN = "/local1/virtualenvs/jenkinstools/bin"
@@ -55,6 +55,13 @@ pipeline {
                 this.notifyBB("INPROGRESS")
                 // without credentialsId, the git parameters plugin fails to communicate with the repo
                 git url: "${env.GIT_URL}", branch: "${env.BRANCH_NAME}", credentialsId: "9b2bb39a-1b3e-40cd-b1fd-fee01ebef965"
+
+                // print the params used to run current job
+                print "JOB_TYPE: ${params.JOB_TYPE}"
+                print "VERSION_BUMP_TYPE: ${params.VERSION_BUMP_TYPE}"
+                print "DEPLOYMENT_TYPE: ${params.DEPLOYMENT_TYPE}"
+                print "GIT_TAG: ${params.GIT_TAG}"
+
                 sh "./gradlew npm_install"
                 sh "./gradlew setup"
             }
