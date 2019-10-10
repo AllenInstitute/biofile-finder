@@ -29,7 +29,7 @@
     "precommit": "lint-staged",
     "prepublish": "npm run build",
     "publishArtifact": "npm publish",
-    "test": "BABEL_ENV=commonjs TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*",
+    "test": "BABEL_ENV=commonjs TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts --recursive src/**/*.test.*",
     "transpile:pcss": "postcss 'src/**/*.css' --base src --dir es --verbose",
     "transpile:pcss:watch": "postcss 'src/**/*.css' --base src --dir es --verbose --watch",
     "transpile:ts": "babel src --out-dir es --extensions .ts,.tsx --ignore src/**/*.test.ts",
