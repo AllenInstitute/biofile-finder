@@ -1,12 +1,14 @@
+import "normalize.css";
 import * as React from "react";
 
-import AnnotationHierarchy from "../AnnotationHierarchy";
-import Breadcrumbs from "../Breadcrumbs";
-import FileDetails from "../FileDetails";
-import FileList from "../FileList";
-import HeaderRibbon from "../HeaderRibbon";
+import AnnotationHierarchy from "./containers/AnnotationHierarchy";
+import Breadcrumbs from "./containers/Breadcrumbs";
+import FileDetails from "./containers/FileDetails";
+import FileList from "./containers/FileList";
+import HeaderRibbon from "./containers/HeaderRibbon";
 
-const styles = require("./style.module.css");
+import "./styles/global.css";
+const styles = require("./App.module.css");
 
 export default function App() {
     return (

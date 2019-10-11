@@ -7,6 +7,9 @@ interface HeaderRibbonProps {
     className?: string;
 }
 
+/**
+ * Ribbon-like toolbar at the top of the application to contain features like application-level view options.
+ */
 export default function HeaderRibbon(props: HeaderRibbonProps) {
     return <div className={classNames(styles.root, props.className)}></div>;
 }
