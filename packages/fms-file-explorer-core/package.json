@@ -52,6 +52,7 @@
     "@types/lodash": "4.14.138",
     "@types/mocha": "5.2.7",
     "@types/react": "16.9.2",
+    "@types/react-redux": "7.1.4",
     "@types/sinon": "7.0.13",
     "@typescript-eslint/eslint-plugin": "2.2.0",
     "@typescript-eslint/parser": "2.2.0",
@@ -81,6 +82,7 @@
     "lodash": "4.17.15",
     "normalize.css": "8.0.1",
     "react": "16.9.0",
+    "react-redux": "7.1.1",
     "redux": "4.0.4",
     "redux-logic": "2.1.1",
     "reselect": "4.0.0"
