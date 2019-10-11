@@ -11,12 +11,9 @@
 
     --annotation-hierarchy-max-width: 350px;
     --breadcrumb-height: 40px;
-    --breadcrumb-bottom-margin: 12px;
     --file-details-width: 20%;
-    --file-list-margin-left: 12px;
     --header-ribbon-height: 40px;
-    --header-ribbon-bottom-margin: 12px;
-    --primary-margin-right: 12px;
+    --margin: 12px;
 
     composes: relative;
     margin: 0;
@@ -29,14 +26,14 @@
     display: block;
     width: 100%;
     height: var(--header-ribbon-height);
-    margin-bottom: var(--header-ribbon-bottom-margin);
 }
 
 .everything-except-header-ribbon {
     composes: relative;
     display: block;
-    width: 100%;
-    height: calc(100% - var(--header-ribbon-bottom-margin) - var(--header-ribbon-height));
+    margin: var(--margin);
+    width: calc(100% - (2 * var(--margin)));
+    height: calc(100% - (2 * var(--margin)) - var(--header-ribbon-height));
 }
 
 .core {
@@ -44,21 +41,21 @@
     display: flex;
     flex-direction: column;
     left: 0;
-    margin-right: var(--primary-margin-right);
-    width: calc(80% - var(--primary-margin-right));
+    margin-right: var(--margin);
+    width: calc(80% - var(--margin));
     height: 100%;
 }
 
 .breadcrumbs {
     width: 100%;
     height: var(--breadcrumb-height);
-    margin-bottom: var(--breadcrumb-bottom-margin);
+    margin-bottom: var(--margin);
 }
 
 .annotation-hierarchy-and-file-list {
     display: flex;
     width: 100%;
-    height: calc(100% - var(--breadcrumb-height) - var(--breadcrumb-bottom-margin));
+    height: calc(100% - var(--breadcrumb-height) - var(--margin));
 }
 
 .annotation-hierarchy {
@@ -70,7 +67,7 @@
 .file-list {
     height: 100%;
     flex: 1 1 70%;
-    margin-left: var(--file-list-margin-left);
+    margin-left: var(--margin);
 }
 
 .file-details {
