@@ -47,6 +47,18 @@ function makeSuccessResponse(data, hasMore = false, offset = 0) {
     };
 }
 
+// ensure assets directory exists
+try {
+    fs.accessSync(MOCK_DATA_DIR, fs.constants.F_OK)
+} catch (err) {
+    if (err.code === "ENOENT") {
+        console.log(`${MOCK_DATA_DIR} does not exist yet -- creating`);
+        fs.mkdirSync(MOCK_DATA_DIR);
+    } else {
+        throw err;
+    }
+}
+
 console.log("Generating data");
 const data = [];
 for (let i = 0; i < TOTAL_DATA_SIZE; i++) {
@@ -66,8 +78,8 @@ pages.forEach((page, pageIndex) => {
     const contents = makeSuccessResponse(page, TOTAL_DATA_SIZE > page.length + offset, offset);
     fs.writeFile(outfile, JSON.stringify(contents, null, 2), (err) => {
         if (err) {
-            console.error(`Failed to write ${outfile}`, err);
-            return;
+            console.error(`Failed to write ${outfile}`);
+            throw err;
         }
 
         console.log(`Wrote ${outfile}`);
