@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * CLI to generate arbitrary data of the shape expected to be returned by a future FMS File Explorer Query Service.
- * This is a temporary script intended to get development of the frontend moving and define data requirements.
+ * Generate mock data of the shape expected to be returned by a future FMS File Explorer Query Service.
+ *
+ * This is a temporary script intended to get development of the frontend moving and determine data requirements.
  */
 
 "use-strict";
