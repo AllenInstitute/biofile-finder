@@ -2,6 +2,7 @@
 
 /**
  * CLI to generate arbitrary data of the shape expected to be returned by a future FMS File Explorer Query Service.
+ * This is a temporary script intended to get development of the frontend moving and define data requirements.
  */
 
 "use-strict";
@@ -11,6 +12,8 @@ const path = require("path");
 
 const lodash = require('lodash');
 
+const TOTAL_DATA_SIZE = 100000;
+const DATA_PAGE_SIZE = 10000;
 const MOCK_DATA_DIR = path.resolve(__dirname, "..", "assets");
 
 /**
@@ -25,43 +28,39 @@ function makeFileDatum(index) {
 /**
  * Intended to have same contract as https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/api-response-java/browse/src/main/java/org/alleninstitute/aics/response/SuccessResponse.java
  */
-function makeSuccessResponse(data, totalCount = data.length, hasMore = false, offset = 0) {
+function makeSuccessResponse(data, hasMore = false, offset = 0) {
     return {
         data,
         hasMore,
         offset,
         responseType: "SUCCESS",
-        totalCount,
+        totalCount: TOTAL_DATA_SIZE,
     };
 }
 
-const dataPages = [
-    { baseName: "data", size: 100000, pageSize: 20000 },
-];
+console.log("Generating data");
+const data = [];
+for (let i = 0; i < TOTAL_DATA_SIZE; i++) {
+    data.push(makeFileDatum(i));
+}
 
-dataPages.forEach((dataPage) => {
-    console.log(`Generating data for ${dataPage.baseName}`);
-    const data = [];
-    for (let i = 0; i < dataPage.size; i++) {
-        data.push(makeFileDatum(i));
-    }
+// paginate by splitting the data into chunks of size DATA_PAGE_SIZE
+// save each page into its own json file
+const pages = lodash.chunk(data, DATA_PAGE_SIZE);
+pages.forEach((page, pageIndex) => {
+    const outfileName = `data-${pageIndex}.json`;
+    const outfile = `${MOCK_DATA_DIR}/${outfileName}`;
+    const offset = pageIndex * DATA_PAGE_SIZE;  // offset === number of rows to skip to get to current result set
 
-    const chunks = lodash.chunk(data, dataPage.pageSize);
-    chunks.forEach((dataChunk, pageIndex) => {
-        const outfileName = `${dataPage.baseName}-${pageIndex}.json`;
-        const outfile = `${MOCK_DATA_DIR}/${outfileName}`;
-        const offset = pageIndex * dataPage.pageSize;  // in this formulation, offset === number of rows to skip to get to current result set
+    console.log(`Writing ${page.length} datum to ${outfile}`);
 
-        console.log(`Writing ${dataChunk.length} data to ${outfile}`);
+    const contents = makeSuccessResponse(page, TOTAL_DATA_SIZE > page.length + offset, offset);
+    fs.writeFile(outfile, JSON.stringify(contents, null, 2), (err) => {
+        if (err) {
+            console.error(`Failed to write ${outfile}`, err);
+            return;
+        }
 
-        const contents = makeSuccessResponse(dataChunk, dataPage.size, dataPage.size > dataChunk.length + offset, offset);
-        fs.writeFile(outfile, JSON.stringify(contents, null, 2), (err) => {
-            if (err) {
-                console.error(`Failed to write ${outfile}`);
-                return;
-            }
-
-            console.log(`Wrote ${outfile}`);
-        });
+        console.log(`Wrote ${outfile}`);
     });
 });
