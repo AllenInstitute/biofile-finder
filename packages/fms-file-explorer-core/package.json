@@ -10,6 +10,7 @@
     "url": "https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/fms-file-explorer/browse"
   },
   "files": [
+    "assets",
     "es",
     "type-declarations",
     "README.md",
@@ -19,10 +20,11 @@
     "registry": "https://artifactory.corp.alleninstitute.org/artifactory/api/npm/npm-local/"
   },
   "scripts": {
-    "build": "npm-run-all --print-label clean --parallel generateTypes transpile:ts transpile:pcss",
-    "build:watch": "npm-run-all --print-label --parallel generateTypes:watch transpile:ts:watch transpile:pcss:watch",
-    "clean": "rimraf es type-declarations",
+    "build": "npm-run-all --print-label clean generateMockData  --parallel generateTypes transpile:ts transpile:pcss",
+    "build:watch": "npm-run-all --print-label --parallel generateMockData generateTypes:watch transpile:ts:watch transpile:pcss:watch",
+    "clean": "rimraf es type-declarations assets",
     "format": "prettier --write src/**/*",
+    "generateMockData": "./scripts/generate-data.js",
     "generateTypes": "tsc --emitDeclarationOnly",
     "generateTypes:watch": "tsc --emitDeclarationOnly --watch",
     "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
