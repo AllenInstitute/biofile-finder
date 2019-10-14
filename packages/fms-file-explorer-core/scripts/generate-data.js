@@ -15,14 +15,23 @@ const lodash = require('lodash');
 const TOTAL_DATA_SIZE = 100000;
 const DATA_PAGE_SIZE = 10000;
 const MOCK_DATA_DIR = path.resolve(__dirname, "..", "assets");
+const FILE_EXTENSIONS = ["czi", "ome.tiff", "tiff", "png", "bam"];
+const EARLIEST_CREATED_ON_DATE = new Date("01 Jan 2017 00:00:00 UTC");
 
 /**
  * Creates one filtered projection of a document that will live in a Mongo collection.
  */
 function makeFileDatum(index) {
+    // grab random extension out of FILE_EXTENSIONS
+    const ext = FILE_EXTENSIONS[Math.round(Math.random() * (FILE_EXTENSIONS.length - 1))];
+
     return {
+        created: new Date(Number(EARLIEST_CREATED_ON_DATE) + Math.random() * (Date.now() - EARLIEST_CREATED_ON_DATE)),
+        // eslint-disable-next-line @typescript-eslint/camelcase
         file_id: lodash.uniqueId(),
-    }
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        file_name: `file-${index}.${ext}`,
+    };
 }
 
 /**
