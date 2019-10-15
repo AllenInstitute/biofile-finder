@@ -20,6 +20,27 @@ export interface Actions {
  * the list and checking if any actions have passed through the middleware stack that equals (or loosely matches) a
  * given action or list of actions. The purpose of the internal class is to be able to provide a different API to test
  * code than the API used by action tracking middleware, but simultaneously allow both to access the same state.
+ *
+ * Example:
+ * In mock-redux-store.ts, a new ActionTracker instance is used in custom Redux middleware to track actions passed
+ * through the middleware stack.
+ *
+ * Then, in test code:
+ * // `actions` here comes from ActionTracker::actions
+ * > const [store, logicMiddleware, actions] = createMockReduxStore();
+ *
+ * // before
+ * > expect(actions.list).to.be.empty;
+ *
+ * // do action and wait for redux-logic to do its thing
+ * > store.dispatch({ type: "FOO", payload: 1234 })
+ * > await logicMiddleware.whenComplete();
+ *
+ * // after
+ * > expect(actions.list).to.be.an("array").of.length(1);
+ * > expect(actions.includes({ type: "FOO", payload: 1234 })).to.equal(true);
+ * > expect(actions.matches({ payload: 1234 })).to.equal(true);
+ *
  */
 export default class ActionTracker {
     private _trackedActions: AnyAction[] = [];
