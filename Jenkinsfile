@@ -47,7 +47,7 @@ pipeline {
 
         // HACK until we can find a better way to work with project-local versions of nodejs on Jenkins (e.g., nvm or nave)
         // When that day comes, this project no longer has a need for Gradle.
-        NODE = "./.gradle/nodejs/node-v10.16.3-linux-x64/bin/node"
+        NODE = "./.gradle/nodejs/node-v12.12.0-linux-x64/bin/node"
     }
     stages {
         stage ("initialize") {

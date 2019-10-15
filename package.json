@@ -1,5 +1,9 @@
 {
   "name": "root",
+  "engines": {
+    "node": "12.x",
+    "npm": "6.x"
+  },
   "private": true,
   "scripts": {
     "build": "lerna run build",
