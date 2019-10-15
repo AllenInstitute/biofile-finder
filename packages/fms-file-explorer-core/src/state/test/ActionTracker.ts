@@ -1,6 +1,10 @@
 import { isEqual, isMatch } from "lodash";
 import { AnyAction } from "redux";
 
+/**
+ * Interface available to test code for working with actions that have been queued to run against Redux store.
+ * Documented below.
+ */
 export interface Actions {
     list: AnyAction[];
     includes(search: AnyAction): boolean;
@@ -11,17 +15,16 @@ export interface Actions {
 }
 
 /**
- * Helper class for tracking Redux list as they pass through the Redux middleware stack. The internal class
- * _actionTracker, exposed by the `tracker` getter on the main class, contains some methods for working with the tracked
- * list, including resetting the cache of the list and checking if any list have passed through
- * the Middleware stack that matches a given action. The purpose of the internal class is to be able to provide a
- * different API to test code than the API used by action tracking middleware but allowing both to access the same
- * state.
+ * Helper class for tracking Redux actions as they pass through the middleware stack. The internal class `_actions`,
+ * exposed by the `actions` getter, contains some methods for working with the tracked actions list, including resetting
+ * the list and checking if any actions have passed through the middleware stack that equals (or loosely matches) a
+ * given action or list of actions. The purpose of the internal class is to be able to provide a different API to test
+ * code than the API used by action tracking middleware, but simultaneously allow both to access the same state.
  */
 export default class ActionTracker {
-    private _actions: AnyAction[];
+    private _trackedActions: AnyAction[] = [];
 
-    private _actionTracker: Actions = new (class {
+    private _actions: Actions = new (class {
         constructor(private superThis: ActionTracker) {
             this.superThis = superThis;
         }
@@ -30,7 +33,7 @@ export default class ActionTracker {
          * Get list of actions that have passed through Redux middleware stack.
          */
         public get list() {
-            return [...this.superThis._actions];
+            return [...this.superThis._trackedActions];
         }
 
         /**
@@ -57,7 +60,7 @@ export default class ActionTracker {
         }
 
         /**
-         * Answers the question: "Has an action that looks like this been put in the queue to run against the Redux
+         * Answers the question: "Has an action that _looks like this_ been put in the queue to run against the Redux
          * store?"
          *
          * Example:
@@ -69,7 +72,7 @@ export default class ActionTracker {
         }
 
         /**
-         * Answers the question: "Have actions that looks like these, in the provided order, been put in the queue to
+         * Answers the question: "Have actions that _look like these_, in the provided order, been put in the queue to
          * run against the Redux store?"
          *
          * Example:
@@ -84,54 +87,55 @@ export default class ActionTracker {
          * Reset cache of actions that have passed through Redux middleware stack.
          */
         public reset(): void {
-            this.superThis._actions = [];
+            this.superThis._trackedActions = [];
         }
 
         private _includes(
             search: AnyAction,
             comparator: (object: any, source: any) => boolean
         ): boolean {
-            return this.superThis._actions.some((action: AnyAction) => comparator(action, search));
+            return this.superThis._trackedActions.some((action: AnyAction) =>
+                comparator(action, search)
+            );
         }
 
         private _includesInOrder(
             search: AnyAction[],
             comparator: (object: any, source: any) => boolean
         ): boolean {
-            const indexOfFirst = this.superThis._actions.findIndex((action: AnyAction) =>
-                comparator(action, search[0])
+            const indexOfFirstToFind = this.superThis._trackedActions.findIndex(
+                (action: AnyAction) => comparator(action, search[0])
             );
-            const indexOfLast = indexOfFirst + search.length - 1;
+            const indexOfLastToFind = indexOfFirstToFind + search.length - 1;
 
             // first action in search list is not found or tracked actions list is too small to account for all actions
             // in search list
-            if (indexOfFirst === -1 || indexOfLast > this.superThis._actions.length - 1) {
+            if (
+                indexOfFirstToFind === -1 ||
+                indexOfLastToFind > this.superThis._trackedActions.length - 1
+            ) {
                 return false;
             }
 
-            // starting from `indexOfFirst` and ending at `indexOfLast`, assert that each tracked action includesMatch the
-            // action in the corresponding index position in `search`
-            return this.superThis._actions
-                .slice(indexOfFirst, indexOfLast + 1) // slice is exclusive of end index
+            // starting from `indexOfFirstToFind` and ending at `indexOfLastToFind`, assert that each tracked action
+            // has a corresponding action in the search list at the same index position
+            return this.superThis._trackedActions
+                .slice(indexOfFirstToFind, indexOfLastToFind + 1) // slice is exclusive of end index
                 .every((action: AnyAction, index: number) => comparator(action, search[index]));
         }
     })(this);
 
-    constructor() {
-        this._actions = [];
-    }
-
     /**
      * Expose internal class intended to be passed along to test code.
      */
-    public get actions() {
-        return this._actionTracker;
+    public get actions(): Actions {
+        return this._actions;
     }
 
     /**
      * Track a Redux action. Intended to be called only by Redux middleware.
      */
-    public track(action: AnyAction) {
-        this._actions.push(action);
+    public track(action: AnyAction): void {
+        this._trackedActions.push(action);
     }
 }

@@ -13,7 +13,23 @@ export interface ResponseStub {
 
 /**
  * Returns a stubbed version of axios that intercepts all outgoing HTTP requests. It can be provided with one or many
- * ResponseStubs, which
+ * ResponseStubs, which define a request to stub and the expected response.
+ *
+ * Example:
+ *
+ * const responseStubs: ResponseStub[] = [
+ *  {
+ *      when: "/api/1.0/foo/bar",
+ *      respondWith: { data: "Hello from the endpoint" }
+ *  },
+ *  {
+ *      when: (config: AxiosRequestConfig) => includes(config.headers, { "content-type": "application/json" }),
+ *      respondWith: { status: 406, statusText: "Nope" }
+ *  }
+ * ];
+ *
+ * const httpClient = mockHttpClient(responseStubs);
+ *
  */
 export default function mockHttpClient(responseStub: ResponseStub | ResponseStub[]): AxiosInstance {
     return axios.create({
