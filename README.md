@@ -19,7 +19,7 @@ $ git clone ssh://git@aicsbitbucket.corp.alleninstitute.org:7999/sw/fms-file-exp
 $ ./gradlew setup
 ```
 
-*The command `npx lerna bootstrap --hoist` takes care of all dependency installation. There is no need to go into a subpackage and run `npm install`.*
+**The command `npx lerna bootstrap --hoist` takes care of all dependency installation. There is no need to go into a subpackage and run `npm install`.**
 
 ### Once setup locally, if remote master has progressed beyond your local repo
 
