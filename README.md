@@ -6,18 +6,20 @@ A monorepo containing all frontend sub-projects related to the FMS File Explorer
 
 ### How to setup the monorepo locally
 
-If you're inclined to NOT use Gradle:
+If you *ARE NOT* inclined to use Gradle:
 ```bash
 $ git clone ssh://git@aicsbitbucket.corp.alleninstitute.org:7999/sw/fms-file-explorer.git  # duh
 $ npm install
 $ npx lerna bootstrap --hoist
 ```
 
-If you're include TO use Gradle:
+If you *ARE* include to use Gradle:
 ```bash
 $ git clone ssh://git@aicsbitbucket.corp.alleninstitute.org:7999/sw/fms-file-explorer.git  # duh
 $ ./gradlew setup
 ```
+
+*The command `npx lerna bootstrap --hoist` takes care of all dependency installation. There is no need to go into a subpackage and run `npm install`.*
 
 ### Once setup locally, if remote master has progressed beyond your local repo
 
