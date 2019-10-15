@@ -50,6 +50,8 @@ task publishArtifact(type: NpmTask) {
 }
 
 task setup(type: NpmTask) {
+    dependsOn npmInstall
+
     args = "run setup".tokenize()
 }
 

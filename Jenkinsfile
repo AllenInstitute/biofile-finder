@@ -62,7 +62,6 @@ pipeline {
                 print "DEPLOYMENT_TYPE: ${params.DEPLOYMENT_TYPE}"
                 print "GIT_TAG: ${params.GIT_TAG}"
 
-                sh "./gradlew npm_install"
                 sh "./gradlew setup"
             }
         }
