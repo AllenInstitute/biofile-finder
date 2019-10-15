@@ -13,7 +13,9 @@ export interface ResponseStub {
 
 /**
  * Returns a stubbed version of axios that intercepts all outgoing HTTP requests. It can be provided with one or many
- * ResponseStubs, which define a request to stub and the expected response.
+ * ResponseStubs, which define a request to stub and the expected response. It will use the first matching ResponseStub,
+ * so in that way the ResponseStubs are order dependent. E.g., if two ResponseStubs are provided that have the same
+ * `when` condition, only the first will be applied if a request matches that `when`.
  *
  * Example:
  *
