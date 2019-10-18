@@ -55,6 +55,8 @@
     "@types/mocha": "5.2.7",
     "@types/react": "16.9.2",
     "@types/react-redux": "7.1.4",
+    "@types/react-window-infinite-loader": "1.0.1",
+    "@types/redux": "3.6.0",
     "@types/sinon": "7.0.13",
     "@typescript-eslint/eslint-plugin": "2.2.0",
     "@typescript-eslint/parser": "2.2.0",
@@ -85,6 +87,7 @@
     "normalize.css": "8.0.1",
     "react": "16.9.0",
     "react-redux": "7.1.1",
+    "react-window-infinite-loader": "1.0.5",
     "redux": "4.0.4",
     "redux-logic": "2.1.1",
     "reselect": "4.0.0"
