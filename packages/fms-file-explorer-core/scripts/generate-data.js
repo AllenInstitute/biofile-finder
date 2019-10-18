@@ -13,8 +13,8 @@ const path = require("path");
 
 const lodash = require('lodash');
 
-const TOTAL_DATA_SIZE = 100000;
-const DATA_PAGE_SIZE = 10000;
+const TOTAL_DATA_SIZE = 10000;
+const DATA_PAGE_SIZE = TOTAL_DATA_SIZE; // GM 10/18/2019 turn off pagination until we need it
 const MOCK_DATA_DIR = path.resolve(__dirname, "..", "assets");
 const FILE_EXTENSIONS = ["czi", "ome.tiff", "tiff", "png", "bam"];
 const EARLIEST_CREATED_ON_DATE = new Date("01 Jan 2017 00:00:00 UTC");
@@ -28,10 +28,9 @@ function makeFileDatum(index) {
 
     return {
         created: new Date(Number(EARLIEST_CREATED_ON_DATE) + Math.random() * (Date.now() - EARLIEST_CREATED_ON_DATE)),
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        file_id: lodash.uniqueId(),
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        file_name: `file-${index}.${ext}`,
+        file_id: lodash.uniqueId(), // eslint-disable-line @typescript-eslint/camelcase
+        file_index: index, // eslint-disable-line @typescript-eslint/camelcase
+        file_name: `file-${index}.${ext}`, // eslint-disable-line @typescript-eslint/camelcase
     };
 }
 
