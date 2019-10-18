@@ -1,6 +1,9 @@
 import * as classNames from "classnames";
 import * as React from "react";
 
+import LazyWindowedFileList from "../../components/LazyWindowedFileList";
+import FileRow from "../../components/FileRow";
+
 const styles = require("./style.module.css");
 
 interface FileListProps {
@@ -13,5 +16,9 @@ interface FileListProps {
  * files should be grouped.
  */
 export default function FileList(props: FileListProps) {
-    return <div className={classNames(styles.root, props.className)}></div>;
+    return (
+        <div className={classNames(styles.root, props.className)}>
+            <LazyWindowedFileList fileRow={FileRow} />
+        </div>
+    );
 }
