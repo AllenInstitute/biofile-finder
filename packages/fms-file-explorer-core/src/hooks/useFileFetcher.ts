@@ -3,7 +3,14 @@ import * as LRUCache from "lru-cache";
 import * as React from "react";
 
 import RestServiceResponse from "../entity/RestServiceResponse";
-import { FmsFile } from "../state/file/reducer";
+
+export interface FmsFile {
+    [key: string]: any;
+    file_id: string;
+    // Index within the filtered result set this file was requested as a part of; global within the full set, not just
+    // the paginated set returned from a single API call. Important to our ability to present a windowed list.
+    file_index: number;
+}
 
 interface Opts {
     maxCacheSize?: number;

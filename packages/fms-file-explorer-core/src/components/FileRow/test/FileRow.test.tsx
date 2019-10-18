@@ -3,7 +3,7 @@ import { shallow } from "enzyme";
 import { omit } from "lodash";
 import * as React from "react";
 
-import { FmsFile } from "../../../state/file/reducer";
+import { FmsFile } from "../../../hooks/useFileFetcher";
 
 import FileRow from "../";
 
