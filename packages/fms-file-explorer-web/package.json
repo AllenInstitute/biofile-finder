@@ -75,9 +75,11 @@
     "webpack-dev-server": "3.8.0"
   },
   "dependencies": {
+    "core-js": "3.3.2",
     "fms-file-explorer-core": "*",
     "react": "16.9.0",
     "react-dom": "16.9.0",
-    "react-redux": "7.1.1"
+    "react-redux": "7.1.1",
+    "regenerator-runtime": "0.13.3"
   }
 }
