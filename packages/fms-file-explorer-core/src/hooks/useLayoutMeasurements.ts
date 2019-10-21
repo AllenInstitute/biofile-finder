@@ -15,9 +15,12 @@ export default function useLayoutMeasurements(ref: React.RefObject<HTMLElement>)
     const resizeListener = React.useCallback(
         debounce(() => {
             if (ref.current) {
-                const { height, width } = ref.current.getBoundingClientRect();
-                setHeight(height);
-                setWidth(width);
+                const {
+                    height: currentHeight,
+                    width: currentWidth,
+                } = ref.current.getBoundingClientRect();
+                setHeight(currentHeight);
+                setWidth(currentWidth);
             }
         }, DEBOUNCE_WAIT_TO_REMEASURE),
         [ref.current] // recreate callback only if ref.current changes
