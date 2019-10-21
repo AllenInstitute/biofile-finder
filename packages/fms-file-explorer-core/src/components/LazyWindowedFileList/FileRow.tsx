@@ -3,8 +3,17 @@ import * as React from "react";
 
 import { FmsFile } from "../LazyWindowedFileList/useFileFetcher";
 
+/**
+ * Contextual data passed to FileRows by react-window. Basically a light-weight React context. The same data is passed
+ * to each FileRow.
+ */
+export interface FileRowContext {
+    files: Map<number, FmsFile>;
+    level: number; // maps to how far indented the first column of the file row should be
+}
+
 interface FileRowProps {
-    data: Map<number, FmsFile>; // injected by react-window
+    data: FileRowContext; // injected by react-window
     index: number; // injected by react-window
     style: React.CSSProperties; // injected by react-window
 }
@@ -17,8 +26,8 @@ export default function FileRow(props: FileRowProps) {
 
     let content;
 
-    if (data.has(index)) {
-        content = JSON.stringify(omit(props.data.get(props.index), "file_index"));
+    if (data.files.has(index)) {
+        content = JSON.stringify(omit(props.data.files.get(props.index), "file_index"));
     } else {
         content = "Loading...";
     }

@@ -13,6 +13,7 @@ const styles = require("./style.module.css");
 const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 50; // ms
 
 interface LazyWindowedFileListProps {
+    level: number; // maps to how far indented the first column of the file row should be
     rowHeight: number; // how tall each row of the list will be, in px
 }
 
@@ -21,7 +22,7 @@ interface LazyWindowedFileListProps {
  * itself out to be 100% the height and width of its parent.
  */
 export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
-    const { rowHeight } = props;
+    const { level, rowHeight } = props;
 
     const rootEl = React.useRef<HTMLDivElement>(null);
     const [height] = useLayoutMeasurements(rootEl);
@@ -38,7 +39,7 @@ export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
             >
                 {({ onItemsRendered, ref }) => (
                     <FixedSizeList
-                        itemData={files}
+                        itemData={{ files, level }}
                         itemSize={rowHeight} // row height
                         height={height} // height of the list itself; affects number of rows rendered at any given time
                         itemCount={totalCount}
@@ -55,5 +56,6 @@ export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
 }
 
 LazyWindowedFileList.defaultProps = {
+    level: 0,
     rowHeight: 30,
 };
