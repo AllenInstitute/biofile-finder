@@ -31,7 +31,9 @@ export default function useFileFetcher(
     opts?: Opts
 ): [LRUCache<number, FmsFile>, number, (start: number, end: number) => Promise<void>] {
     const { maxCacheSize } = defaults(opts, defaultOpts);
-    const [files, setFiles] = React.useState(new LRUCache<number, FmsFile>({ max: maxCacheSize }));
+    const [files, setFiles] = React.useState(
+        () => new LRUCache<number, FmsFile>({ max: maxCacheSize })
+    );
     const [totalCount, setTotalCount] = React.useState(INITIAL_TOTAL_COUNT);
 
     const fetchFiles = async (startIndex: number, endIndex: number) => {
