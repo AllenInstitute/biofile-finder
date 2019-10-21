@@ -5,7 +5,7 @@ import * as React from "react";
 
 import { FmsFile } from "../../LazyWindowedFileList/useFileFetcher";
 
-import FileRow from "../";
+import FileRow from "../FileRow";
 
 describe("<FileRow />", () => {
     let data: Map<number, FmsFile>;

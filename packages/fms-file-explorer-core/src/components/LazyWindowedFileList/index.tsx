@@ -1,17 +1,18 @@
 import * as debouncePromise from "debounce-promise";
 import * as React from "react";
-import { FixedSizeList, ListChildComponentProps } from "react-window";
+import { FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 
 import useFileFetcher from "./useFileFetcher";
 import useLayoutMeasurements from "./useLayoutMeasurements";
+
+import FileRow from "./FileRow";
 
 const styles = require("./style.module.css");
 
 const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 50; // ms
 
 interface LazyWindowedFileListProps {
-    fileRow: React.ComponentType<ListChildComponentProps>;
     rowHeight: number; // how tall each row of the list will be, in px
 }
 
@@ -20,7 +21,7 @@ interface LazyWindowedFileListProps {
  * itself out to be 100% the height and width of its parent.
  */
 export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
-    const { fileRow, rowHeight } = props;
+    const { rowHeight } = props;
 
     const rootEl = React.useRef<HTMLDivElement>(null);
     const [height] = useLayoutMeasurements(rootEl);
@@ -45,7 +46,7 @@ export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
                         ref={ref}
                         width="100%"
                     >
-                        {fileRow}
+                        {FileRow}
                     </FixedSizeList>
                 )}
             </InfiniteLoader>
