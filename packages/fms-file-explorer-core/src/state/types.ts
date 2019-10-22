@@ -1,8 +1,8 @@
 import { AxiosInstance } from "axios";
 import { AnyAction } from "redux";
 
-import { MetadataStateBranch } from "./metadata/types";
-import { SelectionStateBranch } from "./selection/types";
+import { MetadataStateBranch } from "./metadata/reducer";
+import { SelectionStateBranch } from "./selection/reducer";
 
 export interface ActionDescription {
     accepts: (action: AnyAction) => boolean;

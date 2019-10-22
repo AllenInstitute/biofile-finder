@@ -1,25 +1,34 @@
-import { AxiosResponse } from "axios";
+import { map } from "lodash";
+import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
+
+import Annotation from "../../entity/Annotation";
 
 import { ReduxLogicDeps } from "../types";
 
-import { receiveMetadata } from "./actions";
-import { REQUEST_METADATA } from "./constants";
-import { ReceiveAction } from "./types";
+import { receiveAnnotations, REQUEST_ANNOTATIONS } from "./actions";
 
-const requestMetadata = createLogic({
-    process(deps: ReduxLogicDeps, dispatch: (action: ReceiveAction) => void, done: () => void) {
-        const { baseApiUrl, httpClient } = deps;
-
-        httpClient
-            .get(`${baseApiUrl}/metadata`)
-            .then((metadata: AxiosResponse) => dispatch(receiveMetadata(metadata.data)))
-            .catch((reason) => {
-                console.log(reason);
-            })
-            .then(done);
+/**
+ * Interceptor responsible for turning REQUEST_ANNOTATIONS action into a network call for available annotations. Outputs
+ * RECEIVE_ANNOTATIONS actions.
+ */
+const requestAnnotations = createLogic({
+    process(deps: ReduxLogicDeps, dispatch: (action: AnyAction) => void, done: () => void) {
+        // (GM 10/22/2019) Temporary until we have a query service.
+        Promise.resolve(require("../../../assets/annotations.json"))
+            .then((annotationsResponse) =>
+                map(
+                    annotationsResponse.data,
+                    (annotationsResponse) => new Annotation(annotationsResponse)
+                )
+            )
+            .then((annotations) => dispatch(receiveAnnotations(annotations)))
+            .catch((err) =>
+                console.error("Something went wrong, nobody knows why. But here's a hint:", err)
+            )
+            .finally(done);
     },
-    type: REQUEST_METADATA,
+    type: REQUEST_ANNOTATIONS,
 });
 
-export default [requestMetadata];
+export default [requestAnnotations];

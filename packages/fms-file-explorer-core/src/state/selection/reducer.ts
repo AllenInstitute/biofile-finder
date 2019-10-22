@@ -4,13 +4,11 @@ import { AnyAction } from "redux";
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 
-import { DESELECT_FILE, SELECT_FILE, SELECT_METADATA } from "./constants";
-import {
-    DeselectFileAction,
-    SelectFileAction,
-    SelectionStateBranch,
-    SelectMetadataAction,
-} from "./types";
+import { DESELECT_FILE, DeselectFileAction, SELECT_FILE, SelectFileAction } from "./actions";
+
+export interface SelectionStateBranch {
+    files: string[];
+}
 
 export const initialState = {
     files: [],
@@ -29,14 +27,6 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SelectFileAction) => ({
             ...state,
             files: [...state.files, ...castArray(action.payload)],
-        }),
-    },
-    [SELECT_METADATA]: {
-        accepts: (action: AnyAction): action is SelectMetadataAction =>
-            action.type === SELECT_METADATA,
-        perform: (state: SelectionStateBranch, action: SelectMetadataAction) => ({
-            ...state,
-            [action.key]: action.payload,
         }),
     },
 };
