@@ -3,8 +3,8 @@ import * as React from "react";
 import { FixedSizeList, ListChildComponentProps } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 
-import useFileFetcher from "../../hooks/useFileFetcher";
-import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
+import useFileFetcher from "./useFileFetcher";
+import useLayoutMeasurements from "./useLayoutMeasurements";
 
 const styles = require("./style.module.css");
 

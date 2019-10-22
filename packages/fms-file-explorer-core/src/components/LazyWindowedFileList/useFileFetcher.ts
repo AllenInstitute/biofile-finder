@@ -2,7 +2,7 @@ import { defaults } from "lodash";
 import * as LRUCache from "lru-cache";
 import * as React from "react";
 
-import RestServiceResponse from "../entity/RestServiceResponse";
+import RestServiceResponse from "../../entity/RestServiceResponse/index";
 
 export interface FmsFile {
     [key: string]: any;
@@ -41,7 +41,7 @@ export default function useFileFetcher(
         // network request.
         const response = await new Promise<RestServiceResponse>((resolve) => {
             setTimeout(() => {
-                const res = require("../../assets/data-0.json");
+                const res = require("../../../assets/data-0.json");
                 // In a real API call this will be unnecessary, but until then, need to grab just the subset of
                 // data requested.
                 const requestedRange = res.data.slice(startIndex, endIndex + 1);

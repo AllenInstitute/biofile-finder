@@ -1,7 +1,7 @@
 import { omit } from "lodash";
 import * as React from "react";
 
-import { FmsFile } from "../../hooks/useFileFetcher";
+import { FmsFile } from "../LazyWindowedFileList/useFileFetcher";
 
 interface FileRowProps {
     data: Map<number, FmsFile>; // injected by react-window
