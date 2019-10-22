@@ -4,7 +4,11 @@ import { FmsFile } from "../../components/LazyWindowedFileList/useFileFetcher";
 
 import annotationFormatterFactory, { AnnotationFormatter } from "../AnnotationFormatter";
 
+/**
+ * Expected JSON structure of an annotation returned from the query service.
+ */
 export interface AnnotationResponse {
+    annotation_display_name: string;
     annotation_name: string;
     description: string;
     type: string;
