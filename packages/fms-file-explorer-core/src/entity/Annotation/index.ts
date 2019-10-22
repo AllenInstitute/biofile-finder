@@ -11,6 +11,9 @@ export interface AnnotationResponse {
     units?: string;
 }
 
+/**
+ * Representation of an annotation available for filtering, grouping, or sorting files from FMS.
+ */
 export default class Annotation {
     public static MISSING_VALUE = "< MISSING >";
 
