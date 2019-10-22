@@ -29,6 +29,10 @@ export default class Annotation {
         this.formatter = annotationFormatterFactory(this.annotation.type);
     }
 
+    public get name(): string {
+        return this.annotation.annotation_name;
+    }
+
     /**
      * Get the annotation this instance represents from a given FmsFile. E.g., given an FmsFile that looks like:
      *  const fmsFile = { "file_size": 5000000000 }
