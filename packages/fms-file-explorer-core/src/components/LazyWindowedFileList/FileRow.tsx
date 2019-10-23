@@ -1,15 +1,18 @@
-import { omit } from "lodash";
+import { map } from "lodash";
 import * as React from "react";
 
-import { FmsFile } from "../LazyWindowedFileList/useFileFetcher";
+import Annotation from "../../entity/Annotation";
+
+import { FmsFile } from "./useFileFetcher";
 
 /**
  * Contextual data passed to FileRows by react-window. Basically a light-weight React context. The same data is passed
  * to each FileRow.
  */
 export interface FileRowContext {
+    displayAnnotations: Annotation[];
     files: Map<number, FmsFile>;
-    level: number; // maps to how far indented the first column of the file row should be
+    level: number; // maps to how far indented the first column of the file row should be to
 }
 
 interface FileRowProps {
@@ -22,15 +25,23 @@ interface FileRowProps {
  * A single file in the listing of available files FMS.
  */
 export default function FileRow(props: FileRowProps) {
-    const { data, index } = props;
+    const {
+        data: { displayAnnotations, files },
+        index,
+        style,
+    } = props;
 
     let content;
 
-    if (data.files.has(index)) {
-        content = JSON.stringify(omit(props.data.files.get(props.index), "file_index"));
+    const file = files.get(index);
+    if (file) {
+        const displayValues = map(displayAnnotations, (annotation) =>
+            annotation.getDisplayValue(file)
+        );
+        content = displayValues.join(" | ");
     } else {
         content = "Loading...";
     }
 
-    return <div style={props.style}>{content}</div>;
+    return <div style={style}>{content}</div>;
 }

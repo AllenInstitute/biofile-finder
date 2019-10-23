@@ -1,7 +1,9 @@
 import * as classNames from "classnames";
 import * as React from "react";
+import { useSelector } from "react-redux";
 
 import LazyWindowedFileList from "../../components/LazyWindowedFileList";
+import { selection } from "../../state";
 
 const styles = require("./style.module.css");
 
@@ -15,9 +17,11 @@ interface FileListProps {
  * files should be grouped.
  */
 export default function FileList(props: FileListProps) {
+    const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
+
     return (
         <div className={classNames(styles.root, props.className)}>
-            <LazyWindowedFileList />
+            <LazyWindowedFileList displayAnnotations={annotations} />
         </div>
     );
 }

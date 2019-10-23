@@ -3,16 +3,18 @@ import * as React from "react";
 import { FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 
-import useFileFetcher from "./useFileFetcher";
-import useLayoutMeasurements from "./useLayoutMeasurements";
+import Annotation from "../../entity/Annotation";
 
 import FileRow from "./FileRow";
+import useFileFetcher from "./useFileFetcher";
+import useLayoutMeasurements from "./useLayoutMeasurements";
 
 const styles = require("./style.module.css");
 
 const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 50; // ms
 
 interface LazyWindowedFileListProps {
+    displayAnnotations: Annotation[];
     level: number; // maps to how far indented the first column of the file row should be
     rowHeight: number; // how tall each row of the list will be, in px
 }
@@ -22,7 +24,7 @@ interface LazyWindowedFileListProps {
  * itself out to be 100% the height and width of its parent.
  */
 export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
-    const { level, rowHeight } = props;
+    const { displayAnnotations, level, rowHeight } = props;
 
     const rootEl = React.useRef<HTMLDivElement>(null);
     const [height] = useLayoutMeasurements(rootEl);
@@ -39,7 +41,7 @@ export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
             >
                 {({ onItemsRendered, ref }) => (
                     <FixedSizeList
-                        itemData={{ files, level }}
+                        itemData={{ displayAnnotations, files, level }}
                         itemSize={rowHeight} // row height
                         height={height} // height of the list itself; affects number of rows rendered at any given time
                         itemCount={totalCount}
