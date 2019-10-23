@@ -1,16 +1,31 @@
 import "normalize.css";
 import * as React from "react";
+import { useDispatch } from "react-redux";
 
 import AnnotationHierarchy from "./containers/AnnotationHierarchy";
 import Breadcrumbs from "./containers/Breadcrumbs";
 import FileDetails from "./containers/FileDetails";
 import FileList from "./containers/FileList";
 import HeaderRibbon from "./containers/HeaderRibbon";
+import { metadata } from "./state";
 
 import "./styles/global.css";
 const styles = require("./App.module.css");
 
+/**
+ * Custom React hook to kick off the process of requesting metadata needed by the application. Only run once, on
+ * component mount.
+ */
+function useApplicationMetadata() {
+    const dispatch = useDispatch();
+    React.useEffect(() => {
+        dispatch(metadata.actions.requestAnnotations());
+    }, []); // only run on mount
+}
+
 export default function App() {
+    useApplicationMetadata();
+
     return (
         <div className={styles.root}>
             <HeaderRibbon className={styles.headerRibbon} />
