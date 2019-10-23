@@ -5,10 +5,10 @@ import * as React from "react";
 
 import Annotation from "../../../entity/Annotation";
 
-import FileRow from "../FileRow";
+import LazilyRenderedRow from "../LazilyRenderedRow";
 import { FmsFile } from "../useFileFetcher";
 
-describe("<FileRow />", () => {
+describe("<LazilyRenderedRow />", () => {
     const annotations = [
         new Annotation({
             annotation_display_name: "Name", // eslint-disable-line @typescript-eslint/camelcase
@@ -26,7 +26,7 @@ describe("<FileRow />", () => {
 
     it("renders data when it's available", () => {
         const wrapper = shallow(
-            <FileRow
+            <LazilyRenderedRow
                 data={{ displayAnnotations: annotations, level: 0, files }}
                 index={3}
                 style={{}}
@@ -39,7 +39,7 @@ describe("<FileRow />", () => {
 
     it("renders a loading indicator when data is not available", () => {
         const wrapper = shallow(
-            <FileRow
+            <LazilyRenderedRow
                 data={{ displayAnnotations: annotations, level: 0, files }}
                 index={23}
                 style={{}}

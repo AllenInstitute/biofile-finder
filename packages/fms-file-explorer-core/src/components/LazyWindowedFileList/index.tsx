@@ -5,7 +5,7 @@ import InfiniteLoader from "react-window-infinite-loader";
 
 import Annotation from "../../entity/Annotation";
 
-import FileRow from "./FileRow";
+import LazilyRenderedRow from "./LazilyRenderedRow";
 import useFileFetcher from "./useFileFetcher";
 import useLayoutMeasurements from "./useLayoutMeasurements";
 
@@ -49,7 +49,7 @@ export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
                         ref={ref}
                         width="100%"
                     >
-                        {FileRow}
+                        {LazilyRenderedRow}
                     </FixedSizeList>
                 )}
             </InfiniteLoader>

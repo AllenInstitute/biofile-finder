@@ -6,17 +6,17 @@ import Annotation from "../../entity/Annotation";
 import { FmsFile } from "./useFileFetcher";
 
 /**
- * Contextual data passed to FileRows by react-window. Basically a light-weight React context. The same data is passed
- * to each FileRow.
+ * Contextual data passed to LazilyRenderedRows by react-window. Basically a light-weight React context. The same data
+ * is passed to each LazilyRenderedRow.
  */
-export interface FileRowContext {
+export interface LazilyRenderedRowContext {
     displayAnnotations: Annotation[];
     files: Map<number, FmsFile>;
     level: number; // maps to how far indented the first column of the file row should be to
 }
 
-interface FileRowProps {
-    data: FileRowContext; // injected by react-window
+interface LazilyRenderedRowProps {
+    data: LazilyRenderedRowContext; // injected by react-window
     index: number; // injected by react-window
     style: React.CSSProperties; // injected by react-window
 }
@@ -24,7 +24,7 @@ interface FileRowProps {
 /**
  * A single file in the listing of available files FMS.
  */
-export default function FileRow(props: FileRowProps) {
+export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     const {
         data: { displayAnnotations, files },
         index,
