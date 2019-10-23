@@ -1,4 +1,4 @@
-import filesize from "filesize";
+import * as filesize from "filesize";
 
 export default function numberFormatter(value: string | number, units?: string): string {
     if (units === "bytes") {
