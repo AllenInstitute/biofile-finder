@@ -36,7 +36,7 @@ const annotations = [
         "annotation_name": "file_size",
         description: "Size of file on disk",
         type: "number",
-        unit: "bytes",
+        units: "bytes",
     }
 ];
 
