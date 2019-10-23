@@ -26,8 +26,9 @@ const requestAnnotations = createLogic({
             .then((annotations) => {
                 const initialAnnotationsToDisplay = [
                     find(annotations, (annotation) => annotation.name === "file_name"),
-                    find(annotations, (annotation) => annotation.name === "file_size"),
                     find(annotations, (annotation) => annotation.name === "created"),
+                    find(annotations, (annotation) => annotation.name === "created_by"),
+                    find(annotations, (annotation) => annotation.name === "file_size"),
                 ];
 
                 dispatch(receiveAnnotations(annotations));
