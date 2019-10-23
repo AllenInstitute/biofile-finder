@@ -47,7 +47,7 @@ function makeFileDatum(index) {
     };
 }
 
-console.log("Generating data");
+console.log("Generating files metadata");
 ensureAssetsDirExists();
 
 const data = [];
