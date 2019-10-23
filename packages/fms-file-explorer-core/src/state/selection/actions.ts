@@ -1,37 +1,58 @@
+import Annotation from "../../entity/Annotation";
+
 import { makeConstant } from "../util";
 
 const STATE_BRANCH_NAME = "selection";
 
 /**
- * Intention to set a file as selected.
+ * SELECT_DISPLAY_ANNOTATION
+ *
+ * Intention to select one or many annotations for a file to display in the file list (i.e., as a column).
+ *
+ * For example, by default, we may only see "File name | File size | Date created" as the columns in the file list. This
+ * is the mechanism for a user to then add or remove a column to view.
  */
-export const SELECT_FILE = makeConstant(STATE_BRANCH_NAME, "select-file");
+export const SELECT_DISPLAY_ANNOTATION = makeConstant(
+    STATE_BRANCH_NAME,
+    "select-display-annotation"
+);
 
-export interface SelectFileAction {
-    payload: string | string[];
+export interface SelectDisplayAnnotationAction {
+    payload: Annotation | Annotation[];
     type: string;
 }
 
-export function selectFile(fileId: string | string[]): SelectFileAction {
+export function selectDisplayAnnotation(
+    annotation: Annotation | Annotation[]
+): SelectDisplayAnnotationAction {
     return {
-        payload: fileId,
-        type: SELECT_FILE,
+        payload: annotation,
+        type: SELECT_DISPLAY_ANNOTATION,
     };
 }
 
 /**
- * Intention to deselect a file.
+ * DESELECT_DISPLAY_ANNOTATION
+ *
+ * Intention to deselect one or many annotations from the columns of the file list. See comment for
+ * SELECT_DISPLAY_ANNOTATION for further explanation.
  */
-export const DESELECT_FILE = makeConstant(STATE_BRANCH_NAME, "deselect-file");
 
-export interface DeselectFileAction {
-    payload: string | string[];
+export const DESELECT_DISPLAY_ANNOTATION = makeConstant(
+    STATE_BRANCH_NAME,
+    "deselect-display-annotation"
+);
+
+export interface DeselectDisplayAnnotationAction {
+    payload: Annotation | Annotation[];
     type: string;
 }
 
-export function deselectFile(fileId: string | string[]): DeselectFileAction {
+export function deselectDisplayAnnotation(
+    annotation: Annotation | Annotation[]
+): DeselectDisplayAnnotationAction {
     return {
-        payload: fileId,
-        type: DESELECT_FILE,
+        payload: annotation,
+        type: DESELECT_DISPLAY_ANNOTATION,
     };
 }

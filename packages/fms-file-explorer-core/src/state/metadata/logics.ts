@@ -1,9 +1,10 @@
-import { map } from "lodash";
+import { compact, find, map } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import Annotation from "../../entity/Annotation";
 
+import { selectDisplayAnnotation } from "../selection/actions";
 import { ReduxLogicDeps } from "../types";
 
 import { receiveAnnotations, REQUEST_ANNOTATIONS } from "./actions";
@@ -22,7 +23,16 @@ const requestAnnotations = createLogic({
                     (annotationsResponse) => new Annotation(annotationsResponse)
                 )
             )
-            .then((annotations) => dispatch(receiveAnnotations(annotations)))
+            .then((annotations) => {
+                const initialAnnotationsToDisplay = [
+                    find(annotations, (annotation) => annotation.name === "file_name"),
+                    find(annotations, (annotation) => annotation.name === "file_size"),
+                    find(annotations, (annotation) => annotation.name === "created"),
+                ];
+
+                dispatch(receiveAnnotations(annotations));
+                dispatch(selectDisplayAnnotation(compact(initialAnnotationsToDisplay)));
+            })
             .catch((err) =>
                 console.error("Something went wrong, nobody knows why. But here's a hint:", err)
             )

@@ -1,32 +1,41 @@
 import { castArray, without } from "lodash";
 import { AnyAction } from "redux";
 
+import Annotation from "../../entity/Annotation";
+
 import { TypeToDescriptionMap } from "../types";
 import { makeReducer } from "../util";
 
-import { DESELECT_FILE, DeselectFileAction, SELECT_FILE, SelectFileAction } from "./actions";
+import {
+    DESELECT_DISPLAY_ANNOTATION,
+    DeselectDisplayAnnotationAction,
+    SELECT_DISPLAY_ANNOTATION,
+    SelectDisplayAnnotationAction,
+} from "./actions";
 
 export interface SelectionStateBranch {
-    files: string[];
+    displayAnnotations: Annotation[];
 }
 
 export const initialState = {
-    files: [],
+    displayAnnotations: [],
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
-    [DESELECT_FILE]: {
-        accepts: (action: AnyAction): action is DeselectFileAction => action.type === DESELECT_FILE,
-        perform: (state: SelectionStateBranch, action: DeselectFileAction) => ({
+    [DESELECT_DISPLAY_ANNOTATION]: {
+        accepts: (action: AnyAction): action is DeselectDisplayAnnotationAction =>
+            action.type === DESELECT_DISPLAY_ANNOTATION,
+        perform: (state: SelectionStateBranch, action: DeselectDisplayAnnotationAction) => ({
             ...state,
-            files: without(state.files, ...castArray(action.payload)),
+            displayAnnotations: without(state.displayAnnotations, ...castArray(action.payload)),
         }),
     },
-    [SELECT_FILE]: {
-        accepts: (action: AnyAction): action is SelectFileAction => action.type === SELECT_FILE,
-        perform: (state: SelectionStateBranch, action: SelectFileAction) => ({
+    [SELECT_DISPLAY_ANNOTATION]: {
+        accepts: (action: AnyAction): action is SelectDisplayAnnotationAction =>
+            action.type === SELECT_DISPLAY_ANNOTATION,
+        perform: (state: SelectionStateBranch, action: SelectDisplayAnnotationAction) => ({
             ...state,
-            files: [...state.files, ...castArray(action.payload)],
+            displayAnnotations: [...state.displayAnnotations, ...castArray(action.payload)],
         }),
     },
 };
