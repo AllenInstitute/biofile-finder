@@ -7,8 +7,6 @@
 }
 
 .root {
-    all: initial;
-
     --annotation-hierarchy-max-width: 350px;
     --breadcrumb-height: 40px;
     --file-details-width: 20%;
