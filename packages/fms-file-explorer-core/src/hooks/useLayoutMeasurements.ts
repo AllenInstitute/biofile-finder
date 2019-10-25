@@ -8,7 +8,12 @@ const DEBOUNCE_WAIT_TO_REMEASURE = 50; // ms
  * paint. It will remeasure itself on resize, and is debounced so as not to be called more than once (on trailing edge)
  * within `DEBOUNCE_WAIT_TO_REMEASURE` milliseconds.
  */
-export default function useLayoutMeasurements(ref: React.RefObject<HTMLElement>): [number, number] {
+export default function useLayoutMeasurements<T extends HTMLElement>(): [
+    React.RefObject<T>,
+    number,
+    number
+] {
+    const ref = React.useRef<T>(null);
     const [height, setHeight] = React.useState(0);
     const [width, setWidth] = React.useState(0);
 
@@ -34,5 +39,5 @@ export default function useLayoutMeasurements(ref: React.RefObject<HTMLElement>)
         };
     }, [ref.current]); // only run on mount and unmount if ref.current stays constant
 
-    return [height, width];
+    return [ref, height, width];
 }
