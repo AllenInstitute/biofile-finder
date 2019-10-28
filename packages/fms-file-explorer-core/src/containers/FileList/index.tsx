@@ -9,7 +9,7 @@ import { selection } from "../../state";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useResizableColumns from "./useResizableColumns";
 
-const styles = require("./style.module.css");
+const styles = require("./FileList.module.css");
 
 interface FileListProps {
     className?: string;
