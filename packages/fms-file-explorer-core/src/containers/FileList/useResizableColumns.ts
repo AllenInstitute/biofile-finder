@@ -78,10 +78,12 @@ export default function useResizableColumns(
     // When either the file list container width or the columns to display update, update state with a new ColumnWidths
     // instance that has those updated values
     React.useEffect(() => {
-        const nextColumnWidths = columnWidths.clone();
-        nextColumnWidths.setRowWidth(containerWidth);
-        nextColumnWidths.setColumns(columns);
-        setColumnWidths(nextColumnWidths);
+        setColumnWidths((prevColumnWidths) => {
+            const nextColumnWidths = prevColumnWidths.clone();
+            nextColumnWidths.setRowWidth(containerWidth);
+            nextColumnWidths.setColumns(columns);
+            return nextColumnWidths;
+        });
     }, [containerWidth, columns]);
 
     // Callback to be provided to UI component that knows how to resize itself and needs to inform state held here of
