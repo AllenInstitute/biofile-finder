@@ -20,6 +20,13 @@ export class ColumnWidths {
         this.rowWidth = rowWidth;
     }
 
+    /**
+     * Provides a mechanism for working with this class in an immutable fashion. While nothing about this class enforces
+     * immutability, this allows us to work with like it is immutable, e.g., by always calling `clone` and operating on
+     * the clone when `set`ting a column width, row width, etc. Immutability is helpful when the referential equality
+     * (i.e., `===`) of a value is important. For this in particular, the referential equality of instances of this class
+     * is used to determine whether certain React Hooks in `useResizableColumns` are re-run or not.
+     */
     public clone(): ColumnWidths {
         return new ColumnWidths(this.rowWidth, this.columns, { ...this.cache });
     }
