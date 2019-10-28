@@ -89,11 +89,10 @@ export default function useResizableColumns(
     // called without a deltaX, the call is interpreted as a column width reset request.
     const onResize = React.useCallback((columnKey: string, deltaX?: number) => {
         setColumnWidths((prevColumnWidths) => {
-            const prevColumnWidth = prevColumnWidths.get(columnKey);
             const nextColumnWidths = prevColumnWidths.clone();
 
             if (deltaX !== undefined) {
-                nextColumnWidths.set(columnKey, prevColumnWidth + deltaX);
+                nextColumnWidths.set(columnKey, prevColumnWidths.get(columnKey) + deltaX);
             } else {
                 nextColumnWidths.reset(columnKey);
             }
