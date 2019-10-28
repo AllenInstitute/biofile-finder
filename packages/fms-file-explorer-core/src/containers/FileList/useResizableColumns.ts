@@ -87,10 +87,10 @@ export default function useResizableColumns(
     // Callback to be provided to UI component that knows how to resize itself and needs to inform state held here of
     // the resize. Called with the column key (e.g., annotation.name) and optionally the deltaX of the resize event. If
     // called without a deltaX, the call is interpreted as a column width reset request.
-    const onResize = React.useCallback(
-        (columnKey: string, deltaX?: number) => {
-            const prevColumnWidth = columnWidths.get(columnKey);
-            const nextColumnWidths = columnWidths.clone();
+    const onResize = React.useCallback((columnKey: string, deltaX?: number) => {
+        setColumnWidths((prevColumnWidths) => {
+            const prevColumnWidth = prevColumnWidths.get(columnKey);
+            const nextColumnWidths = prevColumnWidths.clone();
 
             if (deltaX !== undefined) {
                 nextColumnWidths.set(columnKey, prevColumnWidth + deltaX);
@@ -98,10 +98,9 @@ export default function useResizableColumns(
                 nextColumnWidths.reset(columnKey);
             }
 
-            setColumnWidths(nextColumnWidths);
-        },
-        [columnWidths, containerWidth]
-    );
+            return nextColumnWidths;
+        });
+    }, []);
 
     // The accumulation of column widths held in state. This may be larger or smaller than `containerWidth`. If larger,
     // the file list container will overflow (scroll) in the x direction.
