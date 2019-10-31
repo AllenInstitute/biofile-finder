@@ -49,6 +49,8 @@ export function makeFileDetailMock(id: string): FileDetailResponse {
             { id: 2, name: "Position 2", x: 93849.288, y: 710383.19 },
         ],
         times: [{ id: 1, deltaT: "00:05:07.39" }],
+        thumbnail:
+            "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
         uploaded: new Date().toISOString(),
         uploadedBy: "Jackson",
     };

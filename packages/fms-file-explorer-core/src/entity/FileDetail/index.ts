@@ -40,6 +40,7 @@
  *          { id: 34, deltaT: "foobar" },
  *      ]
  *     fileId: "26aa7881b8004dd0bcec857baf9a2f0a",
+ *     thumbnail: "src/of/thumbnail",
  *     "uploaded": "2019-08-15 13:50:24",
  *     "uploadedBy": "svc_airflow",
  * }
@@ -75,6 +76,7 @@ export interface FileDetailResponse {
     file_id: string;
     positions: Position[];
     times: Time[];
+    thumbnail: string;
     uploaded: string; // date/time
     uploadedBy: string; // user
 }
