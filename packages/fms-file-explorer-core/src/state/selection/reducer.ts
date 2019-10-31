@@ -24,7 +24,7 @@ export interface SelectionStateBranch {
 
 export const initialState = {
     displayAnnotations: [],
-    selectedFiles: ["1"], // file ids
+    selectedFiles: [], // file ids
 };
 
 const actionToConfigMap: TypeToDescriptionMap = {
