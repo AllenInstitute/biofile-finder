@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios";
+import { defaultsDeep } from "lodash";
 import { applyMiddleware, combineReducers, createStore, Middleware, Store } from "redux";
 import { createLogicMiddleware, LogicMiddleware } from "redux-logic";
 
@@ -22,9 +23,13 @@ const reducers = {
 
 const logics = [...metadata.logics, ...selection.logics];
 
+type PartialDeep<T> = {
+    [P in keyof T]?: PartialDeep<T[P]>;
+};
+
 export default function createMockReduxStore(
     config: {
-        mockState?: State;
+        mockState?: PartialDeep<State>;
         reduxLogicDependencies?: ReduxLogicDependencies;
         responseStubs?: ResponseStub | ResponseStub[];
     } = {}
@@ -34,6 +39,8 @@ export default function createMockReduxStore(
         reduxLogicDependencies = defaultReduxLogicDeps,
         responseStubs = [],
     } = config;
+
+    const state = defaultsDeep(mockState, initialState);
 
     // redux-logic middleware
     const logicMiddleware = createLogicMiddleware(logics);
@@ -47,11 +54,7 @@ export default function createMockReduxStore(
         return next(action);
     };
     const middleware = applyMiddleware(logicMiddleware, trackActionsMiddleware);
-    const rootReducer = enableBatching<State>(combineReducers(reducers), initialState);
+    const rootReducer = enableBatching<State>(combineReducers(reducers), state);
 
-    return [
-        createStore(rootReducer, mockState, middleware),
-        logicMiddleware,
-        actionTracker.actions,
-    ];
+    return [createStore(rootReducer, state, middleware), logicMiddleware, actionTracker.actions];
 }
