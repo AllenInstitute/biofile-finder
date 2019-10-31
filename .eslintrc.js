@@ -19,6 +19,7 @@ module.exports = {
         "@typescript-eslint/explicit-member-accessibility": "off",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/camelcase": "off",
     },
     "settings": {
         "react": {
