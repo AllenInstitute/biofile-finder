@@ -56,3 +56,43 @@ export function deselectDisplayAnnotation(
         type: DESELECT_DISPLAY_ANNOTATION,
     };
 }
+
+/**
+ * SELECT_FILE
+ */
+export const SELECT_FILE = makeConstant(STATE_BRANCH_NAME, "select-file");
+
+export interface SelectFileAction {
+    payload: {
+        append: boolean; // add file to existing state, otherwise reset existing state to payload.file
+        file: string | string[];
+    };
+    type: string;
+}
+
+export function selectFile(file: string | string[], append = false): SelectFileAction {
+    return {
+        payload: {
+            append,
+            file,
+        },
+        type: SELECT_FILE,
+    };
+}
+
+/**
+ * DESELECT_FILE
+ */
+export const DESELECT_FILE = makeConstant(STATE_BRANCH_NAME, "deselect-file");
+
+export interface DeselectFileAction {
+    payload: string | string[];
+    type: string;
+}
+
+export function deselectFile(file: string | string[]): DeselectFileAction {
+    return {
+        payload: file,
+        type: DESELECT_FILE,
+    };
+}
