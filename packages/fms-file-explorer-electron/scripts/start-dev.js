@@ -41,6 +41,7 @@ function startWebpackDevServer() {
             '--env.env',
             'dev'
         ], {
+            shell: true,
             stdio: 'inherit'
         }
     );
@@ -96,6 +97,7 @@ function startBabelWatch() {
             "--verbose",
             "--source-maps",
         ], {
+            shell: true,
             stdio: 'inherit'
         }
     );
@@ -112,7 +114,8 @@ function startElectron() {
             env: Object.assign({}, process.env, {
                 NODE_ENV: "development",
                 WEBPACK_DEV_SERVER_PORT: devServer.port,
-            })
+            }),
+            shell: true,
         }
     );
 }
