@@ -1,10 +1,14 @@
-import { map } from "lodash";
+import { includes, map } from "lodash";
 import * as React from "react";
+import { useSelector } from "react-redux";
 
 import Annotation from "../../entity/Annotation";
 import { ColumnWidths } from "../../containers/FileList/useResizableColumns";
 import FileRow from "../FileRow";
+import { selection } from "../../state";
 import { FmsFile } from "./useFileFetcher";
+
+const styles = require("./style.module.css");
 
 /**
  * Contextual data passed to LazilyRenderedRows by react-window. Basically a light-weight React context. The same data
@@ -15,6 +19,7 @@ export interface LazilyRenderedRowContext {
     displayAnnotations: Annotation[];
     files: Map<number, FmsFile>;
     level: number; // maps to how far indented the first column of the file row should be to
+    onSelect: (fileId: string, ctrlKeyIsPressed: boolean) => void;
     rowWidth: number;
 }
 
@@ -29,21 +34,38 @@ interface LazilyRenderedRowProps {
  */
 export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     const {
-        data: { columnWidths, displayAnnotations, files, rowWidth },
+        data: { columnWidths, displayAnnotations, files, onSelect, rowWidth },
         index,
         style,
     } = props;
-
-    let content;
+    const selectedFiles = useSelector(selection.selectors.getSelectedFiles);
 
     const file = files.get(index);
+
+    const isSelected = React.useMemo(() => {
+        if (file) {
+            return includes(selectedFiles, file.file_id);
+        }
+
+        return false;
+    }, [file, selectedFiles]);
+
+    let content;
     if (file) {
         const cells = map(displayAnnotations, (annotation) => ({
             columnKey: annotation.name,
             displayValue: annotation.getDisplayValue(file),
             width: columnWidths.get(annotation.name),
         }));
-        content = <FileRow cells={cells} rowWidth={rowWidth} />;
+        content = (
+            <FileRow
+                cells={cells}
+                className={isSelected ? styles.selectedRow : undefined}
+                rowIdentifier={file.file_id}
+                onSelect={onSelect}
+                rowWidth={rowWidth}
+            />
+        );
     } else {
         content = "Loading...";
     }

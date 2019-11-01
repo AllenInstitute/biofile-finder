@@ -19,6 +19,7 @@ interface LazyWindowedFileListProps {
     className?: string;
     displayAnnotations: Annotation[];
     level: number; // maps to how far indented the first column of the file row should be
+    onSelect: (fileId: string, ctrlKeyIsPressed: boolean) => void;
     rowHeight: number; // how tall each row of the list will be, in px
     rowWidth: number; // how wide each of the list will be, in px
 }
@@ -28,7 +29,15 @@ interface LazyWindowedFileListProps {
  * itself out to be 100% the height and width of its parent.
  */
 export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
-    const { columnWidths, className, displayAnnotations, level, rowHeight, rowWidth } = props;
+    const {
+        columnWidths,
+        className,
+        displayAnnotations,
+        level,
+        onSelect,
+        rowHeight,
+        rowWidth,
+    } = props;
 
     const [ref, height] = useLayoutMeasurements<HTMLDivElement>();
     const [files, totalCount, fetchFiles] = useFileFetcher();
@@ -44,7 +53,14 @@ export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
             >
                 {({ onItemsRendered, ref }) => (
                     <FixedSizeList
-                        itemData={{ columnWidths, displayAnnotations, files, level, rowWidth }}
+                        itemData={{
+                            columnWidths,
+                            displayAnnotations,
+                            files,
+                            level,
+                            onSelect,
+                            rowWidth,
+                        }}
                         itemSize={rowHeight} // row height
                         height={height} // height of the list itself; affects number of rows rendered at any given time
                         itemCount={totalCount}

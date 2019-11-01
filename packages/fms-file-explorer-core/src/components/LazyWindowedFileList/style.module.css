@@ -2,3 +2,7 @@
     height: 100%;
     width: 100%;
 }
+
+.selected-row {
+    background-color: #d4e3fc;
+}

@@ -1,10 +1,13 @@
 import { expect } from "chai";
 import { mount } from "enzyme";
 import * as React from "react";
+import { Provider } from "react-redux";
+import * as sinon from "sinon";
 
 import Annotation from "../../../entity/Annotation";
 import { ColumnWidths } from "../../../containers/FileList/useResizableColumns";
 import LazilyRenderedRow from "../LazilyRenderedRow";
+import createMockReduxStore from "../../../state/test/mock-redux-store";
 import { FmsFile } from "../useFileFetcher";
 
 describe("<LazilyRenderedRow />", () => {
@@ -26,19 +29,30 @@ describe("<LazilyRenderedRow />", () => {
             ],
             level: 0,
             files,
+            onSelect: sinon.spy(),
             rowWidth,
         };
     }
 
     it("renders data when it's available", () => {
-        const wrapper = mount(<LazilyRenderedRow data={makeItemData()} index={3} style={{}} />);
+        const [store] = createMockReduxStore();
+        const wrapper = mount(
+            <Provider store={store}>
+                <LazilyRenderedRow data={makeItemData()} index={3} style={{}} />
+            </Provider>
+        );
 
         const expectedTextNode = "my_image.czi";
         expect(wrapper.contains(expectedTextNode)).to.equal(true);
     });
 
     it("renders a loading indicator when data is not available", () => {
-        const wrapper = mount(<LazilyRenderedRow data={makeItemData()} index={23} style={{}} />);
+        const [store] = createMockReduxStore();
+        const wrapper = mount(
+            <Provider store={store}>
+                <LazilyRenderedRow data={makeItemData()} index={23} style={{}} />
+            </Provider>
+        );
 
         const expectedTextNode = "Loading...";
         expect(wrapper.contains(expectedTextNode)).to.equal(true);
