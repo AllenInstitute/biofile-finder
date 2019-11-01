@@ -60,24 +60,27 @@ export function deselectDisplayAnnotation(
 /**
  * SELECT_FILE
  *
- * Intention to mark one or many files as "selected." If `payload.append`, add `payload.file` to existing selection,
- * else, replace existing selection. The first selected file will be displayed by default in the details pane. Other uses
- * for file selection are file download, dataset creation, and opening files with another tool.
+ * Intention to mark one or many files as "selected." If `payload.updateExistingSelection`, add `payload.file` to
+ * existing selection, else, replace existing selection. The first selected file will be displayed by default in the
+ * details pane. Other uses for file selection are file download, dataset creation, and opening files with another tool.
  */
 export const SELECT_FILE = makeConstant(STATE_BRANCH_NAME, "select-file");
 
 export interface SelectFileAction {
     payload: {
-        append: boolean; // add file to existing state, otherwise reset existing state to payload.file
+        updateExistingSelection: boolean;
         file: string | string[];
     };
     type: string;
 }
 
-export function selectFile(file: string | string[], append = false): SelectFileAction {
+export function selectFile(
+    file: string | string[],
+    updateExistingSelection = false
+): SelectFileAction {
     return {
         payload: {
-            append,
+            updateExistingSelection,
             file,
         },
         type: SELECT_FILE,
