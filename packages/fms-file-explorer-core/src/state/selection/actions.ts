@@ -86,6 +86,8 @@ export function selectFile(file: string | string[], append = false): SelectFileA
 
 /**
  * DESELECT_FILE
+ *
+ * Intention to remove a file from list of selected files.
  */
 export const DESELECT_FILE = makeConstant(STATE_BRANCH_NAME, "deselect-file");
 
