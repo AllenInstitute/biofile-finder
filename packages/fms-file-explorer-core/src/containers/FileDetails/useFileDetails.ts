@@ -60,27 +60,27 @@ export default function useFileDetails(
             if (isLoading) {
                 setIsLoading(false);
             }
-            return;
-        }
 
-        // cache miss, make network request and store in cache
-        setIsLoading(true);
-        fetchDetailsFromNetwork(fileId)
-            .then((response) => {
-                if (!ignoreResponse) {
-                    const detail = new FileDetail(response.data[0]);
-                    setDetailsCache((cache) => {
-                        cache.set(detail.id, detail);
-                        return cache;
-                    });
-                }
-            })
-            .catch(console.error)
-            .finally(() => {
-                if (!ignoreResponse) {
-                    setIsLoading(false);
-                }
-            });
+            // cache miss, make network request and store in cache
+        } else {
+            setIsLoading(true);
+            fetchDetailsFromNetwork(fileId)
+                .then((response) => {
+                    if (!ignoreResponse) {
+                        const detail = new FileDetail(response.data[0]);
+                        setDetailsCache((cache) => {
+                            cache.set(detail.id, detail);
+                            return cache;
+                        });
+                    }
+                })
+                .catch(console.error)
+                .finally(() => {
+                    if (!ignoreResponse) {
+                        setIsLoading(false);
+                    }
+                });
+        }
 
         return function cleanup() {
             ignoreResponse = true;
