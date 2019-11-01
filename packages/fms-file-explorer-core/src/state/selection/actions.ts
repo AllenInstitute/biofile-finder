@@ -59,6 +59,10 @@ export function deselectDisplayAnnotation(
 
 /**
  * SELECT_FILE
+ *
+ * Intention to mark one or many files as "selected." If `payload.append`, add `payload.file` to existing selection,
+ * else, replace existing selection. The first selected file will be displayed by default in the details pane. Other uses
+ * for file selection are file download, dataset creation, and opening files with another tool.
  */
 export const SELECT_FILE = makeConstant(STATE_BRANCH_NAME, "select-file");
 
