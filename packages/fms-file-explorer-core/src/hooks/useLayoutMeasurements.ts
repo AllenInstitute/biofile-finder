@@ -28,7 +28,7 @@ export default function useLayoutMeasurements<T extends HTMLElement>(): [
                 setWidth(currentWidth);
             }
         }, DEBOUNCE_WAIT_TO_REMEASURE),
-        [ref.current] // recreate callback only if ref.current changes
+        [ref] // recreate callback only if ref changes
     );
 
     React.useLayoutEffect(() => {
@@ -37,7 +37,7 @@ export default function useLayoutMeasurements<T extends HTMLElement>(): [
         return function cleanUp() {
             window.removeEventListener("resize", resizeListener);
         };
-    }, [ref.current]); // only run on mount and unmount if ref.current stays constant
+    }, [resizeListener, ref]);
 
     return [ref, height, width];
 }

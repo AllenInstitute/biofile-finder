@@ -89,7 +89,7 @@ export default function useFileDetails(
         return function cleanup() {
             ignoreResponse = true;
         };
-    }, [fileId, isLoading]);
+    }, [fileId, detailsCache, isLoading, maxCacheSize]);
 
     const fileDetails = isUndefined(fileId) ? fileId : detailsCache.get(fileId);
     React.useDebugValue(fileDetails); // display fileDetails in React DevTools when this hook is inspected

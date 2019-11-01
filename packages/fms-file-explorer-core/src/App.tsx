@@ -20,7 +20,7 @@ function useApplicationMetadata() {
     const dispatch = useDispatch();
     React.useEffect(() => {
         dispatch(metadata.actions.requestAnnotations());
-    }, []); // only run on mount
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 export default function App() {
