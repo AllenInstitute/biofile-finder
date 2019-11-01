@@ -68,9 +68,13 @@ export default function useFileDetails(
                 .then((response) => {
                     if (!ignoreResponse) {
                         const detail = new FileDetail(response.data[0]);
-                        setDetailsCache((cache) => {
-                            cache.set(detail.id, detail);
-                            return cache;
+                        setDetailsCache((prevCache) => {
+                            const nextCache = new LRUCache<string, FileDetail>({
+                                max: maxCacheSize,
+                            });
+                            nextCache.load(prevCache.dump());
+                            nextCache.set(detail.id, detail);
+                            return nextCache;
                         });
                     }
                 })
