@@ -8,6 +8,8 @@
 
 const path = require("path");
 
+const lodash = require('lodash');
+
 const {
     ensureAssetsDirExists,
     makeSuccessResponse,
@@ -15,10 +17,8 @@ const {
     writeOutputToFile,
 } = require("./mock-data-helpers");
 
-const lodash = require('lodash');
-
-const TOTAL_DATA_SIZE = 10000;
-const DATA_PAGE_SIZE = TOTAL_DATA_SIZE; // GM 10/18/2019 turn off pagination until we need it
+const TOTAL_DATA_SIZE = exports.TOTAL_DATA_SIZE = 100000;
+const FILES_METADATA_OUTFILE = exports.FILES_METADATA_OUTFILE = path.join(MOCK_DATA_DIR, "files.json");
 
 const FILE_EXTENSIONS = ["czi", "ome.tiff", "tiff", "png", "bam"];
 const EARLIEST_CREATED_ON_DATE = new Date("01 Jan 2017 00:00:00 UTC");
@@ -47,22 +47,20 @@ function makeFileDatum(index) {
     };
 }
 
-console.log("Generating files metadata");
-ensureAssetsDirExists();
+function main() {
+    console.log("Generating files metadata");
+    ensureAssetsDirExists();
 
-const data = [];
-for (let i = 0; i < TOTAL_DATA_SIZE; i++) {
-    data.push(makeFileDatum(i));
+    const data = [];
+    for (let i = 0; i < TOTAL_DATA_SIZE; i++) {
+        data.push(makeFileDatum(i));
+    }
+
+    console.log(`Writing ${data.length} datum to ${FILES_METADATA_OUTFILE}`);
+    const contents = makeSuccessResponse(data);
+    writeOutputToFile(FILES_METADATA_OUTFILE, contents);
 }
 
-// paginate by splitting the data into chunks of size DATA_PAGE_SIZE
-// save each page into its own json file
-const pages = lodash.chunk(data, DATA_PAGE_SIZE);
-pages.forEach((page, pageIndex) => {
-    const outfile = path.join(MOCK_DATA_DIR, `data-${pageIndex}.json`);
-    const offset = pageIndex * DATA_PAGE_SIZE;  // offset === number of rows to skip to get to current result set
-
-    console.log(`Writing ${page.length} datum to ${outfile}`);
-    const contents = makeSuccessResponse(page, TOTAL_DATA_SIZE > page.length + offset, offset, TOTAL_DATA_SIZE);
-    writeOutputToFile(outfile, contents);
-});
+if (require.main === module) {
+    main();
+}
