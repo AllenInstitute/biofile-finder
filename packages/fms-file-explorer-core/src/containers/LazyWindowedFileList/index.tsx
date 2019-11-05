@@ -33,7 +33,7 @@ export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
 
     const [ref, height] = useLayoutMeasurements<HTMLDivElement>();
     const [files, totalCount, fetchFiles] = useFileFetcher();
-    const onSelect = useFileSelector();
+    const [onSelect, canSelect] = useFileSelector();
 
     const isFileLoaded = (index: number) => files.has(index);
 
