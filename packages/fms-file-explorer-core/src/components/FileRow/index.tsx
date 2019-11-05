@@ -3,6 +3,7 @@ import { map } from "lodash";
 import * as React from "react";
 
 import Cell from "./Cell";
+import { OnSelect } from "../../containers/LazyWindowedFileList/useFileSelector";
 
 interface CellConfig {
     columnKey: string;
@@ -15,7 +16,7 @@ interface FileRowProps<T = any> {
     className?: string;
     rowIdentifier?: T;
     onResize?: (columnKey: string, deltaX?: number) => void;
-    onSelect?: (rowIdentifier: T, ctrlKeyIsPressed: boolean) => void;
+    onSelect?: OnSelect;
     rowWidth: number;
 }
 
@@ -26,8 +27,11 @@ export default function FileRow(props: FileRowProps) {
     const { cells, className, rowIdentifier, onResize, onSelect, rowWidth } = props;
     const onClick = React.useCallback(
         (evt: React.MouseEvent) => {
-            if (onSelect && rowIdentifier) {
-                onSelect(rowIdentifier, evt.ctrlKey);
+            if (onSelect && rowIdentifier !== undefined) {
+                onSelect(rowIdentifier, {
+                    ctrlKeyIsPressed: evt.ctrlKey,
+                    shiftKeyIsPressed: evt.shiftKey,
+                });
             }
         },
         [rowIdentifier, onSelect]

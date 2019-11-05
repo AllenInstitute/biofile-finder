@@ -1,6 +1,6 @@
 import { get as _get } from "lodash";
 
-import { FmsFile } from "../../components/LazyWindowedFileList/useFileFetcher";
+import { FmsFile } from "../../containers/LazyWindowedFileList/useFileFetcher";
 
 import annotationFormatterFactory, { AnnotationFormatter } from "../AnnotationFormatter";
 

@@ -5,10 +5,11 @@ import { FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 
 import Annotation from "../../entity/Annotation";
-import { ColumnWidths } from "../../containers/FileList/useResizableColumns";
+import { ColumnWidths } from "../FileList/useResizableColumns";
 import LazilyRenderedRow from "./LazilyRenderedRow";
 import useFileFetcher from "./useFileFetcher";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
+import useFileSelector from "./useFileSelector";
 
 const styles = require("./style.module.css");
 
@@ -19,7 +20,6 @@ interface LazyWindowedFileListProps {
     className?: string;
     displayAnnotations: Annotation[];
     level: number; // maps to how far indented the first column of the file row should be
-    onSelect: (fileId: string, ctrlKeyIsPressed: boolean) => void;
     rowHeight: number; // how tall each row of the list will be, in px
     rowWidth: number; // how wide each of the list will be, in px
 }
@@ -29,18 +29,11 @@ interface LazyWindowedFileListProps {
  * itself out to be 100% the height and width of its parent.
  */
 export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
-    const {
-        columnWidths,
-        className,
-        displayAnnotations,
-        level,
-        onSelect,
-        rowHeight,
-        rowWidth,
-    } = props;
+    const { columnWidths, className, displayAnnotations, level, rowHeight, rowWidth } = props;
 
     const [ref, height] = useLayoutMeasurements<HTMLDivElement>();
     const [files, totalCount, fetchFiles] = useFileFetcher();
+    const onSelect = useFileSelector();
 
     const isFileLoaded = (index: number) => files.has(index);
 

@@ -1,10 +1,10 @@
 import * as classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import FileRow from "../../components/FileRow";
-import LazyWindowedFileList from "../../components/LazyWindowedFileList";
+import LazyWindowedFileList from "../LazyWindowedFileList";
 import { selection } from "../../state";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useResizableColumns from "./useResizableColumns";
@@ -21,7 +21,6 @@ interface FileListProps {
  * files should be grouped.
  */
 export default function FileList(props: FileListProps) {
-    const dispatch = useDispatch();
     const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
 
     const [ref, _, containerWidth] = useLayoutMeasurements<HTMLDivElement>(); // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -36,13 +35,6 @@ export default function FileList(props: FileListProps) {
         width: columnWidths.get(annotation.name),
     }));
 
-    const onSelect = React.useCallback(
-        (fileId: string, ctrlKeyIsPressed: boolean) => {
-            dispatch(selection.actions.selectFile(fileId, ctrlKeyIsPressed));
-        },
-        [dispatch]
-    );
-
     return (
         <div className={classNames(styles.root, props.className)} ref={ref}>
             <FileRow
@@ -55,7 +47,6 @@ export default function FileList(props: FileListProps) {
                 columnWidths={columnWidths}
                 className={styles.list}
                 displayAnnotations={annotations}
-                onSelect={onSelect}
                 rowWidth={rowWidth}
             />
         </div>
