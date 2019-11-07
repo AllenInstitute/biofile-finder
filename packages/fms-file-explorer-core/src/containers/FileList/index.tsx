@@ -9,6 +9,9 @@ import { selection } from "../../state";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useResizableColumns from "./useResizableColumns";
 
+import FileIdFetcher from "./FileIdFetcher";
+import FileFilter from "../../entity/FileFilter";
+
 const styles = require("./FileList.module.css");
 
 interface FileListProps {
@@ -35,6 +38,11 @@ export default function FileList(props: FileListProps) {
         width: columnWidths.get(annotation.name),
     }));
 
+    const fetcher = React.useMemo(() => {
+        const noFilter: FileFilter[] = [];
+        return new FileIdFetcher([noFilter], (fileId) => console.log(fileId), []);
+    }, []);
+
     return (
         <div className={classNames(styles.root, props.className)} ref={ref}>
             <FileRow
@@ -47,6 +55,7 @@ export default function FileList(props: FileListProps) {
                 columnWidths={columnWidths}
                 className={styles.list}
                 displayAnnotations={annotations}
+                onSelect={fetcher.onSelect}
                 rowWidth={rowWidth}
             />
         </div>
