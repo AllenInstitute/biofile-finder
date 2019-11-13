@@ -1,4 +1,4 @@
-import { castArray, includes, uniq } from "lodash";
+import { castArray, includes, isArray, uniq } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { getSelectedFiles } from "./selectors";
@@ -17,8 +17,12 @@ const selectFile = createLogic({
         if (action.payload.updateExistingSelection) {
             const existingSelections = getSelectedFiles(getState());
 
-            // if updating existing selections and clicked file is already selected, interpret as an deselect action
-            if (includes(existingSelections, action.payload.file)) {
+            // if updating existing selections and clicked file is already selected, interpret as a deselect action
+            // ensure clicked file is not a list of files--that case is more difficult to guess user intention
+            if (
+                !isArray(action.payload.file) &&
+                includes(existingSelections, action.payload.file)
+            ) {
                 next(deselectFile(action.payload.file));
             } else {
                 next({
