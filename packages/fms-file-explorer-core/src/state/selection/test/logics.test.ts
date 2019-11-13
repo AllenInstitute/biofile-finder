@@ -69,5 +69,30 @@ describe("Selection logics", () => {
                 })
             ).to.equal(true);
         });
+
+        it("does not deselect a file if file is already selected and updateExistingSelection is true when file is part of a list of new selections", async () => {
+            // setup
+            const mockState = {
+                selection: {
+                    selectedFiles: ["abc123", "xyz789"],
+                },
+            };
+            const [store, logicMiddleware, actions] = createMockReduxStore({ mockState });
+
+            // act
+            store.dispatch(selectFile(["xyz789", "mno456"], true));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(actions.includesMatch({ type: DESELECT_FILE })).to.equal(false);
+            expect(
+                actions.includesMatch({
+                    type: SELECT_FILE,
+                    payload: {
+                        file: ["abc123", "xyz789", "mno456"],
+                    },
+                })
+            ).to.equal(true);
+        });
     });
 });
