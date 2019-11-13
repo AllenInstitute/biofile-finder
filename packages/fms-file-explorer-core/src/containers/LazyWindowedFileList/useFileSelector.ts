@@ -3,44 +3,15 @@ import * as React from "react";
 import { useDispatch } from "react-redux";
 
 import { selection } from "../../state";
-import RestServiceResponse from "../../entity/RestServiceResponse";
+import FileSet from "../../entity/FileSet/index";
 
-interface EventParams {
+export interface EventParams {
     ctrlKeyIsPressed: boolean;
     shiftKeyIsPressed: boolean;
 }
 
 export interface OnSelect {
-    (index: number, eventParams: EventParams): void;
-}
-
-interface OnReceiveFileIds {
-    (res: string[]): void;
-}
-
-async function getFileIds(cb: OnReceiveFileIds) {
-    let page = 0;
-
-    const fetch = (): Promise<RestServiceResponse<string>> => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                console.log(`Requesting file ids from page ${page}`);
-                const res = require(`../../../assets/file-ids-${page}.json`);
-                page += 1;
-                resolve(new RestServiceResponse(res));
-            }, 750);
-        });
-    };
-
-    const fileIds: string[] = [];
-    let res = await fetch();
-    res.data.forEach((id) => fileIds.push(id));
-    while (res.hasMore) {
-        res = await fetch();
-        res.data.forEach((id) => fileIds.push(id));
-    }
-
-    cb(fileIds);
+    (fileRow: { index: number; id: string }, eventParams: EventParams): void;
 }
 
 /**
@@ -57,46 +28,43 @@ async function getFileIds(cb: OnReceiveFileIds) {
  *      (modify existing selection) and shift clicking (bulk selection).
  *  2. a boolean indicating whether file_ids are currently loading
  */
-export default function useFileSelector(): [OnSelect, boolean] {
+export default function useFileSelector(fileSet: FileSet): OnSelect {
     const dispatch = useDispatch();
     const [lastSelectedFileIndex, setLastSelectedFileIndex] = React.useState<undefined | number>(
         undefined
     );
-    const [fileIds, setFileIds] = React.useState<string[]>(() => []);
-    const [fileIdsAreLoading, setFileIdsAreLoading] = React.useState(false);
-
-    React.useEffect(() => {
-        setFileIdsAreLoading(true);
-        getFileIds((ids) => {
-            setFileIds(ids);
-            setFileIdsAreLoading(false);
-        });
-    }, [setFileIds, setFileIdsAreLoading]); // TODO, also parameterize by filters and applied sorting
 
     // To be called as an `onSelect` callback by individual FileRows.
-    const onSelect = React.useCallback(
-        (index: number, eventParams: EventParams) => {
-            const fileId = fileIds[index];
+    return React.useCallback(
+        async (fileRow: { index: number; id: string }, eventParams: EventParams) => {
+            try {
+                if (eventParams.shiftKeyIsPressed) {
+                    await fileSet.fileIdsHaveFetched;
+                    const fileId = fileSet.ids[fileRow.index];
 
-            if (fileId === undefined) {
-                return;
-            }
+                    if (fileId === undefined) {
+                        return;
+                    }
 
-            if (eventParams.shiftKeyIsPressed) {
-                const rangeBoundary = isUndefined(lastSelectedFileIndex)
-                    ? index
-                    : lastSelectedFileIndex;
-                const startIndex = Math.min(rangeBoundary, index);
-                const endIndex = Math.max(rangeBoundary, index);
-                const selections = fileIds.slice(startIndex, endIndex + 1); // end not inclusive
-                dispatch(selection.actions.selectFile(selections, eventParams.ctrlKeyIsPressed));
-            } else {
-                setLastSelectedFileIndex(index);
-                dispatch(selection.actions.selectFile(fileId, eventParams.ctrlKeyIsPressed));
+                    const rangeBoundary = isUndefined(lastSelectedFileIndex)
+                        ? fileRow.index
+                        : lastSelectedFileIndex;
+                    const startIndex = Math.min(rangeBoundary, fileRow.index);
+                    const endIndex = Math.max(rangeBoundary, fileRow.index);
+                    const selections = fileSet.ids.slice(startIndex, endIndex + 1); // end not inclusive
+                    dispatch(
+                        selection.actions.selectFile(selections, eventParams.ctrlKeyIsPressed)
+                    );
+                } else {
+                    setLastSelectedFileIndex(fileRow.index);
+                    dispatch(
+                        selection.actions.selectFile(fileRow.id, eventParams.ctrlKeyIsPressed)
+                    );
+                }
+            } catch (e) {
+                // Attempted to select a file before fileIds have loaded
             }
         },
-        [dispatch, fileIds, lastSelectedFileIndex]
+        [dispatch, fileSet, lastSelectedFileIndex]
     );
-
-    return [onSelect, fileIdsAreLoading];
 }

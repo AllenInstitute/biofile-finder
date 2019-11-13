@@ -5,11 +5,11 @@ import { FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 
 import Annotation from "../../entity/Annotation";
+import FileSet from "../../entity/FileSet";
 import { ColumnWidths } from "../FileList/useResizableColumns";
-import LazilyRenderedRow from "./LazilyRenderedRow";
-import useFileFetcher from "./useFileFetcher";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
-import { EventParams } from "../FileList/FileIdFetcher";
+import LazilyRenderedRow from "./LazilyRenderedRow";
+import useFileSelector from "./useFileSelector";
 
 const styles = require("./style.module.css");
 
@@ -19,8 +19,8 @@ interface LazyWindowedFileListProps {
     columnWidths: ColumnWidths;
     className?: string;
     displayAnnotations: Annotation[];
+    fileSet: FileSet;
     level: number; // maps to how far indented the first column of the file row should be
-    onSelect: (identifiers: { index: number; id: string }, eventParams: EventParams) => void;
     rowHeight: number; // how tall each row of the list will be, in px
     rowWidth: number; // how wide each of the list will be, in px
 }
@@ -34,37 +34,35 @@ export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
         columnWidths,
         className,
         displayAnnotations,
+        fileSet,
         level,
-        onSelect,
         rowHeight,
         rowWidth,
     } = props;
 
     const [ref, height] = useLayoutMeasurements<HTMLDivElement>();
-    const [files, totalCount, fetchFiles] = useFileFetcher();
-
-    const isFileLoaded = (index: number) => files.has(index);
+    const onSelect = useFileSelector(fileSet);
 
     return (
         <div className={classNames(styles.list, className)} ref={ref}>
             <InfiniteLoader
-                isItemLoaded={isFileLoaded}
-                loadMoreItems={debouncePromise(fetchFiles, DEBOUNCE_WAIT_FOR_DATA_FETCHING)}
-                itemCount={totalCount}
+                isItemLoaded={fileSet.isLoaded}
+                loadMoreItems={debouncePromise(fileSet.fetchFiles, DEBOUNCE_WAIT_FOR_DATA_FETCHING)}
+                itemCount={fileSet.totalCount}
             >
                 {({ onItemsRendered, ref }) => (
                     <FixedSizeList
                         itemData={{
                             columnWidths,
                             displayAnnotations,
-                            files,
+                            files: fileSet.files,
                             level,
                             onSelect,
                             rowWidth,
                         }}
                         itemSize={rowHeight} // row height
                         height={height} // height of the list itself; affects number of rows rendered at any given time
-                        itemCount={totalCount}
+                        itemCount={fileSet.totalCount}
                         onItemsRendered={onItemsRendered}
                         ref={ref}
                         style={{ overflowX: "hidden" }} // if the window is resized such that the LazyWindowedFileList is wider than its container, the user will be able to use the scrollbar that will be rendered in the container

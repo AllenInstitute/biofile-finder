@@ -5,12 +5,10 @@ import { useSelector } from "react-redux";
 
 import FileRow from "../../components/FileRow";
 import LazyWindowedFileList from "../LazyWindowedFileList";
+import * as fileListSelectors from "./selectors";
 import { selection } from "../../state";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useResizableColumns from "./useResizableColumns";
-
-import FileIdFetcher from "./FileIdFetcher";
-import FileFilter from "../../entity/FileFilter";
 
 const styles = require("./FileList.module.css");
 
@@ -38,10 +36,7 @@ export default function FileList(props: FileListProps) {
         width: columnWidths.get(annotation.name),
     }));
 
-    const fetcher = React.useMemo(() => {
-        const noFilter: FileFilter[] = [];
-        return new FileIdFetcher([noFilter], (fileId) => console.log(fileId), []);
-    }, []);
+    const fileSetTree = useSelector(fileListSelectors.getFileSetTree);
 
     return (
         <div className={classNames(styles.root, props.className)} ref={ref}>
@@ -51,13 +46,16 @@ export default function FileList(props: FileListProps) {
                 onResize={onResize}
                 rowWidth={rowWidth}
             />
-            <LazyWindowedFileList
-                columnWidths={columnWidths}
-                className={styles.list}
-                displayAnnotations={annotations}
-                onSelect={fetcher.onSelect}
-                rowWidth={rowWidth}
-            />
+            {map(fileSetTree, (fileSet) => (
+                <LazyWindowedFileList
+                    key={fileSet.toQueryString()}
+                    columnWidths={columnWidths}
+                    className={styles.list}
+                    displayAnnotations={annotations}
+                    fileSet={fileSet}
+                    rowWidth={rowWidth}
+                />
+            ))}
         </div>
     );
 }

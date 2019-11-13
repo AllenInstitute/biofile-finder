@@ -3,11 +3,11 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 
 import Annotation from "../../entity/Annotation";
+import { FmsFile } from "../../entity/FileService";
 import { ColumnWidths } from "../FileList/useResizableColumns";
 import FileRow from "../../components/FileRow";
 import { selection } from "../../state";
-import { FmsFile } from "./useFileFetcher";
-import { EventParams } from "../FileList/FileIdFetcher";
+import { EventParams } from "./useFileSelector";
 
 const styles = require("./style.module.css");
 

@@ -3,8 +3,8 @@
  * serializable to a URL query string-friendly format.
  */
 export default class FileFilter {
-    private annotationName: string;
-    private annotationValue: any;
+    private readonly annotationName: string;
+    private readonly annotationValue: any;
 
     constructor(annotationName: string, annotationValue: any) {
         this.annotationName = annotationName;

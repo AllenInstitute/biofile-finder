@@ -11,5 +11,5 @@
 }
 
 .list {
-    height: calc(100% - var(--header-height));
+    height: calc(25% - var(--header-height));
 }

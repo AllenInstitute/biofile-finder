@@ -5,10 +5,10 @@ import { Provider } from "react-redux";
 import * as sinon from "sinon";
 
 import Annotation from "../../../entity/Annotation";
-import { ColumnWidths } from "../../../containers/FileList/useResizableColumns";
+import { FmsFile } from "../../../entity/FileService";
+import { ColumnWidths } from "../../FileList/useResizableColumns";
 import LazilyRenderedRow from "../LazilyRenderedRow";
 import createMockReduxStore from "../../../state/test/mock-redux-store";
-import { FmsFile } from "../useFileFetcher";
 
 describe("<LazilyRenderedRow />", () => {
     function makeItemData() {
