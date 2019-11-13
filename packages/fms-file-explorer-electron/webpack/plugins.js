@@ -6,7 +6,6 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const webpack = require('webpack');
-const WorkerPlugin = require('worker-plugin');
 
 const Env = require('./constants').Env;
 const devServer = require('./constants').devServer;
@@ -20,10 +19,7 @@ const BASE_PLUGINS = [
     new MiniCssExtractPlugin({ filename: 'style.[contenthash].css' }),
     new HtmlWebpackPlugin({
         template: path.resolve(__dirname, 'index.html')
-    }),
-    new WorkerPlugin({
-        globalObject: "self", // apparently needed for HMR support
-    }),
+    })
 ];
 
 const BUNDLE_ANALYZER = [new BundleAnalyzerPlugin({ analyzerMode: 'static' })];
