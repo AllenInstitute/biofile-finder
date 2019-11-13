@@ -41,7 +41,7 @@ export default function useFileFetcher(
         // network request.
         const response = await new Promise<RestServiceResponse>((resolve) => {
             setTimeout(() => {
-                const res = require("../../../assets/data-0.json");
+                const res = require("../../../assets/files.json");
                 // In a real API call this will be unnecessary, but until then, need to grab just the subset of
                 // data requested.
                 const requestedRange = res.data.slice(startIndex, endIndex + 1);
