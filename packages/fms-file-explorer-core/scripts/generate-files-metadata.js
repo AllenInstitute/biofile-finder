@@ -2,6 +2,7 @@
 
 /**
  * Generate mock data of the shape expected to be returned by a future FMS File Explorer Query Service.
+ * Expected endpoint: `api/{version}/file`
  *
  * This is a temporary script intended to get development of the frontend moving and determine data requirements.
  */
