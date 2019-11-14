@@ -7,7 +7,7 @@ import { FmsFile } from "../../entity/FileService";
 import { ColumnWidths } from "../FileList/useResizableColumns";
 import FileRow from "../../components/FileRow";
 import { selection } from "../../state";
-import { EventParams } from "./useFileSelector";
+import { OnSelect } from "./useFileSelector";
 
 const styles = require("./style.module.css");
 
@@ -20,7 +20,7 @@ export interface LazilyRenderedRowContext {
     displayAnnotations: Annotation[];
     files: Map<number, FmsFile>;
     level: number; // maps to how far indented the first column of the file row should be to
-    onSelect: (identifiers: { index: number; id: string }, eventParams: EventParams) => void;
+    onSelect: OnSelect;
     rowWidth: number;
 }
 

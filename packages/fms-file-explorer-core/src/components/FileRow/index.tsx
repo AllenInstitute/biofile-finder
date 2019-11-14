@@ -3,7 +3,7 @@ import { map } from "lodash";
 import * as React from "react";
 
 import Cell from "./Cell";
-import { EventParams } from "../../containers/LazyWindowedFileList/useFileSelector";
+import { OnSelect } from "../../containers/LazyWindowedFileList/useFileSelector";
 
 interface CellConfig {
     columnKey: string;
@@ -16,7 +16,7 @@ interface FileRowProps {
     className?: string;
     rowIdentifier?: any;
     onResize?: (columnKey: string, deltaX?: number) => void;
-    onSelect?: (identifier: any, eventParams: EventParams) => void;
+    onSelect?: OnSelect;
     rowWidth: number;
 }
 

@@ -13,21 +13,25 @@ const defaultOpts: Partial<Opts> = {
     maxCacheSize: 1000,
 };
 
+function isPromise(arg: any): arg is Promise<any> {
+    return arg instanceof Promise;
+}
+
 /**
  * Represents the filters and applied sorting that together produce a set of files from FMS. Note that the same set of
  * file filters with a different sort order is a different FileSet.
  *
- * Contains all logic for fetching the set of file_ids that corresponds to the filters/sort order as well as loading
+ * Responsible for fetching the set of file ids that corresponds to this set of filters/sort order as well as loading
+ * the subsets of file metadata that will be displayed in the file list.
  */
 export default class FileSet {
-    public fileIdsHaveFetched!: Promise<void>;
-
     private cache: LRUCache<number, FmsFile>;
-    private fileIds: string[] = [];
+    private _fileIds: string[] = [];
     private readonly fileService: FileService;
     private readonly filters: FileFilter[];
+    private loaded: Promise<void> | undefined;
     private readonly sortOrder: FileSort[];
-    private totalFileCount = 1000;
+    private totalFileCount: number | undefined;
 
     constructor(
         fileService: FileService,
@@ -42,16 +46,9 @@ export default class FileSet {
         this.filters = filters;
         this.sortOrder = sortOrder;
 
-        this.fetchFiles = this.fetchFiles.bind(this);
+        this.fetchFileRange = this.fetchFileRange.bind(this);
+        this.fetchFileIds = this.fetchFileIds.bind(this);
         this.isLoaded = this.isLoaded.bind(this);
-
-        // kick off request for all file ids in the result set represented by this query
-        // store Promise as a loading indicator; allows code to `await this.fileIdsHaveFetched`
-        this.fileIdsHaveFetched = this.fetchFileIds();
-    }
-
-    public get ids() {
-        return this.fileIds;
     }
 
     public get files() {
@@ -62,31 +59,21 @@ export default class FileSet {
         return this.totalFileCount;
     }
 
-    public isLoaded(index: number) {
-        return this.cache.has(index);
-    }
-
     /**
-     * Combine filters and sortOrder into a single query string that can be sent to a query service.
+     * Fetch metadata for a range of files from within the result set this query corresponds to.
+     *
+     * ! SIDE EFFECT !
+     * Fetches file ids if they have not already been fetched.
      */
-    public toQueryString(): string {
-        return join(
-            flatten([
-                map(this.filters, (filter) => filter.toQueryString()),
-                map(this.sortOrder, (sortBy) => sortBy.toQueryString()),
-            ]),
-            "&"
-        );
-    }
-
-    /**
-     * Fetch range of files from within the result set this query corresponds to.
-     */
-    public async fetchFiles(startIndex: number, endIndex: number) {
+    public async fetchFileRange(startIndex: number, endIndex: number) {
         try {
-            await this.fileIdsHaveFetched;
+            if (!isPromise(this.loaded)) {
+                this.fetchFileIds();
+            }
 
-            const fromId = this.fileIds[startIndex];
+            await this.loaded;
+
+            const fromId = this._fileIds[startIndex];
             const limit = endIndex - startIndex;
             const response = await this.fileService.getFiles({
                 fromId,
@@ -109,9 +96,57 @@ export default class FileSet {
     }
 
     /**
-     * Fetch list of all file_ids for entire set of FMS files this query corresponds to.
+     * Kick off request for all file ids in the result set represented by this query.
+     *
+     * ! SIDE EFFECT !
+     * Stores Promise as a loading indicator, which allows code to `await this.loaded.`
      */
-    private async fetchFileIds() {
-        this.fileIds = await this.fileService.getFileIds({ queryString: this.toQueryString() });
+    public fetchFileIds() {
+        this.loaded = this._fetchFileIds();
+    }
+
+    /**
+     * Return list of all file ids corresponding to this FileSet.
+     *
+     * ! SIDE EFFECT !
+     * Fetches file ids if they have not already been fetched.
+     */
+    public async fileIds() {
+        if (!isPromise(this.loaded)) {
+            this.fetchFileIds();
+        }
+
+        try {
+            await this.loaded;
+        } catch (e) {
+            // TODO retry logic
+            console.error(e);
+        }
+
+        return this._fileIds;
+    }
+
+    public isLoaded(index: number) {
+        return this.cache.has(index);
+    }
+
+    /**
+     * Combine filters and sortOrder into a single query string that can be sent to a query service.
+     */
+    public toQueryString(): string {
+        return join(
+            flatten([
+                map(this.filters, (filter) => filter.toQueryString()),
+                map(this.sortOrder, (sortBy) => sortBy.toQueryString()),
+            ]),
+            "&"
+        );
+    }
+
+    /**
+     * Fetch list of all file ids corresponding to this FileSet.
+     */
+    private async _fetchFileIds() {
+        this._fileIds = await this.fileService.getFileIds({ queryString: this.toQueryString() });
     }
 }

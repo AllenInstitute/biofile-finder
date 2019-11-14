@@ -1,5 +1,6 @@
 import * as classNames from "classnames";
 import * as debouncePromise from "debounce-promise";
+import { isUndefined } from "lodash";
 import * as React from "react";
 import { FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
@@ -14,6 +15,10 @@ import useFileSelector from "./useFileSelector";
 const styles = require("./style.module.css");
 
 const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 50; // ms
+
+// This is an arbitrary value that needs to be set to some number > 0 in order to prompt react-window-infinite-loader
+// to start calling `loadMoreItems`.
+const DEFAULT_TOTAL_COUNT = 1000;
 
 interface LazyWindowedFileListProps {
     columnWidths: ColumnWidths;
@@ -43,12 +48,17 @@ export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
     const [ref, height] = useLayoutMeasurements<HTMLDivElement>();
     const onSelect = useFileSelector(fileSet);
 
+    const totalCount = isUndefined(fileSet.totalCount) ? DEFAULT_TOTAL_COUNT : fileSet.totalCount;
+
     return (
         <div className={classNames(styles.list, className)} ref={ref}>
             <InfiniteLoader
                 isItemLoaded={fileSet.isLoaded}
-                loadMoreItems={debouncePromise(fileSet.fetchFiles, DEBOUNCE_WAIT_FOR_DATA_FETCHING)}
-                itemCount={fileSet.totalCount}
+                loadMoreItems={debouncePromise(
+                    fileSet.fetchFileRange,
+                    DEBOUNCE_WAIT_FOR_DATA_FETCHING
+                )}
+                itemCount={totalCount}
             >
                 {({ onItemsRendered, ref }) => (
                     <FixedSizeList
@@ -62,7 +72,7 @@ export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
                         }}
                         itemSize={rowHeight} // row height
                         height={height} // height of the list itself; affects number of rows rendered at any given time
-                        itemCount={fileSet.totalCount}
+                        itemCount={totalCount}
                         onItemsRendered={onItemsRendered}
                         ref={ref}
                         style={{ overflowX: "hidden" }} // if the window is resized such that the LazyWindowedFileList is wider than its container, the user will be able to use the scrollbar that will be rendered in the container
