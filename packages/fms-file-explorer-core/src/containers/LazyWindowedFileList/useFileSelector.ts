@@ -3,7 +3,7 @@ import * as React from "react";
 import { useDispatch } from "react-redux";
 
 import { selection } from "../../state";
-import FileSet from "../../entity/FileSet/index";
+import FileSet from "../../entity/FileSet";
 
 export interface EventParams {
     ctrlKeyIsPressed: boolean;
