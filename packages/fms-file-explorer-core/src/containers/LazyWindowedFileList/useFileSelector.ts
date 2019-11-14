@@ -1,4 +1,3 @@
-import { isUndefined } from "lodash";
 import * as React from "react";
 import { useDispatch } from "react-redux";
 
@@ -45,9 +44,8 @@ export default function useFileSelector(fileSet: FileSet): OnSelect {
                         return;
                     }
 
-                    const rangeBoundary = isUndefined(lastSelectedFileIndex)
-                        ? fileRow.index
-                        : lastSelectedFileIndex;
+                    const rangeBoundary =
+                        lastSelectedFileIndex === undefined ? fileRow.index : lastSelectedFileIndex;
                     const startIndex = Math.min(rangeBoundary, fileRow.index);
                     const endIndex = Math.max(rangeBoundary, fileRow.index);
                     const selections = fileIds.slice(startIndex, endIndex + 1); // end not inclusive
