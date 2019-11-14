@@ -27,7 +27,7 @@ export default class FileSet {
     private readonly fileService: FileService;
     private readonly filters: FileFilter[];
     private readonly sortOrder: FileSort[];
-    private totalFileCount: number = 1000;
+    private totalFileCount = 1000;
 
     constructor(
         fileService: FileService,
