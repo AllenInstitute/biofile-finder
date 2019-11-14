@@ -25,17 +25,15 @@ interface FileRowProps {
  */
 export default function FileRow(props: FileRowProps) {
     const { cells, className, rowIdentifier, onResize, onSelect, rowWidth } = props;
-    const onClick = React.useCallback(
-        (evt: React.MouseEvent) => {
-            if (onSelect && rowIdentifier !== undefined) {
-                onSelect(rowIdentifier, {
-                    ctrlKeyIsPressed: evt.ctrlKey,
-                    shiftKeyIsPressed: evt.shiftKey,
-                });
-            }
-        },
-        [rowIdentifier, onSelect]
-    );
+
+    const onClick = (evt: React.MouseEvent) => {
+        if (onSelect && rowIdentifier !== undefined) {
+            onSelect(rowIdentifier, {
+                ctrlKeyIsPressed: evt.ctrlKey,
+                shiftKeyIsPressed: evt.shiftKey,
+            });
+        }
+    };
 
     return (
         <div className={classNames(className)} onClick={onClick} style={{ width: rowWidth }}>
