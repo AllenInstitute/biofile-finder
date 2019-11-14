@@ -53,7 +53,7 @@ export default class FileService {
 
         // TEMPORARY, FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE EXISTS
         let page = 0;
-        const fetch = (): Promise<RestServiceResponse<string>> => {
+        const makeRequest = (): Promise<RestServiceResponse<string>> => {
             return new Promise((resolve) => {
                 setTimeout(() => {
                     const res = require(`../../../assets/file-ids-${page}.json`);
@@ -64,10 +64,10 @@ export default class FileService {
         };
 
         const fileIds: string[] = [];
-        let res = await fetch();
+        let res = await makeRequest();
         res.data.forEach((id) => fileIds.push(id));
         while (res.hasMore) {
-            res = await fetch();
+            res = await makeRequest();
             res.data.forEach((id) => fileIds.push(id));
         }
 
