@@ -3,6 +3,10 @@ export enum SortOrder {
     DESC = "DESC",
 }
 
+/**
+ * A simple container to represent a sort order applied to a file set. Responsible for serializing itself into a URL
+ * query string friendly format.
+ */
 export default class FileSort {
     private readonly annotationName: string;
     private readonly order: SortOrder;

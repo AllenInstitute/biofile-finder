@@ -19,11 +19,14 @@ export interface GetFileIdsRequest {
     queryString: string; // file filters and applied sort order(s) in their query string form (e.g., "scientist=jane&sort=date-created(ASC)")
 }
 
+/**
+ * Service responsible for fetching file related metadata.
+ */
 export default class FileService {
     private static readonly BASE_FILES_URL = "api/1.0/file";
     private static readonly BASE_FILE_IDS_URL = "api/1.0/file/ids";
 
-    public getFiles(request: GetFilesRequest) {
+    public getFiles(request: GetFilesRequest): Promise<RestServiceResponse<FmsFile>> {
         const { fromId, limit, queryString, startIndex, endIndex } = request;
 
         const base = `${FileService.BASE_FILES_URL}?from=${fromId}&limit=${limit}`;
@@ -42,7 +45,7 @@ export default class FileService {
         });
     }
 
-    public async getFileIds(request: GetFileIdsRequest) {
+    public async getFileIds(request: GetFileIdsRequest): Promise<string[]> {
         const { queryString } = request;
 
         const requestUrl = join(compact([FileService.BASE_FILE_IDS_URL, queryString]), "?");
