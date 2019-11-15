@@ -29,7 +29,7 @@ export default class FileSet {
     private _fileIds: string[] = [];
     private readonly fileService: FileService;
     private readonly filters: FileFilter[];
-    private loaded: Promise<void> | undefined;
+    private loaded: Promise<string[]> | undefined;
     private readonly sortOrder: FileSort[];
     private totalFileCount: number | undefined;
 
@@ -47,8 +47,7 @@ export default class FileSet {
         this.sortOrder = sortOrder;
 
         this.fetchFileRange = this.fetchFileRange.bind(this);
-        this.fetchFileIds = this.fetchFileIds.bind(this);
-        this.isLoaded = this.isLoaded.bind(this);
+        this.isFileMetadataLoaded = this.isFileMetadataLoaded.bind(this);
     }
 
     public get files() {
@@ -96,16 +95,6 @@ export default class FileSet {
     }
 
     /**
-     * Kick off request for all file ids in the result set represented by this query.
-     *
-     * ! SIDE EFFECT !
-     * Stores Promise as a loading indicator, which allows code to `await this.loaded.`
-     */
-    public fetchFileIds() {
-        this.loaded = this._fetchFileIds();
-    }
-
-    /**
      * Return list of all file ids corresponding to this FileSet.
      *
      * ! SIDE EFFECT !
@@ -126,7 +115,7 @@ export default class FileSet {
         return this._fileIds;
     }
 
-    public isLoaded(index: number) {
+    public isFileMetadataLoaded(index: number) {
         return this.cache.has(index);
     }
 
@@ -145,8 +134,12 @@ export default class FileSet {
 
     /**
      * Fetch list of all file ids corresponding to this FileSet.
+     *
+     * ! SIDE EFFECT !
+     * Stores Promise as a loading indicator, which allows code to `await this.loaded.`
      */
-    private async _fetchFileIds() {
-        this._fileIds = await this.fileService.getFileIds({ queryString: this.toQueryString() });
+    private async fetchFileIds() {
+        this.loaded = this.fileService.getFileIds({ queryString: this.toQueryString() });
+        this._fileIds = await this.loaded;
     }
 }

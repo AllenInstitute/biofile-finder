@@ -53,7 +53,7 @@ export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
     return (
         <div className={classNames(styles.list, className)} ref={ref}>
             <InfiniteLoader
-                isItemLoaded={fileSet.isLoaded}
+                isItemLoaded={fileSet.isFileMetadataLoaded}
                 loadMoreItems={debouncePromise(
                     fileSet.fetchFileRange,
                     DEBOUNCE_WAIT_FOR_DATA_FETCHING
