@@ -88,5 +88,5 @@ export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
 
 LazyWindowedFileList.defaultProps = {
     level: 0,
-    rowHeight: 30,
+    rowHeight: 22,
 };
