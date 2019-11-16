@@ -1,4 +1,5 @@
 .root {
     /* placeholder */
     background-color: #ebebeb;
+    transition: width 0.5s;
 }
