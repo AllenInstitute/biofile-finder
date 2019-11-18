@@ -1,4 +1,3 @@
-import { map, values } from "lodash";
 import * as React from "react";
 
 const styles = require("./WindowActionIconButton.module.css");
@@ -29,42 +28,26 @@ const actionToPathDataMap: { [index: string]: string } = {
         "M0 0C0 0 13 0 13 0 13 0 13 13 13 13 13 13 0 13 0 13 0 13 0 0 0 0M1.625 3.25C1.625 3.25 1.625 11.375 1.625 11.375 1.625 11.375 11.375 11.375 11.375 11.375 11.375 11.375 11.375 3.25 11.375 3.25 11.375 3.25 1.625 3.25 1.625 3.25 1.625 3.25 1.625 3.25 1.625 3.25",
 };
 
-// The height and width of the SVG icons as they were designed to be rendered. Used to ensure the icons scale properly.
-const actionToViewBoxMap: { [index: string]: { height: number; width: number } } = {
-    [WindowAction.MINIMIZE]: { height: 3.25, width: 13 },
-    [WindowAction.RESTORE]: { height: 13, width: 13 },
-    [WindowAction.MAXIMIZE]: { height: 8, width: 13 },
+// The viewbox includes the height and width of the SVG icons as they were designed to be rendered. Used to ensure the
+// icons scale properly.
+const actionToViewBoxMap: { [index: string]: string } = {
+    [WindowAction.MINIMIZE]: "0 0 13 3.25",
+    [WindowAction.RESTORE]: "0 0 13 13",
+    [WindowAction.MAXIMIZE]: "0 0 13 13",
 };
-
-const LARGEST_VIEWBOX_HEIGHT = Math.max.apply(null, map(values(actionToViewBoxMap), "height"));
 
 export default function WindowActionIconButton(props: WindowActionIconButtonProps) {
     const { action, fillColor, height, onClick, width } = props;
 
-    const { height: viewBoxHeight, width: viewBoxWidth } = actionToViewBoxMap[action];
-
-    // The hit rects should all be the same height and width and be aligned along their y-axis. Because the MINIMIZE
-    // icon is designed to be shorter than the others (i.e., has a smaller viewport height), need to fiddle with the y
-    // placement of its hit rect to ensure it aligns with the others. The following solves the problem in the general
-    // case.
-    const rectY =
-        viewBoxHeight !== LARGEST_VIEWBOX_HEIGHT ? -(viewBoxHeight + viewBoxHeight / 2) : 0;
-
     return (
         <svg
+            className={styles.hitRect}
             height={height}
+            onClick={onClick}
             width={width}
-            viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+            viewBox={actionToViewBoxMap[action]}
             preserveAspectRatio="xMidYMid"
         >
-            <rect
-                className={styles.hitRect}
-                fill="transparent"
-                height={LARGEST_VIEWBOX_HEIGHT}
-                onClick={onClick}
-                width="100%"
-                y={rectY}
-            ></rect>
             <path
                 d={actionToPathDataMap[action]}
                 pointerEvents="none"
