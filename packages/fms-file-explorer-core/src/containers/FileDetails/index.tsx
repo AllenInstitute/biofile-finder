@@ -13,10 +13,13 @@ interface FileDetails {
     className?: string;
 }
 
-const windowStateToWidthMap: { [index: string]: string } = {
-    [WindowState.MINIMIZED]: "26px",
-    [WindowState.MAXIMIZED]: "100%",
+const windowStateToClassnameMap: { [index: string]: string } = {
+    [WindowState.DEFAULT]: styles.default,
+    [WindowState.MINIMIZED]: styles.minimized,
+    [WindowState.MAXIMIZED]: styles.maximized,
 };
+
+const WINDOW_ACTION_BUTTON_WIDTH = 23; // arbitrary
 
 /**
  * Right-hand sidebar of application. Displays details of selected file(s).
@@ -27,21 +30,42 @@ export default function FileDetails(props: FileDetails) {
     const fileToDetail = useSelector(selection.selectors.getFirstSelectedFile);
     const [fileDetails, isLoading] = useFileDetails(fileToDetail);
 
+    // If FileDetails pane is minimized, set its width to the width of the WindowActionButtons. Else, let it be
+    // defined by whatever the CSS determines (setting an inline style to undefined will prompt ReactDOM to not apply
+    // it to the DOMElement altogether).
+    const minimizedWidth =
+        windowState.state === WindowState.MINIMIZED ? WINDOW_ACTION_BUTTON_WIDTH : undefined;
+
     return (
         <div
             className={classNames(styles.root, props.className)}
-            style={{ width: windowStateToWidthMap[windowState.state] }}
+            style={{ flexBasis: minimizedWidth }}
         >
-            <div className={styles.windowButtons}>
-                {windowState.possibleActions.map((action) => (
-                    <WindowActionButton
-                        key={action}
-                        action={action}
-                        onClick={() => dispatch({ type: action })}
-                    />
-                ))}
+            <div
+                className={classNames(
+                    styles.expandable,
+                    windowStateToClassnameMap[windowState.state]
+                )}
+                style={{ width: minimizedWidth }}
+            >
+                <div className={styles.windowButtons}>
+                    {windowState.possibleActions.map((action) => (
+                        <WindowActionButton
+                            key={action}
+                            action={action}
+                            onClick={() => dispatch({ type: action })}
+                            width={WINDOW_ACTION_BUTTON_WIDTH}
+                        />
+                    ))}
+                </div>
+                <div
+                    className={classNames({
+                        [styles.hidden]: windowState.state === WindowState.MINIMIZED,
+                    })}
+                >
+                    {isLoading ? "Loading..." : JSON.stringify(fileDetails, undefined, 4)}
+                </div>
             </div>
-            {isLoading ? "Loading..." : JSON.stringify(fileDetails, undefined, 4)}
         </div>
     );
 }

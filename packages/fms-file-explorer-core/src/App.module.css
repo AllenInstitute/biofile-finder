@@ -12,6 +12,7 @@
     --file-details-width: 20%;
     --header-ribbon-height: 40px;
     --margin: 12px;
+    --transition-duration: 0.5s;
 
     composes: relative;
     margin: 0;
@@ -28,20 +29,24 @@
 
 .everything-except-header-ribbon {
     composes: relative;
-    display: block;
+    display: flex;
     margin: var(--margin);
     width: calc(100% - (2 * var(--margin)));
     height: calc(100% - (2 * var(--margin)) - var(--header-ribbon-height));
 }
 
 .core {
-    composes: absolute;
-    display: flex;
-    flex-direction: column;
-    left: 0;
     margin-right: var(--margin);
     width: calc(80% - var(--margin));
     height: 100%;
+
+    /* flex child */
+    flex: 1 0 auto;
+    transition: flex var(--transition-duration);
+
+    /* flex parent */
+    display: flex;
+    flex-direction: column;
 }
 
 .breadcrumbs {
@@ -69,8 +74,9 @@
 }
 
 .file-details {
-    composes: absolute;
-    right: 0;
-    width: var(--file-details-width);
     height: 100%;
+    transition: flex var(--transition-duration);
+
+    /* flex child */
+    flex: 0 0 var(--file-details-width);
 }

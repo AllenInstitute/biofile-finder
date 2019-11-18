@@ -1,7 +1,6 @@
 .action-button {
     background-color: #f8f8f8;
-    border: 5px;
-    padding: 5px;
+    border: 5px; /* HTMLButtonElements are a little funky */
     cursor: pointer;
 }
 

@@ -40,10 +40,10 @@ export default function WindowActionButton(props: WindowActionButtonProps) {
     const { action, fillColor, height, onClick, width } = props;
 
     return (
-        <button className={styles.actionButton} onClick={onClick}>
+        <button className={styles.actionButton} style={{ width, height }} onClick={onClick}>
             <svg
-                height={height}
-                width={width}
+                height="100%"
+                width="100%"
                 viewBox={actionToViewBoxMap[action]}
                 preserveAspectRatio="xMidYMid"
             >
@@ -63,9 +63,9 @@ export default function WindowActionButton(props: WindowActionButtonProps) {
 
 WindowActionButton.defaultProps = {
     fillColor: "rgb(170, 170, 170)", // arbitrary; gray
-    height: 13, // arbitrary
+    height: 23, // arbitrary
     onClick: () => {
         /* noop */
     },
-    width: 13, // arbitrary
+    width: 23, // arbitrary
 };

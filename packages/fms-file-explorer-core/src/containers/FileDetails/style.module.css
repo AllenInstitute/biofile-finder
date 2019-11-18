@@ -1,9 +1,32 @@
-.root {
+.expandable {
+    position: absolute;
+    right: 0;
+    height: 100%;
     border: 1px solid #ebebeb;
     background-color: rgba(255, 255, 255, 0.7);
-    transition: width 0.5s;
+    transition: width var(--transition-duration); /* defined in App.module.css under .root{} */
+    overflow: hidden;
+}
+
+.default {
+    width: var(--file-details-width); /* defined in App.module.css under .root{} */
+}
+
+.maximized {
+    /* 100% of the nearest relatively sized container, which _needs_ to be the .everything-except-header-ribbon div
+    rendered in App.tsx */
+    width: 100%;
 }
 
 .windowButtons {
-    float: right;
+    width: 100%;
+
+    /* flex parent */
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.hidden {
+    visibility: hidden;
 }
