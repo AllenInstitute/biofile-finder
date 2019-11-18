@@ -19,7 +19,7 @@ const windowStateToClassnameMap: { [index: string]: string } = {
     [WindowState.MAXIMIZED]: styles.maximized,
 };
 
-const WINDOW_ACTION_BUTTON_WIDTH = 23; // arbitrary
+export const WINDOW_ACTION_BUTTON_WIDTH = 23; // arbitrary
 
 /**
  * Right-hand sidebar of application. Displays details of selected file(s).
