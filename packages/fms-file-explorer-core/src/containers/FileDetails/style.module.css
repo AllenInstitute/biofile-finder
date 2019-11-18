@@ -1,4 +1,9 @@
 .root {
     border: 1px solid #ebebeb;
+    background-color: rgba(255, 255, 255, 0.7);
     transition: width 0.5s;
+}
+
+.windowButtons {
+    float: right;
 }

@@ -1,5 +1,10 @@
 .action-button {
+    background-color: #f8f8f8;
     border: 5px;
     padding: 5px;
     cursor: pointer;
+}
+
+.action-button:hover {
+    background-color: #ebebeb;
 }

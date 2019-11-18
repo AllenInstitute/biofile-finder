@@ -14,7 +14,7 @@ interface FileDetails {
 }
 
 const windowStateToWidthMap: { [index: string]: string } = {
-    [WindowState.MINIMIZED]: "30px",
+    [WindowState.MINIMIZED]: "26px",
     [WindowState.MAXIMIZED]: "100%",
 };
 
@@ -32,13 +32,15 @@ export default function FileDetails(props: FileDetails) {
             className={classNames(styles.root, props.className)}
             style={{ width: windowStateToWidthMap[windowState.state] }}
         >
-            {windowState.possibleActions.map((action) => (
-                <WindowActionButton
-                    key={action}
-                    action={action}
-                    onClick={() => dispatch({ type: action })}
-                />
-            ))}
+            <div className={styles.windowButtons}>
+                {windowState.possibleActions.map((action) => (
+                    <WindowActionButton
+                        key={action}
+                        action={action}
+                        onClick={() => dispatch({ type: action })}
+                    />
+                ))}
+            </div>
             {isLoading ? "Loading..." : JSON.stringify(fileDetails, undefined, 4)}
         </div>
     );
