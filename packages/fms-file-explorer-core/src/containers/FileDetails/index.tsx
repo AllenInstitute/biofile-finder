@@ -15,7 +15,7 @@ interface FileDetails {
 
 const windowStateToWidthMap: { [index: string]: string } = {
     [WindowState.MINIMIZED]: "30px",
-    [WindowState.MAXIMIZED]: "100vw",
+    [WindowState.MAXIMIZED]: "100%",
 };
 
 /**
