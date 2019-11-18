@@ -1,4 +1,4 @@
-import { WindowAction } from "../../components/WindowActionIconButton";
+import { WindowAction } from "../../components/WindowActionButton";
 
 export enum WindowState {
     DEFAULT,

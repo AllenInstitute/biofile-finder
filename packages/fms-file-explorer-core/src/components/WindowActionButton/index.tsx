@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const styles = require("./WindowActionIconButton.module.css");
+const styles = require("./WindowActionButton.module.css");
 
 export enum WindowAction {
     MINIMIZE = "MINIMIZE",
@@ -8,7 +8,7 @@ export enum WindowAction {
     MAXIMIZE = "MAXIMIZE",
 }
 
-interface WindowActionIconButtonProps {
+interface WindowActionButtonProps {
     action: WindowAction;
     fillColor?: string;
     height?: number; // px
@@ -36,7 +36,7 @@ const actionToViewBoxMap: { [index: string]: string } = {
     [WindowAction.MAXIMIZE]: "0 0 13 13",
 };
 
-export default function WindowActionIconButton(props: WindowActionIconButtonProps) {
+export default function WindowActionButton(props: WindowActionButtonProps) {
     const { action, fillColor, height, onClick, width } = props;
 
     return (
@@ -61,7 +61,7 @@ export default function WindowActionIconButton(props: WindowActionIconButtonProp
     );
 }
 
-WindowActionIconButton.defaultProps = {
+WindowActionButton.defaultProps = {
     fillColor: "rgb(170, 170, 170)", // arbitrary; gray
     height: 13, // arbitrary
     onClick: () => {

@@ -2,7 +2,7 @@ import * as classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import WindowActionIconButton from "../../components/WindowActionIconButton";
+import WindowActionButton from "../../components/WindowActionButton";
 import { selection } from "../../state";
 import useFileDetails from "./useFileDetails";
 import windowStateReducer, { INITIAL_STATE, WindowState } from "./windowStateReducer";
@@ -33,7 +33,7 @@ export default function FileDetails(props: FileDetails) {
             style={{ width: windowStateToWidthMap[windowState.state] }}
         >
             {windowState.possibleActions.map((action) => (
-                <WindowActionIconButton
+                <WindowActionButton
                     key={action}
                     action={action}
                     onClick={() => dispatch({ type: action })}
