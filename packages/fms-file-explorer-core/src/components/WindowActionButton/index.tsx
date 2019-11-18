@@ -36,6 +36,9 @@ const actionToViewBoxMap: { [index: string]: string } = {
     [WindowAction.MAXIMIZE]: "0 0 13 13",
 };
 
+/**
+ * Component for rendering minimize, maximize, and restore button used to control the state of a "window."
+ */
 export default function WindowActionButton(props: WindowActionButtonProps) {
     const { action, fillColor, height, onClick, width } = props;
 
