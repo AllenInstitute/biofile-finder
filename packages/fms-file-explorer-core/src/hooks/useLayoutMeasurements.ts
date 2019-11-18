@@ -1,5 +1,6 @@
 import { debounce } from "lodash";
 import * as React from "react";
+import { ResizeObserver } from "resize-observer";
 
 const DEBOUNCE_WAIT_TO_REMEASURE = 50; // ms
 
@@ -17,27 +18,39 @@ export default function useLayoutMeasurements<T extends HTMLElement>(): [
     const [height, setHeight] = React.useState(0);
     const [width, setWidth] = React.useState(0);
 
-    const resizeListener = React.useCallback(
-        debounce(() => {
-            if (ref.current) {
-                const {
-                    height: currentHeight,
-                    width: currentWidth,
-                } = ref.current.getBoundingClientRect();
-                setHeight(currentHeight);
-                setWidth(currentWidth);
-            }
-        }, DEBOUNCE_WAIT_TO_REMEASURE),
-        [ref] // recreate callback only if ref changes
-    );
-
     React.useLayoutEffect(() => {
-        resizeListener();
-        window.addEventListener("resize", resizeListener);
+        let resizeObserver: ResizeObserver;
+        if (ref.current) {
+            // GM: 11/18/2019
+            // Can ditch use of ponyfill once Typescript's lib.dom.ts includes ResizeObserver API:
+            // https://github.com/Microsoft/TypeScript/issues/28502
+            // https://github.com/Microsoft/TSJS-lib-generator/blob/master/inputfiles/idlSources.json
+            resizeObserver = new ResizeObserver(
+                debounce(([entry]) => {
+                    if (entry.target === ref.current) {
+                        // GM: 11/18/2019
+                        // When the ResizeObserver uniformly supports ResizeObserverEntry::borderBoxSize there will be no
+                        // need to query the bounding client rect off of ref
+                        // https://drafts.csswg.org/resize-observer-1/#dom-resizeobserverentry-borderboxsize
+                        const {
+                            height: currentHeight,
+                            width: currentWidth,
+                        } = ref.current.getBoundingClientRect();
+                        setHeight(currentHeight);
+                        setWidth(currentWidth);
+                    }
+                }, DEBOUNCE_WAIT_TO_REMEASURE)
+            );
+
+            resizeObserver.observe(ref.current);
+        }
+
         return function cleanUp() {
-            window.removeEventListener("resize", resizeListener);
+            if (resizeObserver) {
+                resizeObserver.disconnect();
+            }
         };
-    }, [resizeListener, ref]);
+    }, [ref]);
 
     return [ref, height, width];
 }

@@ -99,6 +99,7 @@
     "react-window-infinite-loader": "1.0.5",
     "redux": "4.0.4",
     "redux-logic": "2.1.1",
-    "reselect": "4.0.0"
+    "reselect": "4.0.0",
+    "resize-observer": "1.0.0"
   }
 }
