@@ -40,24 +40,24 @@ export default function WindowActionIconButton(props: WindowActionIconButtonProp
     const { action, fillColor, height, onClick, width } = props;
 
     return (
-        <svg
-            className={styles.hitRect}
-            height={height}
-            onClick={onClick}
-            width={width}
-            viewBox={actionToViewBoxMap[action]}
-            preserveAspectRatio="xMidYMid"
-        >
-            <path
-                d={actionToPathDataMap[action]}
-                pointerEvents="none"
-                strokeWidth="0"
-                stroke="none"
-                strokeDasharray="none"
-                fill={fillColor}
-                fillRule="evenodd"
-            ></path>
-        </svg>
+        <button className={styles.actionButton} onClick={onClick}>
+            <svg
+                height={height}
+                width={width}
+                viewBox={actionToViewBoxMap[action]}
+                preserveAspectRatio="xMidYMid"
+            >
+                <path
+                    d={actionToPathDataMap[action]}
+                    pointerEvents="none"
+                    strokeWidth="0"
+                    stroke="none"
+                    strokeDasharray="none"
+                    fill={fillColor}
+                    fillRule="evenodd"
+                ></path>
+            </svg>
+        </button>
     );
 }
 
