@@ -36,6 +36,12 @@ const actionToViewBoxMap: { [index: string]: string } = {
     [WindowAction.MAXIMIZE]: "0 0 13 13",
 };
 
+const actionToAriaLabelMap: { [index: string]: string } = {
+    [WindowAction.MINIMIZE]: "Minimize details window",
+    [WindowAction.RESTORE]: "Restore details window",
+    [WindowAction.MAXIMIZE]: "Maximize details window",
+};
+
 /**
  * Component for rendering minimize, maximize, and restore button used to control the state of a "window."
  */
@@ -43,7 +49,12 @@ export default function WindowActionButton(props: WindowActionButtonProps) {
     const { action, fillColor, height, onClick, width } = props;
 
     return (
-        <button className={styles.actionButton} style={{ width, height }} onClick={onClick}>
+        <button
+            aria-label={actionToAriaLabelMap[action]}
+            className={styles.actionButton}
+            style={{ width, height }}
+            onClick={onClick}
+        >
             <svg
                 height="100%"
                 width="100%"
