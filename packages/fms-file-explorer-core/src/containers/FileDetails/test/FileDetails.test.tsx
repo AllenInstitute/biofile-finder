@@ -93,7 +93,7 @@ describe("<FileDetails />", () => {
             });
         });
 
-        it("renders restore and maximize buttons when in it is minimized", () => {
+        it("renders restore and maximize buttons when it is minimized", () => {
             const [store] = createMockReduxStore();
             const wrapper = mount(
                 <Provider store={store}>
