@@ -94,4 +94,8 @@ export default class FileDetail {
     public get id() {
         return this.fileDetail.file_id;
     }
+
+    public get thumbnail() {
+        return this.fileDetail.thumbnail;
+    }
 }

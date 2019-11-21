@@ -2,6 +2,7 @@ import * as classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
+import FileThumbnail from "../../components/FileThumbnail";
 import WindowActionButton from "../../components/WindowActionButton";
 import { selection } from "../../state";
 import useFileDetails from "./useFileDetails";
@@ -63,6 +64,19 @@ export default function FileDetails(props: FileDetails) {
                         [styles.hidden]: windowState.state === WindowState.MINIMIZED,
                     })}
                 >
+                    <div
+                        className={classNames(styles.fileThumbnailContainer, {
+                            [styles.thumbnailDefault]: windowState.state === WindowState.DEFAULT,
+                            [styles.thumbnailMaximized]:
+                                windowState.state === WindowState.MAXIMIZED,
+                        })}
+                    >
+                        {fileDetails === undefined ? (
+                            <div className={styles.thumbnailSkeleton} />
+                        ) : (
+                            <FileThumbnail uri={fileDetails.thumbnail} />
+                        )}
+                    </div>
                     {isLoading ? "Loading..." : JSON.stringify(fileDetails, undefined, 4)}
                 </div>
             </div>

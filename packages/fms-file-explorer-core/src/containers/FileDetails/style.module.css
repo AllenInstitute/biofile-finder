@@ -20,6 +20,7 @@
 
 .windowButtons {
     width: 100%;
+    height: var(--breadcrumb-height); /* defined in App.module.css under .root{} */
 
     /* flex parent */
     display: flex;
@@ -29,4 +30,25 @@
 
 .hidden {
     visibility: hidden;
+}
+
+.file-thumbnail-container {
+    margin: var(--margin) 10px 10px 10px; /* defined in App.module.css under .root{} */
+    height: 200px;
+    transition: width var(--transition-duration);
+}
+
+
+.file-thumbnail-container.thumbnail-default {
+    width: 90%;
+}
+
+.file-thumbnail-container.thumbnail-maximized {
+    width: 20%;
+}
+
+.thumbnail-skeleton {
+    width: 100%;
+    height: 200px;
+    background-color: #ebebeb;
 }
