@@ -1,0 +1,12 @@
+.root {
+    display: flex;
+    flex-direction: column;
+}
+
+.annotation-grouping {
+    flex: 1 1 40%;
+}
+
+.annotation-list {
+    flex: 1 1 60%;
+}

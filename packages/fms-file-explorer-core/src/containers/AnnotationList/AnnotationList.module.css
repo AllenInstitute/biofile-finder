@@ -1,0 +1,37 @@
+.root {
+    display: flex;
+    flex-direction: column;
+}
+
+.title {
+    flex: 0 0 auto;
+    margin: 0 0 0.25rem 0;
+}
+
+.description {
+    flex: 0 0 auto;
+    margin: 0 0 0.25rem 0;
+    font-weight: normal;
+}
+
+.list-container {
+    border: 1px solid #ebebeb;
+    padding: 0.5rem;
+
+    /* flex child */
+    flex: 1 1 auto;
+
+    /* flex parent */
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-input {
+    width: 100%;
+    flex: 0 0 auto;
+}
+
+.list {
+    /* flex-basis is fairly arbitrary; setting value to something low like 20px allows the list to shrink as the user would expect */
+    flex: 1 1 20px;
+}
