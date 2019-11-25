@@ -1,12 +1,15 @@
 .root {
+    /* flex parent */
     display: flex;
     flex-direction: column;
 }
 
 .annotation-grouping {
+    /* flex child */
     flex: 1 1 40%;
 }
 
 .annotation-list {
+    /* flex child */
     flex: 1 1 60%;
 }
