@@ -28,6 +28,10 @@ export default class Annotation {
         this.formatter = annotationFormatterFactory(this.annotation.type);
     }
 
+    public get description(): string {
+        return this.annotation.description;
+    }
+
     public get displayName(): string {
         return this.annotation.annotation_display_name;
     }

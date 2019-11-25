@@ -18,7 +18,7 @@ function mergeState<State = {}>(initial: State, src: PartialDeep<State>): State 
     });
 }
 
-describe("AnnotationList selectors", () => {
+describe("<AnnotationList /> selectors", () => {
     describe("getAnnotationListItems", () => {
         it("transforms available annotations into list item data", () => {
             const state = mergeState(initialState, {
@@ -32,7 +32,8 @@ describe("AnnotationList selectors", () => {
 
             const first = listItems[0];
             expect(first).to.have.property("id");
-            expect(first).to.have.property("value", "Date created");
+            expect(first).to.have.property("description", "Date and time file was created");
+            expect(first).to.have.property("title", "Date created");
         });
     });
 });

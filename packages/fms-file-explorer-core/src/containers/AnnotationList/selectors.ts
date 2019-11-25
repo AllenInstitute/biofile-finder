@@ -10,7 +10,8 @@ export const getAnnotationListItems = createSelector(
     (annotations: Annotation[]): ListItemProps[] => {
         return map(annotations, (annotation) => ({
             id: annotation.name,
-            value: annotation.displayName,
+            description: annotation.description,
+            title: annotation.displayName,
         }));
     }
 );
