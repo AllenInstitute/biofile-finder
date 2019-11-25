@@ -1,7 +1,7 @@
 import { map } from "lodash";
 import { createSelector } from "reselect";
 
-import { ListItemProps } from "../../components/List/ListItem";
+import { ListItemProps } from "./ListItem";
 import Annotation from "../../entity/Annotation";
 import { metadata } from "../../state";
 

@@ -2,7 +2,7 @@ import * as classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import List from "../../components/List";
+import List from "./List";
 import * as annotationListSelectors from "./selectors";
 
 const styles = require("./AnnotationList.module.css");
