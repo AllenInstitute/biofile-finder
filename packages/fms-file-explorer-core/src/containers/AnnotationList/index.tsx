@@ -17,7 +17,7 @@ interface AnnotationListProps {
  * the AnnotationGrouping component in order to effect how files in the FileList are displayed (grouped and filtered).
  */
 export default function AnnotationList(props: AnnotationListProps) {
-    const annotationListItem = useSelector(annotationListSelectors.getAnnotationListItems);
+    const annotationListItems = useSelector(annotationListSelectors.getAnnotationListItems);
 
     return (
         <div className={classNames(styles.root, props.className)}>
@@ -25,7 +25,7 @@ export default function AnnotationList(props: AnnotationListProps) {
             <h6 className={styles.description}>Drag any annotation to the box above</h6>
             <div className={styles.listContainer}>
                 <input className={styles.filterInput} spellCheck={false} type="text" />
-                <List className={styles.list} items={annotationListItem} />
+                <List className={styles.list} items={annotationListItems} />
             </div>
         </div>
     );
