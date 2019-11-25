@@ -1,11 +1,18 @@
 import * as React from "react";
 
-export interface ListItemProps {
+export interface ListItemData {
     id: string | number;
     description?: string;
     title: any;
 }
 
+interface ListItemProps {
+    data: ListItemData;
+}
+
 export default function ListItem(props: ListItemProps) {
-    return <li>{props.title}</li>;
+    const {
+        data: { title },
+    } = props;
+    return <li>{title}</li>;
 }
