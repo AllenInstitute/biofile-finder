@@ -12,7 +12,8 @@ interface ListProps {
 }
 
 /**
- *
+ * Fundamental list component rendered by AnnotationList. Separated from AnnotationList simply to keep files small and
+ * components as single-purpose as possible.
  */
 export default function List(props: ListProps) {
     return (
