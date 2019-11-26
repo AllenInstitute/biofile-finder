@@ -4,8 +4,8 @@ import * as React from "react";
 import { Provider } from "react-redux";
 
 import AnnotationList from "../";
-import ListItem from "../ListItem";
 import Annotation from "../../../entity/Annotation";
+import ListItem from "../ListItem";
 import { annotationsJson } from "./mocks";
 import createMockReduxStore from "../../../state/test/mock-redux-store";
 
