@@ -31,11 +31,33 @@
     flex-direction: column;
 }
 
+.search-box {
+    --grey: #c8c8c8;
+    position: relative;
+}
+
+.search-icon {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    fill: var(--grey);
+}
+
 .filter-input {
     width: 100%;
+    border-color: #ebebeb;
+    border-style: solid;
+    border-radius: 3px;
+    border-width: 1px;
+    padding-left: 20px;
 
     /* flex child */
     flex: 0 0 auto;
+}
+
+.filter-input::placeholder {
+    color: var(--grey);
 }
 
 .list {
