@@ -4,8 +4,8 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 
 import List from "./List";
-import * as annotationListSelectors from "./selectors";
 import SearchIcon from "./SearchIcon";
+import * as annotationListSelectors from "./selectors";
 
 const styles = require("./AnnotationList.module.css");
 
