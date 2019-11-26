@@ -1,4 +1,3 @@
-import * as classNames from "classnames";
 import * as React from "react";
 
 interface SvgIcon {
@@ -17,7 +16,7 @@ export default function SvgIcon(props: SvgIcon) {
     const { className, height, pathAttrs, pathData, viewBox, width } = props;
     return (
         <svg
-            className={classNames(className)}
+            className={className}
             height={height}
             preserveAspectRatio="xMidYMid"
             viewBox={viewBox}
