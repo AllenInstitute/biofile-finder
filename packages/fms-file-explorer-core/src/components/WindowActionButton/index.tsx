@@ -1,4 +1,5 @@
 import * as React from "react";
+import SvgIcon from "../SvgIcon/index";
 
 const styles = require("./WindowActionButton.module.css");
 
@@ -55,22 +56,20 @@ export default function WindowActionButton(props: WindowActionButtonProps) {
             style={{ width, height }}
             onClick={onClick}
         >
-            <svg
+            <SvgIcon
                 height="100%"
-                width="100%"
+                pathAttrs={{
+                    pointerEvents: "none",
+                    strokeWidth: 0,
+                    stroke: "none",
+                    strokeDasharray: "none",
+                    fill: fillColor,
+                    fillRule: "evenodd",
+                }}
+                pathData={actionToPathDataMap[action]}
                 viewBox={actionToViewBoxMap[action]}
-                preserveAspectRatio="xMidYMid"
-            >
-                <path
-                    d={actionToPathDataMap[action]}
-                    pointerEvents="none"
-                    strokeWidth="0"
-                    stroke="none"
-                    strokeDasharray="none"
-                    fill={fillColor}
-                    fillRule="evenodd"
-                ></path>
-            </svg>
+                width="100%"
+            />
         </button>
     );
 }
