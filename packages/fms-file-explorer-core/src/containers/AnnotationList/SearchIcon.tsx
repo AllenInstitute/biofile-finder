@@ -8,7 +8,9 @@ interface SearchIconProps {
 }
 
 /**
- * Path data for icons taken from Material Design
+ * SVG element that renders a magnifying glass icon.
+ *
+ * Path data for icon taken from Material Design
  * Apache License 2.0 (https://github.com/google/material-design-icons/blob/master/LICENSE)
  */
 export default function SearchIcon({ className, height, width }: SearchIconProps) {
