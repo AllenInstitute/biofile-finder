@@ -28,13 +28,13 @@ describe("<AnnotationList />", () => {
                     <AnnotationList />
                 </Provider>
             );
+            const queryNumberListItems = () => wrapper.find(ListItem).children().length;
 
             // before, expect all annotations to be in the list
             const allAnnotationDisplayNames = annotationsJson.map(
                 (annotation) => annotation.annotation_display_name
             );
-            const numberListItems = () => wrapper.find(ListItem).children().length;
-            expect(numberListItems()).to.equal(allAnnotationDisplayNames.length);
+            expect(queryNumberListItems()).to.equal(allAnnotationDisplayNames.length);
             allAnnotationDisplayNames.forEach((annotation) => {
                 expect(wrapper.contains(annotation)).to.be.true;
             });
@@ -45,7 +45,7 @@ describe("<AnnotationList />", () => {
                 .simulate("change", { target: { value: "created" } });
 
             // after, expect a filtered list, and for it to include only annotations similar to search input
-            expect(numberListItems()).to.be.lessThan(allAnnotationDisplayNames.length);
+            expect(queryNumberListItems()).to.be.lessThan(allAnnotationDisplayNames.length);
             expect(wrapper.contains("Date created")).to.be.true;
             expect(wrapper.contains("Size")).to.be.false;
         });
