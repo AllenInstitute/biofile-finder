@@ -1,5 +1,6 @@
 import * as React from "react";
-import SvgIcon from "../SvgIcon/index";
+
+import SvgIcon from "../SvgIcon";
 
 const styles = require("./WindowActionButton.module.css");
 
