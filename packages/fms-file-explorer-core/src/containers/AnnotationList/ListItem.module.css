@@ -1,0 +1,4 @@
+.info {
+    margin-right: 0.25rem;
+    fill: var(--blue); /* defined in App.module.css */
+}

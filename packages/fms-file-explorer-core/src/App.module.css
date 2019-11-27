@@ -8,6 +8,7 @@
 
 .root {
     --annotation-hierarchy-max-width: 350px;
+    --blue: steelblue;
     --breadcrumb-height: 40px;
     --file-details-width: 20%;
     --header-ribbon-height: 40px;
