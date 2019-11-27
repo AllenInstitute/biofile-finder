@@ -1,6 +1,7 @@
+import { defaults } from "lodash";
 import * as React from "react";
 
-interface SvgIcon {
+interface SvgIconProps {
     className?: string;
     height?: number | string;
     pathAttrs?: React.SVGProps<SVGPathElement>;
@@ -9,11 +10,21 @@ interface SvgIcon {
     viewBox: string;
 }
 
+// forwardRef components cannot make use of React's defaultProps mechanism
+const DEFAULT_PROPS = {
+    height: 15,
+    pathAttrs: {},
+    width: 15,
+};
+
 /**
  * A generalized SVG icon.
  */
-const SvgIcon = React.forwardRef<SVGSVGElement, SvgIcon>((props, ref) => {
-    const { className, height, pathAttrs, pathData, viewBox, width } = props;
+function SvgIcon(props: SvgIconProps, ref?: React.Ref<SVGSVGElement>) {
+    const { className, height, pathAttrs, pathData, viewBox, width } = defaults(
+        props,
+        DEFAULT_PROPS
+    );
     return (
         <svg
             className={className}
@@ -26,12 +37,6 @@ const SvgIcon = React.forwardRef<SVGSVGElement, SvgIcon>((props, ref) => {
             <path {...pathAttrs} d={pathData}></path>
         </svg>
     );
-});
+}
 
-SvgIcon.defaultProps = {
-    height: 15,
-    pathAttrs: {},
-    width: 15,
-};
-
-export default SvgIcon;
+export default React.forwardRef<SVGSVGElement, SvgIconProps>(SvgIcon);
