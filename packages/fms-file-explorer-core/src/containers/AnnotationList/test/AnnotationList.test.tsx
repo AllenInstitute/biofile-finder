@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import { mount } from "enzyme";
 import * as React from "react";
+import { DndProvider } from "react-dnd-cjs";
+import HTML5Backend from "react-dnd-html5-backend-cjs";
 import { Provider } from "react-redux";
 
 import AnnotationList from "../";
@@ -25,7 +27,9 @@ describe("<AnnotationList />", () => {
 
             const wrapper = mount(
                 <Provider store={store}>
-                    <AnnotationList />
+                    <DndProvider backend={HTML5Backend}>
+                        <AnnotationList />
+                    </DndProvider>
                 </Provider>
             );
             const queryNumberListItems = () => wrapper.find(ListItem).children().length;

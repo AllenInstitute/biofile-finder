@@ -1,7 +1,7 @@
 import Tippy from "@tippy.js/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 import * as React from "react";
-import { useDrag } from "react-dnd";
+import { useDrag } from "react-dnd-cjs";
 
 import SvgIcon from "../../components/SvgIcon";
 
