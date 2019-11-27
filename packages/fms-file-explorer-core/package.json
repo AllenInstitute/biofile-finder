@@ -99,6 +99,8 @@
     "lru-cache": "5.1.1",
     "normalize.css": "8.0.1",
     "react": "16.9.0",
+    "react-dnd": "9.5.1",
+    "react-dnd-html5-backend": "9.5.1",
     "react-redux": "7.1.1",
     "react-window": "1.8.5",
     "react-window-infinite-loader": "1.0.5",
