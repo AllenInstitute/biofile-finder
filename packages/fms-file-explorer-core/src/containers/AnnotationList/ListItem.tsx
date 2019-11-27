@@ -1,6 +1,7 @@
 import Tippy from "@tippy.js/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 import * as React from "react";
+import { useDrag } from "react-dnd";
 
 import SvgIcon from "../../components/SvgIcon";
 
@@ -24,6 +25,8 @@ const INFO_ICON_PATH_DATA =
 const DRAG_INDICATOR_ICON_PATH_DATA =
     "M15 15.984q0.797 0 1.406 0.609t0.609 1.406-0.609 1.406-1.406 0.609-1.406-0.609-0.609-1.406 0.609-1.406 1.406-0.609zM15 9.984q0.797 0 1.406 0.609t0.609 1.406-0.609 1.406-1.406 0.609-1.406-0.609-0.609-1.406 0.609-1.406 1.406-0.609zM15 8.016q-0.797 0-1.406-0.609t-0.609-1.406 0.609-1.406 1.406-0.609 1.406 0.609 0.609 1.406-0.609 1.406-1.406 0.609zM9 3.984q0.797 0 1.406 0.609t0.609 1.406-0.609 1.406-1.406 0.609-1.406-0.609-0.609-1.406 0.609-1.406 1.406-0.609zM9 9.984q0.797 0 1.406 0.609t0.609 1.406-0.609 1.406-1.406 0.609-1.406-0.609-0.609-1.406 0.609-1.406 1.406-0.609zM11.016 18q0 0.797-0.609 1.406t-1.406 0.609-1.406-0.609-0.609-1.406 0.609-1.406 1.406-0.609 1.406 0.609 0.609 1.406z";
 
+export const ANNOTATION_DRAG_TYPE = "annotation";
+
 /**
  * Fundamental list item component rendered by List. Separated from List simply to keep files small and components as
  * single-purpose as possible.
@@ -31,9 +34,20 @@ const DRAG_INDICATOR_ICON_PATH_DATA =
 export default function ListItem(props: ListItemProps) {
     const { data } = props;
 
+    const [_, dragRef] = useDrag({
+        item: {
+            annotation: data,
+            type: ANNOTATION_DRAG_TYPE,
+        },
+        collect: (monitor) => ({
+            isDragging: monitor.isDragging(),
+        }),
+    });
+
     return (
-        <li className={styles.row}>
+        <li className={styles.row} ref={dragRef}>
             <SvgIcon
+                className={styles.dragIndicator}
                 height={15}
                 pathData={DRAG_INDICATOR_ICON_PATH_DATA}
                 viewBox="0 0 24 24"
