@@ -1,3 +1,10 @@
+.row {
+    /* flex parent */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
 .info {
     margin-right: 0.25rem;
     fill: var(--blue); /* defined in App.module.css */
