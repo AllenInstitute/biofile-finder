@@ -5,8 +5,16 @@
     align-items: center;
 }
 
+.row.disabled {
+    color: gray;
+}
+
 .drag-indicator {
     cursor: grab;
+}
+
+.drag-indicator.disabled {
+    cursor: not-allowed;
 }
 
 .info {
