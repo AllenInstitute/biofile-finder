@@ -1,0 +1,10 @@
+.row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.drop-indicator {
+    background-color: #ebebeb;
+    border: 2px dashed var(--blue);
+}
