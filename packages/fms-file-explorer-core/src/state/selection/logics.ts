@@ -1,8 +1,14 @@
-import { castArray, includes, isArray, uniq } from "lodash";
+import { castArray, find, includes, isArray, uniq, without } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { getSelectedFiles } from "./selectors";
-import { deselectFile, SELECT_FILE } from "./actions";
+import { getAnnotationHierarchy, getSelectedFiles } from "./selectors";
+import metadata from "../metadata";
+import {
+    deselectFile,
+    SELECT_FILE,
+    MODIFY_ANNOTATION_HIERARCHY,
+    setAnnotationHierarchy,
+} from "./actions";
 import { ReduxLogicDeps, ReduxLogicNextCb } from "../types";
 
 /**
@@ -46,4 +52,30 @@ const selectFile = createLogic({
     type: SELECT_FILE,
 });
 
-export default [selectFile];
+const modifyAnnotationHierarchy = createLogic({
+    process(deps: ReduxLogicDeps, dispatch, done) {
+        const { action, getState } = deps;
+
+        const existingHierarchy = getAnnotationHierarchy(getState());
+        const allAnnotations = metadata.selectors.getAnnotations(getState());
+        const annotation = find(allAnnotations, (annotation) => annotation.name === action.payload);
+
+        if (!annotation) {
+            return;
+        }
+
+        if (includes(existingHierarchy, annotation)) {
+            // remove from list
+            dispatch(setAnnotationHierarchy(without(existingHierarchy, annotation)));
+        } else {
+            // add to list
+            // TODO: in proper order
+            dispatch(setAnnotationHierarchy([...existingHierarchy, annotation]));
+        }
+
+        done();
+    },
+    type: MODIFY_ANNOTATION_HIERARCHY,
+});
+
+export default [selectFile, modifyAnnotationHierarchy];

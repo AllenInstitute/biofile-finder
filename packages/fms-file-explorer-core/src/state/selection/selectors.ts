@@ -4,6 +4,7 @@ import { createSelector } from "reselect";
 import { State } from "../types";
 
 // BASIC SELECTORS
+export const getAnnotationHierarchy = (state: State) => state.selection.annotationHierarchy;
 export const getAnnotationsToDisplay = (state: State) => state.selection.displayAnnotations;
 export const getSelectedFiles = (state: State) => state.selection.selectedFiles;
 

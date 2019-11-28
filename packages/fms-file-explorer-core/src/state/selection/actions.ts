@@ -105,3 +105,42 @@ export function deselectFile(file: string | string[]): DeselectFileAction {
         type: DESELECT_FILE,
     };
 }
+
+/**
+ * MODIFY_ANNOTATION_HIERARCHY
+ *
+ */
+export const MODIFY_ANNOTATION_HIERARCHY = makeConstant(
+    STATE_BRANCH_NAME,
+    "modify-annotation-hierarchy"
+);
+
+export interface ModifyAnnotationHierarchyAction {
+    payload: string; // annotation_name
+    type: string;
+}
+
+export function modifyAnnotationHierarchy(annotationName: string): ModifyAnnotationHierarchyAction {
+    return {
+        payload: annotationName,
+        type: MODIFY_ANNOTATION_HIERARCHY,
+    };
+}
+
+/**
+ * SET_ANNOTATION_HIERARCHY
+ *
+ */
+export const SET_ANNOTATION_HIERARCHY = makeConstant(STATE_BRANCH_NAME, "set-annotation-hierarchy");
+
+export interface SetAnnotationHierarchyAction {
+    payload: Annotation[];
+    type: string;
+}
+
+export function setAnnotationHierarchy(annotations: Annotation[]): SetAnnotationHierarchyAction {
+    return {
+        payload: annotations,
+        type: SET_ANNOTATION_HIERARCHY,
+    };
+}

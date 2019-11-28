@@ -15,14 +15,18 @@ import {
     SELECT_FILE,
     SelectDisplayAnnotationAction,
     SelectFileAction,
+    SET_ANNOTATION_HIERARCHY,
+    SetAnnotationHierarchyAction,
 } from "./actions";
 
 export interface SelectionStateBranch {
+    annotationHierarchy: Annotation[];
     displayAnnotations: Annotation[];
     selectedFiles: string[]; // file ids
 }
 
 export const initialState = {
+    annotationHierarchy: [],
     displayAnnotations: [],
     selectedFiles: [], // file ids
 };
@@ -65,6 +69,17 @@ const actionToConfigMap: TypeToDescriptionMap = {
         perform: (state: SelectionStateBranch, action: SelectFileAction): SelectionStateBranch => ({
             ...state,
             selectedFiles: castArray(action.payload.file),
+        }),
+    },
+    [SET_ANNOTATION_HIERARCHY]: {
+        accepts: (action: AnyAction): action is SetAnnotationHierarchyAction =>
+            action.type === SET_ANNOTATION_HIERARCHY,
+        perform: (
+            state: SelectionStateBranch,
+            action: SetAnnotationHierarchyAction
+        ): SelectionStateBranch => ({
+            ...state,
+            annotationHierarchy: action.payload,
         }),
     },
 };
