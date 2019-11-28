@@ -33,7 +33,7 @@
     "publishArtifact": "npm publish",
     "test": "BABEL_ENV=commonjs TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.commonjs.json mocha --opts mocha.opts --recursive src/**/*.test.*",
     "transpile:pcss": "postcss \"src/**/*.css\" --base src --dir es --verbose",
-    "transpile:pcss:watch": "postcss \"src/**/*.css\" --base src --dir es --verbose --watch",
+    "transpile:pcss:watch": "watch 'npm run transpile:pcss' src",
     "transpile:ts": "babel src --out-dir es --extensions .ts,.tsx --ignore src/**/*.test.ts",
     "transpile:ts:watch": "babel src --out-dir es --extensions .ts,.tsx --ignore src/**/*.test.ts --watch --verbose --source-maps",
     "typeCheck": "tsc --noEmit"
@@ -83,7 +83,8 @@
     "rimraf": "3.0.0",
     "sinon": "7.4.2",
     "ts-node": "8.4.1",
-    "typescript": "3.6.3"
+    "typescript": "3.6.3",
+    "watch": "1.0.2"
   },
   "dependencies": {
     "@tippy.js/react": "3.1.1",
