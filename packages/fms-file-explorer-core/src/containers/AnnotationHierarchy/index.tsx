@@ -4,6 +4,7 @@ import { DndProvider } from "react-dnd-cjs";
 import HTML5Backend from "react-dnd-html5-backend-cjs";
 
 import AnnotationList from "../AnnotationList";
+import HierarchyBuilder from "./HierarchyBuilder";
 const styles = require("./AnnotationHierarchy.module.css");
 
 interface AnnotationHierarchyProps {
@@ -18,7 +19,7 @@ export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
     return (
         <div className={classNames(styles.root, props.className)}>
             <DndProvider backend={HTML5Backend}>
-                <div className={styles.annotationGrouping}></div>
+                <HierarchyBuilder className={styles.annotationGrouping} />
                 <AnnotationList className={styles.annotationList} />
             </DndProvider>
         </div>
