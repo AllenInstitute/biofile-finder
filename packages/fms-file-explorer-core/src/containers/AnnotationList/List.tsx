@@ -1,6 +1,7 @@
 import * as classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
+import { Droppable, Draggable } from "react-beautiful-dnd";
 
 import ListItem, { ListItemData } from "./ListItem";
 
@@ -17,10 +18,36 @@ interface ListProps {
  */
 export default function List(props: ListProps) {
     return (
-        <ul className={classNames(styles.list, props.className)}>
-            {map(props.items, (item) => (
-                <ListItem key={item.id} data={item} />
-            ))}
-        </ul>
+        <Droppable droppableId="ANNOTATION_LIST" isDropDisabled={true}>
+            {(droppableProvided) => (
+                <ul
+                    ref={droppableProvided.innerRef}
+                    className={classNames(styles.list, props.className)}
+                >
+                    {map(props.items, (item, index) => (
+                        <Draggable key={item.id} draggableId={item.id} index={index}>
+                            {(draggableProvided, draggableSnapshot) => (
+                                <>
+                                    <ListItem
+                                        ref={draggableProvided.innerRef}
+                                        data={item}
+                                        draggableProps={draggableProvided.draggableProps}
+                                        dragHandleProps={draggableProvided.dragHandleProps}
+                                        isDragging={draggableSnapshot.isDragging}
+                                    />
+                                    {draggableSnapshot.isDragging && (
+                                        <ListItem
+                                            className={styles.listItemPlaceholder}
+                                            data={item}
+                                        />
+                                    )}
+                                </>
+                            )}
+                        </Draggable>
+                    ))}
+                    {droppableProvided.placeholder}
+                </ul>
+            )}
+        </Droppable>
     );
 }

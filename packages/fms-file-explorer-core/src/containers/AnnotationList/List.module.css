@@ -3,3 +3,7 @@
     padding: 0;
     overflow-y: auto;
 }
+
+.list-item-placeholder ~ li {
+    transform: none !important;
+}

@@ -2,8 +2,11 @@ import * as classNames from "classnames";
 import Tippy from "@tippy.js/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 import * as React from "react";
-import { useDrag } from "react-dnd-cjs";
 import { useSelector } from "react-redux";
+import {
+    DraggableProvidedDraggableProps,
+    DraggableProvidedDragHandleProps,
+} from "react-beautiful-dnd";
 
 import { selection } from "../../state";
 import SvgIcon from "../../components/SvgIcon";
@@ -17,7 +20,11 @@ export interface ListItemData {
 }
 
 interface ListItemProps {
+    className?: string;
     data: ListItemData;
+    draggableProps?: DraggableProvidedDraggableProps;
+    dragHandleProps?: DraggableProvidedDragHandleProps | null;
+    isDragging?: boolean;
 }
 
 // Designed Daniel Bruce (www.entypo.com)
@@ -33,35 +40,20 @@ export const ANNOTATION_DRAG_TYPE = "annotation";
  * Fundamental list item component rendered by List. Separated from List simply to keep files small and components as
  * single-purpose as possible.
  */
-export default function ListItem(props: ListItemProps) {
-    const { data } = props;
-    const [isDragging, setIsDragging] = React.useState(false);
+const ListItem = React.forwardRef<HTMLLIElement, ListItemProps>(function ListItem(props, ref) {
+    const { data, draggableProps, dragHandleProps, isDragging } = props;
     const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
     const alreadyInHierarchy =
         annotationHierarchy.find((annotation) => annotation.name === data.id) !== undefined;
-
-    const [, dragRef] = useDrag({
-        item: {
-            annotation: data,
-            type: ANNOTATION_DRAG_TYPE,
-        },
-        begin: () => {
-            setIsDragging(true);
-        },
-        canDrag: () => {
-            return !alreadyInHierarchy;
-        },
-        end: () => {
-            setIsDragging(false);
-        },
-    });
 
     return (
         <li
             className={classNames(styles.row, {
                 [styles.disabled]: alreadyInHierarchy || isDragging,
             })}
-            ref={dragRef}
+            ref={ref}
+            {...(draggableProps || {})}
+            {...(dragHandleProps || {})}
         >
             <SvgIcon
                 className={classNames(styles.dragIndicator, {
@@ -84,4 +76,6 @@ export default function ListItem(props: ListItemProps) {
             {data.title}
         </li>
     );
-}
+});
+
+export default ListItem;

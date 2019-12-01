@@ -1,12 +1,11 @@
 import * as classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
-import { useDrop } from "react-dnd-cjs";
-import { useDispatch, useSelector } from "react-redux";
+import { Droppable, Draggable } from "react-beautiful-dnd";
+import { useSelector } from "react-redux";
 
 import { selection } from "../../state";
-import { ListItemData, ANNOTATION_DRAG_TYPE } from "../AnnotationList/ListItem";
-import SvgIcon from "../../components/SvgIcon";
+import { ListItemData } from "../AnnotationList/ListItem";
 import HierarchyItem from "./HierarchyItem";
 
 const styles = require("./HierarchyBuilder.module.css");
@@ -27,28 +26,37 @@ const REMOVE_ICON_PATH_DATA =
 
 export default function HierarchyBuilder(props: HierarchyBuilderProps) {
     const { className } = props;
-    const dispatch = useDispatch();
     const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
 
-    const [{ canDrop }, dropRef] = useDrop({
-        accept: ANNOTATION_DRAG_TYPE,
-        drop: ({ annotation }: DragItemData, monitor) => {
-            // add to end of list if dropped on the container
-            if (monitor.isOver({ shallow: true })) {
-                console.log("dropped from builder");
-                dispatch(selection.actions.modifyAnnotationHierarchy(annotation.id));
-            }
-        },
-        collect: (monitor) => ({
-            canDrop: monitor.canDrop(),
-        }),
-    });
-
     return (
-        <div className={classNames({ [styles.dropIndicator]: canDrop }, className)} ref={dropRef}>
-            {map(annotationHierarchy, (annotation, index) => (
-                <HierarchyItem key={annotation.name} annotation={annotation} index={index} />
-            ))}
-        </div>
+        <Droppable droppableId="hierarchy-builder">
+            {(droppableProvided, droppableSnapshot) => (
+                <div
+                    className={classNames(
+                        { [styles.dropIndicator]: droppableSnapshot.isDraggingOver },
+                        className
+                    )}
+                    ref={droppableProvided.innerRef}
+                >
+                    {map(annotationHierarchy, (annotation, index) => (
+                        <Draggable
+                            key={annotation.name}
+                            draggableId={annotation.name}
+                            index={index}
+                        >
+                            {(draggableProvided) => (
+                                <HierarchyItem
+                                    annotation={annotation}
+                                    draggableProps={draggableProvided.draggableProps}
+                                    dragHandleProps={draggableProvided.dragHandleProps}
+                                    ref={draggableProvided.innerRef}
+                                />
+                            )}
+                        </Draggable>
+                    ))}
+                    {droppableProvided.placeholder}
+                </div>
+            )}
+        </Droppable>
     );
 }
