@@ -53,6 +53,10 @@ const selectFile = createLogic({
     type: SELECT_FILE,
 });
 
+/**
+ * Interceptor responsible for transforming REORDER_ANNOTATION_HIERARCHY and REMOVE_FROM_ANNOTATION_HIERARCHY actions into
+ * a concrete list of ordered annotations that can be directly stored in application state under `selections.annotationHierarchy`.
+ */
 const modifyAnnotationHierarchy = createLogic({
     process(deps: ReduxLogicDeps, dispatch, done) {
         const { action, getState } = deps;
