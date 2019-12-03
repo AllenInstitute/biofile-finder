@@ -21,7 +21,7 @@
   },
   "scripts": {
     "build": "npm-run-all --print-label clean --parallel generateMockData generateTypes transpile:ts transpile:pcss",
-    "build:watch": "npm-run-all --print-label clean --parallel generateMockData generateTypes:watch transpile:ts:watch transpile:pcss:watch",
+    "build:watch": "npm-run-all --print-label clean transpile:pcss --parallel generateMockData generateTypes:watch transpile:ts:watch transpile:pcss:watch",
     "clean": "rimraf es type-declarations assets",
     "format": "prettier --write src/**/*",
     "generateMockData": "node ./scripts/generate-files-metadata.js && node ./scripts/generate-file-ids-response.js && node ./scripts/generate-annotations-metadata.js",
@@ -33,7 +33,8 @@
     "publishArtifact": "npm publish",
     "test": "BABEL_ENV=commonjs TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.commonjs.json mocha --opts mocha.opts --recursive src/**/*.test.*",
     "transpile:pcss": "postcss \"src/**/*.css\" --base src --dir es --verbose",
-    "transpile:pcss:watch": "watch 'npm run transpile:pcss' src",
+    "transpile:pcss:single": "postcss --base src --dir es --verbose",
+    "transpile:pcss:watch": "chokidar --debounce=1000 \"src/**/*.css\" -c \"if [ '{event}' != 'unlink' ]; then npm run transpile:pcss:single -- {path}; fi;\"",
     "transpile:ts": "babel src --out-dir es --extensions .ts,.tsx --ignore src/**/*.test.ts",
     "transpile:ts:watch": "babel src --out-dir es --extensions .ts,.tsx --ignore src/**/*.test.ts --watch --verbose --source-maps",
     "typeCheck": "tsc --noEmit"
@@ -65,6 +66,7 @@
     "@typescript-eslint/parser": "2.6.0",
     "babel-plugin-import": "1.12.1",
     "chai": "4.2.0",
+    "chokidar-cli": "2.1.0",
     "enzyme": "3.10.0",
     "enzyme-adapter-react-16": "1.14.0",
     "eslint": "6.6.0",
@@ -83,8 +85,7 @@
     "rimraf": "3.0.0",
     "sinon": "7.4.2",
     "ts-node": "8.4.1",
-    "typescript": "3.6.3",
-    "watch": "1.0.2"
+    "typescript": "3.6.3"
   },
   "dependencies": {
     "@tippy.js/react": "3.1.1",
