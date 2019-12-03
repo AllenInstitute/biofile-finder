@@ -1,7 +1,16 @@
 import { expect } from "chai";
 
+import {
+    DESELECT_FILE,
+    SELECT_FILE,
+    selectFile,
+    reorderAnnotationHierarchy,
+    SET_ANNOTATION_HIERARCHY,
+    removeFromAnnotationHierarchy,
+} from "../actions";
+import Annotation from "../../../entity/Annotation";
+import { annotationsJson } from "../../../entity/Annotation/mocks";
 import createMockReduxStore from "../../test/mock-redux-store";
-import { DESELECT_FILE, SELECT_FILE, selectFile } from "../actions";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -91,6 +100,97 @@ describe("Selection logics", () => {
                     payload: {
                         file: ["abc123", "xyz789", "mno456"],
                     },
+                })
+            ).to.equal(true);
+        });
+    });
+
+    describe("modifyAnnotationHierarchy", () => {
+        const annotations = Object.freeze(
+            annotationsJson.map((annotation) => new Annotation(annotation))
+        );
+
+        it("adds a new annotation to the end of the hierarchy", async () => {
+            // setup
+            const mockState = {
+                metadata: {
+                    annotations: [...annotations],
+                },
+                selection: {
+                    annotationHierarchy: annotations.slice(0, 2),
+                },
+            };
+            const [store, logicMiddleware, actions] = createMockReduxStore({ mockState });
+
+            // act
+            store.dispatch(reorderAnnotationHierarchy(annotations[2].name, 2));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includesMatch({
+                    type: SET_ANNOTATION_HIERARCHY,
+                    payload: [...annotations.slice(0, 2), annotations[2]],
+                })
+            ).to.equal(true);
+        });
+
+        it("moves an annotation within the hierarchy to a new position", async () => {
+            // setup
+            const mockState = {
+                metadata: {
+                    annotations: [...annotations],
+                },
+                selection: {
+                    annotationHierarchy: [
+                        annotations[0],
+                        annotations[1],
+                        annotations[2],
+                        annotations[3],
+                    ],
+                },
+            };
+            const [store, logicMiddleware, actions] = createMockReduxStore({ mockState });
+
+            // act
+            store.dispatch(reorderAnnotationHierarchy(annotations[2].name, 0));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includesMatch({
+                    type: SET_ANNOTATION_HIERARCHY,
+                    payload: [annotations[2], annotations[0], annotations[1], annotations[3]],
+                })
+            ).to.equal(true);
+        });
+
+        it("removes an annotation from the hierarchy", async () => {
+            // setup
+            const mockState = {
+                metadata: {
+                    annotations: [...annotations],
+                },
+                selection: {
+                    annotationHierarchy: [
+                        annotations[0],
+                        annotations[1],
+                        annotations[2],
+                        annotations[3],
+                    ],
+                },
+            };
+            const [store, logicMiddleware, actions] = createMockReduxStore({ mockState });
+
+            // act
+            store.dispatch(removeFromAnnotationHierarchy(annotations[2].name));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includesMatch({
+                    type: SET_ANNOTATION_HIERARCHY,
+                    payload: [annotations[0], annotations[1], annotations[3]],
                 })
             ).to.equal(true);
         });

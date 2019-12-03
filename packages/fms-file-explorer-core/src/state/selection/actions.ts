@@ -107,38 +107,66 @@ export function deselectFile(file: string | string[]): DeselectFileAction {
 }
 
 /**
- * MODIFY_ANNOTATION_HIERARCHY
- *
+ * REORDER_ANNOTATION_HIERARCHY
+ * Intention to reorder an annotation within the hierachy of annotations by which to group files.
+ * By specifying an annotation not previously in the hierachy and any index within the hierachy (or N + 1, in the case of adding to end of hierarchy), this action also handles adding new annotations to the hierarchy.
  */
-export const MODIFY_ANNOTATION_HIERARCHY = makeConstant(
+export const REORDER_ANNOTATION_HIERARCHY = makeConstant(
     STATE_BRANCH_NAME,
-    "modify-annotation-hierarchy"
+    "reorder-annotation-hierarchy"
 );
 
-export interface ModifyAnnotationHierarchyAction {
+export interface ReorderAnnotationHierarchyAction {
     payload: {
         id: string; // annotation_name
-        moveTo?: number; // new index
+        moveTo: number; // new index
     };
     type: string;
 }
 
-export function modifyAnnotationHierarchy(
+export function reorderAnnotationHierarchy(
     annotationName: string,
-    moveTo?: number
-): ModifyAnnotationHierarchyAction {
+    moveTo: number
+): ReorderAnnotationHierarchyAction {
     return {
         payload: {
             id: annotationName,
             moveTo,
         },
-        type: MODIFY_ANNOTATION_HIERARCHY,
+        type: REORDER_ANNOTATION_HIERARCHY,
+    };
+}
+
+/**
+ * REMOVE_FROM_ANNOTATION_HIERARCHY
+ * Intention to remove an annotation from the hierarchy of annotations by which to group files.
+ */
+export const REMOVE_FROM_ANNOTATION_HIERARCHY = makeConstant(
+    STATE_BRANCH_NAME,
+    "remove-from-annotation-hierarchy"
+);
+
+export interface RemoveFromAnnotationHierarchyAction {
+    payload: {
+        id: string; // annotation_name
+    };
+    type: string;
+}
+
+export function removeFromAnnotationHierarchy(
+    annotationName: string
+): RemoveFromAnnotationHierarchyAction {
+    return {
+        payload: {
+            id: annotationName,
+        },
+        type: REMOVE_FROM_ANNOTATION_HIERARCHY,
     };
 }
 
 /**
  * SET_ANNOTATION_HIERARCHY
- *
+ * Intention to set hierarchy of annotations by which to group files.
  */
 export const SET_ANNOTATION_HIERARCHY = makeConstant(STATE_BRANCH_NAME, "set-annotation-hierarchy");
 

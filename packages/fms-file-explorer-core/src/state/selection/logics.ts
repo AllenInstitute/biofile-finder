@@ -6,7 +6,8 @@ import metadata from "../metadata";
 import {
     deselectFile,
     SELECT_FILE,
-    MODIFY_ANNOTATION_HIERARCHY,
+    REORDER_ANNOTATION_HIERARCHY,
+    REMOVE_FROM_ANNOTATION_HIERARCHY,
     setAnnotationHierarchy,
 } from "./actions";
 import { ReduxLogicDeps, ReduxLogicNextCb } from "../types";
@@ -64,6 +65,7 @@ const modifyAnnotationHierarchy = createLogic({
         );
 
         if (!annotation) {
+            done();
             return;
         }
 
@@ -86,7 +88,7 @@ const modifyAnnotationHierarchy = createLogic({
 
         done();
     },
-    type: MODIFY_ANNOTATION_HIERARCHY,
+    type: [REORDER_ANNOTATION_HIERARCHY, REMOVE_FROM_ANNOTATION_HIERARCHY],
 });
 
 export default [selectFile, modifyAnnotationHierarchy];
