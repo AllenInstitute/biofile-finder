@@ -58,7 +58,7 @@ const selectFile = createLogic({
  * a concrete list of ordered annotations that can be directly stored in application state under `selections.annotationHierarchy`.
  */
 const modifyAnnotationHierarchy = createLogic({
-    process(deps: ReduxLogicDeps, dispatch, done) {
+    transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState } = deps;
 
         const existingHierarchy = getAnnotationHierarchy(getState());
@@ -68,29 +68,27 @@ const modifyAnnotationHierarchy = createLogic({
             (annotation) => annotation.name === action.payload.id
         );
 
-        if (!annotation) {
-            done();
+        if (annotation === undefined) {
+            reject && reject(action); // reject is for some reason typed in react-logic as optional
             return;
         }
 
         if (includes(existingHierarchy, annotation)) {
-            const removed = without(existingHierarchy, annotation);
+            const removed = without(existingHierarchy);
             if (action.payload.moveTo !== undefined) {
                 // change order
                 removed.splice(action.payload.moveTo, 0, annotation);
-                dispatch(setAnnotationHierarchy(removed));
+                next(setAnnotationHierarchy(removed));
             } else {
                 // remove from list
-                dispatch(setAnnotationHierarchy(removed));
+                next(setAnnotationHierarchy(removed));
             }
         } else {
             // add to list
             const newHierarchy = Array.from(existingHierarchy);
             newHierarchy.splice(action.payload.moveTo, 0, annotation);
-            dispatch(setAnnotationHierarchy(newHierarchy));
+            next(setAnnotationHierarchy(newHierarchy));
         }
-
-        done();
     },
     type: [REORDER_ANNOTATION_HIERARCHY, REMOVE_FROM_ANNOTATION_HIERARCHY],
 });
