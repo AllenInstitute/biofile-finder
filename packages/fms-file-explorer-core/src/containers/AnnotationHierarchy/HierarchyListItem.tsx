@@ -28,7 +28,7 @@ export default function HierarchyListItem(props: HierarchyItemProps) {
             <SvgIcon
                 height={12}
                 onClick={() => {
-                    dispatch(selection.actions.modifyAnnotationHierarchy(id));
+                    dispatch(selection.actions.removeFromAnnotationHierarchy(id));
                 }}
                 pathData={REMOVE_ICON_PATH_DATA}
                 viewBox="0 0 20 20"

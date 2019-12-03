@@ -35,7 +35,7 @@ export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
         switch (source.droppableId) {
             case "ANNOTATION_LIST":
                 dispatch(
-                    selection.actions.modifyAnnotationHierarchy(
+                    selection.actions.reorderAnnotationHierarchy(
                         annotationListItems[source.index].id,
                         destination.index
                     )
@@ -43,7 +43,7 @@ export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
                 break;
             default:
                 dispatch(
-                    selection.actions.modifyAnnotationHierarchy(
+                    selection.actions.reorderAnnotationHierarchy(
                         annotationHierarchyListItems[source.index].id,
                         destination.index
                     )
