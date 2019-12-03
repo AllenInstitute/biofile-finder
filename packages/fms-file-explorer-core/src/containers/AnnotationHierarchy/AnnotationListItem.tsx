@@ -2,30 +2,10 @@ import * as classNames from "classnames";
 import Tippy from "@tippy.js/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 import * as React from "react";
-import { useSelector } from "react-redux";
-import {
-    DraggableProvidedDraggableProps,
-    DraggableProvidedDragHandleProps,
-} from "react-beautiful-dnd";
 
-import { selection } from "../../state";
 import SvgIcon from "../../components/SvgIcon";
 
-const styles = require("./ListItem.module.css");
-
-export interface ListItemData {
-    id: string;
-    description: string;
-    title: any;
-}
-
-interface ListItemProps {
-    className?: string;
-    data: ListItemData;
-    draggableProps?: DraggableProvidedDraggableProps;
-    dragHandleProps?: DraggableProvidedDragHandleProps | null;
-    isDragging?: boolean;
-}
+const styles = require("./AnnotationListItem.module.css");
 
 // Designed Daniel Bruce (www.entypo.com)
 // License: https://creativecommons.org/licenses/by-sa/4.0/
@@ -34,37 +14,36 @@ const INFO_ICON_PATH_DATA =
 const DRAG_INDICATOR_ICON_PATH_DATA =
     "M15 15.984q0.797 0 1.406 0.609t0.609 1.406-0.609 1.406-1.406 0.609-1.406-0.609-0.609-1.406 0.609-1.406 1.406-0.609zM15 9.984q0.797 0 1.406 0.609t0.609 1.406-0.609 1.406-1.406 0.609-1.406-0.609-0.609-1.406 0.609-1.406 1.406-0.609zM15 8.016q-0.797 0-1.406-0.609t-0.609-1.406 0.609-1.406 1.406-0.609 1.406 0.609 0.609 1.406-0.609 1.406-1.406 0.609zM9 3.984q0.797 0 1.406 0.609t0.609 1.406-0.609 1.406-1.406 0.609-1.406-0.609-0.609-1.406 0.609-1.406 1.406-0.609zM9 9.984q0.797 0 1.406 0.609t0.609 1.406-0.609 1.406-1.406 0.609-1.406-0.609-0.609-1.406 0.609-1.406 1.406-0.609zM11.016 18q0 0.797-0.609 1.406t-1.406 0.609-1.406-0.609-0.609-1.406 0.609-1.406 1.406-0.609 1.406 0.609 0.609 1.406z";
 
-export const ANNOTATION_DRAG_TYPE = "annotation";
+interface AnnotationListItemProps {
+    disabled: boolean;
+    item: {
+        id: string;
+        description: string;
+        title: string;
+    };
+}
 
 /**
- * Fundamental list item component rendered by List. Separated from List simply to keep files small and components as
- * single-purpose as possible.
+ * TODO
  */
-const ListItem = React.forwardRef<HTMLLIElement, ListItemProps>(function ListItem(props, ref) {
-    const { data, draggableProps, dragHandleProps, isDragging } = props;
-    const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
-    const alreadyInHierarchy =
-        annotationHierarchy.find((annotation) => annotation.name === data.id) !== undefined;
+export default function AnnotationListItem(props: AnnotationListItemProps) {
+    const {
+        disabled,
+        item: { description, title },
+    } = props;
 
     return (
-        <li
-            className={classNames(styles.row, {
-                [styles.disabled]: alreadyInHierarchy || isDragging,
-            })}
-            ref={ref}
-            {...(draggableProps || {})}
-            {...(dragHandleProps || {})}
-        >
+        <>
             <SvgIcon
                 className={classNames(styles.dragIndicator, {
-                    [styles.disabled]: alreadyInHierarchy,
+                    [styles.disabled]: disabled,
                 })}
                 height={15}
                 pathData={DRAG_INDICATOR_ICON_PATH_DATA}
                 viewBox="0 0 24 24"
                 width={15}
             />
-            <Tippy content={data.description}>
+            <Tippy content={description}>
                 <SvgIcon
                     className={styles.info}
                     height={10}
@@ -73,9 +52,13 @@ const ListItem = React.forwardRef<HTMLLIElement, ListItemProps>(function ListIte
                     width={10}
                 />
             </Tippy>
-            {data.title}
-        </li>
+            <span
+                className={classNames({
+                    [styles.disabled]: disabled,
+                })}
+            >
+                {title}
+            </span>
+        </>
     );
-});
-
-export default ListItem;
+}

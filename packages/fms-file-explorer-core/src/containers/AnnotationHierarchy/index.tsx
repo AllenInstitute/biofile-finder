@@ -3,9 +3,10 @@ import * as React from "react";
 import { DragDropContext, OnDragEndResponder } from "react-beautiful-dnd";
 import { useDispatch, useSelector } from "react-redux";
 
-import AnnotationList from "../AnnotationList";
-import * as annotationListSelectors from "../AnnotationList/selectors";
-import HierarchyBuilder from "./HierarchyBuilder";
+import AnnotationList from "./AnnotationList";
+import * as annotationSelectors from "./selectors";
+import DnDList from "../../components/DnDList";
+import HierarchyListItem from "./HierarchyListItem";
 import { selection } from "../../state";
 
 const styles = require("./AnnotationHierarchy.module.css");
@@ -19,8 +20,8 @@ interface AnnotationHierarchyProps {
  * by which to group files by, and filtering/sorting those annotations.
  */
 export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
-    const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
-    const annotationListItems = useSelector(annotationListSelectors.getAnnotationListItems);
+    const annotationHierarchyListItems = useSelector(annotationSelectors.getHierarchyListItems);
+    const annotationListItems = useSelector(annotationSelectors.getAnnotationListItems);
     const dispatch = useDispatch();
 
     const onDragEnd: OnDragEndResponder = (result) => {
@@ -43,7 +44,7 @@ export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
             default:
                 dispatch(
                     selection.actions.modifyAnnotationHierarchy(
-                        annotationHierarchy[source.index].name,
+                        annotationHierarchyListItems[source.index].id,
                         destination.index
                     )
                 );
@@ -54,7 +55,12 @@ export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
     return (
         <div className={classNames(styles.root, props.className)}>
             <DragDropContext onDragEnd={onDragEnd}>
-                <HierarchyBuilder className={styles.annotationGrouping} />
+                <DnDList
+                    className={styles.annotationGrouping}
+                    id="HIERARCHY_BUILDER"
+                    items={annotationHierarchyListItems}
+                    itemRenderer={HierarchyListItem}
+                />
                 <AnnotationList className={styles.annotationList} />
             </DragDropContext>
         </div>

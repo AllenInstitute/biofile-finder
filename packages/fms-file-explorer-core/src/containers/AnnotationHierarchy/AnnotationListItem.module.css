@@ -1,11 +1,4 @@
-.row {
-    /* flex parent */
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.row.disabled {
+.disabled {
     color: gray;
 }
 

@@ -1,9 +1,0 @@
-.list {
-    list-style: none;
-    padding: 0;
-    overflow-y: auto;
-}
-
-.list-item-placeholder ~ * {
-    transform: none !important;
-}

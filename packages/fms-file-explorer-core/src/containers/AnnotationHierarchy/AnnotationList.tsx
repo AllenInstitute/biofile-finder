@@ -3,9 +3,10 @@ import * as Fuse from "fuse.js";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import List from "./List";
+import AnnotationListItem from "./AnnotationListItem";
+import DnDList from "../../components/DnDList";
 import SvgIcon from "../../components/SvgIcon";
-import * as annotationListSelectors from "./selectors";
+import * as annotationSelectors from "./selectors";
 
 const styles = require("./AnnotationList.module.css");
 
@@ -35,7 +36,8 @@ const SEARCH_ICON_PATH_DATA =
  * the AnnotationGrouping component in order to effect how files in the FileList are displayed (grouped and filtered).
  */
 export default function AnnotationList(props: AnnotationListProps) {
-    const annotationListItems = useSelector(annotationListSelectors.getAnnotationListItems);
+    const annotationListItems = useSelector(annotationSelectors.getAnnotationListItems);
+    const hierarchyListItems = useSelector(annotationSelectors.getHierarchyListItems);
     const [searchValue, setSearchValue] = React.useState("");
 
     // Perform fuzzy search using searchValue within annotation list items, considering the items
@@ -72,7 +74,14 @@ export default function AnnotationList(props: AnnotationListProps) {
                         type="search"
                     />
                 </div>
-                <List className={styles.list} items={filteredListItems} />
+                <DnDList
+                    className={styles.list}
+                    disabledItems={hierarchyListItems}
+                    items={filteredListItems}
+                    id="ANNOTATION_LIST"
+                    isDropDisabled={true}
+                    itemRenderer={AnnotationListItem}
+                />
             </div>
         </div>
     );

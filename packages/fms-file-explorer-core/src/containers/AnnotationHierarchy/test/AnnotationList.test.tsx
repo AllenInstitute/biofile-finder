@@ -4,13 +4,23 @@ import * as React from "react";
 import { DragDropContext } from "react-beautiful-dnd";
 import { Provider } from "react-redux";
 
-import AnnotationList from "../";
+import AnnotationList from "../AnnotationList";
 import Annotation from "../../../entity/Annotation";
-import ListItem from "../ListItem";
+import AnnotationListItem from "../AnnotationListItem";
 import { annotationsJson } from "./mocks";
 import createMockReduxStore from "../../../state/test/mock-redux-store";
 
 describe("<AnnotationList />", () => {
+    before(() => {
+        // HACK: disable all react-beautiful-dnd development warnings. There appears to be an issue with its ability to use document.querySelectorAll in a JSDOM/Enzyme.mount context.
+        (window as any)["__react-beautiful-dnd-disable-dev-warnings"] = true;
+    });
+
+    after(() => {
+        // remove hack applied in before()
+        delete (window as any)["__react-beautiful-dnd-disable-dev-warnings"];
+    });
+
     describe("Search behavior", () => {
         it("filters list of annotations according to search input", () => {
             // setup
@@ -35,7 +45,7 @@ describe("<AnnotationList />", () => {
                     </DragDropContext>
                 </Provider>
             );
-            const queryNumberListItems = () => wrapper.find(ListItem).children().length;
+            const queryNumberListItems = () => wrapper.find(AnnotationListItem).length;
 
             // before, expect all annotations to be in the list
             const allAnnotationDisplayNames = annotationsJson.map(
