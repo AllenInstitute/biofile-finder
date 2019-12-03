@@ -74,7 +74,7 @@ const modifyAnnotationHierarchy = createLogic({
         }
 
         if (includes(existingHierarchy, annotation)) {
-            const removed = without(existingHierarchy);
+            const removed = without(existingHierarchy, annotation);
             if (action.payload.moveTo !== undefined) {
                 // change order
                 removed.splice(action.payload.moveTo, 0, annotation);

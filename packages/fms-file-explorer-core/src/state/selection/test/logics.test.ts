@@ -128,7 +128,7 @@ describe("Selection logics", () => {
 
             // assert
             expect(
-                actions.includesMatch({
+                actions.includes({
                     type: SET_ANNOTATION_HIERARCHY,
                     payload: [...annotations.slice(0, 2), annotations[2]],
                 })
@@ -158,7 +158,7 @@ describe("Selection logics", () => {
 
             // assert
             expect(
-                actions.includesMatch({
+                actions.includes({
                     type: SET_ANNOTATION_HIERARCHY,
                     payload: [annotations[2], annotations[0], annotations[1], annotations[3]],
                 })
@@ -188,7 +188,7 @@ describe("Selection logics", () => {
 
             // assert
             expect(
-                actions.includesMatch({
+                actions.includes({
                     type: SET_ANNOTATION_HIERARCHY,
                     payload: [annotations[0], annotations[1], annotations[3]],
                 })
