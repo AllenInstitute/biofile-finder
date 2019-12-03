@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useDispatch } from "react-redux";
 
+import DragIndicator from "./DragIndicator";
 import SvgIcon from "../../components/SvgIcon";
 import { selection } from "../../state";
 
@@ -25,6 +26,7 @@ export default function HierarchyListItem(props: HierarchyItemProps) {
 
     return (
         <>
+            <DragIndicator />
             <SvgIcon
                 height={12}
                 onClick={() => {

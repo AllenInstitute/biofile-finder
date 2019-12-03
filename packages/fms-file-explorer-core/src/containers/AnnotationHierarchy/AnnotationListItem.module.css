@@ -2,15 +2,8 @@
     color: gray;
 }
 
-.drag-indicator {
-    cursor: grab;
-}
-
-.drag-indicator.disabled {
-    cursor: not-allowed;
-}
-
 .info {
+    cursor: help;
     margin-right: 0.25rem;
     fill: var(--blue); /* defined in App.module.css */
 }

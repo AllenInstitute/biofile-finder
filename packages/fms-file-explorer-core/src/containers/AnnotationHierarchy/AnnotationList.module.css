@@ -32,7 +32,6 @@
 }
 
 .search-box {
-    --grey: #c8c8c8;
     position: relative;
 }
 
@@ -41,7 +40,7 @@
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    fill: var(--grey);
+    fill: var(--grey); /* defined in App.module.css */
 }
 
 .filter-input {
