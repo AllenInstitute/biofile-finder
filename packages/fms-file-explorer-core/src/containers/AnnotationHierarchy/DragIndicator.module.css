@@ -1,0 +1,9 @@
+.drag-indicator {
+    fill: var(--grey);
+    filter: brightness(0.6);
+    cursor: grab;
+}
+
+.drag-indicator.disabled {
+    cursor: not-allowed;
+}
