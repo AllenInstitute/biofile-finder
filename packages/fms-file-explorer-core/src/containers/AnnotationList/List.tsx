@@ -25,7 +25,7 @@ export default function List(props: ListProps) {
                     className={classNames(styles.list, props.className)}
                 >
                     {map(props.items, (item, index) => (
-                        <Draggable key={item.id} draggableId={item.id} index={index}>
+                        <Draggable key={item.id} draggableId={`LIST_ITEM_${item.id}`} index={index}>
                             {(draggableProvided, draggableSnapshot) => (
                                 <>
                                     <ListItem
@@ -39,6 +39,7 @@ export default function List(props: ListProps) {
                                         <ListItem
                                             className={styles.listItemPlaceholder}
                                             data={item}
+                                            isDragging={draggableSnapshot.isDragging}
                                         />
                                     )}
                                 </>

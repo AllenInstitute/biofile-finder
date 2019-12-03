@@ -4,6 +4,6 @@
     overflow-y: auto;
 }
 
-.list-item-placeholder ~ li {
+.list-item-placeholder ~ * {
     transform: none !important;
 }

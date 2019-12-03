@@ -19,6 +19,7 @@ interface AnnotationHierarchyProps {
  * by which to group files by, and filtering/sorting those annotations.
  */
 export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
+    const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
     const annotationListItems = useSelector(annotationListSelectors.getAnnotationListItems);
     const dispatch = useDispatch();
 
@@ -34,13 +35,18 @@ export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
             case "ANNOTATION_LIST":
                 dispatch(
                     selection.actions.modifyAnnotationHierarchy(
-                        annotationListItems[source.index].id
+                        annotationListItems[source.index].id,
+                        destination.index
                     )
                 );
-                console.log("hit non-default case");
                 break;
             default:
-                console.log("hit default case");
+                dispatch(
+                    selection.actions.modifyAnnotationHierarchy(
+                        annotationHierarchy[source.index].name,
+                        destination.index
+                    )
+                );
                 break;
         }
     };
