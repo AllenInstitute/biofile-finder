@@ -1,0 +1,22 @@
+.list {
+    list-style: none;
+    padding: 0;
+    overflow-y: auto;
+}
+
+.drop-indicator {
+    background-color: #ebebeb;
+    border: 2px dashed var(--blue);
+}
+
+/**
+ * Necessary for preventing react-beautiful-dnd from shifting source list down when copying an item from source
+ * list to a destination list. See https://github.com/atlassian/react-beautiful-dnd/issues/216 for context.
+ */
+.list-item-placeholder ~ li {
+    transform: none !important;
+}
+
+.disabled {
+    color: gray;
+}
