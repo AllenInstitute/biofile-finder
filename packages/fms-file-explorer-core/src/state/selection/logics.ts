@@ -58,19 +58,30 @@ const modifyAnnotationHierarchy = createLogic({
 
         const existingHierarchy = getAnnotationHierarchy(getState());
         const allAnnotations = metadata.selectors.getAnnotations(getState());
-        const annotation = find(allAnnotations, (annotation) => annotation.name === action.payload);
+        const annotation = find(
+            allAnnotations,
+            (annotation) => annotation.name === action.payload.id
+        );
 
         if (!annotation) {
             return;
         }
 
         if (includes(existingHierarchy, annotation)) {
-            // remove from list
-            dispatch(setAnnotationHierarchy(without(existingHierarchy, annotation)));
+            const removed = without(existingHierarchy, annotation);
+            if (action.payload.moveTo !== undefined) {
+                // change order
+                removed.splice(action.payload.moveTo, 0, annotation);
+                dispatch(setAnnotationHierarchy(removed));
+            } else {
+                // remove from list
+                dispatch(setAnnotationHierarchy(removed));
+            }
         } else {
             // add to list
-            // TODO: in proper order
-            dispatch(setAnnotationHierarchy([...existingHierarchy, annotation]));
+            const newHierarchy = Array.from(existingHierarchy);
+            newHierarchy.splice(action.payload.moveTo, 0, annotation);
+            dispatch(setAnnotationHierarchy(newHierarchy));
         }
 
         done();

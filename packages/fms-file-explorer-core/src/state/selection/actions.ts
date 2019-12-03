@@ -116,13 +116,22 @@ export const MODIFY_ANNOTATION_HIERARCHY = makeConstant(
 );
 
 export interface ModifyAnnotationHierarchyAction {
-    payload: string; // annotation_name
+    payload: {
+        id: string; // annotation_name
+        moveTo?: number; // new index
+    };
     type: string;
 }
 
-export function modifyAnnotationHierarchy(annotationName: string): ModifyAnnotationHierarchyAction {
+export function modifyAnnotationHierarchy(
+    annotationName: string,
+    moveTo?: number
+): ModifyAnnotationHierarchyAction {
     return {
-        payload: annotationName,
+        payload: {
+            id: annotationName,
+            moveTo,
+        },
         type: MODIFY_ANNOTATION_HIERARCHY,
     };
 }
