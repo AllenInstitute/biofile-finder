@@ -3,7 +3,7 @@ import * as React from "react";
 import { DragDropContext, OnDragEndResponder } from "react-beautiful-dnd";
 import { useDispatch, useSelector } from "react-redux";
 
-import AnnotationList from "./AnnotationList";
+import AnnotationList, { DROPPABLE_ID as ANNOTATION_LIST_DROPPABLE_ID } from "./AnnotationList";
 import * as annotationSelectors from "./selectors";
 import DnDList from "../../components/DnDList";
 import HierarchyListItem from "./HierarchyListItem";
@@ -14,6 +14,8 @@ const styles = require("./AnnotationHierarchy.module.css");
 interface AnnotationHierarchyProps {
     className?: string;
 }
+
+const HIERARCHY_LIST_DROPPABLE_ID = "HIERARCHY_LIST";
 
 /**
  * Container for features related to viewing available metadata annotations, selecting and ordering those annotations
@@ -33,7 +35,8 @@ export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
         }
 
         switch (source.droppableId) {
-            case "ANNOTATION_LIST":
+            // the draggable came from the list of all available annotations and was dropped on the hierarchy
+            case ANNOTATION_LIST_DROPPABLE_ID:
                 dispatch(
                     selection.actions.reorderAnnotationHierarchy(
                         annotationListItems[source.index].id,
@@ -41,6 +44,7 @@ export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
                     )
                 );
                 break;
+            // in every other case, the draggable came from the hierarchy itself (i.e., the hierarchy was reordered)
             default:
                 dispatch(
                     selection.actions.reorderAnnotationHierarchy(
@@ -57,7 +61,7 @@ export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
             <DragDropContext onDragEnd={onDragEnd}>
                 <DnDList
                     className={styles.annotationGrouping}
-                    id="HIERARCHY_BUILDER"
+                    id={HIERARCHY_LIST_DROPPABLE_ID}
                     items={annotationHierarchyListItems}
                     itemRenderer={HierarchyListItem}
                 />

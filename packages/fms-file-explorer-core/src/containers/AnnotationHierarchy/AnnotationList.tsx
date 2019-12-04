@@ -10,6 +10,8 @@ import * as annotationSelectors from "./selectors";
 
 const styles = require("./AnnotationList.module.css");
 
+export const DROPPABLE_ID = "ANNOTATION_LIST";
+
 interface AnnotationListProps {
     className?: string;
 }
@@ -78,7 +80,7 @@ export default function AnnotationList(props: AnnotationListProps) {
                     className={styles.list}
                     disabledItems={hierarchyListItems}
                     items={filteredListItems}
-                    id="ANNOTATION_LIST"
+                    id={DROPPABLE_ID}
                     isDropDisabled={true}
                     itemRenderer={AnnotationListItem}
                 />
