@@ -71,7 +71,7 @@ export default function FileDetails(props: FileDetails) {
                                 windowState.state === WindowState.MAXIMIZED,
                         })}
                     >
-                        {fileDetails === undefined ? (
+                        {!fileDetails ? (
                             <div className={styles.thumbnailSkeleton} />
                         ) : (
                             <FileThumbnail uri={fileDetails.thumbnail} />
