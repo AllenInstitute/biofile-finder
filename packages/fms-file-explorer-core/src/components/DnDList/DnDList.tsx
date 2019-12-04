@@ -21,6 +21,7 @@ interface ItemRendererParams {
 interface DnDListProps {
     className?: string;
     disabledItems?: Item[];
+    highlight?: boolean;
     id: string;
     isDropDisabled?: boolean;
     items: Item[];
@@ -31,7 +32,7 @@ interface DnDListProps {
  * Wrapper for react-beautiful-dnd that renders a list of items that are draggable and droppable.
  */
 export default function DnDList(props: DnDListProps) {
-    const { disabledItems, id, isDropDisabled, items, itemRenderer } = props;
+    const { disabledItems, highlight, id, isDropDisabled, items, itemRenderer } = props;
     return (
         <Droppable droppableId={id} isDropDisabled={isDropDisabled}>
             {(droppableProps, droppableState) => (
@@ -41,7 +42,7 @@ export default function DnDList(props: DnDListProps) {
                         styles.list,
                         {
                             [styles.dropIndicator]:
-                                !isDropDisabled && droppableState.isDraggingOver,
+                                !isDropDisabled && (highlight || droppableState.isDraggingOver),
                         },
                         props.className
                     )}
@@ -93,5 +94,6 @@ export default function DnDList(props: DnDListProps) {
 
 DnDList.defaultProps = {
     disabledItems: [],
+    highlight: false,
     isDropDisabled: false,
 };
