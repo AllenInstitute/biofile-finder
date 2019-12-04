@@ -23,7 +23,7 @@ interface AnnotationListItemProps {
 }
 
 /**
- * TODO
+ * A single, draggable/droppable annotation rendered into the AnnotationList.
  */
 export default function AnnotationListItem(props: AnnotationListItemProps) {
     const {
