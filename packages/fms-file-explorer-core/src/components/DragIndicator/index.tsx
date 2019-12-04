@@ -1,7 +1,7 @@
 import * as classNames from "classnames";
 import * as React from "react";
 
-import SvgIcon from "../../components/SvgIcon";
+import SvgIcon from "../SvgIcon";
 
 const styles = require("./DragIndicator.module.css");
 

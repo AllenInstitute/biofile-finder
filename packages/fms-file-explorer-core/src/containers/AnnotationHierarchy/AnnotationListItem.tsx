@@ -3,7 +3,7 @@ import Tippy from "@tippy.js/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 import * as React from "react";
 
-import DragIndicator from "./DragIndicator";
+import DragIndicator from "../../components/DragIndicator";
 import SvgIcon from "../../components/SvgIcon";
 
 const styles = require("./AnnotationListItem.module.css");

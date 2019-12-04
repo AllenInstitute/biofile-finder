@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useDispatch } from "react-redux";
 
-import DragIndicator from "./DragIndicator";
+import DragIndicator from "../../components/DragIndicator";
 import SvgIcon from "../../components/SvgIcon";
 import { selection } from "../../state";
 
