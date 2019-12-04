@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 import AnnotationListItem from "./AnnotationListItem";
 import DnDList from "../../components/DnDList";
 import SvgIcon from "../../components/SvgIcon";
-import * as annotationSelectors from "../AnnotationHierarchy/selectors";
+import * as annotationSelectors from "../AnnotationSidebar/selectors";
 
 const styles = require("./AnnotationList.module.css");
 

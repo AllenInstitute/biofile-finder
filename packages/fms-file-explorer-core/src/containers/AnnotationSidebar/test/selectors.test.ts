@@ -3,7 +3,7 @@ import { isArray, map, mergeWith } from "lodash";
 
 import Annotation from "../../../entity/Annotation";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
-import * as annotationListSelectors from "../selectors";
+import * as annotationSelectors from "../selectors";
 import { initialState } from "../../../state";
 
 type PartialDeep<T> = {
@@ -18,7 +18,7 @@ function mergeState<State = {}>(initial: State, src: PartialDeep<State>): State 
     });
 }
 
-describe("<AnnotationList /> selectors", () => {
+describe("<AnnotationSidebar /> selectors", () => {
     describe("getAnnotationListItems", () => {
         it("transforms available annotations into list item data", () => {
             const state = mergeState(initialState, {
@@ -27,7 +27,7 @@ describe("<AnnotationList /> selectors", () => {
                 },
             });
 
-            const listItems = annotationListSelectors.getAnnotationListItems(state);
+            const listItems = annotationSelectors.getAnnotationListItems(state);
             expect(listItems.length).to.equal(annotationsJson.length);
 
             const first = listItems[0];

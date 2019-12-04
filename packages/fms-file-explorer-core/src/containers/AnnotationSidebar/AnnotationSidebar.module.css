@@ -1,0 +1,16 @@
+.root {
+    /* flex parent */
+    display: flex;
+    flex-direction: column;
+}
+
+.annotation-hierarchy {
+    /* flex child */
+    flex: 1 1 40%;
+    padding-bottom: 1rem;
+}
+
+.annotation-list {
+    /* flex child */
+    flex: 1 1 60%;
+}

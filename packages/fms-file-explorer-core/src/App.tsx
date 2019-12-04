@@ -2,7 +2,7 @@ import "normalize.css";
 import * as React from "react";
 import { useDispatch } from "react-redux";
 
-import AnnotationHierarchy from "./containers/AnnotationHierarchy";
+import AnnotationSidebar from "./containers/AnnotationSidebar";
 import Breadcrumbs from "./containers/Breadcrumbs";
 import FileDetails from "./containers/FileDetails";
 import FileList from "./containers/FileList";
@@ -33,7 +33,7 @@ export default function App() {
                 <div className={styles.core}>
                     <Breadcrumbs className={styles.breadcrumbs} />
                     <div className={styles.annotationHierarchyAndFileList}>
-                        <AnnotationHierarchy className={styles.annotationHierarchy} />
+                        <AnnotationSidebar className={styles.annotationHierarchy} />
                         <FileList className={styles.fileList} />
                     </div>
                 </div>
