@@ -5,8 +5,7 @@
 }
 
 .drop-indicator {
-    background-color: #ebebeb;
-    border: 2px dashed var(--blue);
+    background-color: rgba(70, 130, 180, 0.2); /* steelblue */
 }
 
 /**
@@ -18,5 +17,5 @@
 }
 
 .disabled {
-    color: gray;
+    color: var(--grey);
 }
