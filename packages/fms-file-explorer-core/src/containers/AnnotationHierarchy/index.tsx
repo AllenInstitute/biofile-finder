@@ -27,12 +27,15 @@ export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
     const [showDropZone, setShowDropZone] = React.useState(false);
     const dispatch = useDispatch();
 
+    // On drag start of any draggable item within this DragDropContext, if the draggable comes from the list of all
+    // available annotations, show indicator of where the user can drop it
     const onDragStart: OnDragStartResponder = (start) => {
         if (start.source.droppableId === ANNOTATION_LIST_DROPPABLE_ID) {
             setShowDropZone(true);
         }
     };
 
+    // On drag end of any draggable item within this DragDropContext, if it was dropped on the hierarchy list, tell Redux about it
     const onDragEnd: OnDragEndResponder = (result) => {
         const { source, destination } = result;
 
