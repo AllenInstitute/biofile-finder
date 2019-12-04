@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { isArray, map, mergeWith } from "lodash";
 
 import Annotation from "../../../entity/Annotation";
-import { annotationsJson } from "./mocks";
+import { annotationsJson } from "../../../entity/Annotation/mocks";
 import * as annotationListSelectors from "../selectors";
 import { initialState } from "../../../state";
 

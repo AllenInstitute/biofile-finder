@@ -6,8 +6,8 @@ import { Provider } from "react-redux";
 
 import AnnotationList from "../AnnotationList";
 import Annotation from "../../../entity/Annotation";
+import { annotationsJson } from "../../../entity/Annotation/mocks";
 import AnnotationListItem from "../AnnotationListItem";
-import { annotationsJson } from "./mocks";
 import createMockReduxStore from "../../../state/test/mock-redux-store";
 
 describe("<AnnotationList />", () => {
