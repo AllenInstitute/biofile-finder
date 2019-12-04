@@ -4,7 +4,7 @@ import * as React from "react";
 import { DragDropContext } from "react-beautiful-dnd";
 import { Provider } from "react-redux";
 
-import AnnotationList from "../AnnotationList";
+import AnnotationList from "..";
 import Annotation from "../../../entity/Annotation";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import AnnotationListItem from "../AnnotationListItem";

@@ -3,9 +3,7 @@ import * as React from "react";
 import { DragDropContext, OnDragEndResponder, OnDragStartResponder } from "react-beautiful-dnd";
 import { useDispatch, useSelector } from "react-redux";
 
-import AnnotationList, {
-    DROPPABLE_ID as ANNOTATION_LIST_DROPPABLE_ID,
-} from "../AnnotationList/AnnotationList";
+import AnnotationList, { DROPPABLE_ID as ANNOTATION_LIST_DROPPABLE_ID } from "../AnnotationList";
 import * as annotationSelectors from "./selectors";
 import DnDList from "../../components/DnDList";
 import HierarchyListItem from "./HierarchyListItem";
