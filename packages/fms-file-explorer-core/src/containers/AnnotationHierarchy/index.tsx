@@ -15,6 +15,10 @@ interface AnnotationHierarchyProps {
     highlightDropZone: boolean;
 }
 
+/**
+ * Ordered listing of metadata annotations (a.k.a., "keys", "attributes", etc) that a user has selected by which to group files in the FileList.
+ * A user can drag an annotation from AnnotationList into this component, and can later reorder the annotations already dropped into the component.
+ */
 export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
     const { className, highlightDropZone } = props;
     const annotationHierarchyListItems = useSelector(annotationSelectors.getHierarchyListItems);
