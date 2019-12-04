@@ -6,7 +6,7 @@ import { Provider } from "react-redux";
 import FileDetails, { WINDOW_ACTION_BUTTON_WIDTH } from "../";
 import createMockReduxStore from "../../../state/test/mock-redux-store";
 
-const styles = require("../style.module.css");
+const styles = require("../FileDetails.module.css");
 
 describe("<FileDetails />", () => {
     describe("Expand and collapse behavior", () => {

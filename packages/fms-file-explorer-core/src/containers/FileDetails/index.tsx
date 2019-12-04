@@ -8,7 +8,7 @@ import { selection } from "../../state";
 import useFileDetails from "./useFileDetails";
 import windowStateReducer, { INITIAL_STATE, WindowState } from "./windowStateReducer";
 
-const styles = require("./style.module.css");
+const styles = require("./FileDetails.module.css");
 
 interface FileDetails {
     className?: string;
