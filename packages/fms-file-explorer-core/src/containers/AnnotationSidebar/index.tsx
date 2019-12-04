@@ -39,25 +39,22 @@ export default function AnnotationSidebar(props: AnnotationSidebarProps) {
 
         // dropped within drag and drop context
         if (destination) {
-            switch (source.droppableId) {
+            if (source.droppableId === ANNOTATION_LIST_DROPPABLE_ID) {
                 // the draggable came from the list of all available annotations and was dropped on the hierarchy
-                case ANNOTATION_LIST_DROPPABLE_ID:
-                    dispatch(
-                        selection.actions.reorderAnnotationHierarchy(
-                            annotationListItems[source.index].id,
-                            destination.index
-                        )
-                    );
-                    break;
+                dispatch(
+                    selection.actions.reorderAnnotationHierarchy(
+                        annotationListItems[source.index].id,
+                        destination.index
+                    )
+                );
+            } else {
                 // in every other case, the draggable came from the hierarchy itself (i.e., the hierarchy was reordered)
-                default:
-                    dispatch(
-                        selection.actions.reorderAnnotationHierarchy(
-                            annotationHierarchyListItems[source.index].id,
-                            destination.index
-                        )
-                    );
-                    break;
+                dispatch(
+                    selection.actions.reorderAnnotationHierarchy(
+                        annotationHierarchyListItems[source.index].id,
+                        destination.index
+                    )
+                );
             }
         }
 
