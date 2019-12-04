@@ -29,7 +29,9 @@ export default function FileRow(props: FileRowProps) {
     const onClick = (evt: React.MouseEvent) => {
         if (onSelect && rowIdentifier !== undefined) {
             onSelect(rowIdentifier, {
-                ctrlKeyIsPressed: evt.ctrlKey,
+                // Details on different OS keybindings
+                // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent#Properties
+                ctrlKeyIsPressed: evt.ctrlKey || evt.metaKey,
                 shiftKeyIsPressed: evt.shiftKey,
             });
         }
