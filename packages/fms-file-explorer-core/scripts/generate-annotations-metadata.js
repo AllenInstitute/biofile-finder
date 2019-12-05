@@ -12,7 +12,7 @@ const {
 console.log("Generating annotations metadata");
 ensureAssetsDirExists();
 
-const annotations = [
+const annotations = exports.annotations = [
     {
         annotation_id: 1,
         annotation_display_name: "Date created",
@@ -73,4 +73,6 @@ const annotations = [
     }
 ];
 
-writeOutputToFile(path.join(MOCK_DATA_DIR, "annotations.json"), makeSuccessResponse(annotations));
+if (require.main === module) {
+    writeOutputToFile(path.join(MOCK_DATA_DIR, "annotations.json"), makeSuccessResponse(annotations));
+}
