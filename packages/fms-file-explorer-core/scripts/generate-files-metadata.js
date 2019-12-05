@@ -13,8 +13,10 @@ const lodash = require('lodash');
 
 const {
     ensureAssetsDirExists,
+    generateDate,
     makeSuccessResponse,
     MOCK_DATA_DIR,
+    randomItemFrom,
     writeOutputToFile,
 } = require("./mock-data-helpers");
 
@@ -22,7 +24,6 @@ const TOTAL_DATA_SIZE = exports.TOTAL_DATA_SIZE = 100000;
 const FILES_METADATA_OUTFILE = exports.FILES_METADATA_OUTFILE = path.join(MOCK_DATA_DIR, "files.json");
 
 const FILE_EXTENSIONS = ["czi", "ome.tiff", "tiff", "png", "bam"];
-const EARLIEST_CREATED_ON_DATE = new Date("01 Jan 2017 00:00:00 UTC");
 const DATA_PRODUCERS = ["Daffy Duck", "Donald Duck", "Dalia Duck", "Daphnie Duck", "Dornelius Duder Dunder Doodle Duck"];
 
 const KILOBYTE = 1024;
@@ -35,15 +36,12 @@ const MAX_FILE_SIZE = TERABYTE;  // need upper bound only for fake data generati
  * Creates one filtered projection of a document that will live in a Mongo collection.
  */
 function makeFileDatum(index) {
-    // grab random extension out of FILE_EXTENSIONS
-    const ext = FILE_EXTENSIONS[Math.round(Math.random() * (FILE_EXTENSIONS.length - 1))];
-
     return {
-        created: new Date(Number(EARLIEST_CREATED_ON_DATE) + Math.random() * (Date.now() - EARLIEST_CREATED_ON_DATE)),
-        "created_by": DATA_PRODUCERS[Math.round(Math.random() * (DATA_PRODUCERS.length - 1))],
+        created: generateDate(),
+        "created_by": randomItemFrom(DATA_PRODUCERS),
         "file_id": lodash.uniqueId(),
         "file_index": index,
-        "file_name": `file-${index}.${ext}`,
+        "file_name": `file-${index}.${randomItemFrom(FILE_EXTENSIONS)}`,
         "file_size": Math.floor(Math.random() * MAX_FILE_SIZE),
     };
 }
