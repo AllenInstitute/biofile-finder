@@ -13,7 +13,7 @@ $ npm install
 $ npx lerna bootstrap --hoist
 ```
 
-If you *ARE* include to use Gradle:
+If you *ARE* inclined to use Gradle:
 ```bash
 $ git clone ssh://git@aicsbitbucket.corp.alleninstitute.org:7999/sw/fms-file-explorer.git  # duh
 $ ./gradlew setup
