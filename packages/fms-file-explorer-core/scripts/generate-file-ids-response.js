@@ -13,7 +13,7 @@ const path = require("path");
 const lodash = require("lodash");
 
 const {
-    ensureAssetsDirExists,
+    ensureDirExists,
     makeSuccessResponse,
     MOCK_DATA_DIR,
     writeOutputToFile,
@@ -24,7 +24,7 @@ const { FILES_METADATA_OUTFILE, TOTAL_DATA_SIZE } = require("./generate-files-me
 const DATA_PAGE_SIZE = 10000;
 
 console.log("Generating lists of file_ids");
-ensureAssetsDirExists();
+ensureDirExists(MOCK_DATA_DIR);
 
 const data = [];
 

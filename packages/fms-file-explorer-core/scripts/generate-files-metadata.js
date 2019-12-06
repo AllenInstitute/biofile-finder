@@ -12,25 +12,24 @@ const path = require("path");
 const lodash = require('lodash');
 
 const {
-    ensureAssetsDirExists,
+    ensureDirExists,
+    FILE_EXTENSIONS,
     generateDate,
     makeSuccessResponse,
     MOCK_DATA_DIR,
     randomItemFrom,
+    SCIENTISTS,
     writeOutputToFile,
 } = require("./mock-data-helpers");
 
 const TOTAL_DATA_SIZE = exports.TOTAL_DATA_SIZE = 100000;
 const FILES_METADATA_OUTFILE = exports.FILES_METADATA_OUTFILE = path.join(MOCK_DATA_DIR, "files.json");
 
-const FILE_EXTENSIONS = ["czi", "ome.tiff", "tiff", "png", "bam"];
-const DATA_PRODUCERS = ["Daffy Duck", "Donald Duck", "Dalia Duck", "Daphnie Duck", "Dornelius Duder Dunder Doodle Duck"];
-
 const KILOBYTE = 1024;
 const MEGABYTE = KILOBYTE * KILOBYTE;
 const GIGABYTE = MEGABYTE * KILOBYTE;
 const TERABYTE = GIGABYTE * KILOBYTE;
-const MAX_FILE_SIZE = TERABYTE;  // need upper bound only for fake data generation; not a real limit on data this application can work with
+const MAX_FILE_SIZE = exports.MAX_FILE_SIZE = TERABYTE;  // need upper bound only for fake data generation; not a real limit on data this application can work with
 
 /**
  * Creates one filtered projection of a document that will live in a Mongo collection.
@@ -38,7 +37,7 @@ const MAX_FILE_SIZE = TERABYTE;  // need upper bound only for fake data generati
 function makeFileDatum(index) {
     return {
         created: generateDate(),
-        "created_by": randomItemFrom(DATA_PRODUCERS),
+        "created_by": randomItemFrom(SCIENTISTS),
         "file_id": lodash.uniqueId(),
         "file_index": index,
         "file_name": `file-${index}.${randomItemFrom(FILE_EXTENSIONS)}`,
@@ -48,7 +47,7 @@ function makeFileDatum(index) {
 
 function main() {
     console.log("Generating files metadata");
-    ensureAssetsDirExists();
+    ensureDirExists(MOCK_DATA_DIR);
 
     const data = [];
     for (let i = 0; i < TOTAL_DATA_SIZE; i++) {

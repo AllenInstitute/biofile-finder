@@ -3,30 +3,36 @@
 const fs = require("fs");
 const path = require("path");
 
+const { shuffle } = require("lodash");
+
 const MOCK_DATA_DIR = path.resolve(__dirname, "..", "assets");
 exports.MOCK_DATA_DIR = MOCK_DATA_DIR;
 
-exports.ensureAssetsDirExists = () => {
+function ensureDirExists(dir) {
     try {
-        fs.accessSync(MOCK_DATA_DIR, fs.constants.F_OK)
+        fs.accessSync(dir, fs.constants.F_OK);
     } catch (err) {
         if (err.code === "ENOENT") {
-            console.log(`${MOCK_DATA_DIR} does not exist yet -- creating`);
-            fs.mkdirSync(MOCK_DATA_DIR);
+            console.log(`${dir} does not exist yet -- creating`);
+            fs.mkdirSync(dir);
         } else {
             throw err;
         }
     }
-};
+}
+exports.ensureDirExists = ensureDirExists;
 
-exports.generateDate = (earliest = new Date("01 Jan 2017 00:00:00 UTC"), latest = Date.now()) => {
+exports.FILE_EXTENSIONS = ["czi", "ome.tiff", "tiff", "png", "bam", "mov"];
+
+function generateDate(earliest = new Date("01 Jan 2017 00:00:00 UTC"), latest = Date.now()) {
     return new Date(Number(earliest) + Math.random() * (latest - earliest));
 }
+exports.generateDate = generateDate;
 
 /**
  * Intended to have same contract as https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/api-response-java/browse/src/main/java/org/alleninstitute/aics/response/SuccessResponse.java
  */
-exports.makeSuccessResponse = (data, hasMore = false, offset = 0, totalCount = data.length) => {
+function makeSuccessResponse(data = [], hasMore = false, offset = 0, totalCount = data.length) {
     return {
         data,
         hasMore,
@@ -34,13 +40,33 @@ exports.makeSuccessResponse = (data, hasMore = false, offset = 0, totalCount = d
         responseType: "SUCCESS",
         totalCount,
     };
-};
+}
+exports.makeSuccessResponse = makeSuccessResponse;
 
-exports.randomItemFrom = (list = []) => {
+function randomItemFrom(list = []) {
     return list[Math.round(Math.random() * (list.length - 1))];
-};
+}
+exports.randomItemFrom = randomItemFrom;
 
-exports.writeOutputToFile = (outfile, contents) => {
+exports.SCIENTISTS = [
+    "Melissa Hendershott",
+    "Caroline Hookway",
+    "Brock Roberts",
+    "Angel Nelson",
+    "Kaytlyn Gerbin",
+    "Antoine Borensztejn",
+    "Aditya Nath",
+    "Irina Mueller",
+    "Ruian Yang",
+    "Sara Nelson",
+    "Jamie Gehring",
+    "C. David Williams",
+    "Jamie Sherman",
+    "Daniel Toloudis",
+    "Justin Domingus"
+];
+
+function writeOutputToFile(outfile, contents) {
     fs.writeFile(outfile, JSON.stringify(contents, null, 2), (err) => {
         if (err) {
             console.error(`Failed to write ${outfile}`);
@@ -49,4 +75,67 @@ exports.writeOutputToFile = (outfile, contents) => {
 
         console.log(`Wrote ${outfile}`);
     });
-};
+}
+exports.writeOutputToFile = writeOutputToFile;
+
+function AICSIpsum() {
+    const words = shuffle([
+        'AdditionalWorkup',
+        'Cardios',
+        'Dyes',
+        'ImmunoFluorescence',
+        'MicroscopeTesting',
+        'Minipipeline',
+        'Phototox',
+        'Screen-Clones',
+        'Screen-MixedPop',
+        'Transfection',
+        'Force Based Assay',
+        'CardiosMinipipeline',
+        'CardiosPatterning',
+        'ACTB',
+        'ACTN1',
+        'Segmentation',
+        'ACTN2',
+        'ATP2A2',
+        'CETN2',
+        'CTNNA1',
+        'CTNNB1',
+        'DSP',
+        'beta-galactoside alpha-2,6-sialyltransferase 1',
+        'centrin 2',
+        'connexin 43',
+        'cytoplasmic GFP',
+        'desmoplakin',
+        'fibrillarin',
+        'galactose-1-phosphate uridylyltransferase',
+        'isocitrate dehydrogenase',
+        'lamin B1',
+        'FBL',
+        'GALT',
+        'GJA1',
+        'IDH3G',
+        'LAMP1',
+        'LMNB1',
+        'Smart goals',
+        'LMNB1/TUBA1B',
+        'MAP1LC3B',
+        'MYH10',
+        'MYL2',
+        'MYL7',
+        'iPSC',
+        'cardiomyocyte',
+        'organoid-kidney',
+        'PMP34',
+        'PXN',
+        'SEC61B',
+        'SEC61B/LMNB1',
+        'SEC61B/TUBA1B',
+        'SLC25A17',
+        'ST6GAL1',
+        'TJP1',
+    ]);
+
+    return randomItemFrom(words);
+}
+exports.AICSIpsum = AICSIpsum;
