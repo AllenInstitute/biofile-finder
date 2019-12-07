@@ -132,7 +132,8 @@ function generateListOfUniqueAnnotations() {
         "annotation_display_name",
         "annotation_name",
         "description",
-        "type"
+        "type",
+        "units",
     ]));
     writeOutputToFile(path.join(MOCK_DATA_DIR, "annotations.json"), makeSuccessResponse(values));
 }
