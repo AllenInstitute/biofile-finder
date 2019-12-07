@@ -32,9 +32,11 @@ const numAnnotationsGenerator = d3Random.randomNormal(15, 3);
 // https://cfe.allencell.org/?plotByOnX=Cellular%20Volume%20%28fL%29&plotByOnY=Cellular%20Volume%20%28fL%29
 const avgCellVolumeGenerator = d3Random.randomLogNormal(Math.log(3000), 0.5);
 
+// Let's assume that ~80% of the time, across all usages of a particular boolean-type annotation, there will be both `true` and `false` values recorded.
+// The other ~20% of the time, maybe it only has one of `true` or `false` as a unique value.
+// For example, a boolean-type annotation named "is_mitotic" will likely have some `true` values and some `false` values across all files that have that annotation applied.
+// Another, "file_created_at_aics," might only have `true` values recorded for it, whereas yet another, "is_picture_of_a_balloon" might only have `false` values recorded.
 const booleanValueGenerator = () => {
-    // Let's assume that ~80% of the time, a boolean annotation will have both true and false values recorded for it in the DB.
-    // The other ~20% of the time, maybe it only has one of (true|false) as a unique value.
     const random = Math.random();
     const includeBothTrueAndFalse = random >= 0.2;
     if (includeBothTrueAndFalse) {
@@ -45,6 +47,18 @@ const booleanValueGenerator = () => {
     }
 }
 
+/**
+ * The general interface for an annotation is comprised of the following properties:
+ *  - "annotation_id"
+ *  - "annotation_display_name"
+ *  - "annotation_name"
+ *  - "description"
+ *  - "type"
+ *  - "unit" (optional)
+ *
+ * `annotation.valueGenerator` is a function that is expected to return an array of all unique, possible values for that annotation. It should more or less model
+ * what the range of expected values for that annotation would look like in FMS.
+ */
 const annotations = exports.annotations = [
     {
         annotation_id: 1,
