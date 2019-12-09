@@ -1,6 +1,7 @@
 import { get as _get } from "lodash";
 
 import annotationFormatterFactory, { AnnotationFormatter } from "../AnnotationFormatter";
+import AnnotationService from "../../services/AnnotationService";
 import { FmsFile } from "../../services/FileService";
 
 /**
@@ -21,10 +22,16 @@ export default class Annotation {
     public static MISSING_VALUE = "< MISSING >";
 
     private readonly annotation: AnnotationResponse;
+    private readonly annotationService: AnnotationService;
     private readonly formatter: AnnotationFormatter;
+    private values: Promise<(string | number | boolean)[]> | undefined;
 
-    constructor(annotation: AnnotationResponse) {
+    constructor(
+        annotation: AnnotationResponse,
+        annotationService: AnnotationService = new AnnotationService()
+    ) {
         this.annotation = annotation;
+        this.annotationService = annotationService;
         this.formatter = annotationFormatterFactory(this.annotation.type);
     }
 
@@ -53,5 +60,25 @@ export default class Annotation {
         }
 
         return this.formatter(value, this.annotation.units);
+    }
+
+    /**
+     * Return listing of all unique, possible values for this annotation across all usages of it in FMS.
+     *
+     * ! SIDE EFFECT !
+     * Fetches values if they have not already been loaded.
+     */
+    public async getValues(): Promise<(string | number | boolean)[]> {
+        if (this.values === undefined) {
+            this.values = this.annotationService.fetchValues(this.annotation.annotation_name);
+        }
+
+        try {
+            return await this.values;
+        } catch (e) {
+            // TODO retry logic
+            console.error(e);
+            return [];
+        }
     }
 }
