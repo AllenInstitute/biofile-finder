@@ -35,7 +35,7 @@ describe("Annotation", () => {
         });
     });
 
-    describe("getValues", () => {
+    describe("loadValues", () => {
         let sandbox: SinonSandbox;
 
         before(() => {
@@ -65,11 +65,13 @@ describe("Annotation", () => {
             expect(fetchStub.callCount).to.equal(0);
 
             // get values
-            expect(await annotation.getValues()).to.equal(dates);
+            await annotation.loadValues();
+            expect(annotation.values).to.equal(dates);
             expect(fetchStub.callCount).to.equal(1);
 
             // get values again, still expect fetchStub to only have been called once
-            expect(await annotation.getValues()).to.equal(dates);
+            await annotation.loadValues();
+            expect(annotation.values).to.equal(dates);
             expect(fetchStub.callCount).to.equal(1);
         });
     });

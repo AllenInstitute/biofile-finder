@@ -24,7 +24,8 @@ export default class Annotation {
     private readonly annotation: AnnotationResponse;
     private readonly annotationService: AnnotationService;
     private readonly formatter: AnnotationFormatter;
-    private values: Promise<(string | number | boolean)[]> | undefined;
+    private _values: (string | number | boolean)[] = [];
+    private _valuesLoaded: Promise<(string | number | boolean)[]> | undefined;
 
     constructor(
         annotation: AnnotationResponse,
@@ -48,6 +49,13 @@ export default class Annotation {
     }
 
     /**
+     * Return listing of all unique, possible values for this annotation across all usages of it in FMS.
+     */
+    public get values(): (string | number | boolean)[] {
+        return this._values;
+    }
+
+    /**
      * Get the annotation this instance represents from a given FmsFile. E.g., given an FmsFile that looks like:
      *  const fmsFile = { "file_size": 5000000000 }
      *  const fileSizeAnnotation = new Annotation({ annotation_name: "file_size", ... }, numberFormatter);
@@ -63,22 +71,16 @@ export default class Annotation {
     }
 
     /**
-     * Return listing of all unique, possible values for this annotation across all usages of it in FMS.
-     *
      * ! SIDE EFFECT !
      * Fetches values if they have not already been loaded.
      */
-    public async getValues(): Promise<(string | number | boolean)[]> {
-        if (this.values === undefined) {
-            this.values = this.annotationService.fetchValues(this.annotation.annotation_name);
+    public async loadValues() {
+        if (this._valuesLoaded === undefined) {
+            this._valuesLoaded = this.annotationService.fetchValues(
+                this.annotation.annotation_name
+            );
         }
 
-        try {
-            return await this.values;
-        } catch (e) {
-            // TODO retry logic
-            console.error(e);
-            return [];
-        }
+        this._values = await this._valuesLoaded;
     }
 }
