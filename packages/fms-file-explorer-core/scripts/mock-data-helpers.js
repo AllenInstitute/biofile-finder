@@ -49,21 +49,12 @@ function randomItemFrom(list = []) {
 exports.randomItemFrom = randomItemFrom;
 
 exports.SCIENTISTS = [
-    "Melissa Hendershott",
-    "Caroline Hookway",
-    "Brock Roberts",
-    "Angel Nelson",
-    "Kaytlyn Gerbin",
-    "Antoine Borensztejn",
-    "Aditya Nath",
-    "Irina Mueller",
-    "Ruian Yang",
-    "Sara Nelson",
-    "Jamie Gehring",
-    "C. David Williams",
-    "Jamie Sherman",
-    "Daniel Toloudis",
-    "Justin Domingus"
+    "Monica Geller",
+    "Ross Geller",
+    "Rachel Green",
+    "Phoebe Buffay",
+    "Joey Tribbiani",
+    "Chandler Bing",
 ];
 
 function writeOutputToFile(outfile, contents) {
