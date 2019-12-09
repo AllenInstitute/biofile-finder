@@ -1,6 +1,6 @@
 import { compact, join } from "lodash";
 
-import RestServiceResponse from "../RestServiceResponse";
+import RestServiceResponse from "../../entity/RestServiceResponse";
 
 export interface FmsFile {
     [key: string]: any;

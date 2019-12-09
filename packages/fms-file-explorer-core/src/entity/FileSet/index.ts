@@ -3,7 +3,7 @@ import * as LRUCache from "lru-cache";
 
 import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
-import FileService, { FmsFile } from "../FileService";
+import FileService, { FmsFile } from "../../services/FileService";
 
 interface Opts {
     maxCacheSize?: number;

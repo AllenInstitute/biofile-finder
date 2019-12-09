@@ -1,7 +1,7 @@
 import { get as _get } from "lodash";
 
 import annotationFormatterFactory, { AnnotationFormatter } from "../AnnotationFormatter";
-import { FmsFile } from "../FileService";
+import { FmsFile } from "../../services/FileService";
 
 /**
  * Expected JSON structure of an annotation returned from the query service.

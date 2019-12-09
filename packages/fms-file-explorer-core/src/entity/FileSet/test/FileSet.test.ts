@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { createSandbox, SinonSandbox } from "sinon";
 
 import FileFilter from "../../FileFilter";
-import FileService from "../../FileService";
+import FileService from "../../../services/FileService";
 import FileSet from "../";
 import FileSort, { SortOrder } from "../../FileSort";
 import RestServiceResponse from "../../RestServiceResponse";

@@ -5,7 +5,7 @@ import { Provider } from "react-redux";
 import * as sinon from "sinon";
 
 import Annotation from "../../../entity/Annotation";
-import { FmsFile } from "../../../entity/FileService";
+import { FmsFile } from "../../../services/FileService";
 import { ColumnWidths } from "../../FileList/useResizableColumns";
 import LazilyRenderedRow from "../LazilyRenderedRow";
 import createMockReduxStore from "../../../state/test/mock-redux-store";

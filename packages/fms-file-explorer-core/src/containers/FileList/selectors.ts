@@ -1,6 +1,6 @@
 import { createSelector } from "reselect";
 
-import FileService from "../../entity/FileService";
+import FileService from "../../services/FileService";
 import FileSet from "../../entity/FileSet";
 
 // TODO
