@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { createSandbox, SinonSandbox, spy } from "sinon";
+import { createSandbox, SinonSandbox } from "sinon";
 
 import Annotation from "../";
 import AnnotationService from "../../../services/AnnotationService";
@@ -65,13 +65,11 @@ describe("Annotation", () => {
             expect(fetchStub.callCount).to.equal(0);
 
             // get values
-            await annotation.loadValues();
-            expect(annotation.values).to.equal(dates);
+            expect(await annotation.getValues()).to.equal(dates);
             expect(fetchStub.callCount).to.equal(1);
 
             // get values again, still expect fetchStub to only have been called once
-            await annotation.loadValues();
-            expect(annotation.values).to.equal(dates);
+            expect(await annotation.getValues()).to.equal(dates);
             expect(fetchStub.callCount).to.equal(1);
         });
     });
