@@ -1,8 +1,6 @@
 import { castArray, find, includes, isArray, uniq, without } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { getAnnotationHierarchy, getSelectedFiles } from "./selectors";
-import metadata from "../metadata";
 import {
     deselectFile,
     SELECT_FILE,
@@ -10,6 +8,9 @@ import {
     REMOVE_FROM_ANNOTATION_HIERARCHY,
     setAnnotationHierarchy,
 } from "./actions";
+import Annotation from "../../entity/Annotation";
+import metadata from "../metadata";
+import { getAnnotationHierarchy, getSelectedFiles } from "./selectors";
 import { ReduxLogicDeps, ReduxLogicNextCb } from "../types";
 
 /**
@@ -56,6 +57,10 @@ const selectFile = createLogic({
 /**
  * Interceptor responsible for transforming REORDER_ANNOTATION_HIERARCHY and REMOVE_FROM_ANNOTATION_HIERARCHY actions into
  * a concrete list of ordered annotations that can be directly stored in application state under `selections.annotationHierarchy`.
+ *
+ * After TRANFORMing to a SET_ANNOTATION_HIERARCHY action and running through the reducer, PROCESS any newly added annotation to
+ * request all unique values assigned to the annotation (across all of its usages in FMS) and dispatch a RECEIVE_ANNOTATION_VALUES
+ * action to store the values in the `metadata` branch of application state.
  */
 const modifyAnnotationHierarchy = createLogic({
     transform(deps: ReduxLogicDeps, next, reject) {
@@ -87,8 +92,29 @@ const modifyAnnotationHierarchy = createLogic({
             // add to list
             const newHierarchy = Array.from(existingHierarchy);
             newHierarchy.splice(action.payload.moveTo, 0, annotation);
+
+            // Before moving on, set new annotation into this logic's context so that we have simple access to it
+            // in the process hook. All unique values assigned to the annotation (across all of its usages in FMS)
+            // will be loaded and stored in the metadata branch of state.
+            deps.ctx.annotation = annotation;
+
             next(setAnnotationHierarchy(newHierarchy));
         }
+    },
+    async process(deps, dispatch, done) {
+        const { ctx } = deps;
+
+        const annotation: Annotation | undefined = ctx.annotation;
+
+        if (annotation === undefined) {
+            done();
+            return;
+        }
+
+        dispatch(
+            metadata.actions.receiveAnnotationValues(annotation.name, await annotation.getValues())
+        );
+        done();
     },
     type: [REORDER_ANNOTATION_HIERARCHY, REMOVE_FROM_ANNOTATION_HIERARCHY],
 });
