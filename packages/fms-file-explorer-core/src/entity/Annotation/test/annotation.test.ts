@@ -35,7 +35,7 @@ describe("Annotation", () => {
         });
     });
 
-    describe("loadValues", () => {
+    describe("getValues", () => {
         let sandbox: SinonSandbox;
 
         before(() => {
