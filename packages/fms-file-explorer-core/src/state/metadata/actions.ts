@@ -40,3 +40,35 @@ export function requestAnnotations(): RequestAnnotationAction {
         type: REQUEST_ANNOTATIONS,
     };
 }
+
+/**
+ * RECEIVE_ANNOTATION_VALUES
+ *
+ * Intention to store all unique values assigned to an annotation (across all of its usages in FMS). These values are requested when
+ * an annotation is dropped into the annotation hierarchy.
+ */
+export const RECEIVE_ANNOTATION_VALUES = makeConstant(
+    STATE_BRANCH_NAME,
+    "receive-annotation-values"
+);
+
+export interface ReceiveAnnotationValuesAction {
+    payload: {
+        name: string;
+        values: (string | number | boolean)[];
+    };
+    type: string;
+}
+
+export function receiveAnnotationValues(
+    name: string,
+    values: (string | number | boolean)[]
+): ReceiveAnnotationValuesAction {
+    return {
+        payload: {
+            name,
+            values,
+        },
+        type: RECEIVE_ANNOTATION_VALUES,
+    };
+}
