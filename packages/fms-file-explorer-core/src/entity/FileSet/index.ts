@@ -6,11 +6,17 @@ import FileSort from "../FileSort";
 import FileService, { FmsFile } from "../../services/FileService";
 
 interface Opts {
-    maxCacheSize?: number;
+    fileService: FileService;
+    filters: FileFilter[];
+    maxCacheSize: number;
+    sortOrder: FileSort[];
 }
 
-const defaultOpts: Partial<Opts> = {
+const DEFAULT_OPTS: Opts = {
+    fileService: new FileService(),
+    filters: [],
     maxCacheSize: 1000,
+    sortOrder: [],
 };
 
 function isPromise(arg: any): arg is Promise<any> {
@@ -33,18 +39,13 @@ export default class FileSet {
     private readonly sortOrder: FileSort[];
     private totalFileCount: number | undefined;
 
-    constructor(
-        fileService: FileService,
-        filters: FileFilter[] = [],
-        sortOrder: FileSort[] = [],
-        opts?: Opts
-    ) {
-        const { maxCacheSize } = defaults(opts, defaultOpts);
+    constructor(opts: Partial<Opts> = {}) {
+        const { fileService, filters, maxCacheSize, sortOrder } = defaults({}, opts, DEFAULT_OPTS);
 
         this.cache = new LRUCache<number, FmsFile>({ max: maxCacheSize });
-        this.fileService = fileService;
         this.filters = filters;
         this.sortOrder = sortOrder;
+        this.fileService = fileService;
 
         this.fetchFileRange = this.fetchFileRange.bind(this);
         this.isFileMetadataLoaded = this.isFileMetadataLoaded.bind(this);

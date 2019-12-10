@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { createSandbox, SinonSandbox } from "sinon";
+import { createSandbox } from "sinon";
 
 import FileFilter from "../../FileFilter";
 import FileService from "../../../services/FileService";
@@ -10,7 +10,7 @@ import RestServiceResponse from "../../RestServiceResponse";
 describe("FileSet", () => {
     describe("toQueryString", () => {
         it("returns an empty string if file set represents a query with no filters and no sorting applied", () => {
-            expect(new FileSet(new FileService()).toQueryString()).to.equal("");
+            expect(new FileSet().toQueryString()).to.equal("");
         });
 
         it("includes filters and sort order in query string", () => {
@@ -18,11 +18,10 @@ describe("FileSet", () => {
             const matrigelIsHard = new FileFilter("matrigel_is_hardened", true);
             const dateCreatedDescending = new FileSort("date_created", SortOrder.DESC);
 
-            const fileSet = new FileSet(
-                new FileService(),
-                [scientistEqualsJane, matrigelIsHard],
-                [dateCreatedDescending]
-            );
+            const fileSet = new FileSet({
+                filters: [scientistEqualsJane, matrigelIsHard],
+                sortOrder: [dateCreatedDescending],
+            });
             expect(fileSet.toQueryString()).equals(
                 "scientist=jane&matrigel_is_hardened=true&sort=date_created(DESC)"
             );
@@ -30,16 +29,10 @@ describe("FileSet", () => {
     });
 
     describe("fetchFileRange", () => {
-        let sandbox: SinonSandbox;
-
-        before(() => {
-            sandbox = createSandbox();
-        });
+        const sandbox = createSandbox();
 
         afterEach(() => {
-            if (sandbox) {
-                sandbox.reset();
-            }
+            sandbox.reset();
         });
 
         it("returns slices of the file list represented by the FileSet, specified by index position", async () => {
@@ -60,7 +53,7 @@ describe("FileSet", () => {
                 )
             );
 
-            const fileSet = new FileSet(fileService);
+            const fileSet = new FileSet({ fileService });
 
             expect(await fileSet.fetchFileRange(1, 3)).to.deep.equal(files.slice(1, 4)); // Array.prototype.slice is exclusive of end bound
         });
