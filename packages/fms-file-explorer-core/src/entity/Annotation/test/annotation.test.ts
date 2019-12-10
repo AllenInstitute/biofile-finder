@@ -44,7 +44,7 @@ describe("Annotation", () => {
 
         afterEach(() => {
             if (sandbox) {
-                sandbox.reset();
+                sandbox.resetHistory();
             }
         });
 
