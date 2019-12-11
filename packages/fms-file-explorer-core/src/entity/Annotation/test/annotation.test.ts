@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { createSandbox, SinonSandbox } from "sinon";
+import { createSandbox } from "sinon";
 
 import Annotation from "../";
 import AnnotationService from "../../../services/AnnotationService";
@@ -36,16 +36,10 @@ describe("Annotation", () => {
     });
 
     describe("getValues", () => {
-        let sandbox: SinonSandbox;
+        const sandbox = createSandbox();
 
-        before(() => {
-            sandbox = createSandbox();
-        });
-
-        afterEach(() => {
-            if (sandbox) {
-                sandbox.resetHistory();
-            }
+        beforeEach(() => {
+            sandbox.resetHistory();
         });
 
         it("does not re-fetch annotation values if they are already loaded", async () => {
@@ -56,9 +50,7 @@ describe("Annotation", () => {
                 new Date().toUTCString(),
             ];
 
-            const fetchStub = sandbox
-                .stub(annotationService, "fetchValues")
-                .callsFake(() => Promise.resolve(dates));
+            const fetchStub = sandbox.stub(annotationService, "fetchValues").resolves(dates);
             const annotation = new Annotation(annotationResponse, annotationService);
 
             // before
