@@ -1,3 +1,4 @@
+import { configureMockStore } from "@aics/redux-utils";
 import { expect } from "chai";
 import { mount } from "enzyme";
 import * as React from "react";
@@ -8,7 +9,7 @@ import Annotation from "../../../entity/Annotation";
 import { FmsFile } from "../../../services/FileService";
 import { ColumnWidths } from "../../FileList/useResizableColumns";
 import LazilyRenderedRow from "../LazilyRenderedRow";
-import createMockReduxStore from "../../../state/test/mock-redux-store";
+import { initialState } from "../../../state";
 
 describe("<LazilyRenderedRow />", () => {
     function makeItemData() {
@@ -35,7 +36,7 @@ describe("<LazilyRenderedRow />", () => {
     }
 
     it("renders data when it's available", () => {
-        const [store] = createMockReduxStore();
+        const { store } = configureMockStore({ state: initialState });
         const wrapper = mount(
             <Provider store={store}>
                 <LazilyRenderedRow data={makeItemData()} index={3} style={{}} />
@@ -47,7 +48,7 @@ describe("<LazilyRenderedRow />", () => {
     });
 
     it("renders a loading indicator when data is not available", () => {
-        const [store] = createMockReduxStore();
+        const { store } = configureMockStore({ state: initialState });
         const wrapper = mount(
             <Provider store={store}>
                 <LazilyRenderedRow data={makeItemData()} index={23} style={{}} />

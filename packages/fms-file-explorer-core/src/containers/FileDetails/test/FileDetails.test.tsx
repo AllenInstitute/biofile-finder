@@ -1,17 +1,18 @@
+import { configureMockStore } from "@aics/redux-utils";
 import { expect } from "chai";
 import { mount } from "enzyme";
 import * as React from "react";
 import { Provider } from "react-redux";
 
 import FileDetails, { WINDOW_ACTION_BUTTON_WIDTH } from "../";
-import createMockReduxStore from "../../../state/test/mock-redux-store";
+import { initialState } from "../../../state";
 
 const styles = require("../FileDetails.module.css");
 
 describe("<FileDetails />", () => {
     describe("Expand and collapse behavior", () => {
         it("expands when the maximize button is clicked", () => {
-            const [store] = createMockReduxStore();
+            const { store } = configureMockStore({ state: initialState });
             const wrapper = mount(
                 <Provider store={store}>
                     <FileDetails />
@@ -31,7 +32,7 @@ describe("<FileDetails />", () => {
         });
 
         it("contracts when the minimize button is clicked", () => {
-            const [store] = createMockReduxStore();
+            const { store } = configureMockStore({ state: initialState });
             const wrapper = mount(
                 <Provider store={store}>
                     <FileDetails />
@@ -55,7 +56,7 @@ describe("<FileDetails />", () => {
         });
 
         it("resets to its default size when the reset button is clicked", () => {
-            const [store] = createMockReduxStore();
+            const { store } = configureMockStore({ state: initialState });
             const wrapper = mount(
                 <Provider store={store}>
                     <FileDetails />
@@ -78,7 +79,7 @@ describe("<FileDetails />", () => {
         });
 
         it("renders minimize and maximize buttons when at its default size", () => {
-            const [store] = createMockReduxStore();
+            const { store } = configureMockStore({ state: initialState });
             const wrapper = mount(
                 <Provider store={store}>
                     <FileDetails />
@@ -94,7 +95,7 @@ describe("<FileDetails />", () => {
         });
 
         it("renders restore and maximize buttons when it is minimized", () => {
-            const [store] = createMockReduxStore();
+            const { store } = configureMockStore({ state: initialState });
             const wrapper = mount(
                 <Provider store={store}>
                     <FileDetails />
@@ -113,7 +114,7 @@ describe("<FileDetails />", () => {
         });
 
         it("renders restore and minimize buttons when it is maximized", () => {
-            const [store] = createMockReduxStore();
+            const { store } = configureMockStore({ state: initialState });
             const wrapper = mount(
                 <Provider store={store}>
                     <FileDetails />

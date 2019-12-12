@@ -1,3 +1,4 @@
+import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { expect } from "chai";
 import { mount } from "enzyme";
 import * as React from "react";
@@ -8,7 +9,7 @@ import AnnotationList from "..";
 import Annotation from "../../../entity/Annotation";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import AnnotationListItem from "../AnnotationListItem";
-import createMockReduxStore from "../../../state/test/mock-redux-store";
+import { initialState } from "../../../state";
 
 describe("<AnnotationList />", () => {
     before(() => {
@@ -24,14 +25,14 @@ describe("<AnnotationList />", () => {
     describe("Search behavior", () => {
         it("filters list of annotations according to search input", () => {
             // setup
-            const [store] = createMockReduxStore({
-                mockState: {
+            const { store } = configureMockStore({
+                state: mergeState(initialState, {
                     metadata: {
                         annotations: annotationsJson.map(
                             (annotation) => new Annotation(annotation)
                         ),
                     },
-                },
+                }),
             });
 
             const wrapper = mount(
