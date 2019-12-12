@@ -1,22 +1,14 @@
+import { makeReducer } from "@aics/redux-utils";
 import { castArray, without } from "lodash";
-import { AnyAction } from "redux";
 
 import Annotation from "../../entity/Annotation";
-
-import { TypeToDescriptionMap } from "../types";
-import { makeReducer } from "../util";
 
 import {
     DESELECT_DISPLAY_ANNOTATION,
     DESELECT_FILE,
-    DeselectDisplayAnnotationAction,
-    DeselectFileAction,
     SELECT_DISPLAY_ANNOTATION,
     SELECT_FILE,
-    SelectDisplayAnnotationAction,
-    SelectFileAction,
     SET_ANNOTATION_HIERARCHY,
-    SetAnnotationHierarchyAction,
 } from "./actions";
 
 export interface SelectionStateBranch {
@@ -31,57 +23,28 @@ export const initialState = {
     selectedFiles: [], // file ids
 };
 
-const actionToConfigMap: TypeToDescriptionMap = {
-    [DESELECT_DISPLAY_ANNOTATION]: {
-        accepts: (action: AnyAction): action is DeselectDisplayAnnotationAction =>
-            action.type === DESELECT_DISPLAY_ANNOTATION,
-        perform: (
-            state: SelectionStateBranch,
-            action: DeselectDisplayAnnotationAction
-        ): SelectionStateBranch => ({
+export default makeReducer<SelectionStateBranch>(
+    {
+        [DESELECT_DISPLAY_ANNOTATION]: (state, action) => ({
             ...state,
             displayAnnotations: without(state.displayAnnotations, ...castArray(action.payload)),
         }),
-    },
-    [DESELECT_FILE]: {
-        accepts: (action: AnyAction): action is DeselectFileAction => action.type === DESELECT_FILE,
-        perform: (
-            state: SelectionStateBranch,
-            action: DeselectFileAction
-        ): SelectionStateBranch => ({
+        [DESELECT_FILE]: (state, action) => ({
             ...state,
             selectedFiles: without(state.selectedFiles, ...castArray(action.payload)),
         }),
-    },
-    [SELECT_DISPLAY_ANNOTATION]: {
-        accepts: (action: AnyAction): action is SelectDisplayAnnotationAction =>
-            action.type === SELECT_DISPLAY_ANNOTATION,
-        perform: (
-            state: SelectionStateBranch,
-            action: SelectDisplayAnnotationAction
-        ): SelectionStateBranch => ({
+        [SELECT_DISPLAY_ANNOTATION]: (state, action) => ({
             ...state,
             displayAnnotations: [...state.displayAnnotations, ...castArray(action.payload)],
         }),
-    },
-    [SELECT_FILE]: {
-        accepts: (action: AnyAction): action is SelectFileAction => action.type === SELECT_FILE,
-        perform: (state: SelectionStateBranch, action: SelectFileAction): SelectionStateBranch => ({
+        [SELECT_FILE]: (state, action) => ({
             ...state,
             selectedFiles: castArray(action.payload.file),
         }),
-    },
-    [SET_ANNOTATION_HIERARCHY]: {
-        accepts: (action: AnyAction): action is SetAnnotationHierarchyAction =>
-            action.type === SET_ANNOTATION_HIERARCHY,
-        perform: (
-            state: SelectionStateBranch,
-            action: SetAnnotationHierarchyAction
-        ): SelectionStateBranch => ({
+        [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
             ...state,
             annotationHierarchy: action.payload,
         }),
     },
-};
-
-export default makeReducer<SelectionStateBranch>(actionToConfigMap, initialState);
+    initialState
+);
