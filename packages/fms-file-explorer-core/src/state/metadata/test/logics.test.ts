@@ -1,15 +1,17 @@
+import { configureMockStore } from "@aics/redux-utils";
 import { expect } from "chai";
 
-import { SELECT_DISPLAY_ANNOTATION } from "../../selection/actions";
-import createMockReduxStore from "../../test/mock-redux-store";
-
 import { RECEIVE_ANNOTATIONS, requestAnnotations } from "../actions";
+import { SELECT_DISPLAY_ANNOTATION } from "../../selection/actions";
+import metadataLogics from "../logics";
 
 describe("Metadata logics", () => {
     describe("requestAnnotations", () => {
         it("Fires RECEIVE_ANNOTATIONS action after processing REQUEST_ANNOTATIONS action", async () => {
             // setup
-            const [store, logicMiddleware, actions] = createMockReduxStore();
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: metadataLogics,
+            });
 
             // do
             store.dispatch(requestAnnotations());

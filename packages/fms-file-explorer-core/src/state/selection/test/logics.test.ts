@@ -1,6 +1,8 @@
+import { configureMockStore } from "@aics/redux-utils";
 import { expect } from "chai";
 import { createSandbox, SinonSandbox } from "sinon";
 
+import { metadata } from "../..";
 import {
     DESELECT_FILE,
     SELECT_FILE,
@@ -11,15 +13,16 @@ import {
 } from "../actions";
 import Annotation from "../../../entity/Annotation";
 import AnnotationService from "../../../services/AnnotationService";
-import { metadata } from "../..";
+import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
-import createMockReduxStore from "../../test/mock-redux-store";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
         it("does not include existing file selections when updateExistingSelection is false", async () => {
             // setup
-            const [store, logicMiddleware, actions] = createMockReduxStore();
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+            });
 
             // act
             store.dispatch(selectFile("abc123"));
@@ -38,12 +41,15 @@ describe("Selection logics", () => {
 
         it("appends newly selected file to existing selections when updateExistingSelection is true", async () => {
             // setup
-            const mockState = {
+            const state = {
                 selection: {
                     selectedFiles: ["abc123"],
                 },
             };
-            const [store, logicMiddleware, actions] = createMockReduxStore({ mockState });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
 
             // act
             store.dispatch(selectFile("xyz789", true));
@@ -62,12 +68,15 @@ describe("Selection logics", () => {
 
         it("deselects a file if file is already selected and updateExistingSelection is true", async () => {
             // setup
-            const mockState = {
+            const state = {
                 selection: {
                     selectedFiles: ["abc123", "xyz789"],
                 },
             };
-            const [store, logicMiddleware, actions] = createMockReduxStore({ mockState });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
 
             // act
             store.dispatch(selectFile("xyz789", true));
@@ -84,12 +93,15 @@ describe("Selection logics", () => {
 
         it("does not deselect a file if file is already selected and updateExistingSelection is true when file is part of a list of new selections", async () => {
             // setup
-            const mockState = {
+            const state = {
                 selection: {
                     selectedFiles: ["abc123", "xyz789"],
                 },
             };
-            const [store, logicMiddleware, actions] = createMockReduxStore({ mockState });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
 
             // act
             store.dispatch(selectFile(["xyz789", "mno456"], true));
@@ -127,7 +139,7 @@ describe("Selection logics", () => {
 
         it("adds a new annotation to the end of the hierarchy", async () => {
             // setup
-            const mockState = {
+            const state = {
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -135,7 +147,10 @@ describe("Selection logics", () => {
                     annotationHierarchy: annotations.slice(0, 2),
                 },
             };
-            const [store, logicMiddleware, actions] = createMockReduxStore({ mockState });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
 
             // act
             store.dispatch(reorderAnnotationHierarchy(annotations[2].name, 2));
@@ -152,7 +167,7 @@ describe("Selection logics", () => {
 
         it("loads all unique values assigned to the annotation (across all of its usages in FMS) when being added to the hierarchy", async () => {
             // setup
-            const mockState = {
+            const state = {
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -160,7 +175,10 @@ describe("Selection logics", () => {
                     annotationHierarchy: annotations.slice(0, 2),
                 },
             };
-            const [store, logicMiddleware, actions] = createMockReduxStore({ mockState });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
 
             // before
             expect(fetchStub.callCount).to.equal(0);
@@ -184,7 +202,7 @@ describe("Selection logics", () => {
 
         it("moves an annotation within the hierarchy to a new position", async () => {
             // setup
-            const mockState = {
+            const state = {
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -197,7 +215,10 @@ describe("Selection logics", () => {
                     ],
                 },
             };
-            const [store, logicMiddleware, actions] = createMockReduxStore({ mockState });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
 
             // act
             store.dispatch(reorderAnnotationHierarchy(annotations[2].name, 0));
@@ -214,7 +235,7 @@ describe("Selection logics", () => {
 
         it("does not re-request annotation values when an annotation is reordered within the hierarchy", async () => {
             // setup
-            const mockState = {
+            const state = {
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -227,7 +248,10 @@ describe("Selection logics", () => {
                     ],
                 },
             };
-            const [store, logicMiddleware, actions] = createMockReduxStore({ mockState });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
 
             // act
             store.dispatch(reorderAnnotationHierarchy(annotations[2].name, 0));
@@ -243,7 +267,7 @@ describe("Selection logics", () => {
 
         it("removes an annotation from the hierarchy", async () => {
             // setup
-            const mockState = {
+            const state = {
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -256,7 +280,10 @@ describe("Selection logics", () => {
                     ],
                 },
             };
-            const [store, logicMiddleware, actions] = createMockReduxStore({ mockState });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
 
             // act
             store.dispatch(removeFromAnnotationHierarchy(annotations[2].name));
@@ -273,7 +300,7 @@ describe("Selection logics", () => {
 
         it("does not request annotation values if an annotation is removed from the hierarchy", async () => {
             // setup
-            const mockState = {
+            const state = {
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -286,7 +313,10 @@ describe("Selection logics", () => {
                     ],
                 },
             };
-            const [store, logicMiddleware, actions] = createMockReduxStore({ mockState });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
 
             // act
             store.dispatch(removeFromAnnotationHierarchy(annotations[2].name));
