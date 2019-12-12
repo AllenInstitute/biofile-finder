@@ -1,6 +1,6 @@
-import Annotation from "../../entity/Annotation";
+import { makeConstant } from "@aics/redux-utils";
 
-import { makeConstant } from "../util";
+import Annotation from "../../entity/Annotation";
 
 const STATE_BRANCH_NAME = "metadata";
 

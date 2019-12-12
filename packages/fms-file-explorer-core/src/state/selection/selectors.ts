@@ -1,7 +1,7 @@
 import { first } from "lodash";
 import { createSelector } from "reselect";
 
-import { State } from "../types";
+import { State } from "../";
 
 // BASIC SELECTORS
 export const getAnnotationHierarchy = (state: State) => state.selection.annotationHierarchy;

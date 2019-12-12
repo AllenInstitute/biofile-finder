@@ -1,4 +1,5 @@
 import { castArray, find, includes, isArray, uniq, without } from "lodash";
+import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import {
@@ -11,7 +12,7 @@ import {
 import Annotation from "../../entity/Annotation";
 import metadata from "../metadata";
 import { getAnnotationHierarchy, getSelectedFiles } from "./selectors";
-import { ReduxLogicDeps, ReduxLogicNextCb } from "../types";
+import { ReduxLogicDeps } from "../";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -19,7 +20,7 @@ import { ReduxLogicDeps, ReduxLogicNextCb } from "../types";
  * selection state.
  */
 const selectFile = createLogic({
-    transform(deps: ReduxLogicDeps, next: ReduxLogicNextCb) {
+    transform(deps: ReduxLogicDeps, next: (action: AnyAction) => void) {
         const { action, getState } = deps;
 
         if (action.payload.updateExistingSelection) {
