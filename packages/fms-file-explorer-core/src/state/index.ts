@@ -43,7 +43,7 @@ export const reduxLogicDependencies: Partial<ReduxLogicDeps> = {
 
 export const reduxLogics = [...metadata.logics, ...selection.logics];
 
-const logicMiddleware = createLogicMiddleware();
+const logicMiddleware = createLogicMiddleware(reduxLogics);
 logicMiddleware.addDeps(reduxLogicDependencies);
 
 export const middleware = [logicMiddleware];
