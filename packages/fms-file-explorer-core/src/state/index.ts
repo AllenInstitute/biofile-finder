@@ -1,4 +1,3 @@
-import { enableBatching } from "@aics/redux-utils";
 import axios, { AxiosInstance } from "axios";
 import { combineReducers, AnyAction } from "redux";
 import { createLogicMiddleware } from "redux-logic";
@@ -20,13 +19,10 @@ export const initialState: State = Object.freeze({
 });
 
 // -- REDUCER
-export const reducer = enableBatching<State>(
-    combineReducers({
-        metadata: metadata.reducer,
-        selection: selection.reducer,
-    }),
-    initialState
-);
+export const reducer = combineReducers({
+    metadata: metadata.reducer,
+    selection: selection.reducer,
+});
 
 // --- MIDDLEWARE --
 export interface ReduxLogicDeps {
