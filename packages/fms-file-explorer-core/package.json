@@ -87,7 +87,7 @@
     "rimraf": "3.0.0",
     "sinon": "7.4.2",
     "ts-node": "8.4.1",
-    "typescript": "3.6.3"
+    "typescript": "3.7.3"
   },
   "dependencies": {
     "@aics/redux-utils": "0.3.0",
