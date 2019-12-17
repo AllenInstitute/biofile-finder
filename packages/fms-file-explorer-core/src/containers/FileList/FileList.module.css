@@ -3,13 +3,15 @@
     --scroll-bar-width: 15px;
     overflow-y: hidden;
     overflow-x: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .header {
-    height: var(--header-height);
+    flex: 0 0 var(--header-height);
     width: calc(100% - var(--scroll-bar-width));
 }
 
 .list {
-    height: calc(100% - var(--header-height));
+    flex: 1 1 auto;
 }

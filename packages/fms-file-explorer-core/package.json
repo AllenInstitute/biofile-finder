@@ -94,6 +94,7 @@
     "@tippy.js/react": "3.1.1",
     "axios": "0.19.0",
     "classnames": "2.2.6",
+    "d3-array": "2.4.0",
     "debounce-promise": "3.1.2",
     "filesize": "5.0.3",
     "fuse.js": "3.4.6",

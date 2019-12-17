@@ -37,7 +37,6 @@ export default function FileList(props: FileListProps) {
     }));
 
     const fileSetTree = useSelector(fileListSelectors.getFileSetTree);
-
     return (
         <div className={classNames(styles.root, props.className)} ref={ref}>
             <FileRow

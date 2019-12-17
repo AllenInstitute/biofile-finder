@@ -34,7 +34,7 @@ export default class FileSet {
     private cache: LRUCache<number, FmsFile>;
     private _fileIds: string[] = [];
     private readonly fileService: FileService;
-    private readonly filters: FileFilter[];
+    private readonly _filters: FileFilter[];
     private loaded: Promise<string[]> | undefined;
     private readonly sortOrder: FileSort[];
     private totalFileCount: number | undefined;
@@ -43,7 +43,7 @@ export default class FileSet {
         const { fileService, filters, maxCacheSize, sortOrder } = defaults({}, opts, DEFAULT_OPTS);
 
         this.cache = new LRUCache<number, FmsFile>({ max: maxCacheSize });
-        this.filters = filters;
+        this._filters = filters;
         this.sortOrder = sortOrder;
         this.fileService = fileService;
 
@@ -53,6 +53,10 @@ export default class FileSet {
 
     public get files() {
         return this.cache;
+    }
+
+    public get filters() {
+        return this._filters;
     }
 
     public get totalCount() {
@@ -126,7 +130,7 @@ export default class FileSet {
     public toQueryString(): string {
         return join(
             flatten([
-                map(this.filters, (filter) => filter.toQueryString()),
+                map(this._filters, (filter) => filter.toQueryString()),
                 map(this.sortOrder, (sortBy) => sortBy.toQueryString()),
             ]),
             "&"

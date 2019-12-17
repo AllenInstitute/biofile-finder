@@ -11,6 +11,14 @@ export default class FileFilter {
         this.annotationValue = annotationValue;
     }
 
+    public get name() {
+        return this.annotationName;
+    }
+
+    public get value() {
+        return this.annotationValue;
+    }
+
     public toQueryString(): string {
         return `${this.annotationName}=${this.annotationValue}`;
     }
