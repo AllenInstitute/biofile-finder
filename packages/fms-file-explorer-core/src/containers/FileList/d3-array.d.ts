@@ -9,5 +9,5 @@ declare module "d3-array" {
     export function groups<TObject, TKey>(
         a: Iterable<TObject>,
         ...keys: GroupKey<TObject, TKey>[]
-    ): [TKey, TObject[]];
+    ): [TKey, TObject[]][];
 }
