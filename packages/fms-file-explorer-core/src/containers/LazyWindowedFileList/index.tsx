@@ -21,8 +21,9 @@ const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 50; // ms
 const DEFAULT_TOTAL_COUNT = 1000;
 
 interface LazyWindowedFileListProps {
-    columnWidths: ColumnWidths;
     className?: string;
+    collapsed: boolean;
+    columnWidths: ColumnWidths;
     displayAnnotations: Annotation[];
     fileSet: FileSet;
     level: number; // maps to how far indented the first column of the file row should be
@@ -36,14 +37,21 @@ interface LazyWindowedFileListProps {
  */
 export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
     const {
-        columnWidths,
         className,
+        collapsed,
+        columnWidths,
         displayAnnotations,
         fileSet,
         level,
         rowHeight,
         rowWidth,
     } = props;
+
+    // on mount and whenever `fileSet` changes, load the file ids related to the FileSet
+    React.useEffect(() => {
+        // kicks off request for all file_ids
+        fileSet.fileIds();
+    }, [fileSet]);
 
     const [ref, height] = useLayoutMeasurements<HTMLDivElement>();
     const onSelect = useFileSelector(fileSet);
@@ -52,41 +60,44 @@ export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
 
     return (
         <div className={classNames(styles.list, className)} ref={ref}>
-            <InfiniteLoader
-                isItemLoaded={fileSet.isFileMetadataLoaded}
-                loadMoreItems={debouncePromise(
-                    fileSet.fetchFileRange,
-                    DEBOUNCE_WAIT_FOR_DATA_FETCHING
-                )}
-                itemCount={totalCount}
-            >
-                {({ onItemsRendered, ref }) => (
-                    <FixedSizeList
-                        itemData={{
-                            columnWidths,
-                            displayAnnotations,
-                            files: fileSet.files,
-                            level,
-                            onSelect,
-                            rowWidth,
-                        }}
-                        itemSize={rowHeight} // row height
-                        height={height} // height of the list itself; affects number of rows rendered at any given time
-                        itemCount={totalCount}
-                        onItemsRendered={onItemsRendered}
-                        ref={ref}
-                        style={{ overflowX: "hidden" }} // if the window is resized such that the LazyWindowedFileList is wider than its container, the user will be able to use the scrollbar that will be rendered in the container
-                        width={rowWidth}
-                    >
-                        {LazilyRenderedRow}
-                    </FixedSizeList>
-                )}
-            </InfiniteLoader>
+            {!collapsed && (
+                <InfiniteLoader
+                    isItemLoaded={fileSet.isFileMetadataLoaded}
+                    loadMoreItems={debouncePromise(
+                        fileSet.fetchFileRange,
+                        DEBOUNCE_WAIT_FOR_DATA_FETCHING
+                    )}
+                    itemCount={totalCount}
+                >
+                    {({ onItemsRendered, ref }) => (
+                        <FixedSizeList
+                            itemData={{
+                                columnWidths,
+                                displayAnnotations,
+                                files: fileSet.files,
+                                level,
+                                onSelect,
+                                rowWidth,
+                            }}
+                            itemSize={rowHeight} // row height
+                            height={height} // height of the list itself; affects number of rows rendered at any given time
+                            itemCount={totalCount}
+                            onItemsRendered={onItemsRendered}
+                            ref={ref}
+                            style={{ overflowX: "hidden" }} // if the window is resized such that the LazyWindowedFileList is wider than its container, the user will be able to use the scrollbar that will be rendered in the container
+                            width={rowWidth}
+                        >
+                            {LazilyRenderedRow}
+                        </FixedSizeList>
+                    )}
+                </InfiniteLoader>
+            )}
         </div>
     );
 }
 
 LazyWindowedFileList.defaultProps = {
+    collapsed: false,
     level: 0,
     rowHeight: 22,
 };

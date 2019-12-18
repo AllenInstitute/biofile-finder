@@ -116,11 +116,12 @@ export default class Directory extends React.Component<DirectoryProps, Directory
             return (
                 <LazyWindowedFileList
                     key={fileSet.toQueryString()}
-                    columnWidths={columnWidths}
                     className={classNames(styles.fileList, {
                         [styles.root]: isRootDirectory,
                         [styles.collapsed]: !isRootDirectory && collapsed,
                     })}
+                    collapsed={!isRootDirectory && collapsed}
+                    columnWidths={columnWidths}
                     displayAnnotations={displayAnnotations}
                     fileSet={fileSet}
                     rowWidth={rowWidth}
