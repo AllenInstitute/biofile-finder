@@ -70,6 +70,7 @@ export default class Directory extends React.Component<DirectoryProps, Directory
 
     public render() {
         const { level, structure } = this.props;
+        const { collapsed } = this.state;
 
         const [directoryName, children] = structure;
         const isRootDirectory = directoryName === null;
@@ -86,18 +87,21 @@ export default class Directory extends React.Component<DirectoryProps, Directory
                         }}
                     >
                         <SvgIcon
+                            className={classNames({
+                                [styles.chevronClosed]: collapsed,
+                            })}
+                            height={15}
+                            pathData={CHEVRON_DOWN_ICON_PATH_DATA}
+                            viewBox="0 0 20 20"
+                            width={15}
+                        />
+                        <SvgIcon
                             height={15}
                             pathData={FOLDER_ICON_PATH_DATA}
                             viewBox="0 0 24 24"
                             width={15}
                         />
                         <h4 className={styles.directoryName}>{String(directoryName)}</h4>
-                        <SvgIcon
-                            height={15}
-                            pathData={CHEVRON_DOWN_ICON_PATH_DATA}
-                            viewBox="0 0 20 20"
-                            width={15}
-                        />
                     </span>
                 )}
                 {this.renderSubDirectory(children)}

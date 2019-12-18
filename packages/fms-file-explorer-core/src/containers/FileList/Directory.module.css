@@ -1,5 +1,6 @@
 .directory-container {
     cursor: pointer;
+    user-select: none;
 
     /* flex parent */
     display: flex;
@@ -12,7 +13,12 @@
     font-weight: normal;
 }
 
+.chevron-closed {
+    transform: rotate(-90deg);
+}
+
 .file-list {
+    transition: height 0.5s;
     height: 30vh;
 }
 
