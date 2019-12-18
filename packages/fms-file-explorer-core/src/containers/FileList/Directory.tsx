@@ -54,8 +54,11 @@ export default class Directory extends React.Component<DirectoryProps, Directory
     public constructor(props: DirectoryProps) {
         super(props);
 
+        const [, children] = props.structure;
+        const isLeaf = childrenAreFileSets(children);
+
         this.state = {
-            collapsed: true,
+            collapsed: isLeaf,
         };
     }
 
@@ -140,7 +143,7 @@ export default class Directory extends React.Component<DirectoryProps, Directory
         const { columnWidths, displayAnnotations, level, rowWidth } = this.props;
         const { collapsed } = this.state;
 
-        if (childrenAreFileSets(children)) {
+        if (childrenAreFileSets(children) || collapsed) {
             return null;
         }
 
