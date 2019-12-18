@@ -4,7 +4,7 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 
 import FileRow from "../../components/FileRow";
-import LazyWindowedFileList from "../LazyWindowedFileList";
+import Directory from "./Directory";
 import * as fileListSelectors from "./selectors";
 import { selection } from "../../state";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
@@ -45,16 +45,14 @@ export default function FileList(props: FileListProps) {
                 onResize={onResize}
                 rowWidth={rowWidth}
             />
-            {map(fileSetTree, (fileSet) => (
-                <LazyWindowedFileList
-                    key={fileSet.toQueryString()}
+            <div className={styles.listContainer}>
+                <Directory
                     columnWidths={columnWidths}
-                    className={styles.list}
                     displayAnnotations={annotations}
-                    fileSet={fileSet}
                     rowWidth={rowWidth}
+                    structure={fileSetTree}
                 />
-            ))}
+            </div>
         </div>
     );
 }

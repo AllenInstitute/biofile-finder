@@ -8,10 +8,12 @@
 }
 
 .header {
-    flex: 0 0 var(--header-height);
+    height: var(--header-height);
     width: calc(100% - var(--scroll-bar-width));
 }
 
-.list {
-    flex: 1 1 auto;
+.list-container {
+    height: calc(100% - var(--header-height));
+    width: 100%;
+    overflow-y: auto;
 }

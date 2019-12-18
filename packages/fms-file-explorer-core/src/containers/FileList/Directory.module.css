@@ -1,0 +1,21 @@
+.directory-container {
+    /* flex parent */
+    display: flex;
+    align-items: center;
+}
+
+.directory-name {
+    margin: 0;
+    display: inline-block;
+}
+
+.file-list {
+    min-height: 100px;
+    max-height: 100%;
+}
+
+.collapsed {
+    min-height: unset;
+    height: 0;
+    visibility: hidden;
+}

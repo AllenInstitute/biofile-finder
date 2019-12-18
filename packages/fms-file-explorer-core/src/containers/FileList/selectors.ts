@@ -36,9 +36,11 @@ export const getFileFilters = createSelector(
 /**
  * TODO
  */
+export type Grouping = [string | number | boolean | null, (FileSet[] | Grouping)];
+
 export const getFileSetTree = createSelector(
     [getFileFilters],
-    (fileFilters) => {
+    (fileFilters): Grouping => {
         if (isEmpty(fileFilters)) {
             return [null, [new FileSet()]];
         }
