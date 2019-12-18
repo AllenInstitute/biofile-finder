@@ -251,7 +251,7 @@ describe("FileList selectors", () => {
         });
 
         it("returns a list with a null group key and a single, filterless FileSet if no annotation hierarchy has been specified", () => {
-            const expected = [null, [new FileSet()]];
+            const expected = [[null, [new FileSet()]]];
 
             assertDeepEquals(getFileSetTree(initialState), expected);
         });
