@@ -46,12 +46,15 @@ export default function FileList(props: FileListProps) {
                 rowWidth={rowWidth}
             />
             <div className={styles.listContainer}>
-                <Directory
-                    columnWidths={columnWidths}
-                    displayAnnotations={annotations}
-                    rowWidth={rowWidth}
-                    structure={fileSetTree}
-                />
+                {fileSetTree.map((grouping) => (
+                    <Directory
+                        key={String(grouping[0])}
+                        columnWidths={columnWidths}
+                        displayAnnotations={annotations}
+                        rowWidth={rowWidth}
+                        structure={grouping}
+                    />
+                ))}
             </div>
         </div>
     );
