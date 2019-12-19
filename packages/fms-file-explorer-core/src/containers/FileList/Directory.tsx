@@ -13,7 +13,6 @@ const styles = require("./Directory.module.css");
 
 interface DirectoryProps {
     columnWidths: ColumnWidths;
-    collapsed?: boolean;
     displayAnnotations: Annotation[];
     level: number;
     rowWidth: number;
@@ -47,7 +46,6 @@ const childrenAreFileSets = (children: FileSet[] | Grouping[]): children is File
  */
 export default class Directory extends React.Component<DirectoryProps, DirectoryState> {
     public static defaultProps = {
-        collapsed: true,
         level: 0,
     };
 
@@ -60,15 +58,6 @@ export default class Directory extends React.Component<DirectoryProps, Directory
         this.state = {
             collapsed: isLeaf,
         };
-    }
-
-    public componentDidUpdate(prevProps: DirectoryProps) {
-        if (prevProps.collapsed !== this.props.collapsed) {
-            this.setState((prevState) => ({
-                collapsed:
-                    this.props.collapsed === undefined ? prevState.collapsed : this.props.collapsed,
-            }));
-        }
     }
 
     public render() {
@@ -165,7 +154,6 @@ export default class Directory extends React.Component<DirectoryProps, Directory
                 <Directory
                     key={String(key)}
                     columnWidths={columnWidths}
-                    collapsed={collapsed}
                     displayAnnotations={displayAnnotations}
                     level={level + 1}
                     rowWidth={rowWidth}
