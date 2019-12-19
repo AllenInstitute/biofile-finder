@@ -72,44 +72,56 @@ export default class Directory extends React.Component<DirectoryProps, Directory
     }
 
     public render() {
-        const { level, structure } = this.props;
-        const { collapsed } = this.state;
+        const { structure } = this.props;
 
         const [directoryName, children] = structure;
         const isRootDirectory = directoryName === null;
 
         return (
             <>
-                {!isRootDirectory && (
-                    <span
-                        key={String(directoryName)}
-                        className={styles.directoryContainer}
-                        style={{ marginLeft: `${level * 10}px` }}
-                        onClick={() => {
-                            this.setState((prevState) => ({ collapsed: !prevState.collapsed }));
-                        }}
-                    >
-                        <SvgIcon
-                            className={classNames({
-                                [styles.chevronClosed]: collapsed,
-                            })}
-                            height={15}
-                            pathData={CHEVRON_DOWN_ICON_PATH_DATA}
-                            viewBox="0 0 20 20"
-                            width={15}
-                        />
-                        <SvgIcon
-                            height={15}
-                            pathData={FOLDER_ICON_PATH_DATA}
-                            viewBox="0 0 24 24"
-                            width={15}
-                        />
-                        <h4 className={styles.directoryName}>{String(directoryName)}</h4>
-                    </span>
-                )}
+                {this.renderDirectoryName(isRootDirectory)}
                 {this.renderSubDirectory(children)}
                 {this.renderFileList(children, isRootDirectory)}
             </>
+        );
+    }
+
+    private renderDirectoryName(isRootDirectory: boolean) {
+        const { level, structure } = this.props;
+        const { collapsed } = this.state;
+
+        const [directoryName] = structure;
+
+        if (isRootDirectory) {
+            return null;
+        }
+
+        return (
+            <span
+                key={String(directoryName)}
+                className={styles.directoryContainer}
+                style={{ marginLeft: `${level * 10}px` }}
+                onClick={() => {
+                    this.setState((prevState) => ({ collapsed: !prevState.collapsed }));
+                }}
+            >
+                <SvgIcon
+                    className={classNames({
+                        [styles.chevronClosed]: collapsed,
+                    })}
+                    height={15}
+                    pathData={CHEVRON_DOWN_ICON_PATH_DATA}
+                    viewBox="0 0 20 20"
+                    width={15}
+                />
+                <SvgIcon
+                    height={15}
+                    pathData={FOLDER_ICON_PATH_DATA}
+                    viewBox="0 0 24 24"
+                    width={15}
+                />
+                <h4 className={styles.directoryName}>{String(directoryName)}</h4>
+            </span>
         );
     }
 
