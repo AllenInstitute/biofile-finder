@@ -47,7 +47,7 @@ export const getFileFilters = createSelector(
     }
 );
 
-export type Grouping = [string | number | boolean | null, (FileSet[] | Grouping[])];
+export type FileSetTree = [string | number | boolean | null, (FileSet[] | FileSetTree[])];
 
 /**
  * Given output of `getFileFilters` (cartesian product of unique values of all annotations in the user-selected annotation hierarchy), output a nested data structure
@@ -77,7 +77,7 @@ export type Grouping = [string | number | boolean | null, (FileSet[] | Grouping[
  */
 export const getFileSetTree = createSelector(
     [getFileFilters],
-    (fileFilters): Grouping[] => {
+    (fileFilters): FileSetTree[] => {
         // "Root" of FMS -- no annotation hierarchy in place. The "directory name" is null, and the FileSet is filterless.
         if (isEmpty(fileFilters)) {
             return [[null, [new FileSet()]]];

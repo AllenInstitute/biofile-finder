@@ -46,15 +46,15 @@ export default function FileList(props: FileListProps) {
                 rowWidth={rowWidth}
             />
             <div className={styles.fileTreeRoot} ref={ref}>
-                {map(fileSetTree, (grouping) => {
-                    const [directoryName] = grouping;
+                {map(fileSetTree, (subTree) => {
+                    const [directoryName] = subTree;
                     return (
                         <Directory
                             key={String(directoryName)}
                             columnWidths={columnWidths}
                             displayAnnotations={annotations}
                             rowWidth={rowWidth}
-                            structure={grouping}
+                            fileSetTree={subTree}
                         />
                     );
                 })}

@@ -5,7 +5,7 @@ import * as React from "react";
 import Annotation from "../../entity/Annotation";
 import LazyWindowedFileList from "../LazyWindowedFileList";
 import FileSet from "../../entity/FileSet";
-import { Grouping } from "./selectors";
+import { FileSetTree } from "./selectors";
 import SvgIcon from "../../components/SvgIcon";
 import { ColumnWidths } from "./useResizableColumns";
 
@@ -16,7 +16,7 @@ interface DirectoryProps {
     displayAnnotations: Annotation[];
     level: number;
     rowWidth: number;
-    structure: Grouping;
+    fileSetTree: FileSetTree;
 }
 
 interface DirectoryState {
@@ -37,7 +37,7 @@ const FOLDER_ICON_PATH_DATA =
 const CHEVRON_DOWN_ICON_PATH_DATA =
     "M13.418 7.859c0.271-0.268 0.709-0.268 0.978 0s0.272 0.701 0 0.969l-3.908 3.83c-0.27 0.268-0.707 0.268-0.979 0l-3.908-3.83c-0.27-0.267-0.27-0.701 0-0.969s0.709-0.268 0.978 0l3.421 3.141 3.418-3.141z";
 
-const childrenAreFileSets = (children: FileSet[] | Grouping[]): children is FileSet[] => {
+const childrenAreFileSets = (children: FileSet[] | FileSetTree[]): children is FileSet[] => {
     return children[0] instanceof FileSet;
 };
 
@@ -62,7 +62,7 @@ export default class Directory extends React.Component<DirectoryProps, Directory
     public constructor(props: DirectoryProps) {
         super(props);
 
-        const [, children] = props.structure;
+        const [, children] = props.fileSetTree;
         const isLeaf = childrenAreFileSets(children);
 
         this.state = {
@@ -71,37 +71,45 @@ export default class Directory extends React.Component<DirectoryProps, Directory
     }
 
     public render() {
-        const { structure } = this.props;
-
-        const [directoryName, children] = structure;
-        const isRootDirectory = directoryName === null;
-
         return (
             <>
-                {this.renderDirectoryHeader(isRootDirectory)}
-                {this.renderSubDirectory(children)}
-                {this.renderFileList(children, isRootDirectory)}
+                {this.renderDirectoryHeader()}
+                {this.renderSubDirectory()}
+                {this.renderFileList()}
             </>
         );
+    }
+
+    private get directoryName(): string {
+        const [directoryName] = this.props.fileSetTree;
+        return String(directoryName);
+    }
+
+    private get directoryChildren(): FileSet[] | FileSetTree[] {
+        const [, children] = this.props.fileSetTree;
+        return children;
+    }
+
+    private get isRootDirectory(): boolean {
+        const [directoryName] = this.props.fileSetTree;
+        return directoryName === null;
     }
 
     /**
      * If not in the "root directory" (i.e., no annotation hierarchy exists yet), render a chevron showing the collapsed/expanded state of the directory,
      * a folder icon, and the name of the directory. On click of any of those elements, toggle the collapsed state.
      */
-    private renderDirectoryHeader(isRootDirectory: boolean): JSX.Element | null {
-        const { level, structure } = this.props;
+    private renderDirectoryHeader(): JSX.Element | null {
+        const { level } = this.props;
         const { collapsed } = this.state;
 
-        const [directoryName] = structure;
-
-        if (isRootDirectory) {
+        if (this.isRootDirectory) {
             return null;
         }
 
         return (
             <span
-                key={String(directoryName)}
+                key={this.directoryName}
                 className={styles.directoryContainer}
                 style={{ marginLeft: `${level * 10}px` }}
                 onClick={() => {
@@ -124,7 +132,7 @@ export default class Directory extends React.Component<DirectoryProps, Directory
                     viewBox="0 0 24 24"
                     width={15}
                 />
-                <h4 className={styles.directoryName}>{String(directoryName)}</h4>
+                <h4 className={styles.directoryName}>{this.directoryName}</h4>
             </span>
         );
     }
@@ -132,24 +140,21 @@ export default class Directory extends React.Component<DirectoryProps, Directory
     /**
      * If we're at the bottom of a directory tree, there should be a FileSet to render. Otherwise, return null.
      */
-    private renderFileList(
-        children: FileSet[] | Grouping[],
-        isRootDirectory: boolean
-    ): JSX.Element | null {
+    private renderFileList(): JSX.Element | null {
         const { columnWidths, displayAnnotations, rowWidth } = this.props;
         const { collapsed } = this.state;
 
-        if (childrenAreFileSets(children)) {
+        if (childrenAreFileSets(this.directoryChildren)) {
             // heuristic: there's only ever 1 in the FileSet list (i.e., only ever 1 leaf node)
-            const fileSet = children[0];
+            const fileSet = this.directoryChildren[0];
             return (
                 <LazyWindowedFileList
                     key={fileSet.toQueryString()}
                     className={classNames(styles.fileList, {
-                        [styles.rootDirectory]: isRootDirectory,
-                        [styles.collapsed]: !isRootDirectory && collapsed,
+                        [styles.rootDirectory]: this.isRootDirectory,
+                        [styles.collapsed]: !this.isRootDirectory && collapsed,
                     })}
-                    collapsed={!isRootDirectory && collapsed}
+                    collapsed={!this.isRootDirectory && collapsed}
                     columnWidths={columnWidths}
                     displayAnnotations={displayAnnotations}
                     fileSet={fileSet}
@@ -164,25 +169,25 @@ export default class Directory extends React.Component<DirectoryProps, Directory
     /**
      * If we're not yet at the bottom of the directory tree, render the current directory's children (sub-directories).
      */
-    private renderSubDirectory(children: FileSet[] | Grouping[]): JSX.Element[] | null {
+    private renderSubDirectory(): JSX.Element[] | null {
         const { columnWidths, displayAnnotations, level, rowWidth } = this.props;
         const { collapsed } = this.state;
 
-        // if at the bottom of the directory tree, no more sub-directories to render
-        if (childrenAreFileSets(children) || collapsed) {
+        // if at the bottom of the directory tree or this directory is collapsed, no more sub-directories to render
+        if (childrenAreFileSets(this.directoryChildren) || collapsed) {
             return null;
         }
 
-        return map(children, (grouping) => {
-            const [key] = grouping;
+        return map(this.directoryChildren, (fileSetTree) => {
+            const [subDirectoryName] = fileSetTree;
             return (
                 <Directory
-                    key={String(key)}
+                    key={String(subDirectoryName)}
                     columnWidths={columnWidths}
                     displayAnnotations={displayAnnotations}
                     level={level + 1}
                     rowWidth={rowWidth}
-                    structure={grouping}
+                    fileSetTree={fileSetTree}
                 />
             );
         });
