@@ -47,12 +47,6 @@ export default function LazyWindowedFileList(props: LazyWindowedFileListProps) {
         rowWidth,
     } = props;
 
-    // on mount and whenever `fileSet` changes, load the file ids related to the FileSet
-    React.useEffect(() => {
-        // kicks off request for all file_ids
-        fileSet.fileIds();
-    }, [fileSet]);
-
     const [ref, height] = useLayoutMeasurements<HTMLDivElement>();
     const onSelect = useFileSelector(fileSet);
 
