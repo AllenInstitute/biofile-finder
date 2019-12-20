@@ -1,19 +1,22 @@
-.root {
+.scroll-container {
     --header-height: 30px;
-    --scroll-bar-width: 15px;
-    overflow-y: hidden;
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
     overflow-x: auto;
     display: flex;
     flex-direction: column;
 }
 
 .header {
-    height: var(--header-height);
-    width: calc(100% - var(--scroll-bar-width));
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 1000; /* make sure it sits on top of directory listings and file records */
 }
 
-.list-container {
-    height: calc(100% - var(--header-height));
+.file-tree-root {
+    height: 100%;
     width: 100%;
-    overflow-y: auto;
+    margin-top: 1rem;
 }

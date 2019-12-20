@@ -38,23 +38,26 @@ export default function FileList(props: FileListProps) {
 
     const fileSetTree = useSelector(fileListSelectors.getFileSetTree);
     return (
-        <div className={classNames(styles.root, props.className)} ref={ref}>
+        <div className={classNames(styles.scrollContainer, props.className)}>
             <FileRow
                 cells={headerCells}
                 className={styles.header}
                 onResize={onResize}
                 rowWidth={rowWidth}
             />
-            <div className={styles.listContainer}>
-                {fileSetTree.map((grouping) => (
-                    <Directory
-                        key={String(grouping[0])}
-                        columnWidths={columnWidths}
-                        displayAnnotations={annotations}
-                        rowWidth={rowWidth}
-                        structure={grouping}
-                    />
-                ))}
+            <div className={styles.fileTreeRoot} ref={ref}>
+                {map(fileSetTree, (grouping) => {
+                    const [directoryName] = grouping;
+                    return (
+                        <Directory
+                            key={String(directoryName)}
+                            columnWidths={columnWidths}
+                            displayAnnotations={annotations}
+                            rowWidth={rowWidth}
+                            structure={grouping}
+                        />
+                    );
+                })}
             </div>
         </div>
     );
