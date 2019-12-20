@@ -1,5 +1,5 @@
 --require ts-node/register
---require raf/polyfill
 --require jsdom-global/register
+--require raf/polyfill
 --require mock-css-modules
 --require ./scripts/adapt-enzyme-to-react-16.js
