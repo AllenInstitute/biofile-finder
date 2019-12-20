@@ -5,6 +5,15 @@
     /* flex parent */
     display: flex;
     align-items: center;
+    margin: 0.25rem 0;
+}
+
+.chevron-closed {
+    transform: rotate(-90deg);
+}
+
+.folder-icon {
+    margin-left: 0.5rem;
 }
 
 .directory-name {
@@ -13,19 +22,18 @@
     font-weight: normal;
 }
 
-.chevron-closed {
-    transform: rotate(-90deg);
-}
-
 .file-list {
     transition: height 0.5s;
     height: 30vh;
+    margin-bottom: 0.5rem;
 }
 
-.root {
+.root-directory {
     height: 100%;
+    margin-bottom: 0;
 }
 
 .collapsed {
     height: 0;
+    margin-bottom: 0;
 }

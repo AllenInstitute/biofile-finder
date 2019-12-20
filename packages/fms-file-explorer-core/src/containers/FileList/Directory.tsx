@@ -68,14 +68,14 @@ export default class Directory extends React.Component<DirectoryProps, Directory
 
         return (
             <>
-                {this.renderDirectoryName(isRootDirectory)}
+                {this.renderDirectoryHeader(isRootDirectory)}
                 {this.renderSubDirectory(children)}
                 {this.renderFileList(children, isRootDirectory)}
             </>
         );
     }
 
-    private renderDirectoryName(isRootDirectory: boolean) {
+    private renderDirectoryHeader(isRootDirectory: boolean) {
         const { level, structure } = this.props;
         const { collapsed } = this.state;
 
@@ -104,6 +104,7 @@ export default class Directory extends React.Component<DirectoryProps, Directory
                     width={15}
                 />
                 <SvgIcon
+                    className={styles.folderIcon}
                     height={15}
                     pathData={FOLDER_ICON_PATH_DATA}
                     viewBox="0 0 24 24"
@@ -125,7 +126,7 @@ export default class Directory extends React.Component<DirectoryProps, Directory
                 <LazyWindowedFileList
                     key={fileSet.toQueryString()}
                     className={classNames(styles.fileList, {
-                        [styles.root]: isRootDirectory,
+                        [styles.rootDirectory]: isRootDirectory,
                         [styles.collapsed]: !isRootDirectory && collapsed,
                     })}
                     collapsed={!isRootDirectory && collapsed}
