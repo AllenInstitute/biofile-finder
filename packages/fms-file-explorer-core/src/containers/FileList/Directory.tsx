@@ -25,7 +25,7 @@ interface DirectoryState {
 
 /**
  * Path data for icon taken from Material Design
- * Apache License 2.0 (https://github.com/google/material-design-icons/blob/master/LICENSE)
+ * Apache License 2.0: https://github.com/google/material-design-icons/blob/master/LICENSE
  */
 const FOLDER_ICON_PATH_DATA =
     "M9.984 3.984l2.016 2.016h8.016q0.797 0 1.383 0.609t0.586 1.406v9.984q0 0.797-0.586 1.406t-1.383 0.609h-16.031q-0.797 0-1.383-0.609t-0.586-1.406v-12q0-0.797 0.586-1.406t1.383-0.609h6z";
@@ -42,7 +42,17 @@ const childrenAreFileSets = (children: FileSet[] | Grouping[]): children is File
 };
 
 /**
- * TODO
+ * Recursively render UI representing a directory tree. This tree's leaves are FileSets--listings of files in FMS that match a particular set of filters
+ * and are potentially ordered according to user-defined sort order(s). This tree's branches are values of annotations. The path to the FileSets define
+ * its set of filters. For example:
+ * - foo
+ *      - bar
+ *          - baz
+ *              file1
+ *              file2
+ *              file3
+ *
+ * Above, "foo", "bar", and "baz" are rendered as directories. The file list ("file1", "file2", and "file3") is filtered by annotation1="foo", annotation2="bar", and annotation3="baz."
  */
 export default class Directory extends React.Component<DirectoryProps, DirectoryState> {
     public static defaultProps = {
@@ -75,7 +85,11 @@ export default class Directory extends React.Component<DirectoryProps, Directory
         );
     }
 
-    private renderDirectoryHeader(isRootDirectory: boolean) {
+    /**
+     * If not in the "root directory" (i.e., no annotation hierarchy exists yet), render a chevron showing the collapsed/expanded state of the directory,
+     * a folder icon, and the name of the directory. On click of any of those elements, toggle the collapsed state.
+     */
+    private renderDirectoryHeader(isRootDirectory: boolean): JSX.Element | null {
         const { level, structure } = this.props;
         const { collapsed } = this.state;
 
@@ -115,13 +129,19 @@ export default class Directory extends React.Component<DirectoryProps, Directory
         );
     }
 
-    private renderFileList(children: FileSet[] | Grouping[], isRootDirectory: boolean) {
+    /**
+     * If we're at the bottom of a directory tree, there should be a FileSet to render. Otherwise, return null.
+     */
+    private renderFileList(
+        children: FileSet[] | Grouping[],
+        isRootDirectory: boolean
+    ): JSX.Element | null {
         const { columnWidths, displayAnnotations, rowWidth } = this.props;
         const { collapsed } = this.state;
 
         if (childrenAreFileSets(children)) {
             // heuristic: there's only ever 1 in the FileSet list (i.e., only ever 1 leaf node)
-            const fileSet = children[0] as FileSet;
+            const fileSet = children[0];
             return (
                 <LazyWindowedFileList
                     key={fileSet.toQueryString()}
@@ -141,10 +161,14 @@ export default class Directory extends React.Component<DirectoryProps, Directory
         }
     }
 
-    private renderSubDirectory(children: FileSet[] | Grouping[]) {
+    /**
+     * If we're not yet at the bottom of the directory tree, render the current directory's children (sub-directories).
+     */
+    private renderSubDirectory(children: FileSet[] | Grouping[]): JSX.Element[] | null {
         const { columnWidths, displayAnnotations, level, rowWidth } = this.props;
         const { collapsed } = this.state;
 
+        // if at the bottom of the directory tree, no more sub-directories to render
         if (childrenAreFileSets(children) || collapsed) {
             return null;
         }
