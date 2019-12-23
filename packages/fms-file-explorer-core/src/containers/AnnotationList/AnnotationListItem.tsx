@@ -24,32 +24,44 @@ interface AnnotationListItemProps {
 
 /**
  * A single, draggable/droppable annotation rendered into the AnnotationList.
+ *
+ * Export a memoized version of AnnotationListItem. Override `propsAreEqual` to directly compare the props
+ * AnnotationListItem uses and cares about.
  */
-export default function AnnotationListItem(props: AnnotationListItemProps) {
-    const {
-        disabled,
-        item: { description, title },
-    } = props;
+export default React.memo(
+    function AnnotationListItem(props: AnnotationListItemProps) {
+        const {
+            disabled,
+            item: { description, title },
+        } = props;
 
-    return (
-        <>
-            <DragIndicator disabled={disabled} />
-            <Tippy content={description}>
-                <SvgIcon
-                    className={styles.info}
-                    height={10}
-                    pathData={INFO_ICON_PATH_DATA}
-                    viewBox="0 0 20 20"
-                    width={10}
-                />
-            </Tippy>
-            <span
-                className={classNames({
-                    [styles.disabled]: disabled,
-                })}
-            >
-                {title}
-            </span>
-        </>
-    );
-}
+        return (
+            <>
+                <DragIndicator disabled={disabled} />
+                <Tippy content={description}>
+                    <SvgIcon
+                        className={styles.info}
+                        height={10}
+                        pathData={INFO_ICON_PATH_DATA}
+                        viewBox="0 0 20 20"
+                        width={10}
+                    />
+                </Tippy>
+                <span
+                    className={classNames({
+                        [styles.disabled]: disabled,
+                    })}
+                >
+                    {title}
+                </span>
+            </>
+        );
+    },
+    (prevProps, nextProps) => {
+        return (
+            prevProps.disabled === nextProps.disabled &&
+            prevProps.item.description === nextProps.item.description &&
+            prevProps.item.title === nextProps.item.title
+        );
+    }
+);
