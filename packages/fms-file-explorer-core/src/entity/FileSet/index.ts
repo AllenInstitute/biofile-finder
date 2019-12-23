@@ -63,6 +63,10 @@ export default class FileSet {
         return this.totalFileCount;
     }
 
+    public equals(fileSet: FileSet) {
+        return this.toQueryString() === fileSet.toQueryString();
+    }
+
     /**
      * Fetch metadata for a range of files from within the result set this query corresponds to.
      *

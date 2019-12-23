@@ -141,25 +141,31 @@ export default class Directory extends React.Component<DirectoryProps, Directory
      * If we're at the bottom of a directory tree, there should be a FileSet to render. Otherwise, return null.
      */
     private renderFileList(): JSX.Element | null {
-        const { columnWidths, displayAnnotations, rowWidth } = this.props;
+        const { columnWidths, displayAnnotations, level, rowWidth } = this.props;
         const { collapsed } = this.state;
 
         if (childrenAreFileSets(this.directoryChildren)) {
             // heuristic: there's only ever 1 in the FileSet list (i.e., only ever 1 leaf node)
             const fileSet = this.directoryChildren[0];
             return (
-                <LazyWindowedFileList
-                    key={fileSet.toQueryString()}
+                <div
                     className={classNames(styles.fileList, {
                         [styles.rootDirectory]: this.isRootDirectory,
                         [styles.collapsed]: !this.isRootDirectory && collapsed,
                     })}
-                    collapsed={!this.isRootDirectory && collapsed}
-                    columnWidths={columnWidths}
-                    displayAnnotations={displayAnnotations}
-                    fileSet={fileSet}
-                    rowWidth={rowWidth}
-                />
+                >
+                    {(this.isRootDirectory || !collapsed) && (
+                        <LazyWindowedFileList
+                            key={fileSet.toQueryString()}
+                            collapsed={!this.isRootDirectory && collapsed}
+                            columnWidths={columnWidths}
+                            displayAnnotations={displayAnnotations}
+                            fileSet={fileSet}
+                            level={level}
+                            rowWidth={rowWidth}
+                        />
+                    )}
+                </div>
             );
         } else {
             return null;
