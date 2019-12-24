@@ -25,6 +25,7 @@ export default class Annotation {
     private readonly annotationService: AnnotationService;
     private readonly formatter: AnnotationFormatter;
     private _values: (string | number | boolean)[] | undefined;
+    private _sizeOfValues: number | undefined;
 
     constructor(
         annotation: AnnotationResponse,
@@ -68,7 +69,7 @@ export default class Annotation {
      * ! SIDE EFFECT !
      * Fetches values if they have not already been loaded.
      */
-    public async getValues(): Promise<(string | number | boolean)[]> {
+    public async fetchValues(): Promise<(string | number | boolean)[]> {
         if (this._values === undefined) {
             this._values = await this.annotationService.fetchValues(
                 this.annotation.annotation_name
@@ -76,5 +77,15 @@ export default class Annotation {
         }
 
         return this._values;
+    }
+
+    public async fetchSizeOfValues(): Promise<number> {
+        if (this._sizeOfValues === undefined) {
+            this._sizeOfValues = await this.annotationService.fetchSizeOfValues(
+                this.annotation.annotation_name
+            );
+        }
+
+        return this._sizeOfValues;
     }
 }
