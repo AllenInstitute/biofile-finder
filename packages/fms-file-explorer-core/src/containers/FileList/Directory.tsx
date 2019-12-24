@@ -62,11 +62,12 @@ export default class Directory extends React.Component<DirectoryProps, Directory
     public constructor(props: DirectoryProps) {
         super(props);
 
-        const [, children] = props.fileSetTree;
+        const [directoryName, children] = props.fileSetTree;
         const isLeaf = childrenAreFileSets(children);
+        const isRootDir = directoryName === null;
 
         this.state = {
-            collapsed: isLeaf,
+            collapsed: !isRootDir || isLeaf,
         };
     }
 
