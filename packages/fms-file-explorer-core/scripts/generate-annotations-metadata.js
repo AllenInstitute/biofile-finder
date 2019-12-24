@@ -154,8 +154,11 @@ function generateListOfUniqueAnnotations() {
 
 function generateValuesForEachAnnotation() {
     annotations.forEach((annotation) => {
-        const outpath = path.join(ANNOTATION_VALUES_DIR, `${annotation.annotation_name}.json`);
-        writeOutputToFile(outpath, makeSuccessResponse((annotation.valueGenerator || noop)()));
+        const valuesOutpath = path.join(ANNOTATION_VALUES_DIR, `${annotation.annotation_name}.json`);
+        const collectionSizeOutpath = path.join(ANNOTATION_VALUES_DIR, `${annotation.annotation_name}_size.json`)
+        const data = (annotation.valueGenerator || noop)();
+        writeOutputToFile(valuesOutpath, makeSuccessResponse(data));
+        writeOutputToFile(collectionSizeOutpath, makeSuccessResponse([data.length]));
     });
 }
 
