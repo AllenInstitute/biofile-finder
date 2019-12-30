@@ -2,9 +2,7 @@ import { includes, map } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import Annotation from "../../entity/Annotation";
 import { FmsFile } from "../../services/FileService";
-import { ColumnWidths } from "../FileList/useResizableColumns";
 import FileRow from "../../components/FileRow";
 import { selection } from "../../state";
 import { OnSelect } from "./useFileSelector";
@@ -16,12 +14,9 @@ const styles = require("./style.module.css");
  * is passed to each LazilyRenderedRow.
  */
 export interface LazilyRenderedRowContext {
-    columnWidths: ColumnWidths;
-    displayAnnotations: Annotation[];
     files: Map<number, FmsFile>;
     level: number; // maps to how far indented the first column of the file row should be to
     onSelect: OnSelect;
-    rowWidth: number;
 }
 
 interface LazilyRenderedRowProps {
@@ -35,10 +30,12 @@ interface LazilyRenderedRowProps {
  */
 export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     const {
-        data: { columnWidths, displayAnnotations, files, onSelect, rowWidth },
+        data: { files, onSelect },
         index,
         style,
     } = props;
+
+    const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
     const selectedFiles = useSelector(selection.selectors.getSelectedFiles);
 
     const file = files.get(index);
@@ -53,10 +50,10 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
 
     let content;
     if (file) {
-        const cells = map(displayAnnotations, (annotation) => ({
+        const cells = map(annotations, (annotation) => ({
             columnKey: annotation.name,
             displayValue: annotation.getDisplayValue(file),
-            width: columnWidths.get(annotation.name),
+            width: 1 / annotations.length,
         }));
         content = (
             <FileRow
@@ -64,7 +61,6 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
                 className={isSelected ? styles.selectedRow : undefined}
                 rowIdentifier={{ index, id: file.file_id }}
                 onSelect={onSelect}
-                rowWidth={rowWidth}
             />
         );
     } else {

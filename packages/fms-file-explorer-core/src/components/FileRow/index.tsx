@@ -17,16 +17,18 @@ interface FileRowProps {
     rowIdentifier?: any;
     onResize?: (columnKey: string, deltaX?: number) => void;
     onSelect?: OnSelect;
-    rowWidth: number;
 }
 
 /**
  * A single row within the file list.
  */
 export default function FileRow(props: FileRowProps) {
-    const { cells, className, rowIdentifier, onResize, onSelect, rowWidth } = props;
+    const { cells, className, rowIdentifier, onResize, onSelect } = props;
 
     const onClick = (evt: React.MouseEvent) => {
+        evt.preventDefault();
+        evt.stopPropagation();
+
         if (onSelect && rowIdentifier !== undefined) {
             onSelect(rowIdentifier, {
                 // Details on different OS keybindings
@@ -38,7 +40,7 @@ export default function FileRow(props: FileRowProps) {
     };
 
     return (
-        <div className={classNames(className)} onClick={onClick} style={{ width: rowWidth }}>
+        <div className={classNames(className)} onClick={onClick}>
             {map(cells, (cell) => (
                 <Cell
                     key={cell.columnKey}

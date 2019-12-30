@@ -9,7 +9,7 @@ const styles = require("./Cell.module.css");
 export interface CellProps {
     columnKey: string;
     onResize?: (columnKey: string, deltaX?: number) => void;
-    width?: number;
+    width: number; // percentage of parent element's width, a number between 0 and 1.
 }
 
 interface CellState {
@@ -77,7 +77,7 @@ export default class Cell extends React.Component<CellProps, CellState> {
                 ref={this.cell}
                 className={classNames(styles.resizableCell, this.state.containerClassName)}
                 onDoubleClick={this.onDoubleClick}
-                style={{ width: this.props.width }}
+                style={{ width: `${this.props.width * 100}%` }}
             >
                 {this.props.children}
                 <span className={styles.resizeTarget} ref={this.resizeTarget}>
@@ -89,7 +89,7 @@ export default class Cell extends React.Component<CellProps, CellState> {
 
     private renderNonResizeableCell(): JSX.Element {
         return (
-            <div className={styles.cell} style={{ width: this.props.width }}>
+            <div className={styles.cell} style={{ width: `${this.props.width * 100}%` }}>
                 {this.props.children}
             </div>
         );
@@ -117,12 +117,10 @@ export default class Cell extends React.Component<CellProps, CellState> {
      * handler when the delta would cause the cell to become smaller than Cell.MINIMUM_WIDTH.
      */
     private onResize(e: InteractEvent): void {
-        const { columnKey, onResize, width } = this.props;
+        const { columnKey, onResize } = this.props;
 
         if (onResize) {
-            if (width !== undefined && width + e.dx >= Cell.MINIMUM_WIDTH) {
-                onResize(columnKey, e.dx);
-            }
+            onResize(columnKey, e.dx);
         }
     }
 

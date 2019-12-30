@@ -1,0 +1,14 @@
+.header-wrapper {
+    top: 0;
+    /* positionX postionY blur spread */
+    box-shadow: 0 1px 2px -1px rgba(0, 0, 0, 0.2),
+      0 2px 2.5px 0 rgba(0, 0, 0, 0.14), 0 0.5px 5px 0 rgba(0, 0, 0, 0.12);
+    position: sticky;
+    background-color: white;
+    z-index: 1000;
+    margin-bottom: 0.5rem;
+}
+
+.header {
+    height: 25px;
+}

@@ -1,17 +1,11 @@
 import * as classNames from "classnames";
-import { map } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 import { VariableSizeList } from "react-window";
 
-import FileRow from "../../components/FileRow";
 import Row from "./Row";
 import * as fileListSelectors from "./selectors";
-import { selection } from "../../state";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
-import useResizableColumns from "./useResizableColumns";
-
-const styles = require("./FileList.module.css");
 
 interface FileListProps {
     className?: string;
@@ -23,19 +17,7 @@ interface FileListProps {
  * files should be grouped.
  */
 export default function FileList(props: FileListProps) {
-    const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
-
-    const [ref, containerHeight, containerWidth] = useLayoutMeasurements<HTMLDivElement>(); // eslint-disable-line @typescript-eslint/no-unused-vars
-    const columns = React.useMemo(() => map(annotations, (annotation) => annotation.name), [
-        annotations,
-    ]);
-    const [columnWidths, onResize, rowWidth] = useResizableColumns(containerWidth, columns);
-
-    const headerCells = map(annotations, (annotation) => ({
-        columnKey: annotation.name, // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
-        displayValue: annotation.displayName,
-        width: columnWidths.get(annotation.name),
-    }));
+    const [ref, containerHeight] = useLayoutMeasurements<HTMLDivElement>(); // eslint-disable-line @typescript-eslint/no-unused-vars
 
     const fileSetTree = useSelector(fileListSelectors.getFileSetTree2);
 
@@ -75,39 +57,28 @@ export default function FileList(props: FileListProps) {
     }, [fileSetTree, listRef]);
 
     return (
-        <div className={classNames(styles.scrollContainer, props.className)}>
-            <FileRow
-                cells={headerCells}
-                className={styles.header}
-                onResize={onResize}
-                rowWidth={rowWidth}
-            />
-            <div className={styles.fileTreeRoot} ref={ref}>
-                <VariableSizeList
-                    ref={listRef}
-                    height={containerHeight}
-                    itemCount={fileSetTree.size}
-                    itemData={{
-                        columnWidths,
-                        displayAnnotations: annotations,
-                        fileSetTree,
-                        isOpen,
-                        onClick: toggleFileSetOpenState,
-                        rowWidth,
-                    }}
-                    itemSize={(index) => {
-                        const node = fileSetTree.get(index);
-                        if (node && node.hasOwnProperty("fileSet") && isOpen(index)) {
-                            return 300;
-                        }
+        <div className={classNames(props.className)} ref={ref}>
+            <VariableSizeList
+                ref={listRef}
+                height={containerHeight}
+                itemCount={fileSetTree.size}
+                itemData={{
+                    fileSetTree,
+                    isOpen,
+                    onClick: toggleFileSetOpenState,
+                }}
+                itemSize={(index) => {
+                    const node = fileSetTree.get(index);
+                    if (node && node.hasOwnProperty("fileSet") && isOpen(index)) {
+                        return 300;
+                    }
 
-                        return 35;
-                    }}
-                    width={rowWidth}
-                >
-                    {Row}
-                </VariableSizeList>
-            </div>
+                    return 35;
+                }}
+                width="100%"
+            >
+                {Row}
+            </VariableSizeList>
         </div>
     );
 }

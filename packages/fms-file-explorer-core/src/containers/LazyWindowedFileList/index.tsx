@@ -5,12 +5,12 @@ import * as React from "react";
 import { FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 
-import Annotation from "../../entity/Annotation";
+import Header from "./Header";
 import FileSet from "../../entity/FileSet";
-import { ColumnWidths } from "../FileList/useResizableColumns";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import LazilyRenderedRow from "./LazilyRenderedRow";
 import useFileSelector from "./useFileSelector";
+import VirtualListInnerElement from "./VirtualListInnerElement";
 
 const styles = require("./style.module.css");
 
@@ -26,12 +26,9 @@ const DEFAULT_TOTAL_COUNT = 1000;
 interface LazyWindowedFileListProps {
     [index: string]: any;
     className?: string;
-    columnWidths: ColumnWidths;
-    displayAnnotations: Annotation[];
     fileSet: FileSet;
     level?: number; // maps to how far indented the first column of the file row should be
     rowHeight?: number; // how tall each row of the list will be, in px
-    rowWidth: number; // how wide each of the list will be, in px
 }
 
 const DEFAULTS = {
@@ -44,15 +41,7 @@ const DEFAULTS = {
  * itself out to be 100% the height and width of its parent.
  */
 function LazyWindowedFileList(props: LazyWindowedFileListProps) {
-    const {
-        className,
-        columnWidths,
-        displayAnnotations,
-        fileSet,
-        level,
-        rowHeight,
-        rowWidth,
-    } = defaults({}, props, DEFAULTS);
+    const { className, fileSet, level, rowHeight } = defaults({}, props, DEFAULTS);
 
     const [ref, height] = useLayoutMeasurements<HTMLDivElement>();
     const onSelect = useFileSelector(fileSet);
@@ -71,21 +60,19 @@ function LazyWindowedFileList(props: LazyWindowedFileListProps) {
             >
                 {({ onItemsRendered, ref }) => (
                     <FixedSizeList
+                        innerElementType={VirtualListInnerElement}
                         itemData={{
-                            columnWidths,
-                            displayAnnotations,
                             files: fileSet.files,
                             level,
                             onSelect,
-                            rowWidth,
                         }}
                         itemSize={rowHeight} // row height
                         height={height} // height of the list itself; affects number of rows rendered at any given time
                         itemCount={totalCount}
                         onItemsRendered={onItemsRendered}
+                        outerElementType={Header}
                         ref={ref}
-                        style={{ overflowX: "hidden" }} // if the window is resized such that the LazyWindowedFileList is wider than its container, the user will be able to use the scrollbar that will be rendered in the container
-                        width={rowWidth}
+                        width="100%"
                     >
                         {LazilyRenderedRow}
                     </FixedSizeList>
@@ -95,14 +82,7 @@ function LazyWindowedFileList(props: LazyWindowedFileListProps) {
     );
 }
 
-const propsToCompareReferentially = [
-    "className",
-    "columnWidths",
-    "displayAnnotations",
-    "level",
-    "rowHeight",
-    "rowWidth",
-];
+const propsToCompareReferentially = ["className", "level", "rowHeight"];
 
 export default React.memo(LazyWindowedFileList, (prevProps, nextProps) => {
     const referentialPropsAreEqual = propsToCompareReferentially.every(
