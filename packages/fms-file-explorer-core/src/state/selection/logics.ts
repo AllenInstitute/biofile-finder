@@ -98,34 +98,15 @@ const modifyAnnotationHierarchy = createLogic({
             // in the process hook. All unique values assigned to the annotation (across all of its usages in FMS)
             // will be loaded and stored in the metadata branch of state.
             deps.ctx.annotation = annotation;
-            deps.ctx.prevHierarchy = existingHierarchy;
 
             next(setAnnotationHierarchy(newHierarchy));
         }
     },
     async process(deps, dispatch, done) {
-        const { action, ctx } = deps;
-
-        const newHierarchy = action.payload as Annotation[];
+        const { ctx } = deps;
         const annotation: Annotation | undefined = ctx.annotation;
 
-        if (annotation === undefined || newHierarchy === ctx.prevHierarchy) {
-            done();
-            return;
-        }
-
-        // if cartesian product of existing annotations is too large, reject
-        let sizeOfCartProdOfValues = 1;
-        for (let i = 0; i < newHierarchy.length; i++) {
-            const size = await newHierarchy[i].fetchSizeOfValues();
-            sizeOfCartProdOfValues = sizeOfCartProdOfValues * size;
-        }
-
-        if (sizeOfCartProdOfValues > 10000) {
-            console.error(
-                `Cartesian product of annotation values in hierarchy will be too large (${sizeOfCartProdOfValues}). Resetting to previous annotation hierarchy.`
-            );
-            dispatch(setAnnotationHierarchy(ctx.prevHierarchy));
+        if (annotation === undefined) {
             done();
             return;
         }
