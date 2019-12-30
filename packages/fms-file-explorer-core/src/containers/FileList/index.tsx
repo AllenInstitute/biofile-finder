@@ -5,55 +5,17 @@ import { useSelector } from "react-redux";
 import { VariableSizeList } from "react-window";
 
 import FileRow from "../../components/FileRow";
-import LazyWindowedFileList from "../LazyWindowedFileList";
+import Row from "./Row";
 import * as fileListSelectors from "./selectors";
-import { FileSetTreeNode } from "./selectors";
 import { selection } from "../../state";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
-import useResizableColumns, { ColumnWidths } from "./useResizableColumns";
-import Annotation from "../../entity/Annotation";
+import useResizableColumns from "./useResizableColumns";
 
 const styles = require("./FileList.module.css");
 
 interface FileListProps {
     className?: string;
 }
-
-interface RowProps {
-    data: {
-        columnWidths: ColumnWidths;
-        displayAnnotations: Annotation[];
-        fileSetTree: Map<number, FileSetTreeNode>;
-        isOpen: (index: number) => boolean;
-        onClick: (index: number) => void;
-        rowWidth: number;
-    };
-    index: number; // injected by react-window
-    style: React.CSSProperties; // injected by react-window
-}
-const Row = ({ data, index, style }: RowProps) => {
-    const { columnWidths, displayAnnotations, fileSetTree, isOpen, onClick, rowWidth } = data;
-    const node = fileSetTree.get(index);
-    return (
-        <div
-            onClick={() => onClick(index)}
-            style={Object.assign({}, style, { display: "flex", flexDirection: "column" })}
-        >
-            {node ? node.dir : null}
-            {node && node.fileSet && isOpen(index) ? (
-                <LazyWindowedFileList
-                    key={node.fileSet.toQueryString()}
-                    collapsed={false}
-                    columnWidths={columnWidths}
-                    displayAnnotations={displayAnnotations}
-                    fileSet={node.fileSet}
-                    level={node.depth}
-                    rowWidth={rowWidth}
-                />
-            ) : null}
-        </div>
-    );
-};
 
 /**
  * Central UI dedicated to showing lists of available files in FMS. Can be a flat list in the case that no annotation
