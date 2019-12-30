@@ -99,3 +99,45 @@ export const getFileSetTree = createSelector(
         return groups(fileSets, ...keyFuncs);
     }
 );
+
+const childrenAreFileSets = (children: FileSet[] | FileSetTree[]): children is FileSet[] => {
+    return children[0] instanceof FileSet;
+};
+
+export interface FileSetTreeNode {
+    depth: number;
+    fileSet?: FileSet;
+    dir: null | string | number | boolean;
+}
+
+export const getFileSetTree2 = createSelector(
+    [getFileSetTree],
+    (fileSetTree: FileSetTree[]): Map<number, FileSetTreeNode> => {
+        const mapping = new Map<number, FileSetTreeNode>();
+        const nodes = fileSetTree;
+        let index = 0;
+        const depths = Array.from<number>({ length: nodes.length }).fill(0);
+
+        while (nodes.length) {
+            const node = nodes.shift();
+            const depth = depths.shift();
+            if (node === undefined || depth === undefined) {
+                break;
+            }
+            const [dir, children] = node;
+            if (!childrenAreFileSets(children)) {
+                Array.prototype.unshift.apply(nodes, Array.from(children));
+                Array.prototype.unshift.apply(
+                    depths,
+                    Array.from<number>({ length: children.length }).fill(depth + 1)
+                );
+                mapping.set(index, { dir, depth });
+            } else {
+                mapping.set(index, { dir, depth, fileSet: children[0] });
+            }
+            index++;
+        }
+
+        return mapping;
+    }
+);

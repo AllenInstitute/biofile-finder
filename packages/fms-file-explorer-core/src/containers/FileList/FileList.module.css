@@ -2,7 +2,7 @@
     --header-height: 30px;
     height: 100%;
     width: 100%;
-    overflow-y: auto;
+    overflow-y: hidden;
     overflow-x: auto;
     display: flex;
     flex-direction: column;
@@ -16,7 +16,6 @@
 }
 
 .file-tree-root {
-    height: 100%;
-    width: 100%;
+    flex: 1 1 auto;
     margin-top: 1rem;
 }
