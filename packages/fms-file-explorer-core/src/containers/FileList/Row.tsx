@@ -13,6 +13,9 @@ interface RowProps {
     style: React.CSSProperties; // injected by react-window
 }
 
+/**
+ * TODO
+ */
 export default function Row({ data, index, style }: RowProps) {
     const { fileSetTree, isOpen, onClick } = data;
     const node = fileSetTree.get(index);
