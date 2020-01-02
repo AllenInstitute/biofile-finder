@@ -16,13 +16,22 @@ interface RowProps {
 export default function Row({ data, index, style }: RowProps) {
     const { fileSetTree, isOpen, onClick } = data;
     const node = fileSetTree.get(index);
+
+    if (!node) {
+        return null;
+    }
+
     return (
         <div
             onClick={() => onClick(index)}
-            style={Object.assign({}, style, { display: "flex", flexDirection: "column" })}
+            style={Object.assign({}, style, {
+                display: "flex",
+                flexDirection: "column",
+                paddingLeft: `${node.depth * 10}px`,
+            })}
         >
-            {node ? node.dir : null}
-            {node && node.fileSet && isOpen(index) ? (
+            {node.dir}
+            {node.fileSet && isOpen(index) ? (
                 <LazyWindowedFileList
                     key={node.fileSet.toQueryString()}
                     collapsed={false}
