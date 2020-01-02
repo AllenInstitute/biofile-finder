@@ -69,11 +69,15 @@ export default function FileList(props: FileListProps) {
                 }}
                 itemSize={(index) => {
                     const node = fileSetTree.get(index);
-                    if (node && node.hasOwnProperty("fileSet") && isOpen(index)) {
-                        return 300;
+                    if (node && node.isRoot) {
+                        return containerHeight;
                     }
 
-                    return 35;
+                    if (node && node.hasOwnProperty("fileSet") && isOpen(index)) {
+                        return 300; // TODO
+                    }
+
+                    return 35; // TODO
                 }}
                 width="100%"
             >

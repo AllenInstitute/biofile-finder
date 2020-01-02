@@ -108,6 +108,7 @@ export interface FileSetTreeNode {
     depth: number;
     fileSet?: FileSet;
     dir: null | string | number | boolean;
+    isRoot: boolean;
 }
 
 export const getFileSetTree2 = createSelector(
@@ -131,9 +132,9 @@ export const getFileSetTree2 = createSelector(
                     depths,
                     Array.from<number>({ length: children.length }).fill(depth + 1)
                 );
-                mapping.set(index, { dir, depth });
+                mapping.set(index, { dir, depth, isRoot: false });
             } else {
-                mapping.set(index, { dir, depth, fileSet: children[0] });
+                mapping.set(index, { dir, depth, fileSet: children[0], isRoot: dir === null });
             }
             index++;
         }
