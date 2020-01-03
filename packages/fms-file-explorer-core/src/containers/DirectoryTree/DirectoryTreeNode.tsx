@@ -48,7 +48,7 @@ const PADDING_STEP = 10; // in px
  * Each node is collapsible. Collapsing a node will cause all of its children to collapse as well.
  */
 export default class DirectoryTreeNode extends React.Component<DirectoryTreeNodeProps> {
-    render() {
+    public render(): JSX.Element | null {
         const { data, index, style } = this.props;
 
         const { isCollapsed } = data;
