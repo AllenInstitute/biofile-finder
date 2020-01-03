@@ -7,12 +7,18 @@ import { TreeNode } from "./selectors";
 
 const styles = require("./DirectoryTreeNode.module.css");
 
-interface RowProps {
-    data: {
-        directoryTree: Map<number, TreeNode>;
-        isCollapsed: (index: number | null) => boolean;
-        onClick: (index: number) => void;
-    };
+/**
+ * Contextual data passed to DirectoryTreeNodes by react-window. Basically a light-weight React context. The same data
+ * is passed to each DirectoryTreeNode.
+ */
+interface DirectoryTreeNodeContext {
+    directoryTree: Map<number, TreeNode>;
+    isCollapsed: (index: number | null) => boolean;
+    onClick: (index: number) => void;
+}
+
+interface DirectoryTreeNodeProps {
+    data: DirectoryTreeNodeContext; // injected by react-window
     index: number; // injected by react-window
     style: React.CSSProperties; // injected by react-window
 }
@@ -32,9 +38,13 @@ const CHEVRON_DOWN_ICON_PATH_DATA =
     "M13.418 7.859c0.271-0.268 0.709-0.268 0.978 0s0.272 0.701 0 0.969l-3.908 3.83c-0.27 0.268-0.707 0.268-0.979 0l-3.908-3.83c-0.27-0.267-0.27-0.701 0-0.969s0.709-0.268 0.978 0l3.421 3.141 3.418-3.141z";
 
 /**
- * TODO
+ * A single node in the user-constructed, virtual directory tree. The tree's branches are "folders." Its leaves have `FileList`s.
+ * When rendering the "root" of the FMS file system--that is, no annotation groupings have been defined--no "directory header" is
+ * rendered--only render a FileList.
+ *
+ * Each node is collapsible. Collapsing a node will cause all of its children to collapse as well.
  */
-export default class DirectoryTreeNode extends React.Component<RowProps> {
+export default class DirectoryTreeNode extends React.Component<DirectoryTreeNodeProps> {
     render() {
         const { data, index, style } = this.props;
 

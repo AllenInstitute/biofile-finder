@@ -14,7 +14,16 @@ interface FileListProps {
 /**
  * Central UI dedicated to showing lists of available files in FMS. Can be a flat list in the case that no annotation
  * hierarchies have been applied, or nested in the case that the user has declared how (i.e., by which annotations) the
- * files should be grouped.
+ * files should be grouped. E.g.:
+ *
+ * [collapsible folder] ScientistA
+ *      [collapsible folder] plate123
+ *      [collapsible folder] plate456
+ *      [collapsible folder] plate789
+ * [collapsible folder] ScientistB
+ *      [collapsible folder] plate123
+ *      [collapsible folder] plate456
+ *      [collapsible folder] plate789
  */
 export default function DirectoryTree(props: FileListProps) {
     const [ref, containerHeight] = useLayoutMeasurements<HTMLDivElement>(); // eslint-disable-line @typescript-eslint/no-unused-vars
