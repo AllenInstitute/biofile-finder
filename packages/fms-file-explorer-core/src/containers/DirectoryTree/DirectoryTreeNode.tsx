@@ -5,7 +5,7 @@ import SvgIcon from "../../components/SvgIcon";
 import LazyWindowedFileList from "../LazyWindowedFileList";
 import { TreeNode } from "./selectors";
 
-const styles = require("./Directory.module.css");
+const styles = require("./DirectoryTreeNode.module.css");
 
 interface RowProps {
     data: {
