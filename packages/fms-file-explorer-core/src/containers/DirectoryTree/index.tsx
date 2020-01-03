@@ -11,6 +11,10 @@ interface FileListProps {
     className?: string;
 }
 
+const COLLAPSED_DIRECTORY_TREE_NODE_HEIGHT = 0; // in px
+const DEFAULT_DIRECTORY_TREE_NODE_HEIGHT = 35; // in px
+const EXPANDED_FILE_LIST_HEIGHT = 300; // in px
+
 /**
  * Central UI dedicated to showing lists of available files in FMS. Can be a flat list in the case that no annotation
  * hierarchies have been applied, or nested in the case that the user has declared how (i.e., by which annotations) the
@@ -133,7 +137,7 @@ export default function DirectoryTree(props: FileListProps) {
 
                     // defensive condition, included only for the type checker--should never hit
                     if (!node) {
-                        return 0;
+                        return COLLAPSED_DIRECTORY_TREE_NODE_HEIGHT;
                     }
 
                     // root dir should take up full height
@@ -142,16 +146,16 @@ export default function DirectoryTree(props: FileListProps) {
                     }
 
                     if (isCollapsed(node.parent)) {
-                        return 0;
+                        return COLLAPSED_DIRECTORY_TREE_NODE_HEIGHT;
                     }
 
                     // if leaf of tree and expanded, expand to some constant height
                     if (node.isLeaf && !isCollapsed(index)) {
-                        return 300; // TODO
+                        return EXPANDED_FILE_LIST_HEIGHT;
                     }
 
                     // by default, render to some arbitrary constant height
-                    return 35; // TODO
+                    return DEFAULT_DIRECTORY_TREE_NODE_HEIGHT;
                 }}
                 width="100%"
             >
