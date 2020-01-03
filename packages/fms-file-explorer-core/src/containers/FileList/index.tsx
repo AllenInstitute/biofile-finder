@@ -21,18 +21,16 @@ const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 50; // ms
 const DEFAULT_TOTAL_COUNT = 1000;
 
 /**
- * NOTE! If any new props are added, the `propsAreEqual` override (passed to React.memo below) MUST be updated.
+ * NOTE! If props are modified, the `propsAreEqual` override (passed to React.memo below) MUST be updated.
  */
 interface FileListProps {
     [index: string]: any;
     className?: string;
     fileSet: FileSet;
-    level?: number; // maps to how far indented the first column of the file row should be
     rowHeight?: number; // how tall each row of the list will be, in px
 }
 
 const DEFAULTS = {
-    level: 0,
     rowHeight: 22,
 };
 
@@ -41,7 +39,7 @@ const DEFAULTS = {
  * itself out to be 100% the height and width of its parent.
  */
 function FileList(props: FileListProps) {
-    const { className, fileSet, level, rowHeight } = defaults({}, props, DEFAULTS);
+    const { className, fileSet, rowHeight } = defaults({}, props, DEFAULTS);
 
     const [ref, height] = useLayoutMeasurements<HTMLDivElement>();
     const onSelect = useFileSelector(fileSet);
@@ -63,7 +61,6 @@ function FileList(props: FileListProps) {
                         innerElementType={VirtualListInnerElement}
                         itemData={{
                             files: fileSet.files,
-                            level,
                             onSelect,
                         }}
                         itemSize={rowHeight} // row height
@@ -82,7 +79,7 @@ function FileList(props: FileListProps) {
     );
 }
 
-const propsToCompareReferentially = ["className", "level", "rowHeight"];
+const propsToCompareReferentially = ["className", "rowHeight"];
 
 export default React.memo(FileList, (prevProps, nextProps) => {
     const referentialPropsAreEqual = propsToCompareReferentially.every(

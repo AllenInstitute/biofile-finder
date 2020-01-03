@@ -11,11 +11,10 @@ const styles = require("./FileList.module.css");
 
 /**
  * Contextual data passed to LazilyRenderedRows by react-window. Basically a light-weight React context. The same data
- * is passed to each LazilyRenderedRow.
+ * is passed to each LazilyRenderedRow within the same FileList.
  */
 export interface LazilyRenderedRowContext {
     files: Map<number, FmsFile>;
-    level: number; // maps to how far indented the first column of the file row should be to
     onSelect: OnSelect;
 }
 
