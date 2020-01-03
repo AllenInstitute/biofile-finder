@@ -8,7 +8,6 @@ import { Provider } from "react-redux";
 import AnnotationList from "..";
 import Annotation from "../../../entity/Annotation";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
-import AnnotationListItem from "../AnnotationListItem";
 import { initialState } from "../../../state";
 
 describe("<AnnotationList />", () => {
@@ -46,7 +45,8 @@ describe("<AnnotationList />", () => {
                     </DragDropContext>
                 </Provider>
             );
-            const queryNumberListItems = () => wrapper.find(AnnotationListItem).length;
+            const queryNumberListItems = () =>
+                wrapper.find("span[data-test-id='annotation-list-item']").length;
 
             // before, expect all annotations to be in the list
             const allAnnotationDisplayNames = annotationsJson.map(

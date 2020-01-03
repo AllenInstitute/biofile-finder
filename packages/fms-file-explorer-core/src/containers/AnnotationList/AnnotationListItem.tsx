@@ -48,6 +48,7 @@ export default React.memo(
                     />
                 </Tippy>
                 <span
+                    data-test-id="annotation-list-item"
                     className={classNames({
                         [styles.disabled]: disabled,
                     })}
