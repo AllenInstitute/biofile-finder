@@ -12,7 +12,7 @@ import LazilyRenderedRow from "./LazilyRenderedRow";
 import useFileSelector from "./useFileSelector";
 import VirtualListInnerElement from "./VirtualListInnerElement";
 
-const styles = require("./style.module.css");
+const styles = require("./FileList.module.css");
 
 const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 50; // ms
 
@@ -23,7 +23,7 @@ const DEFAULT_TOTAL_COUNT = 1000;
 /**
  * NOTE! If any new props are added, the `propsAreEqual` override (passed to React.memo below) MUST be updated.
  */
-interface LazyWindowedFileListProps {
+interface FileListProps {
     [index: string]: any;
     className?: string;
     fileSet: FileSet;
@@ -40,7 +40,7 @@ const DEFAULTS = {
  * Wrapper for react-window-infinite-loader and react-window that knows how to lazily fetch its own data. It will lay
  * itself out to be 100% the height and width of its parent.
  */
-function LazyWindowedFileList(props: LazyWindowedFileListProps) {
+function FileList(props: FileListProps) {
     const { className, fileSet, level, rowHeight } = defaults({}, props, DEFAULTS);
 
     const [ref, height] = useLayoutMeasurements<HTMLDivElement>();
@@ -84,7 +84,7 @@ function LazyWindowedFileList(props: LazyWindowedFileListProps) {
 
 const propsToCompareReferentially = ["className", "level", "rowHeight"];
 
-export default React.memo(LazyWindowedFileList, (prevProps, nextProps) => {
+export default React.memo(FileList, (prevProps, nextProps) => {
     const referentialPropsAreEqual = propsToCompareReferentially.every(
         (prop) => prevProps[prop] === nextProps[prop]
     );

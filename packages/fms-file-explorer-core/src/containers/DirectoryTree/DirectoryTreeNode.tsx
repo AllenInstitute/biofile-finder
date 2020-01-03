@@ -2,7 +2,7 @@ import * as classNames from "classnames";
 import * as React from "react";
 
 import SvgIcon from "../../components/SvgIcon";
-import LazyWindowedFileList from "../LazyWindowedFileList";
+import FileList from "../FileList";
 import { TreeNode } from "./selectors";
 
 const styles = require("./DirectoryTreeNode.module.css");
@@ -55,7 +55,7 @@ export default class DirectoryTreeNode extends React.Component<RowProps> {
             >
                 {this.renderDirectoryHeader()}
                 {node.fileSet && !isCollapsed(index) ? (
-                    <LazyWindowedFileList
+                    <FileList
                         key={node.fileSet.toQueryString()}
                         fileSet={node.fileSet}
                         level={node.depth}
