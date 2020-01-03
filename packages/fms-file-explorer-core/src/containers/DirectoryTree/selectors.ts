@@ -8,7 +8,7 @@ import { metadata, selection } from "../../state";
 
 /**
  * Given annotation hierarchy (list of annotations, in order, by which user wants files to be grouped), and all unique values for each of those annotations,
- * return cartesian product of those unique annotation values, wrapped in FileFilter containers.
+ * return a list of lists whereby each annotation in the hierarchy is projected into a list of FileFilters of that annotation's values.
  *
  * For example,
  * given:
@@ -19,14 +19,15 @@ import { metadata, selection } from "../../state";
  *  }
  *
  * expect:
- *  return = [[FileFilter("A", 1), FileFilter("B", true)], [FileFilter("A", 1), FileFilter("B", false)],
- *            [FileFilter("A", 2), FileFilter("B", true)], [FileFilter("A", 2), FileFilter("B", false)],
- *            [FileFilter("A", 3), FileFilter("B", true)], [FileFilter("A", 3), FileFilter("B", false)]]
+ *  return = [
+ *              [FileFilter("A", 1), FileFilter("A", 2), FileFilter("A", 3)],
+ *              [FileFilter("B", true), FileFilter("B", false)],
+ *           ]
  */
 export const getFileFilters = createSelector(
     [selection.selectors.getAnnotationHierarchy, metadata.selectors.getAnnotationNameToValuesMap],
     (annotationHierarchy, annotationNameToValuesMap): FileFilter[][] => {
-        const fileFilters = reduce(
+        return reduce(
             annotationHierarchy,
             (accum, annotation) => {
                 // only include those annotations that we have values for
@@ -43,16 +44,15 @@ export const getFileFilters = createSelector(
             },
             [] as FileFilter[][]
         );
-        return cross(...fileFilters);
     }
 );
 
 export type FileSetTree = [string | number | boolean | null, (FileSet[] | FileSetTree[])];
 
 /**
- * Given output of `getFileFilters` (cartesian product of unique values of all annotations in the user-selected annotation hierarchy), output a nested data structure
- * of type `Grouping`. The first element in each `Grouping` is a unique annotation value. This is to be used as a "directory name." The second element in each `Grouping`
- * is either a nested `Grouping`, or, at the leaf-level, a list of `FileSet`. NOTE! Each list of `FileSet` will only ever have 1 `FileSet` object within it--that it must be an array
+ * Given output of `getFileFilters` (unique values of all annotations in the user-selected annotation hierarchy wrapped in FileFilters), output a nested data structure
+ * of type `FileSetTree`. The first element in each `FileSetTree` is a unique annotation value. This is to be used as a "directory name." The second element in each `FileSetTree`
+ * is either a nested `FileSetTree`, or, at the leaf-level, a list of `FileSet`. NOTE! Each list of `FileSet` will only ever have 1 `FileSet` object within it--that it must be an array
  * is an artifact of how d3-array::groups works. See https://github.com/d3/d3-array#groups.
  *
  * The nesting performed by d3-array:groups corresponds to the order of the annotation hierarchy. For example,
@@ -75,7 +75,7 @@ export type FileSetTree = [string | number | boolean | null, (FileSet[] | FileSe
  *      ]
  *  ]
  */
-export const getFileSetTree = createSelector(
+export const getGroupedFileSets = createSelector(
     [getFileFilters],
     (fileFilters): FileSetTree[] => {
         // "Root" of FMS -- no annotation hierarchy in place. The "directory name" is null, and the FileSet is filterless.
@@ -83,16 +83,21 @@ export const getFileSetTree = createSelector(
             return [[null, [new FileSet()]]];
         }
 
+        const cartesianProductOfFileFilters: FileFilter[][] = cross(...fileFilters);
+
         // Turn cartesian product of annotation values (wrapped in FileFilter containers) into a list of `FileSet`s.
         // Example:
-        // given: fileFilters = [[FileFilter("A", 1), FileFilter("B", true)], [FileFilter("A", 1), FileFilter("B", false)]]
+        // given: cartesianProductOfFileFilters = [[FileFilter("A", 1), FileFilter("B", true)], [FileFilter("A", 1), FileFilter("B", false)]]
         // expect: fileSets = [Fileset({ filters: [FileFilter("A", 1), FileFilter("B", true)] }),
         //                     FileSet({ filters: [FileFilter("A", 1), FileFilter("B", false)] })]
-        const fileSets = map(fileFilters, (filters: FileFilter[]) => new FileSet({ filters }));
+        const fileSets = map(
+            cartesianProductOfFileFilters,
+            (filters: FileFilter[]) => new FileSet({ filters })
+        );
 
         // Group `fileSets` by the values of the `FileFilter`s in the order in which they were given to each `FileSet`
         // This order corresponds to the annotation hierarchy. The values of the `FileFilter`s become the "directory names."
-        const numKeyFuncs = fileFilters[0].length;
+        const numKeyFuncs = cartesianProductOfFileFilters[0].length;
         const keyFuncs = Array.from({ length: numKeyFuncs }).map(
             (_, i) => (fileSet: FileSet): any => fileSet.filters[i].value
         );
@@ -114,7 +119,7 @@ export interface TreeNode {
 }
 
 export const getDirectoryTree = createSelector(
-    [getFileSetTree],
+    [getGroupedFileSets],
     (fileSetTree: FileSetTree[]): Map<number, TreeNode> => {
         const mapping = new Map<number, TreeNode>();
         const nodes = fileSetTree;

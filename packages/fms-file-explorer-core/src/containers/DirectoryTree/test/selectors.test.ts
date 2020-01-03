@@ -5,7 +5,7 @@ import { isEqualWith } from "lodash";
 import FileFilter from "../../../entity/FileFilter";
 import Annotation from "../../../entity/Annotation";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
-import { getFileFilters, getFileSetTree } from "../selectors";
+import { getFileFilters, getGroupedFileSets } from "../selectors";
 import { initialState } from "../../../state";
 import FileSet from "../../../entity/FileSet";
 
@@ -52,7 +52,7 @@ describe("FileList selectors", () => {
             });
         };
 
-        it("creates FileFilters for the cartesian product of all annotation values for those annotations that are part of the annotation hierarchy", () => {
+        it("projects annotations into a list of FileFilters for each of their annotation values", () => {
             const state = mergeState(initialState, {
                 metadata: {
                     annotations,
@@ -69,24 +69,9 @@ describe("FileList selectors", () => {
 
             const actual = getFileFilters(state);
             const expected = [
-                [aFilter, trueFilter, oneFilter],
-                [aFilter, trueFilter, twoFilter],
-                [aFilter, trueFilter, threeFilter],
-                [aFilter, falseFilter, oneFilter],
-                [aFilter, falseFilter, twoFilter],
-                [aFilter, falseFilter, threeFilter],
-                [bFilter, trueFilter, oneFilter],
-                [bFilter, trueFilter, twoFilter],
-                [bFilter, trueFilter, threeFilter],
-                [bFilter, falseFilter, oneFilter],
-                [bFilter, falseFilter, twoFilter],
-                [bFilter, falseFilter, threeFilter],
-                [cFilter, trueFilter, oneFilter],
-                [cFilter, trueFilter, twoFilter],
-                [cFilter, trueFilter, threeFilter],
-                [cFilter, falseFilter, oneFilter],
-                [cFilter, falseFilter, twoFilter],
-                [cFilter, falseFilter, threeFilter],
+                [aFilter, bFilter, cFilter],
+                [trueFilter, falseFilter],
+                [oneFilter, twoFilter, threeFilter],
             ];
 
             assertDeepEquals(actual, expected);
@@ -106,7 +91,7 @@ describe("FileList selectors", () => {
             });
 
             const actual = getFileFilters(state);
-            const expected = [[aFilter], [bFilter], [cFilter]];
+            const expected = [[aFilter, bFilter, cFilter]];
 
             assertDeepEquals(actual, expected);
         });
@@ -132,7 +117,7 @@ describe("FileList selectors", () => {
             });
 
             const actual = getFileFilters(state);
-            const expected = [[aFilter], [bFilter], [cFilter]];
+            const expected = [[aFilter, bFilter, cFilter]];
 
             assertDeepEquals(actual, expected);
         });
@@ -247,13 +232,13 @@ describe("FileList selectors", () => {
                 ],
             ];
 
-            assertDeepEquals(getFileSetTree(state), expected);
+            assertDeepEquals(getGroupedFileSets(state), expected);
         });
 
         it("returns a list with a null group key and a single, filterless FileSet if no annotation hierarchy has been specified", () => {
             const expected = [[null, [new FileSet()]]];
 
-            assertDeepEquals(getFileSetTree(initialState), expected);
+            assertDeepEquals(getGroupedFileSets(initialState), expected);
         });
     });
 });
