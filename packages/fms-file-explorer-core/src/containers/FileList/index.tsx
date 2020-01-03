@@ -7,10 +7,9 @@ import InfiniteLoader from "react-window-infinite-loader";
 
 import Header from "./Header";
 import FileSet from "../../entity/FileSet";
-import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import LazilyRenderedRow from "./LazilyRenderedRow";
+import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileSelector from "./useFileSelector";
-import VirtualListInnerElement from "./VirtualListInnerElement";
 
 const styles = require("./FileList.module.css");
 
@@ -58,7 +57,6 @@ function FileList(props: FileListProps) {
             >
                 {({ onItemsRendered, ref }) => (
                     <FixedSizeList
-                        innerElementType={VirtualListInnerElement}
                         itemData={{
                             files: fileSet.files,
                             onSelect,

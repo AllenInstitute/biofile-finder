@@ -12,3 +12,7 @@
 .header {
     height: 25px;
 }
+
+.list-parent {
+  position: relative;
+}
