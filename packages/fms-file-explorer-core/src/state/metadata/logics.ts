@@ -20,10 +20,6 @@ const requestAnnotations = createLogic({
                 )
             )
             .then((annotations) => {
-                annotations.forEach((annotation) => annotation.fetchSizeOfValues());
-                return annotations;
-            })
-            .then((annotations) => {
                 const initialAnnotationsToDisplay = [
                     find(annotations, (annotation) => annotation.name === "file_name"),
                     find(annotations, (annotation) => annotation.name === "created"),
