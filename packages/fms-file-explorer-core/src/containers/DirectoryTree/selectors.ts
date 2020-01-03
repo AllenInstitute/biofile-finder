@@ -118,6 +118,10 @@ export interface TreeNode {
     parent: number | null;
 }
 
+/**
+ * Flatten output of `getGroupedFileSets` into a Map, where the keys are index positions and the values are objects that conform to the TreeNode interface.
+ * This Map is then used in conjuction with `react-window` to determine what to render at a given index position within the DirectoryTree.
+ */
 export const getDirectoryTree = createSelector(
     [getGroupedFileSets],
     (fileSetTree: FileSetTree[]): Map<number, TreeNode> => {

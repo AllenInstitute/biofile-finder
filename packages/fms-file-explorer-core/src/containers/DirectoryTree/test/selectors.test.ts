@@ -1,11 +1,11 @@
 import { mergeState } from "@aics/redux-utils";
 import { expect } from "chai";
-import { isEqualWith } from "lodash";
+import { every, isEqualWith } from "lodash";
 
 import FileFilter from "../../../entity/FileFilter";
 import Annotation from "../../../entity/Annotation";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
-import { getFileFilters, getGroupedFileSets } from "../selectors";
+import { getDirectoryTree, getFileFilters, getGroupedFileSets, TreeNode } from "../selectors";
 import { initialState } from "../../../state";
 import FileSet from "../../../entity/FileSet";
 
@@ -123,7 +123,7 @@ describe("FileList selectors", () => {
         });
     });
 
-    describe("getFileSetTree", () => {
+    describe("getGroupedFileSets", () => {
         /**
          * Recursively assert that the output of `getFileSetTree` equals the expected data structure. Knows how to traverse
          * the data structure and compare its values.
@@ -239,6 +239,126 @@ describe("FileList selectors", () => {
             const expected = [[null, [new FileSet()]]];
 
             assertDeepEquals(getGroupedFileSets(initialState), expected);
+        });
+    });
+
+    describe("getDirectoryTree", () => {
+        const assertDeepEquals = (
+            actual: Map<number, TreeNode>,
+            expected: Map<number, TreeNode>
+        ) => {
+            expect(actual.size).to.equal(expected.size);
+            for (const [index, treeNode] of actual.entries()) {
+                expect(
+                    isEqualWith(
+                        treeNode,
+                        expected.get(index),
+                        (actualTreeNode: TreeNode, expectedTreeNode: TreeNode): boolean => {
+                            return every(actualTreeNode, (actualNodeValue, nodeProperty) => {
+                                const expectedNodeValue =
+                                    expectedTreeNode[nodeProperty as keyof TreeNode];
+                                if (actualNodeValue instanceof FileSet) {
+                                    if (expectedNodeValue instanceof FileSet) {
+                                        return actualNodeValue.equals(expectedNodeValue);
+                                    }
+                                    return false;
+                                } else {
+                                    return actualNodeValue === expectedNodeValue;
+                                }
+                            });
+                        }
+                    )
+                ).to.equal(true);
+            }
+        };
+
+        it("returns a mapping between index position and TreeNodes", () => {
+            const state = mergeState(initialState, {
+                metadata: {
+                    annotations,
+                    annotationNameToValuesMap: {
+                        [annotations[0].name]: ["a", "b"],
+                        [annotations[1].name]: [true, false],
+                        [annotations[2].name]: [3],
+                    },
+                },
+                selection: {
+                    annotationHierarchy: annotations.slice(0, 3), // n.b., end not inclusive
+                },
+            });
+
+            const expected: Map<number, TreeNode> = new Map([
+                [0, { depth: 0, dir: "a", isLeaf: false, isRoot: false, parent: null }],
+                [1, { depth: 1, dir: true, isLeaf: false, isRoot: false, parent: 0 }],
+                [
+                    2,
+                    {
+                        depth: 2,
+                        dir: 3,
+                        isLeaf: true,
+                        isRoot: false,
+                        fileSet: new FileSet({ filters: [aFilter, trueFilter, threeFilter] }),
+                        parent: 1,
+                    },
+                ],
+                [3, { depth: 1, dir: false, isLeaf: false, isRoot: false, parent: 0 }],
+                [
+                    4,
+                    {
+                        depth: 2,
+                        dir: 3,
+                        isLeaf: true,
+                        isRoot: false,
+                        fileSet: new FileSet({ filters: [aFilter, falseFilter, threeFilter] }),
+                        parent: 3,
+                    },
+                ],
+                [5, { depth: 0, dir: "b", isLeaf: false, isRoot: false, parent: null }],
+                [6, { depth: 1, dir: true, isLeaf: false, isRoot: false, parent: 5 }],
+                [
+                    7,
+                    {
+                        depth: 2,
+                        dir: 3,
+                        isLeaf: true,
+                        isRoot: false,
+                        fileSet: new FileSet({ filters: [bFilter, trueFilter, threeFilter] }),
+                        parent: 6,
+                    },
+                ],
+                [8, { depth: 1, dir: false, isLeaf: false, isRoot: false, parent: 5 }],
+                [
+                    9,
+                    {
+                        depth: 2,
+                        dir: 3,
+                        isLeaf: true,
+                        isRoot: false,
+                        fileSet: new FileSet({ filters: [bFilter, falseFilter, threeFilter] }),
+                        parent: 8,
+                    },
+                ],
+            ]);
+
+            assertDeepEquals(getDirectoryTree(state), expected);
+        });
+
+        it("works with an empty annotation hierarchy", () => {
+            const expected: Map<number, TreeNode> = new Map([
+                [
+                    0,
+                    {
+                        depth: 0,
+                        dir: null,
+                        isLeaf: true,
+                        isRoot: true,
+                        fileSet: new FileSet(),
+                        parent: null,
+                    },
+                ],
+            ]);
+
+            assertDeepEquals(getDirectoryTree(initialState), expected);
         });
     });
 });
