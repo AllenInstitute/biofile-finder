@@ -1,4 +1,10 @@
-.directory-container {
+.tree-node-container {
+    /* flex parent */
+    display: flex;
+    flex-direction: column;
+}
+
+.directory-header {
     cursor: pointer;
     user-select: none;
 
@@ -13,11 +19,20 @@
 }
 
 .folder-icon {
-    margin-left: 0.5rem;
+    margin-left: 8px; /* if this is updated, need to update padding applied to FileLists in DirectoryTreeNode.tsx */
 }
 
 .directory-name {
     margin: 0 0.5rem;
     display: inline-block;
     font-weight: normal;
+}
+
+.file-list {
+    /* flex child */
+    flex: 1 1 auto;
+}
+
+.non-root-file-list {
+    padding-bottom: 1rem;
 }

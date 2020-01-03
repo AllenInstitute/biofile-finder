@@ -37,6 +37,9 @@ const FOLDER_ICON_PATH_DATA =
 const CHEVRON_DOWN_ICON_PATH_DATA =
     "M13.418 7.859c0.271-0.268 0.709-0.268 0.978 0s0.272 0.701 0 0.969l-3.908 3.83c-0.27 0.268-0.707 0.268-0.979 0l-3.908-3.83c-0.27-0.267-0.27-0.701 0-0.969s0.709-0.268 0.978 0l3.421 3.141 3.418-3.141z";
 
+const ICON_SIZE = 15; // in px; both width and height
+const PADDING_STEP = 10; // in px
+
 /**
  * A single node in the user-constructed, virtual directory tree. The tree's branches are "folders." Its leaves have `FileList`s.
  * When rendering the "root" of the FMS file system--that is, no annotation groupings have been defined--no "directory header" is
@@ -55,21 +58,26 @@ export default class DirectoryTreeNode extends React.Component<DirectoryTreeNode
             return null;
         }
 
+        const containerPaddingLeft = node.depth * PADDING_STEP;
+        const fileListPaddingLeft = node.isRoot ? 0 : ICON_SIZE + 8; // 8 == amount of padding between icons, defined in `DirectoryTreeNode.module.css` under `.folder-icon`
+
         return (
             <div
+                className={styles.treeNodeContainer}
                 style={Object.assign({}, style, {
-                    display: "flex",
-                    flexDirection: "column",
-                    paddingLeft: `${node.depth * 10}px`,
+                    paddingLeft: `${containerPaddingLeft}px`,
                 })}
             >
                 {this.renderDirectoryHeader()}
                 {node.fileSet && !isCollapsed(index) ? (
-                    <FileList
-                        key={node.fileSet.toQueryString()}
-                        fileSet={node.fileSet}
-                        level={node.depth}
-                    />
+                    <div
+                        className={classNames(styles.fileList, {
+                            [styles.nonRootFileList]: !node.isRoot,
+                        })}
+                        style={{ paddingLeft: `${fileListPaddingLeft}px` }}
+                    >
+                        <FileList fileSet={node.fileSet} />
+                    </div>
                 ) : null}
             </div>
         );
@@ -102,22 +110,22 @@ export default class DirectoryTreeNode extends React.Component<DirectoryTreeNode
         }
 
         return (
-            <span className={styles.directoryContainer} onClick={() => onClick(index)}>
+            <span className={styles.directoryHeader} onClick={() => onClick(index)}>
                 <SvgIcon
                     className={classNames({
                         [styles.chevronClosed]: this.isCollapsed,
                     })}
-                    height={15}
+                    height={ICON_SIZE}
                     pathData={CHEVRON_DOWN_ICON_PATH_DATA}
                     viewBox="0 0 20 20"
-                    width={15}
+                    width={ICON_SIZE}
                 />
                 <SvgIcon
                     className={styles.folderIcon}
-                    height={15}
+                    height={ICON_SIZE}
                     pathData={FOLDER_ICON_PATH_DATA}
                     viewBox="0 0 24 24"
-                    width={15}
+                    width={ICON_SIZE}
                 />
                 <h4 className={styles.directoryName}>{node.dir}</h4>
             </span>
