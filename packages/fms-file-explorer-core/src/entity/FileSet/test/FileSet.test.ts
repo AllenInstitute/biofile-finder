@@ -8,16 +8,16 @@ import FileSort, { SortOrder } from "../../FileSort";
 import RestServiceResponse from "../../RestServiceResponse";
 
 describe("FileSet", () => {
+    const scientistEqualsJane = new FileFilter("scientist", "jane");
+    const matrigelIsHard = new FileFilter("matrigel_is_hardened", true);
+    const dateCreatedDescending = new FileSort("date_created", SortOrder.DESC);
+
     describe("toQueryString", () => {
         it("returns an empty string if file set represents a query with no filters and no sorting applied", () => {
             expect(new FileSet().toQueryString()).to.equal("");
         });
 
         it("includes filters and sort order in query string", () => {
-            const scientistEqualsJane = new FileFilter("scientist", "jane");
-            const matrigelIsHard = new FileFilter("matrigel_is_hardened", true);
-            const dateCreatedDescending = new FileSort("date_created", SortOrder.DESC);
-
             const fileSet = new FileSet({
                 filters: [scientistEqualsJane, matrigelIsHard],
                 sortOrder: [dateCreatedDescending],
@@ -25,6 +25,70 @@ describe("FileSet", () => {
             expect(fileSet.toQueryString()).equals(
                 "scientist=jane&matrigel_is_hardened=true&sort=date_created(DESC)"
             );
+        });
+    });
+
+    describe("equals", () => {
+        it("returns true given filterless and sortless filesets", () => {
+            expect(new FileSet().equals(new FileSet())).to.equal(true);
+        });
+
+        it("returns true comparing FileSets with the same filters", () => {
+            expect(
+                new FileSet({ filters: [scientistEqualsJane, matrigelIsHard] }).equals(
+                    new FileSet({ filters: [scientistEqualsJane, matrigelIsHard] })
+                )
+            ).to.equal(true);
+        });
+
+        it("returns false comparing FileSets with different filters", () => {
+            expect(
+                new FileSet({ filters: [scientistEqualsJane, matrigelIsHard] }).equals(
+                    new FileSet({ filters: [matrigelIsHard] })
+                )
+            ).to.equal(false);
+        });
+
+        it("returns true comparing FileSets with the same applied sorting", () => {
+            expect(
+                new FileSet({ sortOrder: [dateCreatedDescending] }).equals(
+                    new FileSet({ sortOrder: [dateCreatedDescending] })
+                )
+            ).to.equal(true);
+        });
+
+        it("returns false comparing FileSets with different applied sorting", () => {
+            expect(
+                new FileSet({ sortOrder: [dateCreatedDescending] }).equals(new FileSet())
+            ).to.equal(false);
+        });
+
+        it("returns true comparing FileSets with same filters AND applied sorting", () => {
+            expect(
+                new FileSet({
+                    filters: [scientistEqualsJane, matrigelIsHard],
+                    sortOrder: [dateCreatedDescending],
+                }).equals(
+                    new FileSet({
+                        filters: [scientistEqualsJane, matrigelIsHard],
+                        sortOrder: [dateCreatedDescending],
+                    })
+                )
+            ).to.equal(true);
+        });
+
+        it("returns false comparing FileSets with either different filters or applied sorting", () => {
+            expect(
+                new FileSet({
+                    filters: [scientistEqualsJane, matrigelIsHard],
+                    sortOrder: [dateCreatedDescending],
+                }).equals(
+                    new FileSet({
+                        filters: [scientistEqualsJane],
+                        sortOrder: [dateCreatedDescending],
+                    })
+                )
+            ).to.equal(false);
         });
     });
 
