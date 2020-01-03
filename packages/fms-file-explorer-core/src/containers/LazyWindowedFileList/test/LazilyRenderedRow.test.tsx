@@ -7,7 +7,7 @@ import * as sinon from "sinon";
 
 import Annotation from "../../../entity/Annotation";
 import { FmsFile } from "../../../services/FileService";
-import { ColumnWidths } from "../../FileList/useResizableColumns";
+import { ColumnWidths } from "../../DirectoryTree/useResizableColumns";
 import LazilyRenderedRow from "../LazilyRenderedRow";
 import { initialState } from "../../../state";
 

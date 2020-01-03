@@ -104,25 +104,29 @@ const childrenAreFileSets = (children: FileSet[] | FileSetTree[]): children is F
     return children[0] instanceof FileSet;
 };
 
-export interface FileSetTreeNode {
+export interface TreeNode {
     depth: number;
     fileSet?: FileSet;
     dir: null | string | number | boolean;
+    isLeaf: boolean;
     isRoot: boolean;
+    parent: number | null;
 }
 
-export const getFileSetTree2 = createSelector(
+export const getDirectoryTree = createSelector(
     [getFileSetTree],
-    (fileSetTree: FileSetTree[]): Map<number, FileSetTreeNode> => {
-        const mapping = new Map<number, FileSetTreeNode>();
+    (fileSetTree: FileSetTree[]): Map<number, TreeNode> => {
+        const mapping = new Map<number, TreeNode>();
         const nodes = fileSetTree;
         let index = 0;
         const depths = Array.from<number>({ length: nodes.length }).fill(0);
+        const parents = Array.from<number | null>({ length: nodes.length }).fill(null);
 
         while (nodes.length) {
             const node = nodes.shift();
             const depth = depths.shift();
-            if (node === undefined || depth === undefined) {
+            const parent = parents.shift();
+            if (node === undefined || depth === undefined || parent === undefined) {
                 break;
             }
             const [dir, children] = node;
@@ -132,9 +136,20 @@ export const getFileSetTree2 = createSelector(
                     depths,
                     Array.from<number>({ length: children.length }).fill(depth + 1)
                 );
-                mapping.set(index, { dir, depth, isRoot: false });
+                Array.prototype.unshift.apply(
+                    parents,
+                    Array.from<number>({ length: children.length }).fill(index)
+                );
+                mapping.set(index, { dir, depth, isLeaf: false, isRoot: dir === null, parent });
             } else {
-                mapping.set(index, { dir, depth, fileSet: children[0], isRoot: dir === null });
+                mapping.set(index, {
+                    dir,
+                    depth,
+                    fileSet: children[0],
+                    isLeaf: true,
+                    isRoot: dir === null,
+                    parent,
+                });
             }
             index++;
         }

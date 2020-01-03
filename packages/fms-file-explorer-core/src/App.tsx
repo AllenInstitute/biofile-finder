@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import AnnotationSidebar from "./containers/AnnotationSidebar";
 import Breadcrumbs from "./containers/Breadcrumbs";
 import FileDetails from "./containers/FileDetails";
-import FileList from "./containers/FileList";
+import DirectoryTree from "./containers/DirectoryTree";
 import HeaderRibbon from "./containers/HeaderRibbon";
 import { metadata } from "./state";
 
@@ -34,7 +34,7 @@ export default function App() {
                     <Breadcrumbs className={styles.breadcrumbs} />
                     <div className={styles.annotationHierarchyAndFileList}>
                         <AnnotationSidebar className={styles.annotationHierarchy} />
-                        <FileList className={styles.fileList} />
+                        <DirectoryTree className={styles.fileList} />
                     </div>
                 </div>
                 <FileDetails className={styles.fileDetails} />
