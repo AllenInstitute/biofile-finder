@@ -21,19 +21,3 @@
     display: inline-block;
     font-weight: normal;
 }
-
-.file-list {
-    transition: height 0.5s;
-    height: 30vh;
-    margin-bottom: 0.5rem;
-}
-
-.root-directory {
-    height: 100%;
-    margin-bottom: 0;
-}
-
-.collapsed {
-    height: 0;
-    margin-bottom: 0;
-}
