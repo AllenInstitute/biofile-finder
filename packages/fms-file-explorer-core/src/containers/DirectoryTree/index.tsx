@@ -30,13 +30,15 @@ const EXPANDED_FILE_LIST_HEIGHT = 300; // in px
  *      [collapsible folder] plate789
  */
 export default function DirectoryTree(props: FileListProps) {
-    const [ref, containerHeight] = useLayoutMeasurements<HTMLDivElement>(); // eslint-disable-line @typescript-eslint/no-unused-vars
+    const [ref, containerHeight] = useLayoutMeasurements<HTMLDivElement>();
 
     const directoryTree = useSelector(fileListSelectors.getDirectoryTree);
 
     const listRef = React.useRef<VariableSizeList>(null);
     const [collapsed, toggleCollapsed] = React.useState(() => new Map<number, boolean>());
 
+    // when the directoryTree data structure changes, the previous state regarding which directories are
+    // collapsed is invalid and needs to be reset.
     React.useEffect(() => {
         toggleCollapsed((prevCollapsed) => {
             if (prevCollapsed.size > 0) {
@@ -50,6 +52,7 @@ export default function DirectoryTree(props: FileListProps) {
         }
     }, [directoryTree, listRef]);
 
+    // passed as onlick handler to individual nodes in the directory tree
     const toggleCollapsedState = React.useCallback(
         (index) => {
             toggleCollapsed((prevCollapsedState) => {
