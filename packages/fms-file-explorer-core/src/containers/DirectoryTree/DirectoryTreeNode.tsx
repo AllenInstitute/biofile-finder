@@ -127,7 +127,7 @@ export default class DirectoryTreeNode extends React.Component<DirectoryTreeNode
                     viewBox="0 0 24 24"
                     width={ICON_SIZE}
                 />
-                <h4 className={styles.directoryName}>{node.dir}</h4>
+                <h4 className={styles.directoryName}>{String(node.dir)}</h4>
             </span>
         );
     }
