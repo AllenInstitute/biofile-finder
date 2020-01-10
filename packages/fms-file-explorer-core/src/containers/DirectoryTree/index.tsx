@@ -35,12 +35,12 @@ export default function DirectoryTree(props: FileListProps) {
     const directoryTree = useSelector(fileListSelectors.getDirectoryTree);
 
     const listRef = React.useRef<VariableSizeList>(null);
-    const [collapsed, toggleCollapsed] = React.useState(() => new Map<number, boolean>());
+    const [collapsed, setCollapsed] = React.useState(() => new Map<number, boolean>());
 
     // when the directoryTree data structure changes, the previous state regarding which directories are
     // collapsed is invalid and needs to be reset.
     React.useEffect(() => {
-        toggleCollapsed((prevCollapsed) => {
+        setCollapsed((prevCollapsed) => {
             if (prevCollapsed.size > 0) {
                 return new Map<number, boolean>();
             }
@@ -53,8 +53,8 @@ export default function DirectoryTree(props: FileListProps) {
     }, [directoryTree, listRef]);
 
     // passed as onClick handler to individual nodes in the directory tree
-    const toggleCollapsedState = (index: number) => {
-        toggleCollapsed((prevCollapsedState) => {
+    const setCollapsedAtIndex = (index: number) => {
+        setCollapsed((prevCollapsedState) => {
             const nextCollapsedState = new Map(prevCollapsedState.entries());
             const fileSetTreeNode = directoryTree.get(index);
 
@@ -127,7 +127,7 @@ export default function DirectoryTree(props: FileListProps) {
                 itemData={{
                     directoryTree,
                     isCollapsed,
-                    onClick: toggleCollapsedState,
+                    onClick: setCollapsedAtIndex,
                 }}
                 itemSize={(index) => {
                     const node = directoryTree.get(index);
