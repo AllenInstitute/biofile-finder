@@ -16,7 +16,6 @@ const INFO_ICON_PATH_DATA =
 interface AnnotationListItemProps {
     disabled: boolean;
     item: {
-        id: string;
         description: string;
         title: string;
     };
@@ -28,41 +27,32 @@ interface AnnotationListItemProps {
  * Export a memoized version of AnnotationListItem. Override `propsAreEqual` to directly compare the props
  * AnnotationListItem uses and cares about.
  */
-export default React.memo(
-    function AnnotationListItem(props: AnnotationListItemProps) {
-        const {
-            disabled,
-            item: { description, title },
-        } = props;
+export default React.memo(function AnnotationListItem(props: AnnotationListItemProps) {
+    const {
+        disabled,
+        item: { description, title },
+    } = props;
 
-        return (
-            <>
-                <DragIndicator disabled={disabled} />
-                <Tippy content={description}>
-                    <SvgIcon
-                        className={styles.info}
-                        height={10}
-                        pathData={INFO_ICON_PATH_DATA}
-                        viewBox="0 0 20 20"
-                        width={10}
-                    />
-                </Tippy>
-                <span
-                    data-test-id="annotation-list-item"
-                    className={classNames({
-                        [styles.disabled]: disabled,
-                    })}
-                >
-                    {title}
-                </span>
-            </>
-        );
-    },
-    (prevProps, nextProps) => {
-        return (
-            prevProps.disabled === nextProps.disabled &&
-            prevProps.item.description === nextProps.item.description &&
-            prevProps.item.title === nextProps.item.title
-        );
-    }
-);
+    return (
+        <>
+            <DragIndicator disabled={disabled} />
+            <Tippy content={description}>
+                <SvgIcon
+                    className={styles.info}
+                    height={10}
+                    pathData={INFO_ICON_PATH_DATA}
+                    viewBox="0 0 20 20"
+                    width={10}
+                />
+            </Tippy>
+            <span
+                data-test-id="annotation-list-item"
+                className={classNames({
+                    [styles.disabled]: disabled,
+                })}
+            >
+                {title}
+            </span>
+        </>
+    );
+});
