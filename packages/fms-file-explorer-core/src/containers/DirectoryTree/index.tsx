@@ -52,77 +52,71 @@ export default function DirectoryTree(props: FileListProps) {
         }
     }, [directoryTree, listRef]);
 
-    // passed as onlick handler to individual nodes in the directory tree
-    const toggleCollapsedState = React.useCallback(
-        (index) => {
-            toggleCollapsed((prevCollapsedState) => {
-                const nextCollapsedState = new Map(prevCollapsedState.entries());
-                const fileSetTreeNode = directoryTree.get(index);
-
-                // defensive condition, included only for the type checker--should never hit
-                if (!fileSetTreeNode) {
-                    return prevCollapsedState;
-                }
-
-                let prevState = nextCollapsedState.get(index);
-                // if collapsed state has not yet been explicitly set at this index, it should be treated as:
-                // true, in the case that it is a leaf node (renders a set of files)
-                // false, in the case that is not a leaf node
-                if (prevState === undefined) {
-                    prevState = fileSetTreeNode.isLeaf;
-                }
-
-                nextCollapsedState.set(index, !prevState);
-                return nextCollapsedState;
-            });
-            if (listRef.current) {
-                listRef.current.resetAfterIndex(index, true);
-            }
-        },
-        [listRef, directoryTree]
-    );
-
-    const isCollapsed = React.useCallback(
-        (index: number | null): boolean => {
-            // `index` will be null when checking for ancestral collapsed state. That is, FileSetTreeNode::parent will eventually be `null`.
-            if (index === null) {
-                return false;
-            }
-
+    // passed as onClick handler to individual nodes in the directory tree
+    const toggleCollapsedState = (index: number) => {
+        toggleCollapsed((prevCollapsedState) => {
+            const nextCollapsedState = new Map(prevCollapsedState.entries());
             const fileSetTreeNode = directoryTree.get(index);
 
             // defensive condition, included only for the type checker--should never hit
             if (!fileSetTreeNode) {
-                return false;
+                return prevCollapsedState;
             }
 
-            // never collapse root dir
-            if (fileSetTreeNode.isRoot) {
-                return false;
+            let prevState = nextCollapsedState.get(index);
+            // if collapsed state has not yet been explicitly set at this index, it should be treated as:
+            // true, in the case that it is a leaf node (renders a set of files)
+            // false, in the case that is not a leaf node
+            if (prevState === undefined) {
+                prevState = fileSetTreeNode.isLeaf;
             }
 
-            // if parent (or grand-, or great-grand parent) is collapsed, this node should be collapsed as well
-            if (isCollapsed(fileSetTreeNode.parent)) {
-                return true;
-            }
+            nextCollapsedState.set(index, !prevState);
+            return nextCollapsedState;
+        });
+        if (listRef.current) {
+            listRef.current.resetAfterIndex(index, true);
+        }
+    };
 
-            // if user has explicitly collapsed this node, defer to user's selection
-            const isCollapsedAtIndex = collapsed.get(index);
-            if (isCollapsedAtIndex !== undefined) {
-                // unfortunately Map::has does not act as a type guard so need to do an explicit undefined check
-                return isCollapsedAtIndex;
-            }
-
-            // by default, collapse the tree's leaves (sets of files)
-            if (fileSetTreeNode.isLeaf) {
-                return true;
-            }
-
-            // otherwise, the trees branches default to open
+    const isCollapsed = (index: number | null): boolean => {
+        // `index` will be null when checking for ancestral collapsed state. That is, FileSetTreeNode::parent will eventually be `null`.
+        if (index === null) {
             return false;
-        },
-        [collapsed, directoryTree]
-    );
+        }
+
+        const fileSetTreeNode = directoryTree.get(index);
+
+        // defensive condition, included only for the type checker--should never hit
+        if (!fileSetTreeNode) {
+            return false;
+        }
+
+        // never collapse root dir
+        if (fileSetTreeNode.isRoot) {
+            return false;
+        }
+
+        // if parent (or grand-, or great-grand parent) is collapsed, this node should be collapsed as well
+        if (isCollapsed(fileSetTreeNode.parent)) {
+            return true;
+        }
+
+        // if user has explicitly collapsed this node, defer to user's selection
+        const isCollapsedAtIndex = collapsed.get(index);
+        if (isCollapsedAtIndex !== undefined) {
+            // unfortunately Map::has does not act as a type guard so need to do an explicit undefined check
+            return isCollapsedAtIndex;
+        }
+
+        // by default, collapse the tree's leaves (sets of files)
+        if (fileSetTreeNode.isLeaf) {
+            return true;
+        }
+
+        // otherwise, the trees branches default to open
+        return false;
+    };
 
     return (
         <div className={classNames(props.className)} ref={ref}>
