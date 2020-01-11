@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { VariableSizeList } from "react-window";
 
 import DirectoryTreeNode from "./DirectoryTreeNode";
-import * as fileListSelectors from "./selectors";
+import * as directoryTreeSelectors from "./selectors";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 
 interface FileListProps {
@@ -32,7 +32,7 @@ const EXPANDED_FILE_LIST_HEIGHT = 300; // in px
 export default function DirectoryTree(props: FileListProps) {
     const [ref, containerHeight] = useLayoutMeasurements<HTMLDivElement>();
 
-    const directoryTree = useSelector(fileListSelectors.getDirectoryTree);
+    const directoryTree = useSelector(directoryTreeSelectors.getDirectoryTree);
 
     const listRef = React.useRef<VariableSizeList>(null);
     const [collapsed, setCollapsed] = React.useState(() => new Map<number, boolean>());
