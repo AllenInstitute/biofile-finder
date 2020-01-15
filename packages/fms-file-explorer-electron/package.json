@@ -15,12 +15,13 @@
     "directories": {
       "output": "build"
     },
-    "productName": "FMS File Explorer",
     "files": [
       "dist/**/*",
       "node_modules/**/*",
       "package.json"
-    ]
+    ],
+    "publish": "github",
+    "productName": "FMS File Explorer"
   },
   "scripts": {
     "build": "npm-run-all --print-label clean makeDistDir --parallel bundle transpile",
