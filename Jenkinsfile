@@ -106,6 +106,9 @@ pipeline {
                 ARTIFACTORY_API_KEY = credentials("ci_publisher")
             }
             steps {
+                // Make certain work tree is clean; this can not be the case with package-lock.json changes due to npm install
+                sh "git checkout -- ."
+
                 // Increment version
                 sh "./gradlew version -Pbump=${params.VERSION_BUMP_TYPE}"
 
