@@ -95,7 +95,7 @@ pipeline {
             }
         }
 
-        stage ("version, build, and publish") {
+        stage ("version, build, and publish fms-file-explorer-core") {
             when {
                 expression { !IGNORE_AUTHORS.contains(gitAuthor()) }
                 branch "master"
@@ -106,41 +106,12 @@ pipeline {
                 ARTIFACTORY_API_KEY = credentials("ci_publisher")
             }
             steps {
-                script {
-                    CHANGED_SCOPES = sh(script: "${NODE} ./scripts/get-changed-scopes.js", returnStdout: true).trim()
-                }
-
                 // Increment version
                 sh "./gradlew version -Pbump=${params.VERSION_BUMP_TYPE}"
 
                 // Build artifacts in all repos that have changed since last release (prior to running version command
                 // above) and publish those artifacts appropriately.
-                sh "./gradlew publishArtifact -Pscope=\"${CHANGED_SCOPES}\""
-            }
-        }
-
-        // TODO
-        stage ("promote") {
-            when {
-                equals expected: PROMOTE_ARTIFACT, actual: params.JOB_TYPE
-            }
-            steps {
-                sh "${PYTHON} ${VENV_BIN}/promote_artifact -t maven -g ${params.GIT_TAG}"
-            }
-        }
-
-        // TODO
-        stage ("deploy:web") {
-            when {
-                equals expected: DEPLOY_ARTIFACT, actual: params.JOB_TYPE
-            }
-            steps {
-                script {
-                    ARTIFACTORY_REPO = DEPLOYMENT_TARGET_TO_MAVEN_REPO[params.DEPLOYMENT_TYPE]
-                    S3_BUCKET = DEPLOYMENT_TARGET_TO_S3_BUCKET[params.DEPLOYMENT_TYPE]
-                }
-
-                sh "${PYTHON} ${VENV_BIN}/deploy_artifact -d --branch=${env.BRANCH_NAME} --deploy-env=${params.DEPLOYMENT_TYPE} maven-tgz S3 --artifactory-repo=${ARTIFACTORY_REPO} --bucket=${S3_BUCKET} ${params.GIT_TAG}"
+                sh "./gradlew publishArtifact -Pscope=\"--scope=@aics/fms-file-explorer-core\""
             }
         }
     }
