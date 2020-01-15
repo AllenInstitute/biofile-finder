@@ -3,9 +3,24 @@
   "version": "0.1.2",
   "description": "",
   "main": "dist/main.js",
+  "files": [
+    "**/*"
+  ],
   "repository": {
     "type": "git",
     "url": "https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/fms-file-explorer/browse"
+  },
+  "build": {
+    "appId": "org.alleninstitute.fileexplorer",
+    "directories": {
+      "output": "build"
+    },
+    "productName": "FMS File Explorer",
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ]
   },
   "scripts": {
     "build": "npm-run-all --print-label clean makeDistDir --parallel bundle transpile",
@@ -23,9 +38,10 @@
     "transpile": "babel src/main.ts --source-maps --env-name commonjs --out-file dist/main.js",
     "typeCheck": "tsc -p tsconfig.json --noEmit"
   },
-  "author": "",
+  "author": "AICS SW Team<aics-github@alleninstitute.org>",
   "license": "ISC",
   "devDependencies": {
+    "@aics/fms-file-explorer-core": "0.1.2",
     "@babel/cli": "7.6.0",
     "@babel/core": "7.6.0",
     "@babel/plugin-proposal-class-properties": "7.5.5",
@@ -49,10 +65,10 @@
     "babel-plugin-import": "1.12.1",
     "chai": "4.2.0",
     "clean-webpack-plugin": "3.0.0",
+    "core-js": "3.3.2",
     "css-loader": "3.2.0",
     "electron": "6.0.9",
     "electron-builder": "22.2.0",
-    "electron-devtools-installer": "2.2.4",
     "enzyme": "3.10.0",
     "enzyme-adapter-react-16": "1.14.0",
     "eslint": "6.6.0",
@@ -73,6 +89,10 @@
     "postcss-loader": "3.0.0",
     "postcss-preset-env": "6.7.0",
     "prettier": "1.18.2",
+    "react": "16.9.0",
+    "react-dom": "16.9.0",
+    "react-redux": "7.1.1",
+    "regenerator-runtime": "0.13.3",
     "rimraf": "3.0.0",
     "sinon": "7.4.2",
     "ts-node": "8.4.1",
@@ -83,11 +103,6 @@
     "webpack-dev-server": "3.8.0"
   },
   "dependencies": {
-    "@aics/fms-file-explorer-core": "0.1.2",
-    "core-js": "3.3.2",
-    "react": "16.9.0",
-    "react-dom": "16.9.0",
-    "react-redux": "7.1.1",
-    "regenerator-runtime": "0.13.3"
+    "electron-devtools-installer": "2.2.4"
   }
 }
