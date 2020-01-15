@@ -50,6 +50,7 @@
     "chai": "4.2.0",
     "clean-webpack-plugin": "3.0.0",
     "css-loader": "3.2.0",
+    "electron": "6.0.9",
     "electron-builder": "22.2.0",
     "electron-devtools-installer": "2.2.4",
     "enzyme": "3.10.0",
@@ -84,7 +85,6 @@
   "dependencies": {
     "@aics/fms-file-explorer-core": "0.1.2",
     "core-js": "3.3.2",
-    "electron": "6.0.9",
     "react": "16.9.0",
     "react-dom": "16.9.0",
     "react-redux": "7.1.1",
