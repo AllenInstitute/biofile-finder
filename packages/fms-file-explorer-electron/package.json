@@ -1,6 +1,6 @@
 {
   "name": "fms-file-explorer-electron",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "main": "dist/main.js",
   "repository": {
@@ -81,9 +81,9 @@
     "webpack-dev-server": "3.8.0"
   },
   "dependencies": {
+    "@aics/fms-file-explorer-core": "0.1.1",
     "core-js": "3.3.2",
     "electron": "6.0.9",
-    "@aics/fms-file-explorer-core": "*",
     "react": "16.9.0",
     "react-dom": "16.9.0",
     "react-redux": "7.1.1",
