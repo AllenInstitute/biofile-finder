@@ -17,7 +17,7 @@
     "package.json"
   ],
   "publishConfig": {
-    "registry": "https://artifactory.corp.alleninstitute.org/artifactory/api/npm/npm-local/"
+    "access": "public"
   },
   "scripts": {
     "build": "npm-run-all --print-label clean --parallel generateMockData generateTypes transpile:ts transpile:pcss",
