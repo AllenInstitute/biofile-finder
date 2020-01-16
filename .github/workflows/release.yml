@@ -1,0 +1,12 @@
+name: release
+
+on:
+  - repository_dispatch
+
+jobs:
+  release-fms-file-explorer-electron:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Debug
+        uses: hmarr/debug-action

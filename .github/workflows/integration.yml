@@ -1,12 +1,9 @@
-name: CI
+name: integration
 
 on:
-  push:
-    branches:
-      - master
+  - push
 
 jobs:
-  # Electron app
   build-fms-file-explorer-electron:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -31,6 +28,5 @@ jobs:
 
           package_root: "packages/fms-file-explorer-electron"
 
-          # If the commit is tagged with a version (e.g. "v1.0.0"),
-          # release the app after building
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          # Never release on an integration build
+          release: false
