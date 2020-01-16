@@ -101,10 +101,18 @@ pipeline {
             }
             steps {
                 script {
-                    POST_DATA = JsonOutput.toJson([event_type: 'on-demand-release', client_payload: [ref: "${env.BRANCH_NAME}"]])
+                    def postData = JsonOutput.toJson([event_type: "on-demand-release", client_payload: [ref: "${env.BRANCH_NAME}"]])
+                    def authHeader = [name: "Authorization", value: "bearer ${GH_TOKEN}"]
+                    def acceptHeader = [name: "Accept", value: "application/vnd.github.everest-preview+json"]
+                    def response = httpRequest url: "https://api.github.com/repos/AllenInstitute/aics-fms-file-explorer-app/dispatches",
+                                               httpMode: "POST",
+                                               requestBody: postData,
+                                               customHeaders: [authHeader, acceptHeader]
+
+                    if (response.getStatus() >= 400) {
+                        throw new Exception("Failed to trigger a release workflow")
+                    }
                 }
-                // Trigger a repository dispatch event of type "on-demand-release" with the following payload: { "ref": BRANCH_NAME }
-                sh 'curl -X POST --fail -H "Authorization: bearer ${GH_TOKEN}" -H "Accept: application/vnd.github.everest-preview+json" -d \'${POST_DATA}\' https://api.github.com/repos/AllenInstitute/aics-fms-file-explorer-app/dispatches'
             }
         }
     }
