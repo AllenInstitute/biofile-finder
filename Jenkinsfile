@@ -1,3 +1,5 @@
+import groovy.json.JsonOutput
+
 // JOB_TYPE constants
 String INTEGRATION = "Integration build"
 String VERSION = "Version packages in the monorepo"
@@ -98,8 +100,11 @@ pipeline {
                 GH_TOKEN = credentials("aics-github-token-repo-access")
             }
             steps {
-                // Trigger a repository dispatch event of type "on-demand-release" with the following payload: { "ref": GIT_REF }
-                sh 'curl -X POST --fail -H "Authorization: bearer ${GH_TOKEN}" -H "Accept: application/vnd.github.everest-preview+json" -d \'{ "event_type": "on-demand-release", "client_payload": { "ref": "${env.BRANCH_NAME}" } }\' https://api.github.com/repos/AllenInstitute/aics-fms-file-explorer-app/dispatches'
+                script {
+                    POST_DATA = JsonOutput.toJson([event_type: 'on-demand-release', client_payload: [ref: "${env.BRANCH_NAME}"]])
+                }
+                // Trigger a repository dispatch event of type "on-demand-release" with the following payload: { "ref": BRANCH_NAME }
+                sh 'curl -X POST --fail -H "Authorization: bearer ${GH_TOKEN}" -H "Accept: application/vnd.github.everest-preview+json" -d \'${POST_DATA}\' https://api.github.com/repos/AllenInstitute/aics-fms-file-explorer-app/dispatches'
             }
         }
     }
