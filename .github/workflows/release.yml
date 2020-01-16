@@ -5,8 +5,31 @@ on:
 
 jobs:
   release-fms-file-explorer-electron:
-    runs-on: ubuntu-latest
+    if: github.event.action == 'on-demand-release'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-      - name: Debug
-        uses: hmarr/debug-action
+      - name: Check out Git repository
+        uses: actions/checkout@master
+        with:
+          ref: ${{ github.event.client_payload.ref }}
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@master
+        with:
+          node-version: 12
+
+      - name: Build/release Electron app
+        uses: samuelmeuli/action-electron-builder@master
+        with:
+          # GitHub token, automatically provided to the action
+          # (No need to define this secret in the repo settings)
+          github_token: ${{ secrets.github_token }}
+
+          package_root: "packages/fms-file-explorer-electron"
+
+          # Always release when repo dispatch event is of type "release"
+          release: true
