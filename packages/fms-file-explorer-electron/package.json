@@ -10,9 +10,11 @@
   "build": {
     "appId": "org.aics.alleninstitute.fileexplorer",
     "directories": {
+      "buildResources": "assets",
       "output": "build"
     },
     "files": [
+      "assets/*",
       "dist/**/*",
       "node_modules/**/*",
       "package.json"
