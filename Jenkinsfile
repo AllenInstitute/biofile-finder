@@ -1,26 +1,18 @@
 // JOB_TYPE constants
 String INTEGRATION = "Integration build"
-String VERSION_BUILD_PUBLISH_ARTIFACT = "Version, build, and publish artifact"
-String DEPLOY_ARTIFACT = "Deploy artifact"  // TODO
-String PROMOTE_ARTIFACT = "Promote artifact"  // TODO
+String VERSION = "Version packages in the monorepo"
+String PUBLISH_NPM_LIB = "Publish @aics/fms-file-explore-core to npmjs.org"
+String RELEASE = "Trigger release workflow on Github"
 
 // VERSION_BUMP_TYPE constants
 // The values of these constants must match the acceptable args to `lerna version`
 String MAJOR_VERSION_BUMP = "major"
 String MINOR_VERSION_BUMP = "minor"
 String PATCH_VERSION_BUMP = "patch"
-
-// DEPLOYMENT_TYPE constants
-// The values of these constants must match values from jenkinstools.deploy.DeployEnv enum
-String STAGING_DEPLOYMENT = "staging"
-String PRODUCTION_DEPLOYMENT = "production"
-
-// GIT_TAG constant
-// Used as default value for GIT_TAG parameter, and checked for in validation stage
-String GIT_TAG_SENTINEL = "invalid_git_tag"
-
-Map DEPLOYMENT_TARGET_TO_S3_BUCKET = [(STAGING_DEPLOYMENT): "staging.<CHANGE-ME>.allencell.org", (PRODUCTION_DEPLOYMENT): "production.<CHANGE-ME>.allencell.org"]
-Map DEPLOYMENT_TARGET_TO_MAVEN_REPO = [(STAGING_DEPLOYMENT): "maven-snapshot-local", (PRODUCTION_DEPLOYMENT): "maven-release-local"]
+String PREMAJOR_VERSION_BUMP = "premajor"
+String PREMINOR_VERSION_BUMP = "preminor"
+String PREPATCH_VERSION_BUMP = "prepatch"
+String PRERELEASE_VERSION_BUMP = "prerelease"
 
 String[] IGNORE_AUTHORS = ["jenkins", "Jenkins User", "Jenkins Builder"]
 
@@ -36,18 +28,16 @@ pipeline {
     parameters {
         // N.b.: For choice parameters, the first choice is the default value
         // See https://github.com/jenkinsci/jenkins/blob/master/war/src/main/webapp/help/parameter/choice-choices.html
-        choice(name: "JOB_TYPE", choices: [INTEGRATION, VERSION_BUILD_PUBLISH_ARTIFACT], description: "Which type of job this is.")
-        choice(name: "VERSION_BUMP_TYPE", choices: [PATCH_VERSION_BUMP, MINOR_VERSION_BUMP, MAJOR_VERSION_BUMP], description: "Which kind of version bump to perform. Only valid when JOB_TYPE is '${VERSION_BUILD_PUBLISH_ARTIFACT}'.")
-        choice(name: "DEPLOYMENT_TYPE", choices: [STAGING_DEPLOYMENT, PRODUCTION_DEPLOYMENT], description: "Target environment for deployment. Will determine which S3 bucket assets are deployed to and how the release history is written. This is only used if JOB_TYPE is '${DEPLOY_ARTIFACT}'.")
-        gitParameter(name: "GIT_TAG", defaultValue: GIT_TAG_SENTINEL, type: "PT_TAG", sortMode: "DESCENDING_SMART", description: "Select a Git tag specifying the artifact which should be promoted or deployed. This is only used if JOB_TYPE is '${PROMOTE_ARTIFACT}' or '${DEPLOY_ARTIFACT}'.")
-    }
-    environment {
-        VENV_BIN = "/local1/virtualenvs/jenkinstools/bin"
-        PYTHON = "${VENV_BIN}/python3"
-
-        // HACK until we can find a better way to work with project-local versions of nodejs on Jenkins (e.g., nvm or nave)
-        // When that day comes, this project no longer has a need for Gradle.
-        NODE = "./.gradle/nodejs/node-v12.12.0-linux-x64/bin/node"
+        choice(name: "JOB_TYPE", choices: [INTEGRATION, VERSION, PUBLISH_NPM_LIB, RELEASE], description: "Which type of job this is.")
+        choice(name: "VERSION_BUMP_TYPE", choices: [
+            PATCH_VERSION_BUMP,
+            MINOR_VERSION_BUMP,
+            MAJOR_VERSION_BUMP,
+            PREMAJOR_VERSION_BUMP,
+            PREMINOR_VERSION_BUMP,
+            PREPATCH_VERSION_BUMP,
+            PRERELEASE_VERSION_BUMP
+        ], description: "Which kind of version bump to perform. Only valid when JOB_TYPE is '${VERSION}'.")
     }
     stages {
         stage ("initialize") {
@@ -59,26 +49,8 @@ pipeline {
                 // print the params used to run current job
                 print "JOB_TYPE: ${params.JOB_TYPE}"
                 print "VERSION_BUMP_TYPE: ${params.VERSION_BUMP_TYPE}"
-                print "DEPLOYMENT_TYPE: ${params.DEPLOYMENT_TYPE}"
-                print "GIT_TAG: ${params.GIT_TAG}"
 
                 sh "./gradlew setup"
-            }
-        }
-
-        stage ("fail if invalid job parameters") {
-            when {
-                expression { !IGNORE_AUTHORS.contains(gitAuthor()) }
-                anyOf {
-                    // Promote jobs need a git tag; GIT_TAG_SENTINEL is the defaultValue that isn't valid
-                    expression { return params.DEPLOYMENT_TYPE == PROMOTE_ARTIFACT && params.GIT_TAG == GIT_TAG_SENTINEL }
-
-                    // Deploy jobs need a git tag; GIT_TAG_SENTINEL is the defaultValue that isn't valid
-                    expression { return params.DEPLOYMENT_TYPE == DEPLOY_ARTIFACT && params.GIT_TAG == GIT_TAG_SENTINEL }
-                }
-            }
-            steps {
-                error("Invalid job parameters for ${params.DEPLOYMENT_TYPE} job: Must select a valid git tag.")
             }
         }
 
@@ -95,26 +67,39 @@ pipeline {
             }
         }
 
-        stage ("version, build, and publish fms-file-explorer-core") {
+        stage ("version") {
             when {
-                expression { !IGNORE_AUTHORS.contains(gitAuthor()) }
                 branch "master"
-                equals expected: VERSION_BUILD_PUBLISH_ARTIFACT, actual: params.JOB_TYPE
-            }
-            environment {
-                DEPLOYMENT_ENV = "production"
-                ARTIFACTORY_API_KEY = credentials("ci_publisher")
+                equals expected: VERSION, actual: params.JOB_TYPE
             }
             steps {
-                // Make certain work tree is clean; this can not be the case with package-lock.json changes due to npm install
+                // Make certain working tree is clean; this could not be the case due to classic, unexplainable package-lock.json changes
                 sh "git checkout -- ."
 
                 // Increment version
                 sh "./gradlew version -Pbump=${params.VERSION_BUMP_TYPE}"
+            }
+        }
 
-                // Build artifacts in all repos that have changed since last release (prior to running version command
-                // above) and publish those artifacts appropriately.
+        stage ("publish @aics/fms-file-explorer-core") {
+            when {
+                equals expected: PUBLISH_NPM_LIB, actual: params.JOB_TYPE
+            }
+            steps {
                 sh "./gradlew publishArtifact -Pscope=\"--scope=@aics/fms-file-explorer-core\""
+            }
+        }
+
+        stage ("trigger release") {
+            when {
+                equals expected: RELEASE, actual: params.JOB_TYPE
+            }
+            environment {
+                GH_TOKEN = credentials("aics-github-token-repo-access")
+            }
+            steps {
+                // Trigger a repository dispatch event of type "on-demand-release" with the following payload: { "ref": GIT_REF }
+                sh 'curl -X POST --fail -H "Authorization: bearer ${GH_TOKEN}" -H "Accept: application/vnd.github.everest-preview+json" -d \'{ "event_type": "on-demand-release", "client_payload": { "ref": "${env.BRANCH_NAME}" } }\' https://api.github.com/repos/AllenInstitute/aics-fms-file-explorer-app/dispatches'
             }
         }
     }
