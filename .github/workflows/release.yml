@@ -25,7 +25,16 @@ jobs:
       - name: Build/release Electron app
         uses: GabeMedrash/action-electron-builder@feature/config-overrides
         with:
-          extra_metadata: '{ "version": "${{ github.event.client_payload.version }}", "foo": "bar" }'
+          config_overrides: >
+            {
+              "extraMetadata": {
+                "version": "${{ github.event.client_payload.version }}"
+              },
+              "releaseInfo": {
+                "releaseName": "${{ github.event.client_payload.release_name }}",
+                "releaseNotes": "${{ github.event.client_payload.release_notes }}"
+              }
+            }
 
           # GitHub token, automatically provided to the action
           # (No need to define this secret in the repo settings)
