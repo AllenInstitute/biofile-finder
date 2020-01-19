@@ -43,4 +43,4 @@ jobs:
           package_root: "packages/fms-file-explorer-electron"
 
           # Always release when repo dispatch event is of type "release"
-          release: false
+          release: true
