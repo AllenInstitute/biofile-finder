@@ -9,7 +9,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - name: Check out Git repository
@@ -29,10 +29,6 @@ jobs:
             {
               "extraMetadata": {
                 "version": "${{ github.event.client_payload.version }}"
-              },
-              "releaseInfo": {
-                "releaseName": "${{ github.event.client_payload.release_name }}",
-                "releaseNotes": "${{ github.event.client_payload.release_notes }}"
               }
             }
 
