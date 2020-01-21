@@ -44,7 +44,7 @@
         },
         {
             "annotation_display_name": "Structure",
-            "annotation_id": 624548,
+            "annotation_id": 532866,
             "annotation_name": "structure",
             "description": "Structure",
             "type": "Text"
@@ -58,35 +58,35 @@
         },
         {
             "annotation_display_name": "Imaging Date",
-            "annotation_id": 811629,
+            "annotation_id": 448383,
             "annotation_name": "imaging_date",
             "description": "Imaging Date",
             "type": "Date/Time"
         },
         {
             "annotation_display_name": "Plate Barcode",
-            "annotation_id": 758551,
+            "annotation_id": 25926,
             "annotation_name": "plate_barcode",
             "description": "Plate Barcode",
             "type": "Text"
         },
         {
             "annotation_display_name": "Plate Type",
-            "annotation_id": 570735,
+            "annotation_id": 656414,
             "annotation_name": "plate_type",
             "description": "Plate Type",
             "type": "Text"
         },
         {
             "annotation_display_name": "Clone",
-            "annotation_id": 946157,
+            "annotation_id": 296831,
             "annotation_name": "clone",
             "description": "Clone",
             "type": "Text"
         },
         {
             "annotation_display_name": "Objective",
-            "annotation_id": 919587,
+            "annotation_id": 138167,
             "annotation_name": "objective",
             "description": "Objective",
             "type": "Number"
@@ -100,35 +100,35 @@
         },
         {
             "annotation_display_name": "Cas9 Batch",
-            "annotation_id": 390412,
+            "annotation_id": 101043,
             "annotation_name": "cas9_batch",
             "description": "Cas9 Batch",
             "type": "Text"
         },
         {
             "annotation_display_name": "crRNA",
-            "annotation_id": 640584,
+            "annotation_id": 671916,
             "annotation_name": "crrna",
             "description": "crRNA",
             "type": "Text"
         },
         {
             "annotation_display_name": "crRNABatch",
-            "annotation_id": 189758,
+            "annotation_id": 433973,
             "annotation_name": "crrnabatch",
             "description": "crRNABatch",
             "type": "Text"
         },
         {
             "annotation_display_name": "Donor Plasmid",
-            "annotation_id": 907293,
+            "annotation_id": 346278,
             "annotation_name": "donor_plasmid",
             "description": "Donor Plasmid",
             "type": "Text"
         },
         {
             "annotation_display_name": "Donor Plasmid Batch",
-            "annotation_id": 688119,
+            "annotation_id": 789478,
             "annotation_name": "donor_plasmid_batch",
             "description": "Donor Plasmid Batch",
             "type": "Text"
@@ -149,7 +149,7 @@
         },
         {
             "annotation_display_name": "Solution Lot",
-            "annotation_id": 851454,
+            "annotation_id": 596775,
             "annotation_name": "solution_lot",
             "description": "Solution Lot",
             "type": "Text"

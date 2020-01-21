@@ -1,9 +1,9 @@
 {
     "data": [
+        "C-terminus",
         "Internal",
-        "N-terminus_second_exon",
         "N-terminus",
-        "C-terminus"
+        "N-terminus_second_exon"
     ],
     "hasMore": false,
     "offset": 0,
