@@ -1,6 +1,7 @@
 import { makeReducer } from "@aics/redux-utils";
-import { castArray, without } from "lodash";
+import { castArray, compact, find, without } from "lodash";
 
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../metadata/reducer";
 import Annotation from "../../entity/Annotation";
 
 import {
@@ -17,9 +18,16 @@ export interface SelectionStateBranch {
     selectedFiles: string[]; // file ids
 }
 
+const DEFAULT_DISPLAY_ANNOTATIONS = compact([
+    find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "file_name"),
+    find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "uploaded"),
+    find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "uploaded_by"),
+    find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "file_size"),
+]);
+
 export const initialState = {
     annotationHierarchy: [],
-    displayAnnotations: [],
+    displayAnnotations: [...DEFAULT_DISPLAY_ANNOTATIONS],
     selectedFiles: [], // file ids
 };
 

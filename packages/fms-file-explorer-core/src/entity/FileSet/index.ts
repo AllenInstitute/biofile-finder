@@ -31,7 +31,7 @@ function isPromise(arg: any): arg is Promise<any> {
  * the subsets of file metadata that will be displayed in the file list.
  */
 export default class FileSet {
-    private cache: LRUCache<number, FmsFile>;
+    private cache: LRUCache<string, FmsFile>;
     private _fileIds: string[] = [];
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
@@ -42,7 +42,7 @@ export default class FileSet {
     constructor(opts: Partial<Opts> = {}) {
         const { fileService, filters, maxCacheSize, sortOrder } = defaults({}, opts, DEFAULT_OPTS);
 
-        this.cache = new LRUCache<number, FmsFile>({ max: maxCacheSize });
+        this.cache = new LRUCache<string, FmsFile>({ max: maxCacheSize });
         this._filters = filters;
         this.sortOrder = sortOrder;
         this.fileService = fileService;
@@ -65,6 +65,15 @@ export default class FileSet {
 
     public equals(fileSet: FileSet) {
         return this.toQueryString() === fileSet.toQueryString();
+    }
+
+    public getFileByIndex(index: number) {
+        const correspondingFileId = this._fileIds[index];
+        if (!correspondingFileId) {
+            return undefined;
+        }
+
+        return this.cache.get(correspondingFileId);
     }
 
     /**
@@ -92,7 +101,7 @@ export default class FileSet {
             });
 
             response.data.forEach((file: FmsFile) => {
-                this.cache.set(file.file_index, file);
+                this.cache.set(file.file_id, file);
             });
 
             this.totalFileCount = response.totalCount;
@@ -125,7 +134,12 @@ export default class FileSet {
     }
 
     public isFileMetadataLoaded(index: number) {
-        return this.cache.has(index);
+        const correspondingFileId = this._fileIds[index];
+        if (!correspondingFileId) {
+            return false;
+        }
+
+        return this.cache.has(correspondingFileId);
     }
 
     /**

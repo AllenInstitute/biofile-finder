@@ -1,4 +1,4 @@
-interface Response<T> {
+export interface Response<T> {
     data: T[];
     hasMore: boolean;
     offset: number;

@@ -6,9 +6,9 @@ import { Provider } from "react-redux";
 import * as sinon from "sinon";
 
 import Annotation from "../../../entity/Annotation";
-import { FmsFile } from "../../../services/FileService";
 import LazilyRenderedRow from "../LazilyRenderedRow";
 import { initialState } from "../../../state";
+import FileSet from "../../../entity/FileSet";
 
 describe("<LazilyRenderedRow />", () => {
     const fileNameAnnotation = new Annotation({
@@ -19,11 +19,15 @@ describe("<LazilyRenderedRow />", () => {
     });
 
     function makeItemData() {
-        const files = new Map<number, FmsFile>();
-        files.set(3, { file_id: "abc123", file_name: "my_image.czi" });
+        const fileSet = new FileSet();
+        sinon.stub(fileSet, "getFileByIndex").callsFake((index) => {
+            if (index === 3) {
+                return { file_id: "abc123", file_name: "my_image.czi" };
+            }
+        });
 
         return {
-            files,
+            fileSet,
             onSelect: sinon.spy(),
         };
     }

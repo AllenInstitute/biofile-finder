@@ -58,7 +58,7 @@ function FileList(props: FileListProps) {
                 {({ onItemsRendered, ref }) => (
                     <FixedSizeList
                         itemData={{
-                            files: fileSet.files,
+                            fileSet: fileSet,
                             onSelect,
                         }}
                         itemSize={rowHeight} // row height

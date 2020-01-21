@@ -1,4 +1,4 @@
-import { get as _get } from "lodash";
+import { find, get as _get } from "lodash";
 
 import annotationFormatterFactory, { AnnotationFormatter } from "../AnnotationFormatter";
 import AnnotationService from "../../services/AnnotationService";
@@ -54,9 +54,31 @@ export default class Annotation {
      *  const displayValue = fileSizeAnnotation.getDisplayValue(fmsFile);
      */
     public getDisplayValue(file: FmsFile): string {
-        const value = _get(file, this.annotation.annotation_name, Annotation.MISSING_VALUE);
+        let value: string | undefined | any[];
+
+        if (file.hasOwnProperty(this.name)) {
+            // "top-level" annotation
+            value = _get(file, this.name, Annotation.MISSING_VALUE);
+        } else {
+            // part of the "annotations" list
+
+            const correspondingAnnotation = find(
+                _get(file, "annotations", []),
+                (annotation) => annotation.annotation_name === this.name
+            );
+            if (!correspondingAnnotation) {
+                value = Annotation.MISSING_VALUE;
+            } else {
+                value = correspondingAnnotation.values;
+            }
+        }
+
         if (value === Annotation.MISSING_VALUE) {
             return value;
+        }
+
+        if (Array.isArray(value)) {
+            return value.map((val) => this.formatter(val, this.annotation.units)).join(", ");
         }
 
         return this.formatter(value, this.annotation.units);

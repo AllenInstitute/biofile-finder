@@ -2,7 +2,6 @@ import { configureMockStore } from "@aics/redux-utils";
 import { expect } from "chai";
 
 import { RECEIVE_ANNOTATIONS, requestAnnotations } from "../actions";
-import { SELECT_DISPLAY_ANNOTATION } from "../../selection/actions";
 import metadataLogics from "../logics";
 
 describe("Metadata logics", () => {
@@ -19,7 +18,6 @@ describe("Metadata logics", () => {
 
             // assert
             expect(actions.includesMatch({ type: RECEIVE_ANNOTATIONS })).to.equal(true);
-            expect(actions.includesMatch({ type: SELECT_DISPLAY_ANNOTATION })).to.equal(true);
         });
     });
 });

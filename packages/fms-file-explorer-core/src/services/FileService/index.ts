@@ -1,6 +1,7 @@
-import { compact, join } from "lodash";
+import { compact, every, filter, find, includes, isEmpty, join, snakeCase } from "lodash";
+import * as LRUCache from "lru-cache";
 
-import RestServiceResponse from "../../entity/RestServiceResponse";
+import RestServiceResponse, { Response } from "../../entity/RestServiceResponse";
 
 export interface FmsFile {
     [key: string]: any;
@@ -25,6 +26,7 @@ export interface GetFileIdsRequest {
 export default class FileService {
     private static readonly BASE_FILES_URL = "api/1.0/file";
     private static readonly BASE_FILE_IDS_URL = "api/1.0/file/ids";
+    private cache = new LRUCache<string, Response<FmsFile>>({ max: 10 });
 
     public getFiles(request: GetFilesRequest): Promise<RestServiceResponse<FmsFile>> {
         const { fromId, limit, queryString, startIndex, endIndex } = request;
@@ -35,13 +37,12 @@ export default class FileService {
 
         // TEMPORARY, FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE EXISTS
         return new Promise<RestServiceResponse>((resolve) => {
-            setTimeout(() => {
-                const res = require("../../../assets/files.json");
-                // In a real API call this will be unnecessary, but until then, need to grab just the subset of
-                // data requested.
-                const requestedRange = res.data.slice(startIndex, endIndex + 1);
-                resolve(new RestServiceResponse({ ...res, data: requestedRange }));
-            }, 750);
+            const result = this.getFromFlatFile(queryString);
+
+            // In a real API call this will be unnecessary, but until then, need to grab just the subset of
+            // data requested.
+            const requestedRange = result.data.slice(startIndex, endIndex + 1);
+            resolve(new RestServiceResponse({ ...result, data: requestedRange }));
         });
     }
 
@@ -52,25 +53,63 @@ export default class FileService {
         console.log(`Requesting file ids from ${requestUrl}`);
 
         // TEMPORARY, FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE EXISTS
-        let page = 0;
-        const makeRequest = (): Promise<RestServiceResponse<string>> => {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    const res = require(`../../../assets/file-ids-${page}.json`);
-                    page += 1;
-                    resolve(new RestServiceResponse(res));
-                }, 750);
-            });
-        };
+        const makeRequest = () =>
+            new Promise<RestServiceResponse>((resolve) => {
+                const result = this.getFromFlatFile(queryString);
 
-        const fileIds: string[] = [];
-        let res = await makeRequest();
-        res.data.forEach((id) => fileIds.push(id));
-        while (res.hasMore) {
-            res = await makeRequest();
-            res.data.forEach((id) => fileIds.push(id));
+                resolve(new RestServiceResponse(result));
+            });
+
+        const res = await makeRequest();
+        return res.data.map((file) => file.file_id);
+    }
+
+    private getFromFlatFile(queryString: string): Response<FmsFile> {
+        let cached = this.cache.get(queryString);
+
+        if (cached === undefined) {
+            const searchParams = new URLSearchParams(queryString);
+            const searchParamFilters: [string, any][] = [];
+            for (const pair of searchParams.entries()) {
+                searchParamFilters.push(pair);
+            }
+            const res = require("../../../assets/files.json");
+
+            let files;
+            if (isEmpty(searchParamFilters)) {
+                files = res.data;
+            } else {
+                console.time(`Filtering files by ${searchParamFilters}`);
+                files = filter(res.data, (file) => {
+                    return every(searchParamFilters, ([key, value]) => {
+                        const annotation = find(
+                            file.annotations,
+                            ({ annotation_name }) => snakeCase(annotation_name) === key
+                        );
+                        if (!annotation) {
+                            return false;
+                        }
+
+                        return includes(annotation.values, value);
+                    });
+                });
+                console.timeEnd(`Filtering files by ${searchParamFilters}`);
+            }
+
+            const enrichedWithIndex = files.map((file: {}, index: number) => ({
+                result_set_index: index,
+                ...file,
+            }));
+            const updatedRes = {
+                ...res,
+                data: enrichedWithIndex,
+                totalCount: enrichedWithIndex.length,
+            };
+            this.cache.set(queryString, updatedRes);
+
+            cached = updatedRes;
         }
 
-        return fileIds;
+        return cached as Response<FmsFile>;
     }
 }

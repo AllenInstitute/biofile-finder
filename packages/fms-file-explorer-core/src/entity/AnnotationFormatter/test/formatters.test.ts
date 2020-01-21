@@ -1,12 +1,12 @@
 import { expect } from "chai";
 
-import dateFormatter from "../date-formatter";
+import dateTimeFormatter from "../date-time-formatter";
 import numberFormatter from "../number-formatter";
 
 describe("Annotation formatters", () => {
-    describe("Date annotation formatter", () => {
+    describe("Date/Time annotation formatter", () => {
         it("formats an ISO date string", () => {
-            expect(dateFormatter("2017-12-06T01:54:01.332Z")).to.equal("12/5/2017, 5:54:01 PM");
+            expect(dateTimeFormatter("2017-12-06T01:54:01.332Z")).to.equal("12/5/2017, 5:54:01 PM");
         });
     });
 

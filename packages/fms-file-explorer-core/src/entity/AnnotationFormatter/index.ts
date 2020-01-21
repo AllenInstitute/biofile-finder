@@ -1,14 +1,13 @@
-import dateFormatter from "./date-formatter";
+import dateTimeFormatter from "./date-time-formatter";
 import identityFormatter from "./identity-formatter";
 import numberFormatter from "./number-formatter";
 
-/**
- * TODO: (GM 10/21/2019) These need to match up with some database values.
- */
 export enum AnnotationType {
-    DATE = "date/time",
-    NUMBER = "number",
-    STRING = "string",
+    DATE = "Date",
+    DATETIME = "Date/Time",
+    NUMBER = "Number",
+    STRING = "Text",
+    BOOLEAN = "Yes/No",
 }
 
 export interface AnnotationFormatter {
@@ -22,7 +21,9 @@ export interface AnnotationFormatter {
 export default function annotationFormatterFactory(type: string): AnnotationFormatter {
     switch (type) {
         case AnnotationType.DATE:
-            return dateFormatter;
+        // prettier-ignore
+        case AnnotationType.DATETIME: // FALL-THROUGH
+            return dateTimeFormatter;
         case AnnotationType.NUMBER:
             return numberFormatter;
         case AnnotationType.STRING:

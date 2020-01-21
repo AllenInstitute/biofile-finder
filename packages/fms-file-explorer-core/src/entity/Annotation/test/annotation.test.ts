@@ -9,7 +9,7 @@ describe("Annotation", () => {
         annotation_display_name: "Date created",
         annotation_name: "created_on",
         description: "Date the file was created on",
-        type: "date/time",
+        type: "Date/Time",
     });
 
     describe("getDisplayValue", () => {

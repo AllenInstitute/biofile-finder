@@ -2,8 +2,8 @@ import { includes, map } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import { FmsFile } from "../../services/FileService";
 import FileRow from "../../components/FileRow";
+import FileSet from "../../entity/FileSet";
 import { selection } from "../../state";
 import { OnSelect } from "./useFileSelector";
 
@@ -14,7 +14,7 @@ const styles = require("./FileList.module.css");
  * is passed to each LazilyRenderedRow within the same FileList.
  */
 export interface LazilyRenderedRowContext {
-    files: Map<number, FmsFile>;
+    fileSet: FileSet;
     onSelect: OnSelect;
 }
 
@@ -29,7 +29,7 @@ interface LazilyRenderedRowProps {
  */
 export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     const {
-        data: { files, onSelect },
+        data: { fileSet, onSelect },
         index,
         style,
     } = props;
@@ -37,7 +37,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
     const selectedFiles = useSelector(selection.selectors.getSelectedFiles);
 
-    const file = files.get(index);
+    const file = fileSet.getFileByIndex(index);
 
     const isSelected = React.useMemo(() => {
         if (file) {
