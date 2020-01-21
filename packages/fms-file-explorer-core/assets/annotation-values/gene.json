@@ -1,0 +1,28 @@
+{
+    "data": [
+        "MYH10",
+        "RAB5A",
+        "LAMP1",
+        "ACTN1",
+        "ACTB",
+        "LMNB1",
+        "CTNNB1",
+        "DSP",
+        "TUBA1B",
+        "ST6GAL1",
+        "CETN2",
+        "SLC25A17",
+        "AAVS1",
+        "FBL",
+        "NPM1",
+        "PXN",
+        "SEC61B",
+        "TJP1",
+        "TOMM20",
+        "GJA1"
+    ],
+    "hasMore": false,
+    "offset": 0,
+    "responseType": "SUCCESS",
+    "totalCount": 20
+}

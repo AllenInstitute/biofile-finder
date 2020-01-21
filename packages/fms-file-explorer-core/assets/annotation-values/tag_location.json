@@ -1,0 +1,12 @@
+{
+    "data": [
+        "Internal",
+        "N-terminus_second_exon",
+        "N-terminus",
+        "C-terminus"
+    ],
+    "hasMore": false,
+    "offset": 0,
+    "responseType": "SUCCESS",
+    "totalCount": 4
+}

@@ -1,0 +1,28 @@
+{
+    "data": [
+        "AICS-57",
+        "AICS-13",
+        "AICS-5",
+        "AICS-25",
+        "AICS-53",
+        "AICS-16",
+        "AICS-22",
+        "AICS-23",
+        "AICS-7",
+        "AICS-11",
+        "AICS-14",
+        "AICS-58",
+        "AICS-33",
+        "AICS-17",
+        "AICS-54",
+        "AICS-12",
+        "AICS-40",
+        "AICS-24",
+        "AICS-32",
+        "AICS-10"
+    ],
+    "hasMore": false,
+    "offset": 0,
+    "responseType": "SUCCESS",
+    "totalCount": 20
+}

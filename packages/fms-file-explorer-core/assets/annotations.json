@@ -1,0 +1,169 @@
+{
+    "data": [
+        {
+            "annotation_display_name": "Workflow",
+            "annotation_id": 18,
+            "annotation_name": "workflow",
+            "description": "Name of pipeline or non-pipeline experimental category (e.g. Pipeline 4, R&DExp, RNA-FISH). This information captures information about how an experiment was performed, but additional information is needed to know how this influences the type of data in a dataset.",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Gene",
+            "annotation_id": 6,
+            "annotation_name": "gene",
+            "description": "A sequence of nucleotides in DNA or RNA that encodes the synthesis of a gene product, either RNA or protein",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Well",
+            "annotation_id": 21,
+            "annotation_name": "well",
+            "description": "A well on a plate (that has been entered into the Plate UI)",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Instrument",
+            "annotation_id": 14,
+            "annotation_name": "instrument",
+            "description": "Name of a laboratory instrument",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Protein",
+            "annotation_id": 8,
+            "annotation_name": "protein",
+            "description": "Name of a protein, most often referencing a protein that has been fluorescently tagged in an Allen Institute cell line.",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Cell Line",
+            "annotation_id": 4,
+            "annotation_name": "cell_line",
+            "description": "Name of a group of cells that originated from the same gene edits",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Structure",
+            "annotation_id": 624548,
+            "annotation_name": "structure",
+            "description": "Structure",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Quality Control Status",
+            "annotation_id": 16,
+            "annotation_name": "quality_control_status",
+            "description": "Describes the stage or result of quality control (e.g. Not QC-ed, In QC, Passed, Failed)",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Imaging Date",
+            "annotation_id": 811629,
+            "annotation_name": "imaging_date",
+            "description": "Imaging Date",
+            "type": "Date/Time"
+        },
+        {
+            "annotation_display_name": "Plate Barcode",
+            "annotation_id": 758551,
+            "annotation_name": "plate_barcode",
+            "description": "Plate Barcode",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Plate Type",
+            "annotation_id": 570735,
+            "annotation_name": "plate_type",
+            "description": "Plate Type",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Clone",
+            "annotation_id": 946157,
+            "annotation_name": "clone",
+            "description": "Clone",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Objective",
+            "annotation_id": 919587,
+            "annotation_name": "objective",
+            "description": "Objective",
+            "type": "Number"
+        },
+        {
+            "annotation_display_name": "Cas9",
+            "annotation_id": 2,
+            "annotation_name": "cas9",
+            "description": "CRISPR associated protein 9",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Cas9 Batch",
+            "annotation_id": 390412,
+            "annotation_name": "cas9_batch",
+            "description": "Cas9 Batch",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "crRNA",
+            "annotation_id": 640584,
+            "annotation_name": "crrna",
+            "description": "crRNA",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "crRNABatch",
+            "annotation_id": 189758,
+            "annotation_name": "crrnabatch",
+            "description": "crRNABatch",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Donor Plasmid",
+            "annotation_id": 907293,
+            "annotation_name": "donor_plasmid",
+            "description": "Donor Plasmid",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Donor Plasmid Batch",
+            "annotation_id": 688119,
+            "annotation_name": "donor_plasmid_batch",
+            "description": "Donor Plasmid Batch",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Fluorescent Protein",
+            "annotation_id": 5,
+            "annotation_name": "fluorescent_protein",
+            "description": "Proteins used to tag proteins of interest; common fluorescent tags at AICS are EGFP and mTagRFPT.",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Tag Location",
+            "annotation_id": 10,
+            "annotation_name": "tag_location",
+            "description": "Location in a protein where a fluorescent tag has been introduced (ie. N-terminus, C-terminus).",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Solution Lot",
+            "annotation_id": 851454,
+            "annotation_name": "solution_lot",
+            "description": "Solution Lot",
+            "type": "Text"
+        },
+        {
+            "annotation_display_name": "Solution",
+            "annotation_id": 17,
+            "annotation_name": "solution",
+            "description": "Solutions that have been introduced to a populations of cells. These may include media, small molecules or other buffers or compounds.",
+            "type": "Text"
+        }
+    ],
+    "hasMore": false,
+    "offset": 0,
+    "responseType": "SUCCESS",
+    "totalCount": 23
+}

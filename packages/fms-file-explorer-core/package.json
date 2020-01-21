@@ -20,11 +20,10 @@
     "access": "public"
   },
   "scripts": {
-    "build": "npm-run-all --print-label clean --parallel generateMockData generateTypes transpile:ts transpile:pcss",
-    "build:watch": "npm-run-all --print-label clean transpile:pcss --parallel generateMockData generateTypes:watch transpile:ts:watch transpile:pcss:watch",
-    "clean": "rimraf es type-declarations assets",
+    "build": "npm-run-all --print-label clean --parallel generateTypes transpile:ts transpile:pcss",
+    "build:watch": "npm-run-all --print-label clean transpile:pcss --parallel generateTypes:watch transpile:ts:watch transpile:pcss:watch",
+    "clean": "rimraf es type-declarations",
     "format": "prettier --write src/**/*",
-    "generateMockData": "node ./scripts/generate-files-metadata.js && node ./scripts/generate-file-ids-response.js && node ./scripts/generate-annotations-metadata.js",
     "generateTypes": "tsc --emitDeclarationOnly",
     "generateTypes:watch": "tsc --emitDeclarationOnly --watch",
     "lint": "eslint src/**/*.{js,jsx,ts,tsx}",

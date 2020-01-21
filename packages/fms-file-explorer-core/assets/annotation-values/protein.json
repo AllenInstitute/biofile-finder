@@ -1,0 +1,28 @@
+{
+    "data": [
+        "Beta-catenin",
+        "Alpha-actinin-1",
+        "Peroxisomal membrane protein PMP34",
+        "Beta-actin",
+        "CAAX domain of K-Ras",
+        "Alpha-tubulin",
+        "Tight junction protein ZO-1",
+        "LAMP-1",
+        "Paxillin",
+        "Nucleophosmin",
+        "Centrin-2",
+        "Fibrillarin",
+        "Tom20",
+        "Desmoplakin",
+        "Ras-related protein Rab-5A",
+        "Non-muscle myosin heavy chain IIB",
+        "Connexin-43",
+        "Lamin B1",
+        "Sialyltransferase 1",
+        "Sec61 beta"
+    ],
+    "hasMore": false,
+    "offset": 0,
+    "responseType": "SUCCESS",
+    "totalCount": 20
+}

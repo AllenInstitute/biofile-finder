@@ -1,0 +1,28 @@
+{
+    "data": [
+        "GJA1-mEGFP",
+        "NPM1-mEGFP",
+        "AAVS1-CAG-PM-mTagRFPt",
+        "CETN2-mTagRFPt",
+        "PXN-EGFP",
+        "DSP-mEGFP",
+        "FBL-mEGFP",
+        "TUBA1B-mEGFP",
+        "SEC61B-mEGFP",
+        "LMNB1-mEGFP",
+        "MYH10-mEGFP-1kb",
+        "TJP1-mEGFP-1kb",
+        "PMP34-mEGFP",
+        "ACTN1-mEGFP",
+        "RAB5A-mEGFP",
+        "ST6GAL1-mEGFP",
+        "CTNNB1-mEGFP",
+        "TOMM20-mEGFP",
+        "ACTB-mEGFP",
+        "LAMP1-mEGFP"
+    ],
+    "hasMore": false,
+    "offset": 0,
+    "responseType": "SUCCESS",
+    "totalCount": 20
+}

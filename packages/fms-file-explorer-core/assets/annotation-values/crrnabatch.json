@@ -1,0 +1,28 @@
+{
+    "data": [
+        "AAVS1_crRNA-1-B1",
+        "SEC61B_crRNA-2-B1",
+        "PMP34_crRNA-3-B1",
+        "DSP_crRNA-2-B1",
+        "NPM1_crRNA-2-B1",
+        "TOMM20_crRNA-1-B1",
+        "CTNNB1_crRNA-1-B1",
+        "ACTB_crRNA-2-B1",
+        "ACTN1_crRNA-3-B1",
+        "PXN_crRNA-2-B1",
+        "MYH10_crRNA-4-B1",
+        "CETN2_crRNA-1-B1",
+        "TJP1_crRNA-3-B1",
+        "LMNB1_crRNA-1-B1",
+        "RAB5A_crRNA-2-B1",
+        "GJA1_crRNA-1-B1",
+        "TUBA1B_crRNA-1-B1",
+        "FBL_crRNA-1-B1",
+        "ST6GAL1_crRNA-1-B1",
+        "LAMP1_crRNA-2-B1"
+    ],
+    "hasMore": false,
+    "offset": 0,
+    "responseType": "SUCCESS",
+    "totalCount": 20
+}

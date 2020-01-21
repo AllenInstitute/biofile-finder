@@ -1,0 +1,27 @@
+{
+    "data": [
+        "Nuclear envelope",
+        "Lysosome",
+        "Nucleolus (Dense Fibrillar Component)",
+        "Matrix adhesions",
+        "Mitochondria",
+        "Golgi",
+        "Actomyosin bundles",
+        "Tight junctions",
+        "Plasma membrane",
+        "Endoplasmic reticulum",
+        "Centrosome",
+        "Actin filaments",
+        "Nucleolus (Granular Component)",
+        "Desmosomes",
+        "Peroxisomes",
+        "Endosomes",
+        "Adherens junctions",
+        "Microtubules",
+        "Gap junctions"
+    ],
+    "hasMore": false,
+    "offset": 0,
+    "responseType": "SUCCESS",
+    "totalCount": 19
+}
