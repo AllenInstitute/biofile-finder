@@ -4,7 +4,7 @@ import { createSelector } from "reselect";
 
 import FileFilter from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
-import { metadata, selection } from "../../state";
+import { selection } from "../../state";
 
 /**
  * Given annotation hierarchy (list of annotations, in order, by which user wants files to be grouped), and all unique values for each of those annotations,
@@ -12,11 +12,7 @@ import { metadata, selection } from "../../state";
  *
  * For example,
  * given:
- *  annotationHierarchy = ["A", "B"]
- *  annotationNameToValuesMap = {
- *      A: [1, 2, 3],
- *      B: [true, false],
- *  }
+ *  annotationHierarchy = [Annotation(name="A", values=[1, 2, 3]), Annotation(name="B", values=[true, false])]
  *
  * expect:
  *  return = [
@@ -25,15 +21,15 @@ import { metadata, selection } from "../../state";
  *           ]
  */
 export const getFileFilters = createSelector(
-    [selection.selectors.getAnnotationHierarchy, metadata.selectors.getAnnotationNameToValuesMap],
-    (annotationHierarchy, annotationNameToValuesMap): FileFilter[][] => {
+    [selection.selectors.getAnnotationHierarchy],
+    (annotationHierarchy): FileFilter[][] => {
         return reduce(
             annotationHierarchy,
             (accum, annotation) => {
                 // only include those annotations that we have values for
-                if (annotationNameToValuesMap[annotation.name] !== undefined) {
+                if (!isEmpty(annotation.values)) {
                     const filters = map(
-                        annotationNameToValuesMap[annotation.name],
+                        annotation.values,
                         (val) => new FileFilter(annotation.name, val)
                     );
                     accum.push(filters);

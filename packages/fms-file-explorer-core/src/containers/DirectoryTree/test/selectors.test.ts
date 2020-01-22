@@ -1,6 +1,7 @@
 import { mergeState } from "@aics/redux-utils";
 import { expect } from "chai";
 import { every, isEqualWith } from "lodash";
+import * as sinon from "sinon";
 
 import FileFilter from "../../../entity/FileFilter";
 import Annotation from "../../../entity/Annotation";
@@ -24,6 +25,10 @@ describe("FileList selectors", () => {
     const threeFilter = new FileFilter(annotations[2].name, 3);
 
     describe("getFileFilters", () => {
+        afterEach(() => {
+            sinon.restore();
+        });
+
         /**
          * Assert that the actual nested list of FileFilters equals the expected list.
          * Asserts first that the length of `actual` and `expected` are the same.
@@ -53,14 +58,13 @@ describe("FileList selectors", () => {
         };
 
         it("projects annotations into a list of FileFilters for each of their annotation values", () => {
+            sinon.stub(annotations[0], "values").get(() => ["a", "b", "c"]);
+            sinon.stub(annotations[1], "values").get(() => [true, false]);
+            sinon.stub(annotations[2], "values").get(() => [1, 2, 3]);
+
             const state = mergeState(initialState, {
                 metadata: {
                     annotations,
-                    annotationNameToValuesMap: {
-                        [annotations[0].name]: ["a", "b", "c"],
-                        [annotations[1].name]: [true, false],
-                        [annotations[2].name]: [1, 2, 3],
-                    },
                 },
                 selection: {
                     annotationHierarchy: annotations.slice(0, 3), // n.b., end not inclusive
@@ -78,12 +82,11 @@ describe("FileList selectors", () => {
         });
 
         it("works when only one annotation is part of the hierarchy", () => {
+            sinon.stub(annotations[0], "values").get(() => ["a", "b", "c"]);
+
             const state = mergeState(initialState, {
                 metadata: {
                     annotations,
-                    annotationNameToValuesMap: {
-                        [annotations[0].name]: ["a", "b", "c"],
-                    },
                 },
                 selection: {
                     annotationHierarchy: [annotations[0]],
@@ -104,12 +107,13 @@ describe("FileList selectors", () => {
         });
 
         it("only includes FileFilters for those annotations in the hierarchy for which we have values", () => {
+            sinon.stub(annotations[0], "values").get(() => ["a", "b", "c"]);
+            sinon.stub(annotations[1], "values").get(() => []);
+            sinon.stub(annotations[2], "values").get(() => []);
+
             const state = mergeState(initialState, {
                 metadata: {
                     annotations,
-                    annotationNameToValuesMap: {
-                        [annotations[0].name]: ["a", "b", "c"],
-                    },
                 },
                 selection: {
                     annotationHierarchy: annotations.slice(0, 3), // n.b., end not inclusive
@@ -124,6 +128,10 @@ describe("FileList selectors", () => {
     });
 
     describe("getGroupedFileSets", () => {
+        afterEach(() => {
+            sinon.restore();
+        });
+
         /**
          * Recursively assert that the output of `getFileSetTree` equals the expected data structure. Knows how to traverse
          * the data structure and compare its values.
@@ -143,14 +151,13 @@ describe("FileList selectors", () => {
         };
 
         it("groups FileSets according to the annotation hierarchy", () => {
+            sinon.stub(annotations[0], "values").get(() => ["a", "b", "c"]);
+            sinon.stub(annotations[1], "values").get(() => [true, false]);
+            sinon.stub(annotations[2], "values").get(() => [1, 2, 3]);
+
             const state = mergeState(initialState, {
                 metadata: {
                     annotations,
-                    annotationNameToValuesMap: {
-                        [annotations[0].name]: ["a", "b", "c"],
-                        [annotations[1].name]: [true, false],
-                        [annotations[2].name]: [1, 2, 3],
-                    },
                 },
                 selection: {
                     annotationHierarchy: annotations.slice(0, 3), // n.b., end not inclusive
@@ -273,14 +280,13 @@ describe("FileList selectors", () => {
         };
 
         it("returns a mapping between index position and TreeNodes", () => {
+            sinon.stub(annotations[0], "values").get(() => ["a", "b"]);
+            sinon.stub(annotations[1], "values").get(() => [true, false]);
+            sinon.stub(annotations[2], "values").get(() => [3]);
+
             const state = mergeState(initialState, {
                 metadata: {
                     annotations,
-                    annotationNameToValuesMap: {
-                        [annotations[0].name]: ["a", "b"],
-                        [annotations[1].name]: [true, false],
-                        [annotations[2].name]: [3],
-                    },
                 },
                 selection: {
                     annotationHierarchy: annotations.slice(0, 3), // n.b., end not inclusive

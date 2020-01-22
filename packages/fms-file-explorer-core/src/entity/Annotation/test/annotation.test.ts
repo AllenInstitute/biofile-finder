@@ -1,8 +1,6 @@
 import { expect } from "chai";
-import { createSandbox } from "sinon";
 
 import Annotation from "../";
-import AnnotationService from "../../../services/AnnotationService";
 
 describe("Annotation", () => {
     const annotationResponse = Object.freeze({
@@ -10,6 +8,7 @@ describe("Annotation", () => {
         annotation_name: "created_on",
         description: "Date the file was created on",
         type: "Date/Time",
+        values: [],
     });
 
     describe("getDisplayValue", () => {
@@ -32,37 +31,6 @@ describe("Annotation", () => {
 
             const annotation = new Annotation(annotationResponse);
             expect(annotation.getDisplayValue(fmsFile)).to.equal(Annotation.MISSING_VALUE);
-        });
-    });
-
-    describe("getValues", () => {
-        const sandbox = createSandbox();
-
-        beforeEach(() => {
-            sandbox.resetHistory();
-        });
-
-        it("does not re-fetch annotation values if they are already loaded", async () => {
-            const annotationService = new AnnotationService();
-            const dates = [
-                new Date().toUTCString(),
-                new Date().toUTCString(),
-                new Date().toUTCString(),
-            ];
-
-            const fetchStub = sandbox.stub(annotationService, "fetchValues").resolves(dates);
-            const annotation = new Annotation(annotationResponse, annotationService);
-
-            // before
-            expect(fetchStub.callCount).to.equal(0);
-
-            // get values
-            expect(await annotation.fetchValues()).to.equal(dates);
-            expect(fetchStub.callCount).to.equal(1);
-
-            // get values again, still expect fetchStub to only have been called once
-            expect(await annotation.fetchValues()).to.equal(dates);
-            expect(fetchStub.callCount).to.equal(1);
         });
     });
 });
