@@ -3,6 +3,13 @@ import * as LRUCache from "lru-cache";
 
 import RestServiceResponse, { Response } from "../../entity/RestServiceResponse";
 
+/**
+ * Represents a document in the FMS MongoDb `files` collection. It is extremely permissively typed to allow
+ * for rapid iteration in the initial stages of this project.
+ *
+ * See https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/mongo-schema-management/browse/mongo_schema_management/schema/file_explorer_v1/file.json for
+ * the most up-to-date interface for this data structure.
+ */
 export interface FmsFile {
     [key: string]: any;
     file_id: string;
@@ -24,10 +31,16 @@ export interface GetFileIdsRequest {
  * Service responsible for fetching file related metadata.
  */
 export default class FileService {
-    private static readonly BASE_FILES_URL = "api/1.0/file";
-    private static readonly BASE_FILE_IDS_URL = "api/1.0/file/ids";
+    private static readonly BASE_FILES_URL = "api/1.0/files";
+    private static readonly BASE_FILE_IDS_URL = "api/1.0/files/ids";
+
+    // TEMPORARY TO SUPPORT FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE EXISTS
     private cache = new LRUCache<string, Response<FmsFile>>({ max: 10 });
 
+    /**
+     * Get list of file documents that match a given filter, potentially according to a particular sort order,
+     * and potentially starting from a particular file_id and limited to a set number of files.
+     */
     public getFiles(request: GetFilesRequest): Promise<RestServiceResponse<FmsFile>> {
         const { fromId, limit, queryString, startIndex, endIndex } = request;
 
@@ -46,6 +59,9 @@ export default class FileService {
         });
     }
 
+    /**
+     * Get list of file_ids of file documents that match a given filter, potentially according to a particular sort order.
+     */
     public async getFileIds(request: GetFileIdsRequest): Promise<string[]> {
         const { queryString } = request;
 
@@ -64,6 +80,12 @@ export default class FileService {
         return res.data.map((file) => file.file_id);
     }
 
+    /**
+     * TEMPORARY TO SUPPORT FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE EXISTS
+     *
+     * Temporary helper method to accomplish the shared logic between `getFiles` and `getFileIds`
+     * because they both pull from the same flat file.
+     */
     private getFromFlatFile(queryString: string): Response<FmsFile> {
         let cached = this.cache.get(queryString);
 
