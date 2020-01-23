@@ -8,7 +8,8 @@ export default function dateTimeFormatter(value: string): string {
     const options = { timeZone: "America/Los_Angeles" };
 
     // heuristic: if hours, minutes, and seconds are zeroed out, return just the date string
-    // can only store datetimes in Mongo, so date's are stored as datetimes with the hours, minutes, and seconds zeroed out
+    // can only store datetimes in Mongo, so dates (presumably without times) are stored as datetimes
+    // with the hours, minutes, and seconds zeroed out
     if (date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) {
         return date.toLocaleDateString(undefined, options);
     }
