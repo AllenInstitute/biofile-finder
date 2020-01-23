@@ -122,4 +122,43 @@ describe("FileSet", () => {
             expect(await fileSet.fetchFileRange(1, 3)).to.deep.equal(files.slice(1, 4)); // Array.prototype.slice is exclusive of end bound
         });
     });
+
+    describe("getFileByIndex", () => {
+        const sandbox = createSandbox();
+
+        const fileIds = ["abc123", "def456", "ghi789", "jkl012", "mno345"];
+        const files = fileIds.map((id) => ({ file_id: id }));
+
+        const fileService = new FileService();
+        const fileSet = new FileSet({ fileService });
+        sandbox.replace(fileService, "getFileIds", () => Promise.resolve(fileIds));
+        sandbox.replace(fileService, "getFiles", () =>
+            Promise.resolve(
+                new RestServiceResponse({
+                    data: files.slice(),
+                    hasMore: false,
+                    offset: 0,
+                    responseType: "SUCCESS",
+                    totalCount: fileIds.length,
+                })
+            )
+        );
+
+        beforeEach(async () => {
+            // side-effect of loading file ids for the file set
+            await fileSet.fetchFileRange(0, 4);
+        });
+
+        afterEach(() => {
+            sandbox.reset();
+        });
+
+        it("retrieves an FmsFile given its index position within the FileSet", () => {
+            expect(fileSet.getFileByIndex(3)).to.equal(files[3]);
+        });
+
+        it("returns undefined when asked for an index that hasn't loaded yet", () => {
+            expect(fileSet.getFileByIndex(7)).to.equal(undefined);
+        });
+    });
 });
