@@ -4,6 +4,15 @@ import * as LRUCache from "lru-cache";
 import RestServiceResponse, { Response } from "../../entity/RestServiceResponse";
 
 /**
+ * Represents a sub-document that can be found within an FmsFile's `annotations` list.
+ */
+export interface FmsFileAnnotation {
+    [key: string]: any;
+    annotation_name: string;
+    values: any[];
+}
+
+/**
  * Represents a document in the FMS MongoDb `files` collection. It is extremely permissively typed to allow
  * for rapid iteration in the initial stages of this project.
  *
@@ -13,6 +22,7 @@ import RestServiceResponse, { Response } from "../../entity/RestServiceResponse"
 export interface FmsFile {
     [key: string]: any;
     file_id: string;
+    annotations?: FmsFileAnnotation[];
 }
 
 export interface GetFilesRequest {
