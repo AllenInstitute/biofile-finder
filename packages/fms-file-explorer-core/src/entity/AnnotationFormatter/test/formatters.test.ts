@@ -8,6 +8,11 @@ describe("Annotation formatters", () => {
         it("formats an ISO date string", () => {
             expect(dateTimeFormatter("2017-12-06T01:54:01.332Z")).to.equal("12/5/2017, 5:54:01 PM");
         });
+
+        it("returns just the date portion if hours, minutes, and seconds are all zeroed out", () => {
+            expect(dateTimeFormatter("2017-09-01 00:00:00")).to.equal("9/1/2017"); // str(datetime.datetime) format
+            expect(dateTimeFormatter("2017-09-01T07:00:00.000Z")).to.equal("9/1/2017"); // iso date string format
+        });
     });
 
     describe("Number annotation formatter", () => {
