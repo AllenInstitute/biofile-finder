@@ -99,6 +99,7 @@
     "lodash": "4.17.15",
     "lru-cache": "5.1.1",
     "normalize.css": "8.0.1",
+    "office-ui-fabric-react": "7.84.1",
     "react": "16.9.0",
     "react-beautiful-dnd": "12.1.1",
     "react-redux": "7.1.1",
