@@ -1,6 +1,6 @@
 import { makeConstant } from "@aics/redux-utils";
 
-import { ContextMenuItem } from "../../components/ContextMenu";
+import { ContextMenuItem } from "../../containers/ContextMenu";
 
 const STATE_BRANCH_NAME = "interaction";
 

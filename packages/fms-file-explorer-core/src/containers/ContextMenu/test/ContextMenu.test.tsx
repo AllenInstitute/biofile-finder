@@ -5,7 +5,7 @@ import { ContextualMenu } from "office-ui-fabric-react";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import ContextMenu from "../";
+import ContextMenu from "..";
 import { initialState, interaction, reducer } from "../../../state";
 
 describe("<ContextMenu />", () => {

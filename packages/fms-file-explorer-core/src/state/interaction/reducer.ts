@@ -1,7 +1,7 @@
 import { makeReducer } from "@aics/redux-utils";
 
 import { SHOW_CONTEXT_MENU, HIDE_CONTEXT_MENU } from "./actions";
-import { ContextMenuItem } from "../../components/ContextMenu";
+import { ContextMenuItem } from "../../containers/ContextMenu";
 
 export interface InteractionStateBranch {
     contextMenuIsVisible: boolean;
