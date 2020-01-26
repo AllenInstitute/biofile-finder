@@ -1,3 +1,4 @@
 --require ts-node/register
 --require mock-css-modules
+--require ../../scripts/jsdom-register.js
 --require ./scripts/adapt-enzyme-to-react-16.js
