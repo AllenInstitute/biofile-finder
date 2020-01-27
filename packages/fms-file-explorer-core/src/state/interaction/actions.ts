@@ -1,6 +1,6 @@
 import { makeConstant } from "@aics/redux-utils";
 
-import { ContextMenuItem } from "../../containers/ContextMenu";
+import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -13,13 +13,22 @@ export const SHOW_CONTEXT_MENU = makeConstant(STATE_BRANCH_NAME, "show-context-m
 
 export interface ShowContextMenuAction {
     type: string;
-    payload: ContextMenuItem[];
+    payload: {
+        items: ContextMenuItem[];
+        positionReference: PositionReference;
+    };
 }
 
-export function showContextMenu(items: ContextMenuItem[]): ShowContextMenuAction {
+export function showContextMenu(
+    items: ContextMenuItem[],
+    positionReference: PositionReference
+): ShowContextMenuAction {
     return {
         type: SHOW_CONTEXT_MENU,
-        payload: items,
+        payload: {
+            items,
+            positionReference,
+        },
     };
 }
 

@@ -5,11 +5,11 @@ import { ContextualMenu } from "office-ui-fabric-react";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import ContextMenu from "..";
+import ContextMenu, { ContextMenuItem } from "..";
 import { initialState, interaction, reducer } from "../../../state";
 
 describe("<ContextMenu />", () => {
-    const items = [
+    const items: ContextMenuItem[] = [
         {
             key: "foo",
             text: "Foo",
@@ -24,12 +24,13 @@ describe("<ContextMenu />", () => {
         const state = mergeState(initialState, {
             interaction: {
                 contextMenuIsVisible: true,
+                contextMenuItems: items,
             },
         });
         const { store } = configureMockStore({ state, reducer });
         const wrapper = mount(
             <Provider store={store}>
-                <ContextMenu items={items} />
+                <ContextMenu />
             </Provider>
         );
 
@@ -51,7 +52,7 @@ describe("<ContextMenu />", () => {
             const { store } = configureMockStore({ state, reducer });
             const wrapper = mount(
                 <Provider store={store}>
-                    <ContextMenu items={items} />
+                    <ContextMenu />
                 </Provider>
             );
 
@@ -61,7 +62,7 @@ describe("<ContextMenu />", () => {
             expect(getUnderlyingContextualMenu().prop("hidden")).to.equal(true);
 
             // change state
-            store.dispatch(interaction.actions.showContextMenu([]));
+            store.dispatch(interaction.actions.showContextMenu([], ".foo"));
             wrapper.update();
 
             // should be visible now
