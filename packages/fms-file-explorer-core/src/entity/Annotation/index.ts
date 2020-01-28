@@ -8,6 +8,7 @@ import { FmsFile, FmsFileAnnotation } from "../../services/FileService";
  * Representation of an annotation available for filtering, grouping, or sorting files from FMS.
  */
 export default class Annotation {
+    public static SEPARATOR = ", ";
     public static MISSING_VALUE = "< MISSING >";
 
     private readonly annotation: AnnotationResponse;
@@ -71,7 +72,9 @@ export default class Annotation {
         }
 
         if (Array.isArray(value)) {
-            return value.map((val) => this.formatter(val, this.annotation.units)).join(", ");
+            return value
+                .map((val) => this.formatter(val, this.annotation.units))
+                .join(Annotation.SEPARATOR);
         }
 
         return this.formatter(value, this.annotation.units);
