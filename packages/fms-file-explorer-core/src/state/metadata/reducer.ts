@@ -29,6 +29,7 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         annotation_name: "file_size",
         description: "Size of file on disk.",
         type: "Number",
+        units: "bytes",
         values: [],
     }),
     new Annotation({
