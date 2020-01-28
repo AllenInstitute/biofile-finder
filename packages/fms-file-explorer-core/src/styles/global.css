@@ -1,5 +1,8 @@
+@import url('https://fonts.googleapis.com/css?family=Overpass:400,700&display=swap');
+
 html {
     box-sizing: border-box;
+    font-family: 'Overpass', sans-serif;
 }
 
 *,
