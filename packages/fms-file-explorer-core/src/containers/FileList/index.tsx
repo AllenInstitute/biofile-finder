@@ -1,16 +1,16 @@
 import * as classNames from "classnames";
 import * as debouncePromise from "debounce-promise";
-import { defaults, isUndefined } from "lodash";
+import { defaults, isEmpty, isUndefined } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 
+import getContextMenuItems from "../ContextMenu/items";
 import FileSet from "../../entity/FileSet";
 import Header from "./Header";
 import LazilyRenderedRow from "./LazilyRenderedRow";
-import * as fileListSelectors from "./selectors";
-import { interaction } from "../../state";
+import { interaction, selection } from "../../state";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileSelector from "./useFileSelector";
 
@@ -46,11 +46,18 @@ function FileList(props: FileListProps) {
     const [ref, height] = useLayoutMeasurements<HTMLDivElement>();
     const onSelect = useFileSelector(fileSet);
     const dispatch = useDispatch();
-    const contextMenuItems = useSelector(fileListSelectors.getContextMenuItems);
+    const selectedFiles = useSelector(selection.selectors.getSelectedFiles);
 
     // Callback provided to individual LazilyRenderedRows to be called on `contextmenu`
     const onFileRowContextMenu = (evt: React.MouseEvent) => {
-        dispatch(interaction.actions.showContextMenu(contextMenuItems, evt.nativeEvent));
+        const availableItems = getContextMenuItems(dispatch);
+        const items = [];
+        if (isEmpty(selectedFiles)) {
+            items.push({ ...availableItems.DOWNLOAD, disabled: true });
+        } else {
+            items.push(availableItems.DOWNLOAD);
+        }
+        dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
     };
 
     const totalCount = isUndefined(fileSet.totalCount) ? DEFAULT_TOTAL_COUNT : fileSet.totalCount;
