@@ -29,6 +29,7 @@ describe("<LazilyRenderedRow />", () => {
 
         return {
             fileSet,
+            onContextMenu: sinon.spy(),
             onSelect: sinon.spy(),
         };
     }

@@ -15,6 +15,7 @@ const styles = require("./FileList.module.css");
  */
 export interface LazilyRenderedRowContext {
     fileSet: FileSet;
+    onContextMenu: (evt: React.MouseEvent) => void;
     onSelect: OnSelect;
 }
 
@@ -29,7 +30,7 @@ interface LazilyRenderedRowProps {
  */
 export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     const {
-        data: { fileSet, onSelect },
+        data: { fileSet, onContextMenu, onSelect },
         index,
         style,
     } = props;
@@ -66,5 +67,9 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         content = "Loading...";
     }
 
-    return <div style={style}>{content}</div>;
+    return (
+        <div style={style} onContextMenu={onContextMenu}>
+            {content}
+        </div>
+    );
 }
