@@ -70,6 +70,18 @@ export default class FileService {
     }
 
     /**
+     * This is a TEMPORARY service method that is only necessary until we move manifest generation to a backend service.
+     * When that happens, this method can be deleted.
+     */
+    public getFilesById(fileIds: string[]): Promise<FmsFile[]> {
+        return new Promise<FmsFile[]>((resolve) => {
+            const res = require("../../../assets/files.json");
+            const setOfIds = new Set(fileIds);
+            resolve(res.data.filter((file: FmsFile) => setOfIds.has(file.file_id)));
+        });
+    }
+
+    /**
      * Get list of file_ids of file documents that match a given filter, potentially according to a particular sort order.
      */
     public async getFileIds(request: GetFileIdsRequest): Promise<string[]> {
@@ -145,3 +157,5 @@ export default class FileService {
         return cached as Response<FmsFile>;
     }
 }
+
+export const DefaultFileService = new FileService();
