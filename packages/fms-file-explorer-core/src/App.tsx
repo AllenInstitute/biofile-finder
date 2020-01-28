@@ -1,13 +1,14 @@
 import "normalize.css";
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import AnnotationSidebar from "./containers/AnnotationSidebar";
 import Breadcrumbs from "./containers/Breadcrumbs";
-import FileDetails from "./containers/FileDetails";
+import ContextMenu from "./containers/ContextMenu";
 import DirectoryTree from "./containers/DirectoryTree";
+import FileDetails from "./containers/FileDetails";
 import HeaderRibbon from "./containers/HeaderRibbon";
-import { metadata } from "./state";
+import { interaction, metadata } from "./state";
 
 import "./styles/global.css";
 const styles = require("./App.module.css");
@@ -39,6 +40,7 @@ export default function App() {
                 </div>
                 <FileDetails className={styles.fileDetails} />
             </div>
+            <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
         </div>
     );
 }
