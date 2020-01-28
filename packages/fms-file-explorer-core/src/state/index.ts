@@ -41,7 +41,7 @@ export const reduxLogicDependencies: Partial<ReduxLogicDeps> = {
     httpClient: axios,
 };
 
-export const reduxLogics = [...metadata.logics, ...selection.logics];
+export const reduxLogics = [...metadata.logics, ...selection.logics, ...interaction.logics];
 
 const logicMiddleware = createLogicMiddleware(reduxLogics);
 logicMiddleware.addDeps(reduxLogicDependencies);

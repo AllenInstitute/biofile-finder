@@ -5,6 +5,21 @@ import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu
 const STATE_BRANCH_NAME = "interaction";
 
 /**
+ * DOWNLOAD_MANIFEST
+ */
+export const DOWNLOAD_MANIFEST = makeConstant(STATE_BRANCH_NAME, "download-manifest");
+
+export interface DownloadManifestAction {
+    type: string;
+}
+
+export function downloadManifest(): DownloadManifestAction {
+    return {
+        type: DOWNLOAD_MANIFEST,
+    };
+}
+
+/**
  * SHOW_CONTEXT_MENU
  *
  * Intention to show context menu.
