@@ -70,7 +70,7 @@ export default class FileService {
     }
 
     /**
-     * This is a TEMPORARY service method that is only necessary until we move manifest generation to a backend service.
+     * GM 1/29/2020: This is a TEMPORARY service method that is only necessary until we move manifest generation to a backend service.
      * When that happens, this method can be deleted.
      */
     public getFilesById(fileIds: string[]): Promise<FmsFile[]> {
