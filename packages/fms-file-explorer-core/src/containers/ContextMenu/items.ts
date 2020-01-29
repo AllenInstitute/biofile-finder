@@ -3,6 +3,11 @@ import { Dispatch } from "redux";
 import { ContextualMenuItemType } from "./";
 import { interaction } from "../../state";
 
+/**
+ * This is intended to be a catalogue of context menu items and that can be reused as various context menus are built up
+ * throughout the app. Many of the `onClick` methods of the items/subitems will require access to the Redux store's `dispatch`,
+ * so this "factory" of sorts is parameterized by `dispatch`, and thereby available to `onClick` handlers through closure.
+ */
 export default function getContextMenuItems(dispatch: Dispatch) {
     return {
         DOWNLOAD: {
