@@ -1,4 +1,5 @@
 import Annotation from "../../entity/Annotation";
+import HttpServiceBase from "../HttpServiceBase";
 import RestServiceResponse from "../../entity/RestServiceResponse";
 
 /**
@@ -16,8 +17,9 @@ export interface AnnotationResponse {
 /**
  * Service responsible for fetching annotation related metadata.
  */
-export default class AnnotationService {
-    private static BASE_ANNOTATION_URL = "api/1.0/annotations";
+export default class AnnotationService extends HttpServiceBase {
+    private static ANNOTATION_ENDPOINT_VERSION = "1.0";
+    private static BASE_ANNOTATION_URL = `file-explorer-service/${AnnotationService.ANNOTATION_ENDPOINT_VERSION}/annotations`;
 
     /**
      * Fetch all annotations.

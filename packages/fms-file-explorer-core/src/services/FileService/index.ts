@@ -1,6 +1,7 @@
 import { compact, every, filter, find, includes, isEmpty, join, snakeCase } from "lodash";
 import * as LRUCache from "lru-cache";
 
+import HttpServiceBase from "../HttpServiceBase";
 import RestServiceResponse, { Response } from "../../entity/RestServiceResponse";
 
 /**
@@ -40,9 +41,10 @@ export interface GetFileIdsRequest {
 /**
  * Service responsible for fetching file related metadata.
  */
-export default class FileService {
-    private static readonly BASE_FILES_URL = "api/1.0/files";
-    private static readonly BASE_FILE_IDS_URL = "api/1.0/files/ids";
+export default class FileService extends HttpServiceBase {
+    private static readonly FILES_ENDPOINT_VERSION = "1.0";
+    private static readonly BASE_FILES_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files`;
+    private static readonly BASE_FILE_IDS_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files/ids`;
 
     // TEMPORARY TO SUPPORT FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE EXISTS
     private cache = new LRUCache<string, Response<FmsFile>>({ max: 10 });
