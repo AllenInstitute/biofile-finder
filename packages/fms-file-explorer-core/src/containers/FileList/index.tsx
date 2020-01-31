@@ -22,11 +22,7 @@ const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 50; // ms
 // to start calling `loadMoreItems`.
 const DEFAULT_TOTAL_COUNT = 1000;
 
-/**
- * NOTE! If props are modified, the `propsAreEqual` override (passed to React.memo below) MUST be updated.
- */
 interface FileListProps {
-    [index: string]: any;
     className?: string;
     fileSet: FileSet;
     rowHeight?: number; // how tall each row of the list will be, in px
@@ -40,7 +36,7 @@ const DEFAULTS = {
  * Wrapper for react-window-infinite-loader and react-window that knows how to lazily fetch its own data. It will lay
  * itself out to be 100% the height and width of its parent.
  */
-function FileList(props: FileListProps) {
+export default function FileList(props: FileListProps) {
     const { className, fileSet, rowHeight } = defaults({}, props, DEFAULTS);
 
     const [ref, height] = useLayoutMeasurements<HTMLDivElement>();
@@ -94,17 +90,3 @@ function FileList(props: FileListProps) {
         </div>
     );
 }
-
-const propsToCompareReferentially = ["className", "rowHeight"];
-
-export default React.memo(FileList, (prevProps, nextProps) => {
-    const referentialPropsAreEqual = propsToCompareReferentially.every(
-        (prop) => prevProps[prop] === nextProps[prop]
-    );
-
-    if (!referentialPropsAreEqual || !prevProps.fileSet.equals(nextProps.fileSet)) {
-        return false;
-    }
-
-    return true;
-});

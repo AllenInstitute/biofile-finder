@@ -63,10 +63,6 @@ export default class FileSet {
         return this.totalFileCount;
     }
 
-    public equals(fileSet: FileSet) {
-        return this.toQueryString() === fileSet.toQueryString();
-    }
-
     public getFileByIndex(index: number) {
         const correspondingFileId = this._fileIds[index];
         if (!correspondingFileId) {
