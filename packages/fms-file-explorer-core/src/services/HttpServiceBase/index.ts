@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 
+import { FLAT_FILE_DATA_SOURCE } from "../../constants";
 import RestServiceResponse from "../../entity/RestServiceResponse";
 
 export interface ConnectionConfig {
@@ -8,7 +9,7 @@ export interface ConnectionConfig {
 }
 
 export const DEFAULT_CONNECTION_CONFIG = {
-    baseUrl: "http://aics.corp.alleninstitute.org",
+    baseUrl: FLAT_FILE_DATA_SOURCE, // change to staging or production once integration with FES is smoothed over
     httpClient: axios.create(),
 };
 
