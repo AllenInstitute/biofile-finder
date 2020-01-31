@@ -13,19 +13,33 @@ import { interaction, metadata } from "./state";
 import "./styles/global.css";
 const styles = require("./App.module.css");
 
-/**
- * Custom React hook to kick off the process of requesting metadata needed by the application. Only run once, on
- * component mount.
- */
-function useApplicationMetadata() {
-    const dispatch = useDispatch();
-    React.useEffect(() => {
-        dispatch(metadata.actions.requestAnnotations());
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+interface AppProps {
+    fileExplorerServiceHost?: string;
+    fileExplorerServicePort?: number;
+    fileExplorerServiceProtocol?: string;
 }
 
-export default function App() {
-    useApplicationMetadata();
+export default function App(props: AppProps) {
+    const { fileExplorerServiceHost, fileExplorerServicePort, fileExplorerServiceProtocol } = props;
+
+    const dispatch = useDispatch();
+
+    // Kick off the process of requesting metadata needed by the application.
+    // Only run once, on component mount.
+    React.useEffect(() => {
+        dispatch(metadata.actions.requestAnnotations());
+    }, [dispatch]);
+
+    // Set connection configuration for the file-explorer-service
+    React.useEffect(() => {
+        dispatch(
+            interaction.actions.setFileExplorerServiceConnectionConfig({
+                host: fileExplorerServiceHost,
+                port: fileExplorerServicePort,
+                protocol: fileExplorerServiceProtocol,
+            })
+        );
+    }, [dispatch, fileExplorerServiceHost, fileExplorerServicePort, fileExplorerServiceProtocol]);
 
     return (
         <div className={styles.root}>
