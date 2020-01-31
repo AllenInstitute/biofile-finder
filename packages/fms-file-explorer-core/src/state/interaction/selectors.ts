@@ -7,6 +7,8 @@ export const getContextMenuVisibility = (state: State) => state.interaction.cont
 export const getContextMenuItems = (state: State) => state.interaction.contextMenuItems;
 export const getContextMenuPositionReference = (state: State) =>
     state.interaction.contextMenuPositionReference;
+export const getFileExplorerServiceConnectionConfig = (state: State) =>
+    state.interaction.fileExplorerServiceConnectionConfig;
 
 // COMPOSED SELECTORS
 
