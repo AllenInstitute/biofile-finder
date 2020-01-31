@@ -26,8 +26,8 @@ export default class AnnotationService extends HttpServiceBase {
      * Fetch all annotations.
      */
     public async fetchAnnotations(): Promise<Annotation[]> {
-        if (this.host !== FLAT_FILE_DATA_SOURCE) {
-            const requestUrl = `${this.protocol}://${this.host}:${this.port}/${AnnotationService.BASE_ANNOTATION_URL}`;
+        if (this.baseUrl !== FLAT_FILE_DATA_SOURCE) {
+            const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_URL}`;
             console.log(`Requesting annotation values from ${requestUrl}`);
 
             const response = await this.httpClient.get(requestUrl);

@@ -73,9 +73,9 @@ export type FileSetTree = [string | number | boolean | null, (FileSet[] | FileSe
  *  ]
  */
 export const getGroupedFileSets = createSelector(
-    [getFileFilters, interaction.selectors.getFileExplorerServiceConnectionConfig],
-    (fileFilters, fileExplorerServiceConnectionConfig): FileSetTree[] => {
-        const fileService = new FileService(fileExplorerServiceConnectionConfig);
+    [getFileFilters, interaction.selectors.getFileExplorerServiceBaseUrl],
+    (fileFilters, fileExplorerServiceBaseUrl): FileSetTree[] => {
+        const fileService = new FileService({ baseUrl: fileExplorerServiceBaseUrl });
 
         // "Root" of FMS -- no annotation hierarchy in place. The "directory name" is null, and the FileSet is filterless.
         if (isEmpty(fileFilters)) {

@@ -12,8 +12,8 @@ import interaction from "../interaction";
 const requestAnnotations = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { getState } = deps;
-        const config = interaction.selectors.getFileExplorerServiceConnectionConfig(getState());
-        const annotationService = new AnnotationService(config);
+        const baseUrl = interaction.selectors.getFileExplorerServiceBaseUrl(getState());
+        const annotationService = new AnnotationService({ baseUrl });
 
         try {
             dispatch(receiveAnnotations(await annotationService.fetchAnnotations()));

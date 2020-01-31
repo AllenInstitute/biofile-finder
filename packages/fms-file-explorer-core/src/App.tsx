@@ -14,13 +14,15 @@ import "./styles/global.css";
 const styles = require("./App.module.css");
 
 interface AppProps {
-    fileExplorerServiceHost?: string;
-    fileExplorerServicePort?: number;
-    fileExplorerServiceProtocol?: string;
+    // E.g.:
+    // Localhost: "https://localhost:9081"
+    // Stage: "http://stg-aics-api.corp.alleninstitute.org"
+    // From the web (behind load balancer): "/"
+    fileExplorerServiceBaseUrl?: string;
 }
 
 export default function App(props: AppProps) {
-    const { fileExplorerServiceHost, fileExplorerServicePort, fileExplorerServiceProtocol } = props;
+    const { fileExplorerServiceBaseUrl } = props;
 
     const dispatch = useDispatch();
 
@@ -32,14 +34,10 @@ export default function App(props: AppProps) {
 
     // Set connection configuration for the file-explorer-service
     React.useEffect(() => {
-        dispatch(
-            interaction.actions.setFileExplorerServiceConnectionConfig({
-                host: fileExplorerServiceHost,
-                port: fileExplorerServicePort,
-                protocol: fileExplorerServiceProtocol,
-            })
-        );
-    }, [dispatch, fileExplorerServiceHost, fileExplorerServicePort, fileExplorerServiceProtocol]);
+        if (fileExplorerServiceBaseUrl) {
+            dispatch(interaction.actions.setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl));
+        }
+    }, [dispatch, fileExplorerServiceBaseUrl]);
 
     return (
         <div className={styles.root}>

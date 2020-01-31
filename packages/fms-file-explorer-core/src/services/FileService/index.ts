@@ -57,8 +57,8 @@ export default class FileService extends HttpServiceBase {
     public async getFiles(request: GetFilesRequest): Promise<RestServiceResponse<FmsFile>> {
         const { fromId, limit, queryString } = request;
 
-        if (this.host !== FLAT_FILE_DATA_SOURCE) {
-            const base = `${this.protocol}://${this.host}:${this.port}/${FileService.BASE_FILES_URL}?from=${fromId}&limit=${limit}`;
+        if (this.baseUrl !== FLAT_FILE_DATA_SOURCE) {
+            const base = `${this.baseUrl}/${FileService.BASE_FILES_URL}?from=${fromId}&limit=${limit}`;
             const requestUrl = join(compact([base, queryString]), "&");
             console.log(`Requesting files from ${requestUrl}`);
 
@@ -96,13 +96,15 @@ export default class FileService extends HttpServiceBase {
     public async getFileIds(request: GetFileIdsRequest): Promise<string[]> {
         const { queryString } = request;
 
-        if (this.host !== FLAT_FILE_DATA_SOURCE) {
-            const baseUrl = `${this.protocol}://${this.host}:${this.port}/${FileService.BASE_FILE_IDS_URL}`;
-            const requestUrl = join(compact([baseUrl, queryString]), "?");
+        if (this.baseUrl !== FLAT_FILE_DATA_SOURCE) {
+            const requestUrl = join(
+                compact([`${this.baseUrl}/${FileService.BASE_FILE_IDS_URL}`, queryString]),
+                "?"
+            );
             console.log(`Requesting file ids from ${requestUrl}`);
 
             const response = await this.httpClient.get(requestUrl);
-            return new RestServiceResponse(response.data).data;
+            return response.data.data;
         }
 
         // TEMPORARY, FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE EXISTS

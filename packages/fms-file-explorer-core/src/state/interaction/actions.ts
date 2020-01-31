@@ -1,7 +1,6 @@
 import { makeConstant } from "@aics/redux-utils";
 
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
-import { ConnectionConfig } from "../../services/HttpServiceBase";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -68,21 +67,19 @@ export function hideContextMenu(): HideContextMenuAction {
 /**
  * SET CONNECTION CONFIGURATION FOR THE FILE EXPLORER SERVICE
  */
-export const SET_FILE_EXPLORER_SERVICE_CONNECTION_CONFIG = makeConstant(
+export const SET_FILE_EXPLORER_SERVICE_BASE_URL = makeConstant(
     STATE_BRANCH_NAME,
     "set-file-explorer-service-connection-config"
 );
 
-export interface SetFileExplorerServiceConnectionConfig {
+export interface SetFileExplorerServiceBaseUrl {
     type: string;
-    payload: ConnectionConfig;
+    payload: string;
 }
 
-export function setFileExplorerServiceConnectionConfig(
-    config: ConnectionConfig
-): SetFileExplorerServiceConnectionConfig {
+export function setFileExplorerServiceBaseUrl(baseUrl: string): SetFileExplorerServiceBaseUrl {
     return {
-        type: SET_FILE_EXPLORER_SERVICE_CONNECTION_CONFIG,
-        payload: config,
+        type: SET_FILE_EXPLORER_SERVICE_BASE_URL,
+        payload: baseUrl,
     };
 }
