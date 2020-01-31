@@ -60,7 +60,7 @@ export default class FileSet {
     }
 
     /**
-     * "hashCode" takes into account a FileSet's:
+     * "hash" takes into account a FileSet's:
      *  - filters
      *  - applied sorting
      *  - the data source for the files (i.e., base url of file service)
@@ -68,7 +68,7 @@ export default class FileSet {
      * It can be used to force a replacement of a React component (versus an update) that depends on a FileSet
      * by using this as the component's `key` attribute.
      */
-    public get hashCode() {
+    public get hash() {
         return `${this.toQueryString()}:${this.fileService.baseUrl}`;
     }
 
