@@ -56,10 +56,25 @@ describe("FileService", () => {
 
         it("issues request for all file ids matching given parameters", async () => {
             const fileService = new FileService({ baseUrl, httpClient });
-            const ids = await fileService.getFileIds({
-                queryString: "fileId=abc123",
-            });
+            const ids = await fileService.getFileIds("fileId=abc123");
             expect(ids).to.equal(fileIds);
+        });
+    });
+
+    describe("getCountOfMatchingFiles", () => {
+        const httpClient = createMockHttpClient({
+            when: `${baseUrl}/file-explorer-service/1.0/files/count?fileId=abc123&fileId=def456`,
+            respondWith: {
+                data: {
+                    data: [2],
+                },
+            },
+        });
+
+        it("issues request for count of files matching given parameters", async () => {
+            const fileService = new FileService({ baseUrl, httpClient });
+            const count = await fileService.getCountOfMatchingFiles("fileId=abc123&fileId=def456");
+            expect(count).to.equal(2);
         });
     });
 });

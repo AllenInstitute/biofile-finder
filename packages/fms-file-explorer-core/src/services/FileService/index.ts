@@ -35,10 +35,6 @@ export interface GetFilesRequest {
     endIndex: number; // TEMPORARY UNTIL QUERY SERVICE EXISTS
 }
 
-export interface GetFileIdsRequest {
-    queryString: string; // file filters and applied sort order(s) in their query string form (e.g., "scientist=jane&sort=date-created(ASC)")
-}
-
 /**
  * Service responsible for fetching file related metadata.
  */
@@ -46,9 +42,38 @@ export default class FileService extends HttpServiceBase {
     private static readonly FILES_ENDPOINT_VERSION = "1.0";
     private static readonly BASE_FILES_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files`;
     private static readonly BASE_FILE_IDS_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files/ids`;
+    private static readonly BASE_FILE_COUNT_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files/count`;
 
     // TEMPORARY TO SUPPORT FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE EXISTS
     private cache = new LRUCache<string, Response<FmsFile>>({ max: 10 });
+
+    public async getCountOfMatchingFiles(queryString: string): Promise<number> {
+        if (this.baseUrl !== FLAT_FILE_DATA_SOURCE) {
+            const requestUrl = join(
+                compact([`${this.baseUrl}/${FileService.BASE_FILE_COUNT_URL}`, queryString]),
+                "?"
+            );
+            console.log(`Requesting count of matching files from ${requestUrl}`);
+
+            const response = await this.get<number>(requestUrl);
+
+            // data is always an array, this endpoint should always return an array of length 1
+            if (response.data.length !== 1) {
+                throw new Error(
+                    `Expected response.data of ${requestUrl} to contain a single count`
+                );
+            }
+
+            return response.data[0];
+        }
+
+        // TEMPORARY, FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE IS STABLE
+        console.log("Requesting count from flat file: assets/files.json");
+        return new Promise<number>((resolve) => {
+            const result = this.getFromFlatFile(queryString);
+            resolve(result.totalCount);
+        });
+    }
 
     /**
      * Get list of file documents that match a given filter, potentially according to a particular sort order,
@@ -92,9 +117,7 @@ export default class FileService extends HttpServiceBase {
     /**
      * Get list of file_ids of file documents that match a given filter, potentially according to a particular sort order.
      */
-    public async getFileIds(request: GetFileIdsRequest): Promise<string[]> {
-        const { queryString } = request;
-
+    public async getFileIds(queryString: string): Promise<string[]> {
         if (this.baseUrl !== FLAT_FILE_DATA_SOURCE) {
             const requestUrl = join(
                 compact([`${this.baseUrl}/${FileService.BASE_FILE_IDS_URL}`, queryString]),

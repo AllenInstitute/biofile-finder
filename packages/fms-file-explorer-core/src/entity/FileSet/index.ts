@@ -170,7 +170,7 @@ export default class FileSet {
      * Stores Promise as a loading indicator, which allows code to `await this.loaded.`
      */
     private async fetchFileIds() {
-        this.loaded = this.fileService.getFileIds({ queryString: this.toQueryString() });
+        this.loaded = this.fileService.getFileIds(this.toQueryString());
         this._fileIds = await this.loaded;
     }
 
