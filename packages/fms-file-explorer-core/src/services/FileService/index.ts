@@ -3,6 +3,7 @@ import * as LRUCache from "lru-cache";
 
 import HttpServiceBase from "../HttpServiceBase";
 import RestServiceResponse, { Response } from "../../entity/RestServiceResponse";
+import { FLAT_FILE_DATA_SOURCE } from "../../constants";
 
 /**
  * Represents a sub-document that can be found within an FmsFile's `annotations` list.
@@ -53,20 +54,26 @@ export default class FileService extends HttpServiceBase {
      * Get list of file documents that match a given filter, potentially according to a particular sort order,
      * and potentially starting from a particular file_id and limited to a set number of files.
      */
-    public getFiles(request: GetFilesRequest): Promise<RestServiceResponse<FmsFile>> {
-        const { fromId, limit, queryString, startIndex, endIndex } = request;
+    public async getFiles(request: GetFilesRequest): Promise<RestServiceResponse<FmsFile>> {
+        const { fromId, limit, queryString } = request;
 
-        const base = `${FileService.BASE_FILES_URL}?from=${fromId}&limit=${limit}`;
-        const requestUrl = join(compact([base, queryString]), "&");
-        console.log(`Requesting files from ${requestUrl}`);
+        if (this.host !== FLAT_FILE_DATA_SOURCE) {
+            const base = `${this.protocol}://${this.host}:${this.port}/${FileService.BASE_FILES_URL}?from=${fromId}&limit=${limit}`;
+            const requestUrl = join(compact([base, queryString]), "&");
+            console.log(`Requesting files from ${requestUrl}`);
 
-        // TEMPORARY, FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE EXISTS
+            const response = await this.httpClient.get(requestUrl);
+            return new RestServiceResponse(response.data);
+        }
+
+        // TEMPORARY, FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE IS STABLE
+        console.log("Requesting files from flat file: assets/files.json");
         return new Promise<RestServiceResponse>((resolve) => {
             const result = this.getFromFlatFile(queryString);
 
             // In a real API call this will be unnecessary, but until then, need to grab just the subset of
             // data requested.
-            const requestedRange = result.data.slice(startIndex, endIndex + 1);
+            const requestedRange = result.data.slice(request.startIndex, request.endIndex + 1);
             resolve(new RestServiceResponse({ ...result, data: requestedRange }));
         });
     }
@@ -89,10 +96,17 @@ export default class FileService extends HttpServiceBase {
     public async getFileIds(request: GetFileIdsRequest): Promise<string[]> {
         const { queryString } = request;
 
-        const requestUrl = join(compact([FileService.BASE_FILE_IDS_URL, queryString]), "?");
-        console.log(`Requesting file ids from ${requestUrl}`);
+        if (this.host !== FLAT_FILE_DATA_SOURCE) {
+            const baseUrl = `${this.protocol}://${this.host}:${this.port}/${FileService.BASE_FILE_IDS_URL}`;
+            const requestUrl = join(compact([baseUrl, queryString]), "?");
+            console.log(`Requesting file ids from ${requestUrl}`);
+
+            const response = await this.httpClient.get(requestUrl);
+            return new RestServiceResponse(response.data).data;
+        }
 
         // TEMPORARY, FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE EXISTS
+        console.log("Requesting file ids from flat file: assets/files.json");
         const makeRequest = () =>
             new Promise<RestServiceResponse>((resolve) => {
                 const result = this.getFromFlatFile(queryString);

@@ -1,4 +1,5 @@
 import Annotation from "../../entity/Annotation";
+import { FLAT_FILE_DATA_SOURCE } from "../../constants";
 import HttpServiceBase from "../HttpServiceBase";
 import RestServiceResponse from "../../entity/RestServiceResponse";
 
@@ -24,11 +25,17 @@ export default class AnnotationService extends HttpServiceBase {
     /**
      * Fetch all annotations.
      */
-    public static fetchAnnotations(): Promise<Annotation[]> {
-        const requestUrl = `${AnnotationService.BASE_ANNOTATION_URL}`;
-        console.log(`Requesting annotation values from ${requestUrl}`);
+    public async fetchAnnotations(): Promise<Annotation[]> {
+        if (this.host !== FLAT_FILE_DATA_SOURCE) {
+            const requestUrl = `${this.protocol}://${this.host}:${this.port}/${AnnotationService.BASE_ANNOTATION_URL}`;
+            console.log(`Requesting annotation values from ${requestUrl}`);
 
-        // TEMPORARY, FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE EXISTS
+            const response = await this.httpClient.get(requestUrl);
+            return response.data;
+        }
+
+        // TEMPORARY, FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE IS STABLE
+        console.log("Requesting annotation values from flat file: assets/annotations.json");
         return new Promise<Annotation[]>((resolve) => {
             const response = new RestServiceResponse<AnnotationResponse>(
                 require("../../../assets/annotations.json")
