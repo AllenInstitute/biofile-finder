@@ -266,7 +266,10 @@ describe("FileList selectors", () => {
                                     expectedTreeNode[nodeProperty as keyof TreeNode];
                                 if (actualNodeValue instanceof FileSet) {
                                     if (expectedNodeValue instanceof FileSet) {
-                                        return actualNodeValue.equals(expectedNodeValue);
+                                        return (
+                                            actualNodeValue.toQueryString() ===
+                                            expectedNodeValue.toQueryString()
+                                        );
                                     }
                                     return false;
                                 } else {
