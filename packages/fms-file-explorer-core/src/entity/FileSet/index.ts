@@ -97,7 +97,7 @@ export default class FileSet {
             });
 
             response.data.forEach((file: FmsFile) => {
-                this.cache.set(file.file_id, file);
+                this.cache.set(file.fileId, file);
             });
 
             this.totalFileCount = response.totalCount;

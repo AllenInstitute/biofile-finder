@@ -50,7 +50,7 @@ describe("<AnnotationList />", () => {
 
             // before, expect all annotations to be in the list
             const allAnnotationDisplayNames = annotationsJson.map(
-                (annotation) => annotation.annotation_display_name
+                (annotation) => annotation.annotationDisplayName
             );
             expect(queryNumberListItems()).to.equal(allAnnotationDisplayNames.length);
             allAnnotationDisplayNames.forEach((annotation) => {

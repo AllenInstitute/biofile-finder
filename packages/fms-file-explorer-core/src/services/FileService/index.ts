@@ -10,7 +10,7 @@ import { FLAT_FILE_DATA_SOURCE } from "../../constants";
  */
 export interface FmsFileAnnotation {
     [key: string]: any;
-    annotation_name: string;
+    name: string;
     values: any[];
 }
 
@@ -23,7 +23,7 @@ export interface FmsFileAnnotation {
  */
 export interface FmsFile {
     [key: string]: any;
-    file_id: string;
+    fileId: string;
     annotations?: FmsFileAnnotation[];
 }
 
@@ -58,7 +58,10 @@ export default class FileService extends HttpServiceBase {
         const { fromId, limit, queryString } = request;
 
         if (this.baseUrl !== FLAT_FILE_DATA_SOURCE) {
-            const base = `${this.baseUrl}/${FileService.BASE_FILES_URL}?from=${fromId}&limit=${limit}`;
+            let base = `${this.baseUrl}/${FileService.BASE_FILES_URL}?`;
+            if (fromId && limit) {
+                base = `${base}from=${fromId}&limit=${limit}`;
+            }
             const requestUrl = join(compact([base, queryString]), "&");
             console.log(`Requesting files from ${requestUrl}`);
 
@@ -85,7 +88,7 @@ export default class FileService extends HttpServiceBase {
         return new Promise<FmsFile[]>((resolve) => {
             const res = require("../../../assets/files.json");
             const setOfIds = new Set(fileIds);
-            resolve(res.data.filter((file: FmsFile) => setOfIds.has(file.file_id)));
+            resolve(res.data.filter((file: FmsFile) => setOfIds.has(file.fileId)));
         });
     }
 
@@ -116,7 +119,7 @@ export default class FileService extends HttpServiceBase {
             });
 
         const res = await makeRequest();
-        return res.data.map((file) => file.file_id);
+        return res.data.map((file) => file.fileId);
     }
 
     /**
@@ -145,7 +148,7 @@ export default class FileService extends HttpServiceBase {
                     return every(searchParamFilters, ([key, value]) => {
                         const annotation = find(
                             file.annotations,
-                            ({ annotation_name }) => snakeCase(annotation_name) === key
+                            ({ name }) => snakeCase(name) === snakeCase(key)
                         );
                         if (!annotation) {
                             return false;
@@ -157,14 +160,10 @@ export default class FileService extends HttpServiceBase {
                 console.timeEnd(`Filtering files by ${searchParamFilters}`);
             }
 
-            const enrichedWithIndex = files.map((file: {}, index: number) => ({
-                result_set_index: index,
-                ...file,
-            }));
             const updatedRes = {
                 ...res,
-                data: enrichedWithIndex,
-                totalCount: enrichedWithIndex.length,
+                data: files,
+                totalCount: files.length,
             };
             this.cache.set(queryString, updatedRes);
 

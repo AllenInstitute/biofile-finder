@@ -24,11 +24,11 @@ export default class Annotation {
     }
 
     public get displayName(): string {
-        return this.annotation.annotation_display_name;
+        return this.annotation.annotationDisplayName;
     }
 
     public get name(): string {
-        return this.annotation.annotation_name;
+        return this.annotation.annotationName;
     }
 
     public get values(): (string | number | boolean | Date)[] {
@@ -58,7 +58,7 @@ export default class Annotation {
             // part of the "annotations" list
             const correspondingAnnotation = find<FmsFileAnnotation>(
                 file.annotations,
-                (annotation) => annotation.annotation_name === this.name
+                (annotation) => annotation.name === this.name
             );
             if (!correspondingAnnotation) {
                 value = Annotation.MISSING_VALUE;

@@ -1,8 +1,7 @@
 export const annotationsJson = [
     {
-        annotation_id: 1,
-        annotation_display_name: "Date created",
-        annotation_name: "date_created",
+        annotationDisplayName: "Date created",
+        annotationName: "date_created",
         description: "Date and time file was created",
         type: "Date/Time",
         values: [
@@ -47,9 +46,8 @@ export const annotationsJson = [
         ],
     },
     {
-        annotation_id: 2,
-        annotation_display_name: "Cell line",
-        annotation_name: "cell_line",
+        annotationDisplayName: "Cell line",
+        annotationName: "cell_line",
         description: "AICS cell line",
         type: "Text",
         values: [
@@ -76,25 +74,22 @@ export const annotationsJson = [
         ],
     },
     {
-        annotation_id: 3,
-        annotation_display_name: "Cells are dead",
-        annotation_name: "cell_dead",
+        annotationDisplayName: "Cells are dead",
+        annotationName: "cell_dead",
         description: "Does this field contain dead cells",
         type: "Yes/No",
         values: [false],
     },
     {
-        annotation_id: 4,
-        annotation_display_name: "Is matrigel hard?",
-        annotation_name: "matrigel_hardened",
+        annotationDisplayName: "Is matrigel hard?",
+        annotationName: "matrigel_hardened",
         description: "Whether or not matrigel is hard.",
         type: "Yes/No",
         values: [true, false],
     },
     {
-        annotation_id: 5,
-        annotation_display_name: "Objective",
-        annotation_name: "objective",
+        annotationDisplayName: "Objective",
+        annotationName: "objective",
         description: "Imaging objective",
         type: "Number",
         values: [100.0, 10.0],

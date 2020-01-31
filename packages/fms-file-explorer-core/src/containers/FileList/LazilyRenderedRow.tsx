@@ -42,7 +42,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
 
     const isSelected = React.useMemo(() => {
         if (file) {
-            return includes(selectedFiles, file.file_id);
+            return includes(selectedFiles, file.fileId);
         }
 
         return false;
@@ -59,7 +59,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
             <FileRow
                 cells={cells}
                 className={isSelected ? styles.selectedRow : undefined}
-                rowIdentifier={{ index, id: file.file_id }}
+                rowIdentifier={{ index, id: file.fileId }}
                 onSelect={onSelect}
             />
         );

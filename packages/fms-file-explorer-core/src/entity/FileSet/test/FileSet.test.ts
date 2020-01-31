@@ -37,7 +37,7 @@ describe("FileSet", () => {
 
         it("returns slices of the file list represented by the FileSet, specified by index position", async () => {
             const fileIds = ["abc123", "def456", "ghi789", "jkl012", "mno345"];
-            const files = fileIds.map((id) => ({ file_id: id }));
+            const files = fileIds.map((id) => ({ fileId: id }));
 
             const fileService = new FileService();
             sandbox.replace(fileService, "getFileIds", () => Promise.resolve(fileIds));
@@ -63,7 +63,7 @@ describe("FileSet", () => {
         const sandbox = createSandbox();
 
         const fileIds = ["abc123", "def456", "ghi789", "jkl012", "mno345"];
-        const files = fileIds.map((id) => ({ file_id: id }));
+        const files = fileIds.map((id) => ({ fileId: id }));
 
         const fileService = new FileService();
         const fileSet = new FileSet({ fileService });

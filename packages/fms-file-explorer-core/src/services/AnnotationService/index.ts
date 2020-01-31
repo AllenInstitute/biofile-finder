@@ -1,3 +1,5 @@
+import { map } from "lodash";
+
 import Annotation from "../../entity/Annotation";
 import { FLAT_FILE_DATA_SOURCE } from "../../constants";
 import HttpServiceBase from "../HttpServiceBase";
@@ -7,8 +9,8 @@ import RestServiceResponse from "../../entity/RestServiceResponse";
  * Expected JSON structure of an annotation returned from the query service.
  */
 export interface AnnotationResponse {
-    annotation_display_name: string;
-    annotation_name: string;
+    annotationDisplayName: string;
+    annotationName: string;
     description: string;
     type: string;
     units?: string;
@@ -31,7 +33,7 @@ export default class AnnotationService extends HttpServiceBase {
             console.log(`Requesting annotation values from ${requestUrl}`);
 
             const response = await this.get<AnnotationResponse>(requestUrl);
-            return response.data.map((annotationResponse) => new Annotation(annotationResponse));
+            return map(response.data, (annotationResponse) => new Annotation(annotationResponse));
         }
 
         // TEMPORARY, FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE IS STABLE

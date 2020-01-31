@@ -12,8 +12,8 @@ import FileSet from "../../../entity/FileSet";
 
 describe("<LazilyRenderedRow />", () => {
     const fileNameAnnotation = new Annotation({
-        annotation_display_name: "Name",
-        annotation_name: "file_name",
+        annotationDisplayName: "Name",
+        annotationName: "fileName",
         description: "name of file",
         type: "Text",
         values: [],
@@ -23,7 +23,7 @@ describe("<LazilyRenderedRow />", () => {
         const fileSet = new FileSet();
         sinon.stub(fileSet, "getFileByIndex").callsFake((index) => {
             if (index === 3) {
-                return { file_id: "abc123", file_name: "my_image.czi" };
+                return { fileId: "abc123", fileName: "my_image.czi" };
             }
         });
 
@@ -35,14 +35,10 @@ describe("<LazilyRenderedRow />", () => {
     }
 
     it("renders data when available", () => {
-        const state = mergeState(initialState, {
-            metadata: {
-                annotations: [fileNameAnnotation],
-            },
-            selection: {
-                displayAnnotations: [fileNameAnnotation],
-            },
-        });
+        const state = mergeState(initialState, {});
+        state.metadata.annotations = [fileNameAnnotation];
+        state.selection.displayAnnotations = [fileNameAnnotation];
+
         const { store } = configureMockStore({ state });
         const wrapper = mount(
             <Provider store={store}>
@@ -55,14 +51,10 @@ describe("<LazilyRenderedRow />", () => {
     });
 
     it("renders a loading indicator when data is not available", () => {
-        const state = mergeState(initialState, {
-            metadata: {
-                annotations: [fileNameAnnotation],
-            },
-            selection: {
-                displayAnnotations: [fileNameAnnotation],
-            },
-        });
+        const state = mergeState(initialState, {});
+        state.metadata.annotations = [fileNameAnnotation];
+        state.selection.displayAnnotations = [fileNameAnnotation];
+
         const { store } = configureMockStore({ state });
         const wrapper = mount(
             <Provider store={store}>
