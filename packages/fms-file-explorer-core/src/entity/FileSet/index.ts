@@ -59,6 +59,19 @@ export default class FileSet {
         return this._filters;
     }
 
+    /**
+     * "hashCode" takes into account a FileSet's:
+     *  - filters
+     *  - applied sorting
+     *  - the data source for the files (i.e., base url of file service)
+     *
+     * It can be used to force a replacement of a React component (versus an update) that depends on a FileSet
+     * by using this as the component's `key` attribute.
+     */
+    public get hashCode() {
+        return `${this.toQueryString()}:${this.fileService.baseUrl}`;
+    }
+
     public get totalCount() {
         return this.totalFileCount;
     }

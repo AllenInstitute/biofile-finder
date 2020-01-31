@@ -61,6 +61,7 @@ export default function FileList(props: FileListProps) {
     return (
         <div className={classNames(styles.list, className)} ref={ref}>
             <InfiniteLoader
+                key={fileSet.hashCode}
                 isItemLoaded={fileSet.isFileMetadataLoaded}
                 loadMoreItems={debouncePromise(
                     fileSet.fetchFileRange,

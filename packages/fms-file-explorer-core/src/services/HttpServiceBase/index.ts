@@ -17,7 +17,7 @@ export const DEFAULT_CONNECTION_CONFIG = {
  * Base class for services that interact with AICS APIs.
  */
 export default class HttpServiceBase {
-    protected baseUrl = DEFAULT_CONNECTION_CONFIG.baseUrl;
+    public baseUrl = DEFAULT_CONNECTION_CONFIG.baseUrl;
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
 
     constructor(config: ConnectionConfig = {}) {
