@@ -131,4 +131,5 @@ module.exports = ({ analyze, env } = {}) => ({
         symlinks: false,
     },
     stats: analyze ? "none" : stats,
+    target: "electron-renderer",
 });
