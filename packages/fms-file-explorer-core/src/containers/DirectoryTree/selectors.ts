@@ -3,8 +3,9 @@ import { isEmpty, map, reduce } from "lodash";
 import { createSelector } from "reselect";
 
 import FileFilter from "../../entity/FileFilter";
+import FileService from "../../services/FileService";
 import FileSet from "../../entity/FileSet";
-import { selection } from "../../state";
+import { interaction, selection } from "../../state";
 
 /**
  * Given annotation hierarchy (list of annotations, in order, by which user wants files to be grouped), and all unique values for each of those annotations,
@@ -72,11 +73,13 @@ export type FileSetTree = [string | number | boolean | null, (FileSet[] | FileSe
  *  ]
  */
 export const getGroupedFileSets = createSelector(
-    [getFileFilters],
-    (fileFilters): FileSetTree[] => {
+    [getFileFilters, interaction.selectors.getFileExplorerServiceConnectionConfig],
+    (fileFilters, fileExplorerServiceConnectionConfig): FileSetTree[] => {
+        const fileService = new FileService(fileExplorerServiceConnectionConfig);
+
         // "Root" of FMS -- no annotation hierarchy in place. The "directory name" is null, and the FileSet is filterless.
         if (isEmpty(fileFilters)) {
-            return [[null, [new FileSet()]]];
+            return [[null, [new FileSet({ fileService })]]];
         }
 
         const cartesianProductOfFileFilters: FileFilter[][] = cross(...fileFilters);
@@ -88,7 +91,7 @@ export const getGroupedFileSets = createSelector(
         //                     FileSet({ filters: [FileFilter("A", 1), FileFilter("B", false)] })]
         const fileSets = map(
             cartesianProductOfFileFilters,
-            (filters: FileFilter[]) => new FileSet({ filters })
+            (filters: FileFilter[]) => new FileSet({ filters, fileService })
         );
 
         // Group `fileSets` by the values of the `FileFilter`s in the order in which they were given to each `FileSet`
