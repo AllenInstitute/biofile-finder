@@ -1,5 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 
+import RestServiceResponse from "../../entity/RestServiceResponse";
+
 export interface ConnectionConfig {
     baseUrl?: string;
     httpClient?: AxiosInstance;
@@ -25,6 +27,10 @@ export default class HttpServiceBase {
         if (config.httpClient) {
             this.setHttpClient(config.httpClient);
         }
+    }
+
+    public get<T>(url: string): Promise<RestServiceResponse<T>> {
+        return this.httpClient.get(url).then((response) => new RestServiceResponse(response.data));
     }
 
     public setBaseUrl(baseUrl: string) {

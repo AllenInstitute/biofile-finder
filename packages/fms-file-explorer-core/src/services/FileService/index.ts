@@ -62,8 +62,7 @@ export default class FileService extends HttpServiceBase {
             const requestUrl = join(compact([base, queryString]), "&");
             console.log(`Requesting files from ${requestUrl}`);
 
-            const response = await this.httpClient.get(requestUrl);
-            return new RestServiceResponse(response.data);
+            return await this.get<FmsFile>(requestUrl);
         }
 
         // TEMPORARY, FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE IS STABLE
@@ -103,8 +102,8 @@ export default class FileService extends HttpServiceBase {
             );
             console.log(`Requesting file ids from ${requestUrl}`);
 
-            const response = await this.httpClient.get(requestUrl);
-            return response.data.data;
+            const response = await this.get<string>(requestUrl);
+            return response.data;
         }
 
         // TEMPORARY, FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE EXISTS

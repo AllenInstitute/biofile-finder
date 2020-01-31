@@ -30,8 +30,8 @@ export default class AnnotationService extends HttpServiceBase {
             const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_URL}`;
             console.log(`Requesting annotation values from ${requestUrl}`);
 
-            const response = await this.httpClient.get(requestUrl);
-            return response.data;
+            const response = await this.get<AnnotationResponse>(requestUrl);
+            return response.data.map((annotationResponse) => new Annotation(annotationResponse));
         }
 
         // TEMPORARY, FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE IS STABLE
