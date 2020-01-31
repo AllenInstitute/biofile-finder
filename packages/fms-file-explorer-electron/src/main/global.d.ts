@@ -1,10 +1,6 @@
 declare namespace NodeJS {
     export interface Global {
-        // necessary in order to do: global.fileExplorerServiceConnection = {...}
-        fileExplorerServiceConnection: {
-            protocol: string;
-            host: string;
-            port: number;
-        };
+        // necessary in order to do: global.fileExplorerServiceBaseUrl = "..."
+        fileExplorerServiceBaseUrl: string;
     }
 }
