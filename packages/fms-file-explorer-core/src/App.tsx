@@ -26,17 +26,14 @@ export default function App(props: AppProps) {
 
     const dispatch = useDispatch();
 
-    // Kick off the process of requesting metadata needed by the application.
-    // Only run once, on component mount.
-    React.useEffect(() => {
-        dispatch(metadata.actions.requestAnnotations());
-    }, [dispatch]);
-
     // Set connection configuration for the file-explorer-service
+    // And kick off the process of requesting metadata needed by the application.
     React.useEffect(() => {
         if (fileExplorerServiceBaseUrl) {
             dispatch(interaction.actions.setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl));
         }
+
+        dispatch(metadata.actions.requestAnnotations());
     }, [dispatch, fileExplorerServiceBaseUrl]);
 
     return (
