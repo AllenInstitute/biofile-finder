@@ -125,7 +125,7 @@ const onSetAnnotationHierarchy = createLogic({
         const hierarchy = selectionSelectors.getAnnotationHierarchy(appState);
         const baseUrl = interaction.selectors.getFileExplorerServiceBaseUrl(appState);
 
-        //
+        // E.g.:
         // [
         //   [FileFilter("A", 1), FileFilter("A", 2), FileFilter("A", 3)],
         //   [FileFilter("B", true), FileFilter("B", false)],
@@ -159,49 +159,61 @@ const onSetAnnotationHierarchy = createLogic({
             return count < 1;
         }
 
-        async function constructFileSetTrees(
-            root: FileSet[],
-            filters: FileFilter[],
-            depth: number
+        /**
+         * Depth-first traversal of a level of the annotation hierarchy (array of FileFilters).
+         *
+         * If `parentTree` is supplied, the traversal at this level is appended to.
+         * If `ancestralFilters` is supplied, each filter at the given depth will be appended to `ancestralFilters`.
+         */
+        async function traverseHierarchyFromDepth(
+            depth: number,
+            parentTree: FileSet[] = [],
+            ancestralFilters: FileFilter[] = []
         ) {
             return await hierarchyFilters[depth].reduce(
-                async (constructionOfOlderSiblingFileSetTrees, currentFilter) => {
-                    const fileSets = await constructionOfOlderSiblingFileSetTrees;
+                async (constructionOfSiblingFileSetTrees, currentFilter) => {
+                    const fileSetTrees = await constructionOfSiblingFileSetTrees;
                     return [
-                        ...fileSets,
-                        ...(await constructFileSetTreeBranch([...filters, currentFilter], depth)),
+                        ...fileSetTrees,
+                        ...(await constructFileSetTree(
+                            [...ancestralFilters, currentFilter],
+                            depth
+                        )),
                     ];
                 },
-                Promise.resolve(root)
+                Promise.resolve(parentTree)
             );
         }
 
-        async function constructFileSetTreeBranch(
-            accumulatedFileFilters: FileFilter[],
+        /**
+         * Starting from a list of FileFilters and the depth of the annotation hierarchy
+         * from which the last of those FileFilters came from, determine if the FileSet
+         * represented by those FileFilters is non-empty, and if so, continue walking
+         * down the annotation hierachy if not already at the last level.
+         */
+        async function constructFileSetTree(
+            filters: FileFilter[],
             depth: number
         ): Promise<FileSet[]> {
-            const output: FileSet[] = [];
-            const filters = [...accumulatedFileFilters];
+            const tree: FileSet[] = [];
             const fileSet = new FileSet({ filters, fileService });
             const nextDepth = depth + 1;
 
             if (await fileSetIsEmpty(fileSet)) {
-                return output;
+                return tree;
             }
 
-            if (hierarchyDepth > nextDepth) {
-                output.push(fileSet);
-            } else {
-                output.push(fileSet);
-                return output;
+            tree.push(fileSet);
+
+            if (nextDepth >= hierarchyDepth) {
+                // At the leaf hierarchy level, so do not try to traverse any further down
+                return tree;
             }
 
-            return await constructFileSetTrees(output, filters, nextDepth);
+            return await traverseHierarchyFromDepth(nextDepth, tree, filters);
         }
 
-        const fileSetTree = await constructFileSetTrees([] as FileSet[], [], 0);
-
-        console.log(JSON.stringify(fileSetTree, null, 2));
+        const fileSetTree = await traverseHierarchyFromDepth(0);
 
         done();
     },
