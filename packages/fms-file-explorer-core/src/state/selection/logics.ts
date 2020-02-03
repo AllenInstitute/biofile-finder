@@ -1,4 +1,4 @@
-import { castArray, find, includes, isArray, uniq, without } from "lodash";
+import { castArray, find, includes, isArray, isEmpty, map, reduce, uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -12,6 +12,11 @@ import {
 import metadata from "../metadata";
 import { getAnnotationHierarchy, getSelectedFiles } from "./selectors";
 import { ReduxLogicDeps } from "../";
+import interaction from "../interaction";
+import Annotation from "../../entity/Annotation";
+import FileFilter from "../../entity/FileFilter";
+import FileSet from "../../entity/FileSet";
+import FileService from "../../services/FileService";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -60,7 +65,7 @@ const selectFile = createLogic({
  */
 const modifyAnnotationHierarchy = createLogic({
     transform(deps: ReduxLogicDeps, next, reject) {
-        const { action, getState } = deps;
+        const { action, getState, ctx } = deps;
 
         const existingHierarchy = getAnnotationHierarchy(getState());
         const allAnnotations = metadata.selectors.getAnnotations(getState());
@@ -74,22 +79,70 @@ const modifyAnnotationHierarchy = createLogic({
             return;
         }
 
+        let nextHierarchy: Annotation[];
         if (includes(existingHierarchy, annotation)) {
             const removed = without(existingHierarchy, annotation);
             if (action.payload.moveTo !== undefined) {
                 // change order
                 removed.splice(action.payload.moveTo, 0, annotation);
-                next(setAnnotationHierarchy(removed));
+                nextHierarchy = removed;
             } else {
                 // remove from list
-                next(setAnnotationHierarchy(removed));
+                nextHierarchy = removed;
             }
         } else {
             // add to list
-            const newHierarchy = Array.from(existingHierarchy);
-            newHierarchy.splice(action.payload.moveTo, 0, annotation);
+            nextHierarchy = Array.from(existingHierarchy);
+            nextHierarchy.splice(action.payload.moveTo, 0, annotation);
+        }
 
-            next(setAnnotationHierarchy(newHierarchy));
+        // set nextHierarchy on ctx to share directly with the `process` hook
+        ctx.hierarchy = nextHierarchy;
+        next(setAnnotationHierarchy(nextHierarchy));
+    },
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const {
+            ctx: { hierarchy },
+            httpClient,
+            getState,
+        } = deps;
+
+        //
+        // [
+        //   [FileFilter("A", 1), FileFilter("A", 2), FileFilter("A", 3)],
+        //   [FileFilter("B", true), FileFilter("B", false)],
+        //   [FileFilter("C", "foo"), FileFilter("C", "bar"), FileFilter("C", "baz")]
+        // ]
+        const hierarchyFilters = reduce(
+            hierarchy,
+            (accum, annotation) => {
+                // only include those annotations that we have values for
+                if (!isEmpty(annotation.values)) {
+                    const filters = map(
+                        annotation.values,
+                        (val) => new FileFilter(annotation.name, val)
+                    );
+                    accum.push(filters);
+                    return accum;
+                }
+
+                return accum;
+            },
+            [] as FileFilter[][]
+        );
+
+        // Iterate over fileFilters depth-first, making combination FileSets and determining if the set is empty
+        const hierarchyDepth = hierarchyFilters.length;
+        let iterationLevel = 0;
+        const baseUrl = interaction.selectors.getFileExplorerServiceBaseUrl(getState());
+        const fileService = new FileService({ baseUrl, httpClient });
+        const [start] = hierarchyFilters;
+        const nonEmpty = [];
+        for (const filter of start) {
+            const count = await fileService.getCountOfMatchingFiles(filter.toQueryString());
+            if (count > 0) {
+                nonEmpty.push(filter);
+            }
         }
     },
     type: [REORDER_ANNOTATION_HIERARCHY, REMOVE_FROM_ANNOTATION_HIERARCHY],
