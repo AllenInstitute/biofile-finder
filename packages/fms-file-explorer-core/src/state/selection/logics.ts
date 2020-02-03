@@ -8,6 +8,7 @@ import {
     REORDER_ANNOTATION_HIERARCHY,
     REMOVE_FROM_ANNOTATION_HIERARCHY,
     setAnnotationHierarchy,
+    SET_ANNOTATION_HIERARCHY,
 } from "./actions";
 import metadata from "../metadata";
 import { getAnnotationHierarchy, getSelectedFiles } from "./selectors";
@@ -96,16 +97,19 @@ const onModifyAnnotationHierarchy = createLogic({
             nextHierarchy.splice(action.payload.moveTo, 0, annotation);
         }
 
-        // set nextHierarchy on ctx to share directly with the `process` hook
-        ctx.hierarchy = nextHierarchy;
         next(setAnnotationHierarchy(nextHierarchy));
     },
+    type: [REORDER_ANNOTATION_HIERARCHY, REMOVE_FROM_ANNOTATION_HIERARCHY],
+});
+
+/**
+ * Interceptor responsible for creating groupings of files to be displayed by the DirectoryTree.
+ */
+const onSetAnnotationHierarchy = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const {
-            ctx: { hierarchy },
-            httpClient,
-            getState,
-        } = deps;
+        const { httpClient, getState } = deps;
+
+        const hierarchy = getAnnotationHierarchy(getState());
 
         //
         // [
@@ -145,7 +149,7 @@ const onModifyAnnotationHierarchy = createLogic({
             }
         }
     },
-    type: [REORDER_ANNOTATION_HIERARCHY, REMOVE_FROM_ANNOTATION_HIERARCHY],
+    type: SET_ANNOTATION_HIERARCHY,
 });
 
 export default [onSelectFile, onModifyAnnotationHierarchy];
