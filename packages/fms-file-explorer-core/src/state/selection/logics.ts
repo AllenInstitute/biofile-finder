@@ -23,7 +23,7 @@ import FileService from "../../services/FileService";
  * add to existing selected files state, to replace existing selection state, or to remove a file from the existing
  * selection state.
  */
-const selectFile = createLogic({
+const onSelectFile = createLogic({
     transform(deps: ReduxLogicDeps, next: (action: AnyAction) => void) {
         const { action, getState } = deps;
 
@@ -63,7 +63,7 @@ const selectFile = createLogic({
  * Interceptor responsible for transforming REORDER_ANNOTATION_HIERARCHY and REMOVE_FROM_ANNOTATION_HIERARCHY actions into
  * a concrete list of ordered annotations that can be directly stored in application state under `selections.annotationHierarchy`.
  */
-const modifyAnnotationHierarchy = createLogic({
+const onModifyAnnotationHierarchy = createLogic({
     transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState, ctx } = deps;
 
@@ -148,4 +148,4 @@ const modifyAnnotationHierarchy = createLogic({
     type: [REORDER_ANNOTATION_HIERARCHY, REMOVE_FROM_ANNOTATION_HIERARCHY],
 });
 
-export default [selectFile, modifyAnnotationHierarchy];
+export default [onSelectFile, onModifyAnnotationHierarchy];
