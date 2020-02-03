@@ -153,49 +153,55 @@ const onSetAnnotationHierarchy = createLogic({
         const hierarchyDepth = hierarchyFilters.length;
         const fileService = new FileService({ baseUrl, httpClient });
 
-        const topLevelFilters: FileFilter[] = castArray(head(hierarchyFilters));
-
-        const fileSetIsEmpty = async (fileSet: FileSet) => {
+        async function fileSetIsEmpty(fileSet: FileSet) {
             const qs = fileSet.toQueryString();
             const count = await fileService.getCountOfMatchingFiles(qs);
             return count < 1;
-        };
+        }
 
-        const makeTree = async (
-            output: FileSet[],
-            accum: FileFilter[],
-            filter: FileFilter,
+        async function constructFileSetTrees(
+            root: FileSet[],
+            filters: FileFilter[],
             depth: number
-        ) => {
-            const filters = [...accum, filter];
+        ) {
+            return await hierarchyFilters[depth].reduce(
+                async (constructionOfOlderSiblingFileSetTrees, currentFilter) => {
+                    const fileSets = await constructionOfOlderSiblingFileSetTrees;
+                    return [
+                        ...fileSets,
+                        ...(await constructFileSetTreeBranch([...filters, currentFilter], depth)),
+                    ];
+                },
+                Promise.resolve(root)
+            );
+        }
+
+        async function constructFileSetTreeBranch(
+            accumulatedFileFilters: FileFilter[],
+            depth: number
+        ): Promise<FileSet[]> {
+            const output: FileSet[] = [];
+            const filters = [...accumulatedFileFilters];
             const fileSet = new FileSet({ filters, fileService });
             const nextDepth = depth + 1;
 
             if (await fileSetIsEmpty(fileSet)) {
-                return;
+                return output;
             }
 
             if (hierarchyDepth > nextDepth) {
                 output.push(fileSet);
             } else {
                 output.push(fileSet);
-                return;
+                return output;
             }
 
-            await hierarchyFilters[nextDepth].reduce(async (cur, filter) => {
-                await cur;
-                return await makeTree(output, filters, filter, nextDepth);
-            }, Promise.resolve());
-        };
+            return await constructFileSetTrees(output, filters, nextDepth);
+        }
 
-        let output: FileSet[] = [];
+        const fileSetTree = await constructFileSetTrees([] as FileSet[], [], 0);
 
-        await topLevelFilters.reduce(async (cur, filter) => {
-            await cur;
-            return await makeTree(output, [], filter, 0);
-        }, Promise.resolve());
-
-        console.log(JSON.stringify(output, null, 2));
+        console.log(JSON.stringify(fileSetTree, null, 2));
 
         done();
     },
