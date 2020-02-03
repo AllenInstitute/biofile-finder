@@ -11,7 +11,7 @@ import {
     SET_ANNOTATION_HIERARCHY,
 } from "./actions";
 import metadata from "../metadata";
-import { getAnnotationHierarchy, getSelectedFiles } from "./selectors";
+import * as selectionSelectors from "./selectors";
 import { ReduxLogicDeps } from "../";
 import interaction from "../interaction";
 import Annotation from "../../entity/Annotation";
@@ -29,7 +29,7 @@ const onSelectFile = createLogic({
         const { action, getState } = deps;
 
         if (action.payload.updateExistingSelection) {
-            const existingSelections = getSelectedFiles(getState());
+            const existingSelections = selectionSelectors.getSelectedFiles(getState());
 
             // if updating existing selections and clicked file is already selected, interpret as a deselect action
             // ensure clicked file is not a list of files--that case is more difficult to guess user intention
@@ -68,7 +68,7 @@ const onModifyAnnotationHierarchy = createLogic({
     transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState, ctx } = deps;
 
-        const existingHierarchy = getAnnotationHierarchy(getState());
+        const existingHierarchy = selectionSelectors.getAnnotationHierarchy(getState());
         const allAnnotations = metadata.selectors.getAnnotations(getState());
         const annotation = find(
             allAnnotations,
@@ -109,7 +109,10 @@ const onSetAnnotationHierarchy = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { httpClient, getState } = deps;
 
-        const hierarchy = getAnnotationHierarchy(getState());
+        // pull stuff out of the store that we'll need
+        const appState = getState();
+        const hierarchy = selectionSelectors.getAnnotationHierarchy(appState);
+        const baseUrl = interaction.selectors.getFileExplorerServiceBaseUrl(appState);
 
         //
         // [
@@ -138,7 +141,6 @@ const onSetAnnotationHierarchy = createLogic({
         // Iterate over fileFilters depth-first, making combination FileSets and determining if the set is empty
         const hierarchyDepth = hierarchyFilters.length;
         let iterationLevel = 0;
-        const baseUrl = interaction.selectors.getFileExplorerServiceBaseUrl(getState());
         const fileService = new FileService({ baseUrl, httpClient });
         const [start] = hierarchyFilters;
         const nonEmpty = [];
