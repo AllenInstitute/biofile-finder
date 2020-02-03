@@ -23,6 +23,10 @@ export default class FileFilter {
         return `${this.annotationName}=${this.annotationValue}`;
     }
 
+    public toJSON() {
+        return this.toQueryString();
+    }
+
     public equals(target: FileFilter): boolean {
         return (
             this.annotationName === target.annotationName &&

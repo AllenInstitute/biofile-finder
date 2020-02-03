@@ -163,6 +163,10 @@ export default class FileSet {
         );
     }
 
+    public toJSON() {
+        return this.toQueryString();
+    }
+
     /**
      * Fetch list of all file ids corresponding to this FileSet.
      *

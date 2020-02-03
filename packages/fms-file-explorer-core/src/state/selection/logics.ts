@@ -1,4 +1,15 @@
-import { castArray, find, includes, isArray, isEmpty, map, reduce, uniq, without } from "lodash";
+import {
+    castArray,
+    find,
+    head,
+    includes,
+    isArray,
+    isEmpty,
+    map,
+    reduce,
+    uniq,
+    without,
+} from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -140,18 +151,55 @@ const onSetAnnotationHierarchy = createLogic({
 
         // Iterate over fileFilters depth-first, making combination FileSets and determining if the set is empty
         const hierarchyDepth = hierarchyFilters.length;
-        let iterationLevel = 0;
         const fileService = new FileService({ baseUrl, httpClient });
-        const [start] = hierarchyFilters;
-        const nonEmpty = [];
-        for (const filter of start) {
-            const count = await fileService.getCountOfMatchingFiles(filter.toQueryString());
-            if (count > 0) {
-                nonEmpty.push(filter);
+
+        const topLevelFilters: FileFilter[] = castArray(head(hierarchyFilters));
+
+        const fileSetIsEmpty = async (fileSet: FileSet) => {
+            const qs = fileSet.toQueryString();
+            const count = await fileService.getCountOfMatchingFiles(qs);
+            return count < 1;
+        };
+
+        const makeTree = async (
+            output: FileSet[],
+            accum: FileFilter[],
+            filter: FileFilter,
+            depth: number
+        ) => {
+            const filters = [...accum, filter];
+            const fileSet = new FileSet({ filters, fileService });
+            const nextDepth = depth + 1;
+
+            if (await fileSetIsEmpty(fileSet)) {
+                return;
             }
-        }
+
+            if (hierarchyDepth > nextDepth) {
+                output.push(fileSet);
+            } else {
+                output.push(fileSet);
+                return;
+            }
+
+            await hierarchyFilters[nextDepth].reduce(async (cur, filter) => {
+                await cur;
+                return await makeTree(output, filters, filter, nextDepth);
+            }, Promise.resolve());
+        };
+
+        let output: FileSet[] = [];
+
+        await topLevelFilters.reduce(async (cur, filter) => {
+            await cur;
+            return await makeTree(output, [], filter, 0);
+        }, Promise.resolve());
+
+        console.log(JSON.stringify(output, null, 2));
+
+        done();
     },
     type: SET_ANNOTATION_HIERARCHY,
 });
 
-export default [onSelectFile, onModifyAnnotationHierarchy];
+export default [onSelectFile, onModifyAnnotationHierarchy, onSetAnnotationHierarchy];
