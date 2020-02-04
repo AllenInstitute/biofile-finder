@@ -5,11 +5,20 @@ import * as React from "react";
 import DirectoryTreeNode from "../DirectoryTreeNode";
 import FileSet from "../../../entity/FileSet";
 import { TreeNode } from "../useDirectoryTree";
+import FileFilter from "../../../entity/FileFilter";
 
 describe("<DirectoryTreeNode />", () => {
     it("renders a directory header when not the root node", () => {
         const directoryTree: [number, TreeNode][] = [
-            [0, { depth: 0, isLeaf: false, isRoot: false, fileSet: new FileSet() }],
+            [
+                0,
+                {
+                    depth: 0,
+                    isLeaf: false,
+                    isRoot: false,
+                    fileSet: new FileSet({ filters: [new FileFilter("some_filter", "foo")] }),
+                },
+            ],
         ];
 
         const wrapper = shallow(
