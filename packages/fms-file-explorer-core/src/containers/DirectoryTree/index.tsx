@@ -1,17 +1,15 @@
 import * as classNames from "classnames";
 import * as React from "react";
+import { useSelector } from "react-redux";
 import { VariableSizeList } from "react-window";
 
 import DirectoryTreeNode from "./DirectoryTreeNode";
+import * as directoryTreeSelectors from "./selectors";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
-import FileFilter from "../../entity/FileFilter";
-import FileService from "../../services/FileService";
 import useDirectoryTree from "./useDirectoryTree";
 
 interface FileListProps {
     className?: string;
-    hierarchyFilters: FileFilter[][];
-    fileService: FileService;
 }
 
 const COLLAPSED_DIRECTORY_TREE_NODE_HEIGHT = 0; // in px
@@ -33,17 +31,17 @@ const EXPANDED_FILE_LIST_HEIGHT = 300; // in px
  *      [collapsible folder] plate789
  */
 export default function DirectoryTree(props: FileListProps) {
-    const { hierarchyFilters, fileService } = props;
-    const { directoryTree, onExpandCollapse } = useDirectoryTree(hierarchyFilters, fileService);
+    const fileFilters = useSelector(directoryTreeSelectors.getFileFilters);
+    const fileService = useSelector(directoryTreeSelectors.getFileService);
+    const { directoryTree, onExpandCollapse } = useDirectoryTree(fileFilters, fileService);
     const [ref, containerHeight] = useLayoutMeasurements<HTMLDivElement>();
-
     const listRef = React.useRef<VariableSizeList>(null);
 
     React.useEffect(() => {
         if (listRef.current) {
             listRef.current.resetAfterIndex(0, true);
         }
-    }, [listRef.current, containerHeight]);
+    }, [listRef, containerHeight, directoryTree]);
 
     return (
         <div className={classNames(props.className)} ref={ref}>
@@ -54,6 +52,16 @@ export default function DirectoryTree(props: FileListProps) {
                 itemData={{
                     directoryTree,
                     onClick: onExpandCollapse,
+                }}
+                itemKey={(index, data) => {
+                    const { directoryTree } = data;
+                    const treeNode = directoryTree.get(index);
+                    if (!treeNode) {
+                        return index;
+                    }
+
+                    const { fileSet } = treeNode;
+                    return fileSet.toQueryString();
                 }}
                 itemSize={(index) => {
                     const node = directoryTree.get(index);

@@ -48,21 +48,3 @@ export const getFileService = createSelector(
         return new FileService({ baseUrl: fileExplorerBaseUrl });
     }
 );
-
-export const getDirectoryTreeComponentKey = createSelector(
-    [selection.selectors.getAnnotationHierarchy],
-    (annotationHierarchy): string => {
-        return reduce(
-            annotationHierarchy,
-            (accum, annotation) => {
-                // only include those annotations that we have values for
-                if (!isEmpty(annotation.values)) {
-                    return `${accum}${annotation.name}`;
-                }
-
-                return accum;
-            },
-            ""
-        );
-    }
-);
