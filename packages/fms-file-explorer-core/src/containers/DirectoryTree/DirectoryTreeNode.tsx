@@ -103,7 +103,7 @@ export default class DirectoryTreeNode extends React.Component<DirectoryTreeNode
     }
 
     private renderDirectoryHeader(): JSX.Element | null {
-        const { data, index } = this.props;
+        const { data } = this.props;
         const { onClick } = data;
         const node = this.treeNode;
         if (!node || node.isRoot) {
