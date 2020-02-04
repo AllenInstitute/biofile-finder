@@ -1,15 +1,4 @@
-import {
-    castArray,
-    find,
-    head,
-    includes,
-    isArray,
-    isEmpty,
-    map,
-    reduce,
-    uniq,
-    without,
-} from "lodash";
+import { castArray, find, includes, isArray, uniq, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -19,16 +8,11 @@ import {
     REORDER_ANNOTATION_HIERARCHY,
     REMOVE_FROM_ANNOTATION_HIERARCHY,
     setAnnotationHierarchy,
-    SET_ANNOTATION_HIERARCHY,
 } from "./actions";
 import metadata from "../metadata";
 import * as selectionSelectors from "./selectors";
 import { ReduxLogicDeps } from "../";
-import interaction from "../interaction";
 import Annotation from "../../entity/Annotation";
-import FileFilter from "../../entity/FileFilter";
-import FileSet from "../../entity/FileSet";
-import FileService from "../../services/FileService";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -111,113 +95,6 @@ const onModifyAnnotationHierarchy = createLogic({
         next(setAnnotationHierarchy(nextHierarchy));
     },
     type: [REORDER_ANNOTATION_HIERARCHY, REMOVE_FROM_ANNOTATION_HIERARCHY],
-});
-
-/**
- * Interceptor responsible for creating groupings of files to be displayed by the DirectoryTree.
- */
-const onSetAnnotationHierarchy = createLogic({
-    async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { httpClient, getState } = deps;
-
-        // pull stuff out of the store that we'll need
-        const appState = getState();
-        const hierarchy = selectionSelectors.getAnnotationHierarchy(appState);
-        const baseUrl = interaction.selectors.getFileExplorerServiceBaseUrl(appState);
-
-        // E.g.:
-        // [
-        //   [FileFilter("A", 1), FileFilter("A", 2), FileFilter("A", 3)],
-        //   [FileFilter("B", true), FileFilter("B", false)],
-        //   [FileFilter("C", "foo"), FileFilter("C", "bar"), FileFilter("C", "baz")]
-        // ]
-        const hierarchyFilters = reduce(
-            hierarchy,
-            (accum, annotation) => {
-                // only include those annotations that we have values for
-                if (!isEmpty(annotation.values)) {
-                    const filters = map(
-                        annotation.values,
-                        (val) => new FileFilter(annotation.name, val)
-                    );
-                    accum.push(filters);
-                    return accum;
-                }
-
-                return accum;
-            },
-            [] as FileFilter[][]
-        );
-
-        // Iterate over fileFilters depth-first, making combination FileSets and determining if the set is empty
-        const hierarchyDepth = hierarchyFilters.length;
-        const fileService = new FileService({ baseUrl, httpClient });
-
-        async function fileSetIsEmpty(fileSet: FileSet) {
-            const qs = fileSet.toQueryString();
-            const count = await fileService.getCountOfMatchingFiles(qs);
-            return count < 1;
-        }
-
-        /**
-         * Depth-first traversal of a level of the annotation hierarchy (array of FileFilters).
-         *
-         * If `parentTree` is supplied, the traversal at this level is appended to.
-         * If `ancestralFilters` is supplied, each filter at the given depth will be appended to `ancestralFilters`.
-         */
-        async function traverseHierarchyFromDepth(
-            depth: number,
-            parentTree: FileSet[] = [],
-            ancestralFilters: FileFilter[] = []
-        ): Promise<FileSet[]> {
-            return await hierarchyFilters[depth].reduce(
-                async (constructionOfSiblingFileSetTrees, currentFilter) => {
-                    const fileSetTrees = await constructionOfSiblingFileSetTrees;
-                    return [
-                        ...fileSetTrees,
-                        ...(await constructFileSetTree(
-                            [...ancestralFilters, currentFilter],
-                            depth
-                        )),
-                    ];
-                },
-                Promise.resolve(parentTree)
-            );
-        }
-
-        /**
-         * Starting from a list of FileFilters and the depth of the annotation hierarchy
-         * from which the last of those FileFilters came from, determine if the FileSet
-         * represented by those FileFilters is non-empty, and if so, continue walking
-         * down the annotation hierachy if not already at the last level.
-         */
-        async function constructFileSetTree(
-            filters: FileFilter[],
-            depth: number
-        ): Promise<FileSet[]> {
-            const tree: FileSet[] = [];
-            const fileSet = new FileSet({ filters, fileService });
-            const nextDepth = depth + 1;
-
-            if (await fileSetIsEmpty(fileSet)) {
-                return tree;
-            }
-
-            tree.push(fileSet);
-
-            if (nextDepth >= hierarchyDepth) {
-                // At the leaf hierarchy level, so do not try to traverse any further down
-                return tree;
-            }
-
-            return await traverseHierarchyFromDepth(nextDepth, tree, filters);
-        }
-
-        const fileSetTree = await traverseHierarchyFromDepth(0);
-
-        done();
-    },
-    type: SET_ANNOTATION_HIERARCHY,
 });
 
 export default [onSelectFile, onModifyAnnotationHierarchy];
