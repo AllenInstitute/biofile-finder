@@ -6,6 +6,7 @@ import AnnotationSidebar from "./containers/AnnotationSidebar";
 import Breadcrumbs from "./containers/Breadcrumbs";
 import ContextMenu from "./containers/ContextMenu";
 import DirectoryTree from "./containers/DirectoryTree";
+import * as directoryTreeSelectors from "./containers/DirectoryTree/selectors";
 import FileDetails from "./containers/FileDetails";
 import HeaderRibbon from "./containers/HeaderRibbon";
 import { interaction, metadata } from "./state";
@@ -36,6 +37,10 @@ export default function App(props: AppProps) {
         dispatch(metadata.actions.requestAnnotations());
     }, [dispatch, fileExplorerServiceBaseUrl]);
 
+    const fileFilters = useSelector(directoryTreeSelectors.getFileFilters);
+    const fileService = useSelector(directoryTreeSelectors.getFileService);
+    const directoryTreeKey = useSelector(directoryTreeSelectors.getDirectoryTreeComponentKey);
+
     return (
         <div className={styles.root}>
             <HeaderRibbon className={styles.headerRibbon} />
@@ -44,7 +49,12 @@ export default function App(props: AppProps) {
                     <Breadcrumbs className={styles.breadcrumbs} />
                     <div className={styles.annotationHierarchyAndFileList}>
                         <AnnotationSidebar className={styles.annotationHierarchy} />
-                        <DirectoryTree className={styles.fileList} />
+                        <DirectoryTree
+                            className={styles.fileList}
+                            fileService={fileService}
+                            hierarchyFilters={fileFilters}
+                            key={directoryTreeKey}
+                        />
                     </div>
                 </div>
                 <FileDetails className={styles.fileDetails} />

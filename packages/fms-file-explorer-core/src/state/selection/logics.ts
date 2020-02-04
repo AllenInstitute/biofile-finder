@@ -77,7 +77,7 @@ const onSelectFile = createLogic({
  */
 const onModifyAnnotationHierarchy = createLogic({
     transform(deps: ReduxLogicDeps, next, reject) {
-        const { action, getState, ctx } = deps;
+        const { action, getState } = deps;
 
         const existingHierarchy = selectionSelectors.getAnnotationHierarchy(getState());
         const allAnnotations = metadata.selectors.getAnnotations(getState());
@@ -169,7 +169,7 @@ const onSetAnnotationHierarchy = createLogic({
             depth: number,
             parentTree: FileSet[] = [],
             ancestralFilters: FileFilter[] = []
-        ) {
+        ): Promise<FileSet[]> {
             return await hierarchyFilters[depth].reduce(
                 async (constructionOfSiblingFileSetTrees, currentFilter) => {
                     const fileSetTrees = await constructionOfSiblingFileSetTrees;
@@ -220,4 +220,4 @@ const onSetAnnotationHierarchy = createLogic({
     type: SET_ANNOTATION_HIERARCHY,
 });
 
-export default [onSelectFile, onModifyAnnotationHierarchy, onSetAnnotationHierarchy];
+export default [onSelectFile, onModifyAnnotationHierarchy];

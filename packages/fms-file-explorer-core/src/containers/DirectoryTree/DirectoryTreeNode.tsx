@@ -1,9 +1,11 @@
 import * as classNames from "classnames";
+import { last } from "lodash";
 import * as React from "react";
 
 import SvgIcon from "../../components/SvgIcon";
 import FileList from "../FileList";
-import { TreeNode } from "./selectors";
+import { TreeNode } from "./useDirectoryTree";
+import FileSet from "../../entity/FileSet";
 
 const styles = require("./DirectoryTreeNode.module.css");
 
@@ -13,8 +15,7 @@ const styles = require("./DirectoryTreeNode.module.css");
  */
 interface DirectoryTreeNodeContext {
     directoryTree: Map<number, TreeNode>;
-    isCollapsed: (index: number | null) => boolean;
-    onClick: (index: number) => void;
+    onClick: (fileSet: FileSet) => void;
 }
 
 interface DirectoryTreeNodeProps {
@@ -49,12 +50,11 @@ const PADDING_STEP = 10; // in px
  */
 export default class DirectoryTreeNode extends React.Component<DirectoryTreeNodeProps> {
     public render(): JSX.Element | null {
-        const { data, index, style } = this.props;
+        const { style } = this.props;
 
-        const { isCollapsed } = data;
         const node = this.treeNode;
 
-        if (!node || isCollapsed(node.parent)) {
+        if (!node) {
             return null;
         }
 
@@ -69,7 +69,7 @@ export default class DirectoryTreeNode extends React.Component<DirectoryTreeNode
                 })}
             >
                 {this.renderDirectoryHeader()}
-                {node.fileSet && !isCollapsed(index) ? (
+                {(node.isLeaf || node.isRoot) && !node.isCollapsed ? (
                     <div
                         className={classNames(styles.fileList, {
                             [styles.nonRootFileList]: !node.isRoot,
@@ -83,22 +83,23 @@ export default class DirectoryTreeNode extends React.Component<DirectoryTreeNode
         );
     }
 
-    private get isCollapsed(): boolean {
-        const { data, index } = this.props;
-        const { isCollapsed } = data;
-
-        if (!this.treeNode) {
-            return false;
-        }
-
-        return isCollapsed(index);
-    }
-
     private get treeNode(): TreeNode | undefined {
         const { data, index } = this.props;
         const node = data.directoryTree.get(index);
 
         return node;
+    }
+
+    private get directoryName(): string {
+        const node = this.treeNode;
+
+        if (!node) {
+            return "";
+        }
+
+        const { fileSet } = node;
+        const lastAppliedFilter = last(fileSet.filters);
+        return lastAppliedFilter ? String(lastAppliedFilter.value) : "";
     }
 
     private renderDirectoryHeader(): JSX.Element | null {
@@ -110,10 +111,10 @@ export default class DirectoryTreeNode extends React.Component<DirectoryTreeNode
         }
 
         return (
-            <span className={styles.directoryHeader} onClick={() => onClick(index)}>
+            <span className={styles.directoryHeader} onClick={() => onClick(node.fileSet)}>
                 <SvgIcon
                     className={classNames({
-                        [styles.chevronClosed]: this.isCollapsed,
+                        [styles.chevronClosed]: node.isCollapsed,
                     })}
                     height={ICON_SIZE}
                     pathData={CHEVRON_DOWN_ICON_PATH_DATA}
@@ -127,7 +128,7 @@ export default class DirectoryTreeNode extends React.Component<DirectoryTreeNode
                     viewBox="0 0 24 24"
                     width={ICON_SIZE}
                 />
-                <h4 className={styles.directoryName}>{String(node.dir)}</h4>
+                <h4 className={styles.directoryName}>{this.directoryName}</h4>
             </span>
         );
     }
