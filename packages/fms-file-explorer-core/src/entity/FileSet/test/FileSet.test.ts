@@ -24,7 +24,7 @@ describe("FileSet", () => {
                 sortOrder: [dateCreatedDescending],
             });
             expect(fileSet.toQueryString()).equals(
-                "scientist=jane&matrigel_is_hardened=true&sort=date_created(DESC)"
+                "matrigel_is_hardened=true&scientist=jane&sort=date_created(DESC)"
             );
         });
 
