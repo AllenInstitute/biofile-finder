@@ -154,9 +154,12 @@ export default class FileSet {
      * Combine filters and sortOrder into a single query string that can be sent to a query service.
      */
     public toQueryString(): string {
+        const sortedFilters = [...this.filters].sort((a, b) =>
+            a.toQueryString().localeCompare(b.toQueryString())
+        );
         return join(
             flatten([
-                map(this._filters, (filter) => filter.toQueryString()),
+                map(sortedFilters, (filter) => filter.toQueryString()),
                 map(this.sortOrder, (sortBy) => sortBy.toQueryString()),
             ]),
             "&"

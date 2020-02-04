@@ -27,6 +27,17 @@ describe("FileSet", () => {
                 "scientist=jane&matrigel_is_hardened=true&sort=date_created(DESC)"
             );
         });
+
+        it("produces the same query string when given the same filters in different order", () => {
+            const fileSet1 = new FileSet({
+                filters: [scientistEqualsJane, matrigelIsHard],
+            });
+            const fileSet2 = new FileSet({
+                filters: [matrigelIsHard, scientistEqualsJane],
+            });
+
+            expect(fileSet1.toQueryString()).to.equal(fileSet2.toQueryString());
+        });
     });
 
     describe("fetchFileRange", () => {
