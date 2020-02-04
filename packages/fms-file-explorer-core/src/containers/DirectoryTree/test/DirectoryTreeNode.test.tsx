@@ -4,7 +4,7 @@ import * as React from "react";
 
 import DirectoryTreeNode from "../DirectoryTreeNode";
 import FileSet from "../../../entity/FileSet";
-import { TreeNode } from "../useDirectoryTree";
+import { TreeNode } from "../tree-traversal-helpers";
 import FileFilter from "../../../entity/FileFilter";
 
 describe("<DirectoryTreeNode />", () => {

@@ -76,10 +76,10 @@ export default function DirectoryTree(props: FileListProps) {
                         return containerHeight;
                     }
 
-                    // // if leaf of tree and expanded, expand to some constant height
-                    // if (node.isLeaf && !node.isCollapsed) {
-                    //     return EXPANDED_FILE_LIST_HEIGHT;
-                    // }
+                    // if leaf of tree and expanded, expand to some constant height
+                    if (node.isLeaf && !node.isCollapsed) {
+                        return EXPANDED_FILE_LIST_HEIGHT;
+                    }
 
                     // by default, render to some arbitrary constant height
                     return DEFAULT_DIRECTORY_TREE_NODE_HEIGHT;

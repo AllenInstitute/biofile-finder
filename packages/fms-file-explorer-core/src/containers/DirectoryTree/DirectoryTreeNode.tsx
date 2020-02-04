@@ -4,7 +4,7 @@ import * as React from "react";
 
 import SvgIcon from "../../components/SvgIcon";
 import FileList from "../FileList";
-import { TreeNode } from "./useDirectoryTree";
+import { TreeNode } from "./tree-traversal-helpers";
 import FileSet from "../../entity/FileSet";
 
 const styles = require("./DirectoryTreeNode.module.css");
