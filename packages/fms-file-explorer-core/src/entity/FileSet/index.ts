@@ -99,9 +99,7 @@ export default class FileSet {
 
             await this.loaded;
 
-            const pageSize = endIndex - startIndex + 1;
-            const offset = Math.floor(startIndex / pageSize);
-            const limit = pageSize;
+            const { limit, offset } = this.calculatePaginationFromIndices(startIndex, endIndex);
             const response = await this.fileService.getFiles({
                 from: offset,
                 limit,
@@ -174,5 +172,44 @@ export default class FileSet {
     private async fetchFileIds() {
         this.loaded = this.fileService.getFileIds({ queryString: this.toQueryString() });
         this._fileIds = await this.loaded;
+    }
+
+    /**
+     * Best-effort (iterative) calculation of limit (page size) and offest (page number).
+     * There's no guarantee that the limit and offset returned will fully cover the requested indices.
+     */
+    private calculatePaginationFromIndices(start: number, end: number) {
+        const difference = end - start + 1;
+
+        // if start is an even multiple of difference, the calculation is direct
+        if (start % difference === 0) {
+            return {
+                offset: start / difference,
+                limit: difference,
+            };
+        }
+
+        // otherwise, iteratively figure it out
+        let limit = difference;
+        let offset = Math.floor(start / limit);
+
+        const paginationEncompassesIndices = () => {
+            const encompassesLowerIndex = offset * limit <= start;
+            const encompassesUpperIndex = offset * limit + limit >= end;
+            return encompassesLowerIndex && encompassesUpperIndex;
+        };
+
+        const MAX_ITERATIONS = 100; // totally arbitrary, just don't want this to iterate forever
+        let iteration = 0;
+        while (iteration++ < MAX_ITERATIONS && !paginationEncompassesIndices()) {
+            limit += 1;
+            offset = Math.floor(start / limit);
+        }
+
+        // wherever this ends up when the iteration is complete, return
+        return {
+            offset,
+            limit,
+        };
     }
 }

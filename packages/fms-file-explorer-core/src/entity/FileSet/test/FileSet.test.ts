@@ -1,3 +1,4 @@
+import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 import { createSandbox } from "sinon";
 
@@ -30,15 +31,14 @@ describe("FileSet", () => {
 
     describe("fetchFileRange", () => {
         const sandbox = createSandbox();
+        const fileIds = ["abc123", "def456", "ghi789", "jkl012", "mno345"];
+        const files = fileIds.map((id) => ({ fileId: id }));
 
         afterEach(() => {
             sandbox.reset();
         });
 
         it("returns slices of the file list represented by the FileSet, specified by index position", async () => {
-            const fileIds = ["abc123", "def456", "ghi789", "jkl012", "mno345"];
-            const files = fileIds.map((id) => ({ fileId: id }));
-
             const fileService = new FileService();
             sandbox.replace(fileService, "getFileIds", () => Promise.resolve(fileIds));
             sandbox.replace(fileService, "getFiles", () =>
@@ -52,10 +52,68 @@ describe("FileSet", () => {
                     })
                 )
             );
-
             const fileSet = new FileSet({ fileService });
-
             expect(await fileSet.fetchFileRange(1, 3)).to.deep.equal(files.slice(1, 4)); // Array.prototype.slice is exclusive of end bound
+        });
+
+        it("turns indicies for requested data into a properly formed pagination query", async () => {
+            const baseUrl = "test";
+            const spec = [
+                {
+                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=1&limit=28`,
+                    start: 35,
+                    end: 55,
+                },
+                {
+                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=11&limit=23`,
+                    start: 256,
+                    end: 274,
+                },
+                {
+                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=0&limit=6`,
+                    start: 0,
+                    end: 5,
+                },
+                {
+                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=1&limit=11`,
+                    start: 14,
+                    end: 21,
+                },
+                {
+                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=0&limit=5`,
+                    start: 2,
+                    end: 5,
+                },
+            ];
+
+            await spec.reduce(async (prevTestResult, testCase) => {
+                await prevTestResult;
+
+                const httpClient = createMockHttpClient([
+                    {
+                        when: testCase.expectedUrl,
+                        respondWith: {
+                            data: {
+                                data: files,
+                            },
+                        },
+                    },
+                ]);
+
+                const getSpy = sandbox.spy(httpClient, "get");
+                const fileSet = new FileSet({
+                    fileService: new FileService({ httpClient, baseUrl }),
+                });
+
+                await fileSet.fetchFileRange(testCase.start, testCase.end);
+                try {
+                    expect(getSpy.calledWith(testCase.expectedUrl)).to.equal(true);
+                } catch (e) {
+                    console.error("Failed on test case: ", testCase);
+                    console.error("Actual: ", getSpy.lastCall.args);
+                    throw e;
+                }
+            }, Promise.resolve());
         });
     });
 
