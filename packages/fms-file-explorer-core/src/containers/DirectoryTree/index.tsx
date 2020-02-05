@@ -4,9 +4,12 @@ import { useSelector } from "react-redux";
 import { VariableSizeList } from "react-window";
 
 import DirectoryTreeNode from "./DirectoryTreeNode";
+import LoadingIndicator from "./LoadingIndicator";
 import * as directoryTreeSelectors from "./selectors";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useDirectoryTree from "./useDirectoryTree";
+
+const styles = require("./DirectoryTree.module.css");
 
 interface FileListProps {
     className?: string;
@@ -33,7 +36,10 @@ const EXPANDED_FILE_LIST_HEIGHT = 300; // in px
 export default function DirectoryTree(props: FileListProps) {
     const fileFilters = useSelector(directoryTreeSelectors.getFileFilters);
     const fileService = useSelector(directoryTreeSelectors.getFileService);
-    const { directoryTree, onExpandCollapse } = useDirectoryTree(fileFilters, fileService);
+    const { directoryTree, onExpandCollapse, isLoading } = useDirectoryTree(
+        fileFilters,
+        fileService
+    );
     const [ref, containerHeight] = useLayoutMeasurements<HTMLDivElement>();
     const listRef = React.useRef<VariableSizeList>(null);
 
@@ -44,7 +50,8 @@ export default function DirectoryTree(props: FileListProps) {
     }, [listRef, containerHeight, directoryTree]);
 
     return (
-        <div className={classNames(props.className)} ref={ref}>
+        <div className={classNames(props.className, styles.container)} ref={ref}>
+            <LoadingIndicator visible={isLoading} />
             <VariableSizeList
                 ref={listRef}
                 height={containerHeight}
