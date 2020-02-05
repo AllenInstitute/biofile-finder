@@ -99,10 +99,11 @@ export default class FileSet {
 
             await this.loaded;
 
-            const fromId = this._fileIds[startIndex];
-            const limit = endIndex - startIndex;
+            const pageSize = endIndex - startIndex + 1;
+            const offset = Math.floor(startIndex / pageSize);
+            const limit = pageSize;
             const response = await this.fileService.getFiles({
-                fromId,
+                from: offset,
                 limit,
                 queryString: this.toQueryString(),
                 startIndex,

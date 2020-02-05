@@ -28,8 +28,8 @@ export interface FmsFile {
 }
 
 export interface GetFilesRequest {
-    fromId: string; // starting file_id of the result set
-    limit: number; // number of files to request
+    from: number; // page offset
+    limit: number; // size of page
     queryString: string; // file filters and applied sort order(s) in their query string form (e.g., "scientist=jane&sort=date-created(ASC)")
     startIndex: number; // TEMPORARY UNTIL QUERY SERVICE EXISTS
     endIndex: number; // TEMPORARY UNTIL QUERY SERVICE EXISTS
@@ -55,13 +55,10 @@ export default class FileService extends HttpServiceBase {
      * and potentially starting from a particular file_id and limited to a set number of files.
      */
     public async getFiles(request: GetFilesRequest): Promise<RestServiceResponse<FmsFile>> {
-        const { fromId, limit, queryString } = request;
+        const { from, limit, queryString } = request;
 
         if (this.baseUrl !== FLAT_FILE_DATA_SOURCE) {
-            let base = `${this.baseUrl}/${FileService.BASE_FILES_URL}?`;
-            if (fromId && limit) {
-                base = `${base}from=${fromId}&limit=${limit}`;
-            }
+            const base = `${this.baseUrl}/${FileService.BASE_FILES_URL}?from=${from}&limit=${limit}`;
             const requestUrl = join(compact([base, queryString]), "&");
             console.log(`Requesting files from ${requestUrl}`);
 

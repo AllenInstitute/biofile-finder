@@ -20,7 +20,7 @@ describe("FileService", () => {
                 },
             },
             {
-                when: `${baseUrl}/file-explorer-service/1.0/files?from=abc123&limit=1&fileId=abc123`,
+                when: `${baseUrl}/file-explorer-service/1.0/files?from=0&limit=1&fileId=abc123`,
                 respondWith: {
                     data: {
                         data: files.slice(0, 1),
@@ -32,7 +32,7 @@ describe("FileService", () => {
         it("issues request for files that match given parameters", async () => {
             const fileService = new FileService({ baseUrl, httpClient });
             const response = await fileService.getFiles({
-                fromId: "abc123",
+                from: 0,
                 limit: 1,
                 queryString: "fileId=abc123",
                 startIndex: 0,
