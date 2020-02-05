@@ -189,7 +189,9 @@ export default class FileSet {
             };
         }
 
-        // otherwise, iteratively figure it out
+        // At this point, we're not going to be able to perfectly fetch just exactly what we want.
+        // So, compromise by overfetching data. Iteratively find some limit/offset combination that
+        // is inclusive of the data we need.
         let limit = minimumLimit;
         let offset = Math.floor(start / limit);
 
