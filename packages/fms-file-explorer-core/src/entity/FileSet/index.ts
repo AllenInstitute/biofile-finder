@@ -179,18 +179,18 @@ export default class FileSet {
      * There's no guarantee that the limit and offset returned will fully cover the requested indices.
      */
     private calculatePaginationFromIndices(start: number, end: number) {
-        const difference = end - start + 1;
+        const minimumLimit = end - start + 1; // + 1 to include the bounds (e.g., from indices 0 to 5, there are 6 elements inclusive of the bounds)
 
         // if start is an even multiple of difference, the calculation is direct
-        if (start % difference === 0) {
+        if (start % minimumLimit === 0) {
             return {
-                offset: start / difference,
-                limit: difference,
+                offset: start / minimumLimit,
+                limit: minimumLimit,
             };
         }
 
         // otherwise, iteratively figure it out
-        let limit = difference;
+        let limit = minimumLimit;
         let offset = Math.floor(start / limit);
 
         const paginationEncompassesIndices = () => {
