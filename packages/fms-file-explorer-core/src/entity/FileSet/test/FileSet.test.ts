@@ -84,6 +84,11 @@ describe("FileSet", () => {
                     start: 2,
                     end: 5,
                 },
+                {
+                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=3&limit=4`,
+                    start: 12,
+                    end: 15,
+                },
             ];
 
             await spec.reduce(async (prevTestResult, testCase) => {
