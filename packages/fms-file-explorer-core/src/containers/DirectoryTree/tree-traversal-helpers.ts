@@ -1,4 +1,5 @@
-import { isEmpty, reduce, without } from "lodash";
+import { initial, isEmpty, reduce, without } from "lodash";
+import LRUCache from "lru-cache";
 
 import FileFilter from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
@@ -68,6 +69,12 @@ interface ConstructDirectoryTreeParams {
     hierarchy: FileFilter[][];
 }
 
+const ARBITRARILY_LARGE_MAX_CACHE_SIZE = 50000;
+const fileSetIsEmptyCache = new LRUCache<string, boolean>({
+    max: ARBITRARILY_LARGE_MAX_CACHE_SIZE,
+});
+const hierarchyCache = new LRUCache<string, TreeNode[]>({ max: ARBITRARILY_LARGE_MAX_CACHE_SIZE });
+
 /**
  * Starting from a list of FileFilters and the depth of the annotation hierarchy
  * from which the last of those FileFilters came from, determine if the FileSet
@@ -85,28 +92,54 @@ export async function constructDirectoryTree(
 
     const isCollapsed = () => !expandedTreeNodes.has(queryString);
 
+    // Leaf node
     if (nextDepth >= totalDepth) {
-        // At the leaf hierarchy level, so do not try to traverse any further down
-        const emptyFileSet = await fileSet.isEmpty();
-        if (emptyFileSet) {
+        const currentFileSetIsEmpty = await fileSet.isEmpty();
+        if (currentFileSetIsEmpty) {
             return [];
         }
-        return [{ depth: currentDepth, fileSet, isLeaf: true, isCollapsed: isCollapsed() }]; // TODO
+
+        return [{ depth: currentDepth, fileSet, isLeaf: true, isCollapsed: isCollapsed() }];
+    }
+
+    // If the parent to this node is known to produce an empty set,
+    // or this file set itself is known to produce an empty set,
+    // no need to go any further
+    const parentFileSet = new FileSet({ filters: initial(filters), fileService });
+    const parentQueryString = parentFileSet.toQueryString();
+    const parentFileSetKnownToBeEmpty = fileSetIsEmptyCache.get(parentQueryString);
+    const currentFileSetKnownToBeEmpty = fileSetIsEmptyCache.get(queryString);
+    if (parentFileSetKnownToBeEmpty || currentFileSetKnownToBeEmpty) {
+        return [];
     }
 
     const currentNode = { depth: currentDepth, fileSet, isCollapsed: isCollapsed() };
     const root = [currentNode];
-    const tree = await traverseHierarchyFromDepth({
-        ancestralFilters: filters,
-        depth: nextDepth,
-        expandedTreeNodes,
-        fileService,
-        hierarchy,
-        parentTree: root,
-    });
-    const children = without(tree, currentNode);
 
+    if (hierarchyCache.has(queryString) && !currentNode.isCollapsed) {
+        hierarchyCache.del(queryString);
+    }
+
+    let tree;
+    const cachedTree = hierarchyCache.get(queryString);
+    if (cachedTree) {
+        tree = cachedTree;
+    } else {
+        tree = await traverseHierarchyFromDepth({
+            ancestralFilters: filters,
+            depth: nextDepth,
+            expandedTreeNodes,
+            fileService,
+            hierarchy,
+            parentTree: root,
+        });
+        hierarchyCache.set(queryString, tree);
+    }
+
+    // Inspect tree without root: if root is childless, do not show this branch
+    const children = without(tree, currentNode);
     if (isEmpty(children)) {
+        fileSetIsEmptyCache.set(queryString, true);
         return [];
     }
 

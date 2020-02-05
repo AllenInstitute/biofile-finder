@@ -32,6 +32,7 @@ export default function useDirectoryTree(fileFilters: FileFilter[][], fileServic
                     depth: 0,
                     fileSet: new FileSet({ fileService }),
                     isRoot: true,
+                    isCollapsed: false,
                 });
                 return nextDirectoryTree;
             });
