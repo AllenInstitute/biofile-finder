@@ -91,9 +91,7 @@ describe("FileSet", () => {
                 },
             ];
 
-            await spec.reduce(async (prevTestResult, testCase) => {
-                await prevTestResult;
-
+            for (const testCase of spec) {
                 const httpClient = createMockHttpClient([
                     {
                         when: testCase.expectedUrl,
@@ -118,7 +116,7 @@ describe("FileSet", () => {
                     console.error("Actual: ", getSpy.lastCall.args);
                     throw e;
                 }
-            }, Promise.resolve());
+            }
         });
     });
 
