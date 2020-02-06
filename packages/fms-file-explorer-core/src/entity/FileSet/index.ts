@@ -175,7 +175,7 @@ export default class FileSet {
     }
 
     /**
-     * Best-effort (iterative) calculation of limit (page size) and offest (page number).
+     * Best-effort (iterative) calculation of limit (page size) and offset (page number).
      * There's no guarantee that the limit and offset returned will fully cover the requested indices.
      */
     private calculatePaginationFromIndices(start: number, end: number) {
