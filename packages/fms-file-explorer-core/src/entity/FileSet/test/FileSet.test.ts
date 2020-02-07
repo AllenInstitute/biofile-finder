@@ -80,7 +80,7 @@ describe("FileSet", () => {
                     end: 21,
                 },
                 {
-                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=0&limit=5`,
+                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=0&limit=6`,
                     start: 2,
                     end: 5,
                 },
@@ -88,6 +88,11 @@ describe("FileSet", () => {
                     expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=3&limit=4`,
                     start: 12,
                     end: 15,
+                },
+                {
+                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=0&limit=301`,
+                    start: 2,
+                    end: 300,
                 },
             ];
 
