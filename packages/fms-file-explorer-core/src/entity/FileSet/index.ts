@@ -188,41 +188,35 @@ export default class FileSet {
      * "offset" and "limit" need to be dynamic constructs.
      *
      * There's no strong guarantee that the limit and offset returned will fully cover the requested indices.
+     *
+     * Written in collaboration between Gabe and Dan--final code written by Dan and copy/pasted by Gabe.
      */
     private calculatePaginationFromIndices(start: number, end: number) {
-        const minimumLimit = end - start + 1; // + 1 to include the bounds (e.g., from indices 0 to 5, there are 6 elements inclusive of the bounds)
+        // inclusive range of indices
+        const totalRange = end - start + 1;
+        const minPageSize = totalRange;
+        const maxPageSize = end + 1;
 
-        // if start is an even multiple of difference, the calculation is direct
-        if (start % minimumLimit === 0) {
-            return {
-                offset: start / minimumLimit,
-                limit: minimumLimit,
-            };
+        // initial conditions are worst-case; start at 0 and include all data up to end
+        let offset = 0;
+        let limit = end + 1;
+
+        for (let i = minPageSize; i <= maxPageSize; ++i) {
+            // round UP; number of pages that is inclusive of end index
+            const numPages = Math.ceil((end + 1) / i);
+
+            offset = numPages - 1;
+            limit = i;
+
+            // numpages should always be >= 1
+            // check to see if start is contained in first page
+            // end is guaranteed to be in end of page because of how numPages is calculated
+            if (offset * i <= start) {
+                return { offset, limit };
+            }
         }
 
-        // At this point, we're not going to be able to perfectly fetch just exactly what we want.
-        // So, compromise by overfetching data. Iteratively find some limit/offset combination that
-        // is inclusive of the data we need.
-        let limit = minimumLimit;
-        let offset = Math.floor(start / limit);
-
-        const paginationEncompassesIndices = () => {
-            const encompassesLowerIndex = offset * limit <= start;
-            const encompassesUpperIndex = offset * limit + limit >= end;
-            return encompassesLowerIndex && encompassesUpperIndex;
-        };
-
-        const MAX_ITERATIONS = 100; // totally arbitrary, just don't want this to iterate forever
-        let iteration = 0;
-        while (iteration++ < MAX_ITERATIONS && !paginationEncompassesIndices()) {
-            limit += 1;
-            offset = Math.floor(start / limit);
-        }
-
-        // wherever this ends up when the iteration is complete, return
-        return {
-            offset,
-            limit,
-        };
+        // should never be reached, here for completeness/typing
+        return { offset, limit };
     }
 }
