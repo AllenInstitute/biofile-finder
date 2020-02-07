@@ -179,8 +179,8 @@ export default class FileSet {
      *
      * Traditionally, we would request pages of data one at a time, one after the other. Pages are defined by
      * "offsets," which is how many pages it takes to get to the start of the current page, and a "limit", which is
-     * the size of the page. For example, if requesting offset=4&limit=5, we should expect data correspdoning to the indices
-     * 20 - 24. The start index === offset * limit, and the end index === start index + limit.
+     * the size of the page. For example, if requesting ?offset=4&limit=5, we should expect data corresponding to the indices
+     * 20 - 24. The start index === (offset * limit), and the end index === (start index + limit - 1).
      *
      * Here, it's more complicated--we need to be able to do "random access" paging. We need to be to fetch the data that
      * corresponds to, e.g., indices 53 - 102 within some set of files. In the next moment, if the user takes the scroll
