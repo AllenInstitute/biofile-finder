@@ -1,0 +1,12 @@
+# Used to proxy localhost traffic from the fms-file-explorer,
+# primarily because cannot send https traffic to a server
+# running with a self-signed cert.
+
+FROM docker-virtual.artifactory.corp.alleninstitute.org/aics-nginx:1.13.3-1.1.1
+
+ENV TEMPLATE_DIR=${TEMPLATE_DIR:-/templates} \
+    FILENAME=${FILENAME:-http-proxy.conf.j2}
+
+ENV CONF_FILE="${TEMPLATE_DIR}/${FILENAME}"
+
+COPY ${FILENAME} ${CONF_FILE}

@@ -1,0 +1,15 @@
+# Used to proxy localhost traffic from the fms-file-explorer,
+# primarily because cannot send https traffic to a server
+# running with a self-signed cert.
+
+# Proxy settings
+proxy_set_header Host $host;
+
+server {
+    listen {{ FILE_EXPLORER_SERVICE_PROXY_PORT | default(80) }};
+
+    # Proxy all traffic to an instance of FES of your choosing.
+    location /file-explorer-service {
+        proxy_pass {{ FILE_EXPLORER_SERVICE | default('https') }}://{{ FILE_EXPLORER_SERVICE_HOST | default("localhost") }}:{{ FILE_EXPLORER_SERVICE_PORT | default(9081) }};
+    }
+}
