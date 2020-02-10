@@ -30,7 +30,6 @@ const dataSourceMenu: MenuItemConstructorOptions = {
         {
             label: "Localhost",
             type: "radio",
-            enabled: false, // TODO: figure out port handling
             checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.LOCALHOST,
             click: (menuItem, focusedWindow) => {
                 global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.LOCALHOST;
