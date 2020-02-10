@@ -7,7 +7,7 @@ export enum FileExplorerServiceBaseUrl {
     FLAT_FILE = "flat-file",
 
     // localhost default in FES repo
-    LOCALHOST = "https://localhost:9081",
+    LOCALHOST = "http://localhost:9082", // HTTP proxy; see scripts/run-http-proxy.sh
     STAGING = "http://stg-aics-api.corp.alleninstitute.org",
     PRODUCTION = "http://aics-api.corp.alleninstitute.org",
 }
