@@ -157,20 +157,11 @@ export default class FileSet {
     }
 
     /**
-     * Makes an HTTP call to the File Explorer Service to determine whether the set of
-     * files represented by this FileSet is empty. Use this instead of inspecting
-     * FileSet::totalCount when it is known or expected that the data for a particular FileSet
-     * has not yet been loaded (e.g., via a call to FileSet::fetchFileRange).
-     */
-    public async isEmpty() {
-        const count = await this.fileService.getCountOfMatchingFiles(this.toQueryString());
-        return count < 1;
-    }
-
-    /**
      * Combine filters and sortOrder into a single query string that can be sent to a query service.
      */
     public toQueryString(): string {
+        // filters must be sorted in order to ensure requests can be effectively cached
+        // according to their url
         const sortedFilters = [...this.filters].sort((a, b) =>
             a.toQueryString().localeCompare(b.toQueryString())
         );
