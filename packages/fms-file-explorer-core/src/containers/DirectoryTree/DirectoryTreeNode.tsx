@@ -31,25 +31,49 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
 
     React.useEffect(() => {
         let cancel = false;
-        if (depth === hierarchy.length - 1) {
-            // at leaf node, so child is a FileList
 
-            const filters = zip<string, string>(hierarchy, [...ancestorNodes, title]).map(
-                (pair) => {
-                    const [name, value] = pair as [string, string];
-                    return new FileFilter(name, value);
-                }
-            );
-            const fileSet = new FileSet({
-                fileService,
-                filters,
-            });
-            const nodeContent = <FileList className={styles.fileList} fileSet={fileSet} />;
-
-            if (!cancel) {
-                setContent(nodeContent);
-            }
+        // at leaf node, so child is a FileList
+        // depth is 0-indexed
+        if (depth !== hierarchy.length - 1) {
+            return;
         }
+
+        setIsLoadingContent(true);
+
+        const filters = zip<string, string>(hierarchy, [...ancestorNodes, title]).map((pair) => {
+            const [name, value] = pair as [string, string];
+            return new FileFilter(name, value);
+        });
+
+        const fileSet = new FileSet({
+            fileService,
+            filters,
+        });
+
+        fileSet
+            .fetchTotalCount()
+            .then((totalCount) => {
+                if (!cancel) {
+                    setContent(() => (
+                        <FileList
+                            className={styles.fileList}
+                            fileSet={fileSet}
+                            totalCount={totalCount}
+                        />
+                    ));
+                }
+            })
+            .catch((e) => {
+                console.error(
+                    `Failed to fetch the total number of documents beloning to ${fileSet}`,
+                    e
+                );
+            })
+            .finally(() => {
+                if (!cancel) {
+                    setIsLoadingContent(false);
+                }
+            });
 
         return function cleanUp() {
             cancel = true;

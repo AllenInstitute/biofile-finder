@@ -33,7 +33,6 @@ export default function DirectoryTree(props: FileListProps) {
     const [ref, height] = useLayoutMeasurement<HTMLDivElement>();
 
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
-
     const annotationService = useSelector(directoryTreeSelectors.getAnnotationService);
     const fileService = useSelector(directoryTreeSelectors.getFileService);
 
@@ -41,10 +40,13 @@ export default function DirectoryTree(props: FileListProps) {
     const [content, setContent] = React.useState<JSX.Element | JSX.Element[] | null>(null);
 
     React.useEffect(() => {
+        // mechanism for canceling a setstate if this effect has been run again
+        // before async requests have return
         let cancel = false;
 
+        setIsLoading(true);
+
         if (hierarchy.length) {
-            setIsLoading(true);
             annotationService
                 .fetchRootHierarchyValues(hierarchy)
                 .then((values) => {
@@ -68,16 +70,28 @@ export default function DirectoryTree(props: FileListProps) {
                     }
                 });
         } else {
-            setContent(() => {
-                const fileSet = new FileSet({ fileService });
-                return <FileList fileSet={fileSet} />;
-            });
+            const fileSet = new FileSet({ fileService });
+            fileSet
+                .fetchTotalCount()
+                .then((totalCount) => {
+                    if (!cancel) {
+                        setContent(() => <FileList fileSet={fileSet} totalCount={totalCount} />);
+                    }
+                })
+                .catch((e) => {
+                    console.error("Failed to construct root of hierarchy", e);
+                })
+                .finally(() => {
+                    if (!cancel) {
+                        setIsLoading(false);
+                    }
+                });
         }
 
         return function cleanUp() {
             cancel = true;
         };
-    }, [annotationService, hierarchy]);
+    }, [hierarchy, annotationService, fileService]);
 
     return (
         <div className={classNames(props.className, styles.container)} ref={ref}>
