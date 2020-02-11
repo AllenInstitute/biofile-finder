@@ -13,13 +13,8 @@ export enum FileExplorerServiceBaseUrl {
 }
 
 // Least effort state management accessible to both the main and renderer processes.
-if (process.env.NODE_ENV === "production") {
-    // For now (until we're reliable deploying out to prod) default to staging in "production" build
-    global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.STAGING;
-} else {
-    // Else, in development (all other builds), default to localhost
-    global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.LOCALHOST;
-}
+// For now (until we're reliable deploying out to prod) default to staging
+global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.STAGING;
 
 const dataSourceMenu: MenuItemConstructorOptions = {
     label: "Data Source",
