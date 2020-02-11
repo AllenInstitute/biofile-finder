@@ -1,5 +1,5 @@
 import { find, omit } from "lodash";
-import FileService, { FmsFile } from "../FileService";
+import FileService from "../FileService";
 import Annotation from "../../entity/Annotation";
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 
