@@ -115,6 +115,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
             style={{
                 paddingLeft: `${PADDING_STEP}px`,
             }}
+            role="Treeitem"
         >
             <DirectoryTreeNodeHeader
                 collapsed={collapsed}
