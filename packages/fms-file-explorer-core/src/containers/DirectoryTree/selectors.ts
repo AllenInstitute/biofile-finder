@@ -2,8 +2,9 @@ import { isEmpty, map, reduce } from "lodash";
 import { createSelector } from "reselect";
 
 import FileFilter from "../../entity/FileFilter";
-import FileService from "../../services/FileService";
 import { interaction, selection } from "../../state";
+import AnnotationService from "../../services/AnnotationService";
+import FileService from "../../services/FileService";
 
 /**
  * Given annotation hierarchy (list of annotations, in order, by which user wants files to be grouped), and all unique values for each of those annotations,
@@ -46,5 +47,19 @@ export const getFileService = createSelector(
     [interaction.selectors.getFileExplorerServiceBaseUrl],
     (fileExplorerBaseUrl) => {
         return new FileService({ baseUrl: fileExplorerBaseUrl });
+    }
+);
+
+export const getAnnotationService = createSelector(
+    [interaction.selectors.getFileExplorerServiceBaseUrl],
+    (fileExplorerBaseUrl) => {
+        return new AnnotationService({ baseUrl: fileExplorerBaseUrl });
+    }
+);
+
+export const getHierarchy = createSelector(
+    [selection.selectors.getAnnotationHierarchy],
+    (annotationHierarchy) => {
+        return annotationHierarchy.map((annotation) => annotation.name);
     }
 );

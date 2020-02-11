@@ -2,15 +2,19 @@ import * as classNames from "classnames";
 import * as React from "react";
 import { ProgressIndicator } from "office-ui-fabric-react";
 
-const styles = require("./LoadingIndicator.module.css");
+const styles = require("./RootLoadingIndicator.module.css");
 
 interface LoadingIndicatorProps {
+    height: number;
     visible: boolean;
 }
 
-export default function LoadingIndicator({ visible }: LoadingIndicatorProps) {
+export default function RootLoadingIndicator({ height, visible }: LoadingIndicatorProps) {
     return (
-        <div className={classNames(styles.loadingIndicator, { [styles.hidden]: !visible })}>
+        <div
+            className={classNames(styles.loadingIndicator, { [styles.hidden]: !visible })}
+            style={{ height: `${height}px` }}
+        >
             <ProgressIndicator
                 className={styles.indeterminateProgressBar}
                 progressHidden={!visible}

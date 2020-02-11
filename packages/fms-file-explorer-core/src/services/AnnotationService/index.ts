@@ -23,6 +23,8 @@ export interface AnnotationResponse {
 export default class AnnotationService extends HttpServiceBase {
     private static ANNOTATION_ENDPOINT_VERSION = "1.0";
     private static BASE_ANNOTATION_URL = `file-explorer-service/${AnnotationService.ANNOTATION_ENDPOINT_VERSION}/annotations`;
+    private static BASE_ANNOTATION_HIERARCHY_ROOT_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/root`;
+    private static BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/under-path`;
 
     /**
      * Fetch all annotations.
@@ -47,5 +49,29 @@ export default class AnnotationService extends HttpServiceBase {
             );
             resolve(annotations);
         });
+    }
+
+    public async fetchRootHierarchyValues(hierarchy: string[]): Promise<string[]> {
+        const queryParams = hierarchy.map((annotationName) => `order=${annotationName}`).join("&");
+        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?${queryParams}`;
+        console.log(`Requesting root hierarchy values: ${requestUrl}`);
+
+        const response = await this.get<string>(requestUrl);
+        return response.data;
+    }
+
+    public async fetchHierarchyValuesUnderPath(
+        hierarchy: string[],
+        path: string[]
+    ): Promise<string[]> {
+        const queryParams = [
+            ...hierarchy.map((annotationName) => `order=${annotationName}`),
+            ...path.map((annotationValue) => `path=${annotationValue}`),
+        ].join("&");
+        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}?${queryParams}`;
+        console.log(`Requesting hierarchy values under path: ${requestUrl}`);
+
+        const response = await this.get<string>(requestUrl);
+        return response.data;
     }
 }

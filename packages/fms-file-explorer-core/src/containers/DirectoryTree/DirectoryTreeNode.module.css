@@ -28,11 +28,18 @@
     font-weight: normal;
 }
 
-.file-list {
+.children {
     /* flex child */
     flex: 1 1 auto;
+    height: auto;
 }
 
-.non-root-file-list {
+.children.collapsed {
+    height: 0;
+    padding-bottom: 0;
+}
+
+.file-list {
+    height: 300px;
     padding-bottom: 1rem;
 }

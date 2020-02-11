@@ -1,23 +1,19 @@
 import * as classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
-import { VariableSizeList } from "react-window";
 
 import DirectoryTreeNode from "./DirectoryTreeNode";
-import LoadingIndicator from "./LoadingIndicator";
+import RootLoadingIndicator from "./RootLoadingIndicator";
 import * as directoryTreeSelectors from "./selectors";
-import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
-import useDirectoryTree from "./useDirectoryTree";
+import FileSet from "../../entity/FileSet";
+import FileList from "../FileList";
+import useLayoutMeasurement from "../../hooks/useLayoutMeasurements";
 
 const styles = require("./DirectoryTree.module.css");
 
 interface FileListProps {
     className?: string;
 }
-
-const COLLAPSED_DIRECTORY_TREE_NODE_HEIGHT = 0; // in px
-const DEFAULT_DIRECTORY_TREE_NODE_HEIGHT = 35; // in px
-const EXPANDED_FILE_LIST_HEIGHT = 300; // in px
 
 /**
  * Central UI dedicated to showing lists of available files in FMS. Can be a flat list in the case that no annotation
@@ -34,67 +30,59 @@ const EXPANDED_FILE_LIST_HEIGHT = 300; // in px
  *      [collapsible folder] plate789
  */
 export default function DirectoryTree(props: FileListProps) {
-    const fileFilters = useSelector(directoryTreeSelectors.getFileFilters);
+    const [ref, height] = useLayoutMeasurement<HTMLDivElement>();
+
+    const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
+
+    const annotationService = useSelector(directoryTreeSelectors.getAnnotationService);
     const fileService = useSelector(directoryTreeSelectors.getFileService);
-    const { directoryTree, onExpandCollapse, isLoading } = useDirectoryTree(
-        fileFilters,
-        fileService
-    );
-    const [ref, containerHeight] = useLayoutMeasurements<HTMLDivElement>();
-    const listRef = React.useRef<VariableSizeList>(null);
+
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [content, setContent] = React.useState<JSX.Element | JSX.Element[] | null>(null);
 
     React.useEffect(() => {
-        if (listRef.current) {
-            listRef.current.resetAfterIndex(0, true);
+        let cancel = false;
+
+        if (hierarchy.length) {
+            setIsLoading(true);
+            annotationService
+                .fetchRootHierarchyValues(hierarchy)
+                .then((values) => {
+                    if (!cancel) {
+                        const nextContent = values.map((value) => (
+                            <DirectoryTreeNode
+                                key={`${value}|${hierarchy.length}`}
+                                title={value}
+                                depth={0}
+                            />
+                        ));
+                        setContent(nextContent);
+                    }
+                })
+                .catch((e) => {
+                    console.error("Failed to construct root of hierarchy", e);
+                })
+                .finally(() => {
+                    if (!cancel) {
+                        setIsLoading(false);
+                    }
+                });
+        } else {
+            setContent(() => {
+                const fileSet = new FileSet({ fileService });
+                return <FileList fileSet={fileSet} />;
+            });
         }
-    }, [listRef, containerHeight, directoryTree]);
+
+        return function cleanUp() {
+            cancel = true;
+        };
+    }, [annotationService, hierarchy]);
 
     return (
         <div className={classNames(props.className, styles.container)} ref={ref}>
-            <LoadingIndicator visible={isLoading} />
-            <VariableSizeList
-                ref={listRef}
-                height={containerHeight}
-                itemCount={directoryTree.size}
-                itemData={{
-                    directoryTree,
-                    onClick: onExpandCollapse,
-                }}
-                itemKey={(index, data) => {
-                    const { directoryTree } = data;
-                    const treeNode = directoryTree.get(index);
-                    if (!treeNode) {
-                        return index;
-                    }
-
-                    const { fileSet } = treeNode;
-                    return fileSet.toQueryString();
-                }}
-                itemSize={(index) => {
-                    const node = directoryTree.get(index);
-
-                    // defensive condition, included only for the type checker--should never hit
-                    if (!node) {
-                        return COLLAPSED_DIRECTORY_TREE_NODE_HEIGHT;
-                    }
-
-                    // root dir should take up full height
-                    if (node.isRoot) {
-                        return containerHeight;
-                    }
-
-                    // if leaf of tree and expanded, expand to some constant height
-                    if (node.isLeaf && !node.isCollapsed) {
-                        return EXPANDED_FILE_LIST_HEIGHT;
-                    }
-
-                    // by default, render to some arbitrary constant height
-                    return DEFAULT_DIRECTORY_TREE_NODE_HEIGHT;
-                }}
-                width="100%"
-            >
-                {DirectoryTreeNode}
-            </VariableSizeList>
+            <RootLoadingIndicator visible={isLoading} height={height} />
+            {content}
         </div>
     );
 }
