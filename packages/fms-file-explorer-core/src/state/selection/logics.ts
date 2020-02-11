@@ -19,7 +19,7 @@ import Annotation from "../../entity/Annotation";
  * add to existing selected files state, to replace existing selection state, or to remove a file from the existing
  * selection state.
  */
-const onSelectFile = createLogic({
+const selectFile = createLogic({
     transform(deps: ReduxLogicDeps, next: (action: AnyAction) => void) {
         const { action, getState } = deps;
 
@@ -59,7 +59,7 @@ const onSelectFile = createLogic({
  * Interceptor responsible for transforming REORDER_ANNOTATION_HIERARCHY and REMOVE_FROM_ANNOTATION_HIERARCHY actions into
  * a concrete list of ordered annotations that can be directly stored in application state under `selections.annotationHierarchy`.
  */
-const onModifyAnnotationHierarchy = createLogic({
+const modifyAnnotationHierarchy = createLogic({
     transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState } = deps;
 
@@ -78,14 +78,15 @@ const onModifyAnnotationHierarchy = createLogic({
         let nextHierarchy: Annotation[];
         if (includes(existingHierarchy, annotation)) {
             const removed = without(existingHierarchy, annotation);
+
+            // if moveTo is defined, change the order
+            // otherwise, remove it from the hierarchy
             if (action.payload.moveTo !== undefined) {
                 // change order
                 removed.splice(action.payload.moveTo, 0, annotation);
-                nextHierarchy = removed;
-            } else {
-                // remove from list
-                nextHierarchy = removed;
             }
+
+            nextHierarchy = removed;
         } else {
             // add to list
             nextHierarchy = Array.from(existingHierarchy);
@@ -97,4 +98,4 @@ const onModifyAnnotationHierarchy = createLogic({
     type: [REORDER_ANNOTATION_HIERARCHY, REMOVE_FROM_ANNOTATION_HIERARCHY],
 });
 
-export default [onSelectFile, onModifyAnnotationHierarchy];
+export default [selectFile, modifyAnnotationHierarchy];
