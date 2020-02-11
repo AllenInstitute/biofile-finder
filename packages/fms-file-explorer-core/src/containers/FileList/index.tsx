@@ -25,10 +25,12 @@ const DEFAULT_TOTAL_COUNT = 1000;
 interface FileListProps {
     className?: string;
     fileSet: FileSet;
+    totalCount?: number;
     rowHeight?: number; // how tall each row of the list will be, in px
 }
 
 const DEFAULTS = {
+    totalCount: DEFAULT_TOTAL_COUNT,
     rowHeight: 22,
 };
 
@@ -37,7 +39,7 @@ const DEFAULTS = {
  * itself out to be 100% the height and width of its parent.
  */
 export default function FileList(props: FileListProps) {
-    const { className, fileSet, rowHeight } = defaults({}, props, DEFAULTS);
+    const { className, fileSet, rowHeight, totalCount } = defaults({}, props, DEFAULTS);
 
     const [ref, height] = useLayoutMeasurements<HTMLDivElement>();
     const onSelect = useFileSelector(fileSet);
@@ -55,8 +57,6 @@ export default function FileList(props: FileListProps) {
         }
         dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
     };
-
-    const totalCount = isUndefined(fileSet.totalCount) ? DEFAULT_TOTAL_COUNT : fileSet.totalCount;
 
     return (
         <div className={classNames(styles.list, className)} ref={ref}>

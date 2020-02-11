@@ -72,7 +72,13 @@ export default class FileSet {
         return `${this.toQueryString()}:${this.fileService.baseUrl}`;
     }
 
-    public get totalCount() {
+    public async fetchTotalCount() {
+        if (!this.totalFileCount) {
+            this.totalFileCount = await this.fileService.getCountOfMatchingFiles(
+                this.toQueryString()
+            );
+        }
+
         return this.totalFileCount;
     }
 
