@@ -39,10 +39,10 @@ export interface GetFilesRequest {
  * Service responsible for fetching file related metadata.
  */
 export default class FileService extends HttpServiceBase {
-    private static readonly FILES_ENDPOINT_VERSION = "1.0";
-    private static readonly BASE_FILES_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files`;
-    private static readonly BASE_FILE_IDS_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files/ids`;
-    private static readonly BASE_FILE_COUNT_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files/count`;
+    public static readonly FILES_ENDPOINT_VERSION = "1.0";
+    public static readonly BASE_FILES_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files`;
+    public static readonly BASE_FILE_IDS_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files/ids`;
+    public static readonly BASE_FILE_COUNT_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files/count`;
 
     // TEMPORARY TO SUPPORT FLAT-FILE BASED IMPLEMENTATION UNTIL QUERY SERVICE EXISTS
     private cache = new LRUCache<string, Response<FmsFile>>({ max: 10 });
