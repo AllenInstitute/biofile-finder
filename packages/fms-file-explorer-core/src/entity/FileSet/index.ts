@@ -174,6 +174,10 @@ export default class FileSet {
         );
     }
 
+    public toString(): string {
+        return `FileSet(${this.toQueryString})`;
+    }
+
     /**
      * Fetch list of all file ids corresponding to this FileSet.
      *
