@@ -50,7 +50,7 @@ export default function DirectoryTree(props: FileListProps) {
                     if (!cancel) {
                         const nextContent = values.map((value) => (
                             <DirectoryTreeNode
-                                key={`${value}|${hierarchy.length}`}
+                                key={`${value}|${hierarchy.join(":")}`}
                                 title={value}
                                 depth={0}
                             />

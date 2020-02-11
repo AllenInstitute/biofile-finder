@@ -89,7 +89,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
                 .then((values) => {
                     const nodes = values.map((value) => (
                         <DirectoryTreeNode
-                            key={`${[...path, value].join(":")}|${hierarchy.length}`}
+                            key={`${[...path, value].join(":")}|${hierarchy.join(":")}`}
                             ancestorNodes={path}
                             depth={depth + 1}
                             title={value}

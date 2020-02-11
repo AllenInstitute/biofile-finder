@@ -52,7 +52,14 @@ export default class AnnotationService extends HttpServiceBase {
     }
 
     public async fetchRootHierarchyValues(hierarchy: string[]): Promise<string[]> {
-        const queryParams = hierarchy.map((annotationName) => `order=${annotationName}`).join("&");
+        // It's important that we fetch values for the correct (i.e., first) level of the hierarchy.
+        // But after that, sort the levels so that we can effectively cache the result
+        // resorting the hierarchy underneath the first level should have no effect on the result.
+        // This is a huge optimization.
+        const [first, ...rest] = hierarchy;
+        const queryParams = [first, ...rest.sort()]
+            .map((annotationName) => `order=${annotationName}`)
+            .join("&");
         const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?${queryParams}`;
         console.log(`Requesting root hierarchy values: ${requestUrl}`);
 
