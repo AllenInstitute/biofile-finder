@@ -36,7 +36,7 @@ export default function useLayoutMeasurements<T extends HTMLElement>(): [
                             height: currentHeight,
                             width: currentWidth,
                         } = ref.current.getBoundingClientRect();
-                        setHeight(ref.current.scrollHeight);
+                        setHeight(currentHeight);
                         setWidth(currentWidth);
                     }
                 }, DEBOUNCE_WAIT_TO_REMEASURE)

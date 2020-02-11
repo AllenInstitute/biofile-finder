@@ -5,16 +5,12 @@ import { ProgressIndicator } from "office-ui-fabric-react";
 const styles = require("./RootLoadingIndicator.module.css");
 
 interface LoadingIndicatorProps {
-    height: number;
     visible: boolean;
 }
 
-export default function RootLoadingIndicator({ height, visible }: LoadingIndicatorProps) {
+export default function RootLoadingIndicator({ visible }: LoadingIndicatorProps) {
     return (
-        <div
-            className={classNames(styles.loadingIndicator, { [styles.hidden]: !visible })}
-            style={{ height: `${height}px` }}
-        >
+        <div className={classNames(styles.loadingIndicator, { [styles.hidden]: !visible })}>
             <ProgressIndicator
                 className={styles.indeterminateProgressBar}
                 progressHidden={!visible}

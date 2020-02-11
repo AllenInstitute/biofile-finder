@@ -7,7 +7,6 @@ import RootLoadingIndicator from "./RootLoadingIndicator";
 import * as directoryTreeSelectors from "./selectors";
 import FileSet from "../../entity/FileSet";
 import FileList from "../FileList";
-import useLayoutMeasurement from "../../hooks/useLayoutMeasurements";
 
 const styles = require("./DirectoryTree.module.css");
 
@@ -30,8 +29,6 @@ interface FileListProps {
  *      [collapsible folder] plate789
  */
 export default function DirectoryTree(props: FileListProps) {
-    const [ref, height] = useLayoutMeasurement<HTMLDivElement>();
-
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
     const annotationService = useSelector(directoryTreeSelectors.getAnnotationService);
     const fileService = useSelector(directoryTreeSelectors.getFileService);
@@ -94,9 +91,9 @@ export default function DirectoryTree(props: FileListProps) {
     }, [hierarchy, annotationService, fileService]);
 
     return (
-        <div className={classNames(props.className, styles.container)} ref={ref}>
-            <RootLoadingIndicator visible={isLoading} height={height} />
-            {content}
+        <div className={classNames(props.className, styles.container)}>
+            <RootLoadingIndicator visible={isLoading} />
+            <div className={styles.scrollContainer}>{content}</div>
         </div>
     );
 }
