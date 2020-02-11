@@ -106,7 +106,15 @@ export default class FileService extends HttpServiceBase {
      * GM 1/29/2020: This is a TEMPORARY service method that is only necessary until we move manifest generation to a backend service.
      * When that happens, this method can be deleted.
      */
-    public getFilesById(fileIds: string[]): Promise<FmsFile[]> {
+    public async getFilesById(fileIds: string[]): Promise<FmsFile[]> {
+        if (this.baseUrl !== FLAT_FILE_DATA_SOURCE) {
+            const url = `${this.baseUrl}/${FileService.BASE_FILES_URL}`;
+            const result = await this.httpClient.post<RestServiceResponse<FmsFile>>(url, fileIds);
+
+            // first .data to access out of AxiosResponse, second .data to get out of RestServiceResponse. :(.
+            return result.data.data;
+        }
+
         return new Promise<FmsFile[]>((resolve) => {
             const res = require("../../../assets/files.json");
             const setOfIds = new Set(fileIds);

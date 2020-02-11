@@ -1,28 +1,42 @@
-import { find } from "lodash";
-import { FmsFile } from "../FileService";
+import { find, omit } from "lodash";
+import FileService, { FmsFile } from "../FileService";
 import Annotation from "../../entity/Annotation";
+import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
+
+interface CsvServiceConfig extends ConnectionConfig {
+    fileService?: FileService;
+}
 
 /**
  * GM 1/27/2020: This is very temporary! It will move to the backend. There are no tests because
  * it will be deleted within a couple weeks. It is essentially proof of concept behavior to give to stakeholders
  * to get a sense of the look and feel.
  */
-export default class CsvService {
+export default class CsvService extends HttpServiceBase {
     private readonly NEW_LINE = "\n";
     private readonly INTER_COLUMN_SEPARATOR = ","; // csv file, duh
     private readonly INTRA_COLUMN_SEPARATOR = " | "; // when a file has more than one value for a given column; TODO, do better.
     private readonly MISSING_VALUE = " ";
     private readonly FILE_METADATA_KEYS = [
-        "file_id",
-        "file_path",
-        "file_size",
-        "file_type",
-        "thumbnail_path",
+        "fileId",
+        "filePath",
+        "fileSize",
+        "fileType",
+        "thumbnailPath",
         "uploaded",
-        "uploaded_by",
+        "uploadedBy",
     ];
+    private readonly fileService: FileService;
 
-    public toCsv(files: FmsFile[], annotations: Annotation[]): string {
+    public constructor(config: CsvServiceConfig) {
+        super(omit(config, ["fileService"]));
+
+        this.fileService = config.fileService || new FileService(omit(config, ["fileService"]));
+    }
+
+    public async downloadCsv(fileIds: string[], annotations: Annotation[]): Promise<void> {
+        const files = await this.fileService.getFilesById(fileIds);
+
         // pass through all files and determine annotation keys
         const columns = new Set(this.FILE_METADATA_KEYS);
         for (const annotation of annotations) {
@@ -56,8 +70,15 @@ export default class CsvService {
             csv += this.NEW_LINE;
         }
 
-        return csv;
+        // download the file
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "manifest.csv");
+        link.style.visibility = "hidden";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 }
-
-export const DefaultCsvService = new CsvService();

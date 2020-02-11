@@ -4,8 +4,8 @@ import { ReduxLogicDeps } from "../";
 import { DOWNLOAD_MANIFEST } from "./actions";
 import metadata from "../metadata";
 import selection from "../selection";
-import { DefaultFileService } from "../../services/FileService";
-import { DefaultCsvService } from "../../services/CsvService";
+import * as interactionSelectors from "./selectors";
+import CsvService from "../../services/CsvService";
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -22,20 +22,10 @@ const downloadManifest = createLogic({
             const state = getState();
             const idsOfSelectedFiles = selection.selectors.getSelectedFiles(state);
             const annotations = metadata.selectors.getAnnotations(state);
+            const baseUrl = interactionSelectors.getFileExplorerServiceBaseUrl(state);
 
-            const files = await DefaultFileService.getFilesById(idsOfSelectedFiles);
-            const csv = DefaultCsvService.toCsv(files, annotations);
-
-            // download the file
-            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", "manifest.csv");
-            link.style.visibility = "hidden";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const csvService = new CsvService({ baseUrl });
+            await csvService.downloadCsv(idsOfSelectedFiles, annotations);
         } catch (err) {
             console.error("Something went wrong, nobody knows why. But here's a hint:", err);
         } finally {
