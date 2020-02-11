@@ -54,13 +54,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
             .fetchTotalCount()
             .then((totalCount) => {
                 if (!cancel) {
-                    setContent(() => (
-                        <FileList
-                            className={styles.fileList}
-                            fileSet={fileSet}
-                            totalCount={totalCount}
-                        />
-                    ));
+                    setContent(() => <FileList fileSet={fileSet} totalCount={totalCount} />);
                 }
             })
             .catch((e) => {
