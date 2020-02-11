@@ -37,14 +37,14 @@ export default class HttpServiceBase {
 
     public async get<T>(url: string): Promise<RestServiceResponse<T>> {
         if (!this.urlToResponseDataCache.has(url)) {
-            try {
-                const response = await this.httpClient.get(url);
-                if (response.status < 400) {
-                    this.urlToResponseDataCache.set(url, response.data);
-                }
-            } catch (e) {
-                // TODO
-                console.error(`Unable to fetch resource: ${url}`, e);
+            // if this fails, bubble up exception
+            const response = await this.httpClient.get(url);
+
+            if (response.status < 400 || response.data === undefined) {
+                this.urlToResponseDataCache.set(url, response.data);
+            } else {
+                // by default axios will reject if does not satisfy: status >= 200 && status < 300
+                throw new Error(`Request for ${url} failed`);
             }
         }
 
