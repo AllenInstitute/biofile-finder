@@ -13,7 +13,13 @@ export enum FileExplorerServiceBaseUrl {
 }
 
 // Least effort state management accessible to both the main and renderer processes.
-global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.FLAT_FILE;
+if (process.env.NODE_ENV === "production") {
+    // For now (until we're reliable deploying out to prod) default to staging in "production" build
+    global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.STAGING;
+} else {
+    // Else, in development (all other builds), default to localhost
+    global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.LOCALHOST;
+}
 
 const dataSourceMenu: MenuItemConstructorOptions = {
     label: "Data Source",
@@ -22,6 +28,7 @@ const dataSourceMenu: MenuItemConstructorOptions = {
             label: "Flat files",
             type: "radio",
             checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.FLAT_FILE,
+            enabled: false, // GM 2/10/2020: does not implement hierarchy endpoints
             click: (menuItem, focusedWindow) => {
                 global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.FLAT_FILE;
                 focusedWindow.webContents.send("file-explorer-service-connection-change");
