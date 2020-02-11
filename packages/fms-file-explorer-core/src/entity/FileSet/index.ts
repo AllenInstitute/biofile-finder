@@ -73,7 +73,7 @@ export default class FileSet {
     }
 
     public async fetchTotalCount() {
-        if (!this.totalFileCount) {
+        if (this.totalFileCount === undefined) {
             this.totalFileCount = await this.fileService.getCountOfMatchingFiles(
                 this.toQueryString()
             );
