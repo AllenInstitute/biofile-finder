@@ -110,12 +110,14 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     };
 
     return (
-        <div
+        <li
             className={styles.treeNodeContainer}
             style={{
                 paddingLeft: `${PADDING_STEP}px`,
             }}
-            role="Treeitem"
+            role="treeitem"
+            aria-expanded={collapsed ? "false" : "true"}
+            aria-level={depth + 1} // aria-level is 1-indexed
         >
             <DirectoryTreeNodeHeader
                 collapsed={collapsed}
@@ -123,16 +125,17 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
                 title={title}
                 onClick={toggleCollapse}
             />
-            <div
+            <ul
                 className={classNames(styles.children, {
                     [styles.collapsed]: collapsed,
                     [styles.fileList]: depth === hierarchy.length - 1,
                 })}
                 style={{ paddingLeft: `${ICON_SIZE + 8}px` }}
+                role="group"
             >
                 {!collapsed && content}
-            </div>
-        </div>
+            </ul>
+        </li>
     );
 }
 

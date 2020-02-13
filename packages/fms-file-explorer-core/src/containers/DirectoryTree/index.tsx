@@ -91,9 +91,11 @@ export default function DirectoryTree(props: FileListProps) {
     }, [hierarchy, annotationService, fileService]);
 
     return (
-        <div className={classNames(props.className, styles.container)} role="Tree">
+        <div className={classNames(props.className, styles.container)}>
             <RootLoadingIndicator visible={isLoading} />
-            <div className={styles.scrollContainer}>{content}</div>
+            <ul className={styles.scrollContainer} role="tree" aria-multiselectable="true">
+                {content}
+            </ul>
         </div>
     );
 }
