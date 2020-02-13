@@ -21,6 +21,10 @@
     margin-left: 8px; /* if this is updated, need to update padding applied to FileLists in DirectoryTreeNode.tsx */
 }
 
+.error-icon {
+    fill: maroon;
+}
+
 .directory-name {
     margin: 0 0.5rem;
     display: inline-block;

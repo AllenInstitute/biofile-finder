@@ -28,11 +28,11 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const [collapsed, setCollapsed] = React.useState(true);
     const [content, setContent] = React.useState<JSX.Element | JSX.Element[] | null>(null);
     const [isLoadingContent, setIsLoadingContent] = React.useState(false);
+    const [error, setError] = React.useState<Error | null>(null);
 
     React.useEffect(() => {
         let cancel = false;
 
-        // at leaf node, so child is a FileList
         // depth is 0-indexed
         if (depth !== hierarchy.length - 1) {
             return;
@@ -55,6 +55,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
             .then((totalCount) => {
                 if (!cancel) {
                     setContent(() => <FileList fileSet={fileSet} totalCount={totalCount} />);
+                    setError(null); // should only do anything if error is defined
                 }
             })
             .catch((e) => {
@@ -62,6 +63,9 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
                     `Failed to fetch the total number of documents beloning to ${fileSet}`,
                     e
                 );
+                if (!cancel) {
+                    setError(e);
+                }
             })
             .finally(() => {
                 if (!cancel) {
@@ -75,11 +79,8 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     }, [ancestorNodes, depth, fileService, hierarchy, title]);
 
     const toggleCollapse = () => {
-        let nextCollapsed;
-        setCollapsed((prev) => {
-            nextCollapsed = !prev;
-            return nextCollapsed;
-        });
+        const nextCollapsed = !collapsed; // flip it
+        setCollapsed(nextCollapsed);
 
         if (!nextCollapsed && !content) {
             const path = [...ancestorNodes, title];
@@ -96,12 +97,15 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
                         />
                     ));
                     setContent(nodes);
+                    setError(null); // should only do anything if error is defined
                 })
                 .catch((e) => {
                     console.error(
                         `Something went wrong fetching next level of hierarchy underneath ${path}`,
                         e
                     );
+                    setCollapsed(true);
+                    setError(e);
                 })
                 .finally(() => {
                     setIsLoadingContent(false);
@@ -121,6 +125,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
         >
             <DirectoryTreeNodeHeader
                 collapsed={collapsed}
+                error={error}
                 loading={isLoadingContent}
                 title={title}
                 onClick={toggleCollapse}

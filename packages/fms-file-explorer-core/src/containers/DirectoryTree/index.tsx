@@ -37,7 +37,7 @@ export default function DirectoryTree(props: FileListProps) {
     const [content, setContent] = React.useState<JSX.Element | JSX.Element[] | null>(null);
 
     React.useEffect(() => {
-        // mechanism for canceling a setstate if this effect has been run again
+        // mechanism for canceling a setState if this effect has been run again
         // before async requests have return
         let cancel = false;
 
