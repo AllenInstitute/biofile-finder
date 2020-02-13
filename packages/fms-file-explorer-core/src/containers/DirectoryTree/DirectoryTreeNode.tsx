@@ -35,62 +35,60 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     React.useEffect(() => {
         let cancel = false;
 
-        // depth is 0-indexed
-        if (depth !== hierarchy.length - 1) {
+        // nothing to do if the node is collapsed
+        if (collapsed) {
             return;
         }
 
+        // otherwise, need to set content
         setIsLoadingContent(true);
 
-        const filters = zip<string, string>(hierarchy, [...ancestorNodes, title]).map((pair) => {
-            const [name, value] = pair as [string, string];
-            return new FileFilter(name, value);
-        });
+        async function getContent() {
+            // depth is 0-indexed
+            if (depth === hierarchy.length - 1) {
+                // if we're at the leaf of the hierarchy, render a FileList
 
-        const fileSet = new FileSet({
-            fileService,
-            filters,
-        });
-
-        fileSet
-            .fetchTotalCount()
-            .then((totalCount) => {
-                if (!cancel) {
-                    setContent(() => <FileList fileSet={fileSet} totalCount={totalCount} />);
-                    setError(null); // should only do anything if error is defined
-                }
-            })
-            .catch((e) => {
-                console.error(
-                    `Failed to fetch the total number of documents beloning to ${fileSet}`,
-                    e
+                const filters = zip<string, string>(hierarchy, [...ancestorNodes, title]).map(
+                    (pair) => {
+                        const [name, value] = pair as [string, string];
+                        return new FileFilter(name, value);
+                    }
                 );
-                if (!cancel) {
-                    setError(e);
+
+                const fileSet = new FileSet({
+                    fileService,
+                    filters,
+                });
+
+                try {
+                    const totalCount = await fileSet.fetchTotalCount();
+                    if (!cancel) {
+                        setContent(<FileList fileSet={fileSet} totalCount={totalCount} />);
+                        setError(null);
+                    }
+                } catch (e) {
+                    console.error(
+                        `Failed to fetch the total number of documents beloning to ${fileSet.toString()}`,
+                        e
+                    );
+                    if (!cancel) {
+                        setCollapsed(true);
+                        setError(e);
+                    }
+                } finally {
+                    if (!cancel) {
+                        setIsLoadingContent(false);
+                    }
                 }
-            })
-            .finally(() => {
-                if (!cancel) {
-                    setIsLoadingContent(false);
-                }
-            });
+            } else {
+                // otherwise, there's more hierarchy to show
+                const path = [...ancestorNodes, title];
 
-        return function cleanUp() {
-            cancel = true;
-        };
-    }, [ancestorNodes, depth, fileService, hierarchy, title]);
-
-    const toggleCollapse = () => {
-        const nextCollapsed = !collapsed; // flip it
-        setCollapsed(nextCollapsed);
-
-        // depth is 0-indexed
-        if (!nextCollapsed && !content && depth < hierarchy.length - 1) {
-            const path = [...ancestorNodes, title];
-            setIsLoadingContent(true);
-            annotationService
-                .fetchHierarchyValuesUnderPath(hierarchy, path)
-                .then((values) => {
+                try {
+                    const values = await annotationService.fetchHierarchyValuesUnderPath(
+                        hierarchy,
+                        path
+                    );
                     const nodes = values.map((value) => (
                         <DirectoryTreeNode
                             key={`${[...path, value].join(":")}|${hierarchy.join(":")}`}
@@ -99,22 +97,35 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
                             title={value}
                         />
                     ));
-                    setContent(nodes);
-                    setError(null); // should only do anything if error is defined
-                })
-                .catch((e) => {
+
+                    if (!cancel) {
+                        setContent(nodes);
+                        setError(null);
+                    }
+                } catch (e) {
                     console.error(
                         `Something went wrong fetching next level of hierarchy underneath ${path}`,
                         e
                     );
-                    setCollapsed(true);
-                    setError(e);
-                })
-                .finally(() => {
-                    setIsLoadingContent(false);
-                });
+
+                    if (!cancel) {
+                        setCollapsed(true);
+                        setError(e);
+                    }
+                } finally {
+                    if (!cancel) {
+                        setIsLoadingContent(false);
+                    }
+                }
+            }
         }
-    };
+
+        getContent();
+
+        return function cleanUp() {
+            cancel = true;
+        };
+    }, [collapsed, ancestorNodes, annotationService, depth, fileService, hierarchy, title]);
 
     return (
         <li
@@ -131,7 +142,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
                 error={error}
                 loading={isLoadingContent}
                 title={title}
-                onClick={toggleCollapse}
+                onClick={() => setCollapsed((prevCollapsed) => !prevCollapsed)}
             />
             <ul
                 className={classNames(styles.children, {
