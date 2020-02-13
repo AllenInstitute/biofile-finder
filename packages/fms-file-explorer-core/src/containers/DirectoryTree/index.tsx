@@ -1,12 +1,8 @@
 import * as classNames from "classnames";
 import * as React from "react";
-import { useSelector } from "react-redux";
 
-import DirectoryTreeNode from "./DirectoryTreeNode";
 import RootLoadingIndicator from "./RootLoadingIndicator";
-import * as directoryTreeSelectors from "./selectors";
-import FileSet from "../../entity/FileSet";
-import FileList from "../FileList";
+import useDirectoryHierarchy from "./useDirectoryHierarchy";
 
 const styles = require("./DirectoryTree.module.css");
 
@@ -29,71 +25,7 @@ interface FileListProps {
  *      [collapsible folder] plate789
  */
 export default function DirectoryTree(props: FileListProps) {
-    const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
-    const annotationService = useSelector(directoryTreeSelectors.getAnnotationService);
-    const fileService = useSelector(directoryTreeSelectors.getFileService);
-
-    const [isLoading, setIsLoading] = React.useState(false);
-    const [content, setContent] = React.useState<JSX.Element | JSX.Element[] | null>(null);
-    const [error, setError] = React.useState<Error | null>(null);
-
-    React.useEffect(() => {
-        // mechanism for canceling a setState if this effect has been run again
-        // before async requests have return
-        let cancel = false;
-
-        setIsLoading(true);
-
-        if (hierarchy.length) {
-            annotationService
-                .fetchRootHierarchyValues(hierarchy)
-                .then((values) => {
-                    if (!cancel) {
-                        const nextContent = values.map((value) => (
-                            <DirectoryTreeNode
-                                key={`${value}|${hierarchy.join(":")}`}
-                                title={value}
-                                depth={0}
-                            />
-                        ));
-                        setContent(nextContent);
-                        setError(null);
-                    }
-                })
-                .catch((e) => {
-                    console.error("Failed to construct root of hierarchy", e);
-                    setError(e);
-                })
-                .finally(() => {
-                    if (!cancel) {
-                        setIsLoading(false);
-                    }
-                });
-        } else {
-            const fileSet = new FileSet({ fileService });
-            fileSet
-                .fetchTotalCount()
-                .then((totalCount) => {
-                    if (!cancel) {
-                        setContent(() => <FileList fileSet={fileSet} totalCount={totalCount} />);
-                        setError(null);
-                    }
-                })
-                .catch((e) => {
-                    console.error("Failed to construct root of hierarchy", e);
-                    setError(e);
-                })
-                .finally(() => {
-                    if (!cancel) {
-                        setIsLoading(false);
-                    }
-                });
-        }
-
-        return function cleanUp() {
-            cancel = true;
-        };
-    }, [hierarchy, annotationService, fileService]);
+    const { content, error, isLoading } = useDirectoryHierarchy({ initialCollapsed: false });
 
     return (
         <div className={classNames(props.className, styles.container)}>

@@ -108,7 +108,7 @@ describe("<DirectoryTreeNode />", () => {
 
         const { getByText } = render(
             <Provider store={store}>
-                <DirectoryTreeNode ancestorNodes={["foo", "bar"]} depth={2} title="baz" />
+                <DirectoryTreeNode ancestorNodes={["foo", "bar"]} currentNode="baz" />
             </Provider>
         );
 
