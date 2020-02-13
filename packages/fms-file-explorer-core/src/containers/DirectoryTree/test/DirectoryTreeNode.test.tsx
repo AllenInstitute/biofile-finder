@@ -11,14 +11,14 @@ import { fireEvent, render, waitForElement } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
-import DirectoryTree from "../";
+import DirectoryTreeNode from "../DirectoryTreeNode";
 import * as directoryTreeSelectors from "../selectors";
 import Annotation from "../../../entity/Annotation";
 import AnnotationService from "../../../services/AnnotationService";
 import { initialState } from "../../../state";
 import FileService from "../../../services/FileService";
 
-describe("<DirectoryTree />", () => {
+describe("<DirectoryTreeNode />", () => {
     const sandbox = createSandbox();
 
     // SO MUCH SETUP
@@ -55,16 +55,18 @@ describe("<DirectoryTree />", () => {
         },
     });
 
-    const expectedTopLevelHierarchyValues = ["first", "second", "third", "fourth"];
-    const expectedSecondLevelHierarchyValues = ["a", "b", "c"];
+    const expectedThirdLevelHierarchyValues = [1, 2, 3, 4, 5];
     const responseStubs: ResponseStub[] = [
         {
-            when: (config) =>
-                _get(config, "url", "").includes(
-                    AnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL
-                ),
+            when: (config) => _get(config, "url", "").includes(FileService.BASE_FILE_IDS_URL),
             respondWith: {
-                data: { data: expectedTopLevelHierarchyValues },
+                data: { data: ["abc123"] },
+            },
+        },
+        {
+            when: (config) => _get(config, "url", "").includes(FileService.BASE_FILES_URL),
+            respondWith: {
+                data: { data: [{ fileId: "abc123", annotations: [] }] },
             },
         },
         {
@@ -73,7 +75,7 @@ describe("<DirectoryTree />", () => {
                     AnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL
                 ),
             respondWith: {
-                data: { data: expectedSecondLevelHierarchyValues },
+                data: { data: expectedThirdLevelHierarchyValues },
             },
         },
         {
@@ -100,49 +102,25 @@ describe("<DirectoryTree />", () => {
         sandbox.restore();
     });
 
-    it("renders the top level of the hierarchy", async () => {
-        const { store } = configureMockStore({ state, responseStubs });
-
-        const { getByText, getAllByRole } = render(
-            <Provider store={store}>
-                <DirectoryTree />
-            </Provider>
-        );
-
-        // wait for the requests for data
-        const directoryTreeNodes = await waitForElement(() => getAllByRole("treeitem"));
-
-        // expect the top level annotation values to be in the dom
-        expect(directoryTreeNodes.length).to.equal(4);
-        expectedTopLevelHierarchyValues.forEach((value) => {
-            expect(getByText(value)).to.exist.and.to.be.instanceOf(HTMLElement);
-        });
-    });
-
-    it("collapses and expands sub-levels of the annotation hierarchy", async () => {
+    // TODO
+    it.skip("presents a FileList on expansion if at the bottom of the annotation hierarchy", async () => {
         const { store } = configureMockStore({ state, responseStubs });
 
         const { getByText } = render(
             <Provider store={store}>
-                <DirectoryTree />
+                <DirectoryTreeNode ancestorNodes={["foo", "bar"]} depth={2} title="baz" />
             </Provider>
         );
 
-        // wait for the requests for annotation values at the top level of the hierarchy
-        const topLevelValue = await waitForElement(() =>
-            getByText(expectedTopLevelHierarchyValues[0])
-        );
+        const header = getByText("baz");
 
-        // click on the tree item
-        fireEvent.click(topLevelValue);
+        fireEvent.click(header);
 
-        // it's children should appear
-        await waitForElement(() => getByText(expectedSecondLevelHierarchyValues[2]));
-
-        // click the tree item again and its children should disappear
-        fireEvent.click(topLevelValue);
-
-        // getByText will throw if it can't find the element
-        expect(() => getByText(expectedSecondLevelHierarchyValues[2])).to.throw();
+        await waitForElement(() => {
+            getByText("abc123"); // fileId
+        });
     });
+
+    // TODO
+    it.skip("presents another level of hierarchy if not at the bottom of the annotation hierarchy", () => {});
 });
