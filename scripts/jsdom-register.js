@@ -9,7 +9,7 @@ const html = `
     </html>
 `;
 
-const dom = new JSDOM(html, { 
+const dom = new JSDOM(html, {
     pretendToBeVisual: true, // set pretendToBeVisual to enable requestAnimationFrame and cancelAnimationFrame
     url: "http://localhost", // https://github.com/jsdom/jsdom/issues/2383
 });
@@ -28,9 +28,9 @@ for (key in dom.window) {
     }
 }
 
-// Non-enumerable properties. Add to this list as needed. You'll know something is needed when 
+// Non-enumerable properties. Add to this list as needed. You'll know something is needed when
 // you write a new test and you get an error that looks like "ReferenceError: X is not defined."
-const NON_ENUMERABLE_KEYS = ["Element", "Event"];
+const NON_ENUMERABLE_KEYS = ["HTMLElement", "Element", "Event"];
 for (key of NON_ENUMERABLE_KEYS) {
     if (dom.window.hasOwnProperty(key) && typeof global[key] === "undefined") {
         global[key] = dom.window[key];
