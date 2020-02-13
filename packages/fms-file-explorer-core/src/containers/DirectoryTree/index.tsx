@@ -35,6 +35,7 @@ export default function DirectoryTree(props: FileListProps) {
 
     const [isLoading, setIsLoading] = React.useState(false);
     const [content, setContent] = React.useState<JSX.Element | JSX.Element[] | null>(null);
+    const [error, setError] = React.useState<Error | null>(null);
 
     React.useEffect(() => {
         // mechanism for canceling a setState if this effect has been run again
@@ -56,10 +57,12 @@ export default function DirectoryTree(props: FileListProps) {
                             />
                         ));
                         setContent(nextContent);
+                        setError(null);
                     }
                 })
                 .catch((e) => {
                     console.error("Failed to construct root of hierarchy", e);
+                    setError(e);
                 })
                 .finally(() => {
                     if (!cancel) {
@@ -73,10 +76,12 @@ export default function DirectoryTree(props: FileListProps) {
                 .then((totalCount) => {
                     if (!cancel) {
                         setContent(() => <FileList fileSet={fileSet} totalCount={totalCount} />);
+                        setError(null);
                     }
                 })
                 .catch((e) => {
                     console.error("Failed to construct root of hierarchy", e);
+                    setError(e);
                 })
                 .finally(() => {
                     if (!cancel) {
@@ -94,7 +99,13 @@ export default function DirectoryTree(props: FileListProps) {
         <div className={classNames(props.className, styles.container)}>
             <RootLoadingIndicator visible={isLoading} />
             <ul className={styles.scrollContainer} role="tree" aria-multiselectable="true">
-                {content}
+                {!error && content}
+                {error && (
+                    <aside className={styles.errorMessage}>
+                        <p>Whoops! Something went wrong:</p>
+                        <p>{error.message}</p>
+                    </aside>
+                )}
             </ul>
         </div>
     );

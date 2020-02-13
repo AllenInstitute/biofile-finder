@@ -13,3 +13,18 @@
 .scroll-container li {
     list-style: none;
 }
+
+.error-message {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+
+    color: maroon;
+    font-size: 2rem;
+    text-align: center;
+}
+
+.error-message p {
+    margin: 0;
+}

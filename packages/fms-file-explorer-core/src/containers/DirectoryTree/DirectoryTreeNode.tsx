@@ -22,9 +22,11 @@ const PADDING_STEP = 0; // in px
 
 export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const { ancestorNodes, depth, title } = props;
+
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
     const annotationService = useSelector(directoryTreeSelectors.getAnnotationService);
     const fileService = useSelector(directoryTreeSelectors.getFileService);
+
     const [collapsed, setCollapsed] = React.useState(true);
     const [content, setContent] = React.useState<JSX.Element | JSX.Element[] | null>(null);
     const [isLoadingContent, setIsLoadingContent] = React.useState(false);
@@ -82,7 +84,8 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
         const nextCollapsed = !collapsed; // flip it
         setCollapsed(nextCollapsed);
 
-        if (!nextCollapsed && !content) {
+        // depth is 0-indexed
+        if (!nextCollapsed && !content && depth < hierarchy.length - 1) {
             const path = [...ancestorNodes, title];
             setIsLoadingContent(true);
             annotationService
