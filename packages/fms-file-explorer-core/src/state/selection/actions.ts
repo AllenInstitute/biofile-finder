@@ -1,8 +1,43 @@
 import { makeConstant } from "@aics/redux-utils";
 
 import Annotation from "../../entity/Annotation";
+import FileFilter from "../../entity/FileFilter";
 
 const STATE_BRANCH_NAME = "selection";
+
+/**
+ * ADD_FILE_FILTER
+ */
+export const ADD_FILE_FILTER = makeConstant(STATE_BRANCH_NAME, "add-file-filter");
+
+export interface AddFileFilter {
+    payload: FileFilter;
+    type: string;
+}
+
+export function addFileFilter(filter: FileFilter) {
+    return {
+        payload: filter,
+        type: ADD_FILE_FILTER,
+    };
+}
+
+/**
+ * REMOVE_FILE_FILTER
+ */
+export const REMOVE_FILE_FILTER = makeConstant(STATE_BRANCH_NAME, "remove-file-filter");
+
+export interface RemoveFileFilter {
+    payload: FileFilter;
+    type: string;
+}
+
+export function removeFileFilter(filter: FileFilter) {
+    return {
+        payload: filter,
+        type: REMOVE_FILE_FILTER,
+    };
+}
 
 /**
  * SELECT_DISPLAY_ANNOTATION

@@ -3,10 +3,13 @@ import { castArray, compact, find, without } from "lodash";
 
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../metadata/reducer";
 import Annotation from "../../entity/Annotation";
+import FileFilter from "../../entity/FileFilter";
 
 import {
+    ADD_FILE_FILTER,
     DESELECT_DISPLAY_ANNOTATION,
     DESELECT_FILE,
+    REMOVE_FILE_FILTER,
     SELECT_DISPLAY_ANNOTATION,
     SELECT_FILE,
     SET_ANNOTATION_HIERARCHY,
@@ -15,6 +18,7 @@ import {
 export interface SelectionStateBranch {
     annotationHierarchy: Annotation[];
     displayAnnotations: Annotation[];
+    filters: FileFilter[];
     selectedFiles: string[]; // file ids
 }
 
@@ -28,11 +32,16 @@ const DEFAULT_DISPLAY_ANNOTATIONS = compact([
 export const initialState = {
     annotationHierarchy: [],
     displayAnnotations: [...DEFAULT_DISPLAY_ANNOTATIONS],
+    filters: [],
     selectedFiles: [], // file ids
 };
 
 export default makeReducer<SelectionStateBranch>(
     {
+        [ADD_FILE_FILTER]: (state, action) => ({
+            ...state,
+            filters: [...state.filters, action.payload],
+        }),
         [DESELECT_DISPLAY_ANNOTATION]: (state, action) => ({
             ...state,
             displayAnnotations: without(state.displayAnnotations, ...castArray(action.payload)),
@@ -40,6 +49,10 @@ export default makeReducer<SelectionStateBranch>(
         [DESELECT_FILE]: (state, action) => ({
             ...state,
             selectedFiles: without(state.selectedFiles, ...castArray(action.payload)),
+        }),
+        [REMOVE_FILE_FILTER]: (state, action) => ({
+            ...state,
+            filters: state.filters.filter((filter) => !filter.equals(action.payload)),
         }),
         [SELECT_DISPLAY_ANNOTATION]: (state, action) => ({
             ...state,
