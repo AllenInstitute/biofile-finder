@@ -1,16 +1,16 @@
 import axios, { AxiosInstance } from "axios";
 import * as LRUCache from "lru-cache";
 
-import { FLAT_FILE_DATA_SOURCE } from "../../constants";
+import { DataSource } from "../../constants";
 import RestServiceResponse from "../../entity/RestServiceResponse";
 
 export interface ConnectionConfig {
-    baseUrl?: string;
+    baseUrl?: string | keyof typeof DataSource;
     httpClient?: AxiosInstance;
 }
 
 export const DEFAULT_CONNECTION_CONFIG = {
-    baseUrl: FLAT_FILE_DATA_SOURCE, // change to staging or production once integration with FES is smoothed over
+    baseUrl: DataSource.STAGING,
     httpClient: axios.create(),
 };
 
@@ -20,7 +20,7 @@ const MAX_CACHE_SIZE = 1000;
  * Base class for services that interact with AICS APIs.
  */
 export default class HttpServiceBase {
-    public baseUrl = DEFAULT_CONNECTION_CONFIG.baseUrl;
+    public baseUrl: string | keyof typeof DataSource = DEFAULT_CONNECTION_CONFIG.baseUrl;
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
 
     private urlToResponseDataCache = new LRUCache<string, any>({ max: MAX_CACHE_SIZE });
@@ -57,7 +57,7 @@ export default class HttpServiceBase {
         return new RestServiceResponse(cachedResponseData);
     }
 
-    public setBaseUrl(baseUrl: string) {
+    public setBaseUrl(baseUrl: string | keyof typeof DataSource) {
         this.baseUrl = baseUrl;
 
         // bust cache when base url changes

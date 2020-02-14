@@ -1,7 +1,7 @@
 import { map } from "lodash";
 
 import Annotation from "../../entity/Annotation";
-import { FLAT_FILE_DATA_SOURCE } from "../../constants";
+import { DataSource } from "../../constants";
 import HttpServiceBase from "../HttpServiceBase";
 import RestServiceResponse from "../../entity/RestServiceResponse";
 
@@ -30,7 +30,7 @@ export default class AnnotationService extends HttpServiceBase {
      * Fetch all annotations.
      */
     public async fetchAnnotations(): Promise<Annotation[]> {
-        if (this.baseUrl !== FLAT_FILE_DATA_SOURCE) {
+        if (this.baseUrl !== DataSource.FLAT_FILE) {
             const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_URL}`;
             console.log(`Requesting annotation values from ${requestUrl}`);
 

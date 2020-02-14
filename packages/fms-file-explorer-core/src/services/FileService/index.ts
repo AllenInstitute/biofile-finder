@@ -3,7 +3,7 @@ import * as LRUCache from "lru-cache";
 
 import HttpServiceBase from "../HttpServiceBase";
 import RestServiceResponse, { Response } from "../../entity/RestServiceResponse";
-import { FLAT_FILE_DATA_SOURCE } from "../../constants";
+import { DataSource } from "../../constants";
 
 /**
  * Represents a sub-document that can be found within an FmsFile's `annotations` list.
@@ -48,7 +48,7 @@ export default class FileService extends HttpServiceBase {
     private cache = new LRUCache<string, Response<FmsFile>>({ max: 10 });
 
     public async getCountOfMatchingFiles(queryString: string): Promise<number> {
-        if (this.baseUrl !== FLAT_FILE_DATA_SOURCE) {
+        if (this.baseUrl !== DataSource.FLAT_FILE) {
             const requestUrl = join(
                 compact([`${this.baseUrl}/${FileService.BASE_FILE_COUNT_URL}`, queryString]),
                 "?"
@@ -82,7 +82,7 @@ export default class FileService extends HttpServiceBase {
     public async getFiles(request: GetFilesRequest): Promise<RestServiceResponse<FmsFile>> {
         const { from, limit, queryString } = request;
 
-        if (this.baseUrl !== FLAT_FILE_DATA_SOURCE) {
+        if (this.baseUrl !== DataSource.FLAT_FILE) {
             const base = `${this.baseUrl}/${FileService.BASE_FILES_URL}?from=${from}&limit=${limit}`;
             const requestUrl = join(compact([base, queryString]), "&");
             console.log(`Requesting files from ${requestUrl}`);
@@ -107,7 +107,7 @@ export default class FileService extends HttpServiceBase {
      * When that happens, this method can be deleted.
      */
     public async getFilesById(fileIds: string[]): Promise<FmsFile[]> {
-        if (this.baseUrl !== FLAT_FILE_DATA_SOURCE) {
+        if (this.baseUrl !== DataSource.FLAT_FILE) {
             const url = `${this.baseUrl}/${FileService.BASE_FILES_URL}`;
             const result = await this.httpClient.post<RestServiceResponse<FmsFile>>(url, fileIds);
 
@@ -126,7 +126,7 @@ export default class FileService extends HttpServiceBase {
      * Get list of file_ids of file documents that match a given filter, potentially according to a particular sort order.
      */
     public async getFileIds(queryString: string): Promise<string[]> {
-        if (this.baseUrl !== FLAT_FILE_DATA_SOURCE) {
+        if (this.baseUrl !== DataSource.FLAT_FILE) {
             const requestUrl = join(
                 compact([`${this.baseUrl}/${FileService.BASE_FILE_IDS_URL}`, queryString]),
                 "?"
