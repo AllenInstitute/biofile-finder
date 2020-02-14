@@ -1,6 +1,6 @@
 import { List } from "office-ui-fabric-react";
 import * as React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import FileFilter from "../../entity/FileFilter";
 import FilterValue from "./FilterValue";
@@ -14,14 +14,21 @@ interface AnnotationFilterFormProps {
 export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const { annotationName } = props;
 
+    const dispatch = useDispatch();
     const getAnnotationValueFilters = React.useMemo(makeFilterItemsSelector, []);
     const items = useSelector((state: State) => getAnnotationValueFilters(state, annotationName));
 
     const onFilterStateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
-            selection.actions.addFileFilter(new FileFilter(annotationName, event.target.value));
+            dispatch(
+                selection.actions.addFileFilter(new FileFilter(annotationName, event.target.value))
+            );
         } else {
-            selection.actions.removeFileFilter(new FileFilter(annotationName, event.target.value));
+            dispatch(
+                selection.actions.removeFileFilter(
+                    new FileFilter(annotationName, event.target.value)
+                )
+            );
         }
     };
 
