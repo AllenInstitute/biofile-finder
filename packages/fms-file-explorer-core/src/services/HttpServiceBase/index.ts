@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios";
+import { Policy } from "cockatiel";
 import * as LRUCache from "lru-cache";
 
 import { DataSource } from "../../constants";
@@ -15,6 +16,14 @@ export const DEFAULT_CONNECTION_CONFIG = {
 };
 
 const MAX_CACHE_SIZE = 1000;
+
+// retry policy: 5 times, with an exponetial backoff between attempts
+const retry = Policy.handleAll()
+    .retry()
+    .attempts(5)
+    .exponential({
+        maxAttempts: 5,
+    });
 
 /**
  * Base class for services that interact with AICS APIs.
@@ -38,7 +47,7 @@ export default class HttpServiceBase {
     public async get<T>(url: string): Promise<RestServiceResponse<T>> {
         if (!this.urlToResponseDataCache.has(url)) {
             // if this fails, bubble up exception
-            const response = await this.httpClient.get(url);
+            const response = await retry.execute(() => this.httpClient.get(url));
 
             if (response.status < 400 || response.data === undefined) {
                 this.urlToResponseDataCache.set(url, response.data);
