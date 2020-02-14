@@ -7,6 +7,8 @@ import FilterValue from "./FilterValue";
 import { makeFilterItemsSelector } from "./selectors";
 import { selection, State } from "../../state";
 
+const styles = require("./AnnotationFilterForm.module.css");
+
 interface AnnotationFilterFormProps {
     annotationName: string;
 }
@@ -33,19 +35,21 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
 
     return (
-        <List
-            getKey={(item) => String(item.value)}
-            items={items}
-            onShouldVirtualize={() => items.length > 100}
-            onRenderCell={(item) =>
-                item && (
-                    <FilterValue
-                        checked={item.checked}
-                        onChange={onFilterStateChange}
-                        value={item.value}
-                    />
-                )
-            }
-        />
+        <div className={styles.container} data-is-scrollable="true">
+            <List
+                getKey={(item) => String(item.value)}
+                items={items}
+                onShouldVirtualize={() => items.length > 100}
+                onRenderCell={(item) =>
+                    item && (
+                        <FilterValue
+                            checked={item.checked}
+                            onChange={onFilterStateChange}
+                            value={item.value}
+                        />
+                    )
+                }
+            />
+        </div>
     );
 }

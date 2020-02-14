@@ -1,5 +1,7 @@
 import * as React from "react";
 
+const styles = require("./AnnotationFilterForm.module.css");
+
 interface FilterValueProps {
     onChange: React.ChangeEventHandler;
     value: any;
@@ -9,8 +11,7 @@ interface FilterValueProps {
 export default function FilterValue(props: FilterValueProps) {
     const { value, checked, onChange } = props;
     return (
-        <label>
-            {value}
+        <label className={styles.item}>
             <input
                 type="checkbox"
                 role="checkbox"
@@ -20,6 +21,7 @@ export default function FilterValue(props: FilterValueProps) {
                 aria-checked={checked}
                 onChange={onChange}
             />
+            {value}
         </label>
     );
 }
