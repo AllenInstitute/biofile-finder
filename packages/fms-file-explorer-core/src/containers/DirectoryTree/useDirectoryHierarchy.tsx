@@ -49,16 +49,20 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
 
         setIsLoading(true);
 
-        const path = pull([...ancestorNodes, currentNode], ROOT_NODE);
+        // if at root of hierarchy, currentNode will be set to the sentinal "ROOT_NODE"
+        // we need to trim that from the path as its not meaningful in this context
+        const pathToNode = pull([...ancestorNodes, currentNode], ROOT_NODE);
 
         async function getContent() {
             if (isLeaf || hierarchy.length === 0) {
                 // if we're at the top or bottom of the hierarchy, render a FileList
 
-                const filters: FileFilter[] = zip<string, string>(hierarchy, path).map((pair) => {
-                    const [name, value] = pair as [string, string];
-                    return new FileFilter(name, value);
-                });
+                const filters: FileFilter[] = zip<string, string>(hierarchy, pathToNode).map(
+                    (pair) => {
+                        const [name, value] = pair as [string, string];
+                        return new FileFilter(name, value);
+                    }
+                );
 
                 const fileSet = new FileSet({
                     fileService,
@@ -70,6 +74,7 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
                     if (!cancel) {
                         setContent(<FileList fileSet={fileSet} totalCount={totalCount} />);
                         setError(null);
+                        setIsLoading(false);
                     }
                 } catch (e) {
                     console.error(
@@ -81,9 +86,6 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
                             setCollapsed(true);
                         }
                         setError(e);
-                    }
-                } finally {
-                    if (!cancel) {
                         setIsLoading(false);
                     }
                 }
@@ -97,14 +99,14 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
                     } else {
                         values = await annotationService.fetchHierarchyValuesUnderPath(
                             hierarchy,
-                            path
+                            pathToNode
                         );
                     }
 
                     const nodes = values.map((value) => (
                         <DirectoryTreeNode
-                            key={`${[...path, value].join(":")}|${hierarchy.join(":")}`}
-                            ancestorNodes={path}
+                            key={`${[...pathToNode, value].join(":")}|${hierarchy.join(":")}`}
+                            ancestorNodes={pathToNode}
                             currentNode={value}
                         />
                     ));
@@ -112,10 +114,11 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
                     if (!cancel) {
                         setContent(nodes);
                         setError(null);
+                        setIsLoading(false);
                     }
                 } catch (e) {
                     console.error(
-                        `Something went wrong fetching next level of hierarchy underneath ${path}`,
+                        `Something went wrong fetching next level of hierarchy underneath ${pathToNode}`,
                         e
                     );
 
@@ -124,9 +127,6 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
                             setCollapsed(true);
                         }
                         setError(e);
-                    }
-                } finally {
-                    if (!cancel) {
                         setIsLoading(false);
                     }
                 }
@@ -138,7 +138,16 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
         return function cleanUp() {
             cancel = true;
         };
-    }, [ancestorNodes, currentNode, collapsed, annotationService, fileService, hierarchy]);
+    }, [
+        ancestorNodes,
+        annotationService,
+        currentNode,
+        collapsed,
+        fileService,
+        hierarchy,
+        isRoot,
+        isLeaf,
+    ]);
 
     return {
         collapsed,
