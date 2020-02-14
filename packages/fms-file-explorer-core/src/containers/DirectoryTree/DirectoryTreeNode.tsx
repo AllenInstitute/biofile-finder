@@ -13,6 +13,11 @@ interface DirectoryTreeNodeProps {
 
 const ICON_SIZE = 15; // in px; both width and height
 
+/**
+ * An individual node (e.g., a "directory") in the hierarchical list of annotation values.
+ * Will either render more DirectoryTreeNodes, or, if at the bottom of the annotation hierarchy,
+ * will render a FileList showing the set of files that match the filters at this path in the hierarchy.
+ */
 export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const { ancestorNodes, currentNode } = props;
     const { collapsed, content, error, isLeaf, isLoading, setCollapsed } = useDirectoryHierarchy({

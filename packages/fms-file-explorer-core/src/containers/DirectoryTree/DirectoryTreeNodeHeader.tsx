@@ -39,6 +39,10 @@ const ERROR_ICON_PATH_DATA =
 
 const ICON_SIZE = 15; // in px; both width and height
 
+/**
+ * A "directory" name--i.e., an annotation value. It is a memozied component because Tippy is
+ * not cheap to initialize.
+ */
 export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeNodeHeaderProps) {
     const { collapsed, error, loading, onClick, title } = props;
 
