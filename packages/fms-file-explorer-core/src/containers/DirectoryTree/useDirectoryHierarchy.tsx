@@ -1,4 +1,4 @@
-import { defaults, pull, zip } from "lodash";
+import { defaults, isEmpty, pull, uniqWith, zip } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -7,6 +7,7 @@ import FileList from "../FileList";
 import FileFilter from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import * as directoryTreeSelectors from "./selectors";
+import { selection } from "../../state";
 
 interface UseDirectoryHierarchyParams {
     ancestorNodes?: string[];
@@ -30,6 +31,7 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
     const annotationService = useSelector(directoryTreeSelectors.getAnnotationService);
     const fileService = useSelector(directoryTreeSelectors.getFileService);
+    const selectedFileFilters = useSelector(selection.selectors.getFileFilters);
 
     const [collapsed, setCollapsed] = React.useState(initialCollapsed);
     const [content, setContent] = React.useState<JSX.Element | JSX.Element[] | null>(null);
@@ -57,12 +59,33 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
             if (isLeaf || hierarchy.length === 0) {
                 // if we're at the top or bottom of the hierarchy, render a FileList
 
-                const filters: FileFilter[] = zip<string, string>(hierarchy, pathToNode).map(
-                    (pair) => {
-                        const [name, value] = pair as [string, string];
-                        return new FileFilter(name, value);
-                    }
-                );
+                const hierarchyFilters: FileFilter[] = zip<string, string>(
+                    hierarchy,
+                    pathToNode
+                ).map((pair) => {
+                    const [name, value] = pair as [string, string];
+                    return new FileFilter(name, value);
+                });
+
+                // Filters are a combination of any user-selected filters and the filters
+                // at a particular path in the hierarchy.
+                let filters;
+                if (isRoot) {
+                    // At the root level, it's OK to have two annotation values used as filters for the same annotation.
+                    // E.g., "workflow=Pipeline4.1&workflow=Pipeline4.2". This gives us an OR query. But, filter out
+                    // duplicates to avoid querying by "workflow=Pipeline 4.4&workflow=Pipeline 4.4".
+                    filters = uniqWith([...hierarchyFilters, ...selectedFileFilters], (a, b) =>
+                        a.equals(b)
+                    );
+                } else {
+                    // When not at the root level, remove any user-applied filters for any annotation within the current path.
+                    // E.g., if under the path "AICS-12" -> "ZSD-1", and a user has applied the filters FileFilter("cell_line", "AICS-12")
+                    // and FileFilter("cell_line", "AICS-33"), we do not want to include the latter in the query for this FileList.
+                    filters = uniqWith(
+                        [...hierarchyFilters, ...selectedFileFilters],
+                        (a, b) => a.equals(b) || a.name === b.name
+                    );
+                }
 
                 const fileSet = new FileSet({
                     fileService,
@@ -92,8 +115,14 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
             } else {
                 // otherwise, there's more hierarchy to show
                 try {
-                    let values: any[];
+                    const depth = pathToNode.length;
+                    const annotationNameAtDepth = hierarchy[depth];
+                    const userSelectedFiltersForCurrentAnnotation = selectedFileFilters
+                        .filter((filter) => filter.name === annotationNameAtDepth)
+                        .map((filter) => filter.value);
 
+                    // TODO, send user-selected filters to backend
+                    let values: any[];
                     if (isRoot) {
                         values = await annotationService.fetchRootHierarchyValues(hierarchy);
                     } else {
@@ -103,7 +132,15 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
                         );
                     }
 
-                    const nodes = values.map((value) => (
+                    const filteredValues = values.filter((value) => {
+                        if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
+                            return userSelectedFiltersForCurrentAnnotation.includes(value);
+                        }
+
+                        return true;
+                    });
+
+                    const nodes = filteredValues.map((value) => (
                         <DirectoryTreeNode
                             key={`${[...pathToNode, value].join(":")}|${hierarchy.join(":")}`}
                             ancestorNodes={pathToNode}
@@ -147,6 +184,7 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
         hierarchy,
         isRoot,
         isLeaf,
+        selectedFileFilters,
     ]);
 
     return {
