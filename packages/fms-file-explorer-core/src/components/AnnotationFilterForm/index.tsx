@@ -22,7 +22,7 @@ const FUZZY_SEARCH_OPTIONS = {
     shouldSort: true,
 
     // arbitrarily tuned; 0.0 requires a perfect match, 1.0 would match anything
-    threshold: 0.2,
+    threshold: 0.1,
 };
 
 export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
