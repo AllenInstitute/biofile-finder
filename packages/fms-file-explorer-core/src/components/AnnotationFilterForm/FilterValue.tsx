@@ -13,6 +13,7 @@ export default function FilterValue(props: FilterValueProps) {
     return (
         <label className={styles.item}>
             <input
+                className={styles.checkbox}
                 type="checkbox"
                 role="checkbox"
                 name={value}
