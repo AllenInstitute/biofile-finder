@@ -7,7 +7,7 @@ import {
 import { expect } from "chai";
 import { get as _get } from "lodash";
 import * as React from "react";
-import { fireEvent, render, waitForElement } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
@@ -103,14 +103,14 @@ describe("<DirectoryTree />", () => {
     it("renders the top level of the hierarchy", async () => {
         const { store } = configureMockStore({ state, responseStubs });
 
-        const { getByText, getAllByRole } = render(
+        const { getByText, findAllByRole } = render(
             <Provider store={store}>
                 <DirectoryTree />
             </Provider>
         );
 
         // wait for the requests for data
-        const directoryTreeNodes = await waitForElement(() => getAllByRole("treeitem"));
+        const directoryTreeNodes = await findAllByRole("treeitem");
 
         // expect the top level annotation values to be in the dom
         expect(directoryTreeNodes.length).to.equal(4);
@@ -122,22 +122,20 @@ describe("<DirectoryTree />", () => {
     it("collapses and expands sub-levels of the annotation hierarchy", async () => {
         const { store } = configureMockStore({ state, responseStubs });
 
-        const { getByText } = render(
+        const { getByText, findByText } = render(
             <Provider store={store}>
                 <DirectoryTree />
             </Provider>
         );
 
         // wait for the requests for annotation values at the top level of the hierarchy
-        const topLevelValue = await waitForElement(() =>
-            getByText(expectedTopLevelHierarchyValues[0])
-        );
+        const topLevelValue = await findByText(expectedTopLevelHierarchyValues[0]);
 
         // click on the tree item
         fireEvent.click(topLevelValue);
 
         // it's children should appear
-        await waitForElement(() => getByText(expectedSecondLevelHierarchyValues[2]));
+        await findByText(expectedSecondLevelHierarchyValues[2]);
 
         // click the tree item again and its children should disappear
         fireEvent.click(topLevelValue);
