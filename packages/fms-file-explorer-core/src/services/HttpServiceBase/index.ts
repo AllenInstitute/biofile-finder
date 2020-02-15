@@ -17,12 +17,13 @@ export const DEFAULT_CONNECTION_CONFIG = {
 
 const MAX_CACHE_SIZE = 1000;
 
-// retry policy: 5 times, with an exponetial backoff between attempts
+// retry policy: 5 times, with an exponential backoff between attempts
 const retry = Policy.handleAll()
     .retry()
     .attempts(5)
     .exponential({
         maxAttempts: 5,
+        maxDelay: 10 * 1000,
     });
 
 /**
