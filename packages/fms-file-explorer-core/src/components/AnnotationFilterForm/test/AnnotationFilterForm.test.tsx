@@ -9,7 +9,7 @@ import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import { initialState } from "../../../state";
 
-describe.only("<AnnotationFilterForm />", () => {
+describe("<AnnotationFilterForm />", () => {
     // setup
     const fooAnnotation = new Annotation({
         annotationDisplayName: "Foo",
