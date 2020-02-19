@@ -25,6 +25,12 @@ const FUZZY_SEARCH_OPTIONS = {
     threshold: 0.1,
 };
 
+const SEARCH_BOX_STYLE_OVERRIDES = {
+    icon: {
+        color: "steelblue",
+    },
+};
+
 export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const { annotationName } = props;
 
@@ -66,7 +72,16 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     return (
         <div className={styles.container} data-is-scrollable="true">
             <div className={styles.header}>
-                <SearchBox className={styles.searchBox} onChange={onSearchBoxChange} />
+                <SearchBox
+                    className={styles.searchBox}
+                    onChange={onSearchBoxChange}
+                    onClear={() => setSearchValue("")}
+                    styles={SEARCH_BOX_STYLE_OVERRIDES}
+                />
+                <div className={styles.actionButtonsContainer}>
+                    <span className={styles.actionButton}>Select all</span> /{" "}
+                    <span className={styles.actionButton}>Deselect all</span>
+                </div>
             </div>
             <List
                 getKey={(item) => String(item.value)}
