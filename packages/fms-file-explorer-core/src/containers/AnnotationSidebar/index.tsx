@@ -1,11 +1,10 @@
 import * as classNames from "classnames";
 import * as React from "react";
 import { DragDropContext, OnDragEndResponder, OnDragStartResponder } from "react-beautiful-dnd";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import AnnotationHierarchy from "../AnnotationHierarchy";
 import AnnotationList, { DROPPABLE_ID as ANNOTATION_LIST_DROPPABLE_ID } from "../AnnotationList";
-import * as annotationSelectors from "./selectors";
 
 import { selection } from "../../state";
 
@@ -20,8 +19,6 @@ interface AnnotationSidebarProps {
  * by which to group files by, and filtering/sorting those annotations.
  */
 export default function AnnotationSidebar(props: AnnotationSidebarProps) {
-    const annotationHierarchyListItems = useSelector(annotationSelectors.getHierarchyListItems);
-    const annotationListItems = useSelector(annotationSelectors.getAnnotationListItems);
     const [highlightDropZone, setHighlightDropZone] = React.useState(false);
     const dispatch = useDispatch();
 
@@ -35,26 +32,17 @@ export default function AnnotationSidebar(props: AnnotationSidebarProps) {
 
     // On drag end of any draggable item within this DragDropContext, if it was dropped on the hierarchy list, tell Redux about it
     const onDragEnd: OnDragEndResponder = (result) => {
-        const { source, destination } = result;
+        const { destination, draggableId, source } = result;
+        const { itemId } = JSON.parse(draggableId);
 
         // dropped within drag and drop context
         if (destination) {
             if (source.droppableId === ANNOTATION_LIST_DROPPABLE_ID) {
                 // the draggable came from the list of all available annotations and was dropped on the hierarchy
-                dispatch(
-                    selection.actions.reorderAnnotationHierarchy(
-                        annotationListItems[source.index].id,
-                        destination.index
-                    )
-                );
+                dispatch(selection.actions.reorderAnnotationHierarchy(itemId, destination.index));
             } else {
                 // in every other case, the draggable came from the hierarchy itself (i.e., the hierarchy was reordered)
-                dispatch(
-                    selection.actions.reorderAnnotationHierarchy(
-                        annotationHierarchyListItems[source.index].id,
-                        destination.index
-                    )
-                );
+                dispatch(selection.actions.reorderAnnotationHierarchy(itemId, destination.index));
             }
         }
 

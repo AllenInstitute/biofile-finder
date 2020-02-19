@@ -52,7 +52,7 @@ export default function DnDList(props: DnDListProps) {
                         return (
                             <Draggable
                                 key={item.id}
-                                draggableId={`${id}_${item.id}`}
+                                draggableId={JSON.stringify({ sourceId: id, itemId: item.id })}
                                 index={index}
                                 isDragDisabled={disabled}
                             >
