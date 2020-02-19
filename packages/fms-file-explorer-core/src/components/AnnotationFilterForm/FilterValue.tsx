@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const styles = require("./AnnotationFilterForm.module.css");
+const styles = require("./ListPicker.module.css");
 
 interface FilterValueProps {
     checked: boolean; // whether this checkbox should be checked

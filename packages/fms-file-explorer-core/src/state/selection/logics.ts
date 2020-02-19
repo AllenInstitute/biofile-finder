@@ -1,18 +1,22 @@
-import { castArray, find, includes, isArray, uniq, without } from "lodash";
+import { castArray, find, includes, isArray, uniq, uniqWith, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import {
+    ADD_FILE_FILTER,
     deselectFile,
     SELECT_FILE,
     REORDER_ANNOTATION_HIERARCHY,
+    REMOVE_FILE_FILTER,
     REMOVE_FROM_ANNOTATION_HIERARCHY,
     setAnnotationHierarchy,
+    setFileFilters,
 } from "./actions";
 import metadata from "../metadata";
 import * as selectionSelectors from "./selectors";
 import { ReduxLogicDeps } from "../";
 import Annotation from "../../entity/Annotation";
+import FileFilter from "../../entity/FileFilter";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -98,4 +102,30 @@ const modifyAnnotationHierarchy = createLogic({
     type: [REORDER_ANNOTATION_HIERARCHY, REMOVE_FROM_ANNOTATION_HIERARCHY],
 });
 
-export default [selectFile, modifyAnnotationHierarchy];
+const addOrRemoveFileFilters = createLogic({
+    transform(deps: ReduxLogicDeps, next) {
+        const { action, getState } = deps;
+
+        const existingFilters = selectionSelectors.getFileFilters(getState());
+        let newFilters: FileFilter[];
+
+        const incomingFilters = castArray(action.payload);
+        if (action.type === ADD_FILE_FILTER) {
+            newFilters = uniqWith(
+                [...existingFilters, ...incomingFilters],
+                (existing, incoming) => {
+                    return existing.equals(incoming);
+                }
+            );
+        } else {
+            newFilters = existingFilters.filter((existing) => {
+                return !incomingFilters.some((incoming) => incoming.equals(existing));
+            });
+        }
+
+        next(setFileFilters(newFilters));
+    },
+    type: [ADD_FILE_FILTER, REMOVE_FILE_FILTER],
+});
+
+export default [selectFile, modifyAnnotationHierarchy, addOrRemoveFileFilters];

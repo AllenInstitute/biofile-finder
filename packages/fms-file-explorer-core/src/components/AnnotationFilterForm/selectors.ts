@@ -1,14 +1,22 @@
 import { find } from "lodash";
 import { createSelector } from "reselect";
 
+import { AnnotationValue } from "../../entity/Annotation";
+
 import { metadata, selection, State } from "../../state";
+
+export interface FilterItem {
+    checked: boolean;
+    displayValue: AnnotationValue;
+    value: AnnotationValue;
+}
 
 export const makeFilterItemsSelector = () =>
     createSelector(
         metadata.selectors.getAnnotations,
         selection.selectors.getFileFilters,
         (_: State, annotationName: string) => annotationName,
-        (annotations, filters, annotationName) => {
+        (annotations, filters, annotationName): FilterItem[] => {
             const appliedFilters = filters
                 .filter((filter) => filter.name === annotationName)
                 .map((filter) => filter.value);

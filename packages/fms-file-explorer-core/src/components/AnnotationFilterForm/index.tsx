@@ -1,104 +1,39 @@
-import * as Fuse from "fuse.js";
-import { List, SearchBox } from "office-ui-fabric-react";
+import { castArray } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { AnnotationValue } from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
-import FilterValue from "./FilterValue";
+import ListPicker from "./ListPicker";
 import { makeFilterItemsSelector } from "./selectors";
 import { selection, State } from "../../state";
-
-const styles = require("./AnnotationFilterForm.module.css");
 
 interface AnnotationFilterFormProps {
     annotationName: string;
 }
-
-const FUZZY_SEARCH_OPTIONS = {
-    // which keys on ListItemData to search
-    keys: [{ name: "value", weight: 1 }],
-
-    // return resulting matches sorted
-    shouldSort: true,
-
-    // arbitrarily tuned; 0.0 requires a perfect match, 1.0 would match anything
-    threshold: 0.1,
-};
-
-const SEARCH_BOX_STYLE_OVERRIDES = {
-    icon: {
-        color: "steelblue",
-    },
-};
 
 export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const { annotationName } = props;
 
     const dispatch = useDispatch();
     const getAnnotationValueFilters = React.useMemo(makeFilterItemsSelector, []);
-
     const items = useSelector((state: State) => getAnnotationValueFilters(state, annotationName));
-    const [searchValue, setSearchValue] = React.useState("");
 
-    const onFilterStateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.checked) {
-            dispatch(
-                selection.actions.addFileFilter(new FileFilter(annotationName, event.target.value))
-            );
-        } else {
-            dispatch(
-                selection.actions.removeFileFilter(
-                    new FileFilter(annotationName, event.target.value)
-                )
-            );
-        }
+    const onDeselect = (value: AnnotationValue | AnnotationValue[]) => {
+        const filters = castArray(value).map(
+            (annotationValue) => new FileFilter(annotationName, annotationValue)
+        );
+        dispatch(selection.actions.removeFileFilter(filters));
     };
 
-    const onSearchBoxChange = (event?: React.ChangeEvent<HTMLInputElement>) => {
-        // bizzarely necessary because of typings on SearchBox
-        if (event) {
-            setSearchValue(event.target.value);
-        }
+    const onSelect = (value: AnnotationValue | AnnotationValue[]) => {
+        const filters = castArray(value).map(
+            (annotationValue) => new FileFilter(annotationName, annotationValue)
+        );
+        dispatch(selection.actions.addFileFilter(filters));
     };
 
-    const filteredItems = React.useMemo(() => {
-        if (!searchValue) {
-            return items;
-        }
-
-        const fuse = new Fuse(items, FUZZY_SEARCH_OPTIONS);
-        return fuse.search(searchValue);
-    }, [items, searchValue]);
-
-    return (
-        <div className={styles.container} data-is-scrollable="true">
-            <div className={styles.header}>
-                <SearchBox
-                    className={styles.searchBox}
-                    onChange={onSearchBoxChange}
-                    onClear={() => setSearchValue("")}
-                    styles={SEARCH_BOX_STYLE_OVERRIDES}
-                />
-                <div className={styles.actionButtonsContainer}>
-                    <span className={styles.actionButton}>Select all</span> /{" "}
-                    <span className={styles.actionButton}>Deselect all</span>
-                </div>
-            </div>
-            <List
-                getKey={(item) => String(item.value)}
-                items={filteredItems}
-                onShouldVirtualize={() => filteredItems.length > 100}
-                onRenderCell={(item) =>
-                    item && (
-                        <FilterValue
-                            checked={item.checked}
-                            displayValue={item.displayValue}
-                            onChange={onFilterStateChange}
-                            value={item.value}
-                        />
-                    )
-                }
-            />
-        </div>
-    );
+    // TODO, return different pickers based on annotation type
+    // e.g., a date picker, a range (numeric) picker, etc.
+    return <ListPicker items={items} onDeselect={onDeselect} onSelect={onSelect} />;
 }

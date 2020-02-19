@@ -4,7 +4,7 @@ import annotationFormatterFactory, { AnnotationFormatter } from "../AnnotationFo
 import { AnnotationResponse } from "../../services/AnnotationService";
 import { FmsFile, FmsFileAnnotation } from "../../services/FileService";
 
-type AnnotationValue = string | number | boolean | Date;
+export type AnnotationValue = string | number | boolean | Date;
 
 /**
  * Representation of an annotation available for filtering, grouping, or sorting files from FMS.

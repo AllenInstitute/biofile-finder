@@ -14,11 +14,17 @@
 
 .action-buttons-container {
     margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
 }
 
 .action-button {
     color: steelblue;
     cursor: pointer;
+}
+
+.action-button-separator {
+    margin: 0 0.25rem;
 }
 
 .item {

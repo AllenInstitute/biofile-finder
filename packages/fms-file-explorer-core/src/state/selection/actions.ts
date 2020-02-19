@@ -6,16 +6,33 @@ import FileFilter from "../../entity/FileFilter";
 const STATE_BRANCH_NAME = "selection";
 
 /**
+ * SET_FILE_FILTERS
+ */
+export const SET_FILE_FILTERS = makeConstant(STATE_BRANCH_NAME, "set-file-filters");
+
+export interface SetFileFiltersAction {
+    payload: FileFilter[];
+    type: string;
+}
+
+export function setFileFilters(filters: FileFilter[]): SetFileFiltersAction {
+    return {
+        payload: filters,
+        type: SET_FILE_FILTERS,
+    };
+}
+
+/**
  * ADD_FILE_FILTER
  */
 export const ADD_FILE_FILTER = makeConstant(STATE_BRANCH_NAME, "add-file-filter");
 
-export interface AddFileFilter {
-    payload: FileFilter;
+export interface AddFileFilterAction {
+    payload: FileFilter | FileFilter[];
     type: string;
 }
 
-export function addFileFilter(filter: FileFilter) {
+export function addFileFilter(filter: FileFilter | FileFilter[]): AddFileFilterAction {
     return {
         payload: filter,
         type: ADD_FILE_FILTER,
@@ -27,12 +44,12 @@ export function addFileFilter(filter: FileFilter) {
  */
 export const REMOVE_FILE_FILTER = makeConstant(STATE_BRANCH_NAME, "remove-file-filter");
 
-export interface RemoveFileFilter {
-    payload: FileFilter;
+export interface RemoveFileFilterAction {
+    payload: FileFilter | FileFilter[];
     type: string;
 }
 
-export function removeFileFilter(filter: FileFilter) {
+export function removeFileFilter(filter: FileFilter | FileFilter[]): RemoveFileFilterAction {
     return {
         payload: filter,
         type: REMOVE_FILE_FILTER,

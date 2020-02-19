@@ -6,13 +6,12 @@ import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 
 import {
-    ADD_FILE_FILTER,
     DESELECT_DISPLAY_ANNOTATION,
     DESELECT_FILE,
-    REMOVE_FILE_FILTER,
     SELECT_DISPLAY_ANNOTATION,
     SELECT_FILE,
     SET_ANNOTATION_HIERARCHY,
+    SET_FILE_FILTERS,
 } from "./actions";
 
 export interface SelectionStateBranch {
@@ -38,9 +37,9 @@ export const initialState = {
 
 export default makeReducer<SelectionStateBranch>(
     {
-        [ADD_FILE_FILTER]: (state, action) => ({
+        [SET_FILE_FILTERS]: (state, action) => ({
             ...state,
-            filters: [...state.filters, action.payload],
+            filters: action.payload,
         }),
         [DESELECT_DISPLAY_ANNOTATION]: (state, action) => ({
             ...state,
@@ -49,10 +48,6 @@ export default makeReducer<SelectionStateBranch>(
         [DESELECT_FILE]: (state, action) => ({
             ...state,
             selectedFiles: without(state.selectedFiles, ...castArray(action.payload)),
-        }),
-        [REMOVE_FILE_FILTER]: (state, action) => ({
-            ...state,
-            filters: state.filters.filter((filter) => !filter.equals(action.payload)),
         }),
         [SELECT_DISPLAY_ANNOTATION]: (state, action) => ({
             ...state,
