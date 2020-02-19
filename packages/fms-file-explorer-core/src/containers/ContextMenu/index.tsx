@@ -1,8 +1,6 @@
 import {
     ContextualMenu,
-    initializeIcons,
     IContextualMenuItem,
-    loadTheme,
     Target,
     ContextualMenuItemType as _ContextualMenuItemType,
 } from "office-ui-fabric-react";
@@ -14,13 +12,6 @@ import { interaction } from "../../state";
 export type ContextMenuItem = IContextualMenuItem;
 export type PositionReference = Target;
 export const ContextualMenuItemType = _ContextualMenuItemType;
-
-initializeIcons();
-loadTheme({
-    defaultFontStyle: {
-        fontFamily: "Overpass",
-    },
-});
 
 /**
  * Facade for office-ui-fabric-react's ContextualMenu component. Rendered in response to `contextmenu` events (e.g., right-clicks).

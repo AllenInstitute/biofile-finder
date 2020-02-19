@@ -1,4 +1,5 @@
 import "normalize.css";
+import { initializeIcons, loadTheme } from "office-ui-fabric-react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -12,6 +13,14 @@ import { interaction, metadata } from "./state";
 
 import "./styles/global.css";
 const styles = require("./App.module.css");
+
+// initialize office-ui-fabric-react
+initializeIcons();
+loadTheme({
+    defaultFontStyle: {
+        fontFamily: "Overpass",
+    },
+});
 
 interface AppProps {
     // E.g.:
