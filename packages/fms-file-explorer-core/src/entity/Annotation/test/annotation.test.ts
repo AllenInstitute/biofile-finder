@@ -11,7 +11,7 @@ describe("Annotation", () => {
         values: [],
     });
 
-    describe("getDisplayValue", () => {
+    describe("extractFromFile", () => {
         it("gets the display value for a top-level annotation it represents from a given FmsFile", () => {
             const fmsFile = {
                 uploaded: "2019-05-17T07:43:55.205Z",
@@ -19,7 +19,7 @@ describe("Annotation", () => {
             };
 
             const annotation = new Annotation(annotationResponse);
-            expect(annotation.getDisplayValue(fmsFile)).to.equal("5/17/2019, 12:43:55 AM");
+            expect(annotation.extractFromFile(fmsFile)).to.equal("5/17/2019, 12:43:55 AM");
         });
 
         it("gets the display value for a non-top-level annotation it represents from a given FmsFile", () => {
@@ -34,7 +34,7 @@ describe("Annotation", () => {
             };
 
             const annotation = new Annotation(annotationResponse);
-            expect(annotation.getDisplayValue(fmsFile)).to.equal("5/17/2019, 12:43:55 AM");
+            expect(annotation.extractFromFile(fmsFile)).to.equal("5/17/2019, 12:43:55 AM");
         });
 
         it("returns a MISSING_VALUE sentinel if the given FmsFile does not have the annotation", () => {
@@ -43,7 +43,7 @@ describe("Annotation", () => {
             };
 
             const annotation = new Annotation(annotationResponse);
-            expect(annotation.getDisplayValue(fmsFile)).to.equal(Annotation.MISSING_VALUE);
+            expect(annotation.extractFromFile(fmsFile)).to.equal(Annotation.MISSING_VALUE);
         });
     });
 });

@@ -3,13 +3,14 @@ import * as React from "react";
 const styles = require("./AnnotationFilterForm.module.css");
 
 interface FilterValueProps {
+    checked: boolean; // whether this checkbox should be checked
+    displayValue: any;
     onChange: React.ChangeEventHandler;
     value: any;
-    checked: boolean; // whether this checkbox should be checked
 }
 
 export default function FilterValue(props: FilterValueProps) {
-    const { value, checked, onChange } = props;
+    const { checked, displayValue, onChange, value } = props;
     return (
         <label className={styles.item}>
             <input
@@ -22,7 +23,7 @@ export default function FilterValue(props: FilterValueProps) {
                 aria-checked={checked}
                 onChange={onChange}
             />
-            {value}
+            {displayValue}
         </label>
     );
 }

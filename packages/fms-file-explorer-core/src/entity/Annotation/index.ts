@@ -4,6 +4,8 @@ import annotationFormatterFactory, { AnnotationFormatter } from "../AnnotationFo
 import { AnnotationResponse } from "../../services/AnnotationService";
 import { FmsFile, FmsFileAnnotation } from "../../services/FileService";
 
+type AnnotationValue = string | number | boolean | Date;
+
 /**
  * Representation of an annotation available for filtering, grouping, or sorting files from FMS.
  */
@@ -31,7 +33,7 @@ export default class Annotation {
         return this.annotation.annotationName;
     }
 
-    public get values(): (string | number | boolean | Date)[] {
+    public get values(): AnnotationValue[] {
         return this.annotation.values;
     }
 
@@ -46,9 +48,9 @@ export default class Annotation {
      * E.g., given an FmsFile that looks like:
      *  const fmsFile = { "file_size": 50 }
      *  const fileSizeAnnotation = new Annotation({ annotation_name: "file_size", ... }, numberFormatter);
-     *  const displayValue = fileSizeAnnotation.getDisplayValue(fmsFile); // ~= "50B"
+     *  const displayValue = fileSizeAnnotation.extractFromFile(fmsFile); // ~= "50B"
      */
-    public getDisplayValue(file: FmsFile): string {
+    public extractFromFile(file: FmsFile): string {
         let value: string | undefined | any[];
 
         if (file.hasOwnProperty(this.name)) {
@@ -77,6 +79,13 @@ export default class Annotation {
                 .join(Annotation.SEPARATOR);
         }
 
+        return this.formatter(value, this.annotation.units);
+    }
+
+    /**
+     * Given a value, return the result of running it through this annotation's formatter.
+     */
+    public getDisplayValue(value: AnnotationValue): string {
         return this.formatter(value, this.annotation.units);
     }
 }

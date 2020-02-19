@@ -52,7 +52,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     if (file) {
         const cells = map(annotations, (annotation) => ({
             columnKey: annotation.name,
-            displayValue: annotation.getDisplayValue(file),
+            displayValue: annotation.extractFromFile(file),
             width: 1 / annotations.length,
         }));
         content = (

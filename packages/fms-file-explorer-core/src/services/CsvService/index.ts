@@ -56,7 +56,7 @@ export default class CsvService extends HttpServiceBase {
                 );
                 if (correspondingAnnotation) {
                     const values = correspondingAnnotation
-                        .getDisplayValue(file)
+                        .extractFromFile(file)
                         .split(Annotation.SEPARATOR);
                     const stringified = values.join(this.INTRA_COLUMN_SEPARATOR);
                     csv += stringified;

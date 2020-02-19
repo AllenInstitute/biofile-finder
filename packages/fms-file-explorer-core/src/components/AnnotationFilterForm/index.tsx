@@ -36,6 +36,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const dispatch = useDispatch();
     const getAnnotationValueFilters = React.useMemo(makeFilterItemsSelector, []);
+
     const items = useSelector((state: State) => getAnnotationValueFilters(state, annotationName));
     const [searchValue, setSearchValue] = React.useState("");
 
@@ -91,6 +92,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     item && (
                         <FilterValue
                             checked={item.checked}
+                            displayValue={item.displayValue}
                             onChange={onFilterStateChange}
                             value={item.value}
                         />
