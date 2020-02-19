@@ -16,7 +16,7 @@ interface ListPickerProps {
 
 const FUZZY_SEARCH_OPTIONS = {
     // which keys on ListItemData to search
-    keys: [{ name: "value", weight: 1 }],
+    keys: [{ name: "displayValue", weight: 0.7 }, { name: "value", weight: 0.3 }],
 
     // return resulting matches sorted
     shouldSort: true,
