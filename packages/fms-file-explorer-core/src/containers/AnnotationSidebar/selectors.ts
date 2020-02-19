@@ -31,3 +31,12 @@ export const getHierarchyListItems = createSelector(
         }));
     }
 );
+
+export const makeAnnotationIsFilteredSelector = () =>
+    createSelector(
+        selection.selectors.getFileFilters,
+        (_: any, annotationName: string) => annotationName,
+        (filters, annotationName) => {
+            return filters.some((filter) => filter.name === annotationName);
+        }
+    );
