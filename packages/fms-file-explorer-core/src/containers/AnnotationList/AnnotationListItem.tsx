@@ -4,6 +4,7 @@ import "tippy.js/dist/tippy.css"; // side-effect
 import * as React from "react";
 
 import DragIndicator from "../../components/DragIndicator";
+import { AnnotationItem } from "../AnnotationSidebar/selectors";
 import SvgIcon from "../../components/SvgIcon";
 
 const styles = require("./AnnotationListItem.module.css");
@@ -15,10 +16,7 @@ const INFO_ICON_PATH_DATA =
 
 interface AnnotationListItemProps {
     disabled: boolean;
-    item: {
-        description: string;
-        title: string;
-    };
+    item: AnnotationItem;
 }
 
 /**

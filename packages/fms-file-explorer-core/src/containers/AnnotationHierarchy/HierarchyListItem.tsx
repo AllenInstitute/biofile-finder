@@ -3,15 +3,12 @@ import { useDispatch } from "react-redux";
 
 import AnnotationFilterForm from "../../components/AnnotationFilterForm";
 import DragIndicator from "../../components/DragIndicator";
+import { AnnotationItem } from "../AnnotationSidebar/selectors";
 import SvgIcon from "../../components/SvgIcon";
 import { interaction, selection } from "../../state";
 
 interface HierarchyItemProps {
-    item: {
-        id: string;
-        description: string;
-        title: string;
-    };
+    item: AnnotationItem;
 }
 
 // Designed Daniel Bruce (www.entypo.com)
