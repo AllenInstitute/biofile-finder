@@ -1,11 +1,11 @@
 import * as React from "react";
 import { useDispatch } from "react-redux";
 
-import AnnotationFilterForm from "../../components/AnnotationFilterForm";
 import DragIndicator from "../../components/DragIndicator";
+import AnnotationFilter from "../AnnotationSidebar/AnnotationFilter";
 import { AnnotationItem } from "../AnnotationSidebar/selectors";
 import SvgIcon from "../../components/SvgIcon";
-import { interaction, selection } from "../../state";
+import { selection } from "../../state";
 
 interface HierarchyItemProps {
     item: AnnotationItem;
@@ -25,28 +25,8 @@ export default function HierarchyListItem(props: HierarchyItemProps) {
     } = props;
     const dispatch = useDispatch();
 
-    const onContextMenu = (evt: React.MouseEvent) => {
-        const items = [
-            {
-                key: "filter",
-                text: "Filters",
-                subMenuProps: {
-                    items: [
-                        {
-                            key: "filters",
-                            onRender: function Filters() {
-                                return <AnnotationFilterForm annotationName={id} />;
-                            },
-                        },
-                    ],
-                },
-            },
-        ];
-        dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
-    };
-
     return (
-        <div onContextMenu={onContextMenu}>
+        <div>
             <DragIndicator />
             <SvgIcon
                 height={12}
@@ -57,6 +37,7 @@ export default function HierarchyListItem(props: HierarchyItemProps) {
                 viewBox="0 0 20 20"
                 width={12}
             />
+            <AnnotationFilter annotationName={id} />
             {title}
         </div>
     );

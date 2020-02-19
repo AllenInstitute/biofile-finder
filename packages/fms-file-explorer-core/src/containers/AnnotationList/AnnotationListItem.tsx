@@ -4,6 +4,7 @@ import "tippy.js/dist/tippy.css"; // side-effect
 import * as React from "react";
 
 import DragIndicator from "../../components/DragIndicator";
+import AnnotationFilter from "../AnnotationSidebar/AnnotationFilter";
 import { AnnotationItem } from "../AnnotationSidebar/selectors";
 import SvgIcon from "../../components/SvgIcon";
 
@@ -22,13 +23,12 @@ interface AnnotationListItemProps {
 /**
  * A single, draggable/droppable annotation rendered into the AnnotationList.
  *
- * Export a memoized version of AnnotationListItem. Override `propsAreEqual` to directly compare the props
- * AnnotationListItem uses and cares about.
+ * Export a memoized version of AnnotationListItem because Tippy is not cheap to initialize.
  */
 export default React.memo(function AnnotationListItem(props: AnnotationListItemProps) {
     const {
         disabled,
-        item: { description, title },
+        item: { id, description, title },
     } = props;
 
     return (
@@ -43,6 +43,7 @@ export default React.memo(function AnnotationListItem(props: AnnotationListItemP
                     width={10}
                 />
             </Tippy>
+            <AnnotationFilter annotationName={id} />
             <span
                 data-test-id="annotation-list-item"
                 className={classNames({
