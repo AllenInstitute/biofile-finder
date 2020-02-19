@@ -1,4 +1,4 @@
-import { castArray, find, includes, isArray, uniq, uniqWith, without } from "lodash";
+import { castArray, find, includes, isArray, sortBy, uniq, uniqWith, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -103,27 +103,40 @@ const modifyAnnotationHierarchy = createLogic({
 });
 
 const addOrRemoveFileFilters = createLogic({
-    transform(deps: ReduxLogicDeps, next) {
+    transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState } = deps;
 
-        const existingFilters = selectionSelectors.getFileFilters(getState());
-        let newFilters: FileFilter[];
+        const previousFilters = selectionSelectors.getFileFilters(getState());
+        let nextFilters: FileFilter[];
 
         const incomingFilters = castArray(action.payload);
         if (action.type === ADD_FILE_FILTER) {
-            newFilters = uniqWith(
-                [...existingFilters, ...incomingFilters],
+            nextFilters = uniqWith(
+                [...previousFilters, ...incomingFilters],
                 (existing, incoming) => {
                     return existing.equals(incoming);
                 }
             );
         } else {
-            newFilters = existingFilters.filter((existing) => {
+            nextFilters = previousFilters.filter((existing) => {
                 return !incomingFilters.some((incoming) => incoming.equals(existing));
             });
         }
 
-        next(setFileFilters(newFilters));
+        const sortedNextFilters = sortBy(nextFilters, ["name", "value"]);
+
+        const filtersAreUnchanged =
+            previousFilters.length === sortedNextFilters.length &&
+            previousFilters.every((existing) =>
+                sortedNextFilters.some((incoming) => incoming.equals(existing))
+            );
+
+        if (filtersAreUnchanged) {
+            reject && reject(action);
+            return;
+        }
+
+        next(setFileFilters(sortedNextFilters));
     },
     type: [ADD_FILE_FILTER, REMOVE_FILE_FILTER],
 });
