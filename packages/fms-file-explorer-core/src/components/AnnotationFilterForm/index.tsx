@@ -16,11 +16,11 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const { annotationName } = props;
 
     const dispatch = useDispatch();
-    const getAnnotationValueFilters = React.useMemo(makeFilterItemsSelector, []);
     const getAnnotation = React.useMemo(makeAnnotationSelector, []);
+    const getFilterItems = React.useMemo(makeFilterItemsSelector, []);
 
     const annotation = useSelector((state: State) => getAnnotation(state, annotationName));
-    const items = useSelector((state: State) => getAnnotationValueFilters(state, annotationName));
+    const items = useSelector((state: State) => getFilterItems(state, annotationName));
 
     const onDeselect = (value: AnnotationValue | AnnotationValue[]) => {
         const filters = castArray(value).map((annotationValue) => {

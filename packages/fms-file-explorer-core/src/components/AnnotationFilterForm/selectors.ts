@@ -5,12 +5,6 @@ import { AnnotationValue } from "../../entity/Annotation";
 
 import { metadata, selection, State } from "../../state";
 
-export interface FilterItem {
-    checked: boolean;
-    displayValue: AnnotationValue;
-    value: AnnotationValue;
-}
-
 export const makeAnnotationSelector = () =>
     createSelector(
         metadata.selectors.getAnnotations,
@@ -21,6 +15,12 @@ export const makeAnnotationSelector = () =>
     );
 
 const annotationSelector = makeAnnotationSelector();
+
+export interface FilterItem {
+    checked: boolean;
+    displayValue: AnnotationValue;
+    value: AnnotationValue;
+}
 
 export const makeFilterItemsSelector = () =>
     createSelector(
