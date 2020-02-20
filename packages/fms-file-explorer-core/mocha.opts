@@ -1,4 +1,5 @@
 --require ts-node/register
 --require ../../scripts/jsdom-register.js
+--require ../../scripts/setup-office-ui-fabric.js
 --require mock-css-modules
 --require ./scripts/adapt-enzyme-to-react-16.js
