@@ -24,18 +24,24 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const items = useSelector((state: State) => getFilterItems(state, annotationName));
 
     const onDeselect = (value: AnnotationValue | AnnotationValue[]) => {
-        const filters = castArray(value).map((annotationValue) => {
-            const val = annotation ? annotation.valueOf(annotationValue) : annotationValue;
-            return new FileFilter(annotationName, val);
-        });
+        const filters = castArray(value).map(
+            (annotationValue) =>
+                new FileFilter(
+                    annotationName,
+                    annotation?.valueOf(annotationValue) || annotationValue
+                )
+        );
         dispatch(selection.actions.removeFileFilter(filters));
     };
 
     const onSelect = (value: AnnotationValue | AnnotationValue[]) => {
-        const filters = castArray(value).map((annotationValue) => {
-            const val = annotation ? annotation.valueOf(annotationValue) : annotationValue;
-            return new FileFilter(annotationName, val);
-        });
+        const filters = castArray(value).map(
+            (annotationValue) =>
+                new FileFilter(
+                    annotationName,
+                    annotation?.valueOf(annotationValue) || annotationValue
+                )
+        );
         dispatch(selection.actions.addFileFilter(filters));
     };
 
