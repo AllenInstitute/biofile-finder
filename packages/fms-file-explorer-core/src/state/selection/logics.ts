@@ -107,7 +107,7 @@ const modifyAnnotationHierarchy = createLogic({
  * actions into a concrete list of ordered FileFilters that can be stored directly in
  * application state under `selections.filters`.
  */
-const addOrRemoveFileFilters = createLogic({
+const modifyFileFilters = createLogic({
     transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState } = deps;
 
@@ -146,4 +146,4 @@ const addOrRemoveFileFilters = createLogic({
     type: [ADD_FILE_FILTER, REMOVE_FILE_FILTER],
 });
 
-export default [selectFile, modifyAnnotationHierarchy, addOrRemoveFileFilters];
+export default [selectFile, modifyAnnotationHierarchy, modifyFileFilters];

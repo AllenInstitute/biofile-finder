@@ -225,7 +225,7 @@ describe("Selection logics", () => {
         });
     });
 
-    describe("addOrRemoveFileFilters", () => {
+    describe("modifyFileFilters", () => {
         it("adds a new FileFilter to state", async () => {
             // setup
             const { store, logicMiddleware, actions } = configureMockStore({
