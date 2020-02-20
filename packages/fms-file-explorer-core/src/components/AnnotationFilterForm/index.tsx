@@ -13,6 +13,12 @@ interface AnnotationFilterFormProps {
     annotationName: string;
 }
 
+/**
+ * A form that provides a user the ability to select particular annotation values with which
+ * to filter the application's data. It will render different "value pickers" based on the type
+ * of annotation: if the annotation is of type string, it will render a list for the user to choose
+ * amongst its items; if the annotation is of type date, it will render a date input; etc.
+ */
 export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const { annotationName } = props;
 
