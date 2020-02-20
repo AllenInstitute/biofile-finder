@@ -5,9 +5,9 @@ import {
     ResponseStub,
 } from "@aics/redux-utils";
 import { expect } from "chai";
-import { get as _get } from "lodash";
+import { get as _get, tail } from "lodash";
 import * as React from "react";
-import { fireEvent, render } from "@testing-library/react";
+import { fireEvent, render, wait } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
@@ -15,36 +15,35 @@ import DirectoryTree from "../";
 import * as directoryTreeSelectors from "../selectors";
 import Annotation from "../../../entity/Annotation";
 import AnnotationService from "../../../services/AnnotationService";
-import { initialState } from "../../../state";
+import { initialState, reducer, reduxLogics } from "../../../state";
 import FileService from "../../../services/FileService";
+import { addFileFilter } from "../../../state/selection/actions";
+import FileFilter from "../../../entity/FileFilter";
 
 describe("<DirectoryTree />", () => {
     const sandbox = createSandbox();
 
     // SO MUCH SETUP
+    const expectedTopLevelHierarchyValues = ["first", "second", "third", "fourth"];
+    const expectedSecondLevelHierarchyValues = ["a", "b", "c"];
+
     const annotations = [
         new Annotation({
             annotationDisplayName: "Foo",
             annotationName: "foo",
             description: "",
             type: "Text",
-            values: [],
+            values: expectedTopLevelHierarchyValues,
         }),
         new Annotation({
             annotationDisplayName: "Bar",
             annotationName: "bar",
             description: "",
             type: "Text",
-            values: [],
-        }),
-        new Annotation({
-            annotationDisplayName: "Baz",
-            annotationName: "baz",
-            description: "",
-            type: "Text",
-            values: [],
+            values: expectedSecondLevelHierarchyValues,
         }),
     ];
+
     const baseUrl = "test";
     const state = mergeState(initialState, {
         interaction: {
@@ -55,8 +54,6 @@ describe("<DirectoryTree />", () => {
         },
     });
 
-    const expectedTopLevelHierarchyValues = ["first", "second", "third", "fourth"];
-    const expectedSecondLevelHierarchyValues = ["a", "b", "c"];
     const responseStubs: ResponseStub[] = [
         {
             when: (config) =>
@@ -142,5 +139,42 @@ describe("<DirectoryTree />", () => {
 
         // getByText will throw if it can't find the element
         expect(() => getByText(expectedSecondLevelHierarchyValues[2])).to.throw();
+    });
+
+    it("is filtered by user selected annotation value filters", async () => {
+        const { store } = configureMockStore({
+            state,
+            responseStubs,
+            reducer,
+            logics: reduxLogics,
+        });
+
+        const { getByText, findAllByRole } = render(
+            <Provider store={store}>
+                <DirectoryTree />
+            </Provider>
+        );
+
+        const topLevelAnnotation = annotations[0];
+
+        // wait for the requests for data
+        expect((await findAllByRole("treeitem")).length).to.equal(topLevelAnnotation.values.length);
+        topLevelAnnotation.values.forEach((value) => {
+            expect(getByText(String(value))).to.exist;
+        });
+
+        // simulate a user filtering the list of top level hierarchy values
+        const filterValue = topLevelAnnotation.values[0];
+        store.dispatch(addFileFilter(new FileFilter(topLevelAnnotation.name, filterValue)));
+
+        // after going through the store and an update cycle or two, the tree should be filtered
+        // down to just the one annotation value selected
+        await wait(async () => expect((await findAllByRole("treeitem")).length).to.equal(1));
+        expect(getByText(String(filterValue))).to.exist;
+
+        // the remainder should be gone from the DOM
+        tail(topLevelAnnotation.values).forEach((value) => {
+            expect(() => getByText(String(value))).to.throw();
+        });
     });
 });
