@@ -7,6 +7,10 @@ const STATE_BRANCH_NAME = "selection";
 
 /**
  * SET_FILE_FILTERS
+ *
+ * Intention to set, wholesale, a list of FileFilters into application state. This should not be dispatched
+ * by UI components; dispatch either an ADD_FILE_FILTER or REMOVE_FILE_FILTER action. Those actions will
+ * trigger the `modifyFileFilters` logic, which will then dispatch this action.
  */
 export const SET_FILE_FILTERS = makeConstant(STATE_BRANCH_NAME, "set-file-filters");
 
@@ -24,6 +28,8 @@ export function setFileFilters(filters: FileFilter[]): SetFileFiltersAction {
 
 /**
  * ADD_FILE_FILTER
+ *
+ * Intention to apply a FileFilter.
  */
 export const ADD_FILE_FILTER = makeConstant(STATE_BRANCH_NAME, "add-file-filter");
 
@@ -41,6 +47,8 @@ export function addFileFilter(filter: FileFilter | FileFilter[]): AddFileFilterA
 
 /**
  * REMOVE_FILE_FILTER
+ *
+ * Intention to remove a currently applied FileFilter.
  */
 export const REMOVE_FILE_FILTER = makeConstant(STATE_BRANCH_NAME, "remove-file-filter");
 
