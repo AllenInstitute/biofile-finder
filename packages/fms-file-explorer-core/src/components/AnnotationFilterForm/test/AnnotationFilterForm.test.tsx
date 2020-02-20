@@ -10,72 +10,74 @@ import FileFilter from "../../../entity/FileFilter";
 import { initialState } from "../../../state";
 
 describe("<AnnotationFilterForm />", () => {
-    // setup
-    const fooAnnotation = new Annotation({
-        annotationDisplayName: "Foo",
-        annotationName: "foo",
-        description: "",
-        type: "Text",
-        values: ["a", "b", "c", "d", "e"],
-    });
-    const annotations = [fooAnnotation];
-
-    it("renders the list of available annotation values to select", () => {
-        const state = mergeState(initialState, {
-            metadata: {
-                annotations,
-            },
+    describe("Text annotations", () => {
+        // setup
+        const fooAnnotation = new Annotation({
+            annotationDisplayName: "Foo",
+            annotationName: "foo",
+            description: "",
+            type: "Text",
+            values: ["a", "b", "c", "d", "e"],
         });
-        const { store } = configureMockStore({ state });
+        const annotations = [fooAnnotation];
 
-        const { getAllByRole } = render(
-            <Provider store={store}>
-                <AnnotationFilterForm annotationName="foo" />
-            </Provider>
-        );
+        it("renders the list of available annotation values to select", () => {
+            const state = mergeState(initialState, {
+                metadata: {
+                    annotations,
+                },
+            });
+            const { store } = configureMockStore({ state });
 
-        expect(getAllByRole("listitem").length).to.equal(fooAnnotation.values.length);
-    });
+            const { getAllByRole } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotationName="foo" />
+                </Provider>
+            );
 
-    it("shows all values as unchecked at first", () => {
-        const state = mergeState(initialState, {
-            metadata: {
-                annotations,
-            },
+            expect(getAllByRole("listitem").length).to.equal(fooAnnotation.values.length);
         });
-        const { store } = configureMockStore({ state });
 
-        const { getAllByRole } = render(
-            <Provider store={store}>
-                <AnnotationFilterForm annotationName="foo" />
-            </Provider>
-        );
+        it("shows all values as unchecked at first", () => {
+            const state = mergeState(initialState, {
+                metadata: {
+                    annotations,
+                },
+            });
+            const { store } = configureMockStore({ state });
 
-        getAllByRole("listitem").forEach((listItem) => {
-            expect(listItem.hasAttribute("checked")).to.equal(false);
+            const { getAllByRole } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotationName="foo" />
+                </Provider>
+            );
+
+            getAllByRole("listitem").forEach((listItem) => {
+                expect(listItem.hasAttribute("checked")).to.equal(false);
+            });
         });
-    });
 
-    it("shows a values as checked if it has been selected", () => {
-        const state = mergeState(initialState, {
-            metadata: {
-                annotations,
-            },
-            selection: {
-                filters: [new FileFilter(fooAnnotation.name, "b")],
-            },
+        it("shows a values as checked if it has been selected", () => {
+            const state = mergeState(initialState, {
+                metadata: {
+                    annotations,
+                },
+                selection: {
+                    filters: [new FileFilter(fooAnnotation.name, "b")],
+                },
+            });
+            const { store } = configureMockStore({ state });
+
+            const { getByText } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotationName="foo" />
+                </Provider>
+            );
+
+            const selectedListItem = getByText("b");
+            const input = within(selectedListItem).getByRole("checkbox");
+
+            expect(input.hasAttribute("checked")).to.equal(true);
         });
-        const { store } = configureMockStore({ state });
-
-        const { getByText } = render(
-            <Provider store={store}>
-                <AnnotationFilterForm annotationName="foo" />
-            </Provider>
-        );
-
-        const selectedListItem = getByText("b");
-        const input = within(selectedListItem).getByRole("checkbox");
-
-        expect(input.hasAttribute("checked")).to.equal(true);
     });
 });
