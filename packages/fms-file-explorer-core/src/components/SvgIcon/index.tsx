@@ -7,7 +7,7 @@ const styles = require("./SvgIcon.module.css");
 interface SvgIconProps {
     className?: string;
     height?: number | string;
-    onClick?: (event: React.MouseEvent) => void;
+    onClick?: () => void;
     pathAttrs?: React.SVGProps<SVGPathElement>;
     pathData: string;
     width?: number | string;
