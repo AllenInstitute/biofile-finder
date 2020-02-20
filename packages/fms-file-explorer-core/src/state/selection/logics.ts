@@ -102,6 +102,11 @@ const modifyAnnotationHierarchy = createLogic({
     type: [REORDER_ANNOTATION_HIERARCHY, REMOVE_FROM_ANNOTATION_HIERARCHY],
 });
 
+/**
+ * Interceptor responsible for transforming ADD_FILE_FILTER and REMOVE_FILE_FILTER
+ * actions into a concrete list of ordered FileFilters that can be stored directly in
+ * application state under `selections.filters`.
+ */
 const addOrRemoveFileFilters = createLogic({
     transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState } = deps;
