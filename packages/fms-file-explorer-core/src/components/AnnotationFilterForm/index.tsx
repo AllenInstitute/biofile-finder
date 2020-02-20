@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AnnotationValue } from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import ListPicker from "./ListPicker";
-import { makeFilterItemsSelector } from "./selectors";
+import { makeFilterItemsSelector, makeAnnotationSelector } from "./selectors";
 import { selection, State } from "../../state";
 
 interface AnnotationFilterFormProps {
@@ -17,19 +17,24 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const dispatch = useDispatch();
     const getAnnotationValueFilters = React.useMemo(makeFilterItemsSelector, []);
+    const getAnnotation = React.useMemo(makeAnnotationSelector, []);
+
+    const annotation = useSelector((state: State) => getAnnotation(state, annotationName));
     const items = useSelector((state: State) => getAnnotationValueFilters(state, annotationName));
 
     const onDeselect = (value: AnnotationValue | AnnotationValue[]) => {
-        const filters = castArray(value).map(
-            (annotationValue) => new FileFilter(annotationName, annotationValue)
-        );
+        const filters = castArray(value).map((annotationValue) => {
+            const val = annotation ? annotation.valueOf(annotationValue) : annotationValue;
+            return new FileFilter(annotationName, val);
+        });
         dispatch(selection.actions.removeFileFilter(filters));
     };
 
     const onSelect = (value: AnnotationValue | AnnotationValue[]) => {
-        const filters = castArray(value).map(
-            (annotationValue) => new FileFilter(annotationName, annotationValue)
-        );
+        const filters = castArray(value).map((annotationValue) => {
+            const val = annotation ? annotation.valueOf(annotationValue) : annotationValue;
+            return new FileFilter(annotationName, val);
+        });
         dispatch(selection.actions.addFileFilter(filters));
     };
 
