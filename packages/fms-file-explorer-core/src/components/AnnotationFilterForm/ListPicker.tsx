@@ -3,7 +3,6 @@ import { ActionButton, List, SearchBox } from "office-ui-fabric-react";
 import * as React from "react";
 
 import { AnnotationValue } from "../../entity/Annotation";
-import FilterValue from "./FilterValue";
 import { FilterItem } from "./selectors";
 
 const styles = require("./ListPicker.module.css");
@@ -100,12 +99,19 @@ export default function ListPicker(props: ListPickerProps) {
                 onShouldVirtualize={() => filteredItems.length > 100}
                 onRenderCell={(item) =>
                     item && (
-                        <FilterValue
-                            checked={item.checked}
-                            displayValue={item.displayValue}
-                            onChange={onFilterStateChange}
-                            value={item.value}
-                        />
+                        <label className={styles.item}>
+                            <input
+                                className={styles.checkbox}
+                                type="checkbox"
+                                role="checkbox"
+                                name={String(item.value)}
+                                value={String(item.value)}
+                                checked={item.checked}
+                                aria-checked={item.checked}
+                                onChange={onFilterStateChange}
+                            />
+                            {item.displayValue}
+                        </label>
                     )
                 }
             />
