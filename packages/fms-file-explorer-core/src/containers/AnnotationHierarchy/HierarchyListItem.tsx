@@ -22,14 +22,15 @@ const PADDING_STEP = 8; // in px
 export default function HierarchyListItem(props: ItemRendererParams) {
     const {
         index,
-        item: { id, title },
+        item: { color, id, title },
     } = props;
     const dispatch = useDispatch();
 
     return (
-        <div className={styles.container}>
-            <DragIndicator />
+        <div className={styles.container} style={{ backgroundColor: color }}>
+            <DragIndicator className={styles.reverseTypeSvg} />
             <SvgIcon
+                className={styles.reverseTypeSvg}
                 height={12}
                 onClick={() => {
                     dispatch(selection.actions.removeFromAnnotationHierarchy(id));
@@ -38,7 +39,7 @@ export default function HierarchyListItem(props: ItemRendererParams) {
                 viewBox="0 0 20 20"
                 width={12}
             />
-            <AnnotationFilter annotationName={id} />
+            <AnnotationFilter annotationName={id} iconColor="white" />
             <span style={{ paddingLeft: PADDING_STEP * index }}>{title}</span>
         </div>
     );

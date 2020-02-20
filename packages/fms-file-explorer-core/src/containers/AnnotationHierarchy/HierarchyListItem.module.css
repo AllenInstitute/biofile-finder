@@ -4,4 +4,10 @@
     display: flex;
     align-items: center;
     border-radius: 6px;
+    color: white;
+    font-weight: bold;
+}
+
+.reverse-type-svg {
+    fill: white;
 }

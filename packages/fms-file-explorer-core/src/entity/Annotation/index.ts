@@ -14,11 +14,20 @@ export default class Annotation {
     public static MISSING_VALUE = "< MISSING >";
 
     private readonly annotation: AnnotationResponse;
+    private readonly _color: string = "steelblue";
     private readonly formatter: AnnotationFormatter;
 
-    constructor(annotation: AnnotationResponse) {
+    constructor(annotation: AnnotationResponse, color?: string) {
         this.annotation = annotation;
+        if (color) {
+            this._color = color;
+        }
+
         this.formatter = annotationFormatterFactory(this.annotation.type);
+    }
+
+    public get color(): string {
+        return this._color;
     }
 
     public get description(): string {
