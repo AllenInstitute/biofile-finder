@@ -1,17 +1,23 @@
 import { configureMockStore } from "@aics/redux-utils";
 import { expect } from "chai";
+import { shuffle } from "lodash";
 
 import {
+    addFileFilter,
     DESELECT_FILE,
     SELECT_FILE,
     selectFile,
     reorderAnnotationHierarchy,
     SET_ANNOTATION_HIERARCHY,
+    SET_FILE_FILTERS,
+    removeFileFilter,
     removeFromAnnotationHierarchy,
 } from "../actions";
 import Annotation from "../../../entity/Annotation";
+import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
+import { initialState } from "../../";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -216,6 +222,143 @@ describe("Selection logics", () => {
                     payload: [annotations[0], annotations[1], annotations[3]],
                 })
             ).to.equal(true);
+        });
+    });
+
+    describe("addOrRemoveFileFilters", () => {
+        it("adds a new FileFilter to state", async () => {
+            // setup
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: initialState,
+            });
+
+            // act
+            const filter = new FileFilter("foo", 2);
+            store.dispatch(addFileFilter(filter));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includes({
+                    type: SET_FILE_FILTERS,
+                    payload: [filter],
+                })
+            ).to.equal(true);
+        });
+
+        it("removes a FileFilter from state", async () => {
+            // setup
+            const filterToRemove = new FileFilter("foo", 2);
+            const filterToKeep = new FileFilter("bar", 3);
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: {
+                    ...initialState,
+                    selection: {
+                        ...initialState.selection,
+                        filters: [filterToRemove, filterToKeep],
+                    },
+                },
+            });
+
+            // act
+            store.dispatch(removeFileFilter(filterToRemove));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includes({
+                    type: SET_FILE_FILTERS,
+                    payload: [filterToKeep],
+                })
+            ).to.equal(true);
+        });
+
+        it("adds many FileFilters to state", async () => {
+            // setup
+            const filterToKeep = new FileFilter("bar", 3);
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: {
+                    ...initialState,
+                    selection: {
+                        ...initialState.selection,
+                        filters: [filterToKeep],
+                    },
+                },
+            });
+
+            // act
+            const filters = [new FileFilter("foo", 2), new FileFilter("foo", 10)];
+            store.dispatch(addFileFilter(filters));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includes({
+                    type: SET_FILE_FILTERS,
+                    payload: [filterToKeep, ...filters],
+                })
+            ).to.equal(true);
+        });
+
+        it("removes many FileFilters from state", async () => {
+            // setup
+            const filterToKeep = new FileFilter("bar", 3);
+            const filtersToRemove = [new FileFilter("foo", 2), new FileFilter("foo", 10)];
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: {
+                    ...initialState,
+                    selection: {
+                        ...initialState.selection,
+                        filters: [filterToKeep, ...filtersToRemove],
+                    },
+                },
+            });
+
+            // act
+            store.dispatch(removeFileFilter(filtersToRemove));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includes({
+                    type: SET_FILE_FILTERS,
+                    payload: [filterToKeep],
+                })
+            ).to.equal(true);
+        });
+
+        it("does nothing if the net result would have no impact", async () => {
+            // setup
+            const filtersToKeep = [
+                new FileFilter("arg", 10),
+                new FileFilter("bar", 3),
+                new FileFilter("bar", 4),
+            ];
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: {
+                    ...initialState,
+                    selection: {
+                        ...initialState.selection,
+                        filters: [...filtersToKeep],
+                    },
+                },
+            });
+
+            // act
+            store.dispatch(addFileFilter(shuffle(filtersToKeep)));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includesMatch({
+                    type: SET_FILE_FILTERS,
+                })
+            ).to.equal(false);
         });
     });
 });
