@@ -26,7 +26,7 @@ export default function HierarchyListItem(props: HierarchyItemProps) {
     const dispatch = useDispatch();
 
     return (
-        <div>
+        <>
             <DragIndicator />
             <SvgIcon
                 height={12}
@@ -39,6 +39,6 @@ export default function HierarchyListItem(props: HierarchyItemProps) {
             />
             <AnnotationFilter annotationName={id} />
             {title}
-        </div>
+        </>
     );
 }
