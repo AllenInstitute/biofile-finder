@@ -13,7 +13,7 @@
     "setup": "lerna bootstrap --hoist",
     "test": "lerna run test",
     "typeCheck": "lerna run typeCheck",
-    "version": "lerna version --yes --no-commit-hooks --exact"
+    "lernaVersion": "lerna version --yes --no-commit-hooks --exact"
   },
   "devDependencies": {
     "husky": "3.0.5",

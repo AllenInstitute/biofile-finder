@@ -69,5 +69,5 @@ task typeCheck(type: NpmTask) {
  * same as the {bump} positional arg to `lerna version`.
  */
 task version(type: NpmTask) {
-    args = "run version -- ${bump}".tokenize()
+    args = "run lernaVersion -- ${bump}".tokenize()
 }
