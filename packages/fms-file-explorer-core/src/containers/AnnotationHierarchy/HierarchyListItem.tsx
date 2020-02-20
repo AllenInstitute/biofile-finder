@@ -2,14 +2,10 @@ import * as React from "react";
 import { useDispatch } from "react-redux";
 
 import DragIndicator from "../../components/DragIndicator";
+import { ItemRendererParams } from "../../components/DnDList/DnDList";
 import AnnotationFilter from "../AnnotationSidebar/AnnotationFilter";
-import { AnnotationItem } from "../AnnotationSidebar/selectors";
 import SvgIcon from "../../components/SvgIcon";
 import { selection } from "../../state";
-
-interface HierarchyItemProps {
-    item: AnnotationItem;
-}
 
 // Designed Daniel Bruce (www.entypo.com)
 // License: https://creativecommons.org/licenses/by-sa/4.0/
@@ -19,7 +15,7 @@ const REMOVE_ICON_PATH_DATA =
 /**
  * A single, draggable/droppable annotation that affects how files are organized in the FileList (i.e., how they are filtered, grouped, and sorted).
  */
-export default function HierarchyListItem(props: HierarchyItemProps) {
+export default function HierarchyListItem(props: ItemRendererParams) {
     const {
         item: { id, title },
     } = props;

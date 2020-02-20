@@ -7,14 +7,15 @@ import DnDListItem from "./DnDListItem";
 
 const styles = require("./DnDList.module.css");
 
-interface Item {
-    id: string;
+export interface Item {
+    id: string; // a unique identifier for the annotation, e.g., annotation.name
     description: string;
-    title: string;
+    title: string; // the value to display, e.g., annotation.displayName
 }
 
-interface ItemRendererParams {
+export interface ItemRendererParams {
     disabled: boolean;
+    index: number;
     item: Item;
 }
 
