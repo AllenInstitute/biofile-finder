@@ -11,7 +11,8 @@ export enum AnnotationType {
 }
 
 export interface AnnotationFormatter {
-    (value: any, unit?: string): string;
+    displayValue(value: any, unit?: string): string;
+    valueOf(value: any): string | number | boolean;
 }
 
 /**

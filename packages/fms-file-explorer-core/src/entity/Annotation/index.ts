@@ -75,17 +75,25 @@ export default class Annotation {
 
         if (Array.isArray(value)) {
             return value
-                .map((val) => this.formatter(val, this.annotation.units))
+                .map((val) => this.formatter.displayValue(val, this.annotation.units))
                 .join(Annotation.SEPARATOR);
         }
 
-        return this.formatter(value, this.annotation.units);
+        return this.formatter.displayValue(value, this.annotation.units);
     }
 
     /**
      * Given a value, return the result of running it through this annotation's formatter.
      */
     public getDisplayValue(value: AnnotationValue): string {
-        return this.formatter(value, this.annotation.units);
+        return this.formatter.displayValue(value, this.annotation.units);
+    }
+
+    /**
+     * Given a value expected to belong to this annotation, return the result of coercing, if necessary,
+     * that value to accord with this annotation's type.
+     */
+    public valueOf(value: any): AnnotationValue {
+        return this.formatter.valueOf(value);
     }
 }

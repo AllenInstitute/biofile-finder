@@ -1,3 +1,9 @@
-export default function identityFormatter(value: any): string {
-    return String(value);
-}
+export default {
+    displayValue(value: any): string {
+        return String(value);
+    },
+
+    valueOf(value: any) {
+        return value;
+    },
+};
