@@ -95,7 +95,15 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
                 try {
                     const totalCount = await fileSet.fetchTotalCount();
                     if (!cancel) {
-                        setContent(<FileList fileSet={fileSet} totalCount={totalCount} />);
+                        // Replace FileList (don't update) when either the FileSet has changed or the user-selected file filters
+                        // have changed. This addresses a bug in which if the component updates, the InifinteLoader doesn't
+                        // re-request data and appears to be in a loading state indefinitely until the user scrolls the FileList.
+                        const fileListKey = `${fileSet.toQueryString()}|${
+                            selectedFileFilters.length
+                        }`;
+                        setContent(
+                            <FileList key={fileListKey} fileSet={fileSet} totalCount={totalCount} />
+                        );
                         setError(null);
                         setIsLoading(false);
                     }
