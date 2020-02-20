@@ -32,6 +32,11 @@ const ICON_BUTTON_STYLE_OVERRIDES = {
 // to the user that a filter is applied
 const FILTERS_APPLIED_COLOR_INDICATOR = "orchid";
 
+/**
+ * A small icon button rendered inline next to annotation list items (and annotation hierarchy items).
+ * On click, it renders a small form that allows the user to select annotation values with which to
+ * filter the application's data.
+ */
 export default function AnnotationFilter(props: FilterProps) {
     const { annotationName } = props;
     const annotationIsFilteredSelector = React.useMemo(
