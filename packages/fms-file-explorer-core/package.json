@@ -38,8 +38,8 @@
     "transpile:ts:watch": "babel src --out-dir es --extensions .ts,.tsx --ignore src/**/*.test.ts --watch --verbose --source-maps",
     "typeCheck": "tsc --noEmit"
   },
-  "author": "",
-  "license": "MIT",
+  "author": "Gabe Medrash<gmedrash@gmail.com>",
+  "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
   "devDependencies": {
     "@babel/cli": "7.6.0",
     "@babel/core": "7.6.0",
