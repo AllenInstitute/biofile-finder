@@ -15,7 +15,7 @@ interface ListPickerProps {
 }
 
 const FUZZY_SEARCH_OPTIONS = {
-    // which keys on ListItemData to search
+    // which keys on FilterItem to search
     keys: [{ name: "displayValue", weight: 0.7 }, { name: "value", weight: 0.3 }],
 
     // return resulting matches sorted
@@ -31,6 +31,13 @@ const SEARCH_BOX_STYLE_OVERRIDES = {
     },
 };
 
+/**
+ * A ListPicker is a simple form that renders a list of items and allows a user to select and
+ * deselect those items. It also provides rudimentary fuzzy search capabilities for searching through
+ * its items. See `FUZZY_SEARCH_OPTIONS` for how that feature is configured.
+ *
+ * It is best suited for selecting items that are strings.
+ */
 export default function ListPicker(props: ListPickerProps) {
     const { items, onDeselect, onSelect } = props;
 
