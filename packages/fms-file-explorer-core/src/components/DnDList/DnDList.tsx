@@ -64,7 +64,11 @@ export default function DnDList(props: DnDListProps) {
                                             draggableProps={draggableProps.draggableProps}
                                             dragHandleProps={draggableProps.dragHandleProps}
                                         >
-                                            {React.createElement(itemRenderer, { item, disabled })}
+                                            {React.createElement(itemRenderer, {
+                                                disabled,
+                                                index,
+                                                item,
+                                            })}
                                         </DnDListItem>
                                         {// Render static clone of item (i.e., not draggable) in a non-droppable list to prevent react-beautiful-dnd from leaving a hole in the source list when an item is actively being dragged out of it.
                                         // See https://github.com/atlassian/react-beautiful-dnd/issues/216 for context.
@@ -76,8 +80,9 @@ export default function DnDList(props: DnDListProps) {
                                                 )}
                                             >
                                                 {React.createElement(itemRenderer, {
-                                                    item,
                                                     disabled,
+                                                    index,
+                                                    item,
                                                 })}
                                             </DnDListItem>
                                         )}
