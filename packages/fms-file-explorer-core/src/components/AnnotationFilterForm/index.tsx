@@ -3,6 +3,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { AnnotationValue } from "../../entity/Annotation";
+import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import ListPicker from "./ListPicker";
 import { makeFilterItemsSelector, makeAnnotationSelector } from "./selectors";
@@ -40,5 +41,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     // TODO, return different pickers based on annotation type
     // e.g., a date picker, a range (numeric) picker, etc.
-    return <ListPicker items={items} onDeselect={onDeselect} onSelect={onSelect} />;
+    switch (annotation?.type) {
+        case AnnotationType.STRING:
+        // prettier-ignore
+        default: // FALL-THROUGH
+            return <ListPicker items={items} onDeselect={onDeselect} onSelect={onSelect} />;
+    }
 }

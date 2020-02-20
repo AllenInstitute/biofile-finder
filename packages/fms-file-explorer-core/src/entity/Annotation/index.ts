@@ -33,6 +33,10 @@ export default class Annotation {
         return this.annotation.annotationName;
     }
 
+    public get type(): string {
+        return this.annotation.type;
+    }
+
     public get values(): AnnotationValue[] {
         return this.annotation.values;
     }
