@@ -12,22 +12,6 @@ interface FilterProps {
 
 const FILTER_ICON = { iconName: "FilterSolid" };
 
-const ICON_BUTTON_STYLE_OVERRIDES = {
-    icon: {
-        color: "black",
-        fontSize: "0.5rem",
-        marginLeft: 0,
-    },
-    menuIcon: {
-        color: "black",
-        fontSize: "0.5rem",
-        marginLeft: 0,
-    },
-    root: {
-        height: 18,
-    },
-};
-
 // change the color of the icon from its default (black) to provide some indication
 // to the user that a filter is applied
 const FILTERS_APPLIED_COLOR_INDICATOR = "orchid";
@@ -67,7 +51,7 @@ export default function AnnotationFilter(props: FilterProps) {
                 fontSize: "10px",
             },
             menuIcon: {
-                display: "none",
+                display: "none" as "none", // bizarre typings issue
             },
             root: {
                 height: 22,
