@@ -18,7 +18,7 @@ const styles = require("./App.module.css");
 initializeIcons();
 loadTheme({
     defaultFontStyle: {
-        fontFamily: "Overpass",
+        fontFamily: "Roboto",
     },
 });
 
