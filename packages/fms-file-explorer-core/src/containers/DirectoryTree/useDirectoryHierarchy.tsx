@@ -102,7 +102,12 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
                             selectedFileFilters.length
                         }`;
                         setContent(
-                            <FileList key={fileListKey} fileSet={fileSet} totalCount={totalCount} />
+                            <FileList
+                                key={fileListKey}
+                                fileSet={fileSet}
+                                isRoot={isRoot}
+                                totalCount={totalCount}
+                            />
                         );
                         setError(null);
                         setIsLoading(false);

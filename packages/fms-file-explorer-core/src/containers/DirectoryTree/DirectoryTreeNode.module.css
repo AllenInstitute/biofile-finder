@@ -37,11 +37,9 @@
 }
 
 .children.collapsed {
-    height: 0;
     padding: 0;
 }
 
 .file-list {
-    height: 300px;
     padding: 0.5rem 0.25rem 0.5rem 0;
 }
