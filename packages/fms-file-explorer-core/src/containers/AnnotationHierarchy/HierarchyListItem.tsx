@@ -2,7 +2,7 @@ import * as React from "react";
 import { useDispatch } from "react-redux";
 
 import AnnotationFilter from "../AnnotationSidebar/AnnotationFilter";
-import { ItemRendererParams } from "../../components/DnDList/DnDList";
+import { DnDItemRendererParams } from "../../components/DnDList/DnDList";
 import SvgIcon from "../../components/SvgIcon";
 import { selection } from "../../state";
 
@@ -18,7 +18,7 @@ const MARGIN_STEP = 10; // in px
 /**
  * A single, draggable/droppable annotation that affects how files are organized in the FileList (i.e., how they are filtered, grouped, and sorted).
  */
-export default function HierarchyListItem(props: ItemRendererParams) {
+export default function HierarchyListItem(props: DnDItemRendererParams) {
     const {
         index,
         item: { id, title },

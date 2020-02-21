@@ -7,26 +7,26 @@ import DnDListItem from "./DnDListItem";
 
 const styles = require("./DnDList.module.css");
 
-export interface Item {
+export interface DnDItem {
     description: string;
     id: string; // a unique identifier for the annotation, e.g., annotation.name
     title: string; // the value to display, e.g., annotation.displayName
 }
 
-export interface ItemRendererParams {
+export interface DnDItemRendererParams {
     disabled: boolean;
     index: number;
-    item: Item;
+    item: DnDItem;
 }
 
 interface DnDListProps {
     className?: string;
-    disabledItems?: Item[];
+    disabledItems?: DnDItem[];
     highlight?: boolean;
     id: string;
     isDropDisabled?: boolean;
-    items: Item[];
-    itemRenderer: React.FunctionComponent<ItemRendererParams>;
+    items: DnDItem[];
+    itemRenderer: React.FunctionComponent<DnDItemRendererParams>;
 }
 
 /**

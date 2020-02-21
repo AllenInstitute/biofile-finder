@@ -4,7 +4,7 @@ import "tippy.js/dist/tippy.css"; // side-effect
 import * as React from "react";
 
 import AnnotationFilter from "../AnnotationSidebar/AnnotationFilter";
-import { ItemRendererParams } from "../../components/DnDList/DnDList";
+import { DnDItemRendererParams } from "../../components/DnDList/DnDList";
 import SvgIcon from "../../components/SvgIcon";
 
 const styles = require("./AnnotationListItem.module.css");
@@ -19,7 +19,7 @@ const INFO_ICON_PATH_DATA =
  *
  * Export a memoized version of AnnotationListItem because Tippy is not cheap to initialize.
  */
-export default React.memo(function AnnotationListItem(props: ItemRendererParams) {
+export default React.memo(function AnnotationListItem(props: DnDItemRendererParams) {
     const {
         disabled,
         item: { id, description, title },
