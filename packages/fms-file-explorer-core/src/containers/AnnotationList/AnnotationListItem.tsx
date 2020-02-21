@@ -3,9 +3,8 @@ import Tippy from "@tippy.js/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 import * as React from "react";
 
-import DragIndicator from "../../components/DragIndicator";
-import { ItemRendererParams } from "../../components/DnDList/DnDList";
 import AnnotationFilter from "../AnnotationSidebar/AnnotationFilter";
+import { ItemRendererParams } from "../../components/DnDList/DnDList";
 import SvgIcon from "../../components/SvgIcon";
 
 const styles = require("./AnnotationListItem.module.css");

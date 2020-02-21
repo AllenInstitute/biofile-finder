@@ -1,10 +1,12 @@
 .container {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    vertical-align: middle;
+    composes: item from "../../components/DnDList/DnDListItem.module.css";
+}
+
+.title-container {
+    flex: 1 1 auto;
 }
 
 .title {
-    flex: 1 1 auto;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

@@ -4,3 +4,24 @@
     flex-direction: row;
     align-items: center;
 }
+
+/**
+ * Used by HierarchyListItem and AnnotationListItem
+ */
+.item {
+    /* flex parent */
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    vertical-align: middle;
+
+    border: 1px solid lightgray;
+    border-radius: 3px;
+    padding: 2px;
+    margin-bottom: 2px;
+}
+
+.item:active {
+    background-color: lightgray;
+}
