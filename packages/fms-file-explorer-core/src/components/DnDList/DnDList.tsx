@@ -8,7 +8,6 @@ import DnDListItem from "./DnDListItem";
 const styles = require("./DnDList.module.css");
 
 export interface Item {
-    color: string;
     description: string;
     id: string; // a unique identifier for the annotation, e.g., annotation.name
     title: string; // the value to display, e.g., annotation.displayName

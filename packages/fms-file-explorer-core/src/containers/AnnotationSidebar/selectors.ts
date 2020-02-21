@@ -9,7 +9,6 @@ export const getAnnotationListItems = createSelector(
     [metadata.selectors.getAnnotations],
     (annotations: Annotation[]): Item[] => {
         return map(annotations, (annotation) => ({
-            color: annotation.color,
             description: annotation.description,
             id: annotation.name,
             title: annotation.displayName,
@@ -21,7 +20,6 @@ export const getHierarchyListItems = createSelector(
     [selection.selectors.getAnnotationHierarchy],
     (annotations: Annotation[]): Item[] => {
         return map(annotations, (annotation) => ({
-            color: annotation.color,
             description: annotation.description,
             id: annotation.name,
             title: annotation.displayName,
