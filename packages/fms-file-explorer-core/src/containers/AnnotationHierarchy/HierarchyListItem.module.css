@@ -3,6 +3,7 @@
 }
 
 .title-container {
+    padding-left: 2px;
     flex: 1 1 auto;
 }
 
