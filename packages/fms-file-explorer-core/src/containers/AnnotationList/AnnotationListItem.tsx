@@ -27,26 +27,28 @@ export default React.memo(function AnnotationListItem(props: ItemRendererParams)
     } = props;
 
     return (
-        <>
-            <DragIndicator disabled={disabled} />
+        <div className={styles.container}>
             <Tippy content={description}>
                 <SvgIcon
                     className={styles.info}
-                    height={10}
+                    height={12}
                     pathData={INFO_ICON_PATH_DATA}
                     viewBox="0 0 20 20"
-                    width={10}
+                    width={12}
                 />
             </Tippy>
-            <AnnotationFilter annotationName={id} />
             <span
                 data-test-id="annotation-list-item"
-                className={classNames({
-                    [styles.disabled]: disabled,
-                })}
+                className={classNames(
+                    {
+                        [styles.disabled]: disabled,
+                    },
+                    styles.title
+                )}
             >
                 {title}
             </span>
-        </>
+            <AnnotationFilter annotationName={id} />
+        </div>
     );
 });

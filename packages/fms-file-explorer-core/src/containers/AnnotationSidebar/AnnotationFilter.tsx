@@ -64,16 +64,13 @@ export default function AnnotationFilter(props: FilterProps) {
         return {
             icon: {
                 color: annotationIsFiltered ? FILTERS_APPLIED_COLOR_INDICATOR : iconColor,
-                fontSize: "0.5rem",
-                marginLeft: 0,
+                fontSize: "10px",
             },
             menuIcon: {
-                color: iconColor,
-                fontSize: "0.5rem",
-                marginLeft: 0,
+                display: "none",
             },
             root: {
-                height: 18,
+                height: 22,
             },
         };
     }, [annotationIsFiltered, iconColor]);
