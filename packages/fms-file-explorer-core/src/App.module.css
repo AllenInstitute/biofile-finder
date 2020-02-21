@@ -24,6 +24,11 @@
     line-height: 1;
 }
 
+/* Globally remove the ability to select text. Individual elements that need this should opt-in. */
+.root * {
+    user-select: none;
+}
+
 .header-ribbon {
     display: block;
     width: 100%;

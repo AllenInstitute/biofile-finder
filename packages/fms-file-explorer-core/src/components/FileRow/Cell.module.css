@@ -16,7 +16,6 @@
 
 .resizable-cell {
     composes: cell;
-    user-select: none;
 }
 
 .cursor-default {

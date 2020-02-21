@@ -6,7 +6,6 @@
 
 .directory-header {
     cursor: pointer;
-    user-select: none;
 
     /* flex parent */
     display: flex;
