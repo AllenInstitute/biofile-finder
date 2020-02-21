@@ -15,4 +15,5 @@
 
 .title {
     flex: 1 1 auto;
+    white-space: nowrap;
 }
