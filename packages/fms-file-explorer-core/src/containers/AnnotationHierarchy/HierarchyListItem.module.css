@@ -2,12 +2,8 @@
     composes: item from "../../components/DnDList/DnDListItem.module.css";
 }
 
-.title-container {
+.title {
+    white-space: nowrap;
     padding-left: 2px;
     flex: 1 1 auto;
-}
-
-.title {
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }

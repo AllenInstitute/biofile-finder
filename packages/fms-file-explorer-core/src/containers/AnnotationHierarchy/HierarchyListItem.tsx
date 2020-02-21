@@ -27,9 +27,7 @@ export default function HierarchyListItem(props: ItemRendererParams) {
 
     return (
         <div className={styles.container} style={{ marginLeft: MARGIN_STEP * index }}>
-            <div className={styles.titleContainer}>
-                <span className={styles.title}>{title}</span>
-            </div>
+            <span className={styles.title}>{title}</span>
             <AnnotationFilter annotationName={id} />
             <SvgIcon
                 height={15}
