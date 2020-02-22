@@ -21,23 +21,6 @@ describe("<AnnotationFilterForm />", () => {
         });
         const annotations = [fooAnnotation];
 
-        it("renders the list of available annotation values to select", () => {
-            const state = mergeState(initialState, {
-                metadata: {
-                    annotations,
-                },
-            });
-            const { store } = configureMockStore({ state });
-
-            const { getAllByRole } = render(
-                <Provider store={store}>
-                    <AnnotationFilterForm annotationName="foo" />
-                </Provider>
-            );
-
-            expect(getAllByRole("listitem").length).to.equal(fooAnnotation.values.length);
-        });
-
         it("shows all values as unchecked at first", () => {
             const state = mergeState(initialState, {
                 metadata: {
@@ -55,26 +38,6 @@ describe("<AnnotationFilterForm />", () => {
             getAllByRole("listitem").forEach((listItem) => {
                 expect(listItem.hasAttribute("checked")).to.equal(false);
             });
-        });
-
-        it("shows a values as checked if it has been selected", () => {
-            const state = mergeState(initialState, {
-                metadata: {
-                    annotations,
-                },
-                selection: {
-                    filters: [new FileFilter(fooAnnotation.name, "b")],
-                },
-            });
-            const { store } = configureMockStore({ state });
-
-            const { getByLabelText } = render(
-                <Provider store={store}>
-                    <AnnotationFilterForm annotationName="foo" />
-                </Provider>
-            );
-
-            expect(getByLabelText("b").getAttribute("aria-checked")).to.equal("true");
         });
 
         it("deselects and selects a value", async () => {
