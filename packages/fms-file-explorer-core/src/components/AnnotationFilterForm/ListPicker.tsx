@@ -3,7 +3,7 @@ import { ActionButton, List, SearchBox } from "office-ui-fabric-react";
 import * as React from "react";
 
 import { AnnotationValue } from "../../entity/Annotation";
-import { FilterItem } from "./selectors";
+import { FilterItem } from "./";
 
 const styles = require("./ListPicker.module.css");
 
@@ -15,7 +15,10 @@ interface ListPickerProps {
 
 const FUZZY_SEARCH_OPTIONS = {
     // which keys on FilterItem to search
-    keys: [{ name: "displayValue", weight: 0.7 }, { name: "value", weight: 0.3 }],
+    keys: [
+        { name: "displayValue", weight: 0.7 },
+        { name: "value", weight: 0.3 },
+    ],
 
     // return resulting matches sorted
     shouldSort: true,

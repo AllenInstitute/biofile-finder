@@ -1,4 +1,4 @@
-import { castArray } from "lodash";
+import { castArray, find } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -6,11 +6,16 @@ import { AnnotationValue } from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import ListPicker from "./ListPicker";
-import { makeFilterItemsSelector, makeAnnotationSelector } from "./selectors";
-import { selection, State } from "../../state";
+import { metadata, selection } from "../../state";
 
 interface AnnotationFilterFormProps {
     annotationName: string;
+}
+
+export interface FilterItem {
+    checked: boolean;
+    displayValue: AnnotationValue;
+    value: AnnotationValue;
 }
 
 /**
@@ -23,11 +28,25 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const { annotationName } = props;
 
     const dispatch = useDispatch();
-    const getAnnotation = React.useMemo(makeAnnotationSelector, []);
-    const getFilterItems = React.useMemo(makeFilterItemsSelector, []);
+    const annotations = useSelector(metadata.selectors.getAnnotations);
+    const fileFilters = useSelector(selection.selectors.getFileFilters);
 
-    const annotation = useSelector((state: State) => getAnnotation(state, annotationName));
-    const items = useSelector((state: State) => getFilterItems(state, annotationName));
+    const annotation = React.useMemo(
+        () => find(annotations, (annotation) => annotation.name === annotationName),
+        [annotations, annotationName]
+    );
+
+    const items = React.useMemo<FilterItem[]>(() => {
+        const appliedFilters = fileFilters
+            .filter((filter) => filter.name === annotation?.name)
+            .map((filter) => filter.value);
+
+        return (annotation?.values || []).map((value) => ({
+            checked: appliedFilters.includes(value),
+            displayValue: annotation?.getDisplayValue(value) || value,
+            value,
+        }));
+    }, [annotation, fileFilters]);
 
     const onDeselect = (value: AnnotationValue | AnnotationValue[]) => {
         const filters = castArray(value).map(
