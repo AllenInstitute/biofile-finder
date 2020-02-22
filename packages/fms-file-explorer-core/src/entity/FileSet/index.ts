@@ -175,7 +175,7 @@ export default class FileSet {
     }
 
     public toString(): string {
-        return `FileSet(${this.toQueryString})`;
+        return `FileSet(${this.toQueryString()})`;
     }
 
     /**
