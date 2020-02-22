@@ -3,8 +3,7 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 
 import AnnotationFilterForm from "../../components/AnnotationFilterForm";
-import * as annotationSelectors from "./selectors";
-import { State } from "../../state";
+import { selection } from "../../state";
 
 interface FilterProps {
     annotationName: string;
@@ -39,12 +38,12 @@ const FILTERS_APPLIED_COLOR_INDICATOR = "orchid";
  */
 export default function AnnotationFilter(props: FilterProps) {
     const { annotationName } = props;
-    const annotationIsFilteredSelector = React.useMemo(
-        annotationSelectors.makeAnnotationIsFilteredSelector,
-        []
-    );
-    const annotationIsFiltered = useSelector((state: State) =>
-        annotationIsFilteredSelector(state, annotationName)
+
+    const fileFilters = useSelector(selection.selectors.getFileFilters);
+
+    const annotationIsFiltered = React.useMemo(
+        () => fileFilters.some((filter) => filter.name === annotationName),
+        [fileFilters, annotationName]
     );
 
     const menuProps = React.useMemo(() => {
