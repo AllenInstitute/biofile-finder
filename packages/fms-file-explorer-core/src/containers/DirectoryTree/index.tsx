@@ -25,7 +25,9 @@ interface FileListProps {
  *      [collapsible folder] plate789
  */
 export default function DirectoryTree(props: FileListProps) {
-    const { content, error, isLoading } = useDirectoryHierarchy({ initialCollapsed: false });
+    const {
+        state: { content, error, isLoading },
+    } = useDirectoryHierarchy({ initialCollapsed: false });
 
     return (
         <div className={classNames(props.className, styles.container)}>

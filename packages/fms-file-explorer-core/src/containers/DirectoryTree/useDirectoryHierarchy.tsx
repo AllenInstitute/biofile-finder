@@ -22,6 +22,97 @@ const DEFAULTS = {
     currentNode: ROOT_NODE,
 };
 
+interface State {
+    collapsed: boolean;
+    content: JSX.Element | JSX.Element[] | null;
+    isLoading: boolean;
+    error: Error | null;
+}
+
+enum DirectoryHierarchyAction {
+    TOGGLE_COLLAPSE = "toggle-collapse",
+    ERROR = "error",
+    RECEIVE_CONTENT = "receive-content",
+    SHOW_LOADING_INDICATOR = "show-loading-indicator",
+}
+
+interface Action {
+    payload?: any;
+    type: DirectoryHierarchyAction;
+}
+
+function initState(collapsed: boolean): State {
+    return {
+        collapsed,
+        content: null,
+        isLoading: false,
+        error: null,
+    };
+}
+
+export function toggleCollapse(): Action {
+    return {
+        type: DirectoryHierarchyAction.TOGGLE_COLLAPSE,
+    };
+}
+
+export function setError(err: Error, isRoot: boolean): Action {
+    return {
+        type: DirectoryHierarchyAction.ERROR,
+        payload: {
+            error: err,
+            isRoot,
+        },
+    };
+}
+
+export function receiveContent(content: JSX.Element | JSX.Element[]): Action {
+    return {
+        type: DirectoryHierarchyAction.RECEIVE_CONTENT,
+        payload: {
+            content,
+        },
+    };
+}
+
+export function showLoadingIndicator(): Action {
+    return {
+        type: DirectoryHierarchyAction.SHOW_LOADING_INDICATOR,
+    };
+}
+
+function reducer(state: State, action: Action): State {
+    switch (action.type) {
+        case DirectoryHierarchyAction.TOGGLE_COLLAPSE:
+            return {
+                ...state,
+                collapsed: !state.collapsed,
+                content: null,
+            };
+        case DirectoryHierarchyAction.ERROR:
+            return {
+                ...state,
+                error: action.payload.error,
+                collapsed: !action.payload?.isRoot, // only collapse if not at root level
+                isLoading: false,
+            };
+        case DirectoryHierarchyAction.RECEIVE_CONTENT:
+            return {
+                ...state,
+                content: action.payload?.content,
+                error: null,
+                isLoading: false,
+            };
+        case DirectoryHierarchyAction.SHOW_LOADING_INDICATOR:
+            return {
+                ...state,
+                isLoading: true,
+            };
+        default:
+            return state;
+    }
+}
+
 /**
  * React hook to encapsulate all logic for constructing the directory hierarchy at a given depth
  * and path. Responsible for fetching any data required to do so.
@@ -33,10 +124,8 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
     const fileService = useSelector(directoryTreeSelectors.getFileService);
     const selectedFileFilters = useSelector(selection.selectors.getFileFilters);
 
-    const [collapsed, setCollapsed] = React.useState(initialCollapsed);
-    const [content, setContent] = React.useState<JSX.Element | JSX.Element[] | null>(null);
-    const [isLoading, setIsLoading] = React.useState(false);
-    const [error, setError] = React.useState<Error | null>(null);
+    const [state, dispatch] = React.useReducer(reducer, initialCollapsed, initState);
+    const { collapsed } = state;
 
     const isRoot = currentNode === ROOT_NODE;
     const isLeaf = !isRoot && hierarchy.length && ancestorNodes.length === hierarchy.length - 1;
@@ -49,7 +138,7 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
             return;
         }
 
-        setIsLoading(true);
+        dispatch(showLoadingIndicator());
 
         // if at root of hierarchy, currentNode will be set to the sentinal "ROOT_NODE"
         // we need to trim that from the path as its not meaningful in this context
@@ -101,16 +190,16 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
                         const fileListKey = `${fileSet.toQueryString()}|${
                             selectedFileFilters.length
                         }`;
-                        setContent(
-                            <FileList
-                                key={fileListKey}
-                                fileSet={fileSet}
-                                isRoot={isRoot}
-                                totalCount={totalCount}
-                            />
+                        dispatch(
+                            receiveContent(
+                                <FileList
+                                    key={fileListKey}
+                                    fileSet={fileSet}
+                                    isRoot={isRoot}
+                                    totalCount={totalCount}
+                                />
+                            )
                         );
-                        setError(null);
-                        setIsLoading(false);
                     }
                 } catch (e) {
                     console.error(
@@ -118,11 +207,7 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
                         e
                     );
                     if (!cancel) {
-                        if (!isRoot) {
-                            setCollapsed(true);
-                        }
-                        setError(e);
-                        setIsLoading(false);
+                        dispatch(setError(e, isRoot));
                     }
                 }
             } else {
@@ -162,9 +247,7 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
                     ));
 
                     if (!cancel) {
-                        setContent(nodes);
-                        setError(null);
-                        setIsLoading(false);
+                        dispatch(receiveContent(nodes));
                     }
                 } catch (e) {
                     console.error(
@@ -173,11 +256,7 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
                     );
 
                     if (!cancel) {
-                        if (!isRoot) {
-                            setCollapsed(true);
-                        }
-                        setError(e);
-                        setIsLoading(false);
+                        dispatch(setError(e, isRoot));
                     }
                 }
             }
@@ -201,11 +280,8 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
     ]);
 
     return {
-        collapsed,
-        content,
-        error,
+        dispatch,
         isLeaf,
-        isLoading,
-        setCollapsed,
+        state,
     };
 }

@@ -2,7 +2,7 @@ import * as classNames from "classnames";
 import * as React from "react";
 
 import DirectoryTreeNodeHeader from "./DirectoryTreeNodeHeader";
-import useDirectoryHierarchy from "./useDirectoryHierarchy";
+import useDirectoryHierarchy, { toggleCollapse } from "./useDirectoryHierarchy";
 
 const styles = require("./DirectoryTreeNode.module.css");
 
@@ -20,11 +20,11 @@ const ICON_SIZE = 15; // in px; both width and height
  */
 export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const { ancestorNodes, currentNode } = props;
-    const { collapsed, content, error, isLeaf, isLoading, setCollapsed } = useDirectoryHierarchy({
-        ancestorNodes,
-        currentNode,
-        initialCollapsed: true,
-    });
+    const {
+        isLeaf,
+        state: { collapsed, content, error, isLoading },
+        dispatch,
+    } = useDirectoryHierarchy({ ancestorNodes, currentNode, initialCollapsed: true });
 
     return (
         <li
@@ -38,7 +38,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
                 error={error}
                 loading={isLoading}
                 title={currentNode}
-                onClick={() => setCollapsed((prevCollapsed) => !prevCollapsed)}
+                onClick={() => dispatch(toggleCollapse())}
             />
             <ul
                 className={classNames(styles.children, {
