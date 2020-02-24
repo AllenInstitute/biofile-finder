@@ -20,7 +20,7 @@
     "type": "git",
     "url": "https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/fms-file-explorer/browse"
   },
-  "author": "Gabe Medrash<gmedrash@gmail.com>",
+  "author": "Gabe Medrash<gabeme@alleninstitute.org>",
   "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
   "devDependencies": {
     "@babel/cli": "7.6.0",
