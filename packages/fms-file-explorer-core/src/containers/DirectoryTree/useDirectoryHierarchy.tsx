@@ -3,16 +3,27 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 
 import DirectoryTreeNode from "./DirectoryTreeNode";
+import {
+    Action,
+    initState,
+    setError,
+    showLoadingIndicator,
+    State,
+    receiveContent,
+    reducer,
+} from "./directory-hierarchy-state";
 import FileList from "../FileList";
 import FileFilter from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import * as directoryTreeSelectors from "./selectors";
 import { selection } from "../../state";
 
-interface UseDirectoryHierarchyParams {
-    ancestorNodes?: string[];
-    currentNode?: string;
-    initialCollapsed: boolean;
+interface UseDirectoryHierarchy {
+    (params: { ancestorNodes?: string[]; currentNode?: string; initialCollapsed: boolean }): {
+        dispatch: React.Dispatch<Action>;
+        isLeaf: boolean;
+        state: State;
+    };
 }
 
 export const ROOT_NODE = "root_node_sentinal_value";
@@ -22,102 +33,11 @@ const DEFAULTS = {
     currentNode: ROOT_NODE,
 };
 
-interface State {
-    collapsed: boolean;
-    content: JSX.Element | JSX.Element[] | null;
-    isLoading: boolean;
-    error: Error | null;
-}
-
-enum DirectoryHierarchyAction {
-    TOGGLE_COLLAPSE = "toggle-collapse",
-    ERROR = "error",
-    RECEIVE_CONTENT = "receive-content",
-    SHOW_LOADING_INDICATOR = "show-loading-indicator",
-}
-
-interface Action {
-    payload?: any;
-    type: DirectoryHierarchyAction;
-}
-
-function initState(collapsed: boolean): State {
-    return {
-        collapsed,
-        content: null,
-        isLoading: false,
-        error: null,
-    };
-}
-
-export function toggleCollapse(): Action {
-    return {
-        type: DirectoryHierarchyAction.TOGGLE_COLLAPSE,
-    };
-}
-
-export function setError(err: Error, isRoot: boolean): Action {
-    return {
-        type: DirectoryHierarchyAction.ERROR,
-        payload: {
-            error: err,
-            isRoot,
-        },
-    };
-}
-
-export function receiveContent(content: JSX.Element | JSX.Element[]): Action {
-    return {
-        type: DirectoryHierarchyAction.RECEIVE_CONTENT,
-        payload: {
-            content,
-        },
-    };
-}
-
-export function showLoadingIndicator(): Action {
-    return {
-        type: DirectoryHierarchyAction.SHOW_LOADING_INDICATOR,
-    };
-}
-
-function reducer(state: State, action: Action): State {
-    switch (action.type) {
-        case DirectoryHierarchyAction.TOGGLE_COLLAPSE:
-            return {
-                ...state,
-                collapsed: !state.collapsed,
-                content: null,
-            };
-        case DirectoryHierarchyAction.ERROR:
-            return {
-                ...state,
-                error: action.payload.error,
-                collapsed: !action.payload?.isRoot, // only collapse if not at root level
-                isLoading: false,
-            };
-        case DirectoryHierarchyAction.RECEIVE_CONTENT:
-            return {
-                ...state,
-                content: action.payload?.content,
-                error: null,
-                isLoading: false,
-            };
-        case DirectoryHierarchyAction.SHOW_LOADING_INDICATOR:
-            return {
-                ...state,
-                isLoading: true,
-            };
-        default:
-            return state;
-    }
-}
-
 /**
  * React hook to encapsulate all logic for constructing the directory hierarchy at a given depth
  * and path. Responsible for fetching any data required to do so.
  */
-export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParams) {
+const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
     const { ancestorNodes, currentNode, initialCollapsed } = defaults({}, params, DEFAULTS);
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
     const annotationService = useSelector(directoryTreeSelectors.getAnnotationService);
@@ -128,7 +48,7 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
     const { collapsed } = state;
 
     const isRoot = currentNode === ROOT_NODE;
-    const isLeaf = !isRoot && hierarchy.length && ancestorNodes.length === hierarchy.length - 1;
+    const isLeaf = !isRoot && !!hierarchy.length && ancestorNodes.length === hierarchy.length - 1;
 
     React.useEffect(() => {
         let cancel = false;
@@ -284,4 +204,6 @@ export default function useDirectoryHierarchy(params: UseDirectoryHierarchyParam
         isLeaf,
         state,
     };
-}
+};
+
+export default useDirectoryHierarchy;

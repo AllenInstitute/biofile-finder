@@ -2,7 +2,8 @@ import * as classNames from "classnames";
 import * as React from "react";
 
 import DirectoryTreeNodeHeader from "./DirectoryTreeNodeHeader";
-import useDirectoryHierarchy, { toggleCollapse } from "./useDirectoryHierarchy";
+import { toggleCollapse } from "./directory-hierarchy-state";
+import useDirectoryHierarchy from "./useDirectoryHierarchy";
 
 const styles = require("./DirectoryTreeNode.module.css");
 
