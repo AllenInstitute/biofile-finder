@@ -15,6 +15,7 @@ import {
 import FileList from "../FileList";
 import FileFilter from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
+import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import * as directoryTreeSelectors from "./selectors";
 import { selection } from "../../state";
 
@@ -96,7 +97,7 @@ const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
                     );
                 }
 
-                const fileSet = new FileSet({
+                const fileSet = defaultFileSetFactory.create({
                     fileService,
                     filters,
                 });
@@ -104,16 +105,9 @@ const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
                 try {
                     const totalCount = await fileSet.fetchTotalCount();
                     if (!cancel) {
-                        // Replace FileList (don't update) when either the FileSet has changed or the user-selected file filters
-                        // have changed. This addresses a bug in which if the component updates, the InifinteLoader doesn't
-                        // re-request data and appears to be in a loading state indefinitely until the user scrolls the FileList.
-                        const fileListKey = `${fileSet.toQueryString()}|${
-                            selectedFileFilters.length
-                        }`;
                         dispatch(
                             receiveContent(
                                 <FileList
-                                    key={fileListKey}
                                     fileSet={fileSet}
                                     isRoot={isRoot}
                                     totalCount={totalCount}
