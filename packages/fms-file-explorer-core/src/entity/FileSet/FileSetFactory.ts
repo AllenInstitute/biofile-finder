@@ -7,7 +7,7 @@ import FileSet from "../FileSet";
 const MAX_CACHE_SIZE = 20; // arbitrary; no need for this to be particularly large
 
 export default class FileSetFactory {
-    private cache = new LRUCache<String, FileSet>({ max: MAX_CACHE_SIZE });
+    private cache = new LRUCache<string, FileSet>({ max: MAX_CACHE_SIZE });
 
     public create(params: { filters: FileFilter[]; fileService: FileService }): FileSet {
         const { filters, fileService } = params;

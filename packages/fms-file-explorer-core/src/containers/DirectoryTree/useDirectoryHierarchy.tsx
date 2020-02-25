@@ -14,7 +14,6 @@ import {
 } from "./directory-hierarchy-state";
 import FileList from "../FileList";
 import FileFilter from "../../entity/FileFilter";
-import FileSet from "../../entity/FileSet";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import * as directoryTreeSelectors from "./selectors";
 import { selection } from "../../state";
