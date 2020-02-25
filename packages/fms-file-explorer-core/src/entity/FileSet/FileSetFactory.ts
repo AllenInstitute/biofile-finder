@@ -6,6 +6,10 @@ import FileSet from "../FileSet";
 
 const MAX_CACHE_SIZE = 20; // arbitrary; no need for this to be particularly large
 
+/**
+ * This is a temporary workaround to prevent an issue with updating FileList components (which take FileSets as props).
+ * This should be fixed more properly as part of https://aicsjira.corp.alleninstitute.org/browse/FMS-1017.
+ */
 export default class FileSetFactory {
     private cache = new LRUCache<string, FileSet>({ max: MAX_CACHE_SIZE });
 
