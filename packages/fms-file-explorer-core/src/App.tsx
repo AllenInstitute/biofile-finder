@@ -1,4 +1,5 @@
 import "normalize.css";
+import * as classNames from "classnames";
 import { initializeIcons, loadTheme } from "office-ui-fabric-react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -47,16 +48,16 @@ export default function App(props: AppProps) {
 
     return (
         <div className={styles.root}>
-            <HeaderRibbon className={styles.headerRibbon} />
+            <HeaderRibbon className={classNames(styles.headerRibbon, styles.placeholder)} />
             <div className={styles.everythingExceptHeaderRibbon}>
                 <div className={styles.core}>
-                    <Breadcrumbs className={styles.breadcrumbs} />
+                    <Breadcrumbs className={classNames(styles.breadcrumbs, styles.placeholder)} />
                     <div className={styles.annotationHierarchyAndFileList}>
                         <AnnotationSidebar className={styles.annotationHierarchy} />
                         <DirectoryTree className={styles.fileList} />
                     </div>
                 </div>
-                <FileDetails className={styles.fileDetails} />
+                <FileDetails className={classNames(styles.fileDetails, styles.placeholder)} />
             </div>
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
         </div>
