@@ -30,6 +30,29 @@ const retry = Policy.handleAll()
  * Base class for services that interact with AICS APIs.
  */
 export default class HttpServiceBase {
+    /**
+     * Like Window::encodeURIComponent, but far less aggressive in its encoding.
+     *
+     * This should be removed once the File Explorer Service can
+     * decode all reserved characters that Window::encodeURIComponent produces.
+     */
+    public static encodeURIComponent(str: string) {
+        const CHARACTER_TO_ENCODING_MAP: { [index: string]: string } = {
+            "+": "%2b",
+            " ": "%20",
+        };
+        return str
+            .split("")
+            .map((chr) => {
+                if (CHARACTER_TO_ENCODING_MAP.hasOwnProperty(chr)) {
+                    return CHARACTER_TO_ENCODING_MAP[chr];
+                }
+
+                return chr;
+            })
+            .join("");
+    }
+
     public baseUrl: string | keyof typeof DataSource = DEFAULT_CONNECTION_CONFIG.baseUrl;
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
 
