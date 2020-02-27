@@ -10,6 +10,7 @@ const styles = require("./DirectoryTreeNode.module.css");
 interface DirectoryTreeNodeProps {
     ancestorNodes: string[];
     currentNode: string; // the "directory name" to present
+    displayValue: string;
 }
 
 const ICON_SIZE = 15; // in px; both width and height
@@ -20,7 +21,7 @@ const ICON_SIZE = 15; // in px; both width and height
  * will render a FileList showing the set of files that match the filters at this path in the hierarchy.
  */
 export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
-    const { ancestorNodes, currentNode } = props;
+    const { ancestorNodes, currentNode, displayValue } = props;
     const {
         isLeaf,
         state: { collapsed, content, error, isLoading },
@@ -38,7 +39,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
                 collapsed={collapsed}
                 error={error}
                 loading={isLoading}
-                title={currentNode}
+                title={displayValue}
                 onClick={() => dispatch(toggleCollapse())}
             />
             <ul
