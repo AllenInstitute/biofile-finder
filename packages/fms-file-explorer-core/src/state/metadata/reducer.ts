@@ -2,6 +2,7 @@ import { makeReducer } from "@aics/redux-utils";
 import { unionBy } from "lodash";
 
 import Annotation from "../../entity/Annotation";
+import { AnnotationType } from "../../entity/AnnotationFormatter";
 
 import { RECEIVE_ANNOTATIONS } from "./actions";
 
@@ -14,21 +15,21 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         annotationDisplayName: "File name",
         annotationName: "fileName",
         description: "Name of file",
-        type: "Text",
+        type: AnnotationType.STRING,
         values: [],
     }),
     new Annotation({
         annotationDisplayName: "File path",
         annotationName: "filePath",
         description: "Path to file in storage.",
-        type: "Text",
+        type: AnnotationType.STRING,
         values: [],
     }),
     new Annotation({
         annotationDisplayName: "Size",
         annotationName: "fileSize",
         description: "Size of file on disk.",
-        type: "Number",
+        type: AnnotationType.NUMBER,
         units: "bytes",
         values: [],
     }),
@@ -36,21 +37,21 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         annotationDisplayName: "Type",
         annotationName: "fileType",
         description: "Type of file.",
-        type: "Text",
+        type: AnnotationType.STRING,
         values: [],
     }),
     new Annotation({
         annotationDisplayName: "Uploaded",
         annotationName: "uploaded",
         description: "Date and time file was uploaded.",
-        type: "Date/Time",
+        type: AnnotationType.DATETIME,
         values: [],
     }),
     new Annotation({
         annotationDisplayName: "Uploaded by",
         annotationName: "uploadedBy",
         description: "Person or process who uploaded this file.",
-        type: "Text",
+        type: AnnotationType.STRING,
         values: [],
     }),
 ];
