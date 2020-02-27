@@ -4,7 +4,7 @@ import numberFormatter from "./number-formatter";
 
 export enum AnnotationType {
     DATE = "Date",
-    DATETIME = "Date/Time",
+    DATETIME = "DateTime",
     NUMBER = "Number",
     STRING = "Text",
     BOOLEAN = "Yes/No",
