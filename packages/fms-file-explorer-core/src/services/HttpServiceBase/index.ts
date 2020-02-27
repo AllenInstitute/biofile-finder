@@ -69,22 +69,30 @@ export default class HttpServiceBase {
     }
 
     public async get<T>(url: string): Promise<RestServiceResponse<T>> {
-        if (!this.urlToResponseDataCache.has(url)) {
+        const [path, queryString] = url.split("?");
+
+        let encodedUrl = url;
+        if (queryString) {
+            encodedUrl = `${path}?${HttpServiceBase.encodeURIComponent(queryString)}`;
+            console.log(`Sanitized ${url} to ${encodedUrl}`);
+        }
+
+        if (!this.urlToResponseDataCache.has(encodedUrl)) {
             // if this fails, bubble up exception
-            const response = await retry.execute(() => this.httpClient.get(url));
+            const response = await retry.execute(() => this.httpClient.get(encodedUrl));
 
             if (response.status < 400 || response.data === undefined) {
-                this.urlToResponseDataCache.set(url, response.data);
+                this.urlToResponseDataCache.set(encodedUrl, response.data);
             } else {
                 // by default axios will reject if does not satisfy: status >= 200 && status < 300
-                throw new Error(`Request for ${url} failed`);
+                throw new Error(`Request for ${encodedUrl} failed`);
             }
         }
 
-        const cachedResponseData = this.urlToResponseDataCache.get(url);
+        const cachedResponseData = this.urlToResponseDataCache.get(encodedUrl);
 
         if (!cachedResponseData) {
-            throw new Error(`Unable to pull resource from cache: ${url}`);
+            throw new Error(`Unable to pull resource from cache: ${encodedUrl}`);
         }
 
         return new RestServiceResponse(cachedResponseData);
