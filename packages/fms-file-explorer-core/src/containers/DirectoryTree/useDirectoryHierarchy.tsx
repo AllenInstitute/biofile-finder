@@ -1,4 +1,4 @@
-import { defaults, isEmpty, pull, uniqWith, zip } from "lodash";
+import { defaults, isEmpty, find, pull, uniqWith, zip } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -16,7 +16,7 @@ import FileList from "../FileList";
 import FileFilter from "../../entity/FileFilter";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import * as directoryTreeSelectors from "./selectors";
-import { selection } from "../../state";
+import { selection, metadata } from "../../state";
 
 interface UseDirectoryHierarchy {
     (params: { ancestorNodes?: string[]; currentNode?: string; initialCollapsed: boolean }): {
@@ -39,6 +39,7 @@ const DEFAULTS = {
  */
 const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
     const { ancestorNodes, currentNode, initialCollapsed } = defaults({}, params, DEFAULTS);
+    const annotations = useSelector(metadata.selectors.getAnnotations);
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
     const annotationService = useSelector(directoryTreeSelectors.getAnnotationService);
     const fileService = useSelector(directoryTreeSelectors.getFileService);
@@ -128,6 +129,10 @@ const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
                 try {
                     const depth = pathToNode.length;
                     const annotationNameAtDepth = hierarchy[depth];
+                    const annotationAtDepth = find(
+                        annotations,
+                        (annotation) => annotation.name === annotationNameAtDepth
+                    );
                     const userSelectedFiltersForCurrentAnnotation = selectedFileFilters
                         .filter((filter) => filter.name === annotationNameAtDepth)
                         .map((filter) => filter.value);
@@ -156,6 +161,7 @@ const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
                             key={`${[...pathToNode, value].join(":")}|${hierarchy.join(":")}`}
                             ancestorNodes={pathToNode}
                             currentNode={value}
+                            displayValue={annotationAtDepth?.getDisplayValue(value) || value}
                         />
                     ));
 
@@ -182,6 +188,7 @@ const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
         };
     }, [
         ancestorNodes,
+        annotations,
         annotationService,
         currentNode,
         collapsed,
