@@ -13,9 +13,9 @@ describe("Annotation formatters", () => {
 
         it("returns just the date portion if hours, minutes, and seconds are all zeroed out", () => {
             expect(dateTimeFormatter.displayValue("2018-04-28 00:00:00+00:00")).to.equal(
-                "4/27/2018"
+                "4/28/2018"
             ); // str(datetime.datetime) format
-            expect(dateTimeFormatter.displayValue("2017-09-02T00:00:00.000Z")).to.equal("9/1/2017"); // iso date string format
+            expect(dateTimeFormatter.displayValue("2017-09-02T00:00:00.000Z")).to.equal("9/2/2017"); // iso date string format
         });
     });
 

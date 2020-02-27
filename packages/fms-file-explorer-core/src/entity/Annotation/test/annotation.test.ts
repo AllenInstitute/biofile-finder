@@ -1,13 +1,14 @@
 import { expect } from "chai";
 
 import Annotation from "../";
+import { AnnotationType } from "../../AnnotationFormatter";
 
 describe("Annotation", () => {
     const annotationResponse = Object.freeze({
         annotationDisplayName: "Date uploaded",
         annotationName: "uploaded",
         description: "Date the file was uploaded",
-        type: "Date/Time",
+        type: AnnotationType.DATETIME,
         values: [],
     });
 
