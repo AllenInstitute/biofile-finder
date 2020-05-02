@@ -1,3 +1,4 @@
+import dateFormatter from "./date-formatter";
 import dateTimeFormatter from "./date-time-formatter";
 import identityFormatter from "./identity-formatter";
 import numberFormatter from "./number-formatter";
@@ -22,8 +23,8 @@ export interface AnnotationFormatter {
 export default function annotationFormatterFactory(type: string): AnnotationFormatter {
     switch (type) {
         case AnnotationType.DATE:
-        // prettier-ignore
-        case AnnotationType.DATETIME: // FALL-THROUGH
+            return dateFormatter;
+        case AnnotationType.DATETIME:
             return dateTimeFormatter;
         case AnnotationType.NUMBER:
             return numberFormatter;

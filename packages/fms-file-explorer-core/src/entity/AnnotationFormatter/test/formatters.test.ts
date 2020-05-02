@@ -1,21 +1,46 @@
 import { expect } from "chai";
 
 import dateTimeFormatter from "../date-time-formatter";
+import dateFormatter from "../date-formatter";
 import numberFormatter from "../number-formatter";
 
 describe("Annotation formatters", () => {
-    describe("Date/Time annotation formatter", () => {
+    describe("DateTime annotation formatter", () => {
         it("formats an ISO date string", () => {
             expect(dateTimeFormatter.displayValue("2017-12-06T01:54:01.332Z")).to.equal(
                 "12/5/2017, 5:54:01 PM"
             );
         });
+    });
 
-        it("returns just the date portion if hours, minutes, and seconds are all zeroed out", () => {
-            expect(dateTimeFormatter.displayValue("2018-04-28 00:00:00+00:00")).to.equal(
-                "4/28/2018"
-            ); // str(datetime.datetime) format
-            expect(dateTimeFormatter.displayValue("2017-09-02T00:00:00.000Z")).to.equal("9/2/2017"); // iso date string format
+    describe("Date annotation formatter", () => {
+        const spec = [
+            // str(datetime.datetime) format
+            { input: "2018-04-28 00:00:00+00:00", expected: "2018-4-27" },
+
+            // iso date string format
+            { input: "2017-09-02T00:00:00.000Z", expected: "2017-9-1" },
+
+            // no colon in UTC offset
+            { input: "2018-05-24T00:00:00-0800", expected: "2018-5-24" },
+
+            // with hour
+            { input: "2018-05-24T08:00:00+00:00", expected: "2018-5-24" },
+
+            // with other time positions filled in
+            { input: "2018-05-24T08:01:32.123+00:00", expected: "2018-5-24" },
+
+            // ahead UTC
+            { input: "2018-05-24T00:00:00+08:00", expected: "2018-5-23" },
+
+            // behind UTC
+            { input: "2018-05-24T00:00:00-08:00", expected: "2018-5-24" },
+        ];
+
+        spec.forEach((testCase) => {
+            it(`formats ${testCase.input} as a date (expected: ${testCase.expected})`, () => {
+                expect(dateFormatter.displayValue(testCase.input)).to.equal(testCase.expected);
+            });
         });
     });
 
