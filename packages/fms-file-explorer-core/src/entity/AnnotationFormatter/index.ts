@@ -8,7 +8,7 @@ export enum AnnotationType {
     DATETIME = "DateTime",
     NUMBER = "Number",
     STRING = "Text",
-    BOOLEAN = "Yes/No",
+    BOOLEAN = "YesNo",
 }
 
 export interface AnnotationFormatter {
