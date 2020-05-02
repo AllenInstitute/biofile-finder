@@ -7,7 +7,9 @@ export default {
         const date = new Date(value);
 
         // Date::getMonth is awkwardly 0-indexed
-        return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+            date.getDate()
+        ).padStart(2, "0")}`;
     },
 
     valueOf(value: any) {
