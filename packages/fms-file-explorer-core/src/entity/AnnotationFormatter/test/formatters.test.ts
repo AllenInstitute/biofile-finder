@@ -21,11 +21,34 @@ describe("Annotation formatters", () => {
     });
 
     describe("DateTime annotation formatter", () => {
-        it("formats an ISO date string", () => {
-            expect(dateTimeFormatter.displayValue("2017-12-06T01:54:01.332Z")).to.equal(
-                "12/5/2017, 5:54:01 PM"
-            );
-        });
+        const spec = [
+            // str(datetime.datetime) format
+            { input: "2018-04-28 00:00:00+00:00", expected: "4/27/2018, 5:00:00 PM" },
+
+            // iso date string format
+            { input: "2017-12-06T01:54:01.332Z", expected: "12/5/2017, 5:54:01 PM" },
+
+            // no colon in UTC offset
+            { input: "2018-05-24T00:00:00-0800", expected: "5/24/2018, 1:00:00 AM" },
+
+            // with hour
+            { input: "2018-05-24T08:00:00+00:00", expected: "5/24/2018, 1:00:00 AM" },
+
+            // with other time positions filled in
+            { input: "2018-05-24T08:01:32.123+00:00", expected: "5/24/2018, 1:01:32 AM" },
+
+            // ahead UTC
+            { input: "2018-05-24T00:00:00+08:00", expected: "5/23/2018, 9:00:00 AM" },
+
+            // behind UTC
+            { input: "2018-05-24T00:00:00-08:00", expected: "5/24/2018, 1:00:00 AM" },
+        ];
+
+        spec.forEach((testCase) =>
+            it(`formats ${testCase.input} as ${testCase.expected}`, () => {
+                expect(dateTimeFormatter.displayValue(testCase.input)).to.equal(testCase.expected);
+            })
+        );
     });
 
     describe("Date annotation formatter", () => {
