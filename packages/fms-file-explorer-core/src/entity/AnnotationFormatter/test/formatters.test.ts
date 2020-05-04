@@ -31,25 +31,25 @@ describe("Annotation formatters", () => {
     describe("Date annotation formatter", () => {
         const spec = [
             // str(datetime.datetime) format
-            { input: "2018-04-28 00:00:00+00:00", expected: "2018-4-27" },
+            { input: "2018-04-28 00:00:00+00:00", expected: "2018-04-27" },
 
             // iso date string format
-            { input: "2017-09-02T00:00:00.000Z", expected: "2017-9-1" },
+            { input: "2017-09-02T00:00:00.000Z", expected: "2017-09-01" },
 
             // no colon in UTC offset
-            { input: "2018-05-24T00:00:00-0800", expected: "2018-5-24" },
+            { input: "2018-05-24T00:00:00-0800", expected: "2018-05-24" },
 
             // with hour
-            { input: "2018-05-24T08:00:00+00:00", expected: "2018-5-24" },
+            { input: "2018-05-24T08:00:00+00:00", expected: "2018-05-24" },
 
             // with other time positions filled in
-            { input: "2018-05-24T08:01:32.123+00:00", expected: "2018-5-24" },
+            { input: "2018-05-24T08:01:32.123+00:00", expected: "2018-05-24" },
 
             // ahead UTC
-            { input: "2018-05-24T00:00:00+08:00", expected: "2018-5-23" },
+            { input: "2018-05-24T00:00:00+08:00", expected: "2018-05-23" },
 
             // behind UTC
-            { input: "2018-05-24T00:00:00-08:00", expected: "2018-5-24" },
+            { input: "2018-05-24T00:00:00-08:00", expected: "2018-05-24" },
         ];
 
         spec.forEach((testCase) => {
