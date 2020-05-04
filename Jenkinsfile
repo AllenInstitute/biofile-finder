@@ -1,5 +1,4 @@
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 
 // JOB_TYPE constants
 String INTEGRATION = "Integration build"
@@ -102,10 +101,11 @@ pipeline {
             }
             steps {
                 script {
-                    def jsonSlurper = new JsonSlurper()
-                    def packageJsonText = sh(returnStdout: true, script: "cat ${env.WORKSPACE}/packages/fms-file-explorer-electron/package.json").trim()
-                    def packageJsonParsed = jsonSlurper.parseText(packageJsonText)
-                    def version = env.BRANCH_NAME == "master" ? packageJsonParsed.version : env.BRANCH_NAME.replace(["/": "-"])
+                    def packageJsonVersion = sh(
+                        returnStdout: true,
+                        script: "cat ${env.WORKSPACE}/packages/fms-file-explorer-electron/package.json | jq --raw-output '.version'"
+                    ).trim()
+                    def version = env.BRANCH_NAME == "master" ? packageJsonVersion : env.BRANCH_NAME.replace(["/": "-"])
                     def postData = JsonOutput.toJson([event_type: "on-demand-release", client_payload: [ref: "${env.BRANCH_NAME}", version: "${version}"]])
                     def authHeader = [name: "Authorization", value: "bearer ${GH_TOKEN}"]
                     def acceptHeader = [name: "Accept", value: "application/vnd.github.everest-preview+json"]
