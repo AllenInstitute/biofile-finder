@@ -1,3 +1,4 @@
+import booleanFormatter from "./boolean-formatter";
 import dateFormatter from "./date-formatter";
 import dateTimeFormatter from "./date-time-formatter";
 import identityFormatter from "./identity-formatter";
@@ -22,6 +23,8 @@ export interface AnnotationFormatter {
  */
 export default function annotationFormatterFactory(type: string): AnnotationFormatter {
     switch (type) {
+        case AnnotationType.BOOLEAN:
+            return booleanFormatter;
         case AnnotationType.DATE:
             return dateFormatter;
         case AnnotationType.DATETIME:

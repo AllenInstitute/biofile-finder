@@ -1,10 +1,25 @@
 import { expect } from "chai";
 
-import dateTimeFormatter from "../date-time-formatter";
+import booleanFormatter from "../boolean-formatter";
 import dateFormatter from "../date-formatter";
+import dateTimeFormatter from "../date-time-formatter";
 import numberFormatter from "../number-formatter";
 
 describe("Annotation formatters", () => {
+    describe("Boolean annotation formatter", () => {
+        it("turns true into 'True'", () => {
+            ["true", "True", true].forEach((input) =>
+                expect(booleanFormatter.displayValue(input)).to.equal("True")
+            );
+        });
+
+        it("turns false into 'False'", () => {
+            ["false", "False", false].forEach(() =>
+                expect(booleanFormatter.displayValue("false")).to.equal("False")
+            );
+        });
+    });
+
     describe("DateTime annotation formatter", () => {
         it("formats an ISO date string", () => {
             expect(dateTimeFormatter.displayValue("2017-12-06T01:54:01.332Z")).to.equal(
