@@ -5,11 +5,15 @@
 export default {
     displayValue(value: string): string {
         const date = new Date(value);
-
-        // Date::getMonth is awkwardly 0-indexed
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-            date.getDate()
-        ).padStart(2, "0")}`;
+        const options = {
+            month: "2-digit",
+            day: "2-digit",
+            year: "numeric",
+            timeZone: "America/Los_Angeles",
+        };
+        const formatted = new Intl.DateTimeFormat("en-US", options).format(date);
+        const [month, day, year] = formatted.split("/");
+        return `${year}-${month}-${day}`;
     },
 
     valueOf(value: any) {
