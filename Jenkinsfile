@@ -2,8 +2,7 @@ import groovy.json.JsonOutput
 
 // JOB_TYPE constants
 String INTEGRATION = "Integration build"
-String VERSION = "Version packages in the monorepo"
-String PUBLISH_NPM_LIB = "Publish @aics/fms-file-explore-core to npmjs.org"
+String VERSION_AND_PUBLISH = "Version packages in the monorepo and publish @aics/fms-file-explore-core to npmjs.org"
 String RELEASE = "Trigger release workflow on Github"
 
 // VERSION_BUMP_TYPE constants
@@ -30,7 +29,7 @@ pipeline {
     parameters {
         // N.b.: For choice parameters, the first choice is the default value
         // See https://github.com/jenkinsci/jenkins/blob/master/war/src/main/webapp/help/parameter/choice-choices.html
-        choice(name: "JOB_TYPE", choices: [INTEGRATION, VERSION, PUBLISH_NPM_LIB, RELEASE], description: "Which type of job this is.")
+        choice(name: "JOB_TYPE", choices: [INTEGRATION, VERSION_AND_PUBLISH, RELEASE], description: "Which type of job this is.")
         choice(name: "VERSION_BUMP_TYPE", choices: [
             PATCH_VERSION_BUMP,
             MINOR_VERSION_BUMP,
@@ -39,7 +38,7 @@ pipeline {
             PREMINOR_VERSION_BUMP,
             PREPATCH_VERSION_BUMP,
             PRERELEASE_VERSION_BUMP
-        ], description: "Which kind of version bump to perform. Only valid when JOB_TYPE is '${VERSION}'.")
+        ], description: "Which kind of version bump to perform. Only valid when JOB_TYPE is '${VERSION_AND_PUBLISH}'.")
     }
     stages {
         stage ("initialize") {
@@ -69,10 +68,10 @@ pipeline {
             }
         }
 
-        stage ("version") {
+        stage ("version and publish") {
             when {
                 branch "master"
-                equals expected: VERSION, actual: params.JOB_TYPE
+                equals expected: VERSION_AND_PUBLISH, actual: params.JOB_TYPE
             }
             steps {
                 // Make certain working tree is clean; this could not be the case due to classic, unexplainable package-lock.json changes
@@ -80,14 +79,8 @@ pipeline {
 
                 // Increment version
                 sh "./gradlew version -Pbump=${params.VERSION_BUMP_TYPE}"
-            }
-        }
 
-        stage ("publish @aics/fms-file-explorer-core") {
-            when {
-                equals expected: PUBLISH_NPM_LIB, actual: params.JOB_TYPE
-            }
-            steps {
+                // Publish npm lib
                 sh "./gradlew publishArtifact -Pscope=\"--scope=@aics/fms-file-explorer-core\""
             }
         }
