@@ -11,7 +11,7 @@ export interface ConnectionConfig {
 }
 
 export const DEFAULT_CONNECTION_CONFIG = {
-    baseUrl: DataSource.STAGING,
+    baseUrl: DataSource.PRODUCTION,
     httpClient: axios.create(),
 };
 

@@ -7,14 +7,14 @@ export enum FileExplorerServiceBaseUrl {
     FLAT_FILE = "flat-file",
 
     // localhost default in FES repo
-    LOCALHOST = "http://localhost:9082", // HTTP proxy; see scripts/run-http-proxy.sh
+    LOCALHOST = "http://dev-aics-gmp-001.corp.alleninstitute.org:9082", // HTTP proxy; see scripts/run-http-proxy.sh
     STAGING = "http://stg-aics-api.corp.alleninstitute.org",
     PRODUCTION = "http://aics-api.corp.alleninstitute.org",
 }
 
 // Least effort state management accessible to both the main and renderer processes.
 // For now (until we're reliable deploying out to prod) default to staging
-global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.STAGING;
+global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION;
 
 const dataSourceMenu: MenuItemConstructorOptions = {
     label: "Data Source",
