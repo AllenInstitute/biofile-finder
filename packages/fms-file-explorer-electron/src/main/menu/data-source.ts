@@ -8,7 +8,6 @@ export enum FileExplorerServiceBaseUrl {
 }
 
 // Least effort state management accessible to both the main and renderer processes.
-// For now (until we're reliable deploying out to prod) default to staging
 global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION;
 
 const dataSourceMenu: MenuItemConstructorOptions = {
