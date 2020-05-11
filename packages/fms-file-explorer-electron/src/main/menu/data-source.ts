@@ -1,11 +1,6 @@
 import { MenuItemConstructorOptions } from "electron";
 
 export enum FileExplorerServiceBaseUrl {
-    // This is a special value that is not a host; it is used as a sentinel value in the app to
-    // indicate that data should be loaded from flat files pulled into the executable instead of
-    // requesting data from the file-explorer-service.
-    FLAT_FILE = "flat-file",
-
     // localhost default in FES repo
     LOCALHOST = "http://dev-aics-gmp-001.corp.alleninstitute.org:9082", // HTTP proxy; see scripts/run-http-proxy.sh
     STAGING = "http://stg-aics-api.corp.alleninstitute.org",
@@ -19,16 +14,6 @@ global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION;
 const dataSourceMenu: MenuItemConstructorOptions = {
     label: "Data Source",
     submenu: [
-        {
-            label: "Flat files",
-            type: "radio",
-            checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.FLAT_FILE,
-            enabled: false, // GM 2/10/2020: does not implement hierarchy endpoints
-            click: (menuItem, focusedWindow) => {
-                global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.FLAT_FILE;
-                focusedWindow.webContents.send("file-explorer-service-connection-change");
-            },
-        },
         {
             label: "Localhost",
             type: "radio",
