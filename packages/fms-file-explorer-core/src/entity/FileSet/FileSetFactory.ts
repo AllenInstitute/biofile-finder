@@ -16,12 +16,12 @@ export default class FileSetFactory {
     public create(params: { filters: FileFilter[]; fileService: FileService }): FileSet {
         const { filters, fileService } = params;
         const candidate = new FileSet({ fileService, filters });
-        if (!this.cache.has(candidate.toQueryString())) {
-            this.cache.set(candidate.toQueryString(), candidate);
+        if (!this.cache.has(candidate.hash)) {
+            this.cache.set(candidate.hash, candidate);
         }
 
         // we know this will return a FileSet and not undefined, so cast to avoid unnecessary typing error
-        return this.cache.get(candidate.toQueryString()) as FileSet;
+        return this.cache.get(candidate.hash) as FileSet;
     }
 }
 
