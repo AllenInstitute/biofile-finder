@@ -81,7 +81,7 @@ export default class HttpServiceBase {
             // if this fails, bubble up exception
             const response = await retry.execute(() => this.httpClient.get(encodedUrl));
 
-            if (response.status < 400 || response.data === undefined) {
+            if (response.status < 400 && response.data !== undefined) {
                 this.urlToResponseDataCache.set(encodedUrl, response.data);
             } else {
                 // by default axios will reject if does not satisfy: status >= 200 && status < 300
