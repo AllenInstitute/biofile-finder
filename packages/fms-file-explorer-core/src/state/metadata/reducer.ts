@@ -1,5 +1,4 @@
 import { makeReducer } from "@aics/redux-utils";
-import { unionBy } from "lodash";
 
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
@@ -64,11 +63,7 @@ export default makeReducer<MetadataStateBranch>(
     {
         [RECEIVE_ANNOTATIONS]: (state, action) => ({
             ...state,
-            annotations: unionBy(
-                state.annotations,
-                action.payload,
-                (annotation) => annotation.name
-            ),
+            annotations: action.payload,
         }),
     },
     initialState
