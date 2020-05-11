@@ -35,8 +35,6 @@ describe("FileService", () => {
                 from: 0,
                 limit: 1,
                 queryString: "fileId=abc123",
-                startIndex: 0,
-                endIndex: 0,
             });
             const data = response.data;
             expect(data.length).to.equal(1);

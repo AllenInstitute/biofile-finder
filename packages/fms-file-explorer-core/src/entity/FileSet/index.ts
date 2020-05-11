@@ -110,8 +110,6 @@ export default class FileSet {
                 from: offset,
                 limit,
                 queryString: this.toQueryString(),
-                startIndex,
-                endIndex,
             });
 
             response.data.forEach((file: FmsFile) => {
