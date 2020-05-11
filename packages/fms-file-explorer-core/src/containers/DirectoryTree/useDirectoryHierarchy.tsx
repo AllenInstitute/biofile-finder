@@ -16,7 +16,7 @@ import FileList from "../FileList";
 import FileFilter from "../../entity/FileFilter";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import * as directoryTreeSelectors from "./selectors";
-import { selection, metadata } from "../../state";
+import { interaction, metadata, selection } from "../../state";
 
 interface UseDirectoryHierarchy {
     (params: { ancestorNodes?: string[]; currentNode?: string; initialCollapsed: boolean }): {
@@ -41,8 +41,8 @@ const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
     const { ancestorNodes, currentNode, initialCollapsed } = defaults({}, params, DEFAULTS);
     const annotations = useSelector(metadata.selectors.getAnnotations);
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
-    const annotationService = useSelector(directoryTreeSelectors.getAnnotationService);
-    const fileService = useSelector(directoryTreeSelectors.getFileService);
+    const annotationService = useSelector(interaction.selectors.getAnnotationService);
+    const fileService = useSelector(interaction.selectors.getFileService);
     const selectedFileFilters = useSelector(selection.selectors.getFileFilters);
 
     const [state, dispatch] = React.useReducer(reducer, initialCollapsed, initState);

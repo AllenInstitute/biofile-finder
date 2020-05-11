@@ -15,7 +15,7 @@ import DirectoryTree from "../";
 import * as directoryTreeSelectors from "../selectors";
 import Annotation from "../../../entity/Annotation";
 import AnnotationService from "../../../services/AnnotationService";
-import { initialState, reducer, reduxLogics } from "../../../state";
+import { initialState, interaction, reducer, reduxLogics } from "../../../state";
 import FileService from "../../../services/FileService";
 import { addFileFilter } from "../../../state/selection/actions";
 import FileFilter from "../../../entity/FileFilter";
@@ -85,8 +85,8 @@ describe("<DirectoryTree />", () => {
     const fileService = new FileService({ baseUrl, httpClient: mockHttpClient });
 
     before(() => {
-        sandbox.stub(directoryTreeSelectors, "getAnnotationService").returns(annotationService);
-        sandbox.stub(directoryTreeSelectors, "getFileService").returns(fileService);
+        sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+        sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
     });
 
     afterEach(() => {
