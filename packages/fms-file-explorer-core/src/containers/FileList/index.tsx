@@ -44,7 +44,7 @@ const MAX_NON_ROOT_HEIGHT = 300;
 export default function FileList(props: FileListProps) {
     const { className, fileSet, isRoot, rowHeight, totalCount } = defaults({}, props, DEFAULTS);
 
-    const onSelect = useFileSelector(fileSet);
+    const { onSelect, isLoading: isLoadingSelection } = useFileSelector(fileSet);
     const dispatch = useDispatch();
     const selectedFiles = useSelector(selection.selectors.getSelectedFiles);
 
@@ -72,7 +72,11 @@ export default function FileList(props: FileListProps) {
     };
 
     return (
-        <div className={classNames(styles.list, className)} style={style} ref={ref}>
+        <div
+            className={classNames(styles.list, { [styles.loading]: isLoadingSelection }, className)}
+            style={style}
+            ref={ref}
+        >
             <InfiniteLoader
                 key={fileSet.hash}
                 isItemLoaded={fileSet.isFileMetadataLoaded}

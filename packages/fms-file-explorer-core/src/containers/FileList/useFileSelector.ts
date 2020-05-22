@@ -26,42 +26,75 @@ export interface OnSelect {
  * row. It handles logic for mapping user interactions like ctrl clicking (modify existing selection) and shift
  * clicking (bulk selection).
  */
-export default function useFileSelector(fileSet: FileSet): OnSelect {
+export default function useFileSelector(
+    fileSet: FileSet
+): { onSelect: OnSelect; isLoading: boolean } {
     const dispatch = useDispatch();
     const [lastSelectedFileIndex, setLastSelectedFileIndex] = React.useState<undefined | number>(
         undefined
     );
+    const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
     // To be called as an `onSelect` callback by individual FileRows.
-    return React.useCallback(
+    const onSelect = React.useCallback(
         async (fileRow: { index: number; id: string }, eventParams: EventParams) => {
-            try {
-                if (eventParams.shiftKeyIsPressed) {
-                    const fileIds = await fileSet.fileIds();
-                    const fileId = fileIds[fileRow.index];
-
-                    if (fileId === undefined) {
-                        return;
+            if (eventParams.shiftKeyIsPressed) {
+                const rangeBoundary =
+                    lastSelectedFileIndex === undefined ? fileRow.index : lastSelectedFileIndex;
+                const startIndex = Math.min(rangeBoundary, fileRow.index);
+                const endIndex = Math.max(rangeBoundary, fileRow.index);
+                const selections = [];
+                let error = null;
+                for (let i = startIndex; i <= endIndex; i++) {
+                    // Ensure we have the file representation loaded
+                    if (!fileSet.isFileMetadataLoaded(i)) {
+                        const MAX_FILES_TO_FETCH = 1000;
+                        const fileRangeEndBound =
+                            endIndex - i <= MAX_FILES_TO_FETCH ? endIndex : i + MAX_FILES_TO_FETCH;
+                        try {
+                            // Use functional update form to prevent re-render if isLoading is already true
+                            setIsLoading(() => true);
+                            await fileSet.fetchFileRange(i, fileRangeEndBound);
+                        } catch (err) {
+                            // TODO tell user about error?
+                            error = err;
+                            console.error(
+                                "Failed to fetch files necessary in order to perform range selection",
+                                err
+                            );
+                            break;
+                        }
                     }
 
-                    const rangeBoundary =
-                        lastSelectedFileIndex === undefined ? fileRow.index : lastSelectedFileIndex;
-                    const startIndex = Math.min(rangeBoundary, fileRow.index);
-                    const endIndex = Math.max(rangeBoundary, fileRow.index);
-                    const selections = fileIds.slice(startIndex, endIndex + 1); // end not inclusive
-                    dispatch(
-                        selection.actions.selectFile(selections, eventParams.ctrlKeyIsPressed)
-                    );
-                } else {
-                    setLastSelectedFileIndex(fileRow.index);
-                    dispatch(
-                        selection.actions.selectFile(fileRow.id, eventParams.ctrlKeyIsPressed)
-                    );
+                    const file = fileSet.getFileByIndex(i);
+
+                    // While, according to the compiler, file could theoretically be undefined, the above
+                    // FileSet::isFileMetadataLoaded check and code path ensures the file will be present
+                    if (file) {
+                        selections.push(file.fileId);
+                    }
                 }
-            } catch (e) {
-                // TODO
+
+                // A loading flag may have been set in the course of determining file ids of selected files;
+                // clear before moving on.
+                // Use functional update form to prevent re-render if isLoading is already false
+                setIsLoading(() => false);
+
+                if (error) {
+                    return;
+                }
+
+                dispatch(selection.actions.selectFile(selections, eventParams.ctrlKeyIsPressed));
+            } else {
+                setLastSelectedFileIndex(fileRow.index);
+                dispatch(selection.actions.selectFile(fileRow.id, eventParams.ctrlKeyIsPressed));
             }
         },
-        [dispatch, fileSet, lastSelectedFileIndex]
+        [dispatch, fileSet, lastSelectedFileIndex, setIsLoading]
     );
+
+    return {
+        onSelect,
+        isLoading,
+    };
 }
