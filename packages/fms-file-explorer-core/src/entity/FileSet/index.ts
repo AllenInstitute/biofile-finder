@@ -19,10 +19,6 @@ const DEFAULT_OPTS: Opts = {
     sortOrder: [],
 };
 
-function isPromise(arg: any): arg is Promise<any> {
-    return arg instanceof Promise;
-}
-
 /**
  * Represents the filters and applied sorting that together produce a set of files from FMS. Note that the same set of
  * file filters with a different sort order is a different FileSet.
@@ -31,18 +27,16 @@ function isPromise(arg: any): arg is Promise<any> {
  * the subsets of file metadata that will be displayed in the file list.
  */
 export default class FileSet {
-    private cache: LRUCache<string, FmsFile>;
-    private _fileIds: string[] = [];
+    private cache: LRUCache<number, FmsFile>;
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
-    private loaded: Promise<string[]> | undefined;
     private readonly sortOrder: FileSort[];
     private totalFileCount: number | undefined;
 
     constructor(opts: Partial<Opts> = {}) {
         const { fileService, filters, maxCacheSize, sortOrder } = defaults({}, opts, DEFAULT_OPTS);
 
-        this.cache = new LRUCache<string, FmsFile>({ max: maxCacheSize });
+        this.cache = new LRUCache<number, FmsFile>({ max: maxCacheSize });
         this._filters = filters;
         this.sortOrder = sortOrder;
         this.fileService = fileService;
@@ -83,75 +77,34 @@ export default class FileSet {
     }
 
     public getFileByIndex(index: number) {
-        const correspondingFileId = this._fileIds[index];
-        if (!correspondingFileId) {
-            return undefined;
-        }
-
-        return this.cache.get(correspondingFileId);
+        return this.cache.get(index);
     }
 
     /**
      * Fetch metadata for a range of files from within the result set this query corresponds to.
-     *
-     * ! SIDE EFFECT !
-     * Fetches file ids if they have not already been fetched.
      */
     public async fetchFileRange(startIndex: number, endIndex: number) {
-        try {
-            if (!isPromise(this.loaded)) {
-                this.fetchFileIds();
-            }
+        const { limit, offset } = this.calculatePaginationFromIndices(startIndex, endIndex);
+        const response = await this.fileService.getFiles({
+            from: offset,
+            limit,
+            queryString: this.toQueryString(),
+        });
 
-            await this.loaded;
+        // Because of how pagination is implemented, it is not guaranteed that the start index for the requested range of files will
+        // in fact be the start index of the page of data returned. Pages are designed to be inclusive of the requested range, but
+        // may overfetch.
+        const startIndexOfPage = offset * limit;
+        response.data.forEach((file: FmsFile, idx: number) => {
+            this.cache.set(startIndexOfPage + idx, file);
+        });
 
-            const { limit, offset } = this.calculatePaginationFromIndices(startIndex, endIndex);
-            const response = await this.fileService.getFiles({
-                from: offset,
-                limit,
-                queryString: this.toQueryString(),
-            });
-
-            response.data.forEach((file: FmsFile) => {
-                this.cache.set(file.fileId, file);
-            });
-
-            this.totalFileCount = response.totalCount;
-            return response.data;
-        } catch (e) {
-            // TODO retry logic
-            console.error(e);
-        }
-    }
-
-    /**
-     * Return list of all file ids corresponding to this FileSet.
-     *
-     * ! SIDE EFFECT !
-     * Fetches file ids if they have not already been fetched.
-     */
-    public async fileIds() {
-        if (!isPromise(this.loaded)) {
-            this.fetchFileIds();
-        }
-
-        try {
-            await this.loaded;
-        } catch (e) {
-            // TODO retry logic
-            console.error(e);
-        }
-
-        return this._fileIds;
+        this.totalFileCount = response.totalCount;
+        return response.data;
     }
 
     public isFileMetadataLoaded(index: number) {
-        const correspondingFileId = this._fileIds[index];
-        if (!correspondingFileId) {
-            return false;
-        }
-
-        return this.cache.has(correspondingFileId);
+        return this.cache.has(index);
     }
 
     /**
@@ -174,17 +127,6 @@ export default class FileSet {
 
     public toString(): string {
         return `FileSet(${this.toQueryString()})`;
-    }
-
-    /**
-     * Fetch list of all file ids corresponding to this FileSet.
-     *
-     * ! SIDE EFFECT !
-     * Stores Promise as a loading indicator, which allows code to `await this.loaded.`
-     */
-    private async fetchFileIds() {
-        this.loaded = this.fileService.getFileIds(this.toQueryString());
-        this._fileIds = await this.loaded;
     }
 
     /**
