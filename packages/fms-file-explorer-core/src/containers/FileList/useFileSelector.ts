@@ -13,6 +13,8 @@ export interface OnSelect {
     (fileRow: { index: number; id: string }, eventParams: EventParams): void;
 }
 
+const MAX_FILES_IN_BATCH = 250; // Manually tuned batch size
+
 /**
  * Custom React hook for dealing with file selection.
  *
@@ -43,48 +45,51 @@ export default function useFileSelector(
                     lastSelectedFileIndex === undefined ? fileRow.index : lastSelectedFileIndex;
                 const startIndex = Math.min(rangeBoundary, fileRow.index);
                 const endIndex = Math.max(rangeBoundary, fileRow.index);
-                const selections = [];
-                let error = null;
-                for (let i = startIndex; i <= endIndex; i++) {
-                    // Ensure we have the file representation loaded
+                const rangesToFetch = [];
+
+                // This is an unusual for-loop. It does not have a "final-expression" to update the loop counter
+                // because it may jump dramatically between iterations; the loop body itself has the responsibility of incrementing
+                // the loop counter.
+                for (let i = startIndex; i <= endIndex; ) {
                     if (!fileSet.isFileMetadataLoaded(i)) {
-                        const MAX_FILES_TO_FETCH = 1000;
+                        // Do not have the file representation loaded, so fetch files from `i` up to `i + MAX_FILES_IN_BATCH` files.
+                        // This has the possibility of overfetching data, but with an optimally tuned MAX_FILES_IN_BATCH, this shouldn't matter much.
                         const fileRangeEndBound =
-                            endIndex - i <= MAX_FILES_TO_FETCH ? endIndex : i + MAX_FILES_TO_FETCH;
-                        try {
-                            // Use functional update form to prevent re-render if isLoading is already true
-                            setIsLoading(() => true);
-                            await fileSet.fetchFileRange(i, fileRangeEndBound);
-                        } catch (err) {
-                            // TODO tell user about error?
-                            error = err;
-                            console.error(
-                                "Failed to fetch files necessary in order to perform range selection",
-                                err
-                            );
-                            break;
+                            endIndex - i <= MAX_FILES_IN_BATCH ? endIndex : i + MAX_FILES_IN_BATCH;
+                        rangesToFetch.push([i, fileRangeEndBound]);
+                        i = fileRangeEndBound + 1;
+                    } else {
+                        // Already have the file representation loaded; go to the next index within the range selection
+                        i++;
+                    }
+                }
+
+                setIsLoading(true);
+                try {
+                    const fileRangeRequests = rangesToFetch.map(([start, end]) =>
+                        fileSet.fetchFileRange(start, end)
+                    );
+                    await Promise.all(fileRangeRequests);
+
+                    const selections: string[] = [];
+                    for (let i = startIndex; i <= endIndex; i++) {
+                        const file = fileSet.getFileByIndex(i);
+                        if (file) {
+                            selections.push(file.fileId);
                         }
                     }
 
-                    const file = fileSet.getFileByIndex(i);
-
-                    // While, according to the compiler, file could theoretically be undefined, the above
-                    // FileSet::isFileMetadataLoaded check and code path ensures the file will be present
-                    if (file) {
-                        selections.push(file.fileId);
-                    }
+                    dispatch(
+                        selection.actions.selectFile(selections, eventParams.ctrlKeyIsPressed)
+                    );
+                } catch (exc) {
+                    console.error(
+                        "Failed to fetch files necessary in order to perform range selection",
+                        exc
+                    );
+                } finally {
+                    setIsLoading(false);
                 }
-
-                // A loading flag may have been set in the course of determining file ids of selected files;
-                // clear before moving on.
-                // Use functional update form to prevent re-render if isLoading is already false
-                setIsLoading(() => false);
-
-                if (error) {
-                    return;
-                }
-
-                dispatch(selection.actions.selectFile(selections, eventParams.ctrlKeyIsPressed));
             } else {
                 setLastSelectedFileIndex(fileRow.index);
                 dispatch(selection.actions.selectFile(fileRow.id, eventParams.ctrlKeyIsPressed));
