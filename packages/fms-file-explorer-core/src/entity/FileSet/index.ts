@@ -1,5 +1,4 @@
 import { defaults, flatten, join, map } from "lodash";
-import * as LRUCache from "lru-cache";
 
 import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
@@ -8,14 +7,12 @@ import FileService, { FmsFile } from "../../services/FileService";
 interface Opts {
     fileService: FileService;
     filters: FileFilter[];
-    maxCacheSize: number;
     sortOrder: FileSort[];
 }
 
 const DEFAULT_OPTS: Opts = {
     fileService: new FileService(),
     filters: [],
-    maxCacheSize: 1000,
     sortOrder: [],
 };
 
@@ -23,20 +20,19 @@ const DEFAULT_OPTS: Opts = {
  * Represents the filters and applied sorting that together produce a set of files from FMS. Note that the same set of
  * file filters with a different sort order is a different FileSet.
  *
- * Responsible for fetching the set of file ids that corresponds to this set of filters/sort order as well as loading
- * the subsets of file metadata that will be displayed in the file list.
+ * Responsible for loading the metadata for files that will be displayed in the file list.
  */
 export default class FileSet {
-    private cache: LRUCache<number, FmsFile>;
+    private cache: Map<number, FmsFile>;
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
     private readonly sortOrder: FileSort[];
     private totalFileCount: number | undefined;
 
     constructor(opts: Partial<Opts> = {}) {
-        const { fileService, filters, maxCacheSize, sortOrder } = defaults({}, opts, DEFAULT_OPTS);
+        const { fileService, filters, sortOrder } = defaults({}, opts, DEFAULT_OPTS);
 
-        this.cache = new LRUCache<number, FmsFile>({ max: maxCacheSize });
+        this.cache = new Map<number, FmsFile>();
         this._filters = filters;
         this.sortOrder = sortOrder;
         this.fileService = fileService;
@@ -95,16 +91,16 @@ export default class FileSet {
         // in fact be the start index of the page of data returned. Pages are designed to be inclusive of the requested range, but
         // may overfetch.
         const startIndexOfPage = offset * limit;
-        response.data.forEach((file: FmsFile, idx: number) => {
-            this.cache.set(startIndexOfPage + idx, file);
-        });
+        for (let i = 0; i < response.data.length; i++) {
+            this.cache.set(startIndexOfPage + i, response.data[i]);
+        }
 
         this.totalFileCount = response.totalCount;
         return response.data;
     }
 
     public isFileMetadataLoaded(index: number) {
-        return this.cache.has(index);
+        return this.cache.get(index) !== undefined;
     }
 
     /**
