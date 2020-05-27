@@ -6,7 +6,3 @@
 .selected-row {
     background-color: #d4e3fc;
 }
-
-.loading {
-    cursor: wait;
-}

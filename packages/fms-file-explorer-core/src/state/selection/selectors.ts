@@ -7,12 +7,13 @@ import { State } from "../";
 export const getAnnotationHierarchy = (state: State) => state.selection.annotationHierarchy;
 export const getAnnotationsToDisplay = (state: State) => state.selection.displayAnnotations;
 export const getFileFilters = (state: State) => state.selection.filters;
-export const getSelectedFiles = (state: State) => state.selection.selectedFiles;
+export const getSelectedFilesByFileSet = (state: State) => state.selection.selectedFilesByFileSet;
 
 // COMPOSED SELECTORS
 export const getFirstSelectedFile = createSelector(
-    [getSelectedFiles],
-    (selectedFiles) => {
-        return first(selectedFiles);
+    [getSelectedFilesByFileSet],
+    (selectedFilesByFileSet) => {
+        const anyFileSet = Object.keys(selectedFilesByFileSet)[0];
+        return first(anyFileSet);
     }
 );

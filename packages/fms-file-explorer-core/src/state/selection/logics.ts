@@ -4,11 +4,11 @@ import { createLogic } from "redux-logic";
 
 import {
     ADD_FILE_FILTER,
-    deselectFile,
     SELECT_FILE,
     REORDER_ANNOTATION_HIERARCHY,
     REMOVE_FILE_FILTER,
     REMOVE_FROM_ANNOTATION_HIERARCHY,
+    SelectFileAction,
     setAnnotationHierarchy,
     setFileFilters,
 } from "./actions";
@@ -25,24 +25,41 @@ import FileFilter from "../../entity/FileFilter";
  */
 const selectFile = createLogic({
     transform(deps: ReduxLogicDeps, next: (action: AnyAction) => void) {
-        const { action, getState } = deps;
+        const { getState } = deps;
+        const action = deps.action as SelectFileAction;
 
         if (action.payload.updateExistingSelection) {
-            const existingSelections = selectionSelectors.getSelectedFiles(getState());
+            const existingSelectionsByFileSet = selectionSelectors.getSelectedFilesByFileSet(
+                getState()
+            );
+            const existingSelections =
+                existingSelectionsByFileSet[action.payload.correspondingFileSet] || [];
 
             // if updating existing selections and clicked file is already selected, interpret as a deselect action
             // ensure clicked file is not a list of files--that case is more difficult to guess user intention
             if (
-                !isArray(action.payload.file) &&
-                includes(existingSelections, action.payload.file)
+                !isArray(action.payload.fileIndex) &&
+                includes(existingSelections, action.payload.fileIndex)
             ) {
-                next(deselectFile(action.payload.file));
+                next({
+                    ...action,
+                    payload: {
+                        ...action.payload,
+                        fileIndex: without(
+                            existingSelections,
+                            ...castArray(action.payload.fileIndex)
+                        ),
+                    },
+                });
             } else {
                 next({
                     ...action,
                     payload: {
                         ...action.payload,
-                        file: uniq([...existingSelections, ...castArray(action.payload.file)]),
+                        fileIndex: uniq([
+                            ...existingSelections,
+                            ...castArray(action.payload.fileIndex),
+                        ]),
                     },
                 });
             }
@@ -51,7 +68,7 @@ const selectFile = createLogic({
                 ...action,
                 payload: {
                     ...action.payload,
-                    file: castArray(action.payload.file),
+                    fileIndex: castArray(action.payload.fileIndex),
                 },
             });
         }

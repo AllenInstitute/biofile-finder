@@ -12,7 +12,6 @@ import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
 import DirectoryTree from "../";
-import * as directoryTreeSelectors from "../selectors";
 import Annotation from "../../../entity/Annotation";
 import AnnotationService from "../../../services/AnnotationService";
 import { initialState, interaction, reducer, reduxLogics } from "../../../state";

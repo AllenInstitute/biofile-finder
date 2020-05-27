@@ -36,17 +36,14 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     } = props;
 
     const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
-    const selectedFiles = useSelector(selection.selectors.getSelectedFiles);
+    const selectedFilesByFileSet = useSelector(selection.selectors.getSelectedFilesByFileSet);
+    const selectedFiles = selectedFilesByFileSet[fileSet.hash] || [];
 
     const file = fileSet.getFileByIndex(index);
 
     const isSelected = React.useMemo(() => {
-        if (file) {
-            return includes(selectedFiles, file.fileId);
-        }
-
-        return false;
-    }, [file, selectedFiles]);
+        return includes(selectedFiles, index);
+    }, [selectedFiles, index]);
 
     let content;
     if (file) {

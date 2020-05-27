@@ -44,9 +44,10 @@ const MAX_NON_ROOT_HEIGHT = 300;
 export default function FileList(props: FileListProps) {
     const { className, fileSet, isRoot, rowHeight, totalCount } = defaults({}, props, DEFAULTS);
 
-    const { onSelect, isLoading: isLoadingSelection } = useFileSelector(fileSet);
+    const onSelect = useFileSelector(fileSet);
     const dispatch = useDispatch();
-    const selectedFiles = useSelector(selection.selectors.getSelectedFiles);
+    const selectedFilesByFileSet = useSelector(selection.selectors.getSelectedFilesByFileSet);
+    const selectedFiles = selectedFilesByFileSet[fileSet.hash] || [];
 
     // If this is the "root" file list (e.g., all files in FMS), this component should take up
     // 100% of the height of its container.
@@ -72,11 +73,7 @@ export default function FileList(props: FileListProps) {
     };
 
     return (
-        <div
-            className={classNames(styles.list, { [styles.loading]: isLoadingSelection }, className)}
-            style={style}
-            ref={ref}
-        >
+        <div className={classNames(styles.list, className)} style={style} ref={ref}>
             <InfiniteLoader
                 key={fileSet.hash}
                 isItemLoaded={fileSet.isFileMetadataLoaded}

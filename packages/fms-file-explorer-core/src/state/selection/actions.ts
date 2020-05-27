@@ -128,41 +128,25 @@ export const SELECT_FILE = makeConstant(STATE_BRANCH_NAME, "select-file");
 
 export interface SelectFileAction {
     payload: {
+        correspondingFileSet: string; // FileSet::hash
+        fileIndex: number | number[];
         updateExistingSelection: boolean;
-        file: string | string[];
     };
     type: string;
 }
 
 export function selectFile(
-    file: string | string[],
+    correspondingFileSet: string, // FileSet::hash
+    fileIndex: number | number[],
     updateExistingSelection = false
 ): SelectFileAction {
     return {
         payload: {
+            correspondingFileSet,
+            fileIndex,
             updateExistingSelection,
-            file,
         },
         type: SELECT_FILE,
-    };
-}
-
-/**
- * DESELECT_FILE
- *
- * Intention to remove a file from list of selected files.
- */
-export const DESELECT_FILE = makeConstant(STATE_BRANCH_NAME, "deselect-file");
-
-export interface DeselectFileAction {
-    payload: string | string[];
-    type: string;
-}
-
-export function deselectFile(file: string | string[]): DeselectFileAction {
-    return {
-        payload: file,
-        type: DESELECT_FILE,
     };
 }
 

@@ -7,7 +7,6 @@ import FileFilter from "../../entity/FileFilter";
 
 import {
     DESELECT_DISPLAY_ANNOTATION,
-    DESELECT_FILE,
     SELECT_DISPLAY_ANNOTATION,
     SELECT_FILE,
     SET_ANNOTATION_HIERARCHY,
@@ -18,7 +17,9 @@ export interface SelectionStateBranch {
     annotationHierarchy: Annotation[];
     displayAnnotations: Annotation[];
     filters: FileFilter[];
-    selectedFiles: string[]; // file ids
+    selectedFilesByFileSet: {
+        [index: string]: number[]; // FileSet::hash to list of list indices
+    };
 }
 
 const DEFAULT_DISPLAY_ANNOTATIONS = compact([
@@ -32,7 +33,7 @@ export const initialState = {
     annotationHierarchy: [],
     displayAnnotations: [...DEFAULT_DISPLAY_ANNOTATIONS],
     filters: [],
-    selectedFiles: [], // file ids
+    selectedFilesByFileSet: {}, // FileSet::hash to str[]
 };
 
 export default makeReducer<SelectionStateBranch>(
@@ -45,17 +46,16 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             displayAnnotations: without(state.displayAnnotations, ...castArray(action.payload)),
         }),
-        [DESELECT_FILE]: (state, action) => ({
-            ...state,
-            selectedFiles: without(state.selectedFiles, ...castArray(action.payload)),
-        }),
         [SELECT_DISPLAY_ANNOTATION]: (state, action) => ({
             ...state,
             displayAnnotations: [...state.displayAnnotations, ...castArray(action.payload)],
         }),
         [SELECT_FILE]: (state, action) => ({
             ...state,
-            selectedFiles: castArray(action.payload.file),
+            selectedFilesByFileSet: {
+                ...state.selectedFilesByFileSet,
+                [action.payload.correspondingFileSet]: action.payload.fileIndex,
+            },
         }),
         [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
             ...state,

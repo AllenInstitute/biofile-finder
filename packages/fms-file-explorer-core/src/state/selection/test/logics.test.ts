@@ -4,7 +4,6 @@ import { shuffle } from "lodash";
 
 import {
     addFileFilter,
-    DESELECT_FILE,
     SELECT_FILE,
     selectFile,
     reorderAnnotationHierarchy,
@@ -28,7 +27,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile("abc123"));
+            store.dispatch(selectFile("abc123", 5));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -36,7 +35,8 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SELECT_FILE,
                     payload: {
-                        file: ["abc123"],
+                        correspondingFileSet: "abc123",
+                        fileIndex: [5],
                     },
                 })
             ).to.equal(true);
@@ -46,7 +46,9 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFiles: ["abc123"],
+                    selectedFilesByFileSet: {
+                        abc123: [9],
+                    },
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -55,7 +57,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile("xyz789", true));
+            store.dispatch(selectFile("abc123", 14, true));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -63,7 +65,8 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SELECT_FILE,
                     payload: {
-                        file: ["abc123", "xyz789"],
+                        correspondingFileSet: "abc123",
+                        fileIndex: [9, 14],
                     },
                 })
             ).to.equal(true);
@@ -73,7 +76,9 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFiles: ["abc123", "xyz789"],
+                    selectedFilesByFileSet: {
+                        abc123: [8, 22],
+                    },
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -82,14 +87,17 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile("xyz789", true));
+            store.dispatch(selectFile("abc123", 22, true));
             await logicMiddleware.whenComplete();
 
             // assert
             expect(
-                actions.includes({
-                    type: DESELECT_FILE,
-                    payload: "xyz789",
+                actions.includesMatch({
+                    type: SELECT_FILE,
+                    payload: {
+                        correspondingFileSet: "abc123",
+                        fileIndex: [8],
+                    },
                 })
             ).to.equal(true);
         });
@@ -98,7 +106,9 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFiles: ["abc123", "xyz789"],
+                    selectedFilesByFileSet: {
+                        abc123: [8, 22],
+                    },
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -107,16 +117,16 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(["xyz789", "mno456"], true));
+            store.dispatch(selectFile("abc123", [8, 44], true));
             await logicMiddleware.whenComplete();
 
             // assert
-            expect(actions.includesMatch({ type: DESELECT_FILE })).to.equal(false);
             expect(
                 actions.includesMatch({
                     type: SELECT_FILE,
                     payload: {
-                        file: ["abc123", "xyz789", "mno456"],
+                        correspondingFileSet: "abc123",
+                        fileIndex: [8, 22, 44],
                     },
                 })
             ).to.equal(true);
