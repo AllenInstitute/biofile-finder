@@ -1,4 +1,5 @@
 import { defaults, flatten, join, map } from "lodash";
+import * as LRUCache from "lru-cache";
 
 import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
@@ -7,12 +8,14 @@ import FileService, { FmsFile } from "../../services/FileService";
 interface Opts {
     fileService: FileService;
     filters: FileFilter[];
+    maxCacheSize: number;
     sortOrder: FileSort[];
 }
 
 const DEFAULT_OPTS: Opts = {
     fileService: new FileService(),
     filters: [],
+    maxCacheSize: 1000,
     sortOrder: [],
 };
 
@@ -23,16 +26,16 @@ const DEFAULT_OPTS: Opts = {
  * Responsible for loading the metadata for files that will be displayed in the file list.
  */
 export default class FileSet {
-    private cache: Map<number, FmsFile>;
+    private cache: LRUCache<number, FmsFile>;
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
     private readonly sortOrder: FileSort[];
     private totalFileCount: number | undefined;
 
     constructor(opts: Partial<Opts> = {}) {
-        const { fileService, filters, sortOrder } = defaults({}, opts, DEFAULT_OPTS);
+        const { fileService, filters, maxCacheSize, sortOrder } = defaults({}, opts, DEFAULT_OPTS);
 
-        this.cache = new Map<number, FmsFile>();
+        this.cache = new LRUCache<number, FmsFile>({ max: maxCacheSize });
         this._filters = filters;
         this.sortOrder = sortOrder;
         this.fileService = fileService;
