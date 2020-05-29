@@ -1,10 +1,8 @@
 import * as classNames from "classnames";
 import * as React from "react";
-import { useSelector } from "react-redux";
 
 import FileThumbnail from "../../components/FileThumbnail";
 import WindowActionButton from "../../components/WindowActionButton";
-import { selection } from "../../state";
 import useFileDetails from "./useFileDetails";
 import windowStateReducer, { INITIAL_STATE, WindowState } from "./windowStateReducer";
 
@@ -24,11 +22,14 @@ export const WINDOW_ACTION_BUTTON_WIDTH = 23; // arbitrary
 
 /**
  * Right-hand sidebar of application. Displays details of selected file(s).
+ *
+ * GM 5/28/2020: This component is not currently in use--it was used in an early stage of the application prototype.
+ * FMS-1225 is a placeholder ticket for picking this work effort back up.
  */
 export default function FileDetails(props: FileDetails) {
     const [windowState, dispatch] = React.useReducer(windowStateReducer, INITIAL_STATE);
 
-    const fileToDetail = useSelector(selection.selectors.getFirstSelectedFile);
+    const fileToDetail = undefined; // TODO FMS-1225
     const [fileDetails, isLoading] = useFileDetails(fileToDetail);
 
     // If FileDetails pane is minimized, set its width to the width of the WindowActionButtons. Else, let it be
