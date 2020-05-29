@@ -2,10 +2,6 @@ import { createLogic } from "redux-logic";
 
 import { ReduxLogicDeps } from "../";
 import { DOWNLOAD_MANIFEST } from "./actions";
-import metadata from "../metadata";
-import selection from "../selection";
-import * as interactionSelectors from "./selectors";
-import CsvService from "../../services/CsvService";
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -17,20 +13,7 @@ import CsvService from "../../services/CsvService";
 const downloadManifest = createLogic({
     type: DOWNLOAD_MANIFEST,
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { getState } = deps;
-        try {
-            const state = getState();
-            const idsOfSelectedFiles = selection.selectors.getSelectedFiles(state);
-            const annotations = metadata.selectors.getAnnotations(state);
-            const baseUrl = interactionSelectors.getFileExplorerServiceBaseUrl(state);
-
-            const csvService = new CsvService({ baseUrl });
-            await csvService.downloadCsv(idsOfSelectedFiles, annotations);
-        } catch (err) {
-            console.error("Something went wrong, nobody knows why. But here's a hint:", err);
-        } finally {
-            done();
-        }
+        console.warn("This functionality was disabled. It will be re-enabled as part of FMS-1224.");
     },
 });
 
