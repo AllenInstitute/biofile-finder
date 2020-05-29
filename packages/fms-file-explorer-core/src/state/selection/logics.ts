@@ -29,7 +29,7 @@ const selectFile = createLogic({
         const action = deps.action as SelectFileAction;
 
         if (action.payload.updateExistingSelection) {
-            const existingSelectionsByFileSet = selectionSelectors.getSelectedFilesByFileSet(
+            const existingSelectionsByFileSet = selectionSelectors.getSelectedFileIndicesByFileSet(
                 getState()
             );
             const existingSelections =

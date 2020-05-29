@@ -17,7 +17,7 @@ export interface SelectionStateBranch {
     annotationHierarchy: Annotation[];
     displayAnnotations: Annotation[];
     filters: FileFilter[];
-    selectedFilesByFileSet: {
+    selectedFileIndicesByFileSet: {
         [index: string]: number[]; // FileSet::hash to list of list indices
     };
 }
@@ -33,7 +33,7 @@ export const initialState = {
     annotationHierarchy: [],
     displayAnnotations: [...DEFAULT_DISPLAY_ANNOTATIONS],
     filters: [],
-    selectedFilesByFileSet: {}, // FileSet::hash to str[]
+    selectedFileIndicesByFileSet: {}, // FileSet::hash to str[]
 };
 
 export default makeReducer<SelectionStateBranch>(
@@ -52,8 +52,8 @@ export default makeReducer<SelectionStateBranch>(
         }),
         [SELECT_FILE]: (state, action) => ({
             ...state,
-            selectedFilesByFileSet: {
-                ...state.selectedFilesByFileSet,
+            selectedFileIndicesByFileSet: {
+                ...state.selectedFileIndicesByFileSet,
                 [action.payload.correspondingFileSet]: action.payload.fileIndex,
             },
         }),

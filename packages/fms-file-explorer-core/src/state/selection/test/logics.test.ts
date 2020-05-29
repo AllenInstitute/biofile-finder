@@ -46,7 +46,7 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFilesByFileSet: {
+                    selectedFileIndicesByFileSet: {
                         abc123: [9],
                     },
                 },
@@ -76,7 +76,7 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFilesByFileSet: {
+                    selectedFileIndicesByFileSet: {
                         abc123: [8, 22],
                     },
                 },
@@ -106,7 +106,7 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFilesByFileSet: {
+                    selectedFileIndicesByFileSet: {
                         abc123: [8, 22],
                     },
                 },
