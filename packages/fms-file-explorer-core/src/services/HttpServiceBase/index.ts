@@ -37,20 +37,32 @@ export default class HttpServiceBase {
      * decode all reserved characters that Window::encodeURIComponent produces.
      */
     public static encodeURIComponent(str: string) {
+        // encode ampersands that do not separate query string components, so first
+        // need to separate the query string componenets (which are split by ampersands themselves)
+        // handles case like `workflow=R&DExp&cell_line=AICS-46&foo=bar&cTnT%=3.0`
+        const re = /&(?=(?:[^&])+\=)/g;
+        const queryStringComponents = str.split(re);
+
         const CHARACTER_TO_ENCODING_MAP: { [index: string]: string } = {
             "+": "%2b",
             " ": "%20",
+            "&": "%26",
+            "%": "%25",
         };
-        return str
-            .split("")
-            .map((chr) => {
-                if (CHARACTER_TO_ENCODING_MAP.hasOwnProperty(chr)) {
-                    return CHARACTER_TO_ENCODING_MAP[chr];
-                }
 
-                return chr;
-            })
-            .join("");
+        return queryStringComponents
+            .map((keyValuePair) =>
+                [...keyValuePair] // Split string into characters (https://stackoverflow.com/questions/4547609/how-do-you-get-a-string-to-a-character-array-in-javascript/34717402#34717402)
+                    .map((chr) => {
+                        if (CHARACTER_TO_ENCODING_MAP.hasOwnProperty(chr)) {
+                            return CHARACTER_TO_ENCODING_MAP[chr];
+                        }
+
+                        return chr;
+                    })
+                    .join("")
+            )
+            .join("&");
     }
 
     public baseUrl: string | keyof typeof DataSource = DEFAULT_CONNECTION_CONFIG.baseUrl;
