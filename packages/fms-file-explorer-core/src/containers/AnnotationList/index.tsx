@@ -48,10 +48,8 @@ export default function AnnotationList(props: AnnotationListProps) {
     // Perform fuzzy search using searchValue within annotation list items, considering the items
     // title and description. If no searchValue has been entered, return full list of items.
     const filteredListItems = React.useMemo(() => {
-        let items;
-        if (!searchValue) {
-            items = annotationListItems.sort((a, b) => a.title.localeCompare(b.title));
-        } else {
+        let items = annotationListItems;
+        if (searchValue) {
             const fuse = new Fuse(annotationListItems, FUZZY_SEARCH_OPTIONS);
             items = fuse.search(searchValue);
         }
