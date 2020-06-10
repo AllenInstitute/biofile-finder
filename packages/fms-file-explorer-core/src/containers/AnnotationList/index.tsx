@@ -18,7 +18,10 @@ interface AnnotationListProps {
 
 const FUZZY_SEARCH_OPTIONS = {
     // which keys on ListItemData to search
-    keys: [{ name: "title", weight: 0.7 }, { name: "description", weight: 0.3 }],
+    keys: [
+        { name: "title", weight: 0.7 },
+        { name: "description", weight: 0.3 },
+    ],
 
     // return resulting matches sorted
     shouldSort: true,
@@ -45,12 +48,15 @@ export default function AnnotationList(props: AnnotationListProps) {
     // Perform fuzzy search using searchValue within annotation list items, considering the items
     // title and description. If no searchValue has been entered, return full list of items.
     const filteredListItems = React.useMemo(() => {
+        let items;
         if (!searchValue) {
-            return annotationListItems;
+            items = annotationListItems.sort((a, b) => a.title.localeCompare(b.title));
+        } else {
+            const fuse = new Fuse(annotationListItems, FUZZY_SEARCH_OPTIONS);
+            items = fuse.search(searchValue);
         }
-
-        const fuse = new Fuse(annotationListItems, FUZZY_SEARCH_OPTIONS);
-        return fuse.search(searchValue);
+        // Sort the list of annotations to display to the user alphabetically
+        return items.sort((a, b) => a.title.localeCompare(b.title));
     }, [annotationListItems, searchValue]);
 
     return (
