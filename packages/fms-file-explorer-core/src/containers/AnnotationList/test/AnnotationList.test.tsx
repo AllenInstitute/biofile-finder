@@ -68,4 +68,76 @@ describe("<AnnotationList />", () => {
             expect(wrapper.contains("Size")).to.be.false;
         });
     });
+
+    describe("List Order", () => {
+        it("sorts list alphabetically", () => {
+            // Arrange
+            const { store } = configureMockStore({
+                state: mergeState(initialState, {
+                    metadata: {
+                        annotations: annotationsJson.map(
+                            (annotation) => new Annotation(annotation)
+                        ),
+                    },
+                }),
+            });
+            // Act
+            const wrapper = mount(
+                <Provider store={store}>
+                    <DragDropContext
+                        onDragEnd={() => {
+                            /* noop */
+                        }}
+                    >
+                        <AnnotationList />
+                    </DragDropContext>
+                </Provider>
+            );
+
+            const listItemsWrapper = wrapper.find("span[data-test-id='annotation-list-item']");
+            const listItems = listItemsWrapper.map((node) => node.text());
+            const expectation = annotationsJson
+                .map((annotation) => annotation.annotationDisplayName)
+                .sort((a, b) => a.localeCompare(b));
+
+            // Assert
+            expect(listItems).to.be.deep.equal(expectation);
+        });
+
+        it("continues to sort when filtered", () => {
+            // Arrange
+            const { store } = configureMockStore({
+                state: mergeState(initialState, {
+                    metadata: {
+                        annotations: annotationsJson.map(
+                            (annotation) => new Annotation(annotation)
+                        ),
+                    },
+                }),
+            });
+            // Act
+            const wrapper = mount(
+                <Provider store={store}>
+                    <DragDropContext
+                        onDragEnd={() => {
+                            /* noop */
+                        }}
+                    >
+                        <AnnotationList />
+                    </DragDropContext>
+                </Provider>
+            );
+
+            // Execute a search against the annotations
+            wrapper.find("input[type='search']").simulate("change", { target: { value: "e" } });
+
+            const filterdListItemsWrapper = wrapper.find(
+                "span[data-test-id='annotation-list-item']"
+            );
+            const filterdListItems = filterdListItemsWrapper.map((node) => node.text());
+            const expectation = filterdListItems.sort((a, b) => a.localeCompare(b));
+            // Assert
+            expect(filterdListItems).to.be.deep.equal(expectation);
+        });
+    });
 });
