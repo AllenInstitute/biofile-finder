@@ -105,7 +105,7 @@ export default function FileList(props: FileListProps) {
                 )}
             </InfiniteLoader>
             {!isRoot && (
-                <div className={styles.rowDisplayCount}>
+                <div className={styles.rowCountDisplay}>
                     Showing {totalCount > 12 ? 12 : { totalCount }} of {totalCount} files
                 </div>
             )}
