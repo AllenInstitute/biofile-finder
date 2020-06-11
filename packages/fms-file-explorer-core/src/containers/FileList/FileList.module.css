@@ -10,5 +10,6 @@
 .row-count-display {
     color: grey;
     float: right;
-    margin-top: 7px;
+    font-size: 12px;
+    margin: 7px 0px 0px 0px;
 }

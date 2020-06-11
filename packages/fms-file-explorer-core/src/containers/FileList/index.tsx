@@ -26,11 +26,14 @@ interface FileListProps {
     className?: string;
     fileSet: FileSet;
     isRoot: boolean;
+    maxRowsToDisplay?: number;
     totalCount?: number;
     rowHeight?: number; // how tall each row of the list will be, in px
 }
 
 const DEFAULTS = {
+    // this is a function of how many rows we can display given the rowHeight & MAX_NON_ROOT_HEIGHT
+    maxRowsToDisplay: 12,
     totalCount: DEFAULT_TOTAL_COUNT,
     rowHeight: 22,
 };
@@ -42,7 +45,11 @@ const MAX_NON_ROOT_HEIGHT = 300;
  * itself out to be 100% the height and width of its parent.
  */
 export default function FileList(props: FileListProps) {
-    const { className, fileSet, isRoot, rowHeight, totalCount } = defaults({}, props, DEFAULTS);
+    const { className, fileSet, isRoot, maxRowsToDisplay, rowHeight, totalCount } = defaults(
+        {},
+        props,
+        DEFAULTS
+    );
 
     const onSelect = useFileSelector(fileSet);
     const dispatch = useDispatch();
@@ -105,9 +112,9 @@ export default function FileList(props: FileListProps) {
                 )}
             </InfiniteLoader>
             {!isRoot && (
-                <div className={styles.rowCountDisplay}>
-                    Showing {totalCount > 12 ? 12 : { totalCount }} of {totalCount} files
-                </div>
+                <p className={styles.rowCountDisplay}>
+                    Showing {Math.min(maxRowsToDisplay, totalCount)} of {totalCount} files
+                </p>
             )}
         </div>
     );
