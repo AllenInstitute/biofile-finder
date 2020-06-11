@@ -41,6 +41,9 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
                 loading={isLoading}
                 title={displayValue}
                 onClick={() => dispatch(toggleCollapse())}
+                isLeaf={isLeaf}
+                numberSelected={5}
+                total={15}
             />
             <ul
                 className={classNames(styles.children, {

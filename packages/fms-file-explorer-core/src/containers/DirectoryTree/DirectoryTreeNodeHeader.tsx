@@ -14,6 +14,9 @@ interface DirectoryTreeNodeHeaderProps {
     loading: boolean;
     onClick: () => void;
     title: string;
+    numberSelected: number;
+    total: number;
+    isLeaf: boolean;
 }
 
 /**
@@ -44,7 +47,9 @@ const ICON_SIZE = 15; // in px; both width and height
  * not cheap to initialize.
  */
 export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeNodeHeaderProps) {
-    const { collapsed, error, loading, onClick, title } = props;
+    const { collapsed, error, loading, onClick, title, total, numberSelected, isLeaf } = props;
+    const selectedCount =
+        isLeaf && numberSelected ? `(${numberSelected} of ${total} selected)` : "";
 
     return (
         <span className={styles.directoryHeader} onClick={onClick}>
@@ -64,7 +69,9 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
                 viewBox="0 0 24 24"
                 width={ICON_SIZE}
             />
-            <h4 className={styles.directoryName}>{title}</h4>
+            <h4 className={styles.directoryName}>
+                {title} {selectedCount}
+            </h4>
             {loading && <Spinner size={SpinnerSize.small} />}
             {!loading && error && (
                 <Tippy content={error.message}>

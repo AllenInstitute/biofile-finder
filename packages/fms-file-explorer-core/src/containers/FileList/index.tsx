@@ -104,6 +104,11 @@ export default function FileList(props: FileListProps) {
                     </FixedSizeList>
                 )}
             </InfiniteLoader>
+            {!isRoot && (
+                <div className={styles.rowDisplayCount}>
+                    Showing {totalCount > 12 ? 12 : { totalCount }} of {totalCount} files
+                </div>
+            )}
         </div>
     );
 }

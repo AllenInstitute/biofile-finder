@@ -6,3 +6,9 @@
 .selected-row {
     background-color: #d4e3fc;
 }
+
+.row-display-count {
+    color: grey;
+    float: right;
+    margin-top: 7px;
+}
