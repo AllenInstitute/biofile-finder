@@ -80,4 +80,75 @@ describe("<AnnotationFilterForm />", () => {
             expect(getByLabelText("b").getAttribute("aria-checked")).to.equal("true");
         });
     });
+    describe("Boolean annotations", () => {
+        // setup
+        const fooAnnotation = new Annotation({
+            annotationDisplayName: "Foo",
+            annotationName: "foo",
+            description: "",
+            type: "YesNo",
+            values: [true, false],
+        });
+        const annotations = [fooAnnotation];
+
+        it("shows all values as unchecked at first", () => {
+            // Arrange
+            const state = mergeState(initialState, {
+                metadata: {
+                    annotations,
+                },
+            });
+            const { store } = configureMockStore({ state });
+            // Act
+            const { getAllByRole } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotationName="foo" />
+                </Provider>
+            );
+            // Assert
+            getAllByRole("listitem").forEach((listItem) => {
+                expect(listItem.hasAttribute("checked")).to.equal(false);
+            });
+        });
+
+        it("deselects and selects a value", async () => {
+            // Arrange: Start with the "False" input selected
+            const state = mergeState(initialState, {
+                metadata: {
+                    annotations,
+                },
+                selection: {
+                    filters: [new FileFilter(fooAnnotation.name, false)],
+                },
+            });
+            const { store, logicMiddleware } = configureMockStore({
+                logics: reduxLogics,
+                state,
+                reducer,
+            });
+            // Act
+            const { getByLabelText } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotationName={fooAnnotation.name} />
+                </Provider>
+            );
+
+            // Assert: Check that the "False" input is selected
+            expect(getByLabelText("False").getAttribute("aria-checked")).to.equal("true");
+
+            // Act: Deselect the "False" input
+            fireEvent.click(getByLabelText("False"));
+            await logicMiddleware.whenComplete();
+
+            // Assert: Check that the "False" input is deselected
+            expect(getByLabelText("False").getAttribute("aria-checked")).to.equal("false");
+
+            // Act: Reselect the "False" input
+            fireEvent.click(getByLabelText("False"));
+            await logicMiddleware.whenComplete();
+
+            // Assert: Check that the "False" input is selected again
+            expect(getByLabelText("False").getAttribute("aria-checked")).to.equal("true");
+        });
+    });
 });

@@ -61,8 +61,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             (annotationValue) =>
                 new FileFilter(annotationName, annotation?.valueOf(annotationValue))
         );
-        console.log(value);
-        console.log(filters);
         dispatch(selection.actions.addFileFilter(filters));
     };
 

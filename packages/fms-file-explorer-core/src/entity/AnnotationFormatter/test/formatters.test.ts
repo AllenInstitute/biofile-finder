@@ -7,15 +7,27 @@ import numberFormatter from "../number-formatter";
 
 describe("Annotation formatters", () => {
     describe("Boolean annotation formatter", () => {
-        it("turns true into 'True'", () => {
+        it("displays true as 'True'", () => {
             ["true", "True", true].forEach((input) =>
                 expect(booleanFormatter.displayValue(input)).to.equal("True")
             );
         });
 
-        it("turns false into 'False'", () => {
+        it("displays false as 'False'", () => {
             ["false", "False", false].forEach(() =>
                 expect(booleanFormatter.displayValue("false")).to.equal("False")
+            );
+        });
+
+        it("turns 'True' to true", () => {
+            ["true", "True", true].forEach((input) =>
+                expect(booleanFormatter.valueOf(input)).to.equal(true)
+            );
+        });
+
+        it("turns 'False' to false", () => {
+            ["false", "False", false].forEach((input) =>
+                expect(booleanFormatter.valueOf(input)).to.equal(false)
             );
         });
     });
