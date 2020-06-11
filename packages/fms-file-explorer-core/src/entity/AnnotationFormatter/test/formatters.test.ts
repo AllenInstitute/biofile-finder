@@ -20,14 +20,14 @@ describe("Annotation formatters", () => {
         });
 
         it("turns 'True' to true", () => {
-            ["true", "True", true].forEach((input) =>
-                expect(booleanFormatter.valueOf(input)).to.equal(true)
+            ["true", "True", true].forEach(
+                (input) => expect(booleanFormatter.valueOf(input)).to.be.true
             );
         });
 
         it("turns 'False' to false", () => {
-            ["false", "False", false].forEach((input) =>
-                expect(booleanFormatter.valueOf(input)).to.equal(false)
+            ["false", "False", false].forEach(
+                (input) => expect(booleanFormatter.valueOf(input)).to.be.false
             );
         });
     });
