@@ -1,4 +1,4 @@
-import { castArray, find } from "lodash";
+import { castArray, find, isNil } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -51,7 +51,12 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const onDeselect = (value: AnnotationValue | AnnotationValue[]) => {
         const filters = castArray(value).map(
             (annotationValue) =>
-                new FileFilter(annotationName, annotation?.valueOf(annotationValue))
+                new FileFilter(
+                    annotationName,
+                    isNil(annotation?.valueOf(annotationValue))
+                        ? annotationValue
+                        : annotation?.valueOf(annotationValue)
+                )
         );
         dispatch(selection.actions.removeFileFilter(filters));
     };
@@ -59,7 +64,12 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const onSelect = (value: AnnotationValue | AnnotationValue[]) => {
         const filters = castArray(value).map(
             (annotationValue) =>
-                new FileFilter(annotationName, annotation?.valueOf(annotationValue))
+                new FileFilter(
+                    annotationName,
+                    isNil(annotation?.valueOf(annotationValue))
+                        ? annotationValue
+                        : annotation?.valueOf(annotationValue)
+                )
         );
         dispatch(selection.actions.addFileFilter(filters));
     };
