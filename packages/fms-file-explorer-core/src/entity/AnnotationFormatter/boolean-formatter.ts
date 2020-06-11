@@ -22,12 +22,10 @@ export default {
     },
 
     valueOf(value: any) {
-        // If the value isn't a string type there isn't any parsing we can do
+        // If the value isn't a string type there isn't any parsing to do
         if (typeof value !== "string") {
             return value;
         }
-        const x = this.displayValue(value);
-        console.log(x);
-        return xcontext;
+        return castBoolean(value);
     },
 };
