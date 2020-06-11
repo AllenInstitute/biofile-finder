@@ -51,10 +51,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const onDeselect = (value: AnnotationValue | AnnotationValue[]) => {
         const filters = castArray(value).map(
             (annotationValue) =>
-                new FileFilter(
-                    annotationName,
-                    annotation?.valueOf(annotationValue) || annotationValue
-                )
+                new FileFilter(annotationName, annotation?.valueOf(annotationValue))
         );
         dispatch(selection.actions.removeFileFilter(filters));
     };
@@ -62,11 +59,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const onSelect = (value: AnnotationValue | AnnotationValue[]) => {
         const filters = castArray(value).map(
             (annotationValue) =>
-                new FileFilter(
-                    annotationName,
-                    annotation?.valueOf(annotationValue) || annotationValue
-                )
+                new FileFilter(annotationName, annotation?.valueOf(annotationValue))
         );
+        console.log(value);
+        console.log(filters);
         dispatch(selection.actions.addFileFilter(filters));
     };
 
