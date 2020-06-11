@@ -131,13 +131,13 @@ describe("<AnnotationList />", () => {
             // Execute a search against the annotations
             wrapper.find("input[type='search']").simulate("change", { target: { value: "e" } });
 
-            const filterdListItemsWrapper = wrapper.find(
+            const filteredListItemsWrapper = wrapper.find(
                 "span[data-test-id='annotation-list-item']"
             );
-            const filterdListItems = filterdListItemsWrapper.map((node) => node.text());
-            const expectation = filterdListItems.sort((a, b) => a.localeCompare(b));
+            const filteredListItems = filteredListItemsWrapper.map((node) => node.text());
+            const expectation = [...filteredListItems].sort((a, b) => a.localeCompare(b));
             // Assert
-            expect(filterdListItems).to.be.deep.equal(expectation);
+            expect(filteredListItems).to.be.deep.equal(expectation);
         });
     });
 });
