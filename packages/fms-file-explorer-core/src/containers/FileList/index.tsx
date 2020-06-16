@@ -26,14 +26,12 @@ interface FileListProps {
     className?: string;
     fileSet: FileSet;
     isRoot: boolean;
-    maxRowsToDisplay?: number;
     totalCount?: number;
     rowHeight?: number; // how tall each row of the list will be, in px
 }
 
 const DEFAULTS = {
     // this is a function of how many rows we can display given the rowHeight & MAX_NON_ROOT_HEIGHT
-    maxRowsToDisplay: 12,
     totalCount: DEFAULT_TOTAL_COUNT,
     rowHeight: 22,
 };
@@ -45,11 +43,7 @@ const MAX_NON_ROOT_HEIGHT = 300;
  * itself out to be 100% the height and width of its parent.
  */
 export default function FileList(props: FileListProps) {
-    const { className, fileSet, isRoot, maxRowsToDisplay, rowHeight, totalCount } = defaults(
-        {},
-        props,
-        DEFAULTS
-    );
+    const { className, fileSet, isRoot, rowHeight, totalCount } = defaults({}, props, DEFAULTS);
 
     const onSelect = useFileSelector(fileSet);
     const dispatch = useDispatch();
@@ -68,6 +62,7 @@ export default function FileList(props: FileListProps) {
     const style = {
         height: isRoot ? undefined : `${calculatedHeight}px`,
     };
+    const maxPossibleRowsBeingDisplayed = Math.ceil(calculatedHeight / rowHeight) - 2; // removing two to account for header
 
     // Callback provided to individual LazilyRenderedRows to be called on `contextmenu`
     const onFileRowContextMenu = (evt: React.MouseEvent) => {
@@ -113,7 +108,8 @@ export default function FileList(props: FileListProps) {
             </InfiniteLoader>
             {!isRoot && (
                 <p className={styles.rowCountDisplay}>
-                    Showing {Math.min(maxRowsToDisplay, totalCount)} of {totalCount} files
+                    Showing {totalCount} files{" "}
+                    {selectedFileIndices.length && `(${selectedFiles.length} selected)`}
                 </p>
             )}
         </div>
