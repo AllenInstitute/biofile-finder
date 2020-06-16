@@ -31,7 +31,6 @@ interface FileListProps {
 }
 
 const DEFAULTS = {
-    // this is a function of how many rows we can display given the rowHeight & MAX_NON_ROOT_HEIGHT
     totalCount: DEFAULT_TOTAL_COUNT,
     rowHeight: 22,
 };
@@ -51,6 +50,9 @@ export default function FileList(props: FileListProps) {
         selection.selectors.getSelectedFileIndicesByFileSet
     );
     const selectedFileIndices = selectedFileIndicesByFileSet[fileSet.hash] || [];
+    const selectedFilesText = selectedFileIndices.length
+        ? `(${selectedFileIndices.length} selected)`
+        : "";
 
     // If this is the "root" file list (e.g., all files in FMS), this component should take up
     // 100% of the height of its container.
@@ -62,7 +64,6 @@ export default function FileList(props: FileListProps) {
     const style = {
         height: isRoot ? undefined : `${calculatedHeight}px`,
     };
-    const maxPossibleRowsBeingDisplayed = Math.ceil(calculatedHeight / rowHeight) - 2; // removing two to account for header
 
     // Callback provided to individual LazilyRenderedRows to be called on `contextmenu`
     const onFileRowContextMenu = (evt: React.MouseEvent) => {
@@ -108,8 +109,7 @@ export default function FileList(props: FileListProps) {
             </InfiniteLoader>
             {!isRoot && (
                 <p className={styles.rowCountDisplay}>
-                    Showing {totalCount} files{" "}
-                    {selectedFileIndices.length && `(${selectedFiles.length} selected)`}
+                    Showing {totalCount} files {selectedFilesText}
                 </p>
             )}
         </div>
