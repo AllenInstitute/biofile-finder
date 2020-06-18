@@ -57,7 +57,7 @@ export default function App(props: AppProps) {
                         <DirectoryTree className={styles.fileList} />
                     </div>
                 </div>
-                <FileDetails className={classNames(styles.fileDetails, styles.placeholder)} />
+                <FileDetails className={styles.fileDetails} />
             </div>
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
         </div>

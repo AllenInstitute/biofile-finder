@@ -1,3 +1,5 @@
+import { FmsFile } from "../../services/FileService";
+
 /**
  * Expected JSON response of a file detail returned from the query service. Example:
  * {
@@ -39,8 +41,8 @@
  *      time: [
  *          { id: 34, deltaT: "foobar" },
  *      ]
- *     fileId: "26aa7881b8004dd0bcec857baf9a2f0a",
- *     thumbnail: "src/of/thumbnail",
+ *     file_id: "26aa7881b8004dd0bcec857baf9a2f0a",
+ *     thumbnailPath: "src/of/thumbnail",
  *     "uploaded": "2019-08-15 13:50:24",
  *     "uploadedBy": "svc_airflow",
  * }
@@ -85,17 +87,45 @@ export interface FileDetailResponse {
  * Facade for a FileDetailResponse.
  */
 export default class FileDetail {
-    private fileDetail: FileDetailResponse;
+    private fileDetail: FmsFile;
 
-    constructor(fileDetail: FileDetailResponse) {
+    constructor(fileDetail: FmsFile) {
         this.fileDetail = fileDetail;
     }
 
     public get id() {
-        return this.fileDetail.file_id;
+        return this.fileDetail.fileId;
+    }
+
+    public get name() {
+        return this.fileDetail.fileName;
+    }
+
+    public get path() {
+        return this.fileDetail.filePath;
+    }
+
+    public get type() {
+        return this.fileDetail.fileType;
     }
 
     public get thumbnail() {
-        return this.fileDetail.thumbnail;
+        return this.fileDetail.thumbnailPath;
+    }
+
+    public get annotations() {
+        return this.fileDetail.annotations;
+    }
+
+    public get positions() {
+        return this.fileDetail.positions;
+    }
+
+    public get channels() {
+        return this.fileDetail.channels;
+    }
+
+    public get times() {
+        return this.fileDetail.times;
     }
 }

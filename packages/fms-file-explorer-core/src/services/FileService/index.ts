@@ -22,7 +22,11 @@ export interface FmsFileAnnotation {
 export interface FmsFile {
     [key: string]: any;
     fileId: string;
-    annotations?: FmsFileAnnotation[];
+    annotations: FmsFileAnnotation[];
+    positions: { id: number }[];
+    channels: { id: number }[];
+    times: { id: number }[];
+    thumbnailPath?: string;
 }
 
 export interface GetFilesRequest {
