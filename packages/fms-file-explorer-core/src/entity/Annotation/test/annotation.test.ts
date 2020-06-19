@@ -2,11 +2,12 @@ import { expect } from "chai";
 
 import Annotation from "../";
 import { AnnotationType } from "../../AnnotationFormatter";
+import { makeFileDetailMock } from "../../FileDetail/mocks";
 
 describe("Annotation", () => {
     const annotationResponse = Object.freeze({
         annotationDisplayName: "Date uploaded",
-        annotationName: "uploaded",
+        annotationName: "someDateAnnotation",
         description: "Date the file was uploaded",
         type: AnnotationType.DATETIME,
         values: [],
@@ -15,8 +16,8 @@ describe("Annotation", () => {
     describe("extractFromFile", () => {
         it("gets the display value for a top-level annotation it represents from a given FmsFile", () => {
             const fmsFile = {
-                uploaded: "2019-05-17T07:43:55.205Z",
-                fileId: "abc123",
+                ...makeFileDetailMock("abc123"),
+                someDateAnnotation: "2019-05-17T07:43:55.205Z",
             };
 
             const annotation = new Annotation(annotationResponse);
@@ -25,10 +26,10 @@ describe("Annotation", () => {
 
         it("gets the display value for a non-top-level annotation it represents from a given FmsFile", () => {
             const fmsFile = {
-                fileId: "abc123",
+                ...makeFileDetailMock("abc123"),
                 annotations: [
                     {
-                        name: "uploaded",
+                        name: "someDateAnnotation",
                         values: ["2019-05-17T07:43:55.205Z"],
                     },
                 ],
@@ -39,9 +40,7 @@ describe("Annotation", () => {
         });
 
         it("returns a MISSING_VALUE sentinel if the given FmsFile does not have the annotation", () => {
-            const fmsFile = {
-                fileId: "abc123",
-            };
+            const fmsFile = makeFileDetailMock("abc123");
 
             const annotation = new Annotation(annotationResponse);
             expect(annotation.extractFromFile(fmsFile)).to.equal(Annotation.MISSING_VALUE);

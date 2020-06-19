@@ -9,6 +9,7 @@ import Annotation from "../../../entity/Annotation";
 import LazilyRenderedRow from "../LazilyRenderedRow";
 import { initialState } from "../../../state";
 import FileSet from "../../../entity/FileSet";
+import { makeFileDetailMock } from "../../../entity/FileDetail/mocks";
 
 describe("<LazilyRenderedRow />", () => {
     const fileNameAnnotation = new Annotation({
@@ -23,7 +24,10 @@ describe("<LazilyRenderedRow />", () => {
         const fileSet = new FileSet();
         sinon.stub(fileSet, "getFileByIndex").callsFake((index) => {
             if (index === 3) {
-                return { fileId: "abc123", fileName: "my_image.czi" };
+                return {
+                    ...makeFileDetailMock("abc123"),
+                    fileName: "my_image.czi",
+                };
             }
         });
 

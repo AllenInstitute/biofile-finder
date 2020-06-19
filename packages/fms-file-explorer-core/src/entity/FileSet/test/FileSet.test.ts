@@ -7,6 +7,7 @@ import FileService from "../../../services/FileService";
 import FileSet from "../";
 import FileSort, { SortOrder } from "../../FileSort";
 import RestServiceResponse from "../../RestServiceResponse";
+import { makeFileDetailMock } from "../../FileDetail/mocks";
 
 describe("FileSet", () => {
     const scientistEqualsJane = new FileFilter("scientist", "jane");
@@ -43,7 +44,7 @@ describe("FileSet", () => {
     describe("fetchFileRange", () => {
         const sandbox = createSandbox();
         const fileIds = ["abc123", "def456", "ghi789", "jkl012", "mno345"];
-        const files = fileIds.map((id) => ({ fileId: id }));
+        const files = fileIds.map((id) => makeFileDetailMock(id));
 
         afterEach(() => {
             sandbox.reset();
@@ -139,8 +140,8 @@ describe("FileSet", () => {
     describe("getFileByIndex", () => {
         const sandbox = createSandbox();
 
-        const fileIds = ["abc123", "def456", "ghi789", "jkl012", "mno345"];
-        const files = fileIds.map((id) => ({ fileId: id }));
+        const fileIds: string[] = ["abc123", "def456", "ghi789", "jkl012", "mno345"];
+        const files = fileIds.map((id) => makeFileDetailMock(id));
 
         const fileService = new FileService();
         const fileSet = new FileSet({ fileService });
