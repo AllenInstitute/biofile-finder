@@ -121,6 +121,23 @@ export default class FileService extends HttpServiceBase {
         return response.data;
     }
 
+    /**
+     * Best-effort (iterative) calculation of limit (page size) and offset (page number).
+     *
+     * Traditionally, we would request pages of data one at a time, one after the other. Pages are defined by
+     * "offsets," which is how many pages it takes to get to the start of the current page, and a "limit", which is
+     * the size of the page. For example, if requesting ?offset=4&limit=5, we should expect data corresponding to the indices
+     * 20 - 24. The start index === (offset * limit), and the end index === (start index + limit - 1).
+     *
+     * Here, it's more complicated--we need to be able to do "random access" paging. We need to be to fetch the data that
+     * corresponds to, e.g., indices 53 - 102 within some set of files. In the next moment, if the user takes the scroll
+     * bar and drastically moves it, the next "page" of data needed might correspond to indices 821 - 847. So, both the
+     * "offset" and "limit" need to be dynamic constructs.
+     *
+     * There's no strong guarantee that the limit and offset returned will fully cover the requested indices.
+     *
+     * Written in collaboration between Gabe and Dan--final code written by Dan and copy/pasted by Gabe.
+     */
     private static calculatePaginationFromIndices(start: number, end: number) {
         // inclusive range of indices
         const totalRange = end - start + 1;
