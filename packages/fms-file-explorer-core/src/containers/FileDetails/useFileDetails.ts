@@ -13,15 +13,6 @@ const defaultOpts: Opts = {
     maxCacheSize: 100,
 };
 
-async function fetchDetailsFromNetwork(
-    fileIndex: number,
-    queryString: string,
-    fileService: FileService
-): Promise<FmsFile> {
-    const { response } = await fileService.getFilesByIndices(fileIndex, fileIndex, queryString);
-    return response.data[0];
-}
-
 /**
  * Custom React hook to accomplish storing and fetching details of files (i.e., complex file metadata). Implements a
  * pass-thru LRU cache that will hold on to `opts.maxCacheSize` details for files; if metadata for a file is missing
@@ -31,7 +22,7 @@ async function fetchDetailsFromNetwork(
  */
 export default function useFileDetails(
     fileIndex: number | undefined,
-    queryString: string | undefined,
+    fileSetHash: string | undefined,
     fileService: FileService,
     opts?: Opts
 ): [FileDetail | undefined, boolean] {
@@ -41,7 +32,7 @@ export default function useFileDetails(
     );
     const [isLoading, setIsLoading] = React.useState(false);
     // Create Key for accessing the cache for this file
-    const fileIndexKey = `${fileIndex}-${queryString}`;
+    const fileIndexKey = `${fileIndex}-${fileSetHash}`;
 
     React.useEffect(() => {
         // This tracking variable allows us to avoid a call to setDetailsCache (which triggers a re-render) if the
@@ -49,7 +40,7 @@ export default function useFileDetails(
         // selection then quickly makes a new selection.
         let ignoreResponse = false;
         // no selected file (fileId is undefined) or cache hit, nothing to do
-        if (isUndefined(fileIndex) || isUndefined(queryString) || detailsCache.has(fileIndexKey)) {
+        if (isUndefined(fileIndex) || isUndefined(fileSetHash) || detailsCache.has(fileIndexKey)) {
             // a previous request was cancelled
             if (isLoading) {
                 setIsLoading(false);
@@ -58,10 +49,14 @@ export default function useFileDetails(
             // cache miss, make network request and store in cache
         } else {
             setIsLoading(true);
-            fetchDetailsFromNetwork(fileIndex, queryString, fileService)
-                .then((file) => {
+            // The FileSet hash is a combination of its query string & data source
+            // we only want the query string
+            const queryString = fileSetHash.split(":")[0];
+            fileService
+                .getFilesByIndices(fileIndex, fileIndex, queryString)
+                .then(({ response }) => {
                     if (!ignoreResponse) {
-                        const detail = new FileDetail(file);
+                        const detail = new FileDetail(response.data[0]);
                         setDetailsCache((prevCache) => {
                             const nextCache = new LRUCache<string, FileDetail>({
                                 max: maxCacheSize,
@@ -85,7 +80,7 @@ export default function useFileDetails(
         };
     }, [fileIndexKey, detailsCache, isLoading, maxCacheSize]);
 
-    const fileDetails = isUndefined(fileIndexKey) ? fileIndexKey : detailsCache.get(fileIndexKey);
+    const fileDetails = isUndefined(fileIndexKey) ? undefined : detailsCache.get(fileIndexKey);
     React.useDebugValue(fileDetails); // display fileDetails in React DevTools when this hook is inspected
 
     return [fileDetails, isLoading];
