@@ -81,16 +81,4 @@ export default class FileDetail {
     public get annotations() {
         return this.fileDetail.annotations;
     }
-
-    public get positions() {
-        return this.fileDetail.positions;
-    }
-
-    public get channels() {
-        return this.fileDetail.channels;
-    }
-
-    public get times() {
-        return this.fileDetail.times;
-    }
 }

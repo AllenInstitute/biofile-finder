@@ -7,6 +7,7 @@ import * as React from "react";
 const styles = require("./Cell.module.css");
 
 export interface CellProps {
+    className?: string;
     columnKey: string;
     onResize?: (columnKey: string, deltaX?: number) => void;
     width: number; // percentage of parent element's width, a number between 0 and 1.
@@ -75,7 +76,11 @@ export default class Cell extends React.Component<CellProps, CellState> {
         return (
             <div
                 ref={this.cell}
-                className={classNames(styles.resizableCell, this.state.containerClassName)}
+                className={classNames(
+                    this.props.className,
+                    styles.resizableCell,
+                    this.state.containerClassName
+                )}
                 onDoubleClick={this.onDoubleClick}
                 style={{ width: `${this.props.width * 100}%` }}
             >
@@ -89,7 +94,10 @@ export default class Cell extends React.Component<CellProps, CellState> {
 
     private renderNonResizeableCell(): JSX.Element {
         return (
-            <div className={styles.cell} style={{ width: `${this.props.width * 100}%` }}>
+            <div
+                className={classNames(this.props.className, styles.cell)}
+                style={{ width: `${this.props.width * 100}%` }}
+            >
                 {this.props.children}
             </div>
         );
