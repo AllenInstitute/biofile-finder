@@ -2,9 +2,7 @@ import { defaults, isUndefined } from "lodash";
 import * as LRUCache from "lru-cache";
 import * as React from "react";
 
-import FileDetail, { FileDetailResponse } from "../../entity/FileDetail";
-import { makeFileDetailMock } from "../../entity/FileDetail/mocks";
-import RestServiceResponse from "../../entity/RestServiceResponse";
+import FileDetail from "../../entity/FileDetail";
 import FileService, { FmsFile } from "../../services/FileService";
 
 interface Opts {
@@ -15,46 +13,13 @@ const defaultOpts: Opts = {
     maxCacheSize: 100,
 };
 
-function fetchDetailsFromNetwork(
+async function fetchDetailsFromNetwork(
     fileIndex: number,
-    fileSetHash: string,
+    queryString: string,
     fileService: FileService
-): Promise<RestServiceResponse<FmsFile>> {
-    const { limit, offset } = calculatePaginationFromIndices(fileIndex, fileIndex);
-    return fileService.getFiles({
-        from: offset,
-        limit,
-        queryString: fileSetHash.split(":")[0],
-    });
-}
-
-function calculatePaginationFromIndices(start: number, end: number) {
-    // inclusive range of indices
-    const totalRange = end - start + 1;
-    const minPageSize = totalRange;
-    const maxPageSize = end + 1;
-
-    // initial conditions are worst-case; start at 0 and include all data up to end
-    let offset = 0;
-    let limit = end + 1;
-
-    for (let i = minPageSize; i <= maxPageSize; ++i) {
-        // round UP; number of pages that is inclusive of end index
-        const numPages = Math.ceil((end + 1) / i);
-
-        offset = numPages - 1;
-        limit = i;
-
-        // numpages should always be >= 1
-        // check to see if start is contained in first page
-        // end is guaranteed to be in end of page because of how numPages is calculated
-        if (offset * i <= start) {
-            return { offset, limit };
-        }
-    }
-
-    // should never be reached, here for completeness/typing
-    return { offset, limit };
+): Promise<FmsFile> {
+    const { response } = await fileService.getFilesByIndices(fileIndex, fileIndex, queryString);
+    return response.data[0];
 }
 
 /**
@@ -66,7 +31,7 @@ function calculatePaginationFromIndices(start: number, end: number) {
  */
 export default function useFileDetails(
     fileIndex: number | undefined,
-    fileSetHash: string | undefined,
+    queryString: string | undefined,
     fileService: FileService,
     opts?: Opts
 ): [FileDetail | undefined, boolean] {
@@ -75,7 +40,8 @@ export default function useFileDetails(
         () => new LRUCache<string, FileDetail>({ max: maxCacheSize }) // fileId to fileDetail
     );
     const [isLoading, setIsLoading] = React.useState(false);
-    const fileIndexKey = `${fileIndex}-${fileSetHash}`;
+    // Create Key for accessing the cache for this file
+    const fileIndexKey = `${fileIndex}-${queryString}`;
 
     React.useEffect(() => {
         // This tracking variable allows us to avoid a call to setDetailsCache (which triggers a re-render) if the
@@ -83,7 +49,7 @@ export default function useFileDetails(
         // selection then quickly makes a new selection.
         let ignoreResponse = false;
         // no selected file (fileId is undefined) or cache hit, nothing to do
-        if (isUndefined(fileIndex) || isUndefined(fileSetHash) || detailsCache.has(fileIndexKey)) {
+        if (isUndefined(fileIndex) || isUndefined(queryString) || detailsCache.has(fileIndexKey)) {
             // a previous request was cancelled
             if (isLoading) {
                 setIsLoading(false);
@@ -92,10 +58,10 @@ export default function useFileDetails(
             // cache miss, make network request and store in cache
         } else {
             setIsLoading(true);
-            fetchDetailsFromNetwork(fileIndex, fileSetHash, fileService)
-                .then((response) => {
+            fetchDetailsFromNetwork(fileIndex, queryString, fileService)
+                .then((file) => {
                     if (!ignoreResponse) {
-                        const detail = new FileDetail(response.data[0]);
+                        const detail = new FileDetail(file);
                         setDetailsCache((prevCache) => {
                             const nextCache = new LRUCache<string, FileDetail>({
                                 max: maxCacheSize,

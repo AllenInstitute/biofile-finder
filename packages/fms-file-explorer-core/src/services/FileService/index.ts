@@ -9,11 +9,11 @@ import RestServiceResponse from "../../entity/RestServiceResponse";
 export interface FmsFileAnnotation {
     [key: string]: any;
     name: string;
-    values: any[];
+    values: (string | number | boolean)[];
 }
 
 /**
- * Represents a document in the FMS MongoDb `files` collection. It is extremely permissively typed to allow
+ * Represents a document in the FMS MongoDb `files` collection (as returned by FES). It is extremely permissively typed to allow
  * for rapid iteration in the initial stages of this project.
  *
  * See https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/mongo-schema-management/browse/mongo_schema_management/schema/file_explorer_v1/file.json for
@@ -21,11 +21,17 @@ export interface FmsFileAnnotation {
  */
 export interface FmsFile {
     [key: string]: any;
-    fileId: string;
     annotations: FmsFileAnnotation[];
-    positions: { id: number }[];
-    channels: { id: number }[];
-    times: { id: number }[];
+    fileId: string;
+    fileType: string;
+    fileName: string;
+    filePath: string;
+    fileSize: number;
+    uploaded: string;
+    uploadedBy: string;
+    positions?: { id: number }[]; // TODO: Add Ticket for this
+    channels?: { id: number }[]; // TODO: Add Ticket for this
+    times?: { id: number }[]; // TODO: Add Ticket for this
     thumbnailPath?: string;
 }
 
@@ -76,6 +82,20 @@ export default class FileService extends HttpServiceBase {
     }
 
     /**
+     * Fetch metadata for a range of files from within the result set this query corresponds to.
+     * May overfetch files.
+     */
+    public async getFilesByIndices(startIndex: number, endIndex: number, queryString: string) {
+        const { limit, offset } = FileService.calculatePaginationFromIndices(startIndex, endIndex);
+        const response = await this.getFiles({
+            from: offset,
+            limit,
+            queryString,
+        });
+        return { response, offset, limit };
+    }
+
+    /**
      * GM 1/29/2020: This is a TEMPORARY service method that is only necessary until we move manifest generation to a backend service.
      * When that happens, this method can be deleted.
      */
@@ -99,6 +119,35 @@ export default class FileService extends HttpServiceBase {
 
         const response = await this.get<string>(requestUrl);
         return response.data;
+    }
+
+    private static calculatePaginationFromIndices(start: number, end: number) {
+        // inclusive range of indices
+        const totalRange = end - start + 1;
+        const minPageSize = totalRange;
+        const maxPageSize = end + 1;
+
+        // initial conditions are worst-case; start at 0 and include all data up to end
+        let offset = 0;
+        let limit = end + 1;
+
+        for (let i = minPageSize; i <= maxPageSize; ++i) {
+            // round UP; number of pages that is inclusive of end index
+            const numPages = Math.ceil((end + 1) / i);
+
+            offset = numPages - 1;
+            limit = i;
+
+            // numpages should always be >= 1
+            // check to see if start is contained in first page
+            // end is guaranteed to be in end of page because of how numPages is calculated
+            if (offset * i <= start) {
+                return { offset, limit };
+            }
+        }
+
+        // should never be reached, here for completeness/typing
+        return { offset, limit };
     }
 }
 

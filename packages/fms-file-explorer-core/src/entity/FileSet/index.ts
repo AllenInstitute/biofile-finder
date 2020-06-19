@@ -83,12 +83,11 @@ export default class FileSet {
      * Fetch metadata for a range of files from within the result set this query corresponds to.
      */
     public async fetchFileRange(startIndex: number, endIndex: number) {
-        const { limit, offset } = this.calculatePaginationFromIndices(startIndex, endIndex);
-        const response = await this.fileService.getFiles({
-            from: offset,
-            limit,
-            queryString: this.toQueryString(),
-        });
+        const { response, offset, limit } = await this.fileService.getFilesByIndices(
+            startIndex,
+            endIndex,
+            this.toQueryString()
+        );
 
         // Because of how pagination is implemented, it is not guaranteed that the start index for the requested range of files will
         // in fact be the start index of the page of data returned. Pages are designed to be inclusive of the requested range, but
