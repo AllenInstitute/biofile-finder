@@ -3,7 +3,7 @@ import * as LRUCache from "lru-cache";
 import * as React from "react";
 
 import FileDetail from "../../entity/FileDetail";
-import FileService, { FmsFile } from "../../services/FileService";
+import FileService from "../../services/FileService";
 
 interface Opts {
     maxCacheSize?: number;
@@ -78,9 +78,9 @@ export default function useFileDetails(
         return function cleanup() {
             ignoreResponse = true;
         };
-    }, [fileIndexKey, detailsCache, isLoading, maxCacheSize]);
+    }, [fileIndex, fileSetHash, fileIndexKey, fileService, detailsCache, isLoading, maxCacheSize]);
 
-    const fileDetails = isUndefined(fileIndexKey) ? undefined : detailsCache.get(fileIndexKey);
+    const fileDetails = isUndefined(fileIndex) ? undefined : detailsCache.get(fileIndexKey);
     React.useDebugValue(fileDetails); // display fileDetails in React DevTools when this hook is inspected
 
     return [fileDetails, isLoading];
