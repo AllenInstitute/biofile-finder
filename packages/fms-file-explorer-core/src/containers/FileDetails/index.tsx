@@ -25,9 +25,6 @@ export const WINDOW_ACTION_BUTTON_WIDTH = 23; // arbitrary
 
 /**
  * Right-hand sidebar of application. Displays details of selected file(s).
- *
- * GM 5/28/2020: This component is not currently in use--it was used in an early stage of the application prototype.
- * FMS-1225 is a placeholder ticket for picking this work effort back up.
  */
 export default function FileDetails(props: FileDetails) {
     const [windowState, dispatch] = React.useReducer(windowStateReducer, INITIAL_STATE);
