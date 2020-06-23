@@ -59,7 +59,7 @@ export default class FileDetail {
     }
 
     public get details() {
-        return this.fileDetail.details;
+        return this.fileDetail;
     }
 
     public get id() {
