@@ -6,8 +6,7 @@ import FileThumbnail from "../../components/FileThumbnail";
 import WindowActionButton from "../../components/WindowActionButton";
 import useFileDetails from "./useFileDetails";
 import windowStateReducer, { INITIAL_STATE, WindowState } from "./windowStateReducer";
-import selection from "../../state/selection";
-import interaction from "../../state/interaction";
+import { selection, interaction } from "../../state";
 import FileAnnotationList from "./FileAnnotationList";
 
 const styles = require("./FileDetails.module.css");
