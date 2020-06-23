@@ -45,43 +45,46 @@ export default function useFileDetails(
                 setIsLoading(false);
             }
 
-            // cache miss, make network request and store in cache
-        } else if (!fileSet.isFileMetadataLoaded(fileIndex)) {
-            setIsLoading(true);
-            fileSet
-                .fetchFileRange(fileIndex, fileIndex)
-                .then((response) => {
-                    if (!ignoreResponse) {
-                        const detail = new FileDetail(response[0]);
-                        setDetailsCache((prevCache) => {
-                            const nextCache = new LRUCache<string, FileDetail>({
-                                max: maxCacheSize,
-                            });
-                            nextCache.load(prevCache.dump());
-                            nextCache.set(fileIndexKey, detail);
-                            return nextCache;
-                        });
-                    }
-                })
-                .catch(console.error)
-                .finally(() => {
-                    if (!ignoreResponse) {
-                        setIsLoading(false);
-                    }
-                });
-            setIsLoading(false);
-
-            // also a cache-miss except this time the File Set cache has the details stored for us
+            // cache miss, check if file set cache has record of this index
         } else {
-            const detail = new FileDetail(fileSet.getFileByIndex(fileIndex)!);
-            setDetailsCache((prevCache) => {
-                const nextCache = new LRUCache<string, FileDetail>({
-                    max: maxCacheSize,
+            const fileDetails = fileSet.getFileByIndex(fileIndex);
+            if (fileDetails) {
+                const detail = new FileDetail(fileDetails);
+                setDetailsCache((prevCache) => {
+                    const nextCache = new LRUCache<string, FileDetail>({
+                        max: maxCacheSize,
+                    });
+                    nextCache.load(prevCache.dump());
+                    nextCache.set(fileIndexKey, detail);
+                    return nextCache;
                 });
-                nextCache.load(prevCache.dump());
-                nextCache.set(fileIndexKey, detail);
-                return nextCache;
-            });
+
+                // both caches miss the record, make a network request
+            } else {
+                setIsLoading(true);
+                fileSet
+                    .fetchFileRange(fileIndex, fileIndex)
+                    .then((response) => {
+                        if (!ignoreResponse) {
+                            const detail = new FileDetail(response[0]);
+                            setDetailsCache((prevCache) => {
+                                const nextCache = new LRUCache<string, FileDetail>({
+                                    max: maxCacheSize,
+                                });
+                                nextCache.load(prevCache.dump());
+                                nextCache.set(fileIndexKey, detail);
+                                return nextCache;
+                            });
+                        }
+                    })
+                    .catch(console.error)
+                    .finally(() => {
+                        if (!ignoreResponse) {
+                            setIsLoading(false);
+                        }
+                    });
+                setIsLoading(false);
+            }
         }
 
         return function cleanup() {
