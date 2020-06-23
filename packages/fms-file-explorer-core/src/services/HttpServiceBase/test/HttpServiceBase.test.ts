@@ -21,5 +21,11 @@ describe("HttpServiceBase", () => {
                 "workflow=R%26DExp&cel3l_line=AICS-46&date=2017-09-19T00:00:00.000%2b0000&cTnT%25=3.0&something%20else=foo%20bar"
             );
         });
+
+        it("encodes question marks that do not denote the start of the query string", () => {
+            expect(HttpServiceBase.encodeURIComponent("Craters?=false")).to.equal(
+                "Craters%3F=false"
+            );
+        });
     });
 });
