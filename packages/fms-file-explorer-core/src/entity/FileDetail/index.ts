@@ -41,7 +41,7 @@ import { FmsFile } from "../../services/FileService";
  *      time: [
  *          { id: 34, deltaT: "foobar" },
  *      ]
- *     file_id: "26aa7881b8004dd0bcec857baf9a2f0a",
+ *     fileId: "26aa7881b8004dd0bcec857baf9a2f0a",
  *     thumbnailPath: "src/of/thumbnail",
  *     "uploaded": "2019-08-15 13:50:24",
  *     "uploadedBy": "svc_airflow",
