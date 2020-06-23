@@ -1,12 +1,14 @@
 import { orderBy } from "lodash";
 import * as React from "react";
 
-import Cell from "../../components/FileRow/Cell";
+import Annotation from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
+import FileAnnotationRow from "./FileAnnotationRow";
 
 const styles = require("./FileAnnotationList.module.css");
 
 interface FileAnnotationListProps {
+    allAnnotations: Annotation[];
     fileDetails?: FileDetail;
     isLoading: boolean;
 }
@@ -16,7 +18,7 @@ interface FileAnnotationListProps {
  * details pane on right hand side of the application.
  */
 export default function FileAnnotationList(props: FileAnnotationListProps) {
-    const { fileDetails, isLoading } = props;
+    const { allAnnotations, fileDetails, isLoading } = props;
 
     if (isLoading) {
         return <div className={styles.emptyDetailList}>Loading...</div>;
@@ -25,30 +27,27 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
     if (!fileDetails) {
         return <div className={styles.emptyDetailList}>No files currently selected</div>;
     }
-    const createAnnotationRow = (name: string, value: string) => (
-        <div key={name}>
-            <Cell className={styles.rowKey} columnKey="key" width={0.4}>
-                {name}
-            </Cell>
-            <Cell columnKey="value" width={0.6}>
-                {value}
-            </Cell>
-        </div>
-    );
+
+    // Create annotation rows for each annotation that we have a value for (ordered by display name)
+    const customAnnotationRows: JSX.Element[] = [];
+    orderBy(allAnnotations, ["displayName"]).forEach((anno) => {
+        const values = anno.extractFromFile(fileDetails.details);
+        // If it was found, append it to our list of custom annotation rows
+        if (values !== Annotation.MISSING_VALUE) {
+            customAnnotationRows.push(<FileAnnotationRow key={anno.displayName} value={values} />);
+        }
+    });
 
     return (
-        <div>
-            <div className={styles.listParent}>
-                {createAnnotationRow("File Name", fileDetails.name)}
-                {createAnnotationRow("File ID", fileDetails.id)}
-                {createAnnotationRow("File Type", fileDetails.type)}
-                {createAnnotationRow("File Path", fileDetails.path)}
-                {fileDetails.thumbnail &&
-                    createAnnotationRow("Thumbnail Path", fileDetails.thumbnail)}
-                {orderBy(fileDetails.annotations, ["name"]).map((a) =>
-                    createAnnotationRow(a.name, a.values.map((v) => `${v}`).join(", "))
-                )}
-            </div>
+        <div className={styles.listParent}>
+            <FileAnnotationRow key="File Name" value={fileDetails.name} />
+            <FileAnnotationRow key="File ID" value={fileDetails.id} />
+            <FileAnnotationRow key="File Type" value={fileDetails.type} />
+            <FileAnnotationRow key="File Path" value={fileDetails.path} />
+            {fileDetails.thumbnail && (
+                <FileAnnotationRow key="Thumbnail Path" value={fileDetails.thumbnail} />
+            )}
+            {customAnnotationRows}
         </div>
     );
 }

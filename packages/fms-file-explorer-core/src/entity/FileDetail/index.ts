@@ -58,6 +58,10 @@ export default class FileDetail {
         this.fileDetail = fileDetail;
     }
 
+    public get details() {
+        return this.fileDetail.details;
+    }
+
     public get id() {
         return this.fileDetail.fileId;
     }

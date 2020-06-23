@@ -6,7 +6,7 @@ import FileThumbnail from "../../components/FileThumbnail";
 import WindowActionButton from "../../components/WindowActionButton";
 import useFileDetails from "./useFileDetails";
 import windowStateReducer, { INITIAL_STATE, WindowState } from "./windowStateReducer";
-import { selection, interaction } from "../../state";
+import { interaction, metadata, selection } from "../../state";
 import FileAnnotationList from "./FileAnnotationList";
 
 const styles = require("./FileDetails.module.css");
@@ -29,6 +29,7 @@ export const WINDOW_ACTION_BUTTON_WIDTH = 23; // arbitrary
 export default function FileDetails(props: FileDetails) {
     const [windowState, dispatch] = React.useReducer(windowStateReducer, INITIAL_STATE);
 
+    const annotations = useSelector(metadata.selectors.getAnnotations);
     const fileService = useSelector(interaction.selectors.getFileService);
     const selectedFileIndicesByFileSet = useSelector(
         selection.selectors.getSelectedFileIndicesByFileSet
@@ -104,7 +105,11 @@ export default function FileDetails(props: FileDetails) {
                             />
                         </div>
                     )}
-                    <FileAnnotationList fileDetails={fileDetails} isLoading={isLoading} />
+                    <FileAnnotationList
+                        allAnnotations={annotations}
+                        fileDetails={fileDetails}
+                        isLoading={isLoading}
+                    />
                 </div>
             </div>
         </div>
