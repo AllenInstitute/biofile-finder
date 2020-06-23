@@ -77,9 +77,9 @@ export default class Cell extends React.Component<CellProps, CellState> {
             <div
                 ref={this.cell}
                 className={classNames(
-                    this.props.className,
                     styles.resizableCell,
-                    this.state.containerClassName
+                    this.state.containerClassName,
+                    this.props.className
                 )}
                 onDoubleClick={this.onDoubleClick}
                 style={{ width: `${this.props.width * 100}%` }}
@@ -95,7 +95,7 @@ export default class Cell extends React.Component<CellProps, CellState> {
     private renderNonResizeableCell(): JSX.Element {
         return (
             <div
-                className={classNames(this.props.className, styles.cell)}
+                className={classNames(styles.cell, this.props.className)}
                 style={{ width: `${this.props.width * 100}%` }}
             >
                 {this.props.children}
