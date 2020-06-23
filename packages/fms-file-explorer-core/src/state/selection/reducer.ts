@@ -1,5 +1,5 @@
 import { makeReducer } from "@aics/redux-utils";
-import { castArray, compact, find, without } from "lodash";
+import { castArray, compact, find, omit, without } from "lodash";
 
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../metadata/reducer";
 import Annotation from "../../entity/Annotation";
@@ -52,10 +52,12 @@ export default makeReducer<SelectionStateBranch>(
         }),
         [SELECT_FILE]: (state, action) => ({
             ...state,
-            selectedFileIndicesByFileSet: {
-                ...state.selectedFileIndicesByFileSet,
-                [action.payload.correspondingFileSet]: action.payload.fileIndex,
-            },
+            selectedFileIndicesByFileSet: action.payload.fileIndex.length
+                ? {
+                      ...state.selectedFileIndicesByFileSet,
+                      [action.payload.correspondingFileSet]: action.payload.fileIndex,
+                  }
+                : omit(state.selectedFileIndicesByFileSet, [action.payload.correspondingFileSet]),
         }),
         [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
             ...state,

@@ -34,27 +34,15 @@ export default function FileDetails(props: FileDetails) {
     const selectedFileIndicesByFileSet = useSelector(
         selection.selectors.getSelectedFileIndicesByFileSet
     );
+    const activeFileSets = useSelector(selection.selectors.getActiveFileSets);
     let fileIndexToDisplay;
     let fileSetHash;
-    if (selectedFileIndicesByFileSet) {
-        const fileSets = Object.keys(selectedFileIndicesByFileSet);
-        // Determine if any selected file indices sets actually have indices in them
-        // and if so if they are for the currently selected data source
-        const usableFileSets = fileSets.filter(
-            (fileSet) =>
-                selectedFileIndicesByFileSet[fileSet].length &&
-                fileSet
-                    .split(":")
-                    .slice(1)
-                    .join(":") === fileService.baseUrl
-        );
-        // If there is a file set with an index we can display select it,
-        // In the event multiple file indices are available for display we want to just
-        // display the first one we find.
-        if (usableFileSets.length) {
-            fileSetHash = usableFileSets[0];
-            fileIndexToDisplay = selectedFileIndicesByFileSet[fileSetHash][0];
-        }
+    // If there is a file set with an index we can display select it,
+    // In the event multiple file indices are available for display we want to just
+    // display the first one we find.
+    if (activeFileSets.length) {
+        fileSetHash = activeFileSets[0];
+        fileIndexToDisplay = selectedFileIndicesByFileSet[fileSetHash][0];
     }
     const [fileDetails, isLoading] = useFileDetails(fileIndexToDisplay, fileSetHash, fileService);
 
