@@ -23,6 +23,10 @@ export default class FileSetFactory {
         // we know this will return a FileSet and not undefined, so cast to avoid unnecessary typing error
         return this.cache.get(candidate.hash) as FileSet;
     }
+
+    public get(hash: string): FileSet | undefined {
+        return this.cache.get(hash);
+    }
 }
 
 export const defaultFileSetFactory = new FileSetFactory();

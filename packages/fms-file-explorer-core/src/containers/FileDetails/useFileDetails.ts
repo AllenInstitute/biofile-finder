@@ -3,7 +3,7 @@ import * as LRUCache from "lru-cache";
 import * as React from "react";
 
 import FileDetail from "../../entity/FileDetail";
-import FileService from "../../services/FileService";
+import FileSet from "../../entity/FileSet";
 
 interface Opts {
     maxCacheSize?: number;
@@ -22,8 +22,7 @@ const defaultOpts: Opts = {
  */
 export default function useFileDetails(
     fileIndex: number | undefined,
-    fileSetHash: string | undefined,
-    fileService: FileService,
+    fileSet: FileSet | undefined,
     opts?: Opts
 ): [FileDetail | undefined, boolean] {
     const { maxCacheSize } = defaults(opts, defaultOpts);
@@ -32,7 +31,7 @@ export default function useFileDetails(
     );
     const [isLoading, setIsLoading] = React.useState(false);
     // Create Key for accessing the cache for this file
-    const fileIndexKey = `${fileIndex}-${fileSetHash}`;
+    const fileIndexKey = `${fileIndex}-${fileSet && fileSet.hash}`;
 
     React.useEffect(() => {
         // This tracking variable allows us to avoid a call to setDetailsCache (which triggers a re-render) if the
@@ -40,23 +39,20 @@ export default function useFileDetails(
         // selection then quickly makes a new selection.
         let ignoreResponse = false;
         // no selected file (fileId is undefined) or cache hit, nothing to do
-        if (isUndefined(fileIndex) || isUndefined(fileSetHash) || detailsCache.has(fileIndexKey)) {
+        if (isUndefined(fileIndex) || isUndefined(fileSet) || detailsCache.has(fileIndexKey)) {
             // a previous request was cancelled
             if (isLoading) {
                 setIsLoading(false);
             }
 
             // cache miss, make network request and store in cache
-        } else {
+        } else if (!fileSet.isFileMetadataLoaded(fileIndex)) {
             setIsLoading(true);
-            // The FileSet hash is a combination of its query string & data source
-            // we only want the query string
-            const queryString = fileSetHash.split(":")[0];
-            fileService
-                .getFilesByIndices(fileIndex, fileIndex, queryString)
-                .then(({ response }) => {
+            fileSet
+                .fetchFileRange(fileIndex, fileIndex)
+                .then((response) => {
                     if (!ignoreResponse) {
-                        const detail = new FileDetail(response.data[0]);
+                        const detail = new FileDetail(response[0]);
                         setDetailsCache((prevCache) => {
                             const nextCache = new LRUCache<string, FileDetail>({
                                 max: maxCacheSize,
@@ -73,12 +69,25 @@ export default function useFileDetails(
                         setIsLoading(false);
                     }
                 });
+            setIsLoading(false);
+
+            // also a cache-miss except this time the File Set cache has the details stored for us
+        } else {
+            const detail = new FileDetail(fileSet.getFileByIndex(fileIndex)!);
+            setDetailsCache((prevCache) => {
+                const nextCache = new LRUCache<string, FileDetail>({
+                    max: maxCacheSize,
+                });
+                nextCache.load(prevCache.dump());
+                nextCache.set(fileIndexKey, detail);
+                return nextCache;
+            });
         }
 
         return function cleanup() {
             ignoreResponse = true;
         };
-    }, [fileIndex, fileSetHash, fileIndexKey, fileService, detailsCache, isLoading, maxCacheSize]);
+    }, [fileIndex, fileSet, fileIndexKey, detailsCache, isLoading, maxCacheSize]);
 
     const fileDetails = isUndefined(fileIndex) ? undefined : detailsCache.get(fileIndexKey);
     React.useDebugValue(fileDetails); // display fileDetails in React DevTools when this hook is inspected

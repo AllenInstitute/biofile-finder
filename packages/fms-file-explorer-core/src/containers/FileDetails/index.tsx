@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 
 import FileThumbnail from "../../components/FileThumbnail";
 import WindowActionButton from "../../components/WindowActionButton";
+import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import useFileDetails from "./useFileDetails";
 import windowStateReducer, { INITIAL_STATE, WindowState } from "./windowStateReducer";
 import { interaction, metadata, selection } from "../../state";
@@ -35,16 +36,17 @@ export default function FileDetails(props: FileDetails) {
         selection.selectors.getSelectedFileIndicesByFileSet
     );
     const activeFileSets = useSelector(selection.selectors.getActiveFileSets);
+    let fileSet;
     let fileIndexToDisplay;
-    let fileSetHash;
     // If there is a file set with an index we can display select it,
     // In the event multiple file indices are available for display we want to just
     // display the first one we find.
     if (activeFileSets.length) {
-        fileSetHash = activeFileSets[0];
+        const fileSetHash = activeFileSets[0];
+        fileSet = defaultFileSetFactory.get(fileSetHash);
         fileIndexToDisplay = selectedFileIndicesByFileSet[fileSetHash][0];
     }
-    const [fileDetails, isLoading] = useFileDetails(fileIndexToDisplay, fileSetHash, fileService);
+    const [fileDetails, isLoading] = useFileDetails(fileIndexToDisplay, fileSet);
 
     // If FileDetails pane is minimized, set its width to the width of the WindowActionButtons. Else, let it be
     // defined by whatever the CSS determines (setting an inline style to undefined will prompt ReactDOM to not apply
