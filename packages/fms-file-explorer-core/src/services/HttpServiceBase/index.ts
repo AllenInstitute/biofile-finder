@@ -48,6 +48,7 @@ export default class HttpServiceBase {
             " ": "%20",
             "&": "%26",
             "%": "%25",
+            "?": "%3F",
         };
 
         return queryStringComponents
@@ -81,7 +82,13 @@ export default class HttpServiceBase {
     }
 
     public async get<T>(url: string): Promise<RestServiceResponse<T>> {
-        const [path, queryString] = url.split("?");
+        const queryStringStart = url.indexOf("?");
+        let path = url;
+        let queryString = "";
+        if (queryStringStart !== -1) {
+            path = url.substring(0, queryStringStart);
+            queryString = url.substring(queryStringStart + 1);
+        }
 
         let encodedUrl = url;
         if (queryString) {
