@@ -9,7 +9,6 @@ import Annotation from "../../../entity/Annotation";
 import LazilyRenderedRow from "../LazilyRenderedRow";
 import { initialState } from "../../../state";
 import FileSet from "../../../entity/FileSet";
-import { makeFileDetailMock } from "../../../entity/FileDetail/mocks";
 
 describe("<LazilyRenderedRow />", () => {
     const fileNameAnnotation = new Annotation({
@@ -25,8 +24,24 @@ describe("<LazilyRenderedRow />", () => {
         sinon.stub(fileSet, "getFileByIndex").callsFake((index) => {
             if (index === 3) {
                 return {
-                    ...makeFileDetailMock("abc123"),
+                    annotations: [
+                        {
+                            name: "someDateAnnotation",
+                            values: ["2019-05-17T07:43:55.205Z"],
+                        },
+                    ],
+                    channels: [],
+                    fileId: "abc123",
                     fileName: "my_image.czi",
+                    filePath: "some/path/to/my_image.czi",
+                    fileSize: 1,
+                    fileType: "czi",
+                    positions: [],
+                    someDateAnnotation: "2019-05-17T07:43:55.205Z",
+                    times: [],
+                    thumbnailPath: "",
+                    uploaded: new Date().toISOString(),
+                    uploadedBy: "Them",
                 };
             }
         });
