@@ -35,14 +35,14 @@ export default function FileDetails(props: FileDetails) {
     const selectedFileIndicesByFileSet = useSelector(
         selection.selectors.getSelectedFileIndicesByFileSet
     );
-    const activeFileSets = useSelector(selection.selectors.getActiveFileSets);
+    const fileSets = Object.keys(selectedFileIndicesByFileSet);
     let fileSet;
     let fileIndexToDisplay;
     // If there is a file set with an index we can display select it,
     // In the event multiple file indices are available for display we want to just
     // display the first one we find.
-    if (activeFileSets.length) {
-        const fileSetHash = activeFileSets[0];
+    if (fileSets.length) {
+        const fileSetHash = fileSets[0];
         fileSet = defaultFileSetFactory.get(fileSetHash);
         fileIndexToDisplay = selectedFileIndicesByFileSet[fileSetHash][0];
     }
