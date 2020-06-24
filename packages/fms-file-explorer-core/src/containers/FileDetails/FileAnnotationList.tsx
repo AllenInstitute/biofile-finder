@@ -1,14 +1,15 @@
 import { orderBy } from "lodash";
 import * as React from "react";
+import { useSelector } from "react-redux";
 
 import Annotation from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
+import metadata from "../../state/metadata";
 import FileAnnotationRow from "./FileAnnotationRow";
 
 const styles = require("./FileAnnotationList.module.css");
 
 interface FileAnnotationListProps {
-    allAnnotations: Annotation[];
     fileDetails?: FileDetail;
     isLoading: boolean;
 }
@@ -18,7 +19,8 @@ interface FileAnnotationListProps {
  * details pane on right hand side of the application.
  */
 export default function FileAnnotationList(props: FileAnnotationListProps) {
-    const { allAnnotations, fileDetails, isLoading } = props;
+    const { fileDetails, isLoading } = props;
+    const allAnnotations = useSelector(metadata.selectors.getAnnotations);
 
     if (isLoading) {
         return <div className={styles.emptyDetailList}>Loading...</div>;

@@ -30,7 +30,6 @@ export const WINDOW_ACTION_BUTTON_WIDTH = 23; // arbitrary
 export default function FileDetails(props: FileDetails) {
     const [windowState, dispatch] = React.useReducer(windowStateReducer, INITIAL_STATE);
 
-    const annotations = useSelector(metadata.selectors.getAnnotations);
     const fileService = useSelector(interaction.selectors.getFileService);
     const selectedFileIndicesByFileSet = useSelector(
         selection.selectors.getSelectedFileIndicesByFileSet
@@ -95,11 +94,7 @@ export default function FileDetails(props: FileDetails) {
                             />
                         </div>
                     )}
-                    <FileAnnotationList
-                        allAnnotations={annotations}
-                        fileDetails={fileDetails}
-                        isLoading={isLoading}
-                    />
+                    <FileAnnotationList fileDetails={fileDetails} isLoading={isLoading} />
                 </div>
             </div>
         </div>
