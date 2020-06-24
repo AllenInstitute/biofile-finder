@@ -1,6 +1,7 @@
 import { makeReducer } from "@aics/redux-utils";
 import { castArray, compact, find, omit, without } from "lodash";
 
+import interaction from "../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../metadata/reducer";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
@@ -62,6 +63,15 @@ export default makeReducer<SelectionStateBranch>(
         [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
             ...state,
             annotationHierarchy: action.payload,
+
+            // Reset file selections when annotation hierarchy changes
+            selectedFileIndicesByFileSet: {},
+        }),
+        [interaction.actions.SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state) => ({
+            ...state,
+
+            // Reset file selections when pointed at a new backend
+            selectedFileIndicesByFileSet: {},
         }),
     },
     initialState

@@ -31,26 +31,37 @@ const retry = Policy.handleAll()
  */
 export default class HttpServiceBase {
     /**
-     * Like Window::encodeURIComponent, but far less aggressive in its encoding.
-     *
-     * This should be removed once the File Explorer Service can
-     * decode all reserved characters that Window::encodeURIComponent produces.
+     * Like Window::encodeURI, but tuned to the needs of this application.
+     * The wild-west nature of our annotation names ("cTnT%", "R&DWorkflow", "Craters?") necessitates this custom code.
      */
-    public static encodeURIComponent(str: string) {
+    public static encodeURI(uri: string) {
+        const queryStringStart = uri.indexOf("?");
+        let path = uri;
+        let queryString = "";
+        if (queryStringStart !== -1) {
+            path = uri.substring(0, queryStringStart);
+            queryString = uri.substring(queryStringStart + 1);
+        }
+
+        if (!queryString) {
+            return uri;
+        }
+
         // encode ampersands that do not separate query string components, so first
         // need to separate the query string componenets (which are split by ampersands themselves)
         // handles case like `workflow=R&DExp&cell_line=AICS-46&foo=bar&cTnT%=3.0`
         const re = /&(?=(?:[^&])+\=)/g;
-        const queryStringComponents = str.split(re);
+        const queryStringComponents = queryString.split(re);
 
         const CHARACTER_TO_ENCODING_MAP: { [index: string]: string } = {
             "+": "%2b",
             " ": "%20",
             "&": "%26",
             "%": "%25",
+            "?": "%3F",
         };
 
-        return queryStringComponents
+        const encodedQueryString = queryStringComponents
             .map((keyValuePair) =>
                 [...keyValuePair] // Split string into characters (https://stackoverflow.com/questions/4547609/how-do-you-get-a-string-to-a-character-array-in-javascript/34717402#34717402)
                     .map((chr) => {
@@ -63,6 +74,12 @@ export default class HttpServiceBase {
                     .join("")
             )
             .join("&");
+
+        if (encodedQueryString) {
+            return `${path}?${encodedQueryString}`;
+        }
+
+        return path;
     }
 
     public baseUrl: string | keyof typeof DataSource = DEFAULT_CONNECTION_CONFIG.baseUrl;
@@ -81,13 +98,8 @@ export default class HttpServiceBase {
     }
 
     public async get<T>(url: string): Promise<RestServiceResponse<T>> {
-        const [path, queryString] = url.split("?");
-
-        let encodedUrl = url;
-        if (queryString) {
-            encodedUrl = `${path}?${HttpServiceBase.encodeURIComponent(queryString)}`;
-            console.log(`Sanitized ${url} to ${encodedUrl}`);
-        }
+        const encodedUrl = HttpServiceBase.encodeURI(url);
+        console.log(`Sanitized ${url} to ${encodedUrl}`);
 
         if (!this.urlToResponseDataCache.has(encodedUrl)) {
             // if this fails, bubble up exception
