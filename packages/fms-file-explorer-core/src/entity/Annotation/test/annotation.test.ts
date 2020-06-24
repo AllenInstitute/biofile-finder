@@ -17,8 +17,8 @@ describe("Annotation", () => {
             const fmsFile = {
                 annotations: [
                     {
-                        name: "someDateAnnotation",
-                        values: ["2019-05-17T07:43:55.205Z"],
+                        name: "Cell Line",
+                        values: ["AICS_10", "AICS_12"],
                     },
                 ],
                 channels: [],
