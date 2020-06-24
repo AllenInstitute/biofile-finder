@@ -6,5 +6,6 @@
 }
 
 .list-parent {
+  padding: 10px;
   position: relative;
 }

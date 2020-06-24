@@ -7,7 +7,7 @@ import WindowActionButton from "../../components/WindowActionButton";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import useFileDetails from "./useFileDetails";
 import windowStateReducer, { INITIAL_STATE, WindowState } from "./windowStateReducer";
-import { interaction, metadata, selection } from "../../state";
+import { interaction, selection } from "../../state";
 import FileAnnotationList from "./FileAnnotationList";
 
 const styles = require("./FileDetails.module.css");

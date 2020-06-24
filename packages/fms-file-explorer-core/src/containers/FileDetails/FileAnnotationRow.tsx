@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import * as React from "react";
 
 import Cell from "../../components/FileRow/Cell";
@@ -16,10 +17,10 @@ interface FileAnnotationRowProps {
 export default function FileAnnotationRow({ name, value }: FileAnnotationRowProps) {
     return (
         <div>
-            <Cell className={styles.rowKey} columnKey="key" width={0.4}>
+            <Cell className={classNames(styles.cell, styles.rowKey)} columnKey="key" width={0.4}>
                 {name}
             </Cell>
-            <Cell columnKey="value" width={0.6}>
+            <Cell className={styles.cell} columnKey="value" width={0.6}>
                 {value}
             </Cell>
         </div>
