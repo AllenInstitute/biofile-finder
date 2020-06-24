@@ -1,57 +1,70 @@
-import { configureMockStore } from "@aics/redux-utils";
 import { expect } from "chai";
 
-import { selectFile } from "../actions";
-import selectionLogics from "../logics";
-import selectionReducer from "../reducer";
+import selection from "..";
+import { initialState } from "../..";
 
 describe("Selection reducer", () => {
     describe("SELECT_FILE", () => {
-        it("adds file indices when file indices are selected", async () => {
-            // setup
-            const state = {
-                selection: {
-                    selectedFileIndicesByFileSet: {
-                        abc123: [5],
-                    },
+        it("adds file index when new index is selected", async () => {
+            // arrange
+            const initialSelectionState = {
+                ...selection.initialState,
+                selectedFileIndicesByFileSet: {
+                    abc123: [5],
                 },
             };
-            const { store, logicMiddleware } = configureMockStore({
-                logics: selectionLogics,
-                reducer: selectionReducer,
-                state,
-            });
+
+            const action = {
+                payload: {
+                    correspondingFileSet: "abc123",
+                    fileIndex: [5, 22],
+                    updateExistingSelection: false,
+                },
+                type: selection.actions.SELECT_FILE,
+            };
 
             // act
-            store.dispatch(selectFile("abc123", 5));
-            await logicMiddleware.whenComplete();
+            const nextSelectionState = selection.reducer(initialSelectionState, action);
 
             // assert
-            expect(store.getState().selection.selectedFileIndicesByFileSet).to.deep.equal({
-                abc123: [5],
+            expect(
+                selection.selectors.getSelectedFileIndicesByFileSet({
+                    ...initialState,
+                    selection: nextSelectionState,
+                })
+            ).to.deep.equal({
+                abc123: [5, 22],
             });
         });
 
         it("removes file set after deselecting last index in set", async () => {
-            // setup
-            const state = {
-                selection: {
-                    selectedFileIndicesByFileSet: {
-                        abc123: [5],
-                    },
+            // arrange
+            const initialSelectionState = {
+                ...selection.initialState,
+                selectedFileIndicesByFileSet: {
+                    abc123: [5],
                 },
             };
-            const { store, logicMiddleware } = configureMockStore({
-                logics: selectionLogics,
-                state,
-            });
+
+            const action = {
+                payload: {
+                    correspondingFileSet: "abc123",
+                    fileIndex: [],
+                    updateExistingSelection: true,
+                },
+                type: selection.actions.SELECT_FILE,
+            };
 
             // act
-            store.dispatch(selectFile("abc123", 5, true));
-            await logicMiddleware.whenComplete();
+            const nextSelectionState = selection.reducer(initialSelectionState, action);
 
             // assert
-            expect(store.getState().selection.selectedFileIndicesByFileSet).to.deep.equal({});
+            expect(
+                selection.selectors.getSelectedFileIndicesByFileSet({
+                    ...initialState,
+                    selection: nextSelectionState,
+                })
+            ).to.be.empty;
         });
     });
 });
