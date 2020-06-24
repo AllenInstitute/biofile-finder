@@ -62,7 +62,7 @@
     flex-direction: column;
 }
 
-.placeholder + .everything-except-header-ribbon .core {
+.placeholder + .everything-except-header-ribbon .core .fileDetails{
     margin-right: 0;
     width: 100%;
 }
