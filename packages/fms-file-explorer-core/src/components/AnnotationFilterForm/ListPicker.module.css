@@ -12,20 +12,11 @@
     background: rgba(255, 255, 255, 0.85);
 }
 
-.action-buttons-container {
-    margin-top: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .action-button {
     color: steelblue;
     cursor: pointer;
-}
-
-.action-button-separator {
-    margin: 0 0.25rem;
+    display: flex;
+    margin: 0.5rem auto 0;
 }
 
 .item {

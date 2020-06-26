@@ -78,23 +78,13 @@ export default function ListPicker(props: ListPickerProps) {
                     onClear={() => setSearchValue("")}
                     styles={SEARCH_BOX_STYLE_OVERRIDES}
                 />
-                <div className={styles.actionButtonsContainer}>
-                    <ActionButton
-                        ariaLabel="Select all"
-                        className={styles.actionButton}
-                        onClick={() => onSelect(items.map((item) => item.value))}
-                    >
-                        Select all
-                    </ActionButton>
-                    <span className={styles.actionButtonSeparator}>/</span>
-                    <ActionButton
-                        ariaLabel="Deselect all"
-                        className={styles.actionButton}
-                        onClick={() => onDeselect(items.map((item) => item.value))}
-                    >
-                        Deselect all
-                    </ActionButton>
-                </div>
+                <ActionButton
+                    ariaLabel="Reset"
+                    className={styles.actionButton}
+                    onClick={() => onDeselect(items.map((item) => item.value))}
+                >
+                    Reset
+                </ActionButton>
             </div>
             <List
                 getKey={(item) => String(item.value)}
