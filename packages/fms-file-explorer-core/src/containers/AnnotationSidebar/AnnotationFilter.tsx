@@ -36,7 +36,7 @@ export default function AnnotationFilter(props: FilterProps) {
             onRenderMenuList() {
                 return <AnnotationFilterForm annotationName={annotationName} />;
             },
-            title: "Filter",
+            title: "Exclusively Include",
             shouldFocusOnMount: true,
             items: [{ key: "placeholder" }], // necessary to have a non-empty items list to have `onRenderMenuList` called
         };
