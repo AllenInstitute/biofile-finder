@@ -43,6 +43,10 @@ const SEARCH_ICON_PATH_DATA =
 export default function AnnotationList(props: AnnotationListProps) {
     const annotationListItems = useSelector(annotationSelectors.getAnnotationListItems);
     const hierarchyListItems = useSelector(annotationSelectors.getHierarchyListItems);
+    const nonCombinableAnnotations = useSelector(
+        annotationSelectors.getNonCombinableAnnotationsForHierarchy
+    );
+    const unusableAnnotationsListItems = [...hierarchyListItems, ...nonCombinableAnnotations];
     const [searchValue, setSearchValue] = React.useState("");
 
     // Perform fuzzy search using searchValue within annotation list items, considering the items
@@ -82,7 +86,7 @@ export default function AnnotationList(props: AnnotationListProps) {
                 </div>
                 <DnDList
                     className={styles.list}
-                    disabledItems={hierarchyListItems}
+                    disabledItems={unusableAnnotationsListItems}
                     items={filteredListItems}
                     id={DROPPABLE_ID}
                     isDropDisabled={true}

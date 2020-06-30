@@ -26,3 +26,9 @@ export const getHierarchyListItems = createSelector(
         }));
     }
 );
+
+export const getNonCombinableAnnotationsForHierarchy = createSelector(
+    [selection.selectors.getCombinableAnnotationsForHierarchy, getAnnotationListItems],
+    (combinableAnnotations: string[], annotations: DnDItem[]): DnDItem[] =>
+        annotations.filter((annotation) => !combinableAnnotations.includes(annotation.id))
+);
