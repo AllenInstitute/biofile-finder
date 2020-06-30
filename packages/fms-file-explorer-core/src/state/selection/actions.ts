@@ -225,3 +225,26 @@ export function setAnnotationHierarchy(annotations: Annotation[]): SetAnnotation
         type: SET_ANNOTATION_HIERARCHY,
     };
 }
+
+/**
+ * SET_COMBINABLE_ANNOTATIONS
+ * Intention to set annotations available for addition to the current hierarchy
+ */
+export const SET_COMBINABLE_ANNOTATIONS = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-combinable-annotations"
+);
+
+export interface setCombinableAnnotationsAction {
+    payload: string[];
+    type: string;
+}
+
+export function setCombinableAnnotations(
+    annotationNames: string[]
+): setCombinableAnnotationsAction {
+    return {
+        payload: annotationNames,
+        type: SET_ANNOTATION_HIERARCHY,
+    };
+}

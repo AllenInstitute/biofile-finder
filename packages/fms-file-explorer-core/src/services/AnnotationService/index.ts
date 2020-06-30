@@ -23,6 +23,7 @@ export default class AnnotationService extends HttpServiceBase {
     public static BASE_ANNOTATION_URL = `file-explorer-service/${AnnotationService.ANNOTATION_ENDPOINT_VERSION}/annotations`;
     public static BASE_ANNOTATION_HIERARCHY_ROOT_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/root`;
     public static BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/under-path`;
+    public static BASE_COMBINABLE_ANNOTATIONS_UNDER_HIERARCHY = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/annotations`;
 
     /**
      * Fetch all annotations.
@@ -61,6 +62,19 @@ export default class AnnotationService extends HttpServiceBase {
         ].join("&");
         const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}?${queryParams}`;
         console.log(`Requesting hierarchy values under path: ${requestUrl}`);
+
+        const response = await this.get<string>(requestUrl);
+        return response.data;
+    }
+
+    /**
+     * TODO
+     */
+    public async fetchCombinableAnnotationsForHierarchy(annotations: string[]): Promise<string[]> {
+        const requestUrl = `${this.baseUrl}/${
+            AnnotationService.BASE_COMBINABLE_ANNOTATIONS_UNDER_HIERARCHY
+        }?annotations=${annotations.join(",")}`;
+        console.log(`Requesting combinable annotations with current hierarchy: ${requestUrl}`);
 
         const response = await this.get<string>(requestUrl);
         return response.data;

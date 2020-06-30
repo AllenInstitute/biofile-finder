@@ -10,6 +10,7 @@ import {
     REMOVE_FROM_ANNOTATION_HIERARCHY,
     SelectFileAction,
     setAnnotationHierarchy,
+    setCombinableAnnotations,
     setFileFilters,
 } from "./actions";
 import metadata from "../metadata";
@@ -17,6 +18,7 @@ import * as selectionSelectors from "./selectors";
 import { ReduxLogicDeps } from "../";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
+import AnnotationService from "../../services/AnnotationService";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -81,6 +83,16 @@ const selectFile = createLogic({
  * a concrete list of ordered annotations that can be directly stored in application state under `selections.annotationHierarchy`.
  */
 const modifyAnnotationHierarchy = createLogic({
+    process(deps: ReduxLogicDeps, dispatch, done) {
+        const { action, baseApiUrl, httpClient } = deps;
+        const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
+        const annotationService = new AnnotationService({ baseUrl: baseApiUrl, httpClient });
+        const response = await annotationService.fetchCombinableAnnotationsForHierarchy(
+            annotationNamesInHierachy
+        );
+        dispatch(setCombinableAnnotations(response));
+        done();
+    },
     transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState } = deps;
 
