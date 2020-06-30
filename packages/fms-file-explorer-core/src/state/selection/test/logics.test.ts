@@ -235,7 +235,7 @@ describe("Selection logics", () => {
             ).to.equal(true);
         });
 
-        it.only("sets combinable annotations based on hierarchy", async () => {
+        it("sets combinable annotations based on hierarchy", async () => {
             // setup
             const state = {
                 metadata: {
