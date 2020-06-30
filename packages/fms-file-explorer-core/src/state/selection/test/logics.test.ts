@@ -11,6 +11,7 @@ import {
     SET_FILE_FILTERS,
     removeFileFilter,
     removeFromAnnotationHierarchy,
+    SET_COMBINABLE_ANNOTATIONS,
 } from "../actions";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
@@ -229,6 +230,48 @@ describe("Selection logics", () => {
             expect(
                 actions.includes({
                     type: SET_ANNOTATION_HIERARCHY,
+                    payload: [annotations[0], annotations[1], annotations[3]],
+                })
+            ).to.equal(true);
+        });
+
+        it.only("sets combinable annotations based on hierarchy", async () => {
+            // setup
+            const state = {
+                metadata: {
+                    annotations: [...annotations],
+                },
+                selection: {
+                    annotationHierarchy: [
+                        annotations[0],
+                        annotations[1],
+                        annotations[2],
+                        annotations[3],
+                    ],
+                },
+            };
+
+            const responseStub = {
+                when:
+                    "test/file-explorer-service/1.0/annotations/hierarchy/annotations?hierarchy=[cell_dead,cas9]",
+                respondWith: {
+                    data: ["cell_line", "cas9", "date_created", "days_since_creation"],
+                },
+            };
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                responseStubs: responseStub,
+                state,
+            });
+
+            // act
+            store.dispatch(removeFromAnnotationHierarchy(annotations[2].name));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includes({
+                    type: SET_COMBINABLE_ANNOTATIONS,
                     payload: [annotations[0], annotations[1], annotations[3]],
                 })
             ).to.equal(true);

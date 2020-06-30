@@ -83,15 +83,27 @@ const selectFile = createLogic({
  * a concrete list of ordered annotations that can be directly stored in application state under `selections.annotationHierarchy`.
  */
 const modifyAnnotationHierarchy = createLogic({
-    process(deps: ReduxLogicDeps, dispatch, done) {
+    async process(deps: ReduxLogicDeps, dispatch, done) {
         const { action, baseApiUrl, httpClient } = deps;
         const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
         const annotationService = new AnnotationService({ baseUrl: baseApiUrl, httpClient });
-        const response = await annotationService.fetchCombinableAnnotationsForHierarchy(
-            annotationNamesInHierachy
-        );
-        dispatch(setCombinableAnnotations(response));
-        done();
+
+        try {
+            dispatch(
+                setCombinableAnnotations(
+                    await annotationService.fetchCombinableAnnotationsForHierarchy(
+                        annotationNamesInHierachy
+                    )
+                )
+            );
+        } catch (err) {
+            console.error(
+                "Something went wrong finding combinable annotations, nobody knows why. But here's a hint:",
+                err
+            );
+        } finally {
+            done();
+        }
     },
     transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState } = deps;
