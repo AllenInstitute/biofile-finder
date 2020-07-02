@@ -1,4 +1,4 @@
-import { castArray, find, includes, isArray, sortBy, uniq, uniqWith, without } from "lodash";
+import { castArray, find, includes, sortBy, uniqWith, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -12,11 +12,13 @@ import {
     setAnnotationHierarchy,
     setAvailableAnnotations,
     setFileFilters,
+    setFileSelection,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps } from "../";
 import * as selectionSelectors from "./selectors";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
+import NumericRange from "../../entity/NumericRange";
 import AnnotationService from "../../services/AnnotationService";
 
 /**
@@ -28,6 +30,8 @@ const selectFile = createLogic({
     transform(deps: ReduxLogicDeps, next: (action: AnyAction) => void) {
         const { getState } = deps;
         const action = deps.action as SelectFileAction;
+        const selection = action.payload.selection;
+        let nextSelectionsForFileSet: NumericRange[];
 
         if (action.payload.updateExistingSelection) {
             const existingSelectionsByFileSet = selectionSelectors.getSelectedFileIndicesByFileSet(
@@ -36,43 +40,52 @@ const selectFile = createLogic({
             const existingSelections =
                 existingSelectionsByFileSet[action.payload.correspondingFileSet] || [];
 
-            // if updating existing selections and clicked file is already selected, interpret as a deselect action
-            // ensure clicked file is not a list of files--that case is more difficult to guess user intention
             if (
-                !isArray(action.payload.fileIndex) &&
-                includes(existingSelections, action.payload.fileIndex)
+                !NumericRange.isNumericRange(selection) &&
+                existingSelections.some((range) => range.contains(selection))
             ) {
-                next({
-                    ...action,
-                    payload: {
-                        ...action.payload,
-                        fileIndex: without(
-                            existingSelections,
-                            ...castArray(action.payload.fileIndex)
-                        ),
-                    },
-                });
+                // if updating existing selections and clicked file is already selected, interpret as a deselect action
+                // ensure selection is not a range--that case is more difficult to guess user intention
+                nextSelectionsForFileSet = existingSelections.reduce((accum, range) => {
+                    if (range.contains(selection)) {
+                        return [...accum, ...range.partitionAt(selection)];
+                    }
+
+                    return [...accum, range];
+                }, [] as NumericRange[]);
             } else {
-                next({
-                    ...action,
-                    payload: {
-                        ...action.payload,
-                        fileIndex: uniq([
-                            ...existingSelections,
-                            ...castArray(action.payload.fileIndex),
-                        ]),
-                    },
-                });
+                // else, add to existing selection
+                nextSelectionsForFileSet = existingSelections.reduce((accum, range) => {
+                    if (NumericRange.isNumericRange(selection)) {
+                        // combine ranges if they are continuous
+                        if (range.abuts(selection)) {
+                            return [...accum, range.union(selection)];
+                        }
+
+                        return [...accum, range, selection];
+                    } else {
+                        if (range.abuts(selection)) {
+                            return [...accum, range.expandTo(selection)];
+                        }
+
+                        return [...accum, range, new NumericRange(selection, selection)];
+                    }
+                }, [] as NumericRange[]);
             }
         } else {
-            next({
-                ...action,
-                payload: {
-                    ...action.payload,
-                    fileIndex: castArray(action.payload.fileIndex),
-                },
-            });
+            if (NumericRange.isNumericRange(selection)) {
+                nextSelectionsForFileSet = [selection];
+            } else {
+                nextSelectionsForFileSet = [new NumericRange(selection)];
+            }
         }
+
+        next(
+            setFileSelection(
+                action.payload.correspondingFileSet,
+                NumericRange.compact(...nextSelectionsForFileSet)
+            )
+        );
     },
     type: SELECT_FILE,
 });

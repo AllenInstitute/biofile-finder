@@ -1,4 +1,4 @@
-import { includes, map } from "lodash";
+import { map } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -39,13 +39,13 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     const selectedFileIndicesByFileSet = useSelector(
         selection.selectors.getSelectedFileIndicesByFileSet
     );
-    const selectedFileIndices = selectedFileIndicesByFileSet[fileSet.hash] || [];
+    const selections = selectedFileIndicesByFileSet[fileSet.hash] || [];
 
     const file = fileSet.getFileByIndex(index);
 
     const isSelected = React.useMemo(() => {
-        return includes(selectedFileIndices, index);
-    }, [selectedFileIndices, index]);
+        return selections.some((range) => range.contains(index));
+    }, [selections, index]);
 
     let content;
     if (file) {

@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 
 import { selection } from "../../state";
 import FileSet from "../../entity/FileSet";
+import NumericRange from "../../entity/NumericRange";
 
 export interface EventParams {
     ctrlKeyIsPressed: boolean;
@@ -40,15 +41,10 @@ export default function useFileSelector(fileSet: FileSet): OnSelect {
                 const startIndex = Math.min(rangeBoundary, fileRow.index);
                 const endIndex = Math.max(rangeBoundary, fileRow.index);
 
-                const selections = [];
-                for (let i = startIndex; i <= endIndex; i++) {
-                    selections.push(i);
-                }
-
                 dispatch(
                     selection.actions.selectFile(
                         fileSet.hash,
-                        selections,
+                        new NumericRange(startIndex, endIndex),
                         eventParams.ctrlKeyIsPressed
                     )
                 );

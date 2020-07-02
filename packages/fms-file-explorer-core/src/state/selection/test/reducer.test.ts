@@ -3,6 +3,7 @@ import { expect } from "chai";
 import selection from "..";
 import { initialState } from "../..";
 import interaction from "../../interaction";
+import NumericRange from "../../../entity/NumericRange";
 
 describe("Selection reducer", () => {
     [
@@ -14,7 +15,7 @@ describe("Selection reducer", () => {
             const initialSelectionState = {
                 ...selection.initialState,
                 selectedFileIndicesByFileSet: {
-                    abc123: [1, 2, 3],
+                    abc123: [new NumericRange(1, 3)],
                 },
             };
 
@@ -35,55 +36,54 @@ describe("Selection reducer", () => {
         })
     );
 
-    describe("SELECT_FILE", () => {
-        it("adds file index when new index is selected", () => {
+    describe("SET_FILE_SELECTION", () => {
+        it("assigns selection to fileset", () => {
             // arrange
             const initialSelectionState = {
                 ...selection.initialState,
                 selectedFileIndicesByFileSet: {
-                    abc123: [5],
+                    abc123: [new NumericRange(5)],
                 },
             };
+
+            const expectation = [new NumericRange(5), new NumericRange(7, 20)];
 
             const action = {
                 payload: {
                     correspondingFileSet: "abc123",
-                    fileIndex: [5, 22],
-                    updateExistingSelection: false,
+                    selection: expectation,
                 },
-                type: selection.actions.SELECT_FILE,
+                type: selection.actions.SET_FILE_SELECTION,
             };
 
             // act
             const nextSelectionState = selection.reducer(initialSelectionState, action);
+            const actual = selection.selectors.getSelectedFileIndicesByFileSet({
+                ...initialState,
+                selection: nextSelectionState,
+            });
 
             // assert
-            expect(
-                selection.selectors.getSelectedFileIndicesByFileSet({
-                    ...initialState,
-                    selection: nextSelectionState,
-                })
-            ).to.deep.equal({
-                abc123: [5, 22],
+            actual["abc123"].forEach((range, index) => {
+                expect(range.equals(expectation[index])).to.equal(true);
             });
         });
 
-        it("removes file set after deselecting last index in set", () => {
+        it("removes fileset from state if has no selections", () => {
             // arrange
             const initialSelectionState = {
                 ...selection.initialState,
                 selectedFileIndicesByFileSet: {
-                    abc123: [5],
+                    abc123: [new NumericRange(7, 20)],
                 },
             };
 
             const action = {
                 payload: {
                     correspondingFileSet: "abc123",
-                    fileIndex: [],
-                    updateExistingSelection: true,
+                    selection: [],
                 },
-                type: selection.actions.SELECT_FILE,
+                type: selection.actions.SET_FILE_SELECTION,
             };
 
             // act

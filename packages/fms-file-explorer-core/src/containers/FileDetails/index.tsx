@@ -31,10 +31,8 @@ export default function FileDetails(props: FileDetails) {
     const [windowState, dispatch] = React.useReducer(windowStateReducer, INITIAL_STATE);
 
     const fileService = useSelector(interaction.selectors.getFileService);
-    const selectedFileIndicesByFileSet = useSelector(
-        selection.selectors.getSelectedFileIndicesByFileSet
-    );
-    const fileSets = Object.keys(selectedFileIndicesByFileSet);
+    const selectedFilesByFileSet = useSelector(selection.selectors.getSelectedFileIndicesByFileSet);
+    const fileSets = Object.keys(selectedFilesByFileSet);
     let fileSet;
     let fileIndexToDisplay;
     // If there is a file set with an index we can display select it,
@@ -43,7 +41,7 @@ export default function FileDetails(props: FileDetails) {
     if (fileSets.length) {
         const fileSetHash = fileSets[0];
         fileSet = defaultFileSetFactory.get(fileSetHash);
-        fileIndexToDisplay = selectedFileIndicesByFileSet[fileSetHash][0];
+        fileIndexToDisplay = selectedFilesByFileSet[fileSetHash][0].from;
     }
     const [fileDetails, isLoading] = useFileDetails(fileIndexToDisplay, fileSet);
 

@@ -5,14 +5,15 @@ import interaction from "../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../metadata/reducer";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
+import NumericRange from "../../entity/NumericRange";
 
 import {
     DESELECT_DISPLAY_ANNOTATION,
     SELECT_DISPLAY_ANNOTATION,
-    SELECT_FILE,
     SET_ANNOTATION_HIERARCHY,
-    SET_FILE_FILTERS,
     SET_AVAILABLE_ANNOTATIONS,
+    SET_FILE_FILTERS,
+    SET_FILE_SELECTION,
 } from "./actions";
 
 export interface SelectionStateBranch {
@@ -22,7 +23,7 @@ export interface SelectionStateBranch {
     displayAnnotations: Annotation[];
     filters: FileFilter[];
     selectedFileIndicesByFileSet: {
-        [index: string]: number[]; // FileSet::hash to list of list indices
+        [index: string]: NumericRange[]; // FileSet::hash to list of list indices
     };
 }
 
@@ -56,12 +57,12 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             displayAnnotations: [...state.displayAnnotations, ...castArray(action.payload)],
         }),
-        [SELECT_FILE]: (state, action) => ({
+        [SET_FILE_SELECTION]: (state, action) => ({
             ...state,
-            selectedFileIndicesByFileSet: action.payload.fileIndex.length
+            selectedFileIndicesByFileSet: action.payload.selection.length
                 ? {
                       ...state.selectedFileIndicesByFileSet,
-                      [action.payload.correspondingFileSet]: action.payload.fileIndex,
+                      [action.payload.correspondingFileSet]: action.payload.selection,
                   }
                 : omit(state.selectedFileIndicesByFileSet, [action.payload.correspondingFileSet]),
         }),

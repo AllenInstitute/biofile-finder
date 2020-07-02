@@ -2,6 +2,7 @@ import { makeConstant } from "@aics/redux-utils";
 
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
+import NumericRange from "../../entity/NumericRange";
 
 const STATE_BRANCH_NAME = "selection";
 
@@ -129,7 +130,7 @@ export const SELECT_FILE = makeConstant(STATE_BRANCH_NAME, "select-file");
 export interface SelectFileAction {
     payload: {
         correspondingFileSet: string; // FileSet::hash
-        fileIndex: number | number[];
+        selection: number | NumericRange;
         updateExistingSelection: boolean;
     };
     type: string;
@@ -137,16 +138,49 @@ export interface SelectFileAction {
 
 export function selectFile(
     correspondingFileSet: string, // FileSet::hash
-    fileIndex: number | number[],
+    selection: number | NumericRange,
     updateExistingSelection = false
 ): SelectFileAction {
     return {
         payload: {
             correspondingFileSet,
-            fileIndex,
+            selection,
             updateExistingSelection,
         },
         type: SELECT_FILE,
+    };
+}
+
+/**
+ * SET_FILE_SELECTION
+ *
+ * This is not to be fired by UI; use the SELECT_FILE action instead.
+ *
+ * Setter-type action fired by selection/logics:selectFile, which intercepts SELECT_FILE actions,
+ * processes them along with existing selection state to create exact selection payloads that can
+ * be set directly into state. The seperation is to allow keeping a large amount of business logic
+ * out of the reducer.
+ */
+export const SET_FILE_SELECTION = makeConstant(STATE_BRANCH_NAME, "set-file-selection");
+
+export interface SetFileSelection {
+    payload: {
+        correspondingFileSet: string; // FileSet::hash
+        selection: NumericRange[];
+    };
+    type: string;
+}
+
+export function setFileSelection(
+    correspondingFileSet: string, // FileSet::hash
+    selection: NumericRange[]
+): SetFileSelection {
+    return {
+        payload: {
+            correspondingFileSet,
+            selection,
+        },
+        type: SET_FILE_SELECTION,
     };
 }
 
