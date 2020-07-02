@@ -46,7 +46,7 @@ export default class NumericRange {
     public constructor(fromInclusive: number);
     public constructor(fromInclusive: number, toInclusive: number);
     public constructor(...bounds: number[]) {
-        let [fromInclusive, toInclusive] = bounds;
+        let [fromInclusive, toInclusive] = bounds; // eslint-disable-line prefer-const
         if (toInclusive === undefined) {
             toInclusive = fromInclusive;
         }
