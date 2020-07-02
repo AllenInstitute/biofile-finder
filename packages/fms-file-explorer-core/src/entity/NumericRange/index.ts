@@ -43,7 +43,14 @@ export default class NumericRange {
         return candidate instanceof NumericRange;
     }
 
-    public constructor(fromInclusive: number, toInclusive: number) {
+    public constructor(fromInclusive: number);
+    public constructor(fromInclusive: number, toInclusive: number);
+    public constructor(...bounds: number[]) {
+        let [fromInclusive, toInclusive] = bounds;
+        if (toInclusive === undefined) {
+            toInclusive = fromInclusive;
+        }
+
         this.min = Math.min(fromInclusive, toInclusive);
         this.max = Math.max(fromInclusive, toInclusive);
     }

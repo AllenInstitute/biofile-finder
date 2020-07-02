@@ -89,6 +89,15 @@ describe("NumericRange", () => {
             expect(range.from).to.equal(-5);
             expect(range.to).to.equal(10);
         });
+
+        it("sets max equal to min if only given one number", () => {
+            // arrange
+            const range = new NumericRange(5);
+
+            // assert
+            expect(range.from).to.equal(5);
+            expect(range.to).to.equal(5);
+        });
     });
 
     describe("abuts", () => {
