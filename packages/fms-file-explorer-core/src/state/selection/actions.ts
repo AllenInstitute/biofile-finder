@@ -235,14 +235,14 @@ export const SET_COMBINABLE_ANNOTATIONS = makeConstant(
     "set-combinable-annotations"
 );
 
-export interface setCombinableAnnotationsAction {
+export interface SetCombinableAnnotationsAction {
     payload: string[];
     type: string;
 }
 
 export function setCombinableAnnotations(
     annotationNames: string[]
-): setCombinableAnnotationsAction {
+): SetCombinableAnnotationsAction {
     return {
         payload: annotationNames,
         type: SET_COMBINABLE_ANNOTATIONS,
