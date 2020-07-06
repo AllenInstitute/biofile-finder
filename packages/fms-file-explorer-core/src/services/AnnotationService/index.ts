@@ -23,7 +23,7 @@ export default class AnnotationService extends HttpServiceBase {
     public static BASE_ANNOTATION_URL = `file-explorer-service/${AnnotationService.ANNOTATION_ENDPOINT_VERSION}/annotations`;
     public static BASE_ANNOTATION_HIERARCHY_ROOT_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/root`;
     public static BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/under-path`;
-    public static BASE_COMBINABLE_ANNOTATIONS_UNDER_HIERARCHY = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/annotations`;
+    public static BASE_COMBINABLE_ANNOTATIONS_UNDER_HIERARCHY = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/available`;
 
     /**
      * Fetch all annotations.

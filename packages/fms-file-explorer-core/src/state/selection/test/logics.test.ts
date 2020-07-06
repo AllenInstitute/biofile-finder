@@ -265,7 +265,7 @@ describe("Selection logics", () => {
 
             const responseStub = {
                 when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/annotations?hierarchy=date_created,cell_line,matrigel_hardened",
+                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=date_created,cell_line,matrigel_hardened",
                 respondWith: {
                     data: {
                         data: ["days_since_creation"],
