@@ -1,6 +1,13 @@
-interface JSONReadyRange {
+export interface JSONReadyRange {
     start: number;
     end: number;
+}
+
+export class EmptyRangeException extends Error {
+    public constructor(message: string) {
+        super(message);
+        this.name = "EmptyRangeException";
+    }
 }
 
 /**
@@ -121,7 +128,7 @@ export default class NumericRange {
      */
     public partitionAt(partitionPoint: number): NumericRange[] {
         if (this.min === this.max) {
-            throw new Error(
+            throw new EmptyRangeException(
                 `Unable to partition ${this} about ${partitionPoint}: NumericRange too small.`
             );
         }

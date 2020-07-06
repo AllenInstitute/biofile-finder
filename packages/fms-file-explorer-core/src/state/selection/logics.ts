@@ -48,7 +48,11 @@ const selectFile = createLogic({
                 // ensure selection is not a range--that case is more difficult to guess user intention
                 nextSelectionsForFileSet = existingSelections.reduce((accum, range) => {
                     if (range.contains(selection)) {
-                        return [...accum, ...range.partitionAt(selection)];
+                        try {
+                            return [...accum, ...range.partitionAt(selection)];
+                        } catch (EmptyRangeException) {
+                            return accum;
+                        }
                     }
 
                     return [...accum, range];

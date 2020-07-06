@@ -1,19 +1,37 @@
+import { isEmpty } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { ReduxLogicDeps } from "../";
+import { ReduxLogicDeps, selection } from "../";
 import { DOWNLOAD_MANIFEST } from "./actions";
+import * as interactionSelectors from "./selectors";
+import CsvService from "../../services/CsvService";
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
- *
- * TODO: In this temporary, band-aid implementation, the CSV manifest is built-up in the frontend. This will change to
- * delegate the creation of the manifest to the file-download-service, which already has facilities for manifest
- * creation in place, but needs to be hooked up to the file-explorer-service.
  */
 const downloadManifest = createLogic({
     type: DOWNLOAD_MANIFEST,
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        console.warn("This functionality was disabled. It will be re-enabled as part of FMS-1224.");
+        const { getState } = deps;
+        try {
+            const state = getState();
+            const baseUrl = interactionSelectors.getFileExplorerServiceBaseUrl(state);
+            const csvService = new CsvService({ baseUrl });
+
+            const existingSelectionsByFileSet = selection.selectors.getSelectedFileIndicesByFileSet(
+                deps.getState()
+            );
+
+            if (isEmpty(existingSelectionsByFileSet)) {
+                return;
+            }
+
+            await csvService.downloadCsv(existingSelectionsByFileSet);
+        } catch (err) {
+            console.error("Something went wrong, nobody knows why. But here's a hint:", err);
+        } finally {
+            done();
+        }
     },
 });
 
