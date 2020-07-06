@@ -68,12 +68,13 @@ export default class AnnotationService extends HttpServiceBase {
     }
 
     /**
-     * TODO
+     * Fetchs annotations that can be combined with current hierarchy while still producing a non-empty
+     * file set
      */
     public async fetchCombinableAnnotationsForHierarchy(annotations: string[]): Promise<string[]> {
         const requestUrl = `${this.baseUrl}/${
             AnnotationService.BASE_COMBINABLE_ANNOTATIONS_UNDER_HIERARCHY
-        }?annotations=${annotations.join(",")}`;
+        }?hierarchy=${annotations.join(",")}`;
         console.log(`Requesting combinable annotations with current hierarchy: ${requestUrl}`);
 
         const response = await this.get<string>(requestUrl);
