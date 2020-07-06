@@ -1,4 +1,5 @@
 import * as classNames from "classnames";
+import { Spinner, SpinnerSize } from "office-ui-fabric-react";
 import Tippy from "@tippy.js/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 import * as React from "react";
@@ -23,6 +24,7 @@ export default React.memo(function AnnotationListItem(props: DnDItemRendererPara
     const {
         disabled,
         item: { id, description, title },
+        loading,
     } = props;
 
     return (
@@ -47,6 +49,7 @@ export default React.memo(function AnnotationListItem(props: DnDItemRendererPara
             >
                 {title}
             </span>
+            {loading && <Spinner size={SpinnerSize.small} />}
             <AnnotationFilter annotationName={id} />
         </div>
     );

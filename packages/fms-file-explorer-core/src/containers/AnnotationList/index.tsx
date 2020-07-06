@@ -7,6 +7,7 @@ import AnnotationListItem from "./AnnotationListItem";
 import DnDList from "../../components/DnDList";
 import SvgIcon from "../../components/SvgIcon";
 import * as annotationSelectors from "../AnnotationSidebar/selectors";
+import selection from "../../state/selection";
 
 const styles = require("./AnnotationList.module.css");
 
@@ -41,6 +42,9 @@ const SEARCH_ICON_PATH_DATA =
  * the AnnotationGrouping component in order to effect how files in the FileList are displayed (grouped and filtered).
  */
 export default function AnnotationList(props: AnnotationListProps) {
+    const annotationsLoading = useSelector(
+        selection.selectors.getCombinableAnnotationsForHierarchyLoading
+    );
     const annotationListItems = useSelector(annotationSelectors.getAnnotationListItems);
     const hierarchyListItems = useSelector(annotationSelectors.getHierarchyListItems);
     const nonCombinableAnnotations = useSelector(
@@ -91,6 +95,7 @@ export default function AnnotationList(props: AnnotationListProps) {
                     id={DROPPABLE_ID}
                     isDropDisabled={true}
                     itemRenderer={AnnotationListItem}
+                    loading={annotationsLoading}
                 />
             </div>
         </div>

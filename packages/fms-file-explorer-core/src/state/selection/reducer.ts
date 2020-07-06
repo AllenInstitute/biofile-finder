@@ -18,6 +18,7 @@ import {
 export interface SelectionStateBranch {
     annotationHierarchy: Annotation[];
     combinableAnnotationsForHierarchy: string[];
+    combinableAnnotationsForHierarchyLoading: boolean;
     displayAnnotations: Annotation[];
     filters: FileFilter[];
     selectedFileIndicesByFileSet: {
@@ -35,6 +36,7 @@ const DEFAULT_DISPLAY_ANNOTATIONS = compact([
 export const initialState = {
     annotationHierarchy: [],
     combinableAnnotationsForHierarchy: [],
+    combinableAnnotationsForHierarchyLoading: false,
     displayAnnotations: [...DEFAULT_DISPLAY_ANNOTATIONS],
     filters: [],
     selectedFileIndicesByFileSet: {}, // FileSet::hash to str[]
@@ -66,6 +68,7 @@ export default makeReducer<SelectionStateBranch>(
         [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
             ...state,
             annotationHierarchy: action.payload,
+            combinableAnnotationsForHierarchyLoading: true,
 
             // Reset file selections when annotation hierarchy changes
             selectedFileIndicesByFileSet: {},
@@ -73,6 +76,7 @@ export default makeReducer<SelectionStateBranch>(
         [SET_COMBINABLE_ANNOTATIONS]: (state, action) => ({
             ...state,
             combinableAnnotationsForHierarchy: action.payload,
+            combinableAnnotationsForHierarchyLoading: false,
         }),
         [interaction.actions.SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state) => ({
             ...state,

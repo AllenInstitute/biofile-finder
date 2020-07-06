@@ -17,6 +17,7 @@ export interface DnDItemRendererParams {
     disabled: boolean;
     index: number;
     item: DnDItem;
+    loading: boolean;
 }
 
 interface DnDListProps {
@@ -27,13 +28,14 @@ interface DnDListProps {
     isDropDisabled?: boolean;
     items: DnDItem[];
     itemRenderer: React.FunctionComponent<DnDItemRendererParams>;
+    loading: boolean;
 }
 
 /**
  * Wrapper for react-beautiful-dnd that renders a list of items that are draggable and droppable.
  */
 export default function DnDList(props: DnDListProps) {
-    const { disabledItems, highlight, id, isDropDisabled, items, itemRenderer } = props;
+    const { disabledItems, highlight, id, isDropDisabled, items, itemRenderer, loading } = props;
     return (
         <Droppable droppableId={id} isDropDisabled={isDropDisabled}>
             {(droppableProps, droppableState) => (
@@ -49,7 +51,8 @@ export default function DnDList(props: DnDListProps) {
                     )}
                 >
                     {map(items, (item, index) => {
-                        const disabled = some(disabledItems, (disabled) => disabled.id === item.id);
+                        const disabled =
+                            some(disabledItems, (disabled) => disabled.id === item.id) || loading;
                         return (
                             <Draggable
                                 key={item.id}
@@ -68,6 +71,7 @@ export default function DnDList(props: DnDListProps) {
                                                 disabled,
                                                 index,
                                                 item,
+                                                loading,
                                             })}
                                         </DnDListItem>
                                         {// Render static clone of item (i.e., not draggable) in a non-droppable list to prevent react-beautiful-dnd from leaving a hole in the source list when an item is actively being dragged out of it.
@@ -83,6 +87,7 @@ export default function DnDList(props: DnDListProps) {
                                                     disabled,
                                                     index,
                                                     item,
+                                                    loading,
                                                 })}
                                             </DnDListItem>
                                         )}

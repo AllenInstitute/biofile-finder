@@ -35,6 +35,7 @@ export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
                 id={DROPPABLE_ID}
                 items={annotationHierarchyListItems}
                 itemRenderer={HierarchyListItem}
+                loading={false}
             />
         </div>
     );
