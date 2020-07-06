@@ -245,6 +245,6 @@ export function setCombinableAnnotations(
 ): setCombinableAnnotationsAction {
     return {
         payload: annotationNames,
-        type: SET_ANNOTATION_HIERARCHY,
+        type: SET_COMBINABLE_ANNOTATIONS,
     };
 }

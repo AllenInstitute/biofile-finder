@@ -44,6 +44,15 @@ describe("<AnnotationSidebar /> selectors", () => {
                     annotations: map(annotationsJson, (annotation) => new Annotation(annotation)),
                 },
                 selection: {
+                    annotationHierarchy: [
+                        new Annotation({
+                            annotationName: "color",
+                            annotationDisplayName: "Color",
+                            description: "a color",
+                            type: "text",
+                            values: ["blue"],
+                        }),
+                    ],
                     combinableAnnotationsForHierarchy: ["date_created", "cell_dead"],
                 },
             });
@@ -55,6 +64,21 @@ describe("<AnnotationSidebar /> selectors", () => {
             expect(first).to.have.property("id");
             expect(first).to.have.property("description", "AICS cell line");
             expect(first).to.have.property("title", "Cell line");
+        });
+
+        it("considers all annotations viable when no hierarchy is present", () => {
+            const state = mergeState(initialState, {
+                metadata: {
+                    annotations: map(annotationsJson, (annotation) => new Annotation(annotation)),
+                },
+                selection: {
+                    annotationHierarchy: [],
+                    combinableAnnotationsForHierarchy: ["date_created", "cell_dead"],
+                },
+            });
+
+            const listItems = annotationSelectors.getNonCombinableAnnotationsForHierarchy(state);
+            expect(listItems).to.be.empty;
         });
     });
 });

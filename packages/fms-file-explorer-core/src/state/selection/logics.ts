@@ -13,9 +13,8 @@ import {
     setCombinableAnnotations,
     setFileFilters,
 } from "./actions";
-import metadata from "../metadata";
+import { interaction, metadata, ReduxLogicDeps } from "../";
 import * as selectionSelectors from "./selectors";
-import { ReduxLogicDeps } from "../";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import AnnotationService from "../../services/AnnotationService";
@@ -84,9 +83,10 @@ const selectFile = createLogic({
  */
 const modifyAnnotationHierarchy = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { action, baseApiUrl, httpClient } = deps;
+        const { action, httpClient, getState } = deps;
         const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
-        const annotationService = new AnnotationService({ baseUrl: baseApiUrl, httpClient });
+        const baseUrl = interaction.selectors.getFileExplorerServiceBaseUrl(getState());
+        const annotationService = new AnnotationService({ baseUrl, httpClient });
 
         try {
             dispatch(

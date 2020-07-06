@@ -144,6 +144,9 @@ describe("Selection logics", () => {
         it("adds a new annotation to the end of the hierarchy", async () => {
             // setup
             const state = {
+                interaction: {
+                    fileExplorerServiceBaseUrl: "test",
+                },
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -172,6 +175,9 @@ describe("Selection logics", () => {
         it("moves an annotation within the hierarchy to a new position", async () => {
             // setup
             const state = {
+                interaction: {
+                    fileExplorerServiceBaseUrl: "test",
+                },
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -205,6 +211,9 @@ describe("Selection logics", () => {
         it("removes an annotation from the hierarchy", async () => {
             // setup
             const state = {
+                interaction: {
+                    fileExplorerServiceBaseUrl: "test",
+                },
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -238,6 +247,9 @@ describe("Selection logics", () => {
         it("sets combinable annotations based on hierarchy", async () => {
             // setup
             const state = {
+                interaction: {
+                    fileExplorerServiceBaseUrl: "test",
+                },
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -253,9 +265,11 @@ describe("Selection logics", () => {
 
             const responseStub = {
                 when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/annotations?hierarchy=[cell_dead,cas9]",
+                    "test/file-explorer-service/1.0/annotations/hierarchy/annotations?hierarchy=date_created,cell_line,matrigel_hardened",
                 respondWith: {
-                    data: ["cell_line", "cas9", "date_created", "days_since_creation"],
+                    data: {
+                        data: ["days_since_creation"],
+                    },
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -272,7 +286,7 @@ describe("Selection logics", () => {
             expect(
                 actions.includes({
                     type: SET_COMBINABLE_ANNOTATIONS,
-                    payload: [annotations[0], annotations[1], annotations[3]],
+                    payload: ["days_since_creation"],
                 })
             ).to.equal(true);
         });

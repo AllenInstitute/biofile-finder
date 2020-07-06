@@ -110,7 +110,7 @@ describe("AnnotationService", () => {
             const expectedValues = ["cell_dead", "date_created"];
             const httpClient = createMockHttpClient({
                 when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/annotations?hierarchy=[cell_line,cas9]",
+                    "test/file-explorer-service/1.0/annotations/hierarchy/annotations?hierarchy=cell_line,cas9",
                 respondWith: {
                     data: {
                         data: expectedValues,
