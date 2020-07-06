@@ -17,7 +17,7 @@ export interface DnDItemRendererParams {
     disabled: boolean;
     index: number;
     item: DnDItem;
-    loading: boolean;
+    loading?: boolean;
 }
 
 interface DnDListProps {
@@ -28,7 +28,7 @@ interface DnDListProps {
     isDropDisabled?: boolean;
     items: DnDItem[];
     itemRenderer: React.FunctionComponent<DnDItemRendererParams>;
-    loading: boolean;
+    loading?: boolean;
 }
 
 /**
@@ -52,7 +52,7 @@ export default function DnDList(props: DnDListProps) {
                 >
                     {map(items, (item, index) => {
                         const disabled =
-                            some(disabledItems, (disabled) => disabled.id === item.id) || loading;
+                            loading || some(disabledItems, (disabled) => disabled.id === item.id);
                         return (
                             <Draggable
                                 key={item.id}
