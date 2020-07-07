@@ -8,7 +8,7 @@ import {
     SET_PLATFORM_DEPENDENT_SERVICES,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
-import NoopFileDownloadService from "../../services/FileDownloadService/NoopFileDownloadService";
+import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
 import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
 
 export interface InteractionStateBranch {
@@ -29,7 +29,7 @@ export const initialState = {
     contextMenuPositionReference: null,
     fileExplorerServiceBaseUrl: DEFAULT_CONNECTION_CONFIG.baseUrl,
     platformDependentServices: {
-        fileDownloadService: new NoopFileDownloadService(),
+        fileDownloadService: new FileDownloadServiceNoop(),
     },
 };
 

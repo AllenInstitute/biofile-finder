@@ -12,7 +12,7 @@ import ContextMenu from "./containers/ContextMenu";
 import DirectoryTree from "./containers/DirectoryTree";
 import FileDetails from "./containers/FileDetails";
 import HeaderRibbon from "./containers/HeaderRibbon";
-import NoopFileDownloadService from "./services/FileDownloadService/NoopFileDownloadService";
+import FileDownloadServiceNoop from "./services/FileDownloadService/FileDownloadServiceNoop";
 import { interaction, metadata } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
 
@@ -39,7 +39,7 @@ interface AppProps {
 const defaultProps: AppProps = {
     fileExplorerServiceBaseUrl: DataSource.PRODUCTION,
     platformDependentServices: {
-        fileDownloadService: new NoopFileDownloadService(),
+        fileDownloadService: new FileDownloadServiceNoop(),
     },
 };
 
