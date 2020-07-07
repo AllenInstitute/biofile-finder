@@ -10,4 +10,8 @@ export function createReduxStore(preloadedState?: State) {
     });
 }
 
+// interfaces for services that can be differentially implemented in either the electron or web versions
+import FileDownloadService from "./services/FileDownloadService";
+export { FileDownloadService };
+
 export { default } from "./App";

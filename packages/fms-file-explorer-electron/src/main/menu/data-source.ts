@@ -1,8 +1,7 @@
 import { MenuItemConstructorOptions } from "electron";
 
 export enum FileExplorerServiceBaseUrl {
-    // localhost default in FES repo
-    LOCALHOST = "http://dev-aics-gmp-001.corp.alleninstitute.org:9082", // HTTP proxy; see scripts/run-http-proxy.sh
+    LOCALHOST = "http://dev-aics-gmp-001:9081",
     STAGING = "http://stg-aics-api.corp.alleninstitute.org",
     PRODUCTION = "http://aics-api.corp.alleninstitute.org",
 }

@@ -22,9 +22,8 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                     },
                     {
                         key: "manifest",
-                        text: "Manifest (temporarily disabled)", // TODO FMS-1224
+                        text: "Manifest",
                         title: "CSV file of metadata of selected files",
-                        disabled: true, // TODO FMS-1224
                         onClick() {
                             dispatch(interaction.actions.downloadManifest());
                         },

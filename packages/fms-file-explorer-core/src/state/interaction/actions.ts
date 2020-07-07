@@ -1,6 +1,7 @@
 import { makeConstant } from "@aics/redux-utils";
 
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
+import FileDownloadService from "../../services/FileDownloadService";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -81,5 +82,33 @@ export function setFileExplorerServiceBaseUrl(baseUrl: string): SetFileExplorerS
     return {
         type: SET_FILE_EXPLORER_SERVICE_BASE_URL,
         payload: baseUrl,
+    };
+}
+
+/**
+ * SET PLATFORM-DEPENDENT SERVICES
+ *
+ * These services provide platform-dependent functionality and are expected to be injected once on application load.
+ */
+export const SET_PLATFORM_DEPENDENT_SERVICES = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-platform-dependent-services"
+);
+
+export interface PlatformDependentServices {
+    fileDownloadService: FileDownloadService;
+}
+
+export interface SetPlatformDependentServices {
+    type: string;
+    payload: PlatformDependentServices;
+}
+
+export function setPlatformDependentServices(
+    services: PlatformDependentServices
+): SetPlatformDependentServices {
+    return {
+        type: SET_PLATFORM_DEPENDENT_SERVICES,
+        payload: services,
     };
 }

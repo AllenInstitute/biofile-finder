@@ -5,15 +5,23 @@ import { ipcRenderer, remote } from "electron";
 import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
+import FileDownloadServiceElectron from "./services/FileDownloadServiceElectron";
 
 const APP_ID = "fms-file-explorer-electron";
 
 const store = createReduxStore();
 
+const platformDependentServices = {
+    fileDownloadService: new FileDownloadServiceElectron(),
+};
+
 function renderFmsFileExplorer(fileExplorerServiceBaseUrl: string) {
     render(
         <Provider store={store}>
-            <FmsFileExplorer fileExplorerServiceBaseUrl={fileExplorerServiceBaseUrl} />
+            <FmsFileExplorer
+                fileExplorerServiceBaseUrl={fileExplorerServiceBaseUrl}
+                platformDependentServices={platformDependentServices}
+            />
         </Provider>,
         document.getElementById(APP_ID)
     );

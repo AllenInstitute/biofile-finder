@@ -11,9 +11,10 @@ export const getContextMenuPositionReference = (state: State) =>
     state.interaction.contextMenuPositionReference;
 export const getFileExplorerServiceBaseUrl = (state: State) =>
     state.interaction.fileExplorerServiceBaseUrl;
+export const getPlatformDependentServices = (state: State) =>
+    state.interaction.platformDependentServices;
 
 // COMPOSED SELECTORS
-
 export const getFileService = createSelector(
     [getFileExplorerServiceBaseUrl],
     (fileExplorerBaseUrl) => {

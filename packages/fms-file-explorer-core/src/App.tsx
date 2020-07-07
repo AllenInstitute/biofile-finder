@@ -1,16 +1,20 @@
 import "normalize.css";
 import * as classNames from "classnames";
+import { defaultsDeep } from "lodash";
 import { initializeIcons, loadTheme } from "office-ui-fabric-react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { DataSource } from "./constants";
 import AnnotationSidebar from "./containers/AnnotationSidebar";
 import Breadcrumbs from "./containers/Breadcrumbs";
 import ContextMenu from "./containers/ContextMenu";
 import DirectoryTree from "./containers/DirectoryTree";
 import FileDetails from "./containers/FileDetails";
 import HeaderRibbon from "./containers/HeaderRibbon";
+import NoopFileDownloadService from "./services/FileDownloadService/NoopFileDownloadService";
 import { interaction, metadata } from "./state";
+import { PlatformDependentServices } from "./state/interaction/actions";
 
 import "./styles/global.css";
 const styles = require("./App.module.css");
@@ -29,20 +33,34 @@ interface AppProps {
     // Stage: "http://stg-aics-api.corp.alleninstitute.org"
     // From the web (behind load balancer): "/"
     fileExplorerServiceBaseUrl?: string;
+    platformDependentServices?: PlatformDependentServices;
 }
 
+const defaultProps: AppProps = {
+    fileExplorerServiceBaseUrl: DataSource.PRODUCTION,
+    platformDependentServices: {
+        fileDownloadService: new NoopFileDownloadService(),
+    },
+};
+
 export default function App(props: AppProps) {
-    const { fileExplorerServiceBaseUrl } = props;
+    const { fileExplorerServiceBaseUrl, platformDependentServices } = defaultsDeep(
+        {},
+        props,
+        defaultProps
+    );
 
     const dispatch = useDispatch();
+
+    // Set platform-dependent services in state
+    React.useEffect(() => {
+        dispatch(interaction.actions.setPlatformDependentServices(platformDependentServices));
+    }, [dispatch, platformDependentServices]);
 
     // Set connection configuration for the file-explorer-service
     // And kick off the process of requesting metadata needed by the application.
     React.useEffect(() => {
-        if (fileExplorerServiceBaseUrl) {
-            dispatch(interaction.actions.setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl));
-        }
-
+        dispatch(interaction.actions.setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl));
         dispatch(metadata.actions.requestAnnotations());
     }, [dispatch, fileExplorerServiceBaseUrl]);
 
