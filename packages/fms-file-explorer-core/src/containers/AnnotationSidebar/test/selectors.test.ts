@@ -59,11 +59,6 @@ describe("<AnnotationSidebar /> selectors", () => {
 
             const listItems = annotationSelectors.getNonCombinableAnnotationsForHierarchy(state);
             expect(listItems.length).to.equal(annotationsJson.length - 2);
-
-            const first = listItems[0];
-            expect(first).to.have.property("id");
-            expect(first).to.have.property("description", "AICS cell line");
-            expect(first).to.have.property("title", "Cell line");
         });
 
         it("considers all annotations viable when no hierarchy is present", () => {
