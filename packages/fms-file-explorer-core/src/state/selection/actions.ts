@@ -227,24 +227,22 @@ export function setAnnotationHierarchy(annotations: Annotation[]): SetAnnotation
 }
 
 /**
- * SET_COMBINABLE_ANNOTATIONS
+ * SET_AVAILABLE_ANNOTATIONS
  * Intention to set annotations available for addition to the current hierarchy
  */
-export const SET_COMBINABLE_ANNOTATIONS = makeConstant(
+export const SET_AVAILABLE_ANNOTATIONS = makeConstant(
     STATE_BRANCH_NAME,
-    "set-combinable-annotations"
+    "set-available-annotations"
 );
 
-export interface SetCombinableAnnotationsAction {
+export interface SetAvailableAnnotationsAction {
     payload: string[];
     type: string;
 }
 
-export function setCombinableAnnotations(
-    annotationNames: string[]
-): SetCombinableAnnotationsAction {
+export function setAvailableAnnotations(annotationNames: string[]): SetAvailableAnnotationsAction {
     return {
         payload: annotationNames,
-        type: SET_COMBINABLE_ANNOTATIONS,
+        type: SET_AVAILABLE_ANNOTATIONS,
     };
 }

@@ -43,14 +43,14 @@ const SEARCH_ICON_PATH_DATA =
  */
 export default function AnnotationList(props: AnnotationListProps) {
     const annotationsLoading = useSelector(
-        selection.selectors.getCombinableAnnotationsForHierarchyLoading
+        selection.selectors.getAvailableAnnotationsForHierarchyLoading
     );
     const annotationListItems = useSelector(annotationSelectors.getAnnotationListItems);
     const hierarchyListItems = useSelector(annotationSelectors.getHierarchyListItems);
-    const nonCombinableAnnotations = useSelector(
-        annotationSelectors.getNonCombinableAnnotationsForHierarchy
+    const nonAvailableAnnotations = useSelector(
+        annotationSelectors.getNonAvailableAnnotationsForHierarchy
     );
-    const unusableAnnotationsListItems = [...hierarchyListItems, ...nonCombinableAnnotations];
+    const unusableAnnotationsListItems = [...hierarchyListItems, ...nonAvailableAnnotations];
     const [searchValue, setSearchValue] = React.useState("");
 
     // Perform fuzzy search using searchValue within annotation list items, considering the items

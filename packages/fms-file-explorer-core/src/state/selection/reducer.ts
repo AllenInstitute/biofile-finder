@@ -12,13 +12,13 @@ import {
     SELECT_FILE,
     SET_ANNOTATION_HIERARCHY,
     SET_FILE_FILTERS,
-    SET_COMBINABLE_ANNOTATIONS,
+    SET_AVAILABLE_ANNOTATIONS,
 } from "./actions";
 
 export interface SelectionStateBranch {
     annotationHierarchy: Annotation[];
-    combinableAnnotationsForHierarchy: string[];
-    combinableAnnotationsForHierarchyLoading: boolean;
+    availableAnnotationsForHierarchy: string[];
+    availableAnnotationsForHierarchyLoading: boolean;
     displayAnnotations: Annotation[];
     filters: FileFilter[];
     selectedFileIndicesByFileSet: {
@@ -35,8 +35,8 @@ const DEFAULT_DISPLAY_ANNOTATIONS = compact([
 
 export const initialState = {
     annotationHierarchy: [],
-    combinableAnnotationsForHierarchy: [],
-    combinableAnnotationsForHierarchyLoading: false,
+    availableAnnotationsForHierarchy: [],
+    availableAnnotationsForHierarchyLoading: false,
     displayAnnotations: [...DEFAULT_DISPLAY_ANNOTATIONS],
     filters: [],
     selectedFileIndicesByFileSet: {}, // FileSet::hash to str[]
@@ -68,15 +68,15 @@ export default makeReducer<SelectionStateBranch>(
         [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
             ...state,
             annotationHierarchy: action.payload,
-            combinableAnnotationsForHierarchyLoading: true,
+            availableAnnotationsForHierarchyLoading: true,
 
             // Reset file selections when annotation hierarchy changes
             selectedFileIndicesByFileSet: {},
         }),
-        [SET_COMBINABLE_ANNOTATIONS]: (state, action) => ({
+        [SET_AVAILABLE_ANNOTATIONS]: (state, action) => ({
             ...state,
-            combinableAnnotationsForHierarchy: action.payload,
-            combinableAnnotationsForHierarchyLoading: false,
+            availableAnnotationsForHierarchy: action.payload,
+            availableAnnotationsForHierarchyLoading: false,
         }),
         [interaction.actions.SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state) => ({
             ...state,

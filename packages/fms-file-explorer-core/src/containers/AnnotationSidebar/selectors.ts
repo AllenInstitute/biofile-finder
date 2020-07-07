@@ -27,14 +27,14 @@ export const getHierarchyListItems = createSelector(
     }
 );
 
-export const getNonCombinableAnnotationsForHierarchy = createSelector(
+export const getNonAvailableAnnotationsForHierarchy = createSelector(
     [
         getAnnotationListItems,
-        selection.selectors.getCombinableAnnotationsForHierarchy,
+        selection.selectors.getAvailableAnnotationsForHierarchy,
         selection.selectors.getAnnotationHierarchy,
     ],
-    (annotations: DnDItem[], combinableAnnotations: string[], hierarchy: Annotation[]): DnDItem[] =>
+    (annotations: DnDItem[], availableAnnotations: string[], hierarchy: Annotation[]): DnDItem[] =>
         hierarchy.length
-            ? annotations.filter((annotation) => !combinableAnnotations.includes(annotation.id))
+            ? annotations.filter((annotation) => !availableAnnotations.includes(annotation.id))
             : []
 );

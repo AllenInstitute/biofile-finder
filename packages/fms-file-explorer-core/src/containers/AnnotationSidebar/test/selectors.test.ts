@@ -37,8 +37,8 @@ describe("<AnnotationSidebar /> selectors", () => {
         });
     });
 
-    describe("getNonCombinableAnnotationsForHierarchy", () => {
-        it("filters annotation list items to exclude combinable annotations", () => {
+    describe("getNonAvailableAnnotationsForHierarchy", () => {
+        it("filters annotation list items to exclude available annotations", () => {
             const state = mergeState(initialState, {
                 metadata: {
                     annotations: map(annotationsJson, (annotation) => new Annotation(annotation)),
@@ -53,11 +53,11 @@ describe("<AnnotationSidebar /> selectors", () => {
                             values: ["blue"],
                         }),
                     ],
-                    combinableAnnotationsForHierarchy: ["date_created", "cell_dead"],
+                    availableAnnotationsForHierarchy: ["date_created", "cell_dead"],
                 },
             });
 
-            const listItems = annotationSelectors.getNonCombinableAnnotationsForHierarchy(state);
+            const listItems = annotationSelectors.getNonAvailableAnnotationsForHierarchy(state);
             expect(listItems.length).to.equal(annotationsJson.length - 2);
         });
 
@@ -68,11 +68,11 @@ describe("<AnnotationSidebar /> selectors", () => {
                 },
                 selection: {
                     annotationHierarchy: [],
-                    combinableAnnotationsForHierarchy: ["date_created", "cell_dead"],
+                    availableAnnotationsForHierarchy: ["date_created", "cell_dead"],
                 },
             });
 
-            const listItems = annotationSelectors.getNonCombinableAnnotationsForHierarchy(state);
+            const listItems = annotationSelectors.getNonAvailableAnnotationsForHierarchy(state);
             expect(listItems).to.be.empty;
         });
     });

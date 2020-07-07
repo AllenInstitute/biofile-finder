@@ -11,7 +11,7 @@ import {
     SET_FILE_FILTERS,
     removeFileFilter,
     removeFromAnnotationHierarchy,
-    SET_COMBINABLE_ANNOTATIONS,
+    SET_AVAILABLE_ANNOTATIONS,
 } from "../actions";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
@@ -244,7 +244,7 @@ describe("Selection logics", () => {
             ).to.equal(true);
         });
 
-        it("sets combinable annotations based on hierarchy", async () => {
+        it("sets available annotations based on hierarchy", async () => {
             // setup
             const state = {
                 interaction: {
@@ -285,7 +285,7 @@ describe("Selection logics", () => {
             // assert
             expect(
                 actions.includes({
-                    type: SET_COMBINABLE_ANNOTATIONS,
+                    type: SET_AVAILABLE_ANNOTATIONS,
                     payload: ["days_since_creation"],
                 })
             ).to.equal(true);

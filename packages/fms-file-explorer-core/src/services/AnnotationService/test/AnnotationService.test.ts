@@ -105,7 +105,7 @@ describe("AnnotationService", () => {
         });
     });
 
-    describe("fetchCombinableAnnotationsForHierarchy", () => {
+    describe("fetchAvailableAnnotationsForHierarchy", () => {
         it("issues request for annotations that can be combined with current hierarchy", async () => {
             const expectedValues = ["cell_dead", "date_created"];
             const httpClient = createMockHttpClient({
@@ -119,7 +119,7 @@ describe("AnnotationService", () => {
             });
 
             const annotationService = new AnnotationService({ baseUrl: "test", httpClient });
-            const values = await annotationService.fetchCombinableAnnotationsForHierarchy([
+            const values = await annotationService.fetchAvailableAnnotationsForHierarchy([
                 "cell_line",
                 "cas9",
             ]);

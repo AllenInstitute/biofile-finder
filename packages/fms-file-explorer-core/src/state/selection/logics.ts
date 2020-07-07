@@ -10,7 +10,7 @@ import {
     REMOVE_FROM_ANNOTATION_HIERARCHY,
     SelectFileAction,
     setAnnotationHierarchy,
-    setCombinableAnnotations,
+    setAvailableAnnotations,
     setFileFilters,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps } from "../";
@@ -90,15 +90,15 @@ const modifyAnnotationHierarchy = createLogic({
 
         try {
             dispatch(
-                setCombinableAnnotations(
-                    await annotationService.fetchCombinableAnnotationsForHierarchy(
+                setAvailableAnnotations(
+                    await annotationService.fetchAvailableAnnotationsForHierarchy(
                         annotationNamesInHierachy
                     )
                 )
             );
         } catch (err) {
             console.error(
-                "Something went wrong finding combinable annotations, nobody knows why. But here's a hint:",
+                "Something went wrong finding available annotations, nobody knows why. But here's a hint:",
                 err
             );
         } finally {
