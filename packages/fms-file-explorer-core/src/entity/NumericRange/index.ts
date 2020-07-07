@@ -66,6 +66,10 @@ export default class NumericRange {
         return this.min;
     }
 
+    public get length(): number {
+        return this.max - this.min + 1; // ranges are inclusive of their bounds
+    }
+
     public get to(): number {
         return this.max;
     }

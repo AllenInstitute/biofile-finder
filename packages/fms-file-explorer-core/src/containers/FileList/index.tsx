@@ -49,10 +49,9 @@ export default function FileList(props: FileListProps) {
     const selectedFileIndicesByFileSet = useSelector(
         selection.selectors.getSelectedFileIndicesByFileSet
     );
-    const selectedFileIndices = selectedFileIndicesByFileSet[fileSet.hash] || [];
-    const selectedFilesText = selectedFileIndices.length
-        ? `(${selectedFileIndices.length} selected)`
-        : "";
+    const selectedFiles = selectedFileIndicesByFileSet[fileSet.hash] || [];
+    const numSelectedFiles = selectedFiles.reduce((accum, range) => (accum += range.length), 0);
+    const selectedFilesText = numSelectedFiles ? `(${numSelectedFiles} selected)` : "";
 
     // If this is the "root" file list (e.g., all files in FMS), this component should take up
     // 100% of the height of its container.
@@ -69,7 +68,7 @@ export default function FileList(props: FileListProps) {
     const onFileRowContextMenu = (evt: React.MouseEvent) => {
         const availableItems = getContextMenuItems(dispatch);
         const items = [];
-        if (isEmpty(selectedFileIndices)) {
+        if (isEmpty(selectedFiles)) {
             items.push({ ...availableItems.DOWNLOAD, disabled: true });
         } else {
             items.push(availableItems.DOWNLOAD);
