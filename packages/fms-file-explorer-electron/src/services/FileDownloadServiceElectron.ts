@@ -9,7 +9,12 @@ import { noop } from "lodash";
 import { FileDownloadService } from "@aics/fms-file-explorer-core";
 
 export default class FileDownloadServiceElectron implements FileDownloadService {
-    public async downloadCsvManifest(url: string, postData: string, onEnd: () => void = noop) {
+    public async downloadCsvManifest(
+        url: string,
+        postData: string,
+        totalCountSelected: number,
+        onEnd: () => void = noop
+    ) {
         const result = await remote.dialog.showSaveDialog(remote.getCurrentWindow(), {
             title: "Save CSV manifest",
             defaultPath: path.resolve(os.homedir(), "fms-explorer-selections.csv"),
