@@ -77,40 +77,40 @@ export default function FileList(props: FileListProps) {
     };
 
     return (
-        <div className={classNames(styles.list, className)} style={style} ref={ref}>
-            <InfiniteLoader
-                key={fileSet.hash}
-                isItemLoaded={fileSet.isFileMetadataLoaded}
-                loadMoreItems={debouncePromise(
-                    fileSet.fetchFileRange,
-                    DEBOUNCE_WAIT_FOR_DATA_FETCHING
-                )}
-                itemCount={totalCount}
-            >
-                {({ onItemsRendered, ref }) => (
-                    <FixedSizeList
-                        itemData={{
-                            fileSet: fileSet,
-                            onSelect,
-                            onContextMenu: onFileRowContextMenu,
-                        }}
-                        itemSize={rowHeight} // row height
-                        height={isRoot ? measuredHeight : calculatedHeight} // height of the list itself; affects number of rows rendered at any given time
-                        itemCount={totalCount}
-                        onItemsRendered={onItemsRendered}
-                        outerElementType={Header}
-                        ref={ref}
-                        width="100%"
-                    >
-                        {LazilyRenderedRow}
-                    </FixedSizeList>
-                )}
-            </InfiniteLoader>
-            {!isRoot && (
-                <p className={styles.rowCountDisplay}>
-                    Showing {totalCount} files {selectedFilesText}
-                </p>
-            )}
+        <div className={classNames(styles.container, className)}>
+            <div className={classNames(styles.list)} style={style} ref={ref}>
+                <InfiniteLoader
+                    key={fileSet.hash}
+                    isItemLoaded={fileSet.isFileMetadataLoaded}
+                    loadMoreItems={debouncePromise(
+                        fileSet.fetchFileRange,
+                        DEBOUNCE_WAIT_FOR_DATA_FETCHING
+                    )}
+                    itemCount={totalCount}
+                >
+                    {({ onItemsRendered, ref }) => (
+                        <FixedSizeList
+                            itemData={{
+                                fileSet: fileSet,
+                                onSelect,
+                                onContextMenu: onFileRowContextMenu,
+                            }}
+                            itemSize={rowHeight} // row height
+                            height={isRoot ? measuredHeight : calculatedHeight} // height of the list itself; affects number of rows rendered at any given time
+                            itemCount={totalCount}
+                            onItemsRendered={onItemsRendered}
+                            outerElementType={Header}
+                            ref={ref}
+                            width="100%"
+                        >
+                            {LazilyRenderedRow}
+                        </FixedSizeList>
+                    )}
+                </InfiniteLoader>
+            </div>
+            <p className={styles.rowCountDisplay}>
+                {totalCount} files {selectedFilesText}
+            </p>
         </div>
     );
 }
