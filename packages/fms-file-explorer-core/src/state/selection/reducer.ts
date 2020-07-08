@@ -23,7 +23,7 @@ export interface SelectionStateBranch {
     displayAnnotations: Annotation[];
     filters: FileFilter[];
     selectedFileIndicesByFileSet: {
-        [index: string]: NumericRange[]; // FileSet::hash to list of list indices
+        [index: string]: NumericRange[]; // FileSet::hash to list of list ranges
     };
 }
 
