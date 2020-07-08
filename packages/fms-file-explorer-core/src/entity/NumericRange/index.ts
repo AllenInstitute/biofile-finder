@@ -27,11 +27,15 @@ export default class NumericRange {
 
         let compacted: NumericRange[] = [];
 
-        // for each range in input...
+        // For each range in input...
         for (const range of ranges) {
             let rangeCombinedWithAnother = false;
 
-            // ...check if the current range can be combined ("compacted") with another
+            // ...check if the current range can be combined with another.
+            // This is a labelled statement to enable short-circuiting iterating any further than needed.
+            // That is, once we find a range within the return list (`compacted`) to combine with, we can consider the range from
+            // the outer loop (`range`) to be accounted for in our return list--it doesn't need to be combined with any other
+            // range in the return list.
             compaction: for (const compactedRange of compacted) {
                 if (
                     range.equals(compactedRange) ||
@@ -39,15 +43,15 @@ export default class NumericRange {
                     range.intersects(compactedRange)
                 ) {
                     compacted = [
-                        ...compacted.filter((r) => !r.equals(compactedRange)), // remove range that was in `compacted`...
-                        range.union(compactedRange), // ...because it is now combined with another
+                        ...compacted.filter((r) => !r.equals(compactedRange)), // Remove range that was in `compacted`...
+                        range.union(compactedRange), // ...because it is now combined with another.
                     ];
                     rangeCombinedWithAnother = true;
                     break compaction;
                 }
             }
 
-            // current range hasn't yet equaled, intersected, or abutted another, so add it into the return list as is
+            // Current range hasn't yet equaled, intersected, or abutted another, so add it into the return list as is
             if (!rangeCombinedWithAnother) {
                 compacted.push(range);
             }
