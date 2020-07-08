@@ -25,18 +25,32 @@ export default class NumericRange {
             return [];
         }
 
-        let compacted: NumericRange[] = [ranges[0]];
-        for (const range of ranges) {
-            compacted = compacted.reduce((accum, range2) => {
-                if (range.equals(range2) || range.abuts(range2) || range.intersects(range2)) {
-                    return [
-                        ...accum.filter((r) => !r.equals(range) && !r.equals(range2)),
-                        range.union(range2),
-                    ];
-                }
+        let compacted: NumericRange[] = [];
 
-                return [...accum.filter((r) => !r.equals(range)), range];
-            }, compacted);
+        // for each range in input...
+        for (const range of ranges) {
+            let rangeCombinedWithAnother = false;
+
+            // ...check if the current range can be combined ("compacted") with another
+            compaction: for (const compactedRange of compacted) {
+                if (
+                    range.equals(compactedRange) ||
+                    range.abuts(compactedRange) ||
+                    range.intersects(compactedRange)
+                ) {
+                    compacted = [
+                        ...compacted.filter((r) => !r.equals(compactedRange)), // remove range that was in `compacted`...
+                        range.union(compactedRange), // ...because it is now combined with another
+                    ];
+                    rangeCombinedWithAnother = true;
+                    break compaction;
+                }
+            }
+
+            // current range hasn't yet equaled, intersected, or abutted another, so add it into the return list as is
+            if (!rangeCombinedWithAnother) {
+                compacted.push(range);
+            }
         }
 
         return compacted;

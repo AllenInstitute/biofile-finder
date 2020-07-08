@@ -7,14 +7,15 @@ describe("NumericRange", () => {
         it("combines ranges that overlap, are equal, or abut", () => {
             // arrange
             const range1 = new NumericRange(4, 7);
-            const range2 = new NumericRange(1, 10); // encompasses range1
-            const range3 = new NumericRange(-4, 2); // overlaps range2
-            const range4 = new NumericRange(11, 20); // abuts range2
+            const range2 = new NumericRange(4, 7); // entirely equal to range1
+            const range3 = new NumericRange(1, 10); // encompasses range1/2
+            const range4 = new NumericRange(-4, 2); // overlaps range3
+            const range5 = new NumericRange(11, 20); // abuts range3
 
             const expected = [new NumericRange(-4, 20)];
 
             // act
-            const actual = NumericRange.compact(range1, range2, range3, range4);
+            const actual = NumericRange.compact(range1, range2, range3, range4, range5);
 
             // assert
             expect(actual.length).to.equal(expected.length);
