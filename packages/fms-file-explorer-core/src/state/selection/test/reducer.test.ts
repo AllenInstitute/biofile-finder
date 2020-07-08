@@ -14,7 +14,7 @@ describe("Selection reducer", () => {
             // arrange
             const initialSelectionState = {
                 ...selection.initialState,
-                selectedFileIndicesByFileSet: {
+                selectedFileRangesByFileSet: {
                     abc123: [new NumericRange(1, 3)],
                 },
             };
@@ -28,7 +28,7 @@ describe("Selection reducer", () => {
 
             // assert
             expect(
-                selection.selectors.getSelectedFileIndicesByFileSet({
+                selection.selectors.getSelectedFileRangesByFileSet({
                     ...initialState,
                     selection: nextSelectionState,
                 })
@@ -41,7 +41,7 @@ describe("Selection reducer", () => {
             // arrange
             const initialSelectionState = {
                 ...selection.initialState,
-                selectedFileIndicesByFileSet: {
+                selectedFileRangesByFileSet: {
                     abc123: [new NumericRange(5)],
                 },
             };
@@ -58,7 +58,7 @@ describe("Selection reducer", () => {
 
             // act
             const nextSelectionState = selection.reducer(initialSelectionState, action);
-            const actual = selection.selectors.getSelectedFileIndicesByFileSet({
+            const actual = selection.selectors.getSelectedFileRangesByFileSet({
                 ...initialState,
                 selection: nextSelectionState,
             });
@@ -73,7 +73,7 @@ describe("Selection reducer", () => {
             // arrange
             const initialSelectionState = {
                 ...selection.initialState,
-                selectedFileIndicesByFileSet: {
+                selectedFileRangesByFileSet: {
                     abc123: [new NumericRange(7, 20)],
                 },
             };
@@ -91,7 +91,7 @@ describe("Selection reducer", () => {
 
             // assert
             expect(
-                selection.selectors.getSelectedFileIndicesByFileSet({
+                selection.selectors.getSelectedFileRangesByFileSet({
                     ...initialState,
                     selection: nextSelectionState,
                 })

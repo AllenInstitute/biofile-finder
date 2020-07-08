@@ -34,7 +34,7 @@ const selectFile = createLogic({
         let nextSelectionsForFileSet: NumericRange[];
 
         if (action.payload.updateExistingSelection) {
-            const existingSelectionsByFileSet = selectionSelectors.getSelectedFileIndicesByFileSet(
+            const existingSelectionsByFileSet = selectionSelectors.getSelectedFileRangesByFileSet(
                 getState()
             );
             const existingSelections =
@@ -42,39 +42,45 @@ const selectFile = createLogic({
 
             if (
                 !NumericRange.isNumericRange(selection) &&
-                existingSelections.some((range) => range.contains(selection))
+                existingSelections.some((range: NumericRange) => range.contains(selection))
             ) {
                 // if updating existing selections and clicked file is already selected, interpret as a deselect action
                 // ensure selection is not a range--that case is more difficult to guess user intention
-                nextSelectionsForFileSet = existingSelections.reduce((accum, range) => {
-                    if (range.contains(selection)) {
-                        try {
-                            return [...accum, ...range.partitionAt(selection)];
-                        } catch (EmptyRangeException) {
-                            return accum;
+                nextSelectionsForFileSet = existingSelections.reduce(
+                    (accum, range: NumericRange) => {
+                        if (range.contains(selection)) {
+                            try {
+                                return [...accum, ...range.partitionAt(selection)];
+                            } catch (EmptyRangeException) {
+                                return accum;
+                            }
                         }
-                    }
 
-                    return [...accum, range];
-                }, [] as NumericRange[]);
+                        return [...accum, range];
+                    },
+                    [] as NumericRange[]
+                );
             } else {
                 // else, add to existing selection
-                nextSelectionsForFileSet = existingSelections.reduce((accum, range) => {
-                    if (NumericRange.isNumericRange(selection)) {
-                        // combine ranges if they are continuous
-                        if (range.abuts(selection)) {
-                            return [...accum, range.union(selection)];
-                        }
+                nextSelectionsForFileSet = existingSelections.reduce(
+                    (accum, range: NumericRange) => {
+                        if (NumericRange.isNumericRange(selection)) {
+                            // combine ranges if they are continuous
+                            if (range.abuts(selection)) {
+                                return [...accum, range.union(selection)];
+                            }
 
-                        return [...accum, range, selection];
-                    } else {
-                        if (range.abuts(selection)) {
-                            return [...accum, range.expandTo(selection)];
-                        }
+                            return [...accum, range, selection];
+                        } else {
+                            if (range.abuts(selection)) {
+                                return [...accum, range.expandTo(selection)];
+                            }
 
-                        return [...accum, range, new NumericRange(selection, selection)];
-                    }
-                }, [] as NumericRange[]);
+                            return [...accum, range, new NumericRange(selection, selection)];
+                        }
+                    },
+                    [] as NumericRange[]
+                );
             }
         } else {
             if (NumericRange.isNumericRange(selection)) {

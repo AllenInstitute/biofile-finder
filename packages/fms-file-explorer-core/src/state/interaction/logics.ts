@@ -18,7 +18,7 @@ const downloadManifest = createLogic({
             const baseUrl = interactionSelectors.getFileExplorerServiceBaseUrl(state);
             const csvService = new CsvService({ baseUrl });
 
-            const existingSelectionsByFileSet = selection.selectors.getSelectedFileIndicesByFileSet(
+            const existingSelectionsByFileSet = selection.selectors.getSelectedFileRangesByFileSet(
                 deps.getState()
             );
 

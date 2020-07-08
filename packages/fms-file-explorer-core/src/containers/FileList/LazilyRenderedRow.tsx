@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 
 import FileRow from "../../components/FileRow";
 import FileSet from "../../entity/FileSet";
+import NumericRange from "../../entity/NumericRange";
 import { selection } from "../../state";
 import { OnSelect } from "./useFileSelector";
 
@@ -36,15 +37,15 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     } = props;
 
     const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
-    const selectedFileIndicesByFileSet = useSelector(
-        selection.selectors.getSelectedFileIndicesByFileSet
+    const selectedFileRangesByFileSet = useSelector(
+        selection.selectors.getSelectedFileRangesByFileSet
     );
-    const selections = selectedFileIndicesByFileSet[fileSet.hash] || [];
+    const selections: NumericRange[] = selectedFileRangesByFileSet[fileSet.hash] || [];
 
     const file = fileSet.getFileByIndex(index);
 
     const isSelected = React.useMemo(() => {
-        return selections.some((range) => range.contains(index));
+        return selections.some((range: NumericRange) => range.contains(index));
     }, [selections, index]);
 
     let content;

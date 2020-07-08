@@ -22,7 +22,7 @@ export interface SelectionStateBranch {
     availableAnnotationsForHierarchyLoading: boolean;
     displayAnnotations: Annotation[];
     filters: FileFilter[];
-    selectedFileIndicesByFileSet: {
+    selectedFileRangesByFileSet: {
         [index: string]: NumericRange[]; // FileSet::hash to list of list ranges
     };
 }
@@ -40,7 +40,7 @@ export const initialState = {
     availableAnnotationsForHierarchyLoading: false,
     displayAnnotations: [...DEFAULT_DISPLAY_ANNOTATIONS],
     filters: [],
-    selectedFileIndicesByFileSet: {}, // FileSet::hash to str[]
+    selectedFileRangesByFileSet: {}, // FileSet::hash to NumericRange[]
 };
 
 export default makeReducer<SelectionStateBranch>(
@@ -59,12 +59,12 @@ export default makeReducer<SelectionStateBranch>(
         }),
         [SET_FILE_SELECTION]: (state, action) => ({
             ...state,
-            selectedFileIndicesByFileSet: action.payload.selection.length
+            selectedFileRangesByFileSet: action.payload.selection.length
                 ? {
-                      ...state.selectedFileIndicesByFileSet,
+                      ...state.selectedFileRangesByFileSet,
                       [action.payload.correspondingFileSet]: action.payload.selection,
                   }
-                : omit(state.selectedFileIndicesByFileSet, [action.payload.correspondingFileSet]),
+                : omit(state.selectedFileRangesByFileSet, [action.payload.correspondingFileSet]),
         }),
         [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
             ...state,
@@ -72,7 +72,7 @@ export default makeReducer<SelectionStateBranch>(
             availableAnnotationsForHierarchyLoading: true,
 
             // Reset file selections when annotation hierarchy changes
-            selectedFileIndicesByFileSet: {},
+            selectedFileRangesByFileSet: {},
         }),
         [SET_AVAILABLE_ANNOTATIONS]: (state, action) => ({
             ...state,
@@ -83,7 +83,7 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
 
             // Reset file selections when pointed at a new backend
-            selectedFileIndicesByFileSet: {},
+            selectedFileRangesByFileSet: {},
         }),
     },
     initialState

@@ -8,6 +8,7 @@ import InfiniteLoader from "react-window-infinite-loader";
 
 import getContextMenuItems from "../ContextMenu/items";
 import FileSet from "../../entity/FileSet";
+import NumericRange from "../../entity/NumericRange";
 import Header from "./Header";
 import LazilyRenderedRow from "./LazilyRenderedRow";
 import { interaction, selection } from "../../state";
@@ -46,11 +47,14 @@ export default function FileList(props: FileListProps) {
 
     const onSelect = useFileSelector(fileSet);
     const dispatch = useDispatch();
-    const selectedFileIndicesByFileSet = useSelector(
-        selection.selectors.getSelectedFileIndicesByFileSet
+    const selectedFileRangesByFileSet = useSelector(
+        selection.selectors.getSelectedFileRangesByFileSet
     );
-    const selectedFiles = selectedFileIndicesByFileSet[fileSet.hash] || [];
-    const numSelectedFiles = selectedFiles.reduce((accum, range) => (accum += range.length), 0);
+    const selectedFiles: NumericRange[] = selectedFileRangesByFileSet[fileSet.hash] || [];
+    const numSelectedFiles = selectedFiles.reduce(
+        (accum, range: NumericRange) => (accum += range.length),
+        0
+    );
     const selectedFilesText = numSelectedFiles ? `(${numSelectedFiles} selected)` : "";
 
     // If this is the "root" file list (e.g., all files in FMS), this component should take up

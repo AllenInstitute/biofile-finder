@@ -31,7 +31,7 @@ export default function FileDetails(props: FileDetails) {
     const [windowState, dispatch] = React.useReducer(windowStateReducer, INITIAL_STATE);
 
     const fileService = useSelector(interaction.selectors.getFileService);
-    const selectedFilesByFileSet = useSelector(selection.selectors.getSelectedFileIndicesByFileSet);
+    const selectedFilesByFileSet = useSelector(selection.selectors.getSelectedFileRangesByFileSet);
     const fileSets = Object.keys(selectedFilesByFileSet);
     let fileSet;
     let fileIndexToDisplay;

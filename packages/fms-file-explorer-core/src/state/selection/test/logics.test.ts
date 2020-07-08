@@ -26,7 +26,7 @@ describe("Selection logics", () => {
             // arrange
             const state = {
                 selection: {
-                    selectedFileIndicesByFileSet: {
+                    selectedFileRangesByFileSet: {
                         abc123: [new NumericRange(9, 10)],
                     },
                 },
@@ -56,7 +56,7 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFileIndicesByFileSet: {
+                    selectedFileRangesByFileSet: {
                         abc123: [new NumericRange(9)],
                     },
                 },
@@ -86,7 +86,7 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFileIndicesByFileSet: {
+                    selectedFileRangesByFileSet: {
                         abc123: [new NumericRange(9)],
                     },
                 },
@@ -116,7 +116,7 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFileIndicesByFileSet: {
+                    selectedFileRangesByFileSet: {
                         abc123: [new NumericRange(9)],
                     },
                 },
@@ -146,7 +146,7 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFileIndicesByFileSet: {
+                    selectedFileRangesByFileSet: {
                         abc123: [new NumericRange(9, 15)],
                     },
                 },
@@ -176,7 +176,7 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFileIndicesByFileSet: {
+                    selectedFileRangesByFileSet: {
                         abc123: [new NumericRange(8, 15), new NumericRange(22)],
                     },
                 },
@@ -210,7 +210,7 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFileIndicesByFileSet: {
+                    selectedFileRangesByFileSet: {
                         abc123: [new NumericRange(8, 15), new NumericRange(22)],
                     },
                 },
