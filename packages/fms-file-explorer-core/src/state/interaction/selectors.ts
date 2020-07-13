@@ -13,6 +13,7 @@ export const getFileExplorerServiceBaseUrl = (state: State) =>
     state.interaction.fileExplorerServiceBaseUrl;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
+export const getProcessStatuses = (state: State) => state.interaction.status;
 
 // COMPOSED SELECTORS
 export const getFileService = createSelector(

@@ -112,3 +112,134 @@ export function setPlatformDependentServices(
         payload: services,
     };
 }
+
+/**
+ * PROCESS AND STATUS RELATED ENUMS, INTERFACES, ETC.
+ */
+
+export enum Process {
+    MANIFEST_DOWNLOAD,
+}
+
+export enum ProcessStatus {
+    STARTED,
+    SUCCEEDED,
+    FAILED,
+}
+
+export interface StatusUpdate {
+    id: string; // uuid
+    process: Process;
+    status: ProcessStatus;
+}
+
+export interface ManifestStatusUpdate extends StatusUpdate {
+    data: {
+        filePath: string; // save path for CSV manifest
+    };
+}
+
+export const CLEAR_STATUS = makeConstant(STATE_BRANCH_NAME, "clear-status");
+
+export interface ClearStatusAction {
+    type: string;
+    payload: {
+        id: string; // references a StatusUpdate.id
+    };
+}
+
+export function clearStatus(id: string): ClearStatusAction {
+    return {
+        type: CLEAR_STATUS,
+        payload: {
+            id,
+        },
+    };
+}
+
+/**
+ * MANIFEST_DOWNLOAD_START
+ *
+ * Intention to ...
+ */
+export const MANIFEST_DOWNLOAD_START = makeConstant(STATE_BRANCH_NAME, "manifest-download-start");
+
+export interface ManifestDownloadStartAction {
+    type: string;
+    payload: ManifestStatusUpdate;
+}
+
+export function startManifestDownload(id: string, filePath: string): ManifestDownloadStartAction {
+    return {
+        type: MANIFEST_DOWNLOAD_START,
+        payload: {
+            data: {
+                filePath,
+            },
+            id,
+            process: Process.MANIFEST_DOWNLOAD,
+            status: ProcessStatus.STARTED,
+        },
+    };
+}
+
+/**
+ * MANIFEST_DOWNLOAD_SUCCESS
+ *
+ * Intention to ...
+ */
+export const MANIFEST_DOWNLOAD_SUCCESS = makeConstant(
+    STATE_BRANCH_NAME,
+    "manifest-download-success"
+);
+
+export interface ManifestDownloadSuccessAction {
+    type: string;
+    payload: ManifestStatusUpdate;
+}
+
+export function succeedManifestDownload(
+    id: string,
+    filePath: string
+): ManifestDownloadSuccessAction {
+    return {
+        type: MANIFEST_DOWNLOAD_SUCCESS,
+        payload: {
+            data: {
+                filePath,
+            },
+            id,
+            process: Process.MANIFEST_DOWNLOAD,
+            status: ProcessStatus.SUCCEEDED,
+        },
+    };
+}
+
+/**
+ * MANIFEST_DOWNLOAD_FAILURE
+ *
+ * Intention to ...
+ */
+export const MANIFEST_DOWNLOAD_FAILURE = makeConstant(
+    STATE_BRANCH_NAME,
+    "manifest-download-failure"
+);
+
+export interface ManifestDownloadFailureAction {
+    type: string;
+    payload: ManifestStatusUpdate;
+}
+
+export function failManifestDownload(id: string, filePath: string): ManifestDownloadFailureAction {
+    return {
+        type: MANIFEST_DOWNLOAD_SUCCESS,
+        payload: {
+            data: {
+                filePath,
+            },
+            id,
+            process: Process.MANIFEST_DOWNLOAD,
+            status: ProcessStatus.FAILED,
+        },
+    };
+}

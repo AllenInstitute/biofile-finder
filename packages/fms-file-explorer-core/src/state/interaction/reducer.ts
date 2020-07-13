@@ -1,4 +1,5 @@
 import { makeReducer } from "@aics/redux-utils";
+import { filter } from "lodash";
 
 import {
     SHOW_CONTEXT_MENU,
@@ -6,6 +7,11 @@ import {
     PlatformDependentServices,
     SET_FILE_EXPLORER_SERVICE_BASE_URL,
     SET_PLATFORM_DEPENDENT_SERVICES,
+    StatusUpdate,
+    MANIFEST_DOWNLOAD_START,
+    MANIFEST_DOWNLOAD_SUCCESS,
+    MANIFEST_DOWNLOAD_FAILURE,
+    CLEAR_STATUS,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
@@ -17,6 +23,7 @@ export interface InteractionStateBranch {
     contextMenuPositionReference: PositionReference;
     fileExplorerServiceBaseUrl: string;
     platformDependentServices: PlatformDependentServices;
+    status: StatusUpdate[];
 }
 
 export const initialState = {
@@ -31,6 +38,7 @@ export const initialState = {
     platformDependentServices: {
         fileDownloadService: new FileDownloadServiceNoop(),
     },
+    status: [],
 };
 
 export default makeReducer<InteractionStateBranch>(
@@ -41,9 +49,34 @@ export default makeReducer<InteractionStateBranch>(
             contextMenuItems: action.payload.items,
             contextMenuPositionReference: action.payload.positionReference,
         }),
+        [CLEAR_STATUS]: (state, action) => ({
+            ...state,
+            status: filter(state.status, (status: StatusUpdate) => status.id !== action.payload.id),
+        }),
         [HIDE_CONTEXT_MENU]: (state) => ({
             ...state,
             contextMenuIsVisible: false,
+        }),
+        [MANIFEST_DOWNLOAD_START]: (state, action) => ({
+            ...state,
+            status: [
+                ...filter(state.status, (status: StatusUpdate) => status.id !== action.payload.id),
+                action.payload,
+            ],
+        }),
+        [MANIFEST_DOWNLOAD_SUCCESS]: (state, action) => ({
+            ...state,
+            status: [
+                ...filter(state.status, (status: StatusUpdate) => status.id !== action.payload.id),
+                action.payload,
+            ],
+        }),
+        [MANIFEST_DOWNLOAD_FAILURE]: (state, action) => ({
+            ...state,
+            status: [
+                ...filter(state.status, (status: StatusUpdate) => status.id !== action.payload.id),
+                action.payload,
+            ],
         }),
         [SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state, action) => ({
             ...state,
