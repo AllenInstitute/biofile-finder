@@ -133,12 +133,6 @@ export interface StatusUpdate {
     status: ProcessStatus;
 }
 
-export interface ManifestStatusUpdate extends StatusUpdate {
-    data: {
-        filePath: string; // save path for CSV manifest
-    };
-}
-
 export const CLEAR_STATUS = makeConstant(STATE_BRANCH_NAME, "clear-status");
 
 export interface ClearStatusAction {
@@ -166,16 +160,13 @@ export const MANIFEST_DOWNLOAD_START = makeConstant(STATE_BRANCH_NAME, "manifest
 
 export interface ManifestDownloadStartAction {
     type: string;
-    payload: ManifestStatusUpdate;
+    payload: StatusUpdate;
 }
 
-export function startManifestDownload(id: string, filePath: string): ManifestDownloadStartAction {
+export function startManifestDownload(id: string): ManifestDownloadStartAction {
     return {
         type: MANIFEST_DOWNLOAD_START,
         payload: {
-            data: {
-                filePath,
-            },
             id,
             process: Process.MANIFEST_DOWNLOAD,
             status: ProcessStatus.STARTED,
@@ -195,19 +186,13 @@ export const MANIFEST_DOWNLOAD_SUCCESS = makeConstant(
 
 export interface ManifestDownloadSuccessAction {
     type: string;
-    payload: ManifestStatusUpdate;
+    payload: StatusUpdate;
 }
 
-export function succeedManifestDownload(
-    id: string,
-    filePath: string
-): ManifestDownloadSuccessAction {
+export function succeedManifestDownload(id: string): ManifestDownloadSuccessAction {
     return {
         type: MANIFEST_DOWNLOAD_SUCCESS,
         payload: {
-            data: {
-                filePath,
-            },
             id,
             process: Process.MANIFEST_DOWNLOAD,
             status: ProcessStatus.SUCCEEDED,
@@ -227,16 +212,13 @@ export const MANIFEST_DOWNLOAD_FAILURE = makeConstant(
 
 export interface ManifestDownloadFailureAction {
     type: string;
-    payload: ManifestStatusUpdate;
+    payload: StatusUpdate;
 }
 
-export function failManifestDownload(id: string, filePath: string): ManifestDownloadFailureAction {
+export function failManifestDownload(id: string): ManifestDownloadFailureAction {
     return {
         type: MANIFEST_DOWNLOAD_SUCCESS,
         payload: {
-            data: {
-                filePath,
-            },
             id,
             process: Process.MANIFEST_DOWNLOAD,
             status: ProcessStatus.FAILED,

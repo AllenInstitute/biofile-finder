@@ -50,7 +50,6 @@ describe("Interaction reducer", () => {
         it("records the start of a manifest download, leaving only the start status in state", () => {
             // arrange
             const id = "abc123";
-            const filePath = "some/path.csv";
             const prevState = {
                 ...interaction.initialState,
                 status: [
@@ -61,7 +60,7 @@ describe("Interaction reducer", () => {
                     },
                 ],
             };
-            const manifestDownloadStartAction = startManifestDownload(id, filePath);
+            const manifestDownloadStartAction = startManifestDownload(id);
 
             // act
             const nextState = interaction.reducer(prevState, manifestDownloadStartAction);
@@ -81,7 +80,6 @@ describe("Interaction reducer", () => {
         it("updates the status of a manifest download to success, leaving only the success status in state", () => {
             // arrange
             const id = "abc123";
-            const filePath = "some/path.csv";
             const prevState = {
                 ...interaction.initialState,
                 status: [
@@ -92,7 +90,7 @@ describe("Interaction reducer", () => {
                     },
                 ],
             };
-            const manifestDownloadSuccessAction = succeedManifestDownload(id, filePath);
+            const manifestDownloadSuccessAction = succeedManifestDownload(id);
 
             // act
             const nextState = interaction.reducer(prevState, manifestDownloadSuccessAction);
@@ -112,7 +110,6 @@ describe("Interaction reducer", () => {
         it("updates the status of a manifest download to failed, leaving only the failure status in state", () => {
             // arrange
             const id = "abc123";
-            const filePath = "some/path.csv";
             const prevState = {
                 ...interaction.initialState,
                 status: [
@@ -123,7 +120,7 @@ describe("Interaction reducer", () => {
                     },
                 ],
             };
-            const manifestDownloadFailAction = failManifestDownload(id, filePath);
+            const manifestDownloadFailAction = failManifestDownload(id);
 
             // act
             const nextState = interaction.reducer(prevState, manifestDownloadFailAction);

@@ -31,9 +31,12 @@ export default class CsvService extends HttpServiceBase {
         this.downloadService = config.downloadService;
     }
 
-    public downloadCsv(fileSetToSelectionMapping: {
-        [index: string]: NumericRange[];
-    }): Promise<void> {
+    public downloadCsv(
+        fileSetToSelectionMapping: {
+            [index: string]: NumericRange[];
+        },
+        onEnd: () => void
+    ): Promise<void> {
         const totalCountSelected = reduce(
             fileSetToSelectionMapping,
             (runningTotal, selectionsForFileSet) =>
@@ -67,10 +70,6 @@ export default class CsvService extends HttpServiceBase {
         const stringifiedPostBody = JSON.stringify(postBody);
         const url = `${this.baseUrl}/${CsvService.BASE_CSV_DOWNLOAD_URL}`;
 
-        function onEnd() {
-            // TODO, FMS-1224 PART III
-            console.log(`Finished downloading CSV manifest for ${totalCountSelected} files.`);
-        }
         return this.downloadService.downloadCsvManifest(
             url,
             stringifiedPostBody,
