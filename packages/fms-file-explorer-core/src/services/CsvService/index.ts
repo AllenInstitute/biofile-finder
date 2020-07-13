@@ -17,6 +17,10 @@ interface CsvServiceConfig extends ConnectionConfig {
     downloadService: FileDownloadService;
 }
 
+/**
+ * Service responsible for requesting a CSV manifest of metadata for selected files. Delegates
+ * heavy-lifting of the downloading to a platform-dependent implementation of the FileDownloadService.
+ */
 export default class CsvService extends HttpServiceBase {
     public static BASE_CSV_DOWNLOAD_URL = `${FileService.BASE_FILES_URL}/selection/manifest`;
 
