@@ -33,6 +33,9 @@ const processToDisplayTextMap = {
 const SPACING = 5; // px
 const MESSAGE_BAR_STEP_HEIGHT = 35; // px; each MessageBar renders to about 32px, so space them a few pixels apart
 
+/**
+ * Pop-up messages that display status messages of processes, such as the download of a CSV manifest.
+ */
 export default function StatusMessage() {
     const dispatch = useDispatch();
 
