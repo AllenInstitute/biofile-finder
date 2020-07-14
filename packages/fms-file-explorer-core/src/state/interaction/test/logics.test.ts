@@ -1,11 +1,11 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { expect } from "chai";
 
-import { downloadManifest, SET_STATUS, ProcessStatus } from "../actions";
+import { downloadManifest, SET_STATUS, ProcessStatus, CLEAR_STATUS } from "../actions";
 import interactionLogics from "../logics";
 import { initialState } from "../..";
 import NumericRange from "../../../entity/NumericRange";
-import FileDownloadService from "../../../services/FileDownloadService";
+import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("Interaction logics", () => {
@@ -126,6 +126,43 @@ describe("Interaction logics", () => {
                     },
                 })
             ).to.equal(false);
+        });
+
+        it("Clears status if cancelled", async () => {
+            // arrange
+            class CancellingDownloadService implements FileDownloadService {
+                downloadCsvManifest() {
+                    return Promise.resolve(CancellationToken);
+                }
+            }
+
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: new CancellingDownloadService(),
+                    },
+                },
+                selection: {
+                    selectedFileRangesByFileSet: {
+                        abc: [new NumericRange(0, 100)],
+                    },
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // act
+            store.dispatch(downloadManifest());
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includesMatch({
+                    type: CLEAR_STATUS,
+                })
+            ).to.equal(true);
         });
     });
 });

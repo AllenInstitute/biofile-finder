@@ -5,7 +5,7 @@ import * as path from "path";
 
 import { remote } from "electron";
 
-import { FileDownloadService } from "@aics/fms-file-explorer-core";
+import { CancellationToken, FileDownloadService } from "@aics/fms-file-explorer-core";
 
 export default class FileDownloadServiceElectron implements FileDownloadService {
     public async downloadCsvManifest(
@@ -19,7 +19,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         });
 
         if (result.canceled) {
-            return Promise.resolve("Download of CSV manifest cancelled.");
+            return Promise.resolve(CancellationToken);
         }
 
         return new Promise((resolve, reject) => {

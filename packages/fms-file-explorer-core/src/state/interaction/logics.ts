@@ -7,9 +7,11 @@ import {
     succeedManifestDownload,
     failManifestDownload,
     startManifestDownload,
+    clearStatus,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
+import { CancellationToken } from "../../services/FileDownloadService";
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -41,6 +43,12 @@ const downloadManifest = createLogic({
 
             dispatch(startManifestDownload(manifestDownloadProcessId));
             const message = await csvService.downloadCsv(existingSelectionsByFileSet);
+
+            if (message === CancellationToken) {
+                dispatch(clearStatus(manifestDownloadProcessId));
+                return;
+            }
+
             dispatch(succeedManifestDownload(manifestDownloadProcessId, message));
         } catch (err) {
             dispatch(failManifestDownload(manifestDownloadProcessId, err));

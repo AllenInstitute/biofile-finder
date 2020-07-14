@@ -8,3 +8,8 @@ export default interface FileDownloadService {
      */
     downloadCsvManifest(url: string, data: string, totalCount: number): Promise<string>;
 }
+
+/**
+ * Sentinel value used to send and check for cancellation of a download request.
+ */
+export const CancellationToken = "FMS_EXPLORER_DOWNLOAD_SERVICE_CANCELLATION_TOKEN";
