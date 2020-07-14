@@ -20,6 +20,7 @@ import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import NumericRange from "../../entity/NumericRange";
 import AnnotationService from "../../services/AnnotationService";
+import { getAnnotations } from "../metadata/selectors";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -124,6 +125,8 @@ const modifyAnnotationHierarchy = createLogic({
                 "Something went wrong finding available annotations, nobody knows why. But here's a hint:",
                 err
             );
+            const annotations = getAnnotations(getState());
+            dispatch(setAvailableAnnotations(annotations.map((a: Annotation) => a.name)));
         } finally {
             done();
         }

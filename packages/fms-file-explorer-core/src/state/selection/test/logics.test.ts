@@ -393,6 +393,51 @@ describe("Selection logics", () => {
                 })
             ).to.equal(true);
         });
+
+        it("sets all annotations as available on failure to determine actual available annotations", async () => {
+            // setup
+            const state = {
+                interaction: {
+                    fileExplorerServiceBaseUrl: "test",
+                },
+                metadata: {
+                    annotations: [...annotations],
+                },
+                selection: {
+                    annotationHierarchy: [
+                        annotations[0],
+                        annotations[1],
+                        annotations[2],
+                        annotations[3],
+                    ],
+                },
+            };
+
+            const responseStub = {
+                when:
+                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=date_created,cell_line,matrigel_hardened",
+                respondWith: {
+                    status: 500,
+                },
+            };
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                responseStubs: responseStub,
+                state,
+            });
+
+            // act
+            store.dispatch(removeFromAnnotationHierarchy(annotations[2].name));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includes({
+                    type: SET_AVAILABLE_ANNOTATIONS,
+                    payload: annotations.map((a) => a.name),
+                })
+            ).to.equal(true);
+        });
     });
 
     describe("modifyFileFilters", () => {
