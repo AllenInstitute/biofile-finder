@@ -1,7 +1,7 @@
 import { MenuItemConstructorOptions } from "electron";
 
 export enum FileExplorerServiceBaseUrl {
-    LOCALHOST = "http://dev-aics-gmp-001.corp.alleninstitute.org:9081",
+    LOCALHOST = "http://localhost:9081",
     STAGING = "http://stg-aics-api.corp.alleninstitute.org",
     PRODUCTION = "http://aics-api.corp.alleninstitute.org",
 }
