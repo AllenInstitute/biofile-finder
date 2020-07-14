@@ -1,5 +1,5 @@
 import { map } from "lodash";
-import { MessageBar, MessageBarType } from "office-ui-fabric-react";
+import { MessageBar, MessageBarType, Spinner, SpinnerSize, Stack } from "office-ui-fabric-react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -31,39 +31,55 @@ const processToDisplayTextMap = {
 };
 
 const SPACING = 5; // px
-const MESSAGE_BAR_STEP_HEIGHT = 35; // px; each MessageBar renders to about 32px, so space them a few pixels apart
+const verticalStackProps = {
+    styles: {
+        root: {
+            top: SPACING,
+        },
+    },
+    tokens: {
+        childrenGap: SPACING,
+    },
+};
 
 /**
- * Pop-up messages that display status messages of processes, such as the download of a CSV manifest.
+ * Pop-up banners that display status messages of processes, such as the download of a CSV manifest. They
+ * stack vertically at the top of the window.
  */
 export default function StatusMessage() {
     const dispatch = useDispatch();
 
     return (
-        <>
-            {map(
-                useSelector(interaction.selectors.getProcessStatuses),
-                (status: StatusUpdate, idx) => {
-                    return (
-                        <MessageBar
-                            key={status.id}
-                            className={styles.message}
-                            messageBarType={statusToTypeMap[status.status]}
-                            onDismiss={() => dispatch(interaction.actions.clearStatus(status.id))}
-                            styles={{
-                                root: {
-                                    top: SPACING + idx * MESSAGE_BAR_STEP_HEIGHT,
-                                    backgroundColor: statusToBackgroundColorMap[status.status],
-                                },
-                            }}
-                        >
-                            {`${processToDisplayTextMap[status.process]} ${
-                                statusToDisplayTextMap[status.status]
-                            }`}
-                        </MessageBar>
-                    );
-                }
-            )}
-        </>
+        <Stack {...verticalStackProps} className={styles.container}>
+            {map(useSelector(interaction.selectors.getProcessStatuses), (status: StatusUpdate) => {
+                const message = status.data?.msg;
+
+                return (
+                    <MessageBar
+                        key={status.id}
+                        messageBarType={statusToTypeMap[status.status]}
+                        onDismiss={() => dispatch(interaction.actions.clearStatus(status.id))}
+                        styles={{
+                            root: {
+                                backgroundColor: statusToBackgroundColorMap[status.status],
+                            },
+                        }}
+                        isMultiline={message !== undefined}
+                    >
+                        <>
+                            <div className={styles.centeringParent}>
+                                {status.status === ProcessStatus.STARTED && (
+                                    <Spinner className={styles.spinner} size={SpinnerSize.small} />
+                                )}
+                                {`${processToDisplayTextMap[status.process]} ${
+                                    statusToDisplayTextMap[status.status]
+                                }`}
+                            </div>
+                            {message}
+                        </>
+                    </MessageBar>
+                );
+            })}
+        </Stack>
     );
 }

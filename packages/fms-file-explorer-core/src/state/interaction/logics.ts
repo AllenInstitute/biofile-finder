@@ -40,11 +40,10 @@ const downloadManifest = createLogic({
             }
 
             dispatch(startManifestDownload(manifestDownloadProcessId));
-            await csvService.downloadCsv(existingSelectionsByFileSet);
-            dispatch(succeedManifestDownload(manifestDownloadProcessId));
+            const message = await csvService.downloadCsv(existingSelectionsByFileSet);
+            dispatch(succeedManifestDownload(manifestDownloadProcessId, message));
         } catch (err) {
-            console.error("Something went wrong, nobody knows why. But here's a hint:", err);
-            dispatch(failManifestDownload(manifestDownloadProcessId));
+            dispatch(failManifestDownload(manifestDownloadProcessId, err));
         } finally {
             done();
         }

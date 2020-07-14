@@ -128,6 +128,9 @@ export enum ProcessStatus {
 }
 
 export interface StatusUpdate {
+    data?: {
+        msg: string;
+    };
     id: string; // uuid
     process: Process;
     status: ProcessStatus;
@@ -183,10 +186,13 @@ export interface ManifestDownloadSuccessAction {
     payload: StatusUpdate;
 }
 
-export function succeedManifestDownload(id: string): ManifestDownloadSuccessAction {
+export function succeedManifestDownload(id: string, msg: string): ManifestDownloadSuccessAction {
     return {
         type: SET_STATUS,
         payload: {
+            data: {
+                msg,
+            },
             id,
             process: Process.MANIFEST_DOWNLOAD,
             status: ProcessStatus.SUCCEEDED,
@@ -204,10 +210,13 @@ export interface ManifestDownloadFailureAction {
     payload: StatusUpdate;
 }
 
-export function failManifestDownload(id: string): ManifestDownloadFailureAction {
+export function failManifestDownload(id: string, msg: string): ManifestDownloadFailureAction {
     return {
         type: SET_STATUS,
         payload: {
+            data: {
+                msg,
+            },
             id,
             process: Process.MANIFEST_DOWNLOAD,
             status: ProcessStatus.FAILED,

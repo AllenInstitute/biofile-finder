@@ -12,14 +12,14 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         url: string,
         postData: string,
         totalCountSelected: number
-    ): Promise<void> {
+    ): Promise<string> {
         const result = await remote.dialog.showSaveDialog(remote.getCurrentWindow(), {
             title: "Save CSV manifest",
             defaultPath: path.resolve(os.homedir(), "fms-explorer-selections.csv"),
         });
 
-        if (result.canceled || !result.filePath) {
-            return;
+        if (result.canceled) {
+            return Promise.resolve("Download of CSV manifest cancelled.");
         }
 
         return new Promise((resolve, reject) => {
@@ -42,16 +42,20 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         });
                         res.on("end", () => {
                             const error = errorChunks.join("");
-                            const message = `Failed to download CSV: ${error}`;
+                            const message = `Failed to download CSV manifest. Error details:\n${error}`;
                             reject(message);
                         });
                     } else {
-                        res.on("end", resolve);
+                        res.on("end", () => {
+                            resolve(
+                                `CSV manifest for ${totalCountSelected} files saved to ${result.filePath}`
+                            );
+                        });
                         res.on("error", (err) => {
-                            reject(err);
+                            reject(err.message);
                         });
 
-                        const writeStream = fs.createWriteStream(result.filePath as string); // ensured defined above
+                        const writeStream = fs.createWriteStream(result.filePath as string);
                         res.pipe(writeStream);
                     }
                 }

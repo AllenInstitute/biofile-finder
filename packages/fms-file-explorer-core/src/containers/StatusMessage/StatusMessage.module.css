@@ -1,6 +1,14 @@
-.message {
+.container {
     position: absolute;
     width: 50vw; /* half the width of the window */
     left: 50%; /* push the left side of the element in to the mid-point of the window... */
     transform: translateX(-50%); /* ... then pull it back 50% of its own width (accomplishing centering) */
+}
+
+.centeringParent {
+    display: flex;
+}
+
+.spinner {
+    margin-right: 0.5em;
 }

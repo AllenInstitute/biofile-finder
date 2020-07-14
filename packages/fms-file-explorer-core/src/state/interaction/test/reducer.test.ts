@@ -90,7 +90,7 @@ describe("Interaction reducer", () => {
                     },
                 ],
             };
-            const manifestDownloadSuccessAction = succeedManifestDownload(id);
+            const manifestDownloadSuccessAction = succeedManifestDownload(id, "huzzah");
 
             // act
             const nextState = interaction.reducer(prevState, manifestDownloadSuccessAction);
@@ -120,7 +120,7 @@ describe("Interaction reducer", () => {
                     },
                 ],
             };
-            const manifestDownloadFailAction = failManifestDownload(id);
+            const manifestDownloadFailAction = failManifestDownload(id, "whoops");
 
             // act
             const nextState = interaction.reducer(prevState, manifestDownloadFailAction);

@@ -33,7 +33,7 @@ export default class CsvService extends HttpServiceBase {
 
     public downloadCsv(fileSetToSelectionMapping: {
         [index: string]: NumericRange[];
-    }): Promise<void> {
+    }): Promise<string> {
         const totalCountSelected = reduce(
             fileSetToSelectionMapping,
             (runningTotal, selectionsForFileSet) =>
