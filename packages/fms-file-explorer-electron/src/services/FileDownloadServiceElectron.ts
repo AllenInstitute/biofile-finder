@@ -42,13 +42,13 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         });
                         res.on("end", () => {
                             const error = errorChunks.join("");
-                            const message = `Failed to download CSV manifest. Error details:\n${error}`;
+                            const message = `Failed to download CSV manifest. Error details: ${error}`;
                             reject(message);
                         });
                     } else {
                         res.on("end", () => {
                             resolve(
-                                `CSV manifest for ${totalCountSelected} files saved to ${result.filePath}`
+                                `CSV manifest for ${totalCountSelected} file(s) saved to ${result.filePath}`
                             );
                         });
                         res.on("error", (err) => {

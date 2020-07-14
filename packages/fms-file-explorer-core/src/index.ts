@@ -11,7 +11,8 @@ export function createReduxStore(preloadedState?: State) {
 }
 
 // interfaces for services that can be differentially implemented in either the electron or web versions
-import FileDownloadService, { CancellationToken } from "./services/FileDownloadService";
-export { FileDownloadService, CancellationToken };
+import { default as _FileDownloadService } from "./services/FileDownloadService";
+export type FileDownloadService = _FileDownloadService;
+export { CancellationToken } from "./services/FileDownloadService";
 
 export { default } from "./App";
