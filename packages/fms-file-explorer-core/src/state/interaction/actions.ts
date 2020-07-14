@@ -133,6 +133,7 @@ export interface StatusUpdate {
     status: ProcessStatus;
 }
 
+export const SET_STATUS = makeConstant(STATE_BRANCH_NAME, "set-status");
 export const CLEAR_STATUS = makeConstant(STATE_BRANCH_NAME, "clear-status");
 
 export interface ClearStatusAction {
@@ -156,8 +157,6 @@ export function clearStatus(id: string): ClearStatusAction {
  *
  * Intention to ...
  */
-export const MANIFEST_DOWNLOAD_START = makeConstant(STATE_BRANCH_NAME, "manifest-download-start");
-
 export interface ManifestDownloadStartAction {
     type: string;
     payload: StatusUpdate;
@@ -165,7 +164,7 @@ export interface ManifestDownloadStartAction {
 
 export function startManifestDownload(id: string): ManifestDownloadStartAction {
     return {
-        type: MANIFEST_DOWNLOAD_START,
+        type: SET_STATUS,
         payload: {
             id,
             process: Process.MANIFEST_DOWNLOAD,
@@ -179,11 +178,6 @@ export function startManifestDownload(id: string): ManifestDownloadStartAction {
  *
  * Intention to ...
  */
-export const MANIFEST_DOWNLOAD_SUCCESS = makeConstant(
-    STATE_BRANCH_NAME,
-    "manifest-download-success"
-);
-
 export interface ManifestDownloadSuccessAction {
     type: string;
     payload: StatusUpdate;
@@ -191,7 +185,7 @@ export interface ManifestDownloadSuccessAction {
 
 export function succeedManifestDownload(id: string): ManifestDownloadSuccessAction {
     return {
-        type: MANIFEST_DOWNLOAD_SUCCESS,
+        type: SET_STATUS,
         payload: {
             id,
             process: Process.MANIFEST_DOWNLOAD,
@@ -205,11 +199,6 @@ export function succeedManifestDownload(id: string): ManifestDownloadSuccessActi
  *
  * Intention to ...
  */
-export const MANIFEST_DOWNLOAD_FAILURE = makeConstant(
-    STATE_BRANCH_NAME,
-    "manifest-download-failure"
-);
-
 export interface ManifestDownloadFailureAction {
     type: string;
     payload: StatusUpdate;
@@ -217,7 +206,7 @@ export interface ManifestDownloadFailureAction {
 
 export function failManifestDownload(id: string): ManifestDownloadFailureAction {
     return {
-        type: MANIFEST_DOWNLOAD_SUCCESS,
+        type: SET_STATUS,
         payload: {
             id,
             process: Process.MANIFEST_DOWNLOAD,

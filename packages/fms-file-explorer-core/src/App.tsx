@@ -12,6 +12,7 @@ import ContextMenu from "./containers/ContextMenu";
 import DirectoryTree from "./containers/DirectoryTree";
 import FileDetails from "./containers/FileDetails";
 import HeaderRibbon from "./containers/HeaderRibbon";
+import StatusMessage from "./containers/StatusMessage";
 import FileDownloadServiceNoop from "./services/FileDownloadService/FileDownloadServiceNoop";
 import { interaction, metadata } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
@@ -78,6 +79,7 @@ export default function App(props: AppProps) {
                 <FileDetails className={styles.fileDetails} />
             </div>
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
+            <StatusMessage />
         </div>
     );
 }

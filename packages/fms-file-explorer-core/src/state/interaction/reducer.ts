@@ -2,16 +2,14 @@ import { makeReducer } from "@aics/redux-utils";
 import { filter } from "lodash";
 
 import {
-    SHOW_CONTEXT_MENU,
+    CLEAR_STATUS,
     HIDE_CONTEXT_MENU,
     PlatformDependentServices,
     SET_FILE_EXPLORER_SERVICE_BASE_URL,
     SET_PLATFORM_DEPENDENT_SERVICES,
+    SET_STATUS,
+    SHOW_CONTEXT_MENU,
     StatusUpdate,
-    MANIFEST_DOWNLOAD_START,
-    MANIFEST_DOWNLOAD_SUCCESS,
-    MANIFEST_DOWNLOAD_FAILURE,
-    CLEAR_STATUS,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
@@ -57,21 +55,7 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             contextMenuIsVisible: false,
         }),
-        [MANIFEST_DOWNLOAD_START]: (state, action) => ({
-            ...state,
-            status: [
-                ...filter(state.status, (status: StatusUpdate) => status.id !== action.payload.id),
-                action.payload,
-            ],
-        }),
-        [MANIFEST_DOWNLOAD_SUCCESS]: (state, action) => ({
-            ...state,
-            status: [
-                ...filter(state.status, (status: StatusUpdate) => status.id !== action.payload.id),
-                action.payload,
-            ],
-        }),
-        [MANIFEST_DOWNLOAD_FAILURE]: (state, action) => ({
+        [SET_STATUS]: (state, action) => ({
             ...state,
             status: [
                 ...filter(state.status, (status: StatusUpdate) => status.id !== action.payload.id),
