@@ -40,3 +40,25 @@ export function requestAnnotations(): RequestAnnotationAction {
         type: REQUEST_ANNOTATIONS,
     };
 }
+
+/**
+ * REQUEST_ANNOTATION_VALUES
+ *
+ * Intention to request the unique values for the given annotation.
+ */
+export const REQUEST_ANNOTATION_VALUES = makeConstant(
+    STATE_BRANCH_NAME,
+    "request-annotation-values"
+);
+
+export interface RequestAnnotationValuesAction {
+    payload: string;
+    type: string;
+}
+
+export function requestAnnotationValues(annotationName: string): RequestAnnotationValuesAction {
+    return {
+        payload: annotationName,
+        type: REQUEST_ANNOTATION_VALUES,
+    };
+}

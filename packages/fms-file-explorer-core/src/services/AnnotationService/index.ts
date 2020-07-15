@@ -36,6 +36,17 @@ export default class AnnotationService extends HttpServiceBase {
         return map(response.data, (annotationResponse) => new Annotation(annotationResponse));
     }
 
+    /**
+     * Fetch the unique values for a specific annotation.
+     */
+    public async fetchValues(annotation: string): Promise<Annotation> {
+        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_URL}?annotation=${annotation}`;
+        console.log(`Requesting annotation values from ${requestUrl}`);
+
+        const response = await this.get<AnnotationResponse>(requestUrl);
+        return new Annotation(response.data[0]);
+    }
+
     public async fetchRootHierarchyValues(hierarchy: string[]): Promise<string[]> {
         // It's important that we fetch values for the correct (i.e., first) level of the hierarchy.
         // But after that, sort the levels so that we can effectively cache the result
