@@ -58,7 +58,7 @@ export default function StatusMessage() {
                     <MessageBar
                         key={status.id}
                         messageBarType={statusToTypeMap[status.status]}
-                        onDismiss={() => dispatch(interaction.actions.clearStatus(status.id))}
+                        onDismiss={() => dispatch(interaction.actions.removeStatus(status.id))}
                         styles={{
                             root: {
                                 backgroundColor: statusToBackgroundColorMap[status.status],

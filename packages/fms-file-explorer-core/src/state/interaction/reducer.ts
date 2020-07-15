@@ -2,9 +2,9 @@ import { makeReducer } from "@aics/redux-utils";
 import { filter } from "lodash";
 
 import {
-    CLEAR_STATUS,
     HIDE_CONTEXT_MENU,
     PlatformDependentServices,
+    REMOVE_STATUS,
     SET_FILE_EXPLORER_SERVICE_BASE_URL,
     SET_PLATFORM_DEPENDENT_SERVICES,
     SET_STATUS,
@@ -47,7 +47,7 @@ export default makeReducer<InteractionStateBranch>(
             contextMenuItems: action.payload.items,
             contextMenuPositionReference: action.payload.positionReference,
         }),
-        [CLEAR_STATUS]: (state, action) => ({
+        [REMOVE_STATUS]: (state, action) => ({
             ...state,
             status: filter(state.status, (status: StatusUpdate) => status.id !== action.payload.id),
         }),

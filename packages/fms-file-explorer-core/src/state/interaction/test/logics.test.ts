@@ -1,7 +1,7 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { expect } from "chai";
 
-import { downloadManifest, SET_STATUS, ProcessStatus, CLEAR_STATUS } from "../actions";
+import { downloadManifest, ProcessStatus, REMOVE_STATUS, SET_STATUS } from "../actions";
 import interactionLogics from "../logics";
 import { initialState } from "../..";
 import NumericRange from "../../../entity/NumericRange";
@@ -160,7 +160,7 @@ describe("Interaction logics", () => {
             // assert
             expect(
                 actions.includesMatch({
-                    type: CLEAR_STATUS,
+                    type: REMOVE_STATUS,
                 })
             ).to.equal(true);
         });

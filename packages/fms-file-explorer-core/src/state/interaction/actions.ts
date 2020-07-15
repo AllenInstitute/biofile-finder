@@ -137,18 +137,18 @@ export interface StatusUpdate {
 }
 
 export const SET_STATUS = makeConstant(STATE_BRANCH_NAME, "set-status");
-export const CLEAR_STATUS = makeConstant(STATE_BRANCH_NAME, "clear-status");
+export const REMOVE_STATUS = makeConstant(STATE_BRANCH_NAME, "remove-status");
 
-export interface ClearStatusAction {
+export interface RemoveStatusAction {
     type: string;
     payload: {
         id: string; // references a StatusUpdate.id
     };
 }
 
-export function clearStatus(id: string): ClearStatusAction {
+export function removeStatus(id: string): RemoveStatusAction {
     return {
-        type: CLEAR_STATUS,
+        type: REMOVE_STATUS,
         payload: {
             id,
         },

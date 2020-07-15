@@ -5,7 +5,7 @@ import { initialState } from "../..";
 import {
     Process,
     ProcessStatus,
-    clearStatus,
+    removeStatus,
     startManifestDownload,
     succeedManifestDownload,
     failManifestDownload,
@@ -28,7 +28,7 @@ describe("Interaction reducer", () => {
             };
 
             // act
-            const nextState = interaction.reducer(prevState, clearStatus(id));
+            const nextState = interaction.reducer(prevState, removeStatus(id));
 
             // assert
             // sanity-check on prevState to ensure this isn't evergreen

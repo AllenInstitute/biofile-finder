@@ -6,8 +6,8 @@ import {
     DOWNLOAD_MANIFEST,
     succeedManifestDownload,
     failManifestDownload,
+    removeStatus,
     startManifestDownload,
-    clearStatus,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -45,7 +45,7 @@ const downloadManifest = createLogic({
             const message = await csvService.downloadCsv(existingSelectionsByFileSet);
 
             if (message === CancellationToken) {
-                dispatch(clearStatus(manifestDownloadProcessId));
+                dispatch(removeStatus(manifestDownloadProcessId));
                 return;
             }
 
