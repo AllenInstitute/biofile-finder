@@ -43,9 +43,6 @@ const requestAnnotationValues = createLogic({
                 }
                 return a;
             });
-            console.log(action.payload);
-            console.log(annotation);
-            console.log(annotations);
             dispatch(receiveAnnotations(annotations));
         } catch (err) {
             console.error(
