@@ -21,6 +21,7 @@ export interface AnnotationResponse {
 export default class AnnotationService extends HttpServiceBase {
     public static ANNOTATION_ENDPOINT_VERSION = "1.0";
     public static BASE_ANNOTATION_URL = `file-explorer-service/${AnnotationService.ANNOTATION_ENDPOINT_VERSION}/annotations`;
+    public static BASE_ANNOTATION_VALUES_URL = `${AnnotationService.BASE_ANNOTATION_URL}/values`;
     public static BASE_ANNOTATION_HIERARCHY_ROOT_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/root`;
     public static BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/under-path`;
     public static BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/available`;
@@ -40,7 +41,7 @@ export default class AnnotationService extends HttpServiceBase {
      * Fetch the unique values for a specific annotation.
      */
     public async fetchValues(annotation: string): Promise<Annotation> {
-        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_URL}?annotation=${annotation}`;
+        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_VALUES_URL}?annotation=${annotation}`;
         console.log(`Requesting annotation values from ${requestUrl}`);
 
         const response = await this.get<AnnotationResponse>(requestUrl);
