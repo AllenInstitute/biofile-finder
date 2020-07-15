@@ -158,7 +158,7 @@ export function clearStatus(id: string): ClearStatusAction {
 /**
  * MANIFEST_DOWNLOAD_START
  *
- * Intention to ...
+ * Intention to inform the user of the start of a manifest download.
  */
 export interface ManifestDownloadStartAction {
     type: string;
@@ -179,7 +179,7 @@ export function startManifestDownload(id: string): ManifestDownloadStartAction {
 /**
  * MANIFEST_DOWNLOAD_SUCCESS
  *
- * Intention to ...
+ * Intention to inform the user of the success of a manifest download.
  */
 export interface ManifestDownloadSuccessAction {
     type: string;
@@ -203,7 +203,7 @@ export function succeedManifestDownload(id: string, msg: string): ManifestDownlo
 /**
  * MANIFEST_DOWNLOAD_FAILURE
  *
- * Intention to ...
+ * Intention to inform the user of a failure in a download of a manifest.
  */
 export interface ManifestDownloadFailureAction {
     type: string;
