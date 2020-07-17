@@ -38,6 +38,7 @@ function SvgIcon(props: SvgIconProps, ref?: React.Ref<SVGSVGElement>) {
             ref={ref}
             viewBox={viewBox}
             width={width}
+            style={{ minWidth: `${width}px` }}
         >
             <path {...pathAttrs} d={pathData}></path>
         </svg>
