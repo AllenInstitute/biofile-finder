@@ -25,6 +25,26 @@ describe("AnnotationService", () => {
         });
     });
 
+    describe("fetchAnnotationValues", () => {
+        it("issues request for all available Annotations", async () => {
+            const annotation = "foo";
+            const values = ["a", "b", "c"];
+            const httpClient = createMockHttpClient({
+                when: `test/file-explorer-service/1.0/annotations/${annotation}/values`,
+                respondWith: {
+                    data: {
+                        data: values,
+                    },
+                },
+            });
+
+            const annotationService = new AnnotationService({ baseUrl: "test", httpClient });
+            const actualValues = await annotationService.fetchValues(annotation);
+            expect(actualValues.length).to.equal(values.length);
+            expect(actualValues).to.be.deep.equal(values);
+        });
+    });
+
     describe("fetchRootHierarchyValues", () => {
         it("issues a request for annotation values for the first level of the annotation hierarchy", async () => {
             const expectedValues = ["foo", "bar", "baz"];
