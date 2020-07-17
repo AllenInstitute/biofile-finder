@@ -119,6 +119,7 @@ export function setPlatformDependentServices(
 
 export enum Process {
     MANIFEST_DOWNLOAD,
+    REQUEST_ANNOTATION_VALUES,
 }
 
 export enum ProcessStatus {
@@ -219,6 +220,33 @@ export function failManifestDownload(id: string, msg: string): ManifestDownloadF
             },
             id,
             process: Process.MANIFEST_DOWNLOAD,
+            status: ProcessStatus.FAILED,
+        },
+    };
+}
+
+/**
+ * REQUEST_ANNOTATION_VALUES_FAILURE
+ *
+ * Intention to inform the user of a failure to retrieve annotation values.
+ */
+export interface RequestAnnotationValuesFailureAction {
+    type: string;
+    payload: StatusUpdate;
+}
+
+export function failAnnotationValuesRequest(
+    id: string,
+    msg: string
+): RequestAnnotationValuesFailureAction {
+    return {
+        type: SET_STATUS,
+        payload: {
+            data: {
+                msg,
+            },
+            id,
+            process: Process.REQUEST_ANNOTATION_VALUES,
             status: ProcessStatus.FAILED,
         },
     };

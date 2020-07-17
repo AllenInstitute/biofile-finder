@@ -1,5 +1,5 @@
 import * as Fuse from "fuse.js";
-import { ActionButton, List, SearchBox } from "office-ui-fabric-react";
+import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "office-ui-fabric-react";
 import * as React from "react";
 
 import { AnnotationValue } from "../../entity/Annotation";
@@ -9,6 +9,7 @@ const styles = require("./ListPicker.module.css");
 
 interface ListPickerProps {
     items: FilterItem[];
+    loading: boolean;
     onDeselect: (value: AnnotationValue | AnnotationValue[]) => void;
     onSelect: (value: AnnotationValue | AnnotationValue[]) => void;
 }
@@ -41,7 +42,7 @@ const SEARCH_BOX_STYLE_OVERRIDES = {
  * It is best suited for selecting items that are strings.
  */
 export default function ListPicker(props: ListPickerProps) {
-    const { items, onDeselect, onSelect } = props;
+    const { items, loading, onDeselect, onSelect } = props;
 
     const [searchValue, setSearchValue] = React.useState("");
 
@@ -86,28 +87,32 @@ export default function ListPicker(props: ListPickerProps) {
                     Reset
                 </ActionButton>
             </div>
-            <List
-                getKey={(item) => String(item.value)}
-                items={filteredItems}
-                onShouldVirtualize={() => filteredItems.length > 100}
-                onRenderCell={(item) =>
-                    item && (
-                        <label className={styles.item}>
-                            <input
-                                className={styles.checkbox}
-                                type="checkbox"
-                                role="checkbox"
-                                name={String(item.value)}
-                                value={String(item.value)}
-                                checked={item.checked}
-                                aria-checked={item.checked}
-                                onChange={onFilterStateChange}
-                            />
-                            {item.displayValue}
-                        </label>
-                    )
-                }
-            />
+            {loading ? (
+                <Spinner size={SpinnerSize.small} />
+            ) : (
+                <List
+                    getKey={(item) => String(item.value)}
+                    items={filteredItems}
+                    onShouldVirtualize={() => filteredItems.length > 100}
+                    onRenderCell={(item) =>
+                        item && (
+                            <label className={styles.item}>
+                                <input
+                                    className={styles.checkbox}
+                                    type="checkbox"
+                                    role="checkbox"
+                                    name={String(item.value)}
+                                    value={String(item.value)}
+                                    checked={item.checked}
+                                    aria-checked={item.checked}
+                                    onChange={onFilterStateChange}
+                                />
+                                {item.displayValue}
+                            </label>
+                        )
+                    }
+                />
+            )}
         </div>
     );
 }

@@ -80,6 +80,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         case AnnotationType.STRING:
         // prettier-ignore
         default: // FALL-THROUGH
-            return <ListPicker items={items} onDeselect={onDeselect} onSelect={onSelect} />;
+            return <ListPicker items={items} loading={!annotation || !annotation.values.length} onDeselect={onDeselect} onSelect={onSelect} />;
     }
 }

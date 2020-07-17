@@ -1,8 +1,10 @@
+import { uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { interaction, metadata, ReduxLogicDeps } from "..";
 import { receiveAnnotations, REQUEST_ANNOTATIONS, REQUEST_ANNOTATION_VALUES } from "./actions";
 import Annotation from "../../entity/Annotation";
+import { failAnnotationValuesRequest } from "../interaction/actions";
 import AnnotationService from "../../services/AnnotationService";
 
 /**
@@ -55,10 +57,9 @@ const requestAnnotationValues = createLogic({
             });
             dispatch(receiveAnnotations(annotations));
         } catch (err) {
-            console.error(
-                "Something went wrong requesting values for an annotation, nobody knows why. But here's a hint:",
-                err
-            );
+            const errorMessage = `Failed to gather the unique values of annotation ${action.payload}. ${err}`;
+            console.error(errorMessage, err);
+            dispatch(failAnnotationValuesRequest(uniqueId(), errorMessage));
         } finally {
             done();
         }
