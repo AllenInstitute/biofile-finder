@@ -16,7 +16,6 @@ describe("<LazilyRenderedRow />", () => {
         annotationName: "fileName",
         description: "name of file",
         type: "Text",
-        values: [],
     });
 
     function makeItemData() {

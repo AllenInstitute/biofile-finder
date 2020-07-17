@@ -9,7 +9,6 @@ describe("Annotation", () => {
         annotationName: "someDateAnnotation",
         description: "Date the file was uploaded",
         type: AnnotationType.DATETIME,
-        values: [],
     });
 
     describe("extractFromFile", () => {

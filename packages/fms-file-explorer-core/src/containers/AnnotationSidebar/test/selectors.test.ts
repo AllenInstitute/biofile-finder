@@ -23,7 +23,10 @@ describe("<AnnotationSidebar /> selectors", () => {
         it("transforms available annotations into list item data", () => {
             const state = mergeState(initialState, {
                 metadata: {
-                    annotations: map(annotationsJson, (annotation) => new Annotation(annotation)),
+                    annotations: map(
+                        annotationsJson,
+                        (annotation) => new Annotation(annotation, annotation["values"])
+                    ),
                 },
             });
 
@@ -41,17 +44,22 @@ describe("<AnnotationSidebar /> selectors", () => {
         it("filters annotation list items to exclude available annotations", () => {
             const state = mergeState(initialState, {
                 metadata: {
-                    annotations: map(annotationsJson, (annotation) => new Annotation(annotation)),
+                    annotations: map(
+                        annotationsJson,
+                        (annotation) => new Annotation(annotation, annotation["values"])
+                    ),
                 },
                 selection: {
                     annotationHierarchy: [
-                        new Annotation({
-                            annotationName: "color",
-                            annotationDisplayName: "Color",
-                            description: "a color",
-                            type: "text",
-                            values: ["blue"],
-                        }),
+                        new Annotation(
+                            {
+                                annotationName: "color",
+                                annotationDisplayName: "Color",
+                                description: "a color",
+                                type: "text",
+                            },
+                            ["blue"]
+                        ),
                     ],
                     availableAnnotationsForHierarchy: ["date_created", "cell_dead"],
                 },
@@ -64,7 +72,10 @@ describe("<AnnotationSidebar /> selectors", () => {
         it("considers all annotations viable when no hierarchy is present", () => {
             const state = mergeState(initialState, {
                 metadata: {
-                    annotations: map(annotationsJson, (annotation) => new Annotation(annotation)),
+                    annotations: map(
+                        annotationsJson,
+                        (annotation) => new Annotation(annotation, annotation["values"])
+                    ),
                 },
                 selection: {
                     annotationHierarchy: [],

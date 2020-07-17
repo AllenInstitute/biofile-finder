@@ -12,7 +12,6 @@ export interface AnnotationResponse {
     description: string;
     type: string;
     units?: string;
-    values: (string | number | boolean | Date)[];
 }
 
 /**

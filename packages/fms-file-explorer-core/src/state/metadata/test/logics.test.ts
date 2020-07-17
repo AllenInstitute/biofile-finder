@@ -56,14 +56,12 @@ describe("Metadata logics", () => {
                     annotationName: "foo",
                     description: "foo annotation",
                     type: "Text",
-                    values: [],
                 }),
                 new Annotation({
                     annotationDisplayName: "Bar",
                     annotationName: "bar",
                     description: "bar annotation",
                     type: "Text",
-                    values: [],
                 }),
             ];
             const state = mergeState(initialState, {
@@ -79,13 +77,15 @@ describe("Metadata logics", () => {
             const expectedValues = ["a", "b", "c", "d"];
             const expectedAnnotations = initialAnnotations.map((a) => {
                 if (a.name === annotationName) {
-                    return new Annotation({
-                        annotationDisplayName: a.displayName,
-                        annotationName: a.name,
-                        description: a.description,
-                        type: a.type,
-                        values: expectedValues,
-                    });
+                    return new Annotation(
+                        {
+                            annotationDisplayName: a.displayName,
+                            annotationName: a.name,
+                            description: a.description,
+                            type: a.type,
+                        },
+                        expectedValues
+                    );
                 }
                 return a;
             });

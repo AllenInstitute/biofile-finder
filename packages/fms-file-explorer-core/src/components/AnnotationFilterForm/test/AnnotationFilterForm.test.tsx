@@ -12,13 +12,15 @@ import { initialState, reducer, reduxLogics } from "../../../state";
 describe("<AnnotationFilterForm />", () => {
     describe("Text annotations", () => {
         // setup
-        const fooAnnotation = new Annotation({
-            annotationDisplayName: "Foo",
-            annotationName: "foo",
-            description: "",
-            type: "Text",
-            values: ["a", "b", "c", "d", "e"],
-        });
+        const fooAnnotation = new Annotation(
+            {
+                annotationDisplayName: "Foo",
+                annotationName: "foo",
+                description: "",
+                type: "Text",
+            },
+            ["a", "b", "c", "d", "e"]
+        );
         const annotations = [fooAnnotation];
 
         it("shows all values as unchecked at first", () => {
@@ -82,13 +84,15 @@ describe("<AnnotationFilterForm />", () => {
     });
     describe("Boolean annotations", () => {
         // setup
-        const fooAnnotation = new Annotation({
-            annotationDisplayName: "Foo",
-            annotationName: "foo",
-            description: "",
-            type: "YesNo",
-            values: [true, false],
-        });
+        const fooAnnotation = new Annotation(
+            {
+                annotationDisplayName: "Foo",
+                annotationName: "foo",
+                description: "",
+                type: "YesNo",
+            },
+            [true, false]
+        );
         const annotations = [fooAnnotation];
 
         it("shows all values as unchecked at first", () => {

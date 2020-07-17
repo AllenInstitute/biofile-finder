@@ -27,20 +27,24 @@ describe("<DirectoryTree />", () => {
     const expectedSecondLevelHierarchyValues = ["a", "b", "c"];
 
     const annotations = [
-        new Annotation({
-            annotationDisplayName: "Foo",
-            annotationName: "foo",
-            description: "",
-            type: "Text",
-            values: expectedTopLevelHierarchyValues,
-        }),
-        new Annotation({
-            annotationDisplayName: "Bar",
-            annotationName: "bar",
-            description: "",
-            type: "Text",
-            values: expectedSecondLevelHierarchyValues,
-        }),
+        new Annotation(
+            {
+                annotationDisplayName: "Foo",
+                annotationName: "foo",
+                description: "",
+                type: "Text",
+            },
+            expectedTopLevelHierarchyValues
+        ),
+        new Annotation(
+            {
+                annotationDisplayName: "Bar",
+                annotationName: "bar",
+                description: "",
+                type: "Text",
+            },
+            expectedSecondLevelHierarchyValues
+        ),
     ];
 
     const baseUrl = "test";

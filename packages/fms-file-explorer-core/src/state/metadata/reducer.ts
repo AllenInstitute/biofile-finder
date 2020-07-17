@@ -15,14 +15,12 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         annotationName: "fileName",
         description: "Name of file",
         type: AnnotationType.STRING,
-        values: [],
     }),
     new Annotation({
         annotationDisplayName: "File path",
         annotationName: "filePath",
         description: "Path to file in storage.",
         type: AnnotationType.STRING,
-        values: [],
     }),
     new Annotation({
         annotationDisplayName: "Size",
@@ -30,28 +28,24 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         description: "Size of file on disk.",
         type: AnnotationType.NUMBER,
         units: "bytes",
-        values: [],
     }),
     new Annotation({
         annotationDisplayName: "Type",
         annotationName: "fileType",
         description: "Type of file.",
         type: AnnotationType.STRING,
-        values: [],
     }),
     new Annotation({
         annotationDisplayName: "Uploaded",
         annotationName: "uploaded",
         description: "Date and time file was uploaded.",
         type: AnnotationType.DATETIME,
-        values: [],
     }),
     new Annotation({
         annotationDisplayName: "Uploaded by",
         annotationName: "uploadedBy",
         description: "Person or process who uploaded this file.",
         type: AnnotationType.STRING,
-        values: [],
     }),
 ];
 

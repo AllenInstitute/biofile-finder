@@ -41,13 +41,15 @@ const requestAnnotationValues = createLogic({
             const annotations = metadata.selectors.getAnnotations(getState()).map((a) => {
                 // Replace the values of the annotation we were requested to fetch
                 if (a.name === action.payload) {
-                    return new Annotation({
-                        annotationDisplayName: a.displayName,
-                        annotationName: a.name,
-                        description: a.description,
-                        type: a.type,
-                        values,
-                    });
+                    return new Annotation(
+                        {
+                            annotationDisplayName: a.displayName,
+                            annotationName: a.name,
+                            description: a.description,
+                            type: a.type,
+                        },
+                        values
+                    );
                 }
                 return a;
             });

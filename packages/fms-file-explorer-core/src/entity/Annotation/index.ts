@@ -15,9 +15,11 @@ export default class Annotation {
 
     private readonly annotation: AnnotationResponse;
     private readonly formatter: AnnotationFormatter;
+    public readonly values: AnnotationValue[];
 
-    constructor(annotation: AnnotationResponse) {
+    constructor(annotation: AnnotationResponse, values: AnnotationValue[] = []) {
         this.annotation = annotation;
+        this.values = values;
 
         this.formatter = annotationFormatterFactory(this.annotation.type);
     }
@@ -36,10 +38,6 @@ export default class Annotation {
 
     public get type(): string {
         return this.annotation.type;
-    }
-
-    public get values(): AnnotationValue[] {
-        return this.annotation.values;
     }
 
     /**

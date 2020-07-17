@@ -28,7 +28,7 @@ describe("<AnnotationList />", () => {
                 state: mergeState(initialState, {
                     metadata: {
                         annotations: annotationsJson.map(
-                            (annotation) => new Annotation(annotation)
+                            (annotation) => new Annotation(annotation, annotation["values"])
                         ),
                     },
                 }),
@@ -76,7 +76,7 @@ describe("<AnnotationList />", () => {
                 state: mergeState(initialState, {
                     metadata: {
                         annotations: annotationsJson.map(
-                            (annotation) => new Annotation(annotation)
+                            (annotation) => new Annotation(annotation, annotation["values"])
                         ),
                     },
                 }),
@@ -110,7 +110,7 @@ describe("<AnnotationList />", () => {
                 state: mergeState(initialState, {
                     metadata: {
                         annotations: annotationsJson.map(
-                            (annotation) => new Annotation(annotation)
+                            (annotation) => new Annotation(annotation, annotation["values"])
                         ),
                     },
                 }),
