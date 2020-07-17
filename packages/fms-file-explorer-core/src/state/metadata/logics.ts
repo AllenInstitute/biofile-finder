@@ -2,6 +2,7 @@ import { createLogic } from "redux-logic";
 
 import { interaction, metadata, ReduxLogicDeps } from "..";
 import { receiveAnnotations, REQUEST_ANNOTATIONS, REQUEST_ANNOTATION_VALUES } from "./actions";
+import Annotation from "../../entity/Annotation";
 import AnnotationService from "../../services/AnnotationService";
 
 /**
@@ -36,10 +37,17 @@ const requestAnnotationValues = createLogic({
         const annotationService = new AnnotationService({ baseUrl, httpClient });
 
         try {
-            const annotation = await annotationService.fetchValues(action.payload);
+            const values = await annotationService.fetchValues(action.payload);
             const annotations = metadata.selectors.getAnnotations(getState()).map((a) => {
-                if (a.name === annotation.name) {
-                    return annotation;
+                // Replace the values of the annotation we were requested to fetch
+                if (a.name === action.payload) {
+                    return new Annotation({
+                        annotationDisplayName: a.displayName,
+                        annotationName: a.name,
+                        description: a.description,
+                        type: a.type,
+                        values,
+                    });
                 }
                 return a;
             });
