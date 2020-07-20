@@ -31,17 +31,14 @@ function SvgIcon(props: SvgIconProps, ref?: React.Ref<SVGSVGElement>) {
     );
     return (
         <svg
-            className={classNames(
-                { [styles.interactive]: onClick !== undefined },
-                styles.svg,
-                className
-            )}
+            className={classNames({ [styles.interactive]: onClick !== undefined }, className)}
             height={height}
             onClick={onClick}
             preserveAspectRatio="xMidYMid"
             ref={ref}
             viewBox={viewBox}
             width={width}
+            style={{ minWidth: width }}
         >
             <path {...pathAttrs} d={pathData}></path>
         </svg>
