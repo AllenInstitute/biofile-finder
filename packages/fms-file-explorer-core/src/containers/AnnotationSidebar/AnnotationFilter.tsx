@@ -2,7 +2,7 @@ import { IconButton } from "office-ui-fabric-react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import AnnotationFilterForm from "../../components/AnnotationFilterForm";
+import AnnotationFilterForm from "../AnnotationFilterForm";
 import { selection } from "../../state";
 
 interface FilterProps {

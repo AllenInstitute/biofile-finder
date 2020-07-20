@@ -5,7 +5,7 @@ import * as React from "react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
-import AnnotationFilterForm from "../";
+import AnnotationFilterForm from "..";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import { initialState, reducer, reduxLogics, interaction } from "../../../state";

@@ -2,7 +2,7 @@ import * as Fuse from "fuse.js";
 import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "office-ui-fabric-react";
 import * as React from "react";
 
-import { FilterItem } from "./";
+import { FilterItem } from ".";
 import { AnnotationValue } from "../../services/AnnotationService";
 
 const styles = require("./ListPicker.module.css");

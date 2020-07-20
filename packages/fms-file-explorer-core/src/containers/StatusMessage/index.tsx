@@ -28,7 +28,6 @@ const statusToDisplayTextMap = {
 
 const processToDisplayTextMap = {
     [Process.MANIFEST_DOWNLOAD]: "Download of CSV manifest",
-    [Process.REQUEST_ANNOTATION_VALUES]: "Request to gather unique values for an annotation",
 };
 
 const SPACING = 5; // px

@@ -6,7 +6,7 @@ import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import ListPicker from "./ListPicker";
 import { interaction, metadata, selection } from "../../state";
-import useAnnotationValues from "../../containers/AnnotationSidebar/useAnnotationValues";
+import useAnnotationValues from "./useAnnotationValues";
 import { AnnotationValue } from "../../services/AnnotationService";
 
 interface AnnotationFilterFormProps {
