@@ -177,7 +177,7 @@ describe("<AnnotationFilterForm />", () => {
             });
         });
 
-        it.only("deselects and selects a value", async () => {
+        it("deselects and selects a value", async () => {
             // Arrange: Start with the "False" input selected
             const state = mergeState(initialState, {
                 metadata: {
