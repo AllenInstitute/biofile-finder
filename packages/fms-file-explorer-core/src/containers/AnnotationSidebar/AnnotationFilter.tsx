@@ -1,9 +1,9 @@
 import { IconButton } from "office-ui-fabric-react";
 import * as React from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 
 import AnnotationFilterForm from "../../components/AnnotationFilterForm";
-import { metadata, selection } from "../../state";
+import { selection } from "../../state";
 
 interface FilterProps {
     annotationName: string;
@@ -25,7 +25,6 @@ export default function AnnotationFilter(props: FilterProps) {
     const { annotationName, iconColor } = props;
 
     const fileFilters = useSelector(selection.selectors.getFileFilters);
-    const dispatch = useDispatch();
 
     const annotationIsFiltered = React.useMemo(
         () => fileFilters.some((filter) => filter.name === annotationName),
@@ -35,7 +34,6 @@ export default function AnnotationFilter(props: FilterProps) {
     const menuProps = React.useMemo(() => {
         return {
             onRenderMenuList() {
-                dispatch(metadata.actions.requestAnnotationValues(annotationName));
                 return <AnnotationFilterForm annotationName={annotationName} />;
             },
             title: "Exclusively Include",

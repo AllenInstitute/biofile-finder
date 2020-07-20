@@ -1,10 +1,8 @@
 import { find, get as _get } from "lodash";
 
 import annotationFormatterFactory, { AnnotationFormatter } from "../AnnotationFormatter";
-import { AnnotationResponse } from "../../services/AnnotationService";
+import { AnnotationResponse, AnnotationValue } from "../../services/AnnotationService";
 import { FmsFile, FmsFileAnnotation } from "../../services/FileService";
-
-export type AnnotationValue = string | number | boolean | Date;
 
 /**
  * Representation of an annotation available for filtering, grouping, or sorting files from FMS.
@@ -15,11 +13,9 @@ export default class Annotation {
 
     private readonly annotation: AnnotationResponse;
     private readonly formatter: AnnotationFormatter;
-    public readonly values: AnnotationValue[];
 
-    constructor(annotation: AnnotationResponse, values: AnnotationValue[] = []) {
+    constructor(annotation: AnnotationResponse) {
         this.annotation = annotation;
-        this.values = values;
 
         this.formatter = annotationFormatterFactory(this.annotation.type);
     }

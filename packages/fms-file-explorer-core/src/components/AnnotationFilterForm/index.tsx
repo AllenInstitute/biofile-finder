@@ -2,11 +2,12 @@ import { castArray, find, isNil } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { AnnotationValue } from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import ListPicker from "./ListPicker";
-import { metadata, selection } from "../../state";
+import { interaction, metadata, selection } from "../../state";
+import useAnnotationValues from "../../containers/AnnotationSidebar/useAnnotationValues";
+import { AnnotationValue } from "../../services/AnnotationService";
 
 interface AnnotationFilterFormProps {
     annotationName: string;
@@ -30,6 +31,11 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const dispatch = useDispatch();
     const annotations = useSelector(metadata.selectors.getAnnotations);
     const fileFilters = useSelector(selection.selectors.getFileFilters);
+    const annotationService = useSelector(interaction.selectors.getAnnotationService);
+    const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
+        annotationName,
+        annotationService
+    );
 
     const annotation = React.useMemo(
         () => find(annotations, (annotation) => annotation.name === annotationName),
@@ -41,12 +47,12 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             .filter((filter) => filter.name === annotation?.name)
             .map((filter) => filter.value);
 
-        return (annotation?.values || []).map((value) => ({
+        return (annotationValues || []).map((value) => ({
             checked: appliedFilters.includes(value),
             displayValue: annotation?.getDisplayValue(value) || value,
             value,
         }));
-    }, [annotation, fileFilters]);
+    }, [annotation, annotationValues, fileFilters]);
 
     const onDeselect = (value: AnnotationValue | AnnotationValue[]) => {
         const filters = castArray(value).map(
@@ -80,6 +86,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         case AnnotationType.STRING:
         // prettier-ignore
         default: // FALL-THROUGH
-            return <ListPicker items={items} loading={!annotation || !annotation.values.length} onDeselect={onDeselect} onSelect={onSelect} />;
+            return <ListPicker items={items} loading={isLoading} errorMessage={errorMessage} onDeselect={onDeselect} onSelect={onSelect} />;
     }
 }

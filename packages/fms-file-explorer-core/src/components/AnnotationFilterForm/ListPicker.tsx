@@ -2,12 +2,13 @@ import * as Fuse from "fuse.js";
 import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "office-ui-fabric-react";
 import * as React from "react";
 
-import { AnnotationValue } from "../../entity/Annotation";
 import { FilterItem } from "./";
+import { AnnotationValue } from "../../services/AnnotationService";
 
 const styles = require("./ListPicker.module.css");
 
 interface ListPickerProps {
+    errorMessage: string | undefined;
     items: FilterItem[];
     loading: boolean;
     onDeselect: (value: AnnotationValue | AnnotationValue[]) => void;
@@ -42,7 +43,7 @@ const SEARCH_BOX_STYLE_OVERRIDES = {
  * It is best suited for selecting items that are strings.
  */
 export default function ListPicker(props: ListPickerProps) {
-    const { items, loading, onDeselect, onSelect } = props;
+    const { errorMessage, items, loading, onDeselect, onSelect } = props;
 
     const [searchValue, setSearchValue] = React.useState("");
 
@@ -70,6 +71,18 @@ export default function ListPicker(props: ListPickerProps) {
         return fuse.search(searchValue);
     }, [items, searchValue]);
 
+    if (errorMessage) {
+        return <div className={styles.container}>Whoops! Encountered an error: {errorMessage}</div>;
+    }
+
+    if (loading) {
+        return (
+            <div className={styles.container}>
+                <Spinner size={SpinnerSize.small} />
+            </div>
+        );
+    }
+
     return (
         <div className={styles.container} data-is-scrollable="true">
             <div className={styles.header}>
@@ -87,32 +100,28 @@ export default function ListPicker(props: ListPickerProps) {
                     Reset
                 </ActionButton>
             </div>
-            {loading ? (
-                <Spinner size={SpinnerSize.small} />
-            ) : (
-                <List
-                    getKey={(item) => String(item.value)}
-                    items={filteredItems}
-                    onShouldVirtualize={() => filteredItems.length > 100}
-                    onRenderCell={(item) =>
-                        item && (
-                            <label className={styles.item}>
-                                <input
-                                    className={styles.checkbox}
-                                    type="checkbox"
-                                    role="checkbox"
-                                    name={String(item.value)}
-                                    value={String(item.value)}
-                                    checked={item.checked}
-                                    aria-checked={item.checked}
-                                    onChange={onFilterStateChange}
-                                />
-                                {item.displayValue}
-                            </label>
-                        )
-                    }
-                />
-            )}
+            <List
+                getKey={(item) => String(item.value)}
+                items={filteredItems}
+                onShouldVirtualize={() => filteredItems.length > 100}
+                onRenderCell={(item) =>
+                    item && (
+                        <label className={styles.item}>
+                            <input
+                                className={styles.checkbox}
+                                type="checkbox"
+                                role="checkbox"
+                                name={String(item.value)}
+                                value={String(item.value)}
+                                checked={item.checked}
+                                aria-checked={item.checked}
+                                onChange={onFilterStateChange}
+                            />
+                            {item.displayValue}
+                        </label>
+                    )
+                }
+            />
         </div>
     );
 }

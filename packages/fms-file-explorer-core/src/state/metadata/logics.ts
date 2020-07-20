@@ -1,10 +1,7 @@
-import { uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { interaction, metadata, ReduxLogicDeps } from "..";
-import { receiveAnnotations, REQUEST_ANNOTATIONS, REQUEST_ANNOTATION_VALUES } from "./actions";
-import Annotation from "../../entity/Annotation";
-import { failAnnotationValuesRequest } from "../interaction/actions";
+import { interaction, ReduxLogicDeps } from "..";
+import { receiveAnnotations, REQUEST_ANNOTATIONS } from "./actions";
 import AnnotationService from "../../services/AnnotationService";
 
 /**
@@ -28,43 +25,4 @@ const requestAnnotations = createLogic({
     type: REQUEST_ANNOTATIONS,
 });
 
-/**
- * Interceptor responsible for turning REQUEST_ANNOTATION_VALUES action into a network call for available annotation values.
- * Outputs RECEIVE_ANNOTATION_VALUES action.
- */
-const requestAnnotationValues = createLogic({
-    async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { action, getState, httpClient } = deps;
-        const baseUrl = interaction.selectors.getFileExplorerServiceBaseUrl(getState());
-        const annotationService = new AnnotationService({ baseUrl, httpClient });
-
-        try {
-            const values = await annotationService.fetchValues(action.payload);
-            const annotations = metadata.selectors.getAnnotations(getState()).map((a) => {
-                // Replace the values of the annotation we were requested to fetch
-                if (a.name === action.payload) {
-                    return new Annotation(
-                        {
-                            annotationDisplayName: a.displayName,
-                            annotationName: a.name,
-                            description: a.description,
-                            type: a.type,
-                        },
-                        values
-                    );
-                }
-                return a;
-            });
-            dispatch(receiveAnnotations(annotations));
-        } catch (err) {
-            const errorMessage = `Failed to gather the unique values of annotation ${action.payload}. ${err}`;
-            console.error(errorMessage, err);
-            dispatch(failAnnotationValuesRequest(uniqueId(), errorMessage));
-        } finally {
-            done();
-        }
-    },
-    type: REQUEST_ANNOTATION_VALUES,
-});
-
-export default [requestAnnotations, requestAnnotationValues];
+export default [requestAnnotations];

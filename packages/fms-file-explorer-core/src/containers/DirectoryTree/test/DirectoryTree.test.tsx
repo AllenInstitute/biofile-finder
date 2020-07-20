@@ -27,24 +27,18 @@ describe("<DirectoryTree />", () => {
     const expectedSecondLevelHierarchyValues = ["a", "b", "c"];
 
     const annotations = [
-        new Annotation(
-            {
-                annotationDisplayName: "Foo",
-                annotationName: "foo",
-                description: "",
-                type: "Text",
-            },
-            expectedTopLevelHierarchyValues
-        ),
-        new Annotation(
-            {
-                annotationDisplayName: "Bar",
-                annotationName: "bar",
-                description: "",
-                type: "Text",
-            },
-            expectedSecondLevelHierarchyValues
-        ),
+        new Annotation({
+            annotationDisplayName: "Foo",
+            annotationName: "foo",
+            description: "",
+            type: "Text",
+        }),
+        new Annotation({
+            annotationDisplayName: "Bar",
+            annotationName: "bar",
+            description: "",
+            type: "Text",
+        }),
     ];
 
     const baseUrl = "test";
@@ -161,13 +155,15 @@ describe("<DirectoryTree />", () => {
         const topLevelAnnotation = annotations[0];
 
         // wait for the requests for data
-        expect((await findAllByRole("treeitem")).length).to.equal(topLevelAnnotation.values.length);
-        topLevelAnnotation.values.forEach((value) => {
+        expect((await findAllByRole("treeitem")).length).to.equal(
+            expectedTopLevelHierarchyValues.length
+        );
+        expectedTopLevelHierarchyValues.forEach((value) => {
             expect(getByText(String(value))).to.exist;
         });
 
         // simulate a user filtering the list of top level hierarchy values
-        const filterValue = topLevelAnnotation.values[0];
+        const filterValue = expectedTopLevelHierarchyValues[0];
         store.dispatch(addFileFilter(new FileFilter(topLevelAnnotation.name, filterValue)));
 
         // after going through the store and an update cycle or two, the tree should be filtered
@@ -176,7 +172,7 @@ describe("<DirectoryTree />", () => {
         expect(getByText(String(filterValue))).to.exist;
 
         // the remainder should be gone from the DOM
-        tail(topLevelAnnotation.values).forEach((value) => {
+        tail(expectedTopLevelHierarchyValues).forEach((value) => {
             expect(() => getByText(String(value))).to.throw();
         });
     });

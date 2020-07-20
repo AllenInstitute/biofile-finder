@@ -241,9 +241,7 @@ describe("Selection logics", () => {
         let annotations: Annotation[];
 
         beforeEach(() => {
-            annotations = annotationsJson.map(
-                (annotation) => new Annotation(annotation, annotation["values"])
-            );
+            annotations = annotationsJson.map((annotation) => new Annotation(annotation));
         });
 
         it("adds a new annotation to the end of the hierarchy", async () => {

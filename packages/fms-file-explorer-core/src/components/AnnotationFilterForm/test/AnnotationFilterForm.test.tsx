@@ -1,43 +1,73 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
+import { configureMockStore, mergeState, createMockHttpClient } from "@aics/redux-utils";
+import { fireEvent, render, wait } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
-import { fireEvent, render } from "@testing-library/react";
 import { Provider } from "react-redux";
+import { createSandbox } from "sinon";
 
 import AnnotationFilterForm from "../";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
-import { initialState, reducer, reduxLogics } from "../../../state";
+import { initialState, reducer, reduxLogics, interaction } from "../../../state";
+import AnnotationService from "../../../services/AnnotationService";
 
 describe("<AnnotationFilterForm />", () => {
     describe("Text annotations", () => {
         // setup
-        const fooAnnotation = new Annotation(
-            {
-                annotationDisplayName: "Foo",
-                annotationName: "foo",
-                description: "",
-                type: "Text",
-            },
-            ["a", "b", "c", "d", "e"]
-        );
+        const fooAnnotation = new Annotation({
+            annotationDisplayName: "Foo",
+            annotationName: "foo",
+            description: "",
+            type: "Text",
+        });
         const annotations = [fooAnnotation];
 
-        it("shows all values as unchecked at first", () => {
+        const responseStub = {
+            when: `test/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+            respondWith: {
+                data: { data: ["a", "b", "c", "d"] },
+            },
+        };
+        const mockHttpClient = createMockHttpClient(responseStub);
+        const annotationService = new AnnotationService({
+            baseUrl: "test",
+            httpClient: mockHttpClient,
+        });
+
+        const sandbox = createSandbox();
+
+        before(() => {
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+        });
+
+        afterEach(() => {
+            sandbox.resetHistory();
+        });
+
+        after(() => {
+            sandbox.restore();
+        });
+
+        it("shows all values as unchecked at first", async () => {
             const state = mergeState(initialState, {
                 metadata: {
                     annotations,
                 },
             });
-            const { store } = configureMockStore({ state });
 
-            const { getAllByRole } = render(
+            const { store } = configureMockStore({ state, responseStubs: responseStub });
+
+            const { findAllByRole } = render(
                 <Provider store={store}>
                     <AnnotationFilterForm annotationName="foo" />
                 </Provider>
             );
 
-            getAllByRole("listitem").forEach((listItem) => {
+            // wait a couple render cycles for the async react hook to retrieve the annotation values
+            const annotationValueListItems = await findAllByRole("listitem");
+
+            expect(annotationValueListItems.length).to.equal(4);
+            annotationValueListItems.forEach((listItem) => {
                 expect(listItem.hasAttribute("checked")).to.equal(false);
             });
         });
@@ -56,6 +86,7 @@ describe("<AnnotationFilterForm />", () => {
                 logics: reduxLogics,
                 state,
                 reducer,
+                responseStubs: responseStub,
             });
 
             const { getByLabelText } = render(
@@ -64,8 +95,11 @@ describe("<AnnotationFilterForm />", () => {
                 </Provider>
             );
 
-            // assert that the input is selected
-            expect(getByLabelText("b").getAttribute("aria-checked")).to.equal("true");
+            // wait a couple render cycles for the async react hook to retrieve the annotation values
+            await wait(async () =>
+                // assert that the input is selected
+                expect(getByLabelText("b").getAttribute("aria-checked")).to.equal("true")
+            );
 
             // deselect the input
             fireEvent.click(getByLabelText("b"));
@@ -84,38 +118,66 @@ describe("<AnnotationFilterForm />", () => {
     });
     describe("Boolean annotations", () => {
         // setup
-        const fooAnnotation = new Annotation(
-            {
-                annotationDisplayName: "Foo",
-                annotationName: "foo",
-                description: "",
-                type: "YesNo",
-            },
-            [true, false]
-        );
+        const fooAnnotation = new Annotation({
+            annotationDisplayName: "Foo",
+            annotationName: "foo",
+            description: "",
+            type: "YesNo",
+        });
         const annotations = [fooAnnotation];
 
-        it("shows all values as unchecked at first", () => {
+        const responseStub = {
+            when: `test/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+            respondWith: {
+                data: { data: [true, false] },
+            },
+        };
+        const mockHttpClient = createMockHttpClient(responseStub);
+        const annotationService = new AnnotationService({
+            baseUrl: "test",
+            httpClient: mockHttpClient,
+        });
+
+        const sandbox = createSandbox();
+
+        before(() => {
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+        });
+
+        afterEach(() => {
+            sandbox.resetHistory();
+        });
+
+        after(() => {
+            sandbox.restore();
+        });
+
+        it("shows all values as unchecked at first", async () => {
             // Arrange
             const state = mergeState(initialState, {
                 metadata: {
                     annotations,
                 },
             });
-            const { store } = configureMockStore({ state });
+            const { store } = configureMockStore({ state, responseStubs: responseStub });
             // Act
-            const { getAllByRole } = render(
+            const { findAllByRole } = render(
                 <Provider store={store}>
                     <AnnotationFilterForm annotationName="foo" />
                 </Provider>
             );
+
             // Assert
-            getAllByRole("listitem").forEach((listItem) => {
+            // Wait a couple render cycles for the async react hook to retrieve the annotation values
+            const annotationValueListItems = await findAllByRole("listitem");
+
+            expect(annotationValueListItems.length).to.equal(2);
+            annotationValueListItems.forEach((listItem) => {
                 expect(listItem.hasAttribute("checked")).to.equal(false);
             });
         });
 
-        it("deselects and selects a value", async () => {
+        it.only("deselects and selects a value", async () => {
             // Arrange: Start with the "False" input selected
             const state = mergeState(initialState, {
                 metadata: {
@@ -129,6 +191,7 @@ describe("<AnnotationFilterForm />", () => {
                 logics: reduxLogics,
                 state,
                 reducer,
+                responseStubs: responseStub,
             });
             // Act
             const { getByLabelText } = render(
@@ -136,9 +199,11 @@ describe("<AnnotationFilterForm />", () => {
                     <AnnotationFilterForm annotationName={fooAnnotation.name} />
                 </Provider>
             );
-
-            // Assert: Check that the "False" input is selected
-            expect(getByLabelText("False").getAttribute("aria-checked")).to.equal("true");
+            // Wait a couple render cycles for the async react hook to retrieve the annotation values
+            await wait(async () =>
+                // Assert: Check that the "False" input is selected
+                expect(getByLabelText("False").getAttribute("aria-checked")).to.equal("true")
+            );
 
             // Act: Deselect the "False" input
             fireEvent.click(getByLabelText("False"));

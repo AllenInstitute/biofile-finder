@@ -1,6 +1,6 @@
 import { map } from "lodash";
 
-import Annotation, { AnnotationValue } from "../../entity/Annotation";
+import Annotation from "../../entity/Annotation";
 import HttpServiceBase from "../HttpServiceBase";
 
 /**
@@ -13,6 +13,8 @@ export interface AnnotationResponse {
     type: string;
     units?: string;
 }
+
+export type AnnotationValue = string | number | boolean | Date;
 
 /**
  * Service responsible for fetching annotation related metadata.
