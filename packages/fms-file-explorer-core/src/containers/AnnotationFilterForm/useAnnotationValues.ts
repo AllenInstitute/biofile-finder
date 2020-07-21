@@ -49,7 +49,7 @@ export default function useAnnotationValues(
         return function cleanup() {
             ignoreResponse = true;
         };
-    }, [annotation, annotationValues, isLoading, errorMessage]);
+    }, [annotation]);
 
     React.useDebugValue(annotationValues); // display annotationValues in React DevTools when this hook is inspected
     return [annotationValues, isLoading, errorMessage];
