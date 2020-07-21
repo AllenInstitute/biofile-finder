@@ -128,13 +128,20 @@ export default class HttpServiceBase {
     }
 
     public setBaseUrl(baseUrl: string | keyof typeof DataSource) {
-        this.baseUrl = baseUrl;
+        if (this.baseUrl !== baseUrl) {
+            // bust cache when base url changes
+            this.urlToResponseDataCache.reset();
+        }
 
-        // bust cache when base url changes
-        this.urlToResponseDataCache.reset();
+        this.baseUrl = baseUrl;
     }
 
     public setHttpClient(client: AxiosInstance) {
+        if (this.httpClient !== client) {
+            // bust cache when http client changes
+            this.urlToResponseDataCache.reset();
+        }
+
         this.httpClient = client;
     }
 }
