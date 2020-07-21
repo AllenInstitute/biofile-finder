@@ -86,9 +86,11 @@ export default class AnnotationService extends HttpServiceBase {
      * file set
      */
     public async fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]> {
-        const requestUrl = `${this.baseUrl}/${
-            AnnotationService.BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY
-        }?hierarchy=${annotations.join(",")}`;
+        const queryParams = [...annotations]
+            .sort() // sort in order to effectively cache
+            .map((annotation) => `hierarchy=${annotation}`)
+            .join("&");
+        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY}?${queryParams}`;
         console.log(`Requesting available annotations with current hierarchy: ${requestUrl}`);
 
         const response = await this.get<string>(requestUrl);
