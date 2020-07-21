@@ -41,7 +41,9 @@ export default class AnnotationService extends HttpServiceBase {
      * Fetch the unique values for a specific annotation.
      */
     public async fetchValues(annotation: string): Promise<AnnotationValue[]> {
-        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_URL}/${annotation}/values`;
+        // Encode any special characters in the annotation as necessary
+        const encodedAnnotation = HttpServiceBase.encodeURISection(annotation);
+        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_URL}/${encodedAnnotation}/values`;
         console.log(`Requesting annotation values from ${requestUrl}`);
 
         const response = await this.get<AnnotationValue>(requestUrl);

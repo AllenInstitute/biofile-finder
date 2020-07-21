@@ -15,6 +15,14 @@ export const DEFAULT_CONNECTION_CONFIG = {
     httpClient: axios.create(),
 };
 
+const CHARACTER_TO_ENCODING_MAP: { [index: string]: string } = {
+    "+": "%2b",
+    " ": "%20",
+    "&": "%26",
+    "%": "%25",
+    "?": "%3F",
+};
+
 const MAX_CACHE_SIZE = 1000;
 
 // retry policy: 5 times, with an exponential backoff between attempts
@@ -53,26 +61,8 @@ export default class HttpServiceBase {
         const re = /&(?=(?:[^&])+\=)/g;
         const queryStringComponents = queryString.split(re);
 
-        const CHARACTER_TO_ENCODING_MAP: { [index: string]: string } = {
-            "+": "%2b",
-            " ": "%20",
-            "&": "%26",
-            "%": "%25",
-            "?": "%3F",
-        };
-
         const encodedQueryString = queryStringComponents
-            .map((keyValuePair) =>
-                [...keyValuePair] // Split string into characters (https://stackoverflow.com/questions/4547609/how-do-you-get-a-string-to-a-character-array-in-javascript/34717402#34717402)
-                    .map((chr) => {
-                        if (CHARACTER_TO_ENCODING_MAP.hasOwnProperty(chr)) {
-                            return CHARACTER_TO_ENCODING_MAP[chr];
-                        }
-
-                        return chr;
-                    })
-                    .join("")
-            )
+            .map((keyValuePair) => this.encodeURISection(keyValuePair))
             .join("&");
 
         if (encodedQueryString) {
@@ -80,6 +70,21 @@ export default class HttpServiceBase {
         }
 
         return path;
+    }
+
+    /**
+     * Encodes special characters in given string to be URI friendly
+     */
+    protected static encodeURISection(section: string) {
+        return [...section] // Split string into characters (https://stackoverflow.com/questions/4547609/how-do-you-get-a-string-to-a-character-array-in-javascript/34717402#34717402)
+            .map((chr) => {
+                if (CHARACTER_TO_ENCODING_MAP.hasOwnProperty(chr)) {
+                    return CHARACTER_TO_ENCODING_MAP[chr];
+                }
+
+                return chr;
+            })
+            .join("");
     }
 
     public baseUrl: string | keyof typeof DataSource = DEFAULT_CONNECTION_CONFIG.baseUrl;
