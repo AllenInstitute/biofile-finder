@@ -19,7 +19,6 @@ import * as selectionSelectors from "./selectors";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import NumericRange from "../../entity/NumericRange";
-import AnnotationService from "../../services/AnnotationService";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -107,9 +106,10 @@ const selectFile = createLogic({
 const modifyAnnotationHierarchy = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { action, httpClient, getState } = deps;
+
         const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
-        const baseUrl = interaction.selectors.getFileExplorerServiceBaseUrl(getState());
-        const annotationService = new AnnotationService({ baseUrl, httpClient });
+        const annotationService = interaction.selectors.getAnnotationService(getState());
+        annotationService.setHttpClient(httpClient);
 
         try {
             dispatch(

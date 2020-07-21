@@ -351,7 +351,7 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 interaction: {
-                    fileExplorerServiceBaseUrl: "test",
+                    fileExplorerServiceBaseUrl: "test1",
                 },
                 metadata: {
                     annotations: [...annotations],
@@ -368,7 +368,7 @@ describe("Selection logics", () => {
 
             const responseStub = {
                 when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=date_created,cell_line,matrigel_hardened",
+                    "test1/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=date_created,cell_line,matrigel_hardened",
                 respondWith: {
                     data: {
                         data: ["days_since_creation"],
@@ -398,7 +398,7 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 interaction: {
-                    fileExplorerServiceBaseUrl: "test",
+                    fileExplorerServiceBaseUrl: "test2",
                 },
                 metadata: {
                     annotations: [...annotations],
@@ -415,7 +415,7 @@ describe("Selection logics", () => {
 
             const responseStub = {
                 when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=date_created,cell_line,matrigel_hardened",
+                    "test2/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=date_created,cell_line,matrigel_hardened",
                 respondWith: {
                     status: 500,
                 },
