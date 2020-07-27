@@ -21,6 +21,7 @@ const CHARACTER_TO_ENCODING_MAP: { [index: string]: string } = {
     "&": "%26",
     "%": "%25",
     "?": "%3F",
+    "\n": "%0A",
 };
 
 const MAX_CACHE_SIZE = 1000;
