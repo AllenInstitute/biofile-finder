@@ -21,35 +21,30 @@ export default function useAnnotationValues(
         // effect is re-run prior to a successful network response. This could be the case if a user selects another
         // annotation to filter on quickly
         let ignoreResponse = false;
-        // if we already have the values or we encountered an error, we likely shouldn't continue
-        // trying to constantly retrieve the values
-        if (annotationValues || errorMessage) {
-            // a previous request was cancelled
-            if (isLoading) {
-                setIsLoading(false);
-            }
-        } else {
-            // cache miss, request values using AnnotationService
-            setIsLoading(true);
-            annotationService
-                .fetchValues(annotation)
-                .then((response: AnnotationValue[]) => {
-                    if (!ignoreResponse) {
-                        setAnnotationValues(response);
-                    }
-                })
-                .catch((error) => setErrorMessage(error.message))
-                .finally(() => {
-                    if (!ignoreResponse) {
-                        setIsLoading(false);
-                    }
-                });
-        }
+
+        setIsLoading(true);
+        annotationService
+            .fetchValues(annotation)
+            .then((response: AnnotationValue[]) => {
+                if (!ignoreResponse) {
+                    setAnnotationValues(response);
+                }
+            })
+            .catch((error) => {
+                if (!ignoreResponse) {
+                    setErrorMessage(error.message);
+                }
+            })
+            .finally(() => {
+                if (!ignoreResponse) {
+                    setIsLoading(false);
+                }
+            });
 
         return function cleanup() {
             ignoreResponse = true;
         };
-    }, [annotation]);
+    }, [annotation, annotationService]);
 
     React.useDebugValue(annotationValues); // display annotationValues in React DevTools when this hook is inspected
     return [annotationValues, isLoading, errorMessage];
