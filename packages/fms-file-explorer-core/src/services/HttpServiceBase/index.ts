@@ -22,6 +22,7 @@ const CHARACTER_TO_ENCODING_MAP: { [index: string]: string } = {
     "%": "%25",
     "?": "%3F",
     "\n": "%0A",
+    "\r": "%0D",
 };
 
 const MAX_CACHE_SIZE = 1000;
