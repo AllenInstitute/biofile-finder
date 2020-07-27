@@ -1,4 +1,4 @@
-import { IconButton } from "office-ui-fabric-react";
+import { IconButton, DirectionalHint } from "office-ui-fabric-react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -36,6 +36,7 @@ export default function AnnotationFilter(props: FilterProps) {
             onRenderMenuList() {
                 return <AnnotationFilterForm annotationName={annotationName} />;
             },
+            directionalHint: DirectionalHint.rightTopEdge,
             title: "Exclusively Include",
             shouldFocusOnMount: true,
             items: [{ key: "placeholder" }], // necessary to have a non-empty items list to have `onRenderMenuList` called
