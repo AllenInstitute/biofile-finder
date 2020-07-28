@@ -23,9 +23,6 @@ const createMainWindow = () => {
             // NodeJS globals like "module", "exports", and "require" will be injected into the DOM to allow for using NodeJS and Electron APIs.
             // This would only be a problem if libraries or our own code attempted to define the same symbols.
             nodeIntegration: true,
-
-            // CORS...
-            webSecurity: false,
         },
         width: 1000,
     });

@@ -18,7 +18,9 @@ const dataSourceMenu: MenuItemConstructorOptions = {
             checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.LOCALHOST,
             click: (menuItem, focusedWindow) => {
                 global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.LOCALHOST;
-                focusedWindow.webContents.send("file-explorer-service-connection-change");
+                if (focusedWindow) {
+                    focusedWindow.webContents.send("file-explorer-service-connection-change");
+                }
             },
         },
         {
@@ -27,7 +29,9 @@ const dataSourceMenu: MenuItemConstructorOptions = {
             checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.STAGING,
             click: (menuItem, focusedWindow) => {
                 global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.STAGING;
-                focusedWindow.webContents.send("file-explorer-service-connection-change");
+                if (focusedWindow) {
+                    focusedWindow.webContents.send("file-explorer-service-connection-change");
+                }
             },
         },
         {
@@ -36,7 +40,9 @@ const dataSourceMenu: MenuItemConstructorOptions = {
             checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.PRODUCTION,
             click: (menuItem, focusedWindow) => {
                 global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION;
-                focusedWindow.webContents.send("file-explorer-service-connection-change");
+                if (focusedWindow) {
+                    focusedWindow.webContents.send("file-explorer-service-connection-change");
+                }
             },
         },
     ],

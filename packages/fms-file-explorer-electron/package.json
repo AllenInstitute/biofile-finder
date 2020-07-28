@@ -49,7 +49,6 @@
   "author": "Gabe Medrash<gabeme@alleninstitute.org>",
   "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
   "devDependencies": {
-    "@aics/fms-file-explorer-core": "0.11.0",
     "@babel/cli": "7.6.0",
     "@babel/core": "7.6.0",
     "@babel/plugin-proposal-class-properties": "7.5.5",
@@ -75,7 +74,6 @@
     "clean-webpack-plugin": "3.0.0",
     "core-js": "3.3.2",
     "css-loader": "3.2.0",
-    "electron": "6.0.9",
     "electron-builder": "22.2.0",
     "enzyme": "3.10.0",
     "enzyme-adapter-react-16": "1.14.0",
@@ -96,10 +94,6 @@
     "postcss-loader": "3.0.0",
     "postcss-preset-env": "6.7.0",
     "prettier": "1.19.1",
-    "react": "16.9.0",
-    "react-dom": "16.9.0",
-    "react-redux": "7.1.1",
-    "regenerator-runtime": "0.13.3",
     "rimraf": "3.0.0",
     "sinon": "7.4.2",
     "ts-node": "8.4.1",
@@ -110,6 +104,12 @@
     "webpack-dev-server": "3.8.0"
   },
   "dependencies": {
-    "electron-devtools-installer": "2.2.4"
+    "@aics/fms-file-explorer-core": "0.11.0",
+    "electron": "9.1.1",
+    "electron-devtools-installer": "3.1.1",
+    "react": "16.9.0",
+    "react-dom": "16.9.0",
+    "react-redux": "7.1.1",
+    "regenerator-runtime": "0.13.3"
   }
 }
