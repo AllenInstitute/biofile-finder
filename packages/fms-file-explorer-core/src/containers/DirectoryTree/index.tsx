@@ -27,7 +27,7 @@ interface FileListProps {
 export default function DirectoryTree(props: FileListProps) {
     const {
         state: { content, error, isLoading },
-    } = useDirectoryHierarchy({ initialCollapsed: false });
+    } = useDirectoryHierarchy({ collapsed: false });
 
     return (
         <div className={classNames(props.className, styles.container)}>

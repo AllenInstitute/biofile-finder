@@ -280,3 +280,42 @@ export function setAvailableAnnotations(annotationNames: string[]): SetAvailable
         type: SET_AVAILABLE_ANNOTATIONS,
     };
 }
+
+/**
+ * TOGGLE_FILE_FOLDER_COLLAPSE
+ * Intention to toggle the given file folder's collapsed state
+ */
+export const TOGGLE_FILE_FOLDER_COLLAPSE = makeConstant(
+    STATE_BRANCH_NAME,
+    "toggle-file-folder-collapse"
+);
+
+export interface ToggleFileFolderCollapseAction {
+    payload: string;
+    type: string;
+}
+
+export function toggleFileFolderCollapse(fileFolderTree: string): ToggleFileFolderCollapseAction {
+    return {
+        payload: fileFolderTree,
+        type: TOGGLE_FILE_FOLDER_COLLAPSE,
+    };
+}
+
+/**
+ * SET_OPEN_FILE_FOLDERS
+ * Intention to set which file folders are open as opposed to collapsed
+ */
+export const SET_OPEN_FILE_FOLDERS = makeConstant(STATE_BRANCH_NAME, "set-open-file-folders");
+
+export interface SetOpenFileFoldersAction {
+    payload: string[];
+    type: string;
+}
+
+export function setOpenFileFolders(openFileFolders: string[]): SetOpenFileFoldersAction {
+    return {
+        payload: openFileFolders,
+        type: SET_OPEN_FILE_FOLDERS,
+    };
+}

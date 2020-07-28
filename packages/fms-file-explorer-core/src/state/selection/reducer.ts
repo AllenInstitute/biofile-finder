@@ -14,6 +14,7 @@ import {
     SET_AVAILABLE_ANNOTATIONS,
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
+    SET_OPEN_FILE_FOLDERS,
 } from "./actions";
 
 export interface SelectionStateBranch {
@@ -22,6 +23,7 @@ export interface SelectionStateBranch {
     availableAnnotationsForHierarchyLoading: boolean;
     displayAnnotations: Annotation[];
     filters: FileFilter[];
+    openFileFolders: string[];
     selectedFileRangesByFileSet: {
         [index: string]: NumericRange[]; // FileSet::hash to list of list ranges
     };
@@ -40,6 +42,7 @@ export const initialState = {
     availableAnnotationsForHierarchyLoading: false,
     displayAnnotations: [...DEFAULT_DISPLAY_ANNOTATIONS],
     filters: [],
+    openFileFolders: [],
     selectedFileRangesByFileSet: {}, // FileSet::hash to NumericRange[]
 };
 
@@ -78,6 +81,10 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             availableAnnotationsForHierarchy: action.payload,
             availableAnnotationsForHierarchyLoading: false,
+        }),
+        [SET_OPEN_FILE_FOLDERS]: (state, action) => ({
+            ...state,
+            openFileFolders: action.payload,
         }),
         [interaction.actions.SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state) => ({
             ...state,

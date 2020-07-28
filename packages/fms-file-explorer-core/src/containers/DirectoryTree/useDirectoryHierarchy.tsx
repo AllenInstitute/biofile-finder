@@ -1,11 +1,10 @@
-import { defaults, isEmpty, find, pull, uniqWith, zip } from "lodash";
+import { defaults, isEmpty, find, pull, uniqWith, zip, includes } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
 import DirectoryTreeNode from "./DirectoryTreeNode";
 import {
-    Action,
-    initState,
+    INITIAL_STATE,
     setError,
     showLoadingIndicator,
     State,
@@ -19,8 +18,7 @@ import * as directoryTreeSelectors from "./selectors";
 import { interaction, metadata, selection } from "../../state";
 
 interface UseDirectoryHierarchy {
-    (params: { ancestorNodes?: string[]; currentNode?: string; initialCollapsed: boolean }): {
-        dispatch: React.Dispatch<Action>;
+    (params: { ancestorNodes?: string[]; currentNode?: string; collapsed: boolean }): {
         isLeaf: boolean;
         state: State;
     };
@@ -38,15 +36,13 @@ const DEFAULTS = {
  * and path. Responsible for fetching any data required to do so.
  */
 const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
-    const { ancestorNodes, currentNode, initialCollapsed } = defaults({}, params, DEFAULTS);
+    const { ancestorNodes, currentNode, collapsed } = defaults({}, params, DEFAULTS);
     const annotations = useSelector(metadata.selectors.getAnnotations);
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const fileService = useSelector(interaction.selectors.getFileService);
     const selectedFileFilters = useSelector(selection.selectors.getFileFilters);
-
-    const [state, dispatch] = React.useReducer(reducer, initialCollapsed, initState);
-    const { collapsed } = state;
+    const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
 
     const isRoot = currentNode === ROOT_NODE;
     const isLeaf = !isRoot && !!hierarchy.length && ancestorNodes.length === hierarchy.length - 1;
@@ -200,7 +196,6 @@ const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
     ]);
 
     return {
-        dispatch,
         isLeaf,
         state,
     };

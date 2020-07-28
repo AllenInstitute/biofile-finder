@@ -13,6 +13,8 @@ import {
     setAvailableAnnotations,
     setFileFilters,
     setFileSelection,
+    TOGGLE_FILE_FOLDER_COLLAPSE,
+    setOpenFileFolders,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps } from "../";
 import * as selectionSelectors from "./selectors";
@@ -212,4 +214,23 @@ const modifyFileFilters = createLogic({
     type: [ADD_FILE_FILTER, REMOVE_FILE_FILTER],
 });
 
-export default [selectFile, modifyAnnotationHierarchy, modifyFileFilters];
+/**
+ * Interceptor responsible for transforming TOGGLE_FILE_FOLDER_COLLAPSE actions into
+ * SET_OPEN_FILE_FOLDERS actions by determining whether the file folder is to be considered
+ * open or collapsed.
+ */
+const toggleFileFolderCollapse = createLogic({
+    transform(deps: ReduxLogicDeps, next) {
+        const fileFolder: string = deps.action.payload;
+        const openFileFolders = selectionSelectors.getOpenFileFolders(deps.getState());
+        // If the file folder is already open, collapse it by removing it
+        if (includes(openFileFolders, fileFolder)) {
+            next(setOpenFileFolders(openFileFolders.filter((f) => f !== fileFolder)));
+        } else {
+            next(setOpenFileFolders([...openFileFolders, fileFolder]));
+        }
+    },
+    type: [TOGGLE_FILE_FOLDER_COLLAPSE],
+});
+
+export default [selectFile, modifyAnnotationHierarchy, modifyFileFilters, toggleFileFolderCollapse];

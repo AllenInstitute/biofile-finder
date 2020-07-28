@@ -1,9 +1,11 @@
 import * as classNames from "classnames";
+import { includes } from "lodash";
 import * as React from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import DirectoryTreeNodeHeader from "./DirectoryTreeNodeHeader";
-import { toggleCollapse } from "./directory-hierarchy-state";
-import useDirectoryHierarchy from "./useDirectoryHierarchy";
+import useDirectoryHierarchy, { ROOT_NODE } from "./useDirectoryHierarchy";
+import { selection } from "../../state";
 
 const styles = require("./DirectoryTreeNode.module.css");
 
@@ -22,12 +24,17 @@ const ICON_SIZE = 15; // in px; both width and height
  */
 export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const { ancestorNodes, currentNode, displayValue } = props;
+    const dispatch = useDispatch();
+    const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
+    const isRoot = currentNode === ROOT_NODE;
+    const fileFolderTree = ancestorNodes.length
+        ? ancestorNodes.join(".") + "." + currentNode
+        : currentNode;
+    const collapsed = !includes(openFileFolders, fileFolderTree) && !isRoot;
     const {
         isLeaf,
-        state: { collapsed, content, error, isLoading },
-        dispatch,
-    } = useDirectoryHierarchy({ ancestorNodes, currentNode, initialCollapsed: true });
-
+        state: { content, error, isLoading },
+    } = useDirectoryHierarchy({ ancestorNodes, currentNode, collapsed });
     return (
         <li
             className={styles.treeNodeContainer}
@@ -36,15 +43,15 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
             aria-level={ancestorNodes.length + 1} // aria-level is 1-indexed
         >
             <DirectoryTreeNodeHeader
-                collapsed={collapsed}
+                collapsed={collapsed || Boolean(error)}
                 error={error}
                 loading={isLoading}
                 title={displayValue}
-                onClick={() => dispatch(toggleCollapse())}
+                onClick={() => dispatch(selection.actions.toggleFileFolderCollapse(fileFolderTree))}
             />
             <ul
                 className={classNames(styles.children, {
-                    [styles.collapsed]: collapsed,
+                    [styles.collapsed]: collapsed || Boolean(error),
                     [styles.fileList]: isLeaf,
                 })}
                 style={{ paddingLeft: `${ICON_SIZE + 8}px` }}
