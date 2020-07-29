@@ -1,8 +1,9 @@
 import { defaults, isEmpty, find, pull, uniqWith, zip } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
+import { FixedSizeList } from "react-window";
 
-import DirectoryTreeNode from "./DirectoryTreeNode";
+import LazilyRenderedTreeNode from "./LazilyRenderedTreeNode";
 import {
     Action,
     initState,
@@ -156,17 +157,31 @@ const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
                         return true;
                     });
 
-                    const nodes = filteredValues.map((value) => (
-                        <DirectoryTreeNode
-                            key={`${[...pathToNode, value].join(":")}|${hierarchy.join(":")}`}
-                            ancestorNodes={pathToNode}
-                            currentNode={value}
-                            displayValue={annotationAtDepth?.getDisplayValue(value) || value}
-                        />
-                    ));
+                    const nodes = filteredValues.map((value) => ({
+                        ancestorNodes: pathToNode,
+                        currentNode: value,
+                        displayValue: annotationAtDepth?.getDisplayValue(value) || value,
+                        id: `${[...pathToNode, value].join(":")}|${hierarchy.join(":")}`,
+                    }));
+
+                    const content = (
+                        <FixedSizeList
+                            height={600}
+                            itemCount={nodes.length}
+                            itemData={{ nodes: nodes }}
+                            itemKey={(index, data) => {
+                                const node = data.nodes[index];
+                                return node.id;
+                            }}
+                            itemSize={30}
+                            width="100%"
+                        >
+                            {LazilyRenderedTreeNode}
+                        </FixedSizeList>
+                    );
 
                     if (!cancel) {
-                        dispatch(receiveContent(nodes));
+                        dispatch(receiveContent(content));
                     }
                 } catch (e) {
                     console.error(

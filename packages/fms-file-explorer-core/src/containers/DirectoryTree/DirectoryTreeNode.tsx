@@ -11,6 +11,7 @@ interface DirectoryTreeNodeProps {
     ancestorNodes: string[];
     currentNode: string; // the "directory name" to present
     displayValue: string;
+    style?: React.CSSProperties;
 }
 
 const ICON_SIZE = 15; // in px; both width and height
@@ -21,7 +22,7 @@ const ICON_SIZE = 15; // in px; both width and height
  * will render a FileList showing the set of files that match the filters at this path in the hierarchy.
  */
 export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
-    const { ancestorNodes, currentNode, displayValue } = props;
+    const { ancestorNodes, currentNode, displayValue, style } = props;
     const {
         isLeaf,
         state: { collapsed, content, error, isLoading },
@@ -34,6 +35,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
             role="treeitem"
             aria-expanded={collapsed ? "false" : "true"}
             aria-level={ancestorNodes.length + 1} // aria-level is 1-indexed
+            style={style}
         >
             <DirectoryTreeNodeHeader
                 collapsed={collapsed}
