@@ -29,7 +29,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const isRoot = currentNode === ROOT_NODE;
     const fileFolderTree = ancestorNodes.length
         ? ancestorNodes.join(".") + "." + currentNode
-        : currentNode;
+        : currentNode.toString();
     const collapsed = !includes(openFileFolders, fileFolderTree) && !isRoot;
     const {
         isLeaf,
