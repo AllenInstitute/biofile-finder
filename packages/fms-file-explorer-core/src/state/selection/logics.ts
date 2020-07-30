@@ -1,4 +1,4 @@
-import { castArray, find, includes, sortBy, uniqWith, without } from "lodash";
+import { castArray, find, includes, sortBy, uniqWith, without, uniq } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -101,6 +101,49 @@ const selectFile = createLogic({
     type: SELECT_FILE,
 });
 
+// ex. false
+// ex. false.AICS-68
+// ex. false.AICS-68.true
+// ex. false.AICS-68.true.75 -> 75.false.AICS-68.true
+// ex.                       -> 75.false.AICS-68
+// ex.                       -> 75.false
+// ex.                       -> 75
+
+// ex. false
+// ex. false.AICS-68
+// ex. false.AICS-68.true
+// ex. false.AICS-68.true.75 -> AICS-68.true.false.75
+// ex.                       -> AICS-68.true.false
+// ex.                       -> AICS-68.true
+// ex.                       -> AICS-68
+
+// TODO: Needs fixing...?
+// ex. false
+// ex. false.AICS-68
+// ex. false.AICS-68.true
+// ex. false.AICS-68.true.75 -> false.AICS-68.75.true
+// ex.                       -> false.AICS-68.75
+// ex.                       -> false.AICS-68
+// ex.                       -> false
+// ex. false.AICS-68         -> unchanged
+// ex. false.AICS-64         -> unchanged (NEEDS FIXING!)
+
+// ex. false
+// ex. false.AICS-68
+// ex. false.AICS-68.true
+// ex. false.AICS-68.true.75 -> AICS-68.true.75.false
+// ex.                       -> AICS-68.true.75
+// ex.                       -> AICS-68.true
+// ex.                       -> AICS-68
+
+// ex. false
+// ex. false.AICS-68
+// ex. false.AICS-68.true
+// ex. false.AICS-68.true.75 -> AICS-68.true.75.false
+// ex.                       -> AICS-68.true.75
+// ex.                       -> AICS-68.true // TODO: worry about uniqueness here
+// ex.                       -> AICS-68
+
 /**
  * Interceptor responsible for transforming REORDER_ANNOTATION_HIERARCHY and REMOVE_FROM_ANNOTATION_HIERARCHY actions into
  * a concrete list of ordered annotations that can be directly stored in application state under `selections.annotationHierarchy`.
@@ -108,12 +151,13 @@ const selectFile = createLogic({
 const modifyAnnotationHierarchy = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { action, httpClient, getState, ctx } = deps;
-        const { existingHierarchy } = ctx;
+        const { existingHierarchy, modifiedAnnotation } = ctx;
 
         const existingOpenFileFolders = selectionSelectors.getOpenFileFolders(getState());
         const currentHierarchy: Annotation[] = action.payload;
         const FILE_FOLDER_SEPARATOR = "."; // TODO: Get better sentinal value to separate them
 
+        // TODO: Remove console.log()
         console.log(`Existing Hierarchy: ${existingHierarchy}`);
         console.log(`Current Hierarchy: ${currentHierarchy}`);
         console.log(`Open File Folders (Before): ${existingOpenFileFolders}`);
@@ -128,12 +172,14 @@ const modifyAnnotationHierarchy = createLogic({
                     modifiedIndex = index;
                 }
             });
+
+            // If an annotation was removed and it happened to be the lowest
+            // level we end up with this case
             if (modifiedIndex === -1) {
                 modifiedIndex = currentHierarchy.length - 1;
             }
 
             if (existingHierarchy.length > currentHierarchy.length) {
-                console.log(`Deleted Annotation at Index`);
                 // If an annotation was removed from the hierarchy everything that is open
                 // should be able to remain open
                 openFileFolders = existingOpenFileFolders
@@ -145,8 +191,6 @@ const modifyAnnotationHierarchy = createLogic({
                     )
                     .filter((ff) => Boolean(ff));
             } else {
-                console.log(`Inserted Annotation at Index`);
-                console.log(modifiedIndex);
                 // If an annotation was added to the hierarchy everything that is open above
                 // the level where the annotation was added should be able to remain open
                 openFileFolders = existingOpenFileFolders.map((ff) =>
@@ -161,91 +205,60 @@ const modifyAnnotationHierarchy = createLogic({
             // everything should remain open but the values need to shift around.
 
             // Get mapping of old annotation locations to new annotation locations in the hierarchy
-            const indexMap: { [oldIndex: number]: number } = {}; // oldIndex -> newIndex
-            existingHierarchy.forEach((existingAnnotation: Annotation, oldIndex: number) => {
-                currentHierarchy.forEach((currentAnnotation, newIndex) => {
-                    if (existingAnnotation === currentAnnotation) {
-                        indexMap[oldIndex] = newIndex;
-                    }
-                });
-            });
-            console.log(`Reordered Annotations`);
-            console.log(indexMap);
+            const annotationIndexMap = existingHierarchy.reduce(
+                (
+                    map: { [oldIndex: number]: number },
+                    existingAnnotation: Annotation,
+                    oldIndex: number
+                ) => ({
+                    ...map,
+                    [oldIndex]: currentHierarchy.findIndex(
+                        (a) => a.name === existingAnnotation.name
+                    ),
+                }),
+                {}
+            );
+
+            // Determine what the old index was for the annotation rearranged
+            const oldAnnotationIndex = existingHierarchy.findIndex(
+                (a: Annotation) => a.name === modifiedAnnotation
+            );
 
             // Use annotation index mapping to re-order annotation values in file folders
             openFileFolders = [];
             existingOpenFileFolders.forEach((fileFolder) => {
-                console.log(fileFolder);
+                // Split file folder tree into individual annotation values
                 const fileFolderValues = fileFolder.split(FILE_FOLDER_SEPARATOR);
-                console.log(fileFolderValues);
+
+                // If the annotation that was moved came from an index lower in the hierarchy
+                // than the current file folder then we can't do anything with it
+                // TODO: NOT TRUE we want to include it IFF the new annotation index > old annotation index
+                if (fileFolderValues.length <= oldAnnotationIndex) {
+                    return; // Exclude
+                }
+
+                // Initialize array with empty slots to easily swap indexes
                 const newFileFolderValues = [...new Array(currentHierarchy.length)];
-                console.log(newFileFolderValues);
+
+                // Swap indexes of values based on new annotation hierarchy
                 fileFolderValues.forEach((value, index) => {
-                    newFileFolderValues[indexMap[index]] = value;
+                    newFileFolderValues[annotationIndexMap[index]] = value;
                 });
 
-                // ex. false
-                // ex. false.AICS-68
-                // ex. false.AICS-68.true
-                // ex. false.AICS-68.true.75 -> 75.false.AICS-68.true
-                // ex.                       -> 75.false.AICS-68
-                // ex.                       -> 75.false
-                // ex.                       -> 75
-
-                // ex. false
-                // ex. false.AICS-68
-                // ex. false.AICS-68.true
-                // ex. false.AICS-68.true.75 -> AICS-68.true.75.false
-                // ex.                       -> AICS-68.true.75
-                // ex.                       -> AICS-68.true
-                // ex.                       -> AICS-68
-                // ex. false
-                // ex. false.AICS-68
-                // ex. false.AICS-68.true
-                // ex. false.AICS-68.true.75 -> AICS-68.true.75.false
-                // ex.                       -> AICS-68.true.75
-                // ex.                       -> AICS-68.true // TODO: worry about uniqueness here
-                // ex.                       -> AICS-68
-                // ex. false.AICS-68.true.75.64 -> AICS-68.true.75.false.64
-                // find old index of annotation that was moved
-                // find new index (in old action)
-                // add mini subset for each subset between moved location and desinition location
-
-                if (moveTo >= fileFolderValues.length || moveFrom >= fileFolderValues.length) {
-                    // is undefined
+                // Add each sub-folder tree in the new folder tree as its own folder
+                // Ex. "CellLine" & "Balls?" are swapped in hierarchy
+                //     Current open file folders: ["AICS-40.false", "AICS-40"]
+                //     "AICS-40" -> would be filtered out as we can determine what to do with it anymore
+                //     "AICS-40.false" -> "false.AICS-40" & "false" are both created
+                for (let i = 0; i < newFileFolderValues.length; i++) {
+                    const subFileFolderValues = newFileFolderValues.slice(0, i + 1);
+                    openFileFolders.push(subFileFolderValues.join(FILE_FOLDER_SEPARATOR));
                 }
-                // annotationName -> open values
-                // delete? delete the annotationName
-                // insert? nothing
-                // reoder? nothing
-
-                fileFolderValues.forEach((value, index) => {
-                    const newIndex = indexMap[index];
-                    if (newIndex < index) {
-                        // append
-                        openFileFolders.push(value);
-                    }
-                    newFileFolderValues[newIndex] = value;
-                });
-                // [false, false.AICS-68] -> [AICS-68, AICS-68.false]
-                // false -> undefined
-                // false.AICS-68 -> AICS-68.false & AICS-68
-                console.log(newFileFolderValues);
-                let undefinedEncountered = false;
-                for (const value in newFileFolderValues) {
-                    if (value === undefined) {
-                        undefinedEncountered = true;
-                    } else if (undefinedEncountered) {
-                        return;
-                    }
-                }
-                openFileFolders.push(
-                    newFileFolderValues.filter((ff) => ff !== undefined).join(FILE_FOLDER_SEPARATOR)
-                );
             });
         }
+        // TODO: Remove console.log()
         console.log(`Open File Folders (After): ${openFileFolders}`);
-        dispatch(setOpenFileFolders(openFileFolders));
+        dispatch(setOpenFileFolders(uniq(openFileFolders)));
 
         const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
         const annotationService = interaction.selectors.getAnnotationService(getState());
@@ -275,6 +288,7 @@ const modifyAnnotationHierarchy = createLogic({
 
         const existingHierarchy = selectionSelectors.getAnnotationHierarchy(getState());
         ctx.existingHierarchy = existingHierarchy;
+        ctx.modifiedAnnotation = action.payload.id;
         const allAnnotations = metadata.selectors.getAnnotations(getState());
         const annotation = find(
             allAnnotations,
@@ -364,7 +378,7 @@ const toggleFileFolderCollapse = createLogic({
         const openFileFolders = selectionSelectors.getOpenFileFolders(deps.getState());
         // If the file folder is already open, collapse it by removing it
         if (includes(openFileFolders, fileFolder)) {
-            next(setOpenFileFolders(openFileFolders.filter((f) => f !== fileFolder)));
+            next(setOpenFileFolders(openFileFolders.filter((f) => f.indexOf(fileFolder) !== 0)));
         } else {
             next(setOpenFileFolders([...openFileFolders, fileFolder]));
         }
