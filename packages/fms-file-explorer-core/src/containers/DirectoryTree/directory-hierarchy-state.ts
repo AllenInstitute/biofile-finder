@@ -21,7 +21,6 @@ export interface State {
  * Action constants
  */
 enum DirectoryHierarchyAction {
-    TOGGLE_COLLAPSE = "toggle-collapse",
     ERROR = "error",
     RECEIVE_CONTENT = "receive-content",
     SHOW_LOADING_INDICATOR = "show-loading-indicator",
@@ -64,16 +63,15 @@ export function reducer(state: State, action: Action): State {
     }
 }
 
-/**
- * Mechanism for lazily initializing state.
- * See https://reactjs.org/docs/hooks-reference.html#lazy-initialization.
- */
 export const INITIAL_STATE: State = {
     content: null,
     isLoading: false,
     error: null,
 };
 
+/**
+ * Action creators
+ */
 export function setError(err: Error, isRoot: boolean): Action {
     return {
         type: DirectoryHierarchyAction.ERROR,
