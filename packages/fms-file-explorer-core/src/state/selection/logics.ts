@@ -232,18 +232,23 @@ const modifyAnnotationHierarchy = createLogic({
 
                 // If the annotation that was moved came from an index lower in the hierarchy
                 // than the current file folder then we can't do anything with it
-                // TODO: NOT TRUE we want to include it IFF the new annotation index > old annotation index
-                if (fileFolderValues.length <= oldAnnotationIndex) {
-                    return; // Exclude
-                }
 
                 // Initialize array with empty slots to easily swap indexes
-                const newFileFolderValues = [...new Array(currentHierarchy.length)];
+                let newFileFolderValues = [...new Array(fileFolderValues.length)];
 
                 // Swap indexes of values based on new annotation hierarchy
                 fileFolderValues.forEach((value, index) => {
-                    newFileFolderValues[annotationIndexMap[index]] = value;
+                    // Ensure the new location for the value is within bounds
+                    if (newFileFolderValues.length > index) {
+                        newFileFolderValues[annotationIndexMap[index]] = value;
+                    }
                 });
+
+                // Cut off the file folder path at the first index with a undefined element
+                let undefinedIndex = newFileFolderValues.findIndex((f) => f === undefined);
+                if (undefinedIndex !== -1) {
+                    newFileFolderValues = newFileFolderValues.slice(0, undefinedIndex);
+                }
 
                 // Add each sub-folder tree in the new folder tree as its own folder
                 // Ex. "CellLine" & "Balls?" are swapped in hierarchy
@@ -257,7 +262,7 @@ const modifyAnnotationHierarchy = createLogic({
             });
         }
         // TODO: Remove console.log()
-        console.log(`Open File Folders (After): ${openFileFolders}`);
+        console.log(`Open File Folders (After): ${uniq(openFileFolders)}`);
         dispatch(setOpenFileFolders(uniq(openFileFolders)));
 
         const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
