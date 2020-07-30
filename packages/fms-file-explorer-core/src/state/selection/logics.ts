@@ -101,49 +101,6 @@ const selectFile = createLogic({
     type: SELECT_FILE,
 });
 
-// ex. false
-// ex. false.AICS-68
-// ex. false.AICS-68.true
-// ex. false.AICS-68.true.75 -> 75.false.AICS-68.true
-// ex.                       -> 75.false.AICS-68
-// ex.                       -> 75.false
-// ex.                       -> 75
-
-// ex. false
-// ex. false.AICS-68
-// ex. false.AICS-68.true
-// ex. false.AICS-68.true.75 -> AICS-68.true.false.75
-// ex.                       -> AICS-68.true.false
-// ex.                       -> AICS-68.true
-// ex.                       -> AICS-68
-
-// TODO: Needs fixing...?
-// ex. false
-// ex. false.AICS-68
-// ex. false.AICS-68.true
-// ex. false.AICS-68.true.75 -> false.AICS-68.75.true
-// ex.                       -> false.AICS-68.75
-// ex.                       -> false.AICS-68
-// ex.                       -> false
-// ex. false.AICS-68         -> unchanged
-// ex. false.AICS-64         -> unchanged (NEEDS FIXING!)
-
-// ex. false
-// ex. false.AICS-68
-// ex. false.AICS-68.true
-// ex. false.AICS-68.true.75 -> AICS-68.true.75.false
-// ex.                       -> AICS-68.true.75
-// ex.                       -> AICS-68.true
-// ex.                       -> AICS-68
-
-// ex. false
-// ex. false.AICS-68
-// ex. false.AICS-68.true
-// ex. false.AICS-68.true.75 -> AICS-68.true.75.false
-// ex.                       -> AICS-68.true.75
-// ex.                       -> AICS-68.true // TODO: worry about uniqueness here
-// ex.                       -> AICS-68
-
 /**
  * Interceptor responsible for transforming REORDER_ANNOTATION_HIERARCHY and REMOVE_FROM_ANNOTATION_HIERARCHY actions into
  * a concrete list of ordered annotations that can be directly stored in application state under `selections.annotationHierarchy`.
@@ -151,15 +108,13 @@ const selectFile = createLogic({
 const modifyAnnotationHierarchy = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { action, httpClient, getState, ctx } = deps;
-        const { existingHierarchy, modifiedAnnotation } = ctx;
+        const { existingHierarchy } = ctx;
 
         const existingOpenFileFolders = selectionSelectors.getOpenFileFolders(getState());
         const currentHierarchy: Annotation[] = action.payload;
         const FILE_FOLDER_SEPARATOR = "."; // TODO: Get better sentinal value to separate them
 
         // TODO: Remove console.log()
-        console.log(`Existing Hierarchy: ${existingHierarchy}`);
-        console.log(`Current Hierarchy: ${currentHierarchy}`);
         console.log(`Open File Folders (Before): ${existingOpenFileFolders}`);
         // If the hierarchies are not the same length then an insert or delete occured &
         // the open file folders need to be deleted/rearranged
@@ -223,18 +178,15 @@ const modifyAnnotationHierarchy = createLogic({
                 const fileFolderValues = fileFolder.split(FILE_FOLDER_SEPARATOR);
 
                 // Initialize array with empty slots to easily swap indexes
-                let newFileFolderValues = [...new Array(fileFolderValues.length)];
+                let newFileFolderValues = [...new Array(currentHierarchy.length)];
 
                 // Swap indexes of values based on new annotation hierarchy
                 fileFolderValues.forEach((value, index) => {
-                    // Ensure the new location for the value is within bounds
-                    if (newFileFolderValues.length > index) {
-                        newFileFolderValues[annotationIndexMap[index]] = value;
-                    }
+                    newFileFolderValues[annotationIndexMap[index]] = value;
                 });
 
                 // Cut off the file folder path at the first index with a undefined element
-                let undefinedIndex = newFileFolderValues.findIndex((f) => f === undefined);
+                const undefinedIndex = newFileFolderValues.findIndex((f) => f === undefined);
                 if (undefinedIndex !== -1) {
                     newFileFolderValues = newFileFolderValues.slice(0, undefinedIndex);
                 }
@@ -282,7 +234,6 @@ const modifyAnnotationHierarchy = createLogic({
 
         const existingHierarchy = selectionSelectors.getAnnotationHierarchy(getState());
         ctx.existingHierarchy = existingHierarchy;
-        ctx.modifiedAnnotation = action.payload.id;
         const allAnnotations = metadata.selectors.getAnnotations(getState());
         const annotation = find(
             allAnnotations,
