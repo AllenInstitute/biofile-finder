@@ -166,20 +166,17 @@ const modifyAnnotationHierarchy = createLogic({
         let openFileFolders: string[];
         if (existingHierarchy.length !== currentHierarchy.length) {
             // Determine which index the insert/delete occurred
-            let modifiedIndex: number = -1;
-            existingHierarchy.forEach((a: Annotation, index: number) => {
-                if (modifiedIndex === -1 && a !== currentHierarchy[index]) {
-                    modifiedIndex = index;
-                }
-            });
-
-            // If an annotation was removed and it happened to be the lowest
-            // level we end up with this case
-            if (modifiedIndex === -1) {
-                modifiedIndex = currentHierarchy.length - 1;
-            }
+            let modifiedIndex = existingHierarchy.findIndex(
+                (a: Annotation, index: number) => a !== currentHierarchy[index]
+            );
 
             if (existingHierarchy.length > currentHierarchy.length) {
+                // If it couldn't find the modified index it must've been the
+                // lowest level annotation
+                if (modifiedIndex === -1) {
+                    modifiedIndex = currentHierarchy.length - 1;
+                }
+
                 // If an annotation was removed from the hierarchy everything that is open
                 // should be able to remain open
                 openFileFolders = existingOpenFileFolders
@@ -219,19 +216,11 @@ const modifyAnnotationHierarchy = createLogic({
                 {}
             );
 
-            // Determine what the old index was for the annotation rearranged
-            const oldAnnotationIndex = existingHierarchy.findIndex(
-                (a: Annotation) => a.name === modifiedAnnotation
-            );
-
             // Use annotation index mapping to re-order annotation values in file folders
             openFileFolders = [];
             existingOpenFileFolders.forEach((fileFolder) => {
                 // Split file folder tree into individual annotation values
                 const fileFolderValues = fileFolder.split(FILE_FOLDER_SEPARATOR);
-
-                // If the annotation that was moved came from an index lower in the hierarchy
-                // than the current file folder then we can't do anything with it
 
                 // Initialize array with empty slots to easily swap indexes
                 let newFileFolderValues = [...new Array(fileFolderValues.length)];
