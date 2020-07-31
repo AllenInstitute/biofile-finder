@@ -1,6 +1,7 @@
-// Interface for map necessary to re-order annotations
+// Interface for map necessary to re-order annotations.
+// Maps the new index of an annotation to its old index.
 export interface AnnotationIndexMap {
-    [oldIndex: number]: number;
+    [newIndex: number]: number;
 }
 
 /**
@@ -22,11 +23,14 @@ export default class FileFolder {
      * This returns true if the open file folder given is the same
      * as this open file folder.
      */
-    public equals(otherFileFolder: FileFolder) {
-        if (this.fileFolderPath.length !== otherFileFolder.fileFolder.length) {
+    public equals(otherFileFolder: any) {
+        if (
+            !(otherFileFolder instanceof FileFolder) ||
+            this.fileFolderPath.length !== otherFileFolder.fileFolder.length
+        ) {
             return false;
         }
-        return this.fileFolderPath.some(
+        return this.fileFolderPath.every(
             (value, index) => value === otherFileFolder.fileFolder[index]
         );
     }
@@ -42,37 +46,40 @@ export default class FileFolder {
         if (this.fileFolderPath.length < otherFileFolder.fileFolder.length) {
             return false;
         }
-        return !otherFileFolder.fileFolder.some(
-            (value, index) => value !== this.fileFolderPath[index]
+        return otherFileFolder.fileFolder.every(
+            (value, index) => value === this.fileFolderPath[index]
         );
     }
 
     /**
      * If an annotation was added to the hierarchy everything that is open above
-     * the level where the annotation was added should be able to remain open
+     * the level where the annotation was added should be able to remain open.
+     *
+     * Returns undefined if the annotation is added to the top of the hierarchy
      */
 
     public addAnnotationAtIndex(modifiedIndex: number): FileFolder | undefined {
-        const newFileFolderValues = this.fileFolderPath.filter((_, index) => index < modifiedIndex);
-        if (!newFileFolderValues.length) {
+        if (modifiedIndex === 0) {
             return undefined;
         }
-        return new FileFolder(newFileFolderValues);
+        const newFileFolderPath = this.fileFolderPath.filter((_, index) => index < modifiedIndex);
+        return new FileFolder(newFileFolderPath);
     }
 
     /**
      * If an annotation was removed from the hierarchy everything that is open
-     * should be able to remain open
+     * should be able to remain open.
+     *
+     * Returns undefined if the annotation removed is at the top of the hierarchy
+     * and this folder only has values for that annotation
      */
 
     public removeAnnotationAtIndex(modifiedIndex: number): FileFolder | undefined {
-        const newFileFolderValues = this.fileFolderPath.filter(
-            (_, index) => index !== modifiedIndex
-        );
-        if (!newFileFolderValues.length) {
+        if (modifiedIndex === 0 && this.fileFolderPath.length === 1) {
             return undefined;
         }
-        return new FileFolder(newFileFolderValues);
+        const newFileFolderPath = this.fileFolderPath.filter((_, index) => index !== modifiedIndex);
+        return new FileFolder(newFileFolderPath);
     }
 
     //
@@ -84,31 +91,31 @@ export default class FileFolder {
      * containing their sub-paths.
      */
 
-    public moveAnnotationToIndex(annotationIndexMap: AnnotationIndexMap): FileFolder[] {
-        // Initialize array with empty slots to easily swap indexes
-        let newFileFolderValues = [...new Array(this.fileFolderPath.length)];
-
-        // Swap indexes of values based on new annotation hierarchy
-        this.fileFolderPath.forEach((value, index) => {
-            newFileFolderValues[annotationIndexMap[index]] = value;
-        });
-
-        // Cut off the file folder path at the first index with a undefined element
-        const undefinedIndex = newFileFolderValues.findIndex((f) => f === undefined);
-        if (undefinedIndex !== -1) {
-            newFileFolderValues = newFileFolderValues.slice(0, undefinedIndex);
+    public reorderAnnotations(annotationIndexMap: AnnotationIndexMap): FileFolder[] {
+        let index = 0;
+        let folderIsClosed = false;
+        const newFileFolderPath: string[] = [];
+        // While the folder still has sections open and values remaining to pick from
+        // build up the new file folder path by rearranging the indexes
+        while (!folderIsClosed && index < this.fileFolderPath.length) {
+            // Get the original index for the current index
+            const originalIndex = annotationIndexMap[index];
+            if (originalIndex < this.fileFolderPath.length) {
+                // Push the value into the array at its new index effectively swapping it
+                newFileFolderPath.push(this.fileFolderPath[originalIndex]);
+                index += 1;
+            } else {
+                // If the current file folder path does not have a value for this index
+                // consider the rest of the folder closed
+                folderIsClosed = true;
+            }
         }
 
-        // Add each sub-folder tree in the new folder tree as its own folder
+        // Add each sub-folder path in the new folder path as its own folder
         // Ex. "CellLine" & "Balls?" are swapped in hierarchy
         //     Current open file folders: ["AICS-40.false", "AICS-40"]
         //     "AICS-40" -> would be filtered out as we can determine what to do with it anymore
         //     "AICS-40.false" -> "false.AICS-40" & "false" are both created
-        const openFileFolders: FileFolder[] = [];
-        for (let i = 0; i < newFileFolderValues.length; i++) {
-            const subFileFolderValues = newFileFolderValues.slice(0, i + 1);
-            openFileFolders.push(new FileFolder(subFileFolderValues));
-        }
-        return openFileFolders;
+        return newFileFolderPath.map((_, i) => new FileFolder(newFileFolderPath.slice(0, i + 1)));
     }
 }

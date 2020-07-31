@@ -110,43 +110,40 @@ const modifyAnnotationHierarchy = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { action, httpClient, getState, ctx } = deps;
         const { existingHierarchy } = ctx;
-
-        const existingOpenFileFolders = selectionSelectors.getOpenFileFolders(getState());
         const currentHierarchy: Annotation[] = action.payload;
 
-        // If the hierarchies are not the same length then an insert or delete occured &
-        // the open file folders need to be deleted/rearranged
+        const existingOpenFileFolders = selectionSelectors.getOpenFileFolders(getState());
+
         let openFileFolders: FileFolder[];
-        if (existingHierarchy.length !== currentHierarchy.length) {
-            // Determine which index the insert/delete occurred
-            let modifiedIndex = existingHierarchy.findIndex(
+        if (existingHierarchy.length > currentHierarchy.length) {
+            // Determine which index the remove occurred
+            const modifiedIndex = existingHierarchy.findIndex(
                 (a: Annotation, index: number) => a !== currentHierarchy[index]
             );
 
-            // If it couldn't find the modified index it must've been the
-            // lowest level annotation
-            if (modifiedIndex === -1) {
-                modifiedIndex = currentHierarchy.length - 1;
-            }
+            // Determine the new folders now that an annotation has been removed
+            // removing any that can't be used anymore
+            openFileFolders = existingOpenFileFolders
+                .map((ff) => ff.removeAnnotationAtIndex(modifiedIndex))
+                .filter((ff) => ff !== undefined) as FileFolder[];
+        } else if (existingHierarchy.length < currentHierarchy.length) {
+            // Determine which index the insert occurred
+            const modifiedIndex = currentHierarchy.findIndex(
+                (a: Annotation, index: number) => a !== existingHierarchy[index]
+            );
 
-            if (existingHierarchy.length > currentHierarchy.length) {
-                // An annotation must have been removed
-                openFileFolders = existingOpenFileFolders
-                    .map((ff) => ff.removeAnnotationAtIndex(modifiedIndex))
-                    .filter((ff) => ff !== undefined) as FileFolder[];
-            } else {
-                // An annotation must have been added
-                openFileFolders = existingOpenFileFolders
-                    .map((ff) => ff.addAnnotationAtIndex(modifiedIndex))
-                    .filter((ff) => ff !== undefined) as FileFolder[];
-            }
+            // Determine the new folders now that an annotation has been added
+            // removing any that can't be used anymore
+            openFileFolders = existingOpenFileFolders
+                .map((ff) => ff.addAnnotationAtIndex(modifiedIndex))
+                .filter((ff) => ff !== undefined) as FileFolder[];
         } else {
             // Get mapping of old annotation locations to new annotation locations in the hierarchy
-            const annotationIndexMap = existingHierarchy.reduce(
-                (map: AnnotationIndexMap, existingAnnotation: Annotation, oldIndex: number) => ({
+            const annotationIndexMap = currentHierarchy.reduce(
+                (map, currentAnnotation, newIndex) => ({
                     ...map,
-                    [oldIndex]: currentHierarchy.findIndex(
-                        (a) => a.name === existingAnnotation.name
+                    [newIndex]: existingHierarchy.findIndex(
+                        (a: Annotation) => a.name === currentAnnotation.name
                     ),
                 }),
                 {}
@@ -156,7 +153,7 @@ const modifyAnnotationHierarchy = createLogic({
             openFileFolders = existingOpenFileFolders.reduce(
                 (openFolders: FileFolder[], fileFolder) => [
                     ...openFolders,
-                    ...fileFolder.moveAnnotationToIndex(annotationIndexMap),
+                    ...fileFolder.reorderAnnotations(annotationIndexMap),
                 ],
                 []
             );
