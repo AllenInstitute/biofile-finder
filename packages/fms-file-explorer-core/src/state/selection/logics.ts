@@ -1,4 +1,4 @@
-import { castArray, find, includes, sortBy, uniqWith, without, uniq } from "lodash";
+import { castArray, find, includes, sortBy, uniqWith, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -20,6 +20,7 @@ import { interaction, metadata, ReduxLogicDeps } from "../";
 import * as selectionSelectors from "./selectors";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
+import FileFolder, { AnnotationIndexMap } from "../../entity/FileFolder";
 import NumericRange from "../../entity/NumericRange";
 
 /**
@@ -112,13 +113,10 @@ const modifyAnnotationHierarchy = createLogic({
 
         const existingOpenFileFolders = selectionSelectors.getOpenFileFolders(getState());
         const currentHierarchy: Annotation[] = action.payload;
-        const FILE_FOLDER_SEPARATOR = "."; // TODO: Get better sentinal value to separate them
 
-        // TODO: Remove console.log()
-        console.log(`Open File Folders (Before): ${existingOpenFileFolders}`);
         // If the hierarchies are not the same length then an insert or delete occured &
         // the open file folders need to be deleted/rearranged
-        let openFileFolders: string[];
+        let openFileFolders: FileFolder[];
         if (existingHierarchy.length !== currentHierarchy.length) {
             // Determine which index the insert/delete occurred
             let modifiedIndex = existingHierarchy.findIndex(
@@ -132,37 +130,20 @@ const modifyAnnotationHierarchy = createLogic({
             }
 
             if (existingHierarchy.length > currentHierarchy.length) {
-                // If an annotation was removed from the hierarchy everything that is open
-                // should be able to remain open
+                // An annotation must have been removed
                 openFileFolders = existingOpenFileFolders
-                    .map((ff) =>
-                        ff
-                            .split(FILE_FOLDER_SEPARATOR)
-                            .filter((_, index) => index !== modifiedIndex)
-                            .join(FILE_FOLDER_SEPARATOR)
-                    )
-                    .filter((ff) => Boolean(ff));
+                    .map((ff) => ff.removeAnnotationAtIndex(modifiedIndex))
+                    .filter((ff) => ff !== undefined) as FileFolder[];
             } else {
-                // If an annotation was added to the hierarchy everything that is open above
-                // the level where the annotation was added should be able to remain open
-                openFileFolders = existingOpenFileFolders.map((ff) =>
-                    ff
-                        .split(FILE_FOLDER_SEPARATOR)
-                        .filter((_, index) => index < modifiedIndex)
-                        .join(FILE_FOLDER_SEPARATOR)
-                );
+                // An annotation must have been added
+                openFileFolders = existingOpenFileFolders
+                    .map((ff) => ff.addAnnotationAtIndex(modifiedIndex))
+                    .filter((ff) => ff !== undefined) as FileFolder[];
             }
         } else {
-            // If the lengths are the same then order of the annotations in the hierarchy changed &
-            // everything should remain open but the values need to shift around.
-
             // Get mapping of old annotation locations to new annotation locations in the hierarchy
             const annotationIndexMap = existingHierarchy.reduce(
-                (
-                    map: { [oldIndex: number]: number },
-                    existingAnnotation: Annotation,
-                    oldIndex: number
-                ) => ({
+                (map: AnnotationIndexMap, existingAnnotation: Annotation, oldIndex: number) => ({
                     ...map,
                     [oldIndex]: currentHierarchy.findIndex(
                         (a) => a.name === existingAnnotation.name
@@ -172,39 +153,15 @@ const modifyAnnotationHierarchy = createLogic({
             );
 
             // Use annotation index mapping to re-order annotation values in file folders
-            openFileFolders = [];
-            existingOpenFileFolders.forEach((fileFolder) => {
-                // Split file folder tree into individual annotation values
-                const fileFolderValues = fileFolder.split(FILE_FOLDER_SEPARATOR);
-
-                // Initialize array with empty slots to easily swap indexes
-                let newFileFolderValues = [...new Array(currentHierarchy.length)];
-
-                // Swap indexes of values based on new annotation hierarchy
-                fileFolderValues.forEach((value, index) => {
-                    newFileFolderValues[annotationIndexMap[index]] = value;
-                });
-
-                // Cut off the file folder path at the first index with a undefined element
-                const undefinedIndex = newFileFolderValues.findIndex((f) => f === undefined);
-                if (undefinedIndex !== -1) {
-                    newFileFolderValues = newFileFolderValues.slice(0, undefinedIndex);
-                }
-
-                // Add each sub-folder tree in the new folder tree as its own folder
-                // Ex. "CellLine" & "Balls?" are swapped in hierarchy
-                //     Current open file folders: ["AICS-40.false", "AICS-40"]
-                //     "AICS-40" -> would be filtered out as we can determine what to do with it anymore
-                //     "AICS-40.false" -> "false.AICS-40" & "false" are both created
-                for (let i = 0; i < newFileFolderValues.length; i++) {
-                    const subFileFolderValues = newFileFolderValues.slice(0, i + 1);
-                    openFileFolders.push(subFileFolderValues.join(FILE_FOLDER_SEPARATOR));
-                }
-            });
+            openFileFolders = existingOpenFileFolders.reduce(
+                (openFolders: FileFolder[], fileFolder) => [
+                    ...openFolders,
+                    ...fileFolder.moveAnnotationToIndex(annotationIndexMap),
+                ],
+                []
+            );
         }
-        // TODO: Remove console.log()
-        console.log(`Open File Folders (After): ${uniq(openFileFolders)}`);
-        dispatch(setOpenFileFolders(uniq(openFileFolders)));
+        dispatch(setOpenFileFolders([...new Set(openFileFolders)])); // TODO: Ensure set works...
 
         const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
         const annotationService = interaction.selectors.getAnnotationService(getState());
@@ -319,11 +276,15 @@ const modifyFileFilters = createLogic({
  */
 const toggleFileFolderCollapse = createLogic({
     transform(deps: ReduxLogicDeps, next) {
-        const fileFolder: string = deps.action.payload;
+        const fileFolder: FileFolder = deps.action.payload;
         const openFileFolders = selectionSelectors.getOpenFileFolders(deps.getState());
         // If the file folder is already open, collapse it by removing it
-        if (includes(openFileFolders, fileFolder)) {
-            next(setOpenFileFolders(openFileFolders.filter((f) => f.indexOf(fileFolder) !== 0)));
+        if (openFileFolders.find((f) => f.equals(fileFolder))) {
+            next(
+                setOpenFileFolders(
+                    openFileFolders.filter((f) => !f.includesSubFileFolder(fileFolder))
+                )
+            );
         } else {
             next(setOpenFileFolders([...openFileFolders, fileFolder]));
         }

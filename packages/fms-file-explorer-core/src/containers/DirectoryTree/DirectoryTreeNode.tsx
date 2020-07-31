@@ -1,11 +1,11 @@
 import * as classNames from "classnames";
-import { includes } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import DirectoryTreeNodeHeader from "./DirectoryTreeNodeHeader";
 import useDirectoryHierarchy, { ROOT_NODE } from "./useDirectoryHierarchy";
 import { selection } from "../../state";
+import FileFolder from "../../entity/FileFolder";
 
 const styles = require("./DirectoryTreeNode.module.css");
 
@@ -27,10 +27,11 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const dispatch = useDispatch();
     const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
     const isRoot = currentNode === ROOT_NODE;
-    const fileFolderTree = ancestorNodes.length
-        ? ancestorNodes.join(".") + "." + currentNode
-        : currentNode.toString();
-    const collapsed = !includes(openFileFolders, fileFolderTree) && !isRoot;
+    const fileFolderPath = ancestorNodes.length
+        ? [...ancestorNodes, currentNode.toString()]
+        : [currentNode.toString()];
+    const fileFolder = new FileFolder(fileFolderPath);
+    const collapsed = !openFileFolders.find((f) => f.equals(fileFolder)) && !isRoot;
     const {
         isLeaf,
         state: { content, error, isLoading },
@@ -47,7 +48,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
                 error={error}
                 loading={isLoading}
                 title={displayValue}
-                onClick={() => dispatch(selection.actions.toggleFileFolderCollapse(fileFolderTree))}
+                onClick={() => dispatch(selection.actions.toggleFileFolderCollapse(fileFolder))}
             />
             <ul
                 className={classNames(styles.children, {

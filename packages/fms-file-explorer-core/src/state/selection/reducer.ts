@@ -5,6 +5,7 @@ import interaction from "../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../metadata/reducer";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
+import FileFolder from "../../entity/FileFolder";
 import NumericRange from "../../entity/NumericRange";
 
 import {
@@ -23,7 +24,7 @@ export interface SelectionStateBranch {
     availableAnnotationsForHierarchyLoading: boolean;
     displayAnnotations: Annotation[];
     filters: FileFilter[];
-    openFileFolders: string[];
+    openFileFolders: FileFolder[];
     selectedFileRangesByFileSet: {
         [index: string]: NumericRange[]; // FileSet::hash to list of list ranges
     };

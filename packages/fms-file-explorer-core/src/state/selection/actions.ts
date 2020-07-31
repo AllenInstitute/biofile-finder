@@ -2,6 +2,7 @@ import { makeConstant } from "@aics/redux-utils";
 
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
+import FileFolder from "../../entity/FileFolder";
 import NumericRange from "../../entity/NumericRange";
 
 const STATE_BRANCH_NAME = "selection";
@@ -291,13 +292,13 @@ export const TOGGLE_FILE_FOLDER_COLLAPSE = makeConstant(
 );
 
 export interface ToggleFileFolderCollapseAction {
-    payload: string;
+    payload: FileFolder;
     type: string;
 }
 
-export function toggleFileFolderCollapse(fileFolderTree: string): ToggleFileFolderCollapseAction {
+export function toggleFileFolderCollapse(fileFolder: FileFolder): ToggleFileFolderCollapseAction {
     return {
-        payload: fileFolderTree,
+        payload: fileFolder,
         type: TOGGLE_FILE_FOLDER_COLLAPSE,
     };
 }
@@ -309,11 +310,11 @@ export function toggleFileFolderCollapse(fileFolderTree: string): ToggleFileFold
 export const SET_OPEN_FILE_FOLDERS = makeConstant(STATE_BRANCH_NAME, "set-open-file-folders");
 
 export interface SetOpenFileFoldersAction {
-    payload: string[];
+    payload: FileFolder[];
     type: string;
 }
 
-export function setOpenFileFolders(openFileFolders: string[]): SetOpenFileFoldersAction {
+export function setOpenFileFolders(openFileFolders: FileFolder[]): SetOpenFileFoldersAction {
     return {
         payload: openFileFolders,
         type: SET_OPEN_FILE_FOLDERS,
