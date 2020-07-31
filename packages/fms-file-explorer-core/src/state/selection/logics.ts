@@ -125,13 +125,13 @@ const modifyAnnotationHierarchy = createLogic({
                 (a: Annotation, index: number) => a !== currentHierarchy[index]
             );
 
-            if (existingHierarchy.length > currentHierarchy.length) {
-                // If it couldn't find the modified index it must've been the
-                // lowest level annotation
-                if (modifiedIndex === -1) {
-                    modifiedIndex = currentHierarchy.length - 1;
-                }
+            // If it couldn't find the modified index it must've been the
+            // lowest level annotation
+            if (modifiedIndex === -1) {
+                modifiedIndex = currentHierarchy.length - 1;
+            }
 
+            if (existingHierarchy.length > currentHierarchy.length) {
                 // If an annotation was removed from the hierarchy everything that is open
                 // should be able to remain open
                 openFileFolders = existingOpenFileFolders
