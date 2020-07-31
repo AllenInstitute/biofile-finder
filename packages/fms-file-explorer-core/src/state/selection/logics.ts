@@ -20,7 +20,7 @@ import { interaction, metadata, ReduxLogicDeps } from "../";
 import * as selectionSelectors from "./selectors";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
-import FileFolder, { AnnotationIndexMap } from "../../entity/FileFolder";
+import FileFolder from "../../entity/FileFolder";
 import NumericRange from "../../entity/NumericRange";
 
 /**
@@ -109,7 +109,7 @@ const selectFile = createLogic({
 const modifyAnnotationHierarchy = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { action, httpClient, getState, ctx } = deps;
-        const { existingHierarchy } = ctx;
+        const { existingHierarchy, originalPayload } = ctx;
         const currentHierarchy: Annotation[] = action.payload;
 
         const existingOpenFileFolders = selectionSelectors.getOpenFileFolders(getState());
@@ -117,25 +117,20 @@ const modifyAnnotationHierarchy = createLogic({
         let openFileFolders: FileFolder[];
         if (existingHierarchy.length > currentHierarchy.length) {
             // Determine which index the remove occurred
-            const modifiedIndex = existingHierarchy.findIndex(
-                (a: Annotation, index: number) => a !== currentHierarchy[index]
+            const indexOfRemoval = existingHierarchy.findIndex(
+                (a: Annotation) => a.name === originalPayload.id
             );
 
             // Determine the new folders now that an annotation has been removed
             // removing any that can't be used anymore
             openFileFolders = existingOpenFileFolders
-                .map((ff) => ff.removeAnnotationAtIndex(modifiedIndex))
+                .map((ff) => ff.removeAnnotationAtIndex(indexOfRemoval))
                 .filter((ff) => ff !== undefined) as FileFolder[];
         } else if (existingHierarchy.length < currentHierarchy.length) {
-            // Determine which index the insert occurred
-            const modifiedIndex = currentHierarchy.findIndex(
-                (a: Annotation, index: number) => a !== existingHierarchy[index]
-            );
-
             // Determine the new folders now that an annotation has been added
             // removing any that can't be used anymore
             openFileFolders = existingOpenFileFolders
-                .map((ff) => ff.addAnnotationAtIndex(modifiedIndex))
+                .map((ff) => ff.addAnnotationAtIndex(originalPayload.moveTo))
                 .filter((ff) => ff !== undefined) as FileFolder[];
         } else {
             // Get mapping of old annotation locations to new annotation locations in the hierarchy
@@ -158,7 +153,7 @@ const modifyAnnotationHierarchy = createLogic({
                 []
             );
         }
-        dispatch(setOpenFileFolders([...new Set(openFileFolders)])); // TODO: Ensure set works...
+        dispatch(setOpenFileFolders(uniqWith(openFileFolders, (f1, f2) => f1.equals(f2))));
 
         const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
         const annotationService = interaction.selectors.getAnnotationService(getState());
@@ -188,6 +183,7 @@ const modifyAnnotationHierarchy = createLogic({
 
         const existingHierarchy = selectionSelectors.getAnnotationHierarchy(getState());
         ctx.existingHierarchy = existingHierarchy;
+        ctx.originalPayload = action.payload;
         const allAnnotations = metadata.selectors.getAnnotations(getState());
         const annotation = find(
             allAnnotations,
