@@ -1,4 +1,4 @@
-import { castArray, find, includes, sortBy, uniqWith, without } from "lodash";
+import { castArray, find, includes, omit, sortBy, uniqWith, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -35,20 +35,24 @@ const selectFile = createLogic({
         const selection = action.payload.selection;
         let nextSelectionsForFileSet: NumericRange[];
 
-        if (action.payload.updateExistingSelection) {
-            const existingSelectionsByFileSet = selectionSelectors.getSelectedFileRangesByFileSet(
-                getState()
-            );
-            const existingSelections =
-                existingSelectionsByFileSet[action.payload.correspondingFileSet] || [];
+        const existingSelectionsByFileSet = selectionSelectors.getSelectedFileRangesByFileSet(
+            getState()
+        );
+        const existingSelectionsForFileSet =
+            existingSelectionsByFileSet[action.payload.correspondingFileSet] || [];
 
+        if (action.payload.updateExistingSelection && existingSelectionsForFileSet.length) {
+            // A keyboard modifier has been used to tell the application to modify an existing selection.
+            // Either remove from it or add to it.
             if (
                 !NumericRange.isNumericRange(selection) &&
-                existingSelections.some((range: NumericRange) => range.contains(selection))
+                existingSelectionsForFileSet.some((range: NumericRange) =>
+                    range.contains(selection)
+                )
             ) {
                 // if updating existing selections and clicked file is already selected, interpret as a deselect action
                 // ensure selection is not a range--that case is more difficult to guess user intention
-                nextSelectionsForFileSet = existingSelections.reduce(
+                nextSelectionsForFileSet = existingSelectionsForFileSet.reduce(
                     (accum, range: NumericRange) => {
                         if (range.contains(selection)) {
                             try {
@@ -64,7 +68,7 @@ const selectFile = createLogic({
                 );
             } else {
                 // else, add to existing selection
-                nextSelectionsForFileSet = existingSelections.reduce(
+                nextSelectionsForFileSet = existingSelectionsForFileSet.reduce(
                     (accum, range: NumericRange) => {
                         if (NumericRange.isNumericRange(selection)) {
                             // combine ranges if they are continuous
@@ -84,7 +88,16 @@ const selectFile = createLogic({
                     [] as NumericRange[]
                 );
             }
+        } else if (
+            existingSelectionsForFileSet.length === 1 &&
+            existingSelectionsForFileSet[0].contains(selection)
+        ) {
+            // Only one file is selected, and user just clicked on it again. Interpret as a deselect.
+            // The same thing can be accomplished by holding down the correct keyboard modifier, but,
+            // don't make the user hold down a keyboard modifier in this special case.
+            nextSelectionsForFileSet = [];
         } else {
+            // Append to selection
             if (NumericRange.isNumericRange(selection)) {
                 nextSelectionsForFileSet = [selection];
             } else {
@@ -92,12 +105,25 @@ const selectFile = createLogic({
             }
         }
 
-        next(
-            setFileSelection(
-                action.payload.correspondingFileSet,
-                NumericRange.compact(...nextSelectionsForFileSet)
-            )
-        );
+        nextSelectionsForFileSet = NumericRange.compact(...nextSelectionsForFileSet);
+
+        let nextSelectionsByFileSet;
+        if (action.payload.updateExistingSelection) {
+            nextSelectionsByFileSet = {
+                ...omit(existingSelectionsByFileSet, [action.payload.correspondingFileSet]),
+            };
+        } else {
+            nextSelectionsByFileSet = {};
+        }
+
+        if (nextSelectionsForFileSet.length) {
+            nextSelectionsByFileSet = {
+                ...nextSelectionsByFileSet,
+                [action.payload.correspondingFileSet]: nextSelectionsForFileSet,
+            };
+        }
+
+        next(setFileSelection(nextSelectionsByFileSet));
     },
     type: SELECT_FILE,
 });

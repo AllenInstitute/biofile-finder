@@ -63,12 +63,7 @@ export default makeReducer<SelectionStateBranch>(
         }),
         [SET_FILE_SELECTION]: (state, action) => ({
             ...state,
-            selectedFileRangesByFileSet: action.payload.selection.length
-                ? {
-                      ...state.selectedFileRangesByFileSet,
-                      [action.payload.correspondingFileSet]: action.payload.selection,
-                  }
-                : omit(state.selectedFileRangesByFileSet, [action.payload.correspondingFileSet]),
+            selectedFileRangesByFileSet: action.payload,
         }),
         [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
             ...state,

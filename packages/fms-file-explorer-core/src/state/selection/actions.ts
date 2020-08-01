@@ -165,22 +165,15 @@ export function selectFile(
 export const SET_FILE_SELECTION = makeConstant(STATE_BRANCH_NAME, "set-file-selection");
 
 export interface SetFileSelection {
-    payload: {
-        correspondingFileSet: string; // FileSet::hash
-        selection: NumericRange[];
-    };
+    payload: { [index: string]: NumericRange[] };
     type: string;
 }
 
-export function setFileSelection(
-    correspondingFileSet: string, // FileSet::hash
-    selection: NumericRange[]
-): SetFileSelection {
+export function setFileSelection(selections: {
+    [index: string]: NumericRange[];
+}): SetFileSelection {
     return {
-        payload: {
-            correspondingFileSet,
-            selection,
-        },
+        payload: selections,
         type: SET_FILE_SELECTION,
     };
 }

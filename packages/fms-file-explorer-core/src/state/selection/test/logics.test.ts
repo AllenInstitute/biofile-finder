@@ -47,8 +47,7 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: {
-                        correspondingFileSet: "abc123",
-                        selection: [new NumericRange(5)],
+                        abc123: [new NumericRange(5)],
                     },
                 })
             ).to.equal(true);
@@ -77,8 +76,7 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: {
-                        correspondingFileSet: "abc123",
-                        selection: [new NumericRange(9), new NumericRange(14)],
+                        abc123: [new NumericRange(9), new NumericRange(14)],
                     },
                 })
             ).to.equal(true);
@@ -107,8 +105,7 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: {
-                        correspondingFileSet: "abc123",
-                        selection: [new NumericRange(8, 9)],
+                        abc123: [new NumericRange(8, 9)],
                     },
                 })
             ).to.equal(true);
@@ -137,8 +134,7 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: {
-                        correspondingFileSet: "abc123",
-                        selection: [new NumericRange(9, 100)],
+                        abc123: [new NumericRange(9, 100)],
                     },
                 })
             ).to.equal(true);
@@ -167,8 +163,7 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: {
-                        correspondingFileSet: "abc123",
-                        selection: [new NumericRange(9, 15), new NumericRange(20, 100)],
+                        abc123: [new NumericRange(9, 15), new NumericRange(20, 100)],
                     },
                 })
             ).to.equal(true);
@@ -197,8 +192,7 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: {
-                        correspondingFileSet: "abc123",
-                        selection: [
+                        abc123: [
                             new NumericRange(8, 11),
                             new NumericRange(13, 15),
                             new NumericRange(22),
@@ -231,8 +225,7 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: {
-                        correspondingFileSet: "abc123",
-                        selection: [new NumericRange(8, 30)],
+                        abc123: [new NumericRange(8, 30)],
                     },
                 })
             ).to.equal(true);
