@@ -113,6 +113,8 @@
     "regenerator-runtime": "0.13.3"
   },
   "resolutions": {
-    "@types/node": "12.x"
+    "@types/node": "12.x",
+    "@types/react": "16.9.43",
+    "@types/react-dom": "16.9.8"
   }
 }
