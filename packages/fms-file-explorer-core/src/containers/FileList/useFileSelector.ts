@@ -45,7 +45,7 @@ export default function useFileSelector(fileSet: FileSet): OnSelect {
                     selection.actions.selectFile(
                         fileSet.hash,
                         new NumericRange(startIndex, endIndex),
-                        eventParams.ctrlKeyIsPressed
+                        true // heuristic: holding down shift key always modifies existing selection
                     )
                 );
             } else {
