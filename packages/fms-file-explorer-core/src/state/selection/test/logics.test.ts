@@ -30,6 +30,7 @@ describe("Selection logics", () => {
                 selection: {
                     selectedFileRangesByFileSet: {
                         abc123: [new NumericRange(9, 10)],
+                        def456: [new NumericRange(100, 200)],
                     },
                 },
             };
@@ -146,6 +147,7 @@ describe("Selection logics", () => {
                 selection: {
                     selectedFileRangesByFileSet: {
                         abc123: [new NumericRange(9, 15)],
+                        def456: [new NumericRange(100, 200)],
                     },
                 },
             };
@@ -164,6 +166,7 @@ describe("Selection logics", () => {
                     type: SET_FILE_SELECTION,
                     payload: {
                         abc123: [new NumericRange(9, 15), new NumericRange(20, 100)],
+                        def456: [new NumericRange(100, 200)],
                     },
                 })
             ).to.equal(true);
