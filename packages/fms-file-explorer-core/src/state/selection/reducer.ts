@@ -32,8 +32,7 @@ export interface SelectionStateBranch {
 
 const DEFAULT_DISPLAY_ANNOTATIONS = compact([
     find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "fileName"),
-    find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "uploaded"),
-    find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "uploadedBy"),
+    find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "fileType"),
     find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "fileSize"),
 ]);
 
