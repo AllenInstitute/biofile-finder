@@ -202,6 +202,63 @@ describe("Selection logics", () => {
             ).to.equal(true);
         });
 
+        it("deselects a file if it is the only one selected without setting updateExistingSelection", async () => {
+            // setup
+            const state = {
+                selection: {
+                    selectedFileRangesByFileSet: {
+                        abc123: [new NumericRange(12)],
+                    },
+                },
+            };
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
+
+            // act
+            store.dispatch(selectFile("abc123", 12));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includesMatch({
+                    type: SET_FILE_SELECTION,
+                    payload: {},
+                })
+            ).to.equal(true);
+        });
+
+        it("does not deselect a file if not the only one selected without setting updateExistingSelection", async () => {
+            // setup
+            const state = {
+                selection: {
+                    selectedFileRangesByFileSet: {
+                        abc123: [new NumericRange(12)],
+                        def456: [new NumericRange(45)],
+                    },
+                },
+            };
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
+
+            // act
+            store.dispatch(selectFile("abc123", 12));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includesMatch({
+                    type: SET_FILE_SELECTION,
+                    payload: {
+                        abc123: [new NumericRange(12)],
+                    },
+                })
+            ).to.equal(true);
+        });
+
         it("does not deselect a file if file is already selected and updateExistingSelection is true when file is part of a list of new selections", async () => {
             // setup
             const state = {
