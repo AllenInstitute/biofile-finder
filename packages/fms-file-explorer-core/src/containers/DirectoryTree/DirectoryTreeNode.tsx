@@ -27,10 +27,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const dispatch = useDispatch();
     const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
     const isRoot = currentNode === ROOT_NODE;
-    const fileFolderPath = ancestorNodes.length
-        ? [...ancestorNodes, currentNode.toString()]
-        : [currentNode.toString()];
-    const fileFolder = new FileFolder(fileFolderPath);
+    const fileFolder = new FileFolder([...ancestorNodes, currentNode].map((n) => n.toString()));
     const collapsed = !openFileFolders.find((f) => f.equals(fileFolder)) && !isRoot;
     const {
         isLeaf,
