@@ -9,6 +9,8 @@ export interface AnnotationIndexMap {
  * methods to handle changes to the folder from the annotation hierarchy.
  */
 export default class FileFolder {
+    // Path to the file folder this represents. Each value in the array is the value for
+    // the annotation at that index.
     private readonly fileFolderPath: string[];
 
     constructor(fileFolderPath: string[]) {
