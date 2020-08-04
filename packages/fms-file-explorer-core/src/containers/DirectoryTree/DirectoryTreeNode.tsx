@@ -3,7 +3,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import DirectoryTreeNodeHeader from "./DirectoryTreeNodeHeader";
-import useDirectoryHierarchy, { ROOT_NODE } from "./useDirectoryHierarchy";
+import useDirectoryHierarchy from "./useDirectoryHierarchy";
 import { selection } from "../../state";
 import FileFolder from "../../entity/FileFolder";
 
