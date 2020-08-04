@@ -21,7 +21,7 @@ export default function FileAnnotationRow({ name, value }: FileAnnotationRowProp
                 {name}
             </Cell>
             <Cell className={styles.cell} columnKey="value" width={0.6}>
-                {value}
+                <span style={{ userSelect: "text" }}>{value}</span>
             </Cell>
         </div>
     );
