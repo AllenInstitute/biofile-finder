@@ -1,3 +1,5 @@
+import { AnnotationValue } from "../../services/AnnotationService";
+
 // Interface for map necessary to re-order annotations.
 // Maps the new index of an annotation to its old index.
 export interface AnnotationIndexMap {
@@ -11,14 +13,18 @@ export interface AnnotationIndexMap {
 export default class FileFolder {
     // Path to the file folder this represents. Each value in the array is the value for
     // the annotation at that index.
-    private readonly fileFolderPath: string[];
+    private readonly fileFolderPath: AnnotationValue[];
 
-    constructor(fileFolderPath: string[]) {
+    constructor(fileFolderPath: AnnotationValue[]) {
         this.fileFolderPath = fileFolderPath;
     }
 
     public get fileFolder() {
         return this.fileFolderPath;
+    }
+
+    public isEmpty() {
+        return this.fileFolderPath.length === 0;
     }
 
     /**
@@ -57,31 +63,23 @@ export default class FileFolder {
      * If an annotation was added to the hierarchy everything that is open above
      * the level where the annotation was added should be able to remain open.
      *
-     * Returns undefined if the annotation is added to the top of the hierarchy
+     * Returns empty FileFolder if the annotation is added to the top of the hierarchy
      */
 
-    public addAnnotationAtIndex(modifiedIndex: number): FileFolder | undefined {
-        if (modifiedIndex === 0) {
-            return undefined;
-        }
-        const newFileFolderPath = this.fileFolderPath.filter((_, index) => index < modifiedIndex);
-        return new FileFolder(newFileFolderPath);
+    public addAnnotationAtIndex(modifiedIndex: number): FileFolder {
+        return new FileFolder(this.fileFolderPath.filter((_, index) => index < modifiedIndex));
     }
 
     /**
      * If an annotation was removed from the hierarchy everything that is open
      * should be able to remain open.
      *
-     * Returns undefined if the annotation removed is at the top of the hierarchy
+     * Returns empty FileFolder if the annotation removed is at the top of the hierarchy
      * and this folder only has values for that annotation
      */
 
-    public removeAnnotationAtIndex(modifiedIndex: number): FileFolder | undefined {
-        if (modifiedIndex === 0 && this.fileFolderPath.length === 1) {
-            return undefined;
-        }
-        const newFileFolderPath = this.fileFolderPath.filter((_, index) => index !== modifiedIndex);
-        return new FileFolder(newFileFolderPath);
+    public removeAnnotationAtIndex(modifiedIndex: number): FileFolder {
+        return new FileFolder(this.fileFolderPath.filter((_, index) => index !== modifiedIndex));
     }
 
     //
@@ -96,7 +94,7 @@ export default class FileFolder {
     public reorderAnnotations(annotationIndexMap: AnnotationIndexMap): FileFolder[] {
         let index = 0;
         let folderIsClosed = false;
-        const newFileFolderPath: string[] = [];
+        const newFileFolderPath: AnnotationValue[] = [];
         // While the folder still has sections open and values remaining to pick from
         // build up the new file folder path by rearranging the indexes
         while (!folderIsClosed && index < this.fileFolderPath.length) {

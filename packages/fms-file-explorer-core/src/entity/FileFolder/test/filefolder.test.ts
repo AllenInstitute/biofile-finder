@@ -79,7 +79,7 @@ describe("FileFolder", () => {
             expect(fileFolder.equals(result)).to.be.true;
         });
 
-        it("returns undefined if adding an annotation to the highest level (index 0)", () => {
+        it("returns empty FileFolder if adding an annotation to the highest level (index 0)", () => {
             // Arrange
             const fileFolder = new FileFolder(["AICS-0", "63", "false"]);
 
@@ -87,7 +87,7 @@ describe("FileFolder", () => {
             const result = fileFolder.addAnnotationAtIndex(0);
 
             // Assert
-            expect(result).to.be.undefined;
+            expect(result.isEmpty()).to.be.true;
         });
     });
 
@@ -116,7 +116,7 @@ describe("FileFolder", () => {
             expect(expectedFileFolder.equals(result)).to.be.true;
         });
 
-        it("returns undefined after removing annotation at index 0 from file folder with one value", () => {
+        it("returns empty FileFolder after removing annotation at index 0 from file folder with one value", () => {
             // Arrange
             const fileFolder = new FileFolder(["AICS-0"]);
 
@@ -124,7 +124,7 @@ describe("FileFolder", () => {
             const result = fileFolder.removeAnnotationAtIndex(0);
 
             // Assert
-            expect(result).to.be.undefined;
+            expect(result.isEmpty()).to.be.true;
         });
     });
 

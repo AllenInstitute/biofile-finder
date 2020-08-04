@@ -125,13 +125,13 @@ const modifyAnnotationHierarchy = createLogic({
             // removing any that can't be used anymore
             openFileFolders = existingOpenFileFolders
                 .map((ff) => ff.removeAnnotationAtIndex(indexOfRemoval))
-                .filter((ff) => ff !== undefined) as FileFolder[];
+                .filter((ff) => !ff.isEmpty());
         } else if (existingHierarchy.length < currentHierarchy.length) {
             // Determine the new folders now that an annotation has been added
             // removing any that can't be used anymore
             openFileFolders = existingOpenFileFolders
                 .map((ff) => ff.addAnnotationAtIndex(originalPayload.moveTo))
-                .filter((ff) => ff !== undefined) as FileFolder[];
+                .filter((ff) => !ff.isEmpty());
         } else {
             // Get mapping of old annotation locations to new annotation locations in the hierarchy
             const annotationIndexMap = currentHierarchy.reduce(
