@@ -49,10 +49,10 @@ export default function FileAnnotationRow({ name, value }: FileAnnotationRowProp
                 onResize={toggleAutoResize}
             >
                 {autoResize ? (
-                    value
+                    <div style={{ userSelect: "text" }}>{value}</div>
                 ) : (
                     <Tippy content={value} delay={[600, null]} placement="top-start">
-                        <div>{value}</div>
+                        <div style={{ userSelect: "text" }}>{value}</div>
                     </Tippy>
                 )}
             </Cell>
