@@ -92,7 +92,7 @@ const selectFile = createLogic({
             Object.keys(existingSelectionsByFileSet).length == 1 && // only 1 file set has a selection
             existingSelectionsForFileSet.length === 1 && // only 1 range within that file set
             existingSelectionsForFileSet[0].length === 1 && // range represents 1 file
-            existingSelectionsForFileSet[0].contains(selection) // and that file was click
+            existingSelectionsForFileSet[0].contains(selection) // and that file was clicked
         ) {
             // Only one file is selected, and user just clicked on it again. Interpret as a deselect.
             // The same thing can be accomplished by holding down the correct keyboard modifier, but,
