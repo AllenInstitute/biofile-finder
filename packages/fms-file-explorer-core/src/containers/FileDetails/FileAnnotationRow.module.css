@@ -1,8 +1,21 @@
-.cell {
+.row {
     border: 1px solid #ebebeb;
+}
+
+.cell {
     padding: 3px;
 }
 
 .row-key {
     font-weight: 500;
+}
+
+.row-value {
+    border-left: 1px solid #ebebeb;
+}
+
+.auto-resize {
+    height: auto;
+    overflow-wrap: anywhere;
+    white-space: normal;
 }

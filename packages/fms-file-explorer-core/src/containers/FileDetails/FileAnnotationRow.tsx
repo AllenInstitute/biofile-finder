@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import * as React from "react";
+import Tippy from "@tippy.js/react";
 
 import Cell from "../../components/FileRow/Cell";
 
@@ -15,13 +16,45 @@ interface FileAnnotationRowProps {
  * details pane on right hand side of the application.
  */
 export default function FileAnnotationRow({ name, value }: FileAnnotationRowProps) {
+    const [autoResize, setAutoResize] = React.useState(false);
+    const toggleAutoResize = () => {
+        setAutoResize(!autoResize);
+    };
     return (
-        <div>
-            <Cell className={classNames(styles.cell, styles.rowKey)} columnKey="key" width={0.4}>
-                {name}
+        <div className={styles.row}>
+            <Cell
+                disableResizeTarget
+                className={classNames(styles.cell, styles.rowKey, {
+                    [styles.autoResize]: autoResize,
+                })}
+                columnKey="key"
+                width={0.4}
+                onResize={toggleAutoResize}
+            >
+                {autoResize ? (
+                    name
+                ) : (
+                    <Tippy content={name} delay={[600, null]} placement="top-start">
+                        <div>{name}</div>
+                    </Tippy>
+                )}
             </Cell>
-            <Cell className={styles.cell} columnKey="value" width={0.6}>
-                <span style={{ userSelect: "text" }}>{value}</span>
+            <Cell
+                disableResizeTarget
+                className={classNames(styles.cell, styles.rowValue, {
+                    [styles.autoResize]: autoResize,
+                })}
+                columnKey="value"
+                width={0.6}
+                onResize={toggleAutoResize}
+            >
+                {autoResize ? (
+                    value
+                ) : (
+                    <Tippy content={value} delay={[600, null]} placement="top-start">
+                        <div>{value}</div>
+                    </Tippy>
+                )}
             </Cell>
         </div>
     );
