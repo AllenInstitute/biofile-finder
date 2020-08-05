@@ -1,9 +1,12 @@
-import { map } from "lodash";
+import { find, map } from "lodash";
 import * as React from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 
+import { ContextMenuItem } from "../ContextMenu";
+import getContextMenuItems from "../ContextMenu/items";
 import FileRow from "../../components/FileRow";
-import { selection } from "../../state";
+import { interaction, metadata, selection } from "../../state";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../state/metadata/reducer";
 
 const styles = require("./Header.module.css");
 
@@ -18,18 +21,64 @@ function Header(
     { children, ...rest }: React.PropsWithChildren<{}>,
     ref: React.Ref<HTMLDivElement>
 ) {
-    const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
+    const dispatch = useDispatch();
+    const columnAnnotations = useSelector(selection.selectors.getAnnotationsToDisplay);
+    const allAnnotations = useSelector(metadata.selectors.getAnnotations);
+    const allAnnotationsSorted = allAnnotations.sort((a, b) =>
+        a.displayName.localeCompare(b.displayName)
+    );
+    const nonColumnAnnotations = [...TOP_LEVEL_FILE_ANNOTATIONS, ...allAnnotationsSorted].filter(
+        (a) => !find(columnAnnotations, (ca) => ca.name === a.name)
+    );
 
-    const headerCells = map(annotations, (annotation) => ({
+    const headerCells = map(columnAnnotations, (annotation) => ({
         columnKey: annotation.name, // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
         displayValue: annotation.displayName,
-        width: 1 / annotations.length,
+        width: 1 / columnAnnotations.length,
     }));
+
+    const onHeaderColumnContextMenu = (columnKey: string, evt: React.MouseEvent) => {
+        const availableItems = getContextMenuItems(dispatch);
+        const items: ContextMenuItem[] = [
+            {
+                ...availableItems.ADD_COLUMN,
+                subMenuProps: {
+                    items: nonColumnAnnotations.map((a) => ({
+                        key: a.name,
+                        text: a.displayName,
+                        title: a.description,
+                        onClick() {
+                            dispatch(selection.actions.selectDisplayAnnotation(a));
+                        },
+                    })),
+                },
+            },
+        ];
+        // Prevent the user from removing all columns at once
+        if (columnAnnotations.length > 1) {
+            // Find the annotation matching the column, could be a file level annotation
+            const currentColumnAnnotation = find(columnAnnotations, (a) => a.name === columnKey);
+            items.push({
+                ...availableItems.REMOVE_COLUMN,
+                onClick() {
+                    currentColumnAnnotation &&
+                        dispatch(
+                            selection.actions.deselectDisplayAnnotation(currentColumnAnnotation)
+                        );
+                },
+            });
+        }
+        dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
+    };
 
     return (
         <div ref={ref} {...rest}>
             <div className={styles.headerWrapper}>
-                <FileRow cells={headerCells} className={styles.header} />
+                <FileRow
+                    cells={headerCells}
+                    className={styles.header}
+                    onContextMenu={onHeaderColumnContextMenu}
+                />
             </div>
             <div className={styles.listParent}>{children}</div>
         </div>

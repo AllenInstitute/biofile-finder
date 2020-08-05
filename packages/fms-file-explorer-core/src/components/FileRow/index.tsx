@@ -15,6 +15,7 @@ interface FileRowProps {
     cells: CellConfig[];
     className?: string;
     rowIdentifier?: any;
+    onContextMenu?: (columnKey: string, evt: React.MouseEvent) => void;
     onResize?: (columnKey: string, deltaX?: number) => void;
     onSelect?: OnSelect;
 }
@@ -23,7 +24,7 @@ interface FileRowProps {
  * A single row within the file list.
  */
 export default function FileRow(props: FileRowProps) {
-    const { cells, className, rowIdentifier, onResize, onSelect } = props;
+    const { cells, className, rowIdentifier, onContextMenu, onResize, onSelect } = props;
 
     const onClick = (evt: React.MouseEvent) => {
         evt.preventDefault();
@@ -45,6 +46,7 @@ export default function FileRow(props: FileRowProps) {
                 <Cell
                     key={cell.columnKey}
                     columnKey={cell.columnKey}
+                    onContextMenu={onContextMenu}
                     onResize={onResize}
                     width={cell.width}
                 >
