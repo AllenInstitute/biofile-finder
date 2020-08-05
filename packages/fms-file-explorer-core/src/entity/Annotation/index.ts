@@ -9,7 +9,7 @@ import { FmsFile, FmsFileAnnotation } from "../../services/FileService";
  */
 export default class Annotation {
     public static SEPARATOR = ", ";
-    public static MISSING_VALUE = "< MISSING >";
+    public static MISSING_VALUE = " -- ";
 
     private readonly annotation: AnnotationResponse;
     private readonly formatter: AnnotationFormatter;
