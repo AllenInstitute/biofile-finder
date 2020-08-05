@@ -9,7 +9,6 @@ const styles = require("./Cell.module.css");
 export interface CellProps {
     className?: string;
     columnKey: string;
-    disableResizeTarget?: boolean; // disables resizing by dragging
     onResize?: (columnKey: string, deltaX?: number) => void;
     width: number; // percentage of parent element's width, a number between 0 and 1.
 }
@@ -86,11 +85,9 @@ export default class Cell extends React.Component<CellProps, CellState> {
                 style={{ width: `${this.props.width * 100}%` }}
             >
                 {this.props.children}
-                {!this.props.disableResizeTarget && (
-                    <span className={styles.resizeTarget} ref={this.resizeTarget}>
-                        |
-                    </span>
-                )}
+                <span className={styles.resizeTarget} ref={this.resizeTarget}>
+                    |
+                </span>
             </div>
         );
     }
