@@ -12,6 +12,7 @@ import {
     SET_AVAILABLE_ANNOTATIONS,
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
+    SET_OPEN_FILE_FOLDERS,
 } from "../actions";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
@@ -19,6 +20,7 @@ import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import { initialState } from "../../";
 import NumericRange from "../../../entity/NumericRange";
+import FileFolder from "../../../entity/FileFolder";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -28,6 +30,7 @@ describe("Selection logics", () => {
                 selection: {
                     selectedFileRangesByFileSet: {
                         abc123: [new NumericRange(9, 10)],
+                        def456: [new NumericRange(100, 200)],
                     },
                 },
             };
@@ -45,8 +48,7 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: {
-                        correspondingFileSet: "abc123",
-                        selection: [new NumericRange(5)],
+                        abc123: [new NumericRange(5)],
                     },
                 })
             ).to.equal(true);
@@ -75,8 +77,7 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: {
-                        correspondingFileSet: "abc123",
-                        selection: [new NumericRange(9), new NumericRange(14)],
+                        abc123: [new NumericRange(9), new NumericRange(14)],
                     },
                 })
             ).to.equal(true);
@@ -105,8 +106,7 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: {
-                        correspondingFileSet: "abc123",
-                        selection: [new NumericRange(8, 9)],
+                        abc123: [new NumericRange(8, 9)],
                     },
                 })
             ).to.equal(true);
@@ -135,8 +135,7 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: {
-                        correspondingFileSet: "abc123",
-                        selection: [new NumericRange(9, 100)],
+                        abc123: [new NumericRange(9, 100)],
                     },
                 })
             ).to.equal(true);
@@ -148,6 +147,7 @@ describe("Selection logics", () => {
                 selection: {
                     selectedFileRangesByFileSet: {
                         abc123: [new NumericRange(9, 15)],
+                        def456: [new NumericRange(100, 200)],
                     },
                 },
             };
@@ -165,8 +165,8 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: {
-                        correspondingFileSet: "abc123",
-                        selection: [new NumericRange(9, 15), new NumericRange(20, 100)],
+                        abc123: [new NumericRange(9, 15), new NumericRange(20, 100)],
+                        def456: [new NumericRange(100, 200)],
                     },
                 })
             ).to.equal(true);
@@ -195,12 +195,68 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: {
-                        correspondingFileSet: "abc123",
-                        selection: [
+                        abc123: [
                             new NumericRange(8, 11),
                             new NumericRange(13, 15),
                             new NumericRange(22),
                         ],
+                    },
+                })
+            ).to.equal(true);
+        });
+
+        it("deselects a file if it is the only one selected without setting updateExistingSelection", async () => {
+            // setup
+            const state = {
+                selection: {
+                    selectedFileRangesByFileSet: {
+                        abc123: [new NumericRange(12)],
+                    },
+                },
+            };
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
+
+            // act
+            store.dispatch(selectFile("abc123", 12));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includesMatch({
+                    type: SET_FILE_SELECTION,
+                    payload: {},
+                })
+            ).to.equal(true);
+        });
+
+        it("does not deselect a file if not the only one selected without setting updateExistingSelection", async () => {
+            // setup
+            const state = {
+                selection: {
+                    selectedFileRangesByFileSet: {
+                        abc123: [new NumericRange(12)],
+                        def456: [new NumericRange(45)],
+                    },
+                },
+            };
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
+
+            // act
+            store.dispatch(selectFile("abc123", 12));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includesMatch({
+                    type: SET_FILE_SELECTION,
+                    payload: {
+                        abc123: [new NumericRange(12)],
                     },
                 })
             ).to.equal(true);
@@ -229,8 +285,7 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: {
-                        correspondingFileSet: "abc123",
-                        selection: [new NumericRange(8, 30)],
+                        abc123: [new NumericRange(8, 30)],
                     },
                 })
             ).to.equal(true);
@@ -255,6 +310,7 @@ describe("Selection logics", () => {
                 },
                 selection: {
                     annotationHierarchy: annotations.slice(0, 2),
+                    openFileFolders: [],
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -291,6 +347,7 @@ describe("Selection logics", () => {
                         annotations[2],
                         annotations[3],
                     ],
+                    openFileFolders: [],
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -327,6 +384,7 @@ describe("Selection logics", () => {
                         annotations[2],
                         annotations[3],
                     ],
+                    openFileFolders: [],
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -363,6 +421,7 @@ describe("Selection logics", () => {
                         annotations[2],
                         annotations[3],
                     ],
+                    openFileFolders: [],
                 },
             };
 
@@ -410,6 +469,7 @@ describe("Selection logics", () => {
                         annotations[2],
                         annotations[3],
                     ],
+                    openFileFolders: [],
                 },
             };
 
@@ -435,6 +495,112 @@ describe("Selection logics", () => {
                 actions.includes({
                     type: SET_AVAILABLE_ANNOTATIONS,
                     payload: annotations.map((a) => a.name),
+                })
+            ).to.equal(true);
+        });
+
+        it("determines which paths can still be opened after hierarchy is reordered", async () => {
+            // setup
+            const openFileFolders = [
+                new FileFolder(["AICS-0"]),
+                new FileFolder(["AICS-0", "false"]),
+            ];
+            const state = {
+                interaction: {
+                    fileExplorerServiceBaseUrl: "test",
+                },
+                metadata: {
+                    annotations: [...annotations],
+                },
+                selection: {
+                    annotationHierarchy: annotations.slice(0, 3),
+                    openFileFolders,
+                },
+            };
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
+
+            // act
+            store.dispatch(reorderAnnotationHierarchy(annotations[2].name, 1));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includes({
+                    type: SET_OPEN_FILE_FOLDERS,
+                    payload: openFileFolders.slice(0, 1),
+                })
+            ).to.equal(true);
+        });
+
+        it("determines which paths can still be opened after annotation is added", async () => {
+            // setup
+            const state = {
+                interaction: {
+                    fileExplorerServiceBaseUrl: "test",
+                },
+                metadata: {
+                    annotations: [...annotations],
+                },
+                selection: {
+                    annotationHierarchy: annotations.slice(0, 2),
+                    openFileFolders: [
+                        new FileFolder(["AICS-0"]),
+                        new FileFolder(["AICS-0", "false"]),
+                    ],
+                },
+            };
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
+
+            // act
+            store.dispatch(reorderAnnotationHierarchy(annotations[2].name, 0));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includes({
+                    type: SET_OPEN_FILE_FOLDERS,
+                    payload: [],
+                })
+            ).to.equal(true);
+        });
+
+        it("determines which paths can still be opened after annotation is removed", async () => {
+            // setup
+            const state = {
+                interaction: {
+                    fileExplorerServiceBaseUrl: "test",
+                },
+                metadata: {
+                    annotations: [...annotations],
+                },
+                selection: {
+                    annotationHierarchy: annotations.slice(0, 3),
+                    openFileFolders: [
+                        new FileFolder(["AICS-0"]),
+                        new FileFolder(["AICS-0", "false"]),
+                    ],
+                },
+            };
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
+
+            // act
+            store.dispatch(removeFromAnnotationHierarchy(annotations[0].name));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includes({
+                    type: SET_OPEN_FILE_FOLDERS,
+                    payload: [new FileFolder(["false"])],
                 })
             ).to.equal(true);
         });

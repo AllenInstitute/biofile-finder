@@ -2,6 +2,7 @@ import { makeConstant } from "@aics/redux-utils";
 
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
+import FileFolder from "../../entity/FileFolder";
 import NumericRange from "../../entity/NumericRange";
 
 const STATE_BRANCH_NAME = "selection";
@@ -164,22 +165,15 @@ export function selectFile(
 export const SET_FILE_SELECTION = makeConstant(STATE_BRANCH_NAME, "set-file-selection");
 
 export interface SetFileSelection {
-    payload: {
-        correspondingFileSet: string; // FileSet::hash
-        selection: NumericRange[];
-    };
+    payload: { [index: string]: NumericRange[] };
     type: string;
 }
 
-export function setFileSelection(
-    correspondingFileSet: string, // FileSet::hash
-    selection: NumericRange[]
-): SetFileSelection {
+export function setFileSelection(selections: {
+    [index: string]: NumericRange[];
+}): SetFileSelection {
     return {
-        payload: {
-            correspondingFileSet,
-            selection,
-        },
+        payload: selections,
         type: SET_FILE_SELECTION,
     };
 }
@@ -278,5 +272,44 @@ export function setAvailableAnnotations(annotationNames: string[]): SetAvailable
     return {
         payload: annotationNames,
         type: SET_AVAILABLE_ANNOTATIONS,
+    };
+}
+
+/**
+ * TOGGLE_FILE_FOLDER_COLLAPSE
+ * Intention to toggle the given file folder's collapsed state
+ */
+export const TOGGLE_FILE_FOLDER_COLLAPSE = makeConstant(
+    STATE_BRANCH_NAME,
+    "toggle-file-folder-collapse"
+);
+
+export interface ToggleFileFolderCollapseAction {
+    payload: FileFolder;
+    type: string;
+}
+
+export function toggleFileFolderCollapse(fileFolder: FileFolder): ToggleFileFolderCollapseAction {
+    return {
+        payload: fileFolder,
+        type: TOGGLE_FILE_FOLDER_COLLAPSE,
+    };
+}
+
+/**
+ * SET_OPEN_FILE_FOLDERS
+ * Intention to set which file folders are open as opposed to collapsed
+ */
+export const SET_OPEN_FILE_FOLDERS = makeConstant(STATE_BRANCH_NAME, "set-open-file-folders");
+
+export interface SetOpenFileFoldersAction {
+    payload: FileFolder[];
+    type: string;
+}
+
+export function setOpenFileFolders(openFileFolders: FileFolder[]): SetOpenFileFoldersAction {
+    return {
+        payload: openFileFolders,
+        type: SET_OPEN_FILE_FOLDERS,
     };
 }

@@ -1,4 +1,4 @@
-import { castArray, find, includes, sortBy, uniqWith, without } from "lodash";
+import { castArray, find, includes, omit, sortBy, uniqWith, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -13,11 +13,14 @@ import {
     setAvailableAnnotations,
     setFileFilters,
     setFileSelection,
+    TOGGLE_FILE_FOLDER_COLLAPSE,
+    setOpenFileFolders,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps } from "../";
 import * as selectionSelectors from "./selectors";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
+import FileFolder from "../../entity/FileFolder";
 import NumericRange from "../../entity/NumericRange";
 
 /**
@@ -32,20 +35,24 @@ const selectFile = createLogic({
         const selection = action.payload.selection;
         let nextSelectionsForFileSet: NumericRange[];
 
-        if (action.payload.updateExistingSelection) {
-            const existingSelectionsByFileSet = selectionSelectors.getSelectedFileRangesByFileSet(
-                getState()
-            );
-            const existingSelections =
-                existingSelectionsByFileSet[action.payload.correspondingFileSet] || [];
+        const existingSelectionsByFileSet = selectionSelectors.getSelectedFileRangesByFileSet(
+            getState()
+        );
+        const existingSelectionsForFileSet =
+            existingSelectionsByFileSet[action.payload.correspondingFileSet] || [];
 
+        if (action.payload.updateExistingSelection && existingSelectionsForFileSet.length) {
+            // A keyboard modifier has been used to tell the application to modify an existing selection.
+            // Either remove from it or add to it.
             if (
                 !NumericRange.isNumericRange(selection) &&
-                existingSelections.some((range: NumericRange) => range.contains(selection))
+                existingSelectionsForFileSet.some((range: NumericRange) =>
+                    range.contains(selection)
+                )
             ) {
                 // if updating existing selections and clicked file is already selected, interpret as a deselect action
                 // ensure selection is not a range--that case is more difficult to guess user intention
-                nextSelectionsForFileSet = existingSelections.reduce(
+                nextSelectionsForFileSet = existingSelectionsForFileSet.reduce(
                     (accum, range: NumericRange) => {
                         if (range.contains(selection)) {
                             try {
@@ -61,7 +68,7 @@ const selectFile = createLogic({
                 );
             } else {
                 // else, add to existing selection
-                nextSelectionsForFileSet = existingSelections.reduce(
+                nextSelectionsForFileSet = existingSelectionsForFileSet.reduce(
                     (accum, range: NumericRange) => {
                         if (NumericRange.isNumericRange(selection)) {
                             // combine ranges if they are continuous
@@ -81,7 +88,18 @@ const selectFile = createLogic({
                     [] as NumericRange[]
                 );
             }
+        } else if (
+            Object.keys(existingSelectionsByFileSet).length == 1 && // only 1 file set has a selection
+            existingSelectionsForFileSet.length === 1 && // only 1 range within that file set
+            existingSelectionsForFileSet[0].length === 1 && // range represents 1 file
+            existingSelectionsForFileSet[0].contains(selection) // and that file was clicked
+        ) {
+            // Only one file is selected, and user just clicked on it again. Interpret as a deselect.
+            // The same thing can be accomplished by holding down the correct keyboard modifier, but,
+            // don't make the user hold down a keyboard modifier in this special case.
+            nextSelectionsForFileSet = [];
         } else {
+            // Append to selection
             if (NumericRange.isNumericRange(selection)) {
                 nextSelectionsForFileSet = [selection];
             } else {
@@ -89,12 +107,25 @@ const selectFile = createLogic({
             }
         }
 
-        next(
-            setFileSelection(
-                action.payload.correspondingFileSet,
-                NumericRange.compact(...nextSelectionsForFileSet)
-            )
-        );
+        nextSelectionsForFileSet = NumericRange.compact(...nextSelectionsForFileSet);
+
+        let nextSelectionsByFileSet;
+        if (action.payload.updateExistingSelection) {
+            nextSelectionsByFileSet = {
+                ...omit(existingSelectionsByFileSet, [action.payload.correspondingFileSet]),
+            };
+        } else {
+            nextSelectionsByFileSet = {};
+        }
+
+        if (nextSelectionsForFileSet.length) {
+            nextSelectionsByFileSet = {
+                ...nextSelectionsByFileSet,
+                [action.payload.correspondingFileSet]: nextSelectionsForFileSet,
+            };
+        }
+
+        next(setFileSelection(nextSelectionsByFileSet));
     },
     type: SELECT_FILE,
 });
@@ -105,7 +136,52 @@ const selectFile = createLogic({
  */
 const modifyAnnotationHierarchy = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { action, httpClient, getState } = deps;
+        const { action, httpClient, getState, ctx } = deps;
+        const { existingHierarchy, originalPayload } = ctx;
+        const currentHierarchy: Annotation[] = action.payload;
+
+        const existingOpenFileFolders = selectionSelectors.getOpenFileFolders(getState());
+
+        let openFileFolders: FileFolder[];
+        if (existingHierarchy.length > currentHierarchy.length) {
+            // Determine which index the remove occurred
+            const indexOfRemoval = existingHierarchy.findIndex(
+                (a: Annotation) => a.name === originalPayload.id
+            );
+
+            // Determine the new folders now that an annotation has been removed
+            // removing any that can't be used anymore
+            openFileFolders = existingOpenFileFolders
+                .map((ff) => ff.removeAnnotationAtIndex(indexOfRemoval))
+                .filter((ff) => !ff.isEmpty());
+        } else if (existingHierarchy.length < currentHierarchy.length) {
+            // Determine the new folders now that an annotation has been added
+            // removing any that can't be used anymore
+            openFileFolders = existingOpenFileFolders
+                .map((ff) => ff.addAnnotationAtIndex(originalPayload.moveTo))
+                .filter((ff) => !ff.isEmpty());
+        } else {
+            // Get mapping of old annotation locations to new annotation locations in the hierarchy
+            const annotationIndexMap = currentHierarchy.reduce(
+                (map, currentAnnotation, newIndex) => ({
+                    ...map,
+                    [newIndex]: existingHierarchy.findIndex(
+                        (a: Annotation) => a.name === currentAnnotation.name
+                    ),
+                }),
+                {}
+            );
+
+            // Use annotation index mapping to re-order annotation values in file folders
+            openFileFolders = existingOpenFileFolders.reduce(
+                (openFolders: FileFolder[], fileFolder) => [
+                    ...openFolders,
+                    ...fileFolder.reorderAnnotations(annotationIndexMap),
+                ],
+                []
+            );
+        }
+        dispatch(setOpenFileFolders(uniqWith(openFileFolders, (f1, f2) => f1.equals(f2))));
 
         const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
         const annotationService = interaction.selectors.getAnnotationService(getState());
@@ -131,9 +207,11 @@ const modifyAnnotationHierarchy = createLogic({
         }
     },
     transform(deps: ReduxLogicDeps, next, reject) {
-        const { action, getState } = deps;
+        const { action, getState, ctx } = deps;
 
         const existingHierarchy = selectionSelectors.getAnnotationHierarchy(getState());
+        ctx.existingHierarchy = existingHierarchy;
+        ctx.originalPayload = action.payload;
         const allAnnotations = metadata.selectors.getAnnotations(getState());
         const annotation = find(
             allAnnotations,
@@ -212,4 +290,27 @@ const modifyFileFilters = createLogic({
     type: [ADD_FILE_FILTER, REMOVE_FILE_FILTER],
 });
 
-export default [selectFile, modifyAnnotationHierarchy, modifyFileFilters];
+/**
+ * Interceptor responsible for transforming TOGGLE_FILE_FOLDER_COLLAPSE actions into
+ * SET_OPEN_FILE_FOLDERS actions by determining whether the file folder is to be considered
+ * open or collapsed.
+ */
+const toggleFileFolderCollapse = createLogic({
+    transform(deps: ReduxLogicDeps, next) {
+        const fileFolder: FileFolder = deps.action.payload;
+        const openFileFolders = selectionSelectors.getOpenFileFolders(deps.getState());
+        // If the file folder is already open, collapse it by removing it
+        if (openFileFolders.find((f) => f.equals(fileFolder))) {
+            next(
+                setOpenFileFolders(
+                    openFileFolders.filter((f) => !f.includesSubFileFolder(fileFolder))
+                )
+            );
+        } else {
+            next(setOpenFileFolders([...openFileFolders, fileFolder]));
+        }
+    },
+    type: [TOGGLE_FILE_FOLDER_COLLAPSE],
+});
+
+export default [selectFile, modifyAnnotationHierarchy, modifyFileFilters, toggleFileFolderCollapse];

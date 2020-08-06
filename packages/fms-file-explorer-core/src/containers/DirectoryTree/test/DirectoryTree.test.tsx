@@ -114,7 +114,12 @@ describe("<DirectoryTree />", () => {
     });
 
     it("collapses and expands sub-levels of the annotation hierarchy", async () => {
-        const { store } = configureMockStore({ state, responseStubs });
+        const { store } = configureMockStore({
+            state,
+            responseStubs,
+            reducer,
+            logics: reduxLogics,
+        });
 
         const { getByText, findByText } = render(
             <Provider store={store}>

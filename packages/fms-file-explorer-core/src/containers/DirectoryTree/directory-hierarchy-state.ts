@@ -6,9 +6,6 @@
  */
 
 export interface State {
-    // Should the node this state belongs to be collapsed?
-    collapsed: boolean;
-
     // Rendered as `children` for the node this state belongs to.
     // Will be either either DirectoryHierarchyNodes or a FileList.
     content: JSX.Element | JSX.Element[] | null;
@@ -24,7 +21,6 @@ export interface State {
  * Action constants
  */
 enum DirectoryHierarchyAction {
-    TOGGLE_COLLAPSE = "toggle-collapse",
     ERROR = "error",
     RECEIVE_CONTENT = "receive-content",
     SHOW_LOADING_INDICATOR = "show-loading-indicator",
@@ -44,17 +40,10 @@ export interface Action {
  */
 export function reducer(state: State, action: Action): State {
     switch (action.type) {
-        case DirectoryHierarchyAction.TOGGLE_COLLAPSE:
-            return {
-                ...state,
-                collapsed: !state.collapsed,
-                content: null,
-            };
         case DirectoryHierarchyAction.ERROR:
             return {
                 ...state,
                 error: action.payload.error,
-                collapsed: !action.payload?.isRoot, // only collapse if not at root level
                 isLoading: false,
             };
         case DirectoryHierarchyAction.RECEIVE_CONTENT:
@@ -74,28 +63,15 @@ export function reducer(state: State, action: Action): State {
     }
 }
 
-/**
- * Mechanism for lazily initializing state.
- * See https://reactjs.org/docs/hooks-reference.html#lazy-initialization.
- */
-export function initState(collapsed: boolean): State {
-    return {
-        collapsed,
-        content: null,
-        isLoading: false,
-        error: null,
-    };
-}
+export const INITIAL_STATE: State = {
+    content: null,
+    isLoading: false,
+    error: null,
+};
 
 /**
  * Action creators
  */
-export function toggleCollapse(): Action {
-    return {
-        type: DirectoryHierarchyAction.TOGGLE_COLLAPSE,
-    };
-}
-
 export function setError(err: Error, isRoot: boolean): Action {
     return {
         type: DirectoryHierarchyAction.ERROR,

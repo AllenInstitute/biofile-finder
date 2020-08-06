@@ -8,5 +8,6 @@ export const getAvailableAnnotationsForHierarchy = (state: State) =>
 export const getAvailableAnnotationsForHierarchyLoading = (state: State) =>
     state.selection.availableAnnotationsForHierarchyLoading;
 export const getFileFilters = (state: State) => state.selection.filters;
+export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getSelectedFileRangesByFileSet = (state: State) =>
     state.selection.selectedFileRangesByFileSet;
