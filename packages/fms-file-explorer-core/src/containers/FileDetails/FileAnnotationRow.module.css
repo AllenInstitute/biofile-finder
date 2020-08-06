@@ -16,4 +16,5 @@
 
 .row-value {
     border-left: 1px solid #ebebeb;
+    margin-left: -1px;
 }
