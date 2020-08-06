@@ -5,6 +5,8 @@ import * as React from "react";
 import Cell from "./Cell";
 import { OnSelect } from "../../containers/FileList/useFileSelector";
 
+const styles = require("./FileRow.module.css");
+
 interface CellConfig {
     columnKey: string;
     displayValue: string;
@@ -40,7 +42,7 @@ export default function FileRow(props: FileRowProps) {
     };
 
     return (
-        <div className={classNames(className)} onClick={onClick}>
+        <div className={classNames(styles.row, className)} onClick={onClick}>
             {map(cells, (cell) => (
                 <Cell
                     key={cell.columnKey}

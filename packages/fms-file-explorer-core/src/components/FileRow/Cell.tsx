@@ -14,7 +14,15 @@ export interface CellProps {
 }
 
 interface CellState {
-    containerClassName: string;
+    containerClassName?: string;
+    provisionalWidth?: number;
+    resizeTargetClassName: string;
+}
+
+enum ResizeDirection {
+    BIGGER_OR_SMALLER,
+    BIGGER,
+    SMALLER,
 }
 
 /**
@@ -26,7 +34,7 @@ export default class Cell extends React.Component<CellProps, CellState> {
     public static MINIMUM_WIDTH = 32; // px; somewhat arbitrary, but tied to 2 * padding.
 
     public state: CellState = {
-        containerClassName: styles.cursorDefault,
+        resizeTargetClassName: styles.cursorResizeEitherDirection,
     };
 
     private cell: React.RefObject<HTMLDivElement>;
@@ -51,6 +59,9 @@ export default class Cell extends React.Component<CellProps, CellState> {
                 edges: {
                     right: this.resizeTarget.current,
                 },
+                cursorChecker: () => {
+                    return ""; // disable interact's mechanism for setting the cursor CSS prop; this is set manually
+                },
             });
             this.interactable.on("resizestart", this.onResizeStart);
             this.interactable.on("resizemove", this.onResize);
@@ -73,19 +84,23 @@ export default class Cell extends React.Component<CellProps, CellState> {
     }
 
     private renderResizeableCell(): JSX.Element {
+        const { className, width } = this.props;
+        const { containerClassName, provisionalWidth, resizeTargetClassName } = this.state;
+        const widthPercent = (provisionalWidth || width) * 100;
+        const resizeTargetClassNames = classNames(styles.resizeTarget, resizeTargetClassName);
+
         return (
             <div
                 ref={this.cell}
-                className={classNames(
-                    styles.resizableCell,
-                    this.state.containerClassName,
-                    this.props.className
-                )}
+                className={classNames(styles.resizableCell, containerClassName, className)}
                 onDoubleClick={this.onDoubleClick}
-                style={{ width: `${this.props.width * 100}%` }}
+                style={{
+                    flexBasis: `${widthPercent}%`,
+                    minWidth: Cell.MINIMUM_WIDTH,
+                }}
             >
                 {this.props.children}
-                <span className={styles.resizeTarget} ref={this.resizeTarget}>
+                <span className={resizeTargetClassNames} ref={this.resizeTarget}>
                     |
                 </span>
             </div>
@@ -114,27 +129,118 @@ export default class Cell extends React.Component<CellProps, CellState> {
         }
     }
 
-    private onResizeStart(): void {
+    private getRowWidth() {
+        if (!this.cell.current) {
+            return 1;
+        }
+
+        return this.cell.current.parentElement?.clientWidth || 1;
+    }
+
+    /**
+     * On start of resize, set expectations for what the user can do.
+     */
+    private onResizeStart(e: InteractEvent): void {
+        const { width } = this.props;
+        const allowedResizeDirection = this.getAllowedResizeDirection(width, e.target);
+
         this.setState({
-            containerClassName: styles.cursorResize,
+            containerClassName: styles.resizing,
+            resizeTargetClassName: this.getResizeClassName(allowedResizeDirection),
         });
     }
 
     /**
-     * At each resize step, capture the change in the x direction of the column width. Will stop calling onResize
-     * handler when the delta would cause the cell to become smaller than Cell.MINIMUM_WIDTH.
+     * At each resize step, determine if the resize is allowed.
      */
     private onResize(e: InteractEvent): void {
+        const { provisionalWidth } = this.state;
+
+        const widthPercent = e.rect.width / this.getRowWidth();
+        const allowedResizeDirection = this.getAllowedResizeDirection(widthPercent, e.target);
+
+        let nextState: CellState = {
+            resizeTargetClassName: this.getResizeClassName(allowedResizeDirection),
+        };
+
+        const dx = widthPercent - (provisionalWidth || widthPercent);
+        if (this.resizeIsAllowed(dx, allowedResizeDirection)) {
+            nextState = {
+                ...nextState,
+                provisionalWidth: widthPercent,
+            };
+        }
+
+        this.setState(nextState);
+    }
+
+    /**
+     * At the end of the resize, clear out intermediate state to return this to being a controlled component.
+     */
+    private onResizeEnd(): void {
         const { columnKey, onResize } = this.props;
 
         if (onResize) {
-            onResize(columnKey, e.dx);
+            onResize(columnKey, this.state.provisionalWidth);
         }
+
+        this.setState({
+            containerClassName: undefined,
+            provisionalWidth: undefined,
+        });
     }
 
-    private onResizeEnd(): void {
-        this.setState({
-            containerClassName: styles.cursorDefault,
-        });
+    private getAllowedResizeDirection(
+        widthPercent: number,
+        element: Element | null
+    ): ResizeDirection {
+        if (!element) {
+            return ResizeDirection.BIGGER_OR_SMALLER;
+        }
+
+        const parentWidth = this.getRowWidth();
+        const expectedWidth = widthPercent * parentWidth;
+        const siblingWidth = element.nextElementSibling?.clientWidth || Cell.MINIMUM_WIDTH;
+        const siblingCanShrink = siblingWidth > Cell.MINIMUM_WIDTH;
+
+        if (expectedWidth <= Cell.MINIMUM_WIDTH && siblingCanShrink) {
+            return ResizeDirection.BIGGER;
+        }
+
+        // make sure its sibling to the right is at least MINIMUM_WIDTH
+        if (expectedWidth > Cell.MINIMUM_WIDTH && !siblingCanShrink) {
+            return ResizeDirection.SMALLER;
+        }
+
+        return ResizeDirection.BIGGER_OR_SMALLER;
+    }
+
+    private resizeIsAllowed(deltaX: number, allowedResizeDirection: ResizeDirection): boolean {
+        if (allowedResizeDirection === ResizeDirection.BIGGER_OR_SMALLER) {
+            return true;
+        }
+
+        if (deltaX < 0 && allowedResizeDirection === ResizeDirection.SMALLER) {
+            return true;
+        }
+
+        if (deltaX > 0 && allowedResizeDirection === ResizeDirection.BIGGER) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private getResizeClassName(allowedResizeDirection: ResizeDirection): string {
+        switch (allowedResizeDirection) {
+            case ResizeDirection.BIGGER:
+                return styles.cursorResizeLargerOnly;
+            case ResizeDirection.SMALLER:
+                return styles.cursorResizeSmallerOnly;
+            case ResizeDirection.BIGGER_OR_SMALLER:
+            default:
+                // FALL-THROUGH
+                return styles.cursorResizeEitherDirection;
+        }
     }
 }

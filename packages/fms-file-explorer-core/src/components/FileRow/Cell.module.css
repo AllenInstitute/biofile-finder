@@ -8,32 +8,51 @@
     overflow: hidden;
     padding-right: var(--padding);
     vertical-align: middle;
+    flex-grow: 0;
+    flex-shrink: 0;
 }
 
 .cell:last-of-type {
     padding-right: 0;
 }
 
+.cell:last-of-type .resize-target {
+    display: none;
+}
+
 .resizable-cell {
     composes: cell;
 }
 
-.cursor-default {
-    cursor: default;
+.resizing {
+    height: auto;
 }
 
-.cursor-resize {
+/* When resizing, allow sibling cell (to the right) to shrink and grow */
+.resizing + .resizable-cell {
+    flex-shrink: 1;
+    flex-grow: 1;
+}
+
+.cursor-resize-either-direction {
     cursor: ew-resize;
 }
 
+.cursor-resize-smaller-only {
+    cursor: w-resize;
+}
+
+.cursor-resize-larger-only {
+    cursor: e-resize;
+}
+
 .resize-target {
-    composes: cursor-resize;
     touch-action: none;
     position: absolute;
     top: 0;
     right: 0;
     height: 100%;
-    width: 10px;
+    width: 15px;
     text-align: center;
     color: #ebebeb;
 }
