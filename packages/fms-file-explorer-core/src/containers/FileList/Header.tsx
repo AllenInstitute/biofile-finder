@@ -5,8 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems from "../ContextMenu/items";
 import FileRow from "../../components/FileRow";
-import { interaction, metadata, selection } from "../../state";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../state/metadata/reducer";
+import { interaction, selection } from "../../state";
 
 const styles = require("./Header.module.css");
 
@@ -23,13 +22,7 @@ function Header(
 ) {
     const dispatch = useDispatch();
     const columnAnnotations = useSelector(selection.selectors.getAnnotationsToDisplay);
-    const allAnnotations = useSelector(metadata.selectors.getAnnotations);
-    const allAnnotationsSorted = allAnnotations.sort((a, b) =>
-        a.displayName.localeCompare(b.displayName)
-    );
-    const nonColumnAnnotations = [...TOP_LEVEL_FILE_ANNOTATIONS, ...allAnnotationsSorted].filter(
-        (a) => !find(columnAnnotations, (ca) => ca.name === a.name)
-    );
+    const nonColumnAnnotations = useSelector(selection.selectors.getAnnotationsNotOnDisplay);
 
     const headerCells = map(columnAnnotations, (annotation) => ({
         columnKey: annotation.name, // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
