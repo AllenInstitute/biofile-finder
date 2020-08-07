@@ -41,8 +41,7 @@ function Header(
             <div className={styles.headerWrapper}>
                 <FileRow cells={headerCells} className={styles.header} onResize={onResize} />
             </div>
-
-            {children}
+            <div className={styles.listParent}>{children}</div>
         </div>
     );
 }
