@@ -1,4 +1,5 @@
 .row {
-    display: flex;
-    flex-direction: row;
+    /* these are very important in order to properly overflow */
+    display: inline;
+    white-space: nowrap;
 }

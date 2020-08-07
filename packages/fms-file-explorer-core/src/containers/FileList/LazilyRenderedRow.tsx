@@ -37,9 +37,11 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     } = props;
 
     const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
+    const columnWidths = useSelector(selection.selectors.getColumnWidths);
     const selectedFileRangesByFileSet = useSelector(
         selection.selectors.getSelectedFileRangesByFileSet
     );
+
     const selections: NumericRange[] = selectedFileRangesByFileSet[fileSet.hash] || [];
 
     const file = fileSet.getFileByIndex(index);
@@ -53,7 +55,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         const cells = map(annotations, (annotation) => ({
             columnKey: annotation.name,
             displayValue: annotation.extractFromFile(file),
-            width: 1 / annotations.length,
+            width: columnWidths[annotation.name] || 1 / annotations.length,
         }));
         content = (
             <FileRow

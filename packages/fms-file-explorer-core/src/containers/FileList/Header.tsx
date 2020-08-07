@@ -1,6 +1,6 @@
-import { map } from "lodash";
+import { map, reduce } from "lodash";
 import * as React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import FileRow from "../../components/FileRow";
 import { selection } from "../../state";
@@ -18,19 +18,27 @@ function Header(
     { children, ...rest }: React.PropsWithChildren<{}>,
     ref: React.Ref<HTMLDivElement>
 ) {
+    const dispatch = useDispatch();
     const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
+    const columnWidths = useSelector(selection.selectors.getColumnWidths);
+
+    const onResize = (columnKey: string, nextWidthPercent?: number) => {
+        if (nextWidthPercent) {
+            dispatch(selection.actions.resizeColumn(columnKey, nextWidthPercent));
+        } else {
+            dispatch(selection.actions.resetColumnWidth(columnKey));
+        }
+    };
 
     const headerCells = map(annotations, (annotation) => ({
         columnKey: annotation.name, // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
         displayValue: annotation.displayName,
-        width: 1 / annotations.length,
+        width: columnWidths[annotation.name] || 1 / annotations.length,
     }));
 
     return (
         <div ref={ref} {...rest}>
-            <div className={styles.headerWrapper}>
-                <FileRow cells={headerCells} className={styles.header} />
-            </div>
+            <FileRow cells={headerCells} className={styles.header} onResize={onResize} />
             <div className={styles.listParent}>{children}</div>
         </div>
     );

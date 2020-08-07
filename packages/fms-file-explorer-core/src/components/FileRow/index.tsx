@@ -17,7 +17,7 @@ interface FileRowProps {
     cells: CellConfig[];
     className?: string;
     rowIdentifier?: any;
-    onResize?: (columnKey: string, deltaX?: number) => void;
+    onResize?: (columnKey: string, nextWidth?: number) => void;
     onSelect?: OnSelect;
 }
 

@@ -9,7 +9,7 @@ const styles = require("./Cell.module.css");
 export interface CellProps {
     className?: string;
     columnKey: string;
-    onResize?: (columnKey: string, deltaX?: number) => void;
+    onResize?: (columnKey: string, nextWidth?: number) => void; // nextWith is a percentage of parent element's width, a number between 0 and 1.
     width: number; // percentage of parent element's width, a number between 0 and 1.
 }
 
@@ -31,7 +31,7 @@ enum ResizeDirection {
  * the width to its default by double clicking the cell.
  */
 export default class Cell extends React.Component<CellProps, CellState> {
-    public static MINIMUM_WIDTH = 32; // px; somewhat arbitrary, but tied to 2 * padding.
+    public static MINIMUM_WIDTH = 50; // px; somewhat arbitrary
 
     public state: CellState = {
         resizeTargetClassName: styles.cursorResizeEitherDirection,
@@ -86,21 +86,21 @@ export default class Cell extends React.Component<CellProps, CellState> {
     private renderResizeableCell(): JSX.Element {
         const { className, width } = this.props;
         const { containerClassName, provisionalWidth, resizeTargetClassName } = this.state;
-        const widthPercent = (provisionalWidth || width) * 100;
-        const resizeTargetClassNames = classNames(styles.resizeTarget, resizeTargetClassName);
-
         return (
             <div
                 ref={this.cell}
                 className={classNames(styles.resizableCell, containerClassName, className)}
                 onDoubleClick={this.onDoubleClick}
                 style={{
-                    flexBasis: `${widthPercent}%`,
+                    width: `${(provisionalWidth || width) * 100}%`,
                     minWidth: Cell.MINIMUM_WIDTH,
                 }}
             >
                 {this.props.children}
-                <span className={resizeTargetClassNames} ref={this.resizeTarget}>
+                <span
+                    className={classNames(styles.resizeTarget, resizeTargetClassName)}
+                    ref={this.resizeTarget}
+                >
                     |
                 </span>
             </div>
@@ -134,7 +134,9 @@ export default class Cell extends React.Component<CellProps, CellState> {
             return 1;
         }
 
-        return this.cell.current.parentElement?.clientWidth || 1;
+        // the FileRow is an inline element, which for whatever reason doesn't report width
+        // it's parent does, though. huge shrug.
+        return this.cell.current.parentElement?.parentElement?.clientWidth || 1;
     }
 
     /**
@@ -145,7 +147,6 @@ export default class Cell extends React.Component<CellProps, CellState> {
         const allowedResizeDirection = this.getAllowedResizeDirection(width, e.target);
 
         this.setState({
-            containerClassName: styles.resizing,
             resizeTargetClassName: this.getResizeClassName(allowedResizeDirection),
         });
     }
@@ -156,18 +157,18 @@ export default class Cell extends React.Component<CellProps, CellState> {
     private onResize(e: InteractEvent): void {
         const { provisionalWidth } = this.state;
 
-        const widthPercent = e.rect.width / this.getRowWidth();
-        const allowedResizeDirection = this.getAllowedResizeDirection(widthPercent, e.target);
+        const nextWidth = e.rect.width / this.getRowWidth();
+        const allowedResizeDirection = this.getAllowedResizeDirection(e.rect.width, e.target);
 
         let nextState: CellState = {
             resizeTargetClassName: this.getResizeClassName(allowedResizeDirection),
         };
 
-        const dx = widthPercent - (provisionalWidth || widthPercent);
+        const dx = nextWidth - (provisionalWidth || nextWidth);
         if (this.resizeIsAllowed(dx, allowedResizeDirection)) {
             nextState = {
                 ...nextState,
-                provisionalWidth: widthPercent,
+                provisionalWidth: nextWidth,
             };
         }
 
@@ -185,31 +186,20 @@ export default class Cell extends React.Component<CellProps, CellState> {
         }
 
         this.setState({
-            containerClassName: undefined,
             provisionalWidth: undefined,
         });
     }
 
     private getAllowedResizeDirection(
-        widthPercent: number,
+        expectedWidth: number,
         element: Element | null
     ): ResizeDirection {
         if (!element) {
             return ResizeDirection.BIGGER_OR_SMALLER;
         }
 
-        const parentWidth = this.getRowWidth();
-        const expectedWidth = widthPercent * parentWidth;
-        const siblingWidth = element.nextElementSibling?.clientWidth || Cell.MINIMUM_WIDTH;
-        const siblingCanShrink = siblingWidth > Cell.MINIMUM_WIDTH;
-
-        if (expectedWidth <= Cell.MINIMUM_WIDTH && siblingCanShrink) {
+        if (expectedWidth <= Cell.MINIMUM_WIDTH) {
             return ResizeDirection.BIGGER;
-        }
-
-        // make sure its sibling to the right is at least MINIMUM_WIDTH
-        if (expectedWidth > Cell.MINIMUM_WIDTH && !siblingCanShrink) {
-            return ResizeDirection.SMALLER;
         }
 
         return ResizeDirection.BIGGER_OR_SMALLER;

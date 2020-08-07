@@ -8,30 +8,14 @@
     overflow: hidden;
     padding-right: var(--padding);
     vertical-align: middle;
-    flex-grow: 0;
-    flex-shrink: 0;
 }
 
 .cell:last-of-type {
     padding-right: 0;
 }
 
-.cell:last-of-type .resize-target {
-    display: none;
-}
-
 .resizable-cell {
     composes: cell;
-}
-
-.resizing {
-    height: auto;
-}
-
-/* When resizing, allow sibling cell (to the right) to shrink and grow */
-.resizing + .resizable-cell {
-    flex-shrink: 1;
-    flex-grow: 1;
 }
 
 .cursor-resize-either-direction {
