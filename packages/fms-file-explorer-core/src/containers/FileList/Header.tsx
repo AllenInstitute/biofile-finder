@@ -38,8 +38,11 @@ function Header(
 
     return (
         <div ref={ref} {...rest}>
-            <FileRow cells={headerCells} className={styles.header} onResize={onResize} />
-            <div className={styles.listParent}>{children}</div>
+            <div className={styles.headerWrapper}>
+                <FileRow cells={headerCells} className={styles.header} onResize={onResize} />
+            </div>
+
+            {children}
         </div>
     );
 }
