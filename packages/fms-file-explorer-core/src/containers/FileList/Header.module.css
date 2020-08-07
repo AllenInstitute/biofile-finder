@@ -1,7 +1,9 @@
 .header-wrapper {
+  --inner-header-size: 30px;
+
   position: sticky;
   top: 0;
-  height: 25px;
+  height: calc(var(--inner-header-size) + 10px);
   z-index: 1000;
 }
 
@@ -10,7 +12,7 @@
   box-shadow: 0 1px 2px -1px rgba(0, 0, 0, 0.2),
     0 2px 2.5px 0 rgba(0, 0, 0, 0.14), 0 0.5px 5px 0 rgba(0, 0, 0, 0.12);
   background-color: white;
-  font-size: 30px; /* our only hook for increasing the height of the header, but need to re-adjust font-size for header cells */
+  font-size: var(--inner-header-size); /* our only hook for increasing the height of the header, but need to re-adjust font-size for header cells */
 }
 
 .list-parent {
