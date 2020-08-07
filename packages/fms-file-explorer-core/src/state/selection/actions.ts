@@ -120,6 +120,51 @@ export function deselectDisplayAnnotation(
 }
 
 /**
+ * RESIZE_COLUMN
+ *
+ * Intention to specify a particular amount of horizontal space a column within a file list should take up.
+ */
+export const RESIZE_COLUMN = makeConstant(STATE_BRANCH_NAME, "resize-column");
+
+export interface ResizeColumnAction {
+    payload: {
+        columnHeader: string;
+        widthPercent: number; // between 0 and 1
+    };
+    type: string;
+}
+
+export function resizeColumn(columnHeader: string, widthPercent: number) {
+    return {
+        payload: {
+            columnHeader,
+            widthPercent,
+        },
+        type: RESIZE_COLUMN,
+    };
+}
+
+/**
+ * RESET_COLUMN_WIDTH
+ *
+ * Intention to remove a previous manual resizing of a column using the ResizeColumnAction. The expectation
+ * is that if no specific mapping between a column and a width exists in state, a default will apply.
+ */
+export const RESET_COLUMN_WIDTH = makeConstant(STATE_BRANCH_NAME, "reset-column-width");
+
+export interface ResetColumnWidthAction {
+    payload: string; // columnHeader
+    type: string;
+}
+
+export function resetColumnWidth(columnHeader: string) {
+    return {
+        payload: columnHeader,
+        type: RESET_COLUMN_WIDTH,
+    };
+}
+
+/**
  * SELECT_FILE
  *
  * Intention to mark one or many files as "selected." If `payload.updateExistingSelection`, add `payload.file` to

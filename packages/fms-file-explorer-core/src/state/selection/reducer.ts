@@ -1,5 +1,5 @@
 import { makeReducer } from "@aics/redux-utils";
-import { castArray, compact, find, omit, without } from "lodash";
+import { castArray, compact, difference, find, omit, without } from "lodash";
 
 import interaction from "../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../metadata/reducer";
@@ -16,12 +16,17 @@ import {
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
+    RESIZE_COLUMN,
+    RESET_COLUMN_WIDTH,
 } from "./actions";
 
 export interface SelectionStateBranch {
     annotationHierarchy: Annotation[];
     availableAnnotationsForHierarchy: string[];
     availableAnnotationsForHierarchyLoading: boolean;
+    columnWidths: {
+        [index: string]: number; // columnName to widthPercent mapping
+    };
     displayAnnotations: Annotation[];
     filters: FileFilter[];
     openFileFolders: FileFolder[];
@@ -40,6 +45,7 @@ export const initialState = {
     annotationHierarchy: [],
     availableAnnotationsForHierarchy: [],
     availableAnnotationsForHierarchyLoading: false,
+    columnWidths: {}, // columnName to widthPercent mapping
     displayAnnotations: [...DEFAULT_DISPLAY_ANNOTATIONS],
     filters: [],
     openFileFolders: [],
@@ -56,10 +62,33 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             displayAnnotations: without(state.displayAnnotations, ...castArray(action.payload)),
         }),
-        [SELECT_DISPLAY_ANNOTATION]: (state, action) => ({
+        [RESET_COLUMN_WIDTH]: (state, action) => ({
             ...state,
-            displayAnnotations: [...state.displayAnnotations, ...castArray(action.payload)],
+            columnWidths: omit(state.columnWidths, [action.payload]),
         }),
+        [RESIZE_COLUMN]: (state, action) => ({
+            ...state,
+            columnWidths: {
+                ...state.columnWidths,
+                [action.payload.columnHeader]: action.payload.widthPercent,
+            },
+        }),
+        [SELECT_DISPLAY_ANNOTATION]: (state, action) => {
+            const nextState = {
+                ...state,
+                displayAnnotations: [...state.displayAnnotations, ...castArray(action.payload)],
+            };
+
+            const columnWidthsToPrune = difference(
+                Object.keys(state.columnWidths),
+                nextState.displayAnnotations.map((annotation) => annotation.name)
+            );
+
+            return {
+                ...nextState,
+                columnWidths: omit(state.columnWidths, columnWidthsToPrune),
+            };
+        },
         [SET_FILE_SELECTION]: (state, action) => ({
             ...state,
             selectedFileRangesByFileSet: action.payload,
