@@ -1,4 +1,4 @@
-import { map, reduce } from "lodash";
+import { map } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
