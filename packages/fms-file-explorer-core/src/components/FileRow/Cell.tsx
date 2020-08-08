@@ -15,20 +15,23 @@ export interface CellProps {
 
 interface CellState {
     containerClassName?: string;
-    provisionalWidth?: number;
+    provisionalWidth?: number; // a percentage of parent element's width, a number between 0 and 1
     resizeTargetClassName: string;
 }
 
 enum ResizeDirection {
     BIGGER_OR_SMALLER,
     BIGGER,
-    SMALLER,
 }
 
 /**
  * Akin to a cell within a spreadsheet, this represents a position within an x/y grid. A cell can either be resizable or
  * not resizable--this is determined by whether `props.onResize` is provided. If the cell is resizable, a user can reset
  * the width to its default by double clicking the cell.
+ *
+ * This component deals in percentage widths to avoid requiring components that make use of this to measure themselves; e.g.
+ * it enables a configuration of, "each cell should take up 25% of the total width," without having to resolve that
+ * within pixel space.
  */
 export default class Cell extends React.Component<CellProps, CellState> {
     public static MINIMUM_WIDTH = 50; // px; somewhat arbitrary
@@ -129,13 +132,19 @@ export default class Cell extends React.Component<CellProps, CellState> {
         }
     }
 
-    private getRowWidth() {
+    /**
+     * Determine total width of encompassing row this cell sits within. Used to translate full pixel width
+     * into a percentage.
+     */
+    private measureRowWidth(): number {
+        // If for some reason we don't have a reference to the cell's HTMLElement, well, return a number that
+        // won't fail when used as a divisor.
         if (!this.cell.current) {
             return 1;
         }
 
-        // the FileRow is an inline element, which for whatever reason doesn't report width
-        // it's parent does, though. huge shrug.
+        // The FileRow is an inline element, which for whatever reason doesn't report width
+        // it's parent does, though. Huge shrug.
         return this.cell.current.parentElement?.parentElement?.clientWidth || 1;
     }
 
@@ -152,12 +161,13 @@ export default class Cell extends React.Component<CellProps, CellState> {
     }
 
     /**
-     * At each resize step, determine if the resize is allowed.
+     * At each resize step, determine if the resize is allowed, and if it is, set it as
+     * provisional state to "preview" to the user what the resize would look like.
      */
     private onResize(e: InteractEvent): void {
         const { provisionalWidth } = this.state;
 
-        const nextWidth = e.rect.width / this.getRowWidth();
+        const nextWidth = e.rect.width / this.measureRowWidth();
         const allowedResizeDirection = this.getAllowedResizeDirection(e.rect.width, e.target);
 
         let nextState: CellState = {
@@ -176,7 +186,7 @@ export default class Cell extends React.Component<CellProps, CellState> {
     }
 
     /**
-     * At the end of the resize, clear out intermediate state to return this to being a controlled component.
+     * At the end of the resize, commit the provisional state previewed during resize events to state.
      */
     private onResizeEnd(): void {
         const { columnKey, onResize } = this.props;
@@ -210,10 +220,6 @@ export default class Cell extends React.Component<CellProps, CellState> {
             return true;
         }
 
-        if (deltaX < 0 && allowedResizeDirection === ResizeDirection.SMALLER) {
-            return true;
-        }
-
         if (deltaX > 0 && allowedResizeDirection === ResizeDirection.BIGGER) {
             return true;
         }
@@ -225,11 +231,9 @@ export default class Cell extends React.Component<CellProps, CellState> {
         switch (allowedResizeDirection) {
             case ResizeDirection.BIGGER:
                 return styles.cursorResizeLargerOnly;
-            case ResizeDirection.SMALLER:
-                return styles.cursorResizeSmallerOnly;
             case ResizeDirection.BIGGER_OR_SMALLER:
-            default:
-                // FALL-THROUGH
+            // prettier-ignore
+            default: // FALL-THROUGH
                 return styles.cursorResizeEitherDirection;
         }
     }

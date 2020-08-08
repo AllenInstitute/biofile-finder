@@ -23,10 +23,6 @@
     cursor: ew-resize;
 }
 
-.cursor-resize-smaller-only {
-    cursor: w-resize;
-}
-
 .cursor-resize-larger-only {
     cursor: e-resize;
 }
@@ -35,9 +31,9 @@
     touch-action: none;
     position: absolute;
     top: 0;
-    right: 0;
+    right: calc(1em / 2);
     height: 100%;
-    width: 15px;
     text-align: center;
-    color: #ebebeb;
+    font-weight: bold;
+    color: #bbbbbb;
 }
