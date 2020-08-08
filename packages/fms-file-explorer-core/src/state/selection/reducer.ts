@@ -58,10 +58,23 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             filters: action.payload,
         }),
-        [DESELECT_DISPLAY_ANNOTATION]: (state, action) => ({
-            ...state,
-            displayAnnotations: without(state.displayAnnotations, ...castArray(action.payload)),
-        }),
+        [DESELECT_DISPLAY_ANNOTATION]: (state, action) => {
+            const displayAnnotations = without(
+                state.displayAnnotations,
+                ...castArray(action.payload)
+            );
+
+            const columnWidthsToPrune = difference(
+                Object.keys(state.columnWidths),
+                displayAnnotations.map((annotation) => annotation.name)
+            );
+
+            return {
+                ...state,
+                displayAnnotations,
+                columnWidths: omit(state.columnWidths, columnWidthsToPrune),
+            };
+        },
         [RESET_COLUMN_WIDTH]: (state, action) => ({
             ...state,
             columnWidths: omit(state.columnWidths, [action.payload]),
@@ -73,22 +86,10 @@ export default makeReducer<SelectionStateBranch>(
                 [action.payload.columnHeader]: action.payload.widthPercent,
             },
         }),
-        [SELECT_DISPLAY_ANNOTATION]: (state, action) => {
-            const nextState = {
-                ...state,
-                displayAnnotations: [...state.displayAnnotations, ...castArray(action.payload)],
-            };
-
-            const columnWidthsToPrune = difference(
-                Object.keys(state.columnWidths),
-                nextState.displayAnnotations.map((annotation) => annotation.name)
-            );
-
-            return {
-                ...nextState,
-                columnWidths: omit(state.columnWidths, columnWidthsToPrune),
-            };
-        },
+        [SELECT_DISPLAY_ANNOTATION]: (state, action) => ({
+            ...state,
+            displayAnnotations: [...state.displayAnnotations, ...castArray(action.payload)],
+        }),
         [SET_FILE_SELECTION]: (state, action) => ({
             ...state,
             selectedFileRangesByFileSet: action.payload,
