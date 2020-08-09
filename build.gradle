@@ -33,6 +33,10 @@ ext {
     ignoreScope = project.properties["ignoreScope"] ?: ""
 }
 
+task installDeps(type: NpmTask) {
+    args = "ci".tokenize()
+}
+
 task build(type: NpmTask) {
     args = "run build".tokenize()
 }
@@ -50,7 +54,7 @@ task publishArtifact(type: NpmTask) {
 }
 
 task setup(type: NpmTask) {
-    dependsOn npmInstall
+    dependsOn installDeps
 
     args = "run setup".tokenize()
 }
