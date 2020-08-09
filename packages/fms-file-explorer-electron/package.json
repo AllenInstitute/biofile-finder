@@ -35,7 +35,7 @@
     "bundle": "webpack --config ./webpack/webpack.config.js --env.env production",
     "clean": "rimraf dist",
     "format": "prettier --write src/**/*",
-    "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "makeDistDir": "mkdir -p dist",
     "precommit": "lint-staged",
     "publishArtifact": "echo 'Need to specify publishArtifact task for fms-file-explorer-electron'",

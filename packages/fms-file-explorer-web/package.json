@@ -7,7 +7,7 @@
     "build": "webpack --config ./webpack/webpack.config.js --env.env production",
     "clean": "rimraf dist",
     "format": "prettier --write src/**/*",
-    "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "precommit": "lint-staged",
     "packageForPublish": "node ./scripts/package-for-publish.js",
     "publishToArtifactory": "node ./scripts/publish-to-artifactory.js",
