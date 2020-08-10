@@ -55,15 +55,10 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                 ],
             },
         },
-        ADD_COLUMN: {
-            key: "add-column",
-            text: "Add Column",
-            title: "Add Annotation Column to File List",
-        },
-        REMOVE_COLUMN: {
-            key: "remove-column",
-            text: "Remove Column",
-            title: "Remove Annotation Column from File List",
+        MODIFY_COLUMNS: {
+            key: "modify-column",
+            text: "Modify Columns",
+            title: "Modify Annotation Columns for File List",
         },
     };
 }

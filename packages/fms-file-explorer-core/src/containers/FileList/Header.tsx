@@ -5,7 +5,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems from "../ContextMenu/items";
 import FileRow from "../../components/FileRow";
-import { interaction, selection } from "../../state";
+import { interaction, metadata, selection } from "../../state";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../state/metadata/reducer";
 
 const styles = require("./Header.module.css");
 
@@ -21,8 +22,8 @@ function Header(
     ref: React.Ref<HTMLDivElement>
 ) {
     const dispatch = useDispatch();
+    const sortedAnnotations = useSelector(metadata.selectors.getAnnotationsSorted);
     const columnAnnotations = useSelector(selection.selectors.getAnnotationsToDisplay);
-    const nonColumnAnnotations = useSelector(selection.selectors.getAnnotationsNotOnDisplay);
 
     const headerCells = map(columnAnnotations, (annotation) => ({
         columnKey: annotation.name, // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
@@ -34,33 +35,31 @@ function Header(
         const availableItems = getContextMenuItems(dispatch);
         const items: ContextMenuItem[] = [
             {
-                ...availableItems.ADD_COLUMN,
+                ...availableItems.MODIFY_COLUMNS,
                 subMenuProps: {
-                    items: nonColumnAnnotations.map((a) => ({
-                        key: a.name,
-                        text: a.displayName,
-                        title: a.description,
-                        onClick() {
-                            dispatch(selection.actions.selectDisplayAnnotation(a));
-                        },
-                    })),
+                    items: [...TOP_LEVEL_FILE_ANNOTATIONS, ...sortedAnnotations].map((a) => {
+                        const alreadySelected = Boolean(
+                            find(columnAnnotations, (ca) => a.name === ca.name)
+                        );
+                        return {
+                            canCheck: true,
+                            checked: alreadySelected,
+                            key: a.name,
+                            text: a.displayName,
+                            title: a.description,
+                            onClick() {
+                                // If the annotation is already present as a column, deselect it
+                                if (alreadySelected) {
+                                    dispatch(selection.actions.deselectDisplayAnnotation(a));
+                                } else {
+                                    dispatch(selection.actions.selectDisplayAnnotation(a));
+                                }
+                            },
+                        };
+                    }),
                 },
             },
         ];
-        // Prevent the user from removing all columns at once
-        if (columnAnnotations.length > 1) {
-            // Find the annotation matching the column, could be a file level annotation
-            const currentColumnAnnotation = find(columnAnnotations, (a) => a.name === columnKey);
-            items.push({
-                ...availableItems.REMOVE_COLUMN,
-                onClick() {
-                    currentColumnAnnotation &&
-                        dispatch(
-                            selection.actions.deselectDisplayAnnotation(currentColumnAnnotation)
-                        );
-                },
-            });
-        }
         dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
     };
 
