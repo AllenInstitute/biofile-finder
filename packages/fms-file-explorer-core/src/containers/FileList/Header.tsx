@@ -53,7 +53,7 @@ function Header(
                         key: a.name,
                         text: a.displayName,
                         title: a.description,
-                        onRender,
+                        onRender: onRender(a),
                     })),
                 },
             },
