@@ -1,9 +1,10 @@
-import { find, map } from "lodash";
+import { map } from "lodash";
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems from "../ContextMenu/items";
+import SelectableAnnotation from "../ContextMenu/SelectableAnnotation";
 import FileRow from "../../components/FileRow";
 import { interaction, metadata, selection } from "../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../state/metadata/reducer";
@@ -22,7 +23,7 @@ function Header(
     ref: React.Ref<HTMLDivElement>
 ) {
     const dispatch = useDispatch();
-    const sortedAnnotations = useSelector(metadata.selectors.getAnnotationsSorted);
+    const sortedAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
     const columnAnnotations = useSelector(selection.selectors.getAnnotationsToDisplay);
 
     const headerCells = map(columnAnnotations, (annotation) => ({
@@ -31,32 +32,18 @@ function Header(
         width: 1 / columnAnnotations.length,
     }));
 
-    const onHeaderColumnContextMenu = (columnKey: string, evt: React.MouseEvent) => {
+    const onHeaderColumnContextMenu = (evt: React.MouseEvent) => {
         const availableItems = getContextMenuItems(dispatch);
         const items: ContextMenuItem[] = [
             {
                 ...availableItems.MODIFY_COLUMNS,
                 subMenuProps: {
-                    items: [...TOP_LEVEL_FILE_ANNOTATIONS, ...sortedAnnotations].map((a) => {
-                        const alreadySelected = Boolean(
-                            find(columnAnnotations, (ca) => a.name === ca.name)
-                        );
-                        return {
-                            canCheck: true,
-                            checked: alreadySelected,
-                            key: a.name,
-                            text: a.displayName,
-                            title: a.description,
-                            onClick() {
-                                // If the annotation is already present as a column, deselect it
-                                if (alreadySelected) {
-                                    dispatch(selection.actions.deselectDisplayAnnotation(a));
-                                } else {
-                                    dispatch(selection.actions.selectDisplayAnnotation(a));
-                                }
-                            },
-                        };
-                    }),
+                    items: [...TOP_LEVEL_FILE_ANNOTATIONS, ...sortedAnnotations].map((a) => ({
+                        key: a.name,
+                        text: a.displayName,
+                        title: a.description,
+                        onRender: () => <SelectableAnnotation annotation={a} />,
+                    })),
                 },
             },
         ];

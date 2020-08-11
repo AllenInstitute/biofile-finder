@@ -15,7 +15,7 @@ interface FileRowProps {
     cells: CellConfig[];
     className?: string;
     rowIdentifier?: any;
-    onContextMenu?: (columnKey: string, evt: React.MouseEvent) => void;
+    onContextMenu?: (evt: React.MouseEvent) => void;
     onResize?: (columnKey: string, deltaX?: number) => void;
     onSelect?: OnSelect;
 }

@@ -9,7 +9,7 @@ const styles = require("./Cell.module.css");
 export interface CellProps {
     className?: string;
     columnKey: string;
-    onContextMenu?: (columnKey: string, evt: React.MouseEvent) => void;
+    onContextMenu?: (evt: React.MouseEvent) => void;
     onResize?: (columnKey: string, deltaX?: number) => void;
     width: number; // percentage of parent element's width, a number between 0 and 1.
 }
@@ -40,7 +40,6 @@ export default class Cell extends React.Component<CellProps, CellState> {
         this.cell = React.createRef();
         this.resizeTarget = React.createRef();
 
-        this.onContextMenu = this.onContextMenu.bind(this);
         this.onDoubleClick = this.onDoubleClick.bind(this);
         this.onResize = this.onResize.bind(this);
         this.onResizeEnd = this.onResizeEnd.bind(this);
@@ -83,7 +82,7 @@ export default class Cell extends React.Component<CellProps, CellState> {
                     this.state.containerClassName,
                     this.props.className
                 )}
-                onContextMenu={this.onContextMenu}
+                onContextMenu={this.props.onContextMenu}
                 onDoubleClick={this.onDoubleClick}
                 style={{ width: `${this.props.width * 100}%` }}
             >
@@ -99,18 +98,12 @@ export default class Cell extends React.Component<CellProps, CellState> {
         return (
             <div
                 className={classNames(styles.cell, this.props.className)}
-                onContextMenu={this.onContextMenu}
+                onContextMenu={this.props.onContextMenu}
                 style={{ width: `${this.props.width * 100}%` }}
             >
                 {this.props.children}
             </div>
         );
-    }
-
-    private onContextMenu(evt: React.MouseEvent): void {
-        if (this.props.onContextMenu) {
-            this.props.onContextMenu(this.props.columnKey, evt);
-        }
     }
 
     /**
