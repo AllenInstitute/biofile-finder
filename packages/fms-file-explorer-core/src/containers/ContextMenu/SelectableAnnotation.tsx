@@ -34,7 +34,7 @@ export default function SelectableAnnotation({ annotation }: SelectableAnnotatio
     return (
         <div className={styles.container} onClick={onClick}>
             <div className={styles.icon}>{alreadySelected && <Icon iconName="checkmark" />}</div>
-            {annotation.name}
+            {annotation.displayName}
         </div>
     );
 }
