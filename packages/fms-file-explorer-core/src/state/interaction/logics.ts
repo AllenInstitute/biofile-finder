@@ -46,7 +46,7 @@ const downloadManifest = createLogic({
                 });
                 const count = await fileSet.fetchTotalCount();
                 existingSelectionsByFileSet = {
-                    [action.payload]: [new NumericRange(0, count - 1)],
+                    [fileSet.hash]: [new NumericRange(0, count - 1)],
                 };
             } else {
                 existingSelectionsByFileSet = selection.selectors.getSelectedFileRangesByFileSet(
