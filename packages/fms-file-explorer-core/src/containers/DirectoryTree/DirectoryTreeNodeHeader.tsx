@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Tippy from "@tippy.js/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 
+import { PositionReference } from "../ContextMenu";
 import getContextMenuItems from "../ContextMenu/items";
 import SvgIcon from "../../components/SvgIcon";
 import { interaction, selection } from "../../state";
@@ -51,10 +52,17 @@ const ICON_SIZE = 15; // in px; both width and height
 export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeNodeHeaderProps) {
     const { collapsed, error, loading, onClick, title, fileFolderPath } = props;
 
+    const [contextMenuReference, setContextMenuReference] = React.useState<PositionReference>();
+
     const dispatch = useDispatch();
     const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
+    const contextMenuIsVisible = useSelector(interaction.selectors.getContextMenuVisibility);
+    const contextMenuReferenceInUse = useSelector(
+        interaction.selectors.getContextMenuPositionReference
+    );
 
     const onContextMenu = (evt: React.MouseEvent) => {
+        setContextMenuReference(evt.nativeEvent);
         const availableItems = getContextMenuItems(dispatch);
         const fileFolderFilters = fileFolderPath.map(
             (value, index) => new FileFilter(annotationHierarchy[index].name, value)
@@ -82,7 +90,14 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
     };
 
     return (
-        <span className={styles.directoryHeader} onClick={onClick} onContextMenu={onContextMenu}>
+        <span
+            className={classNames(styles.directoryHeader, {
+                [styles.focused]:
+                    contextMenuIsVisible && contextMenuReference === contextMenuReferenceInUse,
+            })}
+            onClick={onClick}
+            onContextMenu={onContextMenu}
+        >
             <SvgIcon
                 className={classNames({
                     [styles.chevronClosed]: collapsed,
