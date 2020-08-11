@@ -8,6 +8,7 @@ import SelectableAnnotation from "../ContextMenu/SelectableAnnotation";
 import FileRow from "../../components/FileRow";
 import { interaction, metadata, selection } from "../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../state/metadata/reducer";
+import Annotation from "../../entity/Annotation";
 
 const styles = require("./Header.module.css");
 
@@ -43,6 +44,7 @@ function Header(
 
     const onHeaderColumnContextMenu = (evt: React.MouseEvent) => {
         const availableItems = getContextMenuItems(dispatch);
+        const onRender = (a: Annotation) => () => <SelectableAnnotation annotation={a} />;
         const items: ContextMenuItem[] = [
             {
                 ...availableItems.MODIFY_COLUMNS,
@@ -51,7 +53,7 @@ function Header(
                         key: a.name,
                         text: a.displayName,
                         title: a.description,
-                        onRender: () => <SelectableAnnotation annotation={a} />,
+                        onRender,
                     })),
                 },
             },
