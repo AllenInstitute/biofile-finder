@@ -1,10 +1,14 @@
 import * as classNames from "classnames";
 import { Spinner, SpinnerSize } from "office-ui-fabric-react";
 import * as React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Tippy from "@tippy.js/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 
+import getContextMenuItems from "../ContextMenu/items";
 import SvgIcon from "../../components/SvgIcon";
+import { interaction, selection } from "../../state";
+import FileFilter from "../../entity/FileFilter";
 
 const styles = require("./DirectoryTreeNode.module.css");
 
@@ -14,6 +18,7 @@ interface DirectoryTreeNodeHeaderProps {
     loading: boolean;
     onClick: () => void;
     title: string;
+    fileFolderPath: string[];
 }
 
 /**
@@ -44,10 +49,40 @@ const ICON_SIZE = 15; // in px; both width and height
  * not cheap to initialize.
  */
 export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeNodeHeaderProps) {
-    const { collapsed, error, loading, onClick, title } = props;
+    const { collapsed, error, loading, onClick, title, fileFolderPath } = props;
+
+    const dispatch = useDispatch();
+    const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
+
+    const onContextMenu = (evt: React.MouseEvent) => {
+        const availableItems = getContextMenuItems(dispatch);
+        const fileFolderFilters = fileFolderPath.map(
+            (value, index) => new FileFilter(annotationHierarchy[index].name, value)
+        );
+        const items = [
+            {
+                ...availableItems.DOWNLOAD,
+                subMenuProps: {
+                    ...availableItems.DOWNLOAD.subMenuProps,
+                    items: availableItems.DOWNLOAD.subMenuProps.items.map((item) => {
+                        if (item.key !== "manifest") {
+                            return item;
+                        }
+                        return {
+                            ...item,
+                            onClick() {
+                                dispatch(interaction.actions.downloadManifest(fileFolderFilters));
+                            },
+                        };
+                    }),
+                },
+            },
+        ];
+        dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
+    };
 
     return (
-        <span className={styles.directoryHeader} onClick={onClick}>
+        <span className={styles.directoryHeader} onClick={onClick} onContextMenu={onContextMenu}>
             <SvgIcon
                 className={classNames({
                     [styles.chevronClosed]: collapsed,

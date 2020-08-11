@@ -2,6 +2,7 @@ import { makeConstant } from "@aics/redux-utils";
 
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import FileDownloadService from "../../services/FileDownloadService";
+import FileFilter from "../../entity/FileFilter";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -11,11 +12,13 @@ const STATE_BRANCH_NAME = "interaction";
 export const DOWNLOAD_MANIFEST = makeConstant(STATE_BRANCH_NAME, "download-manifest");
 
 export interface DownloadManifestAction {
+    payload: FileFilter[] | undefined;
     type: string;
 }
 
-export function downloadManifest(): DownloadManifestAction {
+export function downloadManifest(fileFilters?: FileFilter[]): DownloadManifestAction {
     return {
+        payload: fileFilters,
         type: DOWNLOAD_MANIFEST,
     };
 }

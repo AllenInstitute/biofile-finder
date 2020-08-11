@@ -26,7 +26,8 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const { ancestorNodes, currentNode, displayValue } = props;
     const dispatch = useDispatch();
     const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
-    const fileFolder = new FileFolder([...ancestorNodes, currentNode]);
+    const fileFolderPath = [...ancestorNodes, currentNode];
+    const fileFolder = new FileFolder(fileFolderPath);
     const collapsed = !openFileFolders.find((f) => f.equals(fileFolder));
     const {
         isLeaf,
@@ -44,6 +45,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
                 error={error}
                 loading={isLoading}
                 title={displayValue}
+                fileFolderPath={fileFolderPath}
                 onClick={() => dispatch(selection.actions.toggleFileFolderCollapse(fileFolder))}
             />
             <ul
