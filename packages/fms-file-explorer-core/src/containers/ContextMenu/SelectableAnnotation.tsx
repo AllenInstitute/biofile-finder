@@ -18,11 +18,11 @@ interface SelectableAnnotationProps {
 export default function SelectableAnnotation({ annotation }: SelectableAnnotationProps) {
     const dispatch = useDispatch();
     const columnAnnotations = useSelector(selection.selectors.getAnnotationsToDisplay);
-
     const alreadySelected = some(columnAnnotations, (ca) => annotation.name === ca.name);
-    const onClick = (clickEvent: React.MouseEvent | undefined) => {
+
+    const onClick = (evt: React.MouseEvent) => {
         // Prevent context menu from closing
-        clickEvent && clickEvent.preventDefault();
+        evt.preventDefault();
         // If the annotation is already present as a column, deselect it
         if (alreadySelected) {
             dispatch(selection.actions.deselectDisplayAnnotation(annotation));
