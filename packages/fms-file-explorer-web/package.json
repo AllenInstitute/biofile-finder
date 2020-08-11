@@ -1,13 +1,13 @@
 {
   "name": "fms-file-explorer-web",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "",
   "main": "src/index.tsx",
   "scripts": {
     "build": "webpack --config ./webpack/webpack.config.js --env.env production",
     "clean": "rimraf dist",
     "format": "prettier --write src/**/*",
-    "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "precommit": "lint-staged",
     "packageForPublish": "node ./scripts/package-for-publish.js",
     "publishToArtifactory": "node ./scripts/publish-to-artifactory.js",
@@ -75,7 +75,7 @@
     "webpack-dev-server": "3.8.0"
   },
   "dependencies": {
-    "@aics/fms-file-explorer-core": "0.12.0",
+    "@aics/fms-file-explorer-core": "0.13.0",
     "core-js": "3.3.2",
     "react": "16.9.0",
     "react-dom": "16.9.0",

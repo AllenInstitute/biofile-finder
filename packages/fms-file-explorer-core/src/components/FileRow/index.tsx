@@ -5,6 +5,8 @@ import * as React from "react";
 import Cell from "./Cell";
 import { OnSelect } from "../../containers/FileList/useFileSelector";
 
+const styles = require("./FileRow.module.css");
+
 interface CellConfig {
     columnKey: string;
     displayValue: string;
@@ -16,7 +18,7 @@ interface FileRowProps {
     className?: string;
     rowIdentifier?: any;
     onContextMenu?: (evt: React.MouseEvent) => void;
-    onResize?: (columnKey: string, deltaX?: number) => void;
+    onResize?: (columnKey: string, nextWidth?: number) => void;
     onSelect?: OnSelect;
 }
 
@@ -41,7 +43,7 @@ export default function FileRow(props: FileRowProps) {
     };
 
     return (
-        <div className={classNames(className)} onClick={onClick}>
+        <div className={classNames(styles.row, className)} onClick={onClick}>
             {map(cells, (cell) => (
                 <Cell
                     key={cell.columnKey}

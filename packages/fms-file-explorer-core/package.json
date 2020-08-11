@@ -1,6 +1,6 @@
 {
   "name": "@aics/fms-file-explorer-core",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "NPM library that exposes the core React/Redux FMS File Explorer application. Intended to be rendered into a container.",
   "main": "es/index.js",
   "module": "es/index.js",
@@ -26,7 +26,7 @@
     "format": "prettier --write src/**/*",
     "generateTypes": "tsc --emitDeclarationOnly",
     "generateTypes:watch": "tsc --emitDeclarationOnly --watch",
-    "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "precommit": "lint-staged",
     "prepare": "npm run build",
     "publishArtifact": "npm publish",

@@ -16,12 +16,16 @@ interface FileAnnotationRowProps {
  */
 export default function FileAnnotationRow({ name, value }: FileAnnotationRowProps) {
     return (
-        <div>
+        <div className={styles.row}>
             <Cell className={classNames(styles.cell, styles.rowKey)} columnKey="key" width={0.4}>
                 {name}
             </Cell>
-            <Cell className={styles.cell} columnKey="value" width={0.6}>
-                {value}
+            <Cell
+                className={classNames(styles.cell, styles.rowValue)}
+                columnKey="value"
+                width={0.6}
+            >
+                <div style={{ userSelect: "text" }}>{value}</div>
             </Cell>
         </div>
     );

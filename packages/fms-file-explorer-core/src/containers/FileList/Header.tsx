@@ -23,13 +23,22 @@ function Header(
     ref: React.Ref<HTMLDivElement>
 ) {
     const dispatch = useDispatch();
-    const sortedAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
     const columnAnnotations = useSelector(selection.selectors.getAnnotationsToDisplay);
+    const sortedAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
+    const columnWidths = useSelector(selection.selectors.getColumnWidths);
+
+    const onResize = (columnKey: string, nextWidthPercent?: number) => {
+        if (nextWidthPercent) {
+            dispatch(selection.actions.resizeColumn(columnKey, nextWidthPercent));
+        } else {
+            dispatch(selection.actions.resetColumnWidth(columnKey));
+        }
+    };
 
     const headerCells = map(columnAnnotations, (annotation) => ({
         columnKey: annotation.name, // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
         displayValue: annotation.displayName,
-        width: 1 / columnAnnotations.length,
+        width: columnWidths[annotation.name] || 1 / columnAnnotations.length,
     }));
 
     const onHeaderColumnContextMenu = (evt: React.MouseEvent) => {
@@ -57,6 +66,7 @@ function Header(
                     cells={headerCells}
                     className={styles.header}
                     onContextMenu={onHeaderColumnContextMenu}
+                    onResize={onResize}
                 />
             </div>
             <div className={styles.listParent}>{children}</div>

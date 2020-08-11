@@ -1,18 +1,21 @@
 .header-wrapper {
-    top: 0;
-    /* positionX postionY blur spread */
-    box-shadow: 0 1px 2px -1px rgba(0, 0, 0, 0.2),
-      0 2px 2.5px 0 rgba(0, 0, 0, 0.14), 0 0.5px 5px 0 rgba(0, 0, 0, 0.12);
-    position: sticky;
-    background-color: white;
-    z-index: 1000;
-    margin-bottom: 0.5rem;
+  --inner-header-size: 30px;
+
+  position: sticky;
+  top: 0;
+  height: calc(var(--inner-header-size) + 10px);
+  z-index: 1000;
 }
 
 .header {
-    height: 25px;
+  /* positionX postionY blur spread */
+  box-shadow: 0 1px 2px -1px rgba(0, 0, 0, 0.2),
+    0 2px 2.5px 0 rgba(0, 0, 0, 0.14), 0 0.5px 5px 0 rgba(0, 0, 0, 0.12);
+  background-color: white;
+  font-size: var(--inner-header-size); /* our only hook for increasing the height of the header, but need to re-adjust font-size for header cells */
 }
 
 .list-parent {
-  position: relative;
+  /* bizarrely necessary in order to not have the first list item initially render underneath the header */
+  transform: translateY(0px);
 }

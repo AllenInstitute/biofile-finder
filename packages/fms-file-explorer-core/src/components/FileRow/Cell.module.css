@@ -8,6 +8,7 @@
     overflow: hidden;
     padding-right: var(--padding);
     vertical-align: middle;
+    font-size: initial;
 }
 
 .cell:last-of-type {
@@ -18,22 +19,21 @@
     composes: cell;
 }
 
-.cursor-default {
-    cursor: default;
-}
-
-.cursor-resize {
+.cursor-resize-either-direction {
     cursor: ew-resize;
 }
 
+.cursor-resize-larger-only {
+    cursor: e-resize;
+}
+
 .resize-target {
-    composes: cursor-resize;
     touch-action: none;
     position: absolute;
     top: 0;
-    right: 0;
+    right: calc(1em / 2);
     height: 100%;
-    width: 10px;
     text-align: center;
-    color: #ebebeb;
+    font-weight: bold;
+    color: #bbbbbb;
 }
