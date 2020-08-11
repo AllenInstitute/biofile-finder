@@ -36,7 +36,7 @@ const downloadManifest = createLogic({
                 downloadService: platformDependentServices.fileDownloadService,
             });
 
-            let existingSelectionsByFileSet: { [index: string]: NumericRange[] };
+            let selectionsByFileSet: { [index: string]: NumericRange[] };
 
             // If we have a specific path to get files from ignore selected files
             if (action.payload) {
@@ -45,21 +45,21 @@ const downloadManifest = createLogic({
                     fileService,
                 });
                 const count = await fileSet.fetchTotalCount();
-                existingSelectionsByFileSet = {
+                selectionsByFileSet = {
                     [fileSet.hash]: [new NumericRange(0, count - 1)],
                 };
             } else {
-                existingSelectionsByFileSet = selection.selectors.getSelectedFileRangesByFileSet(
+                selectionsByFileSet = selection.selectors.getSelectedFileRangesByFileSet(
                     deps.getState()
                 );
             }
 
-            if (isEmpty(existingSelectionsByFileSet)) {
+            if (isEmpty(selectionsByFileSet)) {
                 return;
             }
 
             dispatch(startManifestDownload(manifestDownloadProcessId));
-            const message = await csvService.downloadCsv(existingSelectionsByFileSet);
+            const message = await csvService.downloadCsv(selectionsByFileSet);
 
             if (message === CancellationToken) {
                 dispatch(removeStatus(manifestDownloadProcessId));
