@@ -95,6 +95,10 @@ select:hover {
     color: #edebf1;
 }
 
+#download-link {
+    text-decoration: none;
+}
+
 #download-button {
     background-color: #BAD636;
     font-size: 1.5em;
