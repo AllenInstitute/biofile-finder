@@ -1,8 +1,7 @@
 import { makeReducer } from "@aics/redux-utils";
-import { castArray, compact, difference, find, omit, without } from "lodash";
+import { castArray, difference, omit, without } from "lodash";
 
 import interaction from "../interaction";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../metadata/reducer";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
@@ -35,18 +34,12 @@ export interface SelectionStateBranch {
     };
 }
 
-const DEFAULT_DISPLAY_ANNOTATIONS = compact([
-    find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "fileName"),
-    find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "fileType"),
-    find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "fileSize"),
-]);
-
 export const initialState = {
     annotationHierarchy: [],
     availableAnnotationsForHierarchy: [],
     availableAnnotationsForHierarchyLoading: false,
     columnWidths: {}, // columnName to widthPercent mapping
-    displayAnnotations: [...DEFAULT_DISPLAY_ANNOTATIONS],
+    displayAnnotations: [],
     filters: [],
     openFileFolders: [],
     selectedFileRangesByFileSet: {}, // FileSet::hash to NumericRange[]

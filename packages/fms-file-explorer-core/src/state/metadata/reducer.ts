@@ -30,12 +30,6 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         units: "bytes",
     }),
     new Annotation({
-        annotationDisplayName: "Type",
-        annotationName: "fileType",
-        description: "Type of file.",
-        type: AnnotationType.STRING,
-    }),
-    new Annotation({
         annotationDisplayName: "Uploaded",
         annotationName: "uploaded",
         description: "Date and time file was uploaded.",
