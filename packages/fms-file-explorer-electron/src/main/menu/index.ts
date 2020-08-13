@@ -7,6 +7,10 @@ const template: MenuItemConstructorOptions[] = [];
 // Stock Electron menu items
 const defaultMenuItems: MenuItemConstructorOptions[] = [
     { role: "fileMenu" },
+    {
+        label: "Edit",
+        submenu: [{ role: "copy" }],
+    },
     { role: "viewMenu" },
     { role: "windowMenu" },
 ];
