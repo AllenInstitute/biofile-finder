@@ -226,6 +226,7 @@ describe("Interaction logics", () => {
                     },
                 })
             ).to.equal(true);
+            sandbox.restore();
         });
     });
 });
