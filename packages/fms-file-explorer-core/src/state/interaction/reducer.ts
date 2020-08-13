@@ -19,6 +19,7 @@ export interface InteractionStateBranch {
     contextMenuIsVisible: boolean;
     contextMenuItems: ContextMenuItem[];
     contextMenuPositionReference: PositionReference;
+    contextMenuOnDismiss?: () => void;
     fileExplorerServiceBaseUrl: string;
     platformDependentServices: PlatformDependentServices;
     status: StatusUpdate[];
@@ -45,6 +46,7 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             contextMenuIsVisible: true,
             contextMenuItems: action.payload.items,
+            contextMenuOnDismiss: action.payload.onDismiss,
             contextMenuPositionReference: action.payload.positionReference,
         }),
         [REMOVE_STATUS]: (state, action) => ({

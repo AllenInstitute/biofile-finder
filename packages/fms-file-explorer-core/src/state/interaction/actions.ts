@@ -34,18 +34,21 @@ export interface ShowContextMenuAction {
     type: string;
     payload: {
         items: ContextMenuItem[];
+        onDismiss: (() => void) | undefined;
         positionReference: PositionReference;
     };
 }
 
 export function showContextMenu(
     items: ContextMenuItem[],
-    positionReference: PositionReference
+    positionReference: PositionReference,
+    onDismiss?: () => void
 ): ShowContextMenuAction {
     return {
         type: SHOW_CONTEXT_MENU,
         payload: {
             items,
+            onDismiss,
             positionReference,
         },
     };

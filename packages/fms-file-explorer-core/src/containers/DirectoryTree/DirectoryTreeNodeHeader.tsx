@@ -52,17 +52,13 @@ const ICON_SIZE = 15; // in px; both width and height
 export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeNodeHeaderProps) {
     const { collapsed, error, loading, onClick, title, fileFolderPath } = props;
 
-    const [contextMenuReference, setContextMenuReference] = React.useState<PositionReference>();
+    const [isContextMenuActive, setContextMenuActive] = React.useState(false);
 
     const dispatch = useDispatch();
     const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
-    const contextMenuIsVisible = useSelector(interaction.selectors.getContextMenuVisibility);
-    const contextMenuReferenceInUse = useSelector(
-        interaction.selectors.getContextMenuPositionReference
-    );
 
     const onContextMenu = (evt: React.MouseEvent) => {
-        setContextMenuReference(evt.nativeEvent);
+        setContextMenuActive(true);
         const availableItems = getContextMenuItems(dispatch);
         const fileFolderFilters = fileFolderPath.map(
             (value, index) => new FileFilter(annotationHierarchy[index].name, value)
@@ -86,14 +82,16 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
                 },
             },
         ];
-        dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
+        const onDismiss = () => {
+            setContextMenuActive(false);
+        };
+        dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent, onDismiss));
     };
 
     return (
         <span
             className={classNames(styles.directoryHeader, {
-                [styles.focused]:
-                    contextMenuIsVisible && contextMenuReference === contextMenuReferenceInUse,
+                [styles.focused]: isContextMenuActive,
             })}
             onClick={onClick}
             onContextMenu={onContextMenu}
