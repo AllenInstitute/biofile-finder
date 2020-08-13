@@ -1,0 +1,68 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+
+        <title>FMS File Explorer Download</title>
+        <meta name="description" content="FMS File Explorer Download">
+        <meta name="author" content="AICS Software">
+
+        <link rel="stylesheet" href="styles.css?v=1.0">
+    </head>
+
+    <body>
+        <div id="app">
+            <div id="primary-column">
+                <div id="primary-column-body">
+                    <h1>FMS File Explorer</h1>
+                    <div id="logo-container">
+                        <img src="resources/aics-logo.png" alt="AICS logo" />
+                        <img src="resources/aics-logo-name.png" alt="AICS logo" />
+                    </div>
+                    <p id="subtitle">This is the download helper for the FMS File Explorer App, click the Download button to download the approriate artifact for you. You can also manually select a version if needed. Instructions for set-up are to the right and are based on your operating system.</p>
+                    <div class="selector-container">
+                        <label>App Version</label>
+                        <select
+                            name="version-selector"
+                            id="version-selector"
+                            onchange="updateDownloadLink(this.value)"
+                        >
+                        </select>
+                    </div>
+                    <div class="selector-container" id="os-selector-container">
+                        <label>Operating System</label>
+                        <select
+                            name="os-selector"
+                            id="os-selector"
+                            onchange="selectOperatingSystem(this.value)"
+                        >
+                        </select>
+                    </div>
+                    <a id="download-link">
+                        <button id="download-button">
+                        </button>
+                    </a>
+                    <button id="os-reselector-button" onclick="enableOperatingSystemReselector()"></button>
+                </div>
+                <div id="primary-column-footer">
+                    <a
+                        href="https://github.com/AllenInstitute/aics-fms-file-explorer-app"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        File Explorer GitHub
+                    </a>
+                </div>
+            </div>
+            <div id="secondary-column">
+                <h2 id="instructions-title"></h2>
+                <p>To initially open the app after download you must do the following:</p>
+                <ol id="instructions"></ol>
+            </div>
+        </div>
+
+        <!-- Scripts -->
+        <script src="js/scripts.js"></script>
+    </body>
+</html>
