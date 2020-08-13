@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from "react-redux";
 import Tippy from "@tippy.js/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 
-import { PositionReference } from "../ContextMenu";
 import getContextMenuItems from "../ContextMenu/items";
 import SvgIcon from "../../components/SvgIcon";
 import { interaction, selection } from "../../state";
