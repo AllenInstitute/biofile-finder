@@ -14,6 +14,7 @@ export enum DataSource {
 // Reference issue without clear resolution: https://github.com/microsoft/TypeScript/issues/6307
 export const AnnotationName = {
     KIND: "Kind", // matches an annotation in filemetadata.annoation
+    FILE_ID: "fileId", // a file attribute (top-level prop on file documents in MongoDb)
     FILE_NAME: "fileName", // a file attribute (top-level prop on file documents in MongoDb)
     FILE_SIZE: "fileSize", // a file attribute (top-level prop on file documents in MongoDb)
     FILE_PATH: "filePath", // a file attribute (top-level prop on file documents in MongoDb)
@@ -23,6 +24,12 @@ export const AnnotationName = {
 };
 
 export const TOP_LEVEL_FILE_ANNOTATIONS = [
+    new Annotation({
+        annotationDisplayName: "File ID",
+        annotationName: AnnotationName.FILE_ID,
+        description: "FMS File Id",
+        type: AnnotationType.STRING,
+    }),
     new Annotation({
         annotationDisplayName: "File name",
         annotationName: AnnotationName.FILE_NAME,
