@@ -6,3 +6,10 @@ export enum DataSource {
     STAGING = "http://stg-aics-api.corp.alleninstitute.org",
     PRODUCTION = "http://aics-api.corp.alleninstitute.org",
 }
+
+export enum AnnotationName {
+    KIND = "Kind", // matches an annotation in filemetadata.annoation
+    FILE_NAME = "fileName", // a file attribute (top-level prop on file documents in MongoDb)
+    FILE_SIZE = "fileSize", // a file attribute (top-level prop on file documents in MongoDb)
+    TYPE = "Type", // matches an annotation in filemetadata.annoation
+}

@@ -4,6 +4,7 @@ import { createLogic } from "redux-logic";
 import { interaction, ReduxLogicDeps, selection } from "..";
 import { receiveAnnotations, REQUEST_ANNOTATIONS } from "./actions";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "./reducer";
+import { AnnotationName } from "../../constants";
 import AnnotationService from "../../services/AnnotationService";
 
 /**
@@ -19,10 +20,16 @@ const requestAnnotations = createLogic({
         try {
             const annotations = await annotationService.fetchAnnotations();
             const defaultDisplayAnnotations = compact([
-                find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "fileName"),
-                find(annotations, (annotation) => annotation.name === "Kind"),
-                find(annotations, (annotation) => annotation.name === "Type"),
-                find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "fileSize"),
+                find(
+                    TOP_LEVEL_FILE_ANNOTATIONS,
+                    (annotation) => annotation.name === AnnotationName.FILE_NAME
+                ),
+                find(annotations, (annotation) => annotation.name === AnnotationName.KIND),
+                find(annotations, (annotation) => annotation.name === AnnotationName.TYPE),
+                find(
+                    TOP_LEVEL_FILE_ANNOTATIONS,
+                    (annotation) => annotation.name === AnnotationName.FILE_SIZE
+                ),
             ]);
 
             dispatch(receiveAnnotations(annotations));

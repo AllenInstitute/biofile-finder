@@ -2,6 +2,7 @@ import { makeReducer } from "@aics/redux-utils";
 import { castArray, difference, omit, without } from "lodash";
 
 import interaction from "../interaction";
+import { AnnotationName } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
@@ -38,7 +39,12 @@ export const initialState = {
     annotationHierarchy: [],
     availableAnnotationsForHierarchy: [],
     availableAnnotationsForHierarchyLoading: false,
-    columnWidths: {}, // columnName to widthPercent mapping
+    columnWidths: {
+        [AnnotationName.FILE_NAME]: 0.4,
+        [AnnotationName.KIND]: 0.2,
+        [AnnotationName.TYPE]: 0.3,
+        [AnnotationName.FILE_SIZE]: 0.1,
+    },
     displayAnnotations: [],
     filters: [],
     openFileFolders: [],
