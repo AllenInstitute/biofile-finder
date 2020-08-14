@@ -1,6 +1,7 @@
-import { find, get as _get } from "lodash";
+import { find, get as _get, sortBy } from "lodash";
 
 import annotationFormatterFactory, { AnnotationFormatter } from "../AnnotationFormatter";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import { AnnotationResponse, AnnotationValue } from "../../services/AnnotationService";
 import { FmsFile, FmsFileAnnotation } from "../../services/FileService";
 
@@ -13,6 +14,24 @@ export default class Annotation {
 
     private readonly annotation: AnnotationResponse;
     private readonly formatter: AnnotationFormatter;
+
+    public static sort(annotations: Annotation[]): Annotation[] {
+        // start by putting in alpha order
+        const collator = new Intl.Collator("en");
+        const sortedByDisplayName = [...annotations].sort((a, b) =>
+            collator.compare(a.displayName, b.displayName)
+        );
+
+        // put an annotation from "TOP_LEVEL_ANNOTATIONS" ahead of the others
+        return sortBy(sortedByDisplayName, (annotation) => {
+            const indexWithinTOP_LEVEL_ANNOTATIONS = TOP_LEVEL_FILE_ANNOTATIONS.indexOf(annotation);
+            if (indexWithinTOP_LEVEL_ANNOTATIONS > -1) {
+                return indexWithinTOP_LEVEL_ANNOTATIONS;
+            }
+
+            return Number.POSITIVE_INFINITY;
+        });
+    }
 
     constructor(annotation: AnnotationResponse) {
         this.annotation = annotation;

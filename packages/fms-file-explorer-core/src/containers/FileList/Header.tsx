@@ -8,6 +8,7 @@ import SelectableAnnotation from "../ContextMenu/SelectableAnnotation";
 import FileRow from "../../components/FileRow";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import { interaction, metadata, selection } from "../../state";
+import Annotation from "../../entity/Annotation";
 
 const styles = require("./Header.module.css");
 
@@ -47,7 +48,10 @@ function Header(
             {
                 ...availableItems.MODIFY_COLUMNS,
                 subMenuProps: {
-                    items: [...TOP_LEVEL_FILE_ANNOTATIONS, ...sortedAnnotations].map((a) => ({
+                    items: Annotation.sort([
+                        ...TOP_LEVEL_FILE_ANNOTATIONS,
+                        ...sortedAnnotations,
+                    ]).map((a) => ({
                         key: a.name,
                         text: a.displayName,
                         title: a.description,

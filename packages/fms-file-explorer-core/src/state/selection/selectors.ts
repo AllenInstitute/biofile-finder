@@ -1,8 +1,6 @@
-import { sortBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import Annotation from "../../entity/Annotation";
 
 // BASIC SELECTORS
@@ -22,20 +20,6 @@ export const getSelectedFileRangesByFileSet = (state: State) =>
 export const getOrderedDisplayAnnotations = createSelector(
     getAnnotationsToDisplay,
     (annotations: Annotation[]) => {
-        // start by putting in alpha order
-        const collator = new Intl.Collator("en");
-        const sortedByDisplayName = [...annotations].sort((a, b) =>
-            collator.compare(a.displayName, b.displayName)
-        );
-
-        // put an annotation from "TOP_LEVEL_ANNOTATIONS" ahead of the others
-        return sortBy(sortedByDisplayName, (annotation) => {
-            const indexWithinTOP_LEVEL_ANNOTATIONS = TOP_LEVEL_FILE_ANNOTATIONS.indexOf(annotation);
-            if (indexWithinTOP_LEVEL_ANNOTATIONS > -1) {
-                return indexWithinTOP_LEVEL_ANNOTATIONS;
-            }
-
-            return Number.POSITIVE_INFINITY;
-        });
+        return Annotation.sort(annotations);
     }
 );
