@@ -24,9 +24,9 @@ export default class Annotation {
 
         // put an annotation from "TOP_LEVEL_ANNOTATIONS" ahead of the others
         return sortBy(sortedByDisplayName, (annotation) => {
-            const indexWithinTOP_LEVEL_ANNOTATIONS = TOP_LEVEL_FILE_ANNOTATIONS.indexOf(annotation);
-            if (indexWithinTOP_LEVEL_ANNOTATIONS > -1) {
-                return indexWithinTOP_LEVEL_ANNOTATIONS;
+            const indexWithinTopLevelAnnotations = TOP_LEVEL_FILE_ANNOTATIONS.indexOf(annotation);
+            if (indexWithinTopLevelAnnotations > -1) {
+                return indexWithinTopLevelAnnotations;
             }
 
             return Number.POSITIVE_INFINITY;
