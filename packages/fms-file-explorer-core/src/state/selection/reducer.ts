@@ -79,10 +79,16 @@ export default makeReducer<SelectionStateBranch>(
                 [action.payload.columnHeader]: action.payload.widthPercent,
             },
         }),
-        [SELECT_DISPLAY_ANNOTATION]: (state, action) => ({
-            ...state,
-            displayAnnotations: [...state.displayAnnotations, ...castArray(action.payload)],
-        }),
+        [SELECT_DISPLAY_ANNOTATION]: (state, action) => {
+            const displayAnnotations = action.payload.replace
+                ? castArray(action.payload.annotation)
+                : [...state.displayAnnotations, ...castArray(action.payload.annotation)];
+
+            return {
+                ...state,
+                displayAnnotations,
+            };
+        },
         [SET_FILE_SELECTION]: (state, action) => ({
             ...state,
             selectedFileRangesByFileSet: action.payload,

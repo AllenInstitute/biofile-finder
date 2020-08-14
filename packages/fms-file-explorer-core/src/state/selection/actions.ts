@@ -72,7 +72,8 @@ export function removeFileFilter(filter: FileFilter | FileFilter[]): RemoveFileF
  * Intention to select one or many annotations for a file to display in the file list (i.e., as a column).
  *
  * For example, by default, we may only see "File name | File size | Date created" as the columns in the file list. This
- * is the mechanism for a user to then add or remove a column to view.
+ * is the mechanism for a user to then add a column to view. If `replace` is `true`, the intention of the action
+ * should be interpretted as a setter instead of a updated.
  */
 export const SELECT_DISPLAY_ANNOTATION = makeConstant(
     STATE_BRANCH_NAME,
@@ -80,15 +81,22 @@ export const SELECT_DISPLAY_ANNOTATION = makeConstant(
 );
 
 export interface SelectDisplayAnnotationAction {
-    payload: Annotation | Annotation[];
+    payload: {
+        annotation: Annotation | Annotation[];
+        replace: boolean;
+    };
     type: string;
 }
 
 export function selectDisplayAnnotation(
-    annotation: Annotation | Annotation[]
+    annotation: Annotation | Annotation[],
+    replace = false
 ): SelectDisplayAnnotationAction {
     return {
-        payload: annotation,
+        payload: {
+            annotation,
+            replace,
+        },
         type: SELECT_DISPLAY_ANNOTATION,
     };
 }
