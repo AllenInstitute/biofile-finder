@@ -36,7 +36,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         style,
     } = props;
 
-    const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
+    const annotations = useSelector(selection.selectors.getOrderedDisplayAnnotations);
     const columnWidths = useSelector(selection.selectors.getColumnWidths);
     const selectedFileRangesByFileSet = useSelector(
         selection.selectors.getSelectedFileRangesByFileSet

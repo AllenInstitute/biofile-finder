@@ -23,7 +23,7 @@ function Header(
     ref: React.Ref<HTMLDivElement>
 ) {
     const dispatch = useDispatch();
-    const columnAnnotations = useSelector(selection.selectors.getAnnotationsToDisplay);
+    const columnAnnotations = useSelector(selection.selectors.getOrderedDisplayAnnotations);
     const sortedAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
     const columnWidths = useSelector(selection.selectors.getColumnWidths);
 

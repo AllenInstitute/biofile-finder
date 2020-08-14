@@ -17,7 +17,7 @@ interface SelectableAnnotationProps {
  */
 export default function SelectableAnnotation({ annotation }: SelectableAnnotationProps) {
     const dispatch = useDispatch();
-    const columnAnnotations = useSelector(selection.selectors.getAnnotationsToDisplay);
+    const columnAnnotations = useSelector(selection.selectors.getOrderedDisplayAnnotations);
     const alreadySelected = some(columnAnnotations, (ca) => annotation.name === ca.name);
 
     const onClick = (evt: React.MouseEvent) => {
