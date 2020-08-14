@@ -3,7 +3,7 @@ import { expect } from "chai";
 import selection from "..";
 import { initialState } from "../..";
 import interaction from "../../interaction";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../metadata/reducer";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import NumericRange from "../../../entity/NumericRange";
 
 describe("Selection reducer", () => {

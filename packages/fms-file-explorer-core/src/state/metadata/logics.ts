@@ -3,8 +3,7 @@ import { createLogic } from "redux-logic";
 
 import { interaction, ReduxLogicDeps, selection } from "..";
 import { receiveAnnotations, REQUEST_ANNOTATIONS } from "./actions";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "./reducer";
-import { AnnotationName } from "../../constants";
+import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import AnnotationService from "../../services/AnnotationService";
 
 /**

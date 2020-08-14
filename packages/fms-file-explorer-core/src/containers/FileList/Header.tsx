@@ -6,8 +6,8 @@ import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems from "../ContextMenu/items";
 import SelectableAnnotation from "../ContextMenu/SelectableAnnotation";
 import FileRow from "../../components/FileRow";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import { interaction, metadata, selection } from "../../state";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../state/metadata/reducer";
 
 const styles = require("./Header.module.css");
 
