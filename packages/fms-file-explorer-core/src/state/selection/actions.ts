@@ -73,7 +73,7 @@ export function removeFileFilter(filter: FileFilter | FileFilter[]): RemoveFileF
  *
  * For example, by default, we may only see "File name | File size | Date created" as the columns in the file list. This
  * is the mechanism for a user to then add a column to view. If `replace` is `true`, the intention of the action
- * should be interpretted as a setter instead of a updated.
+ * should be interpreted as a setter instead of a updated.
  */
 export const SELECT_DISPLAY_ANNOTATION = makeConstant(
     STATE_BRANCH_NAME,
