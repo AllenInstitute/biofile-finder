@@ -23,7 +23,6 @@ export interface FmsFile {
     [key: string]: any;
     annotations: FmsFileAnnotation[];
     fileId: string;
-    fileType: string;
     fileName: string;
     filePath: string;
     fileSize: number;
