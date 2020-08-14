@@ -1,11 +1,16 @@
-.empty-detail-list {
-  position: absolute;
-  text-align: center;
-  top: 50%;
-  width: 100%;
+.list {
+  padding: 10px;
+
+  /* flex parent */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
 }
 
-.list-parent {
-  padding: 10px;
-  position: relative;
+.row {
+  width: 100%;
+
+  /* flex child */
+  flex: 1 1 100%;
 }

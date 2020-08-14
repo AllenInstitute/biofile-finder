@@ -1,5 +1,9 @@
 .row {
     border: 1px solid #ebebeb;
+
+    /* flex parent */
+    display: flex;
+    flex-direction: row;
 }
 
 .cell {
@@ -9,12 +13,18 @@
     white-space: normal;
 }
 
-.row-key {
+.key {
+    /* flex child */
+    flex: 1 1 40%;
+
     border-right: 1px solid #ebebeb;
     font-weight: 500;
 }
 
-.row-value {
+.value {
+    /* flex child */
+    flex: 1 1 60%;
+
     border-left: 1px solid #ebebeb;
     margin-left: -1px;
 }
