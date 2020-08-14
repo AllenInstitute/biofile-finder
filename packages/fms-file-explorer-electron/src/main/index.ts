@@ -24,7 +24,7 @@ const createMainWindow = () => {
             // This would only be a problem if libraries or our own code attempted to define the same symbols.
             nodeIntegration: true,
         },
-        width: 1000,
+        width: 1200,
     });
 
     mainWindow.on("ready-to-show", () => {
