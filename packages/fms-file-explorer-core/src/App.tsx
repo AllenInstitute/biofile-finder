@@ -13,6 +13,7 @@ import DirectoryTree from "./containers/DirectoryTree";
 import FileDetails from "./containers/FileDetails";
 import HeaderRibbon from "./containers/HeaderRibbon";
 import StatusMessage from "./containers/StatusMessage";
+import ApplicationInfoServiceNoop from "./services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "./services/FileDownloadService/FileDownloadServiceNoop";
 import { interaction, metadata } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
@@ -40,6 +41,7 @@ interface AppProps {
 const defaultProps: AppProps = {
     fileExplorerServiceBaseUrl: DataSource.PRODUCTION,
     platformDependentServices: {
+        applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
     },
 };

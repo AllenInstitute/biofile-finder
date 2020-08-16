@@ -15,4 +15,7 @@ import { default as _FileDownloadService } from "./services/FileDownloadService"
 export type FileDownloadService = _FileDownloadService;
 export { CancellationToken } from "./services/FileDownloadService";
 
+import { default as _ApplicationInfoService } from "./services/ApplicationInfoService";
+export type ApplicationInfoService = _ApplicationInfoService;
+
 export { default } from "./App";

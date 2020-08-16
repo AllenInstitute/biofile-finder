@@ -12,6 +12,7 @@ import {
     StatusUpdate,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
+import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
 import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
 
@@ -35,6 +36,7 @@ export const initialState = {
     contextMenuPositionReference: null,
     fileExplorerServiceBaseUrl: DEFAULT_CONNECTION_CONFIG.baseUrl,
     platformDependentServices: {
+        applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
     },
     status: [],

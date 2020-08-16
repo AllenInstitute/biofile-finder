@@ -1,6 +1,7 @@
 import { makeConstant } from "@aics/redux-utils";
 
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
+import ApplicationInfoService from "../../services/ApplicationInfoService";
 import FileDownloadService from "../../services/FileDownloadService";
 import FileFilter from "../../entity/FileFilter";
 
@@ -102,6 +103,7 @@ export const SET_PLATFORM_DEPENDENT_SERVICES = makeConstant(
 );
 
 export interface PlatformDependentServices {
+    applicationInfoService: ApplicationInfoService;
     fileDownloadService: FileDownloadService;
 }
 

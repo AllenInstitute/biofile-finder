@@ -1,22 +1,29 @@
 import * as http from "http";
 import * as fs from "fs";
-import * as os from "os";
 import * as path from "path";
 
-import { remote } from "electron";
+import { app, dialog, ipcMain, ipcRenderer } from "electron";
 
 import { CancellationToken, FileDownloadService } from "@aics/fms-file-explorer-core";
 
 export default class FileDownloadServiceElectron implements FileDownloadService {
+    public static GET_FILE_SAVE_PATH = "get-file-save-path";
+
+    public static registerIpcHandlers() {
+        ipcMain.handle(FileDownloadServiceElectron.GET_FILE_SAVE_PATH, async () => {
+            return await dialog.showSaveDialog({
+                title: "Save CSV manifest",
+                defaultPath: path.resolve(app.getPath("downloads"), "fms-explorer-selections.csv"),
+            });
+        });
+    }
+
     public async downloadCsvManifest(
         url: string,
         postData: string,
         totalCountSelected: number
     ): Promise<string> {
-        const result = await remote.dialog.showSaveDialog(remote.getCurrentWindow(), {
-            title: "Save CSV manifest",
-            defaultPath: path.resolve(os.homedir(), "fms-explorer-selections.csv"),
-        });
+        const result = await ipcRenderer.invoke(FileDownloadServiceElectron.GET_FILE_SAVE_PATH);
 
         if (result.canceled) {
             return Promise.resolve(CancellationToken);

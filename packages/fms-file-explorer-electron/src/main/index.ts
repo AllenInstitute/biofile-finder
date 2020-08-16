@@ -6,6 +6,8 @@ import { app, BrowserWindow, Menu } from "electron";
 import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
 
 import template from "./menu";
+import ApplicationInfoServiceElectron from "../services/ApplicationInfoServiceElectron";
+import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -17,6 +19,12 @@ app.setAppUserModelId("org.aics.alleninstitute.fileexplorer");
 
 // Prevent window from being garbage collected
 let mainWindow: BrowserWindow | undefined;
+
+// register handlers called via ipc between renderer and main
+const registerIpcHandlers = () => {
+    ApplicationInfoServiceElectron.registerIpcHandlers();
+    FileDownloadServiceElectron.registerIpcHandlers();
+};
 
 const createMainWindow = () => {
     mainWindow = new BrowserWindow({
@@ -72,10 +80,15 @@ const createMainWindow = () => {
     }
 };
 
+const init = () => {
+    registerIpcHandlers();
+    createMainWindow();
+};
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on("ready", createMainWindow);
+app.on("ready", init);
 
 // Prevent multiple instances of the app
 if (!app.requestSingleInstanceLock()) {
@@ -105,6 +118,6 @@ app.on("activate", () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (mainWindow === null) {
-        createMainWindow();
+        init();
     }
 });
