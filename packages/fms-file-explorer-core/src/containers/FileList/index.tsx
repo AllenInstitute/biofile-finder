@@ -61,7 +61,7 @@ export default function FileList(props: FileListProps) {
     // 100% of the height of its container.
     // Otherwise, the height of the list should reflect the number of items it has to render, up to
     // a certain maximum.
-    const [ref, measuredHeight] = useLayoutMeasurements<HTMLDivElement>();
+    const [ref, measuredHeight, measuredWidth] = useLayoutMeasurements<HTMLDivElement>();
     const dataDrivenHeight = rowHeight * totalCount + 3 * rowHeight; // adding three additional rowHeights leaves room for the header + horz. scroll bar
     const calculatedHeight = Math.min(MAX_NON_ROOT_HEIGHT, dataDrivenHeight);
     const style = {
@@ -105,7 +105,7 @@ export default function FileList(props: FileListProps) {
                             onItemsRendered={onItemsRendered}
                             outerElementType={Header}
                             ref={ref}
-                            width="100%"
+                            width={measuredWidth}
                         >
                             {LazilyRenderedRow}
                         </FixedSizeList>
