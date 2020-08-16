@@ -1,4 +1,4 @@
-import * as LRUCache from "lru-cache";
+import LRUCache from "lru-cache";
 
 import FileService from "../../services/FileService";
 import FileFilter from "../FileFilter";

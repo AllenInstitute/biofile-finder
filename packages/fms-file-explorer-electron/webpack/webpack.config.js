@@ -128,6 +128,7 @@ module.exports = ({ analyze, env } = {}) => ({
     plugins: getPluginsByEnv(env, analyze),
     resolve: {
         extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
+        mainFields: ["module", "main"],
         symlinks: false,
     },
     stats: analyze ? "none" : stats,

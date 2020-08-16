@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import { Policy } from "cockatiel";
-import * as LRUCache from "lru-cache";
+import LRUCache from "lru-cache";
 
 import { DataSource } from "../../constants";
 import RestServiceResponse from "../../entity/RestServiceResponse";

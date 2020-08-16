@@ -14,8 +14,9 @@
     "@babel/preset-typescript"
   ],
   "env": {
-    "commonjs": {
-      "presets": [["@babel/preset-env", { "modules": true }]]
+    "nodejs": {
+      "plugins": [["./scripts/babel-plugin-filter-imports", {"test": "\\.css$"}]],
+      "presets": [["@babel/preset-env", { "modules": "commonjs" }]]
     }
   }
 }

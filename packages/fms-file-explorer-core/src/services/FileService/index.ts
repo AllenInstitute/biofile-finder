@@ -106,5 +106,3 @@ export default class FileService extends HttpServiceBase {
         return response.data;
     }
 }
-
-export const DefaultFileService = new FileService();

@@ -17,8 +17,8 @@
     "@babel/preset-typescript"
   ],
   "env": {
-    "commonjs": {
-      "presets": [["@babel/preset-env", { "modules": "commonjs" }]]
+    "nodejs": {
+      "presets": [["@babel/preset-env", { "modules": "commonjs", "targets": "node 12" }]]
     }
   }
 }

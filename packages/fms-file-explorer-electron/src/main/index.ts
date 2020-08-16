@@ -63,7 +63,7 @@ const createMainWindow = () => {
             );
     } else {
         mainWindow
-            .loadURL(`file://${path.join(__dirname, "renderer", "index.html")}`)
+            .loadURL(`file://${path.join(__dirname, "..", "renderer", "index.html")}`)
             .catch((error: Error) => {
                 console.error("Failed to load from file", error);
             });
