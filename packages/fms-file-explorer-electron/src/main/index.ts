@@ -1,3 +1,5 @@
+import "regenerator-runtime/runtime";
+
 import * as path from "path";
 
 import { app, BrowserWindow, Menu } from "electron";
