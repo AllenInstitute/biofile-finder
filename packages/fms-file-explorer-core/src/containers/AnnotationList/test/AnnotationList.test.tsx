@@ -46,7 +46,7 @@ describe("<AnnotationList />", () => {
                 </Provider>
             );
             const queryNumberListItems = () =>
-                wrapper.find("span[data-test-id='annotation-list-item']").length;
+                wrapper.find("abbr[data-test-id='annotation-list-item']").length;
 
             // before, expect all annotations to be in the list
             const allAnnotationDisplayNames = annotationsJson.map(

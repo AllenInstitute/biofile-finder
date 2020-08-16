@@ -15,5 +15,11 @@
 
 .title {
     flex: 1 1 auto;
+    text-overflow: ellipsis;
     white-space: nowrap;
+    overflow: hidden;
+}
+
+.title[title] {
+    text-decoration: none;
 }

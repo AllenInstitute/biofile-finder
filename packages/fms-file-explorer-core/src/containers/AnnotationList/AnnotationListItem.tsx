@@ -38,7 +38,7 @@ export default React.memo(function AnnotationListItem(props: DnDItemRendererPara
                     width={12}
                 />
             </Tippy>
-            <span
+            <abbr
                 data-test-id="annotation-list-item"
                 className={classNames(
                     {
@@ -46,9 +46,10 @@ export default React.memo(function AnnotationListItem(props: DnDItemRendererPara
                     },
                     styles.title
                 )}
+                title={title}
             >
                 {title}
-            </span>
+            </abbr>
             {loading && <Spinner size={SpinnerSize.small} />}
             <AnnotationFilter annotationName={id} />
         </div>
