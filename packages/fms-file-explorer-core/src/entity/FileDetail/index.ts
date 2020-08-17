@@ -74,10 +74,6 @@ export default class FileDetail {
         return this.fileDetail.filePath;
     }
 
-    public get type() {
-        return this.fileDetail.fileType;
-    }
-
     public get thumbnail() {
         return this.fileDetail.thumbnailPath;
     }

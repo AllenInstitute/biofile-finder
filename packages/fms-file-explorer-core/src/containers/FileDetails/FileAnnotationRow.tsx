@@ -6,6 +6,7 @@ import Cell from "../../components/FileRow/Cell";
 const styles = require("./FileAnnotationRow.module.css");
 
 interface FileAnnotationRowProps {
+    className?: string;
     name: string;
     value: string;
 }
@@ -14,18 +15,14 @@ interface FileAnnotationRowProps {
  * Component responsible for rendering the metadata pertaining to a file inside the file
  * details pane on right hand side of the application.
  */
-export default function FileAnnotationRow({ name, value }: FileAnnotationRowProps) {
+export default function FileAnnotationRow(props: FileAnnotationRowProps) {
     return (
-        <div className={styles.row}>
-            <Cell className={classNames(styles.cell, styles.rowKey)} columnKey="key" width={0.4}>
-                {name}
+        <div className={classNames(props.className, styles.row)}>
+            <Cell className={classNames(styles.cell, styles.key)} columnKey="key" width={1}>
+                {props.name}
             </Cell>
-            <Cell
-                className={classNames(styles.cell, styles.rowValue)}
-                columnKey="value"
-                width={0.6}
-            >
-                <div style={{ userSelect: "text" }}>{value}</div>
+            <Cell className={classNames(styles.cell, styles.value)} columnKey="value" width={1}>
+                <span style={{ userSelect: "text" }}>{props.value}</span>
             </Cell>
         </div>
     );

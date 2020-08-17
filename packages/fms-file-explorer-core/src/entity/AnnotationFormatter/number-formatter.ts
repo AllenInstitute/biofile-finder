@@ -1,4 +1,4 @@
-import * as filesize from "filesize";
+import filesize from "filesize";
 
 export default {
     displayValue(value: string | number, units?: string): string {

@@ -1,4 +1,4 @@
-import * as classNames from "classnames";
+import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -73,26 +73,30 @@ export default function FileDetails(props: FileDetails) {
                         />
                     ))}
                 </div>
-                <div
-                    className={classNames({
-                        [styles.hidden]: windowState.state === WindowState.MINIMIZED,
-                    })}
-                >
-                    {fileDetails && fileDetails.thumbnail && (
-                        <div
-                            className={classNames(styles.fileThumbnailContainer, {
-                                [styles.thumbnailDefault]:
-                                    windowState.state === WindowState.DEFAULT,
-                                [styles.thumbnailMaximized]:
-                                    windowState.state === WindowState.MAXIMIZED,
-                            })}
-                        >
-                            <FileThumbnail
-                                uri={`${fileService.baseUrl}/labkey/fmsfiles/image${fileDetails.thumbnail}`}
-                            />
-                        </div>
-                    )}
-                    <FileAnnotationList fileDetails={fileDetails} isLoading={isLoading} />
+                <div className={styles.contentContainer}>
+                    <div
+                        className={classNames(styles.overflowContainer, {
+                            [styles.hidden]: windowState.state === WindowState.MINIMIZED,
+                        })}
+                    >
+                        {fileDetails && fileDetails.thumbnail && (
+                            <div
+                                className={classNames(styles.fileThumbnailContainer, {
+                                    [styles.thumbnailDefault]:
+                                        windowState.state === WindowState.DEFAULT,
+                                    [styles.thumbnailMaximized]:
+                                        windowState.state === WindowState.MAXIMIZED,
+                                })}
+                            >
+                                <FileThumbnail
+                                    uri={`${fileService.baseUrl}/labkey/fmsfiles/image${fileDetails.thumbnail}`}
+                                />
+                            </div>
+                        )}
+                        <FileAnnotationList fileDetails={fileDetails} isLoading={isLoading} />
+                        <div className={styles.spacer} />
+                        <div className={styles.gradientTeaser} />
+                    </div>
                 </div>
             </div>
         </div>

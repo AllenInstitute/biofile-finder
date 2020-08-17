@@ -1,8 +1,8 @@
 {
   "name": "fms-file-explorer-electron",
-  "version": "0.13.0",
+  "version": "1.0.0-alpha.0",
   "description": "An application designed to simplify access and exploration of data produced by the Allen Institute for Cell Science, provide an intuitive mechanism for organizing that data, and provide simple hooks for incorporating that data into both programmatic and non-programmatic workflows.",
-  "main": "dist/index.js",
+  "main": "dist/main/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/AllenInstitute/aics-fms-file-explorer-app.git"
@@ -38,12 +38,10 @@
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "makeDistDir": "mkdir -p dist",
     "precommit": "lint-staged",
-    "publishArtifact": "echo 'Need to specify publishArtifact task for fms-file-explorer-electron'",
+    "publishArtifact": "echo 'npm run publishArtifact is a noop for fms-file-explorer-electron'",
     "start": "node ./scripts/start-dev.js",
-    "start:electron": "NODE_ENV=development WEBPACK_DEV_SERVER_PORT=9001 electron .",
-    "start:devserver": "webpack-dev-server --config ./webpack/webpack.config.js --env.env dev",
-    "test": "BABEL_ENV=commonjs TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.commonjs.json NODE_ENV=production mocha --opts mocha.opts src/**/test/*",
-    "transpile": "babel src/main --source-maps --extensions .ts,.tsx,.js,.jsx --env-name commonjs --out-dir dist",
+    "test": "BABEL_ENV=nodejs mocha",
+    "transpile": "babel src --ignore \"src/renderer.tsx\" --ignore \"src/test/**/*\" --source-maps --extensions .ts,.tsx,.js,.jsx --env-name nodejs --out-dir dist",
     "typeCheck": "tsc -p tsconfig.json --noEmit"
   },
   "author": "Gabe Medrash<gabeme@alleninstitute.org>",
@@ -61,7 +59,7 @@
     "@types/enzyme": "3.10.3",
     "@types/jsdom": "12.2.4",
     "@types/lodash": "4.14.138",
-    "@types/mocha": "5.2.7",
+    "@types/mocha": "8.0.2",
     "@types/react": "16.9.43",
     "@types/react-dom": "16.9.8",
     "@types/react-redux": "7.1.4",
@@ -88,8 +86,7 @@
     "jsdom": "16.0.1",
     "lint-staged": "9.2.5",
     "mini-css-extract-plugin": "0.8.0",
-    "mocha": "6.2.0",
-    "mock-css-modules": "1.0.0",
+    "mocha": "8.1.1",
     "npm-run-all": "4.1.5",
     "postcss-flexbugs-fixes": "4.1.0",
     "postcss-loader": "3.0.0",
@@ -105,7 +102,7 @@
     "webpack-dev-server": "3.8.0"
   },
   "dependencies": {
-    "@aics/fms-file-explorer-core": "0.13.0",
+    "@aics/fms-file-explorer-core": "1.0.0-alpha.0",
     "electron-devtools-installer": "3.1.1",
     "react": "16.9.0",
     "react-dom": "16.9.0",

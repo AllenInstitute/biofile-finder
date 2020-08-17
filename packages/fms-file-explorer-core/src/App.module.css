@@ -85,13 +85,13 @@
 
 .annotation-hierarchy {
     height: 100%;
-    flex: 1 1 30%;
+    width: 30%;
     max-width: var(--annotation-hierarchy-max-width);
 }
 
 .file-list {
     height: 100%;
-    flex: 1 1 70%;
+    width: 70%;
     margin-left: var(--margin);
 }
 

@@ -6,7 +6,7 @@ import Annotation from "../../entity/Annotation";
 import { metadata, selection } from "../../state";
 
 export const getAnnotationListItems = createSelector(
-    [metadata.selectors.getAnnotations],
+    [metadata.selectors.getSortedAnnotations],
     (annotations: Annotation[]): DnDItem[] => {
         return map(annotations, (annotation) => ({
             description: annotation.description,

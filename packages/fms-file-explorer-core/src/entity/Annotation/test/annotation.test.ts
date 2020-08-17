@@ -1,7 +1,9 @@
 import { expect } from "chai";
+import { compact, find } from "lodash";
 
 import Annotation from "../";
 import { AnnotationType } from "../../AnnotationFormatter";
+import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 
 describe("Annotation", () => {
     const annotationResponse = Object.freeze({
@@ -9,6 +11,53 @@ describe("Annotation", () => {
         annotationName: "someDateAnnotation",
         description: "Date the file was uploaded",
         type: AnnotationType.DATETIME,
+    });
+
+    describe("sort", () => {
+        const asdf = new Annotation({
+            annotationDisplayName: "asdf", // n.b.: lower case
+            annotationName: "asdf",
+            description: "asdf",
+            type: AnnotationType.STRING,
+        });
+
+        const fileType = find(
+            TOP_LEVEL_FILE_ANNOTATIONS,
+            (annotation) => annotation.name === AnnotationName.FILE_NAME
+        );
+
+        const cellLine = new Annotation({
+            annotationDisplayName: "Cell Line",
+            annotationName: "Cell Line",
+            description: "Cell line",
+            type: AnnotationType.STRING,
+        });
+
+        const gene = new Annotation({
+            annotationDisplayName: "Gene",
+            annotationName: "Gene",
+            description: "Gene",
+            type: AnnotationType.STRING,
+        });
+
+        it("defaults to alpha order", () => {
+            // arrange / act
+            const sorted = Annotation.sort([gene, cellLine, asdf]);
+
+            // assert
+            expect(sorted).to.deep.equal([asdf, cellLine, gene]);
+        });
+
+        it("orders top-level 'annotations' (née 'attributes') ahead of other annotations", () => {
+            // arrange
+            const input = compact([gene, fileType, cellLine]);
+
+            // act
+            const sorted = Annotation.sort(input);
+
+            // assert
+            expect(sorted).to.deep.equal([fileType, cellLine, gene]);
+        });
     });
 
     describe("extractFromFile", () => {

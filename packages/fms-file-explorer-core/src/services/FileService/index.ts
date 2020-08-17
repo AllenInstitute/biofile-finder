@@ -23,7 +23,6 @@ export interface FmsFile {
     [key: string]: any;
     annotations: FmsFileAnnotation[];
     fileId: string;
-    fileType: string;
     fileName: string;
     filePath: string;
     fileSize: number;
@@ -107,5 +106,3 @@ export default class FileService extends HttpServiceBase {
         return response.data;
     }
 }
-
-export const DefaultFileService = new FileService();

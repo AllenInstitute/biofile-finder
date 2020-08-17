@@ -1,5 +1,5 @@
 import { defaults, isUndefined } from "lodash";
-import * as LRUCache from "lru-cache";
+import LRUCache from "lru-cache";
 import * as React from "react";
 
 import FileDetail from "../../entity/FileDetail";

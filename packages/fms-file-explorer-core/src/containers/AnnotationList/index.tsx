@@ -1,5 +1,5 @@
-import * as classNames from "classnames";
-import * as Fuse from "fuse.js";
+import classNames from "classnames";
+import Fuse from "fuse.js";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -24,7 +24,7 @@ const FUZZY_SEARCH_OPTIONS = {
         { name: "description", weight: 0.3 },
     ],
 
-    // return resulting matches sorted
+    // return resulting matches sorted **by relevance score**
     shouldSort: true,
 
     // arbitrarily tuned; 0.0 requires a perfect match, 1.0 would match anything
@@ -61,8 +61,8 @@ export default function AnnotationList(props: AnnotationListProps) {
             const fuse = new Fuse(annotationListItems, FUZZY_SEARCH_OPTIONS);
             items = fuse.search(searchValue);
         }
-        // Sort the list of annotations to display to the user alphabetically
-        return items.sort((a, b) => a.title.localeCompare(b.title));
+
+        return items;
     }, [annotationListItems, searchValue]);
 
     return (

@@ -46,7 +46,7 @@ describe("<AnnotationList />", () => {
                 </Provider>
             );
             const queryNumberListItems = () =>
-                wrapper.find("span[data-test-id='annotation-list-item']").length;
+                wrapper.find("abbr[data-test-id='annotation-list-item']").length;
 
             // before, expect all annotations to be in the list
             const allAnnotationDisplayNames = annotationsJson.map(
@@ -66,78 +66,6 @@ describe("<AnnotationList />", () => {
             expect(queryNumberListItems()).to.be.lessThan(allAnnotationDisplayNames.length);
             expect(wrapper.contains("Date created")).to.be.true;
             expect(wrapper.contains("Size")).to.be.false;
-        });
-    });
-
-    describe("List Order", () => {
-        it("sorts list alphabetically", () => {
-            // Arrange
-            const { store } = configureMockStore({
-                state: mergeState(initialState, {
-                    metadata: {
-                        annotations: annotationsJson.map(
-                            (annotation) => new Annotation(annotation)
-                        ),
-                    },
-                }),
-            });
-            // Act
-            const wrapper = mount(
-                <Provider store={store}>
-                    <DragDropContext
-                        onDragEnd={() => {
-                            /* noop */
-                        }}
-                    >
-                        <AnnotationList />
-                    </DragDropContext>
-                </Provider>
-            );
-
-            const listItemsWrapper = wrapper.find("span[data-test-id='annotation-list-item']");
-            const listItems = listItemsWrapper.map((node) => node.text());
-            const expectation = annotationsJson
-                .map((annotation) => annotation.annotationDisplayName)
-                .sort((a, b) => a.localeCompare(b));
-
-            // Assert
-            expect(listItems).to.be.deep.equal(expectation);
-        });
-
-        it("continues to sort when filtered", () => {
-            // Arrange
-            const { store } = configureMockStore({
-                state: mergeState(initialState, {
-                    metadata: {
-                        annotations: annotationsJson.map(
-                            (annotation) => new Annotation(annotation)
-                        ),
-                    },
-                }),
-            });
-            // Act
-            const wrapper = mount(
-                <Provider store={store}>
-                    <DragDropContext
-                        onDragEnd={() => {
-                            /* noop */
-                        }}
-                    >
-                        <AnnotationList />
-                    </DragDropContext>
-                </Provider>
-            );
-
-            // Execute a search against the annotations
-            wrapper.find("input[type='search']").simulate("change", { target: { value: "e" } });
-
-            const filteredListItemsWrapper = wrapper.find(
-                "span[data-test-id='annotation-list-item']"
-            );
-            const filteredListItems = filteredListItemsWrapper.map((node) => node.text());
-            const expectation = [...filteredListItems].sort((a, b) => a.localeCompare(b));
-            // Assert
-            expect(filteredListItems).to.be.deep.equal(expectation);
         });
     });
 });

@@ -1,5 +1,5 @@
 import { defaults, flatten, join, map } from "lodash";
-import * as LRUCache from "lru-cache";
+import LRUCache from "lru-cache";
 
 import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";

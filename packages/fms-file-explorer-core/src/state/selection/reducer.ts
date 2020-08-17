@@ -1,8 +1,8 @@
 import { makeReducer } from "@aics/redux-utils";
-import { castArray, compact, difference, find, omit, without } from "lodash";
+import { castArray, difference, omit, without } from "lodash";
 
 import interaction from "../interaction";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../metadata/reducer";
+import { AnnotationName } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
@@ -35,18 +35,17 @@ export interface SelectionStateBranch {
     };
 }
 
-const DEFAULT_DISPLAY_ANNOTATIONS = compact([
-    find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "fileName"),
-    find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "fileType"),
-    find(TOP_LEVEL_FILE_ANNOTATIONS, (annotation) => annotation.name === "fileSize"),
-]);
-
 export const initialState = {
     annotationHierarchy: [],
     availableAnnotationsForHierarchy: [],
     availableAnnotationsForHierarchyLoading: false,
-    columnWidths: {}, // columnName to widthPercent mapping
-    displayAnnotations: [...DEFAULT_DISPLAY_ANNOTATIONS],
+    columnWidths: {
+        [AnnotationName.FILE_NAME]: 0.4,
+        [AnnotationName.KIND]: 0.2,
+        [AnnotationName.TYPE]: 0.3,
+        [AnnotationName.FILE_SIZE]: 0.1,
+    },
+    displayAnnotations: [],
     filters: [],
     openFileFolders: [],
     selectedFileRangesByFileSet: {}, // FileSet::hash to NumericRange[]
@@ -86,10 +85,16 @@ export default makeReducer<SelectionStateBranch>(
                 [action.payload.columnHeader]: action.payload.widthPercent,
             },
         }),
-        [SELECT_DISPLAY_ANNOTATION]: (state, action) => ({
-            ...state,
-            displayAnnotations: [...state.displayAnnotations, ...castArray(action.payload)],
-        }),
+        [SELECT_DISPLAY_ANNOTATION]: (state, action) => {
+            const displayAnnotations = action.payload.replace
+                ? castArray(action.payload.annotation)
+                : [...state.displayAnnotations, ...castArray(action.payload.annotation)];
+
+            return {
+                ...state,
+                displayAnnotations,
+            };
+        },
         [SET_FILE_SELECTION]: (state, action) => ({
             ...state,
             selectedFileRangesByFileSet: action.payload,

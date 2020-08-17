@@ -30,10 +30,10 @@ describe("<AnnotationSidebar /> selectors", () => {
             const listItems = annotationSelectors.getAnnotationListItems(state);
             expect(listItems.length).to.equal(annotationsJson.length);
 
-            const first = listItems[0];
+            const first = listItems[0]; // items are sorted according to Annotation::sort
             expect(first).to.have.property("id");
-            expect(first).to.have.property("description", "Date and time file was created");
-            expect(first).to.have.property("title", "Date created");
+            expect(first).to.have.property("description", "AICS cell line");
+            expect(first).to.have.property("title", "Cell line");
         });
     });
 

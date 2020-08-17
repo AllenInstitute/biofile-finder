@@ -1,7 +1,7 @@
-import { orderBy } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
 import metadata from "../../state/metadata";
@@ -20,42 +20,36 @@ interface FileAnnotationListProps {
  */
 export default function FileAnnotationList(props: FileAnnotationListProps) {
     const { fileDetails, isLoading } = props;
-    const allAnnotations = useSelector(metadata.selectors.getAnnotations);
+    const annotations = useSelector(metadata.selectors.getSortedAnnotations);
 
-    if (isLoading) {
-        return <div className={styles.emptyDetailList}>Loading...</div>;
-    }
-
-    if (!fileDetails) {
-        return <div className={styles.emptyDetailList}>No files currently selected</div>;
-    }
-
-    // Create annotation rows for each annotation that we have a value for (ordered by display name)
-    const customAnnotationRows: JSX.Element[] = [];
-    orderBy(allAnnotations, ["displayName"]).forEach((anno) => {
-        const values = anno.extractFromFile(fileDetails.details);
-        // If it was found, append it to our list of custom annotation rows
-        if (values !== Annotation.MISSING_VALUE) {
-            customAnnotationRows.push(
-                <FileAnnotationRow key={anno.displayName} name={anno.displayName} value={values} />
-            );
+    const content: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
+        if (isLoading) {
+            return <div>Loading...</div>;
         }
-    });
 
-    return (
-        <div className={styles.listParent}>
-            <FileAnnotationRow key="File Name" name="File Name" value={fileDetails.name} />
-            <FileAnnotationRow key="File ID" name="File ID" value={fileDetails.id} />
-            <FileAnnotationRow key="File Type" name="File Type" value={fileDetails.type} />
-            <FileAnnotationRow key="File Path" name="File Path" value={fileDetails.path} />
-            {fileDetails.thumbnail && (
-                <FileAnnotationRow
-                    key="Thumbnail Path"
-                    name="Thumbnail Path"
-                    value={fileDetails.thumbnail}
-                />
-            )}
-            {customAnnotationRows}
-        </div>
-    );
+        if (!fileDetails) {
+            return null;
+        }
+
+        const sorted = Annotation.sort([...TOP_LEVEL_FILE_ANNOTATIONS, ...annotations]);
+        return sorted.reduce((accum, annotation) => {
+            const values = annotation.extractFromFile(fileDetails.details);
+            // If it was found, append it to our list of custom annotation rows
+            if (values !== Annotation.MISSING_VALUE) {
+                return [
+                    ...accum,
+                    <FileAnnotationRow
+                        key={annotation.displayName}
+                        className={styles.row}
+                        name={annotation.displayName}
+                        value={values}
+                    />,
+                ];
+            }
+
+            return accum;
+        }, [] as JSX.Element[]);
+    }, [annotations, fileDetails, isLoading]);
+
+    return <div className={styles.list}>{content}</div>;
 }

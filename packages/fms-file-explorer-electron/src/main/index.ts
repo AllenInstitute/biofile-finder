@@ -1,3 +1,5 @@
+import "regenerator-runtime/runtime";
+
 import * as path from "path";
 
 import { app, BrowserWindow, Menu } from "electron";
@@ -24,7 +26,7 @@ const createMainWindow = () => {
             // This would only be a problem if libraries or our own code attempted to define the same symbols.
             nodeIntegration: true,
         },
-        width: 1000,
+        width: 1200,
     });
 
     mainWindow.on("ready-to-show", () => {
@@ -63,7 +65,7 @@ const createMainWindow = () => {
             );
     } else {
         mainWindow
-            .loadURL(`file://${path.join(__dirname, "renderer", "index.html")}`)
+            .loadURL(`file://${path.join(__dirname, "..", "renderer", "index.html")}`)
             .catch((error: Error) => {
                 console.error("Failed to load from file", error);
             });

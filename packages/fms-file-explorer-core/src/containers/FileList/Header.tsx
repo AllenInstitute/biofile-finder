@@ -6,8 +6,9 @@ import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems from "../ContextMenu/items";
 import SelectableAnnotation from "../ContextMenu/SelectableAnnotation";
 import FileRow from "../../components/FileRow";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import { interaction, metadata, selection } from "../../state";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../state/metadata/reducer";
+import Annotation from "../../entity/Annotation";
 
 const styles = require("./Header.module.css");
 
@@ -23,7 +24,7 @@ function Header(
     ref: React.Ref<HTMLDivElement>
 ) {
     const dispatch = useDispatch();
-    const columnAnnotations = useSelector(selection.selectors.getAnnotationsToDisplay);
+    const columnAnnotations = useSelector(selection.selectors.getOrderedDisplayAnnotations);
     const sortedAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
     const columnWidths = useSelector(selection.selectors.getColumnWidths);
 
@@ -47,7 +48,10 @@ function Header(
             {
                 ...availableItems.MODIFY_COLUMNS,
                 subMenuProps: {
-                    items: [...TOP_LEVEL_FILE_ANNOTATIONS, ...sortedAnnotations].map((a) => ({
+                    items: Annotation.sort([
+                        ...TOP_LEVEL_FILE_ANNOTATIONS,
+                        ...sortedAnnotations,
+                    ]).map((a) => ({
                         key: a.name,
                         text: a.displayName,
                         title: a.description,

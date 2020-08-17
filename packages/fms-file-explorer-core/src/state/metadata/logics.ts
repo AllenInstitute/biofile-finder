@@ -1,7 +1,9 @@
+import { compact, find } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { interaction, ReduxLogicDeps } from "..";
+import { interaction, ReduxLogicDeps, selection } from "..";
 import { receiveAnnotations, REQUEST_ANNOTATIONS } from "./actions";
+import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import AnnotationService from "../../services/AnnotationService";
 
 /**
@@ -15,9 +17,24 @@ const requestAnnotations = createLogic({
         const annotationService = new AnnotationService({ baseUrl, httpClient });
 
         try {
-            dispatch(receiveAnnotations(await annotationService.fetchAnnotations()));
+            const annotations = await annotationService.fetchAnnotations();
+            const defaultDisplayAnnotations = compact([
+                find(
+                    TOP_LEVEL_FILE_ANNOTATIONS,
+                    (annotation) => annotation.name === AnnotationName.FILE_NAME
+                ),
+                find(annotations, (annotation) => annotation.name === AnnotationName.KIND),
+                find(annotations, (annotation) => annotation.name === AnnotationName.TYPE),
+                find(
+                    TOP_LEVEL_FILE_ANNOTATIONS,
+                    (annotation) => annotation.name === AnnotationName.FILE_SIZE
+                ),
+            ]);
+
+            dispatch(receiveAnnotations(annotations));
+            dispatch(selection.actions.selectDisplayAnnotation(defaultDisplayAnnotations, true));
         } catch (err) {
-            console.error("Something went wrong, nobody knows why. But here's a hint:", err);
+            console.error("Failed to fetch annotations", err);
         } finally {
             done();
         }

@@ -1,4 +1,4 @@
-import * as classNames from "classnames";
+import classNames from "classnames";
 import * as React from "react";
 import { DragDropContext, OnDragEndResponder, OnDragStartResponder } from "react-beautiful-dnd";
 import { useDispatch } from "react-redux";
