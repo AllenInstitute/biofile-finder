@@ -58,7 +58,12 @@ const downloadManifest = createLogic({
                 return;
             }
 
-            dispatch(startManifestDownload(manifestDownloadProcessId));
+            dispatch(
+                startManifestDownload(
+                    manifestDownloadProcessId,
+                    "Download of CSV manifest in progress."
+                )
+            );
             const message = await csvService.downloadCsv(selectionsByFileSet);
 
             if (message === CancellationToken) {
@@ -66,9 +71,11 @@ const downloadManifest = createLogic({
                 return;
             }
 
-            dispatch(succeedManifestDownload(manifestDownloadProcessId, message));
+            const successMsg = `Download of CSV manifest successfully finished.<br/>${message}`;
+            dispatch(succeedManifestDownload(manifestDownloadProcessId, successMsg));
         } catch (err) {
-            dispatch(failManifestDownload(manifestDownloadProcessId, err));
+            const errorMsg = `Download of CSV manifest failed.<br/>${err}`;
+            dispatch(failManifestDownload(manifestDownloadProcessId, errorMsg));
         } finally {
             done();
         }

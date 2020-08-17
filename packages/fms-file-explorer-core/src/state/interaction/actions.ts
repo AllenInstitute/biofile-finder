@@ -125,23 +125,19 @@ export function setPlatformDependentServices(
  * PROCESS AND STATUS RELATED ENUMS, INTERFACES, ETC.
  */
 
-export enum Process {
-    MANIFEST_DOWNLOAD,
-}
-
 export enum ProcessStatus {
     STARTED,
     SUCCEEDED,
     FAILED,
+    NOT_SET,
 }
 
 export interface StatusUpdate {
-    data?: {
+    data: {
         msg: string;
+        status?: ProcessStatus;
     };
     id: string; // uuid
-    process: Process;
-    status: ProcessStatus;
 }
 
 export const SET_STATUS = makeConstant(STATE_BRANCH_NAME, "set-status");
@@ -173,13 +169,15 @@ export interface ManifestDownloadStartAction {
     payload: StatusUpdate;
 }
 
-export function startManifestDownload(id: string): ManifestDownloadStartAction {
+export function startManifestDownload(id: string, msg: string): ManifestDownloadStartAction {
     return {
         type: SET_STATUS,
         payload: {
+            data: {
+                msg,
+                status: ProcessStatus.STARTED,
+            },
             id,
-            process: Process.MANIFEST_DOWNLOAD,
-            status: ProcessStatus.STARTED,
         },
     };
 }
@@ -200,10 +198,9 @@ export function succeedManifestDownload(id: string, msg: string): ManifestDownlo
         payload: {
             data: {
                 msg,
+                status: ProcessStatus.SUCCEEDED,
             },
             id,
-            process: Process.MANIFEST_DOWNLOAD,
-            status: ProcessStatus.SUCCEEDED,
         },
     };
 }
@@ -224,10 +221,9 @@ export function failManifestDownload(id: string, msg: string): ManifestDownloadF
         payload: {
             data: {
                 msg,
+                status: ProcessStatus.FAILED,
             },
             id,
-            process: Process.MANIFEST_DOWNLOAD,
-            status: ProcessStatus.FAILED,
         },
     };
 }

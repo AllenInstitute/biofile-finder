@@ -3,7 +3,6 @@ import { expect } from "chai";
 import interaction from "..";
 import { initialState } from "../..";
 import {
-    Process,
     ProcessStatus,
     removeStatus,
     startManifestDownload,
@@ -21,8 +20,10 @@ describe("Interaction reducer", () => {
                 status: [
                     {
                         id,
-                        process: Process.MANIFEST_DOWNLOAD,
-                        status: ProcessStatus.STARTED,
+                        data: {
+                            msg: "something is in progress",
+                            status: ProcessStatus.STARTED,
+                        },
                     },
                 ],
             };
@@ -55,12 +56,14 @@ describe("Interaction reducer", () => {
                 status: [
                     {
                         id,
-                        process: Process.MANIFEST_DOWNLOAD,
-                        status: ProcessStatus.FAILED, // say, a previous failure and the user is going to retry
+                        data: {
+                            msg: "something failed",
+                            status: ProcessStatus.FAILED, // say, a previous failure and the user is going to retry
+                        },
                     },
                 ],
             };
-            const manifestDownloadStartAction = startManifestDownload(id);
+            const manifestDownloadStartAction = startManifestDownload(id, "something started");
 
             // act
             const nextState = interaction.reducer(prevState, manifestDownloadStartAction);
@@ -85,8 +88,10 @@ describe("Interaction reducer", () => {
                 status: [
                     {
                         id,
-                        process: Process.MANIFEST_DOWNLOAD,
-                        status: ProcessStatus.STARTED,
+                        data: {
+                            msg: "something is in progress",
+                            status: ProcessStatus.STARTED,
+                        },
                     },
                 ],
             };
@@ -115,8 +120,10 @@ describe("Interaction reducer", () => {
                 status: [
                     {
                         id,
-                        process: Process.MANIFEST_DOWNLOAD,
-                        status: ProcessStatus.STARTED,
+                        data: {
+                            msg: "something is in progress",
+                            status: ProcessStatus.STARTED,
+                        },
                     },
                 ],
             };

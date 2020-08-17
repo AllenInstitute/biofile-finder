@@ -41,7 +41,9 @@ describe("Interaction logics", () => {
                 actions.includesMatch({
                     type: SET_STATUS,
                     payload: {
-                        status: ProcessStatus.STARTED,
+                        data: {
+                            status: ProcessStatus.STARTED,
+                        },
                     },
                 })
             ).to.equal(true);
@@ -75,7 +77,9 @@ describe("Interaction logics", () => {
                 actions.includesMatch({
                     type: SET_STATUS,
                     payload: {
-                        status: ProcessStatus.SUCCEEDED,
+                        data: {
+                            status: ProcessStatus.SUCCEEDED,
+                        },
                     },
                 })
             ).to.equal(true);
@@ -115,7 +119,9 @@ describe("Interaction logics", () => {
                 actions.includesMatch({
                     type: SET_STATUS,
                     payload: {
-                        status: ProcessStatus.FAILED,
+                        data: {
+                            status: ProcessStatus.FAILED,
+                        },
                     },
                 })
             ).to.equal(true);
@@ -125,7 +131,9 @@ describe("Interaction logics", () => {
                 actions.includesMatch({
                     type: SET_STATUS,
                     payload: {
-                        status: ProcessStatus.SUCCEEDED,
+                        data: {
+                            status: ProcessStatus.SUCCEEDED,
+                        },
                     },
                 })
             ).to.equal(false);
@@ -222,7 +230,9 @@ describe("Interaction logics", () => {
                 actions.includesMatch({
                     type: SET_STATUS,
                     payload: {
-                        status: ProcessStatus.SUCCEEDED,
+                        data: {
+                            status: ProcessStatus.SUCCEEDED,
+                        },
                     },
                 })
             ).to.equal(true);

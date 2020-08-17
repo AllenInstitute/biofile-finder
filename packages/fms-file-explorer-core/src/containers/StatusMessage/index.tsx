@@ -4,7 +4,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
-import { StatusUpdate, ProcessStatus, Process } from "../../state/interaction/actions";
+import { StatusUpdate, ProcessStatus } from "../../state/interaction/actions";
 
 const styles = require("./StatusMessage.module.css");
 
@@ -12,22 +12,14 @@ const statusToTypeMap = {
     [ProcessStatus.STARTED]: MessageBarType.info,
     [ProcessStatus.SUCCEEDED]: MessageBarType.success,
     [ProcessStatus.FAILED]: MessageBarType.error,
+    [ProcessStatus.NOT_SET]: MessageBarType.info,
 };
 
 const statusToBackgroundColorMap = {
     [ProcessStatus.STARTED]: "rgb(243, 242, 241)", // gray
     [ProcessStatus.SUCCEEDED]: "rgb(95, 210, 85)", // green
     [ProcessStatus.FAILED]: "rgb(245, 135, 145)", // red
-};
-
-const statusToDisplayTextMap = {
-    [ProcessStatus.STARTED]: "in progress.",
-    [ProcessStatus.SUCCEEDED]: "successfully finished.",
-    [ProcessStatus.FAILED]: "failed.",
-};
-
-const processToDisplayTextMap = {
-    [Process.MANIFEST_DOWNLOAD]: "Download of CSV manifest",
+    [ProcessStatus.NOT_SET]: "rgb(243, 242, 241)", // gray
 };
 
 const SPACING = 5; // px
@@ -51,35 +43,42 @@ export default function StatusMessage() {
 
     return (
         <Stack {...verticalStackProps} className={styles.container}>
-            {map(useSelector(interaction.selectors.getProcessStatuses), (status: StatusUpdate) => {
-                const message = status.data?.msg;
+            {map(
+                useSelector(interaction.selectors.getProcessStatuses),
+                (statusUpdate: StatusUpdate) => {
+                    const {
+                        data: { msg, status = ProcessStatus.NOT_SET },
+                    } = statusUpdate;
 
-                return (
-                    <MessageBar
-                        key={status.id}
-                        messageBarType={statusToTypeMap[status.status]}
-                        onDismiss={() => dispatch(interaction.actions.removeStatus(status.id))}
-                        styles={{
-                            root: {
-                                backgroundColor: statusToBackgroundColorMap[status.status],
-                            },
-                        }}
-                        isMultiline={message !== undefined}
-                    >
-                        <>
-                            <div className={styles.centeringParent}>
-                                {status.status === ProcessStatus.STARTED && (
-                                    <Spinner className={styles.spinner} size={SpinnerSize.small} />
-                                )}
-                                {`${processToDisplayTextMap[status.process]} ${
-                                    statusToDisplayTextMap[status.status]
-                                }`}
-                            </div>
-                            {message}
-                        </>
-                    </MessageBar>
-                );
-            })}
+                    return (
+                        <MessageBar
+                            key={statusUpdate.id}
+                            messageBarType={statusToTypeMap[status]}
+                            onDismiss={() =>
+                                dispatch(interaction.actions.removeStatus(statusUpdate.id))
+                            }
+                            styles={{
+                                root: {
+                                    backgroundColor: statusToBackgroundColorMap[status],
+                                },
+                            }}
+                            isMultiline={msg !== undefined}
+                        >
+                            <>
+                                <div className={styles.centeringParent}>
+                                    {status === ProcessStatus.STARTED && (
+                                        <Spinner
+                                            className={styles.spinner}
+                                            size={SpinnerSize.small}
+                                        />
+                                    )}
+                                    <div dangerouslySetInnerHTML={{ __html: msg }}></div>
+                                </div>
+                            </>
+                        </MessageBar>
+                    );
+                }
+            )}
         </Stack>
     );
 }
