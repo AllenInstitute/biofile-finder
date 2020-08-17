@@ -1,4 +1,4 @@
-import * as classNames from "classnames";
+import classNames from "classnames";
 import * as debouncePromise from "debounce-promise";
 import { defaults, isEmpty } from "lodash";
 import * as React from "react";

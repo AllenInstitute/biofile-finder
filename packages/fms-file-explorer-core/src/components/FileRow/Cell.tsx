@@ -1,4 +1,4 @@
-import * as classNames from "classnames";
+import classNames from "classnames";
 import Interactable from "@interactjs/core/Interactable"; // unfortunately necessary for the typings
 import InteractEvent from "@interactjs/core/InteractEvent"; // unfortunately necessary for the typings
 import interact from "interactjs";

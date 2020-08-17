@@ -1,5 +1,5 @@
 import "normalize.css";
-import * as classNames from "classnames";
+import classNames from "classnames";
 import { defaultsDeep } from "lodash";
 import { initializeIcons, loadTheme } from "office-ui-fabric-react";
 import * as React from "react";

@@ -1,5 +1,5 @@
-import * as classNames from "classnames";
-import * as Fuse from "fuse.js";
+import classNames from "classnames";
+import Fuse from "fuse.js";
 import * as React from "react";
 import { useSelector } from "react-redux";
 

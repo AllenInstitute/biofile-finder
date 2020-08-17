@@ -1,4 +1,4 @@
-import * as Fuse from "fuse.js";
+import Fuse from "fuse.js";
 import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "office-ui-fabric-react";
 import * as React from "react";
 
