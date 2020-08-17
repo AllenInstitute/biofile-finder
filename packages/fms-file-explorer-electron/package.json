@@ -63,6 +63,7 @@
     "@types/react": "16.9.43",
     "@types/react-dom": "16.9.8",
     "@types/react-redux": "7.1.4",
+    "@types/semver": "7.3.2",
     "@types/sinon": "7.0.13",
     "@typescript-eslint/eslint-plugin": "2.6.0",
     "@typescript-eslint/parser": "2.6.0",
@@ -107,7 +108,8 @@
     "react": "16.9.0",
     "react-dom": "16.9.0",
     "react-redux": "7.1.1",
-    "regenerator-runtime": "0.13.3"
+    "regenerator-runtime": "0.13.3",
+    "semver": "7.3.2"
   },
   "resolutions": {
     "@types/node": "12.x",
