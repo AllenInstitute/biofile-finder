@@ -16,10 +16,10 @@ const statusToTypeMap = {
 };
 
 const statusToBackgroundColorMap = {
-    [ProcessStatus.STARTED]: "rgb(243, 242, 241)", // gray
+    [ProcessStatus.STARTED]: "rgb(210, 207, 212", // gray
     [ProcessStatus.SUCCEEDED]: "rgb(95, 210, 85)", // green
     [ProcessStatus.FAILED]: "rgb(245, 135, 145)", // red
-    [ProcessStatus.NOT_SET]: "rgb(243, 242, 241)", // gray
+    [ProcessStatus.NOT_SET]: "rgb(210, 207, 212", // gray
 };
 
 const SPACING = 5; // px
@@ -64,17 +64,15 @@ export default function StatusMessage() {
                             }}
                             isMultiline={msg !== undefined}
                         >
-                            <>
-                                <div className={styles.centeringParent}>
-                                    {status === ProcessStatus.STARTED && (
-                                        <Spinner
-                                            className={styles.spinner}
-                                            size={SpinnerSize.small}
-                                        />
-                                    )}
-                                    <div dangerouslySetInnerHTML={{ __html: msg }}></div>
-                                </div>
-                            </>
+                            <div className={styles.centeringParent}>
+                                {status === ProcessStatus.STARTED && (
+                                    <Spinner className={styles.spinner} size={SpinnerSize.small} />
+                                )}
+                                <div
+                                    dangerouslySetInnerHTML={{ __html: msg }}
+                                    style={{ userSelect: "text" }}
+                                ></div>
+                            </div>
                         </MessageBar>
                     );
                 }

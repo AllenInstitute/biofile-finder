@@ -1,6 +1,6 @@
 import "normalize.css";
 import classNames from "classnames";
-import { defaultsDeep } from "lodash";
+import { uniqueId } from "lodash";
 import { initializeIcons, loadTheme } from "office-ui-fabric-react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -38,7 +38,7 @@ interface AppProps {
     platformDependentServices?: PlatformDependentServices;
 }
 
-const defaultProps: AppProps = {
+const defaultProps = {
     fileExplorerServiceBaseUrl: DataSource.PRODUCTION,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
@@ -47,17 +47,34 @@ const defaultProps: AppProps = {
 };
 
 export default function App(props: AppProps) {
-    const { fileExplorerServiceBaseUrl, platformDependentServices } = defaultsDeep(
-        {},
-        props,
-        defaultProps
-    );
+    const {
+        fileExplorerServiceBaseUrl = defaultProps.fileExplorerServiceBaseUrl,
+        platformDependentServices = defaultProps.platformDependentServices,
+    } = props;
 
     const dispatch = useDispatch();
 
     // Set platform-dependent services in state
     React.useEffect(() => {
         dispatch(interaction.actions.setPlatformDependentServices(platformDependentServices));
+
+        async function checkForUpdates() {
+            try {
+                if (await platformDependentServices.applicationInfoService.updateAvailable()) {
+                    const homepage = "https://alleninstitute.github.io/aics-fms-file-explorer-app/";
+                    const msg = `A new version of the application available!<br/>
+                    Visit the <a href="${homepage}" target="_blank" title="FMS File Explorer homepage">FMS File Explorer homepage</a> to download.`;
+                    dispatch(interaction.actions.promptUserToUpdateApp(uniqueId(), msg));
+                }
+            } catch (e) {
+                console.error(
+                    "Failed while checking if a newer application version is available",
+                    e
+                );
+            }
+        }
+
+        checkForUpdates();
     }, [dispatch, platformDependentServices]);
 
     // Set connection configuration for the file-explorer-service

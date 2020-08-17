@@ -2,7 +2,7 @@ import "regenerator-runtime/runtime";
 
 import * as path from "path";
 
-import { app, BrowserWindow, Menu } from "electron";
+import { app, BrowserWindow, Menu, shell } from "electron";
 import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
 
 import template from "./menu";
@@ -46,6 +46,15 @@ const createMainWindow = () => {
     mainWindow.on("closed", () => {
         // Dereference the window
         mainWindow = undefined;
+    });
+
+    // Allow the application to open webpages in the default web browser.
+    // Used, e.g., for giving the user a link to the applicaion's website to download a newer release.
+    mainWindow.webContents.on("new-window", (event, url) => {
+        if (url && url.startsWith("http")) {
+            event.preventDefault();
+            shell.openExternal(url);
+        }
     });
 
     if (isDevelopment) {

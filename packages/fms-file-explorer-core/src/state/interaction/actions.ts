@@ -160,6 +160,28 @@ export function removeStatus(id: string): RemoveStatusAction {
 }
 
 /**
+ * NOTIFY FOR APPLICATION UPDATE
+ *
+ * Intention to inform the user that a newer version of the application is available.
+ */
+export interface PromptUserToUpdateApp {
+    type: string;
+    payload: StatusUpdate;
+}
+
+export function promptUserToUpdateApp(id: string, msg: string): PromptUserToUpdateApp {
+    return {
+        type: SET_STATUS,
+        payload: {
+            data: {
+                msg,
+            },
+            id,
+        },
+    };
+}
+
+/**
  * MANIFEST_DOWNLOAD_START
  *
  * Intention to inform the user of the start of a manifest download.
