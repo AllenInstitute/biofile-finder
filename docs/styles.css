@@ -16,14 +16,6 @@ html, body, #app {
     overflow-x: hidden;
 }
 
-a {
-    color: #ffffff;
-}
-
-a:hover {
-    text-decoration: none;
-}
-
 label {
     font-weight: 700;
 }
@@ -124,4 +116,8 @@ select:hover {
     height: 1.5em;
     padding: 1em;
     text-align: center;
+}
+
+#gh-logo {
+    width: 3em;
 }
