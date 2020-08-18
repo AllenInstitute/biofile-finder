@@ -16,10 +16,10 @@ const statusToTypeMap = {
 };
 
 const statusToBackgroundColorMap = {
-    [ProcessStatus.STARTED]: "rgb(210, 207, 212", // gray
+    [ProcessStatus.STARTED]: "rgb(210, 207, 212)", // gray
     [ProcessStatus.SUCCEEDED]: "rgb(95, 210, 85)", // green
     [ProcessStatus.FAILED]: "rgb(245, 135, 145)", // red
-    [ProcessStatus.NOT_SET]: "rgb(210, 207, 212", // gray
+    [ProcessStatus.NOT_SET]: "rgb(210, 207, 212)", // gray
 };
 
 const SPACING = 5; // px
