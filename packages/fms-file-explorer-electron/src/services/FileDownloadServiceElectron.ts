@@ -50,7 +50,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         });
                     } else {
                         res.on("end", () => {
-                            resolve(`CSV manifest for saved to ${result.filePath}`);
+                            resolve(`CSV manifest saved to ${result.filePath}`);
                         });
                         res.on("error", (err) => {
                             reject(err.message);
