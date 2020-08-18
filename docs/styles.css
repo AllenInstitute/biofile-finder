@@ -1,4 +1,7 @@
 html {
+    --purple: #6b6286;
+    --column-padding: 3em;
+
     background-color: #ffffff;
     box-sizing: border-box;
     color: darkslategrey;
@@ -28,6 +31,10 @@ html, body, #app {
     flex-direction: row;
 }
 
+.column {
+    padding: var(--column-padding);
+}
+
 #primary-column {
     /* flex child of app */
     flex: 1 1 40%;
@@ -37,13 +44,12 @@ html, body, #app {
     flex-direction: column;
 
     color: #ffffff;
-    background-color: #6b6286;
+    background-color: var(--purple);
     user-select: none;
 }
 
 #primary-column header {
     flex: 0 0 10%;
-    margin-bottom: 1.5em;
 }
 
 .logo {
@@ -106,7 +112,6 @@ select {
     /* flex parent to its label and select elements */
     display: flex;
     flex-direction: column;
-
 }
 
 #primary-column footer {
@@ -116,21 +121,34 @@ select {
 
     /* flex parent of github link */
     display: flex;
-    align-items: flex-end;
-    justify-content: center;
 }
 
 #gh-logo {
-    width: 3em;
+    width: 32px;
 }
 
 #secondary-column {
     /* flex child of app */
     flex: 1 1 60%;
+
+    overflow-y: auto;
 }
 
-.column {
-    padding: 3em;
+#secondary-column section:last-of-type {
+    margin-bottom: var(--column-padding);
+}
+
+.divider {
+    margin: 50px auto;
+    width: 90%;
+    color: var(--purple);
+}
+
+.banner {
+    background-color: rgba(107, 98, 134, 0.3);
+    text-align: center;
+    padding: 5%;
+    margin: 0 2.5%;
 }
 
 li {
@@ -139,4 +157,18 @@ li {
 
 #subtitle {
     color: #edebf1;
+}
+
+.figure {
+    width: 80%;
+}
+
+.figure-caption {
+    font-style: italic;
+}
+
+.screenshot {
+    width: 100%;
+    object-fit: contain;
+    object-position: center;
 }
