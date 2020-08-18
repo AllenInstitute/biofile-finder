@@ -8,6 +8,7 @@ import {
     failManifestDownload,
     removeStatus,
     startManifestDownload,
+    SHOW_CONTEXT_MENU,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -82,4 +83,22 @@ const downloadManifest = createLogic({
     },
 });
 
-export default [downloadManifest];
+/**
+ * Interceptor responsible for responding to a SHOW_CONTEXT_MENU action and ensuring the previous
+ * context menu is dismissed gracefully.
+ */
+const showContextMenu = createLogic({
+    type: SHOW_CONTEXT_MENU,
+    async transform(deps: ReduxLogicDeps, next) {
+        const { action, getState } = deps;
+        // In some cases (like if the context menu was re-triggered to appear somewhere else)
+        // there is no automatic call to dismiss the menu, in which case we need to manually trigger this
+        const existingDismissAction = interactionSelectors.getContextMenuOnDismiss(getState());
+        if (existingDismissAction) {
+            existingDismissAction();
+        }
+        next(action);
+    },
+});
+
+export default [downloadManifest, showContextMenu];
