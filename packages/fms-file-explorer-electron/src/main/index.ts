@@ -49,7 +49,7 @@ const createMainWindow = () => {
     });
 
     // Allow the application to open webpages in the default web browser.
-    // Used, e.g., for giving the user a link to the applicaion's website to download a newer release.
+    // Used, e.g., for giving the user a link to the application's website to download a newer release.
     mainWindow.webContents.on("new-window", (event, url) => {
         if (url && url.startsWith("http")) {
             event.preventDefault();
