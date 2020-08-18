@@ -53,7 +53,6 @@ function updateDownloadLink(releaseIdAsString) {
 }
 
 function selectOperatingSystem(os) {
-    document.getElementById('os-reselector-button').innerHTML = `Not Using a ${os} Computer Currently?`
     document.getElementById('download-button').innerHTML = `Download for ${os}`;
     document.getElementById('instructions-title').innerHTML = `Setup Instructions for ${os}`;
     const instructionsElement = document.getElementById('instructions');
@@ -128,8 +127,8 @@ function initialize() {
     // & auto-enable changing the operating system manually
     if (os === OS.UNKNOWN) {
         alert("Could not determine operating system, please select a different one using the dropdown");
-        enableOperatingSystemReselector();
     }
+    
     // Update dialog
     selectOperatingSystem(os);
 }

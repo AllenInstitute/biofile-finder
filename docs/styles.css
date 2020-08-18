@@ -2,122 +2,141 @@ html {
     background-color: #ffffff;
     box-sizing: border-box;
     color: darkslategrey;
-    font: 1em/1em "Hind Siliguri", sans-serif;
+    font-family: "Open Sans", sans-serif;
   }
-  
-html:after {
-    box-sizing: inherit;
-}
+
+  *,
+  *:before,
+  *:after {
+      box-sizing: inherit;
+  }
 
 html, body, #app {
     width: 100%;
     height: 100%;
     margin: 0;
-    overflow-x: hidden;
+    padding: 0;
 }
 
-label {
-    font-weight: 700;
+.title {
+    font-family: 'Raleway', sans-serif;
 }
 
-li {
-    margin: 0.25em 0;
+#app {
+    /* flex parent of primary- and secondary-column */
+    display: flex;
+    flex-direction: row;
 }
 
-button {
+#primary-column {
+    /* flex child of app */
+    flex: 1 1 40%;
+
+    /* flex parent of primary-column-body & primary-column-footer */
+    display: flex;
+    flex-direction: column;
+
+    color: #ffffff;
+    background-color: #6b6286;
+    user-select: none;
+}
+
+#primary-column header {
+    flex: 0 0 10%;
+    margin-bottom: 1.5em;
+}
+
+.logo {
+    max-height: 50px;
+}
+
+#primary-column section {
+    /* flex child of primary-column */
+    flex: 1 1 80%;
+
+    padding: 0 10%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#download-link {
+    text-decoration: none;
+    width: 100%;
+
+    margin-bottom: 20px;
+}
+
+#download-button {
+    background-color: #BAD636;
+    font-size: 1.5em;
+    width: 100%;
     border: none;
     color: #003056;
     cursor: pointer;
     display: table;
     font-weight: 700;
     height: 3em;
-    padding: 0.5em;
-    margin: 1em auto;
-    width: 80%;
-}
-
-select {
-    background-color: #847AA3;
-    color: #ffffff;
-    cursor: pointer;
-    display: block;
-    padding: 0.5em;
-    margin-top: 0.5em;
-}
-
-select:hover {
-    background-color: #6b6286;
-}
-
-.selector-container {
-    margin: 1em auto;
-    width: min-content;
-}
-
-/* Clear floats after the columns */
-#app:after {
-    content: "";
-    display: table;
-    clear: both;
-}
-
-#primary-column, #secondary-column {
-    float: left;
-    /* 100% - top padding */
-    height: calc(100% - 2em);
-    padding: 2em 5% 0 5%;
-    width: 40%;
-}
-
-#logo-container {
-    display: inline-block;
-}
-
-#primary-column {
-    color: #ffffff;
-    background-color: #6b6286;
-    user-select: none;
-}
-
-#primary-column-body {
-    height: calc(100% - 7.5em);
-}
-
-#subtitle {
-    color: #edebf1;
-}
-
-#download-link {
-    text-decoration: none;
-}
-
-#download-button {
-    background-color: #BAD636;
-    font-size: 1.5em;
 }
 
 #download-button:hover {
     background-color: #dbee86;
 }
 
-#os-reselector-button {
-    background-color: #edebf1;
+#selectors {
+    display: flex;
+    width: 100%;
 }
 
-#os-reselector-button:hover {
-    background-color: #ffffff;
+select {
+    background-color: white;
+    color: black;
+    cursor: pointer;
+    display: block;
+    padding: 0.5em;
+    margin-top: 0.5em;
 }
 
-#os-selector-container {
-    display: none;
+.selector-container {
+    width: 50%;
+    padding: 0 5%;
+
+    /* flex parent to its label and select elements */
+    display: flex;
+    flex-direction: column;
+
 }
 
-#primary-column-footer {
-    height: 1.5em;
-    padding: 1em;
+#primary-column footer {
+    /* flex child of primary-column */
+    flex: 1 1 auto;
     text-align: center;
+
+    /* flex parent of github link */
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
 }
 
 #gh-logo {
     width: 3em;
+}
+
+#secondary-column {
+    /* flex child of app */
+    flex: 1 1 60%;
+}
+
+.column {
+    padding: 3em;
+}
+
+li {
+    margin: 0.25em 0;
+}
+
+#subtitle {
+    color: #edebf1;
 }
