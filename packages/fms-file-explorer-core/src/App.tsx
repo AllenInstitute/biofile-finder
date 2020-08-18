@@ -62,7 +62,7 @@ export default function App(props: AppProps) {
             try {
                 if (await platformDependentServices.applicationInfoService.updateAvailable()) {
                     const homepage = "https://alleninstitute.github.io/aics-fms-file-explorer-app/";
-                    const msg = `A new version of the application available!<br/>
+                    const msg = `A new version of the application is available!<br/>
                     Visit the <a href="${homepage}" target="_blank" title="FMS File Explorer homepage">FMS File Explorer homepage</a> to download.`;
                     dispatch(interaction.actions.promptUserToUpdateApp(uniqueId(), msg));
                 }
