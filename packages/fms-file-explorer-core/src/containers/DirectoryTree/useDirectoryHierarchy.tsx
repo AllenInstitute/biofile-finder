@@ -16,6 +16,7 @@ import FileFilter from "../../entity/FileFilter";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import * as directoryTreeSelectors from "./selectors";
 import { interaction, metadata, selection } from "../../state";
+import { naturalComparator } from "../../util/strings";
 
 interface UseDirectoryHierarchy {
     (params: { ancestorNodes?: string[]; currentNode?: string; collapsed: boolean }): {
@@ -152,14 +153,16 @@ const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
                         return true;
                     });
 
-                    const nodes = filteredValues.map((value) => (
-                        <DirectoryTreeNode
-                            key={`${[...pathToNode, value].join(":")}|${hierarchy.join(":")}`}
-                            ancestorNodes={pathToNode}
-                            currentNode={value}
-                            displayValue={annotationAtDepth?.getDisplayValue(value) || value}
-                        />
-                    ));
+                    const nodes = filteredValues
+                        .sort(naturalComparator)
+                        .map((value) => (
+                            <DirectoryTreeNode
+                                key={`${[...pathToNode, value].join(":")}|${hierarchy.join(":")}`}
+                                ancestorNodes={pathToNode}
+                                currentNode={value}
+                                displayValue={annotationAtDepth?.getDisplayValue(value) || value}
+                            />
+                        ));
 
                     if (!cancel) {
                         dispatch(receiveContent(nodes));
