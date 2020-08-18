@@ -1,7 +1,6 @@
-import { isString, isNumber } from "lodash";
 import * as React from "react";
 
-import { naturalCompare } from "../../util/strings";
+import { naturalComparator } from "../../util/strings";
 import AnnotationService, { AnnotationValue } from "../../services/AnnotationService";
 
 /**
@@ -30,19 +29,7 @@ export default function useAnnotationValues(
             .then((response: AnnotationValue[]) => {
                 if (!ignoreResponse) {
                     if (response && response.length > 1) {
-                        const sorted = [...response].sort((a, b) => {
-                            if (isString(a) && isString(b)) {
-                                return naturalCompare(a, b);
-                            }
-
-                            if (isNumber(a) && isNumber(b)) {
-                                return a - b;
-                            }
-
-                            // don't bother trying to sort other types
-                            return 0;
-                        });
-                        setAnnotationValues(sorted);
+                        setAnnotationValues([...response].sort(naturalComparator));
                         return;
                     }
                     setAnnotationValues(response);
