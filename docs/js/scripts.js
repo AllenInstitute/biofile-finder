@@ -28,11 +28,6 @@ const INSTRUCTIONS_FOR_OS = {
 const REPO_OWNER = "AllenInstitute";
 const REPO = "aics-fms-file-explorer-app";
 
-function enableOperatingSystemReselector() {
-    document.getElementById('os-selector-container').style.display = 'block';
-    document.getElementById('os-reselector-button').style.display = 'none';
-}
-
 function updateDownloadLink(releaseIdAsString) {
     const releaseId = parseInt(releaseIdAsString, 10);
     const releases = JSON.parse(localStorage.getItem('releases'));
@@ -54,7 +49,7 @@ function updateDownloadLink(releaseIdAsString) {
 
 function selectOperatingSystem(os) {
     document.getElementById('download-button').innerHTML = `Download for ${os}`;
-    document.getElementById('instructions-title').innerHTML = `Setup Instructions for ${os}`;
+    document.getElementById('instructions-title').innerHTML = `Setup instructions for ${os}`;
     const instructionsElement = document.getElementById('instructions');
     instructionsElement.innerHTML = '';
     INSTRUCTIONS_FOR_OS[os].forEach(instruction => {
@@ -128,7 +123,7 @@ function initialize() {
     if (os === OS.UNKNOWN) {
         alert("Could not determine operating system, please select a different one using the dropdown");
     }
-    
+
     // Update dialog
     selectOperatingSystem(os);
 }
