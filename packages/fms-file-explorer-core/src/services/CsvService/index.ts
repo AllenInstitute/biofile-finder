@@ -1,4 +1,4 @@
-import { compact, map, reduce } from "lodash";
+import { compact, map } from "lodash";
 
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
@@ -34,18 +34,6 @@ export default class CsvService extends HttpServiceBase {
     public downloadCsv(fileSetToSelectionMapping: {
         [index: string]: NumericRange[];
     }): Promise<string> {
-        const totalCountSelected = reduce(
-            fileSetToSelectionMapping,
-            (runningTotal, selectionsForFileSet) =>
-                runningTotal +
-                reduce(
-                    selectionsForFileSet,
-                    (fileSetTotal, range) => fileSetTotal + range.length,
-                    0
-                ),
-            0
-        );
-
         const postBody: SelectionRequest[] = compact(
             map(fileSetToSelectionMapping, (selections: NumericRange[], fileSetHash: string) => {
                 const fileSet = defaultFileSetFactory.get(fileSetHash);
@@ -67,10 +55,6 @@ export default class CsvService extends HttpServiceBase {
         const stringifiedPostBody = JSON.stringify(postBody);
         const url = `${this.baseUrl}/${CsvService.BASE_CSV_DOWNLOAD_URL}`;
 
-        return this.downloadService.downloadCsvManifest(
-            url,
-            stringifiedPostBody,
-            totalCountSelected
-        );
+        return this.downloadService.downloadCsvManifest(url, stringifiedPostBody);
     }
 }

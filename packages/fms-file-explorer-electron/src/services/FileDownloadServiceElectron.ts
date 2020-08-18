@@ -18,11 +18,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         });
     }
 
-    public async downloadCsvManifest(
-        url: string,
-        postData: string,
-        totalCountSelected: number
-    ): Promise<string> {
+    public async downloadCsvManifest(url: string, postData: string): Promise<string> {
         const result = await ipcRenderer.invoke(FileDownloadServiceElectron.GET_FILE_SAVE_PATH);
 
         if (result.canceled) {
@@ -54,9 +50,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         });
                     } else {
                         res.on("end", () => {
-                            resolve(
-                                `CSV manifest for ${totalCountSelected} file(s) saved to ${result.filePath}`
-                            );
+                            resolve(`CSV manifest for saved to ${result.filePath}`);
                         });
                         res.on("error", (err) => {
                             reject(err.message);
