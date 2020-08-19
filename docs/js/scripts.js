@@ -10,20 +10,50 @@ const FILE_TYPE_FOR_OS = {
     [OS.LINUX]: "AppImage"
 };
 const INSTRUCTIONS_FOR_OS = {
-    [OS.WINDOWS]: ["Locate the download in your file browser and attempt to open as usual",
-                   "Click to open as you would any other application",
-                   'When prompted, select that you trust this application and would like to "Run anyway"'],
-    [OS.MAC]: ["Locate the download in your file browser and attempt to open as usual",
-               "Click to open as you would any other application",
-               "When prompted, drag and drop the app into the applications folder",
-               'Locate the app "FMS File Explorer" in your applications and right click it',
-               'Select "Open" to allow the mac to trust it'],
-    [OS.LINUX]: ["Locate the download in file browser",
-                 "Right-click the download",
-                 'Select the "Properties" dropdown option',
-                 'Click the "Permissions" tab',
-                 'Ensure "Allow executing file as program" is checked',
-                 "Click to open as you would any other application"]
+    [OS.WINDOWS]: [
+        "Click the big 'Download' button on the left",
+        "Locate the download in your file browser and attempt to open as usual",
+        "Click to open as you would any other application",
+        'When prompted, select that you trust this application and would like to "Run anyway"'
+    ],
+    [OS.MAC]: [
+        "Click the big 'Download' button on the left.",
+        `
+        <figure class="figure installation-instr">
+            <img class="screenshot" src="resources/macos-open-with-diskimagemounter.png">
+            <figcaption class="figure-caption">
+            When prompted by your web browser, select 'Open with DiskImageMounter (default).'
+            </figcaption>
+        </figure>
+        `,
+        `
+        <figure class="figure installation-instr">
+            <img class="screenshot" src="resources/macos-drag-into-applications.png">
+            <figcaption class="figure-caption">
+            Drag and drop the FMS File Explorer icon onto the Applications folder icon. If you've asked to 'Keep Both, 'Stop,' or 'Replace,' choose 'Replace.'
+            </figcaption>
+        </figure>
+        `,
+        "Open Finder, and locate the FMS File Explorer in Applications.",
+        "Right-click on the FMS File Explorer, select 'Open.' <em>You may need to do this twice in order to get to the next step</em>.",
+        `
+        <figure class="figure installation-instr">
+            <img class="screenshot" src="resources/macos-open-anyway.png">
+            <figcaption class="figure-caption">
+            You should be prompted with an alert that reads, "macOS cannot verify the developer of 'FMS File Explorer'. Are you sure you want to open it?" Select "Open."
+            </figcaption>
+        </figure>
+        `,
+    ],
+    [OS.LINUX]: [
+        "Click the big 'Download' button on the left",
+        "Locate the download in file browser",
+        "Right-click the download",
+        'Select the "Properties" dropdown option',
+        'Click the "Permissions" tab',
+        'Ensure "Allow executing file as program" is checked',
+        "Click to open as you would any other application"
+    ]
 };
 const REPO_OWNER = "AllenInstitute";
 const REPO = "aics-fms-file-explorer-app";
