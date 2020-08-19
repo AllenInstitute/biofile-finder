@@ -58,6 +58,9 @@ export default makeReducer<InteractionStateBranch>(
         [HIDE_CONTEXT_MENU]: (state) => ({
             ...state,
             contextMenuIsVisible: false,
+            contextMenuItems: [],
+            contextMenuOnDismiss: undefined,
+            contextMenuPositionReference: null,
         }),
         [SET_STATUS]: (state, action) => ({
             ...state,
