@@ -92,6 +92,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
             className={classNames(styles.directoryHeader, {
                 [styles.focused]: isContextMenuActive,
             })}
+            data-testid="treeitemheader"
             onClick={onClick}
             onContextMenu={onContextMenu}
         >

@@ -7,7 +7,7 @@ import {
 import { expect } from "chai";
 import { get as _get, tail } from "lodash";
 import * as React from "react";
-import { fireEvent, render, wait } from "@testing-library/react";
+import { fireEvent, render, wait, findByTestId } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
@@ -18,6 +18,9 @@ import { initialState, interaction, reducer, reduxLogics } from "../../../state"
 import FileService from "../../../services/FileService";
 import { addFileFilter } from "../../../state/selection/actions";
 import FileFilter from "../../../entity/FileFilter";
+import { mount } from "enzyme";
+
+const styles = require("../DirectoryTreeNode.module.css");
 
 describe("<DirectoryTree />", () => {
     const sandbox = createSandbox();
@@ -181,4 +184,82 @@ describe("<DirectoryTree />", () => {
             expect(() => getByText(String(value))).to.throw();
         });
     });
+
+    it.only("gains then loses focus when a context menu is summoned elsewhere", async () => {
+        const { store } = configureMockStore({
+            state,
+            responseStubs,
+            reducer,
+            logics: reduxLogics,
+        });
+
+        const { findAllByRole } = render(
+            <Provider store={store}>
+                <DirectoryTree />
+            </Provider>
+        );
+
+        // wait for the requests for data
+        const directoryTreeNodeHeaders = await findAllByRole("treeitem");
+
+        // expect the top level annotation headers to be in the dom
+        expect(directoryTreeNodeHeaders.length).to.equal(4);
+
+        // informs the fireEvent to be a right-click
+        const rightClick = { button: 2 };
+
+        // set baseline for tests
+        let firstHeader = await findByTestId(directoryTreeNodeHeaders[0], "treeitemheader");
+        let secondHeader = await findByTestId(directoryTreeNodeHeaders[1], "treeitemheader");
+
+        expect(firstHeader).to.be.true; // TODO: delete
+        expect(firstHeader.className).to.be.true; // TODO: delete
+        expect(firstHeader.classList.toString()).to.be.true; // TODO: delete
+
+        expect(firstHeader.classList.contains("focused")).to.be.false;
+        expect(secondHeader.classList.contains("focused")).to.be.false;
+
+        // right-click on a tree item header
+        fireEvent.click(directoryTreeNodeHeaders[0], rightClick);
+        firstHeader = await findByTestId(directoryTreeNodeHeaders[0], "treeitemheader"); // refresh node
+        secondHeader = await findByTestId(directoryTreeNodeHeaders[1], "treeitemheader"); // refresh node
+        expect(firstHeader.classList.contains("focused")).to.be.true;
+        expect(secondHeader.classList.contains("focused")).to.be.false;
+
+        // right-click on another tree item header
+        fireEvent.click(directoryTreeNodeHeaders[1], rightClick);
+        firstHeader = await findByTestId(directoryTreeNodeHeaders[0], "treeitemheader"); // refresh node
+        secondHeader = await findByTestId(directoryTreeNodeHeaders[1], "treeitemheader"); // refresh node
+        expect(firstHeader.classList.contains("focused")).to.be.false;
+        expect(secondHeader.classList.contains("focused")).to.be.true;
+    });
+
+    // it.only("gains then loses focus when a context menu is summoned elsewhere", async () => {
+    //     // const { store } = configureMockStore({
+    //     //     state,
+    //     //     responseStubs,
+    //     //     reducer,
+    //     //     logics: reduxLogics,
+    //     // });
+    //     const { store } = configureMockStore({ state, responseStubs });
+
+    //     const wrapper = mount(
+    //         <Provider store={store}>
+    //             <DirectoryTree />
+    //         </Provider>
+    //     );
+
+    //     // initial condition: the details window is not expanded
+    //     expect(wrapper.find(`.${styles['directory-header']}`)).to.be.false;
+    //     expect(wrapper.find('[role="tree"]').at(0).hasClass(styles.focused)).to.be.false;
+    //     expect(wrapper.find(`.${styles['directory-header']}`).at(0).hasClass(styles.focused)).to.be.false;
+
+    //     wrapper.find(`.${styles['directory-header']}`).at(0).simulate("right-click");
+    //     expect(wrapper.find(`.${styles['directory-header']}`).at(0).hasClass(styles.focused)).to.be.true;
+    //     expect(wrapper.find(`.${styles['directory-header']}`).at(1).hasClass(styles.focused)).to.be.false;
+
+    //     wrapper.find(`.${styles['directory-header']}`).at(0).simulate("right-click");
+    //     expect(wrapper.find(`.${styles['directory-header']}`).at(0).hasClass(styles.focused)).to.be.false;
+    //     expect(wrapper.find(`.${styles['directory-header']}`).at(1).hasClass(styles.focused)).to.be.true;
+    // });
 });
