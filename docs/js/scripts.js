@@ -49,7 +49,7 @@ function updateDownloadLink(releaseIdAsString) {
 
 function selectOperatingSystem(os) {
     document.getElementById('download-button').innerHTML = `Download for ${os}`;
-    document.getElementById('installation-instructions').innerHTML = `Setup instructions for ${os}`;
+    document.getElementById('installation-instructions').innerHTML = `Installation instructions for ${os}`;
     const instructionsElement = document.getElementById('instructions');
     instructionsElement.innerHTML = '';
     INSTRUCTIONS_FOR_OS[os].forEach(instruction => {
