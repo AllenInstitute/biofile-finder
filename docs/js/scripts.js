@@ -49,7 +49,7 @@ function updateDownloadLink(releaseIdAsString) {
 
 function selectOperatingSystem(os) {
     document.getElementById('download-button').innerHTML = `Download for ${os}`;
-    document.getElementById('instructions-title').innerHTML = `Setup instructions for ${os}`;
+    document.getElementById('installation-instructions').innerHTML = `Setup instructions for ${os}`;
     const instructionsElement = document.getElementById('instructions');
     instructionsElement.innerHTML = '';
     INSTRUCTIONS_FOR_OS[os].forEach(instruction => {
@@ -130,3 +130,16 @@ function initialize() {
 
 ///////// Initialize App ///////////
 initialize();
+
+// if a user clicked on a nav item then clicked the "back button," this will scroll the user back to the top
+// of the page
+window.addEventListener("hashchange", (event) => {
+    const newUrl = new URL(event.newURL);
+    if (!newUrl.hash) {
+        // scroll to top
+        const contentContainer = document.getElementById("secondary-column");
+        if (contentContainer) {
+            contentContainer.scroll(0, 0);
+        }
+    }
+});
