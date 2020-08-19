@@ -254,7 +254,7 @@ describe("<DirectoryTree />", () => {
         header = await findByTestId(directoryTreeNodes[0], "treeitemheader"); // refresh node
         expect(header.classList.contains(styles.focused)).to.be.true;
 
-        // right-click on another tree item header
+        // right-click on again on the same tree item header
         fireEvent.contextMenu(header);
         header = await findByTestId(directoryTreeNodes[0], "treeitemheader"); // refresh node
         expect(header.classList.contains(styles.focused)).to.be.true;
