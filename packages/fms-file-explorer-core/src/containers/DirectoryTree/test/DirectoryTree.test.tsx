@@ -224,4 +224,39 @@ describe("<DirectoryTree />", () => {
         expect(firstHeader.classList.contains(styles.focused)).to.be.false;
         expect(secondHeader.classList.contains(styles.focused)).to.be.true;
     });
+
+    it("maintains focus after double right click", async () => {
+        const { store } = configureMockStore({
+            state,
+            responseStubs,
+            reducer,
+            logics: reduxLogics,
+        });
+
+        const { findAllByRole } = render(
+            <Provider store={store}>
+                <DirectoryTree />
+            </Provider>
+        );
+
+        // wait for the requests for data
+        const directoryTreeNodes = await findAllByRole("treeitem");
+
+        // expect the top level annotation headers to be in the dom
+        expect(directoryTreeNodes.length).to.equal(4);
+
+        // set baseline for tests
+        let header = await findByTestId(directoryTreeNodes[0], "treeitemheader");
+        expect(header.classList.contains(styles.focused)).to.be.false;
+
+        // right-click on a tree item header
+        fireEvent.contextMenu(header);
+        header = await findByTestId(directoryTreeNodes[0], "treeitemheader"); // refresh node
+        expect(header.classList.contains(styles.focused)).to.be.true;
+
+        // right-click on another tree item header
+        fireEvent.contextMenu(header);
+        header = await findByTestId(directoryTreeNodes[0], "treeitemheader"); // refresh node
+        expect(header.classList.contains(styles.focused)).to.be.true;
+    });
 });
