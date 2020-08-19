@@ -18,7 +18,6 @@ import { initialState, interaction, reducer, reduxLogics } from "../../../state"
 import FileService from "../../../services/FileService";
 import { addFileFilter } from "../../../state/selection/actions";
 import FileFilter from "../../../entity/FileFilter";
-import { mount } from "enzyme";
 
 const styles = require("../DirectoryTreeNode.module.css");
 
