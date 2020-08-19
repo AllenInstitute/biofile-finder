@@ -57,7 +57,6 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
     const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
 
     const onContextMenu = (evt: React.MouseEvent) => {
-        setContextMenuActive(true);
         const availableItems = getContextMenuItems(dispatch);
         const fileFolderFilters = fileFolderPath.map(
             (value, index) => new FileFilter(annotationHierarchy[index].name, value)
@@ -85,6 +84,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
             setContextMenuActive(false);
         };
         dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent, onDismiss));
+        setContextMenuActive(true);
     };
 
     return (
