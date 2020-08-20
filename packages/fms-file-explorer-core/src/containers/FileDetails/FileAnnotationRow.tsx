@@ -22,7 +22,7 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                 {props.name}
             </Cell>
             <Cell className={classNames(styles.cell, styles.value)} columnKey="value" width={1}>
-                <span style={{ userSelect: "text" }}>{props.value}</span>
+                <span style={{ userSelect: "text" }}>{props.value.trim()}</span>
             </Cell>
         </div>
     );
