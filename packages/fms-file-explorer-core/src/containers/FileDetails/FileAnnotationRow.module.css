@@ -27,4 +27,6 @@
 
     border-left: 1px solid #ebebeb;
     margin-left: -1px;
+    /* Allow whitespace to be rendered (including carriage returns & new lines) */
+    white-space: pre-wrap; 
 }
