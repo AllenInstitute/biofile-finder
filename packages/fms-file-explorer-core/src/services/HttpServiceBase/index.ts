@@ -25,6 +25,7 @@ const CHARACTER_TO_ENCODING_MAP: { [index: string]: string } = {
     "]": "%5D",
     "#": "%23",
     "\\": "%5C",
+    "\t": "%09",
     "\n": "%0A",
     "\r": "%0D",
 };
