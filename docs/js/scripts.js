@@ -30,7 +30,7 @@ const INSTRUCTIONS_FOR_OS = {
         <figure class="figure installation-instr">
             <img class="screenshot" src="resources/macos-drag-into-applications.png">
             <figcaption class="figure-caption">
-            Drag and drop the FMS File Explorer icon onto the Applications folder icon. If you've asked to 'Keep Both, 'Stop,' or 'Replace,' choose 'Replace.'
+            Drag and drop the FMS File Explorer icon onto the Applications folder icon. If prompted to 'Keep Both,' 'Stop,' or 'Replace,' choose 'Replace.'
             </figcaption>
         </figure>
         `,
