@@ -71,8 +71,6 @@ html, body, #app {
 #download-link {
     text-decoration: none;
     width: 100%;
-
-    margin-bottom: 20px;
 }
 
 #download-button {
@@ -94,6 +92,8 @@ html, body, #app {
 #selectors {
     display: flex;
     width: 100%;
+
+    margin-bottom: 20px;
 }
 
 select {
