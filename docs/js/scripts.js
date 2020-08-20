@@ -11,13 +11,13 @@ const FILE_TYPE_FOR_OS = {
 };
 const INSTRUCTIONS_FOR_OS = {
     [OS.WINDOWS]: [
-        "Click the big 'Download' button on the left",
+        "Click the 'Download' button to the left",
         "Locate the download in your file browser and attempt to open as usual",
         "Click to open as you would any other application",
         'When prompted, select that you trust this application and would like to "Run anyway"'
     ],
     [OS.MAC]: [
-        "Click the big 'Download' button on the left.",
+        "Click the 'Download' button to the left.",
         `
         <figure class="figure installation-instr">
             <img class="screenshot" src="resources/macos-open-with-diskimagemounter.png">
@@ -46,7 +46,7 @@ const INSTRUCTIONS_FOR_OS = {
         `,
     ],
     [OS.LINUX]: [
-        "Click the big 'Download' button on the left",
+        "Click the 'Download' button to the left",
         "Locate the download in file browser",
         "Right-click the download",
         'Select the "Properties" dropdown option',
