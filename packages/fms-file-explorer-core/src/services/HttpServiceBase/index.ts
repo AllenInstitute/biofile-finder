@@ -21,6 +21,10 @@ const CHARACTER_TO_ENCODING_MAP: { [index: string]: string } = {
     "&": "%26",
     "%": "%25",
     "?": "%3F",
+    "[": "%5B",
+    "]": "%5D",
+    "#": "%23",
+    "\\": "%5C",
     "\n": "%0A",
     "\r": "%0D",
 };
