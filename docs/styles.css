@@ -138,6 +138,17 @@ select {
     margin-bottom: var(--column-padding);
 }
 
+.nav-link {
+    text-decoration: none;
+    color: #847AA3;
+}
+
+.nav-link:hover, .nav-link:focus {
+    text-decoration: underline;
+    color: #003056;
+    outline: 0;
+}
+
 .divider {
     margin: 50px auto;
     width: 90%;
