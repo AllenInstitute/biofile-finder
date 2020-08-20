@@ -14,6 +14,8 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             return await dialog.showSaveDialog({
                 title: "Save CSV manifest",
                 defaultPath: path.resolve(app.getPath("downloads"), "fms-explorer-selections.csv"),
+                buttonLabel: "Save manifest",
+                filters: [{ name: "CSV files", extensions: ["csv"] }],
             });
         });
     }
