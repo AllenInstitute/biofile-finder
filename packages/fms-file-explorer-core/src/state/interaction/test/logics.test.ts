@@ -2,13 +2,22 @@ import { configureMockStore, mergeState, createMockHttpClient } from "@aics/redu
 import { expect } from "chai";
 import { createSandbox } from "sinon";
 
-import { downloadManifest, ProcessStatus, REMOVE_STATUS, SET_STATUS } from "../actions";
+import {
+    downloadManifest,
+    ProcessStatus,
+    REMOVE_STATUS,
+    SET_STATUS,
+    abortManifestDownload,
+} from "../actions";
 import interactionLogics from "../logics";
 import { initialState, interaction, selection } from "../..";
 import FileFilter from "../../../entity/FileFilter";
 import FileService from "../../../services/FileService";
 import NumericRange from "../../../entity/NumericRange";
-import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
+import FileDownloadService, {
+    CancellationToken,
+    AbortToken,
+} from "../../../services/FileDownloadService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("Interaction logics", () => {
@@ -91,6 +100,9 @@ describe("Interaction logics", () => {
                 downloadCsvManifest() {
                     return Promise.reject();
                 }
+                abortActiveRequest() {
+                    return Promise.reject();
+                }
             }
 
             const state = mergeState(initialState, {
@@ -145,6 +157,9 @@ describe("Interaction logics", () => {
                 downloadCsvManifest() {
                     return Promise.resolve(CancellationToken);
                 }
+                abortActiveRequest() {
+                    return Promise.reject();
+                }
             }
 
             const state = mergeState(initialState, {
@@ -172,6 +187,78 @@ describe("Interaction logics", () => {
             expect(
                 actions.includesMatch({
                     type: REMOVE_STATUS,
+                })
+            ).to.equal(true);
+        });
+
+        it("Doesn't attempt to resolve status if aborted mid-flight", async () => {
+            // arrange
+            class AbortingDownloadService implements FileDownloadService {
+                downloadCsvManifest() {
+                    return Promise.resolve(AbortToken);
+                }
+                abortActiveRequest() {
+                    return Promise.resolve(true);
+                }
+            }
+
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: new AbortingDownloadService(),
+                    },
+                },
+                selection: {
+                    selectedFileRangesByFileSet: {
+                        abc: [new NumericRange(0, 100)],
+                    },
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // act
+            store.dispatch(downloadManifest());
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includesMatch({
+                    type: REMOVE_STATUS,
+                })
+            ).to.equal(false);
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.FAILED,
+                        },
+                    },
+                })
+            ).to.equal(false);
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.SUCCEEDED,
+                        },
+                    },
+                })
+            ).to.equal(false);
+
+            // sanity-check: ensure we can detect a status change
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.STARTED,
+                        },
+                    },
                 })
             ).to.equal(true);
         });
@@ -237,6 +324,98 @@ describe("Interaction logics", () => {
                 })
             ).to.equal(true);
             sandbox.restore();
+        });
+    });
+
+    describe("abortManifestDownloadLogic", () => {
+        it("Marks the success of a manifest download cancellation", async () => {
+            // arrange
+            class AbortingDownloadService implements FileDownloadService {
+                downloadCsvManifest() {
+                    return Promise.resolve(CancellationToken);
+                }
+                abortActiveRequest() {
+                    return Promise.resolve(true);
+                }
+            }
+
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: new AbortingDownloadService(),
+                    },
+                },
+                selection: {
+                    selectedFileRangesByFileSet: {
+                        abc: [new NumericRange(0, 100)],
+                    },
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // act
+            store.dispatch(abortManifestDownload("123456"));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.SUCCEEDED,
+                        },
+                    },
+                })
+            ).to.equal(true);
+        });
+
+        it("Marks the failure of a manifest download cancellation", async () => {
+            // arrange
+            class AbortingDownloadService implements FileDownloadService {
+                downloadCsvManifest() {
+                    return Promise.resolve(CancellationToken);
+                }
+                abortActiveRequest() {
+                    return Promise.reject(false);
+                }
+            }
+
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: new AbortingDownloadService(),
+                    },
+                },
+                selection: {
+                    selectedFileRangesByFileSet: {
+                        abc: [new NumericRange(0, 100)],
+                    },
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // act
+            store.dispatch(abortManifestDownload("123456"));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.FAILED,
+                        },
+                    },
+                })
+            ).to.equal(true);
         });
     });
 });

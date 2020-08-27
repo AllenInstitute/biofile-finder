@@ -63,7 +63,11 @@ describe("Interaction reducer", () => {
                     },
                 ],
             };
-            const manifestDownloadStartAction = startManifestDownload(id, "something started");
+            const manifestDownloadStartAction = startManifestDownload(
+                id,
+                "something started",
+                () => {}
+            );
 
             // act
             const nextState = interaction.reducer(prevState, manifestDownloadStartAction);

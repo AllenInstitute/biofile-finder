@@ -31,9 +31,12 @@ export default class CsvService extends HttpServiceBase {
         this.downloadService = config.downloadService;
     }
 
-    public downloadCsv(fileSetToSelectionMapping: {
-        [index: string]: NumericRange[];
-    }): Promise<string> {
+    public downloadCsv(
+        fileSetToSelectionMapping: {
+            [index: string]: NumericRange[];
+        },
+        manifestDownloadId: string
+    ): Promise<string> {
         const postBody: SelectionRequest[] = compact(
             map(fileSetToSelectionMapping, (selections: NumericRange[], fileSetHash: string) => {
                 const fileSet = defaultFileSetFactory.get(fileSetHash);
@@ -55,6 +58,10 @@ export default class CsvService extends HttpServiceBase {
         const stringifiedPostBody = JSON.stringify(postBody);
         const url = `${this.baseUrl}/${CsvService.BASE_CSV_DOWNLOAD_URL}`;
 
-        return this.downloadService.downloadCsvManifest(url, stringifiedPostBody);
+        return this.downloadService.downloadCsvManifest(
+            url,
+            stringifiedPostBody,
+            manifestDownloadId
+        );
     }
 }

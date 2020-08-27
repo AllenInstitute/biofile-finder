@@ -25,6 +25,29 @@ export function downloadManifest(fileFilters?: FileFilter[]): DownloadManifestAc
 }
 
 /**
+ * ABORT_MANIFEST_DOWNLOAD
+ *
+ * Intention to abort a running manifest download.
+ */
+export const ABORT_MANIFEST_DOWNLOAD = makeConstant(STATE_BRANCH_NAME, "abort-manifest-download");
+
+export interface AbortManifestDownloadAction {
+    payload: {
+        id: string;
+    };
+    type: string;
+}
+
+export function abortManifestDownload(id: string): AbortManifestDownloadAction {
+    return {
+        payload: {
+            id,
+        },
+        type: ABORT_MANIFEST_DOWNLOAD,
+    };
+}
+
+/**
  * SHOW_CONTEXT_MENU
  *
  * Intention to show context menu.
@@ -138,6 +161,7 @@ export interface StatusUpdate {
         status?: ProcessStatus;
     };
     id: string; // uuid
+    onCancel?: () => void;
 }
 
 export const SET_STATUS = makeConstant(STATE_BRANCH_NAME, "set-status");
@@ -191,7 +215,11 @@ export interface ManifestDownloadStartAction {
     payload: StatusUpdate;
 }
 
-export function startManifestDownload(id: string, msg: string): ManifestDownloadStartAction {
+export function startManifestDownload(
+    id: string,
+    msg: string,
+    onCancel: () => void
+): ManifestDownloadStartAction {
     return {
         type: SET_STATUS,
         payload: {
@@ -200,6 +228,7 @@ export function startManifestDownload(id: string, msg: string): ManifestDownload
                 status: ProcessStatus.STARTED,
             },
             id,
+            onCancel,
         },
     };
 }

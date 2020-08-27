@@ -9,10 +9,12 @@ import {
     removeStatus,
     startManifestDownload,
     SHOW_CONTEXT_MENU,
+    ABORT_MANIFEST_DOWNLOAD,
+    abortManifestDownload,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
-import { CancellationToken } from "../../services/FileDownloadService";
+import { AbortToken, CancellationToken } from "../../services/FileDownloadService";
 import NumericRange from "../../entity/NumericRange";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 
@@ -59,16 +61,26 @@ const downloadManifest = createLogic({
                 return;
             }
 
+            const onManifestDownloadAbort = () => {
+                dispatch(abortManifestDownload(manifestDownloadProcessId));
+            };
             dispatch(
                 startManifestDownload(
                     manifestDownloadProcessId,
-                    "Download of CSV manifest in progress."
+                    "Download of CSV manifest in progress.",
+                    onManifestDownloadAbort
                 )
             );
-            const message = await csvService.downloadCsv(selectionsByFileSet);
+            const message = await csvService.downloadCsv(
+                selectionsByFileSet,
+                manifestDownloadProcessId
+            );
 
             if (message === CancellationToken) {
                 dispatch(removeStatus(manifestDownloadProcessId));
+                return;
+            }
+            if (message === AbortToken) {
                 return;
             }
 
@@ -79,6 +91,36 @@ const downloadManifest = createLogic({
             dispatch(failManifestDownload(manifestDownloadProcessId, errorMsg));
         } finally {
             done();
+        }
+    },
+});
+
+/**
+ * Interceptor responsible for responding to a ABORT_MANIFEST_DOWNLOAD action and aborting
+ * the corresponding manifest download request (including deleting the potential artifact)
+ */
+const abortManifestDownloadLogic = createLogic({
+    type: ABORT_MANIFEST_DOWNLOAD,
+    async transform(deps: ReduxLogicDeps, next) {
+        const { action, getState } = deps;
+        const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(
+            getState()
+        );
+        try {
+            await fileDownloadService.abortActiveRequest(action.payload.id);
+            next(
+                succeedManifestDownload(
+                    action.payload.id,
+                    "Successfully cancelled manifest download."
+                )
+            );
+        } catch (err) {
+            next(
+                failManifestDownload(
+                    action.payload.id,
+                    "Failed to properly cancel manifest download."
+                )
+            );
         }
     },
 });
@@ -101,4 +143,4 @@ const showContextMenu = createLogic({
     },
 });
 
-export default [downloadManifest, showContextMenu];
+export default [downloadManifest, abortManifestDownloadLogic, showContextMenu];

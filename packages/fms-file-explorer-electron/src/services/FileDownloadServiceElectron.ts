@@ -4,10 +4,19 @@ import * as path from "path";
 
 import { app, dialog, ipcMain, ipcRenderer } from "electron";
 
-import { CancellationToken, FileDownloadService } from "@aics/fms-file-explorer-core";
+import { AbortToken, CancellationToken, FileDownloadService } from "@aics/fms-file-explorer-core";
+
+// Maps active request ids (uuids) to request download info
+interface ActiveRequestMap {
+    [id: string]: {
+        filePath: string;
+        request: http.ClientRequest;
+    };
+}
 
 export default class FileDownloadServiceElectron implements FileDownloadService {
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
+    private activeRequestMap: ActiveRequestMap = {};
 
     public static registerIpcHandlers() {
         ipcMain.handle(FileDownloadServiceElectron.GET_FILE_SAVE_PATH, async () => {
@@ -20,7 +29,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         });
     }
 
-    public async downloadCsvManifest(url: string, postData: string): Promise<string> {
+    public async downloadCsvManifest(url: string, postData: string, id: string): Promise<string> {
         const result = await ipcRenderer.invoke(FileDownloadServiceElectron.GET_FILE_SAVE_PATH);
 
         if (result.canceled) {
@@ -52,15 +61,24 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                             errorChunks.push(chunk);
                         });
                         res.on("end", () => {
+                            delete this.activeRequestMap[id];
                             const error = errorChunks.join("");
                             const message = `Failed to download CSV manifest. Error details: ${error}`;
                             reject(message);
                         });
                     } else {
                         res.on("end", () => {
-                            resolve(`CSV manifest saved to ${filePath}`);
+                            // If the stream was stopped due to the socket being destroyed
+                            // resolve to a sentinal value the client can interpret
+                            if (res.aborted) {
+                                resolve(AbortToken);
+                            } else {
+                                delete this.activeRequestMap[id];
+                                resolve(`CSV manifest saved to ${filePath}`);
+                            }
                         });
                         res.on("error", (err) => {
+                            delete this.activeRequestMap[id];
                             reject(err.message);
                         });
 
@@ -69,8 +87,34 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                     }
                 }
             );
+            this.activeRequestMap[id] = { filePath, request: req };
             req.write(postData);
             req.end();
+        });
+    }
+
+    public async abortActiveRequest(id: string): Promise<boolean> {
+        if (!this.activeRequestMap.hasOwnProperty(id)) {
+            return Promise.resolve(false);
+        }
+        return new Promise((resolve, reject) => {
+            const { filePath, request } = this.activeRequestMap[id];
+            request.destroy();
+            delete this.activeRequestMap[id];
+            // If an artifact has been created, we want to delete any remnants of it
+            fs.exists(filePath, (exists) => {
+                if (exists) {
+                    fs.unlink(filePath, (err) => {
+                        if (!err) {
+                            resolve(true);
+                        } else {
+                            reject(false);
+                        }
+                    });
+                } else {
+                    resolve(false);
+                }
+            });
         });
     }
 }

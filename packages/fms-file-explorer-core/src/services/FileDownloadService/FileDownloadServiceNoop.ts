@@ -6,4 +6,8 @@ export default class FileDownloadServiceNoop implements FileDownloadService {
             "Download of CSV manifest triggered on FileDownloadServiceNoop; returning without triggering a download."
         );
     }
+
+    public abortActiveRequest() {
+        return Promise.resolve(false);
+    }
 }

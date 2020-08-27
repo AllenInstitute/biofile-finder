@@ -1,5 +1,12 @@
 import { map } from "lodash";
-import { MessageBar, MessageBarType, Spinner, SpinnerSize, Stack } from "office-ui-fabric-react";
+import {
+    MessageBar,
+    MessageBarType,
+    Spinner,
+    SpinnerSize,
+    Stack,
+    DefaultButton,
+} from "office-ui-fabric-react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -48,10 +55,18 @@ export default function StatusMessage() {
                 (statusUpdate: StatusUpdate) => {
                     const {
                         data: { msg, status = ProcessStatus.NOT_SET },
+                        onCancel,
                     } = statusUpdate;
+                    let cancelButton;
+                    if (onCancel) {
+                        cancelButton = (
+                            <DefaultButton onClick={() => onCancel()}>Cancel</DefaultButton>
+                        );
+                    }
 
                     return (
                         <MessageBar
+                            actions={cancelButton}
                             key={statusUpdate.id}
                             messageBarType={statusToTypeMap[status]}
                             onDismiss={() =>
