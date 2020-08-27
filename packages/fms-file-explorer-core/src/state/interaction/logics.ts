@@ -9,8 +9,8 @@ import {
     removeStatus,
     startManifestDownload,
     SHOW_CONTEXT_MENU,
-    ABORT_MANIFEST_DOWNLOAD,
-    abortManifestDownload,
+    CANCEL_MANIFEST_DOWNLOAD,
+    cancelManifestDownload,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -61,14 +61,14 @@ const downloadManifest = createLogic({
                 return;
             }
 
-            const onManifestDownloadAbort = () => {
-                dispatch(abortManifestDownload(manifestDownloadProcessId));
+            const onManifestDownloadCancel = () => {
+                dispatch(cancelManifestDownload(manifestDownloadProcessId));
             };
             dispatch(
                 startManifestDownload(
                     manifestDownloadProcessId,
                     "Download of CSV manifest in progress.",
-                    onManifestDownloadAbort
+                    onManifestDownloadCancel
                 )
             );
             const message = await csvService.downloadCsv(
@@ -93,18 +93,18 @@ const downloadManifest = createLogic({
 });
 
 /**
- * Interceptor responsible for responding to a ABORT_MANIFEST_DOWNLOAD action and aborting
+ * Interceptor responsible for responding to a CANCEL_MANIFEST_DOWNLOAD action and cancelling
  * the corresponding manifest download request (including deleting the potential artifact)
  */
-const abortManifestDownloadLogic = createLogic({
-    type: ABORT_MANIFEST_DOWNLOAD,
+const cancelManifestDownloadLogic = createLogic({
+    type: CANCEL_MANIFEST_DOWNLOAD,
     async transform(deps: ReduxLogicDeps, next) {
         const { action, getState } = deps;
         const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(
             getState()
         );
         try {
-            await fileDownloadService.abortActiveRequest(action.payload.id);
+            await fileDownloadService.cancelActiveRequest(action.payload.id);
             next(action);
         } catch (err) {
             next(
@@ -135,4 +135,4 @@ const showContextMenu = createLogic({
     },
 });
 
-export default [downloadManifest, abortManifestDownloadLogic, showContextMenu];
+export default [downloadManifest, cancelManifestDownloadLogic, showContextMenu];

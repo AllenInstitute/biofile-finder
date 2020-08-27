@@ -7,7 +7,7 @@ export default class FileDownloadServiceNoop implements FileDownloadService {
         );
     }
 
-    public abortActiveRequest() {
+    public cancelActiveRequest() {
         return Promise.resolve(false);
     }
 }

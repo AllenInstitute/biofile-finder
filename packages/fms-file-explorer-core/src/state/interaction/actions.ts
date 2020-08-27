@@ -25,25 +25,25 @@ export function downloadManifest(fileFilters?: FileFilter[]): DownloadManifestAc
 }
 
 /**
- * ABORT_MANIFEST_DOWNLOAD
+ * CANCEL_MANIFEST_DOWNLOAD
  *
- * Intention to abort a running manifest download.
+ * Intention to cancel a running manifest download.
  */
-export const ABORT_MANIFEST_DOWNLOAD = makeConstant(STATE_BRANCH_NAME, "abort-manifest-download");
+export const CANCEL_MANIFEST_DOWNLOAD = makeConstant(STATE_BRANCH_NAME, "cancel-manifest-download");
 
-export interface AbortManifestDownloadAction {
+export interface CancelManifestDownloadAction {
     payload: {
         id: string;
     };
     type: string;
 }
 
-export function abortManifestDownload(id: string): AbortManifestDownloadAction {
+export function cancelManifestDownload(id: string): CancelManifestDownloadAction {
     return {
         payload: {
             id,
         },
-        type: ABORT_MANIFEST_DOWNLOAD,
+        type: CANCEL_MANIFEST_DOWNLOAD,
     };
 }
 

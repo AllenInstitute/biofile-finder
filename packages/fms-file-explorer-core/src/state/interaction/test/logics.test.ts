@@ -7,7 +7,7 @@ import {
     ProcessStatus,
     REMOVE_STATUS,
     SET_STATUS,
-    abortManifestDownload,
+    cancelManifestDownload,
 } from "../actions";
 import interactionLogics from "../logics";
 import { initialState, interaction, selection } from "../..";
@@ -97,7 +97,7 @@ describe("Interaction logics", () => {
                 downloadCsvManifest() {
                     return Promise.reject();
                 }
-                abortActiveRequest() {
+                cancelActiveRequest() {
                     return Promise.reject();
                 }
             }
@@ -154,7 +154,7 @@ describe("Interaction logics", () => {
                 downloadCsvManifest() {
                     return Promise.resolve(CancellationToken);
                 }
-                abortActiveRequest() {
+                cancelActiveRequest() {
                     return Promise.reject();
                 }
             }
@@ -252,14 +252,14 @@ describe("Interaction logics", () => {
         });
     });
 
-    describe("abortManifestDownloadLogic", () => {
+    describe("cancelManifestDownloadLogic", () => {
         it("Marks the failure of a manifest download cancellation (on error)", async () => {
             // arrange
-            class AbortingDownloadService implements FileDownloadService {
+            class CancellingDownloadService implements FileDownloadService {
                 downloadCsvManifest() {
                     return Promise.resolve(CancellationToken);
                 }
-                abortActiveRequest() {
+                cancelActiveRequest() {
                     return Promise.reject(false);
                 }
             }
@@ -267,7 +267,7 @@ describe("Interaction logics", () => {
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        fileDownloadService: new AbortingDownloadService(),
+                        fileDownloadService: new CancellingDownloadService(),
                     },
                 },
                 selection: {
@@ -282,7 +282,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(abortManifestDownload("123456"));
+            store.dispatch(cancelManifestDownload("123456"));
             await logicMiddleware.whenComplete();
 
             // assert

@@ -93,7 +93,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         });
     }
 
-    public async abortActiveRequest(id: string): Promise<boolean> {
+    public async cancelActiveRequest(id: string): Promise<boolean> {
         if (!this.activeRequestMap.hasOwnProperty(id)) {
             return Promise.resolve(false);
         }
