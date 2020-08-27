@@ -108,7 +108,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         if (!err) {
                             resolve(true);
                         } else {
-                            reject(false);
+                            reject(true);
                         }
                     });
                 } else {

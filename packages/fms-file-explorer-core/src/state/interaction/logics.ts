@@ -107,7 +107,12 @@ const abortManifestDownloadLogic = createLogic({
             await fileDownloadService.abortActiveRequest(action.payload.id);
             next(action);
         } catch (err) {
-            next(failManifestDownload(action.payload.id, "Failed to clean up manifest download."));
+            next(
+                failManifestDownload(
+                    action.payload.id,
+                    "Something went wrong cleaning up cancelled download."
+                )
+            );
         }
     },
 });

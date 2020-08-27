@@ -9,7 +9,8 @@ export default interface FileDownloadService {
     downloadCsvManifest(url: string, data: string, id: string): Promise<string>;
 
     /**
-     * Attempt to abort an active download request, deleting the downloaded artifact if present
+     * Attempt to abort an active download request, deleting the downloaded artifact if present.
+     * Returns whether or not the file was present (to be deleted).
      */
     abortActiveRequest(id: string): Promise<boolean>;
 }
