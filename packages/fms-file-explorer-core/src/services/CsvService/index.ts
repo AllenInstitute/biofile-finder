@@ -6,11 +6,18 @@ import NumericRange, { JSONReadyRange } from "../../entity/NumericRange";
 import FileDownloadService from "../FileDownloadService";
 import FileService from "../FileService";
 
-interface SelectionRequest {
+interface Selection {
     filters: {
         [index: string]: string | number | boolean;
     };
     indexRanges: JSONReadyRange[];
+}
+
+interface SelectionRequest {
+    // Annotation columns to include in download.
+    // Excluding this field or leaving it empty results in all annotations being added as columns
+    annotations?: string[];
+    selections: Selection[];
 }
 
 interface CsvServiceConfig extends ConnectionConfig {
@@ -37,7 +44,7 @@ export default class CsvService extends HttpServiceBase {
         },
         manifestDownloadId: string
     ): Promise<string> {
-        const postBody: SelectionRequest[] = compact(
+        const selections: Selection[] = compact(
             map(fileSetToSelectionMapping, (selections: NumericRange[], fileSetHash: string) => {
                 const fileSet = defaultFileSetFactory.get(fileSetHash);
                 if (!fileSet) {
@@ -55,6 +62,9 @@ export default class CsvService extends HttpServiceBase {
                 };
             })
         );
+        const postBody: SelectionRequest = {
+            selections: selections,
+        };
         const stringifiedPostBody = JSON.stringify(postBody);
         const url = `${this.baseUrl}/${CsvService.BASE_CSV_DOWNLOAD_URL}`;
 
