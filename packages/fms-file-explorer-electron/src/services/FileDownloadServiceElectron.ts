@@ -4,7 +4,7 @@ import * as path from "path";
 
 import { app, dialog, ipcMain, ipcRenderer } from "electron";
 
-import { AbortToken, CancellationToken, FileDownloadService } from "@aics/fms-file-explorer-core";
+import { CancellationToken, FileDownloadService } from "@aics/fms-file-explorer-core";
 
 // Maps active request ids (uuids) to request download info
 interface ActiveRequestMap {
@@ -71,7 +71,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                             // If the stream was stopped due to the socket being destroyed
                             // resolve to a sentinal value the client can interpret
                             if (res.aborted) {
-                                resolve(AbortToken);
+                                resolve(CancellationToken);
                             } else {
                                 delete this.activeRequestMap[id];
                                 resolve(`CSV manifest saved to ${filePath}`);

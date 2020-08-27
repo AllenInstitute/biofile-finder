@@ -18,8 +18,3 @@ export default interface FileDownloadService {
  * Sentinel value used to send and check for cancellation of a download request.
  */
 export const CancellationToken = "FMS_EXPLORER_DOWNLOAD_SERVICE_CANCELLATION_TOKEN";
-
-/**
- * Sentinel value used to send and check for abort of an active download request.
- */
-export const AbortToken = "FMS_EXPLORER_DOWNLOAD_SERVICE_ABORT_TOKEN";

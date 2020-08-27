@@ -14,7 +14,7 @@ import {
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
-import { AbortToken, CancellationToken } from "../../services/FileDownloadService";
+import { CancellationToken } from "../../services/FileDownloadService";
 import NumericRange from "../../entity/NumericRange";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 
@@ -80,9 +80,6 @@ const downloadManifest = createLogic({
                 dispatch(removeStatus(manifestDownloadProcessId));
                 return;
             }
-            if (message === AbortToken) {
-                return;
-            }
 
             const successMsg = `Download of CSV manifest successfully finished.<br/>${message}`;
             dispatch(succeedManifestDownload(manifestDownloadProcessId, successMsg));
@@ -108,19 +105,9 @@ const abortManifestDownloadLogic = createLogic({
         );
         try {
             await fileDownloadService.abortActiveRequest(action.payload.id);
-            next(
-                succeedManifestDownload(
-                    action.payload.id,
-                    "Successfully cancelled manifest download."
-                )
-            );
+            next(action);
         } catch (err) {
-            next(
-                failManifestDownload(
-                    action.payload.id,
-                    "Failed to properly cancel manifest download."
-                )
-            );
+            next(failManifestDownload(action.payload.id, "Failed to clean up manifest download."));
         }
     },
 });
