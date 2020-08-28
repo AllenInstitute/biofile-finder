@@ -1,4 +1,4 @@
-import { isEmpty, uniqueId } from "lodash";
+import { isEmpty, uniqueId, reject } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { ReduxLogicDeps, selection } from "../";
@@ -98,14 +98,14 @@ const downloadManifest = createLogic({
  */
 const cancelManifestDownloadLogic = createLogic({
     type: CANCEL_MANIFEST_DOWNLOAD,
-    async transform(deps: ReduxLogicDeps, next) {
+    async transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState } = deps;
         const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(
             getState()
         );
         try {
             await fileDownloadService.cancelActiveRequest(action.payload.id);
-            next(action);
+            reject && reject(action);
         } catch (err) {
             next(
                 failManifestDownload(
