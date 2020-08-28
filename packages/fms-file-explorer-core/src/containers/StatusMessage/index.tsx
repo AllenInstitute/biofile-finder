@@ -59,9 +59,7 @@ export default function StatusMessage() {
                     } = statusUpdate;
                     let cancelButton;
                     if (onCancel) {
-                        cancelButton = (
-                            <DefaultButton onClick={() => onCancel()}>Cancel</DefaultButton>
-                        );
+                        cancelButton = <DefaultButton onClick={onCancel}>Cancel</DefaultButton>;
                     }
 
                     return (
