@@ -14,6 +14,8 @@ interface ActiveRequestMap {
     };
 }
 
+const DESTROY_REQUEST_TOKEN = "FILE_DOWNLOAD_REQUEST_DESTROYED_TOKEN";
+
 export default class FileDownloadServiceElectron implements FileDownloadService {
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
     private activeRequestMap: ActiveRequestMap = {};
@@ -87,6 +89,14 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                     }
                 }
             );
+            req.on("error", (err) => {
+                // If the socket was too prematurely hung up it will emit this error
+                if (err.message === DESTROY_REQUEST_TOKEN) {
+                    resolve(CancellationToken);
+                } else {
+                    reject(`Failed to download CSV manifest. Error details: ${err}`);
+                }
+            });
             this.activeRequestMap[id] = { filePath, request: req };
             req.write(postData);
             req.end();
@@ -99,7 +109,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         }
         return new Promise((resolve, reject) => {
             const { filePath, request } = this.activeRequestMap[id];
-            request.destroy();
+            request.destroy(new Error(DESTROY_REQUEST_TOKEN));
             delete this.activeRequestMap[id];
             // If an artifact has been created, we want to delete any remnants of it
             fs.access(filePath, fs.constants.F_OK, (err) => {
