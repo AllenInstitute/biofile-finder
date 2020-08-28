@@ -304,9 +304,9 @@ describe("Interaction logics", () => {
             // arrange
             const tempDir = os.tmpdir();
             const tempFilePath = tempDir + "/TEMPORARY_FILE_EXPLORER_APP_FILE_FOR_TESTING";
-            fs.closeSync(fs.openSync(tempFilePath, "w"));
             class CancellingDownloadService implements FileDownloadService {
                 downloadCsvManifest() {
+                    fs.closeSync(fs.openSync(tempFilePath, "w"));
                     return Promise.resolve(CancellationToken);
                 }
 
