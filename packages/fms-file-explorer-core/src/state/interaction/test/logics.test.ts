@@ -310,7 +310,7 @@ describe("Interaction logics", () => {
                     return Promise.resolve(CancellationToken);
                 }
 
-                cancelActiveRequest() {
+                cancelActiveRequest(): Promise<void> {
                     return new Promise((resolve, reject) => {
                         fs.unlink(tempFilePath, (err) => {
                             if (err) {
@@ -335,7 +335,7 @@ describe("Interaction logics", () => {
                     },
                 },
             });
-            const { store, logicMiddleware, actions } = configureMockStore({
+            const { store, logicMiddleware } = configureMockStore({
                 state,
                 logics: interactionLogics,
             });

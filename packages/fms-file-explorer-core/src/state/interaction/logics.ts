@@ -1,4 +1,4 @@
-import { isEmpty, uniqueId, reject } from "lodash";
+import { isEmpty, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { ReduxLogicDeps, selection } from "../";
