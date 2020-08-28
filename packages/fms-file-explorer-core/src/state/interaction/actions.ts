@@ -304,7 +304,7 @@ export interface ToggleManifestDownloadDialogAction {
 }
 
 export function toggleManifestDownloadDialog(
-    fileFilters: FileFilter[]
+    fileFilters: FileFilter[] = []
 ): ToggleManifestDownloadDialogAction {
     return {
         type: TOGGLE_MANIFEST_DOWNLOAD_DIALOG,

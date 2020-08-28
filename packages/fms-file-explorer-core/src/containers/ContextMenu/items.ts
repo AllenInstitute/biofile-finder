@@ -25,7 +25,7 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                         text: "Manifest",
                         title: "CSV file of metadata of selected files",
                         onClick() {
-                            dispatch(interaction.actions.toggleManifestDownloadDialog([]));
+                            dispatch(interaction.actions.toggleManifestDownloadDialog());
                         },
                     },
                     {
