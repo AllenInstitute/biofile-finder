@@ -44,7 +44,7 @@ const downloadManifest = createLogic({
             // If we have a specific path to get files from ignore selected files
             if (action.payload) {
                 const fileSet = defaultFileSetFactory.create({
-                    filters: action.payload,
+                    filters: action.payload.fileFilters,
                     fileService,
                 });
                 const count = await fileSet.fetchTotalCount();
@@ -73,6 +73,7 @@ const downloadManifest = createLogic({
             );
             const message = await csvService.downloadCsv(
                 selectionsByFileSet,
+                action.payload.columns,
                 manifestDownloadProcessId
             );
 

@@ -5,6 +5,8 @@ import FileService from "../../services/FileService";
 import AnnotationService from "../../services/AnnotationService";
 
 // BASIC SELECTORS
+export const isManifestDownloadDialogVisible = (state: State) =>
+    state.interaction.isManifestDownloadDialogVisible;
 export const getContextMenuVisibility = (state: State) => state.interaction.contextMenuIsVisible;
 export const getContextMenuItems = (state: State) => state.interaction.contextMenuItems;
 export const getContextMenuPositionReference = (state: State) =>
@@ -12,6 +14,8 @@ export const getContextMenuPositionReference = (state: State) =>
 export const getContextMenuOnDismiss = (state: State) => state.interaction.contextMenuOnDismiss;
 export const getFileExplorerServiceBaseUrl = (state: State) =>
     state.interaction.fileExplorerServiceBaseUrl;
+export const getFileFiltersForManifestDownload = (state: State) =>
+    state.interaction.fileFiltersForManifestDownload;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;

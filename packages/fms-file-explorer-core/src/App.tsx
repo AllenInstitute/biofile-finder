@@ -19,6 +19,7 @@ import { interaction, metadata } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
 
 import "./styles/global.css";
+import ManifestDownloadDialog from "./containers/ManifestDownloadDIalog";
 const styles = require("./App.module.css");
 
 // initialize office-ui-fabric-react
@@ -99,6 +100,7 @@ export default function App(props: AppProps) {
             </div>
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
             <StatusMessage />
+            <ManifestDownloadDialog />
         </div>
     );
 }

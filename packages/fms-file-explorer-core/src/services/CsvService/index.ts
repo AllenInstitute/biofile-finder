@@ -42,6 +42,7 @@ export default class CsvService extends HttpServiceBase {
         fileSetToSelectionMapping: {
             [index: string]: NumericRange[];
         },
+        columns: string[],
         manifestDownloadId: string
     ): Promise<string> {
         const selections: Selection[] = compact(
@@ -63,6 +64,7 @@ export default class CsvService extends HttpServiceBase {
             })
         );
         const postBody: SelectionRequest = {
+            annotations: columns,
             selections: selections,
         };
         const stringifiedPostBody = JSON.stringify(postBody);

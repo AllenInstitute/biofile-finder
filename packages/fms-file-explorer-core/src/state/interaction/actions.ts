@@ -13,13 +13,22 @@ const STATE_BRANCH_NAME = "interaction";
 export const DOWNLOAD_MANIFEST = makeConstant(STATE_BRANCH_NAME, "download-manifest");
 
 export interface DownloadManifestAction {
-    payload: FileFilter[] | undefined;
+    payload: {
+        columns?: string[];
+        fileFilters?: FileFilter[];
+    };
     type: string;
 }
 
-export function downloadManifest(fileFilters?: FileFilter[]): DownloadManifestAction {
+export function downloadManifest(
+    fileFilters?: FileFilter[],
+    columns?: string[]
+): DownloadManifestAction {
     return {
-        payload: fileFilters,
+        payload: {
+            columns,
+            fileFilters,
+        },
         type: DOWNLOAD_MANIFEST,
     };
 }
@@ -276,5 +285,29 @@ export function failManifestDownload(id: string, msg: string): ManifestDownloadF
             },
             id,
         },
+    };
+}
+
+/**
+ * TOGGLE_MANIFEST_DOWNLOAD_DIALOG
+ *
+ * Intention to toggle the visibility of the manifest download dialog.
+ */
+export const TOGGLE_MANIFEST_DOWNLOAD_DIALOG = makeConstant(
+    STATE_BRANCH_NAME,
+    "toggle-manifest-download-dialog"
+);
+
+export interface ToggleManifestDownloadDialogAction {
+    type: string;
+    payload?: FileFilter[];
+}
+
+export function toggleManifestDownloadDialog(
+    fileFilters: FileFilter[]
+): ToggleManifestDownloadDialogAction {
+    return {
+        type: TOGGLE_MANIFEST_DOWNLOAD_DIALOG,
+        payload: fileFilters,
     };
 }

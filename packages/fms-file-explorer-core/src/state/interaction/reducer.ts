@@ -10,11 +10,14 @@ import {
     SET_STATUS,
     SHOW_CONTEXT_MENU,
     StatusUpdate,
+    TOGGLE_MANIFEST_DOWNLOAD_DIALOG,
+    DOWNLOAD_MANIFEST,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
 import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
+import FileFilter from "../../entity/FileFilter";
 
 export interface InteractionStateBranch {
     contextMenuIsVisible: boolean;
@@ -22,6 +25,8 @@ export interface InteractionStateBranch {
     contextMenuPositionReference: PositionReference;
     contextMenuOnDismiss?: () => void;
     fileExplorerServiceBaseUrl: string;
+    fileFiltersForManifestDownload: FileFilter[];
+    isManifestDownloadDialogVisible: boolean;
     platformDependentServices: PlatformDependentServices;
     status: StatusUpdate[];
 }
@@ -35,6 +40,8 @@ export const initialState = {
     // If a MouseEvent is given, the origin point of the event will be used."
     contextMenuPositionReference: null,
     fileExplorerServiceBaseUrl: DEFAULT_CONNECTION_CONFIG.baseUrl,
+    fileFiltersForManifestDownload: [],
+    isManifestDownloadDialogVisible: false,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
@@ -76,6 +83,11 @@ export default makeReducer<InteractionStateBranch>(
         [SET_PLATFORM_DEPENDENT_SERVICES]: (state, action) => ({
             ...state,
             platformDependentServices: action.payload,
+        }),
+        [TOGGLE_MANIFEST_DOWNLOAD_DIALOG]: (state, action) => ({
+            ...state,
+            isManifestDownloadDialogVisible: !state.isManifestDownloadDialogVisible,
+            fileFiltersForManifestDownload: action.payload,
         }),
     },
     initialState
