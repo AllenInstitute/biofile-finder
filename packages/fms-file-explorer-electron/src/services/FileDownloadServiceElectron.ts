@@ -88,6 +88,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                 }
             );
             req.on("error", (err) => {
+                delete this.activeRequestMap[id];
                 // If the socket was too prematurely hung up it will emit this error
                 if (err.message === CancellationToken) {
                     resolve(CancellationToken);
