@@ -102,8 +102,8 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             request.destroy();
             delete this.activeRequestMap[id];
             // If an artifact has been created, we want to delete any remnants of it
-            fs.exists(filePath, (exists) => {
-                if (exists) {
+            fs.access(filePath, fs.constants.F_OK, (err) => {
+                if (!err) {
                     fs.unlink(filePath, (err) => {
                         if (!err) {
                             resolve(true);
@@ -112,7 +112,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         }
                     });
                 } else {
-                    resolve(false);
+                    resolve(false); // File does not exist
                 }
             });
         });
