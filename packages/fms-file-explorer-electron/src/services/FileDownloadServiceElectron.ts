@@ -93,9 +93,9 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         });
     }
 
-    public async cancelActiveRequest(id: string): Promise<boolean> {
+    public async cancelActiveRequest(id: string): Promise<void> {
         if (!this.activeRequestMap.hasOwnProperty(id)) {
-            return Promise.resolve(false);
+            return Promise.resolve();
         }
         return new Promise((resolve, reject) => {
             const { filePath, request } = this.activeRequestMap[id];
@@ -106,13 +106,13 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                 if (!err) {
                     fs.unlink(filePath, (err) => {
                         if (!err) {
-                            resolve(true);
+                            resolve();
                         } else {
-                            reject(true);
+                            reject();
                         }
                     });
                 } else {
-                    resolve(false); // File does not exist
+                    resolve(); // File does not exist
                 }
             });
         });

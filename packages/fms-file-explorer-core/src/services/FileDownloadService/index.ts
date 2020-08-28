@@ -12,7 +12,7 @@ export default interface FileDownloadService {
      * Attempt to cancel an active download request, deleting the downloaded artifact if present.
      * Returns whether or not the file was present (to be deleted).
      */
-    cancelActiveRequest(id: string): Promise<boolean>;
+    cancelActiveRequest(id: string): Promise<void>;
 }
 
 /**
