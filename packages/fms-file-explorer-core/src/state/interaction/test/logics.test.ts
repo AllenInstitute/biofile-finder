@@ -1,5 +1,7 @@
 import { configureMockStore, mergeState, createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
+import fs from "fs";
+import os from "os";
 import { createSandbox } from "sinon";
 
 import {
@@ -296,6 +298,54 @@ describe("Interaction logics", () => {
                     },
                 })
             ).to.equal(true);
+        });
+
+        it("Delete the downloaded artifact on cancel", async () => {
+            // arrange
+            const tempDir = os.tmpdir();
+            const tempFilePath = tempDir + "/TEMPORARY_FILE_EXPLORER_APP_FILE_FOR_TESTING";
+            fs.closeSync(fs.openSync(tempFilePath, "w"));
+            class CancellingDownloadService implements FileDownloadService {
+                downloadCsvManifest() {
+                    return Promise.resolve(CancellationToken);
+                }
+
+                cancelActiveRequest() {
+                    return new Promise((resolve, reject) => {
+                        fs.unlink(tempFilePath, (err) => {
+                            if (err) {
+                                reject();
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                }
+            }
+
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: new CancellingDownloadService(),
+                    },
+                },
+                selection: {
+                    selectedFileRangesByFileSet: {
+                        abc: [new NumericRange(0, 100)],
+                    },
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // act
+            store.dispatch(cancelManifestDownload("123456"));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(() => fs.accessSync(tempFilePath)).to.throw();
         });
     });
 });
