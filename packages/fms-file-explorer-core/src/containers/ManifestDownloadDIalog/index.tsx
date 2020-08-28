@@ -12,7 +12,6 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { interaction, metadata } from "../../state";
-import { toggleManifestDownloadDialog } from "../../state/interaction/actions";
 
 export type ContextMenuItem = IContextualMenuItem;
 export type PositionReference = Target;
@@ -50,7 +49,7 @@ export default function ManifestDownloadDialog() {
         setColumns([]);
     };
     const onDownload = () => {
-        dispatch(toggleManifestDownloadDialog([]));
+        dispatch(interaction.actions.toggleManifestDownloadDialog([]));
         dispatch(interaction.actions.downloadManifest(fileFilters, columns));
     };
 
