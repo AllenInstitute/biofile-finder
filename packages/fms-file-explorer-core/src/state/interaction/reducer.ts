@@ -11,7 +11,6 @@ import {
     SHOW_CONTEXT_MENU,
     StatusUpdate,
     TOGGLE_MANIFEST_DOWNLOAD_DIALOG,
-    DOWNLOAD_MANIFEST,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";

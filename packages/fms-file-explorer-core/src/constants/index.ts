@@ -18,6 +18,7 @@ export const AnnotationName = {
     FILE_NAME: "fileName", // a file attribute (top-level prop on file documents in MongoDb)
     FILE_SIZE: "fileSize", // a file attribute (top-level prop on file documents in MongoDb)
     FILE_PATH: "filePath", // a file attribute (top-level prop on file documents in MongoDb)
+    THUMBNAIL_PATH: "thumbnail", // (optional) file attribute (top-level prop on the file documents in MongoDb)
     TYPE: "Type", // matches an annotation in filemetadata.annoation
     UPLOADED: "uploaded", // matches an annotation in filemetadata.annoation
     UPLOADED_BY: "uploadedBy", // matches an annotation in filemetadata.annoation
@@ -48,6 +49,12 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         description: "Size of file on disk.",
         type: AnnotationType.NUMBER,
         units: "bytes",
+    }),
+    new Annotation({
+        annotationDisplayName: "Thumbnail path",
+        annotationName: AnnotationName.THUMBNAIL_PATH,
+        description: "Path to thumbnail file in storage.",
+        type: AnnotationType.STRING,
     }),
     new Annotation({
         annotationDisplayName: "Uploaded",

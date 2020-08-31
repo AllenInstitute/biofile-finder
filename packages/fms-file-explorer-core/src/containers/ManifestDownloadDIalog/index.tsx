@@ -1,3 +1,5 @@
+import classNames from "classnames";
+import { find } from "lodash";
 import {
     Dialog,
     DialogFooter,
@@ -33,19 +35,15 @@ const SAVED_CSV_COLUMNS_STORAGE = "SAVED_CSV_COLUMNS_STORAGE";
  */
 export default function ManifestDownloadDialog() {
     const dispatch = useDispatch();
-    const annotations = [
-        ...TOP_LEVEL_FILE_ANNOTATIONS,
-        ...useSelector(metadata.selectors.getSortedAnnotations),
-    ];
+    const annotations = useSelector(metadata.selectors.getSortedAnnotations);
+    const fileFilters = useSelector(interaction.selectors.getFileFiltersForManifestDownload);
     const isManifestDownloadDialogVisible = useSelector(
         interaction.selectors.isManifestDownloadDialogVisible
     );
-    const fileFilters = useSelector(interaction.selectors.getFileFiltersForManifestDownload);
 
     const [shouldSaveColumnSelection, setShouldSaveColumnSelection] = React.useState(true);
-    const [columns, setColumns] = React.useState<string[]>(
-        TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName)
-    );
+    const [columns, setColumns] = React.useState<string[]>([]);
+    const columnSet = new Set(columns);
     // Retrieve and set the columns saved to local state from last time (if exists)
     React.useEffect(() => {
         const columnsSavedFromLastTime = localStorage.getItem(SAVED_CSV_COLUMNS_STORAGE);
@@ -61,30 +59,30 @@ export default function ManifestDownloadDialog() {
                 }
             }
         }
-    }, []);
+    }, [annotations]);
 
-    const removeColumn = (column: string) => {
-        const filteredColumns = columns.filter((c) => c !== column);
-        setColumns(filteredColumns);
-    };
-    const onChange = (_: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined) => {
+    const addColumn = (
+        _: React.FormEvent<HTMLDivElement>,
+        option?: IDropdownOption | undefined
+    ) => {
         if (option) {
-            const column = option.key as string;
-            const columnSet = new Set(columns);
-            if (columnSet.has(column)) {
-                removeColumn(column);
-            } else {
-                const matchingColumn = annotations.filter((a) => a.name === column)[0].displayName;
-                setColumns([...columns, matchingColumn].sort((a, b) => a.localeCompare(b)));
-            }
+            const matchingColumn = find(annotations, (a) => a.displayName === option.key);
+            matchingColumn && setColumns([...columns, matchingColumn.displayName].sort());
         }
+    };
+    const removeColumn = (column: string) => {
+        setColumns(columns.filter((c) => c !== column));
     };
     const onDownload = () => {
         if (shouldSaveColumnSelection) {
             localStorage.setItem(SAVED_CSV_COLUMNS_STORAGE, JSON.stringify(columns));
         }
         dispatch(interaction.actions.toggleManifestDownloadDialog());
-        dispatch(interaction.actions.downloadManifest(fileFilters, columns));
+        // Map the annotations to their names (as opposed to their display names)
+        const columnAnnotations = annotations.filter((a) => columnSet.has(a.displayName));
+        // Top level file attributes as of the moment must always be included
+        const csvColumns = [...columnAnnotations, ...TOP_LEVEL_FILE_ANNOTATIONS].map((a) => a.name);
+        dispatch(interaction.actions.downloadManifest(fileFilters, csvColumns));
     };
 
     return (
@@ -95,29 +93,48 @@ export default function ManifestDownloadDialog() {
             modalProps={MODAL_PROPS}
         >
             <DefaultButton
+                disabled={columns.length === annotations.length}
                 onClick={() => setColumns(annotations.map((a) => a.displayName))}
                 text="Select All"
             />
-            <DefaultButton onClick={() => setColumns([])} text="Select None" />
+            <DefaultButton
+                disabled={!columns.length}
+                onClick={() => setColumns([])}
+                text="Select None"
+            />
             <Dropdown
                 multiSelect
                 className={styles.columnDropdown}
-                placeholder="Select columns"
-                label="Columns"
-                selectedKeys={columns}
-                onChange={onChange}
-                options={annotations.map((a) => ({ key: a.displayName, text: a.displayName }))}
+                disabled={annotations.length === columns.length}
+                label="Additional Columns"
+                onChange={addColumn}
+                options={annotations
+                    .filter((a) => !columnSet.has(a.displayName))
+                    .map((a) => ({ key: a.displayName, text: a.displayName }))}
+                placeholder="Add more columns"
+                selectedKeys={[]}
             />
-            <Label>Selected Columns ({columns.length} total)</Label>
+            <Label>
+                Selected Columns ({columns.length + TOP_LEVEL_FILE_ANNOTATIONS.length} total)
+            </Label>
             <ul className={styles.columnList}>
+                {TOP_LEVEL_FILE_ANNOTATIONS.map((annotation) => (
+                    <li
+                        className={classNames(styles.listItem, styles.topLevelAnnotationItem)}
+                        key={annotation.name}
+                    >
+                        {annotation.displayName}
+                        <span className={styles.topLevelAnnotationItemText}>(required)</span>
+                    </li>
+                ))}
                 {columns.map((column) => (
-                    <li key={column}>
-                        {column}
+                    <li className={styles.listItem} key={column}>
                         <Icon
                             className={styles.columnListIcon}
                             iconName="clear"
                             onClick={() => removeColumn(column)}
                         />
+                        {column}
                     </li>
                 ))}
             </ul>
@@ -127,7 +144,7 @@ export default function ManifestDownloadDialog() {
                 onChange={() => setShouldSaveColumnSelection(!shouldSaveColumnSelection)}
             />
             <DialogFooter>
-                <PrimaryButton disabled={!columns.length} onClick={onDownload} text="Download" />
+                <PrimaryButton onClick={onDownload} text="Download" />
             </DialogFooter>
         </Dialog>
     );

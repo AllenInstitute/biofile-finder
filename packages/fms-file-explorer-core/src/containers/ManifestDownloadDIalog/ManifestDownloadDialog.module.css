@@ -3,11 +3,29 @@
 }
 
 .column-list {
+    list-style: none;
     margin-top: 0;
+    padding: 0;
+}
+
+.list-item {
+    height: 18px;
+}
+
+.list-item:hover {
+    background-color: lightgrey;
 }
 
 .column-list-icon {
     cursor: pointer;
-    float: right;
     margin-right: 1em;
+    user-select: none;
+}
+
+.top-level-annotation-item {
+    margin-left: 2em;
+}
+
+.top-level-annotation-item-text {
+    float: right;
 }
