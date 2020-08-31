@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 import selection from "..";
-import { initialState } from "../..";
+import { initialState, metadata } from "../..";
 import interaction from "../../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import NumericRange from "../../../entity/NumericRange";
@@ -121,6 +121,29 @@ describe("Selection reducer", () => {
                     selection: nextSelectionState,
                 })
             ).to.deep.equal([TOP_LEVEL_FILE_ANNOTATIONS[1]]);
+        });
+    });
+
+    describe("metadata.actions.RECEIVE_ANNOTATIONS", () => {
+        it("clears annotations hierarchy", () => {
+            // arrange
+            const initialSelectionState = {
+                ...selection.initialState,
+                annotationHierarchy: TOP_LEVEL_FILE_ANNOTATIONS,
+            };
+
+            const action = metadata.actions.receiveAnnotations(TOP_LEVEL_FILE_ANNOTATIONS);
+
+            // act
+            const nextSelectionState = selection.reducer(initialSelectionState, action);
+
+            // assert
+            expect(
+                selection.selectors.getAnnotationHierarchy({
+                    ...initialState,
+                    selection: nextSelectionState,
+                })
+            ).to.be.empty;
         });
     });
 });

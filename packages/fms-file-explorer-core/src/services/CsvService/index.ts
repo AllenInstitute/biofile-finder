@@ -14,9 +14,7 @@ interface Selection {
 }
 
 interface SelectionRequest {
-    // Annotation columns to include in download.
-    // Excluding this field or leaving it empty results in all annotations being added as columns
-    annotations?: string[];
+    annotations: string[];
     selections: Selection[];
 }
 
@@ -65,7 +63,7 @@ export default class CsvService extends HttpServiceBase {
         );
         const postBody: SelectionRequest = {
             annotations: columns,
-            selections: selections,
+            selections,
         };
         const stringifiedPostBody = JSON.stringify(postBody);
         const url = `${this.baseUrl}/${CsvService.BASE_CSV_DOWNLOAD_URL}`;
