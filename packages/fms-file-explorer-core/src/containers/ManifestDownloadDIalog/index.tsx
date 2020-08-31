@@ -1,24 +1,21 @@
 import {
-    IContextualMenuItem,
-    Target,
-    ContextualMenuItemType as _ContextualMenuItemType,
     Dialog,
     DialogFooter,
     PrimaryButton,
     DefaultButton,
     Dropdown,
     IDropdownOption,
+    Checkbox,
+    Icon,
+    Label,
 } from "office-ui-fabric-react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { interaction, metadata } from "../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
-import Annotation from "../../entity/Annotation";
 
-export type ContextMenuItem = IContextualMenuItem;
-export type PositionReference = Target;
-export const ContextualMenuItemType = _ContextualMenuItemType;
+const styles = require("./ManifestDownloadDialog.module.css");
 
 const DIALOG_CONTENT_PROPS = {
     title: "Download CSV Manifest",
@@ -26,11 +23,13 @@ const DIALOG_CONTENT_PROPS = {
 };
 const MODAL_PROPS = {
     isBlocking: false,
-    // styles: { main: { maxWidth: 450 } },
 };
 
+const SAVED_CSV_COLUMNS_STORAGE = "SAVED_CSV_COLUMNS_STORAGE";
+
 /**
- * TODO
+ * Modal overlay for selecting columns to be included in a CSV manifest download of
+ * files previously selected.
  */
 export default function ManifestDownloadDialog() {
     const dispatch = useDispatch();
@@ -43,31 +42,49 @@ export default function ManifestDownloadDialog() {
     );
     const fileFilters = useSelector(interaction.selectors.getFileFiltersForManifestDownload);
 
-    const [columns, setColumns] = React.useState<Annotation[]>(TOP_LEVEL_FILE_ANNOTATIONS);
-    const columnAnnotationNames = columns.map((column) => column.name);
-    const columnAnnotationNameSet = new Set(columns.map((column) => column.name));
-
-    const onDownload = () => {
-        dispatch(interaction.actions.toggleManifestDownloadDialog());
-        dispatch(interaction.actions.downloadManifest(fileFilters, columnAnnotationNames));
-    };
-    const onChange = (
-        event: React.FormEvent<HTMLDivElement>,
-        option?: IDropdownOption | undefined
-    ) => {
-        console.log(event);
-        console.log(option);
-        console.log(columns);
-        if (option) {
-            // If has already been selected, deselect it
-            if (columnAnnotationNameSet.has(option.key as string)) {
-                const filteredColumns = columns.filter((c) => c.name !== option.key);
-                setColumns(filteredColumns);
-            } else {
-                const matchingColumn = annotations.filter((a) => a.name === option.key)[0];
-                setColumns([...columns, matchingColumn]);
+    const [isColumnSelectionSaved, setAreColumnsSaved] = React.useState(true);
+    const [columns, setColumns] = React.useState<string[]>(
+        TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName)
+    );
+    // Retrieve and set the columns saved to local state from last time (if exists)
+    React.useEffect(() => {
+        const columnsSavedFromLastTime = localStorage.getItem(SAVED_CSV_COLUMNS_STORAGE);
+        if (columnsSavedFromLastTime) {
+            const parsedColumns = JSON.parse(columnsSavedFromLastTime);
+            if (parsedColumns.length) {
+                const parsedColumnSet = new Set(parsedColumns);
+                const matchingAnnotations = annotations
+                    .filter((a) => parsedColumnSet.has(a.name))
+                    .map((a) => a.displayName);
+                if (matchingAnnotations.length) {
+                    setColumns(matchingAnnotations);
+                }
             }
         }
+    }, []);
+
+    const removeColumn = (column: string) => {
+        const filteredColumns = columns.filter((c) => c !== column);
+        setColumns(filteredColumns);
+    };
+    const onChange = (_: React.FormEvent<HTMLDivElement>, option?: IDropdownOption | undefined) => {
+        if (option) {
+            const column = option.key as string;
+            const columnSet = new Set(columns);
+            if (columnSet.has(column)) {
+                removeColumn(column);
+            } else {
+                const matchingColumn = annotations.filter((a) => a.name === column)[0].displayName;
+                setColumns([...columns, matchingColumn].sort((a, b) => a.localeCompare(b)));
+            }
+        }
+    };
+    const onDownload = () => {
+        if (isColumnSelectionSaved) {
+            localStorage.setItem(SAVED_CSV_COLUMNS_STORAGE, JSON.stringify(columns));
+        }
+        dispatch(interaction.actions.toggleManifestDownloadDialog());
+        dispatch(interaction.actions.downloadManifest(fileFilters, columns));
     };
 
     return (
@@ -77,18 +94,40 @@ export default function ManifestDownloadDialog() {
             dialogContentProps={DIALOG_CONTENT_PROPS}
             modalProps={MODAL_PROPS}
         >
-            <DefaultButton onClick={() => setColumns(annotations)} text="Select All" />
+            <DefaultButton
+                onClick={() => setColumns(annotations.map((a) => a.displayName))}
+                text="Select All"
+            />
             <DefaultButton onClick={() => setColumns([])} text="Select None" />
             <Dropdown
                 multiSelect
-                placeholder="Select or deselect a column"
+                className={styles.columnDropdown}
+                placeholder="Select columns"
                 label="Columns"
-                selectedKeys={columns.map((c) => c.name)}
+                selectedKeys={columns}
                 onChange={onChange}
-                options={annotations.map((a) => ({ key: a.name, text: a.displayName }))}
+                options={annotations.map((a) => ({ key: a.displayName, text: a.displayName }))}
+            />
+            <Label>Selected Columns ({columns.length} total)</Label>
+            <ul className={styles.columnList}>
+                {columns.map((column) => (
+                    <li key={column}>
+                        {column}
+                        <Icon
+                            className={styles.columnListIcon}
+                            iconName="clear"
+                            onClick={() => removeColumn(column)}
+                        />
+                    </li>
+                ))}
+            </ul>
+            <Checkbox
+                checked={isColumnSelectionSaved}
+                label="Save column selection for next time"
+                onChange={() => setAreColumnsSaved(!isColumnSelectionSaved)}
             />
             <DialogFooter>
-                <PrimaryButton onClick={onDownload} text="Download" />
+                <PrimaryButton disabled={!columns.length} onClick={onDownload} text="Download" />
             </DialogFooter>
         </Dialog>
     );

@@ -1,0 +1,13 @@
+.column-dropdown {
+    margin: 1em 0;
+}
+
+.column-list {
+    margin-top: 0;
+}
+
+.column-list-icon {
+    cursor: pointer;
+    float: right;
+    margin-right: 1em;
+}
