@@ -4,7 +4,6 @@ import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import NumericRange, { JSONReadyRange } from "../../entity/NumericRange";
 import FileDownloadService from "../FileDownloadService";
-import FileService from "../FileService";
 
 interface Selection {
     filters: {

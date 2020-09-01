@@ -7,7 +7,6 @@ import {
     DefaultButton,
     Dropdown,
     IDropdownOption,
-    Checkbox,
     Icon,
     Label,
 } from "office-ui-fabric-react";
