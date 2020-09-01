@@ -5,6 +5,8 @@
 .column-list {
     list-style: none;
     margin-top: 0;
+    max-height: 200px;
+    overflow-y: auto;
     padding: 0;
 }
 

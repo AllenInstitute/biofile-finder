@@ -41,7 +41,6 @@ export default function ManifestDownloadDialog() {
         interaction.selectors.isManifestDownloadDialogVisible
     );
 
-    const [shouldSaveColumnSelection, setShouldSaveColumnSelection] = React.useState(true);
     const [columns, setColumns] = React.useState<string[]>([]);
     const columnSet = new Set(columns);
     // Retrieve and set the columns saved to local state from last time (if exists)
@@ -74,9 +73,7 @@ export default function ManifestDownloadDialog() {
         setColumns(columns.filter((c) => c !== column));
     };
     const onDownload = () => {
-        if (shouldSaveColumnSelection) {
-            localStorage.setItem(SAVED_CSV_COLUMNS_STORAGE, JSON.stringify(columns));
-        }
+        localStorage.setItem(SAVED_CSV_COLUMNS_STORAGE, JSON.stringify(columns));
         dispatch(interaction.actions.toggleManifestDownloadDialog());
         // Map the annotations to their names (as opposed to their display names)
         const columnAnnotations = annotations.filter((a) => columnSet.has(a.displayName));
@@ -113,6 +110,7 @@ export default function ManifestDownloadDialog() {
                     .map((a) => ({ key: a.displayName, text: a.displayName }))}
                 placeholder="Add more columns"
                 selectedKeys={[]}
+                styles={{ dropdownItemsWrapper: { maxHeight: "250px" } }}
             />
             <Label>
                 Selected Columns ({columns.length + TOP_LEVEL_FILE_ANNOTATIONS.length} total)
@@ -138,11 +136,6 @@ export default function ManifestDownloadDialog() {
                     </li>
                 ))}
             </ul>
-            <Checkbox
-                checked={shouldSaveColumnSelection}
-                label="Save column selection for next time"
-                onChange={() => setShouldSaveColumnSelection(!shouldSaveColumnSelection)}
-            />
             <DialogFooter>
                 <PrimaryButton onClick={onDownload} text="Download" />
             </DialogFooter>
