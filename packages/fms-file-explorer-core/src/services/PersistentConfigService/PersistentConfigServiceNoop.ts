@@ -5,5 +5,7 @@ export default class PersistentConfigServiceNoop implements PersistentConfigServ
         return "test";
     }
 
-    public set(): void {}
+    public set(): void {
+        console.error("Using PersistentConfigServiceNoop");
+    }
 }
