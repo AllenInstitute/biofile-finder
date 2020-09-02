@@ -41,7 +41,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(downloadManifest());
+            store.dispatch(downloadManifest([], []));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -77,7 +77,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(downloadManifest());
+            store.dispatch(downloadManifest([], []));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -122,7 +122,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(downloadManifest());
+            store.dispatch(downloadManifest([], []));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -179,7 +179,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(downloadManifest());
+            store.dispatch(downloadManifest([], []));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -235,7 +235,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(downloadManifest(filters));
+            store.dispatch(downloadManifest(filters, []));
             await logicMiddleware.whenComplete();
 
             // assert

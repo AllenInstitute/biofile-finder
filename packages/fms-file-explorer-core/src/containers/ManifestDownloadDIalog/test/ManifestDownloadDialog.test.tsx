@@ -7,6 +7,7 @@ import { Provider } from "react-redux";
 import ManifestDownloadDialog from "..";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
+import FileFilter from "../../../entity/FileFilter";
 import PersistentConfigService from "../../../services/PersistentConfigService";
 import FileDownloadService from "../../../services/FileDownloadService";
 import { initialState, reduxLogics } from "../../../state";
@@ -68,6 +69,7 @@ describe("<ManifestDownloadDialog />", () => {
         }
         const state = mergeState(visibleDialogState, {
             interaction: {
+                fileFiltersForManifestDownload: [new FileFilter("Cell Line", "AICS-11")],
                 platformDependentServices: {
                     fileDownloadService: new ScopedFileDownloadService(),
                     persistentConfigService: new ScopedPersistentConfigService(),

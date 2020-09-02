@@ -15,15 +15,15 @@ export const DOWNLOAD_MANIFEST = makeConstant(STATE_BRANCH_NAME, "download-manif
 
 export interface DownloadManifestAction {
     payload: {
-        columns?: string[];
-        fileFilters?: FileFilter[];
+        columns: string[];
+        fileFilters: FileFilter[];
     };
     type: string;
 }
 
 export function downloadManifest(
-    fileFilters?: FileFilter[],
-    columns?: string[]
+    fileFilters: FileFilter[],
+    columns: string[]
 ): DownloadManifestAction {
     return {
         payload: {
