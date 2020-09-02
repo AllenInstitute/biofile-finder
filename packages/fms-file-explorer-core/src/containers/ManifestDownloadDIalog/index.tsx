@@ -55,19 +55,24 @@ export default function ManifestDownloadDialog() {
         ) {
             setColumns(columnsSavedFromLastTime);
         }
-    }, [annotations]);
+    }, [annotations, persistentConfigService]);
 
+    const removeColumn = (column: string) => {
+        setColumns(columns.filter((c) => c !== column));
+    };
     const addColumn = (
         _: React.FormEvent<HTMLDivElement>,
         option?: IDropdownOption | undefined
     ) => {
         if (option) {
-            const matchingColumn = find(annotations, (a) => a.displayName === option.key);
-            matchingColumn && setColumns([...columns, matchingColumn.displayName].sort());
+            const column = option.key as string;
+            if (columnSet.has(column)) {
+                removeColumn(column);
+            } else {
+                const matchingColumn = find(annotations, (a) => a.displayName === column);
+                matchingColumn && setColumns([...columns, matchingColumn.displayName].sort());
+            }
         }
-    };
-    const removeColumn = (column: string) => {
-        setColumns(columns.filter((c) => c !== column));
     };
     const onDownload = () => {
         persistentConfigService.set(SAVED_CSV_COLUMNS_STORAGE, columns);
@@ -102,11 +107,9 @@ export default function ManifestDownloadDialog() {
                 disabled={annotations.length === columns.length}
                 label="Additional Columns"
                 onChange={addColumn}
-                options={annotations
-                    .filter((a) => !columnSet.has(a.displayName))
-                    .map((a) => ({ key: a.displayName, text: a.displayName }))}
+                options={annotations.map((a) => ({ key: a.displayName, text: a.displayName }))}
                 placeholder="Add more columns"
-                selectedKeys={[]}
+                selectedKeys={columns}
                 styles={{ dropdownItemsWrapper: { maxHeight: "250px" } }}
             />
             <Label>
@@ -128,6 +131,7 @@ export default function ManifestDownloadDialog() {
                             className={styles.columnListIcon}
                             iconName="clear"
                             onClick={() => removeColumn(column)}
+                            data-testid="column-deselect-icon"
                         />
                         {column}
                     </li>
