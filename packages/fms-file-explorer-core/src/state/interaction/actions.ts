@@ -3,6 +3,7 @@ import { makeConstant } from "@aics/redux-utils";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
 import FileDownloadService from "../../services/FileDownloadService";
+import PersistentConfigService from "../../services/PersistentConfigService";
 import FileFilter from "../../entity/FileFilter";
 
 const STATE_BRANCH_NAME = "interaction";
@@ -137,6 +138,7 @@ export const SET_PLATFORM_DEPENDENT_SERVICES = makeConstant(
 export interface PlatformDependentServices {
     applicationInfoService: ApplicationInfoService;
     fileDownloadService: FileDownloadService;
+    persistentConfigService: PersistentConfigService;
 }
 
 export interface SetPlatformDependentServices {

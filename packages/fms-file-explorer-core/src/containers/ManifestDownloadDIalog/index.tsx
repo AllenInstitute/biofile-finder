@@ -36,6 +36,9 @@ export default function ManifestDownloadDialog() {
     const dispatch = useDispatch();
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
     const fileFilters = useSelector(interaction.selectors.getFileFiltersForManifestDownload);
+    const { persistentConfigService } = useSelector(
+        interaction.selectors.getPlatformDependentServices
+    );
     const isManifestDownloadDialogVisible = useSelector(
         interaction.selectors.isManifestDownloadDialogVisible
     );
@@ -44,18 +47,13 @@ export default function ManifestDownloadDialog() {
     const columnSet = new Set(columns);
     // Retrieve and set the columns saved to local state from last time (if exists)
     React.useEffect(() => {
-        const columnsSavedFromLastTime = localStorage.getItem(SAVED_CSV_COLUMNS_STORAGE);
-        if (columnsSavedFromLastTime) {
-            const parsedColumns = JSON.parse(columnsSavedFromLastTime);
-            if (parsedColumns.length) {
-                const parsedColumnSet = new Set(parsedColumns);
-                const matchingAnnotations = annotations
-                    .filter((a) => parsedColumnSet.has(a.name))
-                    .map((a) => a.displayName);
-                if (matchingAnnotations.length) {
-                    setColumns(matchingAnnotations);
-                }
-            }
+        const columnsSavedFromLastTime = persistentConfigService.get(SAVED_CSV_COLUMNS_STORAGE);
+        if (
+            columnsSavedFromLastTime &&
+            Array.isArray(columnsSavedFromLastTime) &&
+            columnsSavedFromLastTime.length
+        ) {
+            setColumns(columnsSavedFromLastTime);
         }
     }, [annotations]);
 
@@ -72,7 +70,7 @@ export default function ManifestDownloadDialog() {
         setColumns(columns.filter((c) => c !== column));
     };
     const onDownload = () => {
-        localStorage.setItem(SAVED_CSV_COLUMNS_STORAGE, JSON.stringify(columns));
+        persistentConfigService.set(SAVED_CSV_COLUMNS_STORAGE, columns);
         dispatch(interaction.actions.toggleManifestDownloadDialog());
         // Map the annotations to their names (as opposed to their display names)
         const columnAnnotations = annotations.filter((a) => columnSet.has(a.displayName));

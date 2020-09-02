@@ -20,6 +20,7 @@ import { PlatformDependentServices } from "./state/interaction/actions";
 
 import "./styles/global.css";
 import ManifestDownloadDialog from "./containers/ManifestDownloadDIalog";
+import PersistentConfigServiceNoop from "./services/PersistentConfigService/PersistentConfigServiceNoop";
 const styles = require("./App.module.css");
 
 // initialize office-ui-fabric-react
@@ -44,6 +45,7 @@ const defaultProps = {
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
+        persistentConfigService: new PersistentConfigServiceNoop(),
     },
 };
 
