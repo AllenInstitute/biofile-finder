@@ -12,7 +12,7 @@ import ContextMenu from "./containers/ContextMenu";
 import DirectoryTree from "./containers/DirectoryTree";
 import FileDetails from "./containers/FileDetails";
 import HeaderRibbon from "./containers/HeaderRibbon";
-import ManifestDownloadDialog from "./containers/ManifestDownloadDIalog";
+import ManifestDownloadDialog from "./containers/ManifestDownloadDialog";
 import StatusMessage from "./containers/StatusMessage";
 import ApplicationInfoServiceNoop from "./services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "./services/FileDownloadService/FileDownloadServiceNoop";
@@ -20,7 +20,7 @@ import { interaction, metadata } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
 
 import "./styles/global.css";
-import PersistentConfigServiceNoop from "./services/PersistentConfigService/PersistentConfigServiceNoop";
+import PersistentConfigServiceDefault from "./services/PersistentConfigService/PersistentConfigServiceDefault";
 const styles = require("./App.module.css");
 
 // initialize office-ui-fabric-react
@@ -37,7 +37,7 @@ interface AppProps {
     // Stage: "http://stg-aics-api.corp.alleninstitute.org"
     // From the web (behind load balancer): "/"
     fileExplorerServiceBaseUrl?: string;
-    platformDependentServices?: PlatformDependentServices;
+    platformDependentServices?: Partial<PlatformDependentServices>;
 }
 
 const defaultProps = {
@@ -45,15 +45,18 @@ const defaultProps = {
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
-        persistentConfigService: new PersistentConfigServiceNoop(),
+        persistentConfigService: new PersistentConfigServiceDefault(),
     },
 };
 
 export default function App(props: AppProps) {
-    const {
-        fileExplorerServiceBaseUrl = defaultProps.fileExplorerServiceBaseUrl,
-        platformDependentServices = defaultProps.platformDependentServices,
-    } = props;
+    const { fileExplorerServiceBaseUrl = defaultProps.fileExplorerServiceBaseUrl } = props;
+    const platformDependentServices = props.platformDependentServices
+        ? {
+              ...defaultProps.platformDependentServices,
+              ...props.platformDependentServices,
+          }
+        : defaultProps.platformDependentServices;
 
     const dispatch = useDispatch();
 
