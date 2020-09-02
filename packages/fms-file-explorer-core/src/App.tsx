@@ -12,6 +12,7 @@ import ContextMenu from "./containers/ContextMenu";
 import DirectoryTree from "./containers/DirectoryTree";
 import FileDetails from "./containers/FileDetails";
 import HeaderRibbon from "./containers/HeaderRibbon";
+import ManifestDownloadDialog from "./containers/ManifestDownloadDIalog";
 import StatusMessage from "./containers/StatusMessage";
 import ApplicationInfoServiceNoop from "./services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "./services/FileDownloadService/FileDownloadServiceNoop";
@@ -19,7 +20,6 @@ import { interaction, metadata } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
 
 import "./styles/global.css";
-import ManifestDownloadDialog from "./containers/ManifestDownloadDIalog";
 import PersistentConfigServiceNoop from "./services/PersistentConfigService/PersistentConfigServiceNoop";
 const styles = require("./App.module.css");
 
