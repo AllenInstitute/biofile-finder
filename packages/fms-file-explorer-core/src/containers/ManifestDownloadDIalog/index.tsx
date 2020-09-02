@@ -78,10 +78,11 @@ export default function ManifestDownloadDialog() {
         persistentConfigService.set(SAVED_CSV_COLUMNS_STORAGE, columns);
         dispatch(interaction.actions.toggleManifestDownloadDialog());
         // Map the annotations to their names (as opposed to their display names)
-        const columnAnnotations = annotations.filter((a) => columnSet.has(a.displayName));
-        // Top level file attributes as of the moment must always be included
-        const csvColumns = [...columnAnnotations, ...TOP_LEVEL_FILE_ANNOTATIONS].map((a) => a.name);
-        dispatch(interaction.actions.downloadManifest(fileFilters, csvColumns));
+        // Top level file attributes as of the moment are automatically included
+        const columnAnnotations = annotations
+            .filter((a) => columnSet.has(a.displayName))
+            .map((a) => a.name);
+        dispatch(interaction.actions.downloadManifest(fileFilters, columnAnnotations));
     };
 
     return (

@@ -42,7 +42,7 @@ const downloadManifest = createLogic({
             let selectionsByFileSet: { [index: string]: NumericRange[] };
 
             // If we have a specific path to get files from ignore selected files
-            if (action.payload) {
+            if (action.payload && action.payload.fileFilters.length) {
                 const fileSet = defaultFileSetFactory.create({
                     filters: action.payload.fileFilters,
                     fileService,
