@@ -13,6 +13,7 @@ To help with the management of three interconnected packages, this project makes
 With regard to project setup, the use of `lerna` has one major implication: `lerna` should be used to install all project dependencies and otherwise "bootstrap" the workspace. To initialize your workspace:
 ```bash
 $ git clone ...  # duh
+$ cd fms-file-explorer  # duh?
 $ npm install  # this installs lerna
 $ npx lerna bootstrap --hoist  # this installs and de-duplicates all subpackage dependencies and performs any linking between packages
 ```
