@@ -1,5 +1,5 @@
-Getting Started
-===============
+Setup and workflow
+==================
 
 To get started with a _typical_ frontend project, one would clone the repository and run `npm install`. To add a dependency, one would run `npm install [package-name]`. But because the source code for this project is [split across three subpackages](01-project-layout.md), this all works differently in this project.
 
