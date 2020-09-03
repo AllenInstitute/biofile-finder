@@ -27,7 +27,7 @@ a subpackage and run `npm install`. If you end up with a `package-lock.json` wit
 npm install in a subpackage and you should clear your workspace before doing anything further.**
 
 
-### Periodic workspace maintaince
+### Periodic workspace maintenance
 Once setup locally, if remote master has progressed beyond your local repo, you should periodically refresh your
 workspace:
 ```bash
