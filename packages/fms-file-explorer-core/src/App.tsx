@@ -51,17 +51,20 @@ const defaultProps = {
 
 export default function App(props: AppProps) {
     const { fileExplorerServiceBaseUrl = defaultProps.fileExplorerServiceBaseUrl } = props;
-    const platformDependentServices = props.platformDependentServices
-        ? {
-              ...defaultProps.platformDependentServices,
-              ...props.platformDependentServices,
-          }
-        : defaultProps.platformDependentServices;
+    const platformDependentServicesFromElectron = props.platformDependentServices;
 
     const dispatch = useDispatch();
 
     // Set platform-dependent services in state
     React.useEffect(() => {
+        // Substitute default platform dependent services for any not supplied
+        const platformDependentServices = props.platformDependentServices
+            ? {
+                  ...defaultProps.platformDependentServices,
+                  ...props.platformDependentServices,
+              }
+            : defaultProps.platformDependentServices;
+
         dispatch(interaction.actions.setPlatformDependentServices(platformDependentServices));
 
         async function checkForUpdates() {
@@ -81,7 +84,7 @@ export default function App(props: AppProps) {
         }
 
         checkForUpdates();
-    }, [dispatch, platformDependentServices]);
+    }, [dispatch, platformDependentServicesFromElectron]);
 
     // Set connection configuration for the file-explorer-service
     // And kick off the process of requesting metadata needed by the application.
