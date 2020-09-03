@@ -13,7 +13,7 @@ The following captures the steps of a release of this project:
 1. Trigger a project-wide version bump and publish the new version of `fms-file-explorer-core` to `npmjs.org`:
 https://jenkins.corp.alleninstitute.org/job/desktop-apps/job/fms-file-explorer/job/master/build (select "Version
 packages in the monorepo and publish @aics/fms-file-explorer-core" for "JOB_TYPE" and whichever semver bump for
-"VERSION_BUMP_TYPE" makes sense). Under the hood, `lerna` is used to bump the versions of each of the subpackges within
+"VERSION_BUMP_TYPE" makes sense). Under the hood, `lerna` is used to bump the versions of each of the subpackages within
 the repo. Additionally, `lerna` will handle bumping the version of `fms-file-explorer-core` referenced in the
 `package.json` of `fms-file-explorer-electron` and `fms-file-explorer-web`. Last, using credentials stored in Jenkins,
 `npm publish` is run _specifically_ within the `fms-file-explorer-core` subpackage.
