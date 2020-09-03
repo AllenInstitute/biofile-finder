@@ -39,7 +39,11 @@ In many cases, you'll need to make changes to the `fms-file-explorer-core` NPM p
 
 
 ### Adding a dependency to a subpackage
-In the case that you need to add either a dependency or devDependency to any subpackage within this project, use `lerna`. There are some gotchyas to be aware of:
+In the case that you need to add either a dependency or devDependency to any subpackage within this project, use `lerna`.
+
+**In the course of typical feature/bug development, this is the how you will add external libraries to the project.**
+
+There are some gotchyas to be aware of:
 1. `lerna add`, when run without a `--scope` argument, will add the dependency to each subpackage in this project.
 2. When specifying a `--scope`, you must use the subpackage's name _as defined in its package.json_, which is not always equal to the name of the directory under `packages`. For example, the `fms-file-explorer-core` subpackage should be referenced as `--scope @aics/fms-file-explorer-core`.
 3. `lerna add` does not do a great job with cross-subpackage dependency deduplication by default. Use the `--no-bootstrap` option, then afterward, run `lerna bootstrap --hoist`.
@@ -48,5 +52,13 @@ In the case that you need to add either a dependency or devDependency to any sub
 
 Some examples:
 1. Add `lolcatjs` as a devDependency of `fms-file-explorer-core`: `npx lerna add --dev --scope @aics/fms-file-explorer-core --exact --no-bootstrap lolcatjs`.
-2. Add `lolcatjs` as a regular dependency of `fms-file-explorer-electron` (or update it to latest if already installed): `npx lerna add --scope fms-file-explorer-electron --exact --no-bootstrap lolcatjs`.
-3. Add `localcatjs` as a regular dependency to every subpackage: `npx lerna add --exact --no-bootstrap lolcatjs`.
+2. Add `lolcatjs` as a regular dependency of `fms-file-explorer-electron`: `npx lerna add --scope fms-file-explorer-electron --exact --no-bootstrap lolcatjs`.
+3. Add `lolcatjs` as a regular dependency to every subpackage: `npx lerna add --exact --no-bootstrap lolcatjs`.
+
+In each example above, if `lolcatjs` is already installed in the specified subpackage, the commands will result in updating `lolcatjs` to the latest available version.
+
+
+### Adding a dependency to the project (monorepo) root
+If you have reason to add a dependency to the project root (alongside `lerna`), use `npm`. E.g.: `npm install --save-exact husky`.
+
+The need for installing dependencies at this level should be rare--these dependencies should be limited to those that directly affect repository/project or workflow management.
