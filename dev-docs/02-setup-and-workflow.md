@@ -5,8 +5,8 @@ To get started with a _typical_ frontend project, one would clone the repository
 dependency, one would run `npm install [package-name]`. But because the source code for this project is [split across
 three subpackages](01-project-layout.md), this all works differently in this project.
 
-To help with the management of three interconnected packages, this project makes use of [lerna](https://github.com/lerna/
-lerna). The three most important features we get from using `lerna` are:
+To help with the management of three interconnected packages, this project makes use of
+[lerna](https://github.com/lerna/lerna). The three most important features we get from using `lerna` are:
 1) the linking of `fms-file-explorer-core` into both `fms-file-explorer-electron` and `fms-file-explorer-web`;
 2) the deduplication of dependencies between those three packages; and
 3) handling of multipackage versioning.
