@@ -193,6 +193,17 @@ describe("<ManifestDownloadDialog />", () => {
                 }
             }
             const state = mergeState(visibleDialogState, {
+                metadata: {
+                    annotations: preSavedColumns.map(
+                        (c) =>
+                            new Annotation({
+                                annotationDisplayName: c,
+                                annotationName: c,
+                                description: "test",
+                                type: "text",
+                            })
+                    ),
+                },
                 interaction: {
                     platformDependentServices: {
                         persistentConfigService: new ScopedPersistentConfigService(),
