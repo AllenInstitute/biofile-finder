@@ -53,7 +53,8 @@ export default function ManifestDownloadDialog() {
             Array.isArray(columnsSavedFromLastTime) &&
             columnsSavedFromLastTime.length
         ) {
-            setColumns(columnsSavedFromLastTime);
+            const annotationSet = new Set(annotations.map((a) => a.displayName));
+            setColumns(columnsSavedFromLastTime.filter((c) => annotationSet.has(c)));
         }
     }, [annotations, persistentConfigService]);
 
