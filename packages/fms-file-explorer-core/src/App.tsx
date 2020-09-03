@@ -51,7 +51,6 @@ const defaultProps = {
 
 export default function App(props: AppProps) {
     const { fileExplorerServiceBaseUrl = defaultProps.fileExplorerServiceBaseUrl } = props;
-    const platformDependentServicesFromElectron = props.platformDependentServices;
 
     const dispatch = useDispatch();
 
@@ -84,7 +83,7 @@ export default function App(props: AppProps) {
         }
 
         checkForUpdates();
-    }, [dispatch, platformDependentServicesFromElectron]);
+    }, [dispatch, props.platformDependentServices]);
 
     // Set connection configuration for the file-explorer-service
     // And kick off the process of requesting metadata needed by the application.
