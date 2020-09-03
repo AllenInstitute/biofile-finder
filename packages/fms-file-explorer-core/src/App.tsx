@@ -16,11 +16,11 @@ import ManifestDownloadDialog from "./containers/ManifestDownloadDialog";
 import StatusMessage from "./containers/StatusMessage";
 import ApplicationInfoServiceNoop from "./services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "./services/FileDownloadService/FileDownloadServiceNoop";
+import PersistentConfigServiceDefault from "./services/PersistentConfigService/PersistentConfigServiceDefault";
 import { interaction, metadata } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
 
 import "./styles/global.css";
-import PersistentConfigServiceDefault from "./services/PersistentConfigService/PersistentConfigServiceDefault";
 const styles = require("./App.module.css");
 
 // initialize office-ui-fabric-react
