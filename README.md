@@ -4,7 +4,7 @@ FMS File Explorer
 The FMS File Explorer is an application designed to simplify access and exploration of data produced by the Allen Institute for Cell Science, provide an intuitive mechanism for organizing that data, and provide simple hooks for incorporating that data into both programmatic and non-programmatic workflows.
 
 
-### Homepage:
+### Homepage
 https://alleninstitute.github.io/aics-fms-file-explorer-app/
 
 
