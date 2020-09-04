@@ -89,7 +89,7 @@ describe("<ManifestDownloadDialog />", () => {
         await logicMiddleware.whenComplete();
 
         // Assert
-        expect(savedColumns).to.be.deep.eq([]);
+        expect(savedColumns).to.be.deep.eq(TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName));
         expect(downloadTriggered).to.be.true;
     });
 
@@ -181,7 +181,22 @@ describe("<ManifestDownloadDialog />", () => {
     });
 
     describe("column list", () => {
-        it("has default & pre-saved columns that were persisted", async () => {
+        it("has default columns when none were previousuly saved", async () => {
+            // Arrange
+            const { store } = configureMockStore({ state: visibleDialogState });
+            const { getByText } = render(
+                <Provider store={store}>
+                    <ManifestDownloadDialog />
+                </Provider>
+            );
+
+            // Assert
+            TOP_LEVEL_FILE_ANNOTATIONS.forEach((annotation) => {
+                expect(getByText(annotation.displayName)).to.exist;
+            });
+        });
+
+        it("has pre-saved columns when some were previousuly saved", async () => {
             // Arrange
             const preSavedColumns = ["Cas9", "Cell Line", "Donor Plasmid"];
             class ScopedPersistentConfigService implements PersistentConfigService {
@@ -218,9 +233,6 @@ describe("<ManifestDownloadDialog />", () => {
             );
 
             // Assert
-            TOP_LEVEL_FILE_ANNOTATIONS.forEach((annotation) => {
-                expect(getByText(annotation.displayName)).to.exist;
-            });
             preSavedColumns.forEach((value) => {
                 expect(getByText(value)).to.exist;
             });
@@ -255,22 +267,21 @@ describe("<ManifestDownloadDialog />", () => {
                 },
             });
             const { store } = configureMockStore({ state });
-            const { findByTestId, findAllByRole } = render(
+            const { findByTestId, findAllByRole, getByRole } = render(
                 <Provider store={store}>
                     <ManifestDownloadDialog />
                 </Provider>
             );
             // (sanity-check) ensure column is present in list before asserting that it was removed
-            let columns = await findAllByRole("listitem");
-            expect(columns).to.be.length(TOP_LEVEL_FILE_ANNOTATIONS.length + 1);
+            const columns = await findAllByRole("listitem");
+            expect(columns).to.be.length(1);
 
             // Act
             const deselectIcon = await findByTestId("column-deselect-icon");
             fireEvent.click(deselectIcon);
 
             // Assert
-            columns = await findAllByRole("listitem");
-            expect(columns).to.be.length(TOP_LEVEL_FILE_ANNOTATIONS.length);
+            expect(() => getByRole("listitem")).to.throw;
         });
 
         it("adds column to list when selected in dropdown", async () => {
@@ -299,7 +310,9 @@ describe("<ManifestDownloadDialog />", () => {
             expect(columns).to.be.length(TOP_LEVEL_FILE_ANNOTATIONS.length);
 
             // Act
-            const dropdown = await findByText("Add more columns");
+            const dropdown = await findByText(
+                TOP_LEVEL_FILE_ANNOTATIONS.map((annotation) => annotation.displayName).join(", ")
+            );
             fireEvent.click(dropdown);
             const dropdownOption = await findByText(column);
             fireEvent.click(dropdownOption);

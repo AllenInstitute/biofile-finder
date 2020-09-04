@@ -1,5 +1,3 @@
-import classNames from "classnames";
-import { find } from "lodash";
 import {
     Dialog,
     DialogFooter,
@@ -27,6 +25,7 @@ const MODAL_PROPS = {
 };
 
 const SAVED_CSV_COLUMNS_STORAGE = "SAVED_CSV_COLUMNS_STORAGE";
+const TOP_LEVEL_FILE_ANNOTATION_SET = new Set(TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName));
 
 /**
  * Modal overlay for selecting columns to be included in a CSV manifest download of
@@ -34,7 +33,8 @@ const SAVED_CSV_COLUMNS_STORAGE = "SAVED_CSV_COLUMNS_STORAGE";
  */
 export default function ManifestDownloadDialog() {
     const dispatch = useDispatch();
-    const annotations = useSelector(metadata.selectors.getSortedAnnotations);
+    const customAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
+    const allAnnotations = [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations];
     const fileFilters = useSelector(interaction.selectors.getFileFiltersForManifestDownload);
     const { persistentConfigService } = useSelector(
         interaction.selectors.getPlatformDependentServices
@@ -43,7 +43,7 @@ export default function ManifestDownloadDialog() {
         interaction.selectors.isManifestDownloadDialogVisible
     );
 
-    const [columns, setColumns] = React.useState<string[]>([]);
+    const [columns, setColumns] = React.useState<string[]>([...TOP_LEVEL_FILE_ANNOTATION_SET]);
     const columnSet = new Set(columns);
     // Retrieve and set the columns saved to local state from last time (if exists)
     React.useEffect(() => {
@@ -53,10 +53,12 @@ export default function ManifestDownloadDialog() {
             Array.isArray(columnsSavedFromLastTime) &&
             columnsSavedFromLastTime.length
         ) {
-            const annotationSet = new Set(annotations.map((a) => a.displayName));
+            const annotationSet = new Set(
+                [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations].map((a) => a.displayName)
+            );
             setColumns(columnsSavedFromLastTime.filter((c) => annotationSet.has(c)));
         }
-    }, [annotations, persistentConfigService]);
+    }, [customAnnotations, persistentConfigService]);
 
     const removeColumn = (column: string) => {
         setColumns(columns.filter((c) => c !== column));
@@ -70,8 +72,19 @@ export default function ManifestDownloadDialog() {
             if (columnSet.has(column)) {
                 removeColumn(column);
             } else {
-                const matchingColumn = find(annotations, (a) => a.displayName === column);
-                matchingColumn && setColumns([...columns, matchingColumn.displayName].sort());
+                // Place the "top level file attributes" at the top of the selected column list
+                setColumns(
+                    [...columns, column].sort((a, b) => {
+                        if (TOP_LEVEL_FILE_ANNOTATION_SET.has(a)) {
+                            if (!TOP_LEVEL_FILE_ANNOTATION_SET.has(b)) {
+                                return -1;
+                            }
+                        } else if (TOP_LEVEL_FILE_ANNOTATION_SET.has(b)) {
+                            return 1;
+                        }
+                        return a.localeCompare(b);
+                    })
+                );
             }
         }
     };
@@ -80,7 +93,7 @@ export default function ManifestDownloadDialog() {
         dispatch(interaction.actions.toggleManifestDownloadDialog());
         // Map the annotations to their names (as opposed to their display names)
         // Top level file attributes as of the moment are automatically included
-        const columnAnnotations = annotations
+        const columnAnnotations = allAnnotations
             .filter((a) => columnSet.has(a.displayName))
             .map((a) => a.name);
         dispatch(interaction.actions.downloadManifest(fileFilters, columnAnnotations));
@@ -94,8 +107,8 @@ export default function ManifestDownloadDialog() {
             modalProps={MODAL_PROPS}
         >
             <DefaultButton
-                disabled={columns.length === annotations.length}
-                onClick={() => setColumns(annotations.map((a) => a.displayName))}
+                disabled={columns.length === allAnnotations.length}
+                onClick={() => setColumns(allAnnotations.map((a) => a.displayName))}
                 text="Select All"
             />
             <DefaultButton
@@ -106,27 +119,19 @@ export default function ManifestDownloadDialog() {
             <Dropdown
                 multiSelect
                 className={styles.columnDropdown}
-                disabled={annotations.length === columns.length}
-                label="Additional Columns"
+                disabled={columns.length === allAnnotations.length}
+                label="Columns"
                 onChange={addColumn}
-                options={annotations.map((a) => ({ key: a.displayName, text: a.displayName }))}
-                placeholder="Add more columns"
+                options={[...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations].map((a) => ({
+                    key: a.displayName,
+                    text: a.displayName,
+                }))}
+                placeholder="Select columns to include"
                 selectedKeys={columns}
                 styles={{ dropdownItemsWrapper: { maxHeight: "250px" } }}
             />
-            <Label>
-                Selected Columns ({columns.length + TOP_LEVEL_FILE_ANNOTATIONS.length} total)
-            </Label>
+            <Label>Selected Columns ({columns.length} total)</Label>
             <ul className={styles.columnList}>
-                {TOP_LEVEL_FILE_ANNOTATIONS.map((annotation) => (
-                    <li
-                        className={classNames(styles.listItem, styles.topLevelAnnotationItem)}
-                        key={annotation.name}
-                    >
-                        {annotation.displayName}
-                        <span className={styles.topLevelAnnotationItemText}>(required)</span>
-                    </li>
-                ))}
                 {columns.map((column) => (
                     <li className={styles.listItem} key={column}>
                         <Icon
@@ -140,7 +145,7 @@ export default function ManifestDownloadDialog() {
                 ))}
             </ul>
             <DialogFooter>
-                <PrimaryButton onClick={onDownload} text="Download" />
+                <PrimaryButton disabled={!columns.length} onClick={onDownload} text="Download" />
             </DialogFooter>
         </Dialog>
     );
