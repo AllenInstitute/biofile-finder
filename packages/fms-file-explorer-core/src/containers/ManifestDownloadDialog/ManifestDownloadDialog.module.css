@@ -20,6 +20,7 @@
 
 .column-list-icon {
     cursor: pointer;
+    font-size: 0.75em;
     margin-right: 1em;
     user-select: none;
 }
