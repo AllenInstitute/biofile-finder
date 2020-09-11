@@ -1,0 +1,25 @@
+.figure {
+    height: 100%;
+    width: 100%;
+}
+
+.thumbnail {
+    height: 75%;
+    width: 100%;
+}
+
+.thumbnail.selected {
+    background-color: lightgray;
+}
+
+.caption {
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: center;
+    user-select: text !important;
+}
+
+.caption.selected {
+    background-color: blue;
+    color: white;
+}
