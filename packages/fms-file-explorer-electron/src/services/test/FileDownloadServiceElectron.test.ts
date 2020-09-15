@@ -44,7 +44,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             const CSV_BODY =
                 "Hello, it's me, I was wondering if after all these years you'd like to meet";
 
-            // intercept requests to DOWNLOAD_URL and return canned response
+            // intercept request for download and return canned response
             nock(DOWNLOAD_HOST)
                 .post(DOWNLOAD_PATH)
                 .reply(200, CSV_BODY, {

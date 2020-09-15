@@ -4,7 +4,10 @@ import * as path from "path";
 
 import { app, dialog, ipcMain, ipcRenderer } from "electron";
 
-import { CancellationToken, FileDownloadService } from "@aics/fms-file-explorer-core";
+import { FileDownloadService } from "@aics/fms-file-explorer-core";
+const {
+    CancellationToken,
+} = require("@aics/fms-file-explorer-core/nodejs/services/FileDownloadService");
 
 // Maps active request ids (uuids) to request download info
 interface ActiveRequestMap {
