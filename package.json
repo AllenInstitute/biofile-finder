@@ -6,11 +6,6 @@
     "npm": "6.x"
   },
   "private": true,
-  "scripts": {
-    "publishArtifact": "lerna run publishArtifact",
-    "setup": "lerna bootstrap --hoist",
-    "lernaVersion": "lerna version --yes --no-commit-hooks --exact"
-  },
   "devDependencies": {
     "husky": "3.0.5",
     "lerna": "3.22.1"

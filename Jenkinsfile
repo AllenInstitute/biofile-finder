@@ -72,7 +72,7 @@ pipeline {
             }
             steps {
                 sh "npm ci"
-                sh "npm run setup"
+                sh "npx lerna bootstrap --hoist"
 
                 // Get around needing to pass "--no-sandbox" to Chromium used by Electron (in headless testing)
                 // Error you'd see without this:
@@ -120,7 +120,7 @@ pipeline {
             }
             steps {
                 sh "npm ci"
-                sh "npm run setup"
+                sh "npx lerna bootstrap --hoist"
 
                 // Increment version
                 sh "npx lerna version --yes --no-commit-hooks --exact ${params.VERSION_BUMP_TYPE}"
