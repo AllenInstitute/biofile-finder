@@ -1,6 +1,11 @@
 import * as fs from "fs";
 import * as os from "os";
 
+// GM 9/15/20: This symbol is in fact exported from @aics/fms-file-explorer-core, but inexplicably,
+// using `import` machinery causes tests to hang. All attempts to debug this have been unsuccesful so far.
+const {
+    CancellationToken,
+} = require("@aics/fms-file-explorer-core/nodejs/services/FileDownloadService");
 import { expect } from "chai";
 import { ipcRenderer } from "electron";
 import nock from "nock";
@@ -70,6 +75,60 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
 
             // Assert
             expect(await fs.promises.readFile(tempfile, "utf-8")).to.equal(CSV_BODY);
+        });
+
+        it("resolves CancellationToken if user cancels download when prompted for save path", async () => {
+            // Arrange
+            sandbox
+                .stub(ipcRenderer, "invoke")
+                .withArgs(FileDownloadServiceElectron.GET_FILE_SAVE_PATH)
+                .resolves({
+                    canceled: true,
+                });
+
+            const service = new FileDownloadServiceElectron();
+
+            // Act / Assert
+            expect(
+                await service.downloadCsvManifest(
+                    "/some/url",
+                    JSON.stringify({ some: "data" }),
+                    "beepbop"
+                )
+            ).to.equal(CancellationToken);
+        });
+
+        it("rejects with error message if request for CSV is unsuccessful", async () => {
+            // Arrange
+            const DOWNLOAD_HOST = "http://aics-test.corp.alleninstitute.org";
+            const DOWNLOAD_PATH = "/file-explorer-service/1.0/files/selection/manifest";
+            const ERROR_MSG = "Something went wrong and nobody knows why";
+
+            // intercept request for download and return canned error
+            nock(DOWNLOAD_HOST)
+                .post(DOWNLOAD_PATH)
+                .reply(500, ERROR_MSG);
+
+            sandbox
+                .stub(ipcRenderer, "invoke")
+                .withArgs(FileDownloadServiceElectron.GET_FILE_SAVE_PATH)
+                .resolves({
+                    filePath: tempfile,
+                });
+
+            const service = new FileDownloadServiceElectron();
+
+            try {
+                // Act
+                await service.downloadCsvManifest(
+                    `${DOWNLOAD_HOST}${DOWNLOAD_PATH}`,
+                    JSON.stringify({ some: "data" }),
+                    "beepbop"
+                );
+            } catch (msg) {
+                // Assert
+                expect(msg).to.include(ERROR_MSG);
+            }
         });
     });
 });
