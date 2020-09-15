@@ -7,13 +7,8 @@
   },
   "private": true,
   "scripts": {
-    "build": "lerna run build",
-    "changedScopes": "./scripts/get-changed-scopes.js",
-    "lint": "lerna run lint",
     "publishArtifact": "lerna run publishArtifact",
     "setup": "lerna bootstrap --hoist",
-    "test": "lerna run test",
-    "typeCheck": "lerna run typeCheck",
     "lernaVersion": "lerna version --yes --no-commit-hooks --exact"
   },
   "devDependencies": {
