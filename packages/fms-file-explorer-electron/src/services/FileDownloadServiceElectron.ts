@@ -5,6 +5,9 @@ import * as path from "path";
 import { app, dialog, ipcMain, ipcRenderer } from "electron";
 
 import { FileDownloadService } from "@aics/fms-file-explorer-core";
+
+// GM 9/15/20: This symbol is in fact exported from @aics/fms-file-explorer-core, but inexplicably,
+// using `import` machinery causes tests to hang. All attempts to debug this have been unsuccesful so far.
 const {
     CancellationToken,
 } = require("@aics/fms-file-explorer-core/nodejs/services/FileDownloadService");
