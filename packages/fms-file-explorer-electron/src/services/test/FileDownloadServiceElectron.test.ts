@@ -32,12 +32,18 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
         const tempfile = `${os.tmpdir()}/manifest.csv`;
 
         beforeEach(async () => {
+            if (!nock.isActive()) {
+                nock.activate();
+            }
+
             // ensure tempfile exists
             const fd = await fs.promises.open(tempfile, "w+");
             await fd.close();
         });
 
         afterEach(async () => {
+            nock.restore();
+
             await fs.promises.unlink(tempfile);
             sandbox.restore();
         });

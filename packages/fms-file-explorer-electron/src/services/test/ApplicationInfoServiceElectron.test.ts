@@ -22,7 +22,14 @@ describe(`${RUN_IN_RENDERER} ApplicationInfoServiceElectron`, () => {
     describe("updateAvailable", () => {
         const sandbox = createSandbox();
 
+        beforeEach(() => {
+            if (!nock.isActive()) {
+                nock.activate();
+            }
+        });
+
         afterEach(() => {
+            nock.restore();
             sandbox.restore();
         });
 
