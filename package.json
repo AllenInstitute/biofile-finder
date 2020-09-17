@@ -6,16 +6,6 @@
     "npm": "6.x"
   },
   "private": true,
-  "scripts": {
-    "build": "lerna run build",
-    "changedScopes": "./scripts/get-changed-scopes.js",
-    "lint": "lerna run lint",
-    "publishArtifact": "lerna run publishArtifact",
-    "setup": "lerna bootstrap --hoist",
-    "test": "lerna run test",
-    "typeCheck": "lerna run typeCheck",
-    "lernaVersion": "lerna version --yes --no-commit-hooks --exact"
-  },
   "devDependencies": {
     "husky": "3.0.5",
     "lerna": "3.22.1"

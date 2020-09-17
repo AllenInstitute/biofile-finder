@@ -1,44 +1,17 @@
-fms-file-explorer
-=====================
+FMS File Explorer
+=================
 
-A monorepo containing all frontend sub-projects related to the FMS File Explorer.
-
-
-### How to setup the monorepo locally
-
-If you *ARE NOT* inclined to use Gradle:
-```bash
-$ git clone ssh://git@aicsbitbucket.corp.alleninstitute.org:7999/sw/fms-file-explorer.git  # duh
-$ npm install
-$ npx lerna bootstrap --hoist
-```
-
-If you *ARE* inclined to use Gradle:
-```bash
-$ git clone ssh://git@aicsbitbucket.corp.alleninstitute.org:7999/sw/fms-file-explorer.git  # duh
-$ ./gradlew setup
-```
-
-**The command `npx lerna bootstrap --hoist` takes care of all dependency installation. There is no need to go into a subpackage and run `npm install`.**
-
-### Once setup locally, if remote master has progressed beyond your local repo
-
-```bash
-$ git pull  # duh
-$ npx lerna clean -y
-$ npx lerna bootstrap --hoist
-```
-
-Those last two `lerna` commands are generally helpful if you run into any weird issues with dependencies that you expect are installed but cannot be resolved.
+The FMS File Explorer is an application designed to simplify access and exploration of data produced by the Allen
+Institute for Cell Science, provide an intuitive mechanism for organizing that data, and provide simple hooks for
+incorporating that data into both programmatic and non-programmatic workflows.
 
 
-### Learn more about lerna
+### Homepage
+https://alleninstitute.github.io/aics-fms-file-explorer-app/
 
-https://github.com/lerna/lerna
 
-
-### Quick start dev guide
-
-In many cases, you'll need to be making changes to the `fms-file-explorer-core` NPM package, and you'll want to see how those changes play out in the context of a rendered application, like `fms-file-explorer-electron` or `fms-file-explorer-web`. To make that happen:
-1. In one terminal, navigate to the `fms-file-explorer-core` package and run `npm run build:watch`.
-2. In another terminal, navigate to one or both of the containers (`fms-file-explorer-electron` and/or `fms-file-explorer-web`) and run `npm run start`.
+### Developer documentation
+1. [Project layout](dev-docs/01-project-layout.md)
+2. [Setup and workflow](dev-docs/02-setup-and-workflow.md)
+3. [Using a local `file-explorer-service`](dev-docs/03-using-localhost-datasource.md)
+4. [Versioning and deployment](dev-docs/04-versioning-and-deployment.md)

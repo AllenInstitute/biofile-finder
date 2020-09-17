@@ -50,38 +50,83 @@ pipeline {
                 // print the params used to run current job
                 print "JOB_TYPE: ${params.JOB_TYPE}"
                 print "VERSION_BUMP_TYPE: ${params.VERSION_BUMP_TYPE}"
-
-                sh "./gradlew setup"
             }
         }
 
         stage ("integration: lint, typeCheck, test, and build") {
+            agent {
+                dockerfile {
+                    filename "Dockerfile"
+                    additionalBuildArgs "--build-arg USER=`whoami` --build-arg GROUP=jenkins --build-arg UID=`id -u` --build-arg GID=`id -g`"
+
+                    // --cap-add=SYS_ADMIN added to help get around otherwise needing to pass "--no-sandbox" to Chromium used by Electron.
+                    // Error you'd see without this:
+                    // "Failed to move to new namespace: PID namespaces supported, Network namespace supported, but failed: errno = Operation not permitted"
+                    // Reference: https://github.com/jessfraz/dockerfiles/issues/65#issuecomment-145731454, https://ndportmann.com/chrome-in-docker/
+                    args '-e HOME=${WORKSPACE} --cap-add=SYS_ADMIN'
+                }
+            }
             when {
                 expression { !IGNORE_AUTHORS.contains(gitAuthor()) }
                 equals expected: INTEGRATION, actual: params.JOB_TYPE
             }
             steps {
-                sh "./gradlew lint"
-                sh "./gradlew typeCheck"
-                sh "./gradlew test"
-                sh "./gradlew build"
+                sh "npm ci"
+                sh "npx lerna bootstrap --hoist"
+
+                // Get around needing to pass "--no-sandbox" to Chromium used by Electron (in headless testing)
+                // Error you'd see without this:
+                // "The SUID sandbox helper binary was found, but is not configured correctly"
+                // Reference: https://github.com/electron/electron/issues/17972#issuecomment-487369441
+                sh "chmod 4755 ./node_modules/electron/dist/chrome-sandbox"
+                sh "sudo chown root ./node_modules/electron/dist/chrome-sandbox"
+
+                // For each subpackage, run lint, typeCheck, test, and build
+                script {
+                    def package_dirs = [
+                        "packages/fms-file-explorer-core",
+                        "packages/fms-file-explorer-electron",
+                        "packages/fms-file-explorer-web"
+                    ]
+                    for (int i = 0; i < package_dirs.size(); ++i) {
+                        sh """
+                        #!/bin/bash
+
+                        set -e
+
+                        pushd ${package_dirs[i]}
+                        npm run lint
+                        npm run typeCheck
+                        npm run test
+                        npm run build
+                        popd
+                        """.trim()
+                    }
+                }
             }
         }
 
         stage ("version and publish") {
+            agent {
+                dockerfile {
+                    filename "Dockerfile"
+                    additionalBuildArgs "--build-arg USER=`whoami` --build-arg GROUP=jenkins --build-arg UID=`id -u` --build-arg GID=`id -g`"
+                    args '-e HOME=${WORKSPACE}'
+                }
+            }
             when {
                 branch "master"
                 equals expected: VERSION_AND_PUBLISH, actual: params.JOB_TYPE
             }
             steps {
-                // Make certain working tree is clean; this could not be the case due to classic, unexplainable package-lock.json changes
-                sh "git checkout -- ."
+                sh "npm ci"
+                sh "npx lerna bootstrap --hoist"
 
                 // Increment version
-                sh "./gradlew version -Pbump=${params.VERSION_BUMP_TYPE}"
+                sh "npx lerna version --yes --no-commit-hooks --exact ${params.VERSION_BUMP_TYPE}"
 
                 // Publish npm lib
-                sh "./gradlew publishArtifact -Pscope=\"--scope=@aics/fms-file-explorer-core\""
+                sh "npx lerna run publishArtifact --scope=@aics/fms-file-explorer-core"
             }
         }
 

@@ -1,10 +1,16 @@
-import * as http from "http";
 import * as fs from "fs";
+import * as http from "http";
 import * as path from "path";
 
 import { app, dialog, ipcMain, ipcRenderer } from "electron";
 
-import { CancellationToken, FileDownloadService } from "@aics/fms-file-explorer-core";
+import { FileDownloadService } from "@aics/fms-file-explorer-core";
+
+// GM 9/15/20: This symbol is in fact exported from @aics/fms-file-explorer-core, but inexplicably,
+// using `import` machinery causes tests to hang. All attempts to debug this have been unsuccesful so far.
+const {
+    CancellationToken,
+} = require("@aics/fms-file-explorer-core/nodejs/services/FileDownloadService");
 
 // Maps active request ids (uuids) to request download info
 interface ActiveRequestMap {
