@@ -16,12 +16,6 @@ export default interface PersistentConfigService {
      * Prompts the user for the allen mount point location & saves for future use.
      */
     setAllenMountPoint(): Promise<string>;
-
-    /**
-     * Attempts to retrieve the allen mount point if saved, otherwise prompts the user
-     * for the allen mount point & saves for future use.
-     */
-    getOrSetAllenMountPoint(): Promise<string>;
 }
 
 /**

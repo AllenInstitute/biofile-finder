@@ -14,9 +14,16 @@ const {
 export default class PersistentConfigServiceElectron implements PersistentConfigService {
     public static SAVED_ALLEN_MOUNT_POINT = "SAVED_ALLEN_MOUNT_POINT";
     public static SET_ALLEN_MOUNT_POINT = "get-allen-mount-point";
+    public static SELECT_ALLEN_MOUNT_POINT = "select-allen-mount-point";
+
+    public constructor() {
+        ipcRenderer.on(PersistentConfigServiceElectron.SET_ALLEN_MOUNT_POINT, async () => {
+            this.setAllenMountPoint();
+        });
+    }
 
     public static registerIpcHandlers() {
-        ipcMain.handle(PersistentConfigServiceElectron.SET_ALLEN_MOUNT_POINT, async () => {
+        ipcMain.handle(PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT, async () => {
             return await dialog.showOpenDialog({
                 title: "Select allen drive mount point",
                 defaultPath: path.resolve("/"),
@@ -39,18 +46,9 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
         localStorage.setItem(key, JSON.stringify(value));
     }
 
-    public async getOrSetAllenMountPoint(): Promise<string> {
-        const allenPath = this.get(PersistentConfigServiceElectron.SAVED_ALLEN_MOUNT_POINT);
-        if (!allenPath) {
-            // TODO: Maybe also test validity...?
-            return this.setAllenMountPoint();
-        }
-        return Promise.resolve(allenPath);
-    }
-
     public async setAllenMountPoint(): Promise<string> {
         const result = await ipcRenderer.invoke(
-            PersistentConfigServiceElectron.SET_ALLEN_MOUNT_POINT
+            PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT
         );
         if (result.canceled || !result.filePaths.length) {
             return Promise.resolve(PersistentConfigCancellationToken);
