@@ -1,4 +1,5 @@
 import * as React from "react";
+import path from "path";
 import { useSelector } from "react-redux";
 
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
@@ -16,13 +17,6 @@ interface FileAnnotationListProps {
     isLoading: boolean;
 }
 
-const LOCAL_FILE_PATH_ANNOTATION = new Annotation({
-    annotationDisplayName: "File Path (Local)",
-    annotationName: AnnotationName.FILE_PATH,
-    description: "Path to file in storage on your machine.",
-    type: AnnotationType.STRING,
-});
-
 /**
  * Component responsible for rendering the metadata pertaining to a file inside the file
  * details pane on right hand side of the application.
@@ -33,7 +27,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
         interaction.selectors.getPlatformDependentServices
     );
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
-    const allenMountPoint = persistentConfigService.get(SavedDataKey.AllenMountPoint);
+    const allenMountPoint = persistentConfigService.get(SavedDataKey.AllenMountPoint) || "";
 
     const content: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
         if (isLoading) {
@@ -46,18 +40,26 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
 
         const sorted = Annotation.sort([...TOP_LEVEL_FILE_ANNOTATIONS, ...annotations]);
         return sorted.reduce((accum, annotation) => {
-            let values = annotation.extractFromFile(fileDetails.details);
+            const values = annotation.extractFromFile(fileDetails.details);
             // If it was found, append it to our list of custom annotation rows
             if (values !== Annotation.MISSING_VALUE) {
-                // This annotation is a derivation of the file path annotation
-                // where we want to specify the path as would be seen according to the OS & local allen drive
-                if (annotation.displayName === LOCAL_FILE_PATH_ANNOTATION.displayName) {
-                    // If we don't know the mount point don't include this annotation
-                    if (!allenMountPoint) {
-                        return accum;
-                    }
-                    // TODO: improve this replace & make os specific
-                    values = allenMountPoint.replace("/allen", "") + "values";
+                // Derive a more specific file path from the canonical file path
+                if (annotation.name === AnnotationName.FILE_PATH) {
+                    return [
+                        ...accum,
+                        <FileAnnotationRow
+                            key="file-path-local"
+                            className={styles.row}
+                            name="File Path (Local)"
+                            value={path.normalize(allenMountPoint.replace("/allen", "") + values)}
+                        />,
+                        <FileAnnotationRow
+                            key={annotation.displayName}
+                            className={styles.row}
+                            name={annotation.displayName}
+                            value={values}
+                        />,
+                    ];
                 }
                 return [
                     ...accum,
