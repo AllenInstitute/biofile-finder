@@ -17,14 +17,14 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     public static SELECT_ALLEN_MOUNT_POINT = "select-allen-mount-point";
 
     public constructor() {
-        ipcRenderer.on(PersistentConfigServiceElectron.SET_ALLEN_MOUNT_POINT, async () => {
+        ipcRenderer.on(PersistentConfigServiceElectron.SET_ALLEN_MOUNT_POINT, () => {
             this.setAllenMountPoint();
         });
     }
 
     public static registerIpcHandlers() {
-        ipcMain.handle(PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT, async () => {
-            return await dialog.showOpenDialog({
+        ipcMain.handle(PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT, () => {
+            return dialog.showOpenDialog({
                 title: "Select allen drive mount point",
                 defaultPath: path.resolve("/"),
                 buttonLabel: "Select",
@@ -35,14 +35,11 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     }
 
     public get(key: string): any {
-        console.log("In PersistentConfigServiceElectron get");
         const item = localStorage.getItem(key);
-        console.log(`Found ${item}`);
         return isNil(item) ? undefined : JSON.parse(item);
     }
 
     public set(key: string, value: any): void {
-        console.log(`In PersistentConfigServiceElectron set: ${value}`);
         localStorage.setItem(key, JSON.stringify(value));
     }
 
