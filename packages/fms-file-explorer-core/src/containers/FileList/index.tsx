@@ -74,8 +74,10 @@ export default function FileList(props: FileListProps) {
         const items = [];
         if (isEmpty(selectedFiles)) {
             items.push({ ...availableItems.DOWNLOAD, disabled: true });
+            items.push({ ...availableItems.OPEN_IN, disabled: true });
         } else {
             items.push(availableItems.DOWNLOAD);
+            items.push(availableItems.OPEN_IN);
         }
         dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
     };
