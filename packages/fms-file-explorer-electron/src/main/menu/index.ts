@@ -1,6 +1,7 @@
 import { MenuItemConstructorOptions } from "electron";
 
 import dataSourceMenu from "./data-source";
+import settingsMenu from "./settings";
 
 const template: MenuItemConstructorOptions[] = [];
 
@@ -20,4 +21,4 @@ if (process.platform === "darwin") {
     template.unshift({ role: "appMenu", label: "FMS File Explorer" });
 }
 
-export default [...template, ...defaultMenuItems, dataSourceMenu];
+export default [...template, ...defaultMenuItems, dataSourceMenu, settingsMenu];

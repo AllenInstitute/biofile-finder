@@ -13,7 +13,7 @@ export default class PersistentConfigServiceNoop implements PersistentConfigServ
         );
     }
 
-    public retrieveOrSetAllenMountPoint() {
+    public getOrSetAllenMountPoint() {
         return Promise.resolve(
             "Attempting to get or set allen mount point using PersistentConfigServiceNoop"
         );
