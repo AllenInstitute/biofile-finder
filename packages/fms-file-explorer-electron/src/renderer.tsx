@@ -7,14 +7,17 @@ import { render } from "react-dom";
 import { Provider } from "react-redux";
 import ApplicationInfoServiceElectron from "./services/ApplicationInfoServiceElectron";
 import FileDownloadServiceElectron from "./services/FileDownloadServiceElectron";
+import PersistentConfigServiceElectron from "./services/PersistentConfigServiceElectron";
 
 const APP_ID = "fms-file-explorer-electron";
 
 const store = createReduxStore();
 
+const persistentConfigService = new PersistentConfigServiceElectron();
 const platformDependentServices = {
     applicationInfoService: new ApplicationInfoServiceElectron(),
     fileDownloadService: new FileDownloadServiceElectron(),
+    persistentConfigService,
 };
 
 function renderFmsFileExplorer(fileExplorerServiceBaseUrl: string) {

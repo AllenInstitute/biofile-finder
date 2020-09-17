@@ -15,8 +15,8 @@ import {
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
+import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
-import PersistentConfigServiceDefault from "../../services/PersistentConfigService/PersistentConfigServiceDefault";
 import FileFilter from "../../entity/FileFilter";
 
 export interface InteractionStateBranch {
@@ -45,7 +45,7 @@ export const initialState = {
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
-        persistentConfigService: new PersistentConfigServiceDefault(),
+        persistentConfigService: new PersistentConfigServiceNoop(),
     },
     status: [],
 };
