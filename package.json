@@ -3,11 +3,13 @@
   "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
   "engines": {
     "node": "12.x",
-    "npm": "6.x"
+    "npm": "7.x"
   },
   "private": true,
   "devDependencies": {
-    "husky": "3.0.5",
-    "lerna": "3.22.1"
+    "husky": "4.3.x",
+    "lerna": "3.22.x",
+    "lint-staged": "10.4.x",
+    "prettier": "2.1.x"
   }
 }
