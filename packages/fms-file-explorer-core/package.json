@@ -89,7 +89,7 @@
     "typescript": "3.7.x"
   },
   "dependencies": {
-    "@aics/redux-utils": "0.5.0",
+    "@aics/redux-utils": "0.5.x",
     "@tippy.js/react": "3.1.x",
     "axios": "0.19.x",
     "classnames": "2.2.x",
