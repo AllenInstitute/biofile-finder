@@ -1,7 +1,7 @@
 /**
  * Keys for the saved by this service
  */
-export enum SavedDataKey {
+export enum PersistedDataKeys {
     AllenMountPoint = "ALLEN_MOUNT_POINT",
     CsvColumns = "CSV_COLUMNS",
 }
@@ -13,12 +13,12 @@ export default interface PersistentConfigService {
     /**
      * Retrieve the config value for the given key. Returns undefined if not present.
      */
-    get(key: SavedDataKey): any;
+    get(key: PersistedDataKeys): any;
 
     /**
      * Save the config value at the given key. Overwrites any existing data for the key.
      */
-    set(key: SavedDataKey, value: any): void;
+    set(key: PersistedDataKeys, value: any): void;
 
     /**
      * Prompts the user for the allen mount point location & saves for future use.

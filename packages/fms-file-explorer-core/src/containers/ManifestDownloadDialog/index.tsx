@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { interaction, metadata } from "../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
-import { SavedDataKey } from "../../services/PersistentConfigService";
+import { PersistedDataKeys } from "../../services/PersistentConfigService";
 
 const styles = require("./ManifestDownloadDialog.module.css");
 
@@ -47,7 +47,7 @@ export default function ManifestDownloadDialog() {
     const columnSet = new Set(columns);
     // Retrieve and set the columns saved to local state from last time (if exists)
     React.useEffect(() => {
-        const columnsSavedFromLastTime = persistentConfigService.get(SavedDataKey.CsvColumns);
+        const columnsSavedFromLastTime = persistentConfigService.get(PersistedDataKeys.CsvColumns);
         if (
             columnsSavedFromLastTime &&
             Array.isArray(columnsSavedFromLastTime) &&
@@ -89,7 +89,7 @@ export default function ManifestDownloadDialog() {
         }
     };
     const onDownload = () => {
-        persistentConfigService.set(SavedDataKey.CsvColumns, columns);
+        persistentConfigService.set(PersistedDataKeys.CsvColumns, columns);
         dispatch(interaction.actions.toggleManifestDownloadDialog());
         // Map the annotations to their names (as opposed to their display names)
         // Top level file attributes as of the moment are automatically included

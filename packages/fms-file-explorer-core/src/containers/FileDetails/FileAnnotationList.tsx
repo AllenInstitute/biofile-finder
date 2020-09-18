@@ -4,9 +4,8 @@ import { useSelector } from "react-redux";
 
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import Annotation from "../../entity/Annotation";
-import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileDetail from "../../entity/FileDetail";
-import { SavedDataKey } from "../../services/PersistentConfigService";
+import { PersistedDataKeys } from "../../services/PersistentConfigService";
 import { interaction, metadata } from "../../state";
 import FileAnnotationRow from "./FileAnnotationRow";
 
@@ -27,7 +26,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
         interaction.selectors.getPlatformDependentServices
     );
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
-    const allenMountPoint = persistentConfigService.get(SavedDataKey.AllenMountPoint) || "";
+    const allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint) || "";
 
     const content: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
         if (isLoading) {

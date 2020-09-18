@@ -5,7 +5,9 @@ export default class PersistentConfigServiceNoop implements PersistentConfigServ
         return undefined;
     }
 
-    public set() {}
+    public set() {
+        return;
+    }
 
     public setAllenMountPoint() {
         return Promise.resolve(

@@ -1,4 +1,4 @@
-import { isNil } from "lodash";
+import Store, { Schema } from "electron-store";
 import * as path from "path";
 
 import { dialog, ipcMain, ipcRenderer } from "electron";
@@ -7,14 +7,31 @@ import { dialog, ipcMain, ipcRenderer } from "electron";
 // using `import` machinery causes tests to hang. All attempts to debug this have been unsuccesful so far.
 const {
     PersistentConfigCancellationToken,
-    SavedDataKey,
+    PersistedDataKeys,
 } = require("@aics/fms-file-explorer-core/nodejs/services/PersistentConfigService");
+
+// Defines a validation schema for data inserted into the persistent storage
+// if a breaking change is made see migration patterns in elecron-store docs
+const STORAGE_SCHEMA: Schema<Record<string, unknown>> = {
+    [PersistedDataKeys.AllenMountPoint]: {
+        type: "string",
+    },
+    [PersistedDataKeys.CsvColumns]: {
+        type: "array",
+        items: {
+            type: "string",
+        },
+    },
+};
 
 export default class PersistentConfigServiceElectron implements PersistentConfigService {
     public static SET_ALLEN_MOUNT_POINT = "get-allen-mount-point";
     public static SELECT_ALLEN_MOUNT_POINT = "select-allen-mount-point";
+    private store: Store;
 
     public constructor() {
+        this.store = new Store({ schema: STORAGE_SCHEMA });
+
         ipcRenderer.on(PersistentConfigServiceElectron.SET_ALLEN_MOUNT_POINT, () => {
             this.setAllenMountPoint();
         });
@@ -32,13 +49,12 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
         });
     }
 
-    public get(key: SavedDataKey): any {
-        const item = localStorage.getItem(key);
-        return isNil(item) ? undefined : JSON.parse(item);
+    public get(key: PersistedDataKeys): any {
+        return this.store.get(key);
     }
 
-    public set(key: SavedDataKey, value: any): void {
-        localStorage.setItem(key, JSON.stringify(value));
+    public set(key: PersistedDataKeys, value: any): void {
+        this.store.set(key, value);
     }
 
     public async setAllenMountPoint(): Promise<string> {
@@ -52,7 +68,7 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
             return Promise.reject(`Found unexpected number of paths: ${result.filePaths}`);
         }
         const allenPath = result.filePaths[0];
-        this.set(SavedDataKey.AllenMountPoint, allenPath);
+        this.set(PersistedDataKeys.AllenMountPoint, allenPath);
         return Promise.resolve(allenPath);
     }
 }
