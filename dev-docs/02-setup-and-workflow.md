@@ -12,6 +12,11 @@ To help with the management of three interconnected packages, this project makes
 3) handling of multipackage versioning.
 
 
+### System requirements
+1. NodeJS version 12.x (use `nvm` or similar)
+2. NPM version 7.x (e.g.: `npm install --global npm@next-7`)
+
+
 ### Initial setup
 With regard to project setup, the use of `lerna` has one major implication: `lerna` should be used to install all
 project dependencies and otherwise "bootstrap" the workspace. To initialize your workspace:
