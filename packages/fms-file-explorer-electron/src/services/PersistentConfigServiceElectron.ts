@@ -24,13 +24,20 @@ const STORAGE_SCHEMA: Schema<Record<string, unknown>> = {
     },
 };
 
+interface PersistentConfigServiceElectronOptions {
+    clearExistingData?: boolean;
+}
+
 export default class PersistentConfigServiceElectron implements PersistentConfigService {
     public static SET_ALLEN_MOUNT_POINT = "get-allen-mount-point";
     public static SELECT_ALLEN_MOUNT_POINT = "select-allen-mount-point";
     private store: Store;
 
-    public constructor() {
+    public constructor(options: PersistentConfigServiceElectronOptions = {}) {
         this.store = new Store({ schema: STORAGE_SCHEMA });
+        if (options.clearExistingData) {
+            this.store.clear();
+        }
 
         ipcRenderer.on(PersistentConfigServiceElectron.SET_ALLEN_MOUNT_POINT, () => {
             this.setAllenMountPoint();
@@ -63,9 +70,6 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
         );
         if (result.canceled || !result.filePaths.length) {
             return Promise.resolve(PersistentConfigCancellationToken);
-        }
-        if (result.filePaths.length !== 1) {
-            return Promise.reject(`Found unexpected number of paths: ${result.filePaths}`);
         }
         const allenPath = result.filePaths[0];
         this.set(PersistedDataKeys.AllenMountPoint, allenPath);
