@@ -12,7 +12,6 @@ const {
     PersistedDataKeys,
 } = require("@aics/fms-file-explorer-core/nodejs/services/PersistentConfigService");
 
-// TODO: Whats up with RUN_IN_RENDERER...
 describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
     describe("get", () => {
         it("returns expected value everytime", () => {
