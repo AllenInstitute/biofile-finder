@@ -18,12 +18,12 @@ project dependencies and otherwise "bootstrap" the workspace. To initialize your
 ```bash
 $ git clone ssh://git@aicsbitbucket.corp.alleninstitute.org:7999/sw/fms-file-explorer.git  # duh
 $ cd fms-file-explorer  # duh?
-$ npm install  # this installs lerna
+$ npm ci  # best to not use `npm install`
 $ npx lerna bootstrap --hoist  # this installs and deduplicates all subpackage dependencies and performs any linking between packages
 ```
 
 **N.b: The command `npx lerna bootstrap --hoist` takes care of all dependency installation. There is no need to go into
-a subpackage and run `npm install`. If you end up with a `package-lock.json` within one of the subpackages, you've run
+a subpackage and run `npm install`. If you end up with a `package-lock.json` within one of the subpackages, you've likely run
 npm install in a subpackage and you should clear your workspace before doing anything further.**
 
 
@@ -34,7 +34,7 @@ workspace:
 $ git pull  # duh
 $ npx lerna clean -y
 $ rm -rf node_modules/
-$ npm install
+$ npm ci
 $ npx lerna bootstrap --hoist
 ```
 
