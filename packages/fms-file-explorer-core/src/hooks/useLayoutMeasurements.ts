@@ -27,7 +27,7 @@ export default function useLayoutMeasurements<T extends HTMLElement>(): [
             // https://github.com/Microsoft/TSJS-lib-generator/blob/master/inputfiles/idlSources.json
             resizeObserver = new ResizeObserver(
                 debounce(([entry]) => {
-                    if (entry.target === ref.current) {
+                    if (ref.current && entry.target === ref.current) {
                         // GM: 11/18/2019
                         // When the ResizeObserver uniformly supports ResizeObserverEntry::borderBoxSize there will be no
                         // need to query the bounding client rect off of ref
