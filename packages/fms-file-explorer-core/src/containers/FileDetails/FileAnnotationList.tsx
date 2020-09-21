@@ -49,7 +49,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                         <FileAnnotationRow
                             key="file-path-local"
                             className={styles.row}
-                            name="File Path (Local)"
+                            name="File path (Local)"
                             value={path.normalize(allenMountPoint.replace("/allen", "") + values)}
                         />,
                         <FileAnnotationRow
