@@ -3,6 +3,8 @@ import * as path from "path";
 
 import { dialog, ipcMain, ipcRenderer } from "electron";
 
+import { PersistentConfigService } from "@aics/fms-file-explorer-core";
+
 // GM 9/15/20: This symbol is in fact exported from @aics/fms-file-explorer-core, but inexplicably,
 // using `import` machinery causes tests to hang. All attempts to debug this have been unsuccesful so far.
 const {
@@ -56,11 +58,11 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
         });
     }
 
-    public get(key: PersistedDataKeys): any {
+    public get(key: typeof PersistedDataKeys): any {
         return this.store.get(key);
     }
 
-    public set(key: PersistedDataKeys, value: any): void {
+    public set(key: typeof PersistedDataKeys, value: any): void {
         this.store.set(key, value);
     }
 

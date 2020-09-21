@@ -18,4 +18,11 @@ export { CancellationToken } from "./services/FileDownloadService";
 import { default as _ApplicationInfoService } from "./services/ApplicationInfoService";
 export type ApplicationInfoService = _ApplicationInfoService;
 
+import { default as _PersistentConfigService } from "./services/PersistentConfigService";
+export type PersistentConfigService = _PersistentConfigService;
+export {
+    PersistentConfigCancellationToken,
+    PersistedDataKeys,
+} from "./services/PersistentConfigService";
+
 export { default } from "./App";
