@@ -1,12 +1,4 @@
-FROM ubuntu:20.04
-
-ARG USER=jenkins
-ARG GROUP=jenkins
-ARG UID=1000
-ARG GID=1000
-
-RUN /usr/sbin/groupadd -g ${GID} ${GROUP} && \
-    /usr/sbin/useradd -g ${GROUP} -G sudo -N --shell /bin/bash --create-home -u ${UID} ${USER}
+FROM docker-virtual.artifactory.corp.alleninstitute.org/ubuntu:20.04
 
 RUN apt-get update && apt-get install -y curl && \
     curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
@@ -31,6 +23,17 @@ RUN apt-get update && apt-get install -y curl && \
     libxss1 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# Make sure we're using npm 7 (auto installs peer deps); TODO: remove once 7 is released from beta
+RUN npm install --global npm@next-7
+
+ARG USER=jenkins
+ARG GROUP=jenkins
+ARG UID=1000
+ARG GID=1000
+
+RUN /usr/sbin/groupadd -g ${GID} ${GROUP} && \
+    /usr/sbin/useradd -g ${GROUP} -G sudo -N --shell /bin/bash --create-home -u ${UID} ${USER}
 
 # Add USER to sudoers to allow for chowning chrome-sandbox (once installed as part of Electron) to root
 # Gets around needing to pass "--no-sandbox" to Chromium used by Electron (in headless testing as part of "integration" stage)

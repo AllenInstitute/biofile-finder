@@ -111,7 +111,7 @@ pipeline {
                 dockerfile {
                     filename "Dockerfile"
                     additionalBuildArgs "--build-arg USER=`whoami` --build-arg GROUP=jenkins --build-arg UID=`id -u` --build-arg GID=`id -g`"
-                    args '-e HOME=${WORKSPACE}'
+                    args '-v $HOME/.ssh:/home/jenkins/.ssh:ro -v $HOME/.npmrc:/home/jenkins/.npmrc:ro -v $HOME/.gitconfig:/home/jenkins/.gitconfig:ro -v /etc/ssl/certs:/etc/ssl/certs:ro'
                 }
             }
             when {
@@ -119,14 +119,20 @@ pipeline {
                 equals expected: VERSION_AND_PUBLISH, actual: params.JOB_TYPE
             }
             steps {
-                sh "npm ci"
-                sh "npx lerna bootstrap --hoist"
+                sh """
+                #!/bin/bash
 
-                // Increment version
-                sh "npx lerna version --yes --no-commit-hooks --exact ${params.VERSION_BUMP_TYPE}"
+                set -e
 
-                // Publish npm lib
-                sh "npx lerna run publishArtifact --scope=@aics/fms-file-explorer-core"
+                npm ci
+                npx lerna bootstrap --hoist
+
+                # Increment version
+                npx lerna version --yes --no-commit-hooks --exact ${params.VERSION_BUMP_TYPE}
+
+                # Publish npm lib
+                npx lerna run publishArtifact --scope=@aics/fms-file-explorer-core
+                """.trim()
             }
         }
 
