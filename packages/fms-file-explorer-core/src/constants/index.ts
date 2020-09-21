@@ -38,9 +38,9 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         type: AnnotationType.STRING,
     }),
     new Annotation({
-        annotationDisplayName: "File path (Canonical)",
+        annotationDisplayName: "File path",
         annotationName: AnnotationName.FILE_PATH,
-        description: "Path to file in storage from allen drive.",
+        description: "Path to file in storage.",
         type: AnnotationType.STRING,
     }),
     new Annotation({
