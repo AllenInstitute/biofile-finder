@@ -1,6 +1,7 @@
-import { configureMockStore, mergeState, createMockHttpClient } from "@aics/redux-utils";
+import { configureMockStore, mergeState, createMockHttpClient, ResponseStub } from "@aics/redux-utils";
 import { render } from "@testing-library/react";
 import { expect } from "chai";
+import { get as _get } from "lodash";
 import React from "react";
 import { Provider } from "react-redux";
 import { Store, AnyAction } from "redux";
@@ -39,7 +40,13 @@ describe("useDirectoryHierarchy", () => {
             description: "",
             type: "Text",
         });
-        const mockHttpClient = createMockHttpClient();
+        const responseStub: ResponseStub = {
+            when: (config) => _get(config, "url", "").includes(FileService.BASE_FILE_COUNT_URL),
+            respondWith: {
+                data: { data: [42] },
+            },
+        };
+        const mockHttpClient = createMockHttpClient(responseStub);
         const fileService = new FileService({
             baseUrl,
             httpClient: mockHttpClient,

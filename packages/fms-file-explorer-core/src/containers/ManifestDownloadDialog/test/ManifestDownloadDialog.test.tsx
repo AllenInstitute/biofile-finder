@@ -1,8 +1,10 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
+import { configureMockStore, createMockHttpClient, mergeState, ResponseStub } from "@aics/redux-utils";
 import { expect } from "chai";
+import { get as _get } from "lodash";
 import * as React from "react";
 import { render, fireEvent } from "@testing-library/react";
 import { Provider } from "react-redux";
+import { createSandbox } from "sinon";
 
 import ManifestDownloadDialog from "..";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
@@ -10,13 +12,39 @@ import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import PersistentConfigService from "../../../services/PersistentConfigService";
 import FileDownloadService from "../../../services/FileDownloadService";
-import { initialState, reduxLogics } from "../../../state";
+import FileService from "../../../services/FileService";
+import { initialState, interaction, reduxLogics } from "../../../state";
 
 describe("<ManifestDownloadDialog />", () => {
+    const baseUrl = "test";
     const visibleDialogState = mergeState(initialState, {
         interaction: {
+            fileExplorerServiceBaseUrl: baseUrl,
             isManifestDownloadDialogVisible: true,
         },
+    });
+
+    const responseStub: ResponseStub = {
+        when: (config) => _get(config, "url", "").includes(FileService.BASE_FILE_COUNT_URL),
+        respondWith: {
+            data: { data: [42] },
+        },
+    };
+    const mockHttpClient = createMockHttpClient(responseStub);
+    const fileService = new FileService({ baseUrl, httpClient: mockHttpClient });
+
+    const sandbox = createSandbox();
+
+    before(() => {
+        sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
+    });
+
+    afterEach(() => {
+        sandbox.resetHistory();
+    });
+
+    after(() => {
+        sandbox.restore();
     });
 
     it("is not visible when should be hidden", async () => {
@@ -59,6 +87,7 @@ describe("<ManifestDownloadDialog />", () => {
                 return Promise.reject();
             }
         }
+
         let downloadTriggered = false;
         class ScopedFileDownloadService implements FileDownloadService {
             public downloadCsvManifest() {
@@ -70,6 +99,7 @@ describe("<ManifestDownloadDialog />", () => {
                 return Promise.reject();
             }
         }
+
         const state = mergeState(visibleDialogState, {
             interaction: {
                 fileFiltersForManifestDownload: [new FileFilter("Cell Line", "AICS-11")],
@@ -79,7 +109,12 @@ describe("<ManifestDownloadDialog />", () => {
                 },
             },
         });
-        const { store, logicMiddleware } = configureMockStore({ state, logics: reduxLogics });
+
+        const { store, logicMiddleware } = configureMockStore({
+            state,
+            logics: reduxLogics,
+        });
+
         const { findByText } = render(
             <Provider store={store}>
                 <ManifestDownloadDialog />
