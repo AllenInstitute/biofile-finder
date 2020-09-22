@@ -12,9 +12,22 @@
 const childProcess = require("child_process");
 const { promises: fsPromises } = require("fs");
 const http = require("http");
+const os = require("os");
 const path = require("path");
 
 const { devServer } = require("../webpack/constants");
+
+function getNpmBinDir() {
+    try {
+        const output = childProcess.spawnSync("npm", ["bin"], { encoding: "utf-8" });
+        if (output.stdout.endsWith(os.EOL)) {
+            return output.stdout.slice(0, output.stdout.length - 1);
+        }
+        return output.stdout;
+    } catch (err) {
+        console.err("Failed to determine npm bin location");
+    }
+}
 
 async function makeBuildDirectory() {
     const buildDir = path.resolve(__dirname, "../", "dist");
@@ -30,12 +43,11 @@ async function makeBuildDirectory() {
     }
 }
 
-function startWebpackDevServer() {
+function startWebpackDevServer(npmBin) {
     console.log("Starting webpack-dev-server");
     childProcess.spawn(
-        'npx',
+        `${npmBin}/webpack-dev-server`,
         [
-            'webpack-dev-server',
             '--config',
             './webpack/webpack.config.js',
             '--env.env',
@@ -82,12 +94,11 @@ async function checkIfWebpackDevServerIsReady() {
     return Promise.reject();
 }
 
-function startBabelWatch() {
+function startBabelWatch(npmBin) {
     console.log("Starting babel watch of src/main.ts");
     childProcess.spawn(
-        "npx",
+        `${npmBin}/babel`,
         [
-            "babel",
             "src",
             "--ignore",
             "\"src/renderer.tsx\"",
@@ -109,12 +120,11 @@ function startBabelWatch() {
     );
 }
 
-function startElectron() {
+function startElectron(npmBin) {
     console.log("Starting electron");
     childProcess.spawn(
-        "npx",
+        `${npmBin}/electron`,
         [
-            "electron",
             "."
         ], {
             env: Object.assign({}, process.env, {
@@ -129,12 +139,13 @@ function startElectron() {
 // kick it all off
 makeBuildDirectory()
     .then(() => {
-        startWebpackDevServer();
-        startBabelWatch();
+        const npmBin = getNpmBinDir();
+        startWebpackDevServer(npmBin);
+        startBabelWatch(npmBin);
         checkIfWebpackDevServerIsReady()
             .then(() => {
                 console.log("webpack-dev-server is up and running");
-                startElectron();
+                startElectron(npmBin);
             })
             .catch(() => {
                 console.error("Failed to connect to webpack-dev-server");
