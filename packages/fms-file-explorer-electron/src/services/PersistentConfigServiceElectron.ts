@@ -31,7 +31,7 @@ interface PersistentConfigServiceElectronOptions {
 }
 
 export default class PersistentConfigServiceElectron implements PersistentConfigService {
-    public static SET_ALLEN_MOUNT_POINT = "get-allen-mount-point";
+    public static SET_ALLEN_MOUNT_POINT = "set-allen-mount-point";
     public static SELECT_ALLEN_MOUNT_POINT = "select-allen-mount-point";
     private store: Store;
 
