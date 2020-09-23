@@ -41,6 +41,7 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
             this.store.clear();
         }
 
+        ipcRenderer.removeAllListeners(PersistentConfigServiceElectron.SET_ALLEN_MOUNT_POINT);
         ipcRenderer.on(PersistentConfigServiceElectron.SET_ALLEN_MOUNT_POINT, () => {
             this.setAllenMountPoint();
         });
