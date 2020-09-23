@@ -13,7 +13,7 @@ const settingsMenu: MenuItemConstructorOptions = {
                     );
                 }
             },
-            label: "Set Allen Mount Point",
+            label: "Set Allen Drive Mount Point",
         },
     ],
 };
