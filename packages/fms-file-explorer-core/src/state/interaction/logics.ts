@@ -11,12 +11,17 @@ import {
     SHOW_CONTEXT_MENU,
     CANCEL_MANIFEST_DOWNLOAD,
     cancelManifestDownload,
+    OPEN_FILES_IN_IMAGE_J
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
 import { CancellationToken } from "../../services/FileDownloadService";
 import NumericRange from "../../entity/NumericRange";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
+import FileSet from "../../entity/FileSet";
+import { FmsFile } from "../../services/FileService";
+
+const spawn = require("child_process").spawn;
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -119,6 +124,64 @@ const cancelManifestDownloadLogic = createLogic({
 });
 
 /**
+ * Interceptor responsible for responding to an OPEN_FILES_IN_IMAGE_J action and triggering the
+ * opening of a file in ImageJ
+ */
+const openFilesInImageJ = createLogic({
+    type: OPEN_FILES_IN_IMAGE_J,
+    async process(deps: ReduxLogicDeps, _, done) {
+        // TODO: Questions: How to find ImageJ path on computer...?
+        // TODO:            Is a child process the right move?
+        // TODO:            How to handle errors? Where do they arise (here or in stderr/exit)... try debug mode
+        // TODO:            How do we want to error handle?
+
+        // const filePaths = ['/home/seanm/Pictures/head.jpg'];
+        // Collect the file paths from the selected files
+        const selectionsByFileSet = selection.selectors.getSelectedFileRangesByFileSet(deps.getState());
+        const filePaths = await Object.keys(selectionsByFileSet).reduce(async (pathsSoFar, fileSetHash) => {
+            const fileSet = defaultFileSetFactory.get(fileSetHash) as FileSet;
+            const ranges = selectionsByFileSet[fileSetHash];
+            const files = await ranges.reduce(async (filesSoFar, range) => {
+                return [
+                    ...(await filesSoFar),
+                    ...(await fileSet.fetchFileRange(range.from, range.to))
+                ];
+            }, [] as unknown as Promise<FmsFile[]>);
+            return [
+                ...(await pathsSoFar),
+                ...files.map(file => file.filePath)
+            ];
+        }, [] as unknown as Promise<string[]>);
+
+        try {
+            console.log("Opening files in ImageJ: " + filePaths);
+            // Create child process for ImageJ to open files in
+            const imageJProcess = spawn("/home/seanm/Downloads/ImageJ/ImageJ", filePaths);
+            // Handle unsuccessful startups of ImageJ
+            imageJProcess.on("exit", (code: number) => {
+                console.log(`Process exited with code: ${code}`);
+                if (code > 0) {
+                    console.log("Error occured during process");
+                }
+            });
+        } catch (error) {
+            console.log(`Encountered error trying to open files in ImageJ (${filePaths}): ${error}`);
+        }
+        done();
+    },
+    async transform(deps: ReduxLogicDeps, next, reject) {
+        const selectionsByFileSet = selection.selectors.getSelectedFileRangesByFileSet(
+            deps.getState()
+        );
+        if (isEmpty(selectionsByFileSet)) {
+            reject && reject(deps.action); // reject is typed as potentially undefined for some reason
+        } else {
+            next(deps.action);
+        }
+    }
+});
+
+/**
  * Interceptor responsible for responding to a SHOW_CONTEXT_MENU action and ensuring the previous
  * context menu is dismissed gracefully.
  */
@@ -136,4 +199,4 @@ const showContextMenu = createLogic({
     },
 });
 
-export default [downloadManifest, cancelManifestDownloadLogic, showContextMenu];
+export default [downloadManifest, cancelManifestDownloadLogic, openFilesInImageJ, showContextMenu];

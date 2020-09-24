@@ -58,6 +58,23 @@ export function cancelManifestDownload(id: string): CancelManifestDownloadAction
 }
 
 /**
+ * OPEN_FILES_IN_IMAGE_J
+ *
+ * Intention to open selected files in Image J viewer.
+ */
+export const OPEN_FILES_IN_IMAGE_J = makeConstant(STATE_BRANCH_NAME, "open-files-in-image-j");
+
+export interface OpenFilesInImageJ {
+    type: string;
+}
+
+export function openFilesInImageJ(): OpenFilesInImageJ {
+    return {
+        type: OPEN_FILES_IN_IMAGE_J,
+    };
+}
+
+/**
  * SHOW_CONTEXT_MENU
  *
  * Intention to show context menu.

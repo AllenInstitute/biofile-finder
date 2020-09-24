@@ -60,5 +60,28 @@ export default function getContextMenuItems(dispatch: Dispatch) {
             text: "Modify Columns",
             title: "Modify Annotation Columns for File List",
         },
+        OPEN_IN: {
+            key: "open-in",
+            text: "Open in...",
+            title: "Open selected files in another application",
+            subMenuProps: {
+                items: [
+                    {
+                        key: "image-j",
+                        text: "ImageJ",
+                        title: "Open files in ImageJ",
+                        onClick() {
+                            dispatch(interaction.actions.openFilesInImageJ());
+                        },
+                    },
+                    {
+                        key: "photoshop",
+                        text: "Photoshop",
+                        title: "Coming soon! Open files in Adobe Photoshop",
+                        disabled: true
+                    },
+                ]
+            },
+        }
     };
 }
