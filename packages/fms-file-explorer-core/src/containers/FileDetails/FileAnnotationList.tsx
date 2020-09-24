@@ -44,13 +44,16 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
             if (values !== Annotation.MISSING_VALUE) {
                 // Derive a more specific file path from the canonical file path
                 if (annotation.name === AnnotationName.FILE_PATH) {
+                    // Use path.normalize() to convert slashes to OS default & remove the would be duplicate
+                    // "/allen" from the end of the path
+                    const localizedPath = path.normalize(allenMountPoint.substring(0, allenMountPoint.length - 6) + values)
                     return [
                         ...accum,
                         <FileAnnotationRow
                             key="file-path-local"
                             className={styles.row}
                             name="File path (Local)"
-                            value={path.normalize(allenMountPoint.replace("/allen", "") + values)}
+                            value={localizedPath}
                         />,
                         <FileAnnotationRow
                             key={annotation.displayName}
