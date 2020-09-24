@@ -20,6 +20,7 @@ import NumericRange from "../../entity/NumericRange";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import FileSet from "../../entity/FileSet";
 import { FmsFile } from "../../services/FileService";
+import { PersistedDataKeys } from "../../services/PersistentConfigService";
 
 const spawn = require("child_process").spawn;
 
@@ -130,12 +131,22 @@ const cancelManifestDownloadLogic = createLogic({
 const openFilesInImageJ = createLogic({
     type: OPEN_FILES_IN_IMAGE_J,
     async process(deps: ReduxLogicDeps, _, done) {
-        // TODO: Questions: How to find ImageJ path on computer...?
+        // TODO: Questions: 
+        // TODO:            How to find ImageJ path on computer...?
         // TODO:            Is a child process the right move?
         // TODO:            How to handle errors? Where do they arise (here or in stderr/exit)... try debug mode
         // TODO:            How do we want to error handle?
-
+        // TODO: Work:
+        // TODO:            Assert mount point is legit (recent work in part one should help this)
         // const filePaths = ['/home/seanm/Pictures/head.jpg'];
+
+        // Ensure the allen drive mount point is set so ImageJ can find the files
+        const { persistentConfigService } = interactionSelectors.getPlatformDependentServices(deps.getState());
+        let allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
+        if (!allenMountPoint) {
+            allenMountPoint = await persistentConfigService.setAllenMountPoint();
+        }
+        
         // Collect the file paths from the selected files
         const selectionsByFileSet = selection.selectors.getSelectedFileRangesByFileSet(deps.getState());
         const filePaths = await Object.keys(selectionsByFileSet).reduce(async (pathsSoFar, fileSetHash) => {
@@ -149,7 +160,7 @@ const openFilesInImageJ = createLogic({
             }, [] as unknown as Promise<FmsFile[]>);
             return [
                 ...(await pathsSoFar),
-                ...files.map(file => file.filePath)
+                ...files.map(file => allenMountPoint.substring(0, allenMountPoint.length - 6) + file.filePath)
             ];
         }, [] as unknown as Promise<string[]>);
 
