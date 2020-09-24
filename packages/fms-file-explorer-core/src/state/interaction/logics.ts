@@ -20,7 +20,7 @@ import NumericRange from "../../entity/NumericRange";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import FileSet from "../../entity/FileSet";
 import { FmsFile } from "../../services/FileService";
-import { PersistedDataKeys } from "../../services/PersistentConfigService";
+import { PersistedDataKeys, PersistentConfigCancellationToken } from "../../services/PersistentConfigService";
 
 const spawn = require("child_process").spawn;
 
@@ -140,12 +140,8 @@ const openFilesInImageJ = createLogic({
         // TODO:            Assert mount point is legit (recent work in part one should help this)
         // const filePaths = ['/home/seanm/Pictures/head.jpg'];
 
-        // Ensure the allen drive mount point is set so ImageJ can find the files
         const { persistentConfigService } = interactionSelectors.getPlatformDependentServices(deps.getState());
-        let allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
-        if (!allenMountPoint) {
-            allenMountPoint = await persistentConfigService.setAllenMountPoint();
-        }
+        const allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
         
         // Collect the file paths from the selected files
         const selectionsByFileSet = selection.selectors.getSelectedFileRangesByFileSet(deps.getState());
@@ -184,7 +180,15 @@ const openFilesInImageJ = createLogic({
         const selectionsByFileSet = selection.selectors.getSelectedFileRangesByFileSet(
             deps.getState()
         );
-        if (isEmpty(selectionsByFileSet)) {
+        const { persistentConfigService } = interactionSelectors.getPlatformDependentServices(deps.getState());
+
+        // Ensure the allen drive mount point is set so ImageJ can find the files
+        let allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
+        if (!allenMountPoint && !isEmpty(selectionsByFileSet)) {
+            allenMountPoint = persistentConfigService.setAllenMountPoint();
+        }
+
+        if (isEmpty(selectionsByFileSet) || allenMountPoint === PersistentConfigCancellationToken) {
             reject && reject(deps.action); // reject is typed as potentially undefined for some reason
         } else {
             next(deps.action);
