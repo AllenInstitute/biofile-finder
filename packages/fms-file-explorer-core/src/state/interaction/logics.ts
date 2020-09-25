@@ -138,6 +138,7 @@ const openFilesInImageJ = createLogic({
         // TODO:            How do we want to error handle?
         // TODO: Work:
         // TODO:            Assert mount point is legit (recent work in part one should help this)
+        // TODO:            Restrict the types of files attempted to be opened....?
         // const filePaths = ['/home/seanm/Pictures/head.jpg'];
 
         const { persistentConfigService } = interactionSelectors.getPlatformDependentServices(deps.getState());
