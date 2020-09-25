@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as os from "os";
 
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { ipcRenderer } from "electron";
 import { createSandbox } from "sinon";
 
@@ -159,21 +159,24 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             expect(persistedMountPoint).to.be.undefined;
         });
 
-        it("Rejects invalid allen drive", async () => {
+        it("Rejects invalid allen drive & allows reselection of valid drive", async () => {
             // Arrange
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
-            sandbox
-                .stub(ipcRenderer, "invoke")
-                .withArgs(PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT)
-                .resolves({
-                    filePaths: ["/some/not/allen/path"],
-                });
+            const stub = sandbox.stub(ipcRenderer, "invoke");
+            stub.withArgs(PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT).onCall(0).resolves({
+                filePaths: ["/some/not/allen/path"],
+            });
+            stub.withArgs(PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT).onCall(1).resolves({
+                filePaths: [tempAllenDrive],
+            });
 
-            // Act / Assert
-            try {
-                await service.setAllenMountPoint();
-                assert.fail("Expected setAllenMountPoint() to throw an error")
-            } catch (error) {}
+            // Act
+            const mountPoint = await service.setAllenMountPoint();
+
+            // Assert
+            expect(mountPoint).to.equal(tempAllenDrive);
+            const persistedMountPoint = service.get(PersistedDataKeys.AllenMountPoint);
+            expect(persistedMountPoint).to.equal(tempAllenDrive);
         });
     });
 });

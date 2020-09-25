@@ -38,7 +38,17 @@ interface PersistentConfigServiceElectronOptions {
 export default class PersistentConfigServiceElectron implements PersistentConfigService {
     public static SET_ALLEN_MOUNT_POINT = "set-allen-mount-point";
     public static SELECT_ALLEN_MOUNT_POINT = "select-allen-mount-point";
+    public static SHOW_ERROR_BOX = "show-error-box";
     private store: Store;
+
+    private static async isAllenPathValid(allenPath: string): Promise<boolean> {
+        try {
+            await Promise.all(KNOWN_PATHS_IN_ALLEN_DRIVE.map(path => fs.promises.access(allenPath + path, fs.constants.R_OK)));
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
 
     public constructor(options: PersistentConfigServiceElectronOptions = {}) {
         this.store = new Store({ schema: STORAGE_SCHEMA });
@@ -53,6 +63,7 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     }
 
     public static registerIpcHandlers() {
+        // Handle opening a native file browser dialog for selecting the allen drive
         ipcMain.handle(PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT, () => {
             return dialog.showOpenDialog({
                 title: "Select allen drive mount point",
@@ -61,6 +72,11 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
                 // filters: [{ name: "CSV files", extensions: ["csv"] }],
                 properties: ["openDirectory"],
             });
+        });
+
+        // Handle displaying an error in the native error box
+        ipcMain.handle(PersistentConfigServiceElectron.SHOW_ERROR_BOX, (_, title, content) => {
+            return dialog.showErrorBox(title, content);
         });
     }
 
@@ -73,20 +89,29 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     }
 
     public async setAllenMountPoint(): Promise<string> {
-        const result = await ipcRenderer.invoke(
-            PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT
-        );
-        if (result.canceled || !result.filePaths.length) {
-            return Promise.resolve(PersistentConfigCancellationToken);
+        // Continuously try to set a valid allen drive mount point unless the user cancels
+        while (true) {
+            // Trigger dialog for user to select allen drive mount point
+            const result = await ipcRenderer.invoke(
+                PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT
+            );
+            // Break while if the user canceled the file selection
+            if (result.canceled || !result.filePaths.length) {
+                return Promise.resolve(PersistentConfigCancellationToken);
+            }
+            // Ensure the paths exist as expected inside the drive
+            const allenPath = result.filePaths[0];
+            const pathIsValidAllenDrive = await PersistentConfigServiceElectron.isAllenPathValid(allenPath)
+            if (pathIsValidAllenDrive) {
+                this.set(PersistedDataKeys.AllenMountPoint, allenPath);
+                return Promise.resolve(allenPath);
+            }
+            // Alert user to error with allen drive
+            await ipcRenderer.invoke(
+                PersistentConfigServiceElectron.SHOW_ERROR_BOX,
+                "Allen Drive Mount Point Selection",
+                `Unable to verify selected path as valid allen drive, please try again. Received: ${allenPath}`
+            );
         }
-        const allenPath = result.filePaths[0];
-        // Ensure the paths exist as expected inside the drive
-        try {
-            await Promise.all(KNOWN_PATHS_IN_ALLEN_DRIVE.map(path => fs.promises.access(allenPath + path, fs.constants.R_OK)));
-        } catch (error) {
-            return Promise.reject(`Could not verify "${allenPath}" was a valid allen drive. ${error}`);
-        }
-        this.set(PersistedDataKeys.AllenMountPoint, allenPath);
-        return Promise.resolve(allenPath);
     }
 }
