@@ -110,7 +110,7 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
             await ipcRenderer.invoke(
                 PersistentConfigServiceElectron.SHOW_ERROR_BOX,
                 "Allen Drive Mount Point Selection",
-                `Unable to verify selected path as valid allen drive, please try again. Received: ${allenPath}`
+                `Whoops! ${allenPath} is not verifiably the root of the Allen drive on your computer. Select the parent folder to the "/aics" and "/programs" folders. For example, "/allen," "/Users/johnd/allen," etc.`
             );
         }
     }
