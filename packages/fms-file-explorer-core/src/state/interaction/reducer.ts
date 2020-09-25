@@ -16,6 +16,7 @@ import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
 import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
+import SystemNotificationServiceNoop from "../../services/SystemNotificationService/SystemNotificationServiceNoop";
 import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
 import FileFilter from "../../entity/FileFilter";
 
@@ -46,6 +47,7 @@ export const initialState = {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
         persistentConfigService: new PersistentConfigServiceNoop(),
+        systemNotificationService: new SystemNotificationServiceNoop(),
     },
     status: [],
 };

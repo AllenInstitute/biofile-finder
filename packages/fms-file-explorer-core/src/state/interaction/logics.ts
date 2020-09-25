@@ -1,3 +1,4 @@
+import { ipcRenderer } from "electron";
 import { isEmpty, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
@@ -134,14 +135,15 @@ const openFilesInImageJ = createLogic({
         // TODO: Questions: 
         // TODO:            How to find ImageJ path on computer...?
         // TODO:            Is a child process the right move?
-        // TODO:            How to handle errors? Where do they arise (here or in stderr/exit)... try debug mode
-        // TODO:            How do we want to error handle?
         // TODO: Work:
         // TODO:            Assert mount point is legit (recent work in part one should help this)
         // TODO:            Restrict the types of files attempted to be opened....?
         // const filePaths = ['/home/seanm/Pictures/head.jpg'];
 
-        const { persistentConfigService } = interactionSelectors.getPlatformDependentServices(deps.getState());
+        const {
+            persistentConfigService,
+            systemNotificationService
+        } = interactionSelectors.getPlatformDependentServices(deps.getState());
         const allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
         
         // Collect the file paths from the selected files
@@ -161,19 +163,22 @@ const openFilesInImageJ = createLogic({
             ];
         }, [] as unknown as Promise<string[]>);
 
+        const reportErrorToUser = async (error: string) => {
+            await systemNotificationService.showErrorMessage("Opening file in ImageJ",
+                `Failure reported while attempting to open files: Files: ${filePaths}, Error: ${error}`);
+        }
         try {
-            console.log("Opening files in ImageJ: " + filePaths);
             // Create child process for ImageJ to open files in
             const imageJProcess = spawn("/home/seanm/Downloads/ImageJ/ImageJ", filePaths);
-            // Handle unsuccessful startups of ImageJ
-            imageJProcess.on("exit", (code: number) => {
-                console.log(`Process exited with code: ${code}`);
-                if (code > 0) {
-                    console.log("Error occured during process");
+            // Handle unsuccessful startups of ImageJ (these will only be called if explorer is still open)
+            imageJProcess.on("error", reportErrorToUser);
+            imageJProcess.on("exit", async (code: number) => {
+                if (code !== 0) {
+                    await reportErrorToUser(`Status Code ${code}`);
                 }
             });
         } catch (error) {
-            console.log(`Encountered error trying to open files in ImageJ (${filePaths}): ${error}`);
+            await reportErrorToUser(error);
         }
         done();
     },
