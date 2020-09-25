@@ -1,4 +1,5 @@
 import Store, { Schema } from "electron-store";
+import * as fs from "fs";
 import * as path from "path";
 
 import { dialog, ipcMain, ipcRenderer } from "electron";
@@ -25,6 +26,10 @@ const STORAGE_SCHEMA: Schema<Record<string, unknown>> = {
         },
     },
 };
+
+// These are paths known (and unlikely to change) inside the allen drive that any given user should
+// have access to
+export const KNOWN_PATHS_IN_ALLEN_DRIVE = ["/programs", "/aics"];
 
 interface PersistentConfigServiceElectronOptions {
     clearExistingData?: boolean;
@@ -75,6 +80,12 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
             return Promise.resolve(PersistentConfigCancellationToken);
         }
         const allenPath = result.filePaths[0];
+        // Ensure the paths exist as expected inside the drive
+        try {
+            await Promise.all(KNOWN_PATHS_IN_ALLEN_DRIVE.map(path => fs.promises.access(allenPath + path, fs.constants.R_OK)));
+        } catch (error) {
+            return Promise.reject(`Could not verify "${allenPath}" was a valid allen drive. ${error}`);
+        }
         this.set(PersistedDataKeys.AllenMountPoint, allenPath);
         return Promise.resolve(allenPath);
     }
