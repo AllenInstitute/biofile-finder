@@ -80,7 +80,7 @@ export default class FileSelection {
         // keep internal state compact if possible
         if (this.selections.length && this.selections[this.selections.length - 1].fileSet === fileSet) {
             const itemToExpand = this.selections[this.selections.length - 1];
-            if (selection.abuts(itemToExpand.selection)) {
+            if (selection.abuts(itemToExpand.selection) || selection.intersects(itemToExpand.selection)) {
                 item = {
                     fileSet,
                     selection: itemToExpand.selection.union(selection),

@@ -31,6 +31,18 @@ describe("FileSelection", () => {
             });
         });
 
+        it("handles a case in which a new selection overlaps with a previous one", () => {
+            // Arrange
+            const selection = new FileSelection()
+                .select(new FileSet(), 4);
+
+            // Act
+            const nextSelection = selection.select(new FileSet(), new NumericRange(4, 10));
+
+            // Assert
+            expect(nextSelection.isSelected(new FileSet(), 4)).to.equal(true);
+        });
+
         it("makes the new selection focused", () => {
             // Arrange
             const selection = new FileSelection();
