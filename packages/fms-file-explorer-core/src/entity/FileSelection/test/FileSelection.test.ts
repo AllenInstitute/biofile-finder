@@ -61,6 +61,25 @@ describe("FileSelection", () => {
             // Assert
             expect(nextSelection.focusedItem).to.deep.equal(expectedFocusedItem);
         });
+
+        it("focuses an item within a selection other than the last if explicitly told to", () => {
+            // Arrange
+            const selection = new FileSelection();
+            const fileSet = new FileSet();
+            const selectedRange = new NumericRange(10, 20);
+            const expectedFocusedItem: FocusedItem = {
+                fileSet: fileSet,
+                selection: selectedRange,
+                indexWithinFileSet: 12,
+                indexAcrossAllSelections: 2
+            };
+
+            // Act
+            const nextSelection = selection.select(fileSet, selectedRange, 12);
+
+            // Assert
+            expect(nextSelection.focusedItem).to.deep.equal(expectedFocusedItem);
+        });
     });
 
     describe("deselect", () => {

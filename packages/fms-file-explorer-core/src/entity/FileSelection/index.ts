@@ -92,7 +92,7 @@ export default class FileSelection {
             fileSet,
             selection: item.selection,
             indexWithinFileSet: lastTouchedIndex,
-            indexAcrossAllSelections: this.length + item.selection.length - 1,
+            indexAcrossAllSelections: this.length + (lastTouchedIndex - item.selection.min),
         };
         const selections = [...this.selections, item];
         return new FileSelection(selections, focusedItem);
