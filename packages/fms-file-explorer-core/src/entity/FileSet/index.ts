@@ -106,6 +106,14 @@ export default class FileSet {
         return this.cache.get(index) !== undefined;
     }
 
+    public equals(other: FileSet): boolean {
+        if (this === other) {
+            return true;
+        }
+
+        return this.hash === other.hash;
+    }
+
     /**
      * Combine filters and sortOrder into a single query string that can be sent to a query service.
      */

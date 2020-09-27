@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import NumericRange from "..";
+import NumericRange, { EmptyRangeException } from "..";
 
 describe("NumericRange", () => {
     describe("compact", () => {
@@ -285,6 +285,44 @@ describe("NumericRange", () => {
             // assert
             expect(actual === expectation).to.equal(false);
             expect(actual.equals(expectation)).to.equal(true);
+        });
+    });
+
+    describe("extract", () => {
+        [
+            {
+                range: new NumericRange(1, 5),
+                test: new NumericRange(3, 4),
+                expect: [new NumericRange(1, 2), new NumericRange(5)],
+            },
+            {
+                range: new NumericRange(1, 5),
+                test: new NumericRange(1, 5),
+                expect: [],
+            },
+            {
+                range: new NumericRange(1, 5),
+                test: new NumericRange(1, 3),
+                expect: [new NumericRange(4, 5)],
+            },
+            {
+                range: new NumericRange(1, 5),
+                test: new NumericRange(2, 5),
+                expect: [new NumericRange(1)],
+            },
+            {
+                range: new NumericRange(1, 5),
+                test: new NumericRange(10, 20), // not contained
+                expect: [new NumericRange(1, 5)],
+            },
+        ].forEach((testCase) => {
+            it(`returns ${testCase.expect.toString()} for ${testCase.range} extracts ${testCase.test}`, () => {
+                const extracted = testCase.range.extract(testCase.test);
+                extracted.forEach((range, idx) => {
+                    const expectation = testCase.expect as NumericRange[];
+                    expect(range.equals(expectation[idx])).to.equal(true);
+                });
+            });
         });
     });
 

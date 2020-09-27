@@ -14,8 +14,8 @@ export class EmptyRangeException extends Error {
  * An immutable, continuous range of numbers, inclusive of its bounds.
  */
 export default class NumericRange {
-    private readonly min: number;
-    private readonly max: number;
+    public readonly min: number;
+    public readonly max: number;
 
     /**
      * Given variable number of ranges, reduce them to their most compact representation.
@@ -115,9 +115,13 @@ export default class NumericRange {
         return this.min <= element && this.max >= element;
     }
 
-    public equals(other: NumericRange): boolean {
+    public equals(other: NumericRange | number): boolean {
         if (other === this) {
             return true;
+        }
+
+        if (!NumericRange.isNumericRange(other)) {
+            other = new NumericRange(other);
         }
 
         return this.from === other.from && this.to === other.to;
@@ -171,6 +175,38 @@ export default class NumericRange {
             new NumericRange(this.min, partitionPoint - 1),
             new NumericRange(partitionPoint + 1, this.max),
         ];
+    }
+
+    /**
+     * Remove
+     */
+    public extract(other: NumericRange | number): NumericRange[] {
+        if (!NumericRange.isNumericRange(other)) {
+            other = new NumericRange(other);
+        }
+
+        if (!this.contains(other)) {
+            return [this];
+        }
+
+        const ret: NumericRange[] = [];
+        if (this.min < other.min) {
+            if (this.min === other.min - 1) {
+                ret.push(new NumericRange(this.min));
+            } else {
+                ret.push(new NumericRange(this.min, other.min - 1));
+            }
+        }
+
+        if (this.max > other.max) {
+            if (this.max === other.max + 1) {
+                ret.push(new NumericRange(this.max));
+            } else {
+                ret.push(new NumericRange(other.max + 1, this.max));
+            }
+        }
+
+        return ret;
     }
 
     public toJSON(): JSONReadyRange {
