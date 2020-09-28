@@ -27,19 +27,19 @@ export interface FocusedItem extends SelectionItem {
  * TODO
  */
 export default class FileSelection {
-    private _focusedItem: FocusedItem | null = null;
+    private focusedItem: FocusedItem | null = null;
     private selections: SelectionItem[];
 
     /**
      * Immutability helper. Shallow copy a Selection instance.
      */
     public static from(selection: FileSelection): FileSelection {
-        return new FileSelection(selection.selections, selection._focusedItem);
+        return new FileSelection(selection.selections, selection.focusedItem);
     }
 
     public constructor(selections: SelectionItem[] = [], focusedItem: FocusedItem | null = null) {
         this.selections = selections;
-        this._focusedItem = focusedItem;
+        this.focusedItem = focusedItem;
     }
 
     /**
@@ -49,18 +49,6 @@ export default class FileSelection {
         return this.selections.reduce((length: number, item: SelectionItem) => {
             return length + item.selection.length;
         }, 0);
-    }
-
-    /**
-     * Selected file that should be shown in the file details pane.
-     * If any files are selected, there _should_ be a focusedItem.
-     * Returns a descriptive object describing:
-     *   - the FileSet the currently focused item belongs to
-     *   - the index within the FileSet that is focused
-     *   - the index across all selections that is focused
-     */
-    public get focusedItem(): FocusedItem | null {
-        return this._focusedItem;
     }
 
     /**
@@ -76,21 +64,21 @@ export default class FileSelection {
      * Is the given index within the given FileSet focused (i.e., current shown in the file details pane)?
      */
     public isFocused(fileSet: FileSet, index: number): boolean {
-        if (!this._focusedItem) {
+        if (!this.focusedItem) {
             return false;
         }
 
-        return this._focusedItem.fileSet.equals(fileSet) && this._focusedItem.indexWithinFileSet === index;
+        return this.focusedItem.fileSet.equals(fileSet) && this.focusedItem.indexWithinFileSet === index;
     }
 
     /**
      * Fetch metadata for currently focused item.
      */
     public async fetchFocusedItemDetails(): Promise<FmsFile | undefined> {
-        if (!this._focusedItem) {
+        if (!this.focusedItem) {
             return await Promise.resolve(undefined);
         }
-        const { fileSet, indexWithinFileSet } = this._focusedItem;
+        const { fileSet, indexWithinFileSet } = this.focusedItem;
 
         if (fileSet.isFileMetadataLoaded(indexWithinFileSet)) {
             return await Promise.resolve(fileSet.getFileByIndex(indexWithinFileSet));
@@ -176,29 +164,29 @@ export default class FileSelection {
 
         // Nothing was initially focused (not plausible within this code path),
         // or there are no remaining file selections (perfectly plausible)
-        if (!this._focusedItem || !nextSelection.length) {
+        if (!this.focusedItem || !nextSelection.length) {
             return nextSelection;
         }
 
         // The currently focused item lies before anything that was just removed.
         // Therefore, it's index position within the new selection is unchanged.
         const relativeStartIndexForItem = this.relativeStartIndexForItem(item);
-        if (this._focusedItem.indexAcrossAllSelections < relativeStartIndexForItem) {
-            return nextSelection.focusBySelectionIndex(this._focusedItem.indexAcrossAllSelections);
+        if (this.focusedItem.indexAcrossAllSelections < relativeStartIndexForItem) {
+            return nextSelection.focusBySelectionIndex(this.focusedItem.indexAcrossAllSelections);
         }
 
         // Otherwise, the currently focused item is after what was just removed. Need to either:
         //   a. Update index references for currently focused item if it's still valid, or
         //   b. Choose a new item to focus
         // Case a: the currently focused item is still in the list of selections, need to update index references
-        if (nextSelection.isSelected(this._focusedItem.fileSet, this._focusedItem.indexWithinFileSet)) {
-            return nextSelection.focusByFileSet(this._focusedItem.fileSet, this._focusedItem.indexWithinFileSet);
+        if (nextSelection.isSelected(this.focusedItem.fileSet, this.focusedItem.indexWithinFileSet)) {
+            return nextSelection.focusByFileSet(this.focusedItem.fileSet, this.focusedItem.indexWithinFileSet);
         }
 
         // Case b: the currently focused item has just been deselected; need to focus something else
         //     Case b.i: the currently focused item is the first item in the list of all selections,
         //     select whatever is first in the next selection set
-        if (this._focusedItem.indexAcrossAllSelections === 0) {
+        if (this.focusedItem.indexAcrossAllSelections === 0) {
             return nextSelection.focusBySelectionIndex(0);
         }
 
