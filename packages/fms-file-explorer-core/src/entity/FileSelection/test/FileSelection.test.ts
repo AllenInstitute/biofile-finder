@@ -126,7 +126,7 @@ describe("FileSelection", () => {
                 .select(new FileSet(), new NumericRange(0))
                 .select(new FileSet(), new NumericRange(21, 30))
                 .select(new FileSet(), new NumericRange(100))
-                .focusBySelectionIndex(1);
+                .focusByIndex(1);
 
             // Act
             const nextSelection = selection.deselect(new FileSet(), 100);
@@ -145,7 +145,7 @@ describe("FileSelection", () => {
                 .select(new FileSet(), new NumericRange(0))
                 .select(new FileSet(), new NumericRange(21, 30))
                 .select(new FileSet(), new NumericRange(100))
-                .focusBySelectionIndex(0);
+                .focusByIndex(0);
 
             // Act
             const nextSelection = selection.deselect(new FileSet(), 0);
@@ -202,7 +202,7 @@ describe("FileSelection", () => {
                 .select(new FileSet(), new NumericRange(0, 5))
                 .select(new FileSet(), new NumericRange(21, 30))
                 .select(new FileSet(), new NumericRange(97, 100))
-                .focusBySelectionIndex(0);
+                .focusByIndex(0);
 
             // Act
             const nextSelection = selection.deselect(new FileSet(), new NumericRange(0, 4));

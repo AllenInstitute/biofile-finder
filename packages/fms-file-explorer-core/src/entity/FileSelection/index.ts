@@ -172,7 +172,7 @@ export default class FileSelection {
         // Therefore, it's index position within the new selection is unchanged.
         const relativeStartIndexForItem = this.relativeStartIndexForItem(item);
         if (this.focusedItem.indexAcrossAllSelections < relativeStartIndexForItem) {
-            return nextSelection.focusBySelectionIndex(this.focusedItem.indexAcrossAllSelections);
+            return nextSelection.focusByIndex(this.focusedItem.indexAcrossAllSelections);
         }
 
         // Otherwise, the currently focused item is after what was just removed. Need to either:
@@ -187,7 +187,7 @@ export default class FileSelection {
         //     Case b.i: the currently focused item is the first item in the list of all selections,
         //     select whatever is first in the next selection set
         if (this.focusedItem.indexAcrossAllSelections === 0) {
-            return nextSelection.focusBySelectionIndex(0);
+            return nextSelection.focusByIndex(0);
         }
 
         // Case b.ii: the currently focused item is not the first item; focus whatever immediately precedes
@@ -205,7 +205,7 @@ export default class FileSelection {
      * Return a new FileSelection instance with the given index across entire list of selections
      * (i.e., not local to a particular FileSet) focused.
      */
-    public focusBySelectionIndex(indexAcrossAllSelections: number): FileSelection {
+    public focusByIndex(indexAcrossAllSelections: number): FileSelection {
         const itemToFocus = this.getItemContainingSelectionIndex(indexAcrossAllSelections);
         const relativeStartIndexForItem = this.relativeStartIndexForItem(itemToFocus);
         const nextFocusedItem = {
