@@ -100,7 +100,10 @@ describe("FileSelection", () => {
             const nextSelection = selection.deselect(new FileSet(), rangeToDeselect);
 
             // Assert
+            // sanity-checks: previous selection
             expect(selection.isSelected(new FileSet(), rangeToDeselect)).to.equal(true);
+
+            // deselection
             expect(nextSelection.isSelected(new FileSet(), rangeToDeselect)).to.equal(false);
             expect(nextSelection.length).to.equal(selection.length - rangeToDeselect.length);
         });
