@@ -2,7 +2,6 @@ import {
     IndexError,
     ValueError,
  } from "../../errors";
-
 import { FmsFile } from "../../services/FileService";
 import FileSet from "../FileSet";
 import NumericRange from "../NumericRange";
@@ -39,14 +38,31 @@ export enum FocusDirective {
 }
 
 /**
- * TODO
+ * Abstraction for keeping track of and modifying file selection.
+ *
+ * File selections are represented by
+ *   1. the FileSet they originate from, which is the query that surfaces the selected rows; and
+ *   2. the index within the originating FileSet, used because it is possible and plausible that
+ *      a file row can be selected without any metadata for the file being loaded client-side. Such
+ *      metadata is lazily loaded. This enables making extremely large selections without having to
+ *      know even the file_ids of the selected files.
+ *
+ * Additionally, this class is responsible for keeping track of which selected file is _focused_,
+ * which is the selected file intended to be shown in the file details pane. It exposes a number
+ * of methods of modifying the currently focused file.
+ *
+ * This class is designed to be immutable: all methods that modify state return new FileSelection
+ * instances. But note that to conserve memory and time, this class provides only shallow immutability
+ * guarantees. That is, if you find a way to reach into the internals of this class' state, you may
+ * find object references are shared between two FileSelection instances. Private state is typed such
+ * that the compiler should prevent such bugs.
  */
 export default class FileSelection {
     private focusedItem: FocusedItem | null = null;
     private selections: SelectionItem[];
 
     /**
-     * Immutability helper. Shallow copy a Selection instance.
+     * Immutability helper. Shallow copy a FileSelection instance.
      */
     public static from(selection: FileSelection): FileSelection {
         return new FileSelection(selection.selections, selection.focusedItem);
@@ -216,6 +232,10 @@ export default class FileSelection {
         return nextSelection.focusByFileSet(nextItemToFocus.fileSet, indexWithinFileSet);
     }
 
+    /**
+     * Return a new FileSelection instance with a newly focused selected item.
+     * "Focus" state is used to determine which file is displayed in the file details pane.
+     */
     public focus(directive: FocusDirective): FileSelection {
         if (this.length === 0) {
             return FileSelection.from(this);
