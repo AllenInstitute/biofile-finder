@@ -139,11 +139,15 @@ export default class FileSelection {
     /**
      * Return a new FileSelection instance without the given index (or range of indices) within the given FileSet.
      * If the currently focused item is being deselected, defaults to focusing the selected item that directly
-     * precedes the currently focused item by index across all selected items (TODO).
+     * precedes the currently focused item by index across all selected items. If the first item within the list of
+     * all selections was focused but is being deselected, focuses whichever file row is first in the new FileSelection
+     * instance.
      */
-    public deselect(fileSet: FileSet, selection: NumericRange | number): FileSelection {
+    public deselect(fileSet: FileSet, index: NumericRange | number): FileSelection {
+        const indexRange = NumericRange.isNumericRange(index) ? index : new NumericRange(index);
+
         const indexOfItemContainingSelection = this.selections.findIndex((item) => {
-            return item.fileSet.equals(fileSet) && item.selection.contains(selection);
+            return item.fileSet.equals(fileSet) && item.selection.contains(indexRange);
         });
 
         // Somehow attempting to deselect an item that isn't selected. Guard statement
@@ -153,7 +157,7 @@ export default class FileSelection {
         }
 
         const item = this.selections[indexOfItemContainingSelection];
-        const reducedSelection = item.selection.remove(selection);
+        const reducedSelection = item.selection.remove(indexRange);
 
         const nextSelections = [...this.selections];
         if (!reducedSelection.length) {
@@ -170,13 +174,13 @@ export default class FileSelection {
 
         const nextSelection = new FileSelection(nextSelections);
 
-        // Case: nothing was initially focused (not plausible within this code path),
-        // or there are no remaining file selections
+        // Nothing was initially focused (not plausible within this code path),
+        // or there are no remaining file selections (perfectly plausible)
         if (!this._focusedItem || !nextSelection.length) {
             return nextSelection;
         }
 
-        // Case: the currently focused item lies before anything that was just removed.
+        // The currently focused item lies before anything that was just removed.
         // Therefore, it's index position within the new selection is unchanged.
         const relativeStartIndexForItem = this.relativeStartIndexForItem(item);
         if (this._focusedItem.indexAcrossAllSelections < relativeStartIndexForItem) {
@@ -186,29 +190,27 @@ export default class FileSelection {
         // Otherwise, the currently focused item is after what was just removed. Need to either:
         //   a. Update index references for currently focused item if it's still valid, or
         //   b. Choose a new item to focus
-        // a: the currently focused item is still in the list of selections, need to update index references
+        // Case a: the currently focused item is still in the list of selections, need to update index references
         if (nextSelection.isSelected(this._focusedItem.fileSet, this._focusedItem.indexWithinFileSet)) {
             return nextSelection.focusByFileSet(this._focusedItem.fileSet, this._focusedItem.indexWithinFileSet);
         }
 
-        // b: the currently focused item has just been deselected; need to focus something else
-        //  b.i: the currently focused item was the last item
-        if (this._focusedItem.indexAcrossAllSelections === this.length - 1) {
-            const itemContainingLastSelection = nextSelection.getItemContainingSelectionIndex(nextSelection.length - 1);
-            return nextSelection.focusByFileSet(itemContainingLastSelection.fileSet, itemContainingLastSelection.selection.max);
+        // Case b: the currently focused item has just been deselected; need to focus something else
+        //     Case b.i: the currently focused item is the first item in the list of all selections,
+        //     select whatever is first in the next selection set
+        if (this._focusedItem.indexAcrossAllSelections === 0) {
+            return nextSelection.focusBySelectionIndex(0);
         }
 
-        //  b.ii: the currently focused item was not the last item
-        const delta = NumericRange.isNumericRange(selection)
-            ? selection.max - item.selection.min
-            : selection - item.selection.min;
-
-        const nextSelectedIdx = relativeStartIndexForItem + delta + 1;
-        const itemToFocus = this.getItemContainingSelectionIndex(nextSelectedIdx);
-        const relativeStartIndexForItem2 = this.relativeStartIndexForItem(itemToFocus);
-        const offset = nextSelectedIdx - relativeStartIndexForItem2;
-        const indexWithinFileSet = itemToFocus.selection.min + offset;
-        return nextSelection.focusByFileSet(itemToFocus.fileSet, indexWithinFileSet);
+        // Case b.ii: the currently focused item is not the first item; focus whatever immediately precedes
+        // what was just deselected within the list of all selections
+        const indexWithinFileSetOfDeselectionMin = indexRange.min - item.selection.min;
+        const nextFocusedIndexAcrossAllSelections = Math.max(0, relativeStartIndexForItem + indexWithinFileSetOfDeselectionMin - 1);
+        const nextItemToFocus = this.getItemContainingSelectionIndex(nextFocusedIndexAcrossAllSelections);
+        const relativeStartIndexForNextFocusedItem = this.relativeStartIndexForItem(nextItemToFocus);
+        const offset = nextFocusedIndexAcrossAllSelections - relativeStartIndexForNextFocusedItem;
+        const indexWithinFileSet = nextItemToFocus.selection.min + offset;
+        return nextSelection.focusByFileSet(nextItemToFocus.fileSet, indexWithinFileSet);
     }
 
     /**

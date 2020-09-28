@@ -108,6 +108,18 @@ describe("FileSelection", () => {
             expect(nextSelection.length).to.equal(selection.length - rangeToDeselect.length);
         });
 
+        it("produces an empty FileSelection instance if last remaining selection is removed", () => {
+            // Arrange
+            const selection = new FileSelection()
+                .select(new FileSet(), new NumericRange(34));
+
+            // Act
+            const nextSelection = selection.deselect(new FileSet(), 34);
+
+            // Assert
+            expect(nextSelection.length).to.equal(0);
+        });
+
         it("keeps currently focused item if possible", () => {
             // Arrange
             const selection = new FileSelection()
@@ -122,6 +134,25 @@ describe("FileSelection", () => {
             // Assert
             // sanity-checks: previous selection
             expect(selection.isFocused(new FileSet(), 21)).to.equal(true);
+
+            // deselection:
+            expect(nextSelection.isFocused(new FileSet(), 21)).to.equal(true);
+        });
+
+        it("resets focused item when deselected file was previously focused - single deselection, first", () => {
+            // Arrange
+            const selection = new FileSelection()
+                .select(new FileSet(), new NumericRange(0))
+                .select(new FileSet(), new NumericRange(21, 30))
+                .select(new FileSet(), new NumericRange(100))
+                .focusBySelectionIndex(0);
+
+            // Act
+            const nextSelection = selection.deselect(new FileSet(), 0);
+
+            // Assert
+            // sanity-checks: previous selection
+            expect(selection.isFocused(new FileSet(), 0)).to.equal(true);
 
             // deselection:
             expect(nextSelection.isFocused(new FileSet(), 21)).to.equal(true);
@@ -144,7 +175,7 @@ describe("FileSelection", () => {
 
 
             // deselection:
-            expect(nextSelection.isFocused(new FileSet(), 26)).to.equal(true);
+            expect(nextSelection.isFocused(new FileSet(), 24)).to.equal(true);
         });
 
         it("resets focused item when deselected file was previously focused - single deselection, last", () => {
@@ -165,6 +196,25 @@ describe("FileSelection", () => {
             expect(nextSelection.isFocused(new FileSet(), 30)).to.equal(true);
         });
 
+        it("resets focused item when deselected file was previously focused - multiple deselection, first", () => {
+            // Arrange
+            const selection = new FileSelection()
+                .select(new FileSet(), new NumericRange(0, 5))
+                .select(new FileSet(), new NumericRange(21, 30))
+                .select(new FileSet(), new NumericRange(97, 100))
+                .focusBySelectionIndex(0);
+
+            // Act
+            const nextSelection = selection.deselect(new FileSet(), new NumericRange(0, 4));
+
+            // Assert
+            // sanity-checks: previous selection
+            expect(selection.isFocused(new FileSet(), 0)).to.equal(true);
+
+            // deselection:
+            expect(nextSelection.isFocused(new FileSet(), 5)).to.equal(true);
+        });
+
         it("resets focused item when deselected file was previously focused - multiple deselection, middle", () => {
             // Arrange
             const selection = new FileSelection()
@@ -181,7 +231,7 @@ describe("FileSelection", () => {
             expect(selection.isFocused(new FileSet(), 25)).to.equal(true);
 
             // deselection:
-            expect(nextSelection.isFocused(new FileSet(), 100)).to.equal(true);
+            expect(nextSelection.isFocused(new FileSet(), 21)).to.equal(true);
         });
 
         it("resets focused item when deselected file was previously focused - multiple deselection, last", () => {
