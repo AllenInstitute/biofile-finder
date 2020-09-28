@@ -280,7 +280,7 @@ describe("FileSelection", () => {
                 setup: (selection: FileSelection) => {
                     return selection.focusByIndex(0);
                 },
-                directive: FocusDirective.FIRST,
+                directive: FocusDirective.PREVIOUS,
                 expectation: {
                     fileSet: fileSet1,
                     fileSetIndex: 4,
@@ -295,6 +295,9 @@ describe("FileSelection", () => {
             },
             // effectively a noop when the focused item is already at LAST
             {
+                setup: (selection: FileSelection) => {
+                    return selection.focusByIndex(selection.length - 1);
+                },
                 directive: FocusDirective.NEXT,
                 expectation: {
                     fileSet: fileSet1,
@@ -333,6 +336,20 @@ describe("FileSelection", () => {
 
                 // Assert
                 expect(nextSelection?.isFocused(expectation.fileSet, expectation.fileSetIndex)).to.equal(true);
+            });
+        });
+
+        it("handles FileSelection instances with single selections gracefully", () => {
+            // Arrange
+            const prevSelection = new FileSelection()
+                .select(fileSet1, 48);
+
+            [FocusDirective.FIRST, FocusDirective.PREVIOUS, FocusDirective.NEXT, FocusDirective.LAST].forEach((directive) => {
+                // Act
+                const nextSelection = prevSelection.focus(directive);
+
+                // Assert
+                expect(nextSelection.isFocused(fileSet1, 48)).to.equal(true);
             });
         });
     });

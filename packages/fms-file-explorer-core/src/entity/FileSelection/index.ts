@@ -217,6 +217,10 @@ export default class FileSelection {
     }
 
     public focus(directive: FocusDirective): FileSelection {
+        if (this.length === 0) {
+            return FileSelection.from(this);
+        }
+
         const currentFocusedIndex = this.focusedItem?.indexAcrossAllSelections || 0;
 
         switch (directive) {
