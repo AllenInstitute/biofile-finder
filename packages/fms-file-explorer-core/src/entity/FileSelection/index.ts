@@ -353,7 +353,7 @@ export default class FileSelection {
         });
 
         if (indexOfItem === -1) {
-            throw new Error(
+            throw new ValueError(
                 "Cannot determine a relative start index for an item that is not represented in selections"
             );
         }
