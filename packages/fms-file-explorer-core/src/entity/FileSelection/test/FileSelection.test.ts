@@ -4,8 +4,10 @@ import FileSet from "../../FileSet";
 import NumericRange from "../../NumericRange";
 
 import FileSelection from "..";
+import FileFilter from "../../FileFilter";
+import { IndexError, ValueError } from "../../../errors";
 
-describe("FileSelection", () => {
+describe.only("FileSelection", () => {
     describe("select", () => {
         it("selects file -- single", () => {
             // Arrange
@@ -250,6 +252,83 @@ describe("FileSelection", () => {
 
             // deselection:
             expect(nextSelection.isFocused(new FileSet(), 30)).to.equal(true);
+        });
+    });
+
+    describe("focusByIndex", () => {
+        it("sets a specified selected row as focused", () => {
+            // Arrange
+            const fileSet1 = new FileSet();
+            const fileSet2 = new FileSet({
+                filters: [new FileFilter("foo", "bar")]
+            });
+            const prevSelection = new FileSelection()
+                .select(fileSet1, new NumericRange(3, 10))
+                .select(fileSet2, new NumericRange(1, 5000));
+
+            // Act
+            const nextSelection = prevSelection.focusByIndex(3);
+
+            // Assert
+            expect(prevSelection.isFocused(new FileSet(), 6)).to.equal(false);
+            expect(nextSelection.isFocused(new FileSet(), 6)).to.equal(true);
+        });
+
+        it("throws an error if attempting to make an out-of-bounds selection", () => {
+            // Arrange
+            const selection = new FileSelection()
+                .select(new FileSet(), new NumericRange(0, 45));
+
+            // Act / Assert
+            expect(() => {
+                selection.focusByIndex(100)
+            }).to.throw(IndexError);
+        });
+    });
+
+    describe("focusByFileSet", () => {
+        it("sets a specified selected row as focused", () => {
+            // Arrange
+            const fileSet1 = new FileSet();
+            const fileSet2 = new FileSet({
+                filters: [new FileFilter("foo", "bar")]
+            });
+            const prevSelection = new FileSelection()
+                .select(fileSet1, new NumericRange(3, 10))
+                .select(fileSet2, new NumericRange(1, 5000));
+
+            // Act
+            const nextSelection = prevSelection.focusByFileSet(fileSet2, 4086);
+
+            // Assert
+            expect(prevSelection.isFocused(fileSet2, 4086)).to.equal(false);
+            expect(nextSelection.isFocused(fileSet2, 4086)).to.equal(true);
+        });
+
+        it("throws an error if attempting to make an invalid selection -- row within FileSet not selected", () => {
+            // Arrange
+            const selection = new FileSelection()
+                .select(new FileSet(), new NumericRange(0, 45));
+
+            // Act / Assert
+            expect(() => {
+                selection.focusByFileSet(new FileSet(), 2000)
+            }).to.throw(ValueError);
+        });
+
+        it("throws an error if attempting to make an invalid selection -- FileSet itself not selected", () => {
+            // Arrange
+            const selectedFileSet = new FileSet();
+            const notSelectedFileSet = new FileSet({
+                filters: [new FileFilter("foo", "bar")]
+            });
+            const selection = new FileSelection()
+                .select(selectedFileSet, new NumericRange(0, 45));
+
+            // Act / Assert
+            expect(() => {
+                selection.focusByFileSet(notSelectedFileSet, 0)
+            }).to.throw(ValueError);
         });
     });
 });

@@ -1,4 +1,8 @@
-import InvalidArgumentException from "../../exceptions/InvalidArgumentException";
+import {
+    IndexError,
+    ValueError,
+ } from "../../errors";
+
 import { FmsFile } from "../../services/FileService";
 import FileSet from "../FileSet";
 import NumericRange from "../NumericRange";
@@ -206,6 +210,12 @@ export default class FileSelection {
      * (i.e., not local to a particular FileSet) focused.
      */
     public focusByIndex(indexAcrossAllSelections: number): FileSelection {
+        if (indexAcrossAllSelections >= this.length) {
+            throw new IndexError(
+                `${indexAcrossAllSelections} is out of bounds of ${this}`
+            );
+        }
+
         const itemToFocus = this.getItemContainingSelectionIndex(indexAcrossAllSelections);
         const relativeStartIndexForItem = this.relativeStartIndexForItem(itemToFocus);
         const nextFocusedItem = {
@@ -229,7 +239,9 @@ export default class FileSelection {
 
         // attempting to focus an item that isn't selected; fail gracefully
         if (indexOfItemContainingSelection === -1) {
-            return FileSelection.from(this);
+            throw new ValueError(
+                `Unable to find a SelectionItem belonging to FileSet(${JSON.stringify(fileSet)}) and containing ${indexWithinFileSet}`
+            );
         }
 
         const item = this.selections[indexOfItemContainingSelection];
@@ -269,7 +281,7 @@ export default class FileSelection {
             }
         }
 
-        throw new InvalidArgumentException(
+        throw new IndexError(
             `${indexAcrossAllSelections} is out of bounds of ${this}`
         );
     }
