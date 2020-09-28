@@ -74,7 +74,8 @@ export default class FileSelection {
     }
 
     /**
-     * How many file rows are selected
+     * How many file rows are selected. This *should not* be used to report how many unique
+     * files are selected--two file rows in two different FileSets may represent the same underlying file.
      */
     public get length(): number {
         return this.selections.reduce((length: number, item: SelectionItem) => {
