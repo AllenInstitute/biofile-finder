@@ -28,6 +28,17 @@ export interface FocusedItem extends SelectionItem {
 }
 
 /**
+ * Enumeration of directives that can be used to change the focus of the FileSelection.
+ * "Focus" means which selected file row is displayed in the file details pane.
+ */
+export enum FocusDirective {
+    FIRST = "FIRST",
+    PREVIOUS = "PREVIOUS",
+    NEXT = "NEXT",
+    LAST = "LAST",
+}
+
+/**
  * TODO
  */
 export default class FileSelection {
@@ -203,6 +214,27 @@ export default class FileSelection {
         const offset = nextFocusedIndexAcrossAllSelections - relativeStartIndexForNextFocusedItem;
         const indexWithinFileSet = nextItemToFocus.selection.min + offset;
         return nextSelection.focusByFileSet(nextItemToFocus.fileSet, indexWithinFileSet);
+    }
+
+    public focus(directive: FocusDirective): FileSelection {
+        const currentFocusedIndex = this.focusedItem?.indexAcrossAllSelections || 0;
+
+        switch (directive) {
+            case FocusDirective.FIRST:
+                return FileSelection.from(this)
+                    .focusByIndex(0);
+            case FocusDirective.PREVIOUS:
+                return FileSelection.from(this)
+                    .focusByIndex(Math.max(0, currentFocusedIndex - 1));
+            case FocusDirective.NEXT:
+                return FileSelection.from(this)
+                    .focusByIndex(Math.min(this.length - 1, currentFocusedIndex + 1));
+            case FocusDirective.LAST:
+                return FileSelection.from(this)
+                    .focusByIndex(Math.max(0, this.length - 1));
+            default:
+                return FileSelection.from(this);
+        }
     }
 
     /**

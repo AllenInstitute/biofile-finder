@@ -1,13 +1,14 @@
 import { expect } from "chai";
+import { identity } from "lodash";
 
 import FileSet from "../../FileSet";
 import NumericRange from "../../NumericRange";
 
-import FileSelection from "..";
+import FileSelection, { FocusDirective } from "..";
 import FileFilter from "../../FileFilter";
 import { IndexError, ValueError } from "../../../errors";
 
-describe.only("FileSelection", () => {
+describe("FileSelection", () => {
     describe("select", () => {
         it("selects file -- single", () => {
             // Arrange
@@ -252,6 +253,87 @@ describe.only("FileSelection", () => {
 
             // deselection:
             expect(nextSelection.isFocused(new FileSet(), 30)).to.equal(true);
+        });
+    });
+
+    describe("focus", () => {
+        const fileSet1 = new FileSet();
+        const fileSet2 = new FileSet({
+            filters: [new FileFilter("Cell Line", "AICS-12")],
+        });
+        const baseSelection = new FileSelection()
+            .select(fileSet1, new NumericRange(4, 100))
+            .select(fileSet2, 77)
+            .select(fileSet2, new NumericRange(103, 300))
+            .select(fileSet1, 0);
+
+        const spec = [
+            {
+                directive: FocusDirective.FIRST,
+                expectation: {
+                    fileSet: fileSet1,
+                    fileSetIndex: 4,
+                },
+            },
+            // effectively a noop when first is already selected
+            {
+                setup: (selection: FileSelection) => {
+                    return selection.focusByIndex(0);
+                },
+                directive: FocusDirective.FIRST,
+                expectation: {
+                    fileSet: fileSet1,
+                    fileSetIndex: 4,
+                },
+            },
+            {
+                directive: FocusDirective.LAST,
+                expectation: {
+                    fileSet: fileSet1,
+                    fileSetIndex: 0,
+                },
+            },
+            // effectively a noop when the focused item is already at LAST
+            {
+                directive: FocusDirective.NEXT,
+                expectation: {
+                    fileSet: fileSet1,
+                    fileSetIndex: 0,
+                },
+            },
+            {
+                setup: (selection: FileSelection) => {
+                    return selection.focusByFileSet(fileSet2, 77);
+                },
+                directive: FocusDirective.NEXT,
+                expectation: {
+                    fileSet: fileSet2,
+                    fileSetIndex: 103,
+                },
+            },
+            {
+                setup: (selection: FileSelection) => {
+                    return selection.focusByFileSet(fileSet2, 77);
+                },
+                directive: FocusDirective.PREVIOUS,
+                expectation: {
+                    fileSet: fileSet1,
+                    fileSetIndex: 100,
+                },
+            },
+        ];
+
+        spec.forEach(({ setup = identity, directive, expectation }, idx) => {
+            it(`(${idx}) focus by directive: ${directive}`, () => {
+                // Arrange
+                const prevSelection = setup(baseSelection);
+
+                // Act
+                const nextSelection = prevSelection?.focus(directive);
+
+                // Assert
+                expect(nextSelection?.isFocused(expectation.fileSet, expectation.fileSetIndex)).to.equal(true);
+            });
         });
     });
 
