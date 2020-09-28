@@ -1,27 +1,34 @@
+import InvalidArgumentException from "../../exceptions/InvalidArgumentException";
 import { FmsFile } from "../../services/FileService";
 import FileSet from "../FileSet";
 import NumericRange from "../NumericRange";
 
-export enum SelectionDirective {
-    NEXT,
-    PREVIOUS,
-    FIRST,
-    LAST,
-}
-
-export interface Item {
+/**
+ * Either a single file row or range of file rows within a given FileSet (i.e., query).
+ * File rows are represented by their index position within the FileSet.
+ */
+export interface SelectionItem {
     fileSet: FileSet;
     selection: NumericRange;
 }
 
-export interface FocusedItem extends Item {
+/**
+ * The selected file row that is current on display in the file details pane.
+ */
+export interface FocusedItem extends SelectionItem {
+    // index local to the FileSet the file row belongs to
     indexWithinFileSet: number;
+
+    // index within list of all selected file rows
     indexAcrossAllSelections: number;
 }
 
+/**
+ * TODO
+ */
 export default class FileSelection {
     private _focusedItem: FocusedItem | null = null;
-    private selections: Item[];
+    private selections: SelectionItem[];
 
     /**
      * Immutability helper. Shallow copy a Selection instance.
@@ -30,28 +37,56 @@ export default class FileSelection {
         return new FileSelection(selection.selections, selection._focusedItem);
     }
 
-    public constructor(selections: Item[] = [], focusedItem: FocusedItem | null = null) {
+    public constructor(selections: SelectionItem[] = [], focusedItem: FocusedItem | null = null) {
         this.selections = selections;
         this._focusedItem = focusedItem;
     }
 
+    /**
+     * How many file rows are selected
+     */
     public get length(): number {
-        return this.selections.reduce((length: number, item: Item) => {
+        return this.selections.reduce((length: number, item: SelectionItem) => {
             return length + item.selection.length;
         }, 0);
     }
 
+    /**
+     * Selected file that should be shown in the file details pane.
+     * If any files are selected, there _should_ be a focusedItem.
+     * Returns a descriptive object describing:
+     *   - the FileSet the currently focused item belongs to
+     *   - the index within the FileSet that is focused
+     *   - the index across all selections that is focused
+     */
     public get focusedItem(): FocusedItem | null {
         return this._focusedItem;
     }
 
-    public isSelected(fileSet: FileSet, selection: NumericRange | number): boolean {
+    /**
+     * Is the given index or range of indices within the given FileSet selected?
+     */
+    public isSelected(fileSet: FileSet, index: NumericRange | number): boolean {
         return this.selections.some((item) => {
-            return item.fileSet.equals(fileSet) && item.selection.contains(selection);
+            return item.fileSet.equals(fileSet) && item.selection.contains(index);
         });
     }
 
-    public async getFocusedItemDetails(): Promise<FmsFile | undefined> {
+    /**
+     * Is the given index within the given FileSet focused (i.e., current shown in the file details pane)?
+     */
+    public isFocused(fileSet: FileSet, index: number): boolean {
+        if (!this._focusedItem) {
+            return false;
+        }
+
+        return this._focusedItem.fileSet.equals(fileSet) && this._focusedItem.indexWithinFileSet === index;
+    }
+
+    /**
+     * Fetch metadata for currently focused item.
+     */
+    public async fetchFocusedItemDetails(): Promise<FmsFile | undefined> {
         if (!this._focusedItem) {
             return await Promise.resolve(undefined);
         }
@@ -64,26 +99,29 @@ export default class FileSelection {
         return (await fileSet.fetchFileRange(indexWithinFileSet, indexWithinFileSet))[0];
     }
 
-    public select(fileSet: FileSet, selection: NumericRange | number, lastTouchedIndex?: number): FileSelection {
-        if (!NumericRange.isNumericRange(selection)) {
-            selection = new NumericRange(selection);
+    /**
+     * Return a new FileSelection instance with the given index (or range of indices) within given FileSet.
+     * Defaults to setting currently focused item to index or max(indices) (if index represents a range of indices).
+     * Override this default behavior by explicitly providing an `indexToFocus`.
+     */
+    public select(fileSet: FileSet, index: NumericRange | number, indexToFocus?: number): FileSelection {
+        const indexRange = NumericRange.isNumericRange(index) ? index : new NumericRange(index);
+
+        if (!indexToFocus) {
+            indexToFocus = indexRange.max;
         }
 
-        if (!lastTouchedIndex) {
-            lastTouchedIndex = selection.max;
-        }
-
-        let item: Item = {
+        let item: SelectionItem = {
             fileSet,
-            selection
+            selection: indexRange
         };
         // keep internal state compact if possible
         if (this.selections.length && this.selections[this.selections.length - 1].fileSet === fileSet) {
             const itemToExpand = this.selections[this.selections.length - 1];
-            if (selection.abuts(itemToExpand.selection) || selection.intersects(itemToExpand.selection)) {
+            if (indexRange.abuts(itemToExpand.selection) || indexRange.intersects(itemToExpand.selection)) {
                 item = {
                     fileSet,
-                    selection: itemToExpand.selection.union(selection),
+                    selection: itemToExpand.selection.union(indexRange),
                 }
             }
         }
@@ -91,13 +129,18 @@ export default class FileSelection {
         const focusedItem = {
             fileSet,
             selection: item.selection,
-            indexWithinFileSet: lastTouchedIndex,
-            indexAcrossAllSelections: this.length + (lastTouchedIndex - item.selection.min),
+            indexWithinFileSet: indexToFocus,
+            indexAcrossAllSelections: this.length + (indexToFocus - item.selection.min),
         };
         const selections = [...this.selections, item];
         return new FileSelection(selections, focusedItem);
     }
 
+    /**
+     * Return a new FileSelection instance without the given index (or range of indices) within the given FileSet.
+     * If the currently focused item is being deselected, defaults to focusing the selected item that directly
+     * precedes the currently focused item by index across all selected items (TODO).
+     */
     public deselect(fileSet: FileSet, selection: NumericRange | number): FileSelection {
         const indexOfItemContainingSelection = this.selections.findIndex((item) => {
             return item.fileSet.equals(fileSet) && item.selection.contains(selection);
@@ -168,6 +211,10 @@ export default class FileSelection {
         return nextSelection.focusByFileSet(itemToFocus.fileSet, indexWithinFileSet);
     }
 
+    /**
+     * Return a new FileSelection instance with the given index across entire list of selections
+     * (i.e., not local to a particular FileSet) focused.
+     */
     public focusBySelectionIndex(indexAcrossAllSelections: number): FileSelection {
         const itemToFocus = this.getItemContainingSelectionIndex(indexAcrossAllSelections);
         const relativeStartIndexForItem = this.relativeStartIndexForItem(itemToFocus);
@@ -181,12 +228,16 @@ export default class FileSelection {
         return new FileSelection(this.selections, nextFocusedItem);
     }
 
+    /**
+     * Return a new FileSelection instance with the the file row within the given FileSet
+     * focused.
+     */
     public focusByFileSet(fileSet: FileSet, indexWithinFileSet: number): FileSelection {
         const indexOfItemContainingSelection = this.selections.findIndex((item) => {
             return item.fileSet.equals(fileSet) && item.selection.contains(indexWithinFileSet);
         });
 
-        // somehow, we're attempting to focus an item that isn't selected
+        // attempting to focus an item that isn't selected; fail gracefully
         if (indexOfItemContainingSelection === -1) {
             return FileSelection.from(this);
         }
@@ -203,17 +254,30 @@ export default class FileSelection {
         return new FileSelection(this.selections, nextFocusedItem);
     }
 
-    private getItemContainingSelectionIndex(index: number): Item {
+    /**
+     * Get selection item (which may represent a single file row within a FileSet,
+     * or may represent a range of file rows within a FileSet) that contains given
+     * index across all selections.
+     */
+    private getItemContainingSelectionIndex(indexAcrossAllSelections: number): SelectionItem {
         for (let i = 0; i < this.selections.length; i++) {
             const item = this.selections[i];
             const relativeStartIndexForItem = this.relativeStartIndexForItem(item);
-            if (relativeStartIndexForItem + item.selection.length > index) {
+            if (relativeStartIndexForItem + item.selection.length > indexAcrossAllSelections) {
                 return item;
             }
         }
+
+        throw new InvalidArgumentException(
+            `${indexAcrossAllSelections} is out of bounds of ${this}`
+        );
     }
 
-    private relativeStartIndexForItem(item: Item): number {
+    /**
+     * Determine start index within list of all selected file rows for Item, which represents
+     * either a single file row or range of file rows within a FileSet.
+     */
+    private relativeStartIndexForItem(item: SelectionItem): number {
         const indexOfItem = this.selections.findIndex((i) => {
             return i.fileSet.equals(item.fileSet) && i.selection.intersects(item.selection);
         });
@@ -225,11 +289,7 @@ export default class FileSelection {
         }
 
         const upToItem = this.selections.slice(0, indexOfItem);
-        if (!upToItem.length) {
-            return 0;
-        }
-
-        return upToItem.reduce((length: number, item: Item) => {
+        return upToItem.reduce((length: number, item: SelectionItem) => {
             return length + item.selection.length;
         }, 0);
     }

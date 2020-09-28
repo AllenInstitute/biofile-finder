@@ -3,7 +3,7 @@ import { expect } from "chai";
 import FileSet from "../../FileSet";
 import NumericRange from "../../NumericRange";
 
-import FileSelection, { FocusedItem } from "..";
+import FileSelection from "..";
 
 describe("FileSelection", () => {
     describe("select", () => {
@@ -48,18 +48,12 @@ describe("FileSelection", () => {
             const selection = new FileSelection();
             const fileSet = new FileSet();
             const selectedRange = new NumericRange(10, 20);
-            const expectedFocusedItem: FocusedItem = {
-                fileSet: fileSet,
-                selection: selectedRange,
-                indexWithinFileSet: 20,
-                indexAcrossAllSelections: 10
-            };
 
             // Act
             const nextSelection = selection.select(fileSet, selectedRange);
 
             // Assert
-            expect(nextSelection.focusedItem).to.deep.equal(expectedFocusedItem);
+            expect(nextSelection.isFocused(fileSet, 20)).to.equal(true);
         });
 
         it("focuses an item within a selection other than the last if explicitly told to", () => {
@@ -67,18 +61,12 @@ describe("FileSelection", () => {
             const selection = new FileSelection();
             const fileSet = new FileSet();
             const selectedRange = new NumericRange(10, 20);
-            const expectedFocusedItem: FocusedItem = {
-                fileSet: fileSet,
-                selection: selectedRange,
-                indexWithinFileSet: 12,
-                indexAcrossAllSelections: 2
-            };
 
             // Act
             const nextSelection = selection.select(fileSet, selectedRange, 12);
 
             // Assert
-            expect(nextSelection.focusedItem).to.deep.equal(expectedFocusedItem);
+            expect(nextSelection.isFocused(fileSet, 12)).to.equal(true);
         });
     });
 
@@ -130,12 +118,10 @@ describe("FileSelection", () => {
 
             // Assert
             // sanity-checks: previous selection
-            expect(selection.focusedItem?.indexWithinFileSet).to.equal(21);
-            expect(selection.focusedItem?.indexAcrossAllSelections).to.equal(1);
+            expect(selection.isFocused(new FileSet(), 21)).to.equal(true);
 
             // deselection:
-            expect(nextSelection.focusedItem?.indexWithinFileSet).to.equal(21);
-            expect(nextSelection.focusedItem?.indexAcrossAllSelections).to.equal(1);
+            expect(nextSelection.isFocused(new FileSet(), 21)).to.equal(true);
         });
 
         it("resets focused item when deselected file was previously focused - single deselection, middle", () => {
@@ -151,12 +137,11 @@ describe("FileSelection", () => {
 
             // Assert
             // sanity-checks: previous selection
-            expect(selection.focusedItem?.indexWithinFileSet).to.equal(25);
-            expect(selection.focusedItem?.indexAcrossAllSelections).to.equal(5);
+            expect(selection.isFocused(new FileSet(), 25)).to.equal(true);
+
 
             // deselection:
-            expect(nextSelection.focusedItem?.indexWithinFileSet).to.equal(26);
-            expect(nextSelection.focusedItem?.indexAcrossAllSelections).to.equal(5);
+            expect(nextSelection.isFocused(new FileSet(), 26)).to.equal(true);
         });
 
         it("resets focused item when deselected file was previously focused - single deselection, last", () => {
@@ -171,12 +156,10 @@ describe("FileSelection", () => {
 
             // Assert
             // sanity-checks: previous selection
-            expect(selection.focusedItem?.indexWithinFileSet).to.equal(100);
-            expect(selection.focusedItem?.indexAcrossAllSelections).to.equal(11);
+            expect(selection.isFocused(new FileSet(), 100)).to.equal(true);
 
             // deselection:
-            expect(nextSelection.focusedItem?.indexWithinFileSet).to.equal(30);
-            expect(nextSelection.focusedItem?.indexAcrossAllSelections).to.equal(10);
+            expect(nextSelection.isFocused(new FileSet(), 30)).to.equal(true);
         });
 
         it("resets focused item when deselected file was previously focused - multiple deselection, middle", () => {
@@ -192,12 +175,10 @@ describe("FileSelection", () => {
 
             // Assert
             // sanity-checks: previous selection
-            expect(selection.focusedItem?.indexWithinFileSet).to.equal(25);
-            expect(selection.focusedItem?.indexAcrossAllSelections).to.equal(5);
+            expect(selection.isFocused(new FileSet(), 25)).to.equal(true);
 
             // deselection:
-            expect(nextSelection.focusedItem?.indexWithinFileSet).to.equal(100);
-            expect(nextSelection.focusedItem?.indexAcrossAllSelections).to.equal(2);
+            expect(nextSelection.isFocused(new FileSet(), 100)).to.equal(true);
         });
 
         it("resets focused item when deselected file was previously focused - multiple deselection, last", () => {
@@ -212,12 +193,10 @@ describe("FileSelection", () => {
 
             // Assert
             // sanity-checks: previous selection
-            expect(selection.focusedItem?.indexWithinFileSet).to.equal(100);
-            expect(selection.focusedItem?.indexAcrossAllSelections).to.equal(14);
+            expect(selection.isFocused(new FileSet(), 100)).to.equal(true);
 
             // deselection:
-            expect(nextSelection.focusedItem?.indexWithinFileSet).to.equal(30);
-            expect(nextSelection.focusedItem?.indexAcrossAllSelections).to.equal(10);
+            expect(nextSelection.isFocused(new FileSet(), 30)).to.equal(true);
         });
     });
 });

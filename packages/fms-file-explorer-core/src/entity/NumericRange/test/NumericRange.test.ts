@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import NumericRange, { EmptyRangeException } from "..";
+import NumericRange from "..";
 
 describe("NumericRange", () => {
     describe("compact", () => {
