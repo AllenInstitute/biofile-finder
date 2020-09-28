@@ -3,13 +3,6 @@ export interface JSONReadyRange {
     end: number;
 }
 
-export class EmptyRangeException extends Error {
-    public constructor(message: string) {
-        super(message);
-        this.name = "EmptyRangeException";
-    }
-}
-
 /**
  * An immutable, continuous range of numbers, inclusive of its bounds.
  */
@@ -154,9 +147,7 @@ export default class NumericRange {
      */
     public partitionAt(partitionPoint: number): NumericRange[] {
         if (this.min === this.max) {
-            throw new EmptyRangeException(
-                `Unable to partition ${this} about ${partitionPoint}: NumericRange too small.`
-            );
+            return [];
         }
 
         if (!this.contains(partitionPoint)) {
@@ -178,11 +169,13 @@ export default class NumericRange {
     }
 
     /**
-     * Remove
+     * Return list of NumericRange with `other` removed from `this`. Return value is a list
+     * because removing an item from a middle a range results in a partition and always
+     * returning a list keeps calling code from needing to inspect the return type.
      */
-    public extract(other: NumericRange | number): NumericRange[] {
+    public remove(other: NumericRange | number): NumericRange[] {
         if (!NumericRange.isNumericRange(other)) {
-            other = new NumericRange(other);
+            return this.partitionAt(other);
         }
 
         if (!this.contains(other)) {

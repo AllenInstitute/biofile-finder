@@ -55,11 +55,7 @@ const selectFile = createLogic({
                 nextSelectionsForFileSet = existingSelectionsForFileSet.reduce(
                     (accum, range: NumericRange) => {
                         if (range.contains(selection)) {
-                            try {
-                                return [...accum, ...range.partitionAt(selection)];
-                            } catch (EmptyRangeException) {
-                                return accum;
-                            }
+                            return [...accum, ...range.partitionAt(selection)];
                         }
 
                         return [...accum, range];

@@ -153,7 +153,7 @@ export default class FileSelection {
         }
 
         const item = this.selections[indexOfItemContainingSelection];
-        const reducedSelection = item.selection.extract(selection);
+        const reducedSelection = item.selection.remove(selection);
 
         const nextSelections = [...this.selections];
         if (!reducedSelection.length) {
