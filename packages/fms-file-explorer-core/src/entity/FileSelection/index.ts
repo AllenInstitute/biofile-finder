@@ -244,6 +244,17 @@ export default class FileSelection {
         return new FileSelection(this.selections, nextFocusedItem);
     }
 
+    public toJSON() {
+        return {
+            selections: this.selections,
+            focusedItem: this.focusedItem,
+        }
+    }
+
+    public toString(): string {
+        return `FileSelection(${JSON.stringify(this)})`;
+    }
+
     /**
      * Get selection item (which may represent a single file row within a FileSet,
      * or may represent a range of file rows within a FileSet) that contains given

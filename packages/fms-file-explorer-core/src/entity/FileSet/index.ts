@@ -132,6 +132,13 @@ export default class FileSet {
         );
     }
 
+    public toJSON() {
+        return {
+            queryString: this.toQueryString(),
+            baseUrl: this.fileService.baseUrl,
+        };
+    }
+
     public toString(): string {
         return `FileSet(${this.toQueryString()})`;
     }
