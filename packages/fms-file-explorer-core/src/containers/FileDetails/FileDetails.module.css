@@ -1,3 +1,8 @@
+.root {
+    --window-buttons-height: var(--breadcrumb-height); /* defined in App.module.css under .root{} */
+    --pagination-height: var(--breadcrumb-height); /* defined in App.module.css under .root{} */
+}
+
 .expandable {
     position: absolute;
     right: 0;
@@ -10,7 +15,7 @@
 
 .window-buttons {
     width: 100%;
-    height: var(--breadcrumb-height); /* defined in App.module.css under .root{} */
+    height: var(--window-buttons-height);
 
     /* flex parent */
     display: flex;
@@ -36,12 +41,22 @@
     visibility: hidden;
 }
 
+.pagination {
+    width: 100%;
+    height: var(--pagination-height);
+
+    /* flex parent */
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
 .content-container {
     --teaser-height: 3rem;
 
     position: relative;
     width: 100%;
-    height: calc(100% - var(--breadcrumb-height));
+    height: calc(100% - var(--window-buttons-height) - var(--pagination-height));
 }
 
 .overflow-container {
