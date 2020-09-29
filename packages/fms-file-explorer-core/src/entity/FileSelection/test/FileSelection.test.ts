@@ -36,14 +36,22 @@ describe("FileSelection", () => {
 
         it("handles a case in which a new selection overlaps with a previous one", () => {
             // Arrange
+            const fileSet1 = new FileSet();
+            const fileSet2 = new FileSet({
+                filters: [new FileFilter("Workflow", "Pipeline 10000")],
+            });
+            const previouslySelectedRange = new NumericRange(30, 60);
+            const newlySelectedRange = new NumericRange(4, 100);
             const selection = new FileSelection()
-                .select(new FileSet(), 4);
+                .select(fileSet1, previouslySelectedRange)
+                .select(fileSet2, 88);
 
             // Act
-            const nextSelection = selection.select(new FileSet(), new NumericRange(4, 10));
+            const nextSelection = selection.select(fileSet1, newlySelectedRange);
 
             // Assert
-            expect(nextSelection.isSelected(new FileSet(), 4)).to.equal(true);
+            expect(nextSelection.isSelected(fileSet2, 88)).to.equal(true);
+            expect(nextSelection.isSelected(fileSet1, previouslySelectedRange.union(newlySelectedRange))).to.equal(true);
         });
 
         it("makes the new selection focused", () => {
