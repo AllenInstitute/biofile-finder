@@ -38,17 +38,15 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
 
     const annotations = useSelector(selection.selectors.getOrderedDisplayAnnotations);
     const columnWidths = useSelector(selection.selectors.getColumnWidths);
-    const selectedFileRangesByFileSet = useSelector(
-        selection.selectors.getSelectedFileRangesByFileSet
+    const fileSelection = useSelector(
+        selection.selectors.getFileSelection
     );
-
-    const selections: NumericRange[] = selectedFileRangesByFileSet[fileSet.hash] || [];
 
     const file = fileSet.getFileByIndex(index);
 
     const isSelected = React.useMemo(() => {
-        return selections.some((range: NumericRange) => range.contains(index));
-    }, [selections, index]);
+        return fileSelection.isSelected(fileSet, index);
+    }, [fileSelection, fileSet, index]);
 
     let content;
     if (file) {
