@@ -4,6 +4,8 @@ import selection from "..";
 import { initialState, metadata } from "../..";
 import interaction from "../../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
+import FileSelection from "../../../entity/FileSelection";
+import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 
 describe("Selection reducer", () => {
@@ -13,11 +15,11 @@ describe("Selection reducer", () => {
     ].forEach((actionConstant) =>
         it(`clears selected file state when ${actionConstant} is fired`, () => {
             // arrange
+            const prevSelection = new FileSelection()
+                .select(new FileSet(), new NumericRange(1, 3));
             const initialSelectionState = {
                 ...selection.initialState,
-                selectedFileRangesByFileSet: {
-                    abc123: [new NumericRange(1, 3)],
-                },
+                fileSelection: prevSelection,
             };
 
             const action = {
@@ -26,14 +28,14 @@ describe("Selection reducer", () => {
 
             // act
             const nextSelectionState = selection.reducer(initialSelectionState, action);
+            const nextSelection = selection.selectors.getFileSelection({
+                ...initialState,
+                selection: nextSelectionState,
+            });
 
             // assert
-            expect(
-                selection.selectors.getSelectedFileRangesByFileSet({
-                    ...initialState,
-                    selection: nextSelectionState,
-                })
-            ).to.be.empty;
+            expect(prevSelection.size()).to.equal(3); // sanity-check
+            expect(nextSelection.size()).to.equal(0);
         })
     );
 
