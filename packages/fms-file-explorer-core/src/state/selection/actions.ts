@@ -3,6 +3,8 @@ import { makeConstant } from "@aics/redux-utils";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
+import FileSelection from "../../entity/FileSelection";
+import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
 
 const STATE_BRANCH_NAME = "selection";
@@ -176,14 +178,14 @@ export function resetColumnWidth(columnHeader: string) {
  * SELECT_FILE
  *
  * Intention to mark one or many files as "selected." If `payload.updateExistingSelection`, add `payload.file` to
- * existing selection, else, replace existing selection. The first selected file will be displayed by default in the
+ * existing selection, else, replace existing selection. The last selected file will be displayed by default in the
  * details pane. Other uses for file selection are file download, dataset creation, and opening files with another tool.
  */
 export const SELECT_FILE = makeConstant(STATE_BRANCH_NAME, "select-file");
 
 export interface SelectFileAction {
     payload: {
-        correspondingFileSet: string; // FileSet::hash
+        correspondingFileSet: FileSet;
         selection: number | NumericRange;
         updateExistingSelection: boolean;
     };
@@ -191,7 +193,7 @@ export interface SelectFileAction {
 }
 
 export function selectFile(
-    correspondingFileSet: string, // FileSet::hash
+    correspondingFileSet: FileSet,
     selection: number | NumericRange,
     updateExistingSelection = false
 ): SelectFileAction {
@@ -218,15 +220,13 @@ export function selectFile(
 export const SET_FILE_SELECTION = makeConstant(STATE_BRANCH_NAME, "set-file-selection");
 
 export interface SetFileSelection {
-    payload: { [index: string]: NumericRange[] };
+    payload: FileSelection;
     type: string;
 }
 
-export function setFileSelection(selections: {
-    [index: string]: NumericRange[];
-}): SetFileSelection {
+export function setFileSelection(selection: FileSelection): SetFileSelection {
     return {
-        payload: selections,
+        payload: selection,
         type: SET_FILE_SELECTION,
     };
 }

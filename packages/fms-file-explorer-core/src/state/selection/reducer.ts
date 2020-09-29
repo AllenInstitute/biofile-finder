@@ -6,7 +6,7 @@ import { AnnotationName } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
-import NumericRange from "../../entity/NumericRange";
+import FileSelection from "../../entity/FileSelection";
 
 import {
     DESELECT_DISPLAY_ANNOTATION,
@@ -29,11 +29,9 @@ export interface SelectionStateBranch {
         [index: string]: number; // columnName to widthPercent mapping
     };
     displayAnnotations: Annotation[];
+    fileSelection: FileSelection;
     filters: FileFilter[];
     openFileFolders: FileFolder[];
-    selectedFileRangesByFileSet: {
-        [index: string]: NumericRange[]; // FileSet::hash to list of list ranges
-    };
 }
 
 export const initialState = {
@@ -47,9 +45,9 @@ export const initialState = {
         [AnnotationName.FILE_SIZE]: 0.1,
     },
     displayAnnotations: [],
+    fileSelection: new FileSelection(),
     filters: [],
     openFileFolders: [],
-    selectedFileRangesByFileSet: {}, // FileSet::hash to NumericRange[]
 };
 
 export default makeReducer<SelectionStateBranch>(
@@ -103,7 +101,7 @@ export default makeReducer<SelectionStateBranch>(
         },
         [SET_FILE_SELECTION]: (state, action) => ({
             ...state,
-            selectedFileRangesByFileSet: action.payload,
+            fileSelection: action.payload,
         }),
         [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
             ...state,
@@ -111,7 +109,7 @@ export default makeReducer<SelectionStateBranch>(
             availableAnnotationsForHierarchyLoading: true,
 
             // Reset file selections when annotation hierarchy changes
-            selectedFileRangesByFileSet: {},
+            fileSelection: new FileSelection(),
         }),
         [SET_AVAILABLE_ANNOTATIONS]: (state, action) => ({
             ...state,
@@ -126,7 +124,7 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
 
             // Reset file selections when pointed at a new backend
-            selectedFileRangesByFileSet: {},
+            fileSelection: new FileSelection(),
         }),
     },
     initialState

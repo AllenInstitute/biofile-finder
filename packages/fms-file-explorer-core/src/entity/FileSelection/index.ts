@@ -1,3 +1,5 @@
+import { reject } from "lodash";
+
 import {
     IndexError,
     ValueError,
@@ -71,6 +73,12 @@ export default class FileSelection {
         return new FileSelection(selection.selections, selection.focusedItem);
     }
 
+    private static getLength(selections: SelectionItem[]): number {
+        return selections.reduce((length: number, item: SelectionItem) => {
+            return length + item.selection.length;
+        }, 0);
+    }
+
     public constructor(selections: SelectionItem[] = [], focusedItem: FocusedItem | null = null) {
         this.selections = selections;
         this.focusedItem = focusedItem;
@@ -81,9 +89,7 @@ export default class FileSelection {
      * files are selected--two file rows in two different FileSets may represent the same underlying file.
      */
     public get length(): number {
-        return this.selections.reduce((length: number, item: SelectionItem) => {
-            return length + item.selection.length;
-        }, 0);
+        return FileSelection.getLength(this.selections);
     }
 
     /**
@@ -134,28 +140,24 @@ export default class FileSelection {
             indexToFocus = indexRange.max;
         }
 
-        let item: SelectionItem = {
-            fileSet,
-            selection: indexRange
-        };
-        // keep internal state compact if possible
-        if (this.selections.length && this.selections[this.selections.length - 1].fileSet === fileSet) {
-            const itemToExpand = this.selections[this.selections.length - 1];
-            if (indexRange.abuts(itemToExpand.selection) || indexRange.intersects(itemToExpand.selection)) {
-                item = {
-                    fileSet,
-                    selection: itemToExpand.selection.union(indexRange),
-                }
-            }
-        }
+        // if `indexRange` contains already selected file rows, compact
+        const compacted = reject(this.selections, (existingSelectionItem) => {
+            return existingSelectionItem.fileSet === fileSet && indexRange.contains(existingSelectionItem.selection);
+        });
 
-        const focusedItem = {
+        const item: SelectionItem = {
+            fileSet,
+            selection: indexRange,
+        };
+
+        const focusedItem: FocusedItem = {
             fileSet,
             selection: item.selection,
             indexWithinFileSet: indexToFocus,
-            indexAcrossAllSelections: this.length + (indexToFocus - item.selection.min),
+            indexAcrossAllSelections: FileSelection.getLength(compacted) + (indexToFocus - item.selection.min),
         };
-        const selections = [...this.selections, item];
+
+        const selections = [...compacted, item];
         return new FileSelection(selections, focusedItem);
     }
 
