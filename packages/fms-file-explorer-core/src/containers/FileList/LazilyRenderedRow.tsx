@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 
 import FileRow from "../../components/FileRow";
 import FileSet from "../../entity/FileSet";
-import NumericRange from "../../entity/NumericRange";
 import { selection } from "../../state";
 import { OnSelect } from "./useFileSelector";
 

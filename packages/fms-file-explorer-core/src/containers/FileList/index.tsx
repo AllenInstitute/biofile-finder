@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import * as debouncePromise from "debounce-promise";
-import { defaults, isEmpty } from "lodash";
+import { defaults } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FixedSizeList } from "react-window";
@@ -8,7 +8,6 @@ import InfiniteLoader from "react-window-infinite-loader";
 
 import getContextMenuItems from "../ContextMenu/items";
 import FileSet from "../../entity/FileSet";
-import NumericRange from "../../entity/NumericRange";
 import Header from "./Header";
 import LazilyRenderedRow from "./LazilyRenderedRow";
 import { interaction, selection } from "../../state";
