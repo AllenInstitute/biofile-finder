@@ -188,6 +188,7 @@ export interface SelectFileAction {
         correspondingFileSet: FileSet;
         selection: number | NumericRange;
         updateExistingSelection: boolean;
+        lastTouched?: number | undefined; // last index selected
     };
     type: string;
 }
@@ -195,13 +196,15 @@ export interface SelectFileAction {
 export function selectFile(
     correspondingFileSet: FileSet,
     selection: number | NumericRange,
-    updateExistingSelection = false
+    updateExistingSelection = false,
+    lastTouched: number | undefined = undefined
 ): SelectFileAction {
     return {
         payload: {
             correspondingFileSet,
             selection,
             updateExistingSelection,
+            lastTouched,
         },
         type: SELECT_FILE,
     };

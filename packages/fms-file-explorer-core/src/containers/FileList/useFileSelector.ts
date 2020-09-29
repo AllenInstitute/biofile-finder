@@ -45,7 +45,8 @@ export default function useFileSelector(fileSet: FileSet): OnSelect {
                     selection.actions.selectFile(
                         fileSet,
                         new NumericRange(startIndex, endIndex),
-                        true // heuristic: holding down shift key always modifies existing selection
+                        true, // heuristic: holding down shift key always modifies existing selection
+                        fileRow.index
                     )
                 );
             } else {
