@@ -111,12 +111,12 @@ export default class FileSelection {
      */
     public async fetchFocusedItemDetails(): Promise<FmsFile | undefined> {
         if (!this.focusedItem) {
-            return await Promise.resolve(undefined);
+            return Promise.resolve(undefined);
         }
         const { fileSet, indexWithinFileSet } = this.focusedItem;
 
         if (fileSet.isFileMetadataLoaded(indexWithinFileSet)) {
-            return await Promise.resolve(fileSet.getFileByIndex(indexWithinFileSet));
+            return Promise.resolve(fileSet.getFileByIndex(indexWithinFileSet));
         }
 
         return (await fileSet.fetchFileRange(indexWithinFileSet, indexWithinFileSet))[0];
