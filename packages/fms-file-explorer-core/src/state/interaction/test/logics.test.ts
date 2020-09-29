@@ -14,14 +14,19 @@ import {
 import interactionLogics from "../logics";
 import { initialState, interaction, selection } from "../..";
 import FileFilter from "../../../entity/FileFilter";
+import FileSelection from "../../../entity/FileSelection";
 import FileService from "../../../services/FileService";
+import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("Interaction logics", () => {
+    const fileSelection = new FileSelection()
+            .select(new FileSet(), new NumericRange(0, 100));
+
     describe("downloadManifest", () => {
-        it("Marks the beginning of a manifest download with a status update", async () => {
+        it("marks the beginning of a manifest download with a status update", async () => {
             // arrange
             const state = mergeState(initialState, {
                 interaction: {
@@ -30,9 +35,7 @@ describe("Interaction logics", () => {
                     },
                 },
                 selection: {
-                    selectedFileRangesByFileSet: {
-                        abc: [new NumericRange(0, 100)],
-                    },
+                    fileSelection,
                 },
             });
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -57,7 +60,7 @@ describe("Interaction logics", () => {
             ).to.equal(true);
         });
 
-        it("Marks the success of a manifest download with a status update", async () => {
+        it("marks the success of a manifest download with a status update", async () => {
             // arrange
             const state = mergeState(initialState, {
                 interaction: {
@@ -66,9 +69,7 @@ describe("Interaction logics", () => {
                     },
                 },
                 selection: {
-                    selectedFileRangesByFileSet: {
-                        abc: [new NumericRange(0, 100)],
-                    },
+                    fileSelection,
                 },
             });
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -93,7 +94,7 @@ describe("Interaction logics", () => {
             ).to.equal(true);
         });
 
-        it("Marks the failure of a manifest download with a status update", async () => {
+        it("marks the failure of a manifest download with a status update", async () => {
             // arrange
             class FailingDownloadSerivce implements FileDownloadService {
                 downloadCsvManifest() {
@@ -111,9 +112,7 @@ describe("Interaction logics", () => {
                     },
                 },
                 selection: {
-                    selectedFileRangesByFileSet: {
-                        abc: [new NumericRange(0, 100)],
-                    },
+                    fileSelection,
                 },
             });
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -150,7 +149,7 @@ describe("Interaction logics", () => {
             ).to.equal(false);
         });
 
-        it("Clears status if cancelled", async () => {
+        it("clears status if cancelled", async () => {
             // arrange
             class CancellingDownloadService implements FileDownloadService {
                 downloadCsvManifest() {
@@ -168,9 +167,7 @@ describe("Interaction logics", () => {
                     },
                 },
                 selection: {
-                    selectedFileRangesByFileSet: {
-                        abc: [new NumericRange(0, 100)],
-                    },
+                    fileSelection,
                 },
             });
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -190,7 +187,7 @@ describe("Interaction logics", () => {
             ).to.equal(true);
         });
 
-        it("Doesn't use selected files when given a specific file folder path", async () => {
+        it("doesn't use selected files when given a specific file folder path", async () => {
             // arrange
             const baseUrl = "test";
             const state = mergeState(initialState, {
@@ -201,9 +198,7 @@ describe("Interaction logics", () => {
                     },
                 },
                 selection: {
-                    selectedFileRangesByFileSet: {
-                        abc: [new NumericRange(0, 100)],
-                    },
+                    fileSelection,
                 },
             });
             const filters = [
@@ -225,7 +220,7 @@ describe("Interaction logics", () => {
             const sandbox = createSandbox();
             sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
             sandbox
-                .stub(selection.selectors, "getSelectedFileRangesByFileSet")
+                .stub(selection.selectors, "getFileSelection")
                 .throws("Test failed");
 
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -255,7 +250,7 @@ describe("Interaction logics", () => {
     });
 
     describe("cancelManifestDownloadLogic", () => {
-        it("Marks the failure of a manifest download cancellation (on error)", async () => {
+        it("marks the failure of a manifest download cancellation (on error)", async () => {
             // arrange
             class CancellingDownloadService implements FileDownloadService {
                 downloadCsvManifest() {
@@ -273,9 +268,7 @@ describe("Interaction logics", () => {
                     },
                 },
                 selection: {
-                    selectedFileRangesByFileSet: {
-                        abc: [new NumericRange(0, 100)],
-                    },
+                    fileSelection,
                 },
             });
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -300,7 +293,7 @@ describe("Interaction logics", () => {
             ).to.equal(true);
         });
 
-        it("Delete the downloaded artifact on cancel", async () => {
+        it("delete the downloaded artifact on cancel", async () => {
             // arrange
             const tempDir = os.tmpdir();
             const tempFilePath = tempDir + "/TEMPORARY_FILE_EXPLORER_APP_FILE_FOR_TESTING";
@@ -330,9 +323,7 @@ describe("Interaction logics", () => {
                     },
                 },
                 selection: {
-                    selectedFileRangesByFileSet: {
-                        abc: [new NumericRange(0, 100)],
-                    },
+                    fileSelection,
                 },
             });
             const { store, logicMiddleware } = configureMockStore({
