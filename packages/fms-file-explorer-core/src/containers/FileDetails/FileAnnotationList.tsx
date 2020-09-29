@@ -10,7 +10,7 @@ import FileAnnotationRow from "./FileAnnotationRow";
 const styles = require("./FileAnnotationList.module.css");
 
 interface FileAnnotationListProps {
-    fileDetails?: FileDetail;
+    fileDetails: FileDetail | null;
     isLoading: boolean;
 }
 
