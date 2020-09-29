@@ -8,8 +8,8 @@ import { selection } from "../../state";
 
 /**
  * Custom React hook to accomplish storing and fetching details of files (i.e., complex file metadata).
- * This hook exposes loading state for the requested fileId: if a network request is in flight for file details
- * for the requested fileId, the second element of the return array will be true.
+ * This hook exposes loading state: if a network request is in flight for file details the second element
+ * of the return array will be true.
  */
 export default function useFileDetails(): [FileDetail | null, boolean] {
     const fileSelection = useSelector(selection.selectors.getFileSelection);
@@ -23,7 +23,6 @@ export default function useFileDetails(): [FileDetail | null, boolean] {
         // selection then quickly makes a new selection.
         let ignoreResponse = false;
 
-        // cache miss, check if file set cache has record of this index
         setIsLoading(true);
         fileSelection
             .fetchFocusedItemDetails()
