@@ -345,6 +345,25 @@ export default class FileSelection {
     }
 
     /**
+     * Return Map view into FileSelection with the SelectionItems
+     * grouped by their FileSets and their selections compacted to their most succint representation.
+     */
+    public groupByFileSet(): Map<FileSet, NumericRange[]> {
+        return this.selections.reduce((mapping, selectionItem) => {
+            const { fileSet, selection } = selectionItem;
+            if (!mapping.has(fileSet)) {
+                mapping.set(fileSet, []);
+            }
+
+            const existing = mapping.get(fileSet);
+            existing.push(selection)
+            const compacted = NumericRange.compact(...existing);
+            mapping.set(fileSet, compacted);
+            return mapping;
+        }, new Map());
+    }
+
+    /**
      * Get selection item (which may represent a single file row within a FileSet,
      * or may represent a range of file rows within a FileSet) that contains given
      * index across all selections.

@@ -50,7 +50,11 @@ export default class NumericRange {
             }
         }
 
-        return compacted;
+        const sorted = compacted.sort((a, b) => {
+            return a.min - b.min;
+        });
+
+        return sorted;
     }
 
     public static fromRange(range: NumericRange): NumericRange {

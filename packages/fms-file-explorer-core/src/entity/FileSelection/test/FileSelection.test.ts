@@ -485,4 +485,56 @@ describe("FileSelection", () => {
             });
         });
     });
+
+    describe("groupByFileSet", () => {
+        it("groups selections by filesets", () => {
+            // Arrange
+            const fileSet1 = new FileSet();
+            const fileSet2 = new FileSet({
+                filters: [new FileFilter("foo", "bar")]
+            });
+            const selection = new FileSelection()
+                .select(fileSet1, 3)
+                .select(fileSet2, new NumericRange(8, 10))
+                .select(fileSet1, new NumericRange(12, 15))
+                .select(fileSet2, 33);
+
+            // Act
+            const grouped = selection.groupByFileSet();
+
+            // Assert
+            expect(grouped.size).to.equal(2);
+            expect(grouped.has(fileSet1)).to.equal(true);
+            expect(grouped.has(fileSet2)).to.equal(true);
+            expect(grouped.get(fileSet1)).to.deep.equal([
+                new NumericRange(3),
+                new NumericRange(12, 15)
+            ]);
+            expect(grouped.get(fileSet2)).to.deep.equal([
+                new NumericRange(8, 10),
+                new NumericRange(33)
+            ]);
+        });
+
+        it("produces the most compact representation of numeric ranges possible", () => {
+            // Arrange
+            const fileSet = new FileSet();
+            const selection = new FileSelection()
+                .select(fileSet, 3)
+                .select(fileSet, new NumericRange(4, 12))
+                .select(fileSet, 15)
+                .select(fileSet, new NumericRange(0, 2))
+                .select(fileSet, new NumericRange(99, 102));
+
+            // Act
+            const grouped = selection.groupByFileSet();
+
+            // Assert
+            expect(grouped.get(fileSet)).to.deep.equal([
+                new NumericRange(0, 12),
+                new NumericRange(15),
+                new NumericRange(99, 102),
+            ]);
+        });
+    });
 });

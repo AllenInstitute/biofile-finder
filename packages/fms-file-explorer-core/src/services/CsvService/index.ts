@@ -1,7 +1,5 @@
-import { compact, map } from "lodash";
-
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
-import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
+import FileSet from "../../entity/FileSet";
 import NumericRange, { JSONReadyRange } from "../../entity/NumericRange";
 import FileDownloadService from "../FileDownloadService";
 
@@ -37,30 +35,23 @@ export default class CsvService extends HttpServiceBase {
     }
 
     public downloadCsv(
-        fileSetToSelectionMapping: {
-            [index: string]: NumericRange[];
-        },
+        fileSetToSelectionMapping: Map<FileSet, NumericRange[]>,
         columns: string[],
         manifestDownloadId: string
     ): Promise<string> {
-        const selections: Selection[] = compact(
-            map(fileSetToSelectionMapping, (selections: NumericRange[], fileSetHash: string) => {
-                const fileSet = defaultFileSetFactory.get(fileSetHash);
-                if (!fileSet) {
-                    return;
-                }
-
-                return {
-                    filters: fileSet.filters.reduce((accum, filter) => {
-                        return {
-                            ...accum,
-                            [filter.name]: filter.value,
-                        };
-                    }, {}),
-                    indexRanges: selections.map((range) => range.toJSON()),
-                };
-            })
-        );
+        const selections: Selection[] = [];
+        for (const [fileSet, selectedRanges] of fileSetToSelectionMapping.entries()) {
+            const selection: Selection = {
+                filters: fileSet.filters.reduce((accum, filter) => {
+                    return {
+                        ...accum,
+                        [filter.name]: filter.value,
+                    };
+                }, {}),
+                indexRanges: selectedRanges.map((range) => range.toJSON()),
+            };
+            selections.push(selection);
+        }
         const postBody: SelectionRequest = {
             annotations: columns,
             selections,
