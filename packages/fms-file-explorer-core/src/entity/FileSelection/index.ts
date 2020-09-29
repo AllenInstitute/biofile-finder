@@ -7,26 +7,6 @@ import FileSet from "../FileSet";
 import NumericRange from "../NumericRange";
 
 /**
- * Either a single file row or range of file rows within a given FileSet (i.e., query).
- * File rows are represented by their index position within the FileSet.
- */
-export interface SelectionItem {
-    fileSet: FileSet;
-    selection: NumericRange;
-}
-
-/**
- * The selected file row that is current on display in the file details pane.
- */
-export interface FocusedItem extends SelectionItem {
-    // index local to the FileSet the file row belongs to
-    indexWithinFileSet: number;
-
-    // index within list of all selected file rows
-    indexAcrossAllSelections: number;
-}
-
-/**
  * Enumeration of directives that can be used to change the focus of the FileSelection.
  * "Focus" means which selected file row is displayed in the file details pane.
  */
@@ -35,6 +15,28 @@ export enum FocusDirective {
     PREVIOUS = "PREVIOUS",
     NEXT = "NEXT",
     LAST = "LAST",
+}
+
+/**
+ * Model for keeping track of either a single file row or range of file rows within a given FileSet (i.e., query).
+ * File rows are represented by their index position within the FileSet.
+ * Private to this module.
+ */
+interface SelectionItem {
+    fileSet: FileSet;
+    selection: NumericRange;
+}
+
+/**
+ * Model for keeping track of the selected file row that should be on display in the file details pane.
+ * Private to this module.
+ */
+interface FocusedItem extends SelectionItem {
+    // index local to the FileSet the file row belongs to
+    indexWithinFileSet: number;
+
+    // index within list of all selected file rows
+    indexAcrossAllSelections: number;
 }
 
 /**
