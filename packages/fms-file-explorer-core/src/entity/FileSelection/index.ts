@@ -62,7 +62,8 @@ export default class FileSelection {
     private selections: SelectionItem[];
 
     /**
-     * Immutability helper. Shallow copy a FileSelection instance.
+     * Immutability helper. Shallow copy a FileSelection instance. See class docstring for additional
+     * commentary on the immutability guarantees of this class.
      */
     public static from(selection: FileSelection): FileSelection {
         return new FileSelection(selection.selections, selection.focusedItem);
