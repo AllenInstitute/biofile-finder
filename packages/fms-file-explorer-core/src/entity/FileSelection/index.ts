@@ -1,10 +1,11 @@
-import { reject } from "lodash";
+import { isArray, reject } from "lodash";
 
 import {
     IndexError,
     ValueError,
  } from "../../errors";
 import { FmsFile } from "../../services/FileService";
+import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
 import NumericRange from "../NumericRange";
 
@@ -82,14 +83,6 @@ export default class FileSelection {
     public constructor(selections: SelectionItem[] = [], focusedItem: FocusedItem | null = null) {
         this.selections = selections;
         this.focusedItem = focusedItem;
-    }
-
-    /**
-     * How many file rows are selected. This *should not* be used to report how many unique
-     * files are selected--two file rows in two different FileSets may represent the same underlying file.
-     */
-    public get length(): number {
-        return FileSelection.getLength(this.selections);
     }
 
     /**
@@ -201,7 +194,7 @@ export default class FileSelection {
 
         // Nothing was initially focused (not plausible within this code path),
         // or there are no remaining file selections (perfectly plausible)
-        if (!this.focusedItem || !nextSelection.length) {
+        if (!this.focusedItem || !nextSelection.size()) {
             return nextSelection;
         }
 
@@ -243,7 +236,7 @@ export default class FileSelection {
      * "Focus" state is used to determine which file is displayed in the file details pane.
      */
     public focus(directive: FocusDirective): FileSelection {
-        if (this.length === 0) {
+        if (this.size() === 0) {
             return FileSelection.from(this);
         }
 
@@ -258,10 +251,10 @@ export default class FileSelection {
                     .focusByIndex(Math.max(0, currentFocusedIndex - 1));
             case FocusDirective.NEXT:
                 return FileSelection.from(this)
-                    .focusByIndex(Math.min(this.length - 1, currentFocusedIndex + 1));
+                    .focusByIndex(Math.min(this.size() - 1, currentFocusedIndex + 1));
             case FocusDirective.LAST:
                 return FileSelection.from(this)
-                    .focusByIndex(Math.max(0, this.length - 1));
+                    .focusByIndex(Math.max(0, this.size() - 1));
             default:
                 return FileSelection.from(this);
         }
@@ -272,7 +265,7 @@ export default class FileSelection {
      * (i.e., not local to a particular FileSet) focused.
      */
     public focusByIndex(indexAcrossAllSelections: number): FileSelection {
-        if (indexAcrossAllSelections >= this.length) {
+        if (indexAcrossAllSelections >= this.size()) {
             throw new IndexError(
                 `${indexAcrossAllSelections} is out of bounds of ${this}`
             );
@@ -327,6 +320,28 @@ export default class FileSelection {
 
     public toString(): string {
         return `FileSelection(${JSON.stringify(this)})`;
+    }
+
+    /**
+     * How many file rows are selected. This *should not* be used to report how many unique
+     * files are selected--two file rows in two different FileSets may represent the same underlying file.
+     */
+    public size(fileSet: FileSet): number;
+    public size(filters: FileFilter[]): number;
+    public size(zeroarg?: any | undefined): number;
+    public size(args?: FileSet | FileFilter[] | undefined): number {
+        let selectionsToCount = this.selections;
+        if (FileSet.isFileSet(args)) {
+            selectionsToCount = this.selections.filter((selectionItem) => {
+                return selectionItem.fileSet.equals(args);
+            });
+        } else if (isArray(args) && args.every((f) => FileFilter.isFileFilter(f))) {
+            selectionsToCount = this.selections.filter((selectionItem) => {
+                return selectionItem.fileSet.matches(args);
+            });
+        }
+
+        return FileSelection.getLength(selectionsToCount);
     }
 
     /**

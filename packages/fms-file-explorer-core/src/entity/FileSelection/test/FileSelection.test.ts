@@ -95,7 +95,7 @@ describe("FileSelection", () => {
             // Assert
             expect(selection.isSelected(new FileSet(), 25)).to.equal(true);
             expect(nextSelection.isSelected(new FileSet(), 25)).to.equal(false);
-            expect(nextSelection.length).to.equal(selection.length - 1);
+            expect(nextSelection.size()).to.equal(selection.size() - 1);
         });
 
         it("deselects multiple files", () => {
@@ -116,7 +116,7 @@ describe("FileSelection", () => {
 
             // deselection
             expect(nextSelection.isSelected(new FileSet(), rangeToDeselect)).to.equal(false);
-            expect(nextSelection.length).to.equal(selection.length - rangeToDeselect.length);
+            expect(nextSelection.size()).to.equal(selection.size() - rangeToDeselect.length);
         });
 
         it("produces an empty FileSelection instance if last remaining selection is removed", () => {
@@ -128,7 +128,7 @@ describe("FileSelection", () => {
             const nextSelection = selection.deselect(new FileSet(), 34);
 
             // Assert
-            expect(nextSelection.length).to.equal(0);
+            expect(nextSelection.size()).to.equal(0);
         });
 
         it("keeps currently focused item if possible", () => {
@@ -304,7 +304,7 @@ describe("FileSelection", () => {
             // effectively a noop when the focused item is already at LAST
             {
                 setup: (selection: FileSelection) => {
-                    return selection.focusByIndex(selection.length - 1);
+                    return selection.focusByIndex(selection.size() - 1);
                 },
                 directive: FocusDirective.NEXT,
                 expectation: {
@@ -436,6 +436,53 @@ describe("FileSelection", () => {
             expect(() => {
                 selection.focusByFileSet(notSelectedFileSet, 0)
             }).to.throw(ValueError);
+        });
+    });
+
+    describe("size", () => {
+        const pipeline4_4 = new FileFilter("Workflow", "Pipeline 4.4");
+        const aics12 = new FileFilter("Cell Line", "AICS-12");
+        const fileSet1 = new FileSet();
+        const fileSet2 = new FileSet({
+            filters: [aics12],
+        });
+        const fileSet3 = new FileSet({
+            filters: [pipeline4_4, aics12],
+        });
+        const selection = new FileSelection()
+            .select(fileSet1, new NumericRange(1, 10)) // 10 total
+            .select(fileSet2, 3) // 1 total
+            .select(fileSet3, new NumericRange(21, 30)) // 10 total
+            .select(fileSet1, 25); // 1 total
+
+        it("returns unfiltered size", () => {
+            // Act
+            const size = selection.size();
+
+            // Assert
+            expect(size).to.equal(22);
+        });
+
+        it("returns filtered size - filtered by fileset", () => {
+            // Act
+            const size = selection.size(fileSet1);
+
+            // Assert
+            expect(size).to.equal(11);
+        });
+
+        [
+            { filters: [aics12], expected: 11 },
+            { filters: [pipeline4_4], expected: 10 },
+            { filters: [pipeline4_4, aics12], expected: 10 },
+        ].forEach(({ filters, expected }, idx) => {
+            it(`(${idx}) returns filtered size -- filtered by file filters`, () => {
+                // Act
+                const size = selection.size(filters);
+
+                // Assert
+                expect(size).to.equal(expected);
+            });
         });
     });
 });

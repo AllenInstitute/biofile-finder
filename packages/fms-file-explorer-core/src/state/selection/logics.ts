@@ -56,7 +56,7 @@ const selectFile = createLogic({
 
         // special case: fast path for deselecting a file if it is the only one selected
         // (no need to have held down keyboard modifier)
-        if (existingFileSelections.length === 1 && existingFileSelections.isSelected(correspondingFileSet, selection)) {
+        if (existingFileSelections.size() === 1 && existingFileSelections.isSelected(correspondingFileSet, selection)) {
             next(setFileSelection(new FileSelection()));
             return;
         }

@@ -6,6 +6,10 @@ export default class FileFilter {
     private readonly annotationName: string;
     private readonly annotationValue: any;
 
+    public static isFileFilter(candidate: any): candidate is FileFilter {
+        return candidate instanceof FileFilter;
+    }
+
     constructor(annotationName: string, annotationValue: any) {
         this.annotationName = annotationName;
         this.annotationValue = annotationValue;
