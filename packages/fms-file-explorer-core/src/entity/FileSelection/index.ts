@@ -135,7 +135,7 @@ export default class FileSelection {
 
         // if `indexRange` contains already selected file rows, compact
         const compacted = reject(this.selections, (existingSelectionItem) => {
-            return existingSelectionItem.fileSet.equals(fileSet) && indexRange.contains(existingSelectionItem.selection);
+            return fileSet.equals(existingSelectionItem.fileSet) && indexRange.contains(existingSelectionItem.selection);
         });
 
         const item: SelectionItem = {
