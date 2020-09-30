@@ -176,15 +176,16 @@ export default class FileSelection {
             selection: indexRange,
         };
 
-        const focusedItem: FocusedItem = {
-            fileSet,
-            selection: item.selection,
-            indexWithinFileSet: indexToFocus,
-            indexAcrossAllSelections: FileSelection.getLength(compacted) + (indexToFocus - item.selection.min),
-        };
+        const selections = [...compacted, item].sort((a, b) => {
+            if (!a.fileSet.equals(b.fileSet)) {
+                return 0;
+            }
 
-        const selections = [...compacted, item];
-        return new FileSelection(selections, focusedItem);
+            return a.selection.min - b.selection.min;
+        });
+
+        return new FileSelection(selections)
+            .focusByFileSet(fileSet, indexToFocus);
     }
 
     /**
