@@ -537,4 +537,120 @@ describe("FileSelection", () => {
             ]);
         });
     });
+
+    describe("hasNextFocusableItem", () => {
+        const baseSelection = new FileSelection()
+            .select(new FileSet(), new NumericRange(0, 9));
+
+        const spec = [
+            {
+                setup: (selection: FileSelection): FileSelection => {
+                    return selection
+                        .focusByIndex(0);
+                },
+                expectation: true,
+            },
+            {
+                setup: (selection: FileSelection): FileSelection => {
+                    return selection
+                        .focusByIndex(9);
+                },
+                expectation: false,
+            },
+            {
+                setup: (selection: FileSelection): FileSelection => {
+                    return selection
+                        .focusByIndex(5);
+                },
+                expectation: true,
+            },
+            {
+                // test FileSelection of size 1
+                setup: (): FileSelection => {
+                    return new FileSelection()
+                        .select(new FileSet(), 1)
+                        .focusByIndex(0);
+                },
+                expectation: false,
+            },
+            {
+                // test FileSelection of size 0
+                setup: (): FileSelection => {
+                    return new FileSelection();
+                },
+                expectation: false,
+            }
+        ];
+
+        spec.forEach(({ setup, expectation }, idx) => {
+            it(`(${idx}) returns ${expectation}`, () => {
+                // Arrange
+                const selection = setup(baseSelection);
+
+                // Act
+                const hasNext = selection.hasNextFocusableItem();
+
+                // Assert
+                expect(hasNext).to.equal(expectation);
+            });
+        });
+    });
+
+    describe("hasPreviousFocusableItem", () => {
+        const baseSelection = new FileSelection()
+            .select(new FileSet(), new NumericRange(0, 9));
+
+        const spec = [
+            {
+                setup: (selection: FileSelection): FileSelection => {
+                    return selection
+                        .focusByIndex(0);
+                },
+                expectation: false,
+            },
+            {
+                setup: (selection: FileSelection): FileSelection => {
+                    return selection
+                        .focusByIndex(9);
+                },
+                expectation: true,
+            },
+            {
+                setup: (selection: FileSelection): FileSelection => {
+                    return selection
+                        .focusByIndex(5);
+                },
+                expectation: true,
+            },
+            {
+                // test FileSelection of size 1
+                setup: (): FileSelection => {
+                    return new FileSelection()
+                        .select(new FileSet(), 1)
+                        .focusByIndex(0);
+                },
+                expectation: false,
+            },
+            {
+                // test FileSelection of size 0
+                setup: (): FileSelection => {
+                    return new FileSelection();
+                },
+                expectation: false,
+            }
+        ];
+
+        spec.forEach(({ setup, expectation }, idx) => {
+            it(`(${idx}) returns ${expectation}`, () => {
+                // Arrange
+                const selection = setup(baseSelection);
+
+                // Act
+                const hasNext = selection.hasPreviousFocusableItem();
+
+                // Assert
+                expect(hasNext).to.equal(expectation);
+            });
+        });
+    });
 });

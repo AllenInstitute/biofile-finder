@@ -106,6 +106,39 @@ export default class FileSelection {
     }
 
     /**
+     * Is the last file selected already focused?
+     */
+    public hasNextFocusableItem(): boolean {
+        const fileSelectionCount = this.size();
+        if (!fileSelectionCount) {
+            return false;
+        }
+
+        // not plausible if there are file selections, but guard statement here for typing/completeness
+        if (!this.focusedItem) {
+            return true;
+        }
+
+        return this.focusedItem.indexAcrossAllSelections < fileSelectionCount - 1;
+    }
+
+    /**
+     * Is the first file selected already focused?
+     */
+    public hasPreviousFocusableItem(): boolean {
+        if (!this.size()) {
+            return false;
+        }
+
+        // not plausible if there are file selections, but guard statement here for typing/completeness
+        if (!this.focusedItem) {
+            return true;
+        }
+
+        return this.focusedItem.indexAcrossAllSelections !== 0;
+    }
+
+    /**
      * Fetch metadata for currently focused item.
      */
     public async fetchFocusedItemDetails(): Promise<FmsFile | undefined> {
