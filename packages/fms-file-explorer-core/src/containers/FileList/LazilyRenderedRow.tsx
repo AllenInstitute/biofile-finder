@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
@@ -47,6 +48,10 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         return fileSelection.isSelected(fileSet, index);
     }, [fileSelection, fileSet, index]);
 
+    const isFocused = React.useMemo(() => {
+        return fileSelection.isFocused(fileSet, index);
+    }, [fileSelection, fileSet, index]);
+
     let content;
     if (file) {
         const cells = map(annotations, (annotation) => ({
@@ -57,7 +62,10 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         content = (
             <FileRow
                 cells={cells}
-                className={isSelected ? styles.selectedRow : undefined}
+                className={classNames({
+                    [styles.selectedRow]: isSelected,
+                    [styles.focusedRow]: isFocused,
+                })}
                 rowIdentifier={{ index, id: file.fileId }}
                 onSelect={onSelect}
             />
