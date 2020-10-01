@@ -56,7 +56,7 @@ export default function FileList(props: FileListProps) {
     // 100% of the height of its container.
     // Otherwise, the height of the list should reflect the number of items it has to render, up to
     // a certain maximum.
-    const [ref, measuredHeight, measuredWidth] = useLayoutMeasurements<HTMLDivElement>();
+    const [outerRef, measuredHeight, measuredWidth] = useLayoutMeasurements<HTMLDivElement>();
     const dataDrivenHeight = rowHeight * totalCount + 3 * rowHeight; // adding three additional rowHeights leaves room for the header + horz. scroll bar
     const calculatedHeight = Math.min(MAX_NON_ROOT_HEIGHT, dataDrivenHeight);
     const style = {
@@ -77,7 +77,7 @@ export default function FileList(props: FileListProps) {
 
     return (
         <div className={classNames(styles.container, className)}>
-            <div className={classNames(styles.list)} style={style} ref={ref}>
+            <div className={classNames(styles.list)} style={style} ref={outerRef}>
                 <InfiniteLoader
                     key={fileSet.hash}
                     isItemLoaded={fileSet.isFileMetadataLoaded}
@@ -87,7 +87,7 @@ export default function FileList(props: FileListProps) {
                     )}
                     itemCount={totalCount}
                 >
-                    {({ onItemsRendered, ref }) => (
+                    {({ onItemsRendered, ref: innerRef }) => (
                         <FixedSizeList
                             itemData={{
                                 fileSet: fileSet,
@@ -99,7 +99,7 @@ export default function FileList(props: FileListProps) {
                             itemCount={totalCount}
                             onItemsRendered={onItemsRendered}
                             outerElementType={Header}
-                            ref={ref}
+                            ref={innerRef}
                             width={measuredWidth}
                         >
                             {LazilyRenderedRow}
