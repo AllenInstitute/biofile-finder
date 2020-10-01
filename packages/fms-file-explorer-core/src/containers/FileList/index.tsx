@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import * as debouncePromise from "debounce-promise";
-import { defaults } from "lodash";
+import { get as _get, defaults } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FixedSizeList } from "react-window";
@@ -63,6 +63,23 @@ export default function FileList(props: FileListProps) {
         height: isRoot ? undefined : `${calculatedHeight}px`,
     };
 
+    // TODO find better way of accessing reference to List instance
+    const infiniteLoaderRef = React.useRef(null);
+    const list = React.useMemo(() => {
+        if (infiniteLoaderRef) {
+            return _get(infiniteLoaderRef, ["current", "_listRef"]);
+        }
+    }, [infiniteLoaderRef.current]);
+    React.useEffect(() => {
+        if (list && fileSelection.focusedItem && fileSelection.focusedItem.fileSet === fileSet) {
+            // "smart - If the item is already visible, don't scroll at all. If it is less than one viewport away,
+            // scroll as little as possible so that it becomes visible. If it is more than one viewport away,
+            // scroll so that it is centered within the list."
+            // Source: https://react-window.now.sh/#/api/FixedSizeList
+            list.scrollToItem(fileSelection.focusedItem.indexWithinFileSet, "smart");
+        }
+    }, [list, fileSelection.focusedItem, fileSet]);
+
     // Callback provided to individual LazilyRenderedRows to be called on `contextmenu`
     const onFileRowContextMenu = (evt: React.MouseEvent) => {
         const availableItems = getContextMenuItems(dispatch);
@@ -86,6 +103,7 @@ export default function FileList(props: FileListProps) {
                         DEBOUNCE_WAIT_FOR_DATA_FETCHING
                     )}
                     itemCount={totalCount}
+                    ref={infiniteLoaderRef}
                 >
                     {({ onItemsRendered, ref: innerRef }) => (
                         <FixedSizeList
