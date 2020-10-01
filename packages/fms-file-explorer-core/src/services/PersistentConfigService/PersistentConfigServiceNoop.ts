@@ -14,4 +14,10 @@ export default class PersistentConfigServiceNoop implements PersistentConfigServ
             "Attempting to set allen mount point using PersistentConfigServiceNoop"
         );
     }
+
+    public setImageJExecutableLocation() {
+        return Promise.resolve(
+            "Attempting to set Image J executable location using PersistentConfigServiceNoop"
+        );
+    }
 }

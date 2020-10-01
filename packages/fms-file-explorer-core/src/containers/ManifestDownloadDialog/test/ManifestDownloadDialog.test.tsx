@@ -86,6 +86,9 @@ describe("<ManifestDownloadDialog />", () => {
             public setAllenMountPoint() {
                 return Promise.reject();
             }
+            public setImageJExecutableLocation() {
+                return Promise.reject();
+            }
         }
 
         let downloadTriggered = false;
@@ -181,6 +184,9 @@ describe("<ManifestDownloadDialog />", () => {
             public setAllenMountPoint() {
                 return Promise.reject();
             }
+            public setImageJExecutableLocation() {
+                return Promise.reject();
+            }
         }
         const state = mergeState(visibleDialogState, {
             interaction: {
@@ -250,6 +256,9 @@ describe("<ManifestDownloadDialog />", () => {
                 public setAllenMountPoint() {
                     return Promise.reject();
                 }
+                public setImageJExecutableLocation() {
+                    return Promise.reject();
+                }
             }
             const state = mergeState(visibleDialogState, {
                 metadata: {
@@ -293,6 +302,9 @@ describe("<ManifestDownloadDialog />", () => {
                     return;
                 }
                 public setAllenMountPoint() {
+                    return Promise.reject();
+                }
+                public setImageJExecutableLocation() {
                     return Promise.reject();
                 }
             }

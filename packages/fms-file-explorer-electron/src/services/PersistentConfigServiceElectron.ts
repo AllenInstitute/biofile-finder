@@ -1,4 +1,6 @@
 import Store, { Schema } from "electron-store";
+import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
 
 import { dialog, ipcMain, ipcRenderer } from "electron";
@@ -24,6 +26,9 @@ const STORAGE_SCHEMA: Schema<Record<string, unknown>> = {
             type: "string",
         },
     },
+    [PersistedDataKeys.ImageJInstallation]: {
+        type: "string",
+    }
 };
 
 interface PersistentConfigServiceElectronOptions {
@@ -32,7 +37,9 @@ interface PersistentConfigServiceElectronOptions {
 
 export default class PersistentConfigServiceElectron implements PersistentConfigService {
     public static SET_ALLEN_MOUNT_POINT = "set-allen-mount-point";
-    public static SELECT_ALLEN_MOUNT_POINT = "select-allen-mount-point";
+    public static SET_IMAGE_J_LOCATION = "set-image-j-location";
+    public static SELECT_DIRECTORY = "select-directory";
+    public static SHOW_ERROR_BOX = "show-error-box";
     private store: Store;
 
     public constructor(options: PersistentConfigServiceElectronOptions = {}) {
@@ -45,17 +52,27 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
         ipcRenderer.on(PersistentConfigServiceElectron.SET_ALLEN_MOUNT_POINT, () => {
             this.setAllenMountPoint();
         });
+
+        ipcRenderer.removeAllListeners(PersistentConfigServiceElectron.SET_IMAGE_J_LOCATION);
+        ipcRenderer.on(PersistentConfigServiceElectron.SET_IMAGE_J_LOCATION, () => {
+            this.setImageJExecutableLocation();
+        });
     }
 
     public static registerIpcHandlers() {
-        ipcMain.handle(PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT, () => {
+        // Handle opening a native file browser dialog for selecting a directory
+        ipcMain.handle(PersistentConfigServiceElectron.SELECT_DIRECTORY, (_, dialogOptions: Electron.OpenDialogOptions) => {
             return dialog.showOpenDialog({
-                title: "Select allen drive mount point",
                 defaultPath: path.resolve("/"),
                 buttonLabel: "Select",
-                // filters: [{ name: "CSV files", extensions: ["csv"] }],
-                properties: ["openDirectory"],
+                properties: ["openFile"],
+                ...dialogOptions
             });
+        });
+
+        // Handle displaying an error in the native error box
+        ipcMain.handle(PersistentConfigServiceElectron.SHOW_ERROR_BOX, (_, title, content) => {
+            return dialog.showErrorBox(title, content);
         });
     }
 
@@ -68,14 +85,56 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     }
 
     public async setAllenMountPoint(): Promise<string> {
+        const allenPath = await this.selectDirectory({
+            title: "Select Allen drive point point",
+        });
+        if (allenPath === PersistentConfigCancellationToken) {
+            return PersistentConfigCancellationToken;
+        }
+        this.set(PersistedDataKeys.AllenMountPoint, allenPath);
+        return allenPath;
+    }
+
+    public async setImageJExecutableLocation(): Promise<string> {
+        // Continuously try to set a valid Image J location until the user cancels
+        while (true) {
+            let extensionForOs = "*"; // Default (Linux): There is no executable extension
+            if (os.platform() === 'darwin') { // Mac
+                extensionForOs = 'app';
+            } else if (os.platform() === 'win32') { // Windows
+                extensionForOs = 'exe';
+            }
+            const imageJExecutable = await this.selectDirectory({
+                filters: [{ name: "Executable", extensions: [extensionForOs]}],
+                title: "Select Image J executable location",
+            });
+            if (imageJExecutable === PersistentConfigCancellationToken) {
+                return PersistentConfigCancellationToken;
+            }
+            try {
+                // Try to see if the chosen path leads to an actual executable
+                await fs.promises.access(imageJExecutable, fs.constants.X_OK);
+                this.set(PersistedDataKeys.ImageJInstallation, imageJExecutable);
+                return imageJExecutable;
+            } catch (error) {
+                // Alert user to error with Image J location
+                await ipcRenderer.invoke(
+                    PersistentConfigServiceElectron.SHOW_ERROR_BOX,
+                    "Image J Executable Location",
+                    `Whoops! ${imageJExecutable} is not verifiably an executable on your computer. Select the executable as you would to open Image J normally. Error: ${error}`
+                );
+            }
+        }
+    }
+
+    private async selectDirectory(dialogOptions: Electron.OpenDialogOptions): Promise<string> {
         const result = await ipcRenderer.invoke(
-            PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT
+            PersistentConfigServiceElectron.SELECT_DIRECTORY,
+            dialogOptions
         );
         if (result.canceled || !result.filePaths.length) {
-            return Promise.resolve(PersistentConfigCancellationToken);
+            return PersistentConfigCancellationToken;
         }
-        const allenPath = result.filePaths[0];
-        this.set(PersistedDataKeys.AllenMountPoint, allenPath);
-        return Promise.resolve(allenPath);
+        return result.filePaths[0];
     }
 }

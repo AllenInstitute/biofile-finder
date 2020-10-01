@@ -4,6 +4,7 @@
 export enum PersistedDataKeys {
     AllenMountPoint = "ALLEN_MOUNT_POINT",
     CsvColumns = "CSV_COLUMNS",
+    ImageJInstallation = "IMAGE_J_INSTALLATION",
 }
 
 /**
@@ -24,6 +25,11 @@ export default interface PersistentConfigService {
      * Prompts the user for the allen mount point location & saves for future use.
      */
     setAllenMountPoint(): Promise<string>;
+
+    /**
+     * Prompts the user for the Image J executable location & saves for future use.
+     */
+    setImageJExecutableLocation(): Promise<string>;
 }
 
 /**

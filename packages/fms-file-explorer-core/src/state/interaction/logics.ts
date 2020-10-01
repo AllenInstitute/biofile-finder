@@ -1,4 +1,6 @@
-import { ipcRenderer } from "electron";
+import * as fs from "fs";
+import * as os from "os";
+
 import { isEmpty, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
@@ -132,19 +134,15 @@ const cancelManifestDownloadLogic = createLogic({
 const openFilesInImageJ = createLogic({
     type: OPEN_FILES_IN_IMAGE_J,
     async process(deps: ReduxLogicDeps, _, done) {
-        // TODO: Questions: 
-        // TODO:            How to find ImageJ path on computer...?
-        // TODO:            Is a child process the right move?
         // TODO: Work:
-        // TODO:            Assert mount point is legit (recent work in part one should help this)
         // TODO:            Restrict the types of files attempted to be opened....?
-        // const filePaths = ['/home/seanm/Pictures/head.jpg'];
 
         const {
             persistentConfigService,
             systemNotificationService
         } = interactionSelectors.getPlatformDependentServices(deps.getState());
         const allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
+        const imageJInstallation = persistentConfigService.get(PersistedDataKeys.ImageJInstallation);
         
         // Collect the file paths from the selected files
         const selectionsByFileSet = selection.selectors.getSelectedFileRangesByFileSet(deps.getState());
@@ -169,7 +167,7 @@ const openFilesInImageJ = createLogic({
         }
         try {
             // Create child process for ImageJ to open files in
-            const imageJProcess = spawn("/home/seanm/Downloads/ImageJ/ImageJ", filePaths);
+            const imageJProcess = spawn(imageJInstallation, filePaths);
             // Handle unsuccessful startups of ImageJ (these will only be called if explorer is still open)
             imageJProcess.on("error", reportErrorToUser);
             imageJProcess.on("exit", async (code: number) => {
@@ -183,18 +181,28 @@ const openFilesInImageJ = createLogic({
         done();
     },
     async transform(deps: ReduxLogicDeps, next, reject) {
-        const selectionsByFileSet = selection.selectors.getSelectedFileRangesByFileSet(
-            deps.getState()
-        );
         const { persistentConfigService } = interactionSelectors.getPlatformDependentServices(deps.getState());
 
-        // Ensure the allen drive mount point is set so ImageJ can find the files
+        // Ensure we have the necessary directories (Allen drive & Image J) so that we can properly open images
         let allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
-        if (!allenMountPoint && !isEmpty(selectionsByFileSet)) {
-            allenMountPoint = persistentConfigService.setAllenMountPoint();
+        let imageJInstallation = persistentConfigService.get(PersistedDataKeys.ImageJInstallation);
+        if (!allenMountPoint) {
+            allenMountPoint = await persistentConfigService.setAllenMountPoint();
+        }
+        if (!imageJInstallation && allenMountPoint !== PersistentConfigCancellationToken) {
+            // On mac we can try to guess that ImageJ is installed under the applications folder
+            if (os.platform() === 'darwin') {
+                try {
+                    await fs.promises.access('/applications/ImageJ', fs.constants.X_OK);
+                    imageJInstallation = '/applications/ImageJ';
+                } catch (_) {}
+            }
+            if (!imageJInstallation) {
+                imageJInstallation = await persistentConfigService.setImageJExecutableLocation();
+            }
         }
 
-        if (isEmpty(selectionsByFileSet) || allenMountPoint === PersistentConfigCancellationToken) {
+        if (allenMountPoint === PersistentConfigCancellationToken || imageJInstallation === PersistentConfigCancellationToken) {
             reject && reject(deps.action); // reject is typed as potentially undefined for some reason
         } else {
             next(deps.action);

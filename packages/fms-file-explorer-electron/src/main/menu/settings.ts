@@ -15,6 +15,16 @@ const settingsMenu: MenuItemConstructorOptions = {
             },
             label: "Set Allen Drive Mount Point",
         },
+        {
+            click: (_, focusedWindow) => {
+                if (focusedWindow) {
+                    focusedWindow.webContents.send(
+                        PersistentConfigServiceElectron.SET_IMAGE_J_LOCATION
+                    );
+                }
+            },
+            label: "Set Image J Executable Location",
+        },
     ],
 };
 
