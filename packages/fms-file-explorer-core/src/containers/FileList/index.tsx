@@ -65,12 +65,24 @@ export default function FileList(props: FileListProps) {
 
     const listRef = React.useRef<FixedSizeList | null>(null);
     React.useEffect(() => {
-        if (listRef.current && fileSelection.focusedItem && fileSelection.focusedItem.fileSet === fileSet) {
+        const fileSetIsFocused = fileSelection.isFocused(fileSet);
+
+        // Ensure the list is in view if it has focus within the details pane
+        if (outerRef.current && fileSetIsFocused) {
+            outerRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+
+        // Ensure the currently focused item within this list is scrolled into view
+        if (listRef.current && fileSetIsFocused) {
             // "'smart' - If the item is already visible, don't scroll at all. If it is less than one viewport away,
             // scroll as little as possible so that it becomes visible. If it is more than one viewport away,
             // scroll so that it is centered within the list."
             // Source: https://react-window.now.sh/#/api/FixedSizeList
-            listRef.current.scrollToItem(fileSelection.focusedItem.indexWithinFileSet, "smart");
+            const { indexWithinFileSet } = fileSelection.getFocusedItemIndices();
+            if (indexWithinFileSet === undefined) {
+                return;
+            }
+            listRef.current.scrollToItem(indexWithinFileSet, "smart");
         }
     }, [fileSelection, fileSet]);
 

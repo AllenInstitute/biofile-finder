@@ -63,7 +63,7 @@ interface FocusedItem extends SelectionItem {
  * that the compiler should prevent such bugs.
  */
 export default class FileSelection {
-    private _focusedItem: FocusedItem | null = null;
+    private focusedItem: FocusedItem | null = null;
     private selections: SelectionItem[];
 
     /**
@@ -71,7 +71,7 @@ export default class FileSelection {
      * commentary on the immutability guarantees of this class.
      */
     public static from(selection: FileSelection): FileSelection {
-        return new FileSelection(selection.selections, selection._focusedItem);
+        return new FileSelection(selection.selections, selection.focusedItem);
     }
 
     private static getLength(selections: SelectionItem[]): number {
@@ -82,15 +82,14 @@ export default class FileSelection {
 
     public constructor(selections: SelectionItem[] = [], focusedItem: FocusedItem | null = null) {
         this.selections = selections;
-        this._focusedItem = focusedItem;
+        this.focusedItem = focusedItem;
     }
 
-    public get focusedItem(): FocusedItem | null {
-        if (!this._focusedItem) {
-            return null;
-        }
-
-        return { ...this._focusedItem };
+    public getFocusedItemIndices(): { indexAcrossAllSelections: number | undefined, indexWithinFileSet: number | undefined } {
+        return {
+            indexAcrossAllSelections: this.focusedItem?.indexAcrossAllSelections,
+            indexWithinFileSet: this.focusedItem?.indexWithinFileSet,
+        };
     }
 
     /**
@@ -103,14 +102,20 @@ export default class FileSelection {
     }
 
     /**
-     * Is the given index within the given FileSet focused (i.e., current shown in the file details pane)?
+     * Is _any_ index, or optionally, a specific index within a given FileSet focused?
      */
-    public isFocused(fileSet: FileSet, index: number): boolean {
-        if (!this._focusedItem) {
+    public isFocused(fileSet: FileSet, index?: number): boolean {
+        if (!this.focusedItem) {
             return false;
         }
 
-        return this._focusedItem.fileSet.equals(fileSet) && this._focusedItem.indexWithinFileSet === index;
+        const fileSetIsFocused = this.focusedItem.fileSet.equals(fileSet);
+
+        if (index !== undefined) {
+            return fileSetIsFocused && this.focusedItem.indexWithinFileSet === index;
+        }
+
+        return fileSetIsFocused;
     }
 
     /**
@@ -123,11 +128,11 @@ export default class FileSelection {
         }
 
         // not plausible if there are file selections, but guard statement here for typing/completeness
-        if (!this._focusedItem) {
+        if (!this.focusedItem) {
             return true;
         }
 
-        return this._focusedItem.indexAcrossAllSelections < fileSelectionCount - 1;
+        return this.focusedItem.indexAcrossAllSelections < fileSelectionCount - 1;
     }
 
     /**
@@ -139,21 +144,21 @@ export default class FileSelection {
         }
 
         // not plausible if there are file selections, but guard statement here for typing/completeness
-        if (!this._focusedItem) {
+        if (!this.focusedItem) {
             return true;
         }
 
-        return this._focusedItem.indexAcrossAllSelections !== 0;
+        return this.focusedItem.indexAcrossAllSelections !== 0;
     }
 
     /**
      * Fetch metadata for currently focused item.
      */
     public async fetchFocusedItemDetails(): Promise<FmsFile | undefined> {
-        if (!this._focusedItem) {
+        if (!this.focusedItem) {
             return Promise.resolve(undefined);
         }
-        const { fileSet, indexWithinFileSet } = this._focusedItem;
+        const { fileSet, indexWithinFileSet } = this.focusedItem;
 
         if (fileSet.isFileMetadataLoaded(indexWithinFileSet)) {
             return Promise.resolve(fileSet.getFileByIndex(indexWithinFileSet));
@@ -236,29 +241,29 @@ export default class FileSelection {
 
         // Nothing was initially focused (not plausible within this code path),
         // or there are no remaining file selections (perfectly plausible)
-        if (!this._focusedItem || !nextSelection.size()) {
+        if (!this.focusedItem || !nextSelection.size()) {
             return nextSelection;
         }
 
         // The currently focused item lies before anything that was just removed.
         // Therefore, it's index position within the new selection is unchanged.
         const relativeStartIndexForItem = this.relativeStartIndexForItem(item);
-        if (this._focusedItem.indexAcrossAllSelections < relativeStartIndexForItem) {
-            return nextSelection.focusByIndex(this._focusedItem.indexAcrossAllSelections);
+        if (this.focusedItem.indexAcrossAllSelections < relativeStartIndexForItem) {
+            return nextSelection.focusByIndex(this.focusedItem.indexAcrossAllSelections);
         }
 
         // Otherwise, the currently focused item is after what was just removed. Need to either:
         //   a. Update index references for currently focused item if it's still valid, or
         //   b. Choose a new item to focus
         // Case a: the currently focused item is still in the list of selections, need to update index references
-        if (nextSelection.isSelected(this._focusedItem.fileSet, this._focusedItem.indexWithinFileSet)) {
-            return nextSelection.focusByFileSet(this._focusedItem.fileSet, this._focusedItem.indexWithinFileSet);
+        if (nextSelection.isSelected(this.focusedItem.fileSet, this.focusedItem.indexWithinFileSet)) {
+            return nextSelection.focusByFileSet(this.focusedItem.fileSet, this.focusedItem.indexWithinFileSet);
         }
 
         // Case b: the currently focused item has just been deselected; need to focus something else
         //     Case b.i: the currently focused item is the first item in the list of all selections,
         //     select whatever is first in the next selection set
-        if (this._focusedItem.indexAcrossAllSelections === 0) {
+        if (this.focusedItem.indexAcrossAllSelections === 0) {
             return nextSelection.focusByIndex(0);
         }
 
@@ -282,7 +287,7 @@ export default class FileSelection {
             return FileSelection.from(this);
         }
 
-        const currentFocusedIndex = this._focusedItem?.indexAcrossAllSelections || 0;
+        const currentFocusedIndex = this.focusedItem?.indexAcrossAllSelections || 0;
 
         switch (directive) {
             case FocusDirective.FIRST:
@@ -356,7 +361,7 @@ export default class FileSelection {
     public toJSON() {
         return {
             selections: this.selections,
-            focusedItem: this._focusedItem,
+            focusedItem: this.focusedItem,
         }
     }
 
