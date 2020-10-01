@@ -134,9 +134,6 @@ const cancelManifestDownloadLogic = createLogic({
 const openFilesInImageJ = createLogic({
     type: OPEN_FILES_IN_IMAGE_J,
     async process(deps: ReduxLogicDeps, _, done) {
-        // TODO: Work:
-        // TODO:            Restrict the types of files attempted to be opened....?
-
         const {
             persistentConfigService,
             systemNotificationService
