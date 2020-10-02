@@ -56,35 +56,44 @@ export default function FileList(props: FileListProps) {
     // 100% of the height of its container.
     // Otherwise, the height of the list should reflect the number of items it has to render, up to
     // a certain maximum.
-    const [outerRef, measuredHeight, measuredWidth] = useLayoutMeasurements<HTMLDivElement>();
+    const [measuredNodeRef, measuredHeight, measuredWidth] = useLayoutMeasurements<HTMLDivElement>();
     const dataDrivenHeight = rowHeight * totalCount + 3 * rowHeight; // adding three additional rowHeights leaves room for the header + horz. scroll bar
     const calculatedHeight = Math.min(MAX_NON_ROOT_HEIGHT, dataDrivenHeight);
-    const style = {
-        height: isRoot ? undefined : `${calculatedHeight}px`,
-    };
+    const height = isRoot ? measuredHeight : calculatedHeight;
 
     const listRef = React.useRef<FixedSizeList | null>(null);
+    const outerRef = React.useRef<HTMLDivElement | null>(null);
     React.useEffect(() => {
         const fileSetIsFocused = fileSelection.isFocused(fileSet);
 
         // Ensure the list is in view if it has focus within the details pane
-        if (outerRef.current && fileSetIsFocused) {
-            outerRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        if (measuredNodeRef.current && fileSetIsFocused) {
+            measuredNodeRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
 
         // Ensure the currently focused item within this list is scrolled into view
-        if (listRef.current && fileSetIsFocused) {
-            // "'smart' - If the item is already visible, don't scroll at all. If it is less than one viewport away,
-            // scroll as little as possible so that it becomes visible. If it is more than one viewport away,
-            // scroll so that it is centered within the list."
-            // Source: https://react-window.now.sh/#/api/FixedSizeList
+        if (listRef.current && outerRef.current && fileSetIsFocused) {
             const { indexWithinFileSet } = fileSelection.getFocusedItemIndices();
             if (indexWithinFileSet === undefined) {
                 return;
             }
-            listRef.current.scrollToItem(indexWithinFileSet, "smart");
+
+            const listScrollTop = outerRef.current.scrollTop;
+            const focusedItemTop = indexWithinFileSet * rowHeight;
+            const focusedItemBottom = focusedItemTop + rowHeight;
+            const headerHeight = 40; // px; defined in Header.module.css; stickily sits on top of the list
+            const visibleArea = height - headerHeight;
+            const focusedItemIsVisible = () => {
+                return focusedItemTop >= listScrollTop && focusedItemBottom <= (listScrollTop + visibleArea);
+            }
+
+            if (!focusedItemIsVisible()) {
+                const centerOfFocusedItem = focusedItemTop + (rowHeight / 2);
+                const centeredWithinVisibleArea = Math.floor(centerOfFocusedItem - (visibleArea / 2));
+                listRef.current.scrollTo(Math.max(0, centeredWithinVisibleArea));
+            }
         }
-    }, [fileSelection, fileSet]);
+    }, [fileSelection, fileSet, height, rowHeight, measuredNodeRef]);
 
     // Callback provided to individual LazilyRenderedRows to be called on `contextmenu`
     const onFileRowContextMenu = (evt: React.MouseEvent) => {
@@ -100,7 +109,13 @@ export default function FileList(props: FileListProps) {
 
     return (
         <div className={classNames(styles.container, className)}>
-            <div className={classNames(styles.list)} style={style} ref={outerRef}>
+            <div
+                className={classNames(styles.list)}
+                style={{
+                    height: isRoot ? undefined : `${calculatedHeight}px`,
+                }}
+                ref={measuredNodeRef}
+            >
                 <InfiniteLoader
                     key={fileSet.hash}
                     isItemLoaded={fileSet.isFileMetadataLoaded}
@@ -130,10 +145,11 @@ export default function FileList(props: FileListProps) {
                                     onContextMenu: onFileRowContextMenu,
                                 }}
                                 itemSize={rowHeight} // row height
-                                height={isRoot ? measuredHeight : calculatedHeight} // height of the list itself; affects number of rows rendered at any given time
+                                height={height} // height of the list itself; affects number of rows rendered at any given time
                                 itemCount={totalCount}
                                 onItemsRendered={onItemsRendered}
                                 outerElementType={Header}
+                                outerRef={outerRef}
                                 ref={callbackRef}
                                 width={measuredWidth}
                             >

@@ -3,6 +3,10 @@
 
   position: sticky;
   top: 0;
+
+  /* NOTE! If this changes, you must also update a corresponding constant regarding the
+  height of the header used to determine whether the currectly focused item is visible
+  (in ./index.tsx). */
   height: calc(var(--inner-header-size) + 10px);
   z-index: 1000;
 }
