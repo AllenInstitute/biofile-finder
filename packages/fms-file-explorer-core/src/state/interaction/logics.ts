@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as os from "os";
+import * as path from "path";
 
 import { isEmpty, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
@@ -154,7 +155,7 @@ const openFilesInImageJ = createLogic({
             }, [] as unknown as Promise<FmsFile[]>);
             return [
                 ...(await pathsSoFar),
-                ...files.map(file => allenMountPoint.substring(0, allenMountPoint.length - 6) + file.filePath)
+                ...files.map(file => allenMountPoint + path.normalize(file.filePath.substring(6)))
             ];
         }, [] as unknown as Promise<string[]>);
 
