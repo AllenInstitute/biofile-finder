@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import * as debouncePromise from "debounce-promise";
-import { defaults, isEmpty } from "lodash";
+import { defaults } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FixedSizeList } from "react-window";
@@ -8,7 +8,6 @@ import InfiniteLoader from "react-window-infinite-loader";
 
 import getContextMenuItems from "../ContextMenu/items";
 import FileSet from "../../entity/FileSet";
-import NumericRange from "../../entity/NumericRange";
 import Header from "./Header";
 import LazilyRenderedRow from "./LazilyRenderedRow";
 import { interaction, selection } from "../../state";
@@ -47,15 +46,11 @@ export default function FileList(props: FileListProps) {
 
     const onSelect = useFileSelector(fileSet);
     const dispatch = useDispatch();
-    const selectedFileRangesByFileSet = useSelector(
-        selection.selectors.getSelectedFileRangesByFileSet
+    const fileSelection = useSelector(
+        selection.selectors.getFileSelection
     );
-    const selectedFiles: NumericRange[] = selectedFileRangesByFileSet[fileSet.hash] || [];
-    const numSelectedFiles = selectedFiles.reduce(
-        (accum, range: NumericRange) => (accum += range.length),
-        0
-    );
-    const selectedFilesText = numSelectedFiles ? `(${numSelectedFiles} selected)` : "";
+    const numSelectedFilesWithinFileSet = fileSelection.size(fileSet);
+    const selectedFilesText = numSelectedFilesWithinFileSet ? `(${numSelectedFilesWithinFileSet} selected)` : "";
 
     // If this is the "root" file list (e.g., all files in FMS), this component should take up
     // 100% of the height of its container.
@@ -72,7 +67,7 @@ export default function FileList(props: FileListProps) {
     const onFileRowContextMenu = (evt: React.MouseEvent) => {
         const availableItems = getContextMenuItems(dispatch);
         const items = [];
-        if (isEmpty(selectedFiles)) {
+        if (fileSelection.size() === 0) {
             items.push({ ...availableItems.DOWNLOAD, disabled: true });
             items.push({ ...availableItems.OPEN_IN, disabled: true });
         } else {

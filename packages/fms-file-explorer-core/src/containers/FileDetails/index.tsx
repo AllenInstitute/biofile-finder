@@ -1,13 +1,10 @@
 import classNames from "classnames";
 import * as React from "react";
-import { useSelector } from "react-redux";
 
 import FileThumbnail from "../../components/FileThumbnail";
 import WindowActionButton from "../../components/WindowActionButton";
-import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import useFileDetails from "./useFileDetails";
 import windowStateReducer, { INITIAL_STATE, WindowState } from "./windowStateReducer";
-import { interaction, selection } from "../../state";
 import FileAnnotationList from "./FileAnnotationList";
 
 const styles = require("./FileDetails.module.css");
@@ -29,21 +26,7 @@ export const WINDOW_ACTION_BUTTON_WIDTH = 23; // arbitrary
  */
 export default function FileDetails(props: FileDetails) {
     const [windowState, dispatch] = React.useReducer(windowStateReducer, INITIAL_STATE);
-
-    const fileService = useSelector(interaction.selectors.getFileService);
-    const selectedFilesByFileSet = useSelector(selection.selectors.getSelectedFileRangesByFileSet);
-    const fileSets = Object.keys(selectedFilesByFileSet);
-    let fileSet;
-    let fileIndexToDisplay;
-    // If there is a file set with an index we can display select it,
-    // In the event multiple file indices are available for display we want to just
-    // display the first one we find.
-    if (fileSets.length) {
-        const fileSetHash = fileSets[0];
-        fileSet = defaultFileSetFactory.get(fileSetHash);
-        fileIndexToDisplay = selectedFilesByFileSet[fileSetHash][0].from;
-    }
-    const [fileDetails, isLoading] = useFileDetails(fileIndexToDisplay, fileSet);
+    const [fileDetails, isLoading] = useFileDetails();
 
     // If FileDetails pane is minimized, set its width to the width of the WindowActionButtons. Else, let it be
     // defined by whatever the CSS determines (setting an inline style to undefined will prompt ReactDOM to not apply
@@ -89,7 +72,7 @@ export default function FileDetails(props: FileDetails) {
                                 })}
                             >
                                 <FileThumbnail
-                                    uri={`${fileService.baseUrl}/labkey/fmsfiles/image${fileDetails.thumbnail}`}
+                                    uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${fileDetails.thumbnail}`}
                                 />
                             </div>
                         )}

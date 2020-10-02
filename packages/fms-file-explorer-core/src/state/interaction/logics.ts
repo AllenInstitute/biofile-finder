@@ -20,14 +20,13 @@ import {
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
 import { CancellationToken } from "../../services/FileDownloadService";
-import NumericRange from "../../entity/NumericRange";
-import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import FileSet from "../../entity/FileSet";
+import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import { FmsFile } from "../../services/FileService";
+import NumericRange from "../../entity/NumericRange";
 import { PersistedDataKeys, PersistentConfigCancellationToken } from "../../services/PersistentConfigService";
 
 const spawn = require("child_process").spawn;
-
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
  */
@@ -49,7 +48,7 @@ const downloadManifest = createLogic({
                 downloadService: platformDependentServices.fileDownloadService,
             });
 
-            let selectionsByFileSet: { [index: string]: NumericRange[] };
+            let selectionsByFileSet: Map<FileSet, NumericRange[]>;
 
             // If we have a specific path to get files from ignore selected files
             if (action.payload.fileFilters.length) {
@@ -58,13 +57,12 @@ const downloadManifest = createLogic({
                     fileService,
                 });
                 const count = await fileSet.fetchTotalCount();
-                selectionsByFileSet = {
-                    [fileSet.hash]: [new NumericRange(0, count - 1)],
-                };
+                selectionsByFileSet = new Map([
+                    [fileSet, [new NumericRange(0, count - 1)]],
+                ]);
             } else {
-                selectionsByFileSet = selection.selectors.getSelectedFileRangesByFileSet(
-                    deps.getState()
-                );
+                const fileSelection = selection.selectors.getFileSelection(state);
+                selectionsByFileSet = fileSelection.groupByFileSet();
             }
 
             if (isEmpty(selectionsByFileSet)) {

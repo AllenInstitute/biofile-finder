@@ -33,6 +33,10 @@ const STORAGE_SCHEMA: Schema<Record<string, unknown>> = {
     }
 };
 
+// These are paths known (and unlikely to change) inside the allen drive that any given user should
+// have access to
+export const KNOWN_PATHS_IN_ALLEN_DRIVE = ["/programs", "/aics"];
+
 interface PersistentConfigServiceElectronOptions {
     clearExistingData?: boolean;
 }
@@ -42,6 +46,15 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     public static SET_IMAGE_J_LOCATION = "set-image-j-location";
     public static SELECT_DIRECTORY = "select-directory";
     private store: Store;
+
+    private static async isAllenPathValid(allenPath: string): Promise<boolean> {
+        try {
+            await Promise.all(KNOWN_PATHS_IN_ALLEN_DRIVE.map(path => fs.promises.access(allenPath + path, fs.constants.R_OK)));
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
 
     public constructor(options: PersistentConfigServiceElectronOptions = {}) {
         this.store = new Store({ schema: STORAGE_SCHEMA });
@@ -81,14 +94,27 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     }
 
     public async setAllenMountPoint(): Promise<string> {
-        const allenPath = await this.selectDirectory({
-            title: "Select Allen drive point point",
-        });
-        if (allenPath === PersistentConfigCancellationToken) {
-            return PersistentConfigCancellationToken;
+        // Continuously try to set a valid allen drive mount point unless the user cancels
+        while (true) {
+            const allenPath = await this.selectDirectory({
+                title: "Select Allen drive point point",
+            });
+            if (allenPath === PersistentConfigCancellationToken) {
+                return PersistentConfigCancellationToken;
+            }
+            // Ensure the paths exist as expected inside the drive
+            const pathIsValidAllenDrive = await PersistentConfigServiceElectron.isAllenPathValid(allenPath)
+            if (pathIsValidAllenDrive) {
+                this.set(PersistedDataKeys.AllenMountPoint, allenPath);
+                return allenPath;
+            }
+            // Alert user to error with allen drive
+            await ipcRenderer.invoke(
+                SystemNotificationServiceElectron.SHOW_ERROR_MESSAGE,
+                "Allen Drive Mount Point Selection",
+                `Whoops! ${allenPath} is not verifiably the root of the Allen drive on your computer. Select the parent folder to the "/aics" and "/programs" folders. For example, "/allen," "/Users/johnd/allen," etc.`
+            );
         }
-        this.set(PersistedDataKeys.AllenMountPoint, allenPath);
-        return allenPath;
     }
 
     public async setImageJExecutableLocation(): Promise<string> {

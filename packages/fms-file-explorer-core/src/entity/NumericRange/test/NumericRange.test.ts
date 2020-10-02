@@ -288,6 +288,59 @@ describe("NumericRange", () => {
         });
     });
 
+    describe("remove", () => {
+        [
+            {
+                range: new NumericRange(1, 5),
+                test: new NumericRange(3, 4),
+                expect: [new NumericRange(1, 2), new NumericRange(5)],
+            },
+            {
+                range: new NumericRange(1, 5),
+                test: new NumericRange(1, 5),
+                expect: [],
+            },
+            {
+                range: new NumericRange(1, 5),
+                test: new NumericRange(1, 3),
+                expect: [new NumericRange(4, 5)],
+            },
+            {
+                range: new NumericRange(1, 5),
+                test: new NumericRange(2, 5),
+                expect: [new NumericRange(1)],
+            },
+            {
+                range: new NumericRange(1, 5),
+                test: new NumericRange(10, 20), // not contained
+                expect: [new NumericRange(1, 5)],
+            },
+            {
+                range: new NumericRange(1, 5),
+                test: 4,
+                expect: [new NumericRange(1, 3), new NumericRange(5)],
+            },
+            {
+                range: new NumericRange(1, 5),
+                test: 1,
+                expect: [new NumericRange(2, 5)],
+            },
+            {
+                range: new NumericRange(1, 5),
+                test: 5,
+                expect: [new NumericRange(1, 4)],
+            },
+        ].forEach((testCase) => {
+            it(`returns ${testCase.expect.toString()} for ${testCase.range} extracts ${testCase.test}`, () => {
+                const extracted = testCase.range.remove(testCase.test);
+                extracted.forEach((range, idx) => {
+                    const expectation = testCase.expect as NumericRange[];
+                    expect(range.equals(expectation[idx])).to.equal(true);
+                });
+            });
+        });
+    });
+
     describe("intersects", () => {
         [
             {
@@ -331,12 +384,12 @@ describe("NumericRange", () => {
             expect(() => range.partitionAt(10)).to.throw();
         });
 
-        it("throws an error if attempting to partition a range in which min === max", () => {
+        it("returns an empty list if attempting to partition a range in which min === max", () => {
             // arrange
             const range = new NumericRange(5, 5);
 
             // act / assert
-            expect(() => range.partitionAt(5)).to.throw();
+            expect(range.partitionAt(5)).to.be.an("array").of.length(0);
         });
 
         it("splits a range into two around (excluding) a given number", () => {

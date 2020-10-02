@@ -21,17 +21,24 @@ import { annotationsJson } from "../../../entity/Annotation/mocks";
 import { initialState } from "../../";
 import NumericRange from "../../../entity/NumericRange";
 import FileFolder from "../../../entity/FileFolder";
+import FileSet from "../../../entity/FileSet";
+import FileSelection from "../../../entity/FileSelection";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
+
+        const fileSet1 = new FileSet();
+        const fileSet2 = new FileSet({
+            filters: [new FileFilter("Cell Line", "AICS-13")],
+        });
+
         it("does not include existing file selections when updateExistingSelection is false", async () => {
             // arrange
             const state = {
                 selection: {
-                    selectedFileRangesByFileSet: {
-                        abc123: [new NumericRange(9, 10)],
-                        def456: [new NumericRange(100, 200)],
-                    },
+                    fileSelection: new FileSelection()
+                        .select(fileSet1, 3)
+                        .select(fileSet2, 99),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -40,16 +47,14 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile("abc123", 5));
+            store.dispatch(selectFile(fileSet1, 5));
             await logicMiddleware.whenComplete();
 
             // assert
             expect(
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
-                    payload: {
-                        abc123: [new NumericRange(5)],
-                    },
+                    payload: new FileSelection().select(fileSet1, 5),
                 })
             ).to.equal(true);
         });
@@ -58,9 +63,8 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFileRangesByFileSet: {
-                        abc123: [new NumericRange(9)],
-                    },
+                    fileSelection: new FileSelection()
+                        .select(fileSet1, 9),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -69,74 +73,16 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile("abc123", 14, true));
+            store.dispatch(selectFile(fileSet1, 14, true));
             await logicMiddleware.whenComplete();
 
             // assert
             expect(
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
-                    payload: {
-                        abc123: [new NumericRange(9), new NumericRange(14)],
-                    },
-                })
-            ).to.equal(true);
-        });
-
-        it("appends newly selected file to existing selections when updateExistingSelection is true -- continuous selection (single selection)", async () => {
-            // setup
-            const state = {
-                selection: {
-                    selectedFileRangesByFileSet: {
-                        abc123: [new NumericRange(9)],
-                    },
-                },
-            };
-            const { store, logicMiddleware, actions } = configureMockStore({
-                logics: selectionLogics,
-                state,
-            });
-
-            // act
-            store.dispatch(selectFile("abc123", 8, true));
-            await logicMiddleware.whenComplete();
-
-            // assert
-            expect(
-                actions.includesMatch({
-                    type: SET_FILE_SELECTION,
-                    payload: {
-                        abc123: [new NumericRange(8, 9)],
-                    },
-                })
-            ).to.equal(true);
-        });
-
-        it("appends newly selected file to existing selections when updateExistingSelection is true -- continuous selection (range)", async () => {
-            // setup
-            const state = {
-                selection: {
-                    selectedFileRangesByFileSet: {
-                        abc123: [new NumericRange(9)],
-                    },
-                },
-            };
-            const { store, logicMiddleware, actions } = configureMockStore({
-                logics: selectionLogics,
-                state,
-            });
-
-            // act
-            store.dispatch(selectFile("abc123", new NumericRange(10, 100), true));
-            await logicMiddleware.whenComplete();
-
-            // assert
-            expect(
-                actions.includesMatch({
-                    type: SET_FILE_SELECTION,
-                    payload: {
-                        abc123: [new NumericRange(9, 100)],
-                    },
+                    payload: new FileSelection()
+                        .select(fileSet1, 9)
+                        .select(fileSet1, 14),
                 })
             ).to.equal(true);
         });
@@ -145,10 +91,9 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFileRangesByFileSet: {
-                        abc123: [new NumericRange(9, 15)],
-                        def456: [new NumericRange(100, 200)],
-                    },
+                    fileSelection: new FileSelection()
+                        .select(fileSet1, new NumericRange(9, 15))
+                        .select(fileSet2, new NumericRange(100, 200)),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -157,17 +102,17 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile("abc123", new NumericRange(20, 100), true));
+            store.dispatch(selectFile(fileSet1, new NumericRange(20, 100), true));
             await logicMiddleware.whenComplete();
 
             // assert
             expect(
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
-                    payload: {
-                        abc123: [new NumericRange(9, 15), new NumericRange(20, 100)],
-                        def456: [new NumericRange(100, 200)],
-                    },
+                    payload: new FileSelection()
+                        .select(fileSet1, new NumericRange(9, 15))
+                        .select(fileSet2, new NumericRange(100, 200))
+                        .select(fileSet1, new NumericRange(20, 100)),
                 })
             ).to.equal(true);
         });
@@ -176,9 +121,9 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFileRangesByFileSet: {
-                        abc123: [new NumericRange(8, 15), new NumericRange(22)],
-                    },
+                    fileSelection: new FileSelection()
+                        .select(fileSet1, new NumericRange(8, 15))
+                        .select(fileSet1, 22),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -187,20 +132,17 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile("abc123", 12, true));
+            store.dispatch(selectFile(fileSet1, 12, true));
             await logicMiddleware.whenComplete();
 
             // assert
             expect(
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
-                    payload: {
-                        abc123: [
-                            new NumericRange(8, 11),
-                            new NumericRange(13, 15),
-                            new NumericRange(22),
-                        ],
-                    },
+                    payload: new FileSelection()
+                        .select(fileSet1, new NumericRange(8, 11))
+                        .select(fileSet1, new NumericRange(13, 15))
+                        .select(fileSet1, new NumericRange(22)),
                 })
             ).to.equal(true);
         });
@@ -209,9 +151,8 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFileRangesByFileSet: {
-                        abc123: [new NumericRange(12)],
-                    },
+                    fileSelection: new FileSelection()
+                        .select(fileSet1, 12),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -220,14 +161,14 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile("abc123", 12));
+            store.dispatch(selectFile(fileSet1, 12));
             await logicMiddleware.whenComplete();
 
             // assert
             expect(
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
-                    payload: {},
+                    payload: new FileSelection(),
                 })
             ).to.equal(true);
         });
@@ -236,10 +177,9 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFileRangesByFileSet: {
-                        abc123: [new NumericRange(12)],
-                        def456: [new NumericRange(45)],
-                    },
+                    fileSelection: new FileSelection()
+                        .select(fileSet1, 12)
+                        .select(fileSet2, 45),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -248,16 +188,15 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile("abc123", 12));
+            store.dispatch(selectFile(fileSet1, 12));
             await logicMiddleware.whenComplete();
 
             // assert
             expect(
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
-                    payload: {
-                        abc123: [new NumericRange(12)],
-                    },
+                    payload: new FileSelection()
+                        .select(fileSet1, 12),
                 })
             ).to.equal(true);
         });
@@ -266,9 +205,10 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    selectedFileRangesByFileSet: {
-                        abc123: [new NumericRange(8, 15), new NumericRange(22)],
-                    },
+                    fileSelection: new FileSelection()
+                        .select(fileSet2, new NumericRange(27, 30))
+                        .select(fileSet2, new NumericRange(22))
+                        .select(fileSet1, new NumericRange(8, 15)),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -277,16 +217,16 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile("abc123", new NumericRange(16, 30), true));
+            store.dispatch(selectFile(fileSet2, new NumericRange(22, 35), true));
             await logicMiddleware.whenComplete();
 
             // assert
             expect(
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
-                    payload: {
-                        abc123: [new NumericRange(8, 30)],
-                    },
+                    payload: new FileSelection()
+                        .select(fileSet1, new NumericRange(8, 15))
+                        .select(fileSet2, new NumericRange(22, 35)),
                 })
             ).to.equal(true);
         });

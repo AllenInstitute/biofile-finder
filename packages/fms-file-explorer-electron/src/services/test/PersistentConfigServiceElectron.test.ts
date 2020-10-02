@@ -7,7 +7,7 @@ import { ipcRenderer } from "electron";
 import { createSandbox } from "sinon";
 
 import { RUN_IN_RENDERER } from "../../util/constants";
-import PersistentConfigServiceElectron from "../PersistentConfigServiceElectron";
+import PersistentConfigServiceElectron, { KNOWN_PATHS_IN_ALLEN_DRIVE } from "../PersistentConfigServiceElectron";
 
 // GM 9/15/20: This symbol is in fact exported from @aics/fms-file-explorer-core, but inexplicably,
 // using `import` machinery causes tests to hang. All attempts to debug this have been unsuccesful so far.
@@ -103,29 +103,41 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
 
     describe("setAllenMountPoint", () => {
         const sandbox = createSandbox();
+        const tempAllenDrive = `${os.tmpdir()}/allen`;
 
-        afterEach(() => {
+        beforeEach(async () => {
+            await fs.promises.mkdir(tempAllenDrive);
+            for (const path of KNOWN_PATHS_IN_ALLEN_DRIVE) {
+                await fs.promises.mkdir(tempAllenDrive + path);
+            }
+        });
+
+        afterEach(async () => {
             sandbox.restore();
+            // While recursive removal is experimental manually empty the tempAllenDrive
+            for (const path of KNOWN_PATHS_IN_ALLEN_DRIVE) {
+                await fs.promises.rmdir(tempAllenDrive + path);
+            }
+            await fs.promises.rmdir(tempAllenDrive)
         });
 
         it("persists mount point", async () => {
             // Arrange
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
-            const expectedMountPoint = "/home/users/test/allen";
             sandbox
                 .stub(ipcRenderer, "invoke")
                 .withArgs(PersistentConfigServiceElectron.SELECT_DIRECTORY)
                 .resolves({
-                    filePaths: [expectedMountPoint],
+                    filePaths: [tempAllenDrive],
                 });
 
             // Act
             const mountPoint = await service.setAllenMountPoint();
 
             // Assert
-            expect(mountPoint).to.equal(expectedMountPoint);
+            expect(mountPoint).to.equal(tempAllenDrive);
             const persistedMountPoint = service.get(PersistedDataKeys.AllenMountPoint);
-            expect(persistedMountPoint).to.equal(expectedMountPoint);
+            expect(persistedMountPoint).to.equal(tempAllenDrive);
         });
 
         it("does not persist mount point when cancelled", async () => {
@@ -136,7 +148,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                 .withArgs(PersistentConfigServiceElectron.SELECT_DIRECTORY)
                 .resolves({
                     canceled: true,
-                    filePaths: ["/home/users/test/allen"],
+                    filePaths: [],
                 });
 
             // Act
@@ -146,6 +158,26 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             expect(mountPoint).to.equal(PersistentConfigCancellationToken);
             const persistedMountPoint = service.get(PersistedDataKeys.AllenMountPoint);
             expect(persistedMountPoint).to.be.undefined;
+        });
+
+        it("Rejects invalid allen drive & allows reselection of valid drive", async () => {
+            // Arrange
+            const service = new PersistentConfigServiceElectron({ clearExistingData: true });
+            const stub = sandbox.stub(ipcRenderer, "invoke");
+            stub.withArgs(PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT).onCall(0).resolves({
+                filePaths: ["/some/not/allen/path"],
+            });
+            stub.withArgs(PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT).onCall(1).resolves({
+                filePaths: [tempAllenDrive],
+            });
+
+            // Act
+            const mountPoint = await service.setAllenMountPoint();
+
+            // Assert
+            expect(mountPoint).to.equal(tempAllenDrive);
+            const persistedMountPoint = service.get(PersistedDataKeys.AllenMountPoint);
+            expect(persistedMountPoint).to.equal(tempAllenDrive);
         });
     });
 

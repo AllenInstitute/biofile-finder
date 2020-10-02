@@ -1,4 +1,4 @@
-import { defaults, flatten, join, map } from "lodash";
+import { defaults, find, flatten, join, map } from "lodash";
 import LRUCache from "lru-cache";
 
 import FileFilter from "../FileFilter";
@@ -31,6 +31,10 @@ export default class FileSet {
     private readonly _filters: FileFilter[];
     private readonly sortOrder: FileSort[];
     private totalFileCount: number | undefined;
+
+    public static isFileSet(candidate: any): candidate is FileSet {
+        return candidate instanceof FileSet;
+    }
 
     constructor(opts: Partial<Opts> = {}) {
         const { fileService, filters, maxCacheSize, sortOrder } = defaults({}, opts, DEFAULT_OPTS);
@@ -106,6 +110,24 @@ export default class FileSet {
         return this.cache.get(index) !== undefined;
     }
 
+    public equals(other: FileSet): boolean {
+        if (this === other) {
+            return true;
+        }
+
+        return this.hash === other.hash;
+    }
+
+    /**
+     * Does this FileSet contain the given filters?
+     */
+    public matches(filters: FileFilter[]): boolean {
+        return filters.every((filter) => {
+            const found = find(this.filters, (f) => f.equals(filter));
+            return !!found;
+        });
+    }
+
     /**
      * Combine filters and sortOrder into a single query string that can be sent to a query service.
      */
@@ -122,6 +144,13 @@ export default class FileSet {
             ]),
             "&"
         );
+    }
+
+    public toJSON() {
+        return {
+            queryString: this.toQueryString(),
+            baseUrl: this.fileService.baseUrl,
+        };
     }
 
     public toString(): string {
