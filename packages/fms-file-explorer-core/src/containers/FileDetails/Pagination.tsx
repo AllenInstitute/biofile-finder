@@ -6,6 +6,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { selection } from "../../state";
 import { FocusDirective } from "../../entity/FileSelection";
 
+const styles = require("./Pagination.module.css");
+
 interface PaginationProps {
     className?: string;
 }
@@ -21,7 +23,7 @@ export default function Pagination(props: PaginationProps) {
         return {
             icon: {
                 color: "black",
-                fontSize: "14px",
+                fontSize: "13px",
             },
             root: {
                 background: "none",
@@ -32,7 +34,7 @@ export default function Pagination(props: PaginationProps) {
     }, []);
 
     return (
-        <div className={classNames(props.className)}>
+        <div className={classNames(styles.root, props.className)}>
             <div>
                 <IconButton
                     ariaLabel="Jump to first selected file"
