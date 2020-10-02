@@ -5,20 +5,19 @@ import { ResizeObserver } from "resize-observer";
 const DEBOUNCE_WAIT_TO_REMEASURE = 50; // ms
 
 /**
- * Custom React hook to measure a DOM node after all DOM mutations have been committed during a render cycle but before
- * paint. It will remeasure itself on resize, and is debounced so as not to be called more than once (on trailing edge)
- * within `DEBOUNCE_WAIT_TO_REMEASURE` milliseconds.
+ * Custom React hook to measure a DOM node. It will remeasure itself on resize, and is debounced so as
+ * not to be called more than once (on trailing edge) within `DEBOUNCE_WAIT_TO_REMEASURE` milliseconds.
  */
 export default function useLayoutMeasurements<T extends HTMLElement>(): [
-    React.RefObject<T>,
+    React.MutableRefObject<T | null>,
     number,
     number
 ] {
-    const ref = React.useRef<T>(null);
+    const ref = React.useRef<T | null>(null);
     const [height, setHeight] = React.useState(0);
     const [width, setWidth] = React.useState(0);
 
-    React.useLayoutEffect(() => {
+    React.useEffect(() => {
         let resizeObserver: ResizeObserver;
         if (ref.current) {
             // GM: 11/18/2019
@@ -50,7 +49,7 @@ export default function useLayoutMeasurements<T extends HTMLElement>(): [
                 resizeObserver.disconnect();
             }
         };
-    }, [ref]);
+    }, []);
 
     return [ref, height, width];
 }
