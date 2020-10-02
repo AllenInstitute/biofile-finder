@@ -35,7 +35,7 @@ export default function Pagination(props: PaginationProps) {
         <div className={classNames(props.className)}>
             <div>
                 <IconButton
-                    aria-label="Jump to first selected file"
+                    ariaLabel="Jump to first selected file"
                     disabled={!fileSelection.hasPreviousFocusableItem()}
                     iconProps={{ iconName: "ChevronLeftEnd6" }}
                     onClick={() =>
@@ -45,7 +45,7 @@ export default function Pagination(props: PaginationProps) {
                     title="Jump to first selected file"
                 />
                 <IconButton
-                    aria-label="View previous selected file"
+                    ariaLabel="View previous selected file"
                     disabled={!fileSelection.hasPreviousFocusableItem()}
                     iconProps={{ iconName: "ChevronLeftSmall" }}
                     onClick={() =>
@@ -57,7 +57,7 @@ export default function Pagination(props: PaginationProps) {
             </div>
             <div>
                 <IconButton
-                    aria-label="View next selected file"
+                    ariaLabel="View next selected file"
                     disabled={!fileSelection.hasNextFocusableItem()}
                     iconProps={{ iconName: "ChevronRightSmall" }}
                     onClick={() =>
@@ -67,7 +67,7 @@ export default function Pagination(props: PaginationProps) {
                     title="View next selected file"
                 />
                 <IconButton
-                    aria-label="Jump to last selected file"
+                    ariaLabel="Jump to last selected file"
                     disabled={!fileSelection.hasNextFocusableItem()}
                     iconProps={{ iconName: "ChevronRightEnd6" }}
                     onClick={() =>
