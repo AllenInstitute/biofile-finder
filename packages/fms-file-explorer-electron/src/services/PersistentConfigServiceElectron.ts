@@ -5,6 +5,8 @@ import * as path from "path";
 
 import { dialog, ipcMain, ipcRenderer } from "electron";
 
+import SystemNotificationServiceElectron from "./SystemNotificationServiceElectron";
+
 import { PersistentConfigService } from "@aics/fms-file-explorer-core";
 
 // GM 9/15/20: This symbol is in fact exported from @aics/fms-file-explorer-core, but inexplicably,
@@ -39,7 +41,6 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     public static SET_ALLEN_MOUNT_POINT = "set-allen-mount-point";
     public static SET_IMAGE_J_LOCATION = "set-image-j-location";
     public static SELECT_DIRECTORY = "select-directory";
-    public static SHOW_ERROR_BOX = "show-error-box";
     private store: Store;
 
     public constructor(options: PersistentConfigServiceElectronOptions = {}) {
@@ -68,11 +69,6 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
                 properties: ["openFile"],
                 ...dialogOptions
             });
-        });
-
-        // Handle displaying an error in the native error box
-        ipcMain.handle(PersistentConfigServiceElectron.SHOW_ERROR_BOX, (_, title, content) => {
-            return dialog.showErrorBox(title, content);
         });
     }
 
@@ -119,7 +115,7 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
             } catch (error) {
                 // Alert user to error with Image J location
                 await ipcRenderer.invoke(
-                    PersistentConfigServiceElectron.SHOW_ERROR_BOX,
+                    SystemNotificationServiceElectron.SHOW_ERROR_MESSAGE,
                     "Image J Executable Location",
                     `Whoops! ${imageJExecutable} is not verifiably an executable on your computer. Select the executable as you would to open Image J normally. Error: ${error}`
                 );
