@@ -1,0 +1,7 @@
+.selected-row {
+    background-color: #d4e3fc;
+}
+
+.focused-row {
+    border: 1.5px solid #669bf4;
+}

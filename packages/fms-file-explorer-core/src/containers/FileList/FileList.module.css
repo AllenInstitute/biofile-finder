@@ -12,14 +12,6 @@
     height: calc(100% - var(--row-count-height));
 }
 
-.selected-row {
-    background-color: #d4e3fc;
-}
-
-.focused-row {
-    border: 1.5px solid #669bf4;
-}
-
 .row-count-display {
     color: grey;
 
