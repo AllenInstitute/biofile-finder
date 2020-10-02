@@ -57,7 +57,11 @@ export default function FileDetails(props: FileDetails) {
                         />
                     ))}
                 </div>
-                <Pagination className={styles.pagination} />
+                <Pagination
+                    className={classNames(styles.pagination, {
+                        [styles.hidden]: windowState.state === WindowState.MINIMIZED,
+                    })}
+                />
                 <div className={styles.contentContainer}>
                     <div
                         className={classNames(styles.overflowContainer, {
