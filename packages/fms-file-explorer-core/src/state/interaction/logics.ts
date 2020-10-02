@@ -139,7 +139,7 @@ const openFilesInImageJ = createLogic({
             systemNotificationService
         } = interactionSelectors.getPlatformDependentServices(deps.getState());
         const allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
-        const imageJInstallation = persistentConfigService.get(PersistedDataKeys.ImageJInstallation);
+        const imageJExecutable = persistentConfigService.get(PersistedDataKeys.ImageJExecutable);
         
         // Collect the file paths from the selected files
         const selectionsByFileSet = selection.selectors.getSelectedFileRangesByFileSet(deps.getState());
@@ -164,7 +164,7 @@ const openFilesInImageJ = createLogic({
         }
         try {
             // Create child process for ImageJ to open files in
-            const imageJProcess = spawn(imageJInstallation, filePaths);
+            const imageJProcess = spawn(imageJExecutable, filePaths);
             // Handle unsuccessful startups of ImageJ (these will only be called if explorer is still open)
             imageJProcess.on("error", reportErrorToUser);
             imageJProcess.on("exit", async (code: number) => {
@@ -182,24 +182,24 @@ const openFilesInImageJ = createLogic({
 
         // Ensure we have the necessary directories (Allen drive & Image J) so that we can properly open images
         let allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
-        let imageJInstallation = persistentConfigService.get(PersistedDataKeys.ImageJInstallation);
+        let imageJExecutable = persistentConfigService.get(PersistedDataKeys.ImageJExecutable);
         if (!allenMountPoint) {
             allenMountPoint = await persistentConfigService.setAllenMountPoint();
         }
-        if (!imageJInstallation && allenMountPoint !== PersistentConfigCancellationToken) {
+        if (!imageJExecutable && allenMountPoint !== PersistentConfigCancellationToken) {
             // On mac we can try to guess that ImageJ is installed under the applications folder
             if (os.platform() === 'darwin') {
                 try {
                     await fs.promises.access('/applications/ImageJ', fs.constants.X_OK);
-                    imageJInstallation = '/applications/ImageJ';
+                    imageJExecutable = '/applications/ImageJ';
                 } catch (_) {}
             }
-            if (!imageJInstallation) {
-                imageJInstallation = await persistentConfigService.setImageJExecutableLocation();
+            if (!imageJExecutable) {
+                imageJExecutable = await persistentConfigService.setImageJExecutableLocation();
             }
         }
 
-        if (allenMountPoint === PersistentConfigCancellationToken || imageJInstallation === PersistentConfigCancellationToken) {
+        if (allenMountPoint === PersistentConfigCancellationToken || imageJExecutable === PersistentConfigCancellationToken) {
             reject && reject(deps.action); // reject is typed as potentially undefined for some reason
         } else {
             next(deps.action);

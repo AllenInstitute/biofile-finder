@@ -4,7 +4,7 @@
 export enum PersistedDataKeys {
     AllenMountPoint = "ALLEN_MOUNT_POINT",
     CsvColumns = "CSV_COLUMNS",
-    ImageJInstallation = "IMAGE_J_INSTALLATION",
+    ImageJExecutable = "IMAGE_J_EXECUTABLE",
 }
 
 /**

@@ -1,3 +1,7 @@
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
+
 import { expect } from "chai";
 import { ipcRenderer } from "electron";
 import { createSandbox } from "sinon";
@@ -110,7 +114,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const expectedMountPoint = "/home/users/test/allen";
             sandbox
                 .stub(ipcRenderer, "invoke")
-                .withArgs(PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT)
+                .withArgs(PersistentConfigServiceElectron.SELECT_DIRECTORY)
                 .resolves({
                     filePaths: [expectedMountPoint],
                 });
@@ -129,7 +133,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
             sandbox
                 .stub(ipcRenderer, "invoke")
-                .withArgs(PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT)
+                .withArgs(PersistentConfigServiceElectron.SELECT_DIRECTORY)
                 .resolves({
                     canceled: true,
                     filePaths: ["/home/users/test/allen"],
@@ -141,6 +145,80 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             // Assert
             expect(mountPoint).to.equal(PersistentConfigCancellationToken);
             const persistedMountPoint = service.get(PersistedDataKeys.AllenMountPoint);
+            expect(persistedMountPoint).to.be.undefined;
+        });
+    });
+
+    describe("setImageJExecutableLocation", () => {
+        const sandbox = createSandbox();
+        const tempImageJPath = path.resolve(os.tmpdir(), "ImageJTestApp.txt");
+
+        beforeEach(async () => {
+            await fs.promises.writeFile(tempImageJPath, '', { mode: 111 });
+        })
+
+        afterEach(async () => {
+            sandbox.restore();
+            await fs.promises.unlink(tempImageJPath);
+        });
+
+        it("persists Image J executable location", async () => {
+            // Arrange
+            const service = new PersistentConfigServiceElectron({ clearExistingData: true });
+            sandbox
+                .stub(ipcRenderer, "invoke")
+                .withArgs(PersistentConfigServiceElectron.SELECT_DIRECTORY)
+                .resolves({
+                    filePaths: [tempImageJPath],
+                });
+
+            // Act
+            const mountPoint = await service.setImageJExecutableLocation();
+
+            // Assert
+            expect(mountPoint).to.equal(tempImageJPath);
+            const persistedMountPoint = service.get(PersistedDataKeys.ImageJExecutable);
+            expect(persistedMountPoint).to.equal(tempImageJPath);
+        });
+
+        it("does not persist location when cancelled", async () => {
+            // Arrange
+            const service = new PersistentConfigServiceElectron({ clearExistingData: true });
+            sandbox
+                .stub(ipcRenderer, "invoke")
+                .withArgs(PersistentConfigServiceElectron.SELECT_DIRECTORY)
+                .resolves({
+                    canceled: true,
+                    filePaths: ["/some/path/to/ImageJ"],
+                });
+
+            // Act
+            const mountPoint = await service.setImageJExecutableLocation();
+
+            // Assert
+            expect(mountPoint).to.equal(PersistentConfigCancellationToken);
+            const persistedMountPoint = service.get(PersistedDataKeys.ImageJExecutable);
+            expect(persistedMountPoint).to.be.undefined;
+        });
+
+        it("re-prompts user on invalid Image J path selection", async () => {
+            // Arrange
+            const service = new PersistentConfigServiceElectron({ clearExistingData: true });
+            const selectDirectoryStub = sandbox.stub(ipcRenderer, "invoke").withArgs(PersistentConfigServiceElectron.SELECT_DIRECTORY);
+            selectDirectoryStub.onCall(0).resolves({
+                    filePaths: ["/some/path/to/ImageJ"],
+                });
+            selectDirectoryStub.onCall(1).resolves({
+                canceled: true,
+                filePaths: ["/some/path/to/ImageJ"],
+            });
+
+            // Act
+            const mountPoint = await service.setImageJExecutableLocation();
+
+            // Assert
+            expect(mountPoint).to.equal(PersistentConfigCancellationToken);
+            const persistedMountPoint = service.get(PersistedDataKeys.ImageJExecutable);
             expect(persistedMountPoint).to.be.undefined;
         });
     });

@@ -28,7 +28,7 @@ const STORAGE_SCHEMA: Schema<Record<string, unknown>> = {
             type: "string",
         },
     },
-    [PersistedDataKeys.ImageJInstallation]: {
+    [PersistedDataKeys.ImageJExecutable]: {
         type: "string",
     }
 };
@@ -110,7 +110,7 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
             try {
                 // Try to see if the chosen path leads to an actual executable
                 await fs.promises.access(imageJExecutable, fs.constants.X_OK);
-                this.set(PersistedDataKeys.ImageJInstallation, imageJExecutable);
+                this.set(PersistedDataKeys.ImageJExecutable, imageJExecutable);
                 return imageJExecutable;
             } catch (error) {
                 // Alert user to error with Image J location
