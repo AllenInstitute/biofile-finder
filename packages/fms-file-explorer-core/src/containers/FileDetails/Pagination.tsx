@@ -12,26 +12,24 @@ interface PaginationProps {
     className?: string;
 }
 
+const ICON_BUTTON_STYLES = {
+    icon: {
+        color: "black",
+        fontSize: "13px",
+    },
+    root: {
+        background: "none",
+        height: 18,
+        width: 24,
+    },
+};
+
 /**
  * UI for paging through selected files within the FileDetails pane.
  */
 export default function Pagination(props: PaginationProps) {
     const dispatch = useDispatch();
     const fileSelection = useSelector(selection.selectors.getFileSelection);
-
-    const iconButtonStyles = React.useMemo(() => {
-        return {
-            icon: {
-                color: "black",
-                fontSize: "13px",
-            },
-            root: {
-                background: "none",
-                height: 18,
-                width: 24,
-            },
-        };
-    }, []);
 
     return (
         <div className={classNames(styles.root, props.className)}>
@@ -43,7 +41,7 @@ export default function Pagination(props: PaginationProps) {
                     onClick={() =>
                         dispatch(selection.actions.setFileSelection(fileSelection.focus(FocusDirective.FIRST)))
                     }
-                    styles={iconButtonStyles}
+                    styles={ICON_BUTTON_STYLES}
                     title="Jump to first selected file"
                 />
                 <IconButton
@@ -53,7 +51,7 @@ export default function Pagination(props: PaginationProps) {
                     onClick={() =>
                         dispatch(selection.actions.setFileSelection(fileSelection.focus(FocusDirective.PREVIOUS)))
                     }
-                    styles={iconButtonStyles}
+                    styles={ICON_BUTTON_STYLES}
                     title="View previous selected file"
                 />
             </div>
@@ -65,7 +63,7 @@ export default function Pagination(props: PaginationProps) {
                     onClick={() =>
                         dispatch(selection.actions.setFileSelection(fileSelection.focus(FocusDirective.NEXT)))
                     }
-                    styles={iconButtonStyles}
+                    styles={ICON_BUTTON_STYLES}
                     title="View next selected file"
                 />
                 <IconButton
@@ -75,7 +73,7 @@ export default function Pagination(props: PaginationProps) {
                     onClick={() =>
                         dispatch(selection.actions.setFileSelection(fileSelection.focus(FocusDirective.LAST)))
                     }
-                    styles={iconButtonStyles}
+                    styles={ICON_BUTTON_STYLES}
                     title="Jump to last selected file"
                 />
             </div>
