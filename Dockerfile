@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y curl && \
     rm -rf /var/lib/apt/lists/*
 
 # Make sure we're using npm 7 (auto installs peer deps); TODO: remove once 7 is released from beta
-RUN npm install --global npm@next-7
+RUN npm install --global npm@7.0.0-beta.13
 
 ARG USER=jenkins
 ARG GROUP=jenkins

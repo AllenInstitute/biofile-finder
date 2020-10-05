@@ -1,6 +1,6 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
+import { render } from "@testing-library/react";
 import { expect } from "chai";
-import { mount } from "enzyme";
 import * as React from "react";
 import { Provider } from "react-redux";
 
@@ -13,10 +13,10 @@ describe("<FileAnnotationList />", () => {
     describe("file path representation", () => {
         it("has both canonical file path and file path adjusted to OS & allen mount point", () => {
             // Arrange
-            const expectedMountPoint = "/home/testUser/my/path/to";
+            const expectedMountPoint = "/home/testUser/my/path/to/my-isilon";
             class CustomPersistentConfigService implements PersistentConfigService {
                 public get() {
-                    return `${expectedMountPoint}/allen`;
+                    return expectedMountPoint;
                 }
                 public set() {
                     return;
@@ -36,7 +36,8 @@ describe("<FileAnnotationList />", () => {
                 },
             });
             const { store } = configureMockStore({ state });
-            const filePath = "/allen/path/to/MyFile.txt";
+            const filePathInsideAllenDrive = "/path/to/MyFile.txt";
+            const filePath = "/allen" + filePathInsideAllenDrive;
             const fileDetails = new FileDetail({
                 filePath,
                 fileId: "abc123",
@@ -46,7 +47,7 @@ describe("<FileAnnotationList />", () => {
                 uploadedBy: "test-user",
                 annotations: [],
             });
-            const wrapper = mount(
+            const { getByText } = render(
                 <Provider store={store}>
                     <FileAnnotationList isLoading={false} fileDetails={fileDetails} />
                 </Provider>
@@ -54,11 +55,9 @@ describe("<FileAnnotationList />", () => {
 
             // Assert
             ["File path (Local)", "File path (Canonical)"].forEach((filePathDisplayName) => {
-                expect(wrapper.contains(filePathDisplayName)).to.equal(true);
+                expect(getByText(filePathDisplayName)).to.not.be.undefined;
             });
-            [filePath, expectedMountPoint + filePath].forEach((filePath) => {
-                expect(wrapper.contains(filePath)).to.equal(true);
-            });
+            expect(getByText(expectedMountPoint + filePathInsideAllenDrive)).to.not.be.undefined;
         });
     });
 });

@@ -45,8 +45,8 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                 // Derive a more specific file path from the canonical file path
                 if (annotation.name === AnnotationName.FILE_PATH) {
                     // Use path.normalize() to convert slashes to OS default & remove the would be duplicate
-                    // "/allen" from the end of the path
-                    const localizedPath = path.normalize(allenMountPoint.substring(0, allenMountPoint.length - 6) + values)
+                    // "/allen" from the beginning of the canonical path
+                    const localizedPath = path.normalize(allenMountPoint + values.substring(6))
                     return [
                         ...accum,
                         <FileAnnotationRow
