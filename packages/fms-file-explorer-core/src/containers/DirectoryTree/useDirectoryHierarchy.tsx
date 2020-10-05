@@ -203,6 +203,7 @@ const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotati
         isRoot,
         isLeaf,
         selectedFileFilters,
+        sortOrder,
     ]);
 
     return {
