@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
@@ -25,7 +24,8 @@ import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import NumericRange from "../../entity/NumericRange";
 import { PersistedDataKeys, PersistentConfigCancellationToken } from "../../services/PersistentConfigService";
 
-const spawn = require("child_process").spawn;
+const childProcess = require("child_process");
+
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
  */
@@ -151,8 +151,15 @@ const openFilesInImageJ = createLogic({
                 `Failure reported while attempting to open files: Files: ${filePaths}, Error: ${error}`);
         }
         try {
-            // Create child process for ImageJ to open files in
-            const imageJProcess = spawn(imageJExecutable, filePaths);
+            let childProcessArgs: string[];
+            // Create a child process for ImageJ to open files in
+            if (!imageJExecutable && os.platform() === 'darwin') {
+                // On MacOS we can simply supply the name of an app to open it
+                childProcessArgs = [`open -a "ImageJ.app" --args ${filePaths}`];
+            } else {
+                childProcessArgs = [imageJExecutable, filePaths];
+            }
+            const imageJProcess = childProcess.spawn(...childProcessArgs);
             // Handle unsuccessful startups of ImageJ (these will only be called if explorer is still open)
             imageJProcess.on("error", reportErrorToUser);
             imageJProcess.on("exit", async (code: number) => {
@@ -174,17 +181,10 @@ const openFilesInImageJ = createLogic({
         if (!allenMountPoint) {
             allenMountPoint = await persistentConfigService.setAllenMountPoint();
         }
-        if (!imageJExecutable && allenMountPoint !== PersistentConfigCancellationToken) {
-            // On mac we can try to guess that ImageJ is installed under the applications folder
-            if (os.platform() === 'darwin') {
-                try {
-                    await fs.promises.access('/applications/ImageJ', fs.constants.X_OK);
-                    imageJExecutable = '/applications/ImageJ';
-                } catch (_) {}
-            }
-            if (!imageJExecutable) {
-                imageJExecutable = await persistentConfigService.setImageJExecutableLocation();
-            }
+        // If the user didn't already cancel via the Allen Drive selection & isn't on a Mac, make sure we have
+        // an ImageJ executable path
+        if (!imageJExecutable && allenMountPoint !== PersistentConfigCancellationToken && os.platform() !== 'darwin') {
+            imageJExecutable = await persistentConfigService.setImageJExecutableLocation();
         }
 
         if (allenMountPoint === PersistentConfigCancellationToken || imageJExecutable === PersistentConfigCancellationToken) {

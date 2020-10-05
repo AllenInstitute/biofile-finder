@@ -120,19 +120,24 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     public async setImageJExecutableLocation(): Promise<string> {
         // Continuously try to set a valid Image J location until the user cancels
         while (true) {
+            const currentPlatform = os.platform();
             let extensionForOs = "*"; // Default (Linux): There is no executable extension
-            if (os.platform() === 'darwin') { // Mac
+            if (currentPlatform === 'darwin') { // Mac
                 extensionForOs = 'app';
-            } else if (os.platform() === 'win32') { // Windows
+            } else if (currentPlatform === 'win32') { // Windows
                 extensionForOs = 'exe';
             }
-            const imageJExecutable = await this.selectPath({
+            let imageJExecutable = await this.selectPath({
                 filters: [{ name: "Executable", extensions: [extensionForOs]}],
                 properties: ["openFile"],
                 title: "Select Image J executable location",
             });
             if (imageJExecutable === PersistentConfigCancellationToken) {
                 return PersistentConfigCancellationToken;
+            }
+            // If on MacOS we have to specify the inner executable
+            if (currentPlatform === 'darwin') {
+                imageJExecutable += '/Contents/MacOS/ImageJ-macosx';
             }
             try {
                 // Try to see if the chosen path leads to an actual executable
