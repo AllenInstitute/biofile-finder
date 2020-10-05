@@ -9,7 +9,6 @@ import template from "./menu";
 import ApplicationInfoServiceElectron from "../services/ApplicationInfoServiceElectron";
 import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron";
 import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
-import SystemNotificationServiceElectron from "../services/SystemNotificationServiceElectron";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -27,7 +26,6 @@ const registerIpcHandlers = () => {
     ApplicationInfoServiceElectron.registerIpcHandlers();
     FileDownloadServiceElectron.registerIpcHandlers();
     PersistentConfigServiceElectron.registerIpcHandlers();
-    SystemNotificationServiceElectron.registerIpcHandlers();
 };
 
 const createMainWindow = () => {

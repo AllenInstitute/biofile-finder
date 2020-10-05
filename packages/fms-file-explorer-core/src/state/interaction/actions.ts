@@ -4,7 +4,7 @@ import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu
 import ApplicationInfoService from "../../services/ApplicationInfoService";
 import FileDownloadService from "../../services/FileDownloadService";
 import PersistentConfigService from "../../services/PersistentConfigService";
-import SystemNotificationService from "../../services/SystemNotificationService";
+import FileViewerService from "../../services/FileViewerService";
 import FileFilter from "../../entity/FileFilter";
 
 const STATE_BRANCH_NAME = "interaction";
@@ -156,8 +156,8 @@ export const SET_PLATFORM_DEPENDENT_SERVICES = makeConstant(
 export interface PlatformDependentServices {
     applicationInfoService: ApplicationInfoService;
     fileDownloadService: FileDownloadService;
+    fileViewerService: FileViewerService;
     persistentConfigService: PersistentConfigService;
-    systemNotificationService: SystemNotificationService;
 }
 
 export interface SetPlatformDependentServices {

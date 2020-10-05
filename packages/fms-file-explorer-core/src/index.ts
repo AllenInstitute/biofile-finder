@@ -25,7 +25,7 @@ export {
     PersistedDataKeys,
 } from "./services/PersistentConfigService";
 
-import { default as _SystemNotificationService } from "./services/SystemNotificationService";
-export type SystemNotificationService = _SystemNotificationService;
+import { default as _FileViewerService } from "./services/FileViewerService";
+export type FileViewerService = _FileViewerService;
 
 export { default } from "./App";

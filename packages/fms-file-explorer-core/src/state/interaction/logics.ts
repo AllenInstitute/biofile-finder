@@ -1,5 +1,5 @@
-import * as os from "os";
-import * as path from "path";
+import os from "os";
+import path from "path";
 
 import { isEmpty, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
@@ -23,8 +23,6 @@ import FileSet from "../../entity/FileSet";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import NumericRange from "../../entity/NumericRange";
 import { PersistedDataKeys, PersistentConfigCancellationToken } from "../../services/PersistentConfigService";
-
-const childProcess = require("child_process");
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -134,10 +132,9 @@ const openFilesInImageJ = createLogic({
     async process(deps: ReduxLogicDeps, _, done) {
         const {
             persistentConfigService,
-            systemNotificationService
+            fileViewerService
         } = interactionSelectors.getPlatformDependentServices(deps.getState());
         const allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
-        const imageJExecutable = persistentConfigService.get(PersistedDataKeys.ImageJExecutable);
         
         // Collect the file paths from the selected files
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
@@ -145,31 +142,7 @@ const openFilesInImageJ = createLogic({
         const filePaths = selectedFilesDetails.map((file) => (
             allenMountPoint + path.normalize(file.filePath.substring(6))
         ));
-
-        const reportErrorToUser = async (error: string) => {
-            await systemNotificationService.showErrorMessage("Opening file in ImageJ",
-                `Failure reported while attempting to open files: Files: ${filePaths}, Error: ${error}`);
-        }
-        try {
-            let childProcessArgs: string[];
-            // Create a child process for ImageJ to open files in
-            if (!imageJExecutable && os.platform() === 'darwin') {
-                // On MacOS we can simply supply the name of an app to open it
-                childProcessArgs = [`open -a "ImageJ.app" --args ${filePaths}`];
-            } else {
-                childProcessArgs = [imageJExecutable, filePaths];
-            }
-            const imageJProcess = childProcess.spawn(...childProcessArgs);
-            // Handle unsuccessful startups of ImageJ (these will only be called if explorer is still open)
-            imageJProcess.on("error", reportErrorToUser);
-            imageJProcess.on("exit", async (code: number) => {
-                if (code !== 0) {
-                    await reportErrorToUser(`Status Code ${code}`);
-                }
-            });
-        } catch (error) {
-            await reportErrorToUser(error);
-        }
+        await fileViewerService.openFilesInImageJ(filePaths);
         done();
     },
     async transform(deps: ReduxLogicDeps, next, reject) {
