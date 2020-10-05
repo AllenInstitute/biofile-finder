@@ -19,8 +19,8 @@ const { devServer } = require("../webpack/constants");
 
 function getNpmBinDir() {
     try {
-        const output = childProcess.spawnSync("npm", ["bin"], { encoding: "utf-8" });
-        if (output.stdout.endsWith(os.EOL)) {
+        const output = childProcess.spawnSync("npm", ["bin"], { encoding: "utf-8", shell: process.platform == 'win32' });
+        if (output.stdout.endsWith(os.EOL) || output.stdout.endsWith("\n") ) {
             return output.stdout.slice(0, output.stdout.length - 1);
         }
         return output.stdout;
