@@ -161,15 +161,31 @@ const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotati
 
                     const nodes = filteredValues
                         .sort(naturalComparator)
-                        .map((value, idx) => (
-                            <DirectoryTreeNode
-                                key={`${[...pathToNode, value].join(":")}|${hierarchy.join(":")}`}
-                                ancestorNodes={pathToNode}
-                                currentNode={value}
-                                displayValue={annotationAtDepth?.getDisplayValue(value) || value}
-                                sortOrder={idx}
-                            />
-                        ));
+                        .map((value, idx) => {
+                            let childNodeSortOrder: number;
+                            if (isRoot) {
+                                // First level of folders; use order produced by sort operation.
+                                childNodeSortOrder = idx;
+                            } else {
+                                // Take into account sort order of parent folder(s) if not at first level.
+                                // If at the second level, start to build up a float by separating parent sort
+                                // order from child node order (as produced by sort operation).
+                                // At increased depth of the hierarchy, add significant digits to the float.
+                                // e.g.: 1 -> 1.1 -> 1.13 -> 1.130 -> 1.1304
+                                childNodeSortOrder = Number.isInteger(sortOrder)
+                                    ? Number.parseFloat(`${sortOrder}.${idx}`)
+                                    : Number.parseFloat(`${sortOrder}${idx}`)
+                            }
+                            return (
+                                <DirectoryTreeNode
+                                    key={`${[...pathToNode, value].join(":")}|${hierarchy.join(":")}`}
+                                    ancestorNodes={pathToNode}
+                                    currentNode={value}
+                                    displayValue={annotationAtDepth?.getDisplayValue(value) || value}
+                                    sortOrder={childNodeSortOrder}
+                                />
+                            );
+                        });
 
                     if (!cancel) {
                         dispatch(receiveContent(nodes));
