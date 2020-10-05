@@ -10,9 +10,11 @@ export default class FileViewerServiceElectron implements FileViewerService {
 
     public async openFilesInImageJ(filePaths: string[], imageJExecutable?: string) {
         const reportErrorToUser = async (error: string) => {
-            await this.showErrorMessage("Opening file in ImageJ",
+            await ipcRenderer.invoke(PersistentConfigServiceElectron.SHOW_ERROR_BOX,
+                "Opening file in ImageJ",
                 `Failure reported while attempting to open files: Files: ${filePaths}, Error: ${error}`);
         }
+
         try {
             let imageJProcess: childProcess.ChildProcess;
             // Create a child process for ImageJ to open files in
@@ -32,9 +34,5 @@ export default class FileViewerServiceElectron implements FileViewerService {
         } catch (error) {
             await reportErrorToUser(error);
         }
-    }
-
-    private async showErrorMessage(title: string, content: string) {
-        await ipcRenderer.invoke(PersistentConfigServiceElectron.SHOW_ERROR_BOX, title, content);
     }
 }
