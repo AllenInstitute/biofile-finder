@@ -50,7 +50,7 @@ const selectFile = createLogic({
                 next(setFileSelection(nextFileSelection));
                 return;
             } else {
-                const nextFileSelection = existingFileSelections.select(fileSet, selection, sortOrder, lastTouched);
+                const nextFileSelection = existingFileSelections.select({ fileSet, index: selection, sortOrder, indexToFocus: lastTouched });
                 next(setFileSelection(nextFileSelection));
                 return;
             }
@@ -64,7 +64,7 @@ const selectFile = createLogic({
         }
 
         const nextFileSelection = new FileSelection()
-            .select(fileSet, selection, sortOrder, lastTouched);
+            .select({ fileSet, index: selection, sortOrder, indexToFocus: lastTouched });
         next(setFileSelection(nextFileSelection));
     },
     type: SELECT_FILE,

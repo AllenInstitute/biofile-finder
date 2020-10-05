@@ -23,7 +23,7 @@ import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileD
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection()
-            .select(new FileSet(), new NumericRange(0, 100), 0);
+            .select({ fileSet: new FileSet(), index: new NumericRange(0, 100), sortOrder: 0 });
 
     describe("downloadManifest", () => {
         it("marks the beginning of a manifest download with a status update", async () => {

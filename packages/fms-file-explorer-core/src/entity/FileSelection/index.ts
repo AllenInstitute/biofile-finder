@@ -173,12 +173,13 @@ export default class FileSelection {
      * Defaults to setting currently focused item to index or max(indices) (if index represents a range of indices).
      * Override this default behavior by explicitly providing an `indexToFocus`.
      */
-    public select(fileSet: FileSet, index: NumericRange | number, sortOrder: number, indexToFocus?: number): FileSelection {
-        const indexRange = NumericRange.isNumericRange(index) ? index : new NumericRange(index);
-
-        if (!indexToFocus) {
-            indexToFocus = indexRange.max;
-        }
+    public select(params: { fileSet: FileSet; index: NumericRange | number; sortOrder: number; indexToFocus?: number; }): FileSelection {
+        const indexRange = NumericRange.isNumericRange(params.index) ? params.index : new NumericRange(params.index);
+        const {
+            fileSet,
+            sortOrder,
+            indexToFocus = indexRange.max,
+        } = params;
 
         // if `indexRange` contains already selected file rows, compact
         const compacted = reject(this.selections, (existingSelectionItem) => {
@@ -192,10 +193,13 @@ export default class FileSelection {
         };
 
         const selections = [...compacted, item].sort((a, b) => {
+            // If comparing two SelectionItems that are not from the same list, compare
+            // against their sortOrder field.
             if (!a.fileSet.equals(b.fileSet)) {
                 return a.sortOrder - b.sortOrder;
             }
 
+            // Otherwise, sort items that appear in the same lists in ascending index order.
             return a.selection.min - b.selection.min;
         });
 
