@@ -339,14 +339,4 @@ describe("Interaction logics", () => {
             expect(() => fs.accessSync(tempFilePath)).to.throw();
         });
     });
-
-    describe("openFilesInImageJ", () => {
-        it("Opens files selected", async () => {
-            // TODO
-        });
-
-        it("Rejects empty file selection", async () => {
-            // TODO
-        });
-    });
 });
