@@ -22,7 +22,6 @@ import CsvService from "../../services/CsvService";
 import { CancellationToken } from "../../services/FileDownloadService";
 import FileSet from "../../entity/FileSet";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
-import { FmsFile } from "../../services/FileService";
 import NumericRange from "../../entity/NumericRange";
 import { PersistedDataKeys, PersistentConfigCancellationToken } from "../../services/PersistentConfigService";
 
@@ -141,21 +140,11 @@ const openFilesInImageJ = createLogic({
         const imageJExecutable = persistentConfigService.get(PersistedDataKeys.ImageJExecutable);
         
         // Collect the file paths from the selected files
-        const selectionsByFileSet = selection.selectors.getSelectedFileRangesByFileSet(deps.getState());
-        const filePaths = await Object.keys(selectionsByFileSet).reduce(async (pathsSoFar, fileSetHash) => {
-            const fileSet = defaultFileSetFactory.get(fileSetHash) as FileSet;
-            const ranges = selectionsByFileSet[fileSetHash];
-            const files = await ranges.reduce(async (filesSoFar, range) => {
-                return [
-                    ...(await filesSoFar),
-                    ...(await fileSet.fetchFileRange(range.from, range.to))
-                ];
-            }, [] as unknown as Promise<FmsFile[]>);
-            return [
-                ...(await pathsSoFar),
-                ...files.map(file => allenMountPoint + path.normalize(file.filePath.substring(6)))
-            ];
-        }, [] as unknown as Promise<string[]>);
+        const fileSelection = selection.selectors.getFileSelection(deps.getState());
+        const selectedFilesDetails = await fileSelection.fetchAllDetails();
+        const filePaths = selectedFilesDetails.map((file) => (
+            allenMountPoint + path.normalize(file.filePath.substring(6))
+        ));
 
         const reportErrorToUser = async (error: string) => {
             await systemNotificationService.showErrorMessage("Opening file in ImageJ",

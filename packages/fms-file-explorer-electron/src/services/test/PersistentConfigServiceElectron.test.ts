@@ -126,7 +126,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
             sandbox
                 .stub(ipcRenderer, "invoke")
-                .withArgs(PersistentConfigServiceElectron.SELECT_DIRECTORY)
+                .withArgs(PersistentConfigServiceElectron.SHOW_OPEN_DIALOG)
                 .resolves({
                     filePaths: [tempAllenDrive],
                 });
@@ -145,7 +145,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
             sandbox
                 .stub(ipcRenderer, "invoke")
-                .withArgs(PersistentConfigServiceElectron.SELECT_DIRECTORY)
+                .withArgs(PersistentConfigServiceElectron.SHOW_OPEN_DIALOG)
                 .resolves({
                     canceled: true,
                     filePaths: [],
@@ -164,10 +164,10 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             // Arrange
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
             const stub = sandbox.stub(ipcRenderer, "invoke");
-            stub.withArgs(PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT).onCall(0).resolves({
+            stub.withArgs(PersistentConfigServiceElectron.SHOW_OPEN_DIALOG).onCall(0).resolves({
                 filePaths: ["/some/not/allen/path"],
             });
-            stub.withArgs(PersistentConfigServiceElectron.SELECT_ALLEN_MOUNT_POINT).onCall(1).resolves({
+            stub.withArgs(PersistentConfigServiceElectron.SHOW_OPEN_DIALOG).onCall(1).resolves({
                 filePaths: [tempAllenDrive],
             });
 
@@ -199,7 +199,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
             sandbox
                 .stub(ipcRenderer, "invoke")
-                .withArgs(PersistentConfigServiceElectron.SELECT_DIRECTORY)
+                .withArgs(PersistentConfigServiceElectron.SHOW_OPEN_DIALOG)
                 .resolves({
                     filePaths: [tempImageJPath],
                 });
@@ -218,7 +218,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
             sandbox
                 .stub(ipcRenderer, "invoke")
-                .withArgs(PersistentConfigServiceElectron.SELECT_DIRECTORY)
+                .withArgs(PersistentConfigServiceElectron.SHOW_OPEN_DIALOG)
                 .resolves({
                     canceled: true,
                     filePaths: ["/some/path/to/ImageJ"],
@@ -236,7 +236,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
         it("re-prompts user on invalid Image J path selection", async () => {
             // Arrange
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
-            const selectDirectoryStub = sandbox.stub(ipcRenderer, "invoke").withArgs(PersistentConfigServiceElectron.SELECT_DIRECTORY);
+            const selectDirectoryStub = sandbox.stub(ipcRenderer, "invoke").withArgs(PersistentConfigServiceElectron.SHOW_OPEN_DIALOG);
             selectDirectoryStub.onCall(0).resolves({
                     filePaths: ["/some/path/to/ImageJ"],
                 });

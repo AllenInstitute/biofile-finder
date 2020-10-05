@@ -44,7 +44,7 @@ interface PersistentConfigServiceElectronOptions {
 export default class PersistentConfigServiceElectron implements PersistentConfigService {
     public static SET_ALLEN_MOUNT_POINT = "set-allen-mount-point";
     public static SET_IMAGE_J_LOCATION = "set-image-j-location";
-    public static SELECT_DIRECTORY = "select-directory";
+    public static SHOW_OPEN_DIALOG = "show-open-dialog";
     private store: Store;
 
     private static async isAllenPathValid(allenPath: string): Promise<boolean> {
@@ -74,12 +74,11 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     }
 
     public static registerIpcHandlers() {
-        // Handle opening a native file browser dialog for selecting a directory
-        ipcMain.handle(PersistentConfigServiceElectron.SELECT_DIRECTORY, (_, dialogOptions: Electron.OpenDialogOptions) => {
+        // Handle opening a native file browser dialog
+        ipcMain.handle(PersistentConfigServiceElectron.SHOW_OPEN_DIALOG, (_, dialogOptions: Electron.OpenDialogOptions) => {
             return dialog.showOpenDialog({
                 defaultPath: path.resolve("/"),
                 buttonLabel: "Select",
-                properties: ["openFile"],
                 ...dialogOptions
             });
         });
@@ -96,7 +95,8 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     public async setAllenMountPoint(): Promise<string> {
         // Continuously try to set a valid allen drive mount point unless the user cancels
         while (true) {
-            const allenPath = await this.selectDirectory({
+            const allenPath = await this.selectPath({
+                properties: ["openDirectory"],
                 title: "Select Allen drive point point",
             });
             if (allenPath === PersistentConfigCancellationToken) {
@@ -126,8 +126,9 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
             } else if (os.platform() === 'win32') { // Windows
                 extensionForOs = 'exe';
             }
-            const imageJExecutable = await this.selectDirectory({
+            const imageJExecutable = await this.selectPath({
                 filters: [{ name: "Executable", extensions: [extensionForOs]}],
+                properties: ["openFile"],
                 title: "Select Image J executable location",
             });
             if (imageJExecutable === PersistentConfigCancellationToken) {
@@ -149,9 +150,10 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
         }
     }
 
-    private async selectDirectory(dialogOptions: Electron.OpenDialogOptions): Promise<string> {
+    // Prompts user using native file browser for a file path
+    private async selectPath(dialogOptions: Electron.OpenDialogOptions): Promise<string> {
         const result = await ipcRenderer.invoke(
-            PersistentConfigServiceElectron.SELECT_DIRECTORY,
+            PersistentConfigServiceElectron.SHOW_OPEN_DIALOG,
             dialogOptions
         );
         if (result.canceled || !result.filePaths.length) {

@@ -122,6 +122,33 @@ export default class FileSelection {
     }
 
     /**
+     * Fetch metadata for all items selected.
+     */
+    public async fetchAllDetails(): Promise<FmsFile[]> {
+        const fileRangesByFileSets = this.groupByFileSet();
+        // Load file metadata for every file selected (however do to some performance enhancements
+        // the fetch will overshoot)
+        const fileRangePromises: Promise<FmsFile[]>[] = [];
+        fileRangesByFileSets.forEach((ranges, fileSet) => {
+            ranges.forEach((range) => {
+                fileRangePromises.push(fileSet.fetchFileRange(range.from, range.to));
+            });
+        });
+        await Promise.all(fileRangePromises);
+        
+        // Collect the desired files from the fetched files
+        const files: FmsFile[] = [];
+        fileRangesByFileSets.forEach((ranges, fileSet) => {
+            ranges.forEach((range) => {
+                for (let i = range.from; i <= range.to; i++) {
+                    files.push(fileSet.getFileByIndex(i) as FmsFile);
+                }
+            });
+        });
+        return files;
+    }
+
+    /**
      * Return a new FileSelection instance with the given index (or range of indices) within given FileSet.
      * Defaults to setting currently focused item to index or max(indices) (if index represents a range of indices).
      * Override this default behavior by explicitly providing an `indexToFocus`.
