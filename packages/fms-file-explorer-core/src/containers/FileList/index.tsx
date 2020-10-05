@@ -63,6 +63,11 @@ export default function FileList(props: FileListProps) {
 
     const listRef = React.useRef<FixedSizeList | null>(null);
     const outerRef = React.useRef<HTMLDivElement | null>(null);
+
+    // This hook is responsible for ensuring that if the details pane is currently showing a file row
+    // within this FileList, that a) this FileList is visible, and b) the file row shown in the details
+    // pane is visible. This will only work if the FileList is mounted (i.e., the DirectoryTreeNode this
+    // FileList is a child of is expanded).
     React.useEffect(() => {
         const fileSetIsFocused = fileSelection.isFocused(fileSet);
 
