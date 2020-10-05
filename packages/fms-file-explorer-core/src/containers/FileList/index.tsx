@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import * as debouncePromise from "debounce-promise";
+import debouncePromise from "debounce-promise";
 import { defaults, isFunction } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
