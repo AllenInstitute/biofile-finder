@@ -18,11 +18,15 @@ import * as directoryTreeSelectors from "./selectors";
 import { interaction, metadata, selection } from "../../state";
 import { naturalComparator } from "../../util/strings";
 
-interface UseDirectoryHierarchy {
-    (params: { ancestorNodes?: string[]; currentNode?: string; collapsed: boolean }): {
-        isLeaf: boolean;
-        state: State;
-    };
+interface UseDirectoryHierarchyParams {
+    ancestorNodes?: string[];
+    currentNode?: string;
+    collapsed: boolean
+}
+
+interface UseAnnotationHierarchyReturnValue {
+    isLeaf: boolean;
+    state: State;
 }
 
 export const ROOT_NODE = "root_node_sentinal_value";
@@ -36,7 +40,7 @@ const DEFAULTS = {
  * React hook to encapsulate all logic for constructing the directory hierarchy at a given depth
  * and path. Responsible for fetching any data required to do so.
  */
-const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
+const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotationHierarchyReturnValue => {
     const { ancestorNodes, currentNode, collapsed } = defaults({}, params, DEFAULTS);
     const annotations = useSelector(metadata.selectors.getAnnotations);
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
