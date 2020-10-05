@@ -34,9 +34,10 @@ const selectFile = createLogic({
         const {
             payload: {
                 fileSet,
-                selection,
-                updateExistingSelection,
                 lastTouched,
+                selection,
+                sortOrder,
+                updateExistingSelection,
             }
         } = deps.action as SelectFileAction;
         const existingFileSelections = selectionSelectors.getFileSelection(
@@ -49,7 +50,7 @@ const selectFile = createLogic({
                 next(setFileSelection(nextFileSelection));
                 return;
             } else {
-                const nextFileSelection = existingFileSelections.select(fileSet, selection, lastTouched);
+                const nextFileSelection = existingFileSelections.select(fileSet, selection, sortOrder, lastTouched);
                 next(setFileSelection(nextFileSelection));
                 return;
             }
@@ -63,7 +64,7 @@ const selectFile = createLogic({
         }
 
         const nextFileSelection = new FileSelection()
-            .select(fileSet, selection, lastTouched);
+            .select(fileSet, selection, sortOrder, lastTouched);
         next(setFileSelection(nextFileSelection));
     },
     type: SELECT_FILE,

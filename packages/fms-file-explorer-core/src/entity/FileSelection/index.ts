@@ -28,6 +28,7 @@ export enum FocusDirective {
 interface SelectionItem {
     fileSet: FileSet;
     selection: NumericRange;
+    sortOrder: number;
 }
 
 /**
@@ -172,7 +173,7 @@ export default class FileSelection {
      * Defaults to setting currently focused item to index or max(indices) (if index represents a range of indices).
      * Override this default behavior by explicitly providing an `indexToFocus`.
      */
-    public select(fileSet: FileSet, index: NumericRange | number, indexToFocus?: number): FileSelection {
+    public select(fileSet: FileSet, index: NumericRange | number, sortOrder: number, indexToFocus?: number): FileSelection {
         const indexRange = NumericRange.isNumericRange(index) ? index : new NumericRange(index);
 
         if (!indexToFocus) {
@@ -187,11 +188,12 @@ export default class FileSelection {
         const item: SelectionItem = {
             fileSet,
             selection: indexRange,
+            sortOrder,
         };
 
         const selections = [...compacted, item].sort((a, b) => {
             if (!a.fileSet.equals(b.fileSet)) {
-                return 0;
+                return a.sortOrder - b.sortOrder;
             }
 
             return a.selection.min - b.selection.min;
@@ -232,8 +234,9 @@ export default class FileSelection {
                 return {
                     fileSet,
                     selection,
+                    sortOrder: item.sortOrder,
                 };
-            })
+            });
             nextSelections.splice(indexOfItemContainingSelection, 1, ...nextItems);
         }
 
@@ -323,6 +326,7 @@ export default class FileSelection {
         const nextFocusedItem = {
             fileSet: itemToFocus.fileSet,
             selection: itemToFocus.selection,
+            sortOrder: itemToFocus.sortOrder,
             indexWithinFileSet: itemToFocus.selection.min + (indexAcrossAllSelections - relativeStartIndexForItem),
             indexAcrossAllSelections,
         };
@@ -351,6 +355,7 @@ export default class FileSelection {
         const nextFocusedItem = {
             fileSet,
             selection: item.selection,
+            sortOrder: item.sortOrder,
             indexWithinFileSet,
             indexAcrossAllSelections: relativeStartIndexForItem + (indexWithinFileSet - item.selection.min),
         };
