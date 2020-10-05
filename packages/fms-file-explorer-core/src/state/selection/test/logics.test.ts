@@ -47,7 +47,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(fileSet1, 5));
+            store.dispatch(selectFile({ fileSet: fileSet1, selection: 5, sortOrder: 0 }));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -73,7 +73,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(fileSet1, 14, true));
+            store.dispatch(selectFile({ fileSet: fileSet1, selection: 14, sortOrder: 0, updateExistingSelection: true }));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -102,7 +102,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(fileSet1, new NumericRange(20, 100), true));
+            store.dispatch(selectFile({ fileSet: fileSet1, selection :new NumericRange(20, 100), sortOrder: 0, updateExistingSelection: true }));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -132,7 +132,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(fileSet1, 12, true));
+            store.dispatch(selectFile({ fileSet: fileSet1, selection: 12, sortOrder: 0, updateExistingSelection: true }));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -161,7 +161,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(fileSet1, 12));
+            store.dispatch(selectFile({ fileSet: fileSet1, selection: 12, sortOrder: 0 }));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -188,7 +188,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(fileSet1, 12));
+            store.dispatch(selectFile({ fileSet: fileSet1, selection: 12, sortOrder: 0 }));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -217,7 +217,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(fileSet2, new NumericRange(22, 35), true));
+            store.dispatch(selectFile({ fileSet: fileSet2, selection: new NumericRange(22, 35), sortOrder: 0, updateExistingSelection: true }));
             await logicMiddleware.whenComplete();
 
             // assert

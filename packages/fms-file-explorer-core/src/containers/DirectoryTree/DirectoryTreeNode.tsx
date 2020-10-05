@@ -13,6 +13,7 @@ interface DirectoryTreeNodeProps {
     ancestorNodes: string[];
     currentNode: string; // the "directory name" to present
     displayValue: string;
+    sortOrder: number;
 }
 
 const ICON_SIZE = 15; // in px; both width and height
@@ -23,7 +24,7 @@ const ICON_SIZE = 15; // in px; both width and height
  * will render a FileList showing the set of files that match the filters at this path in the hierarchy.
  */
 export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
-    const { ancestorNodes, currentNode, displayValue } = props;
+    const { ancestorNodes, currentNode, displayValue, sortOrder } = props;
     const dispatch = useDispatch();
     const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
     const fileFolderPath = [...ancestorNodes, currentNode];
@@ -32,7 +33,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const {
         isLeaf,
         state: { content, error, isLoading },
-    } = useDirectoryHierarchy({ ancestorNodes, currentNode, collapsed });
+    } = useDirectoryHierarchy({ ancestorNodes, currentNode, collapsed, sortOrder });
     return (
         <li
             className={styles.treeNodeContainer}

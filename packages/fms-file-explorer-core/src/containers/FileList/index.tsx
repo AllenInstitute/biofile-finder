@@ -26,8 +26,9 @@ interface FileListProps {
     className?: string;
     fileSet: FileSet;
     isRoot: boolean;
-    totalCount?: number;
     rowHeight?: number; // how tall each row of the list will be, in px
+    sortOrder: number;
+    totalCount?: number;
 }
 
 const DEFAULTS = {
@@ -42,9 +43,9 @@ const MAX_NON_ROOT_HEIGHT = 300;
  * itself out to be 100% the height and width of its parent.
  */
 export default function FileList(props: FileListProps) {
-    const { className, fileSet, isRoot, rowHeight, totalCount } = defaults({}, props, DEFAULTS);
+    const { className, fileSet, isRoot, rowHeight, sortOrder, totalCount } = defaults({}, props, DEFAULTS);
 
-    const onSelect = useFileSelector(fileSet);
+    const onSelect = useFileSelector(fileSet, sortOrder);
     const dispatch = useDispatch();
     const fileSelection = useSelector(
         selection.selectors.getFileSelection

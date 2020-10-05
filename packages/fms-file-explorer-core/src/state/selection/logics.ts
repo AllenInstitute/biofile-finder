@@ -33,7 +33,7 @@ const selectFile = createLogic({
         const { getState } = deps;
         const {
             payload: {
-                correspondingFileSet,
+                fileSet,
                 selection,
                 updateExistingSelection,
                 lastTouched,
@@ -44,12 +44,12 @@ const selectFile = createLogic({
         );
 
         if (updateExistingSelection) {
-            if (existingFileSelections.isSelected(correspondingFileSet, selection)) {
-                const nextFileSelection = existingFileSelections.deselect(correspondingFileSet, selection);
+            if (existingFileSelections.isSelected(fileSet, selection)) {
+                const nextFileSelection = existingFileSelections.deselect(fileSet, selection);
                 next(setFileSelection(nextFileSelection));
                 return;
             } else {
-                const nextFileSelection = existingFileSelections.select(correspondingFileSet, selection, lastTouched);
+                const nextFileSelection = existingFileSelections.select(fileSet, selection, lastTouched);
                 next(setFileSelection(nextFileSelection));
                 return;
             }
@@ -57,13 +57,13 @@ const selectFile = createLogic({
 
         // special case: fast path for deselecting a file if it is the only one selected
         // (no need to have held down keyboard modifier)
-        if (existingFileSelections.size() === 1 && existingFileSelections.isSelected(correspondingFileSet, selection)) {
+        if (existingFileSelections.size() === 1 && existingFileSelections.isSelected(fileSet, selection)) {
             next(setFileSelection(new FileSelection()));
             return;
         }
 
         const nextFileSelection = new FileSelection()
-            .select(correspondingFileSet, selection, lastTouched);
+            .select(fileSet, selection, lastTouched);
         next(setFileSelection(nextFileSelection));
     },
     type: SELECT_FILE,

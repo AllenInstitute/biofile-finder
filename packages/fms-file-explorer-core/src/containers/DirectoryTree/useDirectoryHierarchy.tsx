@@ -18,13 +18,14 @@ import * as directoryTreeSelectors from "./selectors";
 import { interaction, metadata, selection } from "../../state";
 import { naturalComparator } from "../../util/strings";
 
-interface UseDirectoryHierarchyParams {
+export interface UseDirectoryHierarchyParams {
     ancestorNodes?: string[];
     currentNode?: string;
-    collapsed: boolean
+    collapsed: boolean;
+    sortOrder: number;
 }
 
-interface UseAnnotationHierarchyReturnValue {
+export interface UseAnnotationHierarchyReturnValue {
     isLeaf: boolean;
     state: State;
 }
@@ -41,7 +42,7 @@ const DEFAULTS = {
  * and path. Responsible for fetching any data required to do so.
  */
 const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotationHierarchyReturnValue => {
-    const { ancestorNodes, currentNode, collapsed } = defaults({}, params, DEFAULTS);
+    const { ancestorNodes, currentNode, collapsed, sortOrder } = defaults({}, params, DEFAULTS);
     const annotations = useSelector(metadata.selectors.getAnnotations);
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
@@ -111,6 +112,7 @@ const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotati
                                 <FileList
                                     fileSet={fileSet}
                                     isRoot={isRoot}
+                                    sortOrder={sortOrder}
                                     totalCount={totalCount}
                                 />
                             )
@@ -159,12 +161,13 @@ const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotati
 
                     const nodes = filteredValues
                         .sort(naturalComparator)
-                        .map((value) => (
+                        .map((value, idx) => (
                             <DirectoryTreeNode
                                 key={`${[...pathToNode, value].join(":")}|${hierarchy.join(":")}`}
                                 ancestorNodes={pathToNode}
                                 currentNode={value}
                                 displayValue={annotationAtDepth?.getDisplayValue(value) || value}
+                                sortOrder={idx}
                             />
                         ));
 

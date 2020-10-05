@@ -7,7 +7,7 @@ import { Provider } from "react-redux";
 import { Store, AnyAction } from "redux";
 import { createSandbox, SinonSpy } from "sinon";
 
-import useDirectoryHierarchy from "../useDirectoryHierarchy";
+import useDirectoryHierarchy, { UseDirectoryHierarchyParams } from "../useDirectoryHierarchy";
 import { State } from "../directory-hierarchy-state";
 import FileFilter from "../../../entity/FileFilter";
 import FileService from "../../../services/FileService";
@@ -16,7 +16,7 @@ import Annotation from "../../../entity/Annotation";
 
 function useDirectoryHierarchyMock(
     store: Store<any, AnyAction>,
-    params: { ancestorNodes?: string[]; currentNode?: string; collapsed: boolean }
+    params: UseDirectoryHierarchyParams
 ) {
     const returnVal: { isLeaf: boolean; state: State } | {} = {};
     function TestComponent() {
@@ -83,7 +83,7 @@ describe("useDirectoryHierarchy", () => {
             });
 
             // Act
-            useDirectoryHierarchyMock(store, { collapsed: false, currentNode: "AICS-7" });
+            useDirectoryHierarchyMock(store, { collapsed: false, currentNode: "AICS-7", sortOrder: 0 });
 
             // Assert
             expect(spiedFileQuery.called).to.be.true;
@@ -116,7 +116,7 @@ describe("useDirectoryHierarchy", () => {
             });
 
             // Act
-            useDirectoryHierarchyMock(store, { collapsed: false });
+            useDirectoryHierarchyMock(store, { collapsed: false, sortOrder: 0 });
 
             // Assert
             expect(spiedFileQuery.called).to.be.true;
