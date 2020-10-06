@@ -1,4 +1,4 @@
-import { defaults, isEmpty, find, pull, uniqWith, zip } from "lodash";
+import { defaults, isEmpty, find, pull, take, uniqWith, zip } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -147,8 +147,8 @@ const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotati
 
                             const pathToChildNode = [...pathToNode, value];
                             const hierarchyFilters: FileFilter[] = zip<string, string>(
-                                hierarchy,
-                                pathToChildNode
+                                take(hierarchy, depth + 1),
+                                take(pathToChildNode, depth + 1)
                             ).map((pair) => {
                                 const [name, value] = pair as [string, string];
                                 return new FileFilter(name, value);
@@ -219,6 +219,7 @@ const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotati
         currentNode,
         collapsed,
         fileService,
+        fileSet,
         hierarchy,
         isRoot,
         isLeaf,
