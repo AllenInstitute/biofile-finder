@@ -6,7 +6,7 @@ export default interface FileViewerService {
      * Opens the given files in ImageJ
      * 
      * @param filePaths The paths to the files to open
-     * @param imageJExecutable Path to ImageJ executable to run commands against. Optional if OS is MacOS.
+     * @param imageJExecutable Path to ImageJ executable to run commands against.
      */
-    openFilesInImageJ(filePaths: string[], imageJExecutable?: string): Promise<void>;
+    openFilesInImageJ(filePaths: string[], imageJExecutable: string): Promise<void>;
 }
