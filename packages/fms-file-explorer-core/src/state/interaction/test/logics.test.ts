@@ -10,6 +10,7 @@ import {
     REMOVE_STATUS,
     SET_STATUS,
     cancelManifestDownload,
+    openFilesInImageJ
 } from "../actions";
 import interactionLogics from "../logics";
 import { initialState, interaction, selection } from "../..";
@@ -20,6 +21,8 @@ import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
+import { FileViewerService, PersistentConfigService } from "../../..";
+import { PersistedDataKeys, PersistentConfigCancellationToken } from "../../../services/PersistentConfigService";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection()
@@ -337,6 +340,180 @@ describe("Interaction logics", () => {
 
             // assert
             expect(() => fs.accessSync(tempFilePath)).to.throw();
+        });
+    });
+
+    describe("openFilesInImageJ", () => {
+        const baseUrl = "test";
+        const sandbox = createSandbox();
+        const files = [];
+        for (let i = 0; i <= fileSelection.size(); i++) {
+            files.push({ filePath: "a" });
+        }
+        const responseStub = {
+            when: `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=101`,
+            respondWith: {
+                data: { data: files },
+            },
+        };
+        const mockHttpClient = createMockHttpClient(responseStub);
+        const fileService = new FileService({
+            baseUrl,
+            httpClient: mockHttpClient,
+        });
+
+        before(() => {
+            sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
+        });
+
+        afterEach(() => {
+            sandbox.resetHistory();
+        });
+
+        after(() => {
+            sandbox.restore();
+        });
+
+        it("attempts to open selected files", async () => {
+            // Arrange
+            const expectedExecutablePath: string = ""
+            let actualFilePaths: string[] | undefined = undefined;
+            let actualExecutablePath: string | undefined = undefined;
+            class UselessFileViewerService implements FileViewerService {
+                openFilesInImageJ(filePaths: string[], imageJExecutable?: string) {
+                    actualFilePaths = filePaths;
+                    actualExecutablePath = imageJExecutable;
+                    return Promise.resolve();
+                }
+            }
+            class UselessPersistentConfigService implements PersistentConfigService {
+                get(key: PersistedDataKeys) {
+                    if (key === PersistedDataKeys.AllenMountPoint) {
+                        return "some/test/path";
+                    } else if (key === PersistedDataKeys.ImageJExecutable) {
+                        return expectedExecutablePath;
+                    }
+                    return undefined;
+                }
+                set() {
+                    return;
+                }
+                setAllenMountPoint() {
+                    return Promise.reject("test");
+                }
+                setImageJExecutableLocation() {
+                    return Promise.reject("test");
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    fileExplorerServiceBaseUrl: baseUrl,
+                    platformDependentServices: {
+                        fileViewerService: new UselessFileViewerService(),
+                        persistentConfigService: new UselessPersistentConfigService(),
+                    },
+                },
+                selection: {
+                    fileSelection,
+                },
+            });
+            const { store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(openFilesInImageJ());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actualFilePaths).to.be.lengthOf(fileSelection.size());
+            expect(actualExecutablePath).to.be.equal(expectedExecutablePath);
+        });
+
+        it("prevents prompting to select Image J executable when user cancels selecting mount point", async () => {
+            // Arrange
+            let attemptedToSetImageJ = false;
+            class UselessPersistentConfigService implements PersistentConfigService {
+                get() {
+                    return undefined;
+                }
+                set() {
+                    return;
+                }
+                setAllenMountPoint() {
+                    return Promise.resolve(PersistentConfigCancellationToken);
+                }
+                setImageJExecutableLocation() {
+                    attemptedToSetImageJ = true;
+                    return Promise.reject("test");
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        persistentConfigService: new UselessPersistentConfigService(),
+                    },
+                },
+            });
+            const { store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(openFilesInImageJ());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(attemptedToSetImageJ).to.be.false;
+        });
+
+        it("prevents opening selecting files when user cancels selecting image J executable", async () => {
+            // Arrange
+            let attemptedToOpenFiles = false;
+            class UselessFileViewerService implements FileViewerService {
+                openFilesInImageJ() {
+                    attemptedToOpenFiles = true;
+                    return Promise.resolve();
+                }
+            }
+            class UselessPersistentConfigService implements PersistentConfigService {
+                get(key: PersistedDataKeys) {
+                    if (key === PersistedDataKeys.AllenMountPoint) {
+                        return "something/test";
+                    }
+                    return undefined;
+                }
+                set() {
+                    return;
+                }
+                setAllenMountPoint() {
+                    return Promise.reject("test");
+                }
+                setImageJExecutableLocation() {
+                    return Promise.resolve(PersistentConfigCancellationToken);
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileViewerService: new UselessFileViewerService(),
+                        persistentConfigService: new UselessPersistentConfigService(),
+                    },
+                },
+            });
+            const { store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(openFilesInImageJ());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(attemptedToOpenFiles).to.be.false;
         });
     });
 });
