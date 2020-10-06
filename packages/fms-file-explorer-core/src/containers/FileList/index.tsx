@@ -85,11 +85,9 @@ export default function FileList(props: FileListProps) {
                 const focusedItemBottom = focusedItemTop + rowHeight;
                 const headerHeight = 40; // px; defined in Header.module.css; stickily sits on top of the list
                 const visibleArea = height - headerHeight;
-                const focusedItemIsVisible = () => {
-                    return focusedItemTop >= listScrollTop && focusedItemBottom <= (listScrollTop + visibleArea);
-                }
+                const focusedItemIsVisible = focusedItemTop >= listScrollTop && focusedItemBottom <= (listScrollTop + visibleArea);
 
-                if (!focusedItemIsVisible()) {
+                if (!focusedItemIsVisible) {
                     const centerOfFocusedItem = focusedItemTop + (rowHeight / 2);
                     const centeredWithinVisibleArea = Math.floor(centerOfFocusedItem - (visibleArea / 2));
                     listRef.current.scrollTo(Math.max(0, centeredWithinVisibleArea));
