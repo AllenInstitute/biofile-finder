@@ -344,12 +344,15 @@ describe("Interaction logics", () => {
     });
 
     describe("openFilesInImageJ", () => {
-        const baseUrl = "test";
-        const sandbox = createSandbox();
         const files = [];
-        for (let i = 0; i <= fileSelection.size(); i++) {
-            files.push({ filePath: "a" });
+        const filePaths: string[] = [];
+        const expectedAllenDrive = "/some/test/path/to/fakeAllen"
+        for (let i = 0; i <= 100; i++) {
+            const filePath = "/fakeFile" + i;
+            files.push({ filePath: "/allen" + filePath });
+            filePaths.push(expectedAllenDrive + filePath);
         }
+        const baseUrl = "test";
         const responseStub = {
             when: `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=101`,
             respondWith: {
@@ -362,20 +365,10 @@ describe("Interaction logics", () => {
             httpClient: mockHttpClient,
         });
 
-        before(() => {
-            sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
-        });
-
-        afterEach(() => {
-            sandbox.resetHistory();
-        });
-
-        after(() => {
-            sandbox.restore();
-        });
-
         it("attempts to open selected files", async () => {
             // Arrange
+            const fakeSelection = new FileSelection()
+                .select(new FileSet({ fileService }), new NumericRange(0, 100));
             const expectedExecutablePath: string = ""
             let actualFilePaths: string[] | undefined = undefined;
             let actualExecutablePath: string | undefined = undefined;
@@ -389,7 +382,7 @@ describe("Interaction logics", () => {
             class UselessPersistentConfigService implements PersistentConfigService {
                 get(key: PersistedDataKeys) {
                     if (key === PersistedDataKeys.AllenMountPoint) {
-                        return "some/test/path";
+                        return expectedAllenDrive;
                     } else if (key === PersistedDataKeys.ImageJExecutable) {
                         return expectedExecutablePath;
                     }
@@ -399,22 +392,21 @@ describe("Interaction logics", () => {
                     return;
                 }
                 setAllenMountPoint() {
-                    return Promise.reject("test");
+                    return Promise.resolve("test");
                 }
                 setImageJExecutableLocation() {
-                    return Promise.reject("test");
+                    return Promise.resolve("test");
                 }
             }
             const state = mergeState(initialState, {
                 interaction: {
-                    fileExplorerServiceBaseUrl: baseUrl,
                     platformDependentServices: {
                         fileViewerService: new UselessFileViewerService(),
                         persistentConfigService: new UselessPersistentConfigService(),
                     },
                 },
                 selection: {
-                    fileSelection,
+                    fileSelection: fakeSelection,
                 },
             });
             const { store, logicMiddleware } = configureMockStore({
@@ -427,7 +419,7 @@ describe("Interaction logics", () => {
             await logicMiddleware.whenComplete();
 
             // Assert
-            expect(actualFilePaths).to.be.lengthOf(fileSelection.size());
+            expect(actualFilePaths).to.be.deep.equal(filePaths);
             expect(actualExecutablePath).to.be.equal(expectedExecutablePath);
         });
 
