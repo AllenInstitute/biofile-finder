@@ -369,7 +369,7 @@ describe("Interaction logics", () => {
             // Arrange
             const fakeSelection = new FileSelection()
                 .select(new FileSet({ fileService }), new NumericRange(0, 100));
-            const expectedExecutablePath: string = ""
+            const expectedExecutablePath = ""
             let actualFilePaths: string[] | undefined = undefined;
             let actualExecutablePath: string | undefined = undefined;
             class UselessFileViewerService implements FileViewerService {
