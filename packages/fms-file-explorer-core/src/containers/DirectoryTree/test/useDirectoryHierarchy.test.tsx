@@ -13,6 +13,7 @@ import FileFilter from "../../../entity/FileFilter";
 import FileService from "../../../services/FileService";
 import { initialState, interaction } from "../../../state";
 import Annotation from "../../../entity/Annotation";
+import FileSet from "../../../entity/FileSet";
 
 function useDirectoryHierarchyMock(
     store: Store<any, AnyAction>,
@@ -69,6 +70,10 @@ describe("useDirectoryHierarchy", () => {
                 new FileFilter(cellLineAnnotation.name, "AICS-12"),
                 new FileFilter("Notes", "Hello"),
             ];
+            const fileSet = new FileSet({
+                filters,
+                fileService,
+            });
             const state = mergeState(initialState, {
                 interaction: {
                     fileExplorerServiceBaseUrl: baseUrl,
@@ -83,7 +88,7 @@ describe("useDirectoryHierarchy", () => {
             });
 
             // Act
-            useDirectoryHierarchyMock(store, { collapsed: false, currentNode: "AICS-7", sortOrder: 0 });
+            useDirectoryHierarchyMock(store, { collapsed: false, currentNode: "AICS-7", fileSet, sortOrder: 0 });
 
             // Assert
             expect(spiedFileQuery.called).to.be.true;
@@ -102,6 +107,10 @@ describe("useDirectoryHierarchy", () => {
                 new FileFilter(cellLineAnnotation.name, "AICS-12"),
                 new FileFilter(cellLineAnnotation.name, "AICS-8"),
             ];
+            const fileSet = new FileSet({
+                filters,
+                fileService,
+            });
             const state = mergeState(initialState, {
                 interaction: {
                     fileExplorerServiceBaseUrl: baseUrl,
@@ -116,7 +125,7 @@ describe("useDirectoryHierarchy", () => {
             });
 
             // Act
-            useDirectoryHierarchyMock(store, { collapsed: false, sortOrder: 0 });
+            useDirectoryHierarchyMock(store, { collapsed: false, fileSet, sortOrder: 0 });
 
             // Assert
             expect(spiedFileQuery.called).to.be.true;
