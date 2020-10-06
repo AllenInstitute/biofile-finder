@@ -79,23 +79,21 @@ export default function FileList(props: FileListProps) {
         // Ensure the currently focused item within this list is scrolled into view
         if (listRef.current && outerRef.current && fileSetIsFocused) {
             const { indexWithinFileSet } = fileSelection.getFocusedItemIndices();
-            if (indexWithinFileSet === undefined) {
-                return;
-            }
+            if (indexWithinFileSet !== undefined) {
+                const listScrollTop = outerRef.current.scrollTop;
+                const focusedItemTop = indexWithinFileSet * rowHeight;
+                const focusedItemBottom = focusedItemTop + rowHeight;
+                const headerHeight = 40; // px; defined in Header.module.css; stickily sits on top of the list
+                const visibleArea = height - headerHeight;
+                const focusedItemIsVisible = () => {
+                    return focusedItemTop >= listScrollTop && focusedItemBottom <= (listScrollTop + visibleArea);
+                }
 
-            const listScrollTop = outerRef.current.scrollTop;
-            const focusedItemTop = indexWithinFileSet * rowHeight;
-            const focusedItemBottom = focusedItemTop + rowHeight;
-            const headerHeight = 40; // px; defined in Header.module.css; stickily sits on top of the list
-            const visibleArea = height - headerHeight;
-            const focusedItemIsVisible = () => {
-                return focusedItemTop >= listScrollTop && focusedItemBottom <= (listScrollTop + visibleArea);
-            }
-
-            if (!focusedItemIsVisible()) {
-                const centerOfFocusedItem = focusedItemTop + (rowHeight / 2);
-                const centeredWithinVisibleArea = Math.floor(centerOfFocusedItem - (visibleArea / 2));
-                listRef.current.scrollTo(Math.max(0, centeredWithinVisibleArea));
+                if (!focusedItemIsVisible()) {
+                    const centerOfFocusedItem = focusedItemTop + (rowHeight / 2);
+                    const centeredWithinVisibleArea = Math.floor(centerOfFocusedItem - (visibleArea / 2));
+                    listRef.current.scrollTo(Math.max(0, centeredWithinVisibleArea));
+                }
             }
         }
     }, [fileSelection, fileSet, height, rowHeight, measuredNodeRef]);
