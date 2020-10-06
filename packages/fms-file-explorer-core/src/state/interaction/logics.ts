@@ -1,4 +1,3 @@
-import os from "os";
 import path from "path";
 
 import { isEmpty, uniqueId } from "lodash";
@@ -155,9 +154,7 @@ const openFilesInImageJ = createLogic({
         if (!allenMountPoint) {
             allenMountPoint = await persistentConfigService.setAllenMountPoint();
         }
-        // If the user didn't already cancel via the Allen Drive selection & isn't on a Mac, make sure we have
-        // an ImageJ executable path
-        if (!imageJExecutable && allenMountPoint !== PersistentConfigCancellationToken && os.platform() !== 'darwin') {
+        if (!imageJExecutable && allenMountPoint !== PersistentConfigCancellationToken) {
             imageJExecutable = await persistentConfigService.setImageJExecutableLocation();
         }
 

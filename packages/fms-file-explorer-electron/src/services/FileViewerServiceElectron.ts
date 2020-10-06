@@ -8,7 +8,7 @@ import { FileViewerService } from "@aics/fms-file-explorer-core";
 
 export default class FileViewerServiceElectron implements FileViewerService {
 
-    public async openFilesInImageJ(filePaths: string[], imageJExecutable?: string) {
+    public async openFilesInImageJ(filePaths: string[], imageJExecutable: string) {
         const reportErrorToUser = async (error: string) => {
             await ipcRenderer.invoke(PersistentConfigServiceElectron.SHOW_ERROR_BOX,
                 "Opening file in ImageJ",
@@ -16,14 +16,8 @@ export default class FileViewerServiceElectron implements FileViewerService {
         }
 
         try {
-            let imageJProcess: childProcess.ChildProcess;
             // Create a child process for ImageJ to open files in
-            if (imageJExecutable) {
-                imageJProcess =  childProcess.spawn(imageJExecutable, filePaths);
-            } else {
-                // On MacOS we can simply supply the name of an app to open it
-                imageJProcess =  childProcess.spawn('open', ['-a', '"Fiji.app"', '--args', filePaths.map(path => `"${path}"`).join(',')]);
-            }
+            const imageJProcess = childProcess.spawn(imageJExecutable, filePaths);
             // Handle unsuccessful startups of ImageJ (these will only be called if explorer is still open)
             imageJProcess.on("error", reportErrorToUser);
             imageJProcess.on("exit", async (code: number) => {
