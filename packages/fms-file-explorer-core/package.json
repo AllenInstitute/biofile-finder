@@ -81,6 +81,7 @@
     "eslint-plugin-react-hooks": "2.2.x",
     "jsdom": "16.4.x",
     "mocha": "8.1.x",
+    "mock-raf": "1.0.x",
     "npm-run-all": "4.1.x",
     "postcss-cli": "6.1.x",
     "rimraf": "3.0.x",
