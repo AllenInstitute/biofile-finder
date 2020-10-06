@@ -22,7 +22,7 @@ export default class FileViewerServiceElectron implements FileViewerService {
                 imageJProcess =  childProcess.spawn(imageJExecutable, filePaths);
             } else {
                 // On MacOS we can simply supply the name of an app to open it
-                imageJProcess =  childProcess.spawn(`open -a "Fiji.app" --args ${filePaths}`);
+                imageJProcess =  childProcess.spawn(`open -a "Fiji.app" --args ${filePaths.map(path => `"${path}"`).join(',')}`);
             }
             // Handle unsuccessful startups of ImageJ (these will only be called if explorer is still open)
             imageJProcess.on("error", reportErrorToUser);
