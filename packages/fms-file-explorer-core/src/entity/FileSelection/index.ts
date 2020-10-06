@@ -28,7 +28,7 @@ export enum FocusDirective {
 interface SelectionItem {
     fileSet: FileSet;
     selection: NumericRange;
-    sortOrder: number;
+    sortOrder: number; // Used to determine how to position this SelectionItem relative to other SelectionItems with unequal FileSets
 }
 
 /**
@@ -170,8 +170,11 @@ export default class FileSelection {
 
     /**
      * Return a new FileSelection instance with the given index (or range of indices) within given FileSet.
-     * Defaults to setting currently focused item to index or max(indices) (if index represents a range of indices).
+     * Defaults to setting currently focused item to index (or max(indices) if index represents a range of indices).
      * Override this default behavior by explicitly providing an `indexToFocus`.
+     * `sortOrder` is used to position this selection relative to other selections when their FileSets are unequal. When two
+     * SelectionItems have equal FileSets (e.g., they come from the same listing of files and therefore query), the SelectionItems
+     * are sorted in ascending index order.
      */
     public select(params: { fileSet: FileSet; index: NumericRange | number; sortOrder: number; indexToFocus?: number; }): FileSelection {
         const indexRange = NumericRange.isNumericRange(params.index) ? params.index : new NumericRange(params.index);
