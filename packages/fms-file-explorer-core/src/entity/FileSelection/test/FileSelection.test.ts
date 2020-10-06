@@ -79,6 +79,60 @@ describe("FileSelection", () => {
             // Assert
             expect(nextSelection.isFocused(fileSet, 12)).to.equal(true);
         });
+
+        it("sorts selections first by sortOrder, then by index position within FileSet", () => {
+            // Arrange
+            const fileSet1 = new FileSet();
+            const fileSet2 = new FileSet({
+                filters: [new FileFilter("foo", "bar")],
+            });
+            const fileSet3 = new FileSet({
+                filters: [new FileFilter("foo", "bar"), new FileFilter("something", "other")],
+            });
+
+            const selection = new FileSelection()
+                .select({ fileSet: fileSet3, index: 100, sortOrder: 95 })
+                .select({ fileSet: fileSet1, index: 3, sortOrder: 0 })
+                .select({ fileSet: fileSet2, index: new NumericRange(8, 10), sortOrder: 1 })
+                .select({ fileSet: fileSet1, index: new NumericRange(12, 15), sortOrder: 0 })
+                .select({ fileSet: fileSet2, index: 33, sortOrder: 1 });
+
+            // Act / Assert
+
+            // to start, the first file focused should be the last selected
+            expect(selection.isFocused(fileSet2, 33)).to.equal(true);
+
+            // the first file by order, however, should be the first index selected within fileSet1
+            expect(
+                selection
+                    .focus(FocusDirective.FIRST)
+                    .isFocused(fileSet1, 3)
+            ).to.equal(true);
+
+            // next up should be the next file within fileSet1 selected
+            expect(
+                selection
+                    .focus(FocusDirective.FIRST)
+                    .focus(FocusDirective.NEXT)
+                    .isFocused(fileSet1, 12)
+            ).to.equal(true);
+
+            // jumping to the end of the fileSet1 selections, advancing to the next item should
+            // bring us to the first file selected within fileSet2
+            expect(
+                selection
+                    .focusByFileSet(fileSet1, 15)
+                    .focus(FocusDirective.NEXT)
+                    .isFocused(fileSet2, 8)
+            ).to.equal(true);
+
+            // the last item should be from within fileSet3
+            expect(
+                selection
+                    .focus(FocusDirective.LAST)
+                    .isFocused(fileSet3, 100)
+            ).to.equal(true);
+        });
     });
 
     describe("deselect", () => {
