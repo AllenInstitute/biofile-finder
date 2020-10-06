@@ -135,6 +135,7 @@ const openFilesInImageJ = createLogic({
             fileViewerService
         } = interactionSelectors.getPlatformDependentServices(deps.getState());
         const allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
+        const imageJExecutable = persistentConfigService.get(PersistedDataKeys.ImageJExecutable);
         
         // Collect the file paths from the selected files
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
@@ -142,7 +143,7 @@ const openFilesInImageJ = createLogic({
         const filePaths = selectedFilesDetails.map((file) => (
             allenMountPoint + path.normalize(file.filePath.substring(6))
         ));
-        await fileViewerService.openFilesInImageJ(filePaths);
+        await fileViewerService.openFilesInImageJ(filePaths, imageJExecutable);
         done();
     },
     async transform(deps: ReduxLogicDeps, next, reject) {
