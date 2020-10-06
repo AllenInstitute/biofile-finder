@@ -72,7 +72,7 @@
     "clean-webpack-plugin": "3.0.x",
     "core-js": "3.3.x",
     "css-loader": "3.2.x",
-    "electron": "9.1.x",
+    "electron": "10.1.x",
     "electron-builder": "22.2.x",
     "electron-mocha": "9.1.x",
     "enzyme": "3.10.x",
