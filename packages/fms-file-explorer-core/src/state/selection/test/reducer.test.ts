@@ -34,8 +34,8 @@ describe("Selection reducer", () => {
             });
 
             // assert
-            expect(prevSelection.size()).to.equal(3); // sanity-check
-            expect(nextSelection.size()).to.equal(0);
+            expect(prevSelection.count()).to.equal(3); // sanity-check
+            expect(nextSelection.count()).to.equal(0);
         })
     );
 

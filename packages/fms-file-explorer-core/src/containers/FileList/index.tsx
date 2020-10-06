@@ -50,7 +50,7 @@ export default function FileList(props: FileListProps) {
     const fileSelection = useSelector(
         selection.selectors.getFileSelection
     );
-    const numSelectedFilesWithinFileSet = fileSelection.size(fileSet);
+    const numSelectedFilesWithinFileSet = fileSelection.count(fileSet);
     const selectedFilesText = numSelectedFilesWithinFileSet ? `(${numSelectedFilesWithinFileSet} selected)` : "";
 
     // If this is the "root" file list (e.g., all files in FMS), this component should take up
@@ -101,7 +101,7 @@ export default function FileList(props: FileListProps) {
     const onFileRowContextMenu = (evt: React.MouseEvent) => {
         const availableItems = getContextMenuItems(dispatch);
         const items = [];
-        if (fileSelection.size() === 0) {
+        if (fileSelection.count() === 0) {
             items.push({ ...availableItems.DOWNLOAD, disabled: true });
         } else {
             items.push(availableItems.DOWNLOAD);
