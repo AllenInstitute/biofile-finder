@@ -59,10 +59,11 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
             <DirectoryTreeNodeHeader
                 collapsed={collapsed || Boolean(error)}
                 error={error}
-                loading={isLoading}
-                title={displayValue}
                 fileFolderPath={fileFolderPath}
+                fileSet={fileSet}
+                loading={isLoading}
                 onClick={() => dispatch(selection.actions.toggleFileFolderCollapse(fileFolder))}
+                title={displayValue}
             />
             <ul
                 className={classNames(styles.children, {

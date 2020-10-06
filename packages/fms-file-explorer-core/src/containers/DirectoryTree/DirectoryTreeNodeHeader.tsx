@@ -9,16 +9,18 @@ import getContextMenuItems from "../ContextMenu/items";
 import SvgIcon from "../../components/SvgIcon";
 import { interaction, selection } from "../../state";
 import FileFilter from "../../entity/FileFilter";
+import FileSet from "../../entity/FileSet";
 
 const styles = require("./DirectoryTreeNode.module.css");
 
 interface DirectoryTreeNodeHeaderProps {
     collapsed: boolean;
     error: Error | null;
+    fileFolderPath: string[];
+    fileSet: FileSet;
     loading: boolean;
     onClick: () => void;
     title: string;
-    fileFolderPath: string[];
 }
 
 /**
@@ -49,9 +51,14 @@ const ICON_SIZE = 15; // in px; both width and height
  * not cheap to initialize.
  */
 export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeNodeHeaderProps) {
-    const { collapsed, error, loading, onClick, title, fileFolderPath } = props;
+    const { collapsed, error, fileFolderPath, fileSet, loading, onClick, title } = props;
 
     const [isContextMenuActive, setContextMenuActive] = React.useState(false);
+
+    const fileSelections = useSelector(selection.selectors.getFileSelection);
+    const countSelectionsUnderneathFolder = React.useMemo(() => {
+        return fileSelections.count(fileSet.filters);
+    }, [fileSelections, fileSet]);
 
     const dispatch = useDispatch();
     const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
@@ -91,6 +98,14 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
         setContextMenuActive(true);
     };
 
+    let selectionsIndicator = "";
+    if (countSelectionsUnderneathFolder === 1) {
+        selectionsIndicator = `(${countSelectionsUnderneathFolder} selection)`;
+    } else if (countSelectionsUnderneathFolder > 1) {
+        selectionsIndicator = `(${countSelectionsUnderneathFolder} selections)`;
+    }
+    const heading = [title, selectionsIndicator].join(" ");
+
     return (
         <span
             className={classNames(styles.directoryHeader, {
@@ -116,7 +131,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
                 viewBox="0 0 24 24"
                 width={ICON_SIZE}
             />
-            <h4 className={styles.directoryName}>{title}</h4>
+            <h4 className={styles.directoryName}>{heading}</h4>
             {loading && <Spinner size={SpinnerSize.small} />}
             {!loading && error && (
                 <Tippy content={error.message}>
