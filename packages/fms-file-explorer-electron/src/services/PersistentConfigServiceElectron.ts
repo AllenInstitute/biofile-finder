@@ -101,7 +101,7 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
         while (true) {
             const allenPath = await this.selectPath({
                 properties: ["openDirectory"],
-                title: "Select Allen drive point point",
+                title: "Select Allen drive mount point",
             });
             if (allenPath === PersistentConfigCancellationToken) {
                 return PersistentConfigCancellationToken;
