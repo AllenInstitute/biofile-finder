@@ -50,8 +50,6 @@ export default function FileList(props: FileListProps) {
     const fileSelection = useSelector(
         selection.selectors.getFileSelection
     );
-    const numSelectedFilesWithinFileSet = fileSelection.count(fileSet);
-    const selectedFilesText = numSelectedFilesWithinFileSet ? `(${numSelectedFilesWithinFileSet} selected)` : "";
 
     // If this is the "root" file list (e.g., all files in FMS), this component should take up
     // 100% of the height of its container.
@@ -162,7 +160,7 @@ export default function FileList(props: FileListProps) {
                 </InfiniteLoader>
             </div>
             <p className={styles.rowCountDisplay}>
-                {totalCount} files {selectedFilesText}
+                {totalCount} files
             </p>
         </div>
     );
