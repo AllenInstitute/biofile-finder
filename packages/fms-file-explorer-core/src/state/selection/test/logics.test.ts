@@ -37,8 +37,8 @@ describe("Selection logics", () => {
             const state = {
                 selection: {
                     fileSelection: new FileSelection()
-                        .select(fileSet1, 3)
-                        .select(fileSet2, 99),
+                        .select({ fileSet: fileSet1, index: 3, sortOrder: 0 })
+                        .select({ fileSet: fileSet2, index: 99, sortOrder: 1 }),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -47,14 +47,14 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(fileSet1, 5));
+            store.dispatch(selectFile({ fileSet: fileSet1, selection: 5, sortOrder: 0 }));
             await logicMiddleware.whenComplete();
 
             // assert
             expect(
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
-                    payload: new FileSelection().select(fileSet1, 5),
+                    payload: new FileSelection().select({ fileSet: fileSet1, index: 5, sortOrder: 0 }),
                 })
             ).to.equal(true);
         });
@@ -64,7 +64,7 @@ describe("Selection logics", () => {
             const state = {
                 selection: {
                     fileSelection: new FileSelection()
-                        .select(fileSet1, 9),
+                        .select({ fileSet: fileSet1, index: 9, sortOrder: 0 }),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -73,7 +73,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(fileSet1, 14, true));
+            store.dispatch(selectFile({ fileSet: fileSet1, selection: 14, sortOrder: 0, updateExistingSelection: true }));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -81,8 +81,8 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: new FileSelection()
-                        .select(fileSet1, 9)
-                        .select(fileSet1, 14),
+                        .select({ fileSet: fileSet1, index: 9, sortOrder: 0 })
+                        .select({ fileSet: fileSet1, index: 14, sortOrder: 0 }),
                 })
             ).to.equal(true);
         });
@@ -92,8 +92,8 @@ describe("Selection logics", () => {
             const state = {
                 selection: {
                     fileSelection: new FileSelection()
-                        .select(fileSet1, new NumericRange(9, 15))
-                        .select(fileSet2, new NumericRange(100, 200)),
+                        .select({ fileSet: fileSet1, index: new NumericRange(9, 15), sortOrder: 0 })
+                        .select({ fileSet: fileSet2, index: new NumericRange(100, 200), sortOrder: 1 }),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -102,7 +102,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(fileSet1, new NumericRange(20, 100), true));
+            store.dispatch(selectFile({ fileSet: fileSet1, selection :new NumericRange(20, 100), sortOrder: 0, updateExistingSelection: true }));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -110,9 +110,9 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: new FileSelection()
-                        .select(fileSet1, new NumericRange(9, 15))
-                        .select(fileSet2, new NumericRange(100, 200))
-                        .select(fileSet1, new NumericRange(20, 100)),
+                        .select({ fileSet: fileSet1, index: new NumericRange(9, 15), sortOrder: 0 })
+                        .select({ fileSet: fileSet2, index: new NumericRange(100, 200), sortOrder: 1 })
+                        .select({ fileSet: fileSet1, index: new NumericRange(20, 100), sortOrder: 0 }),
                 })
             ).to.equal(true);
         });
@@ -122,8 +122,8 @@ describe("Selection logics", () => {
             const state = {
                 selection: {
                     fileSelection: new FileSelection()
-                        .select(fileSet1, new NumericRange(8, 15))
-                        .select(fileSet1, 22),
+                        .select({ fileSet: fileSet1, index: new NumericRange(8, 15), sortOrder: 0 })
+                        .select({ fileSet: fileSet1, index: 22, sortOrder: 0 }),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -132,7 +132,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(fileSet1, 12, true));
+            store.dispatch(selectFile({ fileSet: fileSet1, selection: 12, sortOrder: 0, updateExistingSelection: true }));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -140,9 +140,9 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: new FileSelection()
-                        .select(fileSet1, new NumericRange(8, 11))
-                        .select(fileSet1, new NumericRange(13, 15))
-                        .select(fileSet1, new NumericRange(22)),
+                        .select({ fileSet: fileSet1, index: new NumericRange(8, 11), sortOrder: 0 })
+                        .select({ fileSet: fileSet1, index: new NumericRange(13, 15), sortOrder: 0 })
+                        .select({ fileSet: fileSet1, index: new NumericRange(22), sortOrder: 0 }),
                 })
             ).to.equal(true);
         });
@@ -152,7 +152,7 @@ describe("Selection logics", () => {
             const state = {
                 selection: {
                     fileSelection: new FileSelection()
-                        .select(fileSet1, 12),
+                        .select({ fileSet: fileSet1, index: 12, sortOrder: 0 }),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -161,7 +161,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(fileSet1, 12));
+            store.dispatch(selectFile({ fileSet: fileSet1, selection: 12, sortOrder: 0 }));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -178,8 +178,8 @@ describe("Selection logics", () => {
             const state = {
                 selection: {
                     fileSelection: new FileSelection()
-                        .select(fileSet1, 12)
-                        .select(fileSet2, 45),
+                        .select({ fileSet: fileSet1, index: 12, sortOrder: 0 })
+                        .select({ fileSet: fileSet2, index: 45, sortOrder: 1 }),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -188,7 +188,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(fileSet1, 12));
+            store.dispatch(selectFile({ fileSet: fileSet1, selection: 12, sortOrder: 0 }));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -196,7 +196,7 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: new FileSelection()
-                        .select(fileSet1, 12),
+                        .select({ fileSet: fileSet1, index: 12, sortOrder: 0 }),
                 })
             ).to.equal(true);
         });
@@ -206,9 +206,9 @@ describe("Selection logics", () => {
             const state = {
                 selection: {
                     fileSelection: new FileSelection()
-                        .select(fileSet2, new NumericRange(27, 30))
-                        .select(fileSet2, new NumericRange(22))
-                        .select(fileSet1, new NumericRange(8, 15)),
+                        .select({ fileSet: fileSet2, index: new NumericRange(27, 30), sortOrder: 0 })
+                        .select({ fileSet: fileSet2, index: new NumericRange(22), sortOrder: 0 })
+                        .select({ fileSet: fileSet1, index: new NumericRange(8, 15), sortOrder: 1 }),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -217,7 +217,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile(fileSet2, new NumericRange(22, 35), true));
+            store.dispatch(selectFile({ fileSet: fileSet2, selection: new NumericRange(22, 35), sortOrder: 0, updateExistingSelection: true }));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -225,8 +225,8 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
                     payload: new FileSelection()
-                        .select(fileSet1, new NumericRange(8, 15))
-                        .select(fileSet2, new NumericRange(22, 35)),
+                        .select({ fileSet: fileSet1, index: new NumericRange(8, 15), sortOrder: 1 })
+                        .select({ fileSet: fileSet2, index :new NumericRange(22, 35), sortOrder: 0 }),
                 })
             ).to.equal(true);
         });

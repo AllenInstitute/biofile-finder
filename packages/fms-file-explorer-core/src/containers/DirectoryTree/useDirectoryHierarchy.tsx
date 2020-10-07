@@ -18,11 +18,16 @@ import * as directoryTreeSelectors from "./selectors";
 import { interaction, metadata, selection } from "../../state";
 import { naturalComparator } from "../../util/strings";
 
-interface UseDirectoryHierarchy {
-    (params: { ancestorNodes?: string[]; currentNode?: string; collapsed: boolean }): {
-        isLeaf: boolean;
-        state: State;
-    };
+export interface UseDirectoryHierarchyParams {
+    ancestorNodes?: string[];
+    currentNode?: string;
+    collapsed: boolean;
+    sortOrder: number;
+}
+
+export interface UseAnnotationHierarchyReturnValue {
+    isLeaf: boolean;
+    state: State;
 }
 
 export const ROOT_NODE = "root_node_sentinal_value";
@@ -36,8 +41,8 @@ const DEFAULTS = {
  * React hook to encapsulate all logic for constructing the directory hierarchy at a given depth
  * and path. Responsible for fetching any data required to do so.
  */
-const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
-    const { ancestorNodes, currentNode, collapsed } = defaults({}, params, DEFAULTS);
+const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotationHierarchyReturnValue => {
+    const { ancestorNodes, currentNode, collapsed, sortOrder } = defaults({}, params, DEFAULTS);
     const annotations = useSelector(metadata.selectors.getAnnotations);
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
@@ -107,6 +112,7 @@ const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
                                 <FileList
                                     fileSet={fileSet}
                                     isRoot={isRoot}
+                                    sortOrder={sortOrder}
                                     totalCount={totalCount}
                                 />
                             )
@@ -155,14 +161,31 @@ const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
 
                     const nodes = filteredValues
                         .sort(naturalComparator)
-                        .map((value) => (
-                            <DirectoryTreeNode
-                                key={`${[...pathToNode, value].join(":")}|${hierarchy.join(":")}`}
-                                ancestorNodes={pathToNode}
-                                currentNode={value}
-                                displayValue={annotationAtDepth?.getDisplayValue(value) || value}
-                            />
-                        ));
+                        .map((value, idx) => {
+                            let childNodeSortOrder: number;
+                            if (isRoot) {
+                                // First level of folders; use order produced by sort operation.
+                                childNodeSortOrder = idx;
+                            } else {
+                                // Take into account sort order of parent folder(s) if not at first level.
+                                // If at the second level, start to build up a float by separating parent sort
+                                // order from child node order (as produced by sort operation).
+                                // At increased depth of the hierarchy, add significant digits to the float.
+                                // e.g.: 1 -> 1.1 -> 1.13 -> 1.130 -> 1.1304
+                                childNodeSortOrder = Number.isInteger(sortOrder)
+                                    ? Number.parseFloat(`${sortOrder}.${idx}`)
+                                    : Number.parseFloat(`${sortOrder}${idx}`)
+                            }
+                            return (
+                                <DirectoryTreeNode
+                                    key={`${[...pathToNode, value].join(":")}|${hierarchy.join(":")}`}
+                                    ancestorNodes={pathToNode}
+                                    currentNode={value}
+                                    displayValue={annotationAtDepth?.getDisplayValue(value) || value}
+                                    sortOrder={childNodeSortOrder}
+                                />
+                            );
+                        });
 
                     if (!cancel) {
                         dispatch(receiveContent(nodes));
@@ -196,6 +219,7 @@ const useDirectoryHierarchy: UseDirectoryHierarchy = (params) => {
         isRoot,
         isLeaf,
         selectedFileFilters,
+        sortOrder,
     ]);
 
     return {

@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
@@ -7,7 +8,7 @@ import FileSet from "../../entity/FileSet";
 import { selection } from "../../state";
 import { OnSelect } from "./useFileSelector";
 
-const styles = require("./FileList.module.css");
+const styles = require("./LazilyRenderedRow.module.css");
 
 /**
  * Contextual data passed to LazilyRenderedRows by react-window. Basically a light-weight React context. The same data
@@ -24,6 +25,8 @@ interface LazilyRenderedRowProps {
     index: number; // injected by react-window
     style: React.CSSProperties; // injected by react-window
 }
+
+const MARGIN = 1.5; // px; defined in LazilyRenderedRow.module.css
 
 /**
  * A single file in the listing of available files FMS.
@@ -47,6 +50,10 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         return fileSelection.isSelected(fileSet, index);
     }, [fileSelection, fileSet, index]);
 
+    const isFocused = React.useMemo(() => {
+        return fileSelection.isFocused(fileSet, index);
+    }, [fileSelection, fileSet, index]);
+
     let content;
     if (file) {
         const cells = map(annotations, (annotation) => ({
@@ -57,7 +64,10 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         content = (
             <FileRow
                 cells={cells}
-                className={isSelected ? styles.selectedRow : undefined}
+                className={classNames(styles.row, {
+                    [styles.selected]: isSelected,
+                    [styles.focused]: isFocused,
+                })}
                 rowIdentifier={{ index, id: file.fileId }}
                 onSelect={onSelect}
             />
@@ -67,7 +77,13 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     }
 
     return (
-        <div style={style} onContextMenu={onContextMenu}>
+        <div
+            style={{
+                ...style,
+                width: `calc(100% - ${2 * MARGIN}px)`,
+            }}
+            onContextMenu={onContextMenu}
+        >
             {content}
         </div>
     );
