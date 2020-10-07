@@ -1,8 +1,9 @@
-import classNames from "classnames";
+import filesize from "filesize";
+import { Spinner, SpinnerSize } from "office-ui-fabric-react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import { selection } from "../../state";;
+import { interaction, selection } from "../../state";;
 
 const styles = require("./AggregateInfoBox.module.css");
 
@@ -11,43 +12,53 @@ const styles = require("./AggregateInfoBox.module.css");
  * files selected
  */
 export default function AggregateInfoBox() {
+    const fileService = useSelector(interaction.selectors.getFileService);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const totalFilesSelected = fileSelection.size();
-    const [totalFileSize, setTotalFileSize] = React.useState(0);
+    const [isLoading, setLoading] = React.useState(false);
+    const [totalFileSize, setTotalFileSize] = React.useState("0");
     React.useEffect(() => {
         if (!totalFilesSelected) {
-            setTotalFileSize(0);
+            setTotalFileSize("0");
         } else {
-            // TODO: Use fileSet endpoint to collect aggregate sizes...
-            setTotalFileSize(totalFilesSelected * 2);
+            const getAggregateFileSize = async () => {
+                const { size } = await fileService.getAggregateFileSize(fileSelection);
+                setTotalFileSize(filesize(size));
+                setLoading(false);
+            }
+            setLoading(true);
+            getAggregateFileSize();
         }
-    }, [fileSelection]);
+    }, [fileSelection, fileService]);
 
-    if (!totalFileSize) {
+    if (!totalFilesSelected) {
         return <div />
     }
     
     return (
-        <div className={classNames(styles.box)}>
-            <div className={classNames(styles.innerBox)}>
-                <h3 className={styles.header}>Aggregated File Info</h3>
-                <div className={classNames(styles.container, styles.column)}>
-                    <div>
-                        {totalFileSize}
+        <div className={styles.container}>
+            {isLoading ? (
+                <Spinner className={styles.spinner} size={SpinnerSize.small} />
+            ) : (
+                <div>
+                    <div className={styles.column}>
+                        <div>
+                            {totalFilesSelected}
+                        </div>
+                        <h6 className={styles.label}>
+                            Total Files <br /> Selected
+                        </h6>
                     </div>
-                    <div className={styles.label}>
-                        Total File <br /> Size
+                    <div className={styles.column}>
+                        <div>
+                            {totalFileSize}
+                        </div>
+                        <h6 className={styles.label}>
+                            Total File <br /> Size
+                        </h6>
                     </div>
                 </div>
-                <div className={classNames(styles.container, styles.column)}>
-                    <div>
-                        {totalFilesSelected}
-                    </div>
-                    <div className={styles.label}>
-                        Total Files <br /> Selected
-                    </div>
-                </div>
-            </div>
+            )}
         </div>
     )
 }
