@@ -368,7 +368,7 @@ describe("Interaction logics", () => {
         it("attempts to open selected files", async () => {
             // Arrange
             const fakeSelection = new FileSelection()
-                .select(new FileSet({ fileService }), new NumericRange(0, 100));
+                .select({ fileSet: new FileSet({ fileService }), index: new NumericRange(0, 100), sortOrder: 0 });
             const expectedExecutablePath = ""
             let actualFilePaths: string[] | undefined = undefined;
             let actualExecutablePath: string | undefined = undefined;

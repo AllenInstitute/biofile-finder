@@ -338,7 +338,7 @@ describe("FileSelection", () => {
             });
             const fileService = new FileService({ baseUrl, httpClient});
             const selection = new FileSelection()
-                .select(new FileSet( { fileService }), new NumericRange(1, 30))
+                .select({ fileSet: new FileSet( { fileService }), index: new NumericRange(1, 30), sortOrder: 0 })
 
             // Act
             const fileDetails = await selection.fetchAllDetails()
