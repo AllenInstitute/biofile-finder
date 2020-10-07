@@ -3,6 +3,7 @@ import * as React from "react";
 
 import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
+import AggregateInfoBox from "../AggregateInfoBox";
 
 const styles = require("./DirectoryTree.module.css");
 
@@ -41,6 +42,7 @@ export default function DirectoryTree(props: FileListProps) {
                     </aside>
                 )}
             </ul>
+            <AggregateInfoBox />
         </div>
     );
 }

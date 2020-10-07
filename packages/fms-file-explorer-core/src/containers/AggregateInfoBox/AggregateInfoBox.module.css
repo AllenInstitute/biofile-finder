@@ -1,0 +1,41 @@
+.box {
+    background: #bab5c9;
+    opacity: 0.90;
+    /* border: 1px black solid; */
+    border-radius: 3px;
+    /* Allow the element to be fixed to the bottom of the file list */
+    position: fixed;
+    bottom: 10px;
+    /* Position box in the middle (adjusted for 1/2 the width of this element) */
+    left: calc(50% - (40% / 2));
+    height: 60px;
+    width: 40%;
+}
+
+.inner-box {
+    height: 100%;
+    text-align: center;
+}
+
+.inner-box:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.header {
+    font-weight: normal;
+    padding-top: 2px;
+    margin: 0;
+}
+
+.column {
+    float: left;
+    padding-top: 10px;
+    width: 50%;
+}
+
+.label {
+    font-weight: lighter;
+    margin: 0;
+}
