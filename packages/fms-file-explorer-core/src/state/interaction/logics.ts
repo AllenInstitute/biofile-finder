@@ -15,9 +15,9 @@ import {
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
 import { CancellationToken } from "../../services/FileDownloadService";
-import FileSet from "../../entity/FileSet";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import NumericRange from "../../entity/NumericRange";
+import { SelectionRequest, Selection } from "../../services/FileService";
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -40,7 +40,7 @@ const downloadManifest = createLogic({
                 downloadService: platformDependentServices.fileDownloadService,
             });
 
-            let selectionsByFileSet: Map<FileSet, NumericRange[]>;
+            let selections: Selection[];
 
             // If we have a specific path to get files from ignore selected files
             if (action.payload.fileFilters.length) {
@@ -49,15 +49,22 @@ const downloadManifest = createLogic({
                     fileService,
                 });
                 const count = await fileSet.fetchTotalCount();
-                selectionsByFileSet = new Map([
-                    [fileSet, [new NumericRange(0, count - 1)]],
-                ]);
+                const selection: Selection = {
+                    filters: fileSet.filters.reduce((accum, filter) => {
+                        return {
+                            ...accum,
+                            [filter.name]: filter.value,
+                        };
+                    }, {}),
+                    indexRanges: [new NumericRange(0, count - 1).toJSON()],
+                };
+                selections = [selection];
             } else {
                 const fileSelection = selection.selectors.getFileSelection(state);
-                selectionsByFileSet = fileSelection.groupByFileSet();
+                selections = fileSelection.toSelectionRequest();
             }
 
-            if (isEmpty(selectionsByFileSet)) {
+            if (isEmpty(selections)) {
                 return;
             }
 
@@ -71,9 +78,13 @@ const downloadManifest = createLogic({
                     onManifestDownloadCancel
                 )
             );
+
+            const selectionRequest: SelectionRequest = {
+                annotations: action.payload.columns,
+                selections,
+            };
             const message = await csvService.downloadCsv(
-                selectionsByFileSet,
-                action.payload.columns,
+                selectionRequest,
                 manifestDownloadProcessId
             );
 

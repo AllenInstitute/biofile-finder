@@ -2,6 +2,8 @@ import { compact, join } from "lodash";
 
 import HttpServiceBase from "../HttpServiceBase";
 import RestServiceResponse from "../../entity/RestServiceResponse";
+import FileSelection from "../../entity/FileSelection";
+import { JSONReadyRange } from "../../entity/NumericRange";
 
 /**
  * Represents a sub-document that can be found within an FmsFile's `annotations` list.
@@ -40,6 +42,24 @@ export interface GetFilesRequest {
     queryString: string; // file filters and applied sort order(s) in their query string form (e.g., "scientist=jane&sort=date-created(ASC)")
 }
 
+export interface Selection {
+    filters: {
+        [index: string]: string | number | boolean;
+    };
+    indexRanges: JSONReadyRange[];
+}
+
+export interface SelectionRequest {
+    annotations: string[];
+    selections: Selection[];
+}
+
+interface SelectionResult {
+    count: number;
+    histogramMap: any; // Unsure exactly what this is / will be
+    size: number;
+}
+
 /**
  * Service responsible for fetching file related metadata.
  */
@@ -48,6 +68,7 @@ export default class FileService extends HttpServiceBase {
     public static readonly BASE_FILES_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files`;
     public static readonly BASE_FILE_IDS_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files/ids`;
     public static readonly BASE_FILE_COUNT_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files/count`;
+    public static readonly SELECTION_AGGREGATE_URL = `file-explorer-service/2.0/files/selection/aggregate`;
 
     public async getCountOfMatchingFiles(queryString: string): Promise<number> {
         const requestUrl = join(
@@ -63,6 +84,21 @@ export default class FileService extends HttpServiceBase {
             throw new Error(`Expected response.data of ${requestUrl} to contain a single count`);
         }
 
+        return response.data[0];
+    }
+
+    public async getAggregateFileSize(fileSelection: FileSelection) {
+        const selections = fileSelection.toSelectionRequest();
+        const postBody: SelectionRequest = { annotations: [], selections };
+        const requestUrl = `${this.baseUrl}/${FileService.SELECTION_AGGREGATE_URL}`;
+        console.log(`Requesting aggregate results of matching files ${postBody}`);
+
+        const response = await this.post<SelectionResult>(requestUrl, JSON.stringify(postBody));
+
+        // data is always an array, this endpoint should always return an array of length 1
+        if (response.data.length !== 1) {
+            throw new Error(`Expected response.data of ${postBody} to contain a single count`);
+        }
         return response.data[0];
     }
 

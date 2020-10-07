@@ -4,7 +4,7 @@ import {
     IndexError,
     ValueError,
  } from "../../errors";
-import { FmsFile } from "../../services/FileService";
+import { FmsFile, Selection } from "../../services/FileService";
 import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
 import NumericRange from "../NumericRange";
@@ -361,6 +361,26 @@ export default class FileSelection {
             mapping.set(fileSet, compacted);
             return mapping;
         }, new Map());
+    }
+
+    /**
+     * Return array of Selections, a flattened form of the selections
+     */
+    public toSelectionRequest(): Selection[] {
+        const selections: Selection[] = [];
+        for (const [fileSet, selectedRanges] of this.groupByFileSet().entries()) {
+            const selection: Selection = {
+                filters: fileSet.filters.reduce((accum, filter) => {
+                    return {
+                        ...accum,
+                        [filter.name]: filter.value,
+                    };
+                }, {}),
+                indexRanges: selectedRanges.map((range) => range.toJSON()),
+            };
+            selections.push(selection);
+        }
+        return selections;
     }
 
     /**

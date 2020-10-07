@@ -1,19 +1,8 @@
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 import FileSet from "../../entity/FileSet";
-import NumericRange, { JSONReadyRange } from "../../entity/NumericRange";
+import NumericRange from "../../entity/NumericRange";
 import FileDownloadService from "../FileDownloadService";
-
-interface Selection {
-    filters: {
-        [index: string]: string | number | boolean;
-    };
-    indexRanges: JSONReadyRange[];
-}
-
-interface SelectionRequest {
-    annotations: string[];
-    selections: Selection[];
-}
+import { SelectionRequest, Selection } from "../FileService";
 
 interface CsvServiceConfig extends ConnectionConfig {
     downloadService: FileDownloadService;
@@ -35,28 +24,10 @@ export default class CsvService extends HttpServiceBase {
     }
 
     public downloadCsv(
-        fileSetToSelectionMapping: Map<FileSet, NumericRange[]>,
-        columns: string[],
+        selectionRequest: SelectionRequest,
         manifestDownloadId: string
     ): Promise<string> {
-        const selections: Selection[] = [];
-        for (const [fileSet, selectedRanges] of fileSetToSelectionMapping.entries()) {
-            const selection: Selection = {
-                filters: fileSet.filters.reduce((accum, filter) => {
-                    return {
-                        ...accum,
-                        [filter.name]: filter.value,
-                    };
-                }, {}),
-                indexRanges: selectedRanges.map((range) => range.toJSON()),
-            };
-            selections.push(selection);
-        }
-        const postBody: SelectionRequest = {
-            annotations: columns,
-            selections,
-        };
-        const stringifiedPostBody = JSON.stringify(postBody);
+        const stringifiedPostBody = JSON.stringify(selectionRequest);
         const url = `${this.baseUrl}/${CsvService.BASE_CSV_DOWNLOAD_URL}`;
 
         return this.downloadService.downloadCsvManifest(
