@@ -179,6 +179,43 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const persistedMountPoint = service.get(PersistedDataKeys.AllenMountPoint);
             expect(persistedMountPoint).to.equal(tempAllenDrive);
         });
+
+        it("informs the user of the prompt (when specified to)", async () => {
+            // Arrange
+            const service = new PersistentConfigServiceElectron({ clearExistingData: true });
+            const invokeStub = sandbox.stub(ipcRenderer, "invoke")
+            const selectDirectoryStub = invokeStub.withArgs(PersistentConfigServiceElectron.SHOW_OPEN_DIALOG);
+            selectDirectoryStub.resolves({
+                canceled: true,
+                filePaths: ["/some/path/to/allen"],
+            });
+            const messageBoxStub = invokeStub.withArgs(PersistentConfigServiceElectron.SHOW_MESSAGE_BOX);
+            messageBoxStub.resolves(true);
+
+            // Act
+            const mountPoint = await service.setAllenMountPoint(true);
+
+            // Assert
+            expect(mountPoint).to.equal(PersistentConfigCancellationToken);
+            expect(messageBoxStub.called).to.be.true;
+            expect(selectDirectoryStub.called).to.be.true;
+        });
+
+        it("doesn't ask for selection when user cancels out of message box", async () => {
+            // Arrange
+            const service = new PersistentConfigServiceElectron({ clearExistingData: true });
+            const invokeStub = sandbox.stub(ipcRenderer, "invoke")
+            const selectDirectoryStub = invokeStub.withArgs(PersistentConfigServiceElectron.SHOW_OPEN_DIALOG);
+            const messageBoxStub = invokeStub.withArgs(PersistentConfigServiceElectron.SHOW_MESSAGE_BOX);
+            messageBoxStub.resolves(false);
+            // Act
+            const mountPoint = await service.setAllenMountPoint(true);
+
+            // Assert
+            expect(mountPoint).to.equal(PersistentConfigCancellationToken);
+            expect(messageBoxStub.called).to.be.true;
+            expect(selectDirectoryStub.called).to.be.false;
+        });
     });
 
     describe("setImageJExecutableLocation", () => {
@@ -252,6 +289,43 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             expect(mountPoint).to.equal(PersistentConfigCancellationToken);
             const persistedMountPoint = service.get(PersistedDataKeys.ImageJExecutable);
             expect(persistedMountPoint).to.be.undefined;
+        });
+
+        it("informs the user of the prompt (when specified to)", async () => {
+            // Arrange
+            const service = new PersistentConfigServiceElectron({ clearExistingData: true });
+            const invokeStub = sandbox.stub(ipcRenderer, "invoke")
+            const selectDirectoryStub = invokeStub.withArgs(PersistentConfigServiceElectron.SHOW_OPEN_DIALOG);
+            selectDirectoryStub.resolves({
+                canceled: true,
+                filePaths: ["/some/path/to/ImageJ"],
+            });
+            const messageBoxStub = invokeStub.withArgs(PersistentConfigServiceElectron.SHOW_MESSAGE_BOX);
+            messageBoxStub.resolves(true);
+
+            // Act
+            const mountPoint = await service.setImageJExecutableLocation(true);
+
+            // Assert
+            expect(mountPoint).to.equal(PersistentConfigCancellationToken);
+            expect(messageBoxStub.called).to.be.true;
+            expect(selectDirectoryStub.called).to.be.true;
+        });
+
+        it("doesn't ask for selection when user cancels out of message box", async () => {
+            // Arrange
+            const service = new PersistentConfigServiceElectron({ clearExistingData: true });
+            const invokeStub = sandbox.stub(ipcRenderer, "invoke")
+            const selectDirectoryStub = invokeStub.withArgs(PersistentConfigServiceElectron.SHOW_OPEN_DIALOG);
+            const messageBoxStub = invokeStub.withArgs(PersistentConfigServiceElectron.SHOW_MESSAGE_BOX);
+            messageBoxStub.resolves(false);
+            // Act
+            const mountPoint = await service.setImageJExecutableLocation(true);
+
+            // Assert
+            expect(mountPoint).to.equal(PersistentConfigCancellationToken);
+            expect(messageBoxStub.called).to.be.true;
+            expect(selectDirectoryStub.called).to.be.false;
         });
     });
 });
