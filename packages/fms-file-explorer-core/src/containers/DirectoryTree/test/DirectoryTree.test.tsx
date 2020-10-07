@@ -180,7 +180,7 @@ describe("<DirectoryTree />", () => {
             logics: reduxLogics,
         });
 
-        const { findByText } = render(
+        const { findByText, getByText } = render(
             <Provider store={store}>
                 <DirectoryTree />
             </Provider>
@@ -216,7 +216,17 @@ describe("<DirectoryTree />", () => {
         fireEvent.click(topLevelFolder);
 
         // selection badge count should now be the sum of selections underneath top level folder
-        await findByText("8 selections");
+        // the '5 selections' and '3 selections' badges should now be gone
+        expect(getByText("8 selections")).to.exist;
+        expect(() => getByText("5 selections")).to.throw();
+        expect(() => getByText("3 selections")).to.throw();
+
+        // open up the top level folder again and the '8 selections' badge should be gone
+        // the 3 and 5 selection badges should be back
+        fireEvent.click(topLevelFolder);
+        expect(getByText("5 selections")).to.exist;
+        expect(getByText("3 selections")).to.exist;
+        expect(() => getByText("8 selections")).to.throw();
     });
 
     it("is filtered by user selected annotation value filters", async () => {
