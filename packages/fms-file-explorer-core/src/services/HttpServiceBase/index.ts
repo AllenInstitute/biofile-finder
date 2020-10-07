@@ -134,6 +134,23 @@ export default class HttpServiceBase {
         return new RestServiceResponse(cachedResponseData);
     }
 
+    public async post<T>(url: string, body: string): Promise<RestServiceResponse<T>> {
+        const encodedUrl = HttpServiceBase.encodeURI(url);
+        console.log(`Sanitized ${url} to ${encodedUrl}`);
+        const config = { headers: { "Content-Type" :"application/json" } };
+
+        // if this fails, bubble up exception
+        const response = await retry.execute(() => this.httpClient.post(encodedUrl, body, config));
+
+        if (response.status >= 400 || response.data === undefined) {
+            // by default axios will reject if does not satisfy: status >= 200 && status < 300
+            throw new Error(`Request for ${encodedUrl} failed`);
+        }
+
+        return new RestServiceResponse(response.data);
+
+    }
+
     public setBaseUrl(baseUrl: string | keyof typeof DataSource) {
         if (this.baseUrl !== baseUrl) {
             // bust cache when base url changes
