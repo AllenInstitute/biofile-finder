@@ -68,8 +68,8 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                 items: [
                     {
                         key: "image-j",
-                        text: "ImageJ",
-                        title: "Open files in ImageJ",
+                        text: "ImageJ/Fiji",
+                        title: "Open files in ImageJ/Fiji",
                         onClick() {
                             dispatch(interaction.actions.openFilesInImageJ());
                         },

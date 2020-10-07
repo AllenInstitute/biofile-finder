@@ -134,7 +134,7 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
             let imageJExecutable = await this.selectPath({
                 filters: [{ name: "Executable", extensions: [extensionForOs]}],
                 properties: ["openFile"],
-                title: "Select Image J executable location",
+                title: "Select ImageJ/Fiji executable location",
             });
             if (imageJExecutable === PersistentConfigCancellationToken) {
                 return PersistentConfigCancellationToken;
@@ -152,7 +152,7 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
                 // Alert user to error with Image J location
                 await ipcRenderer.invoke(
                     PersistentConfigServiceElectron.SHOW_ERROR_BOX,
-                    "Image J Executable Location",
+                    "ImageJ/Fiji Executable Location",
                     `Whoops! ${imageJExecutable} is not verifiably an executable on your computer. Select the executable as you would to open Image J normally. Error: ${error}`
                 );
             }

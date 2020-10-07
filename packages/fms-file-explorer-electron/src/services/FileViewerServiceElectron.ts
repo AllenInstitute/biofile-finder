@@ -11,7 +11,7 @@ export default class FileViewerServiceElectron implements FileViewerService {
     public async openFilesInImageJ(filePaths: string[], imageJExecutable: string) {
         const reportErrorToUser = async (error: string) => {
             await ipcRenderer.invoke(PersistentConfigServiceElectron.SHOW_ERROR_BOX,
-                "Opening file in ImageJ",
+                "Opening file in ImageJ/Fiji",
                 `Failure reported while attempting to open files: Files: ${filePaths}, Error: ${error}`);
         }
 
