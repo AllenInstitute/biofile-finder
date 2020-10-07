@@ -47,6 +47,9 @@ const mockRaf = createMockRaf();
     dom.window[prop] = mock;
 });
 
+// Used to scroll the directory tree to ensure selected/focused items are in view
+Element.prototype.scrollIntoView = () => {};
+
 global.navigator = {
     userAgent: "node.js"
 };

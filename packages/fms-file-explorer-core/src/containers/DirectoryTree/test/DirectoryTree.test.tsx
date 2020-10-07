@@ -172,7 +172,7 @@ describe("<DirectoryTree />", () => {
         expect(() => getByText(expectedSecondLevelHierarchyValues[2])).to.throw();
     });
 
-    it("renders a listing of files at its leaf nodes", async () => {
+    it("renders a badge of how many selections are found underneath a folder", async () => {
         const { store } = configureMockStore({
             state,
             responseStubs,
@@ -187,19 +187,36 @@ describe("<DirectoryTree />", () => {
         );
 
         // wait for the requests for annotation values at the top level of the hierarchy
-        const topLevelValue = await findByText(expectedTopLevelHierarchyValues[0]);
+        const topLevelFolder = await findByText(expectedTopLevelHierarchyValues[0]);
 
-        // click on the tree item
-        fireEvent.click(topLevelValue);
+        // click on the top level folder
+        fireEvent.click(topLevelFolder);
 
-        // it's children should appear
-        const secondLevelValue = await findByText(expectedSecondLevelHierarchyValues[2]);
+        // select 5 files underneath one of the leaf folders
+        const secondLevelFolder1 = await findByText(expectedSecondLevelHierarchyValues[1]);
+        fireEvent.click(secondLevelFolder1);
+        fireEvent.click(await findByText("file_1.img"));
+        fireEvent.click(await findByText("file_5.img"), { shiftKey: true });
 
-        // click the tree item again and its children should disappear
-        fireEvent.click(secondLevelValue);
+        // selection count badge should be found
+        await findByText("5 selections");
 
-        // find a file row -- will throw an exception if the listing of files is not rendered
-        await findByText("file_1.img");
+        // close folder selections were just made within to disambiguate which file rows were trying to select
+        fireEvent.click(secondLevelFolder1);
+
+        // select 3 files underneath another of the leaf folders
+        const secondLevelFolder2 = await findByText(expectedSecondLevelHierarchyValues[2]);
+        fireEvent.click(secondLevelFolder2);
+        fireEvent.click(await findByText("file_4.img"), { ctrlKey: true });
+        fireEvent.click(await findByText("file_6.img"), { shiftKey: true });
+
+        await findByText("3 selections");
+
+        // collapse top level directory
+        fireEvent.click(topLevelFolder);
+
+        // selection badge count should now be the sum of selections underneath top level folder
+        await findByText("8 selections");
     });
 
     it("is filtered by user selected annotation value filters", async () => {
