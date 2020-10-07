@@ -152,10 +152,10 @@ const openFilesInImageJ = createLogic({
         let allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
         let imageJExecutable = persistentConfigService.get(PersistedDataKeys.ImageJExecutable);
         if (!allenMountPoint) {
-            allenMountPoint = await persistentConfigService.setAllenMountPoint();
+            allenMountPoint = await persistentConfigService.setAllenMountPoint(true);
         }
         if (!imageJExecutable && allenMountPoint !== PersistentConfigCancellationToken) {
-            imageJExecutable = await persistentConfigService.setImageJExecutableLocation();
+            imageJExecutable = await persistentConfigService.setImageJExecutableLocation(true);
         }
 
         if (allenMountPoint === PersistentConfigCancellationToken || imageJExecutable === PersistentConfigCancellationToken) {

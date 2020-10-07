@@ -23,13 +23,15 @@ export default interface PersistentConfigService {
 
     /**
      * Prompts the user for the allen mount point location & saves for future use.
+     * Will first notify the user of this request if specified.
      */
-    setAllenMountPoint(): Promise<string>;
+    setAllenMountPoint(promptFirst?: boolean): Promise<string>;
 
     /**
      * Prompts the user for the Image J executable location & saves for future use.
+     * Will first notify the user of this request if specified.
      */
-    setImageJExecutableLocation(): Promise<string>;
+    setImageJExecutableLocation(promptFirst?: boolean): Promise<string>;
 }
 
 /**

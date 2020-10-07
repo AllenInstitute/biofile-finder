@@ -43,6 +43,7 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     public static SET_ALLEN_MOUNT_POINT = "set-allen-mount-point";
     public static SET_IMAGE_J_LOCATION = "set-image-j-location";
     public static SHOW_ERROR_BOX = "show-error-box";
+    public static SHOW_MESSAGE_BOX = "show-message-box";
     public static SHOW_OPEN_DIALOG = "show-open-dialog";
     private store: Store;
 
@@ -86,6 +87,18 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
         ipcMain.handle(PersistentConfigServiceElectron.SHOW_ERROR_BOX, (_, title, content) => {
             return dialog.showErrorBox(title, content);
         });
+
+        // Handle displaying an error in the native error box, returns true if the "Yes" button was chosen
+        ipcMain.handle(PersistentConfigServiceElectron.SHOW_MESSAGE_BOX, async (_, title, message) => {
+            const { response } = await dialog.showMessageBox({
+                buttons: ["No", "Yes"],
+                cancelId: 0,
+                message,
+                title,
+                type: "info",
+            });
+            return response === 1;
+        });
     }
 
     public get(key: typeof PersistedDataKeys): any {
@@ -96,7 +109,15 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
         this.store.set(key, value);
     }
 
-    public async setAllenMountPoint(): Promise<string> {
+    public async setAllenMountPoint(promptFirst?: boolean): Promise<string> {
+        if (promptFirst) {
+            const result = await this.showMessage("Allen Drive Mount Point",
+                "It appears that your Allen Drive isn't where we thought it would be. " + 
+                "Select your Allen Drive Mount Point location now?");
+            if (!result) {
+                return PersistentConfigCancellationToken;
+            }
+        }
         // Continuously try to set a valid allen drive mount point unless the user cancels
         while (true) {
             const allenPath = await this.selectPath({
@@ -121,7 +142,15 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
         }
     }
 
-    public async setImageJExecutableLocation(): Promise<string> {
+    public async setImageJExecutableLocation(promptFirst?: boolean): Promise<string> {
+        if (promptFirst) {
+            const result = await this.showMessage("ImageJ/Fiji Executable Location",
+                "It appears that your ImageJ/Fiji Executable isn't where we thought it would be. " + 
+                "Select your ImageJ/Fiji Executable location now (the application you would normally open)?");
+            if (!result) {
+                return PersistentConfigCancellationToken;
+            }
+        }
         // Continuously try to set a valid Image J location until the user cancels
         while (true) {
             const currentPlatform = os.platform();
@@ -169,5 +198,11 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
             return PersistentConfigCancellationToken;
         }
         return result.filePaths[0];
+    }
+
+    private async showMessage(title: string, message: string) {
+        return await ipcRenderer.invoke(
+            PersistentConfigServiceElectron.SHOW_MESSAGE_BOX, title, message
+        );
     }
 }
