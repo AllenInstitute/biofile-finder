@@ -5,19 +5,26 @@ import {
     ResponseStub,
 } from "@aics/redux-utils";
 import { expect } from "chai";
-import { get as _get, tail } from "lodash";
+import { get as _get, range, tail } from "lodash";
 import * as React from "react";
 import { fireEvent, render, wait, findByTestId } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
-import DirectoryTree from "../";
+import { TOP_LEVEL_FILE_ANNOTATIONS, AnnotationName } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationService from "../../../services/AnnotationService";
-import { initialState, interaction, reducer, reduxLogics } from "../../../state";
-import FileService from "../../../services/FileService";
-import { addFileFilter } from "../../../state/selection/actions";
+import FileService, { FmsFile } from "../../../services/FileService";
 import FileFilter from "../../../entity/FileFilter";
+import {
+    initialState,
+    interaction,
+    reducer,
+    reduxLogics,
+    selection,
+ } from "../../../state";
+
+import DirectoryTree from "../";
 
 const styles = require("../DirectoryTreeNode.module.css");
 
@@ -50,7 +57,21 @@ describe("<DirectoryTree />", () => {
         },
         selection: {
             annotationHierarchy: annotations,
+            displayAnnotations: TOP_LEVEL_FILE_ANNOTATIONS.filter((a) => a.name === AnnotationName.FILE_NAME),
         },
+    });
+
+    const files: FmsFile[] = range(50).map((idx) => {
+        const fileName = `file_${idx}.img`;
+        return ({
+            annotations: [],
+            fileId: String(idx),
+            fileName,
+            filePath: `/isilon/${fileName}`,
+            fileSize: 1000,
+            uploaded: "Sun Aug 19 22:51:22 GMT 2018",
+            uploadedBy: "Human",
+        });
     });
 
     const responseStubs: ResponseStub[] = [
@@ -78,6 +99,12 @@ describe("<DirectoryTree />", () => {
                 data: { data: [42] },
             },
         },
+        {
+            when: (config) => _get(config, "url", "").includes(FileService.BASE_FILES_URL),
+            respondWith: {
+                data: { data: files },
+            }
+        }
     ];
     const mockHttpClient = createMockHttpClient(responseStubs);
     const annotationService = new AnnotationService({ baseUrl, httpClient: mockHttpClient });
@@ -145,6 +172,36 @@ describe("<DirectoryTree />", () => {
         expect(() => getByText(expectedSecondLevelHierarchyValues[2])).to.throw();
     });
 
+    it("renders a listing of files at its leaf nodes", async () => {
+        const { store } = configureMockStore({
+            state,
+            responseStubs,
+            reducer,
+            logics: reduxLogics,
+        });
+
+        const { findByText } = render(
+            <Provider store={store}>
+                <DirectoryTree />
+            </Provider>
+        );
+
+        // wait for the requests for annotation values at the top level of the hierarchy
+        const topLevelValue = await findByText(expectedTopLevelHierarchyValues[0]);
+
+        // click on the tree item
+        fireEvent.click(topLevelValue);
+
+        // it's children should appear
+        const secondLevelValue = await findByText(expectedSecondLevelHierarchyValues[2]);
+
+        // click the tree item again and its children should disappear
+        fireEvent.click(secondLevelValue);
+
+        // find a file row -- will throw an exception if the listing of files is not rendered
+        await findByText("file_1.img");
+    });
+
     it("is filtered by user selected annotation value filters", async () => {
         const { store } = configureMockStore({
             state,
@@ -171,7 +228,7 @@ describe("<DirectoryTree />", () => {
 
         // simulate a user filtering the list of top level hierarchy values
         const filterValue = expectedTopLevelHierarchyValues[0];
-        store.dispatch(addFileFilter(new FileFilter(topLevelAnnotation.name, filterValue)));
+        store.dispatch(selection.actions.addFileFilter(new FileFilter(topLevelAnnotation.name, filterValue)));
 
         // after going through the store and an update cycle or two, the tree should be filtered
         // down to just the one annotation value selected
