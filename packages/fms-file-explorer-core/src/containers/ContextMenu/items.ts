@@ -74,12 +74,6 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                             dispatch(interaction.actions.openFilesInImageJ());
                         },
                     },
-                    {
-                        key: "photoshop",
-                        text: "Photoshop",
-                        title: "Coming soon! Open files in Adobe Photoshop",
-                        disabled: true
-                    },
                 ]
             },
         }
