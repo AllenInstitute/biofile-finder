@@ -61,6 +61,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
                 error={error}
                 fileFolderPath={fileFolderPath}
                 fileSet={fileSet}
+                isLeaf={isLeaf}
                 loading={isLoading}
                 onClick={() => dispatch(selection.actions.toggleFileFolderCollapse(fileFolder))}
                 title={displayValue}

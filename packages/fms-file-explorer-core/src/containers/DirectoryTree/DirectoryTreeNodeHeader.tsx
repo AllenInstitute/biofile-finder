@@ -18,6 +18,7 @@ interface DirectoryTreeNodeHeaderProps {
     error: Error | null;
     fileFolderPath: string[];
     fileSet: FileSet;
+    isLeaf: boolean;
     loading: boolean;
     onClick: () => void;
     title: string;
@@ -51,7 +52,7 @@ const ICON_SIZE = 15; // in px; both width and height
  * not cheap to initialize.
  */
 export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeNodeHeaderProps) {
-    const { collapsed, error, fileFolderPath, fileSet, loading, onClick, title } = props;
+    const { collapsed, error, fileFolderPath, fileSet, isLeaf, loading, onClick, title } = props;
 
     const [isContextMenuActive, setContextMenuActive] = React.useState(false);
 
@@ -98,13 +99,25 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
         setContextMenuActive(true);
     };
 
-    let selectionsIndicator = "";
-    if (countSelectionsUnderneathFolder === 1) {
-        selectionsIndicator = `(${countSelectionsUnderneathFolder} selection)`;
-    } else if (countSelectionsUnderneathFolder > 1) {
-        selectionsIndicator = `(${countSelectionsUnderneathFolder} selections)`;
+    // Render a badge indicating the total number of file selections that can be found underneath this
+    // DirectoryTreeNode. But only render it if:
+    //  1. there are in fact selections to be found underneath this node, and
+    //  2. this node is collapsed OR this node is a leaf node (its child is a file list)
+    const showSelectionCountBadge = countSelectionsUnderneathFolder > 0 && (collapsed || isLeaf);
+    let selectionCountBadge = null;
+    if (showSelectionCountBadge) {
+        let text = "selection";
+
+        if (countSelectionsUnderneathFolder > 1) {
+            text = "selections"; // make it plural
+        }
+
+        selectionCountBadge = (
+            <div className={styles.selectionCountBadge}>
+                {`${countSelectionsUnderneathFolder} ${text}`}
+            </div>
+        );
     }
-    const heading = [title, selectionsIndicator].join(" ");
 
     return (
         <span
@@ -131,7 +144,8 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
                 viewBox="0 0 24 24"
                 width={ICON_SIZE}
             />
-            <h4 className={styles.directoryName}>{heading}</h4>
+            <h4 className={styles.directoryName}>{title}</h4>
+            {selectionCountBadge}
             {loading && <Spinner size={SpinnerSize.small} />}
             {!loading && error && (
                 <Tippy content={error.message}>
