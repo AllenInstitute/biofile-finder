@@ -26,14 +26,9 @@ const ICON_SIZE = 15; // in px; both width and height
  * will render a FileList showing the set of files that match the filters at this path in the hierarchy.
  */
 export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
-    const {
-        ancestorNodes,
-        currentNode,
-        displayValue,
-        fileSet,
-        sortOrder,
-     } = props;
+    const { ancestorNodes, currentNode, displayValue, fileSet, sortOrder } = props;
     const dispatch = useDispatch();
+    const fileSelection = useSelector(selection.selectors.getFileSelection);
     const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
     const fileFolderPath = [...ancestorNodes, currentNode];
     const fileFolder = new FileFolder(fileFolderPath);
@@ -49,9 +44,27 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
         sortOrder,
     });
 
+    const node = React.useRef<HTMLLIElement>(null);
+    const hasFocus = React.useMemo(() => {
+        if (collapsed) {
+            return fileSelection.isFocused(fileSet.filters);
+        }
+
+        return fileSelection.isFocused(fileSet);
+    }, [fileSelection, fileSet, collapsed]);
+
+    // This hook is responsible for ensuring that if the details pane is currently showing a file row
+    // within this node, this node is visible.
+    React.useEffect(() => {
+        if (node.current && hasFocus) {
+            node.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+    }, [hasFocus]);
+
     return (
         <li
             className={styles.treeNodeContainer}
+            ref={node}
             role="treeitem"
             aria-expanded={collapsed ? "false" : "true"}
             aria-level={ancestorNodes.length + 1} // aria-level is 1-indexed
@@ -62,6 +75,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
                 fileFolderPath={fileFolderPath}
                 fileSet={fileSet}
                 isLeaf={isLeaf}
+                isFocused={collapsed && hasFocus}
                 loading={isLoading}
                 onClick={() => dispatch(selection.actions.toggleFileFolderCollapse(fileFolder))}
                 title={displayValue}

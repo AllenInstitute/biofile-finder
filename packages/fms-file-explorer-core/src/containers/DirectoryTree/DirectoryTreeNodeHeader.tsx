@@ -19,6 +19,7 @@ interface DirectoryTreeNodeHeaderProps {
     fileFolderPath: string[];
     fileSet: FileSet;
     isLeaf: boolean;
+    isFocused?: boolean;
     loading: boolean;
     onClick: () => void;
     title: string;
@@ -52,7 +53,17 @@ const ICON_SIZE = 15; // in px; both width and height
  * not cheap to initialize.
  */
 export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeNodeHeaderProps) {
-    const { collapsed, error, fileFolderPath, fileSet, isLeaf, loading, onClick, title } = props;
+    const {
+        collapsed,
+        error,
+        fileFolderPath,
+        fileSet,
+        isLeaf,
+        isFocused,
+        loading,
+        onClick,
+        title,
+    } = props;
 
     const [isContextMenuActive, setContextMenuActive] = React.useState(false);
 
@@ -122,7 +133,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
     return (
         <span
             className={classNames(styles.directoryHeader, {
-                [styles.focused]: isContextMenuActive,
+                [styles.focused]: isContextMenuActive || isFocused,
             })}
             data-testid="treeitemheader"
             onClick={onClick}

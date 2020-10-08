@@ -1,9 +1,6 @@
 import { isArray, reject } from "lodash";
 
-import {
-    IndexError,
-    ValueError,
- } from "../../errors";
+import { IndexError, ValueError } from "../../errors";
 import { FmsFile } from "../../services/FileService";
 import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
@@ -86,7 +83,10 @@ export default class FileSelection {
         this.focusedItem = focusedItem;
     }
 
-    public getFocusedItemIndices(): { indexAcrossAllSelections: number | undefined, indexWithinFileSet: number | undefined } {
+    public getFocusedItemIndices(): {
+        indexAcrossAllSelections: number | undefined;
+        indexWithinFileSet: number | undefined;
+    } {
         return {
             indexAcrossAllSelections: this.focusedItem?.indexAcrossAllSelections,
             indexWithinFileSet: this.focusedItem?.indexWithinFileSet,
@@ -105,12 +105,16 @@ export default class FileSelection {
     /**
      * Is _any_ index, or optionally, a specific index within a given FileSet focused?
      */
-    public isFocused(fileSet: FileSet, index?: number): boolean {
+    public isFocused(filters: FileFilter[], index?: number): boolean;
+    public isFocused(fileSet: FileSet, index?: number): boolean;
+    public isFocused(query: FileSet | FileFilter[], index?: number): boolean {
         if (!this.focusedItem) {
             return false;
         }
 
-        const fileSetIsFocused = this.focusedItem.fileSet.equals(fileSet);
+        const fileSetIsFocused = FileSet.isFileSet(query)
+            ? this.focusedItem.fileSet.equals(query)
+            : this.focusedItem.fileSet.matches(query);
 
         if (index !== undefined) {
             return fileSetIsFocused && this.focusedItem.indexWithinFileSet === index;
@@ -203,17 +207,23 @@ export default class FileSelection {
      * SelectionItems have equal FileSets (e.g., they come from the same listing of files and therefore query), the SelectionItems
      * are sorted in ascending index order.
      */
-    public select(params: { fileSet: FileSet; index: NumericRange | number; sortOrder: number; indexToFocus?: number; }): FileSelection {
-        const indexRange = NumericRange.isNumericRange(params.index) ? params.index : new NumericRange(params.index);
-        const {
-            fileSet,
-            sortOrder,
-            indexToFocus = indexRange.max,
-        } = params;
+    public select(params: {
+        fileSet: FileSet;
+        index: NumericRange | number;
+        sortOrder: number;
+        indexToFocus?: number;
+    }): FileSelection {
+        const indexRange = NumericRange.isNumericRange(params.index)
+            ? params.index
+            : new NumericRange(params.index);
+        const { fileSet, sortOrder, indexToFocus = indexRange.max } = params;
 
         // if `indexRange` contains already selected file rows, compact
         const compacted = reject(this.selections, (existingSelectionItem) => {
-            return fileSet.equals(existingSelectionItem.fileSet) && indexRange.contains(existingSelectionItem.selection);
+            return (
+                fileSet.equals(existingSelectionItem.fileSet) &&
+                indexRange.contains(existingSelectionItem.selection)
+            );
         });
 
         const item: SelectionItem = {
@@ -233,8 +243,7 @@ export default class FileSelection {
             return a.selection.min - b.selection.min;
         });
 
-        return new FileSelection(selections)
-            .focusByFileSet(fileSet, indexToFocus);
+        return new FileSelection(selections).focusByFileSet(fileSet, indexToFocus);
     }
 
     /**
@@ -293,8 +302,13 @@ export default class FileSelection {
         //   a. Update index references for currently focused item if it's still valid, or
         //   b. Choose a new item to focus
         // Case a: the currently focused item is still in the list of selections, need to update index references
-        if (nextSelection.isSelected(this.focusedItem.fileSet, this.focusedItem.indexWithinFileSet)) {
-            return nextSelection.focusByFileSet(this.focusedItem.fileSet, this.focusedItem.indexWithinFileSet);
+        if (
+            nextSelection.isSelected(this.focusedItem.fileSet, this.focusedItem.indexWithinFileSet)
+        ) {
+            return nextSelection.focusByFileSet(
+                this.focusedItem.fileSet,
+                this.focusedItem.indexWithinFileSet
+            );
         }
 
         // Case b: the currently focused item has just been deselected; need to focus something else
@@ -307,9 +321,16 @@ export default class FileSelection {
         // Case b.ii: the currently focused item is not the first item; focus whatever immediately precedes
         // what was just deselected within the list of all selections
         const indexWithinFileSetOfDeselectionMin = indexRange.min - item.selection.min;
-        const nextFocusedIndexAcrossAllSelections = Math.max(0, relativeStartIndexForItem + indexWithinFileSetOfDeselectionMin - 1);
-        const nextItemToFocus = this.getItemContainingSelectionIndex(nextFocusedIndexAcrossAllSelections);
-        const relativeStartIndexForNextFocusedItem = this.relativeStartIndexForItem(nextItemToFocus);
+        const nextFocusedIndexAcrossAllSelections = Math.max(
+            0,
+            relativeStartIndexForItem + indexWithinFileSetOfDeselectionMin - 1
+        );
+        const nextItemToFocus = this.getItemContainingSelectionIndex(
+            nextFocusedIndexAcrossAllSelections
+        );
+        const relativeStartIndexForNextFocusedItem = this.relativeStartIndexForItem(
+            nextItemToFocus
+        );
         const offset = nextFocusedIndexAcrossAllSelections - relativeStartIndexForNextFocusedItem;
         const indexWithinFileSet = nextItemToFocus.selection.min + offset;
         return nextSelection.focusByFileSet(nextItemToFocus.fileSet, indexWithinFileSet);
@@ -328,17 +349,15 @@ export default class FileSelection {
 
         switch (directive) {
             case FocusDirective.FIRST:
-                return FileSelection.from(this)
-                    .focusByIndex(0);
+                return FileSelection.from(this).focusByIndex(0);
             case FocusDirective.PREVIOUS:
-                return FileSelection.from(this)
-                    .focusByIndex(Math.max(0, currentFocusedIndex - 1));
+                return FileSelection.from(this).focusByIndex(Math.max(0, currentFocusedIndex - 1));
             case FocusDirective.NEXT:
-                return FileSelection.from(this)
-                    .focusByIndex(Math.min(this.count() - 1, currentFocusedIndex + 1));
+                return FileSelection.from(this).focusByIndex(
+                    Math.min(this.count() - 1, currentFocusedIndex + 1)
+                );
             case FocusDirective.LAST:
-                return FileSelection.from(this)
-                    .focusByIndex(Math.max(0, this.count() - 1));
+                return FileSelection.from(this).focusByIndex(Math.max(0, this.count() - 1));
             default:
                 return FileSelection.from(this);
         }
@@ -350,9 +369,7 @@ export default class FileSelection {
      */
     public focusByIndex(indexAcrossAllSelections: number): FileSelection {
         if (indexAcrossAllSelections >= this.count()) {
-            throw new IndexError(
-                `${indexAcrossAllSelections} is out of bounds of ${this}`
-            );
+            throw new IndexError(`${indexAcrossAllSelections} is out of bounds of ${this}`);
         }
 
         const itemToFocus = this.getItemContainingSelectionIndex(indexAcrossAllSelections);
@@ -361,7 +378,8 @@ export default class FileSelection {
             fileSet: itemToFocus.fileSet,
             selection: itemToFocus.selection,
             sortOrder: itemToFocus.sortOrder,
-            indexWithinFileSet: itemToFocus.selection.min + (indexAcrossAllSelections - relativeStartIndexForItem),
+            indexWithinFileSet:
+                itemToFocus.selection.min + (indexAcrossAllSelections - relativeStartIndexForItem),
             indexAcrossAllSelections,
         };
 
@@ -380,7 +398,9 @@ export default class FileSelection {
         // attempting to focus an item that isn't selected; fail gracefully
         if (indexOfItemContainingSelection === -1) {
             throw new ValueError(
-                `Unable to find a SelectionItem belonging to FileSet(${JSON.stringify(fileSet)}) and containing ${indexWithinFileSet}`
+                `Unable to find a SelectionItem belonging to FileSet(${JSON.stringify(
+                    fileSet
+                )}) and containing ${indexWithinFileSet}`
             );
         }
 
@@ -391,7 +411,8 @@ export default class FileSelection {
             selection: item.selection,
             sortOrder: item.sortOrder,
             indexWithinFileSet,
-            indexAcrossAllSelections: relativeStartIndexForItem + (indexWithinFileSet - item.selection.min),
+            indexAcrossAllSelections:
+                relativeStartIndexForItem + (indexWithinFileSet - item.selection.min),
         };
 
         return new FileSelection(this.selections, nextFocusedItem);
@@ -401,7 +422,7 @@ export default class FileSelection {
         return {
             selections: this.selections,
             focusedItem: this.focusedItem,
-        }
+        };
     }
 
     public toString(): string {
@@ -442,7 +463,7 @@ export default class FileSelection {
             }
 
             const existing = mapping.get(fileSet);
-            existing.push(selection)
+            existing.push(selection);
             const compacted = NumericRange.compact(...existing);
             mapping.set(fileSet, compacted);
             return mapping;
@@ -463,9 +484,7 @@ export default class FileSelection {
             }
         }
 
-        throw new IndexError(
-            `${indexAcrossAllSelections} is out of bounds of ${this}`
-        );
+        throw new IndexError(`${indexAcrossAllSelections} is out of bounds of ${this}`);
     }
 
     /**

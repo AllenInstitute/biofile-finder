@@ -18,7 +18,7 @@
 
 .focused {
     border: 2px solid #d4e3fc;
-    margin: calc(0.25rem - 2px) 0;
+    margin: 0;
 }
 
 .chevron-closed {
