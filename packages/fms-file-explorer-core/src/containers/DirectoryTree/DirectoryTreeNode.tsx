@@ -30,9 +30,25 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const dispatch = useDispatch();
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
+
     const fileFolderPath = [...ancestorNodes, currentNode];
     const fileFolder = new FileFolder(fileFolderPath);
     const collapsed = !openFileFolders.find((f) => f.equals(fileFolder));
+
+    // Is a file within this folder--either directly underneath or otherwise as a descendent--
+    // on view in the file details pane?
+    const hasFocus = React.useMemo(() => {
+        if (collapsed) {
+            // If node is collapsed, ask the broad question, "Is the file selection on view in the
+            // details pane underneath this node, at any level?"
+            return fileSelection.isFocused(fileSet.filters);
+        }
+
+        // Otherwise, ask the narrower question, "Is the file selection on view in the details pane
+        // _directly_ underneath this folder, as a child?"
+        return fileSelection.isFocused(fileSet);
+    }, [fileSelection, fileSet, collapsed]);
+
     const {
         isLeaf,
         state: { content, error, isLoading },
@@ -44,17 +60,9 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
         sortOrder,
     });
 
-    const node = React.useRef<HTMLLIElement>(null);
-    const hasFocus = React.useMemo(() => {
-        if (collapsed) {
-            return fileSelection.isFocused(fileSet.filters);
-        }
-
-        return fileSelection.isFocused(fileSet);
-    }, [fileSelection, fileSet, collapsed]);
-
     // This hook is responsible for ensuring that if the details pane is currently showing a file row
     // within this node, this node is visible.
+    const node = React.useRef<HTMLLIElement>(null);
     React.useEffect(() => {
         if (node.current && hasFocus) {
             node.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
