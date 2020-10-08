@@ -103,7 +103,15 @@ export default class FileSelection {
     }
 
     /**
-     * Is _any_ index, or optionally, a specific index within a given FileSet focused?
+     * Is _any_ index, or optionally, a specific index within a given query focused?
+     *
+     * A "query" can be a FileSet, in which case this method checks for equality
+     * between the given FileSet and the currently focused SelectionItem's FileSet.
+     *
+     * Or, a "query" can be a list of FileFilters, in which case this method checks
+     * that the currently focused SelectionItem's FileSet _matches_ the given filters. This
+     * is useful when determining whether the currently focused SelectionItem is anywhere
+     * beneath a top-level folder.
      */
     public isFocused(filters: FileFilter[], index?: number): boolean;
     public isFocused(fileSet: FileSet, index?: number): boolean;
