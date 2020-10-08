@@ -14,6 +14,7 @@ import {
 import FileList from "../FileList";
 import FileFilter from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
+import { ValueError } from "../../errors";
 import * as directoryTreeSelectors from "./selectors";
 import { interaction, metadata, selection } from "../../state";
 import { naturalComparator } from "../../util/strings";
@@ -37,6 +38,56 @@ const DEFAULTS = {
     ancestorNodes: [],
     currentNode: ROOT_NODE,
 };
+
+/**
+ * Calculate a float sort order for a DirectoryTreeNode.
+ * Takes into account sort order of parent folder(s). If at the second level,
+ * start to build up a float by separating parent sort order from child node order.
+ * At increased depth of the hierarchy, add significant digits to the float.
+ * Refer to unit tests for example input/output.
+ */
+export function calcNodeSortOrder({
+    idxWithinSourceList,
+    parentDepth,
+    parentSortOrder,
+    sourceListLength,
+}: {
+    idxWithinSourceList: number;
+    parentDepth: number;
+    parentSortOrder: number;
+    sourceListLength: number;
+}): number {
+    if (parentDepth < 1) {
+        throw new ValueError(
+            `parentDepth must be greater than 0 in order to calculate node sort order. Given: ${parentDepth}`
+        );
+    }
+
+    // Take into account how many siblings this node neeeds to be sorted amongst.
+    // E.g.: in a list of dozens of items, 0.1 is the same number as 0.10 (0.2 === 0.20, etc), so use 0.01, 0.02 instead.
+    const maxPadLength = Math.floor(Math.log10(sourceListLength) + 1);
+    const nodeOrder = String(idxWithinSourceList).padStart(maxPadLength, "0");
+
+    // Because JS treats X.0, X.00, etc as the integer X, make sure that the true depth of this node
+    // is factored into its sorting. See following demonstration of why this is necessary:
+    // Without doing this |  With doing this
+    //      1.0/                  1.0/
+    //        1.00/                 1.000/
+    //        1.01/                 1.001/
+    //        ...                   ...
+    //    !!! 1.79/ !!!         !!! 1.079/ !!!
+    //      1.1/                  1.1/
+    //        1.10/                 1.10/
+    //        1.11/                 1.11/
+    const ancestorNodeOrder =
+        parentDepth > 1 && Number.isInteger(parentSortOrder)
+            ? `${parentSortOrder}.${String(0).repeat(parentDepth)}`
+            : parentSortOrder;
+
+    return parentDepth === 1
+        ? Number.parseFloat(`${parentSortOrder}.${nodeOrder}`)
+        : Number.parseFloat(`${ancestorNodeOrder}${nodeOrder}`);
+}
 
 /**
  * React hook to encapsulate all logic for constructing the directory hierarchy at a given depth
@@ -138,23 +189,12 @@ const useDirectoryHierarchy = (
                             // First level of folders; use order produced by sort operation.
                             childNodeSortOrder = idx;
                         } else {
-                            // Take into account sort order of parent folder(s) if not at first level.
-                            // If at the second level, start to build up a float by separating parent sort
-                            // order from child node order (as produced by sort operation).
-                            // At increased depth of the hierarchy, add significant digits to the float.
-                            // e.g.: 1 -> 1.1 -> 1.13 -> 1.130 -> 1.1304
-                            const maxPadLength = Math.floor(Math.log10(filteredValues.length) + 1);
-                            const childNodeOrderPadded = String(idx).padStart(maxPadLength, "0");
-                            const ancestorNodeOrderPadded =
-                                depth > 1 && Number.isInteger(sortOrder)
-                                    ? `${sortOrder}.${String(0).repeat(depth)}`
-                                    : sortOrder;
-                            childNodeSortOrder =
-                                depth < 2
-                                    ? Number.parseFloat(`${sortOrder}.${childNodeOrderPadded}`)
-                                    : Number.parseFloat(
-                                          `${ancestorNodeOrderPadded}${childNodeOrderPadded}`
-                                      );
+                            childNodeSortOrder = calcNodeSortOrder({
+                                idxWithinSourceList: idx,
+                                parentDepth: depth,
+                                parentSortOrder: sortOrder,
+                                sourceListLength: filteredValues.length,
+                            });
                         }
 
                         const pathToChildNode = [...pathToNode, value];
