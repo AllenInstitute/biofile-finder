@@ -143,9 +143,18 @@ const useDirectoryHierarchy = (
                             // order from child node order (as produced by sort operation).
                             // At increased depth of the hierarchy, add significant digits to the float.
                             // e.g.: 1 -> 1.1 -> 1.13 -> 1.130 -> 1.1304
-                            childNodeSortOrder = Number.isInteger(sortOrder)
-                                ? Number.parseFloat(`${sortOrder}.${idx}`)
-                                : Number.parseFloat(`${sortOrder}${idx}`);
+                            const maxPadLength = Math.floor(Math.log10(filteredValues.length) + 1);
+                            const childNodeOrderPadded = String(idx).padStart(maxPadLength, "0");
+                            const ancestorNodeOrderPadded =
+                                depth > 1 && Number.isInteger(sortOrder)
+                                    ? `${sortOrder}.${String(0).repeat(depth)}`
+                                    : sortOrder;
+                            childNodeSortOrder =
+                                depth < 2
+                                    ? Number.parseFloat(`${sortOrder}.${childNodeOrderPadded}`)
+                                    : Number.parseFloat(
+                                          `${ancestorNodeOrderPadded}${childNodeOrderPadded}`
+                                      );
                         }
 
                         const pathToChildNode = [...pathToNode, value];
