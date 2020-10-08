@@ -43,19 +43,23 @@ const MAX_NON_ROOT_HEIGHT = 300;
  * itself out to be 100% the height and width of its parent.
  */
 export default function FileList(props: FileListProps) {
-    const { className, fileSet, isRoot, rowHeight, sortOrder, totalCount } = defaults({}, props, DEFAULTS);
+    const { className, fileSet, isRoot, rowHeight, sortOrder, totalCount } = defaults(
+        {},
+        props,
+        DEFAULTS
+    );
 
     const onSelect = useFileSelector(fileSet, sortOrder);
     const dispatch = useDispatch();
-    const fileSelection = useSelector(
-        selection.selectors.getFileSelection
-    );
+    const fileSelection = useSelector(selection.selectors.getFileSelection);
 
     // If this is the "root" file list (e.g., all files in FMS), this component should take up
     // 100% of the height of its container.
     // Otherwise, the height of the list should reflect the number of items it has to render, up to
     // a certain maximum.
-    const [measuredNodeRef, measuredHeight, measuredWidth] = useLayoutMeasurements<HTMLDivElement>();
+    const [measuredNodeRef, measuredHeight, measuredWidth] = useLayoutMeasurements<
+        HTMLDivElement
+    >();
     const dataDrivenHeight = rowHeight * totalCount + 3 * rowHeight; // adding three additional rowHeights leaves room for the header + horz. scroll bar
     const calculatedHeight = Math.min(MAX_NON_ROOT_HEIGHT, dataDrivenHeight);
     const height = isRoot ? measuredHeight : calculatedHeight;
@@ -84,11 +88,15 @@ export default function FileList(props: FileListProps) {
                 const focusedItemBottom = focusedItemTop + rowHeight;
                 const headerHeight = 40; // px; defined in Header.module.css; stickily sits on top of the list
                 const visibleArea = height - headerHeight;
-                const focusedItemIsVisible = focusedItemTop >= listScrollTop && focusedItemBottom <= (listScrollTop + visibleArea);
+                const focusedItemIsVisible =
+                    focusedItemTop >= listScrollTop &&
+                    focusedItemBottom <= listScrollTop + visibleArea;
 
                 if (!focusedItemIsVisible) {
-                    const centerOfFocusedItem = focusedItemTop + (rowHeight / 2);
-                    const centeredWithinVisibleArea = Math.floor(centerOfFocusedItem - (visibleArea / 2));
+                    const centerOfFocusedItem = focusedItemTop + rowHeight / 2;
+                    const centeredWithinVisibleArea = Math.floor(
+                        centerOfFocusedItem - visibleArea / 2
+                    );
                     listRef.current.scrollTo(Math.max(0, centeredWithinVisibleArea));
                 }
             }
@@ -119,7 +127,7 @@ export default function FileList(props: FileListProps) {
                 ref={measuredNodeRef}
             >
                 <InfiniteLoader
-                    key={fileSet.hash}
+                    key={fileSet.instanceId} // force a re-render whenever FileSet changes
                     isItemLoaded={fileSet.isFileMetadataLoaded}
                     loadMoreItems={debouncePromise(
                         fileSet.fetchFileRange,
@@ -128,7 +136,6 @@ export default function FileList(props: FileListProps) {
                     itemCount={totalCount}
                 >
                     {({ onItemsRendered, ref: innerRef }) => {
-
                         const callbackRef = (instance: FixedSizeList | null) => {
                             listRef.current = instance;
 
@@ -161,9 +168,7 @@ export default function FileList(props: FileListProps) {
                     }}
                 </InfiniteLoader>
             </div>
-            <p className={styles.rowCountDisplay}>
-                {totalCount} files
-            </p>
+            <p className={styles.rowCountDisplay}>{totalCount} files</p>
         </div>
     );
 }
