@@ -4,9 +4,9 @@ import { useSelector } from "react-redux";
 
 import { interaction } from "../../state";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
+import AggregateInfoBox from "../AggregateInfoBox";
 import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
-import AggregateInfoBox from "../AggregateInfoBox";
 
 const styles = require("./DirectoryTree.module.css");
 
