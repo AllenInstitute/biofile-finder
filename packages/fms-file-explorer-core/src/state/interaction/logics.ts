@@ -61,7 +61,7 @@ const downloadManifest = createLogic({
                 selections = [selection];
             } else {
                 const fileSelection = selection.selectors.getFileSelection(state);
-                selections = fileSelection.toSelectionRequest();
+                selections = fileSelection.toSelections();
             }
 
             if (isEmpty(selections)) {
