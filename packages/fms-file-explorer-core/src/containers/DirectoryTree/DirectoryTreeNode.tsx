@@ -36,7 +36,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const collapsed = !openFileFolders.find((f) => f.equals(fileFolder));
 
     // Is a file within this folder--either directly underneath or otherwise as a descendent--
-    // on view in the file details pane?
+    // shown in the file details pane?
     const hasFocus = React.useMemo(() => {
         if (collapsed) {
             // If node is collapsed, ask the broad question, "Is the file selection on view in the
