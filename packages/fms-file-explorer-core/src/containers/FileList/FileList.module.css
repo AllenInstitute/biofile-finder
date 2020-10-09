@@ -12,10 +12,6 @@
     height: calc(100% - var(--row-count-height));
 }
 
-.selected-row {
-    background-color: #d4e3fc;
-}
-
 .row-count-display {
     color: grey;
 

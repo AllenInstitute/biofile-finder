@@ -183,26 +183,33 @@ export function resetColumnWidth(columnHeader: string) {
  */
 export const SELECT_FILE = makeConstant(STATE_BRANCH_NAME, "select-file");
 
+interface SelectFileActionPayload {
+    fileSet: FileSet;
+    lastTouched?: number | undefined; // last index selected
+    selection: number | NumericRange;
+    sortOrder: number;
+    updateExistingSelection?: boolean;
+}
+
 export interface SelectFileAction {
-    payload: {
-        correspondingFileSet: FileSet;
-        selection: number | NumericRange;
-        updateExistingSelection: boolean;
-        lastTouched?: number | undefined; // last index selected
-    };
+    payload: SelectFileActionPayload;
     type: string;
 }
 
-export function selectFile(
-    correspondingFileSet: FileSet,
-    selection: number | NumericRange,
-    updateExistingSelection = false,
-    lastTouched: number | undefined = undefined
-): SelectFileAction {
+export function selectFile(payload: SelectFileActionPayload): SelectFileAction {
+    const {
+        fileSet,
+        lastTouched = undefined,
+        selection,
+        sortOrder,
+        updateExistingSelection = false,
+    } = payload;
+
     return {
         payload: {
-            correspondingFileSet,
+            fileSet,
             selection,
+            sortOrder,
             updateExistingSelection,
             lastTouched,
         },

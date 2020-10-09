@@ -26,7 +26,7 @@ export interface OnSelect {
  * Redux about the user interaction. It returns an `onSelect` handler to be passed to each row. It handles logic for mapping
  * user interactions like ctrl clicking (modify existing selection) and shift clicking (bulk selection).
  */
-export default function useFileSelector(fileSet: FileSet): OnSelect {
+export default function useFileSelector(fileSet: FileSet, sortOrder: number): OnSelect {
     const dispatch = useDispatch();
     const [lastSelectedFileIndex, setLastSelectedFileIndex] = React.useState<undefined | number>(
         undefined
@@ -42,24 +42,26 @@ export default function useFileSelector(fileSet: FileSet): OnSelect {
                 const endIndex = Math.max(rangeBoundary, fileRow.index);
 
                 dispatch(
-                    selection.actions.selectFile(
+                    selection.actions.selectFile({
                         fileSet,
-                        new NumericRange(startIndex, endIndex),
-                        true, // heuristic: holding down shift key always modifies existing selection
-                        fileRow.index
-                    )
+                        lastTouched: fileRow.index,
+                        selection: new NumericRange(startIndex, endIndex),
+                        sortOrder,
+                        updateExistingSelection: true, // heuristic: holding down shift key always modifies existing selection
+                    })
                 );
             } else {
                 setLastSelectedFileIndex(fileRow.index);
                 dispatch(
-                    selection.actions.selectFile(
+                    selection.actions.selectFile({
                         fileSet,
-                        fileRow.index,
-                        eventParams.ctrlKeyIsPressed
-                    )
+                        selection: fileRow.index,
+                        sortOrder,
+                        updateExistingSelection: eventParams.ctrlKeyIsPressed
+                    })
                 );
             }
         },
-        [dispatch, fileSet, lastSelectedFileIndex]
+        [dispatch, fileSet, lastSelectedFileIndex, sortOrder]
     );
 }

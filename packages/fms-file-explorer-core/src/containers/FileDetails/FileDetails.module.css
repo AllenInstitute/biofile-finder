@@ -1,3 +1,8 @@
+.root {
+    --window-buttons-height: var(--breadcrumb-height); /* defined in App.module.css under .root{} */
+    --pagination-height: var(--breadcrumb-height); /* defined in App.module.css under .root{} */
+}
+
 .expandable {
     position: absolute;
     right: 0;
@@ -8,8 +13,42 @@
     overflow: auto;
 }
 
+.window-buttons {
+    width: 100%;
+    height: var(--window-buttons-height);
+
+    /* flex parent */
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
 .default {
     width: var(--file-details-width); /* defined in App.module.css under .root{} */
+}
+
+.minimized {
+    overflow: hidden;
+}
+
+.maximized {
+    /* 100% of the nearest relatively sized container, which _needs_ to be the .everything-except-header-ribbon div
+    rendered in App.tsx */
+    width: 100%;
+}
+
+.hidden {
+    visibility: hidden;
+}
+
+.pagination {
+    width: 100%;
+    height: var(--pagination-height);
+
+    /* flex parent */
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
 .content-container {
@@ -17,7 +56,7 @@
 
     position: relative;
     width: 100%;
-    height: calc(100% - var(--breadcrumb-height));
+    height: calc(100% - var(--window-buttons-height) - var(--pagination-height));
 }
 
 .overflow-container {
@@ -39,36 +78,11 @@
     height: var(--teaser-height);
 }
 
-.minimized {
-    overflow: hidden;
-}
-
-.maximized {
-    /* 100% of the nearest relatively sized container, which _needs_ to be the .everything-except-header-ribbon div
-    rendered in App.tsx */
-    width: 100%;
-}
-
-.windowButtons {
-    width: 100%;
-    height: var(--breadcrumb-height); /* defined in App.module.css under .root{} */
-
-    /* flex parent */
-    display: flex;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-}
-
-.hidden {
-    visibility: hidden;
-}
-
 .file-thumbnail-container {
     margin: var(--margin) 10px 10px 10px; /* defined in App.module.css under .root{} */
     height: 200px;
     transition: width var(--transition-duration);
 }
-
 
 .file-thumbnail-container.thumbnail-default {
     width: 90%;

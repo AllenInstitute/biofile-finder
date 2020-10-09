@@ -15,7 +15,7 @@ describe("FileSelection", () => {
             const selection = new FileSelection();
 
             // Act
-            const nextSelection = selection.select(new FileSet(), 3);
+            const nextSelection = selection.select({ fileSet: new FileSet(), index: 3, sortOrder: 0 });
 
             // Assert
             expect(nextSelection.isSelected(new FileSet(), 3)).equals(true);
@@ -26,7 +26,7 @@ describe("FileSelection", () => {
             const selection = new FileSelection();
 
             // Act
-            const nextSelection = selection.select(new FileSet(), new NumericRange(3, 7));
+            const nextSelection = selection.select({ fileSet: new FileSet(), index: new NumericRange(3, 7), sortOrder: 0 });
 
             // Assert
             [3, 4, 5, 6, 7].forEach((idx) => {
@@ -43,11 +43,11 @@ describe("FileSelection", () => {
             const previouslySelectedRange = new NumericRange(30, 60);
             const newlySelectedRange = new NumericRange(4, 100);
             const selection = new FileSelection()
-                .select(fileSet1, previouslySelectedRange)
-                .select(fileSet2, 88);
+                .select({ fileSet: fileSet1, index: previouslySelectedRange, sortOrder: 0 })
+                .select({ fileSet: fileSet2, index: 88, sortOrder: 1 });
 
             // Act
-            const nextSelection = selection.select(fileSet1, newlySelectedRange);
+            const nextSelection = selection.select({ fileSet: fileSet1, index: newlySelectedRange, sortOrder: 0 });
 
             // Assert
             expect(nextSelection.isSelected(fileSet2, 88)).to.equal(true);
@@ -61,7 +61,7 @@ describe("FileSelection", () => {
             const selectedRange = new NumericRange(10, 20);
 
             // Act
-            const nextSelection = selection.select(fileSet, selectedRange);
+            const nextSelection = selection.select({ fileSet, index: selectedRange, sortOrder: 0 });
 
             // Assert
             expect(nextSelection.isFocused(fileSet, 20)).to.equal(true);
@@ -74,10 +74,64 @@ describe("FileSelection", () => {
             const selectedRange = new NumericRange(10, 20);
 
             // Act
-            const nextSelection = selection.select(fileSet, selectedRange, 12);
+            const nextSelection = selection.select({ fileSet, index: selectedRange, sortOrder: 0, indexToFocus: 12 });
 
             // Assert
             expect(nextSelection.isFocused(fileSet, 12)).to.equal(true);
+        });
+
+        it("sorts selections first by sortOrder, then by index position within FileSet", () => {
+            // Arrange
+            const fileSet1 = new FileSet();
+            const fileSet2 = new FileSet({
+                filters: [new FileFilter("foo", "bar")],
+            });
+            const fileSet3 = new FileSet({
+                filters: [new FileFilter("foo", "bar"), new FileFilter("something", "other")],
+            });
+
+            const selection = new FileSelection()
+                .select({ fileSet: fileSet3, index: 100, sortOrder: 95 })
+                .select({ fileSet: fileSet1, index: 3, sortOrder: 0 })
+                .select({ fileSet: fileSet2, index: new NumericRange(8, 10), sortOrder: 1 })
+                .select({ fileSet: fileSet1, index: new NumericRange(12, 15), sortOrder: 0 })
+                .select({ fileSet: fileSet2, index: 33, sortOrder: 1 });
+
+            // Act / Assert
+
+            // to start, the first file focused should be the last selected
+            expect(selection.isFocused(fileSet2, 33)).to.equal(true);
+
+            // the first file by order, however, should be the first index selected within fileSet1
+            expect(
+                selection
+                    .focus(FocusDirective.FIRST)
+                    .isFocused(fileSet1, 3)
+            ).to.equal(true);
+
+            // next up should be the next file within fileSet1 selected
+            expect(
+                selection
+                    .focus(FocusDirective.FIRST)
+                    .focus(FocusDirective.NEXT)
+                    .isFocused(fileSet1, 12)
+            ).to.equal(true);
+
+            // jumping to the end of the fileSet1 selections, advancing to the next item should
+            // bring us to the first file selected within fileSet2
+            expect(
+                selection
+                    .focusByFileSet(fileSet1, 15)
+                    .focus(FocusDirective.NEXT)
+                    .isFocused(fileSet2, 8)
+            ).to.equal(true);
+
+            // the last item should be from within fileSet3
+            expect(
+                selection
+                    .focus(FocusDirective.LAST)
+                    .isFocused(fileSet3, 100)
+            ).to.equal(true);
         });
     });
 
@@ -85,9 +139,9 @@ describe("FileSelection", () => {
         it("deselects a single file", () => {
             // Arrange
             const selection = new FileSelection()
-                .select(new FileSet(), new NumericRange(0))
-                .select(new FileSet(), new NumericRange(21, 30))
-                .select(new FileSet(), new NumericRange(100));
+                .select({ fileSet: new FileSet(), index: new NumericRange(0), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(21, 30), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(100), sortOrder: 0 });
 
             // Act
             const nextSelection = selection.deselect(new FileSet(), 25);
@@ -95,15 +149,15 @@ describe("FileSelection", () => {
             // Assert
             expect(selection.isSelected(new FileSet(), 25)).to.equal(true);
             expect(nextSelection.isSelected(new FileSet(), 25)).to.equal(false);
-            expect(nextSelection.size()).to.equal(selection.size() - 1);
+            expect(nextSelection.count()).to.equal(selection.count() - 1);
         });
 
         it("deselects multiple files", () => {
             // Arrange
             const selection = new FileSelection()
-                .select(new FileSet(), new NumericRange(0))
-                .select(new FileSet(), new NumericRange(21, 30))
-                .select(new FileSet(), new NumericRange(100));
+                .select({ fileSet: new FileSet(), index: new NumericRange(0), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(21, 30), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(100), sortOrder: 0 });
 
             const rangeToDeselect = new NumericRange(22, 30);
 
@@ -116,27 +170,27 @@ describe("FileSelection", () => {
 
             // deselection
             expect(nextSelection.isSelected(new FileSet(), rangeToDeselect)).to.equal(false);
-            expect(nextSelection.size()).to.equal(selection.size() - rangeToDeselect.length);
+            expect(nextSelection.count()).to.equal(selection.count() - rangeToDeselect.length);
         });
 
         it("produces an empty FileSelection instance if last remaining selection is removed", () => {
             // Arrange
             const selection = new FileSelection()
-                .select(new FileSet(), new NumericRange(34));
+                .select({ fileSet: new FileSet(), index: new NumericRange(34), sortOrder: 0 });
 
             // Act
             const nextSelection = selection.deselect(new FileSet(), 34);
 
             // Assert
-            expect(nextSelection.size()).to.equal(0);
+            expect(nextSelection.count()).to.equal(0);
         });
 
         it("keeps currently focused item if possible", () => {
             // Arrange
             const selection = new FileSelection()
-                .select(new FileSet(), new NumericRange(0))
-                .select(new FileSet(), new NumericRange(21, 30))
-                .select(new FileSet(), new NumericRange(100))
+                .select({ fileSet: new FileSet(), index: new NumericRange(0), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(21, 30), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(100), sortOrder: 0 })
                 .focusByIndex(1);
 
             // Act
@@ -153,9 +207,9 @@ describe("FileSelection", () => {
         it("resets focused item when deselected file was previously focused - single deselection, first", () => {
             // Arrange
             const selection = new FileSelection()
-                .select(new FileSet(), new NumericRange(0))
-                .select(new FileSet(), new NumericRange(21, 30))
-                .select(new FileSet(), new NumericRange(100))
+                .select({ fileSet: new FileSet(), index: new NumericRange(0), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(21, 30), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(100), sortOrder: 0 })
                 .focusByIndex(0);
 
             // Act
@@ -172,9 +226,9 @@ describe("FileSelection", () => {
         it("resets focused item when deselected file was previously focused - single deselection, middle", () => {
             // Arrange
             const selection = new FileSelection()
-                .select(new FileSet(), new NumericRange(0))
-                .select(new FileSet(), new NumericRange(21, 30))
-                .select(new FileSet(), new NumericRange(100))
+                .select({ fileSet: new FileSet(), index: new NumericRange(0), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(21, 30), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(100), sortOrder: 0 })
                 .focusByFileSet(new FileSet(), 25);
 
             // Act
@@ -192,9 +246,9 @@ describe("FileSelection", () => {
         it("resets focused item when deselected file was previously focused - single deselection, last", () => {
             // Arrange
             const selection = new FileSelection()
-                .select(new FileSet(), new NumericRange(0))
-                .select(new FileSet(), new NumericRange(21, 30))
-                .select(new FileSet(), new NumericRange(100));
+                .select({ fileSet: new FileSet(), index: new NumericRange(0), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(21, 30), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(100), sortOrder: 0 });
 
             // Act
             const nextSelection = selection.deselect(new FileSet(), 100);
@@ -210,9 +264,9 @@ describe("FileSelection", () => {
         it("resets focused item when deselected file was previously focused - multiple deselection, first", () => {
             // Arrange
             const selection = new FileSelection()
-                .select(new FileSet(), new NumericRange(0, 5))
-                .select(new FileSet(), new NumericRange(21, 30))
-                .select(new FileSet(), new NumericRange(97, 100))
+                .select({ fileSet: new FileSet(), index: new NumericRange(0, 5), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(21, 30), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(97, 100), sortOrder: 0 })
                 .focusByIndex(0);
 
             // Act
@@ -229,9 +283,9 @@ describe("FileSelection", () => {
         it("resets focused item when deselected file was previously focused - multiple deselection, middle", () => {
             // Arrange
             const selection = new FileSelection()
-                .select(new FileSet(), new NumericRange(0))
-                .select(new FileSet(), new NumericRange(21, 30))
-                .select(new FileSet(), new NumericRange(100))
+                .select({ fileSet: new FileSet(), index: new NumericRange(0), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(21, 30), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(100), sortOrder: 0 })
                 .focusByFileSet(new FileSet(), 25);
 
             // Act
@@ -248,9 +302,9 @@ describe("FileSelection", () => {
         it("resets focused item when deselected file was previously focused - multiple deselection, last", () => {
             // Arrange
             const selection = new FileSelection()
-                .select(new FileSet(), new NumericRange(0))
-                .select(new FileSet(), new NumericRange(21, 30))
-                .select(new FileSet(), new NumericRange(97, 100));
+                .select({ fileSet: new FileSet(), index: new NumericRange(0), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(21, 30), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(97, 100), sortOrder: 0 });
 
             // Act
             const nextSelection = selection.deselect(new FileSet(), new NumericRange(97, 100));
@@ -270,17 +324,17 @@ describe("FileSelection", () => {
             filters: [new FileFilter("Cell Line", "AICS-12")],
         });
         const baseSelection = new FileSelection()
-            .select(fileSet1, new NumericRange(4, 100))
-            .select(fileSet2, 77)
-            .select(fileSet2, new NumericRange(103, 300))
-            .select(fileSet1, 0);
+            .select({ fileSet: fileSet1, index: new NumericRange(4, 100), sortOrder: 0 })
+            .select({ fileSet: fileSet2, index: 77, sortOrder: 1 })
+            .select({ fileSet: fileSet2, index: new NumericRange(103, 300), sortOrder: 1 })
+            .select({ fileSet: fileSet1, index: 0, sortOrder: 0 });
 
         const spec = [
             {
                 directive: FocusDirective.FIRST,
                 expectation: {
                     fileSet: fileSet1,
-                    fileSetIndex: 4,
+                    fileSetIndex: 0,
                 },
             },
             // effectively a noop when first is already selected
@@ -291,25 +345,25 @@ describe("FileSelection", () => {
                 directive: FocusDirective.PREVIOUS,
                 expectation: {
                     fileSet: fileSet1,
-                    fileSetIndex: 4,
+                    fileSetIndex: 0,
                 },
             },
             {
                 directive: FocusDirective.LAST,
                 expectation: {
-                    fileSet: fileSet1,
-                    fileSetIndex: 0,
+                    fileSet: fileSet2,
+                    fileSetIndex: 300,
                 },
             },
             // effectively a noop when the focused item is already at LAST
             {
                 setup: (selection: FileSelection) => {
-                    return selection.focusByIndex(selection.size() - 1);
+                    return selection.focusByIndex(selection.count() - 1);
                 },
                 directive: FocusDirective.NEXT,
                 expectation: {
-                    fileSet: fileSet1,
-                    fileSetIndex: 0,
+                    fileSet: fileSet2,
+                    fileSetIndex: 300,
                 },
             },
             {
@@ -350,7 +404,7 @@ describe("FileSelection", () => {
         it("handles FileSelection instances with single selections gracefully", () => {
             // Arrange
             const prevSelection = new FileSelection()
-                .select(fileSet1, 48);
+                .select({ fileSet: fileSet1, index: 48, sortOrder: 0 });
 
             [FocusDirective.FIRST, FocusDirective.PREVIOUS, FocusDirective.NEXT, FocusDirective.LAST].forEach((directive) => {
                 // Act
@@ -370,8 +424,8 @@ describe("FileSelection", () => {
                 filters: [new FileFilter("foo", "bar")]
             });
             const prevSelection = new FileSelection()
-                .select(fileSet1, new NumericRange(3, 10))
-                .select(fileSet2, new NumericRange(1, 5000));
+                .select({ fileSet: fileSet1, index: new NumericRange(3, 10), sortOrder: 0 })
+                .select({ fileSet: fileSet2, index: new NumericRange(1, 5000), sortOrder: 1 });
 
             // Act
             const nextSelection = prevSelection.focusByIndex(3);
@@ -384,7 +438,7 @@ describe("FileSelection", () => {
         it("throws an error if attempting to make an out-of-bounds selection", () => {
             // Arrange
             const selection = new FileSelection()
-                .select(new FileSet(), new NumericRange(0, 45));
+                .select({ fileSet: new FileSet(), index: new NumericRange(0, 45), sortOrder: 0 });
 
             // Act / Assert
             expect(() => {
@@ -401,8 +455,8 @@ describe("FileSelection", () => {
                 filters: [new FileFilter("foo", "bar")]
             });
             const prevSelection = new FileSelection()
-                .select(fileSet1, new NumericRange(3, 10))
-                .select(fileSet2, new NumericRange(1, 5000));
+                .select({ fileSet: fileSet1, index: new NumericRange(3, 10), sortOrder: 0 })
+                .select({ fileSet: fileSet2, index: new NumericRange(1, 5000), sortOrder: 1 });
 
             // Act
             const nextSelection = prevSelection.focusByFileSet(fileSet2, 4086);
@@ -415,7 +469,7 @@ describe("FileSelection", () => {
         it("throws an error if attempting to make an invalid selection -- row within FileSet not selected", () => {
             // Arrange
             const selection = new FileSelection()
-                .select(new FileSet(), new NumericRange(0, 45));
+                .select({ fileSet: new FileSet(), index: new NumericRange(0, 45), sortOrder: 0 });
 
             // Act / Assert
             expect(() => {
@@ -430,7 +484,7 @@ describe("FileSelection", () => {
                 filters: [new FileFilter("foo", "bar")]
             });
             const selection = new FileSelection()
-                .select(selectedFileSet, new NumericRange(0, 45));
+                .select({ fileSet: selectedFileSet, index: new NumericRange(0, 45), sortOrder: 0 });
 
             // Act / Assert
             expect(() => {
@@ -450,14 +504,14 @@ describe("FileSelection", () => {
             filters: [pipeline4_4, aics12],
         });
         const selection = new FileSelection()
-            .select(fileSet1, new NumericRange(1, 10)) // 10 total
-            .select(fileSet2, 3) // 1 total
-            .select(fileSet3, new NumericRange(21, 30)) // 10 total
-            .select(fileSet1, 25); // 1 total
+            .select({ fileSet: fileSet1, index: new NumericRange(1, 10), sortOrder: 0 }) // 10 total
+            .select({ fileSet: fileSet2, index: 3, sortOrder: 1 }) // 1 total
+            .select({ fileSet: fileSet3, index: new NumericRange(21, 30), sortOrder: 2 }) // 10 total
+            .select({ fileSet: fileSet1, index: 25, sortOrder: 0 }); // 1 total
 
         it("returns unfiltered size", () => {
             // Act
-            const size = selection.size();
+            const size = selection.count();
 
             // Assert
             expect(size).to.equal(22);
@@ -465,7 +519,7 @@ describe("FileSelection", () => {
 
         it("returns filtered size - filtered by fileset", () => {
             // Act
-            const size = selection.size(fileSet1);
+            const size = selection.count(fileSet1);
 
             // Assert
             expect(size).to.equal(11);
@@ -478,7 +532,7 @@ describe("FileSelection", () => {
         ].forEach(({ filters, expected }, idx) => {
             it(`(${idx}) returns filtered size -- filtered by file filters`, () => {
                 // Act
-                const size = selection.size(filters);
+                const size = selection.count(filters);
 
                 // Assert
                 expect(size).to.equal(expected);
@@ -494,10 +548,10 @@ describe("FileSelection", () => {
                 filters: [new FileFilter("foo", "bar")]
             });
             const selection = new FileSelection()
-                .select(fileSet1, 3)
-                .select(fileSet2, new NumericRange(8, 10))
-                .select(fileSet1, new NumericRange(12, 15))
-                .select(fileSet2, 33);
+                .select({ fileSet: fileSet1, index: 3, sortOrder: 0 })
+                .select({ fileSet: fileSet2, index: new NumericRange(8, 10), sortOrder: 1 })
+                .select({ fileSet: fileSet1, index: new NumericRange(12, 15), sortOrder: 0 })
+                .select({ fileSet: fileSet2, index: 33, sortOrder: 1 });
 
             // Act
             const grouped = selection.groupByFileSet();
@@ -520,11 +574,11 @@ describe("FileSelection", () => {
             // Arrange
             const fileSet = new FileSet();
             const selection = new FileSelection()
-                .select(fileSet, 3)
-                .select(fileSet, new NumericRange(4, 12))
-                .select(fileSet, 15)
-                .select(fileSet, new NumericRange(0, 2))
-                .select(fileSet, new NumericRange(99, 102));
+                .select({ fileSet, index: 3, sortOrder: 0 })
+                .select({ fileSet, index: new NumericRange(4, 12), sortOrder: 0 })
+                .select({ fileSet, index: 15, sortOrder: 0 })
+                .select({ fileSet, index: new NumericRange(0, 2), sortOrder: 0 })
+                .select({ fileSet, index: new NumericRange(99, 102), sortOrder: 0 });
 
             // Act
             const grouped = selection.groupByFileSet();
@@ -535,6 +589,122 @@ describe("FileSelection", () => {
                 new NumericRange(15),
                 new NumericRange(99, 102),
             ]);
+        });
+    });
+
+    describe("hasNextFocusableItem", () => {
+        const baseSelection = new FileSelection()
+            .select({ fileSet: new FileSet(), index: new NumericRange(0, 9), sortOrder: 0 });
+
+        const spec = [
+            {
+                setup: (selection: FileSelection): FileSelection => {
+                    return selection
+                        .focusByIndex(0);
+                },
+                expectation: true,
+            },
+            {
+                setup: (selection: FileSelection): FileSelection => {
+                    return selection
+                        .focusByIndex(9);
+                },
+                expectation: false,
+            },
+            {
+                setup: (selection: FileSelection): FileSelection => {
+                    return selection
+                        .focusByIndex(5);
+                },
+                expectation: true,
+            },
+            {
+                // test FileSelection of size 1
+                setup: (): FileSelection => {
+                    return new FileSelection()
+                        .select({ fileSet: new FileSet(), index: 1, sortOrder: 0 })
+                        .focusByIndex(0);
+                },
+                expectation: false,
+            },
+            {
+                // test FileSelection of size 0
+                setup: (): FileSelection => {
+                    return new FileSelection();
+                },
+                expectation: false,
+            }
+        ];
+
+        spec.forEach(({ setup, expectation }, idx) => {
+            it(`(${idx}) returns ${expectation}`, () => {
+                // Arrange
+                const selection = setup(baseSelection);
+
+                // Act
+                const hasNext = selection.hasNextFocusableItem();
+
+                // Assert
+                expect(hasNext).to.equal(expectation);
+            });
+        });
+    });
+
+    describe("hasPreviousFocusableItem", () => {
+        const baseSelection = new FileSelection()
+            .select({ fileSet: new FileSet(), index: new NumericRange(0, 9), sortOrder: 0 });
+
+        const spec = [
+            {
+                setup: (selection: FileSelection): FileSelection => {
+                    return selection
+                        .focusByIndex(0);
+                },
+                expectation: false,
+            },
+            {
+                setup: (selection: FileSelection): FileSelection => {
+                    return selection
+                        .focusByIndex(9);
+                },
+                expectation: true,
+            },
+            {
+                setup: (selection: FileSelection): FileSelection => {
+                    return selection
+                        .focusByIndex(5);
+                },
+                expectation: true,
+            },
+            {
+                // test FileSelection of size 1
+                setup: (): FileSelection => {
+                    return new FileSelection()
+                        .select({ fileSet: new FileSet(), index: 1, sortOrder: 0 })
+                        .focusByIndex(0);
+                },
+                expectation: false,
+            },
+            {
+                // test FileSelection of size 0
+                setup: (): FileSelection => {
+                    return new FileSelection();
+                },
+                expectation: false,
+            }
+        ];
+
+        spec.forEach(({ setup, expectation }, idx) => {
+            it(`(${idx}) returns ${expectation}`, () => {
+                // Arrange
+                const selection = setup(baseSelection);
+
+                // Act
+                const hasNext = selection.hasPreviousFocusableItem();
+
+                // Assert
+                expect(hasNext).to.equal(expectation);
+            });
         });
     });
 });

@@ -1,0 +1,14 @@
+.row {
+    /* NOTE! If this is updated, you must also update the corresponding constant in ./LazilyRenderedRow.tsx */
+    --margin: 1.5px;
+    margin: var(--margin);
+}
+
+.row.selected {
+    background-color: #d4e3fc;
+}
+
+.row.focused {
+    margin: 0;
+    border: var(--margin) solid #669bf4;
+}

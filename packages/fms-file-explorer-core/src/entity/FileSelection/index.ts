@@ -28,6 +28,7 @@ export enum FocusDirective {
 interface SelectionItem {
     fileSet: FileSet;
     selection: NumericRange;
+    sortOrder: number; // Used to determine how to position this SelectionItem relative to other SelectionItems with unequal FileSets
 }
 
 /**
@@ -85,6 +86,13 @@ export default class FileSelection {
         this.focusedItem = focusedItem;
     }
 
+    public getFocusedItemIndices(): { indexAcrossAllSelections: number | undefined, indexWithinFileSet: number | undefined } {
+        return {
+            indexAcrossAllSelections: this.focusedItem?.indexAcrossAllSelections,
+            indexWithinFileSet: this.focusedItem?.indexWithinFileSet,
+        };
+    }
+
     /**
      * Is the given index or range of indices within the given FileSet selected?
      */
@@ -95,14 +103,53 @@ export default class FileSelection {
     }
 
     /**
-     * Is the given index within the given FileSet focused (i.e., current shown in the file details pane)?
+     * Is _any_ index, or optionally, a specific index within a given FileSet focused?
      */
-    public isFocused(fileSet: FileSet, index: number): boolean {
+    public isFocused(fileSet: FileSet, index?: number): boolean {
         if (!this.focusedItem) {
             return false;
         }
 
-        return this.focusedItem.fileSet.equals(fileSet) && this.focusedItem.indexWithinFileSet === index;
+        const fileSetIsFocused = this.focusedItem.fileSet.equals(fileSet);
+
+        if (index !== undefined) {
+            return fileSetIsFocused && this.focusedItem.indexWithinFileSet === index;
+        }
+
+        return fileSetIsFocused;
+    }
+
+    /**
+     * Is the last file selected already focused?
+     */
+    public hasNextFocusableItem(): boolean {
+        const fileSelectionCount = this.count();
+        if (!fileSelectionCount) {
+            return false;
+        }
+
+        // not plausible if there are file selections, but guard statement here for typing/completeness
+        if (!this.focusedItem) {
+            return true;
+        }
+
+        return this.focusedItem.indexAcrossAllSelections < fileSelectionCount - 1;
+    }
+
+    /**
+     * Is the first file selected already focused?
+     */
+    public hasPreviousFocusableItem(): boolean {
+        if (!this.count()) {
+            return false;
+        }
+
+        // not plausible if there are file selections, but guard statement here for typing/completeness
+        if (!this.focusedItem) {
+            return true;
+        }
+
+        return this.focusedItem.indexAcrossAllSelections !== 0;
     }
 
     /**
@@ -123,15 +170,19 @@ export default class FileSelection {
 
     /**
      * Return a new FileSelection instance with the given index (or range of indices) within given FileSet.
-     * Defaults to setting currently focused item to index or max(indices) (if index represents a range of indices).
+     * Defaults to setting currently focused item to index (or max(indices) if index represents a range of indices).
      * Override this default behavior by explicitly providing an `indexToFocus`.
+     * `sortOrder` is used to position this selection relative to other selections when their FileSets are unequal. When two
+     * SelectionItems have equal FileSets (e.g., they come from the same listing of files and therefore query), the SelectionItems
+     * are sorted in ascending index order.
      */
-    public select(fileSet: FileSet, index: NumericRange | number, indexToFocus?: number): FileSelection {
-        const indexRange = NumericRange.isNumericRange(index) ? index : new NumericRange(index);
-
-        if (!indexToFocus) {
-            indexToFocus = indexRange.max;
-        }
+    public select(params: { fileSet: FileSet; index: NumericRange | number; sortOrder: number; indexToFocus?: number; }): FileSelection {
+        const indexRange = NumericRange.isNumericRange(params.index) ? params.index : new NumericRange(params.index);
+        const {
+            fileSet,
+            sortOrder,
+            indexToFocus = indexRange.max,
+        } = params;
 
         // if `indexRange` contains already selected file rows, compact
         const compacted = reject(this.selections, (existingSelectionItem) => {
@@ -141,17 +192,22 @@ export default class FileSelection {
         const item: SelectionItem = {
             fileSet,
             selection: indexRange,
+            sortOrder,
         };
 
-        const focusedItem: FocusedItem = {
-            fileSet,
-            selection: item.selection,
-            indexWithinFileSet: indexToFocus,
-            indexAcrossAllSelections: FileSelection.getLength(compacted) + (indexToFocus - item.selection.min),
-        };
+        const selections = [...compacted, item].sort((a, b) => {
+            // If comparing two SelectionItems that are not from the same list, compare
+            // against their sortOrder field.
+            if (!a.fileSet.equals(b.fileSet)) {
+                return a.sortOrder - b.sortOrder;
+            }
 
-        const selections = [...compacted, item];
-        return new FileSelection(selections, focusedItem);
+            // Otherwise, sort items that appear in the same lists in ascending index order.
+            return a.selection.min - b.selection.min;
+        });
+
+        return new FileSelection(selections)
+            .focusByFileSet(fileSet, indexToFocus);
     }
 
     /**
@@ -185,8 +241,9 @@ export default class FileSelection {
                 return {
                     fileSet,
                     selection,
+                    sortOrder: item.sortOrder,
                 };
-            })
+            });
             nextSelections.splice(indexOfItemContainingSelection, 1, ...nextItems);
         }
 
@@ -194,7 +251,7 @@ export default class FileSelection {
 
         // Nothing was initially focused (not plausible within this code path),
         // or there are no remaining file selections (perfectly plausible)
-        if (!this.focusedItem || !nextSelection.size()) {
+        if (!this.focusedItem || !nextSelection.count()) {
             return nextSelection;
         }
 
@@ -236,7 +293,7 @@ export default class FileSelection {
      * "Focus" state is used to determine which file is displayed in the file details pane.
      */
     public focus(directive: FocusDirective): FileSelection {
-        if (this.size() === 0) {
+        if (this.count() === 0) {
             return FileSelection.from(this);
         }
 
@@ -251,10 +308,10 @@ export default class FileSelection {
                     .focusByIndex(Math.max(0, currentFocusedIndex - 1));
             case FocusDirective.NEXT:
                 return FileSelection.from(this)
-                    .focusByIndex(Math.min(this.size() - 1, currentFocusedIndex + 1));
+                    .focusByIndex(Math.min(this.count() - 1, currentFocusedIndex + 1));
             case FocusDirective.LAST:
                 return FileSelection.from(this)
-                    .focusByIndex(Math.max(0, this.size() - 1));
+                    .focusByIndex(Math.max(0, this.count() - 1));
             default:
                 return FileSelection.from(this);
         }
@@ -265,7 +322,7 @@ export default class FileSelection {
      * (i.e., not local to a particular FileSet) focused.
      */
     public focusByIndex(indexAcrossAllSelections: number): FileSelection {
-        if (indexAcrossAllSelections >= this.size()) {
+        if (indexAcrossAllSelections >= this.count()) {
             throw new IndexError(
                 `${indexAcrossAllSelections} is out of bounds of ${this}`
             );
@@ -276,6 +333,7 @@ export default class FileSelection {
         const nextFocusedItem = {
             fileSet: itemToFocus.fileSet,
             selection: itemToFocus.selection,
+            sortOrder: itemToFocus.sortOrder,
             indexWithinFileSet: itemToFocus.selection.min + (indexAcrossAllSelections - relativeStartIndexForItem),
             indexAcrossAllSelections,
         };
@@ -304,6 +362,7 @@ export default class FileSelection {
         const nextFocusedItem = {
             fileSet,
             selection: item.selection,
+            sortOrder: item.sortOrder,
             indexWithinFileSet,
             indexAcrossAllSelections: relativeStartIndexForItem + (indexWithinFileSet - item.selection.min),
         };
@@ -326,10 +385,10 @@ export default class FileSelection {
      * How many file rows are selected. This *should not* be used to report how many unique
      * files are selected--two file rows in two different FileSets may represent the same underlying file.
      */
-    public size(fileSet: FileSet): number;
-    public size(filters: FileFilter[]): number;
-    public size(zeroarg?: any | undefined): number;
-    public size(args?: FileSet | FileFilter[] | undefined): number {
+    public count(fileSet: FileSet): number;
+    public count(filters: FileFilter[]): number;
+    public count(zeroarg?: any | undefined): number;
+    public count(args?: FileSet | FileFilter[] | undefined): number {
         let selectionsToCount = this.selections;
         if (FileSet.isFileSet(args)) {
             selectionsToCount = this.selections.filter((selectionItem) => {

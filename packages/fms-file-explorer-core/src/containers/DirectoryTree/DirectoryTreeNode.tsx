@@ -6,6 +6,7 @@ import DirectoryTreeNodeHeader from "./DirectoryTreeNodeHeader";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
 import { selection } from "../../state";
 import FileFolder from "../../entity/FileFolder";
+import FileSet from "../../entity/FileSet";
 
 const styles = require("./DirectoryTreeNode.module.css");
 
@@ -13,6 +14,8 @@ interface DirectoryTreeNodeProps {
     ancestorNodes: string[];
     currentNode: string; // the "directory name" to present
     displayValue: string;
+    fileSet: FileSet;
+    sortOrder: number;
 }
 
 const ICON_SIZE = 15; // in px; both width and height
@@ -23,7 +26,13 @@ const ICON_SIZE = 15; // in px; both width and height
  * will render a FileList showing the set of files that match the filters at this path in the hierarchy.
  */
 export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
-    const { ancestorNodes, currentNode, displayValue } = props;
+    const {
+        ancestorNodes,
+        currentNode,
+        displayValue,
+        fileSet,
+        sortOrder,
+     } = props;
     const dispatch = useDispatch();
     const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
     const fileFolderPath = [...ancestorNodes, currentNode];
@@ -32,7 +41,14 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const {
         isLeaf,
         state: { content, error, isLoading },
-    } = useDirectoryHierarchy({ ancestorNodes, currentNode, collapsed });
+    } = useDirectoryHierarchy({
+        ancestorNodes,
+        currentNode,
+        collapsed,
+        fileSet,
+        sortOrder,
+    });
+
     return (
         <li
             className={styles.treeNodeContainer}
@@ -43,10 +59,12 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
             <DirectoryTreeNodeHeader
                 collapsed={collapsed || Boolean(error)}
                 error={error}
-                loading={isLoading}
-                title={displayValue}
                 fileFolderPath={fileFolderPath}
+                fileSet={fileSet}
+                isLeaf={isLeaf}
+                loading={isLoading}
                 onClick={() => dispatch(selection.actions.toggleFileFolderCollapse(fileFolder))}
+                title={displayValue}
             />
             <ul
                 className={classNames(styles.children, {

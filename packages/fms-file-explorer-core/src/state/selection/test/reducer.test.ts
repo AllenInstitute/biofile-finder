@@ -16,7 +16,7 @@ describe("Selection reducer", () => {
         it(`clears selected file state when ${actionConstant} is fired`, () => {
             // arrange
             const prevSelection = new FileSelection()
-                .select(new FileSet(), new NumericRange(1, 3));
+                .select({ fileSet: new FileSet(), index: new NumericRange(1, 3), sortOrder: 0 });
             const initialSelectionState = {
                 ...selection.initialState,
                 fileSelection: prevSelection,
@@ -34,8 +34,8 @@ describe("Selection reducer", () => {
             });
 
             // assert
-            expect(prevSelection.size()).to.equal(3); // sanity-check
-            expect(nextSelection.size()).to.equal(0);
+            expect(prevSelection.count()).to.equal(3); // sanity-check
+            expect(nextSelection.count()).to.equal(0);
         })
     );
 

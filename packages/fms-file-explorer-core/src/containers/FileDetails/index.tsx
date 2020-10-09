@@ -6,6 +6,7 @@ import WindowActionButton from "../../components/WindowActionButton";
 import useFileDetails from "./useFileDetails";
 import windowStateReducer, { INITIAL_STATE, WindowState } from "./windowStateReducer";
 import FileAnnotationList from "./FileAnnotationList";
+import Pagination from "./Pagination";
 
 const styles = require("./FileDetails.module.css");
 
@@ -56,6 +57,11 @@ export default function FileDetails(props: FileDetails) {
                         />
                     ))}
                 </div>
+                <Pagination
+                    className={classNames(styles.pagination, {
+                        [styles.hidden]: windowState.state === WindowState.MINIMIZED,
+                    })}
+                />
                 <div className={styles.contentContainer}>
                     <div
                         className={classNames(styles.overflowContainer, {
