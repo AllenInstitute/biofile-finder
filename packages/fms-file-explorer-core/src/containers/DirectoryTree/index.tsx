@@ -2,8 +2,8 @@ import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import { interaction } from "../../state";
-import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
+import { interaction, selection } from "../../state";
+import FileSet from "../../entity/FileSet";
 import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
 
@@ -29,10 +29,14 @@ interface FileListProps {
  */
 export default function DirectoryTree(props: FileListProps) {
     const fileService = useSelector(interaction.selectors.getFileService);
-    const fileSet = defaultFileSetFactory.create({
-        filters: [],
-        fileService,
-    });
+    const globalFilters = useSelector(selection.selectors.getFileFilters);
+    const fileSet = React.useMemo(() => {
+        return new FileSet({
+            fileService: fileService,
+            filters: globalFilters,
+        });
+    }, [fileService, globalFilters]);
+
     const {
         state: { content, error, isLoading },
     } = useDirectoryHierarchy({ collapsed: false, fileSet, sortOrder: 0 });
