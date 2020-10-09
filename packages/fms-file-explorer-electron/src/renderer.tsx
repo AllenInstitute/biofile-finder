@@ -14,11 +14,12 @@ const APP_ID = "fms-file-explorer-electron";
 
 const store = createReduxStore();
 
+const persistentConfigService = new PersistentConfigServiceElectron();
 const platformDependentServices = {
     applicationInfoService: new ApplicationInfoServiceElectron(),
     fileDownloadService: new FileDownloadServiceElectron(),
-    fileViewerService: new FileViewerServiceElectron(),
-    persistentConfigService: new PersistentConfigServiceElectron(),
+    fileViewerService: new FileViewerServiceElectron(persistentConfigService),
+    persistentConfigService,
 };
 
 function renderFmsFileExplorer(fileExplorerServiceBaseUrl: string) {

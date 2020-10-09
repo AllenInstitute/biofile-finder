@@ -21,12 +21,6 @@ describe("<FileAnnotationList />", () => {
                 public set() {
                     return;
                 }
-                public setAllenMountPoint() {
-                    return Promise.reject("Setting allen mount in test");
-                }
-                public setImageJExecutableLocation() {
-                    return Promise.reject("Setting Image J in test");
-                }
             }
             const state = mergeState(initialState, {
                 interaction: {

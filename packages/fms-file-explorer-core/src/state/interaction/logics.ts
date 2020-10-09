@@ -13,7 +13,7 @@ import {
     SHOW_CONTEXT_MENU,
     CANCEL_MANIFEST_DOWNLOAD,
     cancelManifestDownload,
-    OPEN_FILES_IN_IMAGE_J
+    OPEN_FILES_IN_IMAGE_J,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -21,7 +21,8 @@ import { CancellationToken } from "../../services/FileDownloadService";
 import FileSet from "../../entity/FileSet";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import NumericRange from "../../entity/NumericRange";
-import { PersistedDataKeys, PersistentConfigCancellationToken } from "../../services/PersistentConfigService";
+import { PersistedDataKeys } from "../../services/PersistentConfigService";
+import { FileViewerCancellationToken } from "../../services/FileViewerService";
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -53,9 +54,7 @@ const downloadManifest = createLogic({
                     fileService,
                 });
                 const count = await fileSet.fetchTotalCount();
-                selectionsByFileSet = new Map([
-                    [fileSet, [new NumericRange(0, count - 1)]],
-                ]);
+                selectionsByFileSet = new Map([[fileSet, [new NumericRange(0, count - 1)]]]);
             } else {
                 const fileSelection = selection.selectors.getFileSelection(state);
                 selectionsByFileSet = fileSelection.groupByFileSet();
@@ -131,39 +130,50 @@ const openFilesInImageJ = createLogic({
     async process(deps: ReduxLogicDeps, _, done) {
         const {
             persistentConfigService,
-            fileViewerService
+            fileViewerService,
         } = interactionSelectors.getPlatformDependentServices(deps.getState());
         const allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
         const imageJExecutable = persistentConfigService.get(PersistedDataKeys.ImageJExecutable);
-        
+
         // Collect the file paths from the selected files
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
         const selectedFilesDetails = await fileSelection.fetchAllDetails();
-        const filePaths = selectedFilesDetails.map((file) => (
-            allenMountPoint + path.normalize(file.filePath.substring(6))
-        ));
+        const filePaths = selectedFilesDetails.map(
+            (file) => allenMountPoint + path.normalize(file.filePath.substring(6))
+        );
         await fileViewerService.openFilesInImageJ(filePaths, imageJExecutable);
         done();
     },
     async transform(deps: ReduxLogicDeps, next, reject) {
-        const { persistentConfigService } = interactionSelectors.getPlatformDependentServices(deps.getState());
+        const {
+            fileViewerService,
+            persistentConfigService,
+        } = interactionSelectors.getPlatformDependentServices(deps.getState());
 
         // Ensure we have the necessary directories (Allen drive & Image J) so that we can properly open images
         let allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
         let imageJExecutable = persistentConfigService.get(PersistedDataKeys.ImageJExecutable);
         if (!allenMountPoint) {
-            allenMountPoint = await persistentConfigService.setAllenMountPoint(true);
+            const expectedAllenDrivePath = path.normalize("/allen");
+            if (await fileViewerService.isValidAllenMountPoint(expectedAllenDrivePath)) {
+                allenMountPoint = expectedAllenDrivePath;
+            } else {
+                allenMountPoint = await fileViewerService.selectAllenMountPoint(true);
+            }
         }
-        if (!imageJExecutable && allenMountPoint !== PersistentConfigCancellationToken) {
-            imageJExecutable = await persistentConfigService.setImageJExecutableLocation(true);
+        if (!imageJExecutable && allenMountPoint !== FileViewerCancellationToken) {
+            imageJExecutable = await fileViewerService.selectImageJExecutableLocation(true);
         }
 
-        if (allenMountPoint === PersistentConfigCancellationToken || imageJExecutable === PersistentConfigCancellationToken) {
+        if (
+            allenMountPoint === FileViewerCancellationToken ||
+            imageJExecutable === FileViewerCancellationToken
+        ) {
             reject && reject(deps.action); // reject is typed as potentially undefined for some reason
         } else {
             next(deps.action);
         }
-    }
+    },
 });
 
 /**

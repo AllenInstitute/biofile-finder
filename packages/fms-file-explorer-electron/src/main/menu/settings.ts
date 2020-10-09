@@ -1,6 +1,6 @@
 import { MenuItemConstructorOptions } from "electron";
 
-import PersistentConfigServiceElectron from "../../services/PersistentConfigServiceElectron";
+import FileViewerServiceElectron from "../../services/FileViewerServiceElectron";
 
 const settingsMenu: MenuItemConstructorOptions = {
     label: "Settings",
@@ -8,9 +8,7 @@ const settingsMenu: MenuItemConstructorOptions = {
         {
             click: (_, focusedWindow) => {
                 if (focusedWindow) {
-                    focusedWindow.webContents.send(
-                        PersistentConfigServiceElectron.SET_ALLEN_MOUNT_POINT
-                    );
+                    focusedWindow.webContents.send(FileViewerServiceElectron.SET_ALLEN_MOUNT_POINT);
                 }
             },
             label: "Set Allen Drive Mount Point",
@@ -18,12 +16,10 @@ const settingsMenu: MenuItemConstructorOptions = {
         {
             click: (_, focusedWindow) => {
                 if (focusedWindow) {
-                    focusedWindow.webContents.send(
-                        PersistentConfigServiceElectron.SET_IMAGE_J_LOCATION
-                    );
+                    focusedWindow.webContents.send(FileViewerServiceElectron.SET_IMAGE_J_LOCATION);
                 }
             },
-            label: "Set Image J Executable Location",
+            label: "Set ImageJ/Fiji Executable Location",
         },
     ],
 };

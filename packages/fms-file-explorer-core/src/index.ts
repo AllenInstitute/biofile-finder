@@ -20,12 +20,10 @@ export type ApplicationInfoService = _ApplicationInfoService;
 
 import { default as _PersistentConfigService } from "./services/PersistentConfigService";
 export type PersistentConfigService = _PersistentConfigService;
-export {
-    PersistentConfigCancellationToken,
-    PersistedDataKeys,
-} from "./services/PersistentConfigService";
+export { PersistedDataKeys } from "./services/PersistentConfigService";
 
 import { default as _FileViewerService } from "./services/FileViewerService";
 export type FileViewerService = _FileViewerService;
+export { FileViewerCancellationToken } from "./services/FileViewerService";
 
 export { default } from "./App";
