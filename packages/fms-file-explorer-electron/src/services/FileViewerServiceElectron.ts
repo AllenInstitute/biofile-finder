@@ -122,7 +122,7 @@ export default class FileViewerServiceElectron implements FileViewerService {
         }
         // Continuously try to set a valid Image J location until the user cancels
         while (true) {
-            let defaultPath = "/";
+            let defaultPath = os.homedir();
             let extensionForOs = "*"; // Default (Linux) There is no executable extension
             const currentPlatform = os.platform();
             if (currentPlatform === "darwin") {
