@@ -1,3 +1,4 @@
+import os from "os";
 import path from "path";
 
 import { isEmpty, uniqueId } from "lodash";
@@ -154,7 +155,8 @@ const openFilesInImageJ = createLogic({
         let allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
         let imageJExecutable = persistentConfigService.get(PersistedDataKeys.ImageJExecutable);
         if (!allenMountPoint) {
-            const expectedAllenDrivePath = path.normalize("/allen");
+            // Attempt to guess where the allen drive would be before asking where it is
+            const expectedAllenDrivePath = os.platform() === 'win32' ? '\\\\allen' : path.normalize("/allen");
             if (await fileViewerService.isValidAllenMountPoint(expectedAllenDrivePath)) {
                 allenMountPoint = expectedAllenDrivePath;
             } else {
