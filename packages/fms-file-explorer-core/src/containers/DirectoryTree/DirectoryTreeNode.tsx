@@ -80,7 +80,6 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
             <DirectoryTreeNodeHeader
                 collapsed={collapsed || Boolean(error)}
                 error={error}
-                fileFolderPath={fileFolderPath}
                 fileSet={fileSet}
                 isLeaf={isLeaf}
                 isFocused={collapsed && hasFocus}

@@ -19,7 +19,6 @@ import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
 import { CancellationToken } from "../../services/FileDownloadService";
 import FileSet from "../../entity/FileSet";
-import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import NumericRange from "../../entity/NumericRange";
 import { PersistedDataKeys } from "../../services/PersistentConfigService";
 import { FileViewerCancellationToken } from "../../services/FileViewerService";
@@ -49,7 +48,7 @@ const downloadManifest = createLogic({
 
             // If we have a specific path to get files from ignore selected files
             if (action.payload.fileFilters.length) {
-                const fileSet = defaultFileSetFactory.create({
+                const fileSet = new FileSet({
                     filters: action.payload.fileFilters,
                     fileService,
                 });
