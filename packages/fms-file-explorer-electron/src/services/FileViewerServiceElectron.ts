@@ -122,16 +122,19 @@ export default class FileViewerServiceElectron implements FileViewerService {
         }
         // Continuously try to set a valid Image J location until the user cancels
         while (true) {
+            let defaultPath = "/";
+            let extensionForOs = "*"; // Default (Linux) There is no executable extension
             const currentPlatform = os.platform();
-            let extensionForOs = "*"; // Default (Linux): There is no executable extension
             if (currentPlatform === "darwin") {
                 // Mac
                 extensionForOs = "app";
+                defaultPath = path.normalize("/Applications/");
             } else if (currentPlatform === "win32") {
                 // Windows
                 extensionForOs = "exe";
             }
             let imageJExecutable = await this.selectPath({
+                defaultPath,
                 filters: [{ name: "Executable", extensions: [extensionForOs] }],
                 properties: ["openFile"],
                 title: "Select ImageJ/Fiji executable location",
