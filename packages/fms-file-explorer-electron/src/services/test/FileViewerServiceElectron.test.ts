@@ -429,4 +429,85 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             expect(result).to.be.false;
         });
     });
+
+    describe("getValidatedAllenDriveLocation", () => {
+        const tempAllenPath = path.resolve(os.tmpdir(), "testAllen");
+        const knownPaths = KNOWN_FOLDERS_IN_ALLEN_DRIVE.map((f) => path.resolve(tempAllenPath, f));
+
+        afterEach(async () => {
+            // Make sure the folders get cleaned up after each test (if they exist)
+            for (const folder of [...knownPaths, tempAllenPath]) {
+                let exists = false;
+                try {
+                    await fs.promises.access(folder, fs.constants.F_OK);
+                    exists = true;
+                } catch (_) {}
+                if (exists) {
+                    await fs.promises.rmdir(folder);
+                }
+            }
+        });
+
+        it("returns stored allen drive when it is valid", async () => {
+            // Arrange
+            const persistentConfigService = new PersistentConfigServiceElectron({
+                clearExistingData: true,
+            });
+            persistentConfigService.set(PersistedDataKeys.AllenMountPoint, tempAllenPath);
+            const service = new FileViewerServiceElectron(persistentConfigService);
+            await fs.promises.mkdir(tempAllenPath);
+            for (const expectedFolder of knownPaths) {
+                await fs.promises.mkdir(path.resolve(tempAllenPath, expectedFolder));
+            }
+
+            // Act
+            const result = await service.getValidatedAllenDriveLocation();
+
+            // Assert
+            expect(result).to.equal(tempAllenPath);
+        });
+    });
+
+    describe("getValidatedImageJLocation", () => {
+        const imageJExecutable = path.resolve(os.tmpdir(), "testExecutable");
+
+        before(async () => {
+            await fs.promises.writeFile(imageJExecutable, "hello", { mode: 111 });
+            await fs.promises.access(imageJExecutable, fs.constants.F_OK);
+            // await fs.promises.access(imageJExecutable, fs.constants.X_OK);
+        });
+
+        after(async () => {
+            await fs.promises.unlink(imageJExecutable);
+        });
+
+        it("returns stored executable location when it is valid", async () => {
+            // Arrange
+            const persistentConfigService = new PersistentConfigServiceElectron({
+                clearExistingData: true,
+            });
+            persistentConfigService.set(PersistedDataKeys.ImageJExecutable, imageJExecutable);
+            const service = new FileViewerServiceElectron(persistentConfigService);
+
+            // Act
+            const result = await service.getValidatedImageJLocation();
+
+            // Assert
+            expect(result).to.equal(imageJExecutable);
+        });
+
+        it("returns undefined when stored executable is not valid", async () => {
+            // Arrange
+            const persistentConfigService = new PersistentConfigServiceElectron({
+                clearExistingData: true,
+            });
+            const service = new FileViewerServiceElectron(persistentConfigService);
+
+            // Act
+            const result = await service.getValidatedImageJLocation();
+
+            // Assert
+            expect(result).to.be.undefined;
+        });
+    });
 });

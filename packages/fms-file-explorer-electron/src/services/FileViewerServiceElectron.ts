@@ -30,6 +30,16 @@ export default class FileViewerServiceElectron implements FileViewerService {
     public static SHOW_OPEN_DIALOG = "show-open-dialog";
     private persistentConfigService: PersistentConfigServiceElectron;
 
+    // Try to see if the chosen path leads to an actual executable
+    private static async isValidImageJExecutable(imageJExecutable: string): Promise<boolean> {
+        try {
+            await fs.promises.access(imageJExecutable, fs.constants.X_OK);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
     public constructor(persistentConfigService: PersistentConfigServiceElectron) {
         this.persistentConfigService = persistentConfigService;
 
@@ -146,22 +156,56 @@ export default class FileViewerServiceElectron implements FileViewerService {
             if (currentPlatform === "darwin") {
                 imageJExecutable += "/Contents/MacOS/ImageJ-macosx";
             }
-            try {
-                // Try to see if the chosen path leads to an actual executable
-                await fs.promises.access(imageJExecutable, fs.constants.X_OK);
+            const isValidExecutable = await FileViewerServiceElectron.isValidImageJExecutable(
+                imageJExecutable
+            );
+            if (isValidExecutable) {
                 this.persistentConfigService.set(
                     PersistedDataKeys.ImageJExecutable,
                     imageJExecutable
                 );
                 return imageJExecutable;
-            } catch (error) {
-                // Alert user to error with Image J location
-                await this.showError(
-                    "ImageJ/Fiji Executable Location",
-                    `Whoops! ${imageJExecutable} is not verifiably an executable on your computer. Select the executable as you would to open Image J normally. Error: ${error}`
-                );
+            }
+            // Alert user to error with Image J location
+            await this.showError(
+                "ImageJ/Fiji Executable Location",
+                `Whoops! ${imageJExecutable} is not verifiably an executable on your computer. Select the executable as you would to open Image J normally.`
+            );
+        }
+    }
+
+    public async getValidatedAllenDriveLocation(): Promise<string | undefined> {
+        const storedAllenDrive = this.persistentConfigService.get(
+            PersistedDataKeys.AllenMountPoint
+        );
+        if (storedAllenDrive) {
+            if (await this.isValidAllenMountPoint(storedAllenDrive)) {
+                return storedAllenDrive;
             }
         }
+        // Attempt to guess where it is since we either don't have one stored or it isn't valid
+        const defaultAllenDriveForOs =
+            os.platform() === "win32" ? "\\\\allen" : path.normalize("/allen");
+        if (await this.isValidAllenMountPoint(defaultAllenDriveForOs)) {
+            this.persistentConfigService.set(
+                PersistedDataKeys.AllenMountPoint,
+                defaultAllenDriveForOs
+            );
+            return defaultAllenDriveForOs;
+        }
+        return undefined;
+    }
+
+    public async getValidatedImageJLocation(): Promise<string | undefined> {
+        const storedImageJLocation = this.persistentConfigService.get(
+            PersistedDataKeys.ImageJExecutable
+        );
+        if (storedImageJLocation) {
+            if (await FileViewerServiceElectron.isValidImageJExecutable(storedImageJLocation)) {
+                return storedImageJLocation;
+            }
+        }
+        return undefined;
     }
 
     public async isValidAllenMountPoint(allenPath: string): Promise<boolean> {
@@ -173,7 +217,7 @@ export default class FileViewerServiceElectron implements FileViewerService {
                 expectedPaths.map((path) => fs.promises.access(path, fs.constants.R_OK))
             );
             return true;
-        } catch (error) {
+        } catch (_) {
             return false;
         }
     }

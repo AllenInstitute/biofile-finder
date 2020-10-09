@@ -388,6 +388,12 @@ describe("Interaction logics", () => {
                 selectImageJExecutableLocation() {
                     return Promise.resolve("test");
                 }
+                getValidatedAllenDriveLocation() {
+                    return Promise.resolve(expectedAllenDrive);
+                }
+                getValidatedImageJLocation() {
+                    return Promise.resolve(expectedExecutablePath);
+                }
                 isValidAllenMountPoint() {
                     return Promise.resolve(false);
                 }
@@ -444,6 +450,12 @@ describe("Interaction logics", () => {
                     attemptedToSetImageJ = true;
                     return Promise.resolve("test");
                 }
+                getValidatedAllenDriveLocation() {
+                    return Promise.resolve(undefined);
+                }
+                getValidatedImageJLocation() {
+                    return Promise.resolve(undefined);
+                }
                 isValidAllenMountPoint() {
                     return Promise.resolve(false);
                 }
@@ -485,6 +497,12 @@ describe("Interaction logics", () => {
                 selectImageJExecutableLocation() {
                     return Promise.resolve(FileViewerCancellationToken);
                 }
+                getValidatedAllenDriveLocation() {
+                    return Promise.resolve(expectedAllenDrive);
+                }
+                getValidatedImageJLocation() {
+                    return Promise.resolve(undefined);
+                }
             }
             const state = mergeState(initialState, {
                 interaction: {
@@ -520,26 +538,20 @@ describe("Interaction logics", () => {
                 selectImageJExecutableLocation() {
                     return Promise.resolve(FileViewerCancellationToken);
                 }
+                getValidatedAllenDriveLocation() {
+                    return Promise.resolve("something/test");
+                }
+                getValidatedImageJLocation() {
+                    return Promise.resolve(undefined);
+                }
                 isValidAllenMountPoint() {
                     return Promise.resolve(false);
-                }
-            }
-            class UselessPersistentConfigService implements PersistentConfigService {
-                get(key: PersistedDataKeys) {
-                    if (key === PersistedDataKeys.AllenMountPoint) {
-                        return "something/test";
-                    }
-                    return undefined;
-                }
-                set() {
-                    return;
                 }
             }
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
                         fileViewerService: new UselessFileViewerService(),
-                        persistentConfigService: new UselessPersistentConfigService(),
                     },
                 },
             });

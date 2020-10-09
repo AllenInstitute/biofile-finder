@@ -1,4 +1,3 @@
-import os from "os";
 import path from "path";
 
 import { isEmpty, uniqueId } from "lodash";
@@ -146,22 +145,15 @@ const openFilesInImageJ = createLogic({
         done();
     },
     async transform(deps: ReduxLogicDeps, next, reject) {
-        const {
-            fileViewerService,
-            persistentConfigService,
-        } = interactionSelectors.getPlatformDependentServices(deps.getState());
+        const { fileViewerService } = interactionSelectors.getPlatformDependentServices(
+            deps.getState()
+        );
 
         // Ensure we have the necessary directories (Allen drive & Image J) so that we can properly open images
-        let allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
-        let imageJExecutable = persistentConfigService.get(PersistedDataKeys.ImageJExecutable);
+        let allenMountPoint = await fileViewerService.getValidatedAllenDriveLocation();
+        let imageJExecutable = await fileViewerService.getValidatedImageJLocation();
         if (!allenMountPoint) {
-            // Attempt to guess where the allen drive would be before asking where it is
-            const expectedAllenDrivePath = os.platform() === 'win32' ? '\\\\allen' : path.normalize("/allen");
-            if (await fileViewerService.isValidAllenMountPoint(expectedAllenDrivePath)) {
-                allenMountPoint = expectedAllenDrivePath;
-            } else {
-                allenMountPoint = await fileViewerService.selectAllenMountPoint(true);
-            }
+            allenMountPoint = await fileViewerService.selectAllenMountPoint(true);
         }
         if (!imageJExecutable && allenMountPoint !== FileViewerCancellationToken) {
             imageJExecutable = await fileViewerService.selectImageJExecutableLocation(true);

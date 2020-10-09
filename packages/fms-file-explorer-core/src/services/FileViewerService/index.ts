@@ -19,6 +19,19 @@ export default interface FileViewerService {
     selectImageJExecutableLocation(promptFirst?: boolean): Promise<string>;
 
     /**
+     * Attempts to retrieve the stored allen drive location (if exists & valid) otherwise defaults to OS default path (if valid).
+     * Returning undefined if neither stored or default allen drive are valid.
+     *
+     */
+    getValidatedAllenDriveLocation(): Promise<string | undefined>;
+
+    /**
+     * Attempts to retrieve the stored ImageJ executable location (if exists & valid) otherwise returns undefined
+     *
+     */
+    getValidatedImageJLocation(): Promise<string | undefined>;
+
+    /**
      * Verifies that the given file path is a valid allen drive mount point
      *
      * @param allenDrivePath Path to allen drive
