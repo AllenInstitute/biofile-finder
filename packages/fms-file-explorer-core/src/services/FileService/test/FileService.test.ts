@@ -1,6 +1,9 @@
 import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 import FileService from "..";
+import FileSelection from "../../../entity/FileSelection";
+import FileSet from "../../../entity/FileSet";
+import NumericRange from "../../../entity/NumericRange";
 
 describe("FileService", () => {
     const baseUrl = "test";
@@ -56,6 +59,36 @@ describe("FileService", () => {
             const fileService = new FileService({ baseUrl, httpClient });
             const ids = await fileService.getFileIds("fileId=abc123");
             expect(ids).to.equal(fileIds);
+        });
+    });
+
+    describe("getAggregateInformation", () => {
+        const totalFileSize = 12424114;
+        const totalFileCount = 7;
+        const httpClient = createMockHttpClient({
+            when: `${baseUrl}/${FileService.SELECTION_AGGREGATE_URL}`,
+            respondWith: {
+                data: {
+                    data: [{ count: totalFileCount, size: totalFileSize }],
+                },
+            },
+        });
+
+        it("issues request for aggregated information about given files", async () => {
+            // Arrange
+            const fileService = new FileService({ baseUrl, httpClient });
+            const selection = new FileSelection().select({
+                fileSet: new FileSet(),
+                index: new NumericRange(0, 1),
+                sortOrder: 0,
+            });
+
+            // Act
+            const { count, size } = await fileService.getAggregateInformation(selection);
+
+            // Assert
+            expect(count).to.equal(totalFileCount);
+            expect(size).to.equal(totalFileSize);
         });
     });
 

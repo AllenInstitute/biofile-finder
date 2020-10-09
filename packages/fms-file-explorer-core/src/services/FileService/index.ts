@@ -87,7 +87,7 @@ export default class FileService extends HttpServiceBase {
         return response.data[0];
     }
 
-    public async getAggregateFileSize(fileSelection: FileSelection) {
+    public async getAggregateInformation(fileSelection: FileSelection) {
         const selections = fileSelection.toSelections();
         const postBody: SelectionRequest = { annotations: [], selections };
         const requestUrl = `${this.baseUrl}/${FileService.SELECTION_AGGREGATE_URL}`;

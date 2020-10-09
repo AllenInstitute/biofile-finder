@@ -20,12 +20,12 @@ export default function AggregateInfoBox() {
     React.useEffect(() => {
         if (totalFilesSelected) {
             setLoading(true);
-            const getAggregateFileSize = async () => {
-                const { size } = await fileService.getAggregateFileSize(fileSelection);
+            const getAggregateInformation = async () => {
+                const { size } = await fileService.getAggregateInformation(fileSelection);
                 setTotalFileSize(filesize(size));
                 setLoading(false);
             };
-            getAggregateFileSize();
+            getAggregateInformation();
         }
     }, [fileSelection, fileService, totalFilesSelected]);
 
