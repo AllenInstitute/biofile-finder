@@ -123,8 +123,8 @@ export default class FileViewerServiceElectron implements FileViewerService {
         if (promptFirst) {
             const result = await this.showMessage(
                 "ImageJ/Fiji Executable Location",
-                "It appears that your ImageJ/Fiji Executable isn't where we thought it would be. " +
-                    "Select your ImageJ/Fiji Executable location now (the application you would normally open)?"
+                "It appears that your ImageJ/Fiji application isn't located where we thought it would be. " +
+                    "Select your ImageJ/Fiji application now?"
             );
             if (!result) {
                 return FileViewerCancellationToken;
