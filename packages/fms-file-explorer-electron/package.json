@@ -17,7 +17,8 @@
       "assets/*",
       "dist/**/*",
       "node_modules/**/*",
-      "package.json"
+      "package.json",
+      "LICENSE.txt"
     ],
     "linux": {
       "target": "AppImage"
@@ -43,8 +44,8 @@
     "transpile": "babel src --ignore \"src/renderer.tsx\" --ignore \"src/test/**/*\" --source-maps --extensions .ts,.tsx,.js,.jsx --env-name nodejs --out-dir dist",
     "typeCheck": "tsc -p tsconfig.json --noEmit"
   },
-  "author": "Gabe Medrash<gabeme@alleninstitute.org>",
-  "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
+  "author": "Allen Institute for Cell Science",
+  "license": "SEE LICENSE IN LICENSE.txt",
   "devDependencies": {
     "@babel/cli": "7.6.x",
     "@babel/core": "7.6.x",
