@@ -21,9 +21,6 @@ describe("<FileAnnotationList />", () => {
                 public set() {
                     return;
                 }
-                public setAllenMountPoint() {
-                    return Promise.reject("Setting allen mount in test");
-                }
             }
             const state = mergeState(initialState, {
                 interaction: {
@@ -55,6 +52,31 @@ describe("<FileAnnotationList />", () => {
                 expect(getByText(filePathDisplayName)).to.not.be.undefined;
             });
             expect(getByText(expectedMountPoint + filePathInsideAllenDrive)).to.not.be.undefined;
+        });
+
+        it("has only canonical file path when no allen mount point is found", () => {
+            // Arrange
+            const { store } = configureMockStore({ state: initialState });
+            const filePathInsideAllenDrive = "/path/to/MyFile.txt";
+            const filePath = "/allen" + filePathInsideAllenDrive;
+            const fileDetails = new FileDetail({
+                filePath,
+                fileId: "abc123",
+                fileName: "MyFile.txt",
+                fileSize: 7,
+                uploaded: "01/01/01",
+                uploadedBy: "test-user",
+                annotations: [],
+            });
+            const { getByText } = render(
+                <Provider store={store}>
+                    <FileAnnotationList isLoading={false} fileDetails={fileDetails} />
+                </Provider>
+            );
+
+            // Assert
+            expect(() => getByText("File path (Local)")).to.throw;
+            expect(getByText("File path (Canonical)")).to.not.be.undefined;
         });
     });
 });

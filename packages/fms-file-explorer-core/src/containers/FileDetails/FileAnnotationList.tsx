@@ -26,7 +26,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
         interaction.selectors.getPlatformDependentServices
     );
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
-    const allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint) || "";
+    const allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
 
     const content: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
         if (isLoading) {
@@ -43,10 +43,12 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
             // If it was found, append it to our list of custom annotation rows
             if (values !== Annotation.MISSING_VALUE) {
                 // Derive a more specific file path from the canonical file path
-                if (annotation.name === AnnotationName.FILE_PATH) {
+                if (annotation.name === AnnotationName.FILE_PATH && allenMountPoint) {
                     // Use path.normalize() to convert slashes to OS default & remove the would be duplicate
                     // "/allen" from the beginning of the canonical path
-                    const localizedPath = path.normalize(allenMountPoint + values.substring(6))
+                    const localizedPath = path.normalize(
+                        allenMountPoint + values.substring("/allen".length)
+                    );
                     return [
                         ...accum,
                         <FileAnnotationRow

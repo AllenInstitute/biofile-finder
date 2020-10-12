@@ -10,6 +10,7 @@ import {
     REMOVE_STATUS,
     SET_STATUS,
     cancelManifestDownload,
+    openFilesInImageJ,
 } from "../actions";
 import interactionLogics from "../logics";
 import { initialState, interaction, selection } from "../..";
@@ -20,10 +21,15 @@ import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
+import { FileViewerCancellationToken, FileViewerService, PersistentConfigService } from "../../..";
+import { PersistedDataKeys } from "../../../services/PersistentConfigService";
 
 describe("Interaction logics", () => {
-    const fileSelection = new FileSelection()
-            .select({ fileSet: new FileSet(), index: new NumericRange(0, 100), sortOrder: 0 });
+    const fileSelection = new FileSelection().select({
+        fileSet: new FileSet(),
+        index: new NumericRange(0, 100),
+        sortOrder: 0,
+    });
 
     describe("downloadManifest", () => {
         it("marks the beginning of a manifest download with a status update", async () => {
@@ -219,9 +225,7 @@ describe("Interaction logics", () => {
 
             const sandbox = createSandbox();
             sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
-            sandbox
-                .stub(selection.selectors, "getFileSelection")
-                .throws("Test failed");
+            sandbox.stub(selection.selectors, "getFileSelection").throws("Test failed");
 
             const { store, logicMiddleware, actions } = configureMockStore({
                 state,
@@ -337,6 +341,231 @@ describe("Interaction logics", () => {
 
             // assert
             expect(() => fs.accessSync(tempFilePath)).to.throw();
+        });
+    });
+
+    describe("openFilesInImageJ", () => {
+        const files = [];
+        const filePaths: string[] = [];
+        const expectedAllenDrive = "/some/test/path/to/fakeAllen";
+        for (let i = 0; i <= 100; i++) {
+            const filePath = "/fakeFile" + i;
+            files.push({ filePath: "/allen" + filePath });
+            filePaths.push(expectedAllenDrive + filePath);
+        }
+        const baseUrl = "test";
+        const responseStub = {
+            when: `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=101`,
+            respondWith: {
+                data: { data: files },
+            },
+        };
+        const mockHttpClient = createMockHttpClient(responseStub);
+        const fileService = new FileService({
+            baseUrl,
+            httpClient: mockHttpClient,
+        });
+
+        it("attempts to open selected files", async () => {
+            // Arrange
+            const fakeSelection = new FileSelection().select({
+                fileSet: new FileSet({ fileService }),
+                index: new NumericRange(0, 100),
+                sortOrder: 0,
+            });
+            const expectedExecutablePath = "";
+            let actualFilePaths: string[] | undefined = undefined;
+            let actualExecutablePath: string | undefined = undefined;
+            class UselessFileViewerService implements FileViewerService {
+                openFilesInImageJ(filePaths: string[], imageJExecutable?: string) {
+                    actualFilePaths = filePaths;
+                    actualExecutablePath = imageJExecutable;
+                    return Promise.resolve();
+                }
+                selectAllenMountPoint() {
+                    return Promise.resolve("test");
+                }
+                selectImageJExecutableLocation() {
+                    return Promise.resolve("test");
+                }
+                getValidatedAllenDriveLocation() {
+                    return Promise.resolve(expectedAllenDrive);
+                }
+                getValidatedImageJLocation() {
+                    return Promise.resolve(expectedExecutablePath);
+                }
+                isValidAllenMountPoint() {
+                    return Promise.resolve(false);
+                }
+            }
+            class UselessPersistentConfigService implements PersistentConfigService {
+                get(key: PersistedDataKeys) {
+                    if (key === PersistedDataKeys.AllenMountPoint) {
+                        return expectedAllenDrive;
+                    } else if (key === PersistedDataKeys.ImageJExecutable) {
+                        return expectedExecutablePath;
+                    }
+                    return undefined;
+                }
+                set() {
+                    return;
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileViewerService: new UselessFileViewerService(),
+                        persistentConfigService: new UselessPersistentConfigService(),
+                    },
+                },
+                selection: {
+                    fileSelection: fakeSelection,
+                },
+            });
+            const { store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(openFilesInImageJ());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actualFilePaths).to.be.deep.equal(filePaths);
+            expect(actualExecutablePath).to.be.equal(expectedExecutablePath);
+        });
+
+        it("prevents prompting to select Image J executable when user cancels selecting mount point", async () => {
+            // Arrange
+            let attemptedToSetImageJ = false;
+            class UselessFileViewerService implements FileViewerService {
+                openFilesInImageJ() {
+                    return Promise.resolve();
+                }
+                selectAllenMountPoint() {
+                    return Promise.resolve(FileViewerCancellationToken);
+                }
+                selectImageJExecutableLocation() {
+                    attemptedToSetImageJ = true;
+                    return Promise.resolve("test");
+                }
+                getValidatedAllenDriveLocation() {
+                    return Promise.resolve(undefined);
+                }
+                getValidatedImageJLocation() {
+                    return Promise.resolve(undefined);
+                }
+                isValidAllenMountPoint() {
+                    return Promise.resolve(false);
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileViewerService: new UselessFileViewerService(),
+                    },
+                },
+            });
+            const { store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(openFilesInImageJ());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(attemptedToSetImageJ).to.be.false;
+        });
+
+        it("prevents prompting to select Allen Drive when it is at the expected location", async () => {
+            // Arrange
+            let attemptedToSetAllenDrive = false;
+            class UselessFileViewerService implements FileViewerService {
+                openFilesInImageJ() {
+                    return Promise.resolve();
+                }
+                isValidAllenMountPoint() {
+                    return Promise.resolve(true);
+                }
+                selectAllenMountPoint() {
+                    attemptedToSetAllenDrive = true;
+                    return Promise.reject("test");
+                }
+                selectImageJExecutableLocation() {
+                    return Promise.resolve(FileViewerCancellationToken);
+                }
+                getValidatedAllenDriveLocation() {
+                    return Promise.resolve(expectedAllenDrive);
+                }
+                getValidatedImageJLocation() {
+                    return Promise.resolve(undefined);
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileViewerService: new UselessFileViewerService(),
+                    },
+                },
+            });
+            const { store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(openFilesInImageJ());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(attemptedToSetAllenDrive).to.be.false;
+        });
+
+        it("prevents opening selecting files when user cancels selecting image J executable", async () => {
+            // Arrange
+            let attemptedToOpenFiles = false;
+            class UselessFileViewerService implements FileViewerService {
+                openFilesInImageJ() {
+                    attemptedToOpenFiles = true;
+                    return Promise.resolve();
+                }
+                selectAllenMountPoint() {
+                    return Promise.resolve("test");
+                }
+                selectImageJExecutableLocation() {
+                    return Promise.resolve(FileViewerCancellationToken);
+                }
+                getValidatedAllenDriveLocation() {
+                    return Promise.resolve("something/test");
+                }
+                getValidatedImageJLocation() {
+                    return Promise.resolve(undefined);
+                }
+                isValidAllenMountPoint() {
+                    return Promise.resolve(false);
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileViewerService: new UselessFileViewerService(),
+                    },
+                },
+            });
+            const { store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(openFilesInImageJ());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(attemptedToOpenFiles).to.be.false;
         });
     });
 });

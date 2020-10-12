@@ -19,8 +19,11 @@ const { devServer } = require("../webpack/constants");
 
 function getNpmBinDir() {
     try {
-        const output = childProcess.spawnSync("npm", ["bin"], { encoding: "utf-8" });
-        if (output.stdout.endsWith(os.EOL)) {
+        const output = childProcess.spawnSync("npm", ["bin"], {
+            encoding: "utf-8",
+            shell: process.platform == "win32",
+        });
+        if (output.stdout.endsWith(os.EOL) || output.stdout.endsWith("\n")) {
             return output.stdout.slice(0, output.stdout.length - 1);
         }
         return output.stdout;
@@ -47,14 +50,10 @@ function startWebpackDevServer(npmBin) {
     console.log("Starting webpack-dev-server");
     childProcess.spawn(
         `${npmBin}/webpack-dev-server`,
-        [
-            '--config',
-            './webpack/webpack.config.js',
-            '--env.env',
-            'dev'
-        ], {
+        ["--config", "./webpack/webpack.config.js", "--env.env", "dev"],
+        {
             shell: true,
-            stdio: 'inherit'
+            stdio: "inherit",
         }
     );
 }
@@ -62,8 +61,8 @@ function startWebpackDevServer(npmBin) {
 function wait(timeout) {
     return new Promise((resolve) => {
         setTimeout(() => {
-            resolve()
-        }, timeout)
+            resolve();
+        }, timeout);
     });
 }
 
@@ -101,9 +100,9 @@ function startBabelWatch(npmBin) {
         [
             "src",
             "--ignore",
-            "\"src/renderer.tsx\"",
+            '"src/renderer.tsx"',
             "--ignore",
-            "\"src/test/**/*\"",
+            '"src/test/**/*"',
             "--env-name",
             "nodejs",
             "--extensions",
@@ -113,27 +112,23 @@ function startBabelWatch(npmBin) {
             "--watch",
             "--verbose",
             "--source-maps",
-        ], {
+        ],
+        {
             shell: true,
-            stdio: 'inherit'
+            stdio: "inherit",
         }
     );
 }
 
 function startElectron(npmBin) {
     console.log("Starting electron");
-    childProcess.spawn(
-        `${npmBin}/electron`,
-        [
-            "."
-        ], {
-            env: Object.assign({}, process.env, {
-                NODE_ENV: "development",
-                WEBPACK_DEV_SERVER_PORT: devServer.port,
-            }),
-            shell: true,
-        }
-    );
+    childProcess.spawn(`${npmBin}/electron`, ["."], {
+        env: Object.assign({}, process.env, {
+            NODE_ENV: "development",
+            WEBPACK_DEV_SERVER_PORT: devServer.port,
+        }),
+        shell: true,
+    });
 }
 
 // kick it all off
@@ -152,5 +147,7 @@ makeBuildDirectory()
             });
     })
     .catch(() => {
-        console.error("Could make build directory. Something has gone very wrong and nobody knows why.");
+        console.error(
+            "Could make build directory. Something has gone very wrong and nobody knows why."
+        );
     });

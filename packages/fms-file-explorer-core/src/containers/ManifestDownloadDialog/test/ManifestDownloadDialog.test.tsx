@@ -1,4 +1,9 @@
-import { configureMockStore, createMockHttpClient, mergeState, ResponseStub } from "@aics/redux-utils";
+import {
+    configureMockStore,
+    createMockHttpClient,
+    mergeState,
+    ResponseStub,
+} from "@aics/redux-utils";
 import { expect } from "chai";
 import { get as _get } from "lodash";
 import * as React from "react";
@@ -82,9 +87,6 @@ describe("<ManifestDownloadDialog />", () => {
             }
             public set(_: string, value: any) {
                 savedColumns = value;
-            }
-            public setAllenMountPoint() {
-                return Promise.reject();
             }
         }
 
@@ -178,9 +180,6 @@ describe("<ManifestDownloadDialog />", () => {
             public set() {
                 return;
             }
-            public setAllenMountPoint() {
-                return Promise.reject();
-            }
         }
         const state = mergeState(visibleDialogState, {
             interaction: {
@@ -247,9 +246,6 @@ describe("<ManifestDownloadDialog />", () => {
                 public set() {
                     return;
                 }
-                public setAllenMountPoint() {
-                    return Promise.reject();
-                }
             }
             const state = mergeState(visibleDialogState, {
                 metadata: {
@@ -291,9 +287,6 @@ describe("<ManifestDownloadDialog />", () => {
                 }
                 public set() {
                     return;
-                }
-                public setAllenMountPoint() {
-                    return Promise.reject();
                 }
             }
             const state = mergeState(visibleDialogState, {

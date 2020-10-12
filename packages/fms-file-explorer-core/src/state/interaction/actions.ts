@@ -4,6 +4,7 @@ import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu
 import ApplicationInfoService from "../../services/ApplicationInfoService";
 import FileDownloadService from "../../services/FileDownloadService";
 import PersistentConfigService from "../../services/PersistentConfigService";
+import FileViewerService from "../../services/FileViewerService";
 import FileFilter from "../../entity/FileFilter";
 
 const STATE_BRANCH_NAME = "interaction";
@@ -54,6 +55,23 @@ export function cancelManifestDownload(id: string): CancelManifestDownloadAction
             id,
         },
         type: CANCEL_MANIFEST_DOWNLOAD,
+    };
+}
+
+/**
+ * OPEN_FILES_IN_IMAGE_J
+ *
+ * Intention to open selected files in Image J viewer.
+ */
+export const OPEN_FILES_IN_IMAGE_J = makeConstant(STATE_BRANCH_NAME, "open-files-in-image-j");
+
+export interface OpenFilesInImageJ {
+    type: string;
+}
+
+export function openFilesInImageJ(): OpenFilesInImageJ {
+    return {
+        type: OPEN_FILES_IN_IMAGE_J,
     };
 }
 
@@ -138,6 +156,7 @@ export const SET_PLATFORM_DEPENDENT_SERVICES = makeConstant(
 export interface PlatformDependentServices {
     applicationInfoService: ApplicationInfoService;
     fileDownloadService: FileDownloadService;
+    fileViewerService: FileViewerService;
     persistentConfigService: PersistentConfigService;
 }
 

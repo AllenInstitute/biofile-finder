@@ -8,10 +8,4 @@ export default class PersistentConfigServiceNoop implements PersistentConfigServ
     public set() {
         return;
     }
-
-    public setAllenMountPoint() {
-        return Promise.resolve(
-            "Attempting to set allen mount point using PersistentConfigServiceNoop"
-        );
-    }
 }

@@ -1,3 +1,5 @@
+import path from "path";
+
 import { isEmpty, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
@@ -11,6 +13,7 @@ import {
     SHOW_CONTEXT_MENU,
     CANCEL_MANIFEST_DOWNLOAD,
     cancelManifestDownload,
+    OPEN_FILES_IN_IMAGE_J,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -18,6 +21,8 @@ import { CancellationToken } from "../../services/FileDownloadService";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import NumericRange from "../../entity/NumericRange";
 import { SelectionRequest, Selection } from "../../services/FileService";
+import { PersistedDataKeys } from "../../services/PersistentConfigService";
+import { FileViewerCancellationToken } from "../../services/FileViewerService";
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -130,6 +135,55 @@ const cancelManifestDownloadLogic = createLogic({
 });
 
 /**
+ * Interceptor responsible for responding to an OPEN_FILES_IN_IMAGE_J action and triggering the
+ * opening of a file in ImageJ
+ */
+const openFilesInImageJ = createLogic({
+    type: OPEN_FILES_IN_IMAGE_J,
+    async process(deps: ReduxLogicDeps, _, done) {
+        const {
+            persistentConfigService,
+            fileViewerService,
+        } = interactionSelectors.getPlatformDependentServices(deps.getState());
+        const allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
+        const imageJExecutable = persistentConfigService.get(PersistedDataKeys.ImageJExecutable);
+
+        // Collect the file paths from the selected files
+        const fileSelection = selection.selectors.getFileSelection(deps.getState());
+        const selectedFilesDetails = await fileSelection.fetchAllDetails();
+        const filePaths = selectedFilesDetails.map(
+            (file) => allenMountPoint + path.normalize(file.filePath.substring(6))
+        );
+        await fileViewerService.openFilesInImageJ(filePaths, imageJExecutable);
+        done();
+    },
+    async transform(deps: ReduxLogicDeps, next, reject) {
+        const { fileViewerService } = interactionSelectors.getPlatformDependentServices(
+            deps.getState()
+        );
+
+        // Ensure we have the necessary directories (Allen drive & Image J) so that we can properly open images
+        let allenMountPoint = await fileViewerService.getValidatedAllenDriveLocation();
+        let imageJExecutable = await fileViewerService.getValidatedImageJLocation();
+        if (!allenMountPoint) {
+            allenMountPoint = await fileViewerService.selectAllenMountPoint(true);
+        }
+        if (!imageJExecutable && allenMountPoint !== FileViewerCancellationToken) {
+            imageJExecutable = await fileViewerService.selectImageJExecutableLocation(true);
+        }
+
+        if (
+            allenMountPoint === FileViewerCancellationToken ||
+            imageJExecutable === FileViewerCancellationToken
+        ) {
+            reject && reject(deps.action); // reject is typed as potentially undefined for some reason
+        } else {
+            next(deps.action);
+        }
+    },
+});
+
+/**
  * Interceptor responsible for responding to a SHOW_CONTEXT_MENU action and ensuring the previous
  * context menu is dismissed gracefully.
  */
@@ -147,4 +201,4 @@ const showContextMenu = createLogic({
     },
 });
 
-export default [downloadManifest, cancelManifestDownloadLogic, showContextMenu];
+export default [downloadManifest, cancelManifestDownloadLogic, openFilesInImageJ, showContextMenu];

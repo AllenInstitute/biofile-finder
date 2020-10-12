@@ -17,6 +17,7 @@ import StatusMessage from "./containers/StatusMessage";
 import ApplicationInfoServiceNoop from "./services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "./services/FileDownloadService/FileDownloadServiceNoop";
 import PersistentConfigServiceNoop from "./services/PersistentConfigService/PersistentConfigServiceNoop";
+import FileViewerServiceNoop from "./services/FileViewerService/FileViewerServiceNoop";
 import { interaction, metadata } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
 
@@ -45,6 +46,7 @@ const defaultProps = {
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
+        fileViewerService: new FileViewerServiceNoop(),
         persistentConfigService: new PersistentConfigServiceNoop(),
     },
 };

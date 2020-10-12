@@ -1,3 +1,4 @@
+import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 import { identity } from "lodash";
 
@@ -7,6 +8,7 @@ import NumericRange from "../../NumericRange";
 import FileSelection, { FocusDirective } from "..";
 import FileFilter from "../../FileFilter";
 import { IndexError, ValueError } from "../../../errors";
+import FileService from "../../../services/FileService";
 
 describe("FileSelection", () => {
     describe("select", () => {
@@ -331,6 +333,37 @@ describe("FileSelection", () => {
 
             // deselection:
             expect(nextSelection.isFocused(new FileSet(), 30)).to.equal(true);
+        });
+    });
+
+    describe("fetchAllDetails", () => {
+        it("returns file details for each selected item", async () => {
+            // Arrange
+            const baseUrl = "test";
+            const queryResult = [];
+            for (let i = 0; i < 31; i++) {
+                queryResult.push(i);
+            }
+            // Due to overfetching the result set we desire is a subsection of query results
+            const expectedDetails = queryResult.slice(1, 31);
+            const httpClient = createMockHttpClient({
+                when: `${baseUrl}/${FileService.BASE_FILES_URL}?from=${0}&limit=${31}`,
+                respondWith: {
+                    data: { data: queryResult },
+                },
+            });
+            const fileService = new FileService({ baseUrl, httpClient });
+            const selection = new FileSelection().select({
+                fileSet: new FileSet({ fileService }),
+                index: new NumericRange(1, 30),
+                sortOrder: 0,
+            });
+
+            // Act
+            const fileDetails = await selection.fetchAllDetails();
+
+            // Assert
+            expect(fileDetails).to.be.deep.equal(expectedDetails);
         });
     });
 
