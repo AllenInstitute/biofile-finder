@@ -14,7 +14,7 @@ import {
 import FileList from "../FileList";
 import FileFilter from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
-import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
+import { ValueError } from "../../errors";
 import * as directoryTreeSelectors from "./selectors";
 import { interaction, metadata, selection } from "../../state";
 import { naturalComparator } from "../../util/strings";
@@ -40,11 +40,67 @@ const DEFAULTS = {
 };
 
 /**
+ * Calculate a float sort order for a DirectoryTreeNode.
+ * Takes into account sort order of parent folder(s). If at the second level,
+ * start to build up a float by separating parent sort order from child node order.
+ * At increased depth of the hierarchy, add significant digits to the float.
+ * Refer to unit tests for example input/output.
+ */
+export function calcNodeSortOrder({
+    idxWithinSourceList,
+    parentDepth,
+    parentSortOrder,
+    sourceListLength,
+}: {
+    idxWithinSourceList: number;
+    parentDepth: number;
+    parentSortOrder: number;
+    sourceListLength: number;
+}): number {
+    if (parentDepth < 1) {
+        throw new ValueError(
+            `parentDepth must be greater than 0 in order to calculate node sort order. Given: ${parentDepth}`
+        );
+    }
+
+    // Take into account how many siblings this node neeeds to be sorted amongst.
+    // E.g.: in a list of dozens of items, 0.1 is the same number as 0.10 (0.2 === 0.20, etc), so use 0.01, 0.02 instead.
+    const maxPadLength = Math.floor(Math.log10(sourceListLength) + 1);
+    const nodeOrder = String(idxWithinSourceList).padStart(maxPadLength, "0");
+
+    // Because JS treats X.0, X.00, etc as the integer X, make sure that the true depth of this node
+    // is factored into its sorting. See following demonstration of why this is necessary:
+    // Without doing this |  With doing this
+    //      1.0/                  1.0/
+    //        1.00/                 1.000/
+    //        1.01/                 1.001/
+    //        ...                   ...
+    //    !!! 1.79/ !!!         !!! 1.079/ !!!
+    //      1.1/                  1.1/
+    //        1.10/                 1.10/
+    //        1.11/                 1.11/
+    const ancestorNodeOrder =
+        parentDepth > 1 && Number.isInteger(parentSortOrder)
+            ? `${parentSortOrder}.${String(0).repeat(parentDepth)}`
+            : parentSortOrder;
+
+    return parentDepth === 1
+        ? Number.parseFloat(`${parentSortOrder}.${nodeOrder}`)
+        : Number.parseFloat(`${ancestorNodeOrder}${nodeOrder}`);
+}
+
+/**
  * React hook to encapsulate all logic for constructing the directory hierarchy at a given depth
  * and path. Responsible for fetching any data required to do so.
  */
-const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotationHierarchyReturnValue => {
-    const { ancestorNodes, currentNode, collapsed, fileSet, sortOrder } = defaults({}, params, DEFAULTS);
+const useDirectoryHierarchy = (
+    params: UseDirectoryHierarchyParams
+): UseAnnotationHierarchyReturnValue => {
+    const { ancestorNodes, currentNode, collapsed, fileSet, sortOrder } = defaults(
+        {},
+        params,
+        DEFAULTS
+    );
     const annotations = useSelector(metadata.selectors.getAnnotations);
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
@@ -127,69 +183,66 @@ const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotati
                         return true;
                     });
 
-                    const nodes = filteredValues
-                        .sort(naturalComparator)
-                        .map((value, idx) => {
-                            let childNodeSortOrder: number;
-                            if (isRoot) {
-                                // First level of folders; use order produced by sort operation.
-                                childNodeSortOrder = idx;
-                            } else {
-                                // Take into account sort order of parent folder(s) if not at first level.
-                                // If at the second level, start to build up a float by separating parent sort
-                                // order from child node order (as produced by sort operation).
-                                // At increased depth of the hierarchy, add significant digits to the float.
-                                // e.g.: 1 -> 1.1 -> 1.13 -> 1.130 -> 1.1304
-                                childNodeSortOrder = Number.isInteger(sortOrder)
-                                    ? Number.parseFloat(`${sortOrder}.${idx}`)
-                                    : Number.parseFloat(`${sortOrder}${idx}`)
-                            }
-
-                            const pathToChildNode = [...pathToNode, value];
-                            const hierarchyFilters: FileFilter[] = zip<string, string>(
-                                take(hierarchy, depth + 1),
-                                take(pathToChildNode, depth + 1)
-                            ).map((pair) => {
-                                const [name, value] = pair as [string, string];
-                                return new FileFilter(name, value);
+                    const nodes = filteredValues.sort(naturalComparator).map((value, idx) => {
+                        let childNodeSortOrder: number;
+                        if (isRoot) {
+                            // First level of folders; use order produced by sort operation.
+                            childNodeSortOrder = idx;
+                        } else {
+                            childNodeSortOrder = calcNodeSortOrder({
+                                idxWithinSourceList: idx,
+                                parentDepth: depth,
+                                parentSortOrder: sortOrder,
+                                sourceListLength: filteredValues.length,
                             });
+                        }
 
-                            // Filters are a combination of any user-selected filters and the filters
-                            // at a particular path in the hierarchy.
-                            //
-                            // It's OK to have two annotation values used as filters for the same annotation.
-                            // E.g., "workflow=Pipeline4.1&workflow=Pipeline4.2". This gives us an OR query. But, filter out
-                            // duplicates to avoid querying by "workflow=Pipeline 4.4&workflow=Pipeline 4.4".
-                            let userAppliedFilters = selectedFileFilters;
-                            if (!isRoot) {
-                                // When not at the root level, remove any user-applied filters for any annotation within the current path.
-                                // E.g., if under the path "AICS-12" -> "ZSD-1", and a user has applied the filters FileFilter("cell_line", "AICS-12")
-                                // and FileFilter("cell_line", "AICS-33"), we do not want to include the latter in the query for this FileList.
-                                const hierarchyAnnotationNames = new Set(hierarchy);
-                                userAppliedFilters = userAppliedFilters.filter(
-                                    (f) => !hierarchyAnnotationNames.has(f.name)
-                                );
-                            }
-                            const filters = uniqWith([...hierarchyFilters, ...userAppliedFilters], (a, b) =>
-                                a.equals(b)
-                            );
-
-                            const childNodeFileSet = defaultFileSetFactory.create({
-                                fileService,
-                                filters,
-                            });
-
-                            return (
-                                <DirectoryTreeNode
-                                    key={`${pathToChildNode.join(":")}|${hierarchy.join(":")}`}
-                                    ancestorNodes={pathToNode}
-                                    currentNode={value}
-                                    displayValue={annotationAtDepth?.getDisplayValue(value) || value}
-                                    fileSet={childNodeFileSet}
-                                    sortOrder={childNodeSortOrder}
-                                />
-                            );
+                        const pathToChildNode = [...pathToNode, value];
+                        const hierarchyFilters: FileFilter[] = zip<string, string>(
+                            take(hierarchy, depth + 1),
+                            take(pathToChildNode, depth + 1)
+                        ).map((pair) => {
+                            const [name, value] = pair as [string, string];
+                            return new FileFilter(name, value);
                         });
+
+                        // Filters are a combination of any user-selected filters and the filters
+                        // at a particular path in the hierarchy.
+                        //
+                        // It's OK to have two annotation values used as filters for the same annotation.
+                        // E.g., "workflow=Pipeline4.1&workflow=Pipeline4.2". This gives us an OR query. But, filter out
+                        // duplicates to avoid querying by "workflow=Pipeline 4.4&workflow=Pipeline 4.4".
+                        let userAppliedFilters = selectedFileFilters;
+                        if (!isRoot) {
+                            // When not at the root level, remove any user-applied filters for any annotation within the current path.
+                            // E.g., if under the path "AICS-12" -> "ZSD-1", and a user has applied the filters FileFilter("cell_line", "AICS-12")
+                            // and FileFilter("cell_line", "AICS-33"), we do not want to include the latter in the query for this FileList.
+                            const hierarchyAnnotationNames = new Set(hierarchy);
+                            userAppliedFilters = userAppliedFilters.filter(
+                                (f) => !hierarchyAnnotationNames.has(f.name)
+                            );
+                        }
+                        const filters = uniqWith(
+                            [...hierarchyFilters, ...userAppliedFilters],
+                            (a, b) => a.equals(b)
+                        );
+
+                        const childNodeFileSet = new FileSet({
+                            fileService,
+                            filters,
+                        });
+
+                        return (
+                            <DirectoryTreeNode
+                                key={`${pathToChildNode.join(":")}|${hierarchy.join(":")}`}
+                                ancestorNodes={pathToNode}
+                                currentNode={value}
+                                displayValue={annotationAtDepth?.getDisplayValue(value) || value}
+                                fileSet={childNodeFileSet}
+                                sortOrder={childNodeSortOrder}
+                            />
+                        );
+                    });
 
                     if (!cancel) {
                         dispatch(receiveContent(nodes));

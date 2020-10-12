@@ -8,7 +8,6 @@ import "tippy.js/dist/tippy.css"; // side-effect
 import getContextMenuItems from "../ContextMenu/items";
 import SvgIcon from "../../components/SvgIcon";
 import { interaction, selection } from "../../state";
-import FileFilter from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 
 const styles = require("./DirectoryTreeNode.module.css");
@@ -16,9 +15,9 @@ const styles = require("./DirectoryTreeNode.module.css");
 interface DirectoryTreeNodeHeaderProps {
     collapsed: boolean;
     error: Error | null;
-    fileFolderPath: string[];
     fileSet: FileSet;
     isLeaf: boolean;
+    isFocused?: boolean;
     loading: boolean;
     onClick: () => void;
     title: string;
@@ -52,7 +51,7 @@ const ICON_SIZE = 15; // in px; both width and height
  * not cheap to initialize.
  */
 export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeNodeHeaderProps) {
-    const { collapsed, error, fileFolderPath, fileSet, isLeaf, loading, onClick, title } = props;
+    const { collapsed, error, fileSet, isLeaf, isFocused, loading, onClick, title } = props;
 
     const [isContextMenuActive, setContextMenuActive] = React.useState(false);
 
@@ -62,13 +61,8 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
     }, [fileSelections, fileSet]);
 
     const dispatch = useDispatch();
-    const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
-
     const onContextMenu = (evt: React.MouseEvent) => {
         const availableItems = getContextMenuItems(dispatch);
-        const fileFolderFilters = fileFolderPath.map(
-            (value, index) => new FileFilter(annotationHierarchy[index].name, value)
-        );
         const items = [
             {
                 ...availableItems.DOWNLOAD,
@@ -83,7 +77,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
                             onClick() {
                                 dispatch(
                                     interaction.actions.toggleManifestDownloadDialog(
-                                        fileFolderFilters
+                                        fileSet.filters
                                     )
                                 );
                             },
@@ -122,7 +116,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
     return (
         <span
             className={classNames(styles.directoryHeader, {
-                [styles.focused]: isContextMenuActive,
+                [styles.focused]: isContextMenuActive || isFocused,
             })}
             data-testid="treeitemheader"
             onClick={onClick}

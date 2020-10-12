@@ -68,19 +68,9 @@ export default function FileList(props: FileListProps) {
     const outerRef = React.useRef<HTMLDivElement | null>(null);
 
     // This hook is responsible for ensuring that if the details pane is currently showing a file row
-    // within this FileList, that a) this FileList is visible, and b) the file row shown in the details
-    // pane is visible. This will only work if the FileList is mounted (i.e., the DirectoryTreeNode this
-    // FileList is a child of is expanded).
+    // within this FileList the file row shown in the details pane is scrolled into view.
     React.useEffect(() => {
-        const fileSetIsFocused = fileSelection.isFocused(fileSet);
-
-        // Ensure the list is in view if it has focus within the details pane
-        if (measuredNodeRef.current && fileSetIsFocused) {
-            measuredNodeRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        }
-
-        // Ensure the currently focused item within this list is scrolled into view
-        if (listRef.current && outerRef.current && fileSetIsFocused) {
+        if (listRef.current && outerRef.current && fileSelection.isFocused(fileSet)) {
             const { indexWithinFileSet } = fileSelection.getFocusedItemIndices();
             if (indexWithinFileSet !== undefined) {
                 const listScrollTop = outerRef.current.scrollTop;
@@ -101,7 +91,7 @@ export default function FileList(props: FileListProps) {
                 }
             }
         }
-    }, [fileSelection, fileSet, height, rowHeight, measuredNodeRef]);
+    }, [fileSelection, fileSet, height, rowHeight]);
 
     // Callback provided to individual LazilyRenderedRows to be called on `contextmenu`
     const onFileRowContextMenu = (evt: React.MouseEvent) => {
@@ -127,7 +117,7 @@ export default function FileList(props: FileListProps) {
                 ref={measuredNodeRef}
             >
                 <InfiniteLoader
-                    key={fileSet.hash}
+                    key={fileSet.instanceId} // force a re-render whenever FileSet changes
                     isItemLoaded={fileSet.isFileMetadataLoaded}
                     loadMoreItems={debouncePromise(
                         fileSet.fetchFileRange,

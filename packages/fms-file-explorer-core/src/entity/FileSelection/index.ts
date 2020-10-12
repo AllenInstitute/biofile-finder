@@ -103,14 +103,26 @@ export default class FileSelection {
     }
 
     /**
-     * Is _any_ index, or optionally, a specific index within a given FileSet focused?
+     * Is _any_ index, or optionally, a specific index within a given query focused?
+     *
+     * A "query" can be a FileSet, in which case this method checks for equality
+     * between the given FileSet and the currently focused SelectionItem's FileSet.
+     *
+     * Or, a "query" can be a list of FileFilters, in which case this method checks
+     * that the currently focused SelectionItem's FileSet _matches_ the given filters. This
+     * is useful when determining whether the currently focused SelectionItem is anywhere
+     * beneath a top-level folder.
      */
-    public isFocused(fileSet: FileSet, index?: number): boolean {
+    public isFocused(filters: FileFilter[], index?: number): boolean;
+    public isFocused(fileSet: FileSet, index?: number): boolean;
+    public isFocused(query: FileSet | FileFilter[], index?: number): boolean {
         if (!this.focusedItem) {
             return false;
         }
 
-        const fileSetIsFocused = this.focusedItem.fileSet.equals(fileSet);
+        const fileSetIsFocused = FileSet.isFileSet(query)
+            ? this.focusedItem.fileSet.equals(query)
+            : this.focusedItem.fileSet.matches(query);
 
         if (index !== undefined) {
             return fileSetIsFocused && this.focusedItem.indexWithinFileSet === index;

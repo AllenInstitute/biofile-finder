@@ -1,4 +1,4 @@
-import { defaults, find, flatten, join, map } from "lodash";
+import { defaults, find, flatten, join, map, uniqueId } from "lodash";
 import LRUCache from "lru-cache";
 
 import FileFilter from "../FileFilter";
@@ -26,6 +26,11 @@ const DEFAULT_OPTS: Opts = {
  * Responsible for loading the metadata for files that will be displayed in the file list.
  */
 export default class FileSet {
+    // Uniquely identify an _instance_ of a FileSet.
+    // GM 2020-10-08: Used to force a re-render of InfiniteLoader (in FileList) whenever the FileSet
+    // passed to FileList changes. InfiniteLoader will not otherwise refetch data without being scrolled.
+    public instanceId = uniqueId("FileSet");
+
     private cache: LRUCache<number, FmsFile>;
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
