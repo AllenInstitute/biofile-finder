@@ -55,6 +55,7 @@
     "jsdom": "16.4.x",
     "mini-css-extract-plugin": "0.8.x",
     "mocha": "8.1.x",
+    "mock-raf": "1.0.x",
     "npm-run-all": "4.1.x",
     "postcss-flexbugs-fixes": "4.1.x",
     "postcss-loader": "3.0.x",

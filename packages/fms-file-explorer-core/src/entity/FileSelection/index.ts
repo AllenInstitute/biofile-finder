@@ -123,7 +123,7 @@ export default class FileSelection {
      * Is the last file selected already focused?
      */
     public hasNextFocusableItem(): boolean {
-        const fileSelectionCount = this.size();
+        const fileSelectionCount = this.count();
         if (!fileSelectionCount) {
             return false;
         }
@@ -140,7 +140,7 @@ export default class FileSelection {
      * Is the first file selected already focused?
      */
     public hasPreviousFocusableItem(): boolean {
-        if (!this.size()) {
+        if (!this.count()) {
             return false;
         }
 
@@ -278,7 +278,7 @@ export default class FileSelection {
 
         // Nothing was initially focused (not plausible within this code path),
         // or there are no remaining file selections (perfectly plausible)
-        if (!this.focusedItem || !nextSelection.size()) {
+        if (!this.focusedItem || !nextSelection.count()) {
             return nextSelection;
         }
 
@@ -320,7 +320,7 @@ export default class FileSelection {
      * "Focus" state is used to determine which file is displayed in the file details pane.
      */
     public focus(directive: FocusDirective): FileSelection {
-        if (this.size() === 0) {
+        if (this.count() === 0) {
             return FileSelection.from(this);
         }
 
@@ -335,10 +335,10 @@ export default class FileSelection {
                     .focusByIndex(Math.max(0, currentFocusedIndex - 1));
             case FocusDirective.NEXT:
                 return FileSelection.from(this)
-                    .focusByIndex(Math.min(this.size() - 1, currentFocusedIndex + 1));
+                    .focusByIndex(Math.min(this.count() - 1, currentFocusedIndex + 1));
             case FocusDirective.LAST:
                 return FileSelection.from(this)
-                    .focusByIndex(Math.max(0, this.size() - 1));
+                    .focusByIndex(Math.max(0, this.count() - 1));
             default:
                 return FileSelection.from(this);
         }
@@ -349,7 +349,7 @@ export default class FileSelection {
      * (i.e., not local to a particular FileSet) focused.
      */
     public focusByIndex(indexAcrossAllSelections: number): FileSelection {
-        if (indexAcrossAllSelections >= this.size()) {
+        if (indexAcrossAllSelections >= this.count()) {
             throw new IndexError(
                 `${indexAcrossAllSelections} is out of bounds of ${this}`
             );
@@ -412,10 +412,10 @@ export default class FileSelection {
      * How many file rows are selected. This *should not* be used to report how many unique
      * files are selected--two file rows in two different FileSets may represent the same underlying file.
      */
-    public size(fileSet: FileSet): number;
-    public size(filters: FileFilter[]): number;
-    public size(zeroarg?: any | undefined): number;
-    public size(args?: FileSet | FileFilter[] | undefined): number {
+    public count(fileSet: FileSet): number;
+    public count(filters: FileFilter[]): number;
+    public count(zeroarg?: any | undefined): number;
+    public count(args?: FileSet | FileFilter[] | undefined): number {
         let selectionsToCount = this.selections;
         if (FileSet.isFileSet(args)) {
             selectionsToCount = this.selections.filter((selectionItem) => {

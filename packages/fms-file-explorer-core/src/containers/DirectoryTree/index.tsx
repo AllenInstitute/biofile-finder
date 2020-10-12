@@ -1,6 +1,9 @@
 import classNames from "classnames";
 import * as React from "react";
+import { useSelector } from "react-redux";
 
+import { interaction } from "../../state";
+import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
 
@@ -25,9 +28,14 @@ interface FileListProps {
  *      [collapsible folder] plate789
  */
 export default function DirectoryTree(props: FileListProps) {
+    const fileService = useSelector(interaction.selectors.getFileService);
+    const fileSet = defaultFileSetFactory.create({
+        filters: [],
+        fileService,
+    });
     const {
         state: { content, error, isLoading },
-    } = useDirectoryHierarchy({ collapsed: false, sortOrder: 0 });
+    } = useDirectoryHierarchy({ collapsed: false, fileSet, sortOrder: 0 });
 
     return (
         <div className={classNames(props.className, styles.container)}>

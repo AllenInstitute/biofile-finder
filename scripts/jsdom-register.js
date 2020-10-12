@@ -1,4 +1,5 @@
 const { JSDOM } = require("jsdom");
+const createMockRaf = require("mock-raf");
 
 const html = `
     <!doctype html>
@@ -10,7 +11,6 @@ const html = `
 `;
 
 const dom = new JSDOM(html, {
-    pretendToBeVisual: true, // set pretendToBeVisual to enable requestAnimationFrame and cancelAnimationFrame
     url: "http://localhost", // https://github.com/jsdom/jsdom/issues/2383
 });
 
@@ -36,6 +36,19 @@ for (key of NON_ENUMERABLE_KEYS) {
         global[key] = dom.window[key];
     }
 }
+
+// Other properties to add to global/window
+const mockRaf = createMockRaf();
+[
+    { prop: "requestAnimationFrame", mock: mockRaf.raf },
+    { prop: "cancelAnimationFrame", mock: mockRaf.cancel },
+].forEach(({ prop, mock}) => {
+    global[prop] = mock;
+    dom.window[prop] = mock;
+});
+
+// Used to scroll the directory tree to ensure selected/focused items are in view
+Element.prototype.scrollIntoView = () => {};
 
 global.navigator = {
     userAgent: "node.js"

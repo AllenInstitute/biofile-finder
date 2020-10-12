@@ -1,4 +1,4 @@
-import { defaults, isEmpty, find, pull, uniqWith, zip } from "lodash";
+import { defaults, isEmpty, find, pull, take, uniqWith, zip } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -13,6 +13,7 @@ import {
 } from "./directory-hierarchy-state";
 import FileList from "../FileList";
 import FileFilter from "../../entity/FileFilter";
+import FileSet from "../../entity/FileSet";
 import { defaultFileSetFactory } from "../../entity/FileSet/FileSetFactory";
 import * as directoryTreeSelectors from "./selectors";
 import { interaction, metadata, selection } from "../../state";
@@ -22,6 +23,7 @@ export interface UseDirectoryHierarchyParams {
     ancestorNodes?: string[];
     currentNode?: string;
     collapsed: boolean;
+    fileSet: FileSet;
     sortOrder: number;
 }
 
@@ -42,7 +44,7 @@ const DEFAULTS = {
  * and path. Responsible for fetching any data required to do so.
  */
 const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotationHierarchyReturnValue => {
-    const { ancestorNodes, currentNode, collapsed, sortOrder } = defaults({}, params, DEFAULTS);
+    const { ancestorNodes, currentNode, collapsed, fileSet, sortOrder } = defaults({}, params, DEFAULTS);
     const annotations = useSelector(metadata.selectors.getAnnotations);
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
@@ -70,40 +72,6 @@ const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotati
         async function getContent() {
             if (isLeaf || hierarchy.length === 0) {
                 // if we're at the top or bottom of the hierarchy, render a FileList
-
-                const hierarchyFilters: FileFilter[] = zip<string, string>(
-                    hierarchy,
-                    pathToNode
-                ).map((pair) => {
-                    const [name, value] = pair as [string, string];
-                    return new FileFilter(name, value);
-                });
-
-                // Filters are a combination of any user-selected filters and the filters
-                // at a particular path in the hierarchy.
-                //
-                // It's OK to have two annotation values used as filters for the same annotation.
-                // E.g., "workflow=Pipeline4.1&workflow=Pipeline4.2". This gives us an OR query. But, filter out
-                // duplicates to avoid querying by "workflow=Pipeline 4.4&workflow=Pipeline 4.4".
-                let userAppliedFilters = selectedFileFilters;
-                if (!isRoot) {
-                    // When not at the root level, remove any user-applied filters for any annotation within the current path.
-                    // E.g., if under the path "AICS-12" -> "ZSD-1", and a user has applied the filters FileFilter("cell_line", "AICS-12")
-                    // and FileFilter("cell_line", "AICS-33"), we do not want to include the latter in the query for this FileList.
-                    const hierarchyAnnotationNames = new Set(hierarchy);
-                    userAppliedFilters = userAppliedFilters.filter(
-                        (f) => !hierarchyAnnotationNames.has(f.name)
-                    );
-                }
-                const filters = uniqWith([...hierarchyFilters, ...userAppliedFilters], (a, b) =>
-                    a.equals(b)
-                );
-
-                const fileSet = defaultFileSetFactory.create({
-                    fileService,
-                    filters,
-                });
-
                 try {
                     const totalCount = await fileSet.fetchTotalCount();
                     if (!cancel) {
@@ -120,7 +88,7 @@ const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotati
                     }
                 } catch (e) {
                     console.error(
-                        `Failed to fetch the total number of documents beloning to ${fileSet.toString()}`,
+                        `Failed to fetch the total number of documents belonging to ${fileSet.toString()}`,
                         e
                     );
                     if (!cancel) {
@@ -176,12 +144,48 @@ const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotati
                                     ? Number.parseFloat(`${sortOrder}.${idx}`)
                                     : Number.parseFloat(`${sortOrder}${idx}`)
                             }
+
+                            const pathToChildNode = [...pathToNode, value];
+                            const hierarchyFilters: FileFilter[] = zip<string, string>(
+                                take(hierarchy, depth + 1),
+                                take(pathToChildNode, depth + 1)
+                            ).map((pair) => {
+                                const [name, value] = pair as [string, string];
+                                return new FileFilter(name, value);
+                            });
+
+                            // Filters are a combination of any user-selected filters and the filters
+                            // at a particular path in the hierarchy.
+                            //
+                            // It's OK to have two annotation values used as filters for the same annotation.
+                            // E.g., "workflow=Pipeline4.1&workflow=Pipeline4.2". This gives us an OR query. But, filter out
+                            // duplicates to avoid querying by "workflow=Pipeline 4.4&workflow=Pipeline 4.4".
+                            let userAppliedFilters = selectedFileFilters;
+                            if (!isRoot) {
+                                // When not at the root level, remove any user-applied filters for any annotation within the current path.
+                                // E.g., if under the path "AICS-12" -> "ZSD-1", and a user has applied the filters FileFilter("cell_line", "AICS-12")
+                                // and FileFilter("cell_line", "AICS-33"), we do not want to include the latter in the query for this FileList.
+                                const hierarchyAnnotationNames = new Set(hierarchy);
+                                userAppliedFilters = userAppliedFilters.filter(
+                                    (f) => !hierarchyAnnotationNames.has(f.name)
+                                );
+                            }
+                            const filters = uniqWith([...hierarchyFilters, ...userAppliedFilters], (a, b) =>
+                                a.equals(b)
+                            );
+
+                            const childNodeFileSet = defaultFileSetFactory.create({
+                                fileService,
+                                filters,
+                            });
+
                             return (
                                 <DirectoryTreeNode
-                                    key={`${[...pathToNode, value].join(":")}|${hierarchy.join(":")}`}
+                                    key={`${pathToChildNode.join(":")}|${hierarchy.join(":")}`}
                                     ancestorNodes={pathToNode}
                                     currentNode={value}
                                     displayValue={annotationAtDepth?.getDisplayValue(value) || value}
+                                    fileSet={childNodeFileSet}
                                     sortOrder={childNodeSortOrder}
                                 />
                             );
@@ -215,6 +219,7 @@ const useDirectoryHierarchy = (params: UseDirectoryHierarchyParams): UseAnnotati
         currentNode,
         collapsed,
         fileService,
+        fileSet,
         hierarchy,
         isRoot,
         isLeaf,

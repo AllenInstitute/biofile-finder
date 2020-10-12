@@ -9,16 +9,19 @@ import getContextMenuItems from "../ContextMenu/items";
 import SvgIcon from "../../components/SvgIcon";
 import { interaction, selection } from "../../state";
 import FileFilter from "../../entity/FileFilter";
+import FileSet from "../../entity/FileSet";
 
 const styles = require("./DirectoryTreeNode.module.css");
 
 interface DirectoryTreeNodeHeaderProps {
     collapsed: boolean;
     error: Error | null;
+    fileFolderPath: string[];
+    fileSet: FileSet;
+    isLeaf: boolean;
     loading: boolean;
     onClick: () => void;
     title: string;
-    fileFolderPath: string[];
 }
 
 /**
@@ -49,9 +52,14 @@ const ICON_SIZE = 15; // in px; both width and height
  * not cheap to initialize.
  */
 export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeNodeHeaderProps) {
-    const { collapsed, error, loading, onClick, title, fileFolderPath } = props;
+    const { collapsed, error, fileFolderPath, fileSet, isLeaf, loading, onClick, title } = props;
 
     const [isContextMenuActive, setContextMenuActive] = React.useState(false);
+
+    const fileSelections = useSelector(selection.selectors.getFileSelection);
+    const countSelectionsUnderneathFolder = React.useMemo(() => {
+        return fileSelections.count(fileSet.filters);
+    }, [fileSelections, fileSet]);
 
     const dispatch = useDispatch();
     const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
@@ -91,6 +99,26 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
         setContextMenuActive(true);
     };
 
+    // Render a badge indicating the total number of file selections that can be found underneath this
+    // DirectoryTreeNode. But only render it if:
+    //  1. there are in fact selections to be found underneath this node, and
+    //  2. this node is collapsed OR this node is a leaf node (its child is a file list)
+    const showSelectionCountBadge = countSelectionsUnderneathFolder > 0 && (collapsed || isLeaf);
+    let selectionCountBadge = null;
+    if (showSelectionCountBadge) {
+        let text = "selection";
+
+        if (countSelectionsUnderneathFolder > 1) {
+            text = "selections"; // make it plural
+        }
+
+        selectionCountBadge = (
+            <div className={styles.selectionCountBadge}>
+                {`${countSelectionsUnderneathFolder} ${text}`}
+            </div>
+        );
+    }
+
     return (
         <span
             className={classNames(styles.directoryHeader, {
@@ -117,6 +145,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
                 width={ICON_SIZE}
             />
             <h4 className={styles.directoryName}>{title}</h4>
+            {selectionCountBadge}
             {loading && <Spinner size={SpinnerSize.small} />}
             {!loading && error && (
                 <Tippy content={error.message}>

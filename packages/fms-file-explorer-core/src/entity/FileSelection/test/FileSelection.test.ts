@@ -151,7 +151,7 @@ describe("FileSelection", () => {
             // Assert
             expect(selection.isSelected(new FileSet(), 25)).to.equal(true);
             expect(nextSelection.isSelected(new FileSet(), 25)).to.equal(false);
-            expect(nextSelection.size()).to.equal(selection.size() - 1);
+            expect(nextSelection.count()).to.equal(selection.count() - 1);
         });
 
         it("deselects multiple files", () => {
@@ -172,7 +172,7 @@ describe("FileSelection", () => {
 
             // deselection
             expect(nextSelection.isSelected(new FileSet(), rangeToDeselect)).to.equal(false);
-            expect(nextSelection.size()).to.equal(selection.size() - rangeToDeselect.length);
+            expect(nextSelection.count()).to.equal(selection.count() - rangeToDeselect.length);
         });
 
         it("produces an empty FileSelection instance if last remaining selection is removed", () => {
@@ -184,7 +184,7 @@ describe("FileSelection", () => {
             const nextSelection = selection.deselect(new FileSet(), 34);
 
             // Assert
-            expect(nextSelection.size()).to.equal(0);
+            expect(nextSelection.count()).to.equal(0);
         });
 
         it("keeps currently focused item if possible", () => {
@@ -388,7 +388,7 @@ describe("FileSelection", () => {
             // effectively a noop when the focused item is already at LAST
             {
                 setup: (selection: FileSelection) => {
-                    return selection.focusByIndex(selection.size() - 1);
+                    return selection.focusByIndex(selection.count() - 1);
                 },
                 directive: FocusDirective.NEXT,
                 expectation: {
@@ -541,7 +541,7 @@ describe("FileSelection", () => {
 
         it("returns unfiltered size", () => {
             // Act
-            const size = selection.size();
+            const size = selection.count();
 
             // Assert
             expect(size).to.equal(22);
@@ -549,7 +549,7 @@ describe("FileSelection", () => {
 
         it("returns filtered size - filtered by fileset", () => {
             // Act
-            const size = selection.size(fileSet1);
+            const size = selection.count(fileSet1);
 
             // Assert
             expect(size).to.equal(11);
@@ -562,7 +562,7 @@ describe("FileSelection", () => {
         ].forEach(({ filters, expected }, idx) => {
             it(`(${idx}) returns filtered size -- filtered by file filters`, () => {
                 // Act
-                const size = selection.size(filters);
+                const size = selection.count(filters);
 
                 // Assert
                 expect(size).to.equal(expected);
