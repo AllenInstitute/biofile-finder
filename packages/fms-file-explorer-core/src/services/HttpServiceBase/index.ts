@@ -157,7 +157,8 @@ export default class HttpServiceBase {
 
     // Sets up the HTTP request config
     private async getRequestConfig() {
-        if (isEmpty(this.requestConfig)) {
+        // If we haven't set up the config yet & have access to the renderer, add the version to the config
+        if (isEmpty(this.requestConfig) && ipcRenderer) {
             const appVersion = await ipcRenderer.invoke("get-app-version");
             this.requestConfig = { headers: { "X-Application-Version": appVersion } };
         }
