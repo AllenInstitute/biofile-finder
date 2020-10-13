@@ -91,13 +91,13 @@ export default function App(props: AppProps) {
         checkForUpdates();
     }, [dispatch, props.platformDependentServices]);
 
-    // Set connection configuration for the file-explorer-service
-    // And kick off the process of requesting metadata needed by the application.
     React.useEffect(() => {
         if (applicationVersion) {
             dispatch(interaction.actions.setApplicationVersion(applicationVersion));
         }
     }, [dispatch, applicationVersion]);
+    // Set connection configuration for the file-explorer-service
+    // And kick off the process of requesting metadata needed by the application.
     React.useEffect(() => {
         dispatch(interaction.actions.setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl));
         dispatch(metadata.actions.requestAnnotations());
