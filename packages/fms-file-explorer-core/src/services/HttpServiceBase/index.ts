@@ -1,13 +1,12 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import axios, { AxiosInstance } from "axios";
 import { Policy } from "cockatiel";
-import { ipcRenderer } from "electron";
-import { isEmpty } from "lodash";
 import LRUCache from "lru-cache";
 
 import { DataSource } from "../../constants";
 import RestServiceResponse from "../../entity/RestServiceResponse";
 
 export interface ConnectionConfig {
+    applicationVersion?: string;
     baseUrl?: string | keyof typeof DataSource;
     httpClient?: AxiosInstance;
 }
@@ -98,10 +97,14 @@ export default class HttpServiceBase {
 
     public baseUrl: string | keyof typeof DataSource = DEFAULT_CONNECTION_CONFIG.baseUrl;
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
-    private requestConfig: AxiosRequestConfig = {};
+    private applicationVersion = "NOT SET";
     private urlToResponseDataCache = new LRUCache<string, any>({ max: MAX_CACHE_SIZE });
 
     constructor(config: ConnectionConfig = {}) {
+        if (config.applicationVersion) {
+            this.applicationVersion = config.applicationVersion;
+        }
+
         if (config.baseUrl) {
             this.setBaseUrl(config.baseUrl);
         }
@@ -116,7 +119,7 @@ export default class HttpServiceBase {
         console.log(`Sanitized ${url} to ${encodedUrl}`);
 
         if (!this.urlToResponseDataCache.has(encodedUrl)) {
-            const config = await this.getRequestConfig();
+            const config = { headers: { "X-Application-Version": this.applicationVersion } };
             // if this fails, bubble up exception
             const response = await retry.execute(() => this.httpClient.get(encodedUrl, config));
 
@@ -153,15 +156,5 @@ export default class HttpServiceBase {
         }
 
         this.httpClient = client;
-    }
-
-    // Sets up the HTTP request config
-    private async getRequestConfig() {
-        // If we haven't set up the config yet & have access to the renderer, add the version to the config
-        if (isEmpty(this.requestConfig) && ipcRenderer) {
-            const appVersion = await ipcRenderer.invoke("get-app-version");
-            this.requestConfig = { headers: { "X-Application-Version": appVersion } };
-        }
-        return this.requestConfig;
     }
 }

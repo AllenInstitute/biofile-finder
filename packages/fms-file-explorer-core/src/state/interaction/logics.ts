@@ -34,12 +34,14 @@ const downloadManifest = createLogic({
 
         try {
             const state = getState();
+            const applicationVersion = interactionSelectors.getApplicationVersion(state);
             const baseUrl = interactionSelectors.getFileExplorerServiceBaseUrl(state);
             const platformDependentServices = interactionSelectors.getPlatformDependentServices(
                 state
             );
             const fileService = interactionSelectors.getFileService(state);
             const csvService = new CsvService({
+                applicationVersion,
                 baseUrl,
                 downloadService: platformDependentServices.fileDownloadService,
             });

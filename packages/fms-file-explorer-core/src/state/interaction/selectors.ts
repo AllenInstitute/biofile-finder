@@ -7,6 +7,7 @@ import AnnotationService from "../../services/AnnotationService";
 // BASIC SELECTORS
 export const isManifestDownloadDialogVisible = (state: State) =>
     state.interaction.isManifestDownloadDialogVisible;
+export const getApplicationVersion = (state: State) => state.interaction.applicationVersion;
 export const getContextMenuVisibility = (state: State) => state.interaction.contextMenuIsVisible;
 export const getContextMenuItems = (state: State) => state.interaction.contextMenuItems;
 export const getContextMenuPositionReference = (state: State) =>
@@ -22,16 +23,16 @@ export const getProcessStatuses = (state: State) => state.interaction.status;
 
 // COMPOSED SELECTORS
 export const getFileService = createSelector(
-    [getFileExplorerServiceBaseUrl],
-    (fileExplorerBaseUrl) => {
-        return new FileService({ baseUrl: fileExplorerBaseUrl });
+    [getApplicationVersion, getFileExplorerServiceBaseUrl],
+    (applicationVersion, fileExplorerBaseUrl) => {
+        return new FileService({ applicationVersion, baseUrl: fileExplorerBaseUrl });
     }
 );
 
 export const getAnnotationService = createSelector(
-    [getFileExplorerServiceBaseUrl],
-    (fileExplorerBaseUrl) => {
-        return new AnnotationService({ baseUrl: fileExplorerBaseUrl });
+    [getApplicationVersion, getFileExplorerServiceBaseUrl],
+    (applicationVersion, fileExplorerBaseUrl) => {
+        return new AnnotationService({ applicationVersion, baseUrl: fileExplorerBaseUrl });
     }
 );
 
