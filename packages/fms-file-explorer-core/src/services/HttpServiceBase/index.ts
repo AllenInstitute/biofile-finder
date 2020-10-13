@@ -1,5 +1,7 @@
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import { Policy } from "cockatiel";
+import { ipcRenderer } from "electron";
+import { isEmpty } from "lodash";
 import LRUCache from "lru-cache";
 
 import { DataSource } from "../../constants";
@@ -96,7 +98,7 @@ export default class HttpServiceBase {
 
     public baseUrl: string | keyof typeof DataSource = DEFAULT_CONNECTION_CONFIG.baseUrl;
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
-
+    private requestConfig: AxiosRequestConfig = {};
     private urlToResponseDataCache = new LRUCache<string, any>({ max: MAX_CACHE_SIZE });
 
     constructor(config: ConnectionConfig = {}) {
@@ -114,8 +116,9 @@ export default class HttpServiceBase {
         console.log(`Sanitized ${url} to ${encodedUrl}`);
 
         if (!this.urlToResponseDataCache.has(encodedUrl)) {
+            const config = await this.getRequestConfig();
             // if this fails, bubble up exception
-            const response = await retry.execute(() => this.httpClient.get(encodedUrl));
+            const response = await retry.execute(() => this.httpClient.get(encodedUrl, config));
 
             if (response.status < 400 && response.data !== undefined) {
                 this.urlToResponseDataCache.set(encodedUrl, response.data);
@@ -150,5 +153,14 @@ export default class HttpServiceBase {
         }
 
         this.httpClient = client;
+    }
+
+    // Sets up the HTTP request config
+    private async getRequestConfig() {
+        if (isEmpty(this.requestConfig)) {
+            const appVersion = await ipcRenderer.invoke("get-app-version");
+            this.requestConfig = { headers: { "X-Application-Version": appVersion } };
+        }
+        return this.requestConfig;
     }
 }
