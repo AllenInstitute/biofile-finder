@@ -12,16 +12,13 @@
     text-align: center;
 }
 
-.container:after {
-    content: "";
-    display: table;
-    clear: both;
+.row {
+    display: flex;
 }
 
 .column {
-    float: left;
+    flex: auto;
     padding-top: 10px;
-    width: 50%;
 }
 
 .label {

@@ -42,7 +42,7 @@ export default function AggregateInfoBox() {
                     data-testid="aggregate-info-box-spinner"
                 />
             ) : (
-                <div>
+                <div className={styles.row}>
                     <div className={styles.column}>
                         <div>{totalFilesSelected}</div>
                         <h6 className={styles.label}>
