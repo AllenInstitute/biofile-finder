@@ -99,7 +99,7 @@ describe(`${RUN_IN_RENDERER} ApplicationInfoServiceElectron`, () => {
                 sandbox.restore();
             });
 
-            it("returns application version from ipcRenderer", () => {
+            it("returns application version from ipcRenderer", async () => {
                 // Arrange
                 const service = new ApplicationInfoServiceElectron();
 
