@@ -26,7 +26,6 @@ function renderFmsFileExplorer(fileExplorerServiceBaseUrl: string) {
     render(
         <Provider store={store}>
             <FmsFileExplorer
-                applicationVersion={remote.app.getVersion()}
                 fileExplorerServiceBaseUrl={fileExplorerServiceBaseUrl}
                 platformDependentServices={platformDependentServices}
             />

@@ -33,7 +33,6 @@ loadTheme({
 });
 
 interface AppProps {
-    applicationVersion?: string;
     // E.g.:
     // Localhost: "https://localhost:9081"
     // Stage: "http://stg-aics-api.corp.alleninstitute.org"
@@ -53,10 +52,7 @@ const defaultProps = {
 };
 
 export default function App(props: AppProps) {
-    const {
-        applicationVersion,
-        fileExplorerServiceBaseUrl = defaultProps.fileExplorerServiceBaseUrl,
-    } = props;
+    const { fileExplorerServiceBaseUrl = defaultProps.fileExplorerServiceBaseUrl } = props;
 
     const dispatch = useDispatch();
 
@@ -89,13 +85,15 @@ export default function App(props: AppProps) {
         }
 
         checkForUpdates();
-    }, [dispatch, props.platformDependentServices]);
 
-    React.useEffect(() => {
-        if (applicationVersion) {
+        async function setApplicationVersion() {
+            const applicationVersion = await platformDependentServices.applicationInfoService.getApplicationVersion();
             dispatch(interaction.actions.setApplicationVersion(applicationVersion));
         }
-    }, [dispatch, applicationVersion]);
+
+        setApplicationVersion();
+    }, [dispatch, props.platformDependentServices]);
+
     // Set connection configuration for the file-explorer-service
     // And kick off the process of requesting metadata needed by the application.
     React.useEffect(() => {

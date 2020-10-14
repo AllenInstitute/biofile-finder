@@ -4,4 +4,8 @@ export default class ApplicationInfoServiceNoop implements ApplicationInfoServic
     public updateAvailable() {
         return Promise.resolve(false);
     }
+
+    public getApplicationVersion() {
+        return Promise.resolve("ApplicationInfoServiceNoop");
+    }
 }
