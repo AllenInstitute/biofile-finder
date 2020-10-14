@@ -12,9 +12,9 @@ export default function AggregateInfoBox() {
     const fileService = useSelector(interaction.selectors.getFileService);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const totalFilesSelected = fileSelection.count();
-    const [isLoading, setLoading] = React.useState(false);
-    const [totalFileSize, setTotalFileSize] = React.useState("0");
     const [uniqueFilesSelected, setUniqueFilesSelected] = React.useState(totalFilesSelected);
+    const [totalFileSize, setTotalFileSize] = React.useState("0");
+    const [isLoading, setLoading] = React.useState(false);
     React.useEffect(() => {
         if (totalFilesSelected) {
             setLoading(true);
