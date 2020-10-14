@@ -66,12 +66,13 @@ describe("<AggregateInfoBox />", () => {
     describe("aggregated data rendered", () => {
         const sandbox = createSandbox();
         const baseUrl = "test";
+        const uniqueFileCount = 3413;
         const responseStubs: ResponseStub[] = [
             {
                 when: (config) =>
                     _get(config, "url", "").includes(FileService.SELECTION_AGGREGATE_URL),
                 respondWith: {
-                    data: { data: [{ size: 3 }] },
+                    data: { data: [{ count: uniqueFileCount, size: 3 }] },
                 },
             },
         ];
@@ -113,6 +114,23 @@ describe("<AggregateInfoBox />", () => {
                 state,
             });
 
+            const { findByText, findAllByText } = render(
+                <Provider store={store}>
+                    <AggregateInfoBox />
+                </Provider>
+            );
+
+            // Assert
+            expect(await findAllByText((content) => content.endsWith("Selected"))).to.lengthOf(2);
+            expect(await findByText("101")).to.exist;
+        });
+
+        it("renders aggregated unique file count", async () => {
+            // Arrange
+            const { store } = configureMockStore({
+                state,
+            });
+
             const { findByText } = render(
                 <Provider store={store}>
                     <AggregateInfoBox />
@@ -120,8 +138,8 @@ describe("<AggregateInfoBox />", () => {
             );
 
             // Assert
-            expect(await findByText((content) => content.endsWith("Selected"))).to.exist;
-            expect(await findByText("101")).to.exist;
+            expect(await findByText((content) => content.startsWith("Unique"))).to.exist;
+            expect(await findByText(`${uniqueFileCount}`)).to.exist;
         });
     });
 });
