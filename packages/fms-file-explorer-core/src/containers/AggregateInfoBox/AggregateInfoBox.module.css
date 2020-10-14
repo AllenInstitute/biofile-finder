@@ -5,8 +5,8 @@
     /* Allow the element to be fixed to the bottom of the file list */
     position: fixed;
     bottom: 10px;
-    /* Position box in the middle (adjusted for 1/2 the width of this element) */
-    left: calc(50% - (40% / 2));
+    left: 50%; /* put left edge at the 50% mark of the containing block */
+    transform: translateX(-50%); /* pull the element back to the left 50% of it's own width */
     height: 60px;
     width: 40%;
     text-align: center;
