@@ -102,7 +102,7 @@ export default class HttpServiceBase {
 
     constructor(config: ConnectionConfig = {}) {
         if (config.applicationVersion) {
-            this.applicationVersion = config.applicationVersion;
+            this.setApplicationVersion(config.applicationVersion);
         }
 
         if (config.baseUrl) {
@@ -119,9 +119,8 @@ export default class HttpServiceBase {
         console.log(`Sanitized ${url} to ${encodedUrl}`);
 
         if (!this.urlToResponseDataCache.has(encodedUrl)) {
-            const config = { headers: { "X-Application-Version": this.applicationVersion } };
             // if this fails, bubble up exception
-            const response = await retry.execute(() => this.httpClient.get(encodedUrl, config));
+            const response = await retry.execute(() => this.httpClient.get(encodedUrl));
 
             if (response.status < 400 && response.data !== undefined) {
                 this.urlToResponseDataCache.set(encodedUrl, response.data);
@@ -140,6 +139,11 @@ export default class HttpServiceBase {
         return new RestServiceResponse(cachedResponseData);
     }
 
+    public setApplicationVersion(applicationVersion: string) {
+        this.applicationVersion = applicationVersion;
+        this.httpClient.defaults.headers.common["X-Application-Version"] = this.applicationVersion;
+    }
+
     public setBaseUrl(baseUrl: string | keyof typeof DataSource) {
         if (this.baseUrl !== baseUrl) {
             // bust cache when base url changes
@@ -156,5 +160,6 @@ export default class HttpServiceBase {
         }
 
         this.httpClient = client;
+        this.httpClient.defaults.headers.common["X-Application-Version"] = this.applicationVersion;
     }
 }

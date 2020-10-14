@@ -32,17 +32,9 @@ const selectFile = createLogic({
     transform(deps: ReduxLogicDeps, next: (action: AnyAction) => void) {
         const { getState } = deps;
         const {
-            payload: {
-                fileSet,
-                lastTouched,
-                selection,
-                sortOrder,
-                updateExistingSelection,
-            }
+            payload: { fileSet, lastTouched, selection, sortOrder, updateExistingSelection },
         } = deps.action as SelectFileAction;
-        const existingFileSelections = selectionSelectors.getFileSelection(
-            getState()
-        );
+        const existingFileSelections = selectionSelectors.getFileSelection(getState());
 
         if (updateExistingSelection) {
             if (existingFileSelections.isSelected(fileSet, selection)) {
@@ -50,7 +42,12 @@ const selectFile = createLogic({
                 next(setFileSelection(nextFileSelection));
                 return;
             } else {
-                const nextFileSelection = existingFileSelections.select({ fileSet, index: selection, sortOrder, indexToFocus: lastTouched });
+                const nextFileSelection = existingFileSelections.select({
+                    fileSet,
+                    index: selection,
+                    sortOrder,
+                    indexToFocus: lastTouched,
+                });
                 next(setFileSelection(nextFileSelection));
                 return;
             }
@@ -58,13 +55,20 @@ const selectFile = createLogic({
 
         // special case: fast path for deselecting a file if it is the only one selected
         // (no need to have held down keyboard modifier)
-        if (existingFileSelections.count() === 1 && existingFileSelections.isSelected(fileSet, selection)) {
+        if (
+            existingFileSelections.count() === 1 &&
+            existingFileSelections.isSelected(fileSet, selection)
+        ) {
             next(setFileSelection(new FileSelection()));
             return;
         }
 
-        const nextFileSelection = new FileSelection()
-            .select({ fileSet, index: selection, sortOrder, indexToFocus: lastTouched });
+        const nextFileSelection = new FileSelection().select({
+            fileSet,
+            index: selection,
+            sortOrder,
+            indexToFocus: lastTouched,
+        });
         next(setFileSelection(nextFileSelection));
     },
     type: SELECT_FILE,
@@ -125,6 +129,10 @@ const modifyAnnotationHierarchy = createLogic({
 
         const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
         const annotationService = interaction.selectors.getAnnotationService(getState());
+        const applicationVersion = interaction.selectors.getApplicationVersion(getState());
+        if (applicationVersion) {
+            annotationService.setApplicationVersion(applicationVersion);
+        }
         annotationService.setHttpClient(httpClient);
 
         try {
