@@ -30,7 +30,7 @@ export default function AggregateInfoBox() {
     }, [fileSelection, fileService, totalFilesSelected]);
 
     if (!totalFilesSelected) {
-        return <div />;
+        return null;
     }
 
     return (
