@@ -481,7 +481,7 @@ export default class FileSelection {
     /**
      * Return array of Selections, a flattened & compact form of the selections
      */
-    public toSelections(): Selection[] {
+    public toCompactSelectionList(): Selection[] {
         const selections: Selection[] = [];
         for (const [fileSet, selectedRanges] of this.groupByFileSet().entries()) {
             const selection: Selection = {

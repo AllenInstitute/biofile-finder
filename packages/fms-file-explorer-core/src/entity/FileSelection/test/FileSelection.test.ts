@@ -674,7 +674,7 @@ describe("FileSelection", () => {
                 .select({ fileSet: fileSet2, index: 33, sortOrder: 1 });
 
             // Act
-            const selections = selection.toSelections();
+            const selections = selection.toCompactSelectionList();
 
             // Assert
             expect(selections.length).to.equal(2);
@@ -701,7 +701,7 @@ describe("FileSelection", () => {
                 .select({ fileSet, index: new NumericRange(99, 102), sortOrder: 0 });
 
             // Act
-            const selections = selection.toSelections();
+            const selections = selection.toCompactSelectionList();
 
             // Assert
             expect(selections.length).to.equal(1);

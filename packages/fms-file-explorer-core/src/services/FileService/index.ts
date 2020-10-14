@@ -88,7 +88,7 @@ export default class FileService extends HttpServiceBase {
     }
 
     public async getAggregateInformation(fileSelection: FileSelection) {
-        const selections = fileSelection.toSelections();
+        const selections = fileSelection.toCompactSelectionList();
         const postBody: SelectionRequest = { annotations: [], selections };
         const requestUrl = `${this.baseUrl}/${FileService.SELECTION_AGGREGATE_URL}`;
         console.log(`Requesting aggregate results of matching files ${postBody}`);
