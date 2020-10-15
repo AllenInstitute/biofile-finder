@@ -112,7 +112,8 @@
     "react-dom": "16.9.x",
     "react-redux": "7.1.x",
     "regenerator-runtime": "0.13.x",
-    "semver": "7.3.x"
+    "semver": "7.3.x",
+    "simple-plist": "1.1.x"
   },
   "resolutions": {
     "@types/node": "12.x",

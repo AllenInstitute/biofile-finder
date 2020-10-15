@@ -2,6 +2,7 @@ import childProcess from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import * as util from "util";
 
 import { dialog, ipcMain, ipcRenderer } from "electron";
 
@@ -130,11 +131,13 @@ export default class FileViewerServiceElectron implements FileViewerService {
                 return FileViewerCancellationToken;
             }
         }
-        // Continuously try to set a valid Image J location until the user cancels
+
+        // Continuously try to set a valid ImageJ location until the user cancels
         while (true) {
             let defaultPath = os.homedir();
             let extensionForOs = "*"; // Default (Linux) There is no executable extension
             const currentPlatform = os.platform();
+
             if (currentPlatform === "darwin") {
                 // Mac
                 extensionForOs = "app";
@@ -143,22 +146,55 @@ export default class FileViewerServiceElectron implements FileViewerService {
                 // Windows
                 extensionForOs = "exe";
             }
+
             let imageJExecutable = await this.selectPath({
                 defaultPath,
                 filters: [{ name: "Executable", extensions: [extensionForOs] }],
                 properties: ["openFile"],
-                title: "Select ImageJ/Fiji executable location",
+                title: "Select ImageJ/Fiji application",
             });
+
             if (imageJExecutable === FileViewerCancellationToken) {
                 return FileViewerCancellationToken;
             }
-            // If on MacOS we have to specify the inner executable
+
+            let isValidExecutable;
+
+            // On macOS, applications are bundled as packages. At this point, `imageJExecutable` is expected to be a package. Inspect the package's Info.plist to determine
+            // the name of the _actual_ executable to use.
             if (currentPlatform === "darwin") {
-                imageJExecutable += "/Contents/MacOS/ImageJ-macosx";
+                const infoPlistPath = path.join(imageJExecutable, "Contents", "Info.plist");
+
+                let infoPlistExists;
+                try {
+                    infoPlistExists = (await fs.promises.stat(infoPlistPath)).isFile();
+                } catch (_) {
+                    infoPlistExists = false;
+                }
+
+                if (infoPlistExists) {
+                    const plistParser = await import("simple-plist");
+                    const promisifiedPlistReader = util.promisify(plistParser.readFile);
+
+                    const plist = await promisifiedPlistReader(infoPlistPath);
+                    imageJExecutable = path.join(
+                        imageJExecutable,
+                        "Contents",
+                        "MacOS",
+                        plist.CFBundleExecutable
+                    );
+                    isValidExecutable = await FileViewerServiceElectron.isValidImageJExecutable(
+                        imageJExecutable
+                    );
+                } else {
+                    isValidExecutable = false;
+                }
+            } else {
+                isValidExecutable = await FileViewerServiceElectron.isValidImageJExecutable(
+                    imageJExecutable
+                );
             }
-            const isValidExecutable = await FileViewerServiceElectron.isValidImageJExecutable(
-                imageJExecutable
-            );
+
             if (isValidExecutable) {
                 this.persistentConfigService.set(
                     PersistedDataKeys.ImageJExecutable,
@@ -166,10 +202,11 @@ export default class FileViewerServiceElectron implements FileViewerService {
                 );
                 return imageJExecutable;
             }
-            // Alert user to error with Image J location
+
+            // Alert user to error with ImageJ location
             await this.showError(
                 "ImageJ/Fiji Executable Location",
-                `Whoops! ${imageJExecutable} is not verifiably an executable on your computer. Select the executable as you would to open Image J normally.`
+                `Whoops! ${imageJExecutable} is not verifiably an executable on your computer. Select the same application you would use to open ImageJ/Fiji.`
             );
         }
     }

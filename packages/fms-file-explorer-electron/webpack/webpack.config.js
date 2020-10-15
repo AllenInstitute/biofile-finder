@@ -2,11 +2,7 @@ const path = require("path");
 
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
-const {
-    devServer,
-    Env,
-    stats,
-} = require("./constants");
+const { devServer, Env, stats } = require("./constants");
 const getPluginsByEnv = require("./plugins");
 
 module.exports = ({ analyze, env } = {}) => ({
@@ -19,29 +15,23 @@ module.exports = ({ analyze, env } = {}) => ({
         stats,
     },
     entry: {
-        app: "./src/renderer.tsx"
+        app: "./src/renderer.tsx",
     },
     mode: env === Env.PRODUCTION ? "production" : "development",
     module: {
         rules: [
             {
                 test: /\.(j|t)sx?/,
-                include: [
-                    path.resolve(__dirname, "../", "src")
-                ],
+                include: [path.resolve(__dirname, "../", "src")],
                 exclude: /node_modules/,
-                use: [
-                    { loader: "babel-loader" },
-                ],
+                use: [{ loader: "babel-loader" }],
             },
 
             // this rule processes any CSS written for this project and contained in src/
             // it applies PostCSS plugins and converts it to CSS Modules
             {
                 test: /\.module.css/,
-                include: [
-                    path.resolve(__dirname, "../", "src")
-                ],
+                include: [path.resolve(__dirname, "../", "src")],
                 use: [
                     {
                         loader: MiniCssExtractPlugin.loader,
@@ -54,8 +44,8 @@ module.exports = ({ analyze, env } = {}) => ({
                             modules: {
                                 localIdentName: "[name]__[local]--[hash:base64:5]",
                             },
-                            sourceMap: env !== Env.PRODUCTION
-                        }
+                            sourceMap: env !== Env.PRODUCTION,
+                        },
                     },
                     {
                         loader: "postcss-loader",
@@ -70,7 +60,7 @@ module.exports = ({ analyze, env } = {}) => ({
                                 }),
                             ],
                             sourceMap: env !== Env.PRODUCTION,
-                        }
+                        },
                     },
                 ],
             },
@@ -81,10 +71,7 @@ module.exports = ({ analyze, env } = {}) => ({
             {
                 test: (filepath) => filepath.endsWith(".css") && !filepath.endsWith(".module.css"),
                 include: /node_modules/,
-                use: [
-                    { loader: MiniCssExtractPlugin.loader },
-                    { loader: "css-loader" },
-                ],
+                use: [{ loader: MiniCssExtractPlugin.loader }, { loader: "css-loader" }],
             },
 
             // this rule will handle any CSS Module imports out of node_modules; it does not apply PostCSS
@@ -102,28 +89,16 @@ module.exports = ({ analyze, env } = {}) => ({
                             modules: {
                                 localIdentName: "[name]__[local]--[hash:base64:5]",
                             },
-                            sourceMap: env !== Env.PRODUCTION
-                        }
+                            sourceMap: env !== Env.PRODUCTION,
+                        },
                     },
                 ],
             },
-        ]
-    },
-    optimization: {
-        runtimeChunk: 'single',
-        splitChunks: {
-            chunks: 'all',
-            cacheGroups: {
-                vendor: {
-                    filename: 'vendor.[contenthash].js',
-                    test: /[\\/]node_modules[\\/]/,
-                },
-            }
-        }
+        ],
     },
     output: {
         path: path.resolve(__dirname, "../", "dist", "renderer"),
-        filename: "[name].[chunkhash].js"
+        filename: "[name].[chunkhash].js",
     },
     plugins: getPluginsByEnv(env, analyze),
     resolve: {
