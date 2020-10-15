@@ -149,7 +149,7 @@ pipeline {
                         returnStdout: true,
                         script: "cat ${env.WORKSPACE}/packages/fms-file-explorer-electron/package.json | jq --raw-output '.version'"
                     ).trim()
-                    def version = env.BRANCH_NAME == "master" ? packageJsonVersion : env.BRANCH_NAME.replace("/": "-")
+                    def version = env.BRANCH_NAME == "master" ? packageJsonVersion : env.BRANCH_NAME.replace("/", "-")
                     def postData = JsonOutput.toJson([event_type: "on-demand-release", client_payload: [ref: "${env.BRANCH_NAME}", version: "${version}"]])
                     def authHeader = [name: "Authorization", value: "bearer ${GH_TOKEN}"]
                     def acceptHeader = [name: "Accept", value: "application/vnd.github.everest-preview+json"]
