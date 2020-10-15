@@ -99,7 +99,6 @@ export default class FileViewerServiceElectron implements FileViewerService {
         // Continuously try to set a valid allen drive mount point unless the user cancels
         while (true) {
             const allenPath = await this.selectPath({
-                properties: ["openDirectory"],
                 title: "Select Allen drive mount point",
             });
             if (allenPath === FileViewerCancellationToken) {
@@ -210,9 +209,7 @@ export default class FileViewerServiceElectron implements FileViewerService {
 
     public async isValidAllenMountPoint(allenPath: string): Promise<boolean> {
         try {
-            const expectedPaths = KNOWN_FOLDERS_IN_ALLEN_DRIVE.map((f) =>
-                path.resolve(allenPath, f)
-            );
+            const expectedPaths = KNOWN_FOLDERS_IN_ALLEN_DRIVE.map((f) => path.join(allenPath, f));
             await Promise.all(
                 expectedPaths.map((path) => fs.promises.access(path, fs.constants.R_OK))
             );
