@@ -1,7 +1,6 @@
 /**
  * Least-effort typings for https://www.npmjs.com/package/simple-plist.
- *
- *
+ * Utility abstraction for working with Info.plist files.
  */
 declare module "simple-plist" {
     interface Properties {
