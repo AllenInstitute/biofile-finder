@@ -12,7 +12,7 @@ export interface FileExplorerURLComponents {
 }
 
 // JSON format this outputs & expects to receive back from the user
-interface FileExplorerUrlJson {
+interface FileExplorerURLJson {
     groupBy: string[];
     filters: FileFilterJson[];
     openFolders: AnnotationValue[][];
@@ -48,7 +48,7 @@ export default class FileExplorerURL {
         const filters = urlComponents.filters.map((filter) => filter.toJSON());
         const openFolders = urlComponents.openFolders.map((folder) => folder.fileFolder);
 
-        const dataToEncode: FileExplorerUrlJson = {
+        const dataToEncode: FileExplorerURLJson = {
             groupBy,
             filters,
             openFolders,
@@ -68,7 +68,7 @@ export default class FileExplorerURL {
             );
         }
 
-        const parsedURL: FileExplorerUrlJson = JSON.parse(
+        const parsedURL: FileExplorerURLJson = JSON.parse(
             trimmedEncodedURL.substring(FileExplorerURL.PROTOCOL.length)
         );
         const annotationNameSet = new Set(annotations.map((annotation) => annotation.name));

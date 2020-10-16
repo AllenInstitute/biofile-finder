@@ -1,0 +1,26 @@
+.container {
+    --link-width: 34px;
+
+    border: 1px solid lightgray;
+    height: 100%;
+    width: 100%;
+    margin-bottom: var(--margin);
+
+    /* Flex parent */
+    display: flex;
+    align-items: center;
+}
+
+.container-with-error {
+    margin-bottom: 0;
+}
+
+.url {
+    padding-left: 4px;
+    width: calc(100% - var(--link-width));
+}
+
+.link {
+    margin: 0 4px;
+    width: var(--link-width);
+}

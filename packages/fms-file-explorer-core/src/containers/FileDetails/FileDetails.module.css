@@ -1,6 +1,6 @@
 .root {
-    --window-buttons-height: var(--breadcrumb-height); /* defined in App.module.css under .root{} */
-    --pagination-height: var(--breadcrumb-height); /* defined in App.module.css under .root{} */
+    --window-buttons-height: var(--url-bar-height); /* defined in App.module.css under .root{} */
+    --pagination-height: var(--url-bar-height); /* defined in App.module.css under .root{} */
 }
 
 .expandable {
