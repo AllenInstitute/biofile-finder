@@ -29,3 +29,9 @@
 .spinner {
     height: 100%;
 }
+
+.error-message {
+    height: 100%;
+    display: flex;
+    align-items: center;;
+}
