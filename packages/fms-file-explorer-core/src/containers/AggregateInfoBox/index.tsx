@@ -40,7 +40,7 @@ export default function AggregateInfoBox() {
             };
             getAggregateInformation();
         }
-    }, [fileSelection, fileService, totalFilesSelected, uniqueFilesSelected]);
+    }, [fileSelection, fileService, totalFilesSelected]);
 
     if (!totalFilesSelected) {
         return null;
