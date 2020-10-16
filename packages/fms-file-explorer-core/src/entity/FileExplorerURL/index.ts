@@ -2,21 +2,27 @@ import Annotation from "../Annotation";
 import FileFilter, { FileFilterJson } from "../FileFilter";
 import FileFolder from "../FileFolder";
 import { AnnotationValue } from "../../services/AnnotationService";
-import { find } from "lodash";
 import { ValueError } from "../../errors";
 
+// Components of the application state this captures
 export interface FileExplorerURLComponents {
     hierarchy: Annotation[];
     filters: FileFilter[];
     openFolders: FileFolder[];
 }
 
+// JSON format this outputs & expects to receive back from the user
 interface FileExplorerUrlJson {
     groupBy: string[];
     filters: FileFilterJson[];
     openFolders: AnnotationValue[][];
 }
 
+/**
+ * This represents a system for encoding application state information in a way
+ * that allows users to copy, share, and paste the result back into the app and have the
+ * URL decoded & rehydrated back in.
+ */
 export default class FileExplorerURL {
     public static PROTOCOL = "fms-file-explorer://";
 
@@ -47,7 +53,7 @@ export default class FileExplorerURL {
             filters,
             openFolders,
         };
-        return FileExplorerURL.PROTOCOL + JSON.stringify(dataToEncode); // TODO: Make compact
+        return FileExplorerURL.PROTOCOL + JSON.stringify(dataToEncode);
     }
 
     /**
@@ -87,21 +93,5 @@ export default class FileExplorerURL {
             }),
             openFolders: parsedURL.openFolders.map((folder) => new FileFolder(folder)),
         };
-    }
-
-    // TODO: I am wondering if we even want to reject outright some cases... if the data is missing what do we do / how do we know
-    public static decodeHierarchy(encodedHierarchy: string[], annotations: Annotation[]) {
-        return encodedHierarchy.map((annotationName) => {
-            const matchingAnnotation = find(
-                annotations,
-                (annotation) => annotation.name === annotationName
-            );
-            if (!matchingAnnotation) {
-                throw new ValueError(
-                    `Unable to decode FileExplorerURL, couldn't find Annotation(${annotationName})`
-                );
-            }
-            return matchingAnnotation;
-        });
     }
 }
