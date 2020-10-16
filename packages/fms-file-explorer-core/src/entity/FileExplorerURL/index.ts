@@ -18,7 +18,7 @@ interface FileExplorerUrlJson {
 }
 
 export default class FileExplorerURL {
-    // Returns true if the given string can be decoded into a valid FileExplorerURL
+    // Returns an error message if the URL is invalid, returns undefined otherwise
     public static validateEncodedFileExplorerURL(encodedURL: string) {
         try {
             FileExplorerURL.decode(encodedURL);
