@@ -660,7 +660,7 @@ describe("FileSelection", () => {
         });
     });
 
-    describe("toSelections", () => {
+    describe("toCompactSelectionList", () => {
         it("produces array of selections grouped by fileset", () => {
             // Arrange
             const fileSet1 = new FileSet();
