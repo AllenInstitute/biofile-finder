@@ -114,4 +114,8 @@ export default class Annotation {
     public valueOf(value: any): AnnotationValue {
         return this.formatter.valueOf(value);
     }
+
+    public toJSON() {
+        return this.annotation;
+    }
 }

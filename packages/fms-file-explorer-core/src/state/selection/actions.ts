@@ -376,3 +376,22 @@ export function setOpenFileFolders(openFileFolders: FileFolder[]): SetOpenFileFo
         type: SET_OPEN_FILE_FOLDERS,
     };
 }
+
+/**
+ * DECODE_FILE_EXPLORER_URL
+ *
+ * Intention to decode an incoming file explorer URL into application state
+ */
+export const DECODE_FILE_EXPLORER_URL = makeConstant(STATE_BRANCH_NAME, "decode-file-explorer-url");
+
+export interface DecodeFileExplorerURLAction {
+    payload: string;
+    type: string;
+}
+
+export function decodeFileExplorerURL(decodedFileExplorerURL: string): DecodeFileExplorerURLAction {
+    return {
+        payload: decodedFileExplorerURL,
+        type: DECODE_FILE_EXPLORER_URL,
+    };
+}

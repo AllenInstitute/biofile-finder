@@ -15,10 +15,12 @@ import {
     setFileSelection,
     TOGGLE_FILE_FOLDER_COLLAPSE,
     setOpenFileFolders,
+    DECODE_FILE_EXPLORER_URL,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps } from "../";
 import * as selectionSelectors from "./selectors";
 import Annotation from "../../entity/Annotation";
+import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -32,17 +34,9 @@ const selectFile = createLogic({
     transform(deps: ReduxLogicDeps, next: (action: AnyAction) => void) {
         const { getState } = deps;
         const {
-            payload: {
-                fileSet,
-                lastTouched,
-                selection,
-                sortOrder,
-                updateExistingSelection,
-            }
+            payload: { fileSet, lastTouched, selection, sortOrder, updateExistingSelection },
         } = deps.action as SelectFileAction;
-        const existingFileSelections = selectionSelectors.getFileSelection(
-            getState()
-        );
+        const existingFileSelections = selectionSelectors.getFileSelection(getState());
 
         if (updateExistingSelection) {
             if (existingFileSelections.isSelected(fileSet, selection)) {
@@ -50,7 +44,12 @@ const selectFile = createLogic({
                 next(setFileSelection(nextFileSelection));
                 return;
             } else {
-                const nextFileSelection = existingFileSelections.select({ fileSet, index: selection, sortOrder, indexToFocus: lastTouched });
+                const nextFileSelection = existingFileSelections.select({
+                    fileSet,
+                    index: selection,
+                    sortOrder,
+                    indexToFocus: lastTouched,
+                });
                 next(setFileSelection(nextFileSelection));
                 return;
             }
@@ -58,13 +57,20 @@ const selectFile = createLogic({
 
         // special case: fast path for deselecting a file if it is the only one selected
         // (no need to have held down keyboard modifier)
-        if (existingFileSelections.count() === 1 && existingFileSelections.isSelected(fileSet, selection)) {
+        if (
+            existingFileSelections.count() === 1 &&
+            existingFileSelections.isSelected(fileSet, selection)
+        ) {
             next(setFileSelection(new FileSelection()));
             return;
         }
 
-        const nextFileSelection = new FileSelection()
-            .select({ fileSet, index: selection, sortOrder, indexToFocus: lastTouched });
+        const nextFileSelection = new FileSelection().select({
+            fileSet,
+            index: selection,
+            sortOrder,
+            indexToFocus: lastTouched,
+        });
         next(setFileSelection(nextFileSelection));
     },
     type: SELECT_FILE,
@@ -253,4 +259,27 @@ const toggleFileFolderCollapse = createLogic({
     type: [TOGGLE_FILE_FOLDER_COLLAPSE],
 });
 
-export default [selectFile, modifyAnnotationHierarchy, modifyFileFilters, toggleFileFolderCollapse];
+/**
+ * Interceptor responsible for processing DECODE_FILE_EXPLORER_URL actions into various
+ * other actions responsible for rehydrating the FileExplorerURL into application state.
+ */
+const decodeFileExplorerURL = createLogic({
+    process(deps: ReduxLogicDeps, dispatch, done) {
+        const encodedURL = deps.action.payload;
+        const annotations = metadata.selectors.getAnnotations(deps.getState());
+        const { hierarchy, filters, openFolders } = FileExplorerURL.decode(encodedURL, annotations);
+        dispatch(setAnnotationHierarchy(hierarchy));
+        dispatch(setFileFilters(filters));
+        dispatch(setOpenFileFolders(openFolders));
+        done();
+    },
+    type: [DECODE_FILE_EXPLORER_URL],
+});
+
+export default [
+    selectFile,
+    modifyAnnotationHierarchy,
+    modifyFileFilters,
+    toggleFileFolderCollapse,
+    decodeFileExplorerURL,
+];
