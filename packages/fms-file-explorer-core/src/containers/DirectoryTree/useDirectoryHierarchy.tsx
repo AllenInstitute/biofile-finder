@@ -209,19 +209,13 @@ const useDirectoryHierarchy = (
                         // Filters are a combination of any user-selected filters and the filters
                         // at a particular path in the hierarchy.
                         //
-                        // It's OK to have two annotation values used as filters for the same annotation.
-                        // E.g., "workflow=Pipeline4.1&workflow=Pipeline4.2". This gives us an OR query. But, filter out
-                        // duplicates to avoid querying by "workflow=Pipeline 4.4&workflow=Pipeline 4.4".
-                        let userAppliedFilters = selectedFileFilters;
-                        if (!isRoot) {
-                            // When not at the root level, remove any user-applied filters for any annotation within the current path.
-                            // E.g., if under the path "AICS-12" -> "ZSD-1", and a user has applied the filters FileFilter("cell_line", "AICS-12")
-                            // and FileFilter("cell_line", "AICS-33"), we do not want to include the latter in the query for this FileList.
-                            const hierarchyAnnotationNames = new Set(hierarchy);
-                            userAppliedFilters = userAppliedFilters.filter(
-                                (f) => !hierarchyAnnotationNames.has(f.name)
-                            );
-                        }
+                        // Remove any user-applied filters for any annotation within the current path.
+                        // E.g., if under the path "AICS-12" -> "ZSD-1", and a user has applied the filters FileFilter("Channel Type", "Raw 488nm")
+                        // and FileFilter("Cell Line", "AICS-33"), we do not want to include the latter in the query for this FileList.
+                        const hierarchyAnnotationNames = new Set(hierarchy);
+                        const userAppliedFilters = selectedFileFilters.filter(
+                            (f) => !hierarchyAnnotationNames.has(f.name)
+                        );
                         const filters = uniqWith(
                             [...hierarchyFilters, ...userAppliedFilters],
                             (a, b) => a.equals(b)
