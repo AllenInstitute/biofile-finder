@@ -16,13 +16,7 @@ import Annotation from "../../../entity/Annotation";
 import AnnotationService from "../../../services/AnnotationService";
 import FileService, { FmsFile } from "../../../services/FileService";
 import FileFilter from "../../../entity/FileFilter";
-import {
-    initialState,
-    interaction,
-    reducer,
-    reduxLogics,
-    selection,
- } from "../../../state";
+import { initialState, interaction, reducer, reduxLogics, selection } from "../../../state";
 
 import DirectoryTree from "../";
 
@@ -57,13 +51,15 @@ describe("<DirectoryTree />", () => {
         },
         selection: {
             annotationHierarchy: annotations,
-            displayAnnotations: TOP_LEVEL_FILE_ANNOTATIONS.filter((a) => a.name === AnnotationName.FILE_NAME),
+            displayAnnotations: TOP_LEVEL_FILE_ANNOTATIONS.filter(
+                (a) => a.name === AnnotationName.FILE_NAME
+            ),
         },
     });
 
     const files: FmsFile[] = range(50).map((idx) => {
         const fileName = `file_${idx}.img`;
-        return ({
+        return {
             annotations: [],
             fileId: String(idx),
             fileName,
@@ -71,7 +67,7 @@ describe("<DirectoryTree />", () => {
             fileSize: 1000,
             uploaded: "Sun Aug 19 22:51:22 GMT 2018",
             uploadedBy: "Human",
-        });
+        };
     });
 
     const responseStubs: ResponseStub[] = [
@@ -96,15 +92,15 @@ describe("<DirectoryTree />", () => {
         {
             when: (config) => _get(config, "url", "").includes(FileService.BASE_FILE_COUNT_URL),
             respondWith: {
-                data: { data: [42] },
+                data: { data: [files.length] },
             },
         },
         {
             when: (config) => _get(config, "url", "").includes(FileService.BASE_FILES_URL),
             respondWith: {
                 data: { data: files },
-            }
-        }
+            },
+        },
     ];
     const mockHttpClient = createMockHttpClient(responseStubs);
     const annotationService = new AnnotationService({ baseUrl, httpClient: mockHttpClient });
@@ -255,7 +251,9 @@ describe("<DirectoryTree />", () => {
 
         // simulate a user filtering the list of top level hierarchy values
         const filterValue = expectedTopLevelHierarchyValues[0];
-        store.dispatch(selection.actions.addFileFilter(new FileFilter(topLevelAnnotation.name, filterValue)));
+        store.dispatch(
+            selection.actions.addFileFilter(new FileFilter(topLevelAnnotation.name, filterValue))
+        );
 
         // after going through the store and an update cycle or two, the tree should be filtered
         // down to just the one annotation value selected
