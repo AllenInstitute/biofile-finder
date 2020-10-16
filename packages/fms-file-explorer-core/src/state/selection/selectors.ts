@@ -2,6 +2,9 @@ import { createSelector } from "reselect";
 
 import { State } from "../";
 import Annotation from "../../entity/Annotation";
+import FileExplorerURL from "../../entity/FileExplorerURL";
+import FileFilter from "../../entity/FileFilter";
+import FileFolder from "../../entity/FileFolder";
 
 // BASIC SELECTORS
 export const getAnnotationHierarchy = (state: State) => state.selection.annotationHierarchy;
@@ -20,5 +23,12 @@ export const getOrderedDisplayAnnotations = createSelector(
     getAnnotationsToDisplay,
     (annotations: Annotation[]) => {
         return Annotation.sort(annotations);
+    }
+);
+
+export const getEncodedBreadcrumb = createSelector(
+    [getAnnotationHierarchy, getFileFilters, getOpenFileFolders],
+    (hierarchy: Annotation[], filters: FileFilter[], openFolders: FileFolder[]) => {
+        return FileExplorerURL.encode({ hierarchy, filters, openFolders });
     }
 );

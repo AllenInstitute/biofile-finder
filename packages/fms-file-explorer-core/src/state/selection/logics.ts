@@ -15,10 +15,12 @@ import {
     setFileSelection,
     TOGGLE_FILE_FOLDER_COLLAPSE,
     setOpenFileFolders,
+    DECODE_FILE_EXPLORER_URL,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps } from "../";
 import * as selectionSelectors from "./selectors";
 import Annotation from "../../entity/Annotation";
+import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -261,4 +263,27 @@ const toggleFileFolderCollapse = createLogic({
     type: [TOGGLE_FILE_FOLDER_COLLAPSE],
 });
 
-export default [selectFile, modifyAnnotationHierarchy, modifyFileFilters, toggleFileFolderCollapse];
+/**
+ * Interceptor responsible for processing DECODE_FILE_EXPLORER_URL actions into various
+ * other actions responsible for rehydrating the FileExplorerURL into application state.
+ */
+const decodeFileExplorerURL = createLogic({
+    process(deps: ReduxLogicDeps, dispatch, done) {
+        const encodedURL = deps.action.payload;
+        const annotations = metadata.selectors.getAnnotations(deps.getState());
+        const { hierarchy, filters, openFolders } = FileExplorerURL.decode(encodedURL, annotations);
+        dispatch(setAnnotationHierarchy(hierarchy));
+        dispatch(setFileFilters(filters));
+        dispatch(setOpenFileFolders(openFolders));
+        done();
+    },
+    type: [DECODE_FILE_EXPLORER_URL],
+});
+
+export default [
+    selectFile,
+    modifyAnnotationHierarchy,
+    modifyFileFilters,
+    toggleFileFolderCollapse,
+    decodeFileExplorerURL,
+];

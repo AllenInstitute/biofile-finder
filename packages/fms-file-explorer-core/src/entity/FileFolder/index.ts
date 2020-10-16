@@ -118,4 +118,8 @@ export default class FileFolder {
         //     "AICS-40.false" -> "false.AICS-40" & "false" are both created
         return newFileFolderPath.map((_, i) => new FileFolder(newFileFolderPath.slice(0, i + 1)));
     }
+
+    public toJSON() {
+        return this.fileFolderPath;
+    }
 }
