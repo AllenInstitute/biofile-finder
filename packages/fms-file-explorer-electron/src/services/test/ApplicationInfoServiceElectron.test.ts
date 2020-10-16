@@ -83,5 +83,32 @@ describe(`${RUN_IN_RENDERER} ApplicationInfoServiceElectron`, () => {
                 expect(updateAvailable).to.equal(spec.expectation);
             });
         });
+
+        describe("getApplicationVersion", () => {
+            const sandbox = createSandbox();
+            const expectedAppVersion = "7.X.155";
+
+            before(() => {
+                sandbox
+                    .stub(ipcRenderer, "invoke")
+                    .withArgs(ApplicationInfoServiceElectron.GET_APP_VERSION_IPC_CHANNEL)
+                    .resolves(expectedAppVersion);
+            });
+
+            after(() => {
+                sandbox.restore();
+            });
+
+            it("returns application version from ipcRenderer", async () => {
+                // Arrange
+                const service = new ApplicationInfoServiceElectron();
+
+                // Act
+                const version = await service.getApplicationVersion();
+
+                // Assert
+                expect(version).to.equal(expectedAppVersion);
+            });
+        });
     });
 });

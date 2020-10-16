@@ -1,6 +1,6 @@
 {
   "name": "fms-file-explorer-web",
-  "version": "2.0.0-alpha.0",
+  "version": "2.0.1",
   "description": "",
   "main": "src/index.tsx",
   "scripts": {
@@ -18,8 +18,8 @@
     "type": "git",
     "url": "https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/fms-file-explorer/browse"
   },
-  "author": "Gabe Medrash<gabeme@alleninstitute.org>",
-  "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
+  "author": "Allen Institute for Cell Science",
+  "license": "SEE LICENSE IN LICENSE.txt",
   "devDependencies": {
     "@babel/cli": "7.6.x",
     "@babel/core": "7.6.x",
@@ -70,7 +70,7 @@
     "webpack-dev-server": "3.8.x"
   },
   "dependencies": {
-    "@aics/fms-file-explorer-core": "2.0.0-alpha.0",
+    "@aics/fms-file-explorer-core": "2.0.1",
     "core-js": "3.3.x",
     "react": "16.9.x",
     "react-dom": "16.9.x",

@@ -6,6 +6,7 @@ import { DataSource } from "../../constants";
 import RestServiceResponse from "../../entity/RestServiceResponse";
 
 export interface ConnectionConfig {
+    applicationVersion?: string;
     baseUrl?: string | keyof typeof DataSource;
     httpClient?: AxiosInstance;
 }
@@ -96,10 +97,14 @@ export default class HttpServiceBase {
 
     public baseUrl: string | keyof typeof DataSource = DEFAULT_CONNECTION_CONFIG.baseUrl;
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
-
+    private applicationVersion = "NOT SET";
     private urlToResponseDataCache = new LRUCache<string, any>({ max: MAX_CACHE_SIZE });
 
     constructor(config: ConnectionConfig = {}) {
+        if (config.applicationVersion) {
+            this.setApplicationVersion(config.applicationVersion);
+        }
+
         if (config.baseUrl) {
             this.setBaseUrl(config.baseUrl);
         }
@@ -137,7 +142,7 @@ export default class HttpServiceBase {
     public async post<T>(url: string, body: string): Promise<RestServiceResponse<T>> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
         console.log(`Sanitized ${url} to ${encodedUrl}`);
-        const config = { headers: { "Content-Type" :"application/json" } };
+        const config = { headers: { "Content-Type": "application/json" } };
 
         // if this fails, bubble up exception
         const response = await retry.execute(() => this.httpClient.post(encodedUrl, body, config));
@@ -148,7 +153,11 @@ export default class HttpServiceBase {
         }
 
         return new RestServiceResponse(response.data);
+    }
 
+    public setApplicationVersion(applicationVersion: string) {
+        this.applicationVersion = applicationVersion;
+        this.httpClient.defaults.headers.common["X-Application-Version"] = this.applicationVersion;
     }
 
     public setBaseUrl(baseUrl: string | keyof typeof DataSource) {
@@ -167,5 +176,6 @@ export default class HttpServiceBase {
         }
 
         this.httpClient = client;
+        this.httpClient.defaults.headers.common["X-Application-Version"] = this.applicationVersion;
     }
 }

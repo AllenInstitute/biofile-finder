@@ -19,8 +19,11 @@ jobs:
         with:
           node-version: 12
 
+      - name: Use npm@7
+        run: npm install --global npm@next-7
+
       - name: Build/release Electron app
-        uses: samuelmeuli/action-electron-builder@master
+        uses: GabeMedrash/action-electron-builder@fms-file-explorer
         with:
           # GitHub token, automatically provided to the action
           # (No need to define this secret in the repo settings)

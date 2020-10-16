@@ -124,6 +124,25 @@ export function hideContextMenu(): HideContextMenuAction {
 }
 
 /**
+ * SET_APPLICATION_VERSION
+ *
+ * Set application version
+ */
+export const SET_APPLICATION_VERSION = makeConstant(STATE_BRANCH_NAME, "set-application-version");
+
+export interface SetApplicationVersion {
+    type: string;
+    payload: string;
+}
+
+export function setApplicationVersion(applicationVersion: string): SetApplicationVersion {
+    return {
+        type: SET_APPLICATION_VERSION,
+        payload: applicationVersion,
+    };
+}
+
+/**
  * SET CONNECTION CONFIGURATION FOR THE FILE EXPLORER SERVICE
  */
 export const SET_FILE_EXPLORER_SERVICE_BASE_URL = makeConstant(

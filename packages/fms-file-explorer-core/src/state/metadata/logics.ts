@@ -13,8 +13,13 @@ import AnnotationService from "../../services/AnnotationService";
 const requestAnnotations = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { getState, httpClient } = deps;
+        const applicationVersion = interaction.selectors.getApplicationVersion(getState());
         const baseUrl = interaction.selectors.getFileExplorerServiceBaseUrl(getState());
-        const annotationService = new AnnotationService({ baseUrl, httpClient });
+        const annotationService = new AnnotationService({
+            applicationVersion,
+            baseUrl,
+            httpClient,
+        });
 
         try {
             const annotations = await annotationService.fetchAnnotations();

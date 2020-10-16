@@ -1,6 +1,6 @@
 {
   "name": "@aics/fms-file-explorer-core",
-  "version": "2.0.0-alpha.0",
+  "version": "2.0.1",
   "description": "NPM library that exposes the core React/Redux FMS File Explorer application. Intended to be rendered into a container.",
   "main": "nodejs/index.js",
   "module": "web/index.js",
@@ -10,11 +10,11 @@
     "url": "https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/fms-file-explorer/browse"
   },
   "files": [
-    "assets",
     "web",
     "nodejs",
     "type-declarations",
     "README.md",
+    "LICENSE.txt",
     "package.json"
   ],
   "publishConfig": {
@@ -39,8 +39,8 @@
     "transpile:ts:web:watch": "npm run transpile:ts:web -- --watch --verbose",
     "typeCheck": "tsc --noEmit"
   },
-  "author": "Gabe Medrash<gabeme@alleninstitute.org>",
-  "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
+  "author": "Allen Institute for Cell Science",
+  "license": "SEE LICENSE IN LICENSE.txt",
   "devDependencies": {
     "@babel/cli": "7.6.x",
     "@babel/core": "7.6.x",

@@ -22,8 +22,11 @@ jobs:
         with:
           node-version: 12
 
+      - name: Use npm@7
+        run: npm install --global npm@next-7
+
       - name: Build/release Electron app
-        uses: GabeMedrash/action-electron-builder@feature/config-overrides
+        uses: GabeMedrash/action-electron-builder@fms-file-explorer
         with:
           config_overrides: >
             {

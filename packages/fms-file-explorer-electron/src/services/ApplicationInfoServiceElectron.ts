@@ -38,9 +38,7 @@ export default class ApplicationInfoServiceElectron implements ApplicationInfoSe
             latestReleaseVersion = latestReleaseVersion.substring(1);
         }
 
-        const currentAppVersion = await ipcRenderer.invoke(
-            ApplicationInfoServiceElectron.GET_APP_VERSION_IPC_CHANNEL
-        );
+        const currentAppVersion = await this.getApplicationVersion();
         const latestIsGreater = gt(latestReleaseVersion, currentAppVersion);
         console.log(
             `Latest release (${latestReleaseVersion})
@@ -48,5 +46,9 @@ export default class ApplicationInfoServiceElectron implements ApplicationInfoSe
             current app (${currentAppVersion})`
         );
         return latestIsGreater;
+    }
+
+    public getApplicationVersion() {
+        return ipcRenderer.invoke(ApplicationInfoServiceElectron.GET_APP_VERSION_IPC_CHANNEL);
     }
 }

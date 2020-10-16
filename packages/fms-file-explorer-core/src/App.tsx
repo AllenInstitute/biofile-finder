@@ -85,6 +85,13 @@ export default function App(props: AppProps) {
         }
 
         checkForUpdates();
+
+        async function setApplicationVersion() {
+            const applicationVersion = await platformDependentServices.applicationInfoService.getApplicationVersion();
+            dispatch(interaction.actions.setApplicationVersion(applicationVersion));
+        }
+
+        setApplicationVersion();
     }, [dispatch, props.platformDependentServices]);
 
     // Set connection configuration for the file-explorer-service

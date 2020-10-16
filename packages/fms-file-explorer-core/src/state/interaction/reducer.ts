@@ -5,6 +5,7 @@ import {
     HIDE_CONTEXT_MENU,
     PlatformDependentServices,
     REMOVE_STATUS,
+    SET_APPLICATION_VERSION,
     SET_FILE_EXPLORER_SERVICE_BASE_URL,
     SET_PLATFORM_DEPENDENT_SERVICES,
     SET_STATUS,
@@ -21,6 +22,7 @@ import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
 import FileFilter from "../../entity/FileFilter";
 
 export interface InteractionStateBranch {
+    applicationVersion?: string;
     contextMenuIsVisible: boolean;
     contextMenuItems: ContextMenuItem[];
     contextMenuPositionReference: PositionReference;
@@ -78,6 +80,10 @@ export default makeReducer<InteractionStateBranch>(
                 ...filter(state.status, (status: StatusUpdate) => status.id !== action.payload.id),
                 action.payload,
             ],
+        }),
+        [SET_APPLICATION_VERSION]: (state, action) => ({
+            ...state,
+            applicationVersion: action.payload,
         }),
         [SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state, action) => ({
             ...state,
