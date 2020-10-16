@@ -7,10 +7,10 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { DataSource } from "./constants";
 import AnnotationSidebar from "./containers/AnnotationSidebar";
-import Breadcrumbs from "./containers/Breadcrumbs";
 import ContextMenu from "./containers/ContextMenu";
 import DirectoryTree from "./containers/DirectoryTree";
 import FileDetails from "./containers/FileDetails";
+import FileExplorerURLBar from "./containers/FileExplorerURLBar";
 import HeaderRibbon from "./containers/HeaderRibbon";
 import ManifestDownloadDialog from "./containers/ManifestDownloadDialog";
 import StatusMessage from "./containers/StatusMessage";
@@ -106,7 +106,7 @@ export default function App(props: AppProps) {
             <HeaderRibbon className={classNames(styles.headerRibbon, styles.placeholder)} />
             <div className={styles.everythingExceptHeaderRibbon}>
                 <div className={styles.core}>
-                    <Breadcrumbs className={classNames(styles.breadcrumbs, styles.placeholder)} />
+                    <FileExplorerURLBar className={classNames(styles.urlBar)} />
                     <div className={styles.annotationHierarchyAndFileList}>
                         <AnnotationSidebar className={styles.annotationHierarchy} />
                         <DirectoryTree className={styles.fileList} />

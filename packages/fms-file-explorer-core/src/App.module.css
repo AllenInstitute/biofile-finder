@@ -11,7 +11,7 @@
     --blue: steelblue;
     --grey: #c8c8c8;
     --purple: #827aa3;
-    --breadcrumb-height: 40px;
+    --url-bar-height: 40px;
     --file-details-width: 20%;
     --header-ribbon-height: 40px;
     --margin: 12px;
@@ -68,16 +68,15 @@
     width: 100%;
 }
 
-.breadcrumbs {
+.url-bar {
     width: 100%;
-    height: var(--breadcrumb-height);
-    margin-bottom: var(--margin);
+    height: var(--url-bar-height);
 }
 
 .annotation-hierarchy-and-file-list {
     display: flex;
     width: 100%;
-    height: calc(100% - var(--breadcrumb-height) - var(--margin));
+    height: calc(100% - var(--url-bar-height) - var(--margin));
 }
 
 .placeholder + .annotation-hierarchy-and-file-list {
