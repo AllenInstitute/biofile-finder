@@ -15,10 +15,6 @@ export default class FileFilter {
         return candidate instanceof FileFilter;
     }
 
-    public static fromJSON(fileFilterJson: FileFilterJson) {
-        return new FileFilter(fileFilterJson.name, fileFilterJson.value);
-    }
-
     constructor(annotationName: string, annotationValue: any) {
         this.annotationName = annotationName;
         this.annotationValue = annotationValue;
