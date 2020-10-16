@@ -26,7 +26,7 @@ export const getOrderedDisplayAnnotations = createSelector(
     }
 );
 
-export const getEncodedBreadcrumb = createSelector(
+export const getEncodedFileExplorerUrl = createSelector(
     [getAnnotationHierarchy, getFileFilters, getOpenFileFolders],
     (hierarchy: Annotation[], filters: FileFilter[], openFolders: FileFolder[]) => {
         return FileExplorerURL.encode({ hierarchy, filters, openFolders });
