@@ -137,7 +137,7 @@ describe("<DirectoryTree />", () => {
         {
             when: (config) => _get(config, "url", "").includes(FileService.BASE_FILE_COUNT_URL),
             respondWith: {
-                data: { data: [15] },
+                data: { data: [totalFilesCount] },
             },
         },
         {
