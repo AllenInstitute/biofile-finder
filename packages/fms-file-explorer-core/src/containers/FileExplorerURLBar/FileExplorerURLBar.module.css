@@ -1,7 +1,7 @@
 .container {
     --link-width: 34px;
 
-    border: 1px solid lightgray;
+    border: 1px solid #ebebeb;
     height: 100%;
     width: 100%;
     margin-bottom: var(--margin);
@@ -11,16 +11,18 @@
     align-items: center;
 }
 
-.container-with-error {
-    margin-bottom: 0;
-}
-
-.url {
+.url-form {
     padding-left: 4px;
     width: calc(100% - var(--link-width));
 }
 
-.link {
-    margin: 0 4px;
+.error-icon {
+    fill: maroon;
+    margin-left: 4px;
+}
+
+.copy-button {
+    color: #827aa3;
+    margin-right: 4px;
     width: var(--link-width);
 }
