@@ -241,6 +241,9 @@ describe("<DirectoryTree />", () => {
         // click on the tree item
         fireEvent.click(topLevelValue);
 
+        // it's children should appear
+        await findByText(secondLevelHierarchyValues[2]);
+
         // click the tree item again and its children should disappear
         fireEvent.click(topLevelValue);
 
