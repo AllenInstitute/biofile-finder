@@ -7,14 +7,22 @@ import {
 import { expect } from "chai";
 import { get as _get, range, tail } from "lodash";
 import * as React from "react";
-import { fireEvent, render, wait, findByTestId } from "@testing-library/react";
+import {
+    fireEvent,
+    render,
+    wait,
+    findByTestId,
+    getByText as getByTextWithin,
+    findAllByText as findAllByTextWithin,
+    findByRole as findByRoleWithin,
+} from "@testing-library/react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
 import { TOP_LEVEL_FILE_ANNOTATIONS, AnnotationName } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationService from "../../../services/AnnotationService";
-import FileService, { FmsFile } from "../../../services/FileService";
+import FileService, { FmsFileAnnotation } from "../../../services/FileService";
 import FileFilter from "../../../entity/FileFilter";
 import { initialState, interaction, reducer, reduxLogics, selection } from "../../../state";
 
@@ -26,41 +34,41 @@ describe("<DirectoryTree />", () => {
     const sandbox = createSandbox();
 
     // SO MUCH SETUP
-    const expectedTopLevelHierarchyValues = ["first", "second", "third", "fourth"];
-    const expectedSecondLevelHierarchyValues = ["a", "b", "c"];
+    const topLevelHierarchyValues = ["first", "second", "third", "fourth"];
+    const secondLevelHierarchyValues = ["a", "b", "c"];
 
-    const annotations = [
-        new Annotation({
-            annotationDisplayName: "Foo",
-            annotationName: "foo",
-            description: "",
-            type: "Text",
-        }),
-        new Annotation({
-            annotationDisplayName: "Bar",
-            annotationName: "bar",
-            description: "",
-            type: "Text",
-        }),
-    ];
+    const fooAnnotation = new Annotation({
+        annotationDisplayName: "Foo",
+        annotationName: "foo",
+        description: "",
+        type: "Text",
+    });
+    const barAnnotation = new Annotation({
+        annotationDisplayName: "Bar",
+        annotationName: "bar",
+        description: "",
+        type: "Text",
+    });
+    const annotations = [fooAnnotation, barAnnotation];
 
-    const baseUrl = "test";
+    const baseUrl = "http://test-aics.corp.alleninstitute.org";
+    const baseDisplayAnnotations = TOP_LEVEL_FILE_ANNOTATIONS.filter(
+        (a) => a.name === AnnotationName.FILE_NAME
+    );
     const state = mergeState(initialState, {
         interaction: {
             fileExplorerServiceBaseUrl: baseUrl,
         },
         selection: {
             annotationHierarchy: annotations,
-            displayAnnotations: TOP_LEVEL_FILE_ANNOTATIONS.filter(
-                (a) => a.name === AnnotationName.FILE_NAME
-            ),
+            displayAnnotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
         },
     });
 
-    const files: FmsFile[] = range(50).map((idx) => {
+    const makeFmsFile = (idx: number, annotations: FmsFileAnnotation[] = []) => {
         const fileName = `file_${idx}.img`;
         return {
-            annotations: [],
+            annotations,
             fileId: String(idx),
             fileName,
             filePath: `/isilon/${fileName}`,
@@ -68,6 +76,40 @@ describe("<DirectoryTree />", () => {
             uploaded: "Sun Aug 19 22:51:22 GMT 2018",
             uploadedBy: "Human",
         };
+    };
+
+    const totalFilesCount = 15;
+
+    const fooFirstBarBFiles = range(totalFilesCount).map((idx) => {
+        const foo = {
+            name: fooAnnotation.name,
+            values: [topLevelHierarchyValues[0]],
+        };
+        const bar = {
+            name: barAnnotation.name,
+            values: [secondLevelHierarchyValues[1]],
+        };
+        return makeFmsFile(idx, [foo, bar]);
+    });
+
+    const fooFirstBarCFiles = range(totalFilesCount).map((idx) => {
+        const foo = {
+            name: fooAnnotation.name,
+            values: [topLevelHierarchyValues[0]],
+        };
+        const bar = {
+            name: barAnnotation.name,
+            values: [secondLevelHierarchyValues[2]],
+        };
+        return makeFmsFile(idx, [foo, bar]);
+    });
+
+    const fooFirstFiles = range(totalFilesCount).map((idx) => {
+        const foo = {
+            name: fooAnnotation.name,
+            values: [topLevelHierarchyValues[0]],
+        };
+        return makeFmsFile(idx, [foo]);
     });
 
     const responseStubs: ResponseStub[] = [
@@ -77,7 +119,7 @@ describe("<DirectoryTree />", () => {
                     AnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL
                 ),
             respondWith: {
-                data: { data: expectedTopLevelHierarchyValues },
+                data: { data: topLevelHierarchyValues },
             },
         },
         {
@@ -86,19 +128,57 @@ describe("<DirectoryTree />", () => {
                     AnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL
                 ),
             respondWith: {
-                data: { data: expectedSecondLevelHierarchyValues },
+                data: { data: secondLevelHierarchyValues },
             },
         },
         {
             when: (config) => _get(config, "url", "").includes(FileService.BASE_FILE_COUNT_URL),
             respondWith: {
-                data: { data: [files.length] },
+                data: { data: [15] },
             },
         },
         {
-            when: (config) => _get(config, "url", "").includes(FileService.BASE_FILES_URL),
+            when: (config) => {
+                const url = new URL(_get(config, "url", ""));
+                return (
+                    url.pathname.includes(FileService.BASE_FILES_URL) &&
+                    url.searchParams.get(fooAnnotation.name) === "first" &&
+                    url.searchParams.get(barAnnotation.name) === "b"
+                );
+            },
             respondWith: {
-                data: { data: files },
+                data: {
+                    data: fooFirstBarBFiles,
+                },
+            },
+        },
+        {
+            when: (config) => {
+                const url = new URL(_get(config, "url", ""));
+                return (
+                    url.pathname.includes(FileService.BASE_FILES_URL) &&
+                    url.searchParams.get(fooAnnotation.name) === "first" &&
+                    url.searchParams.get(barAnnotation.name) === "c"
+                );
+            },
+            respondWith: {
+                data: {
+                    data: fooFirstBarCFiles,
+                },
+            },
+        },
+        {
+            when: (config) => {
+                const url = new URL(_get(config, "url", ""));
+                return (
+                    url.pathname.includes(FileService.BASE_FILES_URL) &&
+                    url.searchParams.get(fooAnnotation.name) === "first"
+                );
+            },
+            respondWith: {
+                data: {
+                    data: fooFirstFiles,
+                },
             },
         },
     ];
@@ -133,7 +213,7 @@ describe("<DirectoryTree />", () => {
 
         // expect the top level annotation values to be in the dom
         expect(directoryTreeNodes.length).to.equal(4);
-        expectedTopLevelHierarchyValues.forEach((value) => {
+        topLevelHierarchyValues.forEach((value) => {
             expect(getByText(value)).to.exist.and.to.be.instanceOf(HTMLElement);
         });
     });
@@ -153,19 +233,16 @@ describe("<DirectoryTree />", () => {
         );
 
         // wait for the requests for annotation values at the top level of the hierarchy
-        const topLevelValue = await findByText(expectedTopLevelHierarchyValues[0]);
+        const topLevelValue = await findByText(topLevelHierarchyValues[0]);
 
         // click on the tree item
         fireEvent.click(topLevelValue);
-
-        // it's children should appear
-        await findByText(expectedSecondLevelHierarchyValues[2]);
 
         // click the tree item again and its children should disappear
         fireEvent.click(topLevelValue);
 
         // getByText will throw if it can't find the element
-        expect(() => getByText(expectedSecondLevelHierarchyValues[2])).to.throw();
+        expect(() => getByText(secondLevelHierarchyValues[2])).to.throw();
     });
 
     it("renders a badge of how many selections are found underneath a folder", async () => {
@@ -183,16 +260,16 @@ describe("<DirectoryTree />", () => {
         );
 
         // wait for the requests for annotation values at the top level of the hierarchy
-        const topLevelFolder = await findByText(expectedTopLevelHierarchyValues[0]);
+        const topLevelFolder = await findByText(topLevelHierarchyValues[0]);
 
         // click on the top level folder
         fireEvent.click(topLevelFolder);
 
         // select 5 files underneath one of the leaf folders
-        const secondLevelFolder1 = await findByText(expectedSecondLevelHierarchyValues[1]);
+        const secondLevelFolder1 = await findByText(secondLevelHierarchyValues[1]);
         fireEvent.click(secondLevelFolder1);
-        fireEvent.click(await findByText("file_1.img"));
-        fireEvent.click(await findByText("file_5.img"), { shiftKey: true });
+        fireEvent.click(await findByText(fooFirstBarBFiles[0].fileName));
+        fireEvent.click(await findByText(fooFirstBarBFiles[4].fileName), { shiftKey: true });
 
         // selection count badge should be found
         await findByText("5 selections");
@@ -201,10 +278,10 @@ describe("<DirectoryTree />", () => {
         fireEvent.click(secondLevelFolder1);
 
         // select 3 files underneath another of the leaf folders
-        const secondLevelFolder2 = await findByText(expectedSecondLevelHierarchyValues[2]);
+        const secondLevelFolder2 = await findByText(secondLevelHierarchyValues[2]);
         fireEvent.click(secondLevelFolder2);
-        fireEvent.click(await findByText("file_4.img"), { ctrlKey: true });
-        fireEvent.click(await findByText("file_6.img"), { shiftKey: true });
+        fireEvent.click(await findByText(fooFirstBarCFiles[0].fileName), { ctrlKey: true });
+        fireEvent.click(await findByText(fooFirstBarCFiles[2].fileName), { shiftKey: true });
 
         await findByText("3 selections");
 
@@ -233,37 +310,86 @@ describe("<DirectoryTree />", () => {
             logics: reduxLogics,
         });
 
-        const { getByText, findAllByRole } = render(
+        const { findAllByRole, getByText } = render(
             <Provider store={store}>
                 <DirectoryTree />
             </Provider>
         );
 
-        const topLevelAnnotation = annotations[0];
-
         // wait for the requests for data
-        expect((await findAllByRole("treeitem")).length).to.equal(
-            expectedTopLevelHierarchyValues.length
-        );
-        expectedTopLevelHierarchyValues.forEach((value) => {
+        expect((await findAllByRole("treeitem")).length).to.equal(topLevelHierarchyValues.length);
+        topLevelHierarchyValues.forEach((value) => {
             expect(getByText(String(value))).to.exist;
         });
 
         // simulate a user filtering the list of top level hierarchy values
-        const filterValue = expectedTopLevelHierarchyValues[0];
+        const topLevelFilter = topLevelHierarchyValues[0];
         store.dispatch(
-            selection.actions.addFileFilter(new FileFilter(topLevelAnnotation.name, filterValue))
+            selection.actions.addFileFilter(new FileFilter(fooAnnotation.name, topLevelFilter))
         );
 
         // after going through the store and an update cycle or two, the tree should be filtered
         // down to just the one annotation value selected
         await wait(async () => expect((await findAllByRole("treeitem")).length).to.equal(1));
-        expect(getByText(String(filterValue))).to.exist;
 
-        // the remainder should be gone from the DOM
-        tail(expectedTopLevelHierarchyValues).forEach((value) => {
-            expect(() => getByText(String(value))).to.throw();
+        // the remainder top level items should should be gone from the DOM
+        tail(topLevelHierarchyValues).forEach((value) => {
+            expect(() => getByText(value)).to.throw();
         });
+    });
+
+    it("only includes one filter value per annotation for an annotation within the hierarchy", async () => {
+        const oneAnnotationDeepState = mergeState(initialState, {
+            interaction: {
+                fileExplorerServiceBaseUrl: baseUrl,
+            },
+            selection: {
+                annotationHierarchy: [fooAnnotation],
+                displayAnnotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
+            },
+        });
+
+        const { store } = configureMockStore({
+            state: oneAnnotationDeepState,
+            responseStubs,
+            reducer,
+            logics: reduxLogics,
+        });
+
+        const { findAllByRole, findByText, getByText } = render(
+            <Provider store={store}>
+                <DirectoryTree />
+            </Provider>
+        );
+
+        // wait for the requests for data
+        await findAllByRole("treeitem");
+
+        // simulate a user filtering the list of top level hierarchy values
+        const filter1 = topLevelHierarchyValues[0];
+        const filter2 = topLevelHierarchyValues[1];
+        store.dispatch(
+            selection.actions.addFileFilter(new FileFilter(fooAnnotation.name, filter1))
+        );
+        store.dispatch(
+            selection.actions.addFileFilter(new FileFilter(fooAnnotation.name, filter2))
+        );
+
+        // after going through the store and an update cycle or two, the tree should be filtered
+        // down to just the two annotation values selected
+        await wait(async () => expect((await findAllByRole("treeitem")).length).to.equal(2));
+
+        // the remainder top level items should should be gone from the DOM
+        topLevelHierarchyValues.slice(2).forEach((value) => {
+            expect(() => getByText(value)).to.throw();
+        });
+
+        // all of the files rendered underneath the first top-level folder should only have one value for their "foo" annotation
+        fireEvent.click(await findByText(filter1));
+        const nodes = await findAllByRole("treeitem");
+        const fileListContainer = await findByRoleWithin(nodes[0], "group");
+        await findAllByTextWithin(fileListContainer, filter1); // each foo annotation should be equal to `filter1`...
+        expect(() => getByTextWithin(fileListContainer, `${filter1}, ${filter2}`)).to.throw(); // ..and NOT equal to "`filter1`, `filter2`"
     });
 
     it("gains then loses focus when a context menu is summoned elsewhere", async () => {
