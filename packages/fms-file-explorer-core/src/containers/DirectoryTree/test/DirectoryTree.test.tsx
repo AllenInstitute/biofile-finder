@@ -80,6 +80,7 @@ describe("<DirectoryTree />", () => {
 
     const totalFilesCount = 15;
 
+    // A set of files maps to the following query string: foo=first&bar=b
     const fooFirstBarBFiles = range(totalFilesCount).map((idx) => {
         const foo = {
             name: fooAnnotation.name,
@@ -92,6 +93,7 @@ describe("<DirectoryTree />", () => {
         return makeFmsFile(idx, [foo, bar]);
     });
 
+    // A set of files maps to the following query string: foo=first&bar=c
     const fooFirstBarCFiles = range(totalFilesCount).map((idx) => {
         const foo = {
             name: fooAnnotation.name,
@@ -104,6 +106,7 @@ describe("<DirectoryTree />", () => {
         return makeFmsFile(idx, [foo, bar]);
     });
 
+    // A set of files maps to the following query string: foo=first
     const fooFirstFiles = range(totalFilesCount).map((idx) => {
         const foo = {
             name: fooAnnotation.name,
