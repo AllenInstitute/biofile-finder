@@ -337,6 +337,7 @@ describe("<DirectoryTree />", () => {
         // after going through the store and an update cycle or two, the tree should be filtered
         // down to just the one annotation value selected
         await wait(async () => expect((await findAllByRole("treeitem")).length).to.equal(1));
+        expect(getByText(topLevelFilter)).to.exist;
 
         // the remainder top level items should should be gone from the DOM
         tail(topLevelHierarchyValues).forEach((value) => {
