@@ -53,7 +53,7 @@ export default class FileExplorerURL {
             filters,
             openFolders,
         };
-        return FileExplorerURL.PROTOCOL + JSON.stringify(dataToEncode);
+        return `${FileExplorerURL.PROTOCOL}${JSON.stringify(dataToEncode)}`;
     }
 
     /**
