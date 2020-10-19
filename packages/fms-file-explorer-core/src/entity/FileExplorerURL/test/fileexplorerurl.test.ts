@@ -196,6 +196,34 @@ describe("FileExplorerURL", () => {
             // Act / Assert
             expect(() => FileExplorerURL.decode(encodedUrl, annotations)).to.throw();
         });
+
+        it("Throws error when folder depth is greater than hierarchy depth", () => {
+            // Arrange
+            const components: FileExplorerURLComponents = {
+                hierarchy: [
+                    new Annotation({
+                        annotationName: "Cell Line",
+                        annotationDisplayName: "Cell Line",
+                        description: "Cell Line Description",
+                        type: "Text",
+                    }),
+                ],
+                filters: [],
+                openFolders: [new FileFolder(["AICS-0"]), new FileFolder(["AICS-0", false])],
+            };
+            const annotations = [
+                new Annotation({
+                    annotationName: "Cell Line",
+                    annotationDisplayName: "Cell Line",
+                    description: "Cell Line description",
+                    type: "Text",
+                }),
+            ];
+            const encodedUrl = FileExplorerURL.encode(components);
+
+            // Act / Assert
+            expect(() => FileExplorerURL.decode(encodedUrl, annotations)).to.throw();
+        });
     });
 
     describe("validateEncodedFileExplorerURL", () => {
