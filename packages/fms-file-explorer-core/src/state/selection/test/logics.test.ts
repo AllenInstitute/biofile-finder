@@ -523,7 +523,7 @@ describe("Selection logics", () => {
         });
     });
 
-    describe("setAnnotationHierarchyLogics", () => {
+    describe("setAvailableAnnotationsLogics", () => {
         let annotations: Annotation[];
 
         beforeEach(() => {
