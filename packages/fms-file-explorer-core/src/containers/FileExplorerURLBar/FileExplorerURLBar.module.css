@@ -1,6 +1,4 @@
 .container {
-    --link-width: 34px;
-
     border: 1px solid #ebebeb;
 
     /* Flex parent */
@@ -10,18 +8,17 @@
 
 .url-form {
     padding-left: 4px;
-    width: calc(100% - var(--link-width));
+    width: 100%;
 }
 
 .error-icon {
     fill: maroon;
-    margin-left: 4px;
+    margin-right: 9px;
 }
 
 .copy-button {
     color: #827aa3;
     margin-right: 4px;
-    width: var(--link-width);
 }
 
 .copy-button:hover {
