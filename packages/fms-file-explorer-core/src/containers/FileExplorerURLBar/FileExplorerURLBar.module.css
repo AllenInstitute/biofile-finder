@@ -26,3 +26,7 @@
     margin-right: 4px;
     width: var(--link-width);
 }
+
+.copy-button:hover {
+    color: #827aa3;
+}

@@ -4,10 +4,11 @@ import { IconButton, TextField, TooltipHost } from "office-ui-fabric-react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import getContextMenuItems from "../ContextMenu/items";
 import { ERROR_ICON_PATH_DATA } from "../DirectoryTree/DirectoryTreeNodeHeader";
 import SvgIcon from "../../components/SvgIcon";
 import FileExplorerURL from "../../entity/FileExplorerURL";
-import { metadata, selection } from "../../state";
+import { interaction, metadata, selection } from "../../state";
 
 const styles = require("./FileExplorerURLBar.module.css");
 
@@ -44,6 +45,26 @@ export default function FileExplorerURLBar(props: FileExplorerURLBarProps) {
         navigator.clipboard.writeText(url || existingEncodedURL);
     };
 
+    const onContextMenu = (evt: React.MouseEvent) => {
+        const availableItems = getContextMenuItems(dispatch);
+        const items = [
+            {
+                ...availableItems.COPY,
+                title: "Copy FMS File Explorer URL to clipboard",
+                onClick: onCopy,
+            },
+            {
+                ...availableItems.PASTE,
+                title: "Paste FMS File Explorer URL from clipboard",
+                onClick: async () => {
+                    const clipboardText = await navigator.clipboard.readText();
+                    setURL(clipboardText);
+                },
+            },
+        ];
+        dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
+    };
+
     const onSubmit = (evt: React.FormEvent) => {
         evt.preventDefault();
         if (url !== existingEncodedURL && !error) {
@@ -61,6 +82,7 @@ export default function FileExplorerURLBar(props: FileExplorerURLBarProps) {
                     onChange={(_, value) => setURL(value || "")}
                     value={url}
                     spellCheck={false}
+                    onContextMenu={onContextMenu}
                 />
             </form>
             {!error ? (
