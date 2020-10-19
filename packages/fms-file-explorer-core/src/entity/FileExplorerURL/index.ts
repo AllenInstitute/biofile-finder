@@ -71,8 +71,9 @@ export default class FileExplorerURL {
         const parsedURL: FileExplorerURLJson = JSON.parse(
             trimmedEncodedURL.substring(FileExplorerURL.PROTOCOL.length)
         );
-        const annotationNameSet = new Set(annotations.map((annotation) => annotation.name));
 
+        const hierarchyDepth = parsedURL.groupBy.length;
+        const annotationNameSet = new Set(annotations.map((annotation) => annotation.name));
         return {
             hierarchy: parsedURL.groupBy.map((annotationName) => {
                 if (!annotationNameSet.has(annotationName)) {
@@ -91,7 +92,14 @@ export default class FileExplorerURL {
                 }
                 return new FileFilter(filter.name, filter.value);
             }),
-            openFolders: parsedURL.openFolders.map((folder) => new FileFolder(folder)),
+            openFolders: parsedURL.openFolders.map((folder) => {
+                if (folder.length > hierarchyDepth) {
+                    throw new Error(
+                        "Unable to decode FileExplorerURL, opened folder depth is greater than hierarchy depth"
+                    );
+                }
+                return new FileFolder(folder);
+            }),
         };
     }
 }

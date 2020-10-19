@@ -768,9 +768,7 @@ describe("Selection logics", () => {
             });
             const hierarchy = annotations.slice(0, 2);
             const filters = [new FileFilter(annotations[3].name, "20x")];
-            const openFolders = [["a"], ["a", false], ["a", false, 1]].map(
-                (folder) => new FileFolder(folder)
-            );
+            const openFolders = [["a"], ["a", false]].map((folder) => new FileFolder(folder));
             const encodedURL = FileExplorerURL.encode({ hierarchy, filters, openFolders });
 
             // Act
