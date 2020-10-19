@@ -173,11 +173,16 @@ const modifyAnnotationHierarchy = createLogic({
     type: [REORDER_ANNOTATION_HIERARCHY, REMOVE_FROM_ANNOTATION_HIERARCHY],
 });
 
-const setAnnotationHierarchyLogic = createLogic({
+const setAvailableAnnotationsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { action, getState } = deps;
+        const { action, httpClient, getState } = deps;
         const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
         const annotationService = interaction.selectors.getAnnotationService(getState());
+        const applicationVersion = interaction.selectors.getApplicationVersion(getState());
+        if (applicationVersion) {
+            annotationService.setApplicationVersion(applicationVersion);
+        }
+        annotationService.setHttpClient(httpClient);
 
         try {
             dispatch(
@@ -293,5 +298,5 @@ export default [
     modifyFileFilters,
     toggleFileFolderCollapse,
     decodeFileExplorerURL,
-    setAnnotationHierarchyLogic,
+    setAvailableAnnotationsLogic,
 ];

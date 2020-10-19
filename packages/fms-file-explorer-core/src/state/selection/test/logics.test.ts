@@ -14,6 +14,7 @@ import {
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
     decodeFileExplorerURL,
+    setAnnotationHierarchy,
 } from "../actions";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
@@ -415,100 +416,6 @@ describe("Selection logics", () => {
             ).to.equal(true);
         });
 
-        it("sets available annotations based on hierarchy", async () => {
-            // setup
-            const state = {
-                interaction: {
-                    fileExplorerServiceBaseUrl: "test",
-                },
-                metadata: {
-                    annotations: [...annotations],
-                },
-                selection: {
-                    annotationHierarchy: [
-                        annotations[0],
-                        annotations[1],
-                        annotations[2],
-                        annotations[3],
-                    ],
-                    openFileFolders: [],
-                },
-            };
-
-            const responseStub = {
-                when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=cell_line&hierarchy=date_created&hierarchy=matrigel_hardened",
-                respondWith: {
-                    data: {
-                        data: ["days_since_creation"],
-                    },
-                },
-            };
-            const { store, logicMiddleware, actions } = configureMockStore({
-                logics: selectionLogics,
-                responseStubs: responseStub,
-                state,
-            });
-
-            // act
-            store.dispatch(removeFromAnnotationHierarchy(annotations[2].name));
-            await logicMiddleware.whenComplete();
-
-            // assert
-            expect(
-                actions.includes({
-                    type: SET_AVAILABLE_ANNOTATIONS,
-                    payload: ["days_since_creation"],
-                })
-            ).to.equal(true);
-        });
-
-        it("sets all annotations as available on failure to determine actual available annotations", async () => {
-            // setup
-            const state = {
-                interaction: {
-                    fileExplorerServiceBaseUrl: "test",
-                },
-                metadata: {
-                    annotations: [...annotations],
-                },
-                selection: {
-                    annotationHierarchy: [
-                        annotations[0],
-                        annotations[1],
-                        annotations[2],
-                        annotations[3],
-                    ],
-                    openFileFolders: [],
-                },
-            };
-
-            const responseStub = {
-                when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=cell_line&hierarchy=date_created&hierarchy=matrigel_hardened",
-                respondWith: {
-                    status: 500,
-                },
-            };
-            const { store, logicMiddleware, actions } = configureMockStore({
-                logics: selectionLogics,
-                responseStubs: responseStub,
-                state,
-            });
-
-            // act
-            store.dispatch(removeFromAnnotationHierarchy(annotations[2].name));
-            await logicMiddleware.whenComplete();
-
-            // assert
-            expect(
-                actions.includes({
-                    type: SET_AVAILABLE_ANNOTATIONS,
-                    payload: annotations.map((a) => a.name),
-                })
-            ).to.equal(true);
-        });
-
         it("determines which paths can still be opened after hierarchy is reordered", async () => {
             // setup
             const openFileFolders = [
@@ -613,6 +520,95 @@ describe("Selection logics", () => {
                     payload: [new FileFolder(["false"])],
                 })
             ).to.equal(true);
+        });
+    });
+
+    describe("setAvailableAnnotationsLogics", () => {
+        let annotations: Annotation[];
+
+        beforeEach(() => {
+            annotations = annotationsJson.map((annotation) => new Annotation(annotation));
+        });
+
+        it("sets available annotations", async () => {
+            // Arrange
+            const state = {
+                interaction: {
+                    fileExplorerServiceBaseUrl: "test",
+                },
+                metadata: {
+                    annotations: [...annotations],
+                },
+                selection: {
+                    annotationHierarchy: annotations.slice(0, 3),
+                },
+            };
+            const responseStub = {
+                when:
+                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=cell_line&hierarchy=date_created",
+                respondWith: {
+                    status: 200,
+                    data: {
+                        data: ["Cas9"],
+                    },
+                },
+            };
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: selectionLogics,
+                responseStubs: responseStub,
+            });
+
+            // Act
+            store.dispatch(setAnnotationHierarchy(annotations.slice(0, 2)));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_AVAILABLE_ANNOTATIONS,
+                    payload: ["Cas9"],
+                })
+            );
+        });
+
+        it("sets all annotations as available when actual cannot be found", async () => {
+            // Arrange
+            const state = {
+                interaction: {
+                    fileExplorerServiceBaseUrl: "test",
+                },
+                metadata: {
+                    annotations: [...annotations],
+                },
+                selection: {
+                    annotationHierarchy: annotations.slice(0, 3),
+                },
+            };
+            const responseStub = {
+                when:
+                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=date_created&hierarchy=cell_line",
+                respondWith: {
+                    status: 500,
+                },
+            };
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: selectionLogics,
+                responseStubs: responseStub,
+            });
+
+            // Act
+            store.dispatch(setAnnotationHierarchy(annotations.slice(0, 2)));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_AVAILABLE_ANNOTATIONS,
+                    payload: annotations.map((a) => a.name),
+                })
+            );
         });
     });
 
