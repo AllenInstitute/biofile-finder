@@ -10,6 +10,10 @@ import { interaction } from "../../state";
  */
 export default function getContextMenuItems(dispatch: Dispatch) {
     return {
+        COPY: {
+            key: "copy",
+            text: "Copy",
+        },
         DOWNLOAD: {
             key: "download",
             text: "Download",
@@ -74,8 +78,12 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                             dispatch(interaction.actions.openFilesInImageJ());
                         },
                     },
-                ]
+                ],
             },
-        }
+        },
+        PASTE: {
+            key: "paste",
+            text: "Paste",
+        },
     };
 }
