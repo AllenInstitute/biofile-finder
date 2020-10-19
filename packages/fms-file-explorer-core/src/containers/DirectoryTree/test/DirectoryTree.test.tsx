@@ -175,7 +175,8 @@ describe("<DirectoryTree />", () => {
                 const url = new URL(_get(config, "url", ""));
                 return (
                     url.pathname.includes(FileService.BASE_FILES_URL) &&
-                    url.searchParams.get(fooAnnotation.name) === "first"
+                    url.searchParams.get(fooAnnotation.name) === "first" &&
+                    !url.searchParams.has(barAnnotation.name)
                 );
             },
             respondWith: {
