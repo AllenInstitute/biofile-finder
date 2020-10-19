@@ -71,6 +71,7 @@
 .url-bar {
     width: 100%;
     height: var(--url-bar-height);
+    margin-bottom: var(--margin);
 }
 
 .annotation-hierarchy-and-file-list {

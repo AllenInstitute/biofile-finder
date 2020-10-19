@@ -2,9 +2,6 @@
     --link-width: 34px;
 
     border: 1px solid #ebebeb;
-    height: 100%;
-    width: 100%;
-    margin-bottom: var(--margin);
 
     /* Flex parent */
     display: flex;
