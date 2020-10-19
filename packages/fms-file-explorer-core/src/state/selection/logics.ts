@@ -175,9 +175,14 @@ const modifyAnnotationHierarchy = createLogic({
 
 const setAnnotationHierarchyLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { action, getState } = deps;
+        const { action, httpClient, getState } = deps;
         const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
         const annotationService = interaction.selectors.getAnnotationService(getState());
+        const applicationVersion = interaction.selectors.getApplicationVersion(getState());
+        if (applicationVersion) {
+            annotationService.setApplicationVersion(applicationVersion);
+        }
+        annotationService.setHttpClient(httpClient);
 
         try {
             dispatch(
