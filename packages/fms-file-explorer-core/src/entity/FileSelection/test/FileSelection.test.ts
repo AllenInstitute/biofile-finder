@@ -828,4 +828,106 @@ describe("FileSelection", () => {
             });
         });
     });
+
+    describe("selectionsAreEqual", () => {
+        it("returns true when selections are equal", () => {
+            // Arrange
+            const fileSet = new FileSet();
+            const selection1 = new FileSelection().select({
+                fileSet,
+                index: new NumericRange(0, 1),
+                sortOrder: 0,
+            });
+            const selection2 = new FileSelection().select({
+                fileSet,
+                index: new NumericRange(0, 1),
+                sortOrder: 0,
+            });
+
+            // Act
+            const result = FileSelection.selectionsAreEqual(selection1, selection2);
+
+            // Assert
+            expect(result).to.be.true;
+        });
+
+        it("returns true even when another item is focused", () => {
+            // Arrange
+            const fileSet = new FileSet();
+            const selection1 = new FileSelection()
+                .select({ fileSet, index: new NumericRange(0, 1), sortOrder: 0 })
+                .focus(FocusDirective.PREVIOUS);
+            const selection2 = new FileSelection().select({
+                fileSet,
+                index: new NumericRange(0, 1),
+                sortOrder: 0,
+            });
+
+            // Act
+            const result = FileSelection.selectionsAreEqual(selection1, selection2);
+
+            // Assert
+            expect(result).to.be.true;
+        });
+
+        it("returns false when different file sets selection", () => {
+            // Arrange
+            const selection1 = new FileSelection().select({
+                fileSet: new FileSet(),
+                index: new NumericRange(0, 1),
+                sortOrder: 0,
+            });
+            const selection2 = new FileSelection().select({
+                fileSet: new FileSet(),
+                index: new NumericRange(0, 3),
+                sortOrder: 0,
+            });
+
+            // Act
+            const result = FileSelection.selectionsAreEqual(selection1, selection2);
+
+            // Assert
+            expect(result).to.be.false;
+        });
+
+        it("returns false when different range in selection", () => {
+            // Arrange
+            const fileSet = new FileSet();
+            const selection1 = new FileSelection().select({
+                fileSet,
+                index: new NumericRange(0, 1),
+                sortOrder: 0,
+            });
+            const selection2 = new FileSelection().select({
+                fileSet,
+                index: new NumericRange(0, 3),
+                sortOrder: 0,
+            });
+
+            // Act
+            const result = FileSelection.selectionsAreEqual(selection1, selection2);
+
+            // Assert
+            expect(result).to.be.false;
+        });
+
+        it("returns false when different ranges exist in selection", () => {
+            // Arrange
+            const fileSet = new FileSet();
+            const selection1 = new FileSelection().select({
+                fileSet,
+                index: new NumericRange(0, 1),
+                sortOrder: 0,
+            });
+            const selection2 = new FileSelection()
+                .select({ fileSet, index: new NumericRange(0, 1), sortOrder: 0 })
+                .select({ fileSet: new FileSet(), index: new NumericRange(0, 1), sortOrder: 0 });
+
+            // Act
+            const result = FileSelection.selectionsAreEqual(selection1, selection2);
+
+            // Assert
+            expect(result).to.be.false;
+        });
+    });
 });

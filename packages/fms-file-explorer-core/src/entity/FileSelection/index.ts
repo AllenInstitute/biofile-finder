@@ -1,4 +1,4 @@
-import { isArray, reject } from "lodash";
+import { find, isArray, reject } from "lodash";
 
 import { IndexError, ValueError } from "../../errors";
 import { FmsFile, Selection } from "../../services/FileService";
@@ -62,7 +62,31 @@ interface FocusedItem extends SelectionItem {
  */
 export default class FileSelection {
     private focusedItem: FocusedItem | null = null;
-    public readonly selections: SelectionItem[];
+    private selections: SelectionItem[];
+
+    public static selectionsAreEqual(selection1: FileSelection, selection2: FileSelection) {
+        if (selection1 === selection2) {
+            return true;
+        }
+        const groupedSelections1 = selection1.groupByFileSet();
+        const groupedSelections2 = selection2.groupByFileSet();
+        if (groupedSelections1.size !== groupedSelections2.size) {
+            return false;
+        }
+        for (const [fileSet, ranges] of groupedSelections1) {
+            const otherRanges = groupedSelections2.get(fileSet);
+            if (!otherRanges || ranges.length !== otherRanges.length) {
+                return false;
+            }
+            for (const range of ranges) {
+                const matchingRange = find(otherRanges, (otherRange) => range.equals(otherRange));
+                if (!matchingRange) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
     /**
      * Immutability helper. Shallow copy a FileSelection instance. See class docstring for additional

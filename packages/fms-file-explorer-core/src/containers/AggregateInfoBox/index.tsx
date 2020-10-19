@@ -3,6 +3,7 @@ import { Spinner, SpinnerSize } from "office-ui-fabric-react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
+import FileSelection from "../../entity/FileSelection";
 import { interaction, selection } from "../../state";
 
 const styles = require("./AggregateInfoBox.module.css");
@@ -15,8 +16,7 @@ export default function AggregateInfoBox() {
     const fileService = useSelector(interaction.selectors.getFileService);
     const fileSelection = useSelector(
         selection.selectors.getFileSelection,
-        (selection1, selection2) =>
-            selection1 === selection2 || selection1.selections === selection2.selections
+        FileSelection.selectionsAreEqual
     );
     const totalFilesSelected = fileSelection.count();
     const [uniqueFilesSelected, setUniqueFilesSelected] = React.useState(totalFilesSelected);
