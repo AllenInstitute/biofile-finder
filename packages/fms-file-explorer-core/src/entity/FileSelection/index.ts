@@ -62,7 +62,7 @@ interface FocusedItem extends SelectionItem {
  */
 export default class FileSelection {
     private focusedItem: FocusedItem | null = null;
-    private selections: SelectionItem[];
+    public readonly selections: SelectionItem[];
 
     /**
      * Immutability helper. Shallow copy a FileSelection instance. See class docstring for additional

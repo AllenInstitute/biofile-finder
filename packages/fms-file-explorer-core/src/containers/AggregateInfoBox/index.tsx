@@ -13,7 +13,11 @@ const styles = require("./AggregateInfoBox.module.css");
  */
 export default function AggregateInfoBox() {
     const fileService = useSelector(interaction.selectors.getFileService);
-    const fileSelection = useSelector(selection.selectors.getFileSelection);
+    const fileSelection = useSelector(
+        selection.selectors.getFileSelection,
+        (selection1, selection2) =>
+            selection1 === selection2 || selection1.selections === selection2.selections
+    );
     const totalFilesSelected = fileSelection.count();
     const [uniqueFilesSelected, setUniqueFilesSelected] = React.useState(totalFilesSelected);
     const [totalFileSize, setTotalFileSize] = React.useState("0");
