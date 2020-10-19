@@ -1,6 +1,7 @@
 import { castArray, find, includes, sortBy, uniqWith, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
+import { batch } from "react-redux";
 
 import {
     ADD_FILE_FILTER,
@@ -276,9 +277,11 @@ const decodeFileExplorerURL = createLogic({
         const encodedURL = deps.action.payload;
         const annotations = metadata.selectors.getAnnotations(deps.getState());
         const { hierarchy, filters, openFolders } = FileExplorerURL.decode(encodedURL, annotations);
-        dispatch(setAnnotationHierarchy(hierarchy));
-        dispatch(setFileFilters(filters));
-        dispatch(setOpenFileFolders(openFolders));
+        batch(() => {
+            dispatch(setAnnotationHierarchy(hierarchy));
+            dispatch(setFileFilters(filters));
+            dispatch(setOpenFileFolders(openFolders));
+        });
         done();
     },
     type: [DECODE_FILE_EXPLORER_URL],
