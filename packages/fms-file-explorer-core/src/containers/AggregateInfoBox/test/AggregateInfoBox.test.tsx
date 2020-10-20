@@ -36,14 +36,14 @@ describe("<AggregateInfoBox />", () => {
             state: initialState,
         });
 
-        const { getByText, getByTestId } = render(
+        const { getByText, getAllByTestId } = render(
             <Provider store={store}>
                 <AggregateInfoBox />
             </Provider>
         );
 
         // Assert
-        expect(() => getByTestId("aggregate-info-box-spinner")).to.throw;
+        expect(() => getAllByTestId("aggregate-info-box-spinner")).to.throw;
         expect(() => getByText("Total Files")).to.throw;
     });
 
@@ -53,14 +53,14 @@ describe("<AggregateInfoBox />", () => {
             state,
         });
 
-        const { getByTestId } = render(
+        const { getAllByTestId } = render(
             <Provider store={store}>
                 <AggregateInfoBox />
             </Provider>
         );
 
         // Assert
-        expect(getByTestId("aggregate-info-box-spinner")).to.exist;
+        expect(getAllByTestId("aggregate-info-box-spinner")).to.exist;
     });
 
     describe("aggregated data rendered", () => {

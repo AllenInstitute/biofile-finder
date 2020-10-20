@@ -21,13 +21,13 @@
     padding-top: 10px;
 }
 
+.column-data {
+    margin-bottom: 5px;
+}
+
 .label {
     font-weight: lighter;
     margin: 0;
-}
-
-.spinner {
-    height: 100%;
 }
 
 .error-message {

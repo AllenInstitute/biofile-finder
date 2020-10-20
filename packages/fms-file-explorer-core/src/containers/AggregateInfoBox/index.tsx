@@ -8,6 +8,12 @@ import { interaction, selection } from "../../state";
 
 const styles = require("./AggregateInfoBox.module.css");
 
+interface AggregateData {
+    id: number;
+    count: number;
+    size: string;
+}
+
 /**
  * An information box display for displaying aggregate information about the
  * files selected
@@ -19,28 +25,27 @@ export default function AggregateInfoBox() {
         FileSelection.selectionsAreEqual
     );
     const totalFilesSelected = fileSelection.count();
-    const [uniqueFilesSelected, setUniqueFilesSelected] = React.useState(totalFilesSelected);
-    const [totalFileSize, setTotalFileSize] = React.useState("0");
     const [error, setError] = React.useState<string>();
-    const [isLoading, setLoading] = React.useState(false);
+    const [aggregateData, setAggregateData] = React.useState<AggregateData>();
+    // Due to the async nature of requesting aggregate info, we can't rely on setting a loading hook
+    // without the possibility of it getting overwritten by another request. Assigning an "id" to track
+    // if the async request is the one we actually want seems best for now.
+    const isLoading = !aggregateData || aggregateData.id !== totalFilesSelected;
 
     React.useEffect(() => {
         if (totalFilesSelected) {
-            setLoading(true);
             const getAggregateInformation = async () => {
                 try {
                     const { count, size } = await fileService.getAggregateInformation(
                         fileSelection
                     );
-                    setTotalFileSize(filesize(size));
-                    setUniqueFilesSelected(count);
+                    setAggregateData({ id: totalFilesSelected, count, size: filesize(size) });
                     setError(undefined);
                 } catch (requestError) {
                     setError(
                         `Whoops! Couldn't get aggregate information for some reason. ${requestError}`
                     );
                 }
-                setLoading(false);
             };
             getAggregateInformation();
         }
@@ -49,17 +54,6 @@ export default function AggregateInfoBox() {
     if (!totalFilesSelected) {
         return null;
     }
-    if (isLoading) {
-        return (
-            <div className={styles.container}>
-                <Spinner
-                    className={styles.spinner}
-                    size={SpinnerSize.small}
-                    data-testid="aggregate-info-box-spinner"
-                />
-            </div>
-        );
-    }
     if (error) {
         return (
             <div className={styles.container}>
@@ -67,23 +61,44 @@ export default function AggregateInfoBox() {
             </div>
         );
     }
+    const loadingSpinner = (
+        <Spinner size={SpinnerSize.small} data-testid="aggregate-info-box-spinner" />
+    );
     return (
         <div className={styles.container}>
             <div className={styles.row}>
                 <div className={styles.column}>
-                    <div>{totalFilesSelected}</div>
+                    <div className={styles.columnData}>{totalFilesSelected}</div>
                     <h6 className={styles.label}>
                         Total Files <br /> Selected
                     </h6>
                 </div>
                 <div className={styles.column}>
-                    <div>{uniqueFilesSelected}</div>
+                    <div className={styles.columnData}>
+                        {!isLoading && aggregateData ? (
+                            aggregateData.count
+                        ) : (
+                            <Spinner
+                                size={SpinnerSize.small}
+                                data-testid="aggregate-info-box-spinner"
+                            />
+                        )}
+                    </div>
                     <h6 className={styles.label}>
                         Unique Files <br /> Selected
                     </h6>
                 </div>
                 <div className={styles.column}>
-                    <div>{totalFileSize}</div>
+                    <div className={styles.columnData}>
+                        {!isLoading && aggregateData ? (
+                            aggregateData.size
+                        ) : (
+                            <Spinner
+                                size={SpinnerSize.small}
+                                data-testid="aggregate-info-box-spinner"
+                            />
+                        )}
+                    </div>
                     <h6 className={styles.label}>
                         Total File <br /> Size
                     </h6>
