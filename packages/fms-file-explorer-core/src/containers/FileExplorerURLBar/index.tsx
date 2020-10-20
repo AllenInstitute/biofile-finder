@@ -14,35 +14,37 @@ const styles = require("./FileExplorerURLBar.module.css");
 
 interface FileExplorerURLBarProps {
     className?: string;
+    key: string;
+    existingEncodedURL: string;
 }
 
 /**
  * URL bar at the top of the application responsible for allowing the copy & paste
  * of FileExplorerURLs for the purpose of sharing queries between users.
  */
-export default function FileExplorerURLBar(props: FileExplorerURLBarProps) {
+function FileExplorerURLBar(props: FileExplorerURLBarProps) {
     const dispatch = useDispatch();
     const annotations = useSelector(metadata.selectors.getAnnotations);
-    const existingEncodedURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
-    const [url, setURL] = React.useState<string>(existingEncodedURL);
+    const [url, setURL] = React.useState<string>(props.existingEncodedURL);
     const [isCopied, setCopied] = React.useState(false);
     const error = React.useMemo(
         () => FileExplorerURL.validateEncodedFileExplorerURL(url, annotations),
         [url, annotations]
     );
 
-    // Update URL bar (even if input exists) if the state changes enough to change what would be encoded there
-    React.useEffect(() => {
-        setURL(existingEncodedURL);
-    }, [existingEncodedURL]);
+    const onURLChange = (_: React.FormEvent, input?: string) => {
+        setURL(input || "");
+        // If the user previously copied the URL to their clipboard, this is no longer true after changing the URL
+        if (isCopied) {
+            setCopied(false);
+        }
+    };
 
     const onCopy = () => {
+        navigator.clipboard.writeText(url);
+        // Set copied to true so we know to display tooltip feedback awknowledging the copy success
         setCopied(true);
-        setTimeout(() => {
-            setCopied(false);
-        }, 4000);
-        navigator.clipboard.writeText(url || existingEncodedURL);
     };
 
     const onContextMenu = (evt: React.MouseEvent) => {
@@ -67,7 +69,7 @@ export default function FileExplorerURLBar(props: FileExplorerURLBarProps) {
 
     const onSubmit = (evt: React.FormEvent) => {
         evt.preventDefault();
-        if (url !== existingEncodedURL && !error) {
+        if (url !== props.existingEncodedURL && !error) {
             dispatch(selection.actions.decodeFileExplorerURL(url));
         }
     };
@@ -78,8 +80,7 @@ export default function FileExplorerURLBar(props: FileExplorerURLBarProps) {
                 <TextField
                     borderless
                     prefix={"FMS File Explorer URL"}
-                    defaultValue={existingEncodedURL}
-                    onChange={(_, value) => setURL(value || "")}
+                    onChange={onURLChange}
                     value={url}
                     spellCheck={false}
                     onContextMenu={onContextMenu}
@@ -105,5 +106,23 @@ export default function FileExplorerURLBar(props: FileExplorerURLBarProps) {
                 </Tippy>
             )}
         </div>
+    );
+}
+
+/**
+ * Wrapper to the FileExplorerURLBar component to allow React to replace the component
+ * everytime the the encoded URL changes rather than updating the selector itself.
+ * This is to avoid having to manually reset the input state, an anti-pattern in React.
+ * See https://reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html#anti-pattern-unconditionally-copying-props-to-state
+ * "Recommendation: Fully uncontrolled component with a key"
+ */
+export default function FileExplorerURLBarWrapper(props: { className?: string }) {
+    const existingEncodedURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
+    return (
+        <FileExplorerURLBar
+            className={props.className}
+            key={existingEncodedURL}
+            existingEncodedURL={existingEncodedURL}
+        />
     );
 }
