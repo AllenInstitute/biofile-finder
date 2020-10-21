@@ -44,12 +44,14 @@ export default function AggregateInfoBox() {
                     if (!ignoreResponse) {
                         setAggregateData({ count, size: filesize(size) });
                         setLoading(false);
+                        setError(undefined);
                     }
-                    setError(undefined);
                 } catch (requestError) {
-                    setError(
-                        `Whoops! Couldn't get aggregate information for some reason. ${requestError}`
-                    );
+                    if (!ignoreResponse) {
+                        setError(
+                            `Whoops! Couldn't get aggregate information for some reason. ${requestError}`
+                        );
+                    }
                 }
             };
             getAggregateInformation();
