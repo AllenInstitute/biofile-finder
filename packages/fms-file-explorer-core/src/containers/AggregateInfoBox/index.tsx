@@ -9,7 +9,6 @@ import { interaction, selection } from "../../state";
 const styles = require("./AggregateInfoBox.module.css");
 
 interface AggregateData {
-    id: number;
     count: number;
     size: string;
 }
@@ -43,7 +42,7 @@ export default function AggregateInfoBox() {
                         fileSelection
                     );
                     if (!ignoreResponse) {
-                        setAggregateData({ id: totalFilesSelected, count, size: filesize(size) });
+                        setAggregateData({ count, size: filesize(size) });
                         setLoading(false);
                     }
                     setError(undefined);

@@ -56,7 +56,6 @@ export interface SelectionRequest {
 
 interface SelectionResult {
     count: number;
-    histogramMap: any; // Unsure exactly what this is / will be
     size: number;
 }
 
@@ -87,7 +86,7 @@ export default class FileService extends HttpServiceBase {
         return response.data[0];
     }
 
-    public async getAggregateInformation(fileSelection: FileSelection) {
+    public async getAggregateInformation(fileSelection: FileSelection): Promise<SelectionResult> {
         const selections = fileSelection.toCompactSelectionList();
         const postBody: SelectionRequest = { annotations: [], selections };
         const requestUrl = `${this.baseUrl}/${FileService.SELECTION_AGGREGATE_URL}`;
