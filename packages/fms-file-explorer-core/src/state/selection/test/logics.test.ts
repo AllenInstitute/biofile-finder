@@ -1,4 +1,4 @@
-import { configureMockStore } from "@aics/redux-utils";
+import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { expect } from "chai";
 import { shuffle } from "lodash";
 
@@ -13,6 +13,8 @@ import {
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
+    decodeFileExplorerURL,
+    setAnnotationHierarchy,
 } from "../actions";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
@@ -20,13 +22,13 @@ import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import { initialState } from "../../";
 import NumericRange from "../../../entity/NumericRange";
+import FileExplorerURL from "../../../entity/FileExplorerURL";
 import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
-
         const fileSet1 = new FileSet();
         const fileSet2 = new FileSet({
             filters: [new FileFilter("Cell Line", "AICS-13")],
@@ -54,7 +56,11 @@ describe("Selection logics", () => {
             expect(
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
-                    payload: new FileSelection().select({ fileSet: fileSet1, index: 5, sortOrder: 0 }),
+                    payload: new FileSelection().select({
+                        fileSet: fileSet1,
+                        index: 5,
+                        sortOrder: 0,
+                    }),
                 })
             ).to.equal(true);
         });
@@ -63,8 +69,11 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    fileSelection: new FileSelection()
-                        .select({ fileSet: fileSet1, index: 9, sortOrder: 0 }),
+                    fileSelection: new FileSelection().select({
+                        fileSet: fileSet1,
+                        index: 9,
+                        sortOrder: 0,
+                    }),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -73,7 +82,14 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile({ fileSet: fileSet1, selection: 14, sortOrder: 0, updateExistingSelection: true }));
+            store.dispatch(
+                selectFile({
+                    fileSet: fileSet1,
+                    selection: 14,
+                    sortOrder: 0,
+                    updateExistingSelection: true,
+                })
+            );
             await logicMiddleware.whenComplete();
 
             // assert
@@ -93,7 +109,11 @@ describe("Selection logics", () => {
                 selection: {
                     fileSelection: new FileSelection()
                         .select({ fileSet: fileSet1, index: new NumericRange(9, 15), sortOrder: 0 })
-                        .select({ fileSet: fileSet2, index: new NumericRange(100, 200), sortOrder: 1 }),
+                        .select({
+                            fileSet: fileSet2,
+                            index: new NumericRange(100, 200),
+                            sortOrder: 1,
+                        }),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -102,7 +122,14 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile({ fileSet: fileSet1, selection :new NumericRange(20, 100), sortOrder: 0, updateExistingSelection: true }));
+            store.dispatch(
+                selectFile({
+                    fileSet: fileSet1,
+                    selection: new NumericRange(20, 100),
+                    sortOrder: 0,
+                    updateExistingSelection: true,
+                })
+            );
             await logicMiddleware.whenComplete();
 
             // assert
@@ -111,8 +138,16 @@ describe("Selection logics", () => {
                     type: SET_FILE_SELECTION,
                     payload: new FileSelection()
                         .select({ fileSet: fileSet1, index: new NumericRange(9, 15), sortOrder: 0 })
-                        .select({ fileSet: fileSet2, index: new NumericRange(100, 200), sortOrder: 1 })
-                        .select({ fileSet: fileSet1, index: new NumericRange(20, 100), sortOrder: 0 }),
+                        .select({
+                            fileSet: fileSet2,
+                            index: new NumericRange(100, 200),
+                            sortOrder: 1,
+                        })
+                        .select({
+                            fileSet: fileSet1,
+                            index: new NumericRange(20, 100),
+                            sortOrder: 0,
+                        }),
                 })
             ).to.equal(true);
         });
@@ -132,7 +167,14 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile({ fileSet: fileSet1, selection: 12, sortOrder: 0, updateExistingSelection: true }));
+            store.dispatch(
+                selectFile({
+                    fileSet: fileSet1,
+                    selection: 12,
+                    sortOrder: 0,
+                    updateExistingSelection: true,
+                })
+            );
             await logicMiddleware.whenComplete();
 
             // assert
@@ -141,7 +183,11 @@ describe("Selection logics", () => {
                     type: SET_FILE_SELECTION,
                     payload: new FileSelection()
                         .select({ fileSet: fileSet1, index: new NumericRange(8, 11), sortOrder: 0 })
-                        .select({ fileSet: fileSet1, index: new NumericRange(13, 15), sortOrder: 0 })
+                        .select({
+                            fileSet: fileSet1,
+                            index: new NumericRange(13, 15),
+                            sortOrder: 0,
+                        })
                         .select({ fileSet: fileSet1, index: new NumericRange(22), sortOrder: 0 }),
                 })
             ).to.equal(true);
@@ -151,8 +197,11 @@ describe("Selection logics", () => {
             // setup
             const state = {
                 selection: {
-                    fileSelection: new FileSelection()
-                        .select({ fileSet: fileSet1, index: 12, sortOrder: 0 }),
+                    fileSelection: new FileSelection().select({
+                        fileSet: fileSet1,
+                        index: 12,
+                        sortOrder: 0,
+                    }),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -195,8 +244,11 @@ describe("Selection logics", () => {
             expect(
                 actions.includesMatch({
                     type: SET_FILE_SELECTION,
-                    payload: new FileSelection()
-                        .select({ fileSet: fileSet1, index: 12, sortOrder: 0 }),
+                    payload: new FileSelection().select({
+                        fileSet: fileSet1,
+                        index: 12,
+                        sortOrder: 0,
+                    }),
                 })
             ).to.equal(true);
         });
@@ -206,9 +258,17 @@ describe("Selection logics", () => {
             const state = {
                 selection: {
                     fileSelection: new FileSelection()
-                        .select({ fileSet: fileSet2, index: new NumericRange(27, 30), sortOrder: 0 })
+                        .select({
+                            fileSet: fileSet2,
+                            index: new NumericRange(27, 30),
+                            sortOrder: 0,
+                        })
                         .select({ fileSet: fileSet2, index: new NumericRange(22), sortOrder: 0 })
-                        .select({ fileSet: fileSet1, index: new NumericRange(8, 15), sortOrder: 1 }),
+                        .select({
+                            fileSet: fileSet1,
+                            index: new NumericRange(8, 15),
+                            sortOrder: 1,
+                        }),
                 },
             };
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -217,7 +277,14 @@ describe("Selection logics", () => {
             });
 
             // act
-            store.dispatch(selectFile({ fileSet: fileSet2, selection: new NumericRange(22, 35), sortOrder: 0, updateExistingSelection: true }));
+            store.dispatch(
+                selectFile({
+                    fileSet: fileSet2,
+                    selection: new NumericRange(22, 35),
+                    sortOrder: 0,
+                    updateExistingSelection: true,
+                })
+            );
             await logicMiddleware.whenComplete();
 
             // assert
@@ -226,7 +293,11 @@ describe("Selection logics", () => {
                     type: SET_FILE_SELECTION,
                     payload: new FileSelection()
                         .select({ fileSet: fileSet1, index: new NumericRange(8, 15), sortOrder: 1 })
-                        .select({ fileSet: fileSet2, index :new NumericRange(22, 35), sortOrder: 0 }),
+                        .select({
+                            fileSet: fileSet2,
+                            index: new NumericRange(22, 35),
+                            sortOrder: 0,
+                        }),
                 })
             ).to.equal(true);
         });
@@ -345,100 +416,6 @@ describe("Selection logics", () => {
             ).to.equal(true);
         });
 
-        it("sets available annotations based on hierarchy", async () => {
-            // setup
-            const state = {
-                interaction: {
-                    fileExplorerServiceBaseUrl: "test",
-                },
-                metadata: {
-                    annotations: [...annotations],
-                },
-                selection: {
-                    annotationHierarchy: [
-                        annotations[0],
-                        annotations[1],
-                        annotations[2],
-                        annotations[3],
-                    ],
-                    openFileFolders: [],
-                },
-            };
-
-            const responseStub = {
-                when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=cell_line&hierarchy=date_created&hierarchy=matrigel_hardened",
-                respondWith: {
-                    data: {
-                        data: ["days_since_creation"],
-                    },
-                },
-            };
-            const { store, logicMiddleware, actions } = configureMockStore({
-                logics: selectionLogics,
-                responseStubs: responseStub,
-                state,
-            });
-
-            // act
-            store.dispatch(removeFromAnnotationHierarchy(annotations[2].name));
-            await logicMiddleware.whenComplete();
-
-            // assert
-            expect(
-                actions.includes({
-                    type: SET_AVAILABLE_ANNOTATIONS,
-                    payload: ["days_since_creation"],
-                })
-            ).to.equal(true);
-        });
-
-        it("sets all annotations as available on failure to determine actual available annotations", async () => {
-            // setup
-            const state = {
-                interaction: {
-                    fileExplorerServiceBaseUrl: "test",
-                },
-                metadata: {
-                    annotations: [...annotations],
-                },
-                selection: {
-                    annotationHierarchy: [
-                        annotations[0],
-                        annotations[1],
-                        annotations[2],
-                        annotations[3],
-                    ],
-                    openFileFolders: [],
-                },
-            };
-
-            const responseStub = {
-                when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=cell_line&hierarchy=date_created&hierarchy=matrigel_hardened",
-                respondWith: {
-                    status: 500,
-                },
-            };
-            const { store, logicMiddleware, actions } = configureMockStore({
-                logics: selectionLogics,
-                responseStubs: responseStub,
-                state,
-            });
-
-            // act
-            store.dispatch(removeFromAnnotationHierarchy(annotations[2].name));
-            await logicMiddleware.whenComplete();
-
-            // assert
-            expect(
-                actions.includes({
-                    type: SET_AVAILABLE_ANNOTATIONS,
-                    payload: annotations.map((a) => a.name),
-                })
-            ).to.equal(true);
-        });
-
         it("determines which paths can still be opened after hierarchy is reordered", async () => {
             // setup
             const openFileFolders = [
@@ -543,6 +520,95 @@ describe("Selection logics", () => {
                     payload: [new FileFolder(["false"])],
                 })
             ).to.equal(true);
+        });
+    });
+
+    describe("setAvailableAnnotationsLogics", () => {
+        let annotations: Annotation[];
+
+        beforeEach(() => {
+            annotations = annotationsJson.map((annotation) => new Annotation(annotation));
+        });
+
+        it("sets available annotations", async () => {
+            // Arrange
+            const state = {
+                interaction: {
+                    fileExplorerServiceBaseUrl: "test",
+                },
+                metadata: {
+                    annotations: [...annotations],
+                },
+                selection: {
+                    annotationHierarchy: annotations.slice(0, 3),
+                },
+            };
+            const responseStub = {
+                when:
+                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=cell_line&hierarchy=date_created",
+                respondWith: {
+                    status: 200,
+                    data: {
+                        data: ["Cas9"],
+                    },
+                },
+            };
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: selectionLogics,
+                responseStubs: responseStub,
+            });
+
+            // Act
+            store.dispatch(setAnnotationHierarchy(annotations.slice(0, 2)));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_AVAILABLE_ANNOTATIONS,
+                    payload: ["Cas9"],
+                })
+            );
+        });
+
+        it("sets all annotations as available when actual cannot be found", async () => {
+            // Arrange
+            const state = {
+                interaction: {
+                    fileExplorerServiceBaseUrl: "test",
+                },
+                metadata: {
+                    annotations: [...annotations],
+                },
+                selection: {
+                    annotationHierarchy: annotations.slice(0, 3),
+                },
+            };
+            const responseStub = {
+                when:
+                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=date_created&hierarchy=cell_line",
+                respondWith: {
+                    status: 500,
+                },
+            };
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: selectionLogics,
+                responseStubs: responseStub,
+            });
+
+            // Act
+            store.dispatch(setAnnotationHierarchy(annotations.slice(0, 2)));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_AVAILABLE_ANNOTATIONS,
+                    payload: annotations.map((a) => a.name),
+                })
+            );
         });
     });
 
@@ -680,6 +746,52 @@ describe("Selection logics", () => {
                     type: SET_FILE_FILTERS,
                 })
             ).to.equal(false);
+        });
+    });
+
+    describe("decodeFileExplorerURL", () => {
+        it("dispatches new hierarchy, filters, & opened folders from given URL", async () => {
+            // Arrange
+            const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
+            const state = mergeState(initialState, {
+                metadata: {
+                    annotations,
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
+            const hierarchy = annotations.slice(0, 2);
+            const filters = [new FileFilter(annotations[3].name, "20x")];
+            const openFolders = [["a"], ["a", false], ["a", false, 1]].map(
+                (folder) => new FileFolder(folder)
+            );
+            const encodedURL = FileExplorerURL.encode({ hierarchy, filters, openFolders });
+
+            // Act
+            store.dispatch(decodeFileExplorerURL(encodedURL));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_ANNOTATION_HIERARCHY,
+                    payload: hierarchy,
+                })
+            ).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: SET_FILE_FILTERS,
+                    payload: filters,
+                })
+            ).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: SET_OPEN_FILE_FOLDERS,
+                    payload: openFolders,
+                })
+            ).to.be.true;
         });
     });
 });

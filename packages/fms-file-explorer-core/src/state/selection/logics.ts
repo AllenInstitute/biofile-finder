@@ -1,6 +1,7 @@
 import { castArray, find, includes, sortBy, uniqWith, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
+import { batch } from "react-redux";
 
 import {
     ADD_FILE_FILTER,
@@ -15,10 +16,13 @@ import {
     setFileSelection,
     TOGGLE_FILE_FOLDER_COLLAPSE,
     setOpenFileFolders,
+    DECODE_FILE_EXPLORER_URL,
+    SET_ANNOTATION_HIERARCHY,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps } from "../";
 import * as selectionSelectors from "./selectors";
 import Annotation from "../../entity/Annotation";
+import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -80,7 +84,7 @@ const selectFile = createLogic({
  */
 const modifyAnnotationHierarchy = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { action, httpClient, getState, ctx } = deps;
+        const { action, getState, ctx } = deps;
         const { existingHierarchy, originalPayload } = ctx;
         const currentHierarchy: Annotation[] = action.payload;
 
@@ -127,32 +131,7 @@ const modifyAnnotationHierarchy = createLogic({
         }
         dispatch(setOpenFileFolders(uniqWith(openFileFolders, (f1, f2) => f1.equals(f2))));
 
-        const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
-        const annotationService = interaction.selectors.getAnnotationService(getState());
-        const applicationVersion = interaction.selectors.getApplicationVersion(getState());
-        if (applicationVersion) {
-            annotationService.setApplicationVersion(applicationVersion);
-        }
-        annotationService.setHttpClient(httpClient);
-
-        try {
-            dispatch(
-                setAvailableAnnotations(
-                    await annotationService.fetchAvailableAnnotationsForHierarchy(
-                        annotationNamesInHierachy
-                    )
-                )
-            );
-        } catch (err) {
-            console.error(
-                "Something went wrong finding available annotations, nobody knows why. But here's a hint:",
-                err
-            );
-            const annotations = metadata.selectors.getAnnotations(getState());
-            dispatch(setAvailableAnnotations(annotations.map((a: Annotation) => a.name)));
-        } finally {
-            done();
-        }
+        done();
     },
     transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState, ctx } = deps;
@@ -192,6 +171,39 @@ const modifyAnnotationHierarchy = createLogic({
         next(setAnnotationHierarchy(nextHierarchy));
     },
     type: [REORDER_ANNOTATION_HIERARCHY, REMOVE_FROM_ANNOTATION_HIERARCHY],
+});
+
+const setAvailableAnnotationsLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { action, httpClient, getState } = deps;
+        const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
+        const annotationService = interaction.selectors.getAnnotationService(getState());
+        const applicationVersion = interaction.selectors.getApplicationVersion(getState());
+        if (applicationVersion) {
+            annotationService.setApplicationVersion(applicationVersion);
+        }
+        annotationService.setHttpClient(httpClient);
+
+        try {
+            dispatch(
+                setAvailableAnnotations(
+                    await annotationService.fetchAvailableAnnotationsForHierarchy(
+                        annotationNamesInHierachy
+                    )
+                )
+            );
+        } catch (err) {
+            console.error(
+                "Something went wrong finding available annotations, nobody knows why. But here's a hint:",
+                err
+            );
+            const annotations = metadata.selectors.getAnnotations(getState());
+            dispatch(setAvailableAnnotations(annotations.map((a: Annotation) => a.name)));
+        } finally {
+            done();
+        }
+    },
+    type: [SET_ANNOTATION_HIERARCHY],
 });
 
 /**
@@ -261,4 +273,30 @@ const toggleFileFolderCollapse = createLogic({
     type: [TOGGLE_FILE_FOLDER_COLLAPSE],
 });
 
-export default [selectFile, modifyAnnotationHierarchy, modifyFileFilters, toggleFileFolderCollapse];
+/**
+ * Interceptor responsible for processing DECODE_FILE_EXPLORER_URL actions into various
+ * other actions responsible for rehydrating the FileExplorerURL into application state.
+ */
+const decodeFileExplorerURL = createLogic({
+    process(deps: ReduxLogicDeps, dispatch, done) {
+        const encodedURL = deps.action.payload;
+        const annotations = metadata.selectors.getAnnotations(deps.getState());
+        const { hierarchy, filters, openFolders } = FileExplorerURL.decode(encodedURL, annotations);
+        batch(() => {
+            dispatch(setAnnotationHierarchy(hierarchy));
+            dispatch(setFileFilters(filters));
+            dispatch(setOpenFileFolders(openFolders));
+        });
+        done();
+    },
+    type: [DECODE_FILE_EXPLORER_URL],
+});
+
+export default [
+    selectFile,
+    modifyAnnotationHierarchy,
+    modifyFileFilters,
+    toggleFileFolderCollapse,
+    decodeFileExplorerURL,
+    setAvailableAnnotationsLogic,
+];

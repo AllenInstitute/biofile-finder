@@ -1,3 +1,8 @@
+export interface FileFilterJson {
+    name: string;
+    value: any;
+}
+
 /**
  * Stub for a filter used to constrain a listing of files to those that match a particular condition. Should be
  * serializable to a URL query string-friendly format.
@@ -27,8 +32,11 @@ export default class FileFilter {
         return `${this.annotationName}=${this.annotationValue}`;
     }
 
-    public toJSON() {
-        return this.toQueryString();
+    public toJSON(): FileFilterJson {
+        return {
+            name: this.annotationName,
+            value: this.annotationValue,
+        };
     }
 
     public equals(target: FileFilter): boolean {

@@ -2,9 +2,11 @@ import childProcess from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
+import * as util from "util";
 
 import { expect } from "chai";
 import { ipcRenderer } from "electron";
+import plistParser from "simple-plist";
 import { createSandbox } from "sinon";
 
 import { RUN_IN_RENDERER } from "../../util/constants";
@@ -29,7 +31,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
         sandbox.restore();
     });
 
-    describe("openFilesInImageJ", () => {
+    describe("Open files in ImageJ", () => {
         it("resolves after successfully spawning child process", async () => {
             // Arrange
             const persistentConfigService = new PersistentConfigServiceElectron({
@@ -79,7 +81,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
         });
     });
 
-    describe("selectAllenMountPoint", () => {
+    describe("Select Allen drive mount point", () => {
         const sandbox = createSandbox();
         const tempAllenDrive = path.resolve(os.tmpdir(), "testAllenDir");
 
@@ -225,41 +227,78 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
         });
     });
 
-    describe("selectImageJExecutableLocation", () => {
+    describe("Select ImageJ executable location", () => {
         const sandbox = createSandbox();
-        const tempImageJPath = path.resolve(os.tmpdir(), "ImageJTestApp.txt");
+        const runningOnMacOS = os.platform() === "darwin";
+        const executablePath = path.resolve(os.tmpdir(), "ImageJTest");
+        const macOSExecutable = "ImageJTest-macosx";
+        const macOSExecutablePath = path.resolve(
+            executablePath,
+            ...["Contents", "MacOS", macOSExecutable]
+        );
 
         beforeEach(async () => {
-            await fs.promises.writeFile(tempImageJPath, "", { mode: 111 });
+            if (runningOnMacOS) {
+                // !!! IMPLEMENTATION DETAIL !!!
+                // On macOS, packages are actually directories, and the callable executables live within those packages.
+                // The name of the executable is declared in the Info.plist file. So, if running this test on macOS, need to ensure
+                // there is both an Info.plist as well as the nested executable.
+                const macOSPackage = path.resolve(executablePath, ...["Contents", "MacOS"]);
+                const infoPlistPath = path.resolve(executablePath, ...["Contents", "Info.plist"]);
+
+                await fs.promises.mkdir(macOSPackage, { recursive: true });
+                const promisifiedPlistWriter = util.promisify(plistParser.writeFile);
+                await promisifiedPlistWriter(infoPlistPath, {
+                    CFBundleExecutable: macOSExecutable,
+                });
+                const fd = await fs.promises.open(macOSExecutablePath, "w", 0o777);
+                await fd.close();
+            } else {
+                const fd = await fs.promises.open(executablePath, "w", 0o777);
+                await fd.close();
+            }
         });
 
         afterEach(async () => {
             sandbox.restore();
-            await fs.promises.unlink(tempImageJPath);
+
+            const stats = await fs.promises.stat(executablePath);
+            if (stats.isDirectory()) {
+                await fs.promises.rmdir(executablePath, { recursive: true });
+            } else {
+                await fs.promises.unlink(executablePath);
+            }
         });
 
-        it("persists Image J executable location", async () => {
+        it("persists ImageJ executable location", async () => {
             // Arrange
             const persistentConfigService = new PersistentConfigServiceElectron({
                 clearExistingData: true,
             });
             const service = new FileViewerServiceElectron(persistentConfigService);
-            sandbox
-                .stub(ipcRenderer, "invoke")
-                .withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG)
-                .resolves({
-                    filePaths: [tempImageJPath],
-                });
+            const invokeStub = sandbox.stub(ipcRenderer, "invoke");
+            invokeStub.withArgs(FileViewerServiceElectron.SHOW_MESSAGE_BOX).resolves(true);
+            invokeStub.withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG).resolves({
+                filePaths: [executablePath],
+            });
+            invokeStub
+                .withArgs(FileViewerServiceElectron.SHOW_ERROR_BOX)
+                .throws("You broke the test.");
 
             // Act
-            const mountPoint = await service.selectImageJExecutableLocation();
+            const selectedPath = await service.selectImageJExecutableLocation();
 
             // Assert
-            expect(mountPoint).to.equal(tempImageJPath);
+            if (runningOnMacOS) {
+                expect(selectedPath).to.equal(macOSExecutablePath);
+            } else {
+                expect(selectedPath).to.equal(executablePath);
+            }
+
             const persistedMountPoint = persistentConfigService.get(
                 PersistedDataKeys.ImageJExecutable
             );
-            expect(persistedMountPoint).to.equal(tempImageJPath);
+            expect(persistedMountPoint).to.equal(selectedPath);
         });
 
         it("does not persist location when cancelled", async () => {
@@ -277,17 +316,17 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
                 });
 
             // Act
-            const mountPoint = await service.selectImageJExecutableLocation();
+            const selectedPath = await service.selectImageJExecutableLocation();
 
             // Assert
-            expect(mountPoint).to.equal(FileViewerCancellationToken);
+            expect(selectedPath).to.equal(FileViewerCancellationToken);
             const persistedMountPoint = persistentConfigService.get(
                 PersistedDataKeys.ImageJExecutable
             );
             expect(persistedMountPoint).to.be.undefined;
         });
 
-        it("re-prompts user on invalid Image J path selection", async () => {
+        it("re-prompts user on invalid ImageJ path selection", async () => {
             // Arrange
             const persistentConfigService = new PersistentConfigServiceElectron({
                 clearExistingData: true,
@@ -305,10 +344,10 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             });
 
             // Act
-            const mountPoint = await service.selectImageJExecutableLocation();
+            const selectedPath = await service.selectImageJExecutableLocation();
 
             // Assert
-            expect(mountPoint).to.equal(FileViewerCancellationToken);
+            expect(selectedPath).to.equal(FileViewerCancellationToken);
             const persistedMountPoint = persistentConfigService.get(
                 PersistedDataKeys.ImageJExecutable
             );
