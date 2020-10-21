@@ -27,19 +27,25 @@ export default function AggregateInfoBox() {
     const totalFilesSelected = fileSelection.count();
     const [error, setError] = React.useState<string>();
     const [aggregateData, setAggregateData] = React.useState<AggregateData>();
-    // Due to the async nature of requesting aggregate info, we can't rely on setting a loading hook
-    // without the possibility of it getting overwritten by another request. Assigning an "id" to track
-    // if the async request is the one we actually want seems best for now.
-    const isLoading = !aggregateData || aggregateData.id !== totalFilesSelected;
+    const [isLoading, setLoading] = React.useState(false);
 
     React.useEffect(() => {
+        // This tracking variable allows us to avoid a call to setAggregateData (which triggers a re-render) if the
+        // effect is rerun prior to a successful network response. This could be the case if a user makes a file
+        // selection then quickly makes a new selection.
+        let ignoreResponse = false;
+
         if (totalFilesSelected) {
+            setLoading(true);
             const getAggregateInformation = async () => {
                 try {
                     const { count, size } = await fileService.getAggregateInformation(
                         fileSelection
                     );
-                    setAggregateData({ id: totalFilesSelected, count, size: filesize(size) });
+                    if (!ignoreResponse) {
+                        setAggregateData({ id: totalFilesSelected, count, size: filesize(size) });
+                        setLoading(false);
+                    }
                     setError(undefined);
                 } catch (requestError) {
                     setError(
@@ -49,6 +55,9 @@ export default function AggregateInfoBox() {
             };
             getAggregateInformation();
         }
+        return function cleanup() {
+            ignoreResponse = true;
+        };
     }, [fileSelection, fileService, totalFilesSelected]);
 
     if (!totalFilesSelected) {
@@ -61,9 +70,6 @@ export default function AggregateInfoBox() {
             </div>
         );
     }
-    const loadingSpinner = (
-        <Spinner size={SpinnerSize.small} data-testid="aggregate-info-box-spinner" />
-    );
     return (
         <div className={styles.container}>
             <div className={styles.row}>
