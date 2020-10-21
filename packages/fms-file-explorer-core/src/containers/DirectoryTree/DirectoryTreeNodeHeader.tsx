@@ -9,6 +9,7 @@ import getContextMenuItems from "../ContextMenu/items";
 import SvgIcon from "../../components/SvgIcon";
 import { interaction, selection } from "../../state";
 import FileSet from "../../entity/FileSet";
+import { ERROR_ICON_PATH_DATA } from "../../icons";
 
 const styles = require("./DirectoryTreeNode.module.css");
 
@@ -36,13 +37,6 @@ const FOLDER_ICON_PATH_DATA =
  */
 const CHEVRON_DOWN_ICON_PATH_DATA =
     "M13.418 7.859c0.271-0.268 0.709-0.268 0.978 0s0.272 0.701 0 0.969l-3.908 3.83c-0.27 0.268-0.707 0.268-0.979 0l-3.908-3.83c-0.27-0.267-0.27-0.701 0-0.969s0.709-0.268 0.978 0l3.421 3.141 3.418-3.141z";
-
-/**
- * Path data for icon taken from Material Design
- * Apache License 2.0: https://github.com/google/material-design-icons/blob/master/LICENSE
- */
-export const ERROR_ICON_PATH_DATA =
-    "M12 20.016q3.281 0 5.648-2.367t2.367-5.648-2.367-5.648-5.648-2.367-5.648 2.367-2.367 5.648 2.367 5.648 5.648 2.367zM12 2.016q4.125 0 7.055 2.93t2.93 7.055-2.93 7.055-7.055 2.93-7.055-2.93-2.93-7.055 2.93-7.055 7.055-2.93zM11.016 6.984h1.969v6h-1.969v-6zM11.016 15h1.969v2.016h-1.969v-2.016z";
 
 const ICON_SIZE = 15; // in px; both width and height
 
