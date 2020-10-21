@@ -5,9 +5,9 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import getContextMenuItems from "../ContextMenu/items";
-import { ERROR_ICON_PATH_DATA } from "../DirectoryTree/DirectoryTreeNodeHeader";
 import SvgIcon from "../../components/SvgIcon";
 import FileExplorerURL from "../../entity/FileExplorerURL";
+import { ERROR_ICON_PATH_DATA } from "../../icons";
 import { interaction, metadata, selection } from "../../state";
 
 const styles = require("./FileExplorerURLBar.module.css");
