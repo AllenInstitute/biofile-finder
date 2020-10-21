@@ -1,7 +1,8 @@
 import classNames from "classnames";
 import Fuse from "fuse.js";
+import { PrimaryButton } from "office-ui-fabric-react";
 import * as React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import AnnotationListItem from "./AnnotationListItem";
 import DnDList from "../../components/DnDList";
@@ -42,6 +43,8 @@ const SEARCH_ICON_PATH_DATA =
  * the AnnotationGrouping component in order to effect how files in the FileList are displayed (grouped and filtered).
  */
 export default function AnnotationList(props: AnnotationListProps) {
+    const dispatch = useDispatch();
+    const filters = useSelector(selection.selectors.getFileFilters);
     const annotationsLoading = useSelector(
         selection.selectors.getAvailableAnnotationsForHierarchyLoading
     );
@@ -64,6 +67,10 @@ export default function AnnotationList(props: AnnotationListProps) {
 
         return items;
     }, [annotationListItems, searchValue]);
+
+    const onClearFilters = () => {
+        dispatch(selection.actions.setFileFilters([]));
+    };
 
     return (
         <div className={classNames(styles.root, props.className)}>
@@ -98,6 +105,12 @@ export default function AnnotationList(props: AnnotationListProps) {
                     loading={annotationsLoading}
                 />
             </div>
+            <PrimaryButton
+                className={styles.clearFiltersButton}
+                disabled={!filters.length}
+                text="Clear All Filters"
+                onClick={onClearFilters}
+            />
         </div>
     );
 }
