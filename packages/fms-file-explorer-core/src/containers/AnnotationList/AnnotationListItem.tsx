@@ -39,7 +39,7 @@ export default React.memo(function AnnotationListItem(props: DnDItemRendererPara
                 />
             </Tippy>
             <abbr
-                data-test-id="annotation-list-item"
+                data-testid="annotation-list-item"
                 className={classNames(
                     {
                         [styles.disabled]: disabled,
