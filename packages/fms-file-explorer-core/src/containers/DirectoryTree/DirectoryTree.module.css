@@ -1,27 +1,35 @@
 .container {
-    --filter-display-bar-height: 40px;
+    --filter-display-height: 50px;
+    --filter-display-margin-bottom: 10px;
 
     position: relative;
+
+    /* flex parent */
+    display: flex;
+    flex-direction: column;
 }
 
 .filter-display-bar {
-    height: var(--filter-display-bar-height);
-    transition: height var(--transition-duration); /* defined in App.module.css under .root{} */;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--filter-display-margin-bottom);
+
+    /* flex child */
+    flex: 1 1 var(--filter-display-height);
 }
 
 .filter-display-bar.hidden {
-    height: 0;
+    flex: 0;
     margin-bottom: 0;
 }
 
 .scroll-container {
     overflow-y: auto;
     width: 100%;
-    height: calc(100% - var(--filter-display-bar-height));
-    transition: height var(--transition-duration); /* defined in App.module.css under .root{} */;
     margin: 0;
     padding: 0;
+
+    /* flex child */
+    --flex-basis: calc(100% - (var(--filter-display-height) + var(--filter-display-margin-bottom)));
+    flex: 1 1 var(--flex-basis);
 }
 
 .filter-display-bar.hidden ~ .scroll-container {
