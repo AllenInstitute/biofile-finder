@@ -91,6 +91,7 @@
 }
 
 .file-list {
+    flex: auto;
     height: 100%;
     width: 70%;
     margin-left: var(--margin);
