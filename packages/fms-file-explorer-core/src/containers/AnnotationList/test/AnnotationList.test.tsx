@@ -1,6 +1,6 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
-import { expect } from "chai";
-import { mount } from "enzyme";
+import { fireEvent, render } from "@testing-library/react";
+import { assert, expect } from "chai";
 import * as React from "react";
 import { DragDropContext } from "react-beautiful-dnd";
 import { Provider } from "react-redux";
@@ -8,7 +8,8 @@ import { Provider } from "react-redux";
 import AnnotationList from "..";
 import Annotation from "../../../entity/Annotation";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
-import { initialState } from "../../../state";
+import FileFilter from "../../../entity/FileFilter";
+import { initialState, reducer, selection } from "../../../state";
 
 describe("<AnnotationList />", () => {
     before(() => {
@@ -23,7 +24,7 @@ describe("<AnnotationList />", () => {
 
     describe("Search behavior", () => {
         it("filters list of annotations according to search input", () => {
-            // setup
+            // Arrange
             const { store } = configureMockStore({
                 state: mergeState(initialState, {
                     metadata: {
@@ -34,7 +35,7 @@ describe("<AnnotationList />", () => {
                 }),
             });
 
-            const wrapper = mount(
+            const { getAllByTestId, getByText, getByPlaceholderText } = render(
                 <Provider store={store}>
                     <DragDropContext
                         onDragEnd={() => {
@@ -45,27 +46,96 @@ describe("<AnnotationList />", () => {
                     </DragDropContext>
                 </Provider>
             );
-            const queryNumberListItems = () =>
-                wrapper.find("abbr[data-test-id='annotation-list-item']").length;
+            const queryNumberListItems = () => getAllByTestId("annotation-list-item").length;
 
-            // before, expect all annotations to be in the list
+            // (Sanity-check) expect all annotations to be in the list
             const allAnnotationDisplayNames = annotationsJson.map(
                 (annotation) => annotation.annotationDisplayName
             );
             expect(queryNumberListItems()).to.equal(allAnnotationDisplayNames.length);
             allAnnotationDisplayNames.forEach((annotation) => {
-                expect(wrapper.contains(annotation)).to.be.true;
+                expect(getByText(annotation)).to.exist;
             });
 
-            // execute a search
-            wrapper
-                .find("input[type='search']")
-                .simulate("change", { target: { value: "created" } });
+            // Act: execute a search
+            fireEvent.change(getByPlaceholderText("Search..."), {
+                target: { value: "created" },
+            });
 
-            // after, expect a filtered list, and for it to include only annotations similar to search input
+            // Assert: expect a filtered list, and for it to include only annotations similar to search input
             expect(queryNumberListItems()).to.be.lessThan(allAnnotationDisplayNames.length);
-            expect(wrapper.contains("Date created")).to.be.true;
-            expect(wrapper.contains("Size")).to.be.false;
+            expect(getByText("Date created")).to.exist;
+            expect(() => getByText("Size")).to.throw();
+        });
+    });
+
+    describe("Clear All Filters button", () => {
+        it("clears all filters", async () => {
+            // Arrange
+            const { store } = configureMockStore({
+                reducer,
+                state: mergeState(initialState, {
+                    selection: {
+                        filters: [
+                            new FileFilter("Cell Line", "AICS-0"),
+                            new FileFilter("Date Created", "01/01/10"),
+                        ],
+                    },
+                }),
+            });
+            const { getByText } = render(
+                <Provider store={store}>
+                    <DragDropContext
+                        onDragEnd={() => {
+                            /* noop */
+                        }}
+                    >
+                        <AnnotationList />
+                    </DragDropContext>
+                </Provider>
+            );
+            const button = getByText("Clear All Filters").closest("button");
+            if (!button) {
+                assert.fail("Could not find 'Clear All Filters' button");
+            }
+
+            // (Sanity-check) Ensure the button isn't disabled
+            expect(button.disabled).to.be.false;
+
+            // Act
+            fireEvent.click(button);
+
+            // Assert
+            expect(selection.selectors.getFileFilters(store.getState())).to.be.empty;
+        });
+
+        it("is disabled when no filters are applied", () => {
+            // Arrange
+            const { store } = configureMockStore({
+                state: mergeState(initialState, {
+                    selection: {
+                        filters: [],
+                    },
+                }),
+            });
+            const { getByText } = render(
+                <Provider store={store}>
+                    <DragDropContext
+                        onDragEnd={() => {
+                            /* noop */
+                        }}
+                    >
+                        <AnnotationList />
+                    </DragDropContext>
+                </Provider>
+            );
+            const button = getByText("Clear All Filters").closest("button");
+            if (!button) {
+                assert.fail("Could not find 'Clear All Filters' button");
+            }
+
+            // Assert
+            expect(button.disabled).to.be.true;
         });
     });
 });
