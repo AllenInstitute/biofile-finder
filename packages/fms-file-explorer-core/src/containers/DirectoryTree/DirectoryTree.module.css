@@ -1,13 +1,31 @@
 .container {
+    --filter-display-bar-height: 40px;
+
     position: relative;
+}
+
+.filter-display-bar {
+    height: var(--filter-display-bar-height);
+    transition: height var(--transition-duration); /* defined in App.module.css under .root{} */;
+    margin-bottom: 0.5rem;
+}
+
+.filter-display-bar.hidden {
+    height: 0;
+    margin-bottom: 0;
 }
 
 .scroll-container {
     overflow-y: auto;
     width: 100%;
-    height: 100%;
+    height: calc(100% - var(--filter-display-bar-height));
+    transition: height var(--transition-duration); /* defined in App.module.css under .root{} */;
     margin: 0;
     padding: 0;
+}
+
+.filter-display-bar.hidden ~ .scroll-container {
+    height: 100%;
 }
 
 .scroll-container li {

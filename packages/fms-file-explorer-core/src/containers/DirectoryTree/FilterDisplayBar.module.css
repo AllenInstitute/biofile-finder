@@ -1,0 +1,53 @@
+.container {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+
+    /* flex parent */
+    display: flex;
+    align-items: center;
+}
+
+.medallion {
+    border: 1px solid #ebebeb;
+    border-radius: 15px;
+    margin: 0 0.5rem;
+    padding: 4px;
+
+    /* flex parent */
+    display: flex;
+    flex-direction: row;
+}
+
+.medallion:first-of-type {
+    margin-left: 0;
+}
+
+.medallion-text {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 300px;
+    transition: max-width var(--transition-duration); /* defined in App.module.css under .root{} */
+    cursor: pointer;
+}
+
+.expanded {
+    max-width: 100%;
+}
+
+.spacer {
+    /* push spacer a little closer to the "close" icon than to the medallion text */
+    margin-left: 12px;
+    margin-right: 4px;
+}
+
+.spacer::after {
+    content: "";
+    border-right: 0.5px solid #ebebeb;
+    height: 100%;
+}
+
+.close-icon {
+    flex: 0 0 auto;
+}
