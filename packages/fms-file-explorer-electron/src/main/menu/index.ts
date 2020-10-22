@@ -10,7 +10,7 @@ const defaultMenuItems: MenuItemConstructorOptions[] = [
     { role: "fileMenu" },
     {
         label: "Edit",
-        submenu: [{ role: "copy" }],
+        submenu: [{ role: "copy" }, { role: "cut" }, { role: "paste" }, { role: "selectAll" }],
     },
     { role: "viewMenu" },
     { role: "windowMenu" },
