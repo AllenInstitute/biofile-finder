@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import AnnotationListItem from "./AnnotationListItem";
 import DnDList from "../../components/DnDList";
+import { DnDListDividers } from "../../components/DnDList/DnDList";
 import SvgIcon from "../../components/SvgIcon";
 import * as annotationSelectors from "../AnnotationSidebar/selectors";
 import selection from "../../state/selection";
@@ -49,11 +50,17 @@ export default function AnnotationList(props: AnnotationListProps) {
         selection.selectors.getAvailableAnnotationsForHierarchyLoading
     );
     const annotationListItems = useSelector(annotationSelectors.getAnnotationListItems);
-    const hierarchyListItems = useSelector(annotationSelectors.getHierarchyListItems);
-    const nonAvailableAnnotations = useSelector(
-        annotationSelectors.getNonAvailableAnnotationsForHierarchy
+
+    const firstFilteredItemIndex =
+        annotationListItems.length && annotationListItems[0].filtered ? 0 : -1;
+    const firstDefaultItemIndex = annotationListItems.findIndex(
+        (item) => !item.disabled && !item.filtered
     );
-    const unusableAnnotationsListItems = [...hierarchyListItems, ...nonAvailableAnnotations];
+    const dividers: DnDListDividers = {
+        [firstFilteredItemIndex]: { title: "Filtered" },
+        [firstDefaultItemIndex]: {},
+    };
+
     const [searchValue, setSearchValue] = React.useState("");
 
     // Perform fuzzy search using searchValue within annotation list items, considering the items
@@ -97,11 +104,11 @@ export default function AnnotationList(props: AnnotationListProps) {
                 </div>
                 <DnDList
                     className={styles.list}
-                    disabledItems={unusableAnnotationsListItems}
                     items={filteredListItems}
                     id={DROPPABLE_ID}
                     isDropDisabled={true}
                     itemRenderer={AnnotationListItem}
+                    dividers={dividers}
                     loading={annotationsLoading}
                 />
             </div>
