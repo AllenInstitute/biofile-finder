@@ -20,32 +20,24 @@ export const getAnnotationListItems = createSelector(
         hierarchy: Annotation[],
         filters: FileFilter[]
     ): AnnotationListItemType[] => {
-        const disabledAnnotationNames = new Set([
-            ...availableAnnotationNames,
-            ...hierarchy.map((annotation) => annotation.name),
-        ]);
+        const disabledAnnotations = hierarchy.length
+            ? annotations.filter(
+                  (annotation) => !availableAnnotationNames.includes(annotation.name)
+              )
+            : [];
+        const disabledAnnotationNames = new Set(
+            disabledAnnotations.map((annotation) => annotation.name)
+        );
         const filteredAnnotationNames = new Set(filters.map((filter) => filter.name));
-        const disabledItems: AnnotationListItemType[] = [];
-        const filteredItems: AnnotationListItemType[] = [];
-        const items: AnnotationListItemType[] = [];
-        annotations.forEach((annotation) => {
-            const disabled = disabledAnnotationNames.has(annotation.name);
-            const item = {
-                disabled,
+        return annotations
+            .map((annotation) => ({
                 description: annotation.description,
+                disabled: disabledAnnotationNames.has(annotation.name),
                 filtered: filteredAnnotationNames.has(annotation.name),
                 id: annotation.name,
                 title: annotation.displayName,
-            };
-            if (filteredAnnotationNames.has(annotation.name)) {
-                filteredItems.push(item);
-            } else if (disabledAnnotationNames.has(annotation.name)) {
-                disabledItems.push(item);
-            } else {
-                items.push(item);
-            }
-        });
-        return [...filteredItems, ...items, ...disabledItems];
+            }))
+            .sort((a, b) => (a.filtered && !b.filtered ? -1 : 1));
     }
 );
 
