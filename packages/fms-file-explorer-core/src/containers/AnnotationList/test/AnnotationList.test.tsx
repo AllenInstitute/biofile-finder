@@ -138,4 +138,62 @@ describe("<AnnotationList />", () => {
             expect(button.disabled).to.be.true;
         });
     });
+
+    describe("Filtered section of list", () => {
+        it("exists when annotations are filtered", () => {
+            // Arrange
+            const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
+            const { store } = configureMockStore({
+                state: mergeState(initialState, {
+                    metadata: {
+                        annotations,
+                    },
+                    selection: {
+                        filters: [new FileFilter("cell_line", "AICS-11")],
+                    },
+                }),
+            });
+            const { getByText } = render(
+                <Provider store={store}>
+                    <DragDropContext
+                        onDragEnd={() => {
+                            /* noop */
+                        }}
+                    >
+                        <AnnotationList />
+                    </DragDropContext>
+                </Provider>
+            );
+
+            // Assert
+            expect(getByText("Filtered")).to.exist;
+        });
+
+        it("does not exist when no annotations are filtered", () => {
+            // Arrange
+            const { store } = configureMockStore({
+                state: mergeState(initialState, {
+                    metadata: {
+                        annotations: annotationsJson.map(
+                            (annotation) => new Annotation(annotation)
+                        ),
+                    },
+                }),
+            });
+            const { getByText } = render(
+                <Provider store={store}>
+                    <DragDropContext
+                        onDragEnd={() => {
+                            /* noop */
+                        }}
+                    >
+                        <AnnotationList />
+                    </DragDropContext>
+                </Provider>
+            );
+
+            // Assert
+            expect(() => getByText("Filtered")).to.throw();
+        });
+    });
 });
