@@ -1,0 +1,8 @@
+.container {
+    width: 100%;
+    overflow: auto;
+
+    /* flex parent */
+    display: flex;
+    align-items: center;
+}

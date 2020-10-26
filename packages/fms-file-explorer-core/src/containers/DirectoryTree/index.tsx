@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { interaction, selection } from "../../state";
 import AggregateInfoBox from "../AggregateInfoBox";
 import FileSet from "../../entity/FileSet";
-import FilterDisplayBar from "./FilterDisplayBar";
+import FilterDisplayBar from "../FilterDisplayBar";
 import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
 

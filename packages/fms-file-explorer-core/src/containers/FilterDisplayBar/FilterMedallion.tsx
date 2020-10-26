@@ -1,21 +1,26 @@
 import classNames from "classnames";
-import { groupBy, map } from "lodash";
+import { map } from "lodash";
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import { REMOVE_ICON_PATH_DATA } from "../../icons";
 import { selection } from "../../state";
 import FileFilter from "../../entity/FileFilter";
 import SvgIcon from "../../components/SvgIcon";
 
-const styles = require("./FilterDisplayBar.module.css");
+const styles = require("./FilterMedallion.module.css");
 
-interface FilterMedallionProps {
+interface Props {
     name: string;
     filters: FileFilter[];
 }
 
-function FilterMedallion(props: FilterMedallionProps) {
+/**
+ * UI for displaying the annotation values applies as file filters for a single annotation.
+ * Each `FileFilter` within `props.filters` must related to the same annotation (e.g. `FileFilter.name`
+ * for each should be equal).
+ */
+export default function FilterMedallion(props: Props) {
     const { filters, name } = props;
     const [expand, setExpand] = React.useState(false);
     const dispatch = useDispatch();
@@ -43,27 +48,6 @@ function FilterMedallion(props: FilterMedallionProps) {
                 viewBox="0 0 20 20"
                 width={15}
             />
-        </div>
-    );
-}
-
-interface FilterDisplayBarProps {
-    className?: string;
-}
-
-export default function FilterDisplayBar(props: FilterDisplayBarProps) {
-    const { className } = props;
-
-    const globalFilters = useSelector(selection.selectors.getFileFilters);
-    const groupedByFilter = React.useMemo(() => groupBy(globalFilters, (filter) => filter.name), [
-        globalFilters,
-    ]);
-
-    return (
-        <div className={classNames(styles.container, className)}>
-            {map(groupedByFilter, (filters, filterName) => (
-                <FilterMedallion key={filterName} filters={filters} name={filterName} />
-            ))}
         </div>
     );
 }
