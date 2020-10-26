@@ -18,7 +18,6 @@
     white-space: nowrap;
     overflow: hidden;
     max-width: 250px;
-    transition: max-width var(--transition-duration); /* defined in App.module.css under .root{} */
     cursor: pointer;
 }
 
