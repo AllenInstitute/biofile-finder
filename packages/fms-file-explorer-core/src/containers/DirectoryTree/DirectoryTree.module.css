@@ -1,7 +1,4 @@
 .container {
-    --filter-display-height: 50px;
-    --filter-display-margin-bottom: 10px;
-
     position: relative;
 
     /* flex parent */
@@ -10,10 +7,11 @@
 }
 
 .filter-display-bar {
-    margin-bottom: var(--filter-display-margin-bottom);
+    margin-bottom: 10px;
+    max-height: 45px;
 
     /* flex child */
-    flex: 1 1 var(--filter-display-height);
+    flex: 1 1 auto;
 }
 
 .filter-display-bar.hidden {
@@ -28,8 +26,7 @@
     padding: 0;
 
     /* flex child */
-    --flex-basis: calc(100% - (var(--filter-display-height) + var(--filter-display-margin-bottom)));
-    flex: 1 1 var(--flex-basis);
+    flex: 1 1 auto;
 }
 
 .filter-display-bar.hidden ~ .scroll-container {
