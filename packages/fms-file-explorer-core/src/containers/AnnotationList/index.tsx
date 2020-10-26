@@ -51,11 +51,8 @@ export default function AnnotationList(props: AnnotationListProps) {
     );
     const annotationListItems = useSelector(annotationSelectors.getAnnotationListItems);
 
-    const firstFilteredItemIndex =
-        annotationListItems.length && annotationListItems[0].filtered ? 0 : -1;
-    const firstDefaultItemIndex = annotationListItems.findIndex(
-        (item) => !item.disabled && !item.filtered
-    );
+    const firstDefaultItemIndex = annotationListItems.findIndex((item) => !item.filtered);
+    const firstFilteredItemIndex = firstDefaultItemIndex === 0 ? -1 : 0;
     const dividers: DnDListDividers = {
         [firstFilteredItemIndex]: { title: "Filtered" },
         [firstDefaultItemIndex]: {},
