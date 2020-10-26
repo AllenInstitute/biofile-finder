@@ -19,3 +19,14 @@
 .disabled {
     color: var(--grey);
 }
+
+.divider {
+    color: #7c7d7f;
+    font-size: smaller;
+    padding-right: 2px;
+    margin-bottom: 3px;
+}
+
+.divider-line {
+    border-top: 2px dashed #7c7d7f;
+}
