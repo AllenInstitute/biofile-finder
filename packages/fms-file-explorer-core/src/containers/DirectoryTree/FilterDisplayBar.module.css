@@ -11,7 +11,7 @@
     border: 1px solid #ebebeb;
     border-radius: 15px;
     margin: 0 0.5rem;
-    padding: 4px;
+    padding: 4px 8px;
 
     /* flex parent */
     display: flex;
@@ -29,6 +29,10 @@
     max-width: 300px;
     transition: max-width var(--transition-duration); /* defined in App.module.css under .root{} */
     cursor: pointer;
+}
+
+.medallion-text[title] {
+    text-decoration: none;
 }
 
 .expanded {

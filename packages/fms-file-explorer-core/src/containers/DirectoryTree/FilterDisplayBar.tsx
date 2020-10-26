@@ -2,8 +2,6 @@ import classNames from "classnames";
 import { groupBy, map } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Tippy from "@tippy.js/react";
-import "tippy.js/dist/tippy.css"; // side-effect
 
 import { REMOVE_ICON_PATH_DATA } from "../../icons";
 import { selection } from "../../state";
@@ -27,14 +25,13 @@ function FilterMedallion(props: FilterMedallionProps) {
     const display = `${name} ${operator} ${valueDisplay}`;
     return (
         <div className={styles.medallion}>
-            <Tippy content={display}>
-                <div
-                    className={classNames(styles.medallionText, { [styles.expanded]: expand })}
-                    onClick={() => setExpand((prev) => !prev)}
-                >
-                    {display}
-                </div>
-            </Tippy>
+            <abbr
+                className={classNames(styles.medallionText, { [styles.expanded]: expand })}
+                onClick={() => setExpand((prev) => !prev)}
+                title={display}
+            >
+                {display}
+            </abbr>
             <span className={styles.spacer}></span>
             <SvgIcon
                 className={styles.closeIcon}

@@ -93,7 +93,7 @@
 .file-list {
     flex: auto;
     height: 100%;
-    width: 70%;
+    width: calc(70% - var(--margin));
     margin-left: var(--margin);
 }
 
