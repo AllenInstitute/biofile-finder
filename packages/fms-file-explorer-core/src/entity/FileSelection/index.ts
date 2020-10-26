@@ -508,13 +508,15 @@ export default class FileSelection {
     public toCompactSelectionList(): Selection[] {
         const selections: Selection[] = [];
         for (const [fileSet, selectedRanges] of this.groupByFileSet().entries()) {
+            const accumulator: { [index: string]: any } = {};
             const selection: Selection = {
                 filters: fileSet.filters.reduce((accum, filter) => {
+                    const existing = accum[filter.name] || [];
                     return {
                         ...accum,
-                        [filter.name]: filter.value,
+                        [filter.name]: [...existing, filter.value],
                     };
-                }, {}),
+                }, accumulator),
                 indexRanges: selectedRanges.map((range) => range.toJSON()),
             };
             selections.push(selection);

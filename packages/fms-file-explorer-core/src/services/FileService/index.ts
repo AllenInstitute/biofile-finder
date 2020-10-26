@@ -44,7 +44,7 @@ export interface GetFilesRequest {
 
 export interface Selection {
     filters: {
-        [index: string]: string | number | boolean;
+        [index: string]: (string | number | boolean)[];
     };
     indexRanges: JSONReadyRange[];
 }
