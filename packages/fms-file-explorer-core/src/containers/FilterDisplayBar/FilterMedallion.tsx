@@ -1,12 +1,12 @@
 import classNames from "classnames";
 import { map } from "lodash";
+import { IconButton } from "office-ui-fabric-react";
 import * as React from "react";
 import { useDispatch } from "react-redux";
 
-import { REMOVE_ICON_PATH_DATA } from "../../icons";
 import { selection } from "../../state";
 import FileFilter from "../../entity/FileFilter";
-import SvgIcon from "../../components/SvgIcon";
+import AnnotationFilter from "../AnnotationSidebar/AnnotationFilter";
 
 const styles = require("./FilterMedallion.module.css");
 
@@ -14,6 +14,22 @@ interface Props {
     name: string;
     filters: FileFilter[];
 }
+
+const CLOSE_ICON = { iconName: "ChromeClose" };
+const BUTTON_STYLES = {
+    icon: {
+        color: "black",
+        fontSize: "8px",
+    },
+    menuIcon: {
+        display: "none" as "none", // bizarre typings issue
+    },
+    root: {
+        height: 22,
+        width: 22,
+        padding: 0,
+    },
+};
 
 /**
  * UI for displaying the annotation values applies as file filters for a single annotation.
@@ -38,15 +54,13 @@ export default function FilterMedallion(props: Props) {
                 {display}
             </abbr>
             <span className={styles.spacer}></span>
-            <SvgIcon
-                className={styles.closeIcon}
-                height={15}
+            <AnnotationFilter annotationName={name} styleOverrides={{ root: BUTTON_STYLES.root }} />
+            <IconButton
+                iconProps={CLOSE_ICON}
                 onClick={() => {
                     dispatch(selection.actions.removeFileFilter(filters));
                 }}
-                pathData={REMOVE_ICON_PATH_DATA}
-                viewBox="0 0 20 20"
-                width={15}
+                styles={BUTTON_STYLES}
             />
         </div>
     );

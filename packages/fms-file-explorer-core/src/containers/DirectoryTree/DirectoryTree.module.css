@@ -8,7 +8,7 @@
 
 .filter-display-bar {
     margin-bottom: 10px;
-    max-height: 45px;
+    max-height: 50px;
 
     /* flex child */
     flex: 1 1 auto;

@@ -1,4 +1,4 @@
-import { IconButton, DirectionalHint } from "office-ui-fabric-react";
+import { IconButton, DirectionalHint, IButtonStyles } from "office-ui-fabric-react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -8,13 +8,14 @@ import { selection } from "../../state";
 interface FilterProps {
     annotationName: string;
     iconColor?: string;
+    styleOverrides?: IButtonStyles;
 }
 
 const FILTER_ICON = { iconName: "FilterSolid" };
 
 // change the color of the icon from its default (black) to provide some indication
 // to the user that a filter is applied
-const FILTERS_APPLIED_COLOR_INDICATOR = "orchid";
+const FILTERS_APPLIED_COLOR_INDICATOR = "#0b9aab"; // style guide torquise
 
 /**
  * A small icon button rendered inline next to annotation list items (and annotation hierarchy items).
@@ -22,7 +23,7 @@ const FILTERS_APPLIED_COLOR_INDICATOR = "orchid";
  * filter the application's data.
  */
 export default function AnnotationFilter(props: FilterProps) {
-    const { annotationName, iconColor } = props;
+    const { annotationName, iconColor, styleOverrides } = props;
 
     const fileFilters = useSelector(selection.selectors.getFileFilters);
 
@@ -57,12 +58,14 @@ export default function AnnotationFilter(props: FilterProps) {
             root: {
                 height: 22,
             },
+            ...styleOverrides,
         };
-    }, [annotationIsFiltered, iconColor]);
+    }, [annotationIsFiltered, iconColor, styleOverrides]);
 
     return <IconButton iconProps={FILTER_ICON} menuProps={menuProps} styles={iconButtonStyles} />;
 }
 
 AnnotationFilter.defaultProps = {
     iconColor: "black",
+    styleOverrides: {},
 };
