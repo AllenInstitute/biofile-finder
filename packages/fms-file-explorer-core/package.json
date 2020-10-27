@@ -51,7 +51,7 @@
     "@babel/preset-react": "7.0.x",
     "@babel/preset-typescript": "7.8.x",
     "@babel/register": "7.10.x",
-    "@testing-library/react": "9.4.x",
+    "@testing-library/react": "11.1.x",
     "@types/chai": "4.2.x",
     "@types/classnames": "2.2.x",
     "@types/debounce-promise": "3.1.x",
