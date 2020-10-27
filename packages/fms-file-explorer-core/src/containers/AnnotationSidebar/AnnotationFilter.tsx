@@ -62,7 +62,15 @@ export default function AnnotationFilter(props: FilterProps) {
         };
     }, [annotationIsFiltered, iconColor, styleOverrides]);
 
-    return <IconButton iconProps={FILTER_ICON} menuProps={menuProps} styles={iconButtonStyles} />;
+    return (
+        <IconButton
+            ariaDescription={`Set filters for ${annotationName}`}
+            ariaLabel="Filter"
+            iconProps={FILTER_ICON}
+            menuProps={menuProps}
+            styles={iconButtonStyles}
+        />
+    );
 }
 
 AnnotationFilter.defaultProps = {
