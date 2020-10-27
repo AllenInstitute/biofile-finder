@@ -73,7 +73,7 @@ export default function AnnotationList(props: AnnotationListProps) {
     }, [annotationListItems, searchValue]);
 
     const onClearFilters = () => {
-        dispatch(selection.actions.setFileFilters([]));
+        dispatch(selection.actions.removeFileFilter(filters));
     };
 
     return (

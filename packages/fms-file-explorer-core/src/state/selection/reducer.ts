@@ -55,6 +55,9 @@ export default makeReducer<SelectionStateBranch>(
         [SET_FILE_FILTERS]: (state, action) => ({
             ...state,
             filters: action.payload,
+
+            // Reset file selections when file filters change
+            fileSelection: new FileSelection(),
         }),
         // Reset hierarchy when annotations are re-requested (like when changing data source)
         [metadata.actions.RECEIVE_ANNOTATIONS]: (state) => ({
