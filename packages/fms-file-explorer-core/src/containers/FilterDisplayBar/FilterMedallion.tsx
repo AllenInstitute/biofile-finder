@@ -79,6 +79,8 @@ export default function FilterMedallion(props: Props) {
             <span className={styles.spacer}></span>
             <AnnotationFilter annotationName={name} styleOverrides={{ root: BUTTON_STYLES.root }} />
             <IconButton
+                ariaDescription={`Clear all filters currently set for ${name}`}
+                ariaLabel="Clear"
                 iconProps={CLOSE_ICON}
                 onClick={() => {
                     dispatch(selection.actions.removeFileFilter(filters));
