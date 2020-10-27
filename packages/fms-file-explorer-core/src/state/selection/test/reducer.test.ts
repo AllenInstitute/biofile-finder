@@ -81,6 +81,55 @@ describe("Selection reducer", () => {
         });
     });
 
+    describe("SELECT_DISPLAY_ANNOTATION", () => {
+        it("performs an update when replace=false", () => {
+            // arrange
+            const initialSelectionState = {
+                ...selection.initialState,
+                displayAnnotations: [TOP_LEVEL_FILE_ANNOTATIONS[0]],
+            };
+
+            const action = selection.actions.selectDisplayAnnotation(
+                TOP_LEVEL_FILE_ANNOTATIONS[1] // replace=false is the default
+            );
+
+            // act
+            const nextSelectionState = selection.reducer(initialSelectionState, action);
+
+            // assert
+            expect(
+                selection.selectors.getAnnotationsToDisplay({
+                    ...initialState,
+                    selection: nextSelectionState,
+                })
+            ).to.deep.equal([TOP_LEVEL_FILE_ANNOTATIONS[0], TOP_LEVEL_FILE_ANNOTATIONS[1]]);
+        });
+
+        it("performs a set when replace=true", () => {
+            // arrange
+            const initialSelectionState = {
+                ...selection.initialState,
+                displayAnnotations: [TOP_LEVEL_FILE_ANNOTATIONS[0]],
+            };
+
+            const action = selection.actions.selectDisplayAnnotation(
+                TOP_LEVEL_FILE_ANNOTATIONS[1],
+                true
+            );
+
+            // act
+            const nextSelectionState = selection.reducer(initialSelectionState, action);
+
+            // assert
+            expect(
+                selection.selectors.getAnnotationsToDisplay({
+                    ...initialState,
+                    selection: nextSelectionState,
+                })
+            ).to.deep.equal([TOP_LEVEL_FILE_ANNOTATIONS[1]]);
+        });
+    });
+
     describe("SET_FILE_FILTERS", () => {
         it("sets file filters", () => {
             // Arrange
@@ -132,29 +181,6 @@ describe("Selection reducer", () => {
                     selection: nextSelectionState,
                 })
             ).to.deep.equal(new FileSelection());
-        });
-    });
-
-    describe("metadata.actions.RECEIVE_ANNOTATIONS", () => {
-        it("clears annotations hierarchy", () => {
-            // arrange
-            const initialSelectionState = {
-                ...selection.initialState,
-                annotationHierarchy: TOP_LEVEL_FILE_ANNOTATIONS,
-            };
-
-            const action = metadata.actions.receiveAnnotations(TOP_LEVEL_FILE_ANNOTATIONS);
-
-            // act
-            const nextSelectionState = selection.reducer(initialSelectionState, action);
-
-            // assert
-            expect(
-                selection.selectors.getAnnotationHierarchy({
-                    ...initialState,
-                    selection: nextSelectionState,
-                })
-            ).to.be.empty;
         });
     });
 
