@@ -9,7 +9,7 @@ import AnnotationList from "..";
 import Annotation from "../../../entity/Annotation";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import FileFilter from "../../../entity/FileFilter";
-import { initialState, reducer, selection } from "../../../state";
+import { initialState, reducer, reduxLogics, selection } from "../../../state";
 
 describe("<AnnotationList />", () => {
     before(() => {
@@ -74,6 +74,7 @@ describe("<AnnotationList />", () => {
             // Arrange
             const { store } = configureMockStore({
                 reducer,
+                logics: reduxLogics,
                 state: mergeState(initialState, {
                     selection: {
                         filters: [
