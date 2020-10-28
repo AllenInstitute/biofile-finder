@@ -56,13 +56,15 @@ const downloadManifest = createLogic({
                     fileService,
                 });
                 const count = await fileSet.fetchTotalCount();
+                const accumulator: { [index: string]: any } = {};
                 const selection: Selection = {
                     filters: fileSet.filters.reduce((accum, filter) => {
+                        const existing = accum[filter.name] || [];
                         return {
                             ...accum,
-                            [filter.name]: filter.value,
+                            [filter.name]: [...existing, filter.value],
                         };
-                    }, {}),
+                    }, accumulator),
                     indexRanges: [new NumericRange(0, count - 1).toJSON()],
                 };
                 selections = [selection];

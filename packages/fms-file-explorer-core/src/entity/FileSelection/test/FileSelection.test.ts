@@ -683,7 +683,7 @@ describe("FileSelection", () => {
                 new NumericRange(3).toJSON(),
                 new NumericRange(12, 15).toJSON(),
             ]);
-            expect(selections[1].filters).to.be.deep.equal({ foo: "bar" });
+            expect(selections[1].filters).to.be.deep.equal({ foo: ["bar"] });
             expect(selections[1].indexRanges).to.be.deep.equal([
                 new NumericRange(8, 10).toJSON(),
                 new NumericRange(33).toJSON(),
