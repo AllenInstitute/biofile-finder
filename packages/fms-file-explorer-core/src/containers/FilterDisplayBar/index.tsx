@@ -15,18 +15,6 @@ interface Props {
     classNameHidden?: string;
 }
 
-const FILTER_BUTTON_STYLES = {
-    label: {
-        fontSize: "16px",
-        fontWeight: "500",
-    },
-    root: {
-        height: "35px",
-        padding: 0,
-        marginRight: 12,
-    },
-};
-
 /**
  * Display of applied file filters.
  */
