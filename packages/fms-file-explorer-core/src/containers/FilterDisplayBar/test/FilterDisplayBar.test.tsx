@@ -1,5 +1,6 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
+import { expect } from "chai";
 import React from "react";
 import { Provider } from "react-redux";
 
@@ -7,7 +8,6 @@ import FileFilter from "../../../entity/FileFilter";
 import { initialState, reducer, reduxLogics } from "../../../state";
 
 import FilterDisplayBar from "../";
-import { expect } from "chai";
 
 describe("<FilterDisplayBar />", () => {
     it("renders a medallion for each annotation represented in application state file filters", async () => {
