@@ -4,5 +4,20 @@
 
     /* flex parent */
     display: flex;
+    align-items: center;
+}
+
+.title-button {
+    /* flex child */
+    flex: 0 0 auto;
+}
+
+.filters {
+    /* flex child */
+    flex: 1 1 auto;
+
+    /* flex parent */
+    display: flex;
     align-items: flex-start;
+    justify-content: flex-start;
 }

@@ -1,38 +1,13 @@
 .container {
-    --filter-display-height: 50px;
-    --filter-display-margin-bottom: 5px;
     position: relative;
-
-    /* flex parent */
-    display: flex;
-    flex-direction: column;
-}
-
-.filter-display-bar {
-    margin-bottom: var(--filter-display-margin-bottom);
-
-    /* flex child */
-    flex: 1 1 var(--filter-display-height);
-}
-
-.filter-display-bar.hidden {
-    flex: 0;
-    margin-bottom: 0;
 }
 
 .scroll-container {
     overflow-y: auto;
     width: 100%;
+    height: 100%;
     margin: 0;
     padding: 0;
-
-    /* flex child */
-    --flex-basis: calc(100% - (var(--filter-display-height) + var(--filter-display-margin-bottom)));
-    flex: 1 1 var(--flex-basis);
-}
-
-.filter-display-bar.hidden ~ .scroll-container {
-    height: 100%;
 }
 
 .scroll-container li {
