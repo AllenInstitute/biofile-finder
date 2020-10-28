@@ -14,10 +14,7 @@ export interface DnDItem {
 }
 
 export interface DnDListDividers {
-    [index: number]: {
-        // Index to insert divider at
-        title?: string; // Title for section
-    };
+    [index: number]: JSX.Element;
 }
 
 export interface DnDItemRendererParams {
@@ -60,14 +57,7 @@ export default function DnDList(props: DnDListProps) {
                         const disabled = loading || item.disabled;
                         return [
                             ...items,
-                            ...(dividers && dividers[index]
-                                ? [
-                                      <div className={styles.divider} key={dividers[index].title}>
-                                          {index !== 0 && <hr className={styles.dividerLine} />}
-                                          {dividers[index].title}
-                                      </div>,
-                                  ]
-                                : []),
+                            ...(dividers && dividers[index] ? [dividers[index]] : []),
                             <Draggable
                                 key={item.id}
                                 draggableId={JSON.stringify({ sourceId: id, itemId: item.id })}

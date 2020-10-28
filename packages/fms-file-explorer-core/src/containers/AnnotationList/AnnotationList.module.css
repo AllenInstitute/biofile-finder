@@ -65,22 +65,37 @@
     flex: 1 1 20px;
 }
 
+.button-container {
+    display: flex;
+    align-items: center;
+}
+
 .clear-filters-button, .clear-filters-button:hover, .clear-filters-button:active {
+    background: none;
     border: none;
-    border-radius: 3px;
-    background-color: #003057;
-    color: white;
+    color: #003057;
+    font-size: 10px;
+    margin: auto;
+    margin-top: 3px;
+    width: 110px;
 }
 
 .clear-filters-button:hover {
-    opacity: 0.85;
+    cursor: pointer;
+    opacity: 0.5;
 }
 
 .clear-filters-button:active {
-    opacity: 0.65;
+    opacity: 0.25;
 }
 
-.clear-filters-button:disabled {
-    background-color: #7c7d7f;
-    opacity: 0.85;
+.divider-title {
+    color: #7c7d7f;
+    font-size: smaller;
+    padding-right: 2px;
+    margin-bottom: 3px;
+}
+
+.divider-line {
+    border-top: 2px dashed #7c7d7f;
 }

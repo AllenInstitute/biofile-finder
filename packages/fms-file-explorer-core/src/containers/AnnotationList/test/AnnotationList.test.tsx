@@ -76,10 +76,15 @@ describe("<AnnotationList />", () => {
                 reducer,
                 logics: reduxLogics,
                 state: mergeState(initialState, {
+                    metadata: {
+                        annotations: annotationsJson.map(
+                            (annotation) => new Annotation(annotation)
+                        ),
+                    },
                     selection: {
                         filters: [
-                            new FileFilter("Cell Line", "AICS-0"),
-                            new FileFilter("Date Created", "01/01/10"),
+                            new FileFilter("cell_line", "AICS-0"),
+                            new FileFilter("date_created", "01/01/10"),
                         ],
                     },
                 }),
@@ -95,7 +100,7 @@ describe("<AnnotationList />", () => {
                     </DragDropContext>
                 </Provider>
             );
-            const button = getByText("Clear All Filters").closest("button");
+            const button = getByText("CLEAR ALL FILTERS").closest("button");
             if (!button) {
                 assert.fail("Could not find 'Clear All Filters' button");
             }
@@ -108,35 +113,6 @@ describe("<AnnotationList />", () => {
 
             // Assert
             expect(selection.selectors.getFileFilters(store.getState())).to.be.empty;
-        });
-
-        it("is disabled when no filters are applied", () => {
-            // Arrange
-            const { store } = configureMockStore({
-                state: mergeState(initialState, {
-                    selection: {
-                        filters: [],
-                    },
-                }),
-            });
-            const { getByText } = render(
-                <Provider store={store}>
-                    <DragDropContext
-                        onDragEnd={() => {
-                            /* noop */
-                        }}
-                    >
-                        <AnnotationList />
-                    </DragDropContext>
-                </Provider>
-            );
-            const button = getByText("Clear All Filters").closest("button");
-            if (!button) {
-                assert.fail("Could not find 'Clear All Filters' button");
-            }
-
-            // Assert
-            expect(button.disabled).to.be.true;
         });
     });
 

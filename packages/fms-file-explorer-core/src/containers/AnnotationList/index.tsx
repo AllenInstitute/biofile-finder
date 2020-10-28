@@ -1,6 +1,5 @@
 import classNames from "classnames";
 import Fuse from "fuse.js";
-import { PrimaryButton } from "office-ui-fabric-react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -50,15 +49,29 @@ export default function AnnotationList(props: AnnotationListProps) {
         selection.selectors.getAvailableAnnotationsForHierarchyLoading
     );
     const annotationListItems = useSelector(annotationSelectors.getAnnotationListItems);
-
-    const firstDefaultItemIndex = annotationListItems.findIndex((item) => !item.filtered);
-    const firstFilteredItemIndex = firstDefaultItemIndex === 0 ? -1 : 0;
-    const dividers: DnDListDividers = {
-        [firstFilteredItemIndex]: { title: "Filtered" },
-        [firstDefaultItemIndex]: {},
-    };
-
     const [searchValue, setSearchValue] = React.useState("");
+
+    let dividers: DnDListDividers = {};
+    const firstDefaultItemIndex = annotationListItems.findIndex((item) => !item.filtered);
+    // We only want a divider if there are filtered items to divide
+    if (firstDefaultItemIndex !== 0) {
+        const onClearFilters = () => {
+            dispatch(selection.actions.removeFileFilter(filters));
+        };
+        dividers = {
+            [0]: <div className={styles.dividerTitle}>Filtered</div>,
+            [firstDefaultItemIndex]: (
+                <div>
+                    <div className={styles.buttonContainer}>
+                        <button className={styles.clearFiltersButton} onClick={onClearFilters}>
+                            CLEAR ALL FILTERS
+                        </button>
+                    </div>
+                    <hr className={styles.dividerLine} />
+                </div>
+            ),
+        };
+    }
 
     // Perform fuzzy search using searchValue within annotation list items, considering the items
     // title and description. If no searchValue has been entered, return full list of items.
@@ -71,10 +84,6 @@ export default function AnnotationList(props: AnnotationListProps) {
 
         return items;
     }, [annotationListItems, searchValue]);
-
-    const onClearFilters = () => {
-        dispatch(selection.actions.removeFileFilter(filters));
-    };
 
     return (
         <div className={classNames(styles.root, props.className)}>
@@ -109,12 +118,6 @@ export default function AnnotationList(props: AnnotationListProps) {
                     loading={annotationsLoading}
                 />
             </div>
-            <PrimaryButton
-                className={styles.clearFiltersButton}
-                disabled={!filters.length}
-                text="Clear All Filters"
-                onClick={onClearFilters}
-            />
         </div>
     );
 }
