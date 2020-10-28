@@ -29,15 +29,18 @@ export const getAnnotationListItems = createSelector(
             disabledAnnotations.map((annotation) => annotation.name)
         );
         const filteredAnnotationNames = new Set(filters.map((filter) => filter.name));
-        return annotations
-            .map((annotation) => ({
-                description: annotation.description,
-                disabled: disabledAnnotationNames.has(annotation.name),
-                filtered: filteredAnnotationNames.has(annotation.name),
-                id: annotation.name,
-                title: annotation.displayName,
-            }))
-            .sort((a, b) => (a.filtered && !b.filtered ? -1 : 1));
+        return (
+            annotations
+                .map((annotation) => ({
+                    description: annotation.description,
+                    disabled: disabledAnnotationNames.has(annotation.name),
+                    filtered: filteredAnnotationNames.has(annotation.name),
+                    id: annotation.name,
+                    title: annotation.displayName,
+                }))
+                // Sort the filtered annotations to the top
+                .sort((a, b) => (a.filtered && !b.filtered ? -1 : 1))
+        );
     }
 );
 
