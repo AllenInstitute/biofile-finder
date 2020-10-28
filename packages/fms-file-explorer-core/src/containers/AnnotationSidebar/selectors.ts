@@ -1,7 +1,7 @@
 import { map } from "lodash";
 import { createSelector } from "reselect";
 
-import { AnnotationListItemType } from "../AnnotationList/AnnotationListItem";
+import { AnnotationListDnDItem } from "../AnnotationList/AnnotationListItem";
 import { DnDItem } from "../../components/DnDList/DnDList";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
@@ -19,7 +19,7 @@ export const getAnnotationListItems = createSelector(
         availableAnnotationNames: string[],
         hierarchy: Annotation[],
         filters: FileFilter[]
-    ): AnnotationListItemType[] => {
+    ): AnnotationListDnDItem[] => {
         const disabledAnnotations = hierarchy.length
             ? annotations.filter(
                   (annotation) => !availableAnnotationNames.includes(annotation.name)
