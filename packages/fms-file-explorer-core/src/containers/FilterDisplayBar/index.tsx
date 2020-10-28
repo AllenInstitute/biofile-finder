@@ -10,8 +10,10 @@ import FilterMedallion from "./FilterMedallion";
 const styles = require("./FilterDisplayBar.module.css");
 
 interface Props {
-    className: string;
-    classNameHidden: string;
+    className?: string;
+
+    // classname to apply when this component should be hidden
+    classNameHidden?: string;
 }
 
 const FILTER_BUTTON_STYLES = {
@@ -56,7 +58,7 @@ export default function FilterDisplayBar(props: Props) {
     return (
         <div
             className={classNames(styles.container, className, {
-                [classNameHidden]: globalFilters.length < 1,
+                [classNameHidden || ""]: globalFilters.length < 1,
             })}
         >
             <CommandBarButton
