@@ -7,7 +7,12 @@
     align-items: center;
 }
 
-.title-button {
+.title {
+    font-size: 16px;
+    font-weight: 500;
+    padding: 0;
+    margin: 0 12 0 0;
+
     /* flex child */
     flex: 0 0 auto;
 }
