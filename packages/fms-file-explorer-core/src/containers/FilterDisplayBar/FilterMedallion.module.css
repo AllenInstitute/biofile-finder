@@ -1,8 +1,8 @@
 .medallion {
     border: 1px solid #ebebeb;
     border-radius: 15px;
-    margin-left: 0.5rem;
-    padding: 4px 8px;
+    margin-left: calc(var(--margin) / 2); /* --margin defined in App.module.css */
+    padding: 4px 4px 4px 8px;
 
     /* flex parent */
     display: flex;
@@ -36,8 +36,8 @@
 
 .spacer {
     /* push spacer a little closer to the "close" icon than to the medallion text */
-    margin-left: 12px;
-    margin-right: 8px;
+    margin-left: var(--margin); /* --margin defined in App.module.css */
+    margin-right: calc(var(--margin) / 2); /* --margin defined in App.module.css */
 }
 
 .spacer::after {

@@ -11,7 +11,6 @@ import ContextMenu from "./containers/ContextMenu";
 import DirectoryTree from "./containers/DirectoryTree";
 import FileDetails from "./containers/FileDetails";
 import FileExplorerURLBar from "./containers/FileExplorerURLBar";
-import FilterDisplayBar from "./containers/FilterDisplayBar";
 import HeaderRibbon from "./containers/HeaderRibbon";
 import ManifestDownloadDialog from "./containers/ManifestDownloadDialog";
 import StatusMessage from "./containers/StatusMessage";
@@ -108,10 +107,6 @@ export default function App(props: AppProps) {
             <div className={styles.everythingExceptHeaderRibbon}>
                 <div className={styles.core}>
                     <FileExplorerURLBar className={classNames(styles.urlBar)} />
-                    <FilterDisplayBar
-                        className={styles.filterDisplayBar}
-                        classNameHidden={styles.hidden}
-                    />
                     <div className={styles.annotationHierarchyAndFileList}>
                         <AnnotationSidebar className={styles.annotationHierarchy} />
                         <DirectoryTree className={styles.fileList} />

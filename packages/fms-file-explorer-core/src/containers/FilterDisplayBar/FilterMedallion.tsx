@@ -40,15 +40,19 @@ export default function FilterMedallion(props: Props) {
     const dispatch = useDispatch();
 
     const [expanded, setExpanded] = React.useState(false);
-    const [overflowing, setOverflowing] = React.useState(false);
-    const ref = React.useRef<HTMLElement | null>(null);
+
+    // This should never change, so stash in a ref to keep the reference stable and not cause
+    // AnnotationFilter to rerender all the time
+    const annotationFilterIconStyles = React.useRef({ root: BUTTON_STYLES.root });
 
     // Determine if medallion has reached its max-width and text is overflowing
     // If a medallion is no longer overflowing but its "expanded" state is truthy, reset.
+    const [overflowing, setOverflowing] = React.useState(false);
+    const textRef = React.useRef<HTMLElement | null>(null);
     React.useEffect(() => {
-        if (ref.current) {
-            const width = ref.current.clientWidth;
-            const scrollWidth = ref.current.scrollWidth;
+        if (textRef.current) {
+            const width = textRef.current.clientWidth;
+            const scrollWidth = textRef.current.scrollWidth;
             const isOverflowing = scrollWidth > width;
             setOverflowing(isOverflowing);
             if (!isOverflowing) {
@@ -57,7 +61,7 @@ export default function FilterMedallion(props: Props) {
         } else {
             setOverflowing(false);
         }
-    }, [ref, filters]);
+    }, [textRef, filters]);
 
     const operator = filters.length > 1 ? "ONE OF" : "EQUALS";
     const valueDisplay = map(filters, (filter) => filter.value).join(", ");
@@ -71,13 +75,16 @@ export default function FilterMedallion(props: Props) {
                     [styles.expanded]: expanded,
                 })}
                 onClick={() => overflowing && setExpanded((prev) => !prev)}
-                ref={ref}
+                ref={textRef}
                 title={display}
             >
                 {display}
             </abbr>
             <span className={styles.spacer}></span>
-            <AnnotationFilter annotationName={name} styleOverrides={{ root: BUTTON_STYLES.root }} />
+            <AnnotationFilter
+                annotationName={name}
+                styleOverrides={annotationFilterIconStyles.current}
+            />
             <IconButton
                 ariaDescription={`Clear all filters currently set for ${name}`}
                 ariaLabel="Clear"
