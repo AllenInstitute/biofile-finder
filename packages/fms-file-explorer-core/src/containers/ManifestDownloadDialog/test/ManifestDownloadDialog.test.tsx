@@ -15,10 +15,11 @@ import ManifestDownloadDialog from "..";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
-import PersistentConfigService from "../../../services/PersistentConfigService";
+import { PersistedConfigKeys } from "../../../services/PersistentConfigService";
 import FileDownloadService from "../../../services/FileDownloadService";
 import FileService from "../../../services/FileService";
 import { initialState, interaction, reduxLogics } from "../../../state";
+import { SET_CSV_COLUMNS } from "../../../state/persistent/actions";
 
 describe("<ManifestDownloadDialog />", () => {
     const baseUrl = "test";
@@ -80,16 +81,6 @@ describe("<ManifestDownloadDialog />", () => {
 
     it("starts download and saves columns when download button is clicked", async () => {
         // Arrange
-        let savedColumns;
-        class ScopedPersistentConfigService implements PersistentConfigService {
-            public get(): any {
-                return "test";
-            }
-            public set(_: string, value: any) {
-                savedColumns = value;
-            }
-        }
-
         let downloadTriggered = false;
         class ScopedFileDownloadService implements FileDownloadService {
             public downloadCsvManifest() {
@@ -107,12 +98,11 @@ describe("<ManifestDownloadDialog />", () => {
                 fileFiltersForManifestDownload: [new FileFilter("Cell Line", "AICS-11")],
                 platformDependentServices: {
                     fileDownloadService: new ScopedFileDownloadService(),
-                    persistentConfigService: new ScopedPersistentConfigService(),
                 },
             },
         });
 
-        const { store, logicMiddleware } = configureMockStore({
+        const { store, logicMiddleware, actions } = configureMockStore({
             state,
             logics: reduxLogics,
         });
@@ -129,7 +119,15 @@ describe("<ManifestDownloadDialog />", () => {
         await logicMiddleware.whenComplete();
 
         // Assert
-        expect(savedColumns).to.be.deep.eq(TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName));
+        expect(
+            actions.includesMatch({
+                type: SET_CSV_COLUMNS,
+                payload: {
+                    key: PersistedConfigKeys.CsvColumns,
+                    value: TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName),
+                },
+            })
+        ).to.be.true;
         expect(downloadTriggered).to.be.true;
     });
 
@@ -173,20 +171,7 @@ describe("<ManifestDownloadDialog />", () => {
     it("deselects all columns when 'Select None' button is clicked", async () => {
         // Arrange
         const columns = ["Cell Line", "Cas9", "Donor Plasmid"];
-        class ScopedPersistentConfigService implements PersistentConfigService {
-            public get(): any {
-                return columns;
-            }
-            public set() {
-                return;
-            }
-        }
         const state = mergeState(visibleDialogState, {
-            interaction: {
-                platformDependentServices: {
-                    persistentConfigService: new ScopedPersistentConfigService(),
-                },
-            },
             metadata: {
                 annotations: columns.map(
                     (c) =>
@@ -197,6 +182,9 @@ describe("<ManifestDownloadDialog />", () => {
                             type: "Text",
                         })
                 ),
+            },
+            persistent: {
+                CSV_COLUMNS: columns,
             },
         });
         const { store } = configureMockStore({ state });
@@ -239,14 +227,6 @@ describe("<ManifestDownloadDialog />", () => {
         it("has pre-saved columns when some were previousuly saved", async () => {
             // Arrange
             const preSavedColumns = ["Cas9", "Cell Line", "Donor Plasmid"];
-            class ScopedPersistentConfigService implements PersistentConfigService {
-                public get(): any {
-                    return preSavedColumns;
-                }
-                public set() {
-                    return;
-                }
-            }
             const state = mergeState(visibleDialogState, {
                 metadata: {
                     annotations: preSavedColumns.map(
@@ -259,10 +239,8 @@ describe("<ManifestDownloadDialog />", () => {
                             })
                     ),
                 },
-                interaction: {
-                    platformDependentServices: {
-                        persistentConfigService: new ScopedPersistentConfigService(),
-                    },
+                persistent: {
+                    CSV_COLUMNS: preSavedColumns,
                 },
             });
             const { store } = configureMockStore({ state });
@@ -281,14 +259,6 @@ describe("<ManifestDownloadDialog />", () => {
         it("removes column when icon is clicked", async () => {
             // Arrange
             const column = "Cell Line";
-            class ScopedPersistentConfigService implements PersistentConfigService {
-                public get(): any {
-                    return [column];
-                }
-                public set() {
-                    return;
-                }
-            }
             const state = mergeState(visibleDialogState, {
                 metadata: {
                     annotations: [
@@ -300,10 +270,8 @@ describe("<ManifestDownloadDialog />", () => {
                         }),
                     ],
                 },
-                interaction: {
-                    platformDependentServices: {
-                        persistentConfigService: new ScopedPersistentConfigService(),
-                    },
+                persistent: {
+                    CSV_COLUMNS: [column],
                 },
             });
             const { store } = configureMockStore({ state });

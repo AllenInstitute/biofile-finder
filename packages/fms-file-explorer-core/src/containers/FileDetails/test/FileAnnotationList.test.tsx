@@ -7,26 +7,15 @@ import { Provider } from "react-redux";
 import FileAnnotationList from "../FileAnnotationList";
 import FileDetail from "../../../entity/FileDetail";
 import { initialState } from "../../../state";
-import PersistentConfigService from "../../../services/PersistentConfigService";
 
 describe("<FileAnnotationList />", () => {
     describe("file path representation", () => {
         it("has both canonical file path and file path adjusted to OS & allen mount point", () => {
             // Arrange
             const expectedMountPoint = "/home/testUser/my/path/to/my-isilon";
-            class CustomPersistentConfigService implements PersistentConfigService {
-                public get() {
-                    return expectedMountPoint;
-                }
-                public set() {
-                    return;
-                }
-            }
             const state = mergeState(initialState, {
-                interaction: {
-                    platformDependentServices: {
-                        persistentConfigService: new CustomPersistentConfigService(),
-                    },
+                persistent: {
+                    ALLEN_MOUNT_POINT: expectedMountPoint,
                 },
             });
             const { store } = configureMockStore({ state });

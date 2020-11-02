@@ -21,8 +21,7 @@ import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
-import { FileViewerCancellationToken, FileViewerService, PersistentConfigService } from "../../..";
-import { PersistedConfigKeys } from "../../../services/PersistentConfigService";
+import { FileViewerCancellationToken, FileViewerService } from "../../..";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({
@@ -377,6 +376,9 @@ describe("Interaction logics", () => {
             let actualFilePaths: string[] | undefined = undefined;
             let actualExecutablePath: string | undefined = undefined;
             class UselessFileViewerService implements FileViewerService {
+                setup() {
+                    return;
+                }
                 openFilesInImageJ(filePaths: string[], imageJExecutable?: string) {
                     actualFilePaths = filePaths;
                     actualExecutablePath = imageJExecutable;
@@ -388,35 +390,25 @@ describe("Interaction logics", () => {
                 selectImageJExecutableLocation() {
                     return Promise.resolve("test");
                 }
-                getValidatedAllenDriveLocation() {
-                    return Promise.resolve(expectedAllenDrive);
-                }
-                getValidatedImageJLocation() {
-                    return Promise.resolve(expectedExecutablePath);
-                }
                 isValidAllenMountPoint() {
-                    return Promise.resolve(false);
+                    return Promise.resolve(true);
                 }
-            }
-            class UselessPersistentConfigService implements PersistentConfigService {
-                get(key: PersistedConfigKeys) {
-                    if (key === PersistedConfigKeys.AllenMountPoint) {
-                        return expectedAllenDrive;
-                    } else if (key === PersistedConfigKeys.ImageJExecutable) {
-                        return expectedExecutablePath;
-                    }
-                    return undefined;
+                isValidImageJLocation() {
+                    return Promise.resolve(true);
                 }
-                set() {
-                    return;
+                getDefaultAllenMountPointForOs() {
+                    return Promise.resolve(undefined);
                 }
             }
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
                         fileViewerService: new UselessFileViewerService(),
-                        persistentConfigService: new UselessPersistentConfigService(),
                     },
+                },
+                persistent: {
+                    ALLEN_MOUNT_POINT: expectedAllenDrive,
+                    IMAGE_J_EXECUTABLE: expectedExecutablePath,
                 },
                 selection: {
                     fileSelection: fakeSelection,
@@ -440,6 +432,9 @@ describe("Interaction logics", () => {
             // Arrange
             let attemptedToSetImageJ = false;
             class UselessFileViewerService implements FileViewerService {
+                setup() {
+                    return;
+                }
                 openFilesInImageJ() {
                     return Promise.resolve();
                 }
@@ -450,13 +445,13 @@ describe("Interaction logics", () => {
                     attemptedToSetImageJ = true;
                     return Promise.resolve("test");
                 }
-                getValidatedAllenDriveLocation() {
-                    return Promise.resolve(undefined);
-                }
-                getValidatedImageJLocation() {
+                getDefaultAllenMountPointForOs() {
                     return Promise.resolve(undefined);
                 }
                 isValidAllenMountPoint() {
+                    return Promise.resolve(false);
+                }
+                isValidImageJLocation() {
                     return Promise.resolve(false);
                 }
             }
@@ -484,10 +479,16 @@ describe("Interaction logics", () => {
             // Arrange
             let attemptedToSetAllenDrive = false;
             class UselessFileViewerService implements FileViewerService {
+                setup() {
+                    return;
+                }
                 openFilesInImageJ() {
                     return Promise.resolve();
                 }
                 isValidAllenMountPoint() {
+                    return Promise.resolve(true);
+                }
+                isValidImageJLocation() {
                     return Promise.resolve(true);
                 }
                 selectAllenMountPoint() {
@@ -497,10 +498,7 @@ describe("Interaction logics", () => {
                 selectImageJExecutableLocation() {
                     return Promise.resolve(FileViewerCancellationToken);
                 }
-                getValidatedAllenDriveLocation() {
-                    return Promise.resolve(expectedAllenDrive);
-                }
-                getValidatedImageJLocation() {
+                getDefaultAllenMountPointForOs() {
                     return Promise.resolve(undefined);
                 }
             }
@@ -528,6 +526,9 @@ describe("Interaction logics", () => {
             // Arrange
             let attemptedToOpenFiles = false;
             class UselessFileViewerService implements FileViewerService {
+                setup() {
+                    return;
+                }
                 openFilesInImageJ() {
                     attemptedToOpenFiles = true;
                     return Promise.resolve();
@@ -538,14 +539,14 @@ describe("Interaction logics", () => {
                 selectImageJExecutableLocation() {
                     return Promise.resolve(FileViewerCancellationToken);
                 }
-                getValidatedAllenDriveLocation() {
-                    return Promise.resolve("something/test");
-                }
-                getValidatedImageJLocation() {
-                    return Promise.resolve(undefined);
-                }
                 isValidAllenMountPoint() {
                     return Promise.resolve(false);
+                }
+                isValidImageJLocation() {
+                    return Promise.resolve(false);
+                }
+                getDefaultAllenMountPointForOs() {
+                    return Promise.resolve(undefined);
                 }
             }
             const state = mergeState(initialState, {
