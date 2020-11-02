@@ -21,7 +21,7 @@ const {
     FileViewerCancellationToken,
 } = require("@aics/fms-file-explorer-core/nodejs/services/FileViewerService");
 const {
-    PersistedDataKeys,
+    PersistedConfigKeys,
 } = require("@aics/fms-file-explorer-core/nodejs/services/PersistentConfigService");
 
 describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
@@ -120,7 +120,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Assert
             expect(mountPoint).to.equal(tempAllenDrive);
             const persistedMountPoint = persistentConfigService.get(
-                PersistedDataKeys.AllenMountPoint
+                PersistedConfigKeys.AllenMountPoint
             );
             expect(persistedMountPoint).to.equal(tempAllenDrive);
         });
@@ -145,7 +145,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Assert
             expect(mountPoint).to.equal(FileViewerCancellationToken);
             const persistedMountPoint = persistentConfigService.get(
-                PersistedDataKeys.AllenMountPoint
+                PersistedConfigKeys.AllenMountPoint
             );
             expect(persistedMountPoint).to.be.undefined;
         });
@@ -174,7 +174,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Assert
             expect(mountPoint).to.equal(tempAllenDrive);
             const persistedMountPoint = persistentConfigService.get(
-                PersistedDataKeys.AllenMountPoint
+                PersistedConfigKeys.AllenMountPoint
             );
             expect(persistedMountPoint).to.equal(tempAllenDrive);
         });
@@ -296,7 +296,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             }
 
             const persistedMountPoint = persistentConfigService.get(
-                PersistedDataKeys.ImageJExecutable
+                PersistedConfigKeys.ImageJExecutable
             );
             expect(persistedMountPoint).to.equal(selectedPath);
         });
@@ -321,7 +321,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Assert
             expect(selectedPath).to.equal(FileViewerCancellationToken);
             const persistedMountPoint = persistentConfigService.get(
-                PersistedDataKeys.ImageJExecutable
+                PersistedConfigKeys.ImageJExecutable
             );
             expect(persistedMountPoint).to.be.undefined;
         });
@@ -349,7 +349,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Assert
             expect(selectedPath).to.equal(FileViewerCancellationToken);
             const persistedMountPoint = persistentConfigService.get(
-                PersistedDataKeys.ImageJExecutable
+                PersistedConfigKeys.ImageJExecutable
             );
             expect(persistedMountPoint).to.be.undefined;
         });
@@ -492,7 +492,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             const persistentConfigService = new PersistentConfigServiceElectron({
                 clearExistingData: true,
             });
-            persistentConfigService.set(PersistedDataKeys.AllenMountPoint, tempAllenPath);
+            persistentConfigService.set(PersistedConfigKeys.AllenMountPoint, tempAllenPath);
             const service = new FileViewerServiceElectron(persistentConfigService);
             await fs.promises.mkdir(tempAllenPath);
             for (const expectedFolder of knownPaths) {
@@ -525,7 +525,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             const persistentConfigService = new PersistentConfigServiceElectron({
                 clearExistingData: true,
             });
-            persistentConfigService.set(PersistedDataKeys.ImageJExecutable, imageJExecutable);
+            persistentConfigService.set(PersistedConfigKeys.ImageJExecutable, imageJExecutable);
             const service = new FileViewerServiceElectron(persistentConfigService);
 
             // Act

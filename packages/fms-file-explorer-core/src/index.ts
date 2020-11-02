@@ -20,7 +20,9 @@ export type ApplicationInfoService = _ApplicationInfoService;
 
 import { default as _PersistentConfigService } from "./services/PersistentConfigService";
 export type PersistentConfigService = _PersistentConfigService;
-export { PersistedDataKeys } from "./services/PersistentConfigService";
+export { PersistedConfigKeys } from "./services/PersistentConfigService";
+import { PersistedConfig as _PersistedConfig } from "./services/PersistentConfigService";
+export type PersistedConfig = _PersistedConfig;
 
 import { default as _FileViewerService } from "./services/FileViewerService";
 export type FileViewerService = _FileViewerService;

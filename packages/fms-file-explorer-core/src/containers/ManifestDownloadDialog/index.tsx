@@ -11,9 +11,9 @@ import {
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { interaction, metadata } from "../../state";
+import { interaction, metadata, selection } from "../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
-import { PersistedDataKeys } from "../../services/PersistentConfigService";
+import { PersistedConfigKeys } from "../../services/PersistentConfigService";
 
 const styles = require("./ManifestDownloadDialog.module.css");
 
@@ -39,6 +39,8 @@ export default function ManifestDownloadDialog() {
     const { persistentConfigService } = useSelector(
         interaction.selectors.getPlatformDependentServices
     );
+    const persistedConfig = useSelector(selection.selectors.getPersistedConfig);
+    const columnsSavedFromLastTime = persistedConfig.CSV_COLUMNS;
     const isManifestDownloadDialogVisible = useSelector(
         interaction.selectors.isManifestDownloadDialogVisible
     );
@@ -47,7 +49,6 @@ export default function ManifestDownloadDialog() {
     const columnSet = new Set(columns);
     // Retrieve and set the columns saved to local state from last time (if exists)
     React.useEffect(() => {
-        const columnsSavedFromLastTime = persistentConfigService.get(PersistedDataKeys.CsvColumns);
         if (
             columnsSavedFromLastTime &&
             Array.isArray(columnsSavedFromLastTime) &&
@@ -58,7 +59,7 @@ export default function ManifestDownloadDialog() {
             );
             setColumns(columnsSavedFromLastTime.filter((c) => annotationSet.has(c)));
         }
-    }, [customAnnotations, persistentConfigService]);
+    }, [customAnnotations, columnsSavedFromLastTime]);
 
     const removeColumn = (column: string) => {
         setColumns(columns.filter((c) => c !== column));
@@ -89,7 +90,7 @@ export default function ManifestDownloadDialog() {
         }
     };
     const onDownload = () => {
-        persistentConfigService.set(PersistedDataKeys.CsvColumns, columns);
+        persistentConfigService.set(PersistedConfigKeys.CsvColumns, columns);
         dispatch(interaction.actions.toggleManifestDownloadDialog());
         // Map the annotations to their names (as opposed to their display names)
         // Top level file attributes as of the moment are automatically included

@@ -1,3 +1,4 @@
+import { Dispatch } from "react";
 import Store, { Schema } from "electron-store";
 
 import { PersistentConfigService } from "@aics/fms-file-explorer-core";
@@ -5,22 +6,23 @@ import { PersistentConfigService } from "@aics/fms-file-explorer-core";
 // GM 9/15/20: This symbol is in fact exported from @aics/fms-file-explorer-core, but inexplicably,
 // using `import` machinery causes tests to hang. All attempts to debug this have been unsuccesful so far.
 const {
-    PersistedDataKeys,
+    PersistedConfigKeys,
 } = require("@aics/fms-file-explorer-core/nodejs/services/PersistentConfigService");
+const { selection } = require("@aics/fms-file-explorer-core/nodejs/state");
 
 // Defines a validation schema for data inserted into the persistent storage
 // if a breaking change is made see migration patterns in elecron-store docs
 const STORAGE_SCHEMA: Schema<Record<string, unknown>> = {
-    [PersistedDataKeys.AllenMountPoint]: {
+    [PersistedConfigKeys.AllenMountPoint]: {
         type: "string",
     },
-    [PersistedDataKeys.CsvColumns]: {
+    [PersistedConfigKeys.CsvColumns]: {
         type: "array",
         items: {
             type: "string",
         },
     },
-    [PersistedDataKeys.ImageJExecutable]: {
+    [PersistedConfigKeys.ImageJExecutable]: {
         type: "string",
     },
 };
@@ -31,6 +33,7 @@ interface PersistentConfigServiceElectronOptions {
 
 export default class PersistentConfigServiceElectron implements PersistentConfigService {
     private store: Store;
+    private dispatch?: Dispatch<any>;
 
     public constructor(options: PersistentConfigServiceElectronOptions = {}) {
         this.store = new Store({ schema: STORAGE_SCHEMA });
@@ -39,11 +42,18 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
         }
     }
 
-    public get(key: typeof PersistedDataKeys): any {
+    public setup(dispatch: Dispatch<any>) {
+        this.dispatch = dispatch;
+    }
+
+    public get(key: typeof PersistedConfigKeys): any {
         return this.store.get(key);
     }
 
-    public set(key: typeof PersistedDataKeys, value: any): void {
+    public set(key: typeof PersistedConfigKeys, value: any): void {
         this.store.set(key, value);
+        if (this.dispatch) {
+            this.dispatch(selection.action.updatePersistedConfig({ [key]: value }));
+        }
     }
 }

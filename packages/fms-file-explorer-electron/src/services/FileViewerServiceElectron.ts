@@ -16,7 +16,7 @@ const {
     FileViewerCancellationToken,
 } = require("@aics/fms-file-explorer-core/nodejs/services/FileViewerService");
 const {
-    PersistedDataKeys,
+    PersistedConfigKeys,
 } = require("@aics/fms-file-explorer-core/nodejs/services/PersistentConfigService");
 
 // These are paths known (and unlikely to change) inside the allen drive that any given user should
@@ -109,7 +109,7 @@ export default class FileViewerServiceElectron implements FileViewerService {
             // Ensure the paths exist as expected inside the drive
             const pathIsValidAllenDrive = await this.isValidAllenMountPoint(allenPath);
             if (pathIsValidAllenDrive) {
-                this.persistentConfigService.set(PersistedDataKeys.AllenMountPoint, allenPath);
+                this.persistentConfigService.set(PersistedConfigKeys.AllenMountPoint, allenPath);
                 return allenPath;
             }
             // Alert user to error with allen drive
@@ -197,7 +197,7 @@ export default class FileViewerServiceElectron implements FileViewerService {
 
             if (isValidExecutable) {
                 this.persistentConfigService.set(
-                    PersistedDataKeys.ImageJExecutable,
+                    PersistedConfigKeys.ImageJExecutable,
                     imageJExecutable
                 );
                 return imageJExecutable;
@@ -213,7 +213,7 @@ export default class FileViewerServiceElectron implements FileViewerService {
 
     public async getValidatedAllenDriveLocation(): Promise<string | undefined> {
         const storedAllenDrive = this.persistentConfigService.get(
-            PersistedDataKeys.AllenMountPoint
+            PersistedConfigKeys.AllenMountPoint
         );
         if (storedAllenDrive) {
             if (await this.isValidAllenMountPoint(storedAllenDrive)) {
@@ -225,7 +225,7 @@ export default class FileViewerServiceElectron implements FileViewerService {
             os.platform() === "win32" ? "\\\\allen" : path.normalize("/allen");
         if (await this.isValidAllenMountPoint(defaultAllenDriveForOs)) {
             this.persistentConfigService.set(
-                PersistedDataKeys.AllenMountPoint,
+                PersistedConfigKeys.AllenMountPoint,
                 defaultAllenDriveForOs
             );
             return defaultAllenDriveForOs;
@@ -235,7 +235,7 @@ export default class FileViewerServiceElectron implements FileViewerService {
 
     public async getValidatedImageJLocation(): Promise<string | undefined> {
         const storedImageJLocation = this.persistentConfigService.get(
-            PersistedDataKeys.ImageJExecutable
+            PersistedConfigKeys.ImageJExecutable
         );
         if (storedImageJLocation) {
             if (await FileViewerServiceElectron.isValidImageJExecutable(storedImageJLocation)) {

@@ -1,4 +1,4 @@
-import { castArray, find, includes, sortBy, uniqWith, without } from "lodash";
+import { castArray, find, includes, sortBy, transform, uniqWith, without } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { batch } from "react-redux";
@@ -18,14 +18,17 @@ import {
     setOpenFileFolders,
     DECODE_FILE_EXPLORER_URL,
     SET_ANNOTATION_HIERARCHY,
+    UPDATE_PERSISTED_CONFIG,
+    HYDRATE_APPLICATION_STATE,
 } from "./actions";
-import { interaction, metadata, ReduxLogicDeps } from "../";
+import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
 import Annotation from "../../entity/Annotation";
 import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
+import { PersistedConfig, PersistedConfigKeys } from "../..";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -292,6 +295,40 @@ const decodeFileExplorerURL = createLogic({
     type: [DECODE_FILE_EXPLORER_URL],
 });
 
+/**
+ * Interceptor responsible for transforming HYDRATE_APPLICATION_STATE actions into UPDATE_PERSISTENT_CONFIG actions
+ */
+const hydrateApplicationState = createLogic({
+    type: HYDRATE_APPLICATION_STATE,
+    async transform(deps: ReduxLogicDeps, next) {
+        const persistentConfigService = deps.action.payload;
+        const persistedConfig = Object.keys(PersistedConfigKeys).reduce(
+            (acc, key) => ({
+                ...acc,
+                [key]: persistentConfigService.get(key),
+            }),
+            {} as PersistedConfig
+        );
+        next(selection.actions.updatePersistedConfig(persistedConfig));
+    },
+});
+
+/**
+ * Interceptor responsible for transforming UPDATE_PERSISTED_CONFIG actions to both exist in the persistent configuration
+ * and also in the current application state.
+ */
+const updatePersistedConfig = createLogic({
+    type: UPDATE_PERSISTED_CONFIG,
+    async transform(deps: ReduxLogicDeps, next) {
+        const { action, getState } = deps;
+        const { persistentConfigService } = interaction.selectors.getPlatformDependentServices(
+            getState()
+        );
+        persistentConfigService.set(action.payload.key, action.payload.value);
+        next(action);
+    },
+});
+
 export default [
     selectFile,
     modifyAnnotationHierarchy,
@@ -299,4 +336,6 @@ export default [
     toggleFileFolderCollapse,
     decodeFileExplorerURL,
     setAvailableAnnotationsLogic,
+    hydrateApplicationState,
+    updatePersistedConfig,
 ];

@@ -22,7 +22,7 @@ import NumericRange from "../../../entity/NumericRange";
 import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import { FileViewerCancellationToken, FileViewerService, PersistentConfigService } from "../../..";
-import { PersistedDataKeys } from "../../../services/PersistentConfigService";
+import { PersistedConfigKeys } from "../../../services/PersistentConfigService";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({
@@ -399,10 +399,10 @@ describe("Interaction logics", () => {
                 }
             }
             class UselessPersistentConfigService implements PersistentConfigService {
-                get(key: PersistedDataKeys) {
-                    if (key === PersistedDataKeys.AllenMountPoint) {
+                get(key: PersistedConfigKeys) {
+                    if (key === PersistedConfigKeys.AllenMountPoint) {
                         return expectedAllenDrive;
-                    } else if (key === PersistedDataKeys.ImageJExecutable) {
+                    } else if (key === PersistedConfigKeys.ImageJExecutable) {
                         return expectedExecutablePath;
                     }
                     return undefined;

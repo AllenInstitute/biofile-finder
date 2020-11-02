@@ -18,7 +18,7 @@ import ApplicationInfoServiceNoop from "./services/ApplicationInfoService/Applic
 import FileDownloadServiceNoop from "./services/FileDownloadService/FileDownloadServiceNoop";
 import PersistentConfigServiceNoop from "./services/PersistentConfigService/PersistentConfigServiceNoop";
 import FileViewerServiceNoop from "./services/FileViewerService/FileViewerServiceNoop";
-import { interaction, metadata } from "./state";
+import { interaction, metadata, selection } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
 
 import "./styles/global.css";
@@ -66,6 +66,11 @@ export default function App(props: AppProps) {
               }
             : defaultProps.platformDependentServices;
 
+        dispatch(
+            selection.actions.hydrateApplicationState(
+                platformDependentServices.persistentConfigService
+            )
+        );
         dispatch(interaction.actions.setPlatformDependentServices(platformDependentServices));
 
         async function checkForUpdates() {

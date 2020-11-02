@@ -1,6 +1,6 @@
 import path from "path";
 
-import { isEmpty, uniqueId } from "lodash";
+import { isEmpty, transform, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { ReduxLogicDeps, selection } from "../";
@@ -21,8 +21,9 @@ import { CancellationToken } from "../../services/FileDownloadService";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
 import { SelectionRequest, Selection } from "../../services/FileService";
-import { PersistedDataKeys } from "../../services/PersistentConfigService";
+import { PersistedConfigKeys } from "../../services/PersistentConfigService";
 import { FileViewerCancellationToken } from "../../services/FileViewerService";
+import { getNextElement } from "office-ui-fabric-react";
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -145,12 +146,12 @@ const cancelManifestDownloadLogic = createLogic({
 const openFilesInImageJ = createLogic({
     type: OPEN_FILES_IN_IMAGE_J,
     async process(deps: ReduxLogicDeps, _, done) {
-        const {
-            persistentConfigService,
-            fileViewerService,
-        } = interactionSelectors.getPlatformDependentServices(deps.getState());
-        const allenMountPoint = persistentConfigService.get(PersistedDataKeys.AllenMountPoint);
-        const imageJExecutable = persistentConfigService.get(PersistedDataKeys.ImageJExecutable);
+        const { fileViewerService } = interactionSelectors.getPlatformDependentServices(
+            deps.getState()
+        );
+        const persistedConfig = selection.selectors.getPersistedConfig(deps.getState());
+        const allenMountPoint = persistedConfig.ALLEN_MOUNT_POINT;
+        const imageJExecutable = persistedConfig.IMAGE_J_EXECUTABLE;
 
         // Collect the file paths from the selected files
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
