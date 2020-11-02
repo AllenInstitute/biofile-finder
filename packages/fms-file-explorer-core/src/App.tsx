@@ -18,7 +18,7 @@ import ApplicationInfoServiceNoop from "./services/ApplicationInfoService/Applic
 import FileDownloadServiceNoop from "./services/FileDownloadService/FileDownloadServiceNoop";
 import PersistentConfigServiceNoop from "./services/PersistentConfigService/PersistentConfigServiceNoop";
 import FileViewerServiceNoop from "./services/FileViewerService/FileViewerServiceNoop";
-import { interaction, metadata, selection } from "./state";
+import { interaction, metadata, persistent } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
 
 import "./styles/global.css";
@@ -65,9 +65,9 @@ export default function App(props: AppProps) {
                   ...props.platformDependentServices,
               }
             : defaultProps.platformDependentServices;
-
+        platformDependentServices.fileViewerService.setup(dispatch);
         dispatch(
-            selection.actions.hydrateApplicationState(
+            persistent.actions.hydrateApplicationState(
                 platformDependentServices.persistentConfigService
             )
         );

@@ -18,10 +18,8 @@ import {
     SET_OPEN_FILE_FOLDERS,
     RESIZE_COLUMN,
     RESET_COLUMN_WIDTH,
-    UPDATE_PERSISTED_CONFIG,
 } from "./actions";
 import { metadata } from "..";
-import { PersistedConfig, PersistedConfigKeys } from "../../services/PersistentConfigService";
 
 export interface SelectionStateBranch {
     annotationHierarchy: Annotation[];
@@ -34,7 +32,6 @@ export interface SelectionStateBranch {
     fileSelection: FileSelection;
     filters: FileFilter[];
     openFileFolders: FileFolder[];
-    persistedConfig: PersistedConfig;
 }
 
 export const initialState = {
@@ -51,7 +48,6 @@ export const initialState = {
     fileSelection: new FileSelection(),
     filters: [],
     openFileFolders: [],
-    persistedConfig: {},
 };
 
 export default makeReducer<SelectionStateBranch>(
@@ -126,13 +122,6 @@ export default makeReducer<SelectionStateBranch>(
         [SET_OPEN_FILE_FOLDERS]: (state, action) => ({
             ...state,
             openFileFolders: action.payload,
-        }),
-        [UPDATE_PERSISTED_CONFIG]: (state, action) => ({
-            ...state,
-            persistedConfig: {
-                ...state.persistedConfig,
-                ...action.payload,
-            },
         }),
         [interaction.actions.SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state) => ({
             ...state,

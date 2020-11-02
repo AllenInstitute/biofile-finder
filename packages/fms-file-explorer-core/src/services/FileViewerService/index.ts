@@ -1,7 +1,14 @@
+import { Dispatch } from "react";
+
 /**
  * Interface that defines a platform-dependent service for showing files using other applications.
  */
 export default interface FileViewerService {
+    /**
+     * Setup the FileViewerService so that it can dispatch events to the application state.
+     */
+    setup(dispatch: Dispatch<any>): void;
+
     /**
      * Prompts the user for the allen mount point location & saves for future use.
      * Will first notify the user of this request if specified.
@@ -19,24 +26,23 @@ export default interface FileViewerService {
     selectImageJExecutableLocation(promptFirst?: boolean): Promise<string>;
 
     /**
-     * Attempts to retrieve the stored allen drive location (if exists & valid) otherwise defaults to OS default path (if valid).
-     * Returning undefined if neither stored or default allen drive are valid.
-     *
+     * Attempts to determine a valid default path for the Allen Drive based on the current OS.
      */
-    getValidatedAllenDriveLocation(): Promise<string | undefined>;
-
-    /**
-     * Attempts to retrieve the stored ImageJ executable location (if exists & valid) otherwise returns undefined
-     *
-     */
-    getValidatedImageJLocation(): Promise<string | undefined>;
+    getDefaultAllenMountPointForOs(): Promise<string | undefined>;
 
     /**
      * Verifies that the given file path is a valid allen drive mount point
      *
      * @param allenDrivePath Path to allen drive
      */
-    isValidAllenMountPoint(allenDrivePath: string): Promise<boolean>;
+    isValidAllenMountPoint(allenDrivePath?: string): Promise<boolean>;
+
+    /**
+     * Verifies that the given file path is a valid ImageJ/Fiji executable
+     *
+     * @param imageJLocation Path to ImageJ/Fiji executable
+     */
+    isValidImageJLocation(imageJLocation?: string): Promise<boolean>;
 
     /**
      * Opens the given files in ImageJ

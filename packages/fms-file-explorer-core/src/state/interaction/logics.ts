@@ -1,9 +1,9 @@
 import path from "path";
 
-import { isEmpty, transform, uniqueId } from "lodash";
+import { isEmpty, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { ReduxLogicDeps, selection } from "../";
+import { persistent, ReduxLogicDeps, selection } from "../";
 import {
     DOWNLOAD_MANIFEST,
     succeedManifestDownload,
@@ -21,9 +21,7 @@ import { CancellationToken } from "../../services/FileDownloadService";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
 import { SelectionRequest, Selection } from "../../services/FileService";
-import { PersistedConfigKeys } from "../../services/PersistentConfigService";
 import { FileViewerCancellationToken } from "../../services/FileViewerService";
-import { getNextElement } from "office-ui-fabric-react";
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -149,9 +147,10 @@ const openFilesInImageJ = createLogic({
         const { fileViewerService } = interactionSelectors.getPlatformDependentServices(
             deps.getState()
         );
-        const persistedConfig = selection.selectors.getPersistedConfig(deps.getState());
-        const allenMountPoint = persistedConfig.ALLEN_MOUNT_POINT;
-        const imageJExecutable = persistedConfig.IMAGE_J_EXECUTABLE;
+        const allenMountPoint = persistent.selectors.getAllenMountPoint(deps.getState());
+        const imageJExecutable = persistent.selectors.getImageJExecutable(
+            deps.getState()
+        ) as string;
 
         // Collect the file paths from the selected files
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
@@ -166,15 +165,24 @@ const openFilesInImageJ = createLogic({
         const { fileViewerService } = interactionSelectors.getPlatformDependentServices(
             deps.getState()
         );
+        let allenMountPoint = persistent.selectors.getAllenMountPoint(deps.getState());
+        let imageJExecutable = persistent.selectors.getImageJExecutable(deps.getState());
 
         // Ensure we have the necessary directories (Allen drive & Image J) so that we can properly open images
-        let allenMountPoint = await fileViewerService.getValidatedAllenDriveLocation();
-        let imageJExecutable = await fileViewerService.getValidatedImageJLocation();
-        if (!allenMountPoint) {
-            allenMountPoint = await fileViewerService.selectAllenMountPoint(true);
+        const isValidAllenDrive = await fileViewerService.isValidAllenMountPoint(allenMountPoint);
+        if (!isValidAllenDrive) {
+            allenMountPoint = await fileViewerService.getDefaultAllenMountPointForOs();
+            if (!allenMountPoint) {
+                allenMountPoint = await fileViewerService.selectAllenMountPoint(true);
+            }
         }
-        if (!imageJExecutable && allenMountPoint !== FileViewerCancellationToken) {
-            imageJExecutable = await fileViewerService.selectImageJExecutableLocation(true);
+        if (allenMountPoint !== FileViewerCancellationToken) {
+            const isValidImageJLocation = await fileViewerService.isValidImageJLocation(
+                imageJExecutable
+            );
+            if (!isValidImageJLocation) {
+                imageJExecutable = await fileViewerService.selectImageJExecutableLocation(true);
+            }
         }
 
         if (

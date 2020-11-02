@@ -17,7 +17,6 @@ export const getColumnWidths = (state: State) => state.selection.columnWidths;
 export const getFileFilters = (state: State) => state.selection.filters;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
-export const getPersistedConfig = (state: State) => state.selection.persistedConfig;
 
 // COMPOSED SELECTORS
 export const getOrderedDisplayAnnotations = createSelector(

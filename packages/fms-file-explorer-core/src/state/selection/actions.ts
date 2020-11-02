@@ -1,5 +1,4 @@
 import { makeConstant } from "@aics/redux-utils";
-import { PersistentConfigService } from "../..";
 
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
@@ -7,7 +6,6 @@ import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
-import { PersistedConfig } from "../../services/PersistentConfigService";
 
 const STATE_BRANCH_NAME = "selection";
 
@@ -395,26 +393,5 @@ export function decodeFileExplorerURL(decodedFileExplorerURL: string): DecodeFil
     return {
         payload: decodedFileExplorerURL,
         type: DECODE_FILE_EXPLORER_URL,
-    };
-}
-
-/**
- * UPDATE_PERSISTED_CONFIG
- *
- * Intention to set given data in both persistent configuration and current application state
- */
-export const UPDATE_PERSISTED_CONFIG = makeConstant(STATE_BRANCH_NAME, "update-persisted-config");
-
-export interface UpdatePersistedConfigAction {
-    payload: PersistedConfig;
-    type: string;
-}
-
-export function updatePersistedConfig(
-    persistedConfig: PersistedConfig
-): UpdatePersistedConfigAction {
-    return {
-        payload: persistedConfig,
-        type: UPDATE_PERSISTED_CONFIG,
     };
 }

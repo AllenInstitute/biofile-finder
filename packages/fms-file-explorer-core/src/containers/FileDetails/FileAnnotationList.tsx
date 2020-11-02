@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
-import { metadata, selection } from "../../state";
+import { metadata, persistent } from "../../state";
 import FileAnnotationRow from "./FileAnnotationRow";
 
 const styles = require("./FileAnnotationList.module.css");
@@ -22,8 +22,7 @@ interface FileAnnotationListProps {
 export default function FileAnnotationList(props: FileAnnotationListProps) {
     const { fileDetails, isLoading } = props;
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
-    const persistedConfig = useSelector(selection.selectors.getPersistedConfig);
-    const allenMountPoint = persistedConfig.ALLEN_MOUNT_POINT;
+    const allenMountPoint = useSelector(persistent.selectors.getAllenMountPoint);
 
     const content: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
         if (isLoading) {

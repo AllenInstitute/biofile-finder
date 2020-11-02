@@ -3,10 +3,9 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as util from "util";
+import { Dispatch } from "react";
 
 import { dialog, ipcMain, ipcRenderer } from "electron";
-
-import PersistentConfigServiceElectron from "./PersistentConfigServiceElectron";
 
 import { FileViewerService } from "@aics/fms-file-explorer-core";
 
@@ -15,9 +14,7 @@ import { FileViewerService } from "@aics/fms-file-explorer-core";
 const {
     FileViewerCancellationToken,
 } = require("@aics/fms-file-explorer-core/nodejs/services/FileViewerService");
-const {
-    PersistedConfigKeys,
-} = require("@aics/fms-file-explorer-core/nodejs/services/PersistentConfigService");
+const { persistent } = require("@aics/fms-file-explorer-core/nodejs/state");
 
 // These are paths known (and unlikely to change) inside the allen drive that any given user should
 // have access to
@@ -29,21 +26,9 @@ export default class FileViewerServiceElectron implements FileViewerService {
     public static SHOW_ERROR_BOX = "show-error-box";
     public static SHOW_MESSAGE_BOX = "show-message-box";
     public static SHOW_OPEN_DIALOG = "show-open-dialog";
-    private persistentConfigService: PersistentConfigServiceElectron;
+    private dispatch?: Dispatch<any>;
 
-    // Try to see if the chosen path leads to an actual executable
-    private static async isValidImageJExecutable(imageJExecutable: string): Promise<boolean> {
-        try {
-            await fs.promises.access(imageJExecutable, fs.constants.X_OK);
-            return true;
-        } catch (_) {
-            return false;
-        }
-    }
-
-    public constructor(persistentConfigService: PersistentConfigServiceElectron) {
-        this.persistentConfigService = persistentConfigService;
-
+    public constructor() {
         ipcRenderer.removeAllListeners(FileViewerServiceElectron.SET_ALLEN_MOUNT_POINT);
         ipcRenderer.on(FileViewerServiceElectron.SET_ALLEN_MOUNT_POINT, () => {
             this.selectAllenMountPoint();
@@ -53,6 +38,10 @@ export default class FileViewerServiceElectron implements FileViewerService {
         ipcRenderer.on(FileViewerServiceElectron.SET_IMAGE_J_LOCATION, () => {
             this.selectImageJExecutableLocation();
         });
+    }
+
+    public setup(dispatch: Dispatch<any>) {
+        this.dispatch = dispatch;
     }
 
     public static registerIpcHandlers() {
@@ -87,6 +76,13 @@ export default class FileViewerServiceElectron implements FileViewerService {
     }
 
     public async selectAllenMountPoint(promptFirst?: boolean): Promise<string> {
+        // Shouldn't happen assuming instance was set up properly in App.tsx
+        if (!this.dispatch) {
+            const message =
+                "Internal application error. The FileViewerServiceElectron was not setup properly";
+            await this.showError("Allen Drive Mount Point Selection", message);
+            return Promise.reject(message);
+        }
         if (promptFirst) {
             const result = await this.showMessage(
                 "Allen Drive Mount Point",
@@ -109,7 +105,7 @@ export default class FileViewerServiceElectron implements FileViewerService {
             // Ensure the paths exist as expected inside the drive
             const pathIsValidAllenDrive = await this.isValidAllenMountPoint(allenPath);
             if (pathIsValidAllenDrive) {
-                this.persistentConfigService.set(PersistedConfigKeys.AllenMountPoint, allenPath);
+                this.dispatch(persistent.actions.setAllenMountPoint(allenPath));
                 return allenPath;
             }
             // Alert user to error with allen drive
@@ -121,6 +117,13 @@ export default class FileViewerServiceElectron implements FileViewerService {
     }
 
     public async selectImageJExecutableLocation(promptFirst?: boolean): Promise<string> {
+        // Shouldn't happen assuming instance was set up properly in App.tsx
+        if (!this.dispatch) {
+            const message =
+                "Internal application error. The FileViewerServiceElectron was not setup properly";
+            await this.showError("ImageJ/Fiji Executable Location", message);
+            return Promise.reject(message);
+        }
         if (promptFirst) {
             const result = await this.showMessage(
                 "ImageJ/Fiji Executable Location",
@@ -183,23 +186,16 @@ export default class FileViewerServiceElectron implements FileViewerService {
                         "MacOS",
                         plist.CFBundleExecutable
                     );
-                    isValidExecutable = await FileViewerServiceElectron.isValidImageJExecutable(
-                        imageJExecutable
-                    );
+                    isValidExecutable = await this.isValidImageJLocation(imageJExecutable);
                 } else {
                     isValidExecutable = false;
                 }
             } else {
-                isValidExecutable = await FileViewerServiceElectron.isValidImageJExecutable(
-                    imageJExecutable
-                );
+                isValidExecutable = await this.isValidImageJLocation(imageJExecutable);
             }
 
             if (isValidExecutable) {
-                this.persistentConfigService.set(
-                    PersistedConfigKeys.ImageJExecutable,
-                    imageJExecutable
-                );
+                this.dispatch(persistent.actions.setImageJLocation(imageJExecutable));
                 return imageJExecutable;
             }
 
@@ -211,46 +207,42 @@ export default class FileViewerServiceElectron implements FileViewerService {
         }
     }
 
-    public async getValidatedAllenDriveLocation(): Promise<string | undefined> {
-        const storedAllenDrive = this.persistentConfigService.get(
-            PersistedConfigKeys.AllenMountPoint
-        );
-        if (storedAllenDrive) {
-            if (await this.isValidAllenMountPoint(storedAllenDrive)) {
-                return storedAllenDrive;
-            }
+    public async getDefaultAllenMountPointForOs(): Promise<string | undefined> {
+        // Shouldn't happen assuming instance was set up properly in App.tsx
+        if (!this.dispatch) {
+            const message =
+                "Internal application error. The FileViewerServiceElectron was not setup properly";
+            await this.showError("Allen Drive Mount Point Discovery", message);
+            return Promise.reject(message);
         }
         // Attempt to guess where it is since we either don't have one stored or it isn't valid
         const defaultAllenDriveForOs =
             os.platform() === "win32" ? "\\\\allen" : path.normalize("/allen");
         if (await this.isValidAllenMountPoint(defaultAllenDriveForOs)) {
-            this.persistentConfigService.set(
-                PersistedConfigKeys.AllenMountPoint,
-                defaultAllenDriveForOs
-            );
+            this.dispatch(persistent.actions.setAllenMountPoint(defaultAllenDriveForOs));
             return defaultAllenDriveForOs;
         }
         return undefined;
     }
 
-    public async getValidatedImageJLocation(): Promise<string | undefined> {
-        const storedImageJLocation = this.persistentConfigService.get(
-            PersistedConfigKeys.ImageJExecutable
-        );
-        if (storedImageJLocation) {
-            if (await FileViewerServiceElectron.isValidImageJExecutable(storedImageJLocation)) {
-                return storedImageJLocation;
-            }
+    public async isValidAllenMountPoint(allenPath?: string): Promise<boolean> {
+        if (!allenPath) {
+            return false;
         }
-        return undefined;
-    }
-
-    public async isValidAllenMountPoint(allenPath: string): Promise<boolean> {
         try {
             const expectedPaths = KNOWN_FOLDERS_IN_ALLEN_DRIVE.map((f) => path.join(allenPath, f));
             await Promise.all(
                 expectedPaths.map((path) => fs.promises.access(path, fs.constants.R_OK))
             );
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    public async isValidImageJLocation(imageJExecutable: string): Promise<boolean> {
+        try {
+            await fs.promises.access(imageJExecutable, fs.constants.X_OK);
             return true;
         } catch (_) {
             return false;

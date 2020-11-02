@@ -21,11 +21,11 @@ export type ApplicationInfoService = _ApplicationInfoService;
 import { default as _PersistentConfigService } from "./services/PersistentConfigService";
 export type PersistentConfigService = _PersistentConfigService;
 export { PersistedConfigKeys } from "./services/PersistentConfigService";
-import { PersistedConfig as _PersistedConfig } from "./services/PersistentConfigService";
-export type PersistedConfig = _PersistedConfig;
 
 import { default as _FileViewerService } from "./services/FileViewerService";
 export type FileViewerService = _FileViewerService;
 export { FileViewerCancellationToken } from "./services/FileViewerService";
+
+export { persistent } from "./state";
 
 export { default } from "./App";

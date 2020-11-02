@@ -11,9 +11,8 @@ import {
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { interaction, metadata, selection } from "../../state";
+import { interaction, metadata, persistent } from "../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
-import { PersistedConfigKeys } from "../../services/PersistentConfigService";
 
 const styles = require("./ManifestDownloadDialog.module.css");
 
@@ -36,11 +35,7 @@ export default function ManifestDownloadDialog() {
     const customAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
     const allAnnotations = [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations];
     const fileFilters = useSelector(interaction.selectors.getFileFiltersForManifestDownload);
-    const { persistentConfigService } = useSelector(
-        interaction.selectors.getPlatformDependentServices
-    );
-    const persistedConfig = useSelector(selection.selectors.getPersistedConfig);
-    const columnsSavedFromLastTime = persistedConfig.CSV_COLUMNS;
+    const columnsSavedFromLastTime = useSelector(persistent.selectors.getCsvColumns);
     const isManifestDownloadDialogVisible = useSelector(
         interaction.selectors.isManifestDownloadDialogVisible
     );
@@ -90,7 +85,7 @@ export default function ManifestDownloadDialog() {
         }
     };
     const onDownload = () => {
-        persistentConfigService.set(PersistedConfigKeys.CsvColumns, columns);
+        dispatch(persistent.actions.setCsvColumns(columns));
         dispatch(interaction.actions.toggleManifestDownloadDialog());
         // Map the annotations to their names (as opposed to their display names)
         // Top level file attributes as of the moment are automatically included
