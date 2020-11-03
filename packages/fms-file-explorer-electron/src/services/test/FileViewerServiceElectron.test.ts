@@ -484,11 +484,8 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
         it("returns valid default allen drive for OS", async () => {
             // Arrange
             const service = new FileViewerServiceElectron();
-            let persistedAllenMountPoint;
-            const mockDispatch = (allenMountPoint: any) => {
-                persistedAllenMountPoint = allenMountPoint;
-            };
-            service.initialize(mockDispatch);
+            const dispatchStub = sandbox.stub();
+            service.initialize(dispatchStub);
             await fs.promises.mkdir(tempAllenPath);
             for (const expectedFolder of knownPaths) {
                 await fs.promises.mkdir(path.resolve(tempAllenPath, expectedFolder));
@@ -503,7 +500,8 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             } else {
                 expect(result).to.be.undefined;
             }
-            expect(persistedAllenMountPoint).to.equal(result);
+            expect(dispatchStub.called).to.be.true;
+            expect(dispatchStub.calledWithExactly(result)).to.be.true;
         });
     });
 
