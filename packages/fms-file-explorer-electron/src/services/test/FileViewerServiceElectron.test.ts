@@ -4,7 +4,7 @@ import * as path from "path";
 import * as os from "os";
 import * as util from "util";
 
-import { expect } from "chai";
+import { assert, expect } from "chai";
 import { ipcRenderer } from "electron";
 import plistParser from "simple-plist";
 import { createSandbox } from "sinon";
@@ -13,16 +13,12 @@ import { RUN_IN_RENDERER } from "../../util/constants";
 import FileViewerServiceElectron, {
     KNOWN_FOLDERS_IN_ALLEN_DRIVE,
 } from "../FileViewerServiceElectron";
-import PersistentConfigServiceElectron from "../PersistentConfigServiceElectron";
 
 // GM 9/15/20: This symbol is in fact exported from @aics/fms-file-explorer-core, but inexplicably,
 // using `import` machinery causes tests to hang. All attempts to debug this have been unsuccesful so far.
 const {
     FileViewerCancellationToken,
 } = require("@aics/fms-file-explorer-core/nodejs/services/FileViewerService");
-const {
-    PersistedConfigKeys,
-} = require("@aics/fms-file-explorer-core/nodejs/services/PersistentConfigService");
 
 describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
     const sandbox = createSandbox();
@@ -34,10 +30,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
     describe("Open files in ImageJ", () => {
         it("resolves after successfully spawning child process", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
             class FakeProcess {
                 public on() {
                     return;
@@ -62,10 +55,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
         it("attempts to report error on failure to spawn child process", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
             const imageJExecutable = "/some/path/to/a/test/imageJ";
             const filePaths = ["a", "b"];
             sandbox.stub(childProcess, "spawn").throws("Test error");
@@ -103,10 +93,9 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
         it("persists mount point", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
+            const dispatchStub = sandbox.stub();
+            service.setup(dispatchStub);
             sandbox
                 .stub(ipcRenderer, "invoke")
                 .withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG)
@@ -119,18 +108,15 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
             // Assert
             expect(mountPoint).to.equal(tempAllenDrive);
-            const persistedMountPoint = persistentConfigService.get(
-                PersistedConfigKeys.AllenMountPoint
-            );
-            expect(persistedMountPoint).to.equal(tempAllenDrive);
+            expect(dispatchStub.called).to.be.true;
+            expect(dispatchStub.calledOnceWithExactly(tempAllenDrive));
         });
 
         it("does not persist mount point when cancelled", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
+            const dispatchStub = sandbox.stub();
+            service.setup(dispatchStub);
             sandbox
                 .stub(ipcRenderer, "invoke")
                 .withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG)
@@ -144,18 +130,14 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
             // Assert
             expect(mountPoint).to.equal(FileViewerCancellationToken);
-            const persistedMountPoint = persistentConfigService.get(
-                PersistedConfigKeys.AllenMountPoint
-            );
-            expect(persistedMountPoint).to.be.undefined;
+            expect(dispatchStub.called).to.be.false;
         });
 
         it("Rejects invalid allen drive & allows reselection of valid drive", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
+            const dispatchStub = sandbox.stub();
+            service.setup(dispatchStub);
             const stub = sandbox.stub(ipcRenderer, "invoke");
             stub.withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG)
                 .onCall(0)
@@ -173,18 +155,14 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
             // Assert
             expect(mountPoint).to.equal(tempAllenDrive);
-            const persistedMountPoint = persistentConfigService.get(
-                PersistedConfigKeys.AllenMountPoint
-            );
-            expect(persistedMountPoint).to.equal(tempAllenDrive);
+            expect(dispatchStub.called).to.be.false;
         });
 
         it("informs the user of the prompt (when specified to)", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
+            const dispatchStub = sandbox.stub();
+            service.setup(dispatchStub);
             const invokeStub = sandbox.stub(ipcRenderer, "invoke");
             const selectDirectoryStub = invokeStub.withArgs(
                 FileViewerServiceElectron.SHOW_OPEN_DIALOG
@@ -203,14 +181,14 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             expect(mountPoint).to.equal(FileViewerCancellationToken);
             expect(messageBoxStub.called).to.be.true;
             expect(selectDirectoryStub.called).to.be.true;
+            expect(dispatchStub.called).to.be.false;
         });
 
         it("doesn't ask for selection when user cancels out of message box", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
+            const dispatchStub = sandbox.stub();
+            service.setup(dispatchStub);
             const invokeStub = sandbox.stub(ipcRenderer, "invoke");
             const selectDirectoryStub = invokeStub.withArgs(
                 FileViewerServiceElectron.SHOW_OPEN_DIALOG
@@ -224,6 +202,18 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             expect(mountPoint).to.equal(FileViewerCancellationToken);
             expect(messageBoxStub.called).to.be.true;
             expect(selectDirectoryStub.called).to.be.false;
+            expect(dispatchStub.called).to.be.false;
+        });
+
+        it("reports error when not setup", async () => {
+            // Arrange
+            const service = new FileViewerServiceElectron();
+
+            // Act / Assert
+            try {
+                await service.selectAllenMountPoint(true);
+                assert.fail("Should have failed due to not setting up instance");
+            } catch (error) {}
         });
     });
 
@@ -272,10 +262,12 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
         it("persists ImageJ executable location", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
+            let persistedImageJLocation;
+            const mockDispatch = (imageJLocation: any) => {
+                persistedImageJLocation = imageJLocation;
+            };
+            service.setup(mockDispatch);
             const invokeStub = sandbox.stub(ipcRenderer, "invoke");
             invokeStub.withArgs(FileViewerServiceElectron.SHOW_MESSAGE_BOX).resolves(true);
             invokeStub.withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG).resolves({
@@ -294,19 +286,17 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             } else {
                 expect(selectedPath).to.equal(executablePath);
             }
-
-            const persistedMountPoint = persistentConfigService.get(
-                PersistedConfigKeys.ImageJExecutable
-            );
-            expect(persistedMountPoint).to.equal(selectedPath);
+            expect(persistedImageJLocation).to.equal(selectedPath);
         });
 
         it("does not persist location when cancelled", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
+            let persistedImageJLocation;
+            const mockDispatch = (imageJLocation: any) => {
+                persistedImageJLocation = imageJLocation;
+            };
+            service.setup(mockDispatch);
             sandbox
                 .stub(ipcRenderer, "invoke")
                 .withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG)
@@ -320,18 +310,13 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
             // Assert
             expect(selectedPath).to.equal(FileViewerCancellationToken);
-            const persistedMountPoint = persistentConfigService.get(
-                PersistedConfigKeys.ImageJExecutable
-            );
-            expect(persistedMountPoint).to.be.undefined;
+            expect(persistedImageJLocation).to.be.undefined;
         });
 
         it("re-prompts user on invalid ImageJ path selection", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
+            service.setup(() => {});
             const selectDirectoryStub = sandbox
                 .stub(ipcRenderer, "invoke")
                 .withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG);
@@ -348,18 +333,12 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
             // Assert
             expect(selectedPath).to.equal(FileViewerCancellationToken);
-            const persistedMountPoint = persistentConfigService.get(
-                PersistedConfigKeys.ImageJExecutable
-            );
-            expect(persistedMountPoint).to.be.undefined;
         });
 
         it("informs the user of the prompt (when specified to)", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
+            service.setup(() => {});
             const invokeStub = sandbox.stub(ipcRenderer, "invoke");
             const selectDirectoryStub = invokeStub.withArgs(
                 FileViewerServiceElectron.SHOW_OPEN_DIALOG
@@ -382,10 +361,8 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
         it("doesn't ask for selection when user cancels out of message box", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
+            service.setup(() => {});
             const invokeStub = sandbox.stub(ipcRenderer, "invoke");
             const selectDirectoryStub = invokeStub.withArgs(
                 FileViewerServiceElectron.SHOW_OPEN_DIALOG
@@ -400,6 +377,17 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             expect(mountPoint).to.equal(FileViewerCancellationToken);
             expect(messageBoxStub.called).to.be.true;
             expect(selectDirectoryStub.called).to.be.false;
+        });
+
+        it("reports error when not setup", async () => {
+            // Arrange
+            const service = new FileViewerServiceElectron();
+
+            // Act / Assert
+            try {
+                await service.selectImageJExecutableLocation(true);
+                assert.fail("Should have failed due to not setting up instance");
+            } catch (error) {}
         });
     });
 
@@ -423,10 +411,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
         it("returns true when allen drive is valid", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
             await fs.promises.mkdir(tempAllenPath);
             for (const expectedFolder of knownPaths) {
                 await fs.promises.mkdir(path.resolve(tempAllenPath, expectedFolder));
@@ -441,10 +426,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
         it("returns false when allen drive does not contain expected folder", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
             await fs.promises.mkdir(tempAllenPath);
 
             // Act
@@ -456,10 +438,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
         it("returns false when allen drive itself does not exist", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
 
             // Act
             const result = await service.isValidAllenMountPoint(tempAllenPath);
@@ -469,7 +448,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
         });
     });
 
-    describe("getValidatedAllenDriveLocation", () => {
+    describe("getDefaultAllenMountPointForOs", () => {
         const tempAllenPath = path.resolve(os.tmpdir(), "testAllen");
         const knownPaths = KNOWN_FOLDERS_IN_ALLEN_DRIVE.map((f) => path.resolve(tempAllenPath, f));
 
@@ -487,66 +466,64 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             }
         });
 
-        it("returns stored allen drive when it is valid", async () => {
+        it("returns valid default allen drive for OS", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            persistentConfigService.set(PersistedConfigKeys.AllenMountPoint, tempAllenPath);
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
+            let persistedAllenMountPoint;
+            const mockDispatch = (allenMountPoint: any) => {
+                persistedAllenMountPoint = allenMountPoint;
+            };
+            service.setup(mockDispatch);
             await fs.promises.mkdir(tempAllenPath);
             for (const expectedFolder of knownPaths) {
                 await fs.promises.mkdir(path.resolve(tempAllenPath, expectedFolder));
             }
 
             // Act
-            const result = await service.getValidatedAllenDriveLocation();
+            const result = await service.getDefaultAllenMountPointForOs();
 
             // Assert
-            expect(result).to.equal(tempAllenPath);
+            if (os.platform() === "win32") {
+                expect(result).to.equal(tempAllenPath);
+            } else {
+                expect(result).to.be.undefined;
+            }
+            expect(persistedAllenMountPoint).to.equal(result);
         });
     });
 
-    describe("getValidatedImageJLocation", () => {
+    describe("isValidImageJLocation", () => {
         const imageJExecutable = path.resolve(os.tmpdir(), "testExecutable");
 
         before(async () => {
             await fs.promises.writeFile(imageJExecutable, "hello", { mode: 111 });
-            await fs.promises.access(imageJExecutable, fs.constants.F_OK);
-            // await fs.promises.access(imageJExecutable, fs.constants.X_OK);
+            await fs.promises.access(imageJExecutable, fs.constants.X_OK);
         });
 
         after(async () => {
             await fs.promises.unlink(imageJExecutable);
         });
 
-        it("returns stored executable location when it is valid", async () => {
+        it("returns true when valid", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            persistentConfigService.set(PersistedConfigKeys.ImageJExecutable, imageJExecutable);
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
 
             // Act
-            const result = await service.getValidatedImageJLocation();
+            const result = await service.isValidImageJLocation(imageJExecutable);
 
             // Assert
-            expect(result).to.equal(imageJExecutable);
+            expect(result).to.true;
         });
 
-        it("returns undefined when stored executable is not valid", async () => {
+        it("returns false when given location does not exist", async () => {
             // Arrange
-            const persistentConfigService = new PersistentConfigServiceElectron({
-                clearExistingData: true,
-            });
-            const service = new FileViewerServiceElectron(persistentConfigService);
+            const service = new FileViewerServiceElectron();
 
             // Act
-            const result = await service.getValidatedImageJLocation();
+            const result = await service.isValidImageJLocation("/a/non/existent/path/imagej");
 
             // Assert
-            expect(result).to.be.undefined;
+            expect(result).to.be.false;
         });
     });
 });
