@@ -135,7 +135,7 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
             } catch (_) {
                 // Alert user to error with executable location
                 await this.notificationService.showError(
-                    "ImageJ/Fiji Executable Location",
+                    promptTitle,
                     `Whoops! ${executablePath} is not verifiably an executable on your computer. Select the same application you would use to open the app.`
                 );
             }

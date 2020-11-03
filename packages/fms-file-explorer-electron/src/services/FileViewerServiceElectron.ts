@@ -21,10 +21,10 @@ export default class FileViewerServiceElectron implements FileViewerService {
 
         try {
             // Create a child process for the executable to open files in
-            const imageJProcess = childProcess.spawn(executable, filePaths);
+            const executableProcess = childProcess.spawn(executable, filePaths);
             // Handle unsuccessful startups of the executable (these will only be called if explorer is still open)
-            imageJProcess.on("error", reportErrorToUser);
-            imageJProcess.on("exit", async (code: number) => {
+            executableProcess.on("error", reportErrorToUser);
+            executableProcess.on("exit", async (code: number) => {
                 if (code !== 0) {
                     await reportErrorToUser(`Status Code ${code}`);
                 }
