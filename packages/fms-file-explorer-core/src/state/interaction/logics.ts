@@ -3,7 +3,7 @@ import path from "path";
 import { isEmpty, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { persistent, ReduxLogicDeps, selection } from "../";
+import { ReduxLogicDeps, selection } from "../";
 import {
     DOWNLOAD_MANIFEST,
     succeedManifestDownload,
@@ -147,10 +147,8 @@ const openFilesInImageJ = createLogic({
         const { fileViewerService } = interactionSelectors.getPlatformDependentServices(
             deps.getState()
         );
-        const allenMountPoint = persistent.selectors.getAllenMountPoint(deps.getState());
-        const imageJExecutable = persistent.selectors.getImageJExecutable(
-            deps.getState()
-        ) as string;
+        const allenMountPoint = selection.selectors.getAllenMountPoint(deps.getState());
+        const imageJExecutable = selection.selectors.getImageJExecutable(deps.getState()) as string;
 
         // Collect the file paths from the selected files
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
@@ -158,30 +156,32 @@ const openFilesInImageJ = createLogic({
         const filePaths = selectedFilesDetails.map(
             (file) => allenMountPoint + path.normalize(file.filePath.substring(6))
         );
-        await fileViewerService.openFilesInImageJ(filePaths, imageJExecutable);
+        await fileViewerService.open(imageJExecutable, filePaths);
         done();
     },
     async transform(deps: ReduxLogicDeps, next, reject) {
-        const { fileViewerService } = interactionSelectors.getPlatformDependentServices(
+        const { executableEnvService } = interactionSelectors.getPlatformDependentServices(
             deps.getState()
         );
-        let allenMountPoint = persistent.selectors.getAllenMountPoint(deps.getState());
-        let imageJExecutable = persistent.selectors.getImageJExecutable(deps.getState());
+        let allenMountPoint = selection.selectors.getAllenMountPoint(deps.getState());
+        let imageJExecutable = selection.selectors.getImageJExecutable(deps.getState());
 
         // Ensure we have the necessary directories (Allen drive & Image J) so that we can properly open images
-        const isValidAllenDrive = await fileViewerService.isValidAllenMountPoint(allenMountPoint);
+        const isValidAllenDrive = await executableEnvService.isValidAllenMountPoint(
+            allenMountPoint
+        );
         if (!isValidAllenDrive) {
-            allenMountPoint = await fileViewerService.getDefaultAllenMountPointForOs();
-            if (!allenMountPoint) {
-                allenMountPoint = await fileViewerService.selectAllenMountPoint(true);
-            }
+            allenMountPoint = await executableEnvService.promptForAllenMountPoint(true);
         }
         if (allenMountPoint !== FileViewerCancellationToken) {
-            const isValidImageJLocation = await fileViewerService.isValidImageJLocation(
+            const isValidImageJLocation = await executableEnvService.isValidExecutable(
                 imageJExecutable
             );
             if (!isValidImageJLocation) {
-                imageJExecutable = await fileViewerService.selectImageJExecutableLocation(true);
+                imageJExecutable = await executableEnvService.promptForExecutable(
+                    "ImageJ/Fiji Executable",
+                    "TODO"
+                );
             }
         }
 

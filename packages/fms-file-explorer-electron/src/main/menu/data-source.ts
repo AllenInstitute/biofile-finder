@@ -19,7 +19,7 @@ const dataSourceMenu: MenuItemConstructorOptions = {
             click: (menuItem, focusedWindow) => {
                 global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.LOCALHOST;
                 if (focusedWindow) {
-                    focusedWindow.webContents.send("file-explorer-service-connection-change");
+                    focusedWindow.webContents.send("file-explorer-service-global-variable-change");
                 }
             },
         },
@@ -30,7 +30,7 @@ const dataSourceMenu: MenuItemConstructorOptions = {
             click: (menuItem, focusedWindow) => {
                 global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.STAGING;
                 if (focusedWindow) {
-                    focusedWindow.webContents.send("file-explorer-service-connection-change");
+                    focusedWindow.webContents.send("file-explorer-service-global-variable-change");
                 }
             },
         },
@@ -41,7 +41,7 @@ const dataSourceMenu: MenuItemConstructorOptions = {
             click: (menuItem, focusedWindow) => {
                 global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION;
                 if (focusedWindow) {
-                    focusedWindow.webContents.send("file-explorer-service-connection-change");
+                    focusedWindow.webContents.send("file-explorer-service-global-variable-change");
                 }
             },
         },

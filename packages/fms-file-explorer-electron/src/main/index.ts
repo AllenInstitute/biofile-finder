@@ -7,8 +7,8 @@ import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-insta
 
 import template from "./menu";
 import ApplicationInfoServiceElectron from "../services/ApplicationInfoServiceElectron";
+import ExecutableEnvServiceElectron from "../services/ExecutableEnvElectron";
 import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron";
-import FileViewerServiceElectron from "../services/FileViewerServiceElectron";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -24,8 +24,8 @@ let mainWindow: BrowserWindow | undefined;
 // register handlers called via ipc between renderer and main
 const registerIpcHandlers = () => {
     ApplicationInfoServiceElectron.registerIpcHandlers();
+    ExecutableEnvServiceElectron.registerIpcHandlers();
     FileDownloadServiceElectron.registerIpcHandlers();
-    FileViewerServiceElectron.registerIpcHandlers();
 };
 
 const createMainWindow = () => {

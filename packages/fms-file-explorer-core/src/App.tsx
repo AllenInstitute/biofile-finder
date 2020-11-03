@@ -15,10 +15,11 @@ import HeaderRibbon from "./containers/HeaderRibbon";
 import ManifestDownloadDialog from "./containers/ManifestDownloadDialog";
 import StatusMessage from "./containers/StatusMessage";
 import ApplicationInfoServiceNoop from "./services/ApplicationInfoService/ApplicationInfoServiceNoop";
+import ExecutableEnvServiceNoop from "./services/ExecutableEnvService/ExecutableEnvServiceNoop";
 import FileDownloadServiceNoop from "./services/FileDownloadService/FileDownloadServiceNoop";
-import PersistentConfigServiceNoop from "./services/PersistentConfigService/PersistentConfigServiceNoop";
 import FileViewerServiceNoop from "./services/FileViewerService/FileViewerServiceNoop";
-import { interaction, metadata, persistent } from "./state";
+import PersistentConfigServiceNoop from "./services/PersistentConfigService/PersistentConfigServiceNoop";
+import { interaction, metadata } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
 
 import "./styles/global.css";
@@ -47,6 +48,7 @@ const defaultProps = {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
         fileViewerService: new FileViewerServiceNoop(),
+        executableEnvService: new ExecutableEnvServiceNoop(),
         persistentConfigService: new PersistentConfigServiceNoop(),
     },
 };
@@ -65,12 +67,6 @@ export default function App(props: AppProps) {
                   ...props.platformDependentServices,
               }
             : defaultProps.platformDependentServices;
-        platformDependentServices.fileViewerService.initialize(dispatch);
-        dispatch(
-            persistent.actions.hydrateApplicationState(
-                platformDependentServices.persistentConfigService
-            )
-        );
         dispatch(interaction.actions.setPlatformDependentServices(platformDependentServices));
 
         async function checkForUpdates() {

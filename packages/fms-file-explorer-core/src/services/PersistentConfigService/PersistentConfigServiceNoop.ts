@@ -5,7 +5,11 @@ export default class PersistentConfigServiceNoop implements PersistentConfigServ
         return undefined;
     }
 
-    public set() {
+    public getAll() {
+        return {};
+    }
+
+    public persist() {
         return;
     }
 }

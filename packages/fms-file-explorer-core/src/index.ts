@@ -1,8 +1,22 @@
-import { configureStore } from "@aics/redux-utils";
+import { configureStore, mergeState } from "@aics/redux-utils";
 
-import { middleware, reducer, State } from "./state";
+import {
+    default as _PersistentConfigService,
+    PersistedConfig as _PersistedConfig,
+    PersistedConfigKeys,
+} from "./services/PersistentConfigService";
+import { middleware, reducer, initialState, State } from "./state";
 
-export function createReduxStore(preloadedState?: State) {
+export function createReduxStore(persistedConfig?: PersistedConfig) {
+    const preloadedState: State = mergeState(initialState, {
+        selection: {
+            allenMountPoint:
+                persistedConfig && persistedConfig[PersistedConfigKeys.AllenMountPoint],
+            csvColumns: persistedConfig && persistedConfig[PersistedConfigKeys.CsvColumns],
+            imageJExecutable:
+                persistedConfig && persistedConfig[PersistedConfigKeys.ImageJExecutable],
+        },
+    });
     return configureStore<State>({
         middleware,
         preloadedState,
@@ -18,14 +32,16 @@ export { CancellationToken } from "./services/FileDownloadService";
 import { default as _ApplicationInfoService } from "./services/ApplicationInfoService";
 export type ApplicationInfoService = _ApplicationInfoService;
 
-import { default as _PersistentConfigService } from "./services/PersistentConfigService";
-export type PersistentConfigService = _PersistentConfigService;
-export { PersistedConfigKeys } from "./services/PersistentConfigService";
+import { default as _ExecutableEnvService } from "./services/ExecutableEnvService";
+export type ExecutableEnvService = _ExecutableEnvService;
+export { ExecutableEnvCancellationToken } from "./services/ExecutableEnvService";
 
 import { default as _FileViewerService } from "./services/FileViewerService";
 export type FileViewerService = _FileViewerService;
 export { FileViewerCancellationToken } from "./services/FileViewerService";
 
-export { persistent } from "./state";
+export type PersistentConfigService = _PersistentConfigService;
+export type PersistedConfig = _PersistedConfig;
+export { PersistedConfigKeys } from "./services/PersistentConfigService";
 
 export { default } from "./App";

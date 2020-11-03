@@ -15,7 +15,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             // Arrange
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
             const expected = "my/path/going/somewhere/allen";
-            service.set(PersistedConfigKeys.AllenMountPoint, expected);
+            service.persist(PersistedConfigKeys.AllenMountPoint, expected);
 
             // Act / Assert
             for (let i = 0; i < 5; i++) {
@@ -23,12 +23,23 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             }
         });
 
-        it("returns undefined when key does not exist", () => {
+        it("returns default when key does not exist & default does", () => {
             // Arrange
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
 
             // Act
             const actual = service.get(PersistedConfigKeys.AllenMountPoint);
+
+            // Assert
+            expect(actual).to.not.be.undefined;
+        });
+
+        it("returns undefined when key does not exist & no default does", () => {
+            // Arrange
+            const service = new PersistentConfigServiceElectron({ clearExistingData: true });
+
+            // Act
+            const actual = service.get(PersistedConfigKeys.ImageJExecutable);
 
             // Assert
             expect(actual).to.be.undefined;
@@ -42,7 +53,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const expected = "home/users/me/allen";
 
             // Act
-            service.set(PersistedConfigKeys.AllenMountPoint, expected); // TODO: Expect to throw!
+            service.persist(PersistedConfigKeys.AllenMountPoint, expected); // TODO: Expect to throw!
 
             // Assert
             const actual = service.get(PersistedConfigKeys.AllenMountPoint);
@@ -54,7 +65,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
 
             // Act / Assert
-            expect(() => service.set(PersistedConfigKeys.AllenMountPoint, [])).to.throw();
+            expect(() => service.persist(PersistedConfigKeys.AllenMountPoint, [])).to.throw();
         });
 
         it(`saves valid ${PersistedConfigKeys.CsvColumns}`, async () => {
@@ -63,7 +74,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const expected = ["FileId", "Filename", "Type"];
 
             // Act
-            service.set(PersistedConfigKeys.CsvColumns, expected);
+            service.persist(PersistedConfigKeys.CsvColumns, expected);
 
             // Assert
             const actual = service.get(PersistedConfigKeys.CsvColumns);
@@ -75,7 +86,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
 
             // Act / Assert
-            expect(() => service.set(PersistedConfigKeys.CsvColumns, 143)).to.throw();
+            expect(() => service.persist(PersistedConfigKeys.CsvColumns, 143)).to.throw();
         });
 
         it(`overrides existing value for key`, async () => {
@@ -84,9 +95,9 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const expected = ["FileId", "Filename", "Type"];
 
             // Act
-            service.set(PersistedConfigKeys.CsvColumns, ["Cell Line"]);
-            service.set(PersistedConfigKeys.CsvColumns, expected);
-            service.set(PersistedConfigKeys.AllenMountPoint, "/my/path/allen");
+            service.persist(PersistedConfigKeys.CsvColumns, ["Cell Line"]);
+            service.persist(PersistedConfigKeys.CsvColumns, expected);
+            service.persist(PersistedConfigKeys.AllenMountPoint, "/my/path/allen");
 
             // Assert
             const actual = service.get(PersistedConfigKeys.CsvColumns);

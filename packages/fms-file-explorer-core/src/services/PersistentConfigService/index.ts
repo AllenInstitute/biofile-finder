@@ -7,6 +7,12 @@ export enum PersistedConfigKeys {
     ImageJExecutable = "IMAGE_J_EXECUTABLE",
 }
 
+export interface PersistedConfig {
+    [PersistedConfigKeys.AllenMountPoint]?: string;
+    [PersistedConfigKeys.CsvColumns]?: string[];
+    [PersistedConfigKeys.ImageJExecutable]?: string;
+}
+
 /**
  * Interface that defines a platform-dependent service for persistent configuration data.
  */
@@ -17,7 +23,13 @@ export default interface PersistentConfigService {
     get(key: PersistedConfigKeys): any;
 
     /**
+     * Retrieve the config value for all possible keys.
+     */
+    getAll(): PersistedConfig;
+
+    /**
      * Save the config value at the given key. Overwrites any existing data for the key.
      */
-    set(key: PersistedConfigKeys, value: any): void;
+    persist(config: PersistedConfig): void;
+    persist(key: PersistedConfigKeys, value: any): void;
 }

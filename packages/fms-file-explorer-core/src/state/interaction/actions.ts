@@ -2,6 +2,7 @@ import { makeConstant } from "@aics/redux-utils";
 
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
+import ExecutableEnvService from "../../services/ExecutableEnvService";
 import FileDownloadService from "../../services/FileDownloadService";
 import PersistentConfigService from "../../services/PersistentConfigService";
 import FileViewerService from "../../services/FileViewerService";
@@ -176,6 +177,7 @@ export interface PlatformDependentServices {
     applicationInfoService: ApplicationInfoService;
     fileDownloadService: FileDownloadService;
     fileViewerService: FileViewerService;
+    executableEnvService: ExecutableEnvService;
     persistentConfigService: PersistentConfigService;
 }
 
