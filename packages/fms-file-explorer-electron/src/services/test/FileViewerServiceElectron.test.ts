@@ -525,7 +525,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             const result = await service.isValidImageJLocation(imageJExecutable);
 
             // Assert
-            expect(result).to.true;
+            expect(result).to.be.true;
         });
 
         it("returns false when given location does not exist", async () => {
