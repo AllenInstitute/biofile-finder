@@ -74,8 +74,8 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
         });
     }
 
-    public async promptForAllenMountPoint(promptFirst?: boolean): Promise<string> {
-        if (promptFirst) {
+    public async promptForAllenMountPoint(shouldPromptBefore?: boolean): Promise<string> {
+        if (shouldPromptBefore) {
             const result = await this.notificationService.showMessage(
                 "Allen Drive Mount Point",
                 "It appears that your Allen Drive isn't where we thought it would be. " +
@@ -108,15 +108,9 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
         }
     }
 
-    public async promptForExecutable(
-        promptTitle: string,
-        messageForBefore: string
-    ): Promise<string> {
-        if (messageForBefore) {
-            const result = await this.notificationService.showMessage(
-                promptTitle,
-                messageForBefore
-            );
+    public async promptForExecutable(promptTitle: string, promptMessage?: string): Promise<string> {
+        if (promptMessage) {
+            const result = await this.notificationService.showMessage(promptTitle, promptMessage);
             if (!result) {
                 return ExecutableEnvCancellationToken;
             }

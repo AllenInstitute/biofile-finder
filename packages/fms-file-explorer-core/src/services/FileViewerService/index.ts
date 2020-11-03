@@ -5,7 +5,7 @@ export default interface FileViewerService {
     /**
      * Opens the given files in the executable.
      *
-     * @param imageJExecutable Path to executable to run commands against.
+     * @param executablePath Path to executable to run commands against.
      * @param filePaths The paths to the files to open
      */
     open(executablePath: string, filePaths?: string[]): Promise<void>;

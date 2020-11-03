@@ -67,6 +67,7 @@ export default function App(props: AppProps) {
                   ...props.platformDependentServices,
               }
             : defaultProps.platformDependentServices;
+
         dispatch(interaction.actions.setPlatformDependentServices(platformDependentServices));
 
         async function checkForUpdates() {
