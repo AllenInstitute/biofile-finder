@@ -376,7 +376,7 @@ describe("Interaction logics", () => {
             let actualFilePaths: string[] | undefined = undefined;
             let actualExecutablePath: string | undefined = undefined;
             class UselessFileViewerService implements FileViewerService {
-                setup() {
+                initialize() {
                     return;
                 }
                 openFilesInImageJ(filePaths: string[], imageJExecutable?: string) {
@@ -432,7 +432,7 @@ describe("Interaction logics", () => {
             // Arrange
             let attemptedToSetImageJ = false;
             class UselessFileViewerService implements FileViewerService {
-                setup() {
+                initialize() {
                     return;
                 }
                 openFilesInImageJ() {
@@ -479,7 +479,7 @@ describe("Interaction logics", () => {
             // Arrange
             let attemptedToSetAllenDrive = false;
             class UselessFileViewerService implements FileViewerService {
-                setup() {
+                initialize() {
                     return;
                 }
                 openFilesInImageJ() {
@@ -526,7 +526,7 @@ describe("Interaction logics", () => {
             // Arrange
             let attemptedToOpenFiles = false;
             class UselessFileViewerService implements FileViewerService {
-                setup() {
+                initialize() {
                     return;
                 }
                 openFilesInImageJ() {

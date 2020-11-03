@@ -65,7 +65,7 @@ export default function App(props: AppProps) {
                   ...props.platformDependentServices,
               }
             : defaultProps.platformDependentServices;
-        platformDependentServices.fileViewerService.setup(dispatch);
+        platformDependentServices.fileViewerService.initialize(dispatch);
         dispatch(
             persistent.actions.hydrateApplicationState(
                 platformDependentServices.persistentConfigService

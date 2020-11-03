@@ -96,7 +96,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Arrange
             const service = new FileViewerServiceElectron();
             const dispatchStub = sandbox.stub();
-            service.setup(dispatchStub);
+            service.initialize(dispatchStub);
             sandbox
                 .stub(ipcRenderer, "invoke")
                 .withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG)
@@ -121,7 +121,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Arrange
             const service = new FileViewerServiceElectron();
             const dispatchStub = sandbox.stub();
-            service.setup(dispatchStub);
+            service.initialize(dispatchStub);
             sandbox
                 .stub(ipcRenderer, "invoke")
                 .withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG)
@@ -142,7 +142,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Arrange
             const service = new FileViewerServiceElectron();
             const dispatchStub = sandbox.stub();
-            service.setup(dispatchStub);
+            service.initialize(dispatchStub);
             const stub = sandbox.stub(ipcRenderer, "invoke");
             stub.withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG)
                 .onCall(0)
@@ -172,7 +172,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Arrange
             const service = new FileViewerServiceElectron();
             const dispatchStub = sandbox.stub();
-            service.setup(dispatchStub);
+            service.initialize(dispatchStub);
             const invokeStub = sandbox.stub(ipcRenderer, "invoke");
             const selectDirectoryStub = invokeStub.withArgs(
                 FileViewerServiceElectron.SHOW_OPEN_DIALOG
@@ -198,7 +198,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Arrange
             const service = new FileViewerServiceElectron();
             const dispatchStub = sandbox.stub();
-            service.setup(dispatchStub);
+            service.initialize(dispatchStub);
             const invokeStub = sandbox.stub(ipcRenderer, "invoke");
             const selectDirectoryStub = invokeStub.withArgs(
                 FileViewerServiceElectron.SHOW_OPEN_DIALOG
@@ -215,7 +215,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             expect(dispatchStub.called).to.be.false;
         });
 
-        it("reports error when not setup", async () => {
+        it("reports error when not initialize", async () => {
             // Arrange
             const service = new FileViewerServiceElectron();
 
@@ -274,7 +274,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Arrange
             const service = new FileViewerServiceElectron();
             const dispatchStub = sandbox.stub();
-            service.setup(dispatchStub);
+            service.initialize(dispatchStub);
             const invokeStub = sandbox.stub(ipcRenderer, "invoke");
             invokeStub.withArgs(FileViewerServiceElectron.SHOW_MESSAGE_BOX).resolves(true);
             invokeStub.withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG).resolves({
@@ -305,7 +305,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Arrange
             const service = new FileViewerServiceElectron();
             const dispatchStub = sandbox.stub();
-            service.setup(dispatchStub);
+            service.initialize(dispatchStub);
             sandbox
                 .stub(ipcRenderer, "invoke")
                 .withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG)
@@ -326,7 +326,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Arrange
             const service = new FileViewerServiceElectron();
             const dispatchStub = sandbox.stub();
-            service.setup(dispatchStub);
+            service.initialize(dispatchStub);
             const selectDirectoryStub = sandbox
                 .stub(ipcRenderer, "invoke")
                 .withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG);
@@ -350,7 +350,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Arrange
             const service = new FileViewerServiceElectron();
             const dispatchStub = sandbox.stub();
-            service.setup(dispatchStub);
+            service.initialize(dispatchStub);
             const invokeStub = sandbox.stub(ipcRenderer, "invoke");
             const selectDirectoryStub = invokeStub.withArgs(
                 FileViewerServiceElectron.SHOW_OPEN_DIALOG
@@ -376,7 +376,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Arrange
             const service = new FileViewerServiceElectron();
             const dispatchStub = sandbox.stub();
-            service.setup(dispatchStub);
+            service.initialize(dispatchStub);
             const invokeStub = sandbox.stub(ipcRenderer, "invoke");
             const selectDirectoryStub = invokeStub.withArgs(
                 FileViewerServiceElectron.SHOW_OPEN_DIALOG
@@ -394,7 +394,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             expect(dispatchStub.called).to.be.false;
         });
 
-        it("reports error when not setup", async () => {
+        it("reports error when not initialize", async () => {
             // Arrange
             const service = new FileViewerServiceElectron();
 
@@ -488,7 +488,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             const mockDispatch = (allenMountPoint: any) => {
                 persistedAllenMountPoint = allenMountPoint;
             };
-            service.setup(mockDispatch);
+            service.initialize(mockDispatch);
             await fs.promises.mkdir(tempAllenPath);
             for (const expectedFolder of knownPaths) {
                 await fs.promises.mkdir(path.resolve(tempAllenPath, expectedFolder));

@@ -1,5 +1,3 @@
-import { Dispatch } from "react";
-
 /**
  * Interface that defines a platform-dependent service for showing files using other applications.
  */
@@ -7,7 +5,7 @@ export default interface FileViewerService {
     /**
      * Setup the FileViewerService so that it can dispatch events to the application state.
      */
-    setup(dispatch: Dispatch<any>): void;
+    initialize(dispatch: CallableFunction): void;
 
     /**
      * Prompts the user for the allen mount point location & saves for future use.

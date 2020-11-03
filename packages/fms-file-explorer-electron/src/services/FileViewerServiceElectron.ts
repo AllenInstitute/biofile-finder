@@ -4,7 +4,6 @@ import * as os from "os";
 import * as path from "path";
 import * as util from "util";
 
-import { Dispatch } from "react";
 import { dialog, ipcMain, ipcRenderer } from "electron";
 
 import { FileViewerService } from "@aics/fms-file-explorer-core";
@@ -26,23 +25,7 @@ export default class FileViewerServiceElectron implements FileViewerService {
     public static SHOW_ERROR_BOX = "show-error-box";
     public static SHOW_MESSAGE_BOX = "show-message-box";
     public static SHOW_OPEN_DIALOG = "show-open-dialog";
-    private dispatch?: Dispatch<any>;
-
-    public constructor() {
-        ipcRenderer.removeAllListeners(FileViewerServiceElectron.SET_ALLEN_MOUNT_POINT);
-        ipcRenderer.on(FileViewerServiceElectron.SET_ALLEN_MOUNT_POINT, () => {
-            this.selectAllenMountPoint();
-        });
-
-        ipcRenderer.removeAllListeners(FileViewerServiceElectron.SET_IMAGE_J_LOCATION);
-        ipcRenderer.on(FileViewerServiceElectron.SET_IMAGE_J_LOCATION, () => {
-            this.selectImageJExecutableLocation();
-        });
-    }
-
-    public setup(dispatch: Dispatch<any>) {
-        this.dispatch = dispatch;
-    }
+    private dispatch?: CallableFunction;
 
     public static registerIpcHandlers() {
         // Handle opening a native file browser dialog
@@ -73,6 +56,22 @@ export default class FileViewerServiceElectron implements FileViewerService {
             });
             return response === 1;
         });
+    }
+
+    public constructor() {
+        ipcRenderer.removeAllListeners(FileViewerServiceElectron.SET_ALLEN_MOUNT_POINT);
+        ipcRenderer.on(FileViewerServiceElectron.SET_ALLEN_MOUNT_POINT, () => {
+            this.selectAllenMountPoint();
+        });
+
+        ipcRenderer.removeAllListeners(FileViewerServiceElectron.SET_IMAGE_J_LOCATION);
+        ipcRenderer.on(FileViewerServiceElectron.SET_IMAGE_J_LOCATION, () => {
+            this.selectImageJExecutableLocation();
+        });
+    }
+
+    public initialize(dispatch: CallableFunction) {
+        this.dispatch = dispatch;
     }
 
     public async selectAllenMountPoint(promptFirst?: boolean): Promise<string> {
@@ -240,7 +239,10 @@ export default class FileViewerServiceElectron implements FileViewerService {
         }
     }
 
-    public async isValidImageJLocation(imageJExecutable: string): Promise<boolean> {
+    public async isValidImageJLocation(imageJExecutable?: string): Promise<boolean> {
+        if (!imageJExecutable) {
+            return false;
+        }
         try {
             await fs.promises.access(imageJExecutable, fs.constants.X_OK);
             return true;
