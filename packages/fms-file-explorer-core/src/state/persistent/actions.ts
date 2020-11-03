@@ -1,4 +1,5 @@
 import { makeConstant } from "@aics/redux-utils";
+
 import PersistentConfigService, {
     PersistedConfigKeys,
 } from "../../services/PersistentConfigService";

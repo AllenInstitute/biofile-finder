@@ -27,7 +27,8 @@ const updatePersistedConfig = createLogic({
 });
 
 /**
- * Interceptor responsible for transforming HYDRATE_APPLICATION_STATE actions into UPDATE_PERSISTENT_CONFIG actions
+ * Interceptor responsible for transforming HYDRATE_APPLICATION_STATE actions by adding persisted config data
+ * to the payload
  */
 const hydrateApplicationState = createLogic({
     type: HYDRATE_APPLICATION_STATE,

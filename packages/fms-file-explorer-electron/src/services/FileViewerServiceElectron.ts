@@ -3,8 +3,8 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as util from "util";
-import { Dispatch } from "react";
 
+import { Dispatch } from "react";
 import { dialog, ipcMain, ipcRenderer } from "electron";
 
 import { FileViewerService } from "@aics/fms-file-explorer-core";
