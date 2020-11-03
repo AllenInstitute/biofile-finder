@@ -19,6 +19,7 @@ import FileViewerServiceElectron, {
 const {
     FileViewerCancellationToken,
 } = require("@aics/fms-file-explorer-core/nodejs/services/FileViewerService");
+const { persistent } = require("@aics/fms-file-explorer-core/nodejs/state");
 
 describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
     const sandbox = createSandbox();
@@ -109,7 +110,11 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             // Assert
             expect(mountPoint).to.equal(tempAllenDrive);
             expect(dispatchStub.called).to.be.true;
-            expect(dispatchStub.calledOnceWithExactly(tempAllenDrive));
+            expect(
+                dispatchStub.calledOnceWithExactly(
+                    persistent.actions.setAllenMountPoint(tempAllenDrive)
+                )
+            ).to.be.true;
         });
 
         it("does not persist mount point when cancelled", async () => {
@@ -133,7 +138,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             expect(dispatchStub.called).to.be.false;
         });
 
-        it("Rejects invalid allen drive & allows reselection of valid drive", async () => {
+        it("rejects invalid allen drive & allows reselection of valid drive", async () => {
             // Arrange
             const service = new FileViewerServiceElectron();
             const dispatchStub = sandbox.stub();
@@ -155,7 +160,12 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
             // Assert
             expect(mountPoint).to.equal(tempAllenDrive);
-            expect(dispatchStub.called).to.be.false;
+            expect(dispatchStub.called).to.be.true;
+            expect(
+                dispatchStub.calledOnceWithExactly(
+                    persistent.actions.setAllenMountPoint(tempAllenDrive)
+                )
+            ).to.be.true;
         });
 
         it("informs the user of the prompt (when specified to)", async () => {
@@ -263,11 +273,8 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
         it("persists ImageJ executable location", async () => {
             // Arrange
             const service = new FileViewerServiceElectron();
-            let persistedImageJLocation;
-            const mockDispatch = (imageJLocation: any) => {
-                persistedImageJLocation = imageJLocation;
-            };
-            service.setup(mockDispatch);
+            const dispatchStub = sandbox.stub();
+            service.setup(dispatchStub);
             const invokeStub = sandbox.stub(ipcRenderer, "invoke");
             invokeStub.withArgs(FileViewerServiceElectron.SHOW_MESSAGE_BOX).resolves(true);
             invokeStub.withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG).resolves({
@@ -286,17 +293,19 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             } else {
                 expect(selectedPath).to.equal(executablePath);
             }
-            expect(persistedImageJLocation).to.equal(selectedPath);
+            expect(dispatchStub.called).to.be.true;
+            expect(
+                dispatchStub.calledOnceWithExactly(
+                    persistent.actions.setImageJLocation(selectedPath)
+                )
+            ).to.be.true;
         });
 
         it("does not persist location when cancelled", async () => {
             // Arrange
             const service = new FileViewerServiceElectron();
-            let persistedImageJLocation;
-            const mockDispatch = (imageJLocation: any) => {
-                persistedImageJLocation = imageJLocation;
-            };
-            service.setup(mockDispatch);
+            const dispatchStub = sandbox.stub();
+            service.setup(dispatchStub);
             sandbox
                 .stub(ipcRenderer, "invoke")
                 .withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG)
@@ -310,13 +319,14 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
             // Assert
             expect(selectedPath).to.equal(FileViewerCancellationToken);
-            expect(persistedImageJLocation).to.be.undefined;
+            expect(dispatchStub.called).to.be.false;
         });
 
         it("re-prompts user on invalid ImageJ path selection", async () => {
             // Arrange
             const service = new FileViewerServiceElectron();
-            service.setup(() => {});
+            const dispatchStub = sandbox.stub();
+            service.setup(dispatchStub);
             const selectDirectoryStub = sandbox
                 .stub(ipcRenderer, "invoke")
                 .withArgs(FileViewerServiceElectron.SHOW_OPEN_DIALOG);
@@ -333,12 +343,14 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
             // Assert
             expect(selectedPath).to.equal(FileViewerCancellationToken);
+            expect(dispatchStub.called).to.be.false;
         });
 
         it("informs the user of the prompt (when specified to)", async () => {
             // Arrange
             const service = new FileViewerServiceElectron();
-            service.setup(() => {});
+            const dispatchStub = sandbox.stub();
+            service.setup(dispatchStub);
             const invokeStub = sandbox.stub(ipcRenderer, "invoke");
             const selectDirectoryStub = invokeStub.withArgs(
                 FileViewerServiceElectron.SHOW_OPEN_DIALOG
@@ -357,12 +369,14 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             expect(mountPoint).to.equal(FileViewerCancellationToken);
             expect(messageBoxStub.called).to.be.true;
             expect(selectDirectoryStub.called).to.be.true;
+            expect(dispatchStub.called).to.be.false;
         });
 
         it("doesn't ask for selection when user cancels out of message box", async () => {
             // Arrange
             const service = new FileViewerServiceElectron();
-            service.setup(() => {});
+            const dispatchStub = sandbox.stub();
+            service.setup(dispatchStub);
             const invokeStub = sandbox.stub(ipcRenderer, "invoke");
             const selectDirectoryStub = invokeStub.withArgs(
                 FileViewerServiceElectron.SHOW_OPEN_DIALOG
@@ -377,6 +391,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             expect(mountPoint).to.equal(FileViewerCancellationToken);
             expect(messageBoxStub.called).to.be.true;
             expect(selectDirectoryStub.called).to.be.false;
+            expect(dispatchStub.called).to.be.false;
         });
 
         it("reports error when not setup", async () => {
