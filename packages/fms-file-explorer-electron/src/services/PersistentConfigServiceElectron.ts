@@ -50,14 +50,13 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     }
 
     public getAll(): PersistedConfig {
-        const config = Object.entries(PersistedConfigKeys).reduce(
-            (config, [key, value]) => ({
+        return Object.values(PersistedConfigKeys).reduce(
+            (config: PersistedConfig, key) => ({
                 ...config,
-                [key]: value,
+                [key as string]: this.get(key),
             }),
             {}
         );
-        return { ...PersistentConfigServiceElectron.defaults, ...config };
     }
 
     public persist(config: PersistedConfig): void;
@@ -67,6 +66,8 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
             Object.entries(arg).forEach(([key, value]) => {
                 this.persist(key, value);
             });
+        } else if (value === undefined || value === null) {
+            this.store.delete(arg);
         } else {
             this.store.set(arg, value);
         }

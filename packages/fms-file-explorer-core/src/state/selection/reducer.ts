@@ -18,9 +18,6 @@ import {
     SET_OPEN_FILE_FOLDERS,
     RESIZE_COLUMN,
     RESET_COLUMN_WIDTH,
-    SET_ALLEN_MOUNT_POINT,
-    SET_CSV_COLUMNS,
-    SET_IMAGE_J_LOCATION,
 } from "./actions";
 import { metadata } from "..";
 
@@ -128,18 +125,6 @@ export default makeReducer<SelectionStateBranch>(
         [SET_OPEN_FILE_FOLDERS]: (state, action) => ({
             ...state,
             openFileFolders: action.payload,
-        }),
-        [SET_ALLEN_MOUNT_POINT]: (state, action) => ({
-            ...state,
-            allenMountPoint: action.payload,
-        }),
-        [SET_CSV_COLUMNS]: (state, action) => ({
-            ...state,
-            csvColumns: action.payload,
-        }),
-        [SET_IMAGE_J_LOCATION]: (state, action) => ({
-            ...state,
-            imageJExecutable: action.payload,
         }),
         [interaction.actions.SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state) => ({
             ...state,

@@ -21,7 +21,7 @@ import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
-import { ExecutableEnvService, FileViewerCancellationToken, FileViewerService } from "../../..";
+import { ExecutableEnvService, ExecutableEnvCancellationToken, FileViewerService } from "../../..";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({
@@ -384,10 +384,10 @@ describe("Interaction logics", () => {
             }
             class UselessExecutableEnvService implements ExecutableEnvService {
                 promptForAllenMountPoint() {
-                    return Promise.resolve(FileViewerCancellationToken);
+                    return Promise.resolve(ExecutableEnvCancellationToken);
                 }
                 promptForExecutable() {
-                    return Promise.resolve(FileViewerCancellationToken);
+                    return Promise.resolve(ExecutableEnvCancellationToken);
                 }
                 isValidAllenMountPoint() {
                     return Promise.resolve(true);
@@ -428,7 +428,7 @@ describe("Interaction logics", () => {
             let attemptedToSetImageJ = false;
             class UselessExecutableEnvService implements ExecutableEnvService {
                 promptForAllenMountPoint() {
-                    return Promise.resolve(FileViewerCancellationToken);
+                    return Promise.resolve(ExecutableEnvCancellationToken);
                 }
                 promptForExecutable() {
                     attemptedToSetImageJ = true;
@@ -470,7 +470,7 @@ describe("Interaction logics", () => {
                     return Promise.reject("test");
                 }
                 promptForExecutable() {
-                    return Promise.resolve(FileViewerCancellationToken);
+                    return Promise.resolve(ExecutableEnvCancellationToken);
                 }
                 isValidAllenMountPoint() {
                     return Promise.resolve(true);
@@ -513,7 +513,7 @@ describe("Interaction logics", () => {
                     return Promise.resolve("test");
                 }
                 promptForExecutable() {
-                    return Promise.resolve(FileViewerCancellationToken);
+                    return Promise.resolve(ExecutableEnvCancellationToken);
                 }
                 isValidAllenMountPoint() {
                     return Promise.resolve(true);

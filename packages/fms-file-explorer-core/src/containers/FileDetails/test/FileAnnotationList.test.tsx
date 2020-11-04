@@ -14,7 +14,7 @@ describe("<FileAnnotationList />", () => {
             // Arrange
             const expectedMountPoint = "/home/testUser/my/path/to/my-isilon";
             const state = mergeState(initialState, {
-                selection: {
+                interaction: {
                     allenMountPoint: expectedMountPoint,
                 },
             });

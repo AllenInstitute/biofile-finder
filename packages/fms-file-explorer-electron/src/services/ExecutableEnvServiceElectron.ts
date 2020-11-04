@@ -70,7 +70,7 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
 
         ipcRenderer.removeAllListeners(ExecutableEnvServiceElectron.PROMPT_IMAGE_J_LOCATION);
         ipcRenderer.on(ExecutableEnvServiceElectron.PROMPT_IMAGE_J_LOCATION, () => {
-            return this.promptForExecutable("ImageJ/Fiji Executable", "TODO");
+            return this.promptForExecutable("ImageJ/Fiji Executable");
         });
     }
 
@@ -131,7 +131,8 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
             }
 
             try {
-                return await this.resolveExecutable(executablePath);
+                const executable = await this.resolveExecutable(executablePath);
+                return executable;
             } catch (_) {
                 // Alert user to error with executable location
                 await this.notificationService.showError(
@@ -195,7 +196,8 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
             );
         }
 
-        if (!this.isValidExecutable(executablePathForOs)) {
+        const isValidExecutable = await this.isValidExecutable(executablePathForOs);
+        if (!isValidExecutable) {
             return Promise.reject(
                 `Unable to verify that executable ${executablePathForOs} is valid`
             );

@@ -119,7 +119,7 @@ describe("<ManifestDownloadDialog />", () => {
         // Assert
         expect(
             actions.includesMatch({
-                type: selection.actions.SET_CSV_COLUMNS,
+                type: interaction.actions.SET_CSV_COLUMNS,
                 payload: TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName),
             })
         ).to.be.true;
@@ -167,6 +167,9 @@ describe("<ManifestDownloadDialog />", () => {
         // Arrange
         const columns = ["Cell Line", "Cas9", "Donor Plasmid"];
         const state = mergeState(visibleDialogState, {
+            interaction: {
+                csvColumns: columns,
+            },
             metadata: {
                 annotations: columns.map(
                     (c) =>
@@ -177,9 +180,6 @@ describe("<ManifestDownloadDialog />", () => {
                             type: "Text",
                         })
                 ),
-            },
-            selection: {
-                csvColumns: columns,
             },
         });
         const { store } = configureMockStore({ state });
@@ -223,6 +223,9 @@ describe("<ManifestDownloadDialog />", () => {
             // Arrange
             const preSavedColumns = ["Cas9", "Cell Line", "Donor Plasmid"];
             const state = mergeState(visibleDialogState, {
+                interaction: {
+                    csvColumns: preSavedColumns,
+                },
                 metadata: {
                     annotations: preSavedColumns.map(
                         (c) =>
@@ -233,9 +236,6 @@ describe("<ManifestDownloadDialog />", () => {
                                 type: "text",
                             })
                     ),
-                },
-                selection: {
-                    csvColumns: preSavedColumns,
                 },
             });
             const { store } = configureMockStore({ state });
@@ -255,6 +255,9 @@ describe("<ManifestDownloadDialog />", () => {
             // Arrange
             const column = "Cell Line";
             const state = mergeState(visibleDialogState, {
+                interaction: {
+                    csvColumns: [column],
+                },
                 metadata: {
                     annotations: [
                         new Annotation({
@@ -264,9 +267,6 @@ describe("<ManifestDownloadDialog />", () => {
                             type: "Text",
                         }),
                     ],
-                },
-                selection: {
-                    csvColumns: [column],
                 },
             });
             const { store } = configureMockStore({ state });

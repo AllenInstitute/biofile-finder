@@ -1,5 +1,5 @@
 import { MenuItemConstructorOptions } from "electron";
-import ExecutableEnvServiceElectron from "../../services/ExecutableEnvElectron";
+import ExecutableEnvServiceElectron from "../../services/ExecutableEnvServiceElectron";
 
 const settingsMenu: MenuItemConstructorOptions = {
     label: "Settings",

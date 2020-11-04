@@ -9,7 +9,7 @@ import { middleware, reducer, initialState, State } from "./state";
 
 export function createReduxStore(persistedConfig?: PersistedConfig) {
     const preloadedState: State = mergeState(initialState, {
-        selection: {
+        interaction: {
             allenMountPoint:
                 persistedConfig && persistedConfig[PersistedConfigKeys.AllenMountPoint],
             csvColumns: persistedConfig && persistedConfig[PersistedConfigKeys.CsvColumns],

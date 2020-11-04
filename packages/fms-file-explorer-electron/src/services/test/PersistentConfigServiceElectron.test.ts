@@ -46,21 +46,61 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
         });
     });
 
-    describe("set", () => {
-        it(`saves valid ${PersistedConfigKeys.AllenMountPoint}`, async () => {
+    describe("getAll", () => {
+        it("returns every key persisted", () => {
+            // Arrange
+            const service = new PersistentConfigServiceElectron({ clearExistingData: true });
+            const expectedAllenMountPoint = "/some/path/to/allen";
+            const expectedCsvColumns = ["a", "b", "c"];
+            const expectedImageJExecutable = "/some/path/to/imageJ";
+            service.persist(PersistedConfigKeys.AllenMountPoint, expectedAllenMountPoint);
+            service.persist(PersistedConfigKeys.CsvColumns, expectedCsvColumns);
+            service.persist(PersistedConfigKeys.ImageJExecutable, expectedImageJExecutable);
+            const expectedConfig = {
+                [PersistedConfigKeys.AllenMountPoint]: expectedAllenMountPoint,
+                [PersistedConfigKeys.CsvColumns]: expectedCsvColumns,
+                [PersistedConfigKeys.ImageJExecutable]: expectedImageJExecutable,
+            };
+
+            // Act
+            const config = service.getAll();
+
+            // Assert
+            expect(config).to.deep.equal(expectedConfig);
+        });
+    });
+
+    describe("persist", () => {
+        it("persists every key possible", () => {
+            // Arrange
+            const service = new PersistentConfigServiceElectron({ clearExistingData: true });
+            const config = {
+                [PersistedConfigKeys.AllenMountPoint]: "/some/path/to/allen",
+                [PersistedConfigKeys.CsvColumns]: ["a", "b"],
+                [PersistedConfigKeys.ImageJExecutable]: "/my/imagej",
+            };
+
+            // Act
+            service.persist(config);
+
+            // Assert
+            expect(service.getAll()).to.deep.equal(config);
+        });
+
+        it(`persists valid ${PersistedConfigKeys.AllenMountPoint}`, () => {
             // Arrange
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
             const expected = "home/users/me/allen";
 
             // Act
-            service.persist(PersistedConfigKeys.AllenMountPoint, expected); // TODO: Expect to throw!
+            service.persist(PersistedConfigKeys.AllenMountPoint, expected);
 
             // Assert
             const actual = service.get(PersistedConfigKeys.AllenMountPoint);
             expect(actual).to.be.equal(expected);
         });
 
-        it(`rejects invalid ${PersistedConfigKeys.AllenMountPoint}`, async () => {
+        it(`rejects invalid ${PersistedConfigKeys.AllenMountPoint}`, () => {
             // Arrange
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
 
@@ -68,7 +108,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             expect(() => service.persist(PersistedConfigKeys.AllenMountPoint, [])).to.throw();
         });
 
-        it(`saves valid ${PersistedConfigKeys.CsvColumns}`, async () => {
+        it(`persists valid ${PersistedConfigKeys.CsvColumns}`, () => {
             // Arrange
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
             const expected = ["FileId", "Filename", "Type"];
@@ -81,7 +121,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             expect(actual).to.be.deep.equal(expected);
         });
 
-        it(`rejects invalid ${PersistedConfigKeys.CsvColumns}`, async () => {
+        it(`rejects invalid ${PersistedConfigKeys.CsvColumns}`, () => {
             // Arrange
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
 
@@ -89,7 +129,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             expect(() => service.persist(PersistedConfigKeys.CsvColumns, 143)).to.throw();
         });
 
-        it(`overrides existing value for key`, async () => {
+        it(`overrides existing value for key`, () => {
             // Arrange
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
             const expected = ["FileId", "Filename", "Type"];

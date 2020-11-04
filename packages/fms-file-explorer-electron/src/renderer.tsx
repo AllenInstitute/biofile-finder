@@ -6,7 +6,7 @@ import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
 import ApplicationInfoServiceElectron from "./services/ApplicationInfoServiceElectron";
-import ExecutableEnvServiceElectron from "./services/ExecutableEnvElectron";
+import ExecutableEnvServiceElectron from "./services/ExecutableEnvServiceElectron";
 import FileDownloadServiceElectron from "./services/FileDownloadServiceElectron";
 import FileViewerServiceElectron from "./services/FileViewerServiceElectron";
 import PersistentConfigServiceElectron from "./services/PersistentConfigServiceElectron";
@@ -44,11 +44,11 @@ store.subscribe(() => {
     // within the running application, store these values in `selection` state
     // then, the application at large doesn't need to have any knowledge of the existence of the PersistentConfigService
     const allenMountPoint = selection.selectors.getAllenMountPoint(state);
-    const imageJExecutable = selection.selectors.getImageJExectuable(state);
+    const imageJExecutable = selection.selectors.getImageJExecutable(state);
     // if we wanted to,
-    //    if (allenMountPoint !== persistentConfigService.get(PersistentConfig.AllenMountPoint)) {
-    // ...
-    //    }
+    // if (allenMountPoint !== persistentConfigService.get(PersistentConfig.AllenMountPoint)) {
+
+    // }
     persistentConfigService.persist({
         [PersistedConfigKeys.AllenMountPoint]: allenMountPoint,
         [PersistedConfigKeys.ImageJExecutable]: imageJExecutable,

@@ -60,6 +60,63 @@ export function cancelManifestDownload(id: string): CancelManifestDownloadAction
 }
 
 /**
+ * SET_ALLEN_MOUNT_POINT
+ *
+ * Intention to set the allen mount point.
+ */
+export const SET_ALLEN_MOUNT_POINT = makeConstant(STATE_BRANCH_NAME, "set-allen-mount-point");
+
+export interface SetAllenMountPointAction {
+    payload: string;
+    type: string;
+}
+
+export function setAllenMountPoint(allenMountPoint: string): SetAllenMountPointAction {
+    return {
+        payload: allenMountPoint,
+        type: SET_ALLEN_MOUNT_POINT,
+    };
+}
+
+/**
+ * SET_CSV_COLUMNS
+ *
+ * Intention to set the csv columns
+ */
+export const SET_CSV_COLUMNS = makeConstant(STATE_BRANCH_NAME, "set-csv-columns");
+
+export interface SetCsvColumnsAction {
+    payload: string[];
+    type: string;
+}
+
+export function setCsvColumns(csvColumns: string[]): SetCsvColumnsAction {
+    return {
+        payload: csvColumns,
+        type: SET_CSV_COLUMNS,
+    };
+}
+
+/**
+ * SET_IMAGE_J_LOCATION
+ *
+ * Intention to set the ImageJ/Fiji location
+ */
+export const SET_IMAGE_J_LOCATION = makeConstant(STATE_BRANCH_NAME, "set-image-j-location");
+
+export interface SetImageJLocationAction {
+    payload: string;
+    type: string;
+}
+
+export function setImageJLocation(imageJLocation: string): SetImageJLocationAction {
+    return {
+        payload: imageJLocation,
+        type: SET_IMAGE_J_LOCATION,
+    };
+}
+
+/**
  * OPEN_FILES_IN_IMAGE_J
  *
  * Intention to open selected files in Image J viewer.

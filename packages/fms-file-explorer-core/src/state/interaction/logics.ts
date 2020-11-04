@@ -14,6 +14,9 @@ import {
     CANCEL_MANIFEST_DOWNLOAD,
     cancelManifestDownload,
     OPEN_FILES_IN_IMAGE_J,
+    setAllenMountPoint,
+    setImageJLocation,
+    setCsvColumns,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -21,7 +24,7 @@ import { CancellationToken } from "../../services/FileDownloadService";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
 import { SelectionRequest, Selection } from "../../services/FileService";
-import { FileViewerCancellationToken } from "../../services/FileViewerService";
+import { ExecutableEnvCancellationToken } from "../../services/ExecutableEnvService";
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -143,56 +146,64 @@ const cancelManifestDownloadLogic = createLogic({
  */
 const openFilesInImageJ = createLogic({
     type: OPEN_FILES_IN_IMAGE_J,
-    async process(deps: ReduxLogicDeps, _, done) {
-        const { fileViewerService } = interactionSelectors.getPlatformDependentServices(
-            deps.getState()
-        );
-        const allenMountPoint = selection.selectors.getAllenMountPoint(deps.getState());
-        const imageJExecutable = selection.selectors.getImageJExecutable(deps.getState()) as string;
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const savedAllenMountPoint = interactionSelectors.getAllenMountPoint(deps.getState());
+        const savedImageJExecutable = interactionSelectors.getImageJExecutable(deps.getState());
+        const {
+            executableEnvService,
+            fileViewerService,
+        } = interactionSelectors.getPlatformDependentServices(deps.getState());
+        let allenMountPoint = savedAllenMountPoint;
+        let imageJExecutable = savedImageJExecutable;
 
-        // Collect the file paths from the selected files
-        const fileSelection = selection.selectors.getFileSelection(deps.getState());
-        const selectedFilesDetails = await fileSelection.fetchAllDetails();
-        const filePaths = selectedFilesDetails.map(
-            (file) => allenMountPoint + path.normalize(file.filePath.substring(6))
-        );
-        await fileViewerService.open(imageJExecutable, filePaths);
-        done();
-    },
-    async transform(deps: ReduxLogicDeps, next, reject) {
-        const { executableEnvService } = interactionSelectors.getPlatformDependentServices(
-            deps.getState()
-        );
-        let allenMountPoint = selection.selectors.getAllenMountPoint(deps.getState());
-        let imageJExecutable = selection.selectors.getImageJExecutable(deps.getState());
-
-        // Ensure we have the necessary directories (Allen drive & Image J) so that we can properly open images
+        // Verify that the known Allen mount point is valid, if not prompt for it
         const isValidAllenDrive = await executableEnvService.isValidAllenMountPoint(
             allenMountPoint
         );
         if (!isValidAllenDrive) {
             allenMountPoint = await executableEnvService.promptForAllenMountPoint(true);
         }
-        if (allenMountPoint !== FileViewerCancellationToken) {
+
+        // If the user did not cancel out of a prompt, continue trying to open ImageJ/Fiji
+        if (allenMountPoint && allenMountPoint !== ExecutableEnvCancellationToken) {
+            // Save Allen mount point for future use if new
+            if (allenMountPoint !== savedAllenMountPoint) {
+                // TODO: dispatch(setAllenMountPoint(allenMountPoint));
+            }
+
+            // Verify that the known ImageJ/Fiji location is valid, if not prompt for it
             const isValidImageJLocation = await executableEnvService.isValidExecutable(
                 imageJExecutable
             );
             if (!isValidImageJLocation) {
                 imageJExecutable = await executableEnvService.promptForExecutable(
                     "ImageJ/Fiji Executable",
-                    "TODO"
+                    "It appears that your ImageJ/Fiji application isn't located where we thought it would be. " +
+                        "Select your ImageJ/Fiji application now?"
                 );
+            }
+
+            // If the user did not cancel out of a prompt, continue trying to open ImageJ/Fiji
+            if (imageJExecutable && imageJExecutable !== ExecutableEnvCancellationToken) {
+                // Save the ImageJ/Fiji executable location for future use if new
+                if (imageJExecutable !== savedImageJExecutable) {
+                    // TODO: dispatch(setImageJLocation(imageJExecutable));
+                }
+
+                // Collect the file paths from the selected files
+                const fileSelection = selection.selectors.getFileSelection(deps.getState());
+                const selectedFilesDetails = await fileSelection.fetchAllDetails();
+                const filePaths = selectedFilesDetails.map(
+                    (file) =>
+                        allenMountPoint + path.normalize(file.filePath.substring("/allen".length))
+                );
+
+                // Open the files in the specified executable
+                await fileViewerService.open(imageJExecutable, filePaths);
             }
         }
 
-        if (
-            allenMountPoint === FileViewerCancellationToken ||
-            imageJExecutable === FileViewerCancellationToken
-        ) {
-            reject && reject(deps.action); // reject is typed as potentially undefined for some reason
-        } else {
-            next(deps.action);
-        }
+        done();
     },
 });
 

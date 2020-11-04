@@ -5,8 +5,11 @@ import {
     HIDE_CONTEXT_MENU,
     PlatformDependentServices,
     REMOVE_STATUS,
+    SET_ALLEN_MOUNT_POINT,
     SET_APPLICATION_VERSION,
+    SET_CSV_COLUMNS,
     SET_FILE_EXPLORER_SERVICE_BASE_URL,
+    SET_IMAGE_J_LOCATION,
     SET_PLATFORM_DEPENDENT_SERVICES,
     SET_STATUS,
     SHOW_CONTEXT_MENU,
@@ -23,13 +26,16 @@ import FileFilter from "../../entity/FileFilter";
 import ExecutableEnvServiceNoop from "../../services/ExecutableEnvService/ExecutableEnvServiceNoop";
 
 export interface InteractionStateBranch {
+    allenMountPoint?: string;
     applicationVersion?: string;
     contextMenuIsVisible: boolean;
     contextMenuItems: ContextMenuItem[];
     contextMenuPositionReference: PositionReference;
     contextMenuOnDismiss?: () => void;
+    csvColumns?: string[];
     fileExplorerServiceBaseUrl: string;
     fileFiltersForManifestDownload: FileFilter[];
+    imageJExecutable?: string;
     isManifestDownloadDialogVisible: boolean;
     platformDependentServices: PlatformDependentServices;
     status: StatusUpdate[];
@@ -83,13 +89,25 @@ export default makeReducer<InteractionStateBranch>(
                 action.payload,
             ],
         }),
+        [SET_ALLEN_MOUNT_POINT]: (state, action) => ({
+            ...state,
+            allenMountPoint: action.payload,
+        }),
         [SET_APPLICATION_VERSION]: (state, action) => ({
             ...state,
             applicationVersion: action.payload,
         }),
+        [SET_CSV_COLUMNS]: (state, action) => ({
+            ...state,
+            csvColumns: action.payload,
+        }),
         [SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state, action) => ({
             ...state,
             fileExplorerServiceBaseUrl: action.payload,
+        }),
+        [SET_IMAGE_J_LOCATION]: (state, action) => ({
+            ...state,
+            imageJExecutable: action.payload,
         }),
         [SET_PLATFORM_DEPENDENT_SERVICES]: (state, action) => ({
             ...state,
