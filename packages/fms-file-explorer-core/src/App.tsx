@@ -105,7 +105,6 @@ export default function App(props: AppProps) {
     // If the Allen mount point was set using the "Settings" menu pass along the change to app state
     React.useEffect(() => {
         if (allenMountPoint) {
-            console.log("dispatching from props", allenMountPoint);
             dispatch(interaction.actions.setAllenMountPoint(allenMountPoint));
         }
     }, [dispatch, allenMountPoint]);
@@ -113,7 +112,6 @@ export default function App(props: AppProps) {
     // If the ImageJ/Fiji executable location was set using the "Settings" menu pass along the change to app state
     React.useEffect(() => {
         if (imageJExecutable) {
-            console.log("dispatching from props", imageJExecutable);
             dispatch(interaction.actions.setImageJLocation(imageJExecutable));
         }
     }, [dispatch, imageJExecutable]);

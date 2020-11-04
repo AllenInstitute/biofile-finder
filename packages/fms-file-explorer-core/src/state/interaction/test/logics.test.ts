@@ -384,25 +384,17 @@ describe("Interaction logics", () => {
                     return Promise.resolve();
                 }
             }
-            let a = false;
-            let b = false;
-            let c = false;
-            let d = false;
             class UselessExecutableEnvService implements ExecutableEnvService {
                 promptForAllenMountPoint() {
-                    a = true;
                     return Promise.resolve(ExecutableEnvCancellationToken);
                 }
                 promptForExecutable() {
-                    b = true;
                     return Promise.resolve(ExecutableEnvCancellationToken);
                 }
                 isValidAllenMountPoint() {
-                    c = true;
                     return Promise.resolve(true);
                 }
                 isValidExecutable() {
-                    d = true;
                     return Promise.resolve(true);
                 }
             }
@@ -429,10 +421,6 @@ describe("Interaction logics", () => {
             await logicMiddleware.whenComplete();
 
             // Assert
-            expect(a).to.be.false;
-            expect(b).to.be.false;
-            expect(c).to.be.true;
-            expect(d).to.be.true;
             expect(actualFilePaths).to.be.deep.equal(filePaths);
             expect(actualExecutablePath).to.be.equal(expectedExecutablePath);
             expect(

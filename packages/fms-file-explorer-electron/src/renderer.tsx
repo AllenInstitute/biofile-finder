@@ -34,8 +34,6 @@ const platformDependentServices = {
     persistentConfigService,
 };
 
-const store = createReduxStore(persistentConfigService.getAll());
-
 // Sync the persisted values with the application state
 function persistState(allenMountPoint: string, csvColumns: string[], imageJExecutable: string) {
     persistentConfigService.persist({
@@ -47,6 +45,7 @@ function persistState(allenMountPoint: string, csvColumns: string[], imageJExecu
 // Memoize persisting to avoid doing it too much
 const memoizedPersist = memoize(persistState, (...args) => values(args).join("_"));
 
+const store = createReduxStore(persistentConfigService.getAll());
 // https://redux.js.org/api/store#subscribelistener
 store.subscribe(() => {
     const state = store.getState();

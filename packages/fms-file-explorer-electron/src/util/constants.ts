@@ -12,6 +12,6 @@ export enum GlobalVariables {
 // Channels global variables can be modified on / listen to
 export enum GlobalVariableChannels {
     AllenMountPoint = "file-explorer-service-allen-mount-point-change",
-    BaseUrl = "file-explorer-service-connection-change",
+    BaseUrl = "file-explorer-service-connection-config",
     ImageJExecutable = "file-explorer-service-image-j-executable-change",
 }
