@@ -11,6 +11,8 @@ import {
     SET_STATUS,
     cancelManifestDownload,
     openFilesInImageJ,
+    SET_ALLEN_MOUNT_POINT,
+    SET_IMAGE_J_LOCATION,
 } from "../actions";
 import interactionLogics from "../logics";
 import { initialState, interaction, selection } from "../..";
@@ -372,7 +374,7 @@ describe("Interaction logics", () => {
                 index: new NumericRange(0, 100),
                 sortOrder: 0,
             });
-            const expectedExecutablePath = "";
+            const expectedExecutablePath = "/some/path/to/imageJ";
             let actualFilePaths: string[] | undefined = undefined;
             let actualExecutablePath: string | undefined = undefined;
             class UselessFileViewerService implements FileViewerService {
@@ -382,34 +384,42 @@ describe("Interaction logics", () => {
                     return Promise.resolve();
                 }
             }
+            let a = false;
+            let b = false;
+            let c = false;
+            let d = false;
             class UselessExecutableEnvService implements ExecutableEnvService {
                 promptForAllenMountPoint() {
+                    a = true;
                     return Promise.resolve(ExecutableEnvCancellationToken);
                 }
                 promptForExecutable() {
+                    b = true;
                     return Promise.resolve(ExecutableEnvCancellationToken);
                 }
                 isValidAllenMountPoint() {
+                    c = true;
                     return Promise.resolve(true);
                 }
                 isValidExecutable() {
+                    d = true;
                     return Promise.resolve(true);
                 }
             }
             const state = mergeState(initialState, {
                 interaction: {
+                    allenMountPoint: expectedAllenDrive,
+                    imageJExecutable: expectedExecutablePath,
                     platformDependentServices: {
                         executableEnvService: new UselessExecutableEnvService(),
                         fileViewerService: new UselessFileViewerService(),
                     },
                 },
                 selection: {
-                    allenMountPoint: expectedAllenDrive,
                     fileSelection: fakeSelection,
-                    imageJExecutable: expectedExecutablePath,
                 },
             });
-            const { store, logicMiddleware } = configureMockStore({
+            const { actions, store, logicMiddleware } = configureMockStore({
                 state,
                 logics: interactionLogics,
             });
@@ -419,8 +429,22 @@ describe("Interaction logics", () => {
             await logicMiddleware.whenComplete();
 
             // Assert
+            expect(a).to.be.false;
+            expect(b).to.be.false;
+            expect(c).to.be.true;
+            expect(d).to.be.true;
             expect(actualFilePaths).to.be.deep.equal(filePaths);
             expect(actualExecutablePath).to.be.equal(expectedExecutablePath);
+            expect(
+                actions.includesMatch({
+                    type: SET_ALLEN_MOUNT_POINT,
+                })
+            ).to.be.false;
+            expect(
+                actions.includesMatch({
+                    type: SET_IMAGE_J_LOCATION,
+                })
+            ).to.be.false;
         });
 
         it("prevents prompting to select Image J executable when user cancels selecting mount point", async () => {
@@ -541,6 +565,70 @@ describe("Interaction logics", () => {
 
             // Assert
             expect(attemptedToOpenFiles).to.be.false;
+        });
+
+        it("prompts & sets allen mount point & image j location when not present/valid", async () => {
+            // Arrange
+            class UselessFileViewerService implements FileViewerService {
+                open() {
+                    return Promise.resolve();
+                }
+            }
+            let promptedForAllenMountPoint = false;
+            let promptedForExecutable = false;
+            const expectedExecutablePath = "some/path/to/imageJ";
+            class UselessExecutableEnvService implements ExecutableEnvService {
+                promptForAllenMountPoint() {
+                    promptedForAllenMountPoint = true;
+                    return Promise.resolve(expectedAllenDrive);
+                }
+                promptForExecutable() {
+                    promptedForExecutable = true;
+                    return Promise.resolve(expectedExecutablePath);
+                }
+                isValidAllenMountPoint() {
+                    return Promise.resolve(false);
+                }
+                isValidExecutable() {
+                    return Promise.resolve(false);
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        executableEnvService: new UselessExecutableEnvService(),
+                        fileViewerService: new UselessFileViewerService(),
+                    },
+                },
+            });
+            const { actions, store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(openFilesInImageJ());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(promptedForAllenMountPoint).to.be.true;
+            expect(promptedForExecutable).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: SET_ALLEN_MOUNT_POINT,
+                    payload: {
+                        allenMountPoint: expectedAllenDrive,
+                    },
+                })
+            ).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: SET_IMAGE_J_LOCATION,
+                    payload: {
+                        imageJExecutable: expectedExecutablePath,
+                    },
+                })
+            ).to.be.true;
         });
     });
 });

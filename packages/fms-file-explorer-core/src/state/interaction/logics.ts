@@ -14,9 +14,8 @@ import {
     CANCEL_MANIFEST_DOWNLOAD,
     cancelManifestDownload,
     OPEN_FILES_IN_IMAGE_J,
-    setAllenMountPoint,
     setImageJLocation,
-    setCsvColumns,
+    setAllenMountPoint,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -168,7 +167,7 @@ const openFilesInImageJ = createLogic({
         if (allenMountPoint && allenMountPoint !== ExecutableEnvCancellationToken) {
             // Save Allen mount point for future use if new
             if (allenMountPoint !== savedAllenMountPoint) {
-                // TODO: dispatch(setAllenMountPoint(allenMountPoint));
+                dispatch(setAllenMountPoint(allenMountPoint));
             }
 
             // Verify that the known ImageJ/Fiji location is valid, if not prompt for it
@@ -187,7 +186,7 @@ const openFilesInImageJ = createLogic({
             if (imageJExecutable && imageJExecutable !== ExecutableEnvCancellationToken) {
                 // Save the ImageJ/Fiji executable location for future use if new
                 if (imageJExecutable !== savedImageJExecutable) {
-                    // TODO: dispatch(setImageJLocation(imageJExecutable));
+                    dispatch(setImageJLocation(imageJExecutable));
                 }
 
                 // Collect the file paths from the selected files

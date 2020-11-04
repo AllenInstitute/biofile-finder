@@ -91,7 +91,7 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [SET_ALLEN_MOUNT_POINT]: (state, action) => ({
             ...state,
-            allenMountPoint: action.payload,
+            ...action.payload,
         }),
         [SET_APPLICATION_VERSION]: (state, action) => ({
             ...state,
@@ -107,7 +107,7 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [SET_IMAGE_J_LOCATION]: (state, action) => ({
             ...state,
-            imageJExecutable: action.payload,
+            ...action.payload,
         }),
         [SET_PLATFORM_DEPENDENT_SERVICES]: (state, action) => ({
             ...state,

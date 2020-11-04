@@ -22,18 +22,15 @@ import {
 import { metadata } from "..";
 
 export interface SelectionStateBranch {
-    allenMountPoint?: string;
     annotationHierarchy: Annotation[];
     availableAnnotationsForHierarchy: string[];
     availableAnnotationsForHierarchyLoading: boolean;
     columnWidths: {
         [index: string]: number; // columnName to widthPercent mapping
     };
-    csvColumns?: string[];
     displayAnnotations: Annotation[];
     fileSelection: FileSelection;
     filters: FileFilter[];
-    imageJExecutable?: string;
     openFileFolders: FileFolder[];
 }
 

@@ -7,6 +7,7 @@ import { ExecutableEnvService } from "@aics/fms-file-explorer-core";
 import { dialog, ipcMain, ipcRenderer } from "electron";
 
 import NotificationServiceElectron from "./NotificationServiceElectron";
+import { GlobalVariableChannels } from "../util/constants";
 
 // GM 9/15/20: This symbol is in fact exported from @aics/fms-file-explorer-core, but inexplicably,
 // using `import` machinery causes tests to hang. All attempts to debug this have been unsuccesful so far.
@@ -36,6 +37,18 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
                 });
             }
         );
+
+        // Relay the selected Allen mount point to a listener in the renderer process
+        ipcMain.on(GlobalVariableChannels.AllenMountPoint, (event, allenPath) => {
+            global.fileExplorerServiceAllenMountPoint = allenPath;
+            event.reply(GlobalVariableChannels.AllenMountPoint, allenPath);
+        });
+
+        // Relay the selected ImageJ/Fiji executable to a listener in the renderer process
+        ipcMain.on(GlobalVariableChannels.ImageJExecutable, (event, imageJExecutable) => {
+            global.fileExplorerServiceImageJExecutable = imageJExecutable;
+            event.reply(GlobalVariableChannels.ImageJExecutable, imageJExecutable);
+        });
     }
 
     private static getDefaultOpenDialogOptions(
@@ -64,13 +77,21 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
     public constructor(notificationService: NotificationServiceElectron) {
         this.notificationService = notificationService;
         ipcRenderer.removeAllListeners(ExecutableEnvServiceElectron.PROMPT_ALLEN_MOUNT_POINT);
-        ipcRenderer.on(ExecutableEnvServiceElectron.PROMPT_ALLEN_MOUNT_POINT, () => {
-            return this.promptForAllenMountPoint();
+        ipcRenderer.on(ExecutableEnvServiceElectron.PROMPT_ALLEN_MOUNT_POINT, async () => {
+            const allenPath = await this.promptForAllenMountPoint();
+            if (allenPath !== ExecutableEnvCancellationToken) {
+                // Pass the selected Allen mount point on to the global variables
+                ipcRenderer.send(GlobalVariableChannels.AllenMountPoint, allenPath);
+            }
         });
 
         ipcRenderer.removeAllListeners(ExecutableEnvServiceElectron.PROMPT_IMAGE_J_LOCATION);
-        ipcRenderer.on(ExecutableEnvServiceElectron.PROMPT_IMAGE_J_LOCATION, () => {
-            return this.promptForExecutable("ImageJ/Fiji Executable");
+        ipcRenderer.on(ExecutableEnvServiceElectron.PROMPT_IMAGE_J_LOCATION, async () => {
+            const imageJExecutable = await this.promptForExecutable("ImageJ/Fiji Executable");
+            if (imageJExecutable !== ExecutableEnvCancellationToken) {
+                // Pass the selected ImageJ/Fiji executable on to the global variables
+                ipcRenderer.send(GlobalVariableChannels.ImageJExecutable, imageJExecutable);
+            }
         });
     }
 

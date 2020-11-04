@@ -10,6 +10,8 @@ const {
     PersistedConfigKeys,
 } = require("@aics/fms-file-explorer-core/nodejs/services/PersistentConfigService");
 
+type PersistedConfigKeysType = typeof PersistedConfigKeys;
+
 // Defines a validation schema for data inserted into the persistent storage
 // if a breaking change is made see migration patterns in elecron-store docs
 const STORAGE_SCHEMA: Schema<Record<string, unknown>> = {
@@ -32,11 +34,13 @@ interface PersistentConfigServiceElectronOptions {
 }
 
 export default class PersistentConfigServiceElectron implements PersistentConfigService {
-    private static defaults: PersistedConfig = {
-        [PersistedConfigKeys.AllenMountPoint]:
-            os.platform() === "win32" ? "\\\\allen" : path.normalize("/allen"),
-    };
     private store: Store;
+
+    private static getDefault(key: PersistedConfigKeysType) {
+        if (key === PersistedConfigKeys.AllenMountPoint) {
+            return os.platform() === "win32" ? "\\\\allen" : path.normalize("/allen");
+        }
+    }
 
     public constructor(options: PersistentConfigServiceElectronOptions = {}) {
         this.store = new Store({ schema: STORAGE_SCHEMA });
@@ -45,8 +49,8 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
         }
     }
 
-    public get(key: typeof PersistedConfigKeys): any {
-        return this.store.get(key, PersistentConfigServiceElectron.defaults[key]);
+    public get(key: PersistedConfigKeysType): any {
+        return this.store.get(key, PersistentConfigServiceElectron.getDefault(key));
     }
 
     public getAll(): PersistedConfig {
@@ -60,8 +64,8 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     }
 
     public persist(config: PersistedConfig): void;
-    public persist(key: typeof PersistedConfigKeys, value: any): void;
-    public persist(arg: typeof PersistedConfigKeys | PersistedConfig, value?: any) {
+    public persist(key: PersistedConfigKeysType, value: any): void;
+    public persist(arg: PersistedConfigKeysType | PersistedConfig, value?: any) {
         if (typeof arg === "object") {
             Object.entries(arg).forEach(([key, value]) => {
                 this.persist(key, value);

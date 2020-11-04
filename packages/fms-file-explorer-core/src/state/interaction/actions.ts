@@ -67,13 +67,17 @@ export function cancelManifestDownload(id: string): CancelManifestDownloadAction
 export const SET_ALLEN_MOUNT_POINT = makeConstant(STATE_BRANCH_NAME, "set-allen-mount-point");
 
 export interface SetAllenMountPointAction {
-    payload: string;
+    payload: {
+        allenMountPoint: string;
+    };
     type: string;
 }
 
 export function setAllenMountPoint(allenMountPoint: string): SetAllenMountPointAction {
     return {
-        payload: allenMountPoint,
+        payload: {
+            allenMountPoint,
+        },
         type: SET_ALLEN_MOUNT_POINT,
     };
 }
@@ -105,13 +109,17 @@ export function setCsvColumns(csvColumns: string[]): SetCsvColumnsAction {
 export const SET_IMAGE_J_LOCATION = makeConstant(STATE_BRANCH_NAME, "set-image-j-location");
 
 export interface SetImageJLocationAction {
-    payload: string;
+    payload: {
+        imageJExecutable: string;
+    };
     type: string;
 }
 
-export function setImageJLocation(imageJLocation: string): SetImageJLocationAction {
+export function setImageJLocation(imageJExecutable: string): SetImageJLocationAction {
     return {
-        payload: imageJLocation,
+        payload: {
+            imageJExecutable,
+        },
         type: SET_IMAGE_J_LOCATION,
     };
 }

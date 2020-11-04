@@ -17,7 +17,7 @@ import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import FileDownloadService from "../../../services/FileDownloadService";
 import FileService from "../../../services/FileService";
-import { initialState, interaction, reduxLogics, selection } from "../../../state";
+import { initialState, interaction, reduxLogics } from "../../../state";
 
 describe("<ManifestDownloadDialog />", () => {
     const baseUrl = "test";
