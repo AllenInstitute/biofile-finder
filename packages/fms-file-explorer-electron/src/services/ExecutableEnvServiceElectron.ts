@@ -45,13 +45,11 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
 
         // Relay the selected Allen mount point to a listener in the renderer process
         ipcMain.on(GlobalVariableChannels.AllenMountPoint, (event, allenPath) => {
-            global.fileExplorerServiceAllenMountPoint = allenPath;
             event.reply(GlobalVariableChannels.AllenMountPoint, allenPath);
         });
 
         // Relay the selected ImageJ/Fiji executable to a listener in the renderer process
         ipcMain.on(GlobalVariableChannels.ImageJExecutable, (event, imageJExecutable) => {
-            global.fileExplorerServiceImageJExecutable = imageJExecutable;
             event.reply(GlobalVariableChannels.ImageJExecutable, imageJExecutable);
         });
     }
@@ -100,8 +98,8 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
         });
     }
 
-    public async promptForAllenMountPoint(shouldPromptBefore?: boolean): Promise<string> {
-        if (shouldPromptBefore) {
+    public async promptForAllenMountPoint(displayMessageBeforePrompt?: boolean): Promise<string> {
+        if (displayMessageBeforePrompt) {
             const result = await this.notificationService.showMessage(
                 "Allen Drive Mount Point",
                 "It appears that your Allen Drive isn't where we thought it would be. " +
@@ -134,9 +132,12 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
         }
     }
 
-    public async promptForExecutable(promptTitle: string, promptMessage?: string): Promise<string> {
-        if (promptMessage) {
-            const result = await this.notificationService.showMessage(promptTitle, promptMessage);
+    public async promptForExecutable(
+        promptTitle: string,
+        reasonForPrompt?: string
+    ): Promise<string> {
+        if (reasonForPrompt) {
+            const result = await this.notificationService.showMessage(promptTitle, reasonForPrompt);
             if (!result) {
                 return ExecutableEnvCancellationToken;
             }

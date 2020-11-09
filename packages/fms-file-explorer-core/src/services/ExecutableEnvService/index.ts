@@ -6,18 +6,20 @@ export default interface ExecutableEnvService {
      * Prompts the user for the allen mount point location.
      * Will first notify the user of this request if a prompt message is specified.
      *
-     * @param shouldPrompt If true, will first prompt the user notifying them of the request before showing the native browser.
+     * @param displayMessageBeforePrompt If true, will first display a message to the user notifying them of
+     * the reason for the prompt before actually prompting them for the allen drive using their native file browser.
      */
-    promptForAllenMountPoint(shouldPrompt: boolean): Promise<string>;
+    promptForAllenMountPoint(displayMessageBeforePrompt: boolean): Promise<string>;
 
     /**
      * Prompts the user for an executable.
      * Will first notify the user of this request if a prompt message is specified.
      *
      * @param promptTitle Title to display in native system applications.
-     * @param promptMessage (Optional) if present will prompt the user with the message before opening the native file browser.
+     * @param reasonForPrompt (Optional) If present, will first display a message to the user notifying them of
+     * the reason for the prompt before actually prompting them for the executable path using their native file browser.
      */
-    promptForExecutable(promptTitle: string, promptMessage?: string): Promise<string>;
+    promptForExecutable(promptTitle: string, reasonForPrompt?: string): Promise<string>;
 
     /**
      * Verifies that the given file path is a valid allen drive mount point for the current OS.
