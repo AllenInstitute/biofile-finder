@@ -479,7 +479,7 @@ describe("Interaction logics", () => {
             class UselessExecutableEnvService implements ExecutableEnvService {
                 promptForAllenMountPoint() {
                     attemptedToSetAllenDrive = true;
-                    return Promise.reject("test");
+                    return Promise.resolve("test");
                 }
                 promptForExecutable() {
                     return Promise.resolve(ExecutableEnvCancellationToken);
@@ -493,6 +493,7 @@ describe("Interaction logics", () => {
             }
             const state = mergeState(initialState, {
                 interaction: {
+                    allenMountPoint: "test",
                     platformDependentServices: {
                         executableEnvService: new UselessExecutableEnvService(),
                     },
