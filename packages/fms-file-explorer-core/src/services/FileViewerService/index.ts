@@ -8,7 +8,7 @@ export default interface FileViewerService {
      * @param executablePath Path to executable to run commands against.
      * @param filePaths The paths to the files to open
      */
-    open(executablePath: string, filePaths?: string[]): Promise<void>;
+    open(executablePath: string, filePaths: string[]): Promise<void>;
 }
 
 /**

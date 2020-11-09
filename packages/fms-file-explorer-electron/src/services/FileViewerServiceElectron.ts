@@ -11,7 +11,7 @@ export default class FileViewerServiceElectron implements FileViewerService {
         this.notificationService = notificationService;
     }
 
-    public async open(executable: string, filePaths?: string[]): Promise<void> {
+    public async open(executable: string, filePaths: string[]): Promise<void> {
         const reportErrorToUser = async (error: string) => {
             await this.notificationService.showError(
                 `Opening executable ${executable}`,
