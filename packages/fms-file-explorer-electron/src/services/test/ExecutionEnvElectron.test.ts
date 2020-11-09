@@ -7,17 +7,17 @@ import { expect } from "chai";
 import { ipcRenderer } from "electron";
 import { createSandbox } from "sinon";
 
-import ExecutableEnvServiceElectron, {
+import ExecutionEnvServiceElectron, {
     KNOWN_FOLDERS_IN_ALLEN_DRIVE,
-} from "../ExecutableEnvServiceElectron";
+} from "../ExecutionEnvServiceElectron";
 import NotificationServiceElectron from "../NotificationServiceElectron";
 import { RUN_IN_RENDERER } from "../../util/constants";
 
 const {
     ExecutableEnvCancellationToken,
-} = require("@aics/fms-file-explorer-core/nodejs/services/ExecutableEnvService");
+} = require("@aics/fms-file-explorer-core/nodejs/services/ExecutionEnvService");
 
-describe(`${RUN_IN_RENDERER} ExecutableEnvServiceElectron`, () => {
+describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
     describe("promptForAllenMountPoint", () => {
         const sandbox = createSandbox();
         const tempAllenDrive = path.resolve(os.tmpdir(), "testAllenDir");
@@ -47,10 +47,10 @@ describe(`${RUN_IN_RENDERER} ExecutableEnvServiceElectron`, () => {
                     return Promise.resolve(true);
                 }
             }
-            const service = new ExecutableEnvServiceElectron(new UselessNotificationService());
+            const service = new ExecutionEnvServiceElectron(new UselessNotificationService());
             sandbox
                 .stub(ipcRenderer, "invoke")
-                .withArgs(ExecutableEnvServiceElectron.SHOW_OPEN_DIALOG)
+                .withArgs(ExecutionEnvServiceElectron.SHOW_OPEN_DIALOG)
                 .resolves({
                     filePaths: [tempAllenDrive],
                 });
@@ -72,7 +72,7 @@ describe(`${RUN_IN_RENDERER} ExecutableEnvServiceElectron`, () => {
                     return Promise.resolve(false);
                 }
             }
-            const service = new ExecutableEnvServiceElectron(new UselessNotificationService());
+            const service = new ExecutionEnvServiceElectron(new UselessNotificationService());
 
             // Act
             const mountPoint = await service.promptForAllenMountPoint(true);
@@ -84,10 +84,10 @@ describe(`${RUN_IN_RENDERER} ExecutableEnvServiceElectron`, () => {
 
         it("returns cancellation token when browser prompt cancelled", async () => {
             // Arrange
-            const service = new ExecutableEnvServiceElectron(new NotificationServiceElectron());
+            const service = new ExecutionEnvServiceElectron(new NotificationServiceElectron());
             sandbox
                 .stub(ipcRenderer, "invoke")
-                .withArgs(ExecutableEnvServiceElectron.SHOW_OPEN_DIALOG)
+                .withArgs(ExecutionEnvServiceElectron.SHOW_OPEN_DIALOG)
                 .resolves({
                     canceled: true,
                     filePaths: [],
@@ -109,14 +109,14 @@ describe(`${RUN_IN_RENDERER} ExecutableEnvServiceElectron`, () => {
                     return Promise.resolve();
                 }
             }
-            const service = new ExecutableEnvServiceElectron(new UselessNotificationService());
+            const service = new ExecutionEnvServiceElectron(new UselessNotificationService());
             const stub = sandbox.stub(ipcRenderer, "invoke");
-            stub.withArgs(ExecutableEnvServiceElectron.SHOW_OPEN_DIALOG)
+            stub.withArgs(ExecutionEnvServiceElectron.SHOW_OPEN_DIALOG)
                 .onCall(0)
                 .resolves({
                     filePaths: ["/some/not/allen/path"],
                 });
-            stub.withArgs(ExecutableEnvServiceElectron.SHOW_OPEN_DIALOG)
+            stub.withArgs(ExecutionEnvServiceElectron.SHOW_OPEN_DIALOG)
                 .onCall(1)
                 .resolves({
                     filePaths: [tempAllenDrive],
@@ -189,11 +189,11 @@ describe(`${RUN_IN_RENDERER} ExecutableEnvServiceElectron`, () => {
                     return Promise.resolve();
                 }
             }
-            const service = new ExecutableEnvServiceElectron(
+            const service = new ExecutionEnvServiceElectron(
                 new UselessNotificationServiceElectron()
             );
             const invokeStub = sandbox.stub(ipcRenderer, "invoke");
-            invokeStub.withArgs(ExecutableEnvServiceElectron.SHOW_OPEN_DIALOG).resolves({
+            invokeStub.withArgs(ExecutionEnvServiceElectron.SHOW_OPEN_DIALOG).resolves({
                 filePaths: [executablePath],
             });
 
@@ -227,7 +227,7 @@ describe(`${RUN_IN_RENDERER} ExecutableEnvServiceElectron`, () => {
                     return Promise.resolve();
                 }
             }
-            const service = new ExecutableEnvServiceElectron(
+            const service = new ExecutionEnvServiceElectron(
                 new UselessNotificationServiceElectron()
             );
 
@@ -257,12 +257,12 @@ describe(`${RUN_IN_RENDERER} ExecutableEnvServiceElectron`, () => {
                     return Promise.resolve();
                 }
             }
-            const service = new ExecutableEnvServiceElectron(
+            const service = new ExecutionEnvServiceElectron(
                 new UselessNotificationServiceElectron()
             );
             sandbox
                 .stub(ipcRenderer, "invoke")
-                .withArgs(ExecutableEnvServiceElectron.SHOW_OPEN_DIALOG)
+                .withArgs(ExecutionEnvServiceElectron.SHOW_OPEN_DIALOG)
                 .resolves({
                     canceled: true,
                     filePaths: ["/some/path/to/ImageJ"],
@@ -289,10 +289,10 @@ describe(`${RUN_IN_RENDERER} ExecutableEnvServiceElectron`, () => {
                     return Promise.resolve();
                 }
             }
-            const service = new ExecutableEnvServiceElectron(new UselessNotificationService());
+            const service = new ExecutionEnvServiceElectron(new UselessNotificationService());
             const selectDirectoryStub = sandbox
                 .stub(ipcRenderer, "invoke")
-                .withArgs(ExecutableEnvServiceElectron.SHOW_OPEN_DIALOG);
+                .withArgs(ExecutionEnvServiceElectron.SHOW_OPEN_DIALOG);
             selectDirectoryStub.onCall(0).resolves({
                 filePaths: ["/some/path/to/ImageJ"],
             });
@@ -329,7 +329,7 @@ describe(`${RUN_IN_RENDERER} ExecutableEnvServiceElectron`, () => {
 
         it("returns true when allen drive is valid", async () => {
             // Arrange
-            const service = new ExecutableEnvServiceElectron(new NotificationServiceElectron());
+            const service = new ExecutionEnvServiceElectron(new NotificationServiceElectron());
             await fs.promises.mkdir(tempAllenPath);
             for (const expectedFolder of knownPaths) {
                 await fs.promises.mkdir(path.resolve(tempAllenPath, expectedFolder));
@@ -344,7 +344,7 @@ describe(`${RUN_IN_RENDERER} ExecutableEnvServiceElectron`, () => {
 
         it("returns false when allen drive does not contain expected folder", async () => {
             // Arrange
-            const service = new ExecutableEnvServiceElectron(new NotificationServiceElectron());
+            const service = new ExecutionEnvServiceElectron(new NotificationServiceElectron());
             await fs.promises.mkdir(tempAllenPath);
 
             // Act
@@ -356,7 +356,7 @@ describe(`${RUN_IN_RENDERER} ExecutableEnvServiceElectron`, () => {
 
         it("returns false when allen drive itself does not exist", async () => {
             // Arrange
-            const service = new ExecutableEnvServiceElectron(new NotificationServiceElectron());
+            const service = new ExecutionEnvServiceElectron(new NotificationServiceElectron());
 
             // Act
             const result = await service.isValidAllenMountPoint(tempAllenPath);
@@ -380,7 +380,7 @@ describe(`${RUN_IN_RENDERER} ExecutableEnvServiceElectron`, () => {
 
         it("returns true when valid", async () => {
             // Arrange
-            const service = new ExecutableEnvServiceElectron(new NotificationServiceElectron());
+            const service = new ExecutionEnvServiceElectron(new NotificationServiceElectron());
 
             // Act
             const result = await service.isValidExecutable(executable);
@@ -391,7 +391,7 @@ describe(`${RUN_IN_RENDERER} ExecutableEnvServiceElectron`, () => {
 
         it("returns false when given location does not exist", async () => {
             // Arrange
-            const service = new ExecutableEnvServiceElectron(new NotificationServiceElectron());
+            const service = new ExecutionEnvServiceElectron(new NotificationServiceElectron());
 
             // Act
             const result = await service.isValidExecutable("/a/non/existent/path/imagej");

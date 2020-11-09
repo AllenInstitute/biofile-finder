@@ -15,7 +15,7 @@ import HeaderRibbon from "./containers/HeaderRibbon";
 import ManifestDownloadDialog from "./containers/ManifestDownloadDialog";
 import StatusMessage from "./containers/StatusMessage";
 import ApplicationInfoServiceNoop from "./services/ApplicationInfoService/ApplicationInfoServiceNoop";
-import ExecutableEnvServiceNoop from "./services/ExecutableEnvService/ExecutableEnvServiceNoop";
+import ExecutionEnvServiceNoop from "./services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import FileDownloadServiceNoop from "./services/FileDownloadService/FileDownloadServiceNoop";
 import FileViewerServiceNoop from "./services/FileViewerService/FileViewerServiceNoop";
 import PersistentConfigServiceNoop from "./services/PersistentConfigService/PersistentConfigServiceNoop";
@@ -50,7 +50,7 @@ const defaultProps = {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
         fileViewerService: new FileViewerServiceNoop(),
-        executableEnvService: new ExecutableEnvServiceNoop(),
+        executionEnvService: new ExecutionEnvServiceNoop(),
         persistentConfigService: new PersistentConfigServiceNoop(),
     },
 };

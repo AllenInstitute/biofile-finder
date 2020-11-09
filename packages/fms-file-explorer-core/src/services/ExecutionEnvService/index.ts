@@ -1,7 +1,7 @@
 /**
  * Interface that defines a platform-dependent service for prompting users about executables.
  */
-export default interface ExecutableEnvService {
+export default interface ExecutionEnvService {
     /**
      * Prompts the user for the allen mount point location.
      * Will first notify the user of this request if a prompt message is specified.

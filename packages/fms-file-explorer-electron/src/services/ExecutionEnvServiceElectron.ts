@@ -3,7 +3,7 @@ import * as os from "os";
 import * as path from "path";
 import * as util from "util";
 
-import { ExecutableEnvService } from "@aics/fms-file-explorer-core";
+import { ExecutionEnvService } from "@aics/fms-file-explorer-core";
 import { dialog, ipcMain, ipcRenderer } from "electron";
 
 import NotificationServiceElectron from "./NotificationServiceElectron";
@@ -13,7 +13,7 @@ import { GlobalVariableChannels } from "../util/constants";
 // using `import` machinery causes tests to hang. All attempts to debug this have been unsuccesful so far.
 const {
     ExecutableEnvCancellationToken,
-} = require("@aics/fms-file-explorer-core/nodejs/services/ExecutableEnvService");
+} = require("@aics/fms-file-explorer-core/nodejs/services/ExecutionEnvService");
 
 // These are paths known (and unlikely to change) inside the allen drive that any given user should
 // have access to
@@ -24,7 +24,7 @@ enum Platform {
     Windows = "win32",
 }
 
-export default class ExecutableEnvServiceElectron implements ExecutableEnvService {
+export default class ExecutionEnvServiceElectron implements ExecutionEnvService {
     public static SHOW_OPEN_DIALOG = "show-open-dialog";
     public static PROMPT_ALLEN_MOUNT_POINT = "prompt-allen-mount-point";
     public static PROMPT_IMAGE_J_LOCATION = "prompt-image-j-location";
@@ -33,7 +33,7 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
     public static registerIpcHandlers() {
         // Handle opening a native file browser dialog
         ipcMain.handle(
-            ExecutableEnvServiceElectron.SHOW_OPEN_DIALOG,
+            ExecutionEnvServiceElectron.SHOW_OPEN_DIALOG,
             (_, dialogOptions: Electron.OpenDialogOptions) => {
                 return dialog.showOpenDialog({
                     defaultPath: path.resolve("/"),
@@ -79,8 +79,8 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
 
     public constructor(notificationService: NotificationServiceElectron) {
         this.notificationService = notificationService;
-        ipcRenderer.removeAllListeners(ExecutableEnvServiceElectron.PROMPT_ALLEN_MOUNT_POINT);
-        ipcRenderer.on(ExecutableEnvServiceElectron.PROMPT_ALLEN_MOUNT_POINT, async () => {
+        ipcRenderer.removeAllListeners(ExecutionEnvServiceElectron.PROMPT_ALLEN_MOUNT_POINT);
+        ipcRenderer.on(ExecutionEnvServiceElectron.PROMPT_ALLEN_MOUNT_POINT, async () => {
             const allenPath = await this.promptForAllenMountPoint();
             if (allenPath !== ExecutableEnvCancellationToken) {
                 // Pass the selected Allen mount point on to the global variables
@@ -88,8 +88,8 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
             }
         });
 
-        ipcRenderer.removeAllListeners(ExecutableEnvServiceElectron.PROMPT_IMAGE_J_LOCATION);
-        ipcRenderer.on(ExecutableEnvServiceElectron.PROMPT_IMAGE_J_LOCATION, async () => {
+        ipcRenderer.removeAllListeners(ExecutionEnvServiceElectron.PROMPT_IMAGE_J_LOCATION);
+        ipcRenderer.on(ExecutionEnvServiceElectron.PROMPT_IMAGE_J_LOCATION, async () => {
             const imageJExecutable = await this.promptForExecutable("ImageJ/Fiji Executable");
             if (imageJExecutable !== ExecutableEnvCancellationToken) {
                 // Pass the selected ImageJ/Fiji executable on to the global variables
@@ -148,7 +148,7 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
             const platform = os.platform();
 
             const executablePath = await this.selectPath({
-                ...ExecutableEnvServiceElectron.getDefaultOpenDialogOptions(platform),
+                ...ExecutionEnvServiceElectron.getDefaultOpenDialogOptions(platform),
                 properties: ["openFile"],
                 title: promptTitle,
             });
@@ -229,7 +229,7 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
     // Prompts user using native file browser for a file path
     private async selectPath(dialogOptions: Electron.OpenDialogOptions): Promise<string> {
         const result = await ipcRenderer.invoke(
-            ExecutableEnvServiceElectron.SHOW_OPEN_DIALOG,
+            ExecutionEnvServiceElectron.SHOW_OPEN_DIALOG,
             dialogOptions
         );
         if (result.canceled || !result.filePaths.length) {

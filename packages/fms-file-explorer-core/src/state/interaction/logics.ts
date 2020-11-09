@@ -23,7 +23,7 @@ import { CancellationToken } from "../../services/FileDownloadService";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
 import { SelectionRequest, Selection } from "../../services/FileService";
-import { ExecutableEnvCancellationToken } from "../../services/ExecutableEnvService";
+import { ExecutableEnvCancellationToken } from "../../services/ExecutionEnvService";
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -149,7 +149,7 @@ const openFilesInImageJ = createLogic({
         const savedAllenMountPoint = interactionSelectors.getAllenMountPoint(deps.getState());
         const savedImageJExecutable = interactionSelectors.getImageJExecutable(deps.getState());
         const {
-            executableEnvService,
+            executionEnvService,
             fileViewerService,
         } = interactionSelectors.getPlatformDependentServices(deps.getState());
         let allenMountPoint = savedAllenMountPoint;
@@ -157,9 +157,9 @@ const openFilesInImageJ = createLogic({
 
         // Verify that the known Allen mount point is valid, if not prompt for it
         const isValidAllenDrive =
-            allenMountPoint && (await executableEnvService.isValidAllenMountPoint(allenMountPoint));
+            allenMountPoint && (await executionEnvService.isValidAllenMountPoint(allenMountPoint));
         if (!isValidAllenDrive) {
-            allenMountPoint = await executableEnvService.promptForAllenMountPoint(true);
+            allenMountPoint = await executionEnvService.promptForAllenMountPoint(true);
         }
 
         // If the user did not cancel out of a prompt, continue trying to open ImageJ/Fiji
@@ -171,10 +171,9 @@ const openFilesInImageJ = createLogic({
 
             // Verify that the known ImageJ/Fiji location is valid, if not prompt for it
             const isValidImageJLocation =
-                imageJExecutable &&
-                (await executableEnvService.isValidExecutable(imageJExecutable));
+                imageJExecutable && (await executionEnvService.isValidExecutable(imageJExecutable));
             if (!isValidImageJLocation) {
-                imageJExecutable = await executableEnvService.promptForExecutable(
+                imageJExecutable = await executionEnvService.promptForExecutable(
                     "ImageJ/Fiji Executable",
                     "It appears that your ImageJ/Fiji application isn't located where we thought it would be. " +
                         "Select your ImageJ/Fiji application now?"

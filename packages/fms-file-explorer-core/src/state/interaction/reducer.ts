@@ -23,7 +23,7 @@ import FileViewerServiceNoop from "../../services/FileViewerService/FileViewerSe
 import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
 import FileFilter from "../../entity/FileFilter";
-import ExecutableEnvServiceNoop from "../../services/ExecutableEnvService/ExecutableEnvServiceNoop";
+import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 
 export interface InteractionStateBranch {
     allenMountPoint?: string;
@@ -56,7 +56,7 @@ export const initialState = {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
         fileViewerService: new FileViewerServiceNoop(),
-        executableEnvService: new ExecutableEnvServiceNoop(),
+        executionEnvService: new ExecutionEnvServiceNoop(),
         persistentConfigService: new PersistentConfigServiceNoop(),
     },
     status: [],

@@ -1,5 +1,5 @@
 import { MenuItemConstructorOptions } from "electron";
-import ExecutableEnvServiceElectron from "../../services/ExecutableEnvServiceElectron";
+import ExecutionEnvServiceElectron from "../../services/ExecutionEnvServiceElectron";
 
 const settingsMenu: MenuItemConstructorOptions = {
     label: "Settings",
@@ -8,7 +8,7 @@ const settingsMenu: MenuItemConstructorOptions = {
             click: (_, focusedWindow) => {
                 if (focusedWindow) {
                     focusedWindow.webContents.send(
-                        ExecutableEnvServiceElectron.PROMPT_ALLEN_MOUNT_POINT
+                        ExecutionEnvServiceElectron.PROMPT_ALLEN_MOUNT_POINT
                     );
                 }
             },
@@ -18,7 +18,7 @@ const settingsMenu: MenuItemConstructorOptions = {
             click: (_, focusedWindow) => {
                 if (focusedWindow) {
                     focusedWindow.webContents.send(
-                        ExecutableEnvServiceElectron.PROMPT_IMAGE_J_LOCATION
+                        ExecutionEnvServiceElectron.PROMPT_IMAGE_J_LOCATION
                     );
                 }
             },

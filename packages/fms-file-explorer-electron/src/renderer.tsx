@@ -7,7 +7,7 @@ import { render } from "react-dom";
 import { Provider } from "react-redux";
 
 import ApplicationInfoServiceElectron from "./services/ApplicationInfoServiceElectron";
-import ExecutableEnvServiceElectron from "./services/ExecutableEnvServiceElectron";
+import ExecutionEnvServiceElectron from "./services/ExecutionEnvServiceElectron";
 import FileDownloadServiceElectron from "./services/FileDownloadServiceElectron";
 import FileViewerServiceElectron from "./services/FileViewerServiceElectron";
 import PersistentConfigServiceElectron from "./services/PersistentConfigServiceElectron";
@@ -27,7 +27,7 @@ const notificationService = new NotificationServiceElectron();
 const persistentConfigService = new PersistentConfigServiceElectron();
 const platformDependentServices = {
     applicationInfoService: new ApplicationInfoServiceElectron(),
-    executableEnvService: new ExecutableEnvServiceElectron(notificationService),
+    executionEnvService: new ExecutionEnvServiceElectron(notificationService),
     fileDownloadService: new FileDownloadServiceElectron(),
     fileViewerService: new FileViewerServiceElectron(notificationService),
     persistentConfigService,

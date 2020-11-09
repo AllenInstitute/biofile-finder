@@ -1,12 +1,12 @@
-import ExecutableEnvService from ".";
+import ExecutionEnvService from ".";
 
-export default class ExecutableEnvServiceNoop implements ExecutableEnvService {
+export default class ExecutionEnvServiceNoop implements ExecutionEnvService {
     public promptForAllenMountPoint(): Promise<string> {
-        return Promise.resolve("Prompt triggered within ExecutableEnvServiceNoop.");
+        return Promise.resolve("Prompt triggered within ExecutionEnvServiceNoop.");
     }
 
     public promptForExecutable(): Promise<string> {
-        return Promise.resolve("Prompt triggered within ExecutableEnvServiceNoop.");
+        return Promise.resolve("Prompt triggered within ExecutionEnvServiceNoop.");
     }
 
     public isValidAllenMountPoint(): Promise<boolean> {

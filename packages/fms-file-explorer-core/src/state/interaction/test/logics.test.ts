@@ -23,7 +23,7 @@ import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
-import { ExecutableEnvService, ExecutableEnvCancellationToken, FileViewerService } from "../../..";
+import { ExecutionEnvService, ExecutableEnvCancellationToken, FileViewerService } from "../../..";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({
@@ -384,7 +384,7 @@ describe("Interaction logics", () => {
                     return Promise.resolve();
                 }
             }
-            class UselessExecutableEnvService implements ExecutableEnvService {
+            class UselessExecutionEnvService implements ExecutionEnvService {
                 promptForAllenMountPoint() {
                     return Promise.resolve(ExecutableEnvCancellationToken);
                 }
@@ -403,7 +403,7 @@ describe("Interaction logics", () => {
                     allenMountPoint: expectedAllenDrive,
                     imageJExecutable: expectedExecutablePath,
                     platformDependentServices: {
-                        executableEnvService: new UselessExecutableEnvService(),
+                        executionEnvService: new UselessExecutionEnvService(),
                         fileViewerService: new UselessFileViewerService(),
                     },
                 },
@@ -438,7 +438,7 @@ describe("Interaction logics", () => {
         it("prevents prompting to select Image J executable when user cancels selecting mount point", async () => {
             // Arrange
             let attemptedToSetImageJ = false;
-            class UselessExecutableEnvService implements ExecutableEnvService {
+            class UselessExecutionEnvService implements ExecutionEnvService {
                 promptForAllenMountPoint() {
                     return Promise.resolve(ExecutableEnvCancellationToken);
                 }
@@ -456,7 +456,7 @@ describe("Interaction logics", () => {
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        executableEnvService: new UselessExecutableEnvService(),
+                        executionEnvService: new UselessExecutionEnvService(),
                     },
                 },
             });
@@ -476,7 +476,7 @@ describe("Interaction logics", () => {
         it("prevents prompting to select Allen Drive when it is at the expected location", async () => {
             // Arrange
             let attemptedToSetAllenDrive = false;
-            class UselessExecutableEnvService implements ExecutableEnvService {
+            class UselessExecutionEnvService implements ExecutionEnvService {
                 promptForAllenMountPoint() {
                     attemptedToSetAllenDrive = true;
                     return Promise.resolve("test");
@@ -495,7 +495,7 @@ describe("Interaction logics", () => {
                 interaction: {
                     allenMountPoint: "test",
                     platformDependentServices: {
-                        executableEnvService: new UselessExecutableEnvService(),
+                        executionEnvService: new UselessExecutionEnvService(),
                     },
                 },
             });
@@ -521,7 +521,7 @@ describe("Interaction logics", () => {
                     return Promise.resolve();
                 }
             }
-            class UselessExecutableEnvService implements ExecutableEnvService {
+            class UselessExecutionEnvService implements ExecutionEnvService {
                 promptForAllenMountPoint() {
                     return Promise.resolve("test");
                 }
@@ -538,7 +538,7 @@ describe("Interaction logics", () => {
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        executableEnvService: new UselessExecutableEnvService(),
+                        executionEnvService: new UselessExecutionEnvService(),
                         fileViewerService: new UselessFileViewerService(),
                     },
                 },
@@ -566,7 +566,7 @@ describe("Interaction logics", () => {
             let promptedForAllenMountPoint = false;
             let promptedForExecutable = false;
             const expectedExecutablePath = "some/path/to/imageJ";
-            class UselessExecutableEnvService implements ExecutableEnvService {
+            class UselessExecutionEnvService implements ExecutionEnvService {
                 promptForAllenMountPoint() {
                     promptedForAllenMountPoint = true;
                     return Promise.resolve(expectedAllenDrive);
@@ -585,7 +585,7 @@ describe("Interaction logics", () => {
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        executableEnvService: new UselessExecutableEnvService(),
+                        executionEnvService: new UselessExecutionEnvService(),
                         fileViewerService: new UselessFileViewerService(),
                     },
                 },

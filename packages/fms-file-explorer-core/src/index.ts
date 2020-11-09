@@ -32,9 +32,9 @@ export { CancellationToken } from "./services/FileDownloadService";
 import { default as _ApplicationInfoService } from "./services/ApplicationInfoService";
 export type ApplicationInfoService = _ApplicationInfoService;
 
-import { default as _ExecutableEnvService } from "./services/ExecutableEnvService";
-export type ExecutableEnvService = _ExecutableEnvService;
-export { ExecutableEnvCancellationToken } from "./services/ExecutableEnvService";
+import { default as _ExecutionEnvService } from "./services/ExecutionEnvService";
+export type ExecutionEnvService = _ExecutionEnvService;
+export { ExecutableEnvCancellationToken } from "./services/ExecutionEnvService";
 
 import { default as _FileViewerService } from "./services/FileViewerService";
 export type FileViewerService = _FileViewerService;
