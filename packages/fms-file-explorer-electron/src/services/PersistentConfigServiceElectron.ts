@@ -40,6 +40,7 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
         if (key === PersistedConfigKeys.AllenMountPoint) {
             return os.platform() === "win32" ? "\\\\allen" : path.normalize("/allen");
         }
+        return undefined;
     }
 
     public constructor(options: PersistentConfigServiceElectronOptions = {}) {
