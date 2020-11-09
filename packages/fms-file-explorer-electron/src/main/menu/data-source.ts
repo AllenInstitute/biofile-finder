@@ -16,10 +16,12 @@ const dataSourceMenu: MenuItemConstructorOptions = {
             label: "Localhost",
             type: "radio",
             checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.LOCALHOST,
-            click: (menuItem, focusedWindow) => {
-                global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.LOCALHOST;
+            click: (_, focusedWindow) => {
                 if (focusedWindow) {
-                    focusedWindow.webContents.send("file-explorer-service-connection-config");
+                    focusedWindow.webContents.send(
+                        "file-explorer-service-connection-config",
+                        FileExplorerServiceBaseUrl.LOCALHOST
+                    );
                 }
             },
         },
@@ -27,10 +29,12 @@ const dataSourceMenu: MenuItemConstructorOptions = {
             label: "Staging",
             type: "radio",
             checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.STAGING,
-            click: (menuItem, focusedWindow) => {
-                global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.STAGING;
+            click: (_, focusedWindow) => {
                 if (focusedWindow) {
-                    focusedWindow.webContents.send("file-explorer-service-connection-config");
+                    focusedWindow.webContents.send(
+                        "file-explorer-service-connection-config",
+                        FileExplorerServiceBaseUrl.STAGING
+                    );
                 }
             },
         },
@@ -38,10 +42,12 @@ const dataSourceMenu: MenuItemConstructorOptions = {
             label: "Production",
             type: "radio",
             checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.PRODUCTION,
-            click: (menuItem, focusedWindow) => {
-                global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION;
+            click: (_, focusedWindow) => {
                 if (focusedWindow) {
-                    focusedWindow.webContents.send("file-explorer-service-connection-config");
+                    focusedWindow.webContents.send(
+                        "file-explorer-service-connection-config",
+                        FileExplorerServiceBaseUrl.PRODUCTION
+                    );
                 }
             },
         },

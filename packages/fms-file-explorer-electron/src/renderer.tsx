@@ -1,7 +1,7 @@
 import "regenerator-runtime/runtime";
 
 import FmsFileExplorer, { createReduxStore } from "@aics/fms-file-explorer-core";
-import { ipcRenderer, remote } from "electron";
+import { ipcRenderer } from "electron";
 import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
@@ -12,7 +12,7 @@ import FileDownloadServiceElectron from "./services/FileDownloadServiceElectron"
 import FileViewerServiceElectron from "./services/FileViewerServiceElectron";
 import PersistentConfigServiceElectron from "./services/PersistentConfigServiceElectron";
 import NotificationServiceElectron from "./services/NotificationServiceElectron";
-import { GlobalVariables, GlobalVariableChannels } from "./util/constants";
+import { GlobalVariableChannels } from "./util/constants";
 
 // GM 9/15/20: This symbol is in fact exported from @aics/fms-file-explorer-core, but inexplicably,
 // using `import` machinery causes tests to hang. All attempts to debug this have been unsuccesful so far.
@@ -60,7 +60,7 @@ function renderFmsFileExplorer() {
             <FmsFileExplorer
                 allenMountPoint={global.fileExplorerServiceAllenMountPoint}
                 imageJExecutable={global.fileExplorerServiceImageJExecutable}
-                fileExplorerServiceBaseUrl={remote.getGlobal(GlobalVariables.BaseUrl)}
+                fileExplorerServiceBaseUrl={global.fileExplorerServiceBaseUrl}
                 platformDependentServices={platformDependentServices}
             />
         </Provider>,
@@ -68,7 +68,8 @@ function renderFmsFileExplorer() {
     );
 }
 
-ipcRenderer.addListener(GlobalVariableChannels.BaseUrl, () => {
+ipcRenderer.addListener(GlobalVariableChannels.BaseUrl, (_, baseUrl: string) => {
+    global.fileExplorerServiceBaseUrl = baseUrl;
     renderFmsFileExplorer();
 });
 

@@ -3,12 +3,6 @@
 // pattern used in the npm script used to invoke electron-mocha.
 export const RUN_IN_RENDERER = "@renderer";
 
-export enum GlobalVariables {
-    AllenMountPoint = "fileExplorerServiceAllenMountPoint",
-    BaseUrl = "fileExplorerServiceBaseUrl",
-    ImageJExecutable = "fileExplorerServiceImageJExecutable",
-}
-
 // Channels global variables can be modified on / listen to
 export enum GlobalVariableChannels {
     AllenMountPoint = "file-explorer-service-allen-mount-point-change",
