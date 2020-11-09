@@ -2,7 +2,6 @@ import "regenerator-runtime/runtime";
 
 import FmsFileExplorer, { createReduxStore } from "@aics/fms-file-explorer-core";
 import { ipcRenderer, remote } from "electron";
-import { memoize, values } from "lodash";
 import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
@@ -34,17 +33,6 @@ const platformDependentServices = {
     persistentConfigService,
 };
 
-// Sync the persisted values with the application state
-function persistState(allenMountPoint: string, csvColumns: string[], imageJExecutable: string) {
-    persistentConfigService.persist({
-        [PersistedConfigKeys.AllenMountPoint]: allenMountPoint,
-        [PersistedConfigKeys.CsvColumns]: csvColumns,
-        [PersistedConfigKeys.ImageJExecutable]: imageJExecutable,
-    });
-}
-// Memoize persisting to avoid doing it too much
-const memoizedPersist = memoize(persistState, (...args) => values(args).join("_"));
-
 const store = createReduxStore(persistentConfigService.getAll());
 // https://redux.js.org/api/store#subscribelistener
 store.subscribe(() => {
@@ -52,21 +40,26 @@ store.subscribe(() => {
     const allenMountPoint = interaction.selectors.getAllenMountPoint(state);
     const csvColumns = interaction.selectors.getCsvColumns(state);
     const imageJExecutable = interaction.selectors.getImageJExecutable(state);
-    memoizedPersist(allenMountPoint, csvColumns, imageJExecutable);
-
-    persistentConfigService.persist({
-        [PersistedConfigKeys.AllenMountPoint]: interaction.selectors.getAllenMountPoint(state),
-        [PersistedConfigKeys.CsvColumns]: interaction.selectors.getCsvColumns(state),
-        [PersistedConfigKeys.ImageJExecutable]: interaction.selectors.getImageJExecutable(state),
-    });
+    const appState = {
+        [PersistedConfigKeys.AllenMountPoint]: allenMountPoint,
+        [PersistedConfigKeys.CsvColumns]: csvColumns,
+        [PersistedConfigKeys.ImageJExecutable]: imageJExecutable,
+    };
+    if (JSON.stringify(appState) !== JSON.stringify(persistentConfigService.getAll())) {
+        persistentConfigService.persist({
+            [PersistedConfigKeys.AllenMountPoint]: allenMountPoint,
+            [PersistedConfigKeys.CsvColumns]: csvColumns,
+            [PersistedConfigKeys.ImageJExecutable]: imageJExecutable,
+        });
+    }
 });
 
 function renderFmsFileExplorer() {
     render(
         <Provider store={store}>
             <FmsFileExplorer
-                allenMountPoint={remote.getGlobal(GlobalVariables.AllenMountPoint)}
-                imageJExecutable={remote.getGlobal(GlobalVariables.ImageJExecutable)}
+                allenMountPoint={global.fileExplorerServiceAllenMountPoint}
+                imageJExecutable={global.fileExplorerServiceImageJExecutable}
                 fileExplorerServiceBaseUrl={remote.getGlobal(GlobalVariables.BaseUrl)}
                 platformDependentServices={platformDependentServices}
             />
