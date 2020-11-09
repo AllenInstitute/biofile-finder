@@ -19,6 +19,11 @@ const {
 // have access to
 export const KNOWN_FOLDERS_IN_ALLEN_DRIVE = ["programs", "aics"].map((f) => path.normalize(f));
 
+enum Platform {
+    Mac = "darwin",
+    Windows = "win32",
+}
+
 export default class ExecutableEnvServiceElectron implements ExecutableEnvService {
     public static SHOW_OPEN_DIALOG = "show-open-dialog";
     public static PROMPT_ALLEN_MOUNT_POINT = "prompt-allen-mount-point";
@@ -55,14 +60,14 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
         platform: NodeJS.Platform
     ): Partial<Electron.OpenDialogOptions> {
         // MacOS
-        if (platform === "darwin") {
+        if (platform === Platform.Mac) {
             return {
                 defaultPath: path.normalize("/Applications/"),
                 filters: [{ name: "Executable", extensions: ["app"] }],
             };
         }
         // Windows
-        if (platform === "win32") {
+        if (platform === Platform.Windows) {
             return {
                 defaultPath: os.homedir(),
                 filters: [{ name: "Executable", extensions: ["exe"] }],
@@ -164,10 +169,7 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
         }
     }
 
-    public async isValidAllenMountPoint(allenPath?: string): Promise<boolean> {
-        if (!allenPath) {
-            return false;
-        }
+    public async isValidAllenMountPoint(allenPath: string): Promise<boolean> {
         try {
             const expectedPaths = KNOWN_FOLDERS_IN_ALLEN_DRIVE.map((f) => path.join(allenPath, f));
             await Promise.all(
@@ -179,10 +181,7 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
         }
     }
 
-    public async isValidExecutable(executablePath?: string): Promise<boolean> {
-        if (!executablePath) {
-            return false;
-        }
+    public async isValidExecutable(executablePath: string): Promise<boolean> {
         try {
             await fs.promises.access(executablePath, fs.constants.X_OK);
             return true;
@@ -195,7 +194,7 @@ export default class ExecutableEnvServiceElectron implements ExecutableEnvServic
         let executablePathForOs = executablePath;
         // On macOS, applications are bundled as packages. At this point, `executablePath` is expected to be a package. Inspect the package's Info.plist to determine
         // the name of the _actual_ executable to use.
-        if (os.platform() === "darwin") {
+        if (os.platform() === Platform.Mac) {
             const infoPlistPath = path.join(executablePath, "Contents", "Info.plist");
             const infoPListStat = await fs.promises.stat(infoPlistPath);
 

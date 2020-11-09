@@ -24,14 +24,14 @@ export default interface ExecutableEnvService {
      *
      * @param allenPath Path to allen drive
      */
-    isValidAllenMountPoint(allenPath?: string): Promise<boolean>;
+    isValidAllenMountPoint(allenPath: string): Promise<boolean>;
 
     /**
      * Verifies that the given path leads to a valid executable for the current OS.
      *
      * @param executablePath Path to the executable
      */
-    isValidExecutable(executablePath?: string): Promise<boolean>;
+    isValidExecutable(executablePath: string): Promise<boolean>;
 }
 
 /**

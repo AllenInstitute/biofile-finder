@@ -156,9 +156,8 @@ const openFilesInImageJ = createLogic({
         let imageJExecutable = savedImageJExecutable;
 
         // Verify that the known Allen mount point is valid, if not prompt for it
-        const isValidAllenDrive = await executableEnvService.isValidAllenMountPoint(
-            allenMountPoint
-        );
+        const isValidAllenDrive =
+            allenMountPoint && (await executableEnvService.isValidAllenMountPoint(allenMountPoint));
         if (!isValidAllenDrive) {
             allenMountPoint = await executableEnvService.promptForAllenMountPoint(true);
         }
@@ -171,9 +170,9 @@ const openFilesInImageJ = createLogic({
             }
 
             // Verify that the known ImageJ/Fiji location is valid, if not prompt for it
-            const isValidImageJLocation = await executableEnvService.isValidExecutable(
-                imageJExecutable
-            );
+            const isValidImageJLocation =
+                imageJExecutable &&
+                (await executableEnvService.isValidExecutable(imageJExecutable));
             if (!isValidImageJLocation) {
                 imageJExecutable = await executableEnvService.promptForExecutable(
                     "ImageJ/Fiji Executable",
