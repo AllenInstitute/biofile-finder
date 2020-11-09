@@ -5,7 +5,7 @@ const settingsMenu: MenuItemConstructorOptions = {
     label: "Settings",
     submenu: [
         {
-            click: async (_, focusedWindow) => {
+            click: (_, focusedWindow) => {
                 if (focusedWindow) {
                     focusedWindow.webContents.send(
                         ExecutableEnvServiceElectron.PROMPT_ALLEN_MOUNT_POINT
@@ -15,7 +15,7 @@ const settingsMenu: MenuItemConstructorOptions = {
             label: "Set Allen Drive Mount Point",
         },
         {
-            click: async (_, focusedWindow) => {
+            click: (_, focusedWindow) => {
                 if (focusedWindow) {
                     focusedWindow.webContents.send(
                         ExecutableEnvServiceElectron.PROMPT_IMAGE_J_LOCATION
