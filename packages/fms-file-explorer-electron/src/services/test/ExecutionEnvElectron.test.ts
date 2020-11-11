@@ -304,7 +304,11 @@ describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
             const selectedPath = await service.promptForExecutable("Select ImageJ/Fiji");
 
             // Assert
-            expect(selectedPath).to.equal(executablePath);
+            if (runningOnMacOS) {
+                expect(selectedPath).to.equal(macOSExecutablePath);
+            } else {
+                expect(selectedPath).to.equal(executablePath);
+            }
             expect(wasErrorShown).to.be.true;
         });
     });
