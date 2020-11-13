@@ -1,8 +1,8 @@
-.column-dropdown {
+.dropdown {
     margin: 1em 0;
 }
 
-.column-list {
+.list {
     list-style: none;
     margin-top: 0;
     max-height: 150px;
@@ -18,7 +18,7 @@
     background-color: lightgrey;
 }
 
-.column-list-icon {
+.list-item-icon {
     cursor: pointer;
     font-size: 0.75em;
     margin-right: 1em;
