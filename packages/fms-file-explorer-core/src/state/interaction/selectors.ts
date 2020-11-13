@@ -1,8 +1,9 @@
 import { createSelector } from "reselect";
 
 import { State } from "../";
-import FileService from "../../services/FileService";
 import AnnotationService from "../../services/AnnotationService";
+import DatasetService from "../../services/DatasetService";
+import FileService from "../../services/FileService";
 
 // BASIC SELECTORS
 export const isManifestDownloadDialogVisible = (state: State) =>
@@ -26,19 +27,31 @@ export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;
 export const getPythonSnippet = (state: State) => state.interaction.pythonSnippet;
+export const getUserName = (state: State) => state.interaction.userName;
 
 // COMPOSED SELECTORS
 export const getFileService = createSelector(
-    [getApplicationVersion, getFileExplorerServiceBaseUrl],
-    (applicationVersion, fileExplorerBaseUrl) => {
-        return new FileService({ applicationVersion, baseUrl: fileExplorerBaseUrl });
+    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl],
+    (applicationVersion, userName, fileExplorerBaseUrl) => {
+        return new FileService({ applicationVersion, userName, baseUrl: fileExplorerBaseUrl });
     }
 );
 
 export const getAnnotationService = createSelector(
-    [getApplicationVersion, getFileExplorerServiceBaseUrl],
-    (applicationVersion, fileExplorerBaseUrl) => {
-        return new AnnotationService({ applicationVersion, baseUrl: fileExplorerBaseUrl });
+    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl],
+    (applicationVersion, userName, fileExplorerBaseUrl) => {
+        return new AnnotationService({
+            applicationVersion,
+            userName,
+            baseUrl: fileExplorerBaseUrl,
+        });
+    }
+);
+
+export const getDatasetService = createSelector(
+    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl],
+    (applicationVersion, userName, fileExplorerBaseUrl) => {
+        return new DatasetService({ applicationVersion, userName, baseUrl: fileExplorerBaseUrl });
     }
 );
 

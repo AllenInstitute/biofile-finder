@@ -210,6 +210,25 @@ export function setApplicationVersion(applicationVersion: string): SetApplicatio
 }
 
 /**
+ * SET_USER_NAME
+ *
+ * Set application version
+ */
+export const SET_USER_NAME = makeConstant(STATE_BRANCH_NAME, "set-user-name");
+
+export interface SetUserNameAction {
+    type: string;
+    payload: string;
+}
+
+export function setUserName(userName: string): SetUserNameAction {
+    return {
+        type: SET_USER_NAME,
+        payload: userName,
+    };
+}
+
+/**
  * SET CONNECTION CONFIGURATION FOR THE FILE EXPLORER SERVICE
  */
 export const SET_FILE_EXPLORER_SERVICE_BASE_URL = makeConstant(
