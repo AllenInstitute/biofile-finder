@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { interaction, metadata } from "../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
-import AnnotationSelector from "../../components/AnnotationSelector/AnnotationSelector";
+import AnnotationSelector from "../../components/AnnotationSelector";
 
 const DIALOG_CONTENT_PROPS = {
     title: "Download CSV Manifest",
