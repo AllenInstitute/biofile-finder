@@ -53,8 +53,10 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                         key: "python-snippet",
                         text: "Python snippet",
                         title:
-                            "Coming soon! Get a snippet in Python to work with your file selection programmatically",
-                        disabled: true,
+                            "Get a snippet in Python to work with your file selection programmatically",
+                        onClick() {
+                            dispatch(interaction.actions.togglePythonSnippetDialogAction());
+                        },
                     },
                 ],
             },

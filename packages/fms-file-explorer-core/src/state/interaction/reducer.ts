@@ -4,6 +4,7 @@ import { filter } from "lodash";
 import {
     HIDE_CONTEXT_MENU,
     PlatformDependentServices,
+    RECEIVE_PYTHON_SNIPPET,
     REMOVE_STATUS,
     SET_ALLEN_MOUNT_POINT,
     SET_APPLICATION_VERSION,
@@ -15,6 +16,7 @@ import {
     SHOW_CONTEXT_MENU,
     StatusUpdate,
     TOGGLE_MANIFEST_DOWNLOAD_DIALOG,
+    TOGGLE_PYTHON_SNIPPET_DIALOG,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
@@ -37,7 +39,9 @@ export interface InteractionStateBranch {
     fileFiltersForManifestDownload: FileFilter[];
     imageJExecutable?: string;
     isManifestDownloadDialogVisible: boolean;
+    isPythonSnippetDialogVisible: boolean;
     platformDependentServices: PlatformDependentServices;
+    pythonSnippet?: string;
     status: StatusUpdate[];
 }
 
@@ -52,6 +56,7 @@ export const initialState = {
     fileExplorerServiceBaseUrl: DEFAULT_CONNECTION_CONFIG.baseUrl,
     fileFiltersForManifestDownload: [],
     isManifestDownloadDialogVisible: false,
+    isPythonSnippetDialogVisible: false,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
@@ -81,6 +86,11 @@ export default makeReducer<InteractionStateBranch>(
             contextMenuItems: [],
             contextMenuOnDismiss: undefined,
             contextMenuPositionReference: null,
+        }),
+        [RECEIVE_PYTHON_SNIPPET]: (state, action) => ({
+            ...state,
+            ...action.payload,
+            isPythonSnippetDialogVisible: true,
         }),
         [SET_STATUS]: (state, action) => ({
             ...state,
@@ -117,6 +127,11 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             isManifestDownloadDialogVisible: !state.isManifestDownloadDialogVisible,
             fileFiltersForManifestDownload: action.payload,
+        }),
+        [TOGGLE_PYTHON_SNIPPET_DIALOG]: (state) => ({
+            ...state,
+            isPythonSnippetDialogVisible: !state.isPythonSnippetDialogVisible,
+            pythonSnippet: undefined,
         }),
     },
     initialState
