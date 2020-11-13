@@ -14,7 +14,6 @@ import {
     SET_PLATFORM_DEPENDENT_SERVICES,
     SET_STATUS,
     SHOW_CONTEXT_MENU,
-    SET_USER_NAME,
     StatusUpdate,
     TOGGLE_MANIFEST_DOWNLOAD_DIALOG,
     TOGGLE_PYTHON_SNIPPET_DIALOG,
@@ -44,7 +43,6 @@ export interface InteractionStateBranch {
     platformDependentServices: PlatformDependentServices;
     pythonSnippet?: string;
     status: StatusUpdate[];
-    userName?: string;
 }
 
 export const initialState = {
@@ -124,10 +122,6 @@ export default makeReducer<InteractionStateBranch>(
         [SET_PLATFORM_DEPENDENT_SERVICES]: (state, action) => ({
             ...state,
             platformDependentServices: action.payload,
-        }),
-        [SET_USER_NAME]: (state, action) => ({
-            ...state,
-            userName: action.payload,
         }),
         [TOGGLE_MANIFEST_DOWNLOAD_DIALOG]: (state, action) => ({
             ...state,

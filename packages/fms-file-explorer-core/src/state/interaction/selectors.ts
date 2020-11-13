@@ -27,9 +27,15 @@ export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;
 export const getPythonSnippet = (state: State) => state.interaction.pythonSnippet;
-export const getUserName = (state: State) => state.interaction.userName;
 
 // COMPOSED SELECTORS
+export const getUserName = createSelector(
+    [getPlatformDependentServices],
+    ({ applicationInfoService }) => {
+        return applicationInfoService.getUserName();
+    }
+);
+
 export const getFileService = createSelector(
     [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl],
     (applicationVersion, userName, fileExplorerBaseUrl) => {
