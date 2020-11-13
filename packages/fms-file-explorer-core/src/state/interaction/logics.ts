@@ -3,7 +3,7 @@ import path from "path";
 import { isEmpty, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { ReduxLogicDeps, selection } from "../";
+import { interaction, ReduxLogicDeps, selection } from "../";
 import {
     DOWNLOAD_MANIFEST,
     succeedManifestDownload,
@@ -16,6 +16,7 @@ import {
     OPEN_FILES_IN_IMAGE_J,
     setImageJLocation,
     setAllenMountPoint,
+    GENERATE_PYTHON_SNIPPET,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -24,6 +25,8 @@ import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
 import { SelectionRequest, Selection } from "../../services/FileService";
 import { ExecutableEnvCancellationToken } from "../../services/ExecutionEnvService";
+import { Expiration, SnippetType } from "../../containers/PythonSnippetDialog";
+import FileFilter from "../../entity/FileFilter";
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -222,4 +225,68 @@ const showContextMenu = createLogic({
     },
 });
 
-export default [downloadManifest, cancelManifestDownloadLogic, openFilesInImageJ, showContextMenu];
+/**
+ * Interceptor responsible for responding to a GENERATE_PYTHON_SNIPPET action and generating the corresponding
+ * snippet type.
+ */
+const generatePythonSnippet = createLogic({
+    type: GENERATE_PYTHON_SNIPPET,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const {
+            action: {
+                payload: { snippetType, dataset, expiration },
+            },
+            getState,
+        } = deps;
+
+        class DatasetService {
+            async createDataset(dataset: string, expiration: Expiration): Promise<string> {
+                // TODO: Send request to FES endpoint
+                return "123901" + dataset + expiration;
+            }
+            async getPythonSnippetForDataset(datasetId: string): Promise<string> {
+                // TODO: Wait for python snippet endpoint to be created
+                return "...TODO" + datasetId;
+            }
+            async getPythonSnippetForQuery(fileFilters: FileFilter[]): Promise<string> {
+                // TODO: Wait for python snippet endpoint to be created
+                return "...TODO" + fileFilters;
+            }
+        }
+        const datasetService = new DatasetService();
+
+        let snippet;
+        if (snippetType === SnippetType.Dataset) {
+            const datasetId = await datasetService.createDataset(dataset, expiration);
+            snippet = await datasetService.getPythonSnippetForDataset(datasetId);
+        } else if (snippetType === SnippetType.Query) {
+            const fileFilters = selection.selectors.getFileFilters(getState());
+            snippet = await datasetService.getPythonSnippetForQuery(fileFilters);
+        }
+
+        snippet && dispatch(interaction.actions.receivePythonSnippet(snippet));
+        done();
+    },
+    async transform(deps: ReduxLogicDeps, next, reject) {
+        const { action } = deps;
+        const { snippetType, dataset, expiration } = action.payload;
+        if (snippetType === SnippetType.Dataset) {
+            if (!dataset || !expiration) {
+                reject && reject(action);
+                return;
+            }
+        } else if (snippetType !== SnippetType.Query) {
+            reject && reject(action);
+            return;
+        }
+        next(action);
+    },
+});
+
+export default [
+    downloadManifest,
+    cancelManifestDownloadLogic,
+    openFilesInImageJ,
+    showContextMenu,
+    generatePythonSnippet,
+];

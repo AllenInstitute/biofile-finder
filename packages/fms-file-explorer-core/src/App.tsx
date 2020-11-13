@@ -13,6 +13,7 @@ import FileDetails from "./containers/FileDetails";
 import FileExplorerURLBar from "./containers/FileExplorerURLBar";
 import HeaderRibbon from "./containers/HeaderRibbon";
 import ManifestDownloadDialog from "./containers/ManifestDownloadDialog";
+import PythonSnippetDialog from "./containers/PythonSnippetDialog";
 import StatusMessage from "./containers/StatusMessage";
 import ApplicationInfoServiceNoop from "./services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import ExecutionEnvServiceNoop from "./services/ExecutionEnvService/ExecutionEnvServiceNoop";
@@ -139,6 +140,7 @@ export default function App(props: AppProps) {
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
             <StatusMessage />
             <ManifestDownloadDialog />
+            <PythonSnippetDialog />
         </div>
     );
 }

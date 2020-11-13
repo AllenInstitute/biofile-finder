@@ -1,20 +1,10 @@
-import {
-    Dialog,
-    DialogFooter,
-    PrimaryButton,
-    DefaultButton,
-    Dropdown,
-    IDropdownOption,
-    Icon,
-    Label,
-} from "office-ui-fabric-react";
+import { Dialog, DialogFooter, PrimaryButton } from "office-ui-fabric-react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { interaction, metadata } from "../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
-
-const styles = require("./ManifestDownloadDialog.module.css");
+import AnnotationSelector from "../../components/AnnotationSelector/AnnotationSelector";
 
 const DIALOG_CONTENT_PROPS = {
     title: "Download CSV Manifest",
@@ -32,114 +22,44 @@ const TOP_LEVEL_FILE_ANNOTATION_SET = new Set(TOP_LEVEL_FILE_ANNOTATIONS.map((a)
  */
 export default function ManifestDownloadDialog() {
     const dispatch = useDispatch();
-    const customAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
-    const allAnnotations = [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations];
     const fileFilters = useSelector(interaction.selectors.getFileFiltersForManifestDownload);
+    const customAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
+    const annotations = [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations];
+    const annotationNames = annotations.map((a) => a.name);
+    const isVisible = useSelector(interaction.selectors.isManifestDownloadDialogVisible);
     const columnsSavedFromLastTime = useSelector(interaction.selectors.getCsvColumns);
-    const isManifestDownloadDialogVisible = useSelector(
-        interaction.selectors.isManifestDownloadDialogVisible
-    );
 
-    const [columns, setColumns] = React.useState<string[]>([...TOP_LEVEL_FILE_ANNOTATION_SET]);
-    const columnSet = new Set(columns);
-    // Retrieve and set the columns saved to local state from last time (if exists)
-    React.useEffect(() => {
-        if (
-            columnsSavedFromLastTime &&
-            Array.isArray(columnsSavedFromLastTime) &&
-            columnsSavedFromLastTime.length
-        ) {
-            const annotationSet = new Set(
-                [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations].map((a) => a.displayName)
-            );
-            setColumns(columnsSavedFromLastTime.filter((c) => annotationSet.has(c)));
-        }
-    }, [customAnnotations, columnsSavedFromLastTime]);
+    const defaultAnnotations = columnsSavedFromLastTime
+        ? columnsSavedFromLastTime
+        : [...TOP_LEVEL_FILE_ANNOTATION_SET];
+    const [columns, setColumns] = React.useState<string[]>(defaultAnnotations);
 
-    const removeColumn = (column: string) => {
-        setColumns(columns.filter((c) => c !== column));
-    };
-    const addColumn = (
-        _: React.FormEvent<HTMLDivElement>,
-        option?: IDropdownOption | undefined
-    ) => {
-        if (option) {
-            const column = option.key as string;
-            if (columnSet.has(column)) {
-                removeColumn(column);
-            } else {
-                // Place the "top level file attributes" at the top of the selected column list
-                setColumns(
-                    [...columns, column].sort((a, b) => {
-                        if (TOP_LEVEL_FILE_ANNOTATION_SET.has(a)) {
-                            if (!TOP_LEVEL_FILE_ANNOTATION_SET.has(b)) {
-                                return -1;
-                            }
-                        } else if (TOP_LEVEL_FILE_ANNOTATION_SET.has(b)) {
-                            return 1;
-                        }
-                        return a.localeCompare(b);
-                    })
-                );
-            }
-        }
-    };
     const onDownload = () => {
         dispatch(interaction.actions.setCsvColumns(columns));
         dispatch(interaction.actions.toggleManifestDownloadDialog());
+        const columnSet = new Set(columns);
         // Map the annotations to their names (as opposed to their display names)
         // Top level file attributes as of the moment are automatically included
-        const columnAnnotations = allAnnotations
+        const columnAnnotations = annotations
             .filter((a) => columnSet.has(a.displayName))
             .map((a) => a.name);
+
+        // TODO: Why pass fileFilters if the logics could retrieve them...?
         dispatch(interaction.actions.downloadManifest(fileFilters, columnAnnotations));
     };
 
     return (
         <Dialog
-            hidden={!isManifestDownloadDialogVisible}
+            hidden={!isVisible}
             onDismiss={() => dispatch(interaction.actions.toggleManifestDownloadDialog())}
             dialogContentProps={DIALOG_CONTENT_PROPS}
             modalProps={MODAL_PROPS}
         >
-            <DefaultButton
-                disabled={columns.length === allAnnotations.length}
-                onClick={() => setColumns(allAnnotations.map((a) => a.displayName))}
-                text="Select All"
+            <AnnotationSelector
+                annotations={columns}
+                annotationOptions={annotationNames}
+                setAnnotations={setColumns}
             />
-            <DefaultButton
-                disabled={!columns.length}
-                onClick={() => setColumns([])}
-                text="Select None"
-            />
-            <Dropdown
-                multiSelect
-                className={styles.columnDropdown}
-                disabled={columns.length === allAnnotations.length}
-                label="Columns"
-                onChange={addColumn}
-                options={[...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations].map((a) => ({
-                    key: a.displayName,
-                    text: a.displayName,
-                }))}
-                placeholder="Select columns to include"
-                selectedKeys={columns}
-                styles={{ dropdownItemsWrapper: { maxHeight: "250px" } }}
-            />
-            <Label>Selected Columns ({columns.length} total)</Label>
-            <ul className={styles.columnList}>
-                {columns.map((column) => (
-                    <li className={styles.listItem} key={column}>
-                        <Icon
-                            className={styles.columnListIcon}
-                            iconName="clear"
-                            onClick={() => removeColumn(column)}
-                            data-testid="column-deselect-icon"
-                        />
-                        {column}
-                    </li>
-                ))}
-            </ul>
             <DialogFooter>
                 <PrimaryButton disabled={!columns.length} onClick={onDownload} text="Download" />
             </DialogFooter>

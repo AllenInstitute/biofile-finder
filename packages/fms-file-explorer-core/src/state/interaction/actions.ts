@@ -7,6 +7,7 @@ import FileDownloadService from "../../services/FileDownloadService";
 import PersistentConfigService from "../../services/PersistentConfigService";
 import FileViewerService from "../../services/FileViewerService";
 import FileFilter from "../../entity/FileFilter";
+import { Expiration, SnippetType } from "../../containers/PythonSnippetDialog";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -416,5 +417,77 @@ export function toggleManifestDownloadDialog(
     return {
         type: TOGGLE_MANIFEST_DOWNLOAD_DIALOG,
         payload: fileFilters,
+    };
+}
+
+/**
+ * TOGGLE_PYTHON_SNIPPET_DIALOG
+ *
+ * Intention to toggle the visibility of the python snippet dialog.
+ */
+export const TOGGLE_PYTHON_SNIPPET_DIALOG = makeConstant(
+    STATE_BRANCH_NAME,
+    "toggle-python-snippet-dialog"
+);
+
+export interface TogglePythonSnippetDialogAction {
+    type: string;
+}
+
+export function togglePythonSnippetDialogAction(): TogglePythonSnippetDialogAction {
+    return {
+        type: TOGGLE_PYTHON_SNIPPET_DIALOG,
+    };
+}
+
+/**
+ * GENERATE_PYTHON_SNIPPET
+ *
+ * Intention to generate a python snippet of some kind.
+ */
+export const GENERATE_PYTHON_SNIPPET = makeConstant(STATE_BRANCH_NAME, "generate-python-snippet");
+
+export interface GeneratePythonSnippetAction {
+    type: string;
+    payload: {
+        snippetType: SnippetType;
+        dataset?: string;
+        expiration?: Expiration;
+    };
+}
+
+export function generatePythonSnippet(
+    snippetType: SnippetType,
+    dataset?: string,
+    expiration?: Expiration
+): GeneratePythonSnippetAction {
+    return {
+        type: GENERATE_PYTHON_SNIPPET,
+        payload: {
+            snippetType,
+            dataset,
+            expiration,
+        },
+    };
+}
+
+/**
+ * RECEIVE_PYTHON_SNIPPET
+ *
+ * Intention to receive a python snippet to display.
+ */
+export const RECEIVE_PYTHON_SNIPPET = makeConstant(STATE_BRANCH_NAME, "receive-python-snippet");
+
+export interface ReceivePythonSnippetAction {
+    type: string;
+    payload: {
+        pythonSnippet: string;
+    };
+}
+
+export function receivePythonSnippet(pythonSnippet: string): ReceivePythonSnippetAction {
+    return {
+        type: RECEIVE_PYTHON_SNIPPET,
+        payload: { pythonSnippet },
     };
 }
