@@ -472,13 +472,15 @@ export interface GeneratePythonSnippetAction {
         snippetType: SnippetType;
         dataset?: string;
         expiration?: Expiration;
+        annotations?: string[];
     };
 }
 
 export function generatePythonSnippet(
     snippetType: SnippetType,
     dataset?: string,
-    expiration?: Expiration
+    expiration?: Expiration,
+    annotations?: string[]
 ): GeneratePythonSnippetAction {
     return {
         type: GENERATE_PYTHON_SNIPPET,
@@ -486,6 +488,7 @@ export function generatePythonSnippet(
             snippetType,
             dataset,
             expiration,
+            annotations,
         },
     };
 }

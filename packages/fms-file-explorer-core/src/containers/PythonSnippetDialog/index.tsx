@@ -129,11 +129,13 @@ export default function PythonSnippetDialog() {
     }
 
     const onGenerate = () => {
+        dispatch(interaction.actions.setCsvColumns(annotations));
         dispatch(
             interaction.actions.generatePythonSnippet(
                 snippetType as SnippetType,
                 dataset,
-                expiration as Expiration
+                expiration as Expiration,
+                annotations
             )
         );
     };

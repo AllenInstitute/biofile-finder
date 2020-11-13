@@ -2,6 +2,7 @@ import { compact, join } from "lodash";
 
 import HttpServiceBase from "../HttpServiceBase";
 import RestServiceResponse from "../../entity/RestServiceResponse";
+import FileFilter from "../../entity/FileFilter";
 import FileSelection from "../../entity/FileSelection";
 import { JSONReadyRange } from "../../entity/NumericRange";
 
@@ -59,15 +60,25 @@ interface SelectionResult {
     size: number;
 }
 
+interface PythonSnippetRequest {
+    datasetId?: string;
+    filters?: FileFilter[];
+}
+
+enum Version {
+    ONE = "1.0",
+    TWO = "2.0",
+}
+
 /**
  * Service responsible for fetching file related metadata.
  */
 export default class FileService extends HttpServiceBase {
-    public static readonly FILES_ENDPOINT_VERSION = "1.0";
-    public static readonly BASE_FILES_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files`;
-    public static readonly BASE_FILE_IDS_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files/ids`;
-    public static readonly BASE_FILE_COUNT_URL = `file-explorer-service/${FileService.FILES_ENDPOINT_VERSION}/files/count`;
-    public static readonly SELECTION_AGGREGATE_URL = `file-explorer-service/2.0/files/selection/aggregate`;
+    public static readonly BASE_FILES_URL = `file-explorer-service/${Version.ONE}/files`;
+    public static readonly BASE_FILE_IDS_URL = `file-explorer-service/${Version.ONE}/files/ids`;
+    public static readonly BASE_FILE_COUNT_URL = `file-explorer-service/${Version.ONE}/files/count`;
+    public static readonly SELECTION_AGGREGATE_URL = `file-explorer-service/${Version.TWO}/files/selection/aggregate`;
+    public static readonly PYTHON_SNIPPET_URL = `file-explorer-service/${Version.TWO}/files/selection/pythonSnippet`;
 
     public async getCountOfMatchingFiles(queryString: string): Promise<number> {
         const requestUrl = join(
@@ -139,5 +150,28 @@ export default class FileService extends HttpServiceBase {
 
         const response = await this.get<string>(requestUrl);
         return response.data;
+    }
+
+    /**
+     * Retrieves python snippet for querying data by filters or a dataset
+     *
+     * @param request python snippet request to send containing info to narrow
+     * files down
+     */
+    public async getPythonSnippet(request: PythonSnippetRequest): Promise<string> {
+        // const requestUrl = `${this.baseUrl}/${FileService.PYTHON_SNIPPET_URL}`;
+        // console.log(`Requesting python snippet for query with ${request}`);
+
+        // const response = await this.post<string>(requestUrl, JSON.stringify(request));
+
+        // // data is always an array, this endpoint should always return an array of length 1
+        // if (response.data.length !== 1) {
+        //     throw new Error(`Expected response.data of ${requestUrl} to contain a single count`);
+        // }
+
+        // return response.data[0];
+
+        // TODO: Python Snippet API not yet implemented
+        return "TODO: Python Snippet API not yet implemented, request: " + request;
     }
 }

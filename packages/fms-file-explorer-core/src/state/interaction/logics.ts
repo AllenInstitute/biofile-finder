@@ -19,14 +19,14 @@ import {
     GENERATE_PYTHON_SNIPPET,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
+import { SnippetType } from "../../containers/PythonSnippetDialog";
 import CsvService from "../../services/CsvService";
 import { CancellationToken } from "../../services/FileDownloadService";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
+import { CreateDatasetRequest } from "../../services/DatasetService";
 import { SelectionRequest, Selection } from "../../services/FileService";
 import { ExecutableEnvCancellationToken } from "../../services/ExecutionEnvService";
-import { Expiration, SnippetType } from "../../containers/PythonSnippetDialog";
-import FileFilter from "../../entity/FileFilter";
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -234,52 +234,31 @@ const generatePythonSnippet = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const {
             action: {
-                payload: { snippetType, dataset, expiration },
+                payload: { snippetType, dataset, expiration, annotations },
             },
             getState,
         } = deps;
-
-        class DatasetService {
-            async createDataset(dataset: string, expiration: Expiration): Promise<string> {
-                // TODO: Send request to FES endpoint
-                return "123901" + dataset + expiration;
-            }
-            async getPythonSnippetForDataset(datasetId: string): Promise<string> {
-                // TODO: Wait for python snippet endpoint to be created
-                return "...TODO" + datasetId;
-            }
-            async getPythonSnippetForQuery(fileFilters: FileFilter[]): Promise<string> {
-                // TODO: Wait for python snippet endpoint to be created
-                return "...TODO" + fileFilters;
-            }
-        }
-        const datasetService = new DatasetService();
+        const datasetService = interactionSelectors.getDatasetService(getState());
+        const fileService = interactionSelectors.getFileService(getState());
 
         let snippet;
         if (snippetType === SnippetType.Dataset) {
-            const datasetId = await datasetService.createDataset(dataset, expiration);
-            snippet = await datasetService.getPythonSnippetForDataset(datasetId);
+            const fileSelection = selection.selectors.getFileSelection(getState());
+            const request: CreateDatasetRequest = {
+                annotations,
+                expiration,
+                name: dataset,
+                selections: fileSelection.toCompactSelectionList(),
+            };
+            const datasetId = await datasetService.createDataset(request);
+            snippet = await fileService.getPythonSnippet({ datasetId });
         } else if (snippetType === SnippetType.Query) {
-            const fileFilters = selection.selectors.getFileFilters(getState());
-            snippet = await datasetService.getPythonSnippetForQuery(fileFilters);
+            const filters = selection.selectors.getFileFilters(getState());
+            snippet = await fileService.getPythonSnippet({ filters });
         }
 
         snippet && dispatch(interaction.actions.receivePythonSnippet(snippet));
         done();
-    },
-    async transform(deps: ReduxLogicDeps, next, reject) {
-        const { action } = deps;
-        const { snippetType, dataset, expiration } = action.payload;
-        if (snippetType === SnippetType.Dataset) {
-            if (!dataset || !expiration) {
-                reject && reject(action);
-                return;
-            }
-        } else if (snippetType !== SnippetType.Query) {
-            reject && reject(action);
-            return;
-        }
-        next(action);
     },
 });
 
