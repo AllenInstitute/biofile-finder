@@ -1,3 +1,5 @@
+import * as os from "os";
+
 import { ApplicationInfoService } from "@aics/fms-file-explorer-core";
 import axios from "axios";
 const httpAdapter = require("axios/lib/adapters/http"); // exported from lib, but not typed (can't be fixed through typing augmentation)
@@ -50,5 +52,9 @@ export default class ApplicationInfoServiceElectron implements ApplicationInfoSe
 
     public getApplicationVersion() {
         return ipcRenderer.invoke(ApplicationInfoServiceElectron.GET_APP_VERSION_IPC_CHANNEL);
+    }
+
+    public getUserName(): string {
+        return os.userInfo().username;
     }
 }

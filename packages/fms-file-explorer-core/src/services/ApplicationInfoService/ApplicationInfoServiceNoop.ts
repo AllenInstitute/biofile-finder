@@ -8,4 +8,8 @@ export default class ApplicationInfoServiceNoop implements ApplicationInfoServic
     public getApplicationVersion() {
         return Promise.resolve("ApplicationInfoServiceNoop");
     }
+
+    public getUserName() {
+        return undefined;
+    }
 }

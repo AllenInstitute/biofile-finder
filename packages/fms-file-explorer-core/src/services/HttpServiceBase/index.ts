@@ -9,6 +9,7 @@ export interface ConnectionConfig {
     applicationVersion?: string;
     baseUrl?: string | keyof typeof DataSource;
     httpClient?: AxiosInstance;
+    userName?: string;
 }
 
 export const DEFAULT_CONNECTION_CONFIG = {
@@ -98,11 +99,16 @@ export default class HttpServiceBase {
     public baseUrl: string | keyof typeof DataSource = DEFAULT_CONNECTION_CONFIG.baseUrl;
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
     private applicationVersion = "NOT SET";
+    private userName?: string;
     private urlToResponseDataCache = new LRUCache<string, any>({ max: MAX_CACHE_SIZE });
 
     constructor(config: ConnectionConfig = {}) {
         if (config.applicationVersion) {
             this.setApplicationVersion(config.applicationVersion);
+        }
+
+        if (config.userName) {
+            this.setUserName(config.userName);
         }
 
         if (config.baseUrl) {
@@ -160,6 +166,11 @@ export default class HttpServiceBase {
         this.httpClient.defaults.headers.common["X-Application-Version"] = this.applicationVersion;
     }
 
+    public setUserName(userName: string) {
+        this.userName = userName;
+        this.httpClient.defaults.headers.common["X-User-Id"] = this.userName;
+    }
+
     public setBaseUrl(baseUrl: string | keyof typeof DataSource) {
         if (this.baseUrl !== baseUrl) {
             // bust cache when base url changes
@@ -177,5 +188,7 @@ export default class HttpServiceBase {
 
         this.httpClient = client;
         this.httpClient.defaults.headers.common["X-Application-Version"] = this.applicationVersion;
+        this.httpClient.defaults.headers.common["X-Client"] = "FMS File Explorer App";
+        this.httpClient.defaults.headers.common["X-User-Id"] = this.userName;
     }
 }
