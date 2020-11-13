@@ -1,5 +1,7 @@
 import { makeConstant } from "@aics/redux-utils";
 
+import { Modal } from "../../containers/DialogModal";
+import { Expiration, SnippetType } from "../../containers/DialogModal/PythonSnippetForm";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
 import ExecutionEnvService from "../../services/ExecutionEnvService";
@@ -7,7 +9,6 @@ import FileDownloadService from "../../services/FileDownloadService";
 import PersistentConfigService from "../../services/PersistentConfigService";
 import FileViewerService from "../../services/FileViewerService";
 import FileFilter from "../../entity/FileFilter";
-import { Expiration, SnippetType } from "../../containers/PythonSnippetDialog";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -19,19 +20,14 @@ export const DOWNLOAD_MANIFEST = makeConstant(STATE_BRANCH_NAME, "download-manif
 export interface DownloadManifestAction {
     payload: {
         columns: string[];
-        fileFilters: FileFilter[];
     };
     type: string;
 }
 
-export function downloadManifest(
-    fileFilters: FileFilter[],
-    columns: string[]
-): DownloadManifestAction {
+export function downloadManifest(columns: string[]): DownloadManifestAction {
     return {
         payload: {
             columns,
-            fileFilters,
         },
         type: DOWNLOAD_MANIFEST,
     };
@@ -187,6 +183,23 @@ export interface HideContextMenuAction {
 export function hideContextMenu(): HideContextMenuAction {
     return {
         type: HIDE_CONTEXT_MENU,
+    };
+}
+
+/**
+ * HIDE_VISIBLE_MODAL
+ *
+ * Intention to hide the current visible modal (if any).
+ */
+export const HIDE_VISIBLE_MODAL = makeConstant(STATE_BRANCH_NAME, "hide-visible-modal");
+
+export interface HideVisibleModalAction {
+    type: string;
+}
+
+export function hideVisibleModal(): HideVisibleModalAction {
+    return {
+        type: HIDE_VISIBLE_MODAL,
     };
 }
 
@@ -397,46 +410,47 @@ export function failManifestDownload(id: string, msg: string): ManifestDownloadF
 }
 
 /**
- * TOGGLE_MANIFEST_DOWNLOAD_DIALOG
+ * SHOW_MANIFEST_DOWNLOAD_DIALOG
  *
- * Intention to toggle the visibility of the manifest download dialog.
+ * Intention to show the manifest download dialog.
  */
-export const TOGGLE_MANIFEST_DOWNLOAD_DIALOG = makeConstant(
+export const SHOW_MANIFEST_DOWNLOAD_DIALOG = makeConstant(
     STATE_BRANCH_NAME,
-    "toggle-manifest-download-dialog"
+    "show-manifest-download-dialog"
 );
 
-export interface ToggleManifestDownloadDialogAction {
+export interface ShowManifestDownloadDialogAction {
     type: string;
-    payload?: FileFilter[];
+    payload: FileFilter[];
 }
 
-export function toggleManifestDownloadDialog(
+export function showManifestDownloadDialog(
     fileFilters: FileFilter[] = []
-): ToggleManifestDownloadDialogAction {
+): ShowManifestDownloadDialogAction {
     return {
-        type: TOGGLE_MANIFEST_DOWNLOAD_DIALOG,
+        type: SHOW_MANIFEST_DOWNLOAD_DIALOG,
         payload: fileFilters,
     };
 }
 
 /**
- * TOGGLE_PYTHON_SNIPPET_DIALOG
+ * SET_VISIBLE_MODAL
  *
- * Intention to toggle the visibility of the python snippet dialog.
+ * Intention to set the current visible modal.
  */
-export const TOGGLE_PYTHON_SNIPPET_DIALOG = makeConstant(
-    STATE_BRANCH_NAME,
-    "toggle-python-snippet-dialog"
-);
+export const SET_VISIBLE_MODAL = makeConstant(STATE_BRANCH_NAME, "set-visible-modal");
 
-export interface TogglePythonSnippetDialogAction {
+export interface SetVisibleModalAction {
     type: string;
+    payload: {
+        visibleModal: Modal;
+    };
 }
 
-export function togglePythonSnippetDialogAction(): TogglePythonSnippetDialogAction {
+export function setVisibleModal(visibleModal: Modal): SetVisibleModalAction {
     return {
-        type: TOGGLE_PYTHON_SNIPPET_DIALOG,
+        type: SET_VISIBLE_MODAL,
+        payload: { visibleModal },
     };
 }
 

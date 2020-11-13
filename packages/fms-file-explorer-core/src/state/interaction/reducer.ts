@@ -2,7 +2,9 @@ import { makeReducer } from "@aics/redux-utils";
 import { filter } from "lodash";
 
 import {
+    GENERATE_PYTHON_SNIPPET,
     HIDE_CONTEXT_MENU,
+    HIDE_VISIBLE_MODAL,
     PlatformDependentServices,
     RECEIVE_PYTHON_SNIPPET,
     REMOVE_STATUS,
@@ -13,12 +15,13 @@ import {
     SET_IMAGE_J_LOCATION,
     SET_PLATFORM_DEPENDENT_SERVICES,
     SET_STATUS,
+    SET_VISIBLE_MODAL,
     SHOW_CONTEXT_MENU,
+    SHOW_MANIFEST_DOWNLOAD_DIALOG,
     StatusUpdate,
-    TOGGLE_MANIFEST_DOWNLOAD_DIALOG,
-    TOGGLE_PYTHON_SNIPPET_DIALOG,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
+import { Modal } from "../../containers/DialogModal";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
 import FileViewerServiceNoop from "../../services/FileViewerService/FileViewerServiceNoop";
@@ -43,6 +46,7 @@ export interface InteractionStateBranch {
     platformDependentServices: PlatformDependentServices;
     pythonSnippet?: string;
     status: StatusUpdate[];
+    visibleModal?: Modal;
 }
 
 export const initialState = {
@@ -87,6 +91,14 @@ export default makeReducer<InteractionStateBranch>(
             contextMenuOnDismiss: undefined,
             contextMenuPositionReference: null,
         }),
+        [HIDE_VISIBLE_MODAL]: (state) => ({
+            ...state,
+            visibleModal: undefined,
+        }),
+        [GENERATE_PYTHON_SNIPPET]: (state) => ({
+            ...state,
+            pythonSnippet: undefined,
+        }),
         [RECEIVE_PYTHON_SNIPPET]: (state, action) => ({
             ...state,
             ...action.payload,
@@ -123,15 +135,14 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             platformDependentServices: action.payload,
         }),
-        [TOGGLE_MANIFEST_DOWNLOAD_DIALOG]: (state, action) => ({
+        [SET_VISIBLE_MODAL]: (state, action) => ({
             ...state,
-            isManifestDownloadDialogVisible: !state.isManifestDownloadDialogVisible,
-            fileFiltersForManifestDownload: action.payload,
+            ...action.payload,
         }),
-        [TOGGLE_PYTHON_SNIPPET_DIALOG]: (state) => ({
+        [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action) => ({
             ...state,
-            isPythonSnippetDialogVisible: !state.isPythonSnippetDialogVisible,
-            pythonSnippet: undefined,
+            visibleModal: Modal.CsvManifest,
+            fileFiltersForManifestDownload: action.payload,
         }),
     },
     initialState

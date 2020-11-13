@@ -51,7 +51,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(downloadManifest([], []));
+            store.dispatch(downloadManifest([]));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -85,7 +85,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(downloadManifest([], []));
+            store.dispatch(downloadManifest([]));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -128,7 +128,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(downloadManifest([], []));
+            store.dispatch(downloadManifest([]));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -183,7 +183,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(downloadManifest([], []));
+            store.dispatch(downloadManifest([]));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -197,8 +197,13 @@ describe("Interaction logics", () => {
         it("doesn't use selected files when given a specific file folder path", async () => {
             // arrange
             const baseUrl = "test";
+            const filters = [
+                new FileFilter("Cell Line", "AICS-12"),
+                new FileFilter("Notes", "Hello"),
+            ];
             const state = mergeState(initialState, {
                 interaction: {
+                    fileFiltersForManifestDownload: filters,
                     fileExplorerServiceBaseUrl: baseUrl,
                     platformDependentServices: {
                         fileDownloadService: new FileDownloadServiceNoop(),
@@ -208,10 +213,6 @@ describe("Interaction logics", () => {
                     fileSelection,
                 },
             });
-            const filters = [
-                new FileFilter("Cell Line", "AICS-12"),
-                new FileFilter("Notes", "Hello"),
-            ];
             const responseStub = {
                 when: `${baseUrl}/${FileService.BASE_FILE_COUNT_URL}?Cell%20Line=AICS-12&Notes=Hello`,
                 respondWith: {
@@ -235,7 +236,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(downloadManifest(filters, []));
+            store.dispatch(downloadManifest([]));
             await logicMiddleware.whenComplete();
 
             // assert

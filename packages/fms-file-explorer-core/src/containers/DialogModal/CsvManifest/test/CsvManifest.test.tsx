@@ -11,20 +11,21 @@ import { render, fireEvent } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
-import ManifestDownloadDialog from "..";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
-import Annotation from "../../../entity/Annotation";
-import FileFilter from "../../../entity/FileFilter";
-import FileDownloadService from "../../../services/FileDownloadService";
-import FileService from "../../../services/FileService";
-import { initialState, interaction, reduxLogics } from "../../../state";
+import CsvManifest from "..";
+import { Modal } from "../..";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
+import Annotation from "../../../../entity/Annotation";
+import FileFilter from "../../../../entity/FileFilter";
+import FileDownloadService from "../../../../services/FileDownloadService";
+import FileService from "../../../../services/FileService";
+import { initialState, interaction, reduxLogics } from "../../../../state";
 
-describe("<ManifestDownloadDialog />", () => {
+describe("<CsvManifest />", () => {
     const baseUrl = "test";
     const visibleDialogState = mergeState(initialState, {
         interaction: {
             fileExplorerServiceBaseUrl: baseUrl,
-            isManifestDownloadDialogVisible: true,
+            visibleModal: Modal.CsvManifest,
         },
     });
 
@@ -51,25 +52,12 @@ describe("<ManifestDownloadDialog />", () => {
         sandbox.restore();
     });
 
-    it("is not visible when should be hidden", async () => {
-        // Arrange
-        const { store } = configureMockStore({ state: initialState });
-        const { getByText } = render(
-            <Provider store={store}>
-                <ManifestDownloadDialog />
-            </Provider>
-        );
-
-        // Assert
-        expect(() => getByText("Download CSV Manifest")).to.throw();
-    });
-
     it("is visible when should not be hidden", async () => {
         // Arrange
         const { store } = configureMockStore({ state: visibleDialogState });
         const { getByText } = render(
             <Provider store={store}>
-                <ManifestDownloadDialog />
+                <CsvManifest onDismiss={() => {}} />
             </Provider>
         );
 
@@ -107,7 +95,7 @@ describe("<ManifestDownloadDialog />", () => {
 
         const { findByText } = render(
             <Provider store={store}>
-                <ManifestDownloadDialog />
+                <CsvManifest onDismiss={() => {}} />
             </Provider>
         );
 
@@ -132,7 +120,7 @@ describe("<ManifestDownloadDialog />", () => {
             const { store } = configureMockStore({ state: visibleDialogState });
             const { getByText } = render(
                 <Provider store={store}>
-                    <ManifestDownloadDialog />
+                    <CsvManifest onDismiss={() => {}} />
                 </Provider>
             );
 
@@ -164,7 +152,7 @@ describe("<ManifestDownloadDialog />", () => {
             const { store } = configureMockStore({ state });
             const { getByText } = render(
                 <Provider store={store}>
-                    <ManifestDownloadDialog />
+                    <CsvManifest onDismiss={() => {}} />
                 </Provider>
             );
 

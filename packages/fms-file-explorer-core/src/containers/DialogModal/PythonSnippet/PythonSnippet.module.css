@@ -1,30 +1,15 @@
-.label {
-    padding-left: 25px;
-}
-
-.label-description {
-    color: #bbbbbb;
-}
-
-.dataset-input {
-    margin-left: 20px;
-
-    /* Flex Parent */
-    display: flex;
-}
-
-.snippet-label {
-    margin: auto;
-    margin-left: 0;
-}
-
-.snippet-header {
+.header {
     margin-top: 10px;
     margin-bottom: 4px;
 
     /* Flex Parent */
     display: flex;
     justify-content: space-between;
+}
+
+.label {
+    margin: auto;
+    margin-left: 0;
 }
 
 .snippet {

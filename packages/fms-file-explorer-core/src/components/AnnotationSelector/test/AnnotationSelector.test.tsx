@@ -17,7 +17,7 @@ describe("<AnnotationSelector />", () => {
             actualAnnotations = annotations;
         };
         const { store } = configureMockStore({ state: initialState });
-        const { getByText, findByText } = render(
+        const { findByText } = render(
             <Provider store={store}>
                 <AnnotationSelector
                     annotations={initialAnnotations}

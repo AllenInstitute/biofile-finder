@@ -6,10 +6,6 @@ import DatasetService from "../../services/DatasetService";
 import FileService from "../../services/FileService";
 
 // BASIC SELECTORS
-export const isManifestDownloadDialogVisible = (state: State) =>
-    state.interaction.isManifestDownloadDialogVisible;
-export const isPythonSnippetDialogVisible = (state: State) =>
-    state.interaction.isPythonSnippetDialogVisible;
 export const getAllenMountPoint = (state: State) => state.interaction.allenMountPoint;
 export const getApplicationVersion = (state: State) => state.interaction.applicationVersion;
 export const getContextMenuVisibility = (state: State) => state.interaction.contextMenuIsVisible;
@@ -27,11 +23,15 @@ export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;
 export const getPythonSnippet = (state: State) => state.interaction.pythonSnippet;
+export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 
 // COMPOSED SELECTORS
 export const getUserName = createSelector(
     [getPlatformDependentServices],
     ({ applicationInfoService }) => {
+        if (!applicationInfoService) {
+            return undefined;
+        }
         return applicationInfoService.getUserName();
     }
 );

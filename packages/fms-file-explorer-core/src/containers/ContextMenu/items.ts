@@ -2,6 +2,7 @@ import { Dispatch } from "redux";
 
 import { ContextualMenuItemType } from "./";
 import { interaction } from "../../state";
+import { Modal } from "../DialogModal";
 
 /**
  * This is intended to be a catalogue of context menu items and that can be reused as various context menus are built up
@@ -29,7 +30,7 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                         text: "Manifest",
                         title: "CSV file of metadata of selected files",
                         onClick() {
-                            dispatch(interaction.actions.toggleManifestDownloadDialog());
+                            dispatch(interaction.actions.showManifestDownloadDialog());
                         },
                     },
                     {
@@ -55,7 +56,7 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                         title:
                             "Get a snippet in Python to work with your file selection programmatically",
                         onClick() {
-                            dispatch(interaction.actions.togglePythonSnippetDialogAction());
+                            dispatch(interaction.actions.setVisibleModal(Modal.PythonSnippetForm));
                         },
                     },
                 ],

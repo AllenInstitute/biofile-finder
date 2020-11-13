@@ -1,0 +1,14 @@
+.label {
+    padding-left: 25px;
+}
+
+.label-description {
+    color: #bbbbbb;
+}
+
+.dataset-form {
+    margin-left: 20px;
+
+    /* Flex Parent */
+    display: flex;
+}

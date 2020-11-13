@@ -19,7 +19,7 @@ import {
     GENERATE_PYTHON_SNIPPET,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
-import { SnippetType } from "../../containers/PythonSnippetDialog";
+import { SnippetType } from "../../containers/DialogModal/PythonSnippetForm";
 import CsvService from "../../services/CsvService";
 import { CancellationToken } from "../../services/FileDownloadService";
 import FileSet from "../../entity/FileSet";
@@ -44,6 +44,7 @@ const downloadManifest = createLogic({
             const platformDependentServices = interactionSelectors.getPlatformDependentServices(
                 state
             );
+            const filters = interactionSelectors.getFileFiltersForManifestDownload(state);
             const fileService = interactionSelectors.getFileService(state);
             const csvService = new CsvService({
                 applicationVersion,
@@ -54,9 +55,9 @@ const downloadManifest = createLogic({
             let selections: Selection[];
 
             // If we have a specific path to get files from ignore selected files
-            if (action.payload.fileFilters.length) {
+            if (filters.length) {
                 const fileSet = new FileSet({
-                    filters: action.payload.fileFilters,
+                    filters,
                     fileService,
                 });
                 const count = await fileSet.fetchTotalCount();
