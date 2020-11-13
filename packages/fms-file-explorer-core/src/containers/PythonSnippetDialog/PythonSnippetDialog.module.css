@@ -1,0 +1,41 @@
+.label {
+    padding-left: 25px;
+}
+
+.label-description {
+    color: #bbbbbb;
+}
+
+.dataset-input {
+    margin-left: 20px;
+
+    /* Flex Parent */
+    display: flex;
+}
+
+.snippet-label {
+    margin: auto;
+    margin-left: 0;
+}
+
+.snippet-header {
+    margin-top: 10px;
+    margin-bottom: 4px;
+
+    /* Flex Parent */
+    display: flex;
+    justify-content: space-between;
+}
+
+.snippet {
+    background-color: black;
+    color: #ffffff;
+    padding: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.copy-button, .copy-button:hover {
+    color: #827aa3;
+    float: right;
+}
