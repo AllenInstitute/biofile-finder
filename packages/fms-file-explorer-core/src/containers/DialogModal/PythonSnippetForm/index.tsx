@@ -3,18 +3,18 @@ import {
     Dialog,
     DialogFooter,
     IChoiceGroupOption,
-    IconButton,
     PrimaryButton,
     TextField,
 } from "office-ui-fabric-react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { interaction, metadata } from "../../state";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
-import AnnotationSelector from "../../components/AnnotationSelector";
+import { DialogModalProps } from "..";
+import { interaction, metadata } from "../../../state";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
+import AnnotationSelector from "../../../components/AnnotationSelector";
 
-const styles = require("./PythonSnippetDialog.module.css");
+const styles = require("./PythonSnippetForm.module.css");
 
 const DIALOG_CONTENT_PROPS = {
     title: "Generate Python Snippet",
@@ -67,21 +67,15 @@ const EXPIRATIONS: IChoiceGroupOption[] = Object.values(Expiration).map((key) =>
     text: key,
 }));
 
-const PYTHON_SETUP = "pip install aicsfiles";
-
-const COPY_ICON = { iconName: "copy" };
-
 /**
- * TODO
+ * Dialog form for generating a Python Snippet based on current selection state
  */
-export default function PythonSnippetDialog() {
+export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
     const dispatch = useDispatch();
     const customAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
     const allAnnotations = [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations];
     const annotationOptions = allAnnotations.map((a) => a.displayName);
     const columnsSavedFromLastTime = useSelector(interaction.selectors.getCsvColumns);
-    const isVisible = useSelector(interaction.selectors.isPythonSnippetDialogVisible);
-    const pythonSnippet = useSelector(interaction.selectors.getPythonSnippet);
 
     const defaultAnnotations = columnsSavedFromLastTime
         ? columnsSavedFromLastTime
@@ -90,43 +84,6 @@ export default function PythonSnippetDialog() {
     const [snippetType, setSnippetType] = React.useState<string>(SnippetType.Query);
     const [expiration, setExpiration] = React.useState<string>(Expiration.Forever);
     const [dataset, setDataset] = React.useState<string>();
-
-    if (pythonSnippet) {
-        const onCopySetup = () => {
-            navigator.clipboard.writeText(PYTHON_SETUP);
-        };
-        const onCopyCode = () => {
-            navigator.clipboard.writeText(pythonSnippet);
-        };
-
-        return (
-            <Dialog
-                hidden={!isVisible}
-                onDismiss={() => dispatch(interaction.actions.togglePythonSnippetDialogAction())}
-                modalProps={MODAL_PROPS}
-            >
-                {/* TODO: Feedback on when things are copied would be nice */}
-                <div className={styles.snippetHeader}>
-                    <span className={styles.snippetLabel}>Setup</span>
-                    <IconButton
-                        className={styles.copyButton}
-                        iconProps={COPY_ICON}
-                        onClick={onCopySetup}
-                    />
-                </div>
-                <div className={styles.snippet}>{PYTHON_SETUP}</div>
-                <div className={styles.snippetHeader}>
-                    <span className={styles.snippetLabel}>Code</span>
-                    <IconButton
-                        className={styles.copyButton}
-                        iconProps={COPY_ICON}
-                        onClick={onCopyCode}
-                    />
-                </div>
-                <div className={styles.snippet}>{pythonSnippet}</div>
-            </Dialog>
-        );
-    }
 
     const onGenerate = () => {
         dispatch(interaction.actions.setCsvColumns(annotations));
@@ -142,8 +99,8 @@ export default function PythonSnippetDialog() {
 
     return (
         <Dialog
-            hidden={!isVisible}
-            onDismiss={() => dispatch(interaction.actions.togglePythonSnippetDialogAction())}
+            hidden={false}
+            onDismiss={onDismiss}
             dialogContentProps={DIALOG_CONTENT_PROPS}
             modalProps={MODAL_PROPS}
         >
@@ -159,7 +116,7 @@ export default function PythonSnippetDialog() {
                 onChange={(_, o) => o && setSnippetType(o.key)}
             />
             {snippetType === SnippetType.Dataset && (
-                <div className={styles.datasetInput}>
+                <div className={styles.datasetForm}>
                     <ChoiceGroup
                         label="Expiration"
                         selectedKey={expiration}

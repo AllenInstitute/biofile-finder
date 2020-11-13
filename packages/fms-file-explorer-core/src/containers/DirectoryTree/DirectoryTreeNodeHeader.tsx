@@ -70,9 +70,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
                             ...item,
                             onClick() {
                                 dispatch(
-                                    interaction.actions.toggleManifestDownloadDialog(
-                                        fileSet.filters
-                                    )
+                                    interaction.actions.showManifestDownloadDialog(fileSet.filters)
                                 );
                             },
                         };

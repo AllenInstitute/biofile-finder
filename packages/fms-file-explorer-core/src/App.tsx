@@ -8,12 +8,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { DataSource } from "./constants";
 import AnnotationSidebar from "./containers/AnnotationSidebar";
 import ContextMenu from "./containers/ContextMenu";
+import DialogModal from "./containers/DialogModal";
 import DirectoryTree from "./containers/DirectoryTree";
 import FileDetails from "./containers/FileDetails";
 import FileExplorerURLBar from "./containers/FileExplorerURLBar";
 import HeaderRibbon from "./containers/HeaderRibbon";
-import ManifestDownloadDialog from "./containers/ManifestDownloadDialog";
-import PythonSnippetDialog from "./containers/PythonSnippetDialog";
 import StatusMessage from "./containers/StatusMessage";
 import ApplicationInfoServiceNoop from "./services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import ExecutionEnvServiceNoop from "./services/ExecutionEnvService/ExecutionEnvServiceNoop";
@@ -139,8 +138,7 @@ export default function App(props: AppProps) {
             </div>
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
             <StatusMessage />
-            <ManifestDownloadDialog />
-            <PythonSnippetDialog />
+            <DialogModal />
         </div>
     );
 }

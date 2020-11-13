@@ -4,29 +4,17 @@ import * as React from "react";
 import { render } from "@testing-library/react";
 import { Provider } from "react-redux";
 
-import PythonSnippetDialog from "..";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
-import Annotation from "../../../entity/Annotation";
-import { initialState } from "../../../state";
+import PythonSnippetForm from "..";
+import { Modal } from "../..";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
+import Annotation from "../../../../entity/Annotation";
+import { initialState } from "../../../../state";
 
-describe("<PythonSnippetDialog />", () => {
+describe("<PythonSnippetForm />", () => {
     const visibleDialogState = mergeState(initialState, {
         interaction: {
-            isPythonSnippetDialogVisible: true,
+            visibleModal: Modal.PythonSnippetForm,
         },
-    });
-
-    it("is not visible when should be hidden", async () => {
-        // Arrange
-        const { store } = configureMockStore({ state: initialState });
-        const { getByText } = render(
-            <Provider store={store}>
-                <PythonSnippetDialog />
-            </Provider>
-        );
-
-        // Assert
-        expect(() => getByText("Generate Python Snippet")).to.throw();
     });
 
     it("is visible when should not be hidden", async () => {
@@ -34,7 +22,7 @@ describe("<PythonSnippetDialog />", () => {
         const { store } = configureMockStore({ state: visibleDialogState });
         const { getByText } = render(
             <Provider store={store}>
-                <PythonSnippetDialog />
+                <PythonSnippetForm onDismiss={() => {}} />
             </Provider>
         );
 
@@ -48,7 +36,7 @@ describe("<PythonSnippetDialog />", () => {
             const { store } = configureMockStore({ state: visibleDialogState });
             const { getByText } = render(
                 <Provider store={store}>
-                    <PythonSnippetDialog />
+                    <PythonSnippetForm onDismiss={() => {}} />
                 </Provider>
             );
 
@@ -80,7 +68,7 @@ describe("<PythonSnippetDialog />", () => {
             const { store } = configureMockStore({ state });
             const { getByText } = render(
                 <Provider store={store}>
-                    <PythonSnippetDialog />
+                    <PythonSnippetForm onDismiss={() => {}} />
                 </Provider>
             );
 
