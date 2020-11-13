@@ -28,11 +28,11 @@ export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 // COMPOSED SELECTORS
 export const getUserName = createSelector(
     [getPlatformDependentServices],
-    ({ applicationInfoService }) => {
-        if (!applicationInfoService) {
+    (platformDependentServices) => {
+        if (!platformDependentServices || !platformDependentServices.applicationInfoService) {
             return undefined;
         }
-        return applicationInfoService.getUserName();
+        return platformDependentServices.applicationInfoService.getUserName();
     }
 );
 
