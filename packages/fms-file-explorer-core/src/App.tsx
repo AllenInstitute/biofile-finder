@@ -95,11 +95,6 @@ export default function App(props: AppProps) {
 
         checkForUpdates();
 
-        const userName = platformDependentServices.applicationInfoService.getUserName();
-        if (userName) {
-            dispatch(interaction.actions.setUserName(userName));
-        }
-
         async function setApplicationVersion() {
             const applicationVersion = await platformDependentServices.applicationInfoService.getApplicationVersion();
             dispatch(interaction.actions.setApplicationVersion(applicationVersion));
