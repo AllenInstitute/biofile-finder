@@ -15,7 +15,8 @@ interface AnnotationSelectorProps {
 }
 
 /**
- * TODO
+ * Form for selecting which annotations to use in some exterior context like
+ * downloading a manifest.
  */
 export default function AnnotationSelector(props: AnnotationSelectorProps) {
     const { className, annotationOptions, annotations, setAnnotations } = props;
