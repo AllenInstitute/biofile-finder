@@ -466,7 +466,7 @@ export interface GeneratePythonSnippetAction {
     payload: {
         snippetType: SnippetType;
         dataset?: string;
-        expiration?: Expiration;
+        expiration?: Date;
         annotations?: string[];
     };
 }
@@ -474,7 +474,7 @@ export interface GeneratePythonSnippetAction {
 export function generatePythonSnippet(
     snippetType: SnippetType,
     dataset?: string,
-    expiration?: Expiration,
+    expiration?: Date,
     annotations?: string[]
 ): GeneratePythonSnippetAction {
     return {
