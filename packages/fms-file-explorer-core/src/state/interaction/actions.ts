@@ -1,7 +1,7 @@
 import { makeConstant } from "@aics/redux-utils";
 
 import { Modal } from "../../containers/DialogModal";
-import { Expiration, SnippetType } from "../../containers/DialogModal/PythonSnippetForm";
+import { SnippetType } from "../../containers/DialogModal/PythonSnippetForm";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
 import ExecutionEnvService from "../../services/ExecutionEnvService";

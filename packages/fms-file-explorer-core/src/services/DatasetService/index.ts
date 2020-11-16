@@ -1,6 +1,17 @@
 import HttpServiceBase from "../HttpServiceBase";
 import { Selection } from "../FileService";
 
+export interface Dataset {
+    name: string;
+    version: number;
+    expiration?: Date;
+    collection: string;
+    query: string;
+    createdBy: string;
+    created: Date;
+    client: string;
+}
+
 export interface CreateDatasetRequest {
     name: string;
     annotations: string[];
@@ -30,5 +41,24 @@ export default class DatasetService extends HttpServiceBase {
             throw new Error(`Expected response.data of ${request} to contain a single count`);
         }
         return response.data[0];
+    }
+
+    /**
+     * Requests for all datasets in the FMS MongoDB dataset collection
+     */
+    public async getDatasets(): Promise<Dataset[]> {
+        // const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}`;
+        // console.log(`Requesting all datasets from the following url: ${requestUrl}`);
+
+        // const response = await this.get<Dataset[]>(requestUrl);
+
+        // // data is always an array, this endpoint should always return an array of length 1
+        // if (response.data.length !== 1) {
+        //     throw new Error(`Expected response.data of ${requestUrl} to contain a single count`);
+        // }
+        // return response.data[0];
+
+        // TODO: Uncomment when FMS-1405 ticket is merged
+        return [];
     }
 }
