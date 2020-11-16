@@ -15,6 +15,7 @@ import { DialogModalProps } from "..";
 import { interaction, metadata } from "../../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import AnnotationSelector from "../../../components/AnnotationSelector";
+import { Dataset } from "../../../services/DatasetService";
 
 const styles = require("./PythonSnippetForm.module.css");
 
@@ -78,6 +79,7 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
     const allAnnotations = [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations];
     const annotationOptions = allAnnotations.map((a) => a.displayName);
     const columnsSavedFromLastTime = useSelector(interaction.selectors.getCsvColumns);
+    const datasetService = useSelector(interaction.selectors.getDatasetService);
 
     const defaultAnnotations = columnsSavedFromLastTime
         ? columnsSavedFromLastTime
@@ -87,6 +89,28 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
     const [snippetType, setSnippetType] = React.useState<string>(SnippetType.Query);
     const [expiration, setExpiration] = React.useState<string>(Expiration.Forever);
     const [dataset, setDataset] = React.useState<string>();
+    const [existingDatasets, setExistingDatasets] = React.useState<Dataset[]>([]);
+
+    // Determine the existing datasets to provide some feedback on the input dataset (if any)
+    React.useEffect(() => {
+        const getDatasets = async () => {
+            const datasets = await datasetService.getDatasets();
+            setExistingDatasets(datasets);
+        };
+        getDatasets();
+    }, [datasetService]);
+
+    // Datasets can have the same name with different versions, see if this would
+    // need to be a new version based on the name
+    const nextVersionForName = React.useMemo(() => {
+        const matchingExistingDatasets = existingDatasets
+            .filter((d) => d.name === dataset)
+            .sort((a, b) => (a.version > b.version ? 1 : -1));
+        if (!matchingExistingDatasets.length) {
+            return undefined;
+        }
+        return matchingExistingDatasets[0].version;
+    }, [dataset, existingDatasets]);
 
     const onGenerate = () => {
         setIsLoading(true);
@@ -143,10 +167,14 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
                                 options={EXPIRATIONS}
                                 onChange={(_, o) => o && setExpiration(o.key)}
                             />
-                            {/* TODO: If others exist with name warn user of version bump */}
                             <TextField
                                 autoFocus
                                 label="Name"
+                                description={
+                                    nextVersionForName
+                                        ? `Name already exists, can create version ${nextVersionForName}`
+                                        : undefined
+                                }
                                 value={dataset}
                                 spellCheck={false}
                                 onChange={(_, value) => setDataset(value)}
