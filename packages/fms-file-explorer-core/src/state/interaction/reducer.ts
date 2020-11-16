@@ -41,8 +41,6 @@ export interface InteractionStateBranch {
     fileExplorerServiceBaseUrl: string;
     fileFiltersForManifestDownload: FileFilter[];
     imageJExecutable?: string;
-    isManifestDownloadDialogVisible: boolean;
-    isPythonSnippetDialogVisible: boolean;
     platformDependentServices: PlatformDependentServices;
     pythonSnippet?: string;
     status: StatusUpdate[];
@@ -59,8 +57,6 @@ export const initialState = {
     contextMenuPositionReference: null,
     fileExplorerServiceBaseUrl: DEFAULT_CONNECTION_CONFIG.baseUrl,
     fileFiltersForManifestDownload: [],
-    isManifestDownloadDialogVisible: false,
-    isPythonSnippetDialogVisible: false,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
@@ -102,7 +98,7 @@ export default makeReducer<InteractionStateBranch>(
         [RECEIVE_PYTHON_SNIPPET]: (state, action) => ({
             ...state,
             ...action.payload,
-            isPythonSnippetDialogVisible: true,
+            visibleModal: Modal.PythonSnippet,
         }),
         [SET_STATUS]: (state, action) => ({
             ...state,
