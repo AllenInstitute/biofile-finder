@@ -4,6 +4,8 @@ import {
     DialogFooter,
     IChoiceGroupOption,
     PrimaryButton,
+    Spinner,
+    SpinnerSize,
     TextField,
 } from "office-ui-fabric-react";
 import * as React from "react";
@@ -35,7 +37,7 @@ export enum Expiration {
     OneWeek = "1 Week",
     SixMonths = "6 Months",
     OneYear = "1 Year",
-    ThreeYears = "3 Year",
+    ThreeYears = "3 Years",
     Forever = "Forever",
 }
 const SNIPPET_TYPES: IChoiceGroupOption[] = [
@@ -80,18 +82,32 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
     const defaultAnnotations = columnsSavedFromLastTime
         ? columnsSavedFromLastTime
         : [...TOP_LEVEL_FILE_ANNOTATION_NAMES];
+    const [isLoading, setIsLoading] = React.useState(false);
     const [annotations, setAnnotations] = React.useState<string[]>(defaultAnnotations);
     const [snippetType, setSnippetType] = React.useState<string>(SnippetType.Query);
     const [expiration, setExpiration] = React.useState<string>(Expiration.Forever);
     const [dataset, setDataset] = React.useState<string>();
 
     const onGenerate = () => {
+        setIsLoading(true);
         dispatch(interaction.actions.setCsvColumns(annotations));
+        let expirationDate: Date | undefined = new Date();
+        if (expiration === Expiration.OneWeek) {
+            expirationDate.setDate(expirationDate.getDate() + 7);
+        } else if (expiration === Expiration.SixMonths) {
+            expirationDate.setMonth(expirationDate.getMonth() + 6);
+        } else if (expiration === Expiration.OneYear) {
+            expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+        } else if (expiration === Expiration.ThreeYears) {
+            expirationDate.setFullYear(expirationDate.getFullYear() + 3);
+        } else {
+            expirationDate = undefined;
+        }
         dispatch(
             interaction.actions.generatePythonSnippet(
                 snippetType as SnippetType,
                 dataset,
-                expiration as Expiration,
+                expirationDate,
                 annotations
             )
         );
@@ -104,44 +120,51 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
             dialogContentProps={DIALOG_CONTENT_PROPS}
             modalProps={MODAL_PROPS}
         >
-            <AnnotationSelector
-                annotations={annotations}
-                annotationOptions={annotationOptions}
-                setAnnotations={setAnnotations}
-            />
-            <hr />
-            <ChoiceGroup
-                selectedKey={snippetType}
-                options={SNIPPET_TYPES}
-                onChange={(_, o) => o && setSnippetType(o.key)}
-            />
-            {snippetType === SnippetType.Dataset && (
-                <div className={styles.datasetForm}>
+            {isLoading ? (
+                <Spinner size={SpinnerSize.small} data-testid="python-snippet-loading-icon" />
+            ) : (
+                <div>
+                    <AnnotationSelector
+                        annotations={annotations}
+                        annotationOptions={annotationOptions}
+                        setAnnotations={setAnnotations}
+                    />
+                    <hr />
                     <ChoiceGroup
-                        label="Expiration"
-                        selectedKey={expiration}
-                        options={EXPIRATIONS}
-                        onChange={(_, o) => o && setExpiration(o.key)}
+                        selectedKey={snippetType}
+                        options={SNIPPET_TYPES}
+                        onChange={(_, o) => o && setSnippetType(o.key)}
                     />
-                    {/* TODO: If others exist with name warn user of version bump */}
-                    <TextField
-                        autoFocus
-                        label="Name"
-                        value={dataset}
-                        spellCheck={false}
-                        onChange={(_, value) => setDataset(value)}
-                    />
+                    {snippetType === SnippetType.Dataset && (
+                        <div className={styles.datasetForm}>
+                            <ChoiceGroup
+                                label="Expiration"
+                                selectedKey={expiration}
+                                options={EXPIRATIONS}
+                                onChange={(_, o) => o && setExpiration(o.key)}
+                            />
+                            {/* TODO: If others exist with name warn user of version bump */}
+                            <TextField
+                                autoFocus
+                                label="Name"
+                                value={dataset}
+                                spellCheck={false}
+                                onChange={(_, value) => setDataset(value)}
+                            />
+                        </div>
+                    )}
+                    <DialogFooter>
+                        <PrimaryButton
+                            text="Generate"
+                            disabled={
+                                !annotations.length ||
+                                (snippetType === SnippetType.Dataset && !dataset)
+                            }
+                            onClick={onGenerate}
+                        />
+                    </DialogFooter>
                 </div>
             )}
-            <DialogFooter>
-                <PrimaryButton
-                    text="Generate"
-                    disabled={
-                        !annotations.length || (snippetType === SnippetType.Dataset && !dataset)
-                    }
-                    onClick={onGenerate}
-                />
-            </DialogFooter>
         </Dialog>
     );
 }
