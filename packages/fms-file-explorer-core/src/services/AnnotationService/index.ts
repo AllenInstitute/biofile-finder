@@ -1,7 +1,7 @@
 import { map } from "lodash";
 
-import Annotation from "../../entity/Annotation";
 import HttpServiceBase from "../HttpServiceBase";
+import Annotation from "../../entity/Annotation";
 
 /**
  * Expected JSON structure of an annotation returned from the query service.
