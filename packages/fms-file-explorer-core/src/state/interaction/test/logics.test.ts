@@ -13,6 +13,7 @@ import {
     openFilesInImageJ,
     SET_ALLEN_MOUNT_POINT,
     SET_IMAGE_J_LOCATION,
+    generatePythonSnippet,
 } from "../actions";
 import interactionLogics from "../logics";
 import { initialState, interaction, selection } from "../..";
@@ -24,6 +25,8 @@ import NumericRange from "../../../entity/NumericRange";
 import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import { ExecutionEnvService, ExecutableEnvCancellationToken, FileViewerService } from "../../..";
+import { SnippetType } from "../../../containers/DialogModal/PythonSnippetForm";
+import DatasetService from "../../../services/DatasetService";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({
@@ -33,6 +36,12 @@ describe("Interaction logics", () => {
     });
 
     describe("downloadManifest", () => {
+        const sandbox = createSandbox();
+
+        afterEach(() => {
+            sandbox.restore();
+        });
+
         it("marks the beginning of a manifest download with a status update", async () => {
             // arrange
             const state = mergeState(initialState, {
@@ -225,7 +234,6 @@ describe("Interaction logics", () => {
                 httpClient: mockHttpClient,
             });
 
-            const sandbox = createSandbox();
             sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
             sandbox.stub(selection.selectors, "getFileSelection").throws("Test failed");
 
@@ -251,7 +259,6 @@ describe("Interaction logics", () => {
                     },
                 })
             ).to.equal(true);
-            sandbox.restore();
         });
     });
 
@@ -343,6 +350,105 @@ describe("Interaction logics", () => {
 
             // assert
             expect(() => fs.accessSync(tempFilePath)).to.throw();
+        });
+    });
+
+    describe("generatePythonSnippet", () => {
+        const baseUrl = "test";
+        const datasetId = "89j1d321a";
+        const responseStubs = [
+            {
+                when: `${baseUrl}/${DatasetService.BASE_DATASET_URL}`,
+                respondWith: {
+                    data: { data: [datasetId] },
+                },
+            },
+            // TODO: FileService mock when it is fleshed out
+        ];
+
+        const mockHttpClient = createMockHttpClient(responseStubs);
+        const datasetService = new DatasetService({
+            baseUrl,
+            httpClient: mockHttpClient,
+        });
+        const fileService = new FileService({
+            baseUrl,
+            httpClient: mockHttpClient,
+        });
+
+        const sandbox = createSandbox();
+
+        beforeEach(() => {
+            sandbox.stub(interaction.selectors, "getDatasetService").returns(datasetService);
+            sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
+        });
+
+        afterEach(() => {
+            sandbox.restore();
+        });
+
+        it("it creates datasets before generating snippet for dataset related snippets", async () => {
+            const state = mergeState(initialState, {
+                selection: {
+                    fileSelection,
+                },
+            });
+            const { actions, store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+            const pythonSnippet =
+                "TODO: Python Snippet API not yet implemented, request: " + { datasetId };
+
+            // Act
+            const action = generatePythonSnippet(SnippetType.Dataset, "My name", new Date(), [
+                "Cell Line",
+            ]);
+            store.dispatch(action);
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    ...action,
+                    payload: {
+                        ...action.payload,
+                        pythonSnippet,
+                    },
+                })
+            ).to.be.true;
+        });
+
+        it("generates snippet based on current query for query snippet", async () => {
+            // Arrange
+            const filters = [new FileFilter("Cell Line", "AICS-10")];
+            const state = mergeState(initialState, {
+                selection: {
+                    filters,
+                },
+            });
+            const { actions, store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+            const pythonSnippet =
+                "TODO: Python Snippet API not yet implemented, request: " + { filters };
+
+            // Act
+            const action = generatePythonSnippet(SnippetType.Query);
+            store.dispatch(action);
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    ...action,
+                    payload: {
+                        ...action.payload,
+                        pythonSnippet,
+                    },
+                })
+            ).to.be.true;
         });
     });
 

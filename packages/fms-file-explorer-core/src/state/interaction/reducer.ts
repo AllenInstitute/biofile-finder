@@ -6,7 +6,6 @@ import {
     HIDE_CONTEXT_MENU,
     HIDE_VISIBLE_MODAL,
     PlatformDependentServices,
-    RECEIVE_PYTHON_SNIPPET,
     REMOVE_STATUS,
     SET_ALLEN_MOUNT_POINT,
     SET_APPLICATION_VERSION,
@@ -91,13 +90,9 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             visibleModal: undefined,
         }),
-        [GENERATE_PYTHON_SNIPPET]: (state) => ({
+        [GENERATE_PYTHON_SNIPPET]: (state, action) => ({
             ...state,
-            pythonSnippet: undefined,
-        }),
-        [RECEIVE_PYTHON_SNIPPET]: (state, action) => ({
-            ...state,
-            ...action.payload,
+            pythonSnippet: action.payload.pythonSnippet,
             visibleModal: Modal.PythonSnippet,
         }),
         [SET_STATUS]: (state, action) => ({
