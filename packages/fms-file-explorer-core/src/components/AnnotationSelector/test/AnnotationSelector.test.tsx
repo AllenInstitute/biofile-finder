@@ -1,7 +1,7 @@
 import { configureMockStore } from "@aics/redux-utils";
+import { render, fireEvent } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
-import { render, fireEvent } from "@testing-library/react";
 import { Provider } from "react-redux";
 
 import AnnotationSelector from "..";

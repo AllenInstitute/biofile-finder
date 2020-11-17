@@ -17,7 +17,7 @@ export enum Modal {
 }
 
 /**
- * TODO
+ * Controller for determining which dialog modal to render
  */
 export default function DialogModal() {
     const dispatch = useDispatch();

@@ -1,8 +1,8 @@
 import { Dispatch } from "redux";
 
 import { ContextualMenuItemType } from "./";
-import { interaction } from "../../state";
 import { Modal } from "../DialogModal";
+import { interaction } from "../../state";
 
 /**
  * This is intended to be a catalogue of context menu items and that can be reused as various context menus are built up
@@ -32,18 +32,6 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                         onClick() {
                             dispatch(interaction.actions.showManifestDownloadDialog());
                         },
-                    },
-                    {
-                        key: "shortcuts",
-                        text: "Shortcuts",
-                        title: "Coming soon! Create shortcuts on your computer to selected files",
-                        disabled: true,
-                    },
-                    {
-                        key: "tar-archive",
-                        text: "Tar archive",
-                        title: "Coming soon! Download an archive (bundle) of the selected files",
-                        disabled: true,
                     },
                     {
                         key: "programmatic",
