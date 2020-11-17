@@ -487,24 +487,3 @@ export function generatePythonSnippet(
         },
     };
 }
-
-/**
- * RECEIVE_PYTHON_SNIPPET
- *
- * Intention to receive a python snippet to display.
- */
-export const RECEIVE_PYTHON_SNIPPET = makeConstant(STATE_BRANCH_NAME, "receive-python-snippet");
-
-export interface ReceivePythonSnippetAction {
-    type: string;
-    payload: {
-        pythonSnippet: string;
-    };
-}
-
-export function receivePythonSnippet(pythonSnippet: string): ReceivePythonSnippetAction {
-    return {
-        type: RECEIVE_PYTHON_SNIPPET,
-        payload: { pythonSnippet },
-    };
-}

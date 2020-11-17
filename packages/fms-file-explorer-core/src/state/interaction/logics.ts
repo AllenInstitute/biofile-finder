@@ -3,7 +3,7 @@ import path from "path";
 import { isEmpty, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { interaction, ReduxLogicDeps, selection } from "../";
+import { ReduxLogicDeps, selection } from "../";
 import {
     DOWNLOAD_MANIFEST,
     succeedManifestDownload,
@@ -232,17 +232,15 @@ const showContextMenu = createLogic({
  */
 const generatePythonSnippet = createLogic({
     type: GENERATE_PYTHON_SNIPPET,
-    async process(deps: ReduxLogicDeps, dispatch, done) {
+    async transform(deps: ReduxLogicDeps, next, reject) {
+        const { action, getState } = deps;
         const {
-            action: {
-                payload: { snippetType, dataset, expiration, annotations },
-            },
-            getState,
-        } = deps;
+            payload: { snippetType, dataset, expiration, annotations },
+        } = action;
         const datasetService = interactionSelectors.getDatasetService(getState());
         const fileService = interactionSelectors.getFileService(getState());
 
-        let snippet;
+        let pythonSnippet;
         if (snippetType === SnippetType.Dataset) {
             const fileSelection = selection.selectors.getFileSelection(getState());
             const request: CreateDatasetRequest = {
@@ -252,14 +250,22 @@ const generatePythonSnippet = createLogic({
                 selections: fileSelection.toCompactSelectionList(),
             };
             const datasetId = await datasetService.createDataset(request);
-            snippet = await fileService.getPythonSnippet({ datasetId });
+            pythonSnippet = await fileService.getPythonSnippet({ datasetId });
         } else if (snippetType === SnippetType.Query) {
             const filters = selection.selectors.getFileFilters(getState());
-            snippet = await fileService.getPythonSnippet({ filters });
+            pythonSnippet = await fileService.getPythonSnippet({ filters });
+        } else {
+            reject && reject(action);
+            return;
         }
 
-        snippet && dispatch(interaction.actions.receivePythonSnippet(snippet));
-        done();
+        next({
+            ...action,
+            payload: {
+                ...action.payload,
+                pythonSnippet,
+            },
+        });
     },
 });
 
