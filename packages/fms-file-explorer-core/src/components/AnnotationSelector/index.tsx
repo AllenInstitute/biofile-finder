@@ -53,16 +53,18 @@ export default function AnnotationSelector(props: AnnotationSelectorProps) {
 
     return (
         <div className={className}>
-            <DefaultButton
-                disabled={annotations.length === annotationOptions.length}
-                onClick={() => setAnnotations(annotationOptions)}
-                text="Select All"
-            />
-            <DefaultButton
-                disabled={!annotations.length}
-                onClick={() => setAnnotations([])}
-                text="Select None"
-            />
+            <div className={styles.buttonBar}>
+                <DefaultButton
+                    disabled={annotations.length === annotationOptions.length}
+                    onClick={() => setAnnotations(annotationOptions)}
+                    text="Select All"
+                />
+                <DefaultButton
+                    disabled={!annotations.length}
+                    onClick={() => setAnnotations([])}
+                    text="Select None"
+                />
+            </div>
             <Dropdown
                 multiSelect
                 className={styles.dropdown}
