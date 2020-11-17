@@ -1,14 +1,15 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
+import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
-import { render } from "@testing-library/react";
 import { Provider } from "react-redux";
 
-import PythonSnippetForm from "..";
-import { Modal } from "../..";
+import { SnippetType } from "..";
+import DialogModal, { Modal } from "../..";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import { initialState } from "../../../../state";
+import { GENERATE_PYTHON_SNIPPET, SET_CSV_COLUMNS } from "../../../../state/interaction/actions";
 
 describe("<PythonSnippetForm />", () => {
     const visibleDialogState = mergeState(initialState, {
@@ -22,12 +23,76 @@ describe("<PythonSnippetForm />", () => {
         const { store } = configureMockStore({ state: visibleDialogState });
         const { getByText } = render(
             <Provider store={store}>
-                <PythonSnippetForm onDismiss={() => {}} />
+                <DialogModal />
             </Provider>
         );
 
         // Assert
         expect(getByText("Generate Python Snippet")).to.exist;
+    });
+
+    describe("generate button", () => {
+        it("dispatches generation and persistence events when clicked", async () => {
+            // Arrange
+            const { actions, store } = configureMockStore({ state: visibleDialogState });
+            const { getByText, findByTestId } = render(
+                <Provider store={store}>
+                    <DialogModal />
+                </Provider>
+            );
+
+            // Act
+            const generateButton = getByText("Generate");
+            fireEvent.click(generateButton);
+
+            // Assert
+            expect(await findByTestId("python-snippet-loading-icon")).to.exist;
+            expect(
+                actions.includesMatch({
+                    type: SET_CSV_COLUMNS,
+                    payload: TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName),
+                })
+            ).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: GENERATE_PYTHON_SNIPPET,
+                    payload: {
+                        snippetType: SnippetType.Query,
+                        annotations: TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName),
+                    },
+                })
+            ).to.be.true;
+        });
+
+        it("is disabled when no name is selected for dataset", () => {
+            // Arrange
+            const { actions, store } = configureMockStore({ state: visibleDialogState });
+            const { getByText, getByTestId } = render(
+                <Provider store={store}>
+                    <DialogModal />
+                </Provider>
+            );
+
+            // Act
+            const datasetOption = getByText("Dataset");
+            fireEvent.click(datasetOption);
+
+            const generateButton = getByText("Generate");
+            fireEvent.click(generateButton);
+
+            // Assert
+            expect(() => getByTestId("python-snippet-loading-icon")).to.throw();
+            expect(
+                actions.includesMatch({
+                    type: SET_CSV_COLUMNS,
+                })
+            ).to.be.false;
+            expect(
+                actions.includesMatch({
+                    type: GENERATE_PYTHON_SNIPPET,
+                })
+            ).to.be.false;
+        });
     });
 
     describe("column list", () => {
@@ -36,7 +101,7 @@ describe("<PythonSnippetForm />", () => {
             const { store } = configureMockStore({ state: visibleDialogState });
             const { getByText } = render(
                 <Provider store={store}>
-                    <PythonSnippetForm onDismiss={() => {}} />
+                    <DialogModal />
                 </Provider>
             );
 
@@ -68,7 +133,7 @@ describe("<PythonSnippetForm />", () => {
             const { store } = configureMockStore({ state });
             const { getByText } = render(
                 <Provider store={store}>
-                    <PythonSnippetForm onDismiss={() => {}} />
+                    <DialogModal />
                 </Provider>
             );
 
