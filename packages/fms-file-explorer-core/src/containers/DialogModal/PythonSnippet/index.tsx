@@ -1,6 +1,7 @@
 import { Dialog, IconButton, TooltipHost } from "office-ui-fabric-react";
 import * as React from "react";
 import { useSelector } from "react-redux";
+import SyntaxHighlighter from "react-syntax-highlighter";
 
 import { DialogModalProps } from "..";
 import { interaction } from "../../../state";
@@ -8,6 +9,7 @@ import { interaction } from "../../../state";
 const styles = require("./PythonSnippet.module.css");
 
 const MODAL_PROPS = {
+    containerClassName: styles.dialog,
     isBlocking: false,
 };
 
@@ -49,7 +51,7 @@ export default function PythonSnippet({ onDismiss }: DialogModalProps) {
                     />
                 </TooltipHost>
             </div>
-            <div className={styles.snippet}>{PYTHON_SETUP}</div>
+            <SyntaxHighlighter language="python">{PYTHON_SETUP}</SyntaxHighlighter>
             <div className={styles.header}>
                 <span className={styles.label}>Code</span>
                 <TooltipHost content={isCodeCopied ? "Copied to clipboard!" : undefined}>
@@ -60,7 +62,7 @@ export default function PythonSnippet({ onDismiss }: DialogModalProps) {
                     />
                 </TooltipHost>
             </div>
-            <div className={styles.snippet}>{pythonSnippet}</div>
+            <SyntaxHighlighter language="python">{pythonSnippet}</SyntaxHighlighter>
         </Dialog>
     );
 }
