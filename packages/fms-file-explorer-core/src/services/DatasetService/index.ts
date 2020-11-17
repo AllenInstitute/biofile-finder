@@ -15,7 +15,7 @@ export interface Dataset {
 export interface CreateDatasetRequest {
     name: string;
     annotations: string[];
-    expiration?: Date; // Undefined is equivalent to never expiring TODO: Double check the whole UTC thing
+    expiration?: Date; // Undefined is equivalent to never expiring
     selections: Selection[];
 }
 
