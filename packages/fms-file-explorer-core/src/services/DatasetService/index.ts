@@ -50,13 +50,9 @@ export default class DatasetService extends HttpServiceBase {
         // const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}`;
         // console.log(`Requesting all datasets from the following url: ${requestUrl}`);
 
-        // const response = await this.get<Dataset[]>(requestUrl);
+        // const response = await this.get<Dataset>(requestUrl);
 
-        // // data is always an array, this endpoint should always return an array of length 1
-        // if (response.data.length !== 1) {
-        //     throw new Error(`Expected response.data of ${requestUrl} to contain a single count`);
-        // }
-        // return response.data[0];
+        // return response.data;
 
         // TODO: Uncomment when FMS-1405 ticket is merged
         return [];
