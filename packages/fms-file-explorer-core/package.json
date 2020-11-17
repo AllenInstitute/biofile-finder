@@ -92,6 +92,7 @@
   "dependencies": {
     "@aics/redux-utils": "0.5.x",
     "@tippy.js/react": "3.1.x",
+    "@types/react-syntax-highlighter": "13.5.0",
     "axios": "0.19.x",
     "classnames": "2.2.x",
     "cockatiel": "0.1.x",
@@ -106,6 +107,7 @@
     "react": "16.9.x",
     "react-beautiful-dnd": "12.1.x",
     "react-redux": "7.1.x",
+    "react-syntax-highlighter": "15.3.0",
     "react-window": "1.8.x",
     "react-window-infinite-loader": "1.0.x",
     "redux": "4.0.x",

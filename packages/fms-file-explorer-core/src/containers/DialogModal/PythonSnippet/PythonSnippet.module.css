@@ -1,3 +1,7 @@
+.dialog {
+    max-width: 50%;
+}
+
 .header {
     margin-top: 10px;
     margin-bottom: 4px;
@@ -10,14 +14,6 @@
 .label {
     margin: auto;
     margin-left: 0;
-}
-
-.snippet {
-    background-color: black;
-    color: #ffffff;
-    padding: 20px;
-    max-height: 400px;
-    overflow-y: auto;
 }
 
 .copy-button, .copy-button:hover {

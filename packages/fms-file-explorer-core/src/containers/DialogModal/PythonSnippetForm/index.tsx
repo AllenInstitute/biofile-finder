@@ -26,6 +26,7 @@ const DIALOG_CONTENT_PROPS = {
 };
 const MODAL_PROPS = {
     isBlocking: false,
+    containerClassName: styles.dialog,
 };
 
 const TOP_LEVEL_FILE_ANNOTATION_NAMES = TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName);
@@ -169,6 +170,7 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
                             />
                             <TextField
                                 autoFocus
+                                className={styles.datasetName}
                                 label="Name"
                                 description={
                                     nextVersionForName

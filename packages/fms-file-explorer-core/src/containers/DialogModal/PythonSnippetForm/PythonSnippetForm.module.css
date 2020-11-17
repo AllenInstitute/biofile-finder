@@ -12,3 +12,12 @@
     /* Flex Parent */
     display: flex;
 }
+
+.dataset-name {
+    padding-left: 15px;
+    width: 70%;
+}
+
+.dialog {
+    max-width: 50%;
+}
