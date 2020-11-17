@@ -163,12 +163,12 @@ export default class HttpServiceBase {
 
     public setApplicationVersion(applicationVersion: string) {
         this.applicationVersion = applicationVersion;
-        this.httpClient.defaults.headers.common["X-Application-Version"] = this.applicationVersion;
+        this.setHeaders();
     }
 
     public setUserName(userName: string) {
         this.userName = userName;
-        this.httpClient.defaults.headers.common["X-User-Id"] = this.userName;
+        this.setHeaders();
     }
 
     public setBaseUrl(baseUrl: string | keyof typeof DataSource) {
@@ -187,6 +187,10 @@ export default class HttpServiceBase {
         }
 
         this.httpClient = client;
+        this.setHeaders();
+    }
+
+    private setHeaders() {
         this.httpClient.defaults.headers.common["X-Application-Version"] = this.applicationVersion;
         this.httpClient.defaults.headers.common["X-Client"] = "FMS File Explorer App";
         this.httpClient.defaults.headers.common["X-User-Id"] = this.userName;
