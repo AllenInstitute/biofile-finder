@@ -110,4 +110,22 @@ describe("FileService", () => {
             expect(count).to.equal(2);
         });
     });
+
+    describe("getPythonSnippet", () => {
+        const httpClient = createMockHttpClient();
+
+        it("issues request for a python snippet matching given parameters", async () => {
+            // Arrange
+            const fileService = new FileService({ baseUrl, httpClient });
+            const request = { datasetId: "abc123" };
+
+            // Act
+            const snippet = await fileService.getPythonSnippet(request);
+
+            // Assert
+            expect(snippet).to.equal(
+                "TODO: Python Snippet API not yet implemented, request: " + request
+            );
+        });
+    });
 });
