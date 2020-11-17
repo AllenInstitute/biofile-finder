@@ -62,7 +62,7 @@ export default function PythonSnippet({ onDismiss }: DialogModalProps) {
                     />
                 </TooltipHost>
             </div>
-            <SyntaxHighlighter language="python">{pythonSnippet}</SyntaxHighlighter>
+            <SyntaxHighlighter language="python">{pythonSnippet || ""}</SyntaxHighlighter>
         </Dialog>
     );
 }
