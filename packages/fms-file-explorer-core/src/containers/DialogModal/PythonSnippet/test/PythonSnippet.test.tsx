@@ -30,7 +30,7 @@ describe("<PythonSnippet />", () => {
 
     it("displays snippet when present in state", async () => {
         // Arrange
-        const pythonSnippet = "data = MyPython.Query('Cell Line')";
+        const pythonSnippet = "1234091234";
         const state = mergeState(visibleDialogState, {
             interaction: {
                 pythonSnippet,
