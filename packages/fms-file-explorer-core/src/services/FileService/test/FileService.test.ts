@@ -115,14 +115,14 @@ describe("FileService", () => {
         it("issues request for a python snippet matching given parameters", async () => {
             // Arrange
             const fileService = new FileService({ baseUrl, httpClient });
-            const request = { datasetId: "abc123" };
+            const datasetId = "abc123";
 
             // Act
-            const snippet = await fileService.getPythonSnippet(request);
+            const snippet = await fileService.getPythonSnippet(datasetId);
 
             // Assert
             expect(snippet).to.equal(
-                "TODO: Python Snippet API not yet implemented, request: " + request
+                "TODO: Python Snippet API not yet implemented, request: " + datasetId
             );
         });
     });

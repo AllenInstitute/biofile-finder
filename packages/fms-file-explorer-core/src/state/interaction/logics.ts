@@ -19,7 +19,6 @@ import {
     GENERATE_PYTHON_SNIPPET,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
-import { SnippetType } from "../../containers/DialogModal/PythonSnippetForm";
 import CsvService from "../../services/CsvService";
 import { CancellationToken } from "../../services/FileDownloadService";
 import FileSet from "../../entity/FileSet";
@@ -228,36 +227,27 @@ const showContextMenu = createLogic({
 
 /**
  * Interceptor responsible for responding to a GENERATE_PYTHON_SNIPPET action and generating the corresponding
- * snippet type.
+ * python snippet.
  */
 const generatePythonSnippet = createLogic({
     type: GENERATE_PYTHON_SNIPPET,
-    async transform(deps: ReduxLogicDeps, next, reject) {
+    async transform(deps: ReduxLogicDeps, next) {
         const { action, getState } = deps;
         const {
-            payload: { snippetType, dataset, expiration, annotations },
+            payload: { dataset, expiration, annotations },
         } = action;
         const datasetService = interactionSelectors.getDatasetService(getState());
         const fileService = interactionSelectors.getFileService(getState());
 
-        let pythonSnippet;
-        if (snippetType === SnippetType.Dataset) {
-            const fileSelection = selection.selectors.getFileSelection(getState());
-            const request: CreateDatasetRequest = {
-                annotations,
-                expiration,
-                name: dataset,
-                selections: fileSelection.toCompactSelectionList(),
-            };
-            const datasetId = await datasetService.createDataset(request);
-            pythonSnippet = await fileService.getPythonSnippet({ datasetId });
-        } else if (snippetType === SnippetType.Query) {
-            const filters = selection.selectors.getFileFilters(getState());
-            pythonSnippet = await fileService.getPythonSnippet({ filters });
-        } else {
-            reject && reject(action);
-            return;
-        }
+        const fileSelection = selection.selectors.getFileSelection(getState());
+        const request: CreateDatasetRequest = {
+            annotations,
+            expiration,
+            name: dataset,
+            selections: fileSelection.toCompactSelectionList(),
+        };
+        const datasetId = await datasetService.createDataset(request);
+        const pythonSnippet = await fileService.getPythonSnippet(datasetId);
 
         next({
             ...action,

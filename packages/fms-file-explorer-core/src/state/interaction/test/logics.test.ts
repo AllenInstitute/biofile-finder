@@ -25,7 +25,6 @@ import NumericRange from "../../../entity/NumericRange";
 import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import { ExecutionEnvService, ExecutableEnvCancellationToken, FileViewerService } from "../../..";
-import { SnippetType } from "../../../containers/DialogModal/PythonSnippetForm";
 import DatasetService from "../../../services/DatasetService";
 
 describe("Interaction logics", () => {
@@ -398,44 +397,10 @@ describe("Interaction logics", () => {
                 logics: interactionLogics,
             });
             const pythonSnippet =
-                "TODO: Python Snippet API not yet implemented, request: " + { datasetId };
+                "TODO: Python Snippet API not yet implemented, request: " + datasetId;
 
             // Act
-            const action = generatePythonSnippet(SnippetType.Dataset, "My name", new Date(), [
-                "Cell Line",
-            ]);
-            store.dispatch(action);
-            await logicMiddleware.whenComplete();
-
-            // Assert
-            expect(
-                actions.includesMatch({
-                    ...action,
-                    payload: {
-                        ...action.payload,
-                        pythonSnippet,
-                    },
-                })
-            ).to.be.true;
-        });
-
-        it("generates snippet based on current query for query snippet", async () => {
-            // Arrange
-            const filters = [new FileFilter("Cell Line", "AICS-10")];
-            const state = mergeState(initialState, {
-                selection: {
-                    filters,
-                },
-            });
-            const { actions, store, logicMiddleware } = configureMockStore({
-                state,
-                logics: interactionLogics,
-            });
-            const pythonSnippet =
-                "TODO: Python Snippet API not yet implemented, request: " + { filters };
-
-            // Act
-            const action = generatePythonSnippet(SnippetType.Query);
+            const action = generatePythonSnippet("My name", ["Cell Line"], new Date());
             store.dispatch(action);
             await logicMiddleware.whenComplete();
 
