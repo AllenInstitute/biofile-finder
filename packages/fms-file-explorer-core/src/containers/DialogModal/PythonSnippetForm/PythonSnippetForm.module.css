@@ -1,23 +1,60 @@
-.label {
-    padding-left: 25px;
+.dialog {
+    width: 40%;
+    max-width: 40%;
 }
 
-.label-description {
-    color: #bbbbbb;
+.title {
+    font-weight: 700;
+    font-size: larger;
+    padding-bottom: 3px;
 }
 
-.dataset-form {
-    margin-left: 20px;
+.column-title {
+    padding-top: 10px;
+}
 
-    /* Flex Parent */
+.subtitle {
+    color: #a7a7a7;
+    padding-bottom: 10px;
+}
+
+.subtitle-button {
+    border: none;
+    font-size: small;
+    margin-left: auto;
+}
+
+.subtitle-button-container {
     display: flex;
 }
 
-.dataset-name {
-    padding-left: 15px;
-    width: 70%;
+.form {
+    padding: 0 3%;
 }
 
-.dialog {
-    max-width: 50%;
+.dataset-form {
+    display: flex;
+}
+
+.name-input {
+    padding-left: 15px;
+    width: 100%;
+}
+
+.name-input-subtext {
+    font-size: smaller;
+    padding-top: 5px;
+}
+
+.expiration-input {
+    max-width: 100px;
+    width: 100%;
+}
+
+.warning {
+    color: darkgoldenrod;
+}
+
+.info {
+    color: #a7a7a7;
 }

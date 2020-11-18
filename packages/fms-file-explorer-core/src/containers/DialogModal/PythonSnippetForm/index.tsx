@@ -1,8 +1,11 @@
+import classNames from "classnames";
 import {
     ChoiceGroup,
+    DefaultButton,
     Dialog,
     DialogFooter,
     IChoiceGroupOption,
+    Icon,
     PrimaryButton,
     Spinner,
     SpinnerSize,
@@ -21,8 +24,6 @@ const styles = require("./PythonSnippetForm.module.css");
 
 const DIALOG_CONTENT_PROPS = {
     title: "Generate Python Snippet",
-    subText:
-        "Select which annotations you would like included as columns in the dataframe & what kind of snippet to generate",
 };
 const MODAL_PROPS = {
     isBlocking: false,
@@ -31,45 +32,24 @@ const MODAL_PROPS = {
 
 const TOP_LEVEL_FILE_ANNOTATION_NAMES = TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName);
 
-export enum SnippetType {
-    Query = "Query (live, updates over time)",
-    Dataset = "Dataset (immutable file set)",
-}
 export enum Expiration {
+    OneDay = "1 Day",
     OneWeek = "1 Week",
     SixMonths = "6 Months",
     OneYear = "1 Year",
     ThreeYears = "3 Years",
     Forever = "Forever",
 }
-const SNIPPET_TYPES: IChoiceGroupOption[] = [
-    {
-        key: SnippetType.Query,
-        text: SnippetType.Query,
-        onRenderLabel() {
-            return (
-                <div className={styles.label}>
-                    Query <span className={styles.labelDescription}>(live, updates over time)</span>
-                </div>
-            );
-        },
-    },
-    {
-        key: SnippetType.Dataset,
-        text: SnippetType.Dataset,
-        onRenderLabel() {
-            return (
-                <div className={styles.label}>
-                    Dataset <span className={styles.labelDescription}>(immutable file set)</span>
-                </div>
-            );
-        },
-    },
-];
 const EXPIRATIONS: IChoiceGroupOption[] = Object.values(Expiration).map((key) => ({
     key,
     text: key,
 }));
+
+const DATASET_SUBTITLES = [
+    'In order to reproduce your exact selection in Python, we’ll create an immutable, point-in-time snapshot of the files you’ve selected (a "dataset"). This will not be able to be added to, removed from, nor will the files\' data be modified inside the dataset so long as the dataset exists.',
+    "In order to reference this dataset, give it a name. If a dataset of that name already exists, we’ll create a new version of that dataset automatically; any previous versions will still be accessible.",
+    "Last, optionally let us know how long to keep this dataset around. If this is being created for a one-off task, consider selecting a shorter lifespan for the dataset.",
+];
 
 /**
  * Dialog form for generating a Python Snippet based on current selection state
@@ -87,10 +67,10 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
         : [...TOP_LEVEL_FILE_ANNOTATION_NAMES];
     const [isLoading, setIsLoading] = React.useState(false);
     const [annotations, setAnnotations] = React.useState<string[]>(defaultAnnotations);
-    const [snippetType, setSnippetType] = React.useState<string>(SnippetType.Query);
     const [expiration, setExpiration] = React.useState<string>(Expiration.Forever);
-    const [dataset, setDataset] = React.useState<string>();
+    const [dataset, setDataset] = React.useState<string>("");
     const [existingDatasets, setExistingDatasets] = React.useState<Dataset[]>([]);
+    const [isDatasetSubtitleExpanded, setIsDatasetSubtitleExpanded] = React.useState(true);
 
     // Determine the existing datasets to provide some feedback on the input dataset (if any)
     React.useEffect(() => {
@@ -106,18 +86,20 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
     const nextVersionForName = React.useMemo(() => {
         const matchingExistingDatasets = existingDatasets
             .filter((d) => d.name === dataset)
-            .sort((a, b) => (a.version > b.version ? 1 : -1));
+            .sort((a, b) => (a.version > b.version ? -1 : 1));
         if (!matchingExistingDatasets.length) {
             return undefined;
         }
-        return matchingExistingDatasets[0].version;
+        return matchingExistingDatasets[0].version + 1;
     }, [dataset, existingDatasets]);
 
     const onGenerate = () => {
         setIsLoading(true);
         dispatch(interaction.actions.setCsvColumns(annotations));
         let expirationDate: Date | undefined = new Date();
-        if (expiration === Expiration.OneWeek) {
+        if (expiration === Expiration.OneDay) {
+            expirationDate.setDate(expirationDate.getDate() + 1);
+        } else if (expiration === Expiration.OneWeek) {
             expirationDate.setDate(expirationDate.getDate() + 7);
         } else if (expiration === Expiration.SixMonths) {
             expirationDate.setMonth(expirationDate.getMonth() + 6);
@@ -128,14 +110,7 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
         } else {
             expirationDate = undefined;
         }
-        dispatch(
-            interaction.actions.generatePythonSnippet(
-                snippetType as SnippetType,
-                dataset,
-                expirationDate,
-                annotations
-            )
-        );
+        dispatch(interaction.actions.generatePythonSnippet(dataset, annotations, expirationDate));
     };
 
     return (
@@ -149,47 +124,92 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
                 <Spinner size={SpinnerSize.small} data-testid="python-snippet-loading-icon" />
             ) : (
                 <div>
+                    <div className={styles.title}>Dataset</div>
+                    {isDatasetSubtitleExpanded ? (
+                        <div>
+                            {DATASET_SUBTITLES.map((text) => (
+                                <div className={styles.subtitle} key={text}>
+                                    {text}
+                                </div>
+                            ))}
+                            <div className={styles.subtitleButtonContainer}>
+                                <DefaultButton
+                                    className={styles.subtitleButton}
+                                    onClick={() => setIsDatasetSubtitleExpanded(false)}
+                                >
+                                    LESS&nbsp;
+                                    <Icon iconName="CaretSolidUp" />
+                                </DefaultButton>
+                            </div>
+                        </div>
+                    ) : (
+                        <div>
+                            <div className={styles.subtitle}>{DATASET_SUBTITLES[0] + ".."}</div>
+                            <div className={styles.subtitleButtonContainer}>
+                                <DefaultButton
+                                    className={styles.subtitleButton}
+                                    onClick={() => setIsDatasetSubtitleExpanded(true)}
+                                >
+                                    MORE&nbsp;
+                                    <Icon iconName="CaretSolidDown" />
+                                </DefaultButton>
+                            </div>
+                        </div>
+                    )}
+                    <div className={classNames(styles.form, styles.datasetForm)}>
+                        <ChoiceGroup
+                            className={styles.expirationInput}
+                            label="Accessible for"
+                            selectedKey={expiration}
+                            options={EXPIRATIONS}
+                            onChange={(_, o) => o && setExpiration(o.key)}
+                        />
+                        <div className={styles.nameInput}>
+                            <TextField
+                                autoFocus
+                                label="Name"
+                                value={dataset}
+                                spellCheck={false}
+                                onChange={(_, value) => setDataset(value || "")}
+                                placeholder="Enter Dataset Name..."
+                            />
+                            {dataset &&
+                                (nextVersionForName ? (
+                                    <div
+                                        className={classNames(
+                                            styles.nameInputSubtext,
+                                            styles.warning
+                                        )}
+                                    >
+                                        Name already exists, will create version{" "}
+                                        {nextVersionForName} for {dataset}
+                                    </div>
+                                ) : (
+                                    <div
+                                        className={classNames(styles.nameInputSubtext, styles.info)}
+                                    >
+                                        Name does <strong>not</strong> exist yet, will create
+                                        version 1 for {dataset}
+                                    </div>
+                                ))}
+                        </div>
+                    </div>
+                    <hr />
+                    <div className={classNames(styles.title, styles.columnTitle)}>Columns</div>
+                    <div className={styles.subtitle}>
+                        Select which annotations you would like included as columns in the
+                        dataframe.
+                    </div>
                     <AnnotationSelector
+                        className={styles.form}
                         annotations={annotations}
                         annotationOptions={annotationOptions}
                         setAnnotations={setAnnotations}
                     />
-                    <hr />
-                    <ChoiceGroup
-                        selectedKey={snippetType}
-                        options={SNIPPET_TYPES}
-                        onChange={(_, o) => o && setSnippetType(o.key)}
-                    />
-                    {snippetType === SnippetType.Dataset && (
-                        <div className={styles.datasetForm}>
-                            <ChoiceGroup
-                                label="Expiration"
-                                selectedKey={expiration}
-                                options={EXPIRATIONS}
-                                onChange={(_, o) => o && setExpiration(o.key)}
-                            />
-                            <TextField
-                                autoFocus
-                                className={styles.datasetName}
-                                label="Name"
-                                description={
-                                    nextVersionForName
-                                        ? `Name already exists, can create version ${nextVersionForName}`
-                                        : undefined
-                                }
-                                value={dataset}
-                                spellCheck={false}
-                                onChange={(_, value) => setDataset(value)}
-                            />
-                        </div>
-                    )}
                     <DialogFooter>
                         <PrimaryButton
                             text="Generate"
-                            disabled={
-                                !annotations.length ||
-                                (snippetType === SnippetType.Dataset && !dataset)
-                            }
+                            disabled={!annotations.length || !dataset}
                             onClick={onGenerate}
                         />
                     </DialogFooter>

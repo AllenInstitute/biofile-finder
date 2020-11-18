@@ -2,7 +2,6 @@ import { compact, join } from "lodash";
 
 import HttpServiceBase from "../HttpServiceBase";
 import RestServiceResponse from "../../entity/RestServiceResponse";
-import FileFilter from "../../entity/FileFilter";
 import FileSelection from "../../entity/FileSelection";
 import { JSONReadyRange } from "../../entity/NumericRange";
 
@@ -58,11 +57,6 @@ export interface SelectionRequest {
 interface SelectionResult {
     count: number;
     size: number;
-}
-
-interface PythonSnippetRequest {
-    datasetId?: string;
-    filters?: FileFilter[];
 }
 
 enum Version {
@@ -155,10 +149,9 @@ export default class FileService extends HttpServiceBase {
     /**
      * Retrieves python snippet for querying data by filters or a dataset
      *
-     * @param request python snippet request to send containing info to narrow
-     * files down
+     * @param datasetId DatasetId to create the python snippet query for
      */
-    public async getPythonSnippet(request: PythonSnippetRequest): Promise<string> {
+    public async getPythonSnippet(datasetId: string): Promise<string> {
         // const requestUrl = `${this.baseUrl}/${FileService.PYTHON_SNIPPET_URL}`;
         // console.log(`Requesting python snippet for query with ${request}`);
 
@@ -172,6 +165,6 @@ export default class FileService extends HttpServiceBase {
         // return response.data[0];
 
         // TODO: Python Snippet API not yet implemented
-        return "TODO: Python Snippet API not yet implemented, request: " + request;
+        return "TODO: Python Snippet API not yet implemented, request: " + datasetId;
     }
 }

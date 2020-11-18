@@ -4,7 +4,6 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import { SnippetType } from "..";
 import DialogModal, { Modal } from "../..";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
@@ -35,13 +34,17 @@ describe("<PythonSnippetForm />", () => {
         it("dispatches generation and persistence events when clicked", async () => {
             // Arrange
             const { actions, store } = configureMockStore({ state: visibleDialogState });
-            const { getByText, findByTestId } = render(
+            const { getByText, getByPlaceholderText, findByTestId } = render(
                 <Provider store={store}>
                     <DialogModal />
                 </Provider>
             );
+            const dataset = "My Cool Dataset";
 
             // Act
+            const datasetNameInput = getByPlaceholderText("Enter Dataset Name...");
+            fireEvent.change(datasetNameInput, { target: { value: dataset } });
+
             const generateButton = getByText("Generate");
             fireEvent.click(generateButton);
 
@@ -57,7 +60,7 @@ describe("<PythonSnippetForm />", () => {
                 actions.includesMatch({
                     type: GENERATE_PYTHON_SNIPPET,
                     payload: {
-                        snippetType: SnippetType.Query,
+                        dataset,
                         annotations: TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName),
                     },
                 })

@@ -1,7 +1,6 @@
 import { makeConstant } from "@aics/redux-utils";
 
 import { Modal } from "../../containers/DialogModal";
-import { SnippetType } from "../../containers/DialogModal/PythonSnippetForm";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
 import ExecutionEnvService from "../../services/ExecutionEnvService";
@@ -457,30 +456,27 @@ export function setVisibleModal(visibleModal: Modal): SetVisibleModalAction {
 /**
  * GENERATE_PYTHON_SNIPPET
  *
- * Intention to generate a python snippet of some kind.
+ * Intention to generate a python snippet for a dataset.
  */
 export const GENERATE_PYTHON_SNIPPET = makeConstant(STATE_BRANCH_NAME, "generate-python-snippet");
 
 export interface GeneratePythonSnippetAction {
     type: string;
     payload: {
-        snippetType: SnippetType;
-        dataset?: string;
+        dataset: string;
         expiration?: Date;
-        annotations?: string[];
+        annotations: string[];
     };
 }
 
 export function generatePythonSnippet(
-    snippetType: SnippetType,
-    dataset?: string,
-    expiration?: Date,
-    annotations?: string[]
+    dataset: string,
+    annotations: string[],
+    expiration?: Date
 ): GeneratePythonSnippetAction {
     return {
         type: GENERATE_PYTHON_SNIPPET,
         payload: {
-            snippetType,
             dataset,
             expiration,
             annotations,
