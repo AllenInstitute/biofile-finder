@@ -20,7 +20,6 @@ interface AnnotationSelectorProps {
  */
 export default function AnnotationSelector(props: AnnotationSelectorProps) {
     const { className, annotationOptions, annotations, setAnnotations } = props;
-    const annotationSet = new Set(annotations);
 
     const removeColumn = (column: string) => {
         setAnnotations(annotations.filter((c) => c !== column));
@@ -30,6 +29,7 @@ export default function AnnotationSelector(props: AnnotationSelectorProps) {
         option?: IDropdownOption | undefined
     ) => {
         if (option) {
+            const annotationSet = new Set(annotations);
             const column = option.key as string;
             if (annotationSet.has(column)) {
                 removeColumn(column);
