@@ -56,8 +56,7 @@ describe("DatasetService", () => {
             const datasets = await service.getDatasets();
 
             // Assert
-            // TODO: expect(datasets).to.equal(expectedDatasets);
-            expect(datasets).to.be.empty;
+            expect(datasets).to.deep.equal(expectedDatasets);
         });
     });
 });

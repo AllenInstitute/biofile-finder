@@ -47,14 +47,11 @@ export default class DatasetService extends HttpServiceBase {
      * Requests for all datasets in the FMS MongoDB dataset collection
      */
     public async getDatasets(): Promise<Dataset[]> {
-        // const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}`;
-        // console.log(`Requesting all datasets from the following url: ${requestUrl}`);
+        const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}`;
+        console.log(`Requesting all datasets from the following url: ${requestUrl}`);
 
-        // const response = await this.get<Dataset>(requestUrl);
+        const response = await this.get<Dataset>(requestUrl);
 
-        // return response.data;
-
-        // TODO: Uncomment when FMS-1405 ticket is merged
-        return [];
+        return response.data;
     }
 }
