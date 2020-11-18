@@ -24,14 +24,18 @@ const TOP_LEVEL_FILE_ANNOTATION_SET = new Set(TOP_LEVEL_FILE_ANNOTATIONS.map((a)
 export default function CsvManifest({ onDismiss }: DialogModalProps) {
     const dispatch = useDispatch();
     const customAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
-    const annotations = [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations];
-    const annotationNames = annotations.map((a) => a.name);
     const columnsSavedFromLastTime = useSelector(interaction.selectors.getCsvColumns);
 
     const defaultAnnotations = columnsSavedFromLastTime
         ? columnsSavedFromLastTime
         : [...TOP_LEVEL_FILE_ANNOTATION_SET];
     const [columns, setColumns] = React.useState<string[]>(defaultAnnotations);
+
+    const [annotations, annotationNames] = React.useMemo(() => {
+        const annotations = [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations];
+        const annotationNames = annotations.map((a) => a.displayName);
+        return [annotations, annotationNames];
+    }, [customAnnotations]);
 
     const onDownload = () => {
         onDismiss();
