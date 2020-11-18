@@ -57,8 +57,6 @@ const DATASET_SUBTITLES = [
 export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
     const dispatch = useDispatch();
     const customAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
-    const allAnnotations = [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations];
-    const annotationOptions = allAnnotations.map((a) => a.displayName);
     const columnsSavedFromLastTime = useSelector(interaction.selectors.getCsvColumns);
     const datasetService = useSelector(interaction.selectors.getDatasetService);
 
@@ -80,6 +78,11 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
         };
         getDatasets();
     }, [datasetService]);
+
+    const annotationOptions = React.useMemo(
+        () => [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations].map((a) => a.displayName),
+        [customAnnotations]
+    );
 
     // Datasets can have the same name with different versions, see if this would
     // need to be a new version based on the name
