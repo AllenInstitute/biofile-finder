@@ -14,6 +14,7 @@ import {
     SET_ALLEN_MOUNT_POINT,
     SET_IMAGE_J_LOCATION,
     generatePythonSnippet,
+    SUCCEED_PYTHON_SNIPPET_GENERATION,
 } from "../actions";
 import interactionLogics from "../logics";
 import { initialState, interaction, selection } from "../..";
@@ -396,8 +397,6 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const pythonSnippet =
-                "TODO: Python Snippet API not yet implemented, request: " + datasetId;
 
             // Act
             const action = generatePythonSnippet("My name", ["Cell Line"], new Date());
@@ -407,11 +406,7 @@ describe("Interaction logics", () => {
             // Assert
             expect(
                 actions.includesMatch({
-                    ...action,
-                    payload: {
-                        ...action.payload,
-                        pythonSnippet,
-                    },
+                    type: SUCCEED_PYTHON_SNIPPET_GENERATION,
                 })
             ).to.be.true;
         });

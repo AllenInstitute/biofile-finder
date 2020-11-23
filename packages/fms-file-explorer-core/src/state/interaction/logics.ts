@@ -17,6 +17,9 @@ import {
     setImageJLocation,
     setAllenMountPoint,
     GENERATE_PYTHON_SNIPPET,
+    startPythonSnippetGeneration,
+    succeedPythonSnippetGeneration,
+    failPythonSnippetGeneration,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -231,54 +234,62 @@ const showContextMenu = createLogic({
  */
 const generatePythonSnippet = createLogic({
     type: GENERATE_PYTHON_SNIPPET,
-    async transform(deps: ReduxLogicDeps, next) {
+    async process(deps: ReduxLogicDeps, dispatch, done) {
         const { action, getState } = deps;
         const {
             payload: { dataset, expiration, annotations },
         } = action;
-        const datasetService = interactionSelectors.getDatasetService(getState());
-        const fileService = interactionSelectors.getFileService(getState());
-        const filters = interactionSelectors.getFileFiltersForVisibleModal(getState());
+        const generatePythonSnippetProcessId = uniqueId();
+        try {
+            dispatch(startPythonSnippetGeneration(generatePythonSnippetProcessId));
+            const datasetService = interactionSelectors.getDatasetService(getState());
+            const fileService = interactionSelectors.getFileService(getState());
+            const filters = interactionSelectors.getFileFiltersForVisibleModal(getState());
 
-        let selections;
-        if (!filters.length) {
-            const fileSelection = selection.selectors.getFileSelection(getState());
-            selections = fileSelection.toCompactSelectionList();
-        } else {
-            const fileSet = new FileSet({
-                filters,
-                fileService,
-            });
-            const count = await fileSet.fetchTotalCount();
-            const accumulator: { [index: string]: any } = {};
-            const selection: Selection = {
-                filters: fileSet.filters.reduce((accum, filter) => {
-                    const existing = accum[filter.name] || [];
-                    return {
-                        ...accum,
-                        [filter.name]: [...existing, filter.value],
-                    };
-                }, accumulator),
-                indexRanges: [new NumericRange(0, count - 1).toJSON()],
+            let selections;
+            if (!filters.length) {
+                const fileSelection = selection.selectors.getFileSelection(getState());
+                selections = fileSelection.toCompactSelectionList();
+            } else {
+                const fileSet = new FileSet({
+                    filters,
+                    fileService,
+                });
+                const count = await fileSet.fetchTotalCount();
+                const accumulator: { [index: string]: any } = {};
+                const selection: Selection = {
+                    filters: fileSet.filters.reduce((accum, filter) => {
+                        const existing = accum[filter.name] || [];
+                        return {
+                            ...accum,
+                            [filter.name]: [...existing, filter.value],
+                        };
+                    }, accumulator),
+                    indexRanges: [new NumericRange(0, count - 1).toJSON()],
+                };
+                selections = [selection];
+            }
+            const request: CreateDatasetRequest = {
+                annotations,
+                expiration,
+                name: dataset,
+                selections,
             };
-            selections = [selection];
-        }
-        const request: CreateDatasetRequest = {
-            annotations,
-            expiration,
-            name: dataset,
-            selections,
-        };
-        const datasetId = await datasetService.createDataset(request);
-        const pythonSnippet = await fileService.getPythonSnippet(datasetId);
 
-        next({
-            ...action,
-            payload: {
-                ...action.payload,
-                pythonSnippet,
-            },
-        });
+            const datasetId = await datasetService.createDataset(request);
+            const pythonSnippet = await fileService.getPythonSnippet(datasetId);
+
+            dispatch(succeedPythonSnippetGeneration(generatePythonSnippetProcessId, pythonSnippet));
+        } catch (err) {
+            dispatch(
+                failPythonSnippetGeneration(
+                    generatePythonSnippetProcessId,
+                    `Failed to generate python snippet: ${err}`
+                )
+            );
+        }
+
+        done();
     },
 });
 
