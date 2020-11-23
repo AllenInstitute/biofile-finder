@@ -63,17 +63,31 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
                 subMenuProps: {
                     ...availableItems.DOWNLOAD.subMenuProps,
                     items: availableItems.DOWNLOAD.subMenuProps.items.map((item) => {
-                        if (item.key !== "manifest") {
-                            return item;
+                        if (item.key === "manifest") {
+                            return {
+                                ...item,
+                                onClick() {
+                                    dispatch(
+                                        interaction.actions.showManifestDownloadDialog(
+                                            fileSet.filters
+                                        )
+                                    );
+                                },
+                            };
                         }
-                        return {
-                            ...item,
-                            onClick() {
-                                dispatch(
-                                    interaction.actions.showManifestDownloadDialog(fileSet.filters)
-                                );
-                            },
-                        };
+                        if (item.key === "python-snippet") {
+                            return {
+                                ...item,
+                                onClick() {
+                                    dispatch(
+                                        interaction.actions.showGeneratePythonSnippetDialog(
+                                            fileSet.filters
+                                        )
+                                    );
+                                },
+                            };
+                        }
+                        return item;
                     }),
                 },
             },

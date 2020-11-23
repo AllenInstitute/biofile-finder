@@ -409,6 +409,30 @@ export function failManifestDownload(id: string, msg: string): ManifestDownloadF
 }
 
 /**
+ * SHOW_GENERATE_PYTHON_SNIPPET_DIALOG
+ *
+ * Intention to show the generate python snippet dialog.
+ */
+export const SHOW_GENERATE_PYTHON_SNIPPET_DIALOG = makeConstant(
+    STATE_BRANCH_NAME,
+    "show-generate-python-snippet-dialog"
+);
+
+export interface ShowGeneratePythonSnippetDialogAction {
+    type: string;
+    payload: FileFilter[];
+}
+
+export function showGeneratePythonSnippetDialog(
+    fileFilters: FileFilter[] = []
+): ShowGeneratePythonSnippetDialogAction {
+    return {
+        type: SHOW_GENERATE_PYTHON_SNIPPET_DIALOG,
+        payload: fileFilters,
+    };
+}
+
+/**
  * SHOW_MANIFEST_DOWNLOAD_DIALOG
  *
  * Intention to show the manifest download dialog.

@@ -16,6 +16,7 @@ import {
     SET_STATUS,
     SET_VISIBLE_MODAL,
     SHOW_CONTEXT_MENU,
+    SHOW_GENERATE_PYTHON_SNIPPET_DIALOG,
     SHOW_MANIFEST_DOWNLOAD_DIALOG,
     StatusUpdate,
 } from "./actions";
@@ -38,7 +39,7 @@ export interface InteractionStateBranch {
     contextMenuOnDismiss?: () => void;
     csvColumns?: string[];
     fileExplorerServiceBaseUrl: string;
-    fileFiltersForManifestDownload: FileFilter[];
+    fileFiltersForVisibleModal: FileFilter[];
     imageJExecutable?: string;
     platformDependentServices: PlatformDependentServices;
     pythonSnippet?: string;
@@ -55,7 +56,7 @@ export const initialState = {
     // If a MouseEvent is given, the origin point of the event will be used."
     contextMenuPositionReference: null,
     fileExplorerServiceBaseUrl: DEFAULT_CONNECTION_CONFIG.baseUrl,
-    fileFiltersForManifestDownload: [],
+    fileFiltersForVisibleModal: [],
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
@@ -129,11 +130,17 @@ export default makeReducer<InteractionStateBranch>(
         [SET_VISIBLE_MODAL]: (state, action) => ({
             ...state,
             ...action.payload,
+            fileFiltersForVisibleModal: [],
+        }),
+        [SHOW_GENERATE_PYTHON_SNIPPET_DIALOG]: (state, action) => ({
+            ...state,
+            visibleModal: Modal.PythonSnippetForm,
+            fileFiltersForVisibleModal: action.payload,
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action) => ({
             ...state,
             visibleModal: Modal.CsvManifest,
-            fileFiltersForManifestDownload: action.payload,
+            fileFiltersForVisibleModal: action.payload,
         }),
     },
     initialState

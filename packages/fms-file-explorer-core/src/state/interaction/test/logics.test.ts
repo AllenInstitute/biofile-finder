@@ -211,7 +211,7 @@ describe("Interaction logics", () => {
             ];
             const state = mergeState(initialState, {
                 interaction: {
-                    fileFiltersForManifestDownload: filters,
+                    fileFiltersForVisibleModal: filters,
                     fileExplorerServiceBaseUrl: baseUrl,
                     platformDependentServices: {
                         fileDownloadService: new FileDownloadServiceNoop(),

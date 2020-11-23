@@ -1,7 +1,6 @@
 import { Dispatch } from "redux";
 
 import { ContextualMenuItemType } from "./";
-import { Modal } from "../DialogModal";
 import { interaction } from "../../state";
 
 /**
@@ -44,7 +43,7 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                         title:
                             "Get a snippet in Python to work with your file selection programmatically",
                         onClick() {
-                            dispatch(interaction.actions.setVisibleModal(Modal.PythonSnippetForm));
+                            dispatch(interaction.actions.showGeneratePythonSnippetDialog());
                         },
                     },
                 ],

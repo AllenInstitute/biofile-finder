@@ -80,7 +80,7 @@ describe("<CsvManifest />", () => {
 
         const state = mergeState(visibleDialogState, {
             interaction: {
-                fileFiltersForManifestDownload: [new FileFilter("Cell Line", "AICS-11")],
+                fileFiltersForVisibleModal: [new FileFilter("Cell Line", "AICS-11")],
                 platformDependentServices: {
                     fileDownloadService: new ScopedFileDownloadService(),
                 },
