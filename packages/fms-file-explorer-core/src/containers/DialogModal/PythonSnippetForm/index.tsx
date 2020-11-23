@@ -7,8 +7,6 @@ import {
     IChoiceGroupOption,
     Icon,
     PrimaryButton,
-    Spinner,
-    SpinnerSize,
     TextField,
 } from "office-ui-fabric-react";
 import * as React from "react";
@@ -63,7 +61,6 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
     const defaultAnnotations = columnsSavedFromLastTime
         ? columnsSavedFromLastTime
         : [...TOP_LEVEL_FILE_ANNOTATION_NAMES];
-    const [isLoading, setIsLoading] = React.useState(false);
     const [annotations, setAnnotations] = React.useState<string[]>(defaultAnnotations);
     const [expiration, setExpiration] = React.useState<string>(Expiration.Forever);
     const [dataset, setDataset] = React.useState<string>("");
@@ -97,7 +94,6 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
     }, [dataset, existingDatasets]);
 
     const onGenerate = () => {
-        setIsLoading(true);
         dispatch(interaction.actions.setCsvColumns(annotations));
         let expirationDate: Date | undefined = new Date();
         if (expiration === Expiration.OneDay) {
@@ -123,101 +119,91 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
             dialogContentProps={DIALOG_CONTENT_PROPS}
             modalProps={MODAL_PROPS}
         >
-            {isLoading ? (
-                <Spinner size={SpinnerSize.small} data-testid="python-snippet-loading-icon" />
-            ) : (
-                <div>
-                    <div className={styles.title}>Dataset</div>
-                    {isDatasetSubtitleExpanded ? (
-                        <div>
-                            {DATASET_SUBTITLES.map((text) => (
-                                <div className={styles.subtitle} key={text}>
-                                    {text}
+            <div>
+                <div className={styles.title}>Dataset</div>
+                {isDatasetSubtitleExpanded ? (
+                    <div>
+                        {DATASET_SUBTITLES.map((text) => (
+                            <div className={styles.subtitle} key={text}>
+                                {text}
+                            </div>
+                        ))}
+                        <div className={styles.subtitleButtonContainer}>
+                            <DefaultButton
+                                className={styles.subtitleButton}
+                                onClick={() => setIsDatasetSubtitleExpanded(false)}
+                            >
+                                LESS&nbsp;
+                                <Icon iconName="CaretSolidUp" />
+                            </DefaultButton>
+                        </div>
+                    </div>
+                ) : (
+                    <div>
+                        <div className={styles.subtitle}>{DATASET_SUBTITLES[0] + ".."}</div>
+                        <div className={styles.subtitleButtonContainer}>
+                            <DefaultButton
+                                className={styles.subtitleButton}
+                                onClick={() => setIsDatasetSubtitleExpanded(true)}
+                            >
+                                MORE&nbsp;
+                                <Icon iconName="CaretSolidDown" />
+                            </DefaultButton>
+                        </div>
+                    </div>
+                )}
+                <div className={classNames(styles.form, styles.datasetForm)}>
+                    <ChoiceGroup
+                        className={styles.expirationInput}
+                        label="Accessible for"
+                        selectedKey={expiration}
+                        options={EXPIRATIONS}
+                        onChange={(_, o) => o && setExpiration(o.key)}
+                    />
+                    <div className={styles.nameInput}>
+                        <TextField
+                            autoFocus
+                            label="Name"
+                            value={dataset}
+                            spellCheck={false}
+                            onChange={(_, value) => setDataset(value || "")}
+                            placeholder="Enter Dataset Name..."
+                        />
+                        {dataset &&
+                            (nextVersionForName ? (
+                                <div
+                                    className={classNames(styles.nameInputSubtext, styles.warning)}
+                                >
+                                    Name already exists, will create version {nextVersionForName}{" "}
+                                    for {dataset}
+                                </div>
+                            ) : (
+                                <div className={classNames(styles.nameInputSubtext, styles.info)}>
+                                    Name does <strong>not</strong> exist yet, will create version 1
+                                    for {dataset}
                                 </div>
                             ))}
-                            <div className={styles.subtitleButtonContainer}>
-                                <DefaultButton
-                                    className={styles.subtitleButton}
-                                    onClick={() => setIsDatasetSubtitleExpanded(false)}
-                                >
-                                    LESS&nbsp;
-                                    <Icon iconName="CaretSolidUp" />
-                                </DefaultButton>
-                            </div>
-                        </div>
-                    ) : (
-                        <div>
-                            <div className={styles.subtitle}>{DATASET_SUBTITLES[0] + ".."}</div>
-                            <div className={styles.subtitleButtonContainer}>
-                                <DefaultButton
-                                    className={styles.subtitleButton}
-                                    onClick={() => setIsDatasetSubtitleExpanded(true)}
-                                >
-                                    MORE&nbsp;
-                                    <Icon iconName="CaretSolidDown" />
-                                </DefaultButton>
-                            </div>
-                        </div>
-                    )}
-                    <div className={classNames(styles.form, styles.datasetForm)}>
-                        <ChoiceGroup
-                            className={styles.expirationInput}
-                            label="Accessible for"
-                            selectedKey={expiration}
-                            options={EXPIRATIONS}
-                            onChange={(_, o) => o && setExpiration(o.key)}
-                        />
-                        <div className={styles.nameInput}>
-                            <TextField
-                                autoFocus
-                                label="Name"
-                                value={dataset}
-                                spellCheck={false}
-                                onChange={(_, value) => setDataset(value || "")}
-                                placeholder="Enter Dataset Name..."
-                            />
-                            {dataset &&
-                                (nextVersionForName ? (
-                                    <div
-                                        className={classNames(
-                                            styles.nameInputSubtext,
-                                            styles.warning
-                                        )}
-                                    >
-                                        Name already exists, will create version{" "}
-                                        {nextVersionForName} for {dataset}
-                                    </div>
-                                ) : (
-                                    <div
-                                        className={classNames(styles.nameInputSubtext, styles.info)}
-                                    >
-                                        Name does <strong>not</strong> exist yet, will create
-                                        version 1 for {dataset}
-                                    </div>
-                                ))}
-                        </div>
                     </div>
-                    <hr />
-                    <div className={classNames(styles.title, styles.columnTitle)}>Columns</div>
-                    <div className={styles.subtitle}>
-                        Select which annotations you would like included as columns in the
-                        dataframe.
-                    </div>
-                    <AnnotationSelector
-                        className={styles.form}
-                        annotations={annotations}
-                        annotationOptions={annotationOptions}
-                        setAnnotations={setAnnotations}
-                    />
-                    <DialogFooter>
-                        <PrimaryButton
-                            text="Generate"
-                            disabled={!annotations.length || !dataset}
-                            onClick={onGenerate}
-                        />
-                    </DialogFooter>
                 </div>
-            )}
+                <hr />
+                <div className={classNames(styles.title, styles.columnTitle)}>Columns</div>
+                <div className={styles.subtitle}>
+                    Select which annotations you would like included as columns in the dataframe.
+                </div>
+                <AnnotationSelector
+                    className={styles.form}
+                    annotations={annotations}
+                    annotationOptions={annotationOptions}
+                    setAnnotations={setAnnotations}
+                />
+                <DialogFooter>
+                    <PrimaryButton
+                        text="Generate"
+                        disabled={!annotations.length || !dataset}
+                        onClick={onGenerate}
+                    />
+                </DialogFooter>
+            </div>
         </Dialog>
     );
 }

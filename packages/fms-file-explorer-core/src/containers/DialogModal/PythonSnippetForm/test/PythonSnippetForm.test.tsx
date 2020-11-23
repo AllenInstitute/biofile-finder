@@ -34,7 +34,7 @@ describe("<PythonSnippetForm />", () => {
         it("dispatches generation and persistence events when clicked", async () => {
             // Arrange
             const { actions, store } = configureMockStore({ state: visibleDialogState });
-            const { getByText, getByPlaceholderText, findByTestId } = render(
+            const { getByText, getByPlaceholderText } = render(
                 <Provider store={store}>
                     <DialogModal />
                 </Provider>
@@ -49,7 +49,6 @@ describe("<PythonSnippetForm />", () => {
             fireEvent.click(generateButton);
 
             // Assert
-            expect(await findByTestId("python-snippet-loading-icon")).to.exist;
             expect(
                 actions.includesMatch({
                     type: SET_CSV_COLUMNS,

@@ -19,6 +19,7 @@ import {
     SHOW_GENERATE_PYTHON_SNIPPET_DIALOG,
     SHOW_MANIFEST_DOWNLOAD_DIALOG,
     StatusUpdate,
+    SUCCEED_PYTHON_SNIPPET_GENERATION,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import { Modal } from "../../containers/DialogModal";
@@ -91,10 +92,9 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             visibleModal: undefined,
         }),
-        [GENERATE_PYTHON_SNIPPET]: (state, action) => ({
+        [GENERATE_PYTHON_SNIPPET]: (state) => ({
             ...state,
-            pythonSnippet: action.payload.pythonSnippet,
-            visibleModal: Modal.PythonSnippet,
+            visibleModal: undefined,
         }),
         [SET_STATUS]: (state, action) => ({
             ...state,
@@ -141,6 +141,12 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             visibleModal: Modal.CsvManifest,
             fileFiltersForVisibleModal: action.payload,
+        }),
+        [SUCCEED_PYTHON_SNIPPET_GENERATION]: (state, action) => ({
+            ...state,
+            pythonSnippet: action.payload.pythonSnippet,
+            status: filter(state.status, (status: StatusUpdate) => status.id !== action.payload.id),
+            visibleModal: Modal.PythonSnippet,
         }),
     },
     initialState

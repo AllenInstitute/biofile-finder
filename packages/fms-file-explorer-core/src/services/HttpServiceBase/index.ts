@@ -150,8 +150,17 @@ export default class HttpServiceBase {
         console.log(`Sanitized ${url} to ${encodedUrl}`);
         const config = { headers: { "Content-Type": "application/json" } };
 
-        // if this fails, bubble up exception
-        const response = await retry.execute(() => this.httpClient.post(encodedUrl, body, config));
+        let response;
+        try {
+            // if this fails, bubble up exception
+            response = await retry.execute(() => this.httpClient.post(encodedUrl, body, config));
+        } catch (err) {
+            // Specific errors about the failure from services will be in this path
+            if (err.response && err.response.data && err.response.data.message) {
+                throw new Error(JSON.stringify(err.response.data.message));
+            }
+            throw err;
+        }
 
         if (response.status >= 400 || response.data === undefined) {
             // by default axios will reject if does not satisfy: status >= 200 && status < 300

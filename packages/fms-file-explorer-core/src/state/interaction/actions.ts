@@ -409,6 +409,86 @@ export function failManifestDownload(id: string, msg: string): ManifestDownloadF
 }
 
 /**
+ * PYTHON_SNIPPET_GENERATION_START
+ *
+ * Intention to inform the user of the start of a python snippet generation.
+ */
+export interface StartPythonSnippetGenerationAction {
+    type: string;
+    payload: StatusUpdate;
+}
+
+export function startPythonSnippetGeneration(id: string): StartPythonSnippetGenerationAction {
+    return {
+        type: SET_STATUS,
+        payload: {
+            data: {
+                msg: "Generation of Python snippet is in progress.",
+                status: ProcessStatus.STARTED,
+            },
+            id,
+        },
+    };
+}
+
+/**
+ * SUCCEED_PYTHON_SNIPPET_GENERATION
+ *
+ * Intention to inform the user of the success of a python snippet generation.
+ */
+export const SUCCEED_PYTHON_SNIPPET_GENERATION = makeConstant(
+    STATE_BRANCH_NAME,
+    "succeed-python-snippet-generation"
+);
+
+export interface SucceedPythonSnippetGeneration {
+    type: string;
+    payload: {
+        id: string;
+        pythonSnippet: string;
+    };
+}
+
+export function succeedPythonSnippetGeneration(
+    id: string,
+    pythonSnippet: string
+): SucceedPythonSnippetGeneration {
+    return {
+        type: SUCCEED_PYTHON_SNIPPET_GENERATION,
+        payload: {
+            id,
+            pythonSnippet,
+        },
+    };
+}
+
+/**
+ * PYTHON_SNIPPET_GENERATION_FAILURE
+ *
+ * Intention to inform the user of a failure in a download of a manifest.
+ */
+export interface FailPythonSnippetGenerationAction {
+    type: string;
+    payload: StatusUpdate;
+}
+
+export function failPythonSnippetGeneration(
+    id: string,
+    msg: string
+): FailPythonSnippetGenerationAction {
+    return {
+        type: SET_STATUS,
+        payload: {
+            data: {
+                msg,
+                status: ProcessStatus.FAILED,
+            },
+            id,
+        },
+    };
+}
+
+/**
  * SHOW_GENERATE_PYTHON_SNIPPET_DIALOG
  *
  * Intention to show the generate python snippet dialog.
