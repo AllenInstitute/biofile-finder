@@ -16,8 +16,8 @@ export const getContextMenuOnDismiss = (state: State) => state.interaction.conte
 export const getCsvColumns = (state: State) => state.interaction.csvColumns;
 export const getFileExplorerServiceBaseUrl = (state: State) =>
     state.interaction.fileExplorerServiceBaseUrl;
-export const getFileFiltersForManifestDownload = (state: State) =>
-    state.interaction.fileFiltersForManifestDownload;
+export const getFileFiltersForVisibleModal = (state: State) =>
+    state.interaction.fileFiltersForVisibleModal;
 export const getImageJExecutable = (state: State) => state.interaction.imageJExecutable;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;

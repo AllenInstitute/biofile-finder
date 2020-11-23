@@ -43,7 +43,7 @@ const downloadManifest = createLogic({
             const platformDependentServices = interactionSelectors.getPlatformDependentServices(
                 state
             );
-            const filters = interactionSelectors.getFileFiltersForManifestDownload(state);
+            const filters = interactionSelectors.getFileFiltersForVisibleModal(state);
             const fileService = interactionSelectors.getFileService(state);
             const csvService = new CsvService({
                 applicationVersion,
@@ -238,13 +238,36 @@ const generatePythonSnippet = createLogic({
         } = action;
         const datasetService = interactionSelectors.getDatasetService(getState());
         const fileService = interactionSelectors.getFileService(getState());
+        const filters = interactionSelectors.getFileFiltersForVisibleModal(getState());
 
-        const fileSelection = selection.selectors.getFileSelection(getState());
+        let selections;
+        if (!filters.length) {
+            const fileSelection = selection.selectors.getFileSelection(getState());
+            selections = fileSelection.toCompactSelectionList();
+        } else {
+            const fileSet = new FileSet({
+                filters,
+                fileService,
+            });
+            const count = await fileSet.fetchTotalCount();
+            const accumulator: { [index: string]: any } = {};
+            const selection: Selection = {
+                filters: fileSet.filters.reduce((accum, filter) => {
+                    const existing = accum[filter.name] || [];
+                    return {
+                        ...accum,
+                        [filter.name]: [...existing, filter.value],
+                    };
+                }, accumulator),
+                indexRanges: [new NumericRange(0, count - 1).toJSON()],
+            };
+            selections = [selection];
+        }
         const request: CreateDatasetRequest = {
             annotations,
             expiration,
             name: dataset,
-            selections: fileSelection.toCompactSelectionList(),
+            selections,
         };
         const datasetId = await datasetService.createDataset(request);
         const pythonSnippet = await fileService.getPythonSnippet(datasetId);
