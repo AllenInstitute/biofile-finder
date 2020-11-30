@@ -46,7 +46,7 @@ const EXPIRATIONS: IChoiceGroupOption[] = Object.values(Expiration).map((key) =>
 const DATASET_SUBTITLES = [
     'In order to reproduce your exact selection in Python, we’ll create an immutable, point-in-time snapshot of the files you’ve selected (a "dataset"). You won\'t be able to add to or remove files from this dataset once created, nor will the files\' metadata be modifiable.',
     "In order to reference this dataset, give it a name. If a dataset of that name already exists, we’ll create a new version of that dataset automatically; any previous versions will still be accessible.",
-    "Last, optionally let us know how long to keep this dataset around. If this is being created for a one-off task, consider selecting a shorter lifespan for the dataset.",
+    "Last, let us know how long to keep this dataset around. If this is being created for a one-off task, consider selecting a shorter lifespan for the dataset.",
 ];
 
 /**
