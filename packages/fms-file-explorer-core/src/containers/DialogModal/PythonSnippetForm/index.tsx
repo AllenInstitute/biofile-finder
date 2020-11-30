@@ -109,7 +109,13 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
         } else {
             expirationDate = undefined;
         }
-        dispatch(interaction.actions.generatePythonSnippet(dataset, annotations, expirationDate));
+        const annotationDisplayNameSet = new Set(annotations);
+        const annotationNames = [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations]
+            .filter((a) => annotationDisplayNameSet.has(a.displayName))
+            .map((a) => a.name);
+        dispatch(
+            interaction.actions.generatePythonSnippet(dataset, annotationNames, expirationDate)
+        );
     };
 
     return (
