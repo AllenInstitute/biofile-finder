@@ -87,8 +87,8 @@ export default class Annotation {
             }
         }
 
-        if (value === Annotation.MISSING_VALUE) {
-            return value;
+        if (value === Annotation.MISSING_VALUE || value === null) {
+            return Annotation.MISSING_VALUE;
         }
 
         if (Array.isArray(value)) {
