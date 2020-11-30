@@ -31,10 +31,11 @@ export default class DatasetService extends HttpServiceBase {
      * Returns the ObjectId of the Dataset document created.
      */
     public async createDataset(request: CreateDatasetRequest): Promise<string> {
+        const postBody = JSON.stringify(request);
         const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}`;
-        console.log(`Requesting to create the following dataset ${request}`);
+        console.log(`Requesting to create the following dataset ${postBody}`);
 
-        const response = await this.post<string>(requestUrl, JSON.stringify(request));
+        const response = await this.post<string>(requestUrl, postBody);
 
         // data is always an array, this endpoint should always return an array of length 1
         if (response.data.length !== 1) {
