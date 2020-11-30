@@ -351,7 +351,7 @@ describe("Interaction logics", () => {
         const expectedAllenDrive = "/some/test/path/to/fakeAllen";
         for (let i = 0; i <= 100; i++) {
             const filePath = "/fakeFile" + i;
-            files.push({ filePath: "/allen" + filePath });
+            files.push({ file_path: "/allen" + filePath });
             filePaths.push(expectedAllenDrive + filePath);
         }
         const baseUrl = "test";

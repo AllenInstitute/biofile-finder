@@ -192,7 +192,7 @@ const openFilesInImageJ = createLogic({
                 const selectedFilesDetails = await fileSelection.fetchAllDetails();
                 const filePaths = selectedFilesDetails.map(
                     (file) =>
-                        allenMountPoint + path.normalize(file.filePath.substring("/allen".length))
+                        allenMountPoint + path.normalize(file.file_path.substring("/allen".length))
                 );
 
                 // Open the files in the specified executable
