@@ -25,8 +25,8 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                         itemType: ContextualMenuItemType.Header,
                     },
                     {
-                        key: "manifest",
-                        text: "Manifest",
+                        key: "csv-manifest",
+                        text: "CSV Manifest",
                         title: "CSV file of metadata of selected files",
                         onClick() {
                             dispatch(interaction.actions.showManifestDownloadDialog());
