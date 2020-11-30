@@ -169,20 +169,11 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
                             onChange={(_, value) => setDataset(value || "")}
                             placeholder="Enter Dataset Name..."
                         />
-                        {dataset &&
-                            (nextVersionForName ? (
-                                <div
-                                    className={classNames(styles.nameInputSubtext, styles.warning)}
-                                >
-                                    Name already exists, will create version {nextVersionForName}{" "}
-                                    for {dataset}
-                                </div>
-                            ) : (
-                                <div className={classNames(styles.nameInputSubtext, styles.info)}>
-                                    Name does <strong>not</strong> exist yet, will create version 1
-                                    for {dataset}
-                                </div>
-                            ))}
+                        {dataset && (
+                            <div className={styles.nameInputSubtext}>
+                                This will create {nextVersionForName} for {dataset}.
+                            </div>
+                        )}
                     </div>
                 </div>
                 <hr />
