@@ -63,7 +63,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
                 subMenuProps: {
                     ...availableItems.DOWNLOAD.subMenuProps,
                     items: availableItems.DOWNLOAD.subMenuProps.items.map((item) => {
-                        if (item.key === "manifest") {
+                        if (item.key === "csv-manifest") {
                             return {
                                 ...item,
                                 onClick() {
