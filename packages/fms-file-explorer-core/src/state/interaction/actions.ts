@@ -8,6 +8,7 @@ import FileDownloadService from "../../services/FileDownloadService";
 import PersistentConfigService from "../../services/PersistentConfigService";
 import FileViewerService from "../../services/FileViewerService";
 import FileFilter from "../../entity/FileFilter";
+import { PythonSnippet } from "../../services/FileService";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -445,13 +446,13 @@ export interface SucceedPythonSnippetGeneration {
     type: string;
     payload: {
         id: string;
-        pythonSnippet: string;
+        pythonSnippet: PythonSnippet;
     };
 }
 
 export function succeedPythonSnippetGeneration(
     id: string,
-    pythonSnippet: string
+    pythonSnippet: PythonSnippet
 ): SucceedPythonSnippetGeneration {
     return {
         type: SUCCEED_PYTHON_SNIPPET_GENERATION,

@@ -60,7 +60,7 @@ describe("<PythonSnippetForm />", () => {
                     type: GENERATE_PYTHON_SNIPPET,
                     payload: {
                         dataset,
-                        annotations: TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName),
+                        annotations: TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.name),
                     },
                 })
             ).to.be.true;

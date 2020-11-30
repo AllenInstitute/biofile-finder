@@ -39,7 +39,7 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                     },
                     {
                         key: "python-snippet",
-                        text: "Python snippet",
+                        text: "Python Snippet",
                         title:
                             "Get a snippet in Python to work with your file selection programmatically",
                         onClick() {

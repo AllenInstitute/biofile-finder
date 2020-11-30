@@ -30,6 +30,7 @@ import PersistentConfigServiceNoop from "../../services/PersistentConfigService/
 import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
 import FileFilter from "../../entity/FileFilter";
 import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
+import { PythonSnippet } from "../../services/FileService";
 
 export interface InteractionStateBranch {
     allenMountPoint?: string;
@@ -43,7 +44,7 @@ export interface InteractionStateBranch {
     fileFiltersForVisibleModal: FileFilter[];
     imageJExecutable?: string;
     platformDependentServices: PlatformDependentServices;
-    pythonSnippet?: string;
+    pythonSnippet?: PythonSnippet;
     status: StatusUpdate[];
     visibleModal?: Modal;
 }

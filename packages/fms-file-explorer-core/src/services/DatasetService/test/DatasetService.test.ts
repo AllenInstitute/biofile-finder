@@ -18,7 +18,7 @@ describe("DatasetService", () => {
                 when: `${baseUrl}/file-explorer-service/1.0/dataset`,
                 respondWith: {
                     data: {
-                        data: [expectedDatasetId],
+                        data: [{ id: expectedDatasetId }],
                     },
                 },
             },

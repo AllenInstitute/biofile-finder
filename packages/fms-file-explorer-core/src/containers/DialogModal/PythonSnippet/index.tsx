@@ -13,8 +13,6 @@ const MODAL_PROPS = {
     isBlocking: false,
 };
 
-const PYTHON_SETUP = "pip install aicsfiles";
-
 const COPY_ICON = { iconName: "copy" };
 
 /**
@@ -22,18 +20,20 @@ const COPY_ICON = { iconName: "copy" };
  */
 export default function PythonSnippet({ onDismiss }: DialogModalProps) {
     const pythonSnippet = useSelector(interaction.selectors.getPythonSnippet);
+    const code = pythonSnippet && pythonSnippet.code;
+    const setup = pythonSnippet && pythonSnippet.setup;
 
     const [isSetupCopied, setSetupCopied] = React.useState(false);
     const [isCodeCopied, setCodeCopied] = React.useState(false);
 
     const onCopySetup = () => {
-        navigator.clipboard.writeText(PYTHON_SETUP);
+        setup && navigator.clipboard.writeText(setup);
         // Provide feedback to user about what is copied to their clipboard
         setSetupCopied(true);
         setCodeCopied(false);
     };
     const onCopyCode = () => {
-        pythonSnippet && navigator.clipboard.writeText(pythonSnippet);
+        code && navigator.clipboard.writeText(code);
         // Provide feedback to user about what is copied to their clipboard
         setSetupCopied(false);
         setCodeCopied(true);
@@ -51,7 +51,7 @@ export default function PythonSnippet({ onDismiss }: DialogModalProps) {
                     />
                 </TooltipHost>
             </div>
-            <SyntaxHighlighter language="python">{PYTHON_SETUP}</SyntaxHighlighter>
+            <SyntaxHighlighter language="python">{setup || ""}</SyntaxHighlighter>
             <div className={styles.header}>
                 <span className={styles.label}>Code</span>
                 <TooltipHost content={isCodeCopied ? "Copied to clipboard!" : undefined}>
@@ -62,7 +62,7 @@ export default function PythonSnippet({ onDismiss }: DialogModalProps) {
                     />
                 </TooltipHost>
             </div>
-            <SyntaxHighlighter language="python">{pythonSnippet || ""}</SyntaxHighlighter>
+            <SyntaxHighlighter language="python">{code || ""}</SyntaxHighlighter>
         </Dialog>
     );
 }

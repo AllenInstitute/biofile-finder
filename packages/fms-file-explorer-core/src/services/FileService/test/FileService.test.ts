@@ -123,9 +123,10 @@ describe("FileService", () => {
             const snippet = await fileService.getPythonSnippet(datasetId);
 
             // Assert
-            expect(snippet).to.equal(
-                "TODO: Python Snippet API not yet implemented, request: " + datasetId
-            );
+            expect(snippet).to.deep.equal({
+                setup: "TODO: Not yet implemented",
+                code: "TODO: Python Snippet API not yet implemented, request: " + datasetId,
+            });
         });
     });
 });
