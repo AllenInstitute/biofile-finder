@@ -14,7 +14,7 @@ describe("<PythonSnippet />", () => {
         },
     });
 
-    it("is visible when should not be hidden", async () => {
+    it("is visible when should not be hidden", () => {
         // Arrange
         const { store } = configureMockStore({ state: visibleDialogState });
         const { getByText } = render(
@@ -30,10 +30,14 @@ describe("<PythonSnippet />", () => {
 
     it("displays snippet when present in state", async () => {
         // Arrange
-        const pythonSnippet = "1234091234";
+        const setup = "pip install aicsfiles";
+        const code = "my_files = querier.query()";
         const state = mergeState(visibleDialogState, {
             interaction: {
-                pythonSnippet,
+                pythonSnippet: {
+                    setup,
+                    code,
+                },
             },
         });
         const { store } = configureMockStore({ state });
@@ -44,6 +48,7 @@ describe("<PythonSnippet />", () => {
         );
 
         // Assert
-        expect(await findByText(pythonSnippet)).to.exist;
+        expect(await findByText(setup)).to.exist;
+        expect(await findByText(code)).to.exist;
     });
 });

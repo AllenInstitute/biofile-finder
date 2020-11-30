@@ -88,7 +88,7 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
             .filter((d) => d.name === dataset)
             .sort((a, b) => (a.version > b.version ? -1 : 1));
         if (!matchingExistingDatasets.length) {
-            return undefined;
+            return 1;
         }
         return matchingExistingDatasets[0].version + 1;
     }, [dataset, existingDatasets]);
@@ -177,7 +177,7 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
                         />
                         {dataset && (
                             <div className={styles.nameInputSubtext}>
-                                This will create {nextVersionForName} for {dataset}.
+                                This will create version {nextVersionForName} for {dataset}.
                             </div>
                         )}
                     </div>

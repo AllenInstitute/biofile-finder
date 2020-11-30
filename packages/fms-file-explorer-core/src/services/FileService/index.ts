@@ -42,6 +42,11 @@ export interface GetFilesRequest {
     queryString: string; // file filters and applied sort order(s) in their query string form (e.g., "scientist=jane&sort=date-created(ASC)")
 }
 
+export interface PythonSnippet {
+    setup: string;
+    code: string;
+}
+
 export interface Selection {
     filters: {
         [index: string]: (string | number | boolean)[];
@@ -151,20 +156,24 @@ export default class FileService extends HttpServiceBase {
      *
      * @param datasetId DatasetId to create the python snippet query for
      */
-    public async getPythonSnippet(datasetId: string): Promise<string> {
+    public async getPythonSnippet(datasetId: string): Promise<PythonSnippet> {
+        // const postBody = JSON.stringify(request);
         // const requestUrl = `${this.baseUrl}/${FileService.PYTHON_SNIPPET_URL}`;
-        // console.log(`Requesting python snippet for query with ${request}`);
+        // console.log(`Requesting python snippet for query with ${postBody}`);
 
-        // const response = await this.post<string>(requestUrl, JSON.stringify(request));
+        // const response = await this.post<PythonSnippet>(requestUrl, postBody);
 
         // // data is always an array, this endpoint should always return an array of length 1
         // if (response.data.length !== 1) {
-        //     throw new Error(`Expected response.data of ${requestUrl} to contain a single count`);
+        //     throw new Error(`Expected python snippet response.data of ${postBody} to contain a single count`);
         // }
 
         // return response.data[0];
 
         // TODO: Python Snippet API not yet implemented
-        return "TODO: Python Snippet API not yet implemented, request: " + datasetId;
+        return {
+            setup: "TODO: Not yet implemented",
+            code: "TODO: Python Snippet API not yet implemented, request: " + datasetId,
+        };
     }
 }
