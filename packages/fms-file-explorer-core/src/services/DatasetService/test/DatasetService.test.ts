@@ -29,12 +29,12 @@ describe("DatasetService", () => {
             const service = new DatasetService({ baseUrl, httpClient });
 
             // Act
-            const datasetId = await service.createDataset({
+            const dataset = await service.createDataset({
                 name: "anyName",
                 annotations: [],
                 selections: [],
             });
-            expect(datasetId).to.equal(expectedDatasetId);
+            expect(dataset.id).to.equal(expectedDatasetId);
         });
     });
 
