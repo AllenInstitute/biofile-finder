@@ -22,12 +22,12 @@ describe("<FileAnnotationList />", () => {
             const filePathInsideAllenDrive = "/path/to/MyFile.txt";
             const filePath = "/allen" + filePathInsideAllenDrive;
             const fileDetails = new FileDetail({
-                filePath,
-                fileId: "abc123",
-                fileName: "MyFile.txt",
-                fileSize: 7,
+                file_path: filePath,
+                file_id: "abc123",
+                file_name: "MyFile.txt",
+                file_size: 7,
                 uploaded: "01/01/01",
-                uploadedBy: "test-user",
+                uploaded_by: "test-user",
                 annotations: [],
             });
             const { getByText } = render(
@@ -49,12 +49,12 @@ describe("<FileAnnotationList />", () => {
             const filePathInsideAllenDrive = "/path/to/MyFile.txt";
             const filePath = "/allen" + filePathInsideAllenDrive;
             const fileDetails = new FileDetail({
-                filePath,
-                fileId: "abc123",
-                fileName: "MyFile.txt",
-                fileSize: 7,
+                file_path: filePath,
+                file_id: "abc123",
+                file_name: "MyFile.txt",
+                file_size: 7,
                 uploaded: "01/01/01",
-                uploadedBy: "test-user",
+                uploaded_by: "test-user",
                 annotations: [],
             });
             const { getByText } = render(

@@ -24,16 +24,16 @@ export interface FmsFileAnnotation {
 export interface FmsFile {
     [key: string]: any;
     annotations: FmsFileAnnotation[];
-    fileId: string;
-    fileName: string;
-    filePath: string;
-    fileSize: number;
+    file_id: string;
+    file_name: string;
+    file_path: string;
+    file_size: number;
     uploaded: string;
-    uploadedBy: string;
+    uploaded_by: string;
     positions?: { id: number }[]; // TODO: Add Ticket for this
     channels?: { id: number }[]; // TODO: Add Ticket for this
     times?: { id: number }[]; // TODO: Add Ticket for this
-    thumbnailPath?: string;
+    thumbnail?: string;
 }
 
 export interface GetFilesRequest {

@@ -40,9 +40,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
 
     const annotations = useSelector(selection.selectors.getOrderedDisplayAnnotations);
     const columnWidths = useSelector(selection.selectors.getColumnWidths);
-    const fileSelection = useSelector(
-        selection.selectors.getFileSelection
-    );
+    const fileSelection = useSelector(selection.selectors.getFileSelection);
 
     const file = fileSet.getFileByIndex(index);
 
@@ -68,7 +66,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
                     [styles.selected]: isSelected,
                     [styles.focused]: isFocused,
                 })}
-                rowIdentifier={{ index, id: file.fileId }}
+                rowIdentifier={{ index, id: file.file_id }}
                 onSelect={onSelect}
             />
         );

@@ -70,18 +70,17 @@ describe("Annotation", () => {
                     },
                 ],
                 channels: [],
-                fileId: "abc123",
-                fileName: "mockfile.png",
-                filePath: "some/path/to/mockfile.png",
-                fileSize: 1,
-                fileType: "png",
+                file_id: "abc123",
+                file_name: "mockfile.png",
+                file_path: "some/path/to/mockfile.png",
+                file_size: 1,
                 positions: [],
                 someDateAnnotation: "2019-05-17T07:43:55.205Z",
                 times: [],
-                thumbnailPath:
+                thumbnail:
                     "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
                 uploaded: new Date().toISOString(),
-                uploadedBy: "Her",
+                uploaded_by: "Her",
             };
 
             const annotation = new Annotation(annotationResponse);
@@ -97,17 +96,16 @@ describe("Annotation", () => {
                     },
                 ],
                 channels: [{ id: 1 }, { id: 2 }],
-                fileId: "abc123",
-                fileName: "mockfile.text",
-                filePath: "some/path/to/mockfile.png",
-                fileSize: 1,
-                fileType: "text",
+                file_id: "abc123",
+                file_name: "mockfile.text",
+                file_path: "some/path/to/mockfile.png",
+                file_size: 1,
                 positions: [{ id: 2 }],
                 times: [],
                 thumbnailPath:
                     "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
                 uploaded: new Date().toISOString(),
-                uploadedBy: "Him",
+                uploaded_by: "Him",
             };
 
             const annotation = new Annotation(annotationResponse);
@@ -131,17 +129,16 @@ describe("Annotation", () => {
                     },
                 ],
                 channels: [],
-                fileId: "abc123",
-                fileName: "mockfile.png",
-                filePath: "some/path/to/mockfile.png",
-                fileSize: 1,
-                fileType: "text",
+                file_id: "abc123",
+                file_name: "mockfile.png",
+                file_path: "some/path/to/mockfile.png",
+                file_size: 1,
                 positions: [{ id: 2 }],
                 times: [{ id: 1 }],
-                thumbnailPath:
+                thumbnail:
                     "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
                 uploaded: new Date().toISOString(),
-                uploadedBy: "Me",
+                uploaded_by: "Me",
             };
 
             const annotation = new Annotation(annotationResponse);

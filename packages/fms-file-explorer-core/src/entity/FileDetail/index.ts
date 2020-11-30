@@ -41,10 +41,10 @@ import { FmsFile } from "../../services/FileService";
  *      time: [
  *          { id: 34, deltaT: "foobar" },
  *      ]
- *     fileId: "26aa7881b8004dd0bcec857baf9a2f0a",
- *     thumbnailPath: "src/of/thumbnail",
- *     "uploaded": "2019-08-15 13:50:24",
- *     "uploadedBy": "svc_airflow",
+ *     file_id: "26aa7881b8004dd0bcec857baf9a2f0a",
+ *     thumbnail: "src/of/thumbnail",
+ *     uploaded: "2019-08-15 13:50:24",
+ *     uploaded_by: "svc_airflow",
  * }
  */
 
@@ -63,19 +63,19 @@ export default class FileDetail {
     }
 
     public get id() {
-        return this.fileDetail.fileId;
+        return this.fileDetail.file_id;
     }
 
     public get name() {
-        return this.fileDetail.fileName;
+        return this.fileDetail.file_name;
     }
 
     public get path() {
-        return this.fileDetail.filePath;
+        return this.fileDetail.file_path;
     }
 
     public get thumbnail() {
-        return this.fileDetail.thumbnailPath;
+        return this.fileDetail.thumbnail;
     }
 
     public get annotations() {

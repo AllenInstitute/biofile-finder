@@ -28,17 +28,16 @@ export function makeFileDetailMock(id: string): FmsFile {
             Math.round(Math.random() * userAnnotations.length)
         ),
         channels: [{ id: 1 }, { id: 2 }],
-        fileId: id,
-        fileName: "mockfile.png",
-        filePath: "some/path/to/mockfile.png",
-        fileSize: 1,
-        fileType: "image",
+        file_id: id,
+        file_name: "mockfile.png",
+        file_path: "some/path/to/mockfile.png",
+        file_size: 1,
         positions: [{ id: 1 }, { id: 2 }],
         times: [{ id: 1 }],
-        thumbnailPath:
+        thumbnail:
             "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
         uploaded: new Date().toISOString(),
-        uploadedBy: "Jackson",
+        uploaded_by: "Jackson",
     };
     return detail;
 }

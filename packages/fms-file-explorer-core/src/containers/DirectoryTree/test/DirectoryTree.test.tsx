@@ -69,12 +69,12 @@ describe("<DirectoryTree />", () => {
         const fileName = `file_${idx}.img`;
         return {
             annotations,
-            fileId: String(idx),
-            fileName,
-            filePath: `/isilon/${fileName}`,
-            fileSize: 1000,
+            file_id: String(idx),
+            file_name: fileName,
+            file_path: `/isilon/${fileName}`,
+            file_size: 1000,
             uploaded: "Sun Aug 19 22:51:22 GMT 2018",
-            uploadedBy: "Human",
+            uploaded_by: "Human",
         };
     };
 
@@ -275,8 +275,8 @@ describe("<DirectoryTree />", () => {
         // select 5 files underneath one of the leaf folders
         const secondLevelFolder1 = await findByText(secondLevelHierarchyValues[1]);
         fireEvent.click(secondLevelFolder1);
-        fireEvent.click(await findByText(fooFirstBarBFiles[0].fileName));
-        fireEvent.click(await findByText(fooFirstBarBFiles[4].fileName), { shiftKey: true });
+        fireEvent.click(await findByText(fooFirstBarBFiles[0].file_name));
+        fireEvent.click(await findByText(fooFirstBarBFiles[4].file_name), { shiftKey: true });
 
         // selection count badge should be found
         await findByText("5 selections");
@@ -287,8 +287,8 @@ describe("<DirectoryTree />", () => {
         // select 3 files underneath another of the leaf folders
         const secondLevelFolder2 = await findByText(secondLevelHierarchyValues[2]);
         fireEvent.click(secondLevelFolder2);
-        fireEvent.click(await findByText(fooFirstBarCFiles[0].fileName), { ctrlKey: true });
-        fireEvent.click(await findByText(fooFirstBarCFiles[2].fileName), { shiftKey: true });
+        fireEvent.click(await findByText(fooFirstBarCFiles[0].file_name), { ctrlKey: true });
+        fireEvent.click(await findByText(fooFirstBarCFiles[2].file_name), { shiftKey: true });
 
         await findByText("3 selections");
 

@@ -13,7 +13,7 @@ import FileSet from "../../../entity/FileSet";
 describe("<LazilyRenderedRow />", () => {
     const fileNameAnnotation = new Annotation({
         annotationDisplayName: "Name",
-        annotationName: "fileName",
+        annotationName: "file_name",
         description: "name of file",
         type: "Text",
     });
@@ -30,17 +30,16 @@ describe("<LazilyRenderedRow />", () => {
                         },
                     ],
                     channels: [],
-                    fileId: "abc123",
-                    fileName: "my_image.czi",
-                    filePath: "some/path/to/my_image.czi",
-                    fileSize: 1,
-                    fileType: "czi",
+                    file_id: "abc123",
+                    file_name: "my_image.czi",
+                    file_path: "some/path/to/my_image.czi",
+                    file_size: 1,
                     positions: [],
                     someDateAnnotation: "2019-05-17T07:43:55.205Z",
                     times: [],
-                    thumbnailPath: "",
+                    thumbnail: "",
                     uploaded: new Date().toISOString(),
-                    uploadedBy: "Them",
+                    uploaded_by: "Them",
                 };
             }
         });
