@@ -2,6 +2,7 @@ import HttpServiceBase from "../HttpServiceBase";
 import { Selection } from "../FileService";
 
 export interface Dataset {
+    id: string;
     name: string;
     version: number;
     expiration?: Date;
@@ -30,12 +31,12 @@ export default class DatasetService extends HttpServiceBase {
      * Requests to create a dataset matching given specification including index-based file selection.
      * Returns the ObjectId of the Dataset document created.
      */
-    public async createDataset(request: CreateDatasetRequest): Promise<string> {
+    public async createDataset(request: CreateDatasetRequest): Promise<Dataset> {
         const postBody = JSON.stringify(request);
         const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}`;
         console.log(`Requesting to create the following dataset ${postBody}`);
 
-        const response = await this.post<string>(requestUrl, postBody);
+        const response = await this.post<Dataset>(requestUrl, postBody);
 
         // data is always an array, this endpoint should always return an array of length 1
         if (response.data.length !== 1) {
