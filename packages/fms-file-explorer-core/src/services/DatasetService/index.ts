@@ -20,6 +20,11 @@ export interface CreateDatasetRequest {
     selections: Selection[];
 }
 
+export interface PythonicDataAccessSnippet {
+    code: string;
+    setup: string;
+}
+
 /**
  * Service responsible for fetching dataset related metadata.
  */
@@ -57,5 +62,21 @@ export default class DatasetService extends HttpServiceBase {
         const response = await this.get<Dataset>(requestUrl);
 
         return response.data;
+    }
+
+    public async getPythonicDataAccessSnippet(
+        datasetName: string,
+        datasetVersion: number
+    ): Promise<PythonicDataAccessSnippet> {
+        const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}/${datasetName}/${datasetVersion}/pythonSnippet`;
+        console.log(`Requesting Python snippet for accessing dataset at: ${requestUrl}`);
+
+        const response = await this.get<PythonicDataAccessSnippet>(requestUrl);
+
+        if (response.data.length !== 1) {
+            throw new Error(`Unexpected number of Python snippets received from ${requestUrl}`);
+        }
+
+        return response.data[0];
     }
 }

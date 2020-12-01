@@ -1,7 +1,7 @@
 import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 
-import DatasetService from "..";
+import DatasetService, { PythonicDataAccessSnippet } from "..";
 
 describe("DatasetService", () => {
     const baseUrl = "test";
@@ -57,6 +57,39 @@ describe("DatasetService", () => {
 
             // Assert
             expect(datasets).to.deep.equal(expectedDatasets);
+        });
+    });
+
+    describe("getPythonicDataAccessSnippet", () => {
+        const DATASET_NAME = "foo";
+        const DATASET_VERSION = 3;
+
+        const expected: PythonicDataAccessSnippet = {
+            setup: "pip install foobar",
+            code: "import foobar; foobar.baz()",
+        };
+
+        const httpClient = createMockHttpClient({
+            when: `${baseUrl}/file-explorer-service/1.0/dataset/${DATASET_NAME}/${DATASET_VERSION}/pythonSnippet`,
+            respondWith: {
+                data: {
+                    data: [expected],
+                },
+            },
+        });
+
+        it("returns requested Pythonic dataset access snippet", async () => {
+            // Arrange
+            const service = new DatasetService({ baseUrl, httpClient });
+
+            // Act
+            const snippet = await service.getPythonicDataAccessSnippet(
+                DATASET_NAME,
+                DATASET_VERSION
+            );
+
+            // Assert
+            expect(snippet).to.deep.equal(expected);
         });
     });
 });

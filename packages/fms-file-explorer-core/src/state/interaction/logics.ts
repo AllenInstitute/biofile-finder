@@ -276,8 +276,8 @@ const generatePythonSnippet = createLogic({
                 selections,
             };
 
-            const { id } = await datasetService.createDataset(request);
-            const pythonSnippet = await fileService.getPythonSnippet(id);
+            const { name, version } = await datasetService.createDataset(request);
+            const pythonSnippet = await datasetService.getPythonicDataAccessSnippet(name, version);
 
             dispatch(succeedPythonSnippetGeneration(generatePythonSnippetProcessId, pythonSnippet));
         } catch (err) {

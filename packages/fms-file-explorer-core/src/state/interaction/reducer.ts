@@ -24,13 +24,13 @@ import {
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import { Modal } from "../../containers/DialogModal";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
+import { PythonicDataAccessSnippet } from "../../services/DatasetService";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
 import FileViewerServiceNoop from "../../services/FileViewerService/FileViewerServiceNoop";
 import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
 import FileFilter from "../../entity/FileFilter";
 import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
-import { PythonSnippet } from "../../services/FileService";
 
 export interface InteractionStateBranch {
     allenMountPoint?: string;
@@ -44,7 +44,7 @@ export interface InteractionStateBranch {
     fileFiltersForVisibleModal: FileFilter[];
     imageJExecutable?: string;
     platformDependentServices: PlatformDependentServices;
-    pythonSnippet?: PythonSnippet;
+    pythonSnippet?: PythonicDataAccessSnippet;
     status: StatusUpdate[];
     visibleModal?: Modal;
 }

@@ -3,12 +3,12 @@ import { makeConstant } from "@aics/redux-utils";
 import { Modal } from "../../containers/DialogModal";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
+import { PythonicDataAccessSnippet } from "../../services/DatasetService";
 import ExecutionEnvService from "../../services/ExecutionEnvService";
 import FileDownloadService from "../../services/FileDownloadService";
 import PersistentConfigService from "../../services/PersistentConfigService";
 import FileViewerService from "../../services/FileViewerService";
 import FileFilter from "../../entity/FileFilter";
-import { PythonSnippet } from "../../services/FileService";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -446,13 +446,13 @@ export interface SucceedPythonSnippetGeneration {
     type: string;
     payload: {
         id: string;
-        pythonSnippet: PythonSnippet;
+        pythonSnippet: PythonicDataAccessSnippet;
     };
 }
 
 export function succeedPythonSnippetGeneration(
     id: string,
-    pythonSnippet: PythonSnippet
+    pythonSnippet: PythonicDataAccessSnippet
 ): SucceedPythonSnippetGeneration {
     return {
         type: SUCCEED_PYTHON_SNIPPET_GENERATION,

@@ -51,7 +51,7 @@ export default function PythonSnippet({ onDismiss }: DialogModalProps) {
                     />
                 </TooltipHost>
             </div>
-            <SyntaxHighlighter language="python">{setup || ""}</SyntaxHighlighter>
+            <SyntaxHighlighter language="bash">{setup || ""}</SyntaxHighlighter>
             <div className={styles.header}>
                 <span className={styles.label}>Code</span>
                 <TooltipHost content={isCodeCopied ? "Copied to clipboard!" : undefined}>

@@ -1,5 +1,6 @@
 import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
+
 import FileService from "..";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
@@ -108,25 +109,6 @@ describe("FileService", () => {
                 "file_id=abc123&file_id=def456"
             );
             expect(count).to.equal(2);
-        });
-    });
-
-    describe("getPythonSnippet", () => {
-        const httpClient = createMockHttpClient();
-
-        it("issues request for a python snippet matching given parameters", async () => {
-            // Arrange
-            const fileService = new FileService({ baseUrl, httpClient });
-            const datasetId = "abc123";
-
-            // Act
-            const snippet = await fileService.getPythonSnippet(datasetId);
-
-            // Assert
-            expect(snippet).to.deep.equal({
-                setup: "TODO: Not yet implemented",
-                code: "TODO: Python Snippet API not yet implemented, request: " + datasetId,
-            });
         });
     });
 });

@@ -1,4 +1,9 @@
-import { configureMockStore, mergeState, createMockHttpClient } from "@aics/redux-utils";
+import {
+    configureMockStore,
+    mergeState,
+    createMockHttpClient,
+    ResponseStub,
+} from "@aics/redux-utils";
 import { expect } from "chai";
 import fs from "fs";
 import os from "os";
@@ -355,23 +360,50 @@ describe("Interaction logics", () => {
 
     describe("generatePythonSnippet", () => {
         const baseUrl = "test";
-        const datasetId = "89j1d321a";
-        const responseStubs = [
+        const dataset = {
+            id: "89j1d321a",
+            name: "test",
+            version: 1,
+        };
+        const pythonSnippet = {
+            setup: "pip install aicsfiles",
+            code: `
+            from aicsfiles import FileManagementSystem
+
+            fms = FileManagementSystem()
+            df = fms.datasets.get_metadata_for_files_within("test")
+            `,
+        };
+        const responseStubs: ResponseStub[] = [
+            // dataset creation
             {
-                when: `${baseUrl}/${DatasetService.BASE_DATASET_URL}`,
+                when: (requestConfig) => {
+                    if (!requestConfig.url) {
+                        return false;
+                    }
+                    return requestConfig.url === `${baseUrl}/${DatasetService.BASE_DATASET_URL}`;
+                },
                 respondWith: {
-                    data: { data: [datasetId] },
+                    data: { data: [dataset] },
                 },
             },
-            // TODO: FileService mock when it is fleshed out
+
+            // python snippet generation
+            {
+                when: (requestConfig) => {
+                    if (!requestConfig.url) {
+                        return false;
+                    }
+                    return requestConfig.url.endsWith("/pythonSnippet");
+                },
+                respondWith: {
+                    data: { data: [pythonSnippet] },
+                },
+            },
         ];
 
         const mockHttpClient = createMockHttpClient(responseStubs);
         const datasetService = new DatasetService({
-            baseUrl,
-            httpClient: mockHttpClient,
-        });
-        const fileService = new FileService({
             baseUrl,
             httpClient: mockHttpClient,
         });
@@ -380,7 +412,6 @@ describe("Interaction logics", () => {
 
         beforeEach(() => {
             sandbox.stub(interaction.selectors, "getDatasetService").returns(datasetService);
-            sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
         });
 
         afterEach(() => {
