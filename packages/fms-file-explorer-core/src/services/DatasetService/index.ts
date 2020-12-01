@@ -40,7 +40,9 @@ export default class DatasetService extends HttpServiceBase {
 
         // data is always an array, this endpoint should always return an array of length 1
         if (response.data.length !== 1) {
-            throw new Error(`Error creating dataset. Expected single dataset in response from file-explorer-service, but got ${response.data.length}.`);
+            throw new Error(
+                `Error creating dataset. Expected single dataset in response from file-explorer-service, but got ${response.data.length}.`
+            );
         }
         return response.data[0];
     }
