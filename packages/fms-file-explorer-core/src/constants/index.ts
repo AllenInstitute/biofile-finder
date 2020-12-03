@@ -6,8 +6,8 @@ export const APP_ID = "fms-file-explorer-core";
 // Refer to packages/fms-file-explorer-electron/src/main/menu
 export enum DataSource {
     LOCALHOST = "http://localhost:9081",
-    STAGING = "http://stg-aics-api.corp.alleninstitute.org",
-    PRODUCTION = "http://aics-api.corp.alleninstitute.org",
+    STAGING = "https://staging.int.allencell.org",
+    PRODUCTION = "https://production.int.allencell.org",
 }
 
 // TypeScript (3.9) raises a bizarre error if this is an enum

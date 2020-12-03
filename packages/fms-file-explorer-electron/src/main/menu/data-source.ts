@@ -2,8 +2,8 @@ import { MenuItemConstructorOptions } from "electron";
 
 export enum FileExplorerServiceBaseUrl {
     LOCALHOST = "http://localhost:9081",
-    STAGING = "http://stg-aics-api.corp.alleninstitute.org",
-    PRODUCTION = "http://aics-api.corp.alleninstitute.org",
+    STAGING = "https://staging.int.allencell.org",
+    PRODUCTION = "https://production.int.allencell.org",
 }
 
 // Least effort state management accessible to both the main and renderer processes.
