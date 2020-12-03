@@ -62,7 +62,7 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
         ? columnsSavedFromLastTime
         : [...TOP_LEVEL_FILE_ANNOTATION_NAMES];
     const [annotations, setAnnotations] = React.useState<string[]>(defaultAnnotations);
-    const [expiration, setExpiration] = React.useState<string>(Expiration.Forever);
+    const [expiration, setExpiration] = React.useState<string>();
     const [dataset, setDataset] = React.useState<string>("");
     const [existingDatasets, setExistingDatasets] = React.useState<Dataset[]>([]);
     const [isDatasetSubtitleExpanded, setIsDatasetSubtitleExpanded] = React.useState(true);
@@ -196,7 +196,7 @@ export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
                 <DialogFooter>
                     <PrimaryButton
                         text="Generate"
-                        disabled={!annotations.length || !dataset}
+                        disabled={!annotations.length || !dataset || !expiration}
                         onClick={onGenerate}
                     />
                 </DialogFooter>

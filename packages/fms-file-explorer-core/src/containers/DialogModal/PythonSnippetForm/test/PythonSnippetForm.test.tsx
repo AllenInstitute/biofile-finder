@@ -42,6 +42,9 @@ describe("<PythonSnippetForm />", () => {
             const dataset = "My Cool Dataset";
 
             // Act
+            const oneDayExpirationOption = getByText("1 Day");
+            fireEvent.click(oneDayExpirationOption);
+
             const datasetNameInput = getByPlaceholderText("Enter Dataset Name...");
             fireEvent.change(datasetNameInput, { target: { value: dataset } });
 
@@ -69,21 +72,50 @@ describe("<PythonSnippetForm />", () => {
         it("is disabled when no name is selected for dataset", () => {
             // Arrange
             const { actions, store } = configureMockStore({ state: visibleDialogState });
-            const { getByText, getByTestId } = render(
+            const { getByText } = render(
                 <Provider store={store}>
                     <DialogModal />
                 </Provider>
             );
 
             // Act
-            const datasetOption = getByText("Dataset");
-            fireEvent.click(datasetOption);
+            const oneDayExpirationOption = getByText("1 Day");
+            fireEvent.click(oneDayExpirationOption);
 
             const generateButton = getByText("Generate");
             fireEvent.click(generateButton);
 
             // Assert
-            expect(() => getByTestId("python-snippet-loading-icon")).to.throw();
+            expect(
+                actions.includesMatch({
+                    type: SET_CSV_COLUMNS,
+                })
+            ).to.be.false;
+            expect(
+                actions.includesMatch({
+                    type: GENERATE_PYTHON_SNIPPET,
+                })
+            ).to.be.false;
+        });
+
+        it("is disabled when no expiration is selected for dataset", () => {
+            // Arrange
+            const { actions, store } = configureMockStore({ state: visibleDialogState });
+            const { getByText, getByPlaceholderText } = render(
+                <Provider store={store}>
+                    <DialogModal />
+                </Provider>
+            );
+            const dataset = "My Cool Dataset";
+
+            // Act
+            const datasetNameInput = getByPlaceholderText("Enter Dataset Name...");
+            fireEvent.change(datasetNameInput, { target: { value: dataset } });
+
+            const generateButton = getByText("Generate");
+            fireEvent.click(generateButton);
+
+            // Assert
             expect(
                 actions.includesMatch({
                     type: SET_CSV_COLUMNS,
