@@ -68,7 +68,9 @@ export default class DatasetService extends HttpServiceBase {
         datasetName: string,
         datasetVersion: number
     ): Promise<PythonicDataAccessSnippet> {
-        const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}/${datasetName}/${datasetVersion}/pythonSnippet`;
+        const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}/${encodeURIComponent(
+            datasetName
+        )}/${datasetVersion}/pythonSnippet`;
         console.log(`Requesting Python snippet for accessing dataset at: ${requestUrl}`);
 
         const response = await this.get<PythonicDataAccessSnippet>(requestUrl);

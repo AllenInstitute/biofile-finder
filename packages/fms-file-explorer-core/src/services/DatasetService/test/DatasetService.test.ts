@@ -1,5 +1,6 @@
 import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
+import sinon from "sinon";
 
 import DatasetService, { PythonicDataAccessSnippet } from "..";
 
@@ -61,35 +62,55 @@ describe("DatasetService", () => {
     });
 
     describe("getPythonicDataAccessSnippet", () => {
-        const DATASET_NAME = "foo";
-        const DATASET_VERSION = 3;
-
-        const expected: PythonicDataAccessSnippet = {
-            setup: "pip install foobar",
-            code: "import foobar; foobar.baz()",
-        };
-
-        const httpClient = createMockHttpClient({
-            when: `${baseUrl}/file-explorer-service/1.0/dataset/${DATASET_NAME}/${DATASET_VERSION}/pythonSnippet`,
-            respondWith: {
-                data: {
-                    data: [expected],
-                },
-            },
-        });
-
         it("returns requested Pythonic dataset access snippet", async () => {
             // Arrange
+            const datasetName = "foo";
+            const datasetVersion = 3;
+
+            const expected: PythonicDataAccessSnippet = {
+                setup: "pip install foobar",
+                code: "import foobar; foobar.baz()",
+            };
+
+            const httpClient = createMockHttpClient({
+                when: `${baseUrl}/file-explorer-service/1.0/dataset/${datasetName}/${datasetVersion}/pythonSnippet`,
+                respondWith: {
+                    data: {
+                        data: [expected],
+                    },
+                },
+            });
             const service = new DatasetService({ baseUrl, httpClient });
 
             // Act
-            const snippet = await service.getPythonicDataAccessSnippet(
-                DATASET_NAME,
-                DATASET_VERSION
-            );
+            const snippet = await service.getPythonicDataAccessSnippet(datasetName, datasetVersion);
 
             // Assert
             expect(snippet).to.deep.equal(expected);
+        });
+
+        it("encodes dataset name in URL path", async () => {
+            // Arrange
+            const datasetName = "files & more?";
+            const encodedDatasetName = "files%20%26%20more%3F";
+            const datasetVersion = 3;
+            const expectedUrl = `${baseUrl}/file-explorer-service/1.0/dataset/files%20%26%20more%3F/${encodedDatasetName}/pythonSnippet`;
+
+            const httpClient = createMockHttpClient();
+            const getStub = sinon.stub(httpClient, "get").resolves({
+                data: {
+                    data: [{}],
+                },
+                status: 200,
+                statusText: "OK",
+            });
+            const service = new DatasetService({ baseUrl, httpClient });
+
+            // Act
+            await service.getPythonicDataAccessSnippet(datasetName, datasetVersion);
+
+            // Assert
+            getStub.calledOnceWith(expectedUrl);
         });
     });
 });
