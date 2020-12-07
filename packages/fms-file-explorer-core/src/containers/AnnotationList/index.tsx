@@ -53,8 +53,8 @@ export default function AnnotationList(props: AnnotationListProps) {
 
     let dividers: DnDListDividers = {};
     const firstDefaultItemIndex = annotationListItems.findIndex((item) => !item.filtered);
-    // We only want a divider if there are filtered items to divide
-    if (firstDefaultItemIndex !== 0) {
+    // We only want a divider if there are filtered items to divide & no search is active
+    if (!searchValue && firstDefaultItemIndex !== 0) {
         const onClearFilters = () => {
             dispatch(selection.actions.removeFileFilter(filters));
         };

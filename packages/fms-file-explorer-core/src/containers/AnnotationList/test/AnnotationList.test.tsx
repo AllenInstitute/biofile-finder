@@ -146,6 +146,42 @@ describe("<AnnotationList />", () => {
             expect(getByText("Filtered")).to.exist;
         });
 
+        it("does not exist when annotations are filtered and search input exists", () => {
+            // Arrange
+            const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
+            const { store } = configureMockStore({
+                state: mergeState(initialState, {
+                    metadata: {
+                        annotations,
+                    },
+                    selection: {
+                        filters: [new FileFilter("cell_line", "AICS-11")],
+                    },
+                }),
+            });
+            const { getByText, getByPlaceholderText } = render(
+                <Provider store={store}>
+                    <DragDropContext
+                        onDragEnd={() => {
+                            /* noop */
+                        }}
+                    >
+                        <AnnotationList />
+                    </DragDropContext>
+                </Provider>
+            );
+            // (sanity-check) bifurcation existed before search
+            expect(getByText("Filtered")).to.exist;
+
+            // Act
+            fireEvent.change(getByPlaceholderText("Search..."), {
+                target: { value: "created" },
+            });
+
+            // Assert
+            expect(() => getByText("Filtered")).to.throw();
+        });
+
         it("does not exist when no annotations are filtered", () => {
             // Arrange
             const { store } = configureMockStore({
