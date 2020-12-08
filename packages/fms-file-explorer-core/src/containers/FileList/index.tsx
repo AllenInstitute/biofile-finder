@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import debouncePromise from "debounce-promise";
 import { defaults, isFunction } from "lodash";
+import { IContextualMenuItem } from "office-ui-fabric-react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FixedSizeList } from "react-window";
@@ -96,13 +97,14 @@ export default function FileList(props: FileListProps) {
     // Callback provided to individual LazilyRenderedRows to be called on `contextmenu`
     const onFileRowContextMenu = (evt: React.MouseEvent) => {
         const availableItems = getContextMenuItems(dispatch);
-        const items = [];
+        const items: IContextualMenuItem[] = [];
         if (fileSelection.count() === 0) {
-            items.push({ ...availableItems.DOWNLOAD, disabled: true });
-            items.push({ ...availableItems.OPEN_IN, disabled: true });
+            Array.prototype.push.apply(
+                items,
+                availableItems.ACCESS.map((item) => ({ ...item, disabled: true }))
+            );
         } else {
-            items.push(availableItems.DOWNLOAD);
-            items.push(availableItems.OPEN_IN);
+            Array.prototype.push.apply(items, availableItems.ACCESS);
         }
         dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
     };

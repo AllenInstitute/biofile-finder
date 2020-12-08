@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Tippy from "@tippy.js/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 
-import getContextMenuItems from "../ContextMenu/items";
+import getContextMenuItems, { ContextMenuActions } from "../ContextMenu/items";
 import SvgIcon from "../../components/SvgIcon";
 import { interaction, selection } from "../../state";
 import FileSet from "../../entity/FileSet";
@@ -57,41 +57,28 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
     const dispatch = useDispatch();
     const onContextMenu = (evt: React.MouseEvent) => {
         const availableItems = getContextMenuItems(dispatch);
-        const items = [
-            {
-                ...availableItems.DOWNLOAD,
-                subMenuProps: {
-                    ...availableItems.DOWNLOAD.subMenuProps,
-                    items: availableItems.DOWNLOAD.subMenuProps.items.map((item) => {
-                        if (item.key === "csv-manifest") {
-                            return {
-                                ...item,
-                                onClick() {
-                                    dispatch(
-                                        interaction.actions.showManifestDownloadDialog(
-                                            fileSet.filters
-                                        )
-                                    );
-                                },
-                            };
-                        }
-                        if (item.key === "python-snippet") {
-                            return {
-                                ...item,
-                                onClick() {
-                                    dispatch(
-                                        interaction.actions.showGeneratePythonSnippetDialog(
-                                            fileSet.filters
-                                        )
-                                    );
-                                },
-                            };
-                        }
-                        return item;
-                    }),
-                },
-            },
-        ];
+        const items = availableItems.ACCESS.map((item) => {
+            if (item.key === ContextMenuActions.CSV_MANIFEST) {
+                return {
+                    ...item,
+                    onClick() {
+                        dispatch(interaction.actions.showManifestDownloadDialog(fileSet.filters));
+                    },
+                };
+            }
+            if (item.key === ContextMenuActions.PYTHON_SNIPPET) {
+                return {
+                    ...item,
+                    onClick() {
+                        dispatch(
+                            interaction.actions.showGeneratePythonSnippetDialog(fileSet.filters)
+                        );
+                    },
+                };
+            }
+            return item;
+        });
+
         const onDismiss = () => {
             setContextMenuActive(false);
         };
