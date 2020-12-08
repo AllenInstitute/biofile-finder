@@ -103,19 +103,19 @@ function fetchReleases() {
             return response.json();
         })
         .then((data) => {
-            const releases = data.sort((a, b) => b["created_at"].localeCompare(a["created_at"]));
-            const versionSelector = document.getElementById("version-selector");
-            releases
+            const releases = data
                 .filter((release) => !release.prerelease)
-                .forEach((release, index) => {
-                    const option = document.createElement("option");
-                    option.value = release["id"];
-                    option.innerHTML = release["tag_name"];
-                    if (index === 0) {
-                        option.innerHTML += " (latest)";
-                    }
-                    versionSelector.appendChild(option);
-                });
+                .sort((a, b) => b["created_at"].localeCompare(a["created_at"]));
+            const versionSelector = document.getElementById("version-selector");
+            releases.forEach((release, index) => {
+                const option = document.createElement("option");
+                option.value = release["id"];
+                option.innerHTML = release["tag_name"];
+                if (index === 0) {
+                    option.innerHTML += " (latest)";
+                }
+                versionSelector.appendChild(option);
+            });
             versionSelector.value = releases[0]["id"];
             localStorage.setItem("releases", JSON.stringify(releases)); // Store data
             updateDownloadLink(releases[0]["id"]);
