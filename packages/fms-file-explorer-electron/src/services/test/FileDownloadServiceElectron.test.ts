@@ -50,18 +50,16 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
 
         it("saves CSV to a file", async () => {
             // Arrange
-            const DOWNLOAD_HOST = "http://aics-test.corp.alleninstitute.org";
+            const DOWNLOAD_HOST = "https://aics-test.corp.alleninstitute.org";
             const DOWNLOAD_PATH = "/file-explorer-service/1.0/files/selection/manifest";
             const CSV_BODY =
                 "Hello, it's me, I was wondering if after all these years you'd like to meet";
 
             // intercept request for download and return canned response
-            nock(DOWNLOAD_HOST)
-                .post(DOWNLOAD_PATH)
-                .reply(200, CSV_BODY, {
-                    "Content-Type": "text/csv;charset=UTF-8",
-                    "Content-Disposition": "attachment;filename=manifest.csv",
-                });
+            nock(DOWNLOAD_HOST).post(DOWNLOAD_PATH).reply(200, CSV_BODY, {
+                "Content-Type": "text/csv;charset=UTF-8",
+                "Content-Disposition": "attachment;filename=manifest.csv",
+            });
 
             sandbox
                 .stub(ipcRenderer, "invoke")
@@ -106,14 +104,12 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
 
         it("rejects with error message if request for CSV is unsuccessful", async () => {
             // Arrange
-            const DOWNLOAD_HOST = "http://aics-test.corp.alleninstitute.org";
+            const DOWNLOAD_HOST = "https://aics-test.corp.alleninstitute.org";
             const DOWNLOAD_PATH = "/file-explorer-service/1.0/files/selection/manifest";
             const ERROR_MSG = "Something went wrong and nobody knows why";
 
             // intercept request for download and return canned error
-            nock(DOWNLOAD_HOST)
-                .post(DOWNLOAD_PATH)
-                .reply(500, ERROR_MSG);
+            nock(DOWNLOAD_HOST).post(DOWNLOAD_PATH).reply(500, ERROR_MSG);
 
             sandbox
                 .stub(ipcRenderer, "invoke")

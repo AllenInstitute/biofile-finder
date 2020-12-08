@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as http from "http";
+import * as https from "https";
 import * as path from "path";
 
 import { app, dialog, ipcMain, ipcRenderer } from "electron";
@@ -49,7 +50,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             const filePath = result.filePath.endsWith(".csv")
                 ? result.filePath
                 : result.filePath + ".csv";
-            const req = http.request(
+            const req = https.request(
                 url,
                 {
                     method: "POST",
