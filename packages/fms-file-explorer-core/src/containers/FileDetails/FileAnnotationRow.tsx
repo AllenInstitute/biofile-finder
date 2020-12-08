@@ -1,7 +1,10 @@
 import classNames from "classnames";
 import * as React from "react";
+import { useDispatch } from "react-redux";
 
+import getContextMenuItems from "../ContextMenu/items";
 import Cell from "../../components/FileRow/Cell";
+import { interaction } from "../../state";
 
 const styles = require("./FileAnnotationRow.module.css");
 
@@ -16,13 +19,41 @@ interface FileAnnotationRowProps {
  * details pane on right hand side of the application.
  */
 export default function FileAnnotationRow(props: FileAnnotationRowProps) {
+    const dispatch = useDispatch();
+
+    const onContextMenuHandlerFactory = (cliboardText: string) => {
+        return (evt: React.MouseEvent) => {
+            const availableItems = getContextMenuItems(dispatch);
+            const items = [
+                {
+                    ...availableItems.COPY,
+                    title: "Copy to clipboard",
+                    onClick: () => {
+                        navigator.clipboard.writeText(cliboardText);
+                    },
+                },
+            ];
+            dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
+        };
+    };
+
     return (
         <div className={classNames(props.className, styles.row)}>
             <Cell className={classNames(styles.cell, styles.key)} columnKey="key" width={1}>
-                {props.name}
+                <span
+                    style={{ userSelect: "text" }}
+                    onContextMenu={onContextMenuHandlerFactory(props.name)}
+                >
+                    {props.name}
+                </span>
             </Cell>
             <Cell className={classNames(styles.cell, styles.value)} columnKey="value" width={1}>
-                <span style={{ userSelect: "text" }}>{props.value.trim()}</span>
+                <span
+                    style={{ userSelect: "text" }}
+                    onContextMenu={onContextMenuHandlerFactory(props.value.trim())}
+                >
+                    {props.value.trim()}
+                </span>
             </Cell>
         </div>
     );
