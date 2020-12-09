@@ -12,8 +12,7 @@ const FILE_TYPE_FOR_OS = {
 const INSTRUCTIONS_FOR_OS = {
     [OS.WINDOWS]: [
         "Click the 'Download' button to the left",
-        "Locate the download in your file browser and attempt to open as usual",
-        "Click to open as you would any other application",
+        "Locate the download in your file browser and click to open as you would any other application",
         'When prompted, select that you trust this application and would like to "Run anyway"',
     ],
     [OS.MAC]: [
@@ -126,6 +125,103 @@ function fetchReleases() {
         });
 }
 
+// Video tutorials
+const TUTORIALS = [
+    {
+        title: "Introduction to the tool",
+        description:
+            "This video will introduce you to some of the basic components of the application.",
+        vimeoId: 489006909,
+    },
+    {
+        title: "Filtering",
+        description: "This video will introduce you to how to set filters for data.",
+        vimeoId: 489008377,
+    },
+    {
+        title: "Creating a dynamic directory structure",
+        description:
+            "This video will introduce you to one of the core features of this application: creating a dynamic view of our file management system based on file metadata.",
+        vimeoId: 489009814,
+    },
+    {
+        title: "Sharing your view of the data management system with others",
+        description:
+            "Once you've created a dynamic directory structure, set some filters, and drilled down into folders of interest, you may want to share your view with a coworker or just save it for later. This video will show you how.",
+        vimeoId: 489010002,
+    },
+    {
+        title: "Modifying the metadata displayed for each file",
+        description:
+            "This video will show you how to change the columns displayed for each file list. All annotations within the 'Available annotations' list are available to you. Additionally, the columns are resizable.",
+        vimeoId: 489009968,
+    },
+    {
+        title: "Opening file(s) in Fiji/ImageJ directly from the FMS File Explorer",
+        description: `If you are connected to the Allen Institute network (either directly or via Remote PC) <em>and</em> you have the Isilon mounted on your computer,
+            select your file(s) of interest within the FMS File Explorer, right click on your selection, and select "Open in ImageJ/Fiji."
+            <p>
+                Alternatively, you can copy and paste (e.g.: ⌘ + C, ⌘ + V) a file path found from the FMS File Explorer into your image viewer of choice. To find the file path for a file,
+                simply select it: the file path will be displayed in the details pane on the right-hand side of the application.
+            </p>`,
+        vimeoId: 489019973,
+    },
+    {
+        title: "Programmatic (Pythonic) access and dataset creation",
+        description: `If you'd like to work with the files you find in the Explorer in your Python script or program, right-click on a selection of files or on a directory and select
+            <code>Generate Python snippet</code>. This will prompt you to create an immutable dataset of your selection's metadata
+            that you'll then be able to access programmatically; a code snippet that you can copy and paste will be generated once the dataset has been created.
+            <p>
+                Datasets are uniquely identified by name and version. If you create a new dataset of the same name as one that already exists, a new version will be
+                created for you. Datasets will be accessible for as long as you need them; the "expiration" time of datasets is configurable,
+            </p>`,
+        vimeoId: 489094834,
+    },
+    {
+        title: "Create CSV of metadata for selection",
+        description:
+            "This video will show you how to generate a CSV file containing a row for each of your file selections and how to customize the metadata included for each file.",
+        vimeoId: 489009842,
+    },
+];
+
+function buildVideoTutorials() {
+    const vimeoPlayer = document.getElementById("vimeo-player");
+    const caption = document.getElementById("tutorial-video-caption");
+    const tutorialList = document.getElementById("tutorial-list");
+
+    const selectTutorialListItem = (item, li) => {
+        // player parameters: https://vimeo.zendesk.com/hc/en-us/articles/360001494447-Using-Player-Parameters
+        vimeoPlayer.src = `https://player.vimeo.com/video/${item.vimeoId}?dnt=true`;
+        caption.innerHTML = item.description;
+
+        // visually deselect previously selected item
+        const prevSelection = document.querySelector("#tutorial-list .tutorial-list-item.selected");
+        if (prevSelection) {
+            prevSelection.classList.remove("selected");
+        }
+
+        // visually select current
+        li.classList.add("selected");
+    };
+
+    const tutorialListItems = TUTORIALS.map((item) => {
+        const li = document.createElement("li");
+        li.classList.add("tutorial-list-item", "link");
+        li.innerText = item.title;
+        li.onclick = () => {
+            selectTutorialListItem(item, li);
+        };
+
+        return li;
+    });
+
+    tutorialList.append(...tutorialListItems);
+
+    // initialize to the first item
+    selectTutorialListItem(TUTORIALS[0], tutorialListItems[0]);
+}
+
 function initialize() {
     // Fetch releases for the FMS File Explorer
     fetchReleases();
@@ -164,6 +260,8 @@ function initialize() {
 
     // Update dialog
     selectOperatingSystem(os);
+
+    buildVideoTutorials();
 }
 
 ///////// Initialize App ///////////

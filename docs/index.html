@@ -70,8 +70,7 @@
                     <ol>
                         <li><a class="link" href="#installation-instructions">Installation instructions</a></li>
                         <li><a class="link" href="#use-from-home">How to use while working from home</a></li>
-                        <li><a class="link" href="#make-use-of-data">How to work with data you find in the application</a></li>
-                        <li><a class="link" href="#upcoming-features">How do I ...?</a></li>
+                        <li><a class="link" href="#tutorials">Tutorials</a></li>
                         <li><a class="link" href="#report-issue">Report issue or otherwise get in touch</a></li>
                     </ol>
                 </nav>
@@ -96,13 +95,6 @@
                             <strong>N.b.: This application requires access to the public internet to work properly.</strong> If your VPN configuration blocks access to the public
                             internet, you'll notice--among other potential issues--that usages of certain icons are replaced by placeholder boxes. Those boxes are
                             still functional, but without seeing the icon, it may be difficult to know what function the boxes serve!
-                            <figure class="figure">
-                                <img class="screenshot" src="resources/no-public-internet.png">
-                                <figcaption class="figure-caption">
-                                    If your VPN connection blocks the public internet, you may notice something like the boxes pictured above
-                                    (e.g., on the right-hand side of each annotation).
-                                </figcaption>
-                            </figure>
                         </li>
                     </ul>
                 </section>
@@ -110,64 +102,27 @@
                 <hr class="divider" />
 
                 <section>
-                    <h2 class="title" id="make-use-of-data">How to work with data you find in the FMS File Explorer</h2>
-                    <p class="banner">
-                        We would love to hear from you about how we can better integrate this application into your workflow.
-                        Please reach out!
-                    </p>
-                    <p>
-                        <em>So you've found some data that interests you. Now what?</em>
-                    </p>
-                    <p>There are at least two ways:</p>
-                    <ol>
-                        <li>
-                            <strong>Open a file using an image viewer:</strong> If you are connected to the Allen Institute network (either directly or via Remote PC)
-                            <em>and</em> you have the Isilon mounted on your computer, select your file(s) of interest within the FMS File Explorer, right click
-                            on your selection, and select "Open in... -> ImageJ/Fiji."
-                            <p>
-                                Alternatively, you can copy and paste (e.g.: ⌘ + C, ⌘ + V) a file path found from the FMS File Explorer into your image viewer of choice. To find the file path for a file,
-                                simply select it: the file path will be displayed in the details pane on the right-hand side of the application.
-                            </p>
-                            <figure class="figure">
-                                <img class="screenshot" src="resources/open-in-example.png">
-                                <figcaption class="figure-caption">
-                                    You can open file(s) in ImageJ/Fiji directly from within the FMS File Explorer. To use an application other than ImageJ/Fiji,
-                                    the file path of your selection can be copied directly out of the file details pane (right-hand sidebar).
-                                </figcaption>
-                            </figure>
-
-                        </li>
-                        <li>
-                            <strong>Work with files in batch:</strong> If inclined to work with files in batch (perhaps via scripting), right-click on a selection
-                            of files or on a directory and select <code>Download -> Manifest</code>. This will trigger a download of a CSV file
-                            containing a row for each file that matched your selection. The columns within the CSV represent all available metadata--expect few rows, if any,
-                            to have a value for each and every column. Once downloaded, each row will have a <code>File Path</code> column that points to its permanent location
-                            on the Isilon.
-                            <figure class="figure">
-                                <img class="screenshot" src="resources/download-manifest.png">
-                                <figcaption class="figure-caption">
-                                    You can download a CSV of all of your selections by right-clicking on your selection.
-                                </figcaption>
-                            </figure>
-                        </li>
-                    </ol>
-                </section>
-
-                <hr class="divider" />
-
-                <section>
-                    <h2 class="title" id="upcoming-features">How do I ...?</h2>
-                    <p>
-                        If you're looking around the application trying to figure out how to do something and it just doesn't seem possible, there's a
-                        chance that we haven't had the opportunity to implement that feature yet. (Sorting is one example.)
-                    </p>
-                    <p>
-                        To know for certain whether what you're hoping to do isn't possible <em>yet</em> or whether it just isn't obvious,
-                        you can ask your team's ambassador to this project, or <a class="link" href="#report-issue">reach out directly to the software engineering team.</a>
-                    </p>
-                    <p class="banner">
-                        If there is a missing feature that would really make this application sing for you, please let us know!
-                    </p>
+                    <h2 class="title" id="tutorials">Tutorials</h2>
+                    <div id="tutorial-container">
+                        <ol id="tutorial-list">
+                            <!-- Dynamically constructed in js/scripts.js -->
+                        </ol>
+                        <figure id="tutorial-video-container">
+                            <!-- The src of this iframe is dynamically constructed in js/scripts.js -->
+                            <iframe
+                                id="vimeo-player"
+                                title="vimeo-player"
+                                width="640"
+                                height="360"
+                                frameborder="0"
+                                allowfullscreen
+                            >
+                            </iframe>
+                            <figcaption id="tutorial-video-caption">
+                                <!-- Dynamically constructed in js/scripts.js -->
+                            </figcaption>
+                        </figure>
+                    </div>
                 </section>
 
                 <hr class="divider" />
@@ -177,7 +132,7 @@
                     <p>
                         Maybe you think some data should be available but you can't find it, or maybe you found a way to crash the application.
                         Maybe you'd be really excited if a particular feature is implemented, or maybe you just want to chat.
-                        In any case, it would be our privilege to hear from you--please don't be shy.
+                        In any case, it would be our privilege to hear from you.
                     </p>
                     <p>
                         We're fairly certain you know how to get a hold of the software engineering team (e.g., Slack, email, Zoom, Teams, etc), but here are a few

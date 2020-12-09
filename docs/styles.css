@@ -200,3 +200,40 @@ li {
     width: 75%;
     max-height: 250px;
 }
+
+#tutorial-container {
+    /* flex parent */
+    display: flex;
+    flex-direction: row;
+}
+
+#tutorial-list {
+    border-right: 1px solid black;
+    margin-right: 1em;
+    padding-right: 0.5em;
+
+    /* flex child */
+    flex: 1 1 30%;
+}
+
+.tutorial-list-item {
+    cursor: pointer;
+}
+
+.tutorial-list-item.selected {
+    color: black;
+}
+
+#tutorial-video-container {
+    /* flex child */
+    flex: 1 1 70%;
+
+    /* flex parent */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#tutorial-video-caption {
+    margin-top: 0.5em;
+}
