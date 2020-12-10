@@ -174,6 +174,10 @@ const TUTORIALS = [
             <p>
                 Datasets are uniquely identified by name and version. If you create a new dataset of the same name as one that already exists, a new version will be
                 created for you. Datasets will be accessible for as long as you need them; the "expiration" time of datasets is configurable,
+            </p>
+            <p>
+                For more information regarding programmatic access to datasets created from within the FMS File Explorer, refer to the
+                <a href="https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/aicsfiles-python/browse#querying-by-dataset">aicsfiles-python README</a> (VPN required).
             </p>`,
         vimeoId: 489094834,
     },
