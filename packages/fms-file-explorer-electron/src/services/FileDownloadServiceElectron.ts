@@ -50,7 +50,12 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             const filePath = result.filePath.endsWith(".csv")
                 ? result.filePath
                 : result.filePath + ".csv";
-            const req = https.request(
+
+            // HTTP requests are made when pointed at localhost, HTTPS otherwise. If that ever changes,
+            // this logic can be safely removed.
+            const requestor = new URL(url).protocol === "http:" ? http : https;
+
+            const req = requestor.request(
                 url,
                 {
                     method: "POST",
