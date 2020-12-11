@@ -10,7 +10,7 @@ export interface DialogModalProps {
     onDismiss: () => void;
 }
 
-export enum Modal {
+export enum ModalType {
     CsvManifest = 1,
     PythonSnippet = 2,
     PythonSnippetForm = 3,
@@ -28,11 +28,11 @@ export default function DialogModal() {
     };
 
     switch (visibleModal) {
-        case Modal.CsvManifest:
+        case ModalType.CsvManifest:
             return <CsvManifest onDismiss={onDismiss} />;
-        case Modal.PythonSnippet:
+        case ModalType.PythonSnippet:
             return <PythonSnippet onDismiss={onDismiss} />;
-        case Modal.PythonSnippetForm:
+        case ModalType.PythonSnippetForm:
             return <PythonSnippetForm onDismiss={onDismiss} />;
         default:
             return null;

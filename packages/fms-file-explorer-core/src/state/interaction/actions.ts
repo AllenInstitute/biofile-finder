@@ -1,6 +1,6 @@
 import { makeConstant } from "@aics/redux-utils";
 
-import { Modal } from "../../containers/DialogModal";
+import { ModalType } from "../../containers/DialogModal";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
 import { PythonicDataAccessSnippet } from "../../services/DatasetService";
@@ -547,11 +547,11 @@ export const SET_VISIBLE_MODAL = makeConstant(STATE_BRANCH_NAME, "set-visible-mo
 export interface SetVisibleModalAction {
     type: string;
     payload: {
-        visibleModal: Modal;
+        visibleModal: ModalType;
     };
 }
 
-export function setVisibleModal(visibleModal: Modal): SetVisibleModalAction {
+export function setVisibleModal(visibleModal: ModalType): SetVisibleModalAction {
     return {
         type: SET_VISIBLE_MODAL,
         payload: { visibleModal },

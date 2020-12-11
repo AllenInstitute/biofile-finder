@@ -4,7 +4,7 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import DialogModal, { Modal } from "../..";
+import DialogModal, { ModalType } from "../..";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import { initialState } from "../../../../state";
@@ -13,7 +13,7 @@ import { GENERATE_PYTHON_SNIPPET, SET_CSV_COLUMNS } from "../../../../state/inte
 describe("<PythonSnippetForm />", () => {
     const visibleDialogState = mergeState(initialState, {
         interaction: {
-            visibleModal: Modal.PythonSnippetForm,
+            visibleModal: ModalType.PythonSnippetForm,
         },
     });
 

@@ -4,13 +4,13 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import DialogModal, { Modal } from "../..";
+import DialogModal, { ModalType } from "../..";
 import { initialState } from "../../../../state";
 
 describe("<PythonSnippet />", () => {
     const visibleDialogState = mergeState(initialState, {
         interaction: {
-            visibleModal: Modal.PythonSnippet,
+            visibleModal: ModalType.PythonSnippet,
         },
     });
 

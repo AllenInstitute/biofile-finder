@@ -22,7 +22,7 @@ import {
     SUCCEED_PYTHON_SNIPPET_GENERATION,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
-import { Modal } from "../../containers/DialogModal";
+import { ModalType } from "../../containers/DialogModal";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import { PythonicDataAccessSnippet } from "../../services/DatasetService";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
@@ -46,7 +46,7 @@ export interface InteractionStateBranch {
     platformDependentServices: PlatformDependentServices;
     pythonSnippet?: PythonicDataAccessSnippet;
     status: StatusUpdate[];
-    visibleModal?: Modal;
+    visibleModal?: ModalType;
 }
 
 export const initialState = {
@@ -135,19 +135,19 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [SHOW_GENERATE_PYTHON_SNIPPET_DIALOG]: (state, action) => ({
             ...state,
-            visibleModal: Modal.PythonSnippetForm,
+            visibleModal: ModalType.PythonSnippetForm,
             fileFiltersForVisibleModal: action.payload,
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action) => ({
             ...state,
-            visibleModal: Modal.CsvManifest,
+            visibleModal: ModalType.CsvManifest,
             fileFiltersForVisibleModal: action.payload,
         }),
         [SUCCEED_PYTHON_SNIPPET_GENERATION]: (state, action) => ({
             ...state,
             pythonSnippet: action.payload.pythonSnippet,
             status: filter(state.status, (status: StatusUpdate) => status.id !== action.payload.id),
-            visibleModal: Modal.PythonSnippet,
+            visibleModal: ModalType.PythonSnippet,
         }),
     },
     initialState

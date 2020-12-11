@@ -11,7 +11,7 @@ import * as React from "react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
-import DialogModal, { Modal } from "../..";
+import DialogModal, { ModalType } from "../..";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import FileFilter from "../../../../entity/FileFilter";
@@ -24,7 +24,7 @@ describe("<CsvManifest />", () => {
     const visibleDialogState = mergeState(initialState, {
         interaction: {
             fileExplorerServiceBaseUrl: baseUrl,
-            visibleModal: Modal.CsvManifest,
+            visibleModal: ModalType.CsvManifest,
         },
     });
 
