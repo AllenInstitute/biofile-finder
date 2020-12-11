@@ -6,7 +6,7 @@ import CsvManifest from "./CsvManifest";
 import PythonSnippet from "./PythonSnippet";
 import PythonSnippetForm from "./PythonSnippetForm";
 
-export interface DialogModalProps {
+export interface ModalProps {
     onDismiss: () => void;
 }
 
@@ -17,9 +17,9 @@ export enum ModalType {
 }
 
 /**
- * Controller for determining which dialog modal to render
+ * Modal factory
  */
-export default function DialogModal() {
+export default function Modal() {
     const dispatch = useDispatch();
     const visibleModal = useSelector(interaction.selectors.getVisibleModal);
 

@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { DataSource } from "./constants";
 import AnnotationSidebar from "./containers/AnnotationSidebar";
 import ContextMenu from "./containers/ContextMenu";
-import DialogModal from "./containers/DialogModal";
+import Modal from "./containers/Modal";
 import DirectoryTree from "./containers/DirectoryTree";
 import FileDetails from "./containers/FileDetails";
 import FileExplorerURLBar from "./containers/FileExplorerURLBar";
@@ -138,7 +138,7 @@ export default function App(props: AppProps) {
             </div>
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
             <StatusMessage />
-            <DialogModal />
+            <Modal />
         </div>
     );
 }

@@ -22,7 +22,7 @@ import {
     SUCCEED_PYTHON_SNIPPET_GENERATION,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
-import { ModalType } from "../../containers/DialogModal";
+import { ModalType } from "../../containers/Modal";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import { PythonicDataAccessSnippet } from "../../services/DatasetService";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";

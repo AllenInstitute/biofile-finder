@@ -4,7 +4,7 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import DialogModal, { ModalType } from "../..";
+import Modal, { ModalType } from "../..";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import { initialState } from "../../../../state";
@@ -22,7 +22,7 @@ describe("<PythonSnippetForm />", () => {
         const { store } = configureMockStore({ state: visibleDialogState });
         const { getByText } = render(
             <Provider store={store}>
-                <DialogModal />
+                <Modal />
             </Provider>
         );
 
@@ -36,7 +36,7 @@ describe("<PythonSnippetForm />", () => {
             const { actions, store } = configureMockStore({ state: visibleDialogState });
             const { getByText, getByPlaceholderText } = render(
                 <Provider store={store}>
-                    <DialogModal />
+                    <Modal />
                 </Provider>
             );
             const dataset = "My Cool Dataset";
@@ -74,7 +74,7 @@ describe("<PythonSnippetForm />", () => {
             const { actions, store } = configureMockStore({ state: visibleDialogState });
             const { getByText } = render(
                 <Provider store={store}>
-                    <DialogModal />
+                    <Modal />
                 </Provider>
             );
 
@@ -103,7 +103,7 @@ describe("<PythonSnippetForm />", () => {
             const { actions, store } = configureMockStore({ state: visibleDialogState });
             const { getByText, getByPlaceholderText } = render(
                 <Provider store={store}>
-                    <DialogModal />
+                    <Modal />
                 </Provider>
             );
             const dataset = "My Cool Dataset";
@@ -135,7 +135,7 @@ describe("<PythonSnippetForm />", () => {
             const { store } = configureMockStore({ state: visibleDialogState });
             const { getByText } = render(
                 <Provider store={store}>
-                    <DialogModal />
+                    <Modal />
                 </Provider>
             );
 
@@ -167,7 +167,7 @@ describe("<PythonSnippetForm />", () => {
             const { store } = configureMockStore({ state });
             const { getByText } = render(
                 <Provider store={store}>
-                    <DialogModal />
+                    <Modal />
                 </Provider>
             );
 

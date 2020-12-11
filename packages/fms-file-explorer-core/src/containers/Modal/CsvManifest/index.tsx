@@ -2,7 +2,7 @@ import { PrimaryButton } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { DialogModalProps } from "..";
+import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import { interaction, metadata } from "../../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
@@ -14,7 +14,7 @@ const TOP_LEVEL_FILE_ANNOTATION_SET = new Set(TOP_LEVEL_FILE_ANNOTATIONS.map((a)
  * Modal overlay for selecting columns to be included in a CSV manifest download of
  * files previously selected.
  */
-export default function CsvManifest({ onDismiss }: DialogModalProps) {
+export default function CsvManifest({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
     const customAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
     const columnsSavedFromLastTime = useSelector(interaction.selectors.getCsvColumns);

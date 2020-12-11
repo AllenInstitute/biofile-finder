@@ -3,7 +3,7 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 import SyntaxHighlighter from "react-syntax-highlighter";
 
-import { DialogModalProps } from "..";
+import { ModalProps } from "..";
 import { interaction } from "../../../state";
 import BaseModal from "../BaseModal";
 
@@ -14,7 +14,7 @@ const COPY_ICON = { iconName: "copy" };
 /**
  * Dialog meant to show the user a Python snippet
  */
-export default function PythonSnippet({ onDismiss }: DialogModalProps) {
+export default function PythonSnippet({ onDismiss }: ModalProps) {
     const pythonSnippet = useSelector(interaction.selectors.getPythonSnippet);
     const code = pythonSnippet && pythonSnippet.code;
     const setup = pythonSnippet && pythonSnippet.setup;

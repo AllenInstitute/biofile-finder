@@ -1,6 +1,6 @@
 import { makeConstant } from "@aics/redux-utils";
 
-import { ModalType } from "../../containers/DialogModal";
+import { ModalType } from "../../containers/Modal";
 import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
 import { PythonicDataAccessSnippet } from "../../services/DatasetService";

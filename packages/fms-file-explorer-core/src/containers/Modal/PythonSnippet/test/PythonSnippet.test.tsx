@@ -4,7 +4,7 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import DialogModal, { ModalType } from "../..";
+import Modal, { ModalType } from "../..";
 import { initialState } from "../../../../state";
 
 describe("<PythonSnippet />", () => {
@@ -19,7 +19,7 @@ describe("<PythonSnippet />", () => {
         const { store } = configureMockStore({ state: visibleDialogState });
         const { getByText } = render(
             <Provider store={store}>
-                <DialogModal />
+                <Modal />
             </Provider>
         );
 
@@ -43,7 +43,7 @@ describe("<PythonSnippet />", () => {
         const { store } = configureMockStore({ state });
         const { findByText } = render(
             <Provider store={store}>
-                <DialogModal />
+                <Modal />
             </Provider>
         );
 

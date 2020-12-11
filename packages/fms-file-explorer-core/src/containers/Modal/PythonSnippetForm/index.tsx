@@ -10,7 +10,7 @@ import {
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { DialogModalProps } from "..";
+import { ModalProps } from "..";
 import { interaction, metadata } from "../../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import AnnotationSelector from "../../../components/AnnotationSelector";
@@ -43,7 +43,7 @@ const DATASET_SUBTITLES = [
 /**
  * Dialog form for generating a Python Snippet based on current selection state
  */
-export default function PythonSnippetForm({ onDismiss }: DialogModalProps) {
+export default function PythonSnippetForm({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
     const customAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
     const columnsSavedFromLastTime = useSelector(interaction.selectors.getCsvColumns);
