@@ -1,6 +1,6 @@
 import Tippy from "@tippy.js/react";
 import classNames from "classnames";
-import { IconButton, TextField, TooltipHost } from "office-ui-fabric-react";
+import { IconButton, TextField, TooltipHost } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 

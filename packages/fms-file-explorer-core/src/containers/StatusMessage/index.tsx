@@ -6,7 +6,7 @@ import {
     SpinnerSize,
     Stack,
     DefaultButton,
-} from "office-ui-fabric-react";
+} from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 

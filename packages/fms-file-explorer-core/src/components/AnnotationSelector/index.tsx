@@ -1,4 +1,4 @@
-import { DefaultButton, Dropdown, IDropdownOption, Icon, Label } from "office-ui-fabric-react";
+import { DefaultButton, Dropdown, IDropdownOption, Icon, Label } from "@fluentui/react";
 import * as React from "react";
 
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";

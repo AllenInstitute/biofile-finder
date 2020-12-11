@@ -1,4 +1,4 @@
-import { Dialog, IconButton, TooltipHost } from "office-ui-fabric-react";
+import { Dialog, IconButton, TooltipHost } from "@fluentui/react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 import SyntaxHighlighter from "react-syntax-highlighter";

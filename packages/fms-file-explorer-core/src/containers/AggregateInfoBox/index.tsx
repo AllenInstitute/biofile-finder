@@ -1,5 +1,5 @@
 import filesize from "filesize";
-import { Spinner, SpinnerSize } from "office-ui-fabric-react";
+import { Spinner, SpinnerSize } from "@fluentui/react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 

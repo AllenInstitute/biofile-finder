@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { IconButton } from "office-ui-fabric-react";
+import { IconButton } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -39,7 +39,11 @@ export default function Pagination(props: PaginationProps) {
                     disabled={!fileSelection.hasPreviousFocusableItem()}
                     iconProps={{ iconName: "ChevronLeftEnd6" }}
                     onClick={() =>
-                        dispatch(selection.actions.setFileSelection(fileSelection.focus(FocusDirective.FIRST)))
+                        dispatch(
+                            selection.actions.setFileSelection(
+                                fileSelection.focus(FocusDirective.FIRST)
+                            )
+                        )
                     }
                     styles={ICON_BUTTON_STYLES}
                     title="Jump to first selected file"
@@ -49,7 +53,11 @@ export default function Pagination(props: PaginationProps) {
                     disabled={!fileSelection.hasPreviousFocusableItem()}
                     iconProps={{ iconName: "ChevronLeftSmall" }}
                     onClick={() =>
-                        dispatch(selection.actions.setFileSelection(fileSelection.focus(FocusDirective.PREVIOUS)))
+                        dispatch(
+                            selection.actions.setFileSelection(
+                                fileSelection.focus(FocusDirective.PREVIOUS)
+                            )
+                        )
                     }
                     styles={ICON_BUTTON_STYLES}
                     title="View previous selected file"
@@ -61,7 +69,11 @@ export default function Pagination(props: PaginationProps) {
                     disabled={!fileSelection.hasNextFocusableItem()}
                     iconProps={{ iconName: "ChevronRightSmall" }}
                     onClick={() =>
-                        dispatch(selection.actions.setFileSelection(fileSelection.focus(FocusDirective.NEXT)))
+                        dispatch(
+                            selection.actions.setFileSelection(
+                                fileSelection.focus(FocusDirective.NEXT)
+                            )
+                        )
                     }
                     styles={ICON_BUTTON_STYLES}
                     title="View next selected file"
@@ -71,7 +83,11 @@ export default function Pagination(props: PaginationProps) {
                     disabled={!fileSelection.hasNextFocusableItem()}
                     iconProps={{ iconName: "ChevronRightEnd6" }}
                     onClick={() =>
-                        dispatch(selection.actions.setFileSelection(fileSelection.focus(FocusDirective.LAST)))
+                        dispatch(
+                            selection.actions.setFileSelection(
+                                fileSelection.focus(FocusDirective.LAST)
+                            )
+                        )
                     }
                     styles={ICON_BUTTON_STYLES}
                     title="Jump to last selected file"

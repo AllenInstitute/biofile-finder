@@ -1,7 +1,7 @@
 import "normalize.css";
 import classNames from "classnames";
 import { uniqueId } from "lodash";
-import { initializeIcons, loadTheme } from "office-ui-fabric-react";
+import { initializeIcons, loadTheme } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -25,7 +25,7 @@ import { PlatformDependentServices } from "./state/interaction/actions";
 import "./styles/global.css";
 const styles = require("./App.module.css");
 
-// initialize office-ui-fabric-react
+// initialize @fluentui/react
 initializeIcons();
 loadTheme({
     defaultFontStyle: {

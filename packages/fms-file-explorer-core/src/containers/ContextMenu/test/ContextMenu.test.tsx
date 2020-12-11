@@ -1,7 +1,7 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { expect } from "chai";
 import { mount } from "enzyme";
-import { ContextualMenu } from "office-ui-fabric-react";
+import { ContextualMenu } from "@fluentui/react";
 import * as React from "react";
 import { Provider } from "react-redux";
 

@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { map } from "lodash";
-import { IconButton } from "office-ui-fabric-react";
+import { IconButton } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch } from "react-redux";
 

@@ -1,5 +1,5 @@
 import Fuse from "fuse.js";
-import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "office-ui-fabric-react";
+import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "@fluentui/react";
 import * as React from "react";
 
 import { FilterItem } from ".";

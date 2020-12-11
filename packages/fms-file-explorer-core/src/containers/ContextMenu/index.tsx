@@ -3,7 +3,7 @@ import {
     IContextualMenuItem,
     Target,
     ContextualMenuItemType as _ContextualMenuItemType,
-} from "office-ui-fabric-react";
+} from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -14,7 +14,7 @@ export type PositionReference = Target;
 export const ContextualMenuItemType = _ContextualMenuItemType;
 
 /**
- * Facade for office-ui-fabric-react's ContextualMenu component. Rendered in response to `contextmenu` events (e.g., right-clicks).
+ * Facade for @fluentui/react's ContextualMenu component. Rendered in response to `contextmenu` events (e.g., right-clicks).
  * On dismiss, it will hide itself.
  */
 export default function ContextMenu() {

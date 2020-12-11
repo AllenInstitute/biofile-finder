@@ -1,4 +1,4 @@
-import { IconButton, DirectionalHint, IButtonStyles } from "office-ui-fabric-react";
+import { IconButton, DirectionalHint, IButtonStyles } from "@fluentui/react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -44,7 +44,7 @@ export default function AnnotationFilter(props: FilterProps) {
         };
     }, [annotationName]);
 
-    // basic styling override improvements to office-ui-fabric-react's iconbutton
+    // basic styling override improvements to @fluentui/react's iconbutton
     // if this annotation is filtered, change the color of the filter icon as a subtle indication
     const iconButtonStyles = React.useMemo(() => {
         return {

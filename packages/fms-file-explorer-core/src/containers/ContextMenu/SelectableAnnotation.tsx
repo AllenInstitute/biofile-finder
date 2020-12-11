@@ -1,5 +1,5 @@
 import { some } from "lodash";
-import { Icon } from "office-ui-fabric-react";
+import { Icon } from "@fluentui/react";
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
 

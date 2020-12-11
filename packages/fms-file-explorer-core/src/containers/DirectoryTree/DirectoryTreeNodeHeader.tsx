@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Spinner, SpinnerSize } from "office-ui-fabric-react";
+import { Spinner, SpinnerSize } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Tippy from "@tippy.js/react";

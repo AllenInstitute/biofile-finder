@@ -8,7 +8,7 @@ import {
     Icon,
     PrimaryButton,
     TextField,
-} from "office-ui-fabric-react";
+} from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
