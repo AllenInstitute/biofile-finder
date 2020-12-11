@@ -1,0 +1,54 @@
+.container {
+    --floater-background-color: white;
+
+    padding: 2em 1em 2em 2em; /* account for padding applied to .scrollable-container */
+    min-width: 300px; /* per guidance from fluentui docs: https://developer.microsoft.com/en-us/fluentui#/controls/web/modal */
+    min-height: 175px; /* per guidance from fluentui docs: https://developer.microsoft.com/en-us/fluentui#/controls/web/modal */
+    max-width: 40%;
+    overflow: hidden;
+
+    /* flex parent */
+    display: flex;
+    flex-direction: column;
+}
+
+.scrollable-container {
+    padding-right: 1em;
+}
+
+.header {
+    padding-bottom: 1em;
+    position: sticky;
+    top: 0;
+    background-color: var(--floater-background-color);
+
+    /* flex parent */
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.title {
+    display: inline-block;
+    margin: 0;
+
+    /* flex child */
+    flex: 1 1 auto;
+}
+
+.close-button {
+    /* flex child */
+    flex: 0 0 auto;
+}
+
+.footer {
+    position: sticky;
+    bottom: 0;
+    background-color: var(--floater-background-color);
+    padding-top: 1em;
+
+    /* flex parent */
+    display: flex;
+    justify-content: flex-end;
+}

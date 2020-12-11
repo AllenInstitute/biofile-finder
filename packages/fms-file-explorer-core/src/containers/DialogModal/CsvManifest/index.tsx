@@ -1,19 +1,12 @@
-import { Dialog, DialogFooter, PrimaryButton } from "@fluentui/react";
+import { PrimaryButton } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { DialogModalProps } from "..";
+import BaseModal from "../BaseModal";
 import { interaction, metadata } from "../../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import AnnotationSelector from "../../../components/AnnotationSelector";
-
-const DIALOG_CONTENT_PROPS = {
-    title: "Download CSV Manifest",
-    subText: "Select which annotations you would like included as columns in the downloaded CSV",
-};
-const MODAL_PROPS = {
-    isBlocking: false,
-};
 
 const TOP_LEVEL_FILE_ANNOTATION_SET = new Set(TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName));
 
@@ -50,21 +43,25 @@ export default function CsvManifest({ onDismiss }: DialogModalProps) {
         dispatch(interaction.actions.downloadManifest(columnAnnotations));
     };
 
-    return (
-        <Dialog
-            hidden={false}
-            onDismiss={onDismiss}
-            dialogContentProps={DIALOG_CONTENT_PROPS}
-            modalProps={MODAL_PROPS}
-        >
+    const body = (
+        <>
+            <p>Select which annotations you would like included as columns in the downloaded CSV</p>
             <AnnotationSelector
                 annotations={columns}
                 annotationOptions={annotationNames}
                 setAnnotations={setColumns}
             />
-            <DialogFooter>
+        </>
+    );
+
+    return (
+        <BaseModal
+            body={body}
+            footer={
                 <PrimaryButton disabled={!columns.length} onClick={onDownload} text="Download" />
-            </DialogFooter>
-        </Dialog>
+            }
+            onDismiss={onDismiss}
+            title="Download CSV Manifest"
+        />
     );
 }

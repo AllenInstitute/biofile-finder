@@ -11,11 +11,6 @@
     justify-content: space-between;
 }
 
-.label {
-    margin: auto;
-    margin-left: 0;
-}
-
 .copy-button, .copy-button:hover {
     color: #827aa3;
     float: right;

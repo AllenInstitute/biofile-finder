@@ -1,17 +1,13 @@
-import { Dialog, IconButton, TooltipHost } from "@fluentui/react";
+import { IconButton, TooltipHost } from "@fluentui/react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 import SyntaxHighlighter from "react-syntax-highlighter";
 
 import { DialogModalProps } from "..";
 import { interaction } from "../../../state";
+import BaseModal from "../BaseModal";
 
 const styles = require("./PythonSnippet.module.css");
-
-const MODAL_PROPS = {
-    containerClassName: styles.dialog,
-    isBlocking: false,
-};
 
 const COPY_ICON = { iconName: "copy" };
 
@@ -39,10 +35,10 @@ export default function PythonSnippet({ onDismiss }: DialogModalProps) {
         setCodeCopied(true);
     };
 
-    return (
-        <Dialog hidden={false} onDismiss={onDismiss} modalProps={MODAL_PROPS}>
+    const body = (
+        <>
             <div className={styles.header}>
-                <span className={styles.label}>Setup</span>
+                <h4>Setup</h4>
                 <TooltipHost content={isSetupCopied ? "Copied to clipboard!" : undefined}>
                     <IconButton
                         className={styles.copyButton}
@@ -53,7 +49,7 @@ export default function PythonSnippet({ onDismiss }: DialogModalProps) {
             </div>
             <SyntaxHighlighter language="bash">{setup || ""}</SyntaxHighlighter>
             <div className={styles.header}>
-                <span className={styles.label}>Code</span>
+                <h4>Code</h4>
                 <TooltipHost content={isCodeCopied ? "Copied to clipboard!" : undefined}>
                     <IconButton
                         className={styles.copyButton}
@@ -63,6 +59,8 @@ export default function PythonSnippet({ onDismiss }: DialogModalProps) {
                 </TooltipHost>
             </div>
             <SyntaxHighlighter language="python">{code || ""}</SyntaxHighlighter>
-        </Dialog>
+        </>
     );
+
+    return <BaseModal body={body} isModeless={true} onDismiss={onDismiss} title="Python snippet" />;
 }

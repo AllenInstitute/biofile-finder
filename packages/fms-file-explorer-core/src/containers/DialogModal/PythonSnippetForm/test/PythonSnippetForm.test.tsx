@@ -45,7 +45,7 @@ describe("<PythonSnippetForm />", () => {
             const oneDayExpirationOption = getByText("1 Day");
             fireEvent.click(oneDayExpirationOption);
 
-            const datasetNameInput = getByPlaceholderText("Enter Dataset Name...");
+            const datasetNameInput = getByPlaceholderText("Enter dataset name...");
             fireEvent.change(datasetNameInput, { target: { value: dataset } });
 
             const generateButton = getByText("Generate");
@@ -109,7 +109,7 @@ describe("<PythonSnippetForm />", () => {
             const dataset = "My Cool Dataset";
 
             // Act
-            const datasetNameInput = getByPlaceholderText("Enter Dataset Name...");
+            const datasetNameInput = getByPlaceholderText("Enter dataset name...");
             fireEvent.change(datasetNameInput, { target: { value: dataset } });
 
             const generateButton = getByText("Generate");
