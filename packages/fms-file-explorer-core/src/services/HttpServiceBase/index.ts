@@ -145,6 +145,18 @@ export default class HttpServiceBase {
         return new RestServiceResponse(cachedResponseData);
     }
 
+    /**
+     * Same as HttpServiceBase::get, but without an attempt at caching successful responses
+     * or returning data from the cache.
+     */
+    public async getWithoutCaching<T>(url: string): Promise<RestServiceResponse<T>> {
+        const encodedUrl = HttpServiceBase.encodeURI(url);
+        console.log(`Sanitized ${url} to ${encodedUrl}`);
+
+        const response = await retry.execute(() => this.httpClient.get(encodedUrl));
+        return new RestServiceResponse(response.data);
+    }
+
     public async post<T>(url: string, body: string): Promise<RestServiceResponse<T>> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
         console.log(`Sanitized ${url} to ${encodedUrl}`);

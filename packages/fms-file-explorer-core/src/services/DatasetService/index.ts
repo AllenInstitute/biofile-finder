@@ -53,13 +53,14 @@ export default class DatasetService extends HttpServiceBase {
     }
 
     /**
-     * Requests for all datasets in the FMS MongoDB dataset collection
+     * Requests for all available (e.g., non-expired) datasets.
      */
     public async getDatasets(): Promise<Dataset[]> {
         const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}`;
         console.log(`Requesting all datasets from the following url: ${requestUrl}`);
 
-        const response = await this.get<Dataset>(requestUrl);
+        // This data should never be stale, so, avoid using a response cache
+        const response = await this.getWithoutCaching<Dataset>(requestUrl);
 
         return response.data;
     }
