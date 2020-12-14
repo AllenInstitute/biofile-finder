@@ -1,22 +1,15 @@
-import { castArray, find, isNil } from "lodash";
+import { find, isNil } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
-import ListPicker from "./ListPicker";
+import ListPicker, { ListItem } from "../../components/ListPicker";
 import { interaction, metadata, selection } from "../../state";
 import useAnnotationValues from "./useAnnotationValues";
-import { AnnotationValue } from "../../services/AnnotationService";
 
 interface AnnotationFilterFormProps {
     annotationName: string;
-}
-
-export interface FilterItem {
-    checked: boolean;
-    displayValue: AnnotationValue;
-    value: AnnotationValue;
 }
 
 /**
@@ -42,7 +35,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         [annotations, annotationName]
     );
 
-    const items = React.useMemo<FilterItem[]>(() => {
+    const items = React.useMemo<ListItem[]>(() => {
         const appliedFilters = fileFilters
             .filter((filter) => filter.name === annotation?.name)
             .map((filter) => filter.value);
@@ -54,30 +47,33 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         }));
     }, [annotation, annotationValues, fileFilters]);
 
-    const onDeselect = (value: AnnotationValue | AnnotationValue[]) => {
-        const filters = castArray(value).map(
-            (annotationValue) =>
+    const onDeselectAll = () => {
+        const filters = items.map(
+            (item) =>
                 new FileFilter(
                     annotationName,
-                    isNil(annotation?.valueOf(annotationValue))
-                        ? annotationValue
-                        : annotation?.valueOf(annotationValue)
+                    isNil(annotation?.valueOf(item.value))
+                        ? item.value
+                        : annotation?.valueOf(item.value)
                 )
         );
         dispatch(selection.actions.removeFileFilter(filters));
     };
 
-    const onSelect = (value: AnnotationValue | AnnotationValue[]) => {
-        const filters = castArray(value).map(
-            (annotationValue) =>
-                new FileFilter(
-                    annotationName,
-                    isNil(annotation?.valueOf(annotationValue))
-                        ? annotationValue
-                        : annotation?.valueOf(annotationValue)
-                )
+    const onDeselect = (item: ListItem) => {
+        const fileFilter = new FileFilter(
+            annotationName,
+            isNil(annotation?.valueOf(item.value)) ? item.value : annotation?.valueOf(item.value)
         );
-        dispatch(selection.actions.addFileFilter(filters));
+        dispatch(selection.actions.removeFileFilter(fileFilter));
+    };
+
+    const onSelect = (item: ListItem) => {
+        const fileFilter = new FileFilter(
+            annotationName,
+            isNil(annotation?.valueOf(item.value)) ? item.value : annotation?.valueOf(item.value)
+        );
+        dispatch(selection.actions.addFileFilter(fileFilter));
     };
 
     // TODO, return different pickers based on annotation type
@@ -86,6 +82,15 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         case AnnotationType.STRING:
         // prettier-ignore
         default: // FALL-THROUGH
-            return <ListPicker items={items} loading={isLoading} errorMessage={errorMessage} onDeselect={onDeselect} onSelect={onSelect} />;
+            return (
+                <ListPicker
+                    items={items}
+                    loading={isLoading}
+                    errorMessage={errorMessage}
+                    onDeselect={onDeselect}
+                    onDeselectAll={onDeselectAll}
+                    onSelect={onSelect}
+                />
+            );
     }
 }

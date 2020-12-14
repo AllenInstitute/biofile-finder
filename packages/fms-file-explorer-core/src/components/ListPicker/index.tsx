@@ -1,18 +1,25 @@
-import Fuse from "fuse.js";
 import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "@fluentui/react";
+import Fuse from "fuse.js";
+import { noop } from "lodash";
 import * as React from "react";
 
-import { FilterItem } from ".";
 import { AnnotationValue } from "../../services/AnnotationService";
 
 const styles = require("./ListPicker.module.css");
 
+export interface ListItem {
+    checked: boolean;
+    displayValue: AnnotationValue;
+    value: AnnotationValue;
+}
+
 interface ListPickerProps {
     errorMessage: string | undefined;
-    items: FilterItem[];
+    items: ListItem[];
     loading: boolean;
-    onDeselect: (value: AnnotationValue | AnnotationValue[]) => void;
-    onSelect: (value: AnnotationValue | AnnotationValue[]) => void;
+    onDeselect: (item: ListItem) => void;
+    onDeselectAll?: () => void;
+    onSelect: (item: ListItem) => void;
 }
 
 const FUZZY_SEARCH_OPTIONS = {
@@ -43,17 +50,9 @@ const SEARCH_BOX_STYLE_OVERRIDES = {
  * It is best suited for selecting items that are strings.
  */
 export default function ListPicker(props: ListPickerProps) {
-    const { errorMessage, items, loading, onDeselect, onSelect } = props;
+    const { errorMessage, items, loading, onDeselect, onDeselectAll, onSelect } = props;
 
     const [searchValue, setSearchValue] = React.useState("");
-
-    const onFilterStateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.checked) {
-            onSelect(event.target.value);
-        } else {
-            onDeselect(event.target.value);
-        }
-    };
 
     const onSearchBoxChange = (event?: React.ChangeEvent<HTMLInputElement>) => {
         // bizzarely necessary because of typings on SearchBox
@@ -95,7 +94,7 @@ export default function ListPicker(props: ListPickerProps) {
                 <ActionButton
                     ariaLabel="Reset"
                     className={styles.actionButton}
-                    onClick={() => onDeselect(items.map((item) => item.value))}
+                    onClick={onDeselectAll}
                 >
                     Reset
                 </ActionButton>
@@ -115,7 +114,13 @@ export default function ListPicker(props: ListPickerProps) {
                                 value={String(item.value)}
                                 checked={item.checked}
                                 aria-checked={item.checked}
-                                onChange={onFilterStateChange}
+                                onChange={(event) => {
+                                    if (event.target.checked) {
+                                        onSelect(item);
+                                    } else {
+                                        onDeselect(item);
+                                    }
+                                }}
                             />
                             {item.displayValue}
                         </label>
@@ -125,3 +130,7 @@ export default function ListPicker(props: ListPickerProps) {
         </div>
     );
 }
+
+ListPicker.defaultProps = {
+    onDeselectAll: noop,
+};

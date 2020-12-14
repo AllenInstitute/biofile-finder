@@ -1,13 +1,16 @@
 .container {
+    --spacing: 0.5rem;
+
     overflow: auto;
     max-height: 300px;
-    padding: 0.5rem;
+    padding: 0 var(--spacing) var(--spacing) var(--spacing);
+    margin-top: var(--spacing);
 }
 
 .header {
     position: sticky;
     top: 0;
-    padding-bottom: 0.5rem;
+    padding-bottom: var(--spacing);
     width: 100%;
     background: rgba(255, 255, 255, 0.85);
 }
@@ -24,9 +27,11 @@
     flex-direction: row;
     align-content: center;
     font-size: 16px;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--spacing);
+    cursor: pointer;
 }
 
 .checkbox {
-    margin-right: 0.5rem;
+    margin-right: var(--spacing);
+    cursor: pointer;
 }
