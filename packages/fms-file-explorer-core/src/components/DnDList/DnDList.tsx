@@ -53,10 +53,10 @@ export default function DnDList(props: DnDListProps) {
                         props.className
                     )}
                 >
-                    {items.reduce((items, item, index) => {
+                    {items.reduce((accum, item, index) => {
                         const disabled = loading || item.disabled;
                         return [
-                            ...items,
+                            ...accum,
                             ...(dividers && dividers[index] ? [dividers[index]] : []),
                             <Draggable
                                 key={item.id}
