@@ -59,9 +59,13 @@ export default function AnnotationList(props: AnnotationListProps) {
             dispatch(selection.actions.removeFileFilter(filters));
         };
         dividers = {
-            [0]: <div className={styles.dividerTitle}>Filtered</div>,
+            [0]: (
+                <div key="start-filtered-items-divider" className={styles.dividerTitle}>
+                    Filtered
+                </div>
+            ),
             [firstDefaultItemIndex]: (
-                <div>
+                <div key="end-filtered-items-divider">
                     <div className={styles.buttonContainer}>
                         <button className={styles.clearFiltersButton} onClick={onClearFilters}>
                             CLEAR ALL FILTERS
