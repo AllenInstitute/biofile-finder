@@ -14,9 +14,9 @@ export interface ListItem {
 }
 
 interface ListPickerProps {
-    errorMessage: string | undefined;
+    errorMessage?: string;
     items: ListItem[];
-    loading: boolean;
+    loading?: boolean;
     onDeselect: (item: ListItem) => void;
     onDeselectAll?: () => void;
     onSelect: (item: ListItem) => void;
@@ -82,8 +82,17 @@ export default function ListPicker(props: ListPickerProps) {
         );
     }
 
+    const batchActions = [];
+    if (onDeselectAll) {
+        batchActions.push(
+            <ActionButton ariaLabel="Reset" className={styles.actionButton} onClick={onDeselectAll}>
+                Reset
+            </ActionButton>
+        );
+    }
+
     return (
-        <div className={styles.container} data-is-scrollable="true">
+        <div className={styles.container} data-is-scrollable="true" data-is-focusable="true">
             <div className={styles.header}>
                 <SearchBox
                     className={styles.searchBox}
@@ -91,13 +100,7 @@ export default function ListPicker(props: ListPickerProps) {
                     onClear={() => setSearchValue("")}
                     styles={SEARCH_BOX_STYLE_OVERRIDES}
                 />
-                <ActionButton
-                    ariaLabel="Reset"
-                    className={styles.actionButton}
-                    onClick={onDeselectAll}
-                >
-                    Reset
-                </ActionButton>
+                {...batchActions}
             </div>
             <List
                 getKey={(item) => String(item.value)}
@@ -130,7 +133,3 @@ export default function ListPicker(props: ListPickerProps) {
         </div>
     );
 }
-
-ListPicker.defaultProps = {
-    onDeselectAll: noop,
-};
