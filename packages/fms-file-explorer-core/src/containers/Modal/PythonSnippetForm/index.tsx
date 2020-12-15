@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import {
     ChoiceGroup,
     DefaultButton,
@@ -7,19 +6,21 @@ import {
     PrimaryButton,
     TextField,
 } from "@fluentui/react";
+import classNames from "classnames";
+import { isEmpty } from "lodash";
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { batch, useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
-import { interaction, metadata } from "../../../state";
+import BaseModal from "../BaseModal/BaseModal";
+import Annotation from "../../../entity/Annotation";
+import { interaction } from "../../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
-import AnnotationSelector from "../../../components/AnnotationSelector";
+import AnnotationSelector from "../AnnotationSelector";
+import * as modalSelectors from "../selectors";
 import { Dataset } from "../../../services/DatasetService";
-import BaseModal from "../BaseModal";
 
 const styles = require("./PythonSnippetForm.module.css");
-
-const TOP_LEVEL_FILE_ANNOTATION_NAMES = TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName);
 
 export enum Expiration {
     OneDay = "1 Day",
@@ -45,20 +46,23 @@ const DATASET_SUBTITLES = [
  */
 export default function PythonSnippetForm({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
-    const customAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
-    const columnsSavedFromLastTime = useSelector(interaction.selectors.getCsvColumns);
-    const datasetService = useSelector(interaction.selectors.getDatasetService);
 
-    const defaultAnnotations = columnsSavedFromLastTime
-        ? columnsSavedFromLastTime
-        : [...TOP_LEVEL_FILE_ANNOTATION_NAMES];
-    const [annotations, setAnnotations] = React.useState<string[]>(defaultAnnotations);
+    const annotationsPreviouslySelected = useSelector(
+        modalSelectors.getAnnotationsPreviouslySelected
+    );
+    const [selectedAnnotations, setSelectedAnnotations] = React.useState<Annotation[]>(() =>
+        isEmpty(annotationsPreviouslySelected)
+            ? [...TOP_LEVEL_FILE_ANNOTATIONS]
+            : annotationsPreviouslySelected
+    );
+
     const [expiration, setExpiration] = React.useState<string>();
     const [dataset, setDataset] = React.useState<string>("");
     const [existingDatasets, setExistingDatasets] = React.useState<Dataset[]>([]);
     const [isDatasetSubtitleExpanded, setIsDatasetSubtitleExpanded] = React.useState(true);
 
     // Determine the existing datasets to provide some feedback on the input dataset (if any)
+    const datasetService = useSelector(interaction.selectors.getDatasetService);
     React.useEffect(() => {
         const getDatasets = async () => {
             const datasets = await datasetService.getDatasets();
@@ -66,11 +70,6 @@ export default function PythonSnippetForm({ onDismiss }: ModalProps) {
         };
         getDatasets();
     }, [datasetService]);
-
-    const annotationOptions = React.useMemo(
-        () => [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations].map((a) => a.displayName),
-        [customAnnotations]
-    );
 
     // Datasets can have the same name with different versions, see if this would
     // need to be a new version based on the name
@@ -85,7 +84,6 @@ export default function PythonSnippetForm({ onDismiss }: ModalProps) {
     }, [dataset, existingDatasets]);
 
     const onGenerate = () => {
-        dispatch(interaction.actions.setCsvColumns(annotations));
         let expirationDate: Date | undefined = new Date();
         if (expiration === Expiration.OneDay) {
             expirationDate.setDate(expirationDate.getDate() + 1);
@@ -100,13 +98,19 @@ export default function PythonSnippetForm({ onDismiss }: ModalProps) {
         } else {
             expirationDate = undefined;
         }
-        const annotationDisplayNameSet = new Set(annotations);
-        const annotationNames = [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations]
-            .filter((a) => annotationDisplayNameSet.has(a.displayName))
-            .map((a) => a.name);
-        dispatch(
-            interaction.actions.generatePythonSnippet(dataset, annotationNames, expirationDate)
-        );
+
+        batch(() => {
+            dispatch(
+                interaction.actions.setCsvColumns(
+                    selectedAnnotations.map((annotation) => annotation.displayName)
+                )
+            );
+
+            const annotationNames = selectedAnnotations.map((annotation) => annotation.name);
+            dispatch(
+                interaction.actions.generatePythonSnippet(dataset, annotationNames, expirationDate)
+            );
+        });
     };
 
     const body = (
@@ -170,9 +174,8 @@ export default function PythonSnippetForm({ onDismiss }: ModalProps) {
             <p>Select which annotations you would like included as columns in the dataframe.</p>
             <AnnotationSelector
                 className={styles.form}
-                annotations={annotations}
-                annotationOptions={annotationOptions}
-                setAnnotations={setAnnotations}
+                selections={selectedAnnotations}
+                setSelections={setSelectedAnnotations}
             />
         </>
     );
@@ -183,7 +186,7 @@ export default function PythonSnippetForm({ onDismiss }: ModalProps) {
             footer={
                 <PrimaryButton
                     text="Generate"
-                    disabled={!annotations.length || !dataset || !expiration}
+                    disabled={!selectedAnnotations.length || !dataset || !expiration}
                     onClick={onGenerate}
                 />
             }

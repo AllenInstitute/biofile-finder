@@ -1,14 +1,15 @@
 import { PrimaryButton } from "@fluentui/react";
+import { isEmpty } from "lodash";
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { batch, useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
-import BaseModal from "../BaseModal";
-import { interaction, metadata } from "../../../state";
+import BaseModal from "../BaseModal/BaseModal";
+import AnnotationSelector from "../AnnotationSelector";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
-import AnnotationSelector from "../../../components/AnnotationSelector";
-
-const TOP_LEVEL_FILE_ANNOTATION_SET = new Set(TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName));
+import Annotation from "../../../entity/Annotation";
+import * as modalSelectors from "../selectors";
+import { interaction } from "../../../state";
 
 /**
  * Modal overlay for selecting columns to be included in a CSV manifest download of
@@ -16,40 +17,38 @@ const TOP_LEVEL_FILE_ANNOTATION_SET = new Set(TOP_LEVEL_FILE_ANNOTATIONS.map((a)
  */
 export default function CsvManifest({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
-    const customAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
-    const columnsSavedFromLastTime = useSelector(interaction.selectors.getCsvColumns);
 
-    const defaultAnnotations = columnsSavedFromLastTime
-        ? columnsSavedFromLastTime
-        : [...TOP_LEVEL_FILE_ANNOTATION_SET];
-    const [columns, setColumns] = React.useState<string[]>(defaultAnnotations);
-
-    const [annotations, annotationNames] = React.useMemo(() => {
-        const annotations = [...TOP_LEVEL_FILE_ANNOTATIONS, ...customAnnotations];
-        const annotationNames = annotations.map((a) => a.displayName);
-        return [annotations, annotationNames];
-    }, [customAnnotations]);
+    const annotationsPreviouslySelected = useSelector(
+        modalSelectors.getAnnotationsPreviouslySelected
+    );
+    const [selectedAnnotations, setSelectedAnnotations] = React.useState<Annotation[]>(() =>
+        isEmpty(annotationsPreviouslySelected)
+            ? [...TOP_LEVEL_FILE_ANNOTATIONS]
+            : annotationsPreviouslySelected
+    );
 
     const onDownload = () => {
         onDismiss();
-        dispatch(interaction.actions.setCsvColumns(columns));
-        const columnSet = new Set(columns);
-        // Map the annotations to their names (as opposed to their display names)
-        // Top level file attributes as of the moment are automatically included
-        const columnAnnotations = annotations
-            .filter((a) => columnSet.has(a.displayName))
-            .map((a) => a.name);
-
-        dispatch(interaction.actions.downloadManifest(columnAnnotations));
+        batch(() => {
+            dispatch(
+                interaction.actions.setCsvColumns(
+                    selectedAnnotations.map((annotation) => annotation.displayName)
+                )
+            );
+            dispatch(
+                interaction.actions.downloadManifest(
+                    selectedAnnotations.map((annotation) => annotation.name)
+                )
+            );
+        });
     };
 
     const body = (
         <>
             <p>Select which annotations you would like included as columns in the downloaded CSV</p>
             <AnnotationSelector
-                annotations={columns}
-                annotationOptions={annotationNames}
-                setAnnotations={setColumns}
+                selections={selectedAnnotations}
+                setSelections={setSelectedAnnotations}
             />
         </>
     );
@@ -58,7 +57,11 @@ export default function CsvManifest({ onDismiss }: ModalProps) {
         <BaseModal
             body={body}
             footer={
-                <PrimaryButton disabled={!columns.length} onClick={onDownload} text="Download" />
+                <PrimaryButton
+                    disabled={!selectedAnnotations.length}
+                    onClick={onDownload}
+                    text="Download"
+                />
             }
             onDismiss={onDismiss}
             title="Download CSV Manifest"

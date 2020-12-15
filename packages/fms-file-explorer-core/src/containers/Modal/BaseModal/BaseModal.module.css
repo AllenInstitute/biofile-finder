@@ -21,6 +21,7 @@
     position: sticky;
     top: 0;
     background-color: var(--floater-background-color);
+    z-index: 1000; /* float on top of everything*/
 
     /* flex parent */
     display: flex;
@@ -47,6 +48,7 @@
     bottom: 0;
     background-color: var(--floater-background-color);
     padding-top: 1em;
+    z-index: 1000; /* float on top of everything*/
 
     /* flex parent */
     display: flex;
