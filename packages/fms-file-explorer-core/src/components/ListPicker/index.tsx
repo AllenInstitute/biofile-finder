@@ -82,9 +82,9 @@ export default function ListPicker(props: ListPickerProps) {
         );
     }
 
-    const batchActions = [];
+    let resetButton = null;
     if (onDeselectAll) {
-        batchActions.push(
+        resetButton = (
             <ActionButton ariaLabel="Reset" className={styles.actionButton} onClick={onDeselectAll}>
                 Reset
             </ActionButton>
@@ -100,7 +100,7 @@ export default function ListPicker(props: ListPickerProps) {
                     onClear={() => setSearchValue("")}
                     styles={SEARCH_BOX_STYLE_OVERRIDES}
                 />
-                {...batchActions}
+                {resetButton}
             </div>
             <List
                 getKey={(item) => String(item.value)}
