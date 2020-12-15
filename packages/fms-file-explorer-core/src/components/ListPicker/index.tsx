@@ -1,6 +1,5 @@
 import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "@fluentui/react";
 import Fuse from "fuse.js";
-import { noop } from "lodash";
 import * as React from "react";
 
 import { AnnotationValue } from "../../services/AnnotationService";
