@@ -7,7 +7,8 @@ import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import { metadata, selection } from "../../state";
 
 /**
- *
+ * Custom UI rendered by the ContextMenu to select which annotations to use as columns
+ * in the FileList. See the `onContextMenu` handler passed to each `FileRow` in `Header`.
  */
 export default function FileListColumnPicker() {
     const dispatch = useDispatch();
