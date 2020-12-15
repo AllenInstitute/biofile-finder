@@ -4,11 +4,9 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems from "../ContextMenu/items";
-import SelectableAnnotation from "../ContextMenu/SelectableAnnotation";
 import FileRow from "../../components/FileRow";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
-import { interaction, metadata, selection } from "../../state";
-import Annotation from "../../entity/Annotation";
+import { interaction, selection } from "../../state";
+import FileListColumnPicker from "./FileListColumnPicker";
 
 const styles = require("./Header.module.css");
 
@@ -25,7 +23,6 @@ function Header(
 ) {
     const dispatch = useDispatch();
     const columnAnnotations = useSelector(selection.selectors.getOrderedDisplayAnnotations);
-    const sortedAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
     const columnWidths = useSelector(selection.selectors.getColumnWidths);
 
     const onResize = (columnKey: string, nextWidthPercent?: number) => {
@@ -43,22 +40,21 @@ function Header(
     }));
 
     const onHeaderColumnContextMenu = (evt: React.MouseEvent) => {
-        const availableItems = getContextMenuItems(dispatch);
+        const availableContextMenuItem = getContextMenuItems(dispatch);
+
         const items: ContextMenuItem[] = [
             {
-                ...availableItems.MODIFY_COLUMNS,
+                ...availableContextMenuItem.MODIFY_COLUMNS,
                 subMenuProps: {
-                    items: Annotation.sort([
-                        ...TOP_LEVEL_FILE_ANNOTATIONS,
-                        ...sortedAnnotations,
-                    ]).map((a) => ({
-                        key: a.name,
-                        text: a.displayName,
-                        title: a.description,
-                        onRender: function columnSelectorItem() {
-                            return <SelectableAnnotation annotation={a} />;
+                    items: [
+                        {
+                            key: "available-annotations",
+                            text: "Available annotations",
+                            onRender() {
+                                return <FileListColumnPicker />;
+                            },
                         },
-                    })),
+                    ],
                 },
             },
         ];

@@ -61,8 +61,8 @@ export default function getContextMenuItems(dispatch: Dispatch) {
         },
         MODIFY_COLUMNS: {
             key: ContextMenuActions.MODIFY_COLUMNS,
-            text: "Modify Columns",
-            title: "Modify Annotation Columns for File List",
+            text: "Modify columns",
+            title: "Modify columns displayed in the file list",
         },
         PASTE: {
             key: ContextMenuActions.PASTE,
