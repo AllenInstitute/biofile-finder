@@ -104,6 +104,7 @@ export default function ListPicker(props: ListPickerProps) {
             </div>
             <List
                 getKey={(item) => String(item.value)}
+                ignoreScrollingState={true}
                 items={filteredItems}
                 onShouldVirtualize={() => filteredItems.length > 100}
                 onRenderCell={(item) =>
