@@ -6,10 +6,11 @@ import { AnnotationValue } from "../../services/AnnotationService";
 
 const styles = require("./ListPicker.module.css");
 
-export interface ListItem {
+export interface ListItem<T = any> {
     checked: boolean;
     displayValue: AnnotationValue;
     value: AnnotationValue;
+    data?: T; // optional "user data" to stash on a list item to retrieve later
 }
 
 interface ListPickerProps {
