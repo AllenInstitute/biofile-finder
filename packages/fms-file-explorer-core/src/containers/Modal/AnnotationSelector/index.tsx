@@ -35,7 +35,7 @@ export default function AnnotationSelector(props: AnnotationSelectorProps) {
             return Number.POSITIVE_INFINITY;
         });
         return sorted.map((annotation) => ({
-            checked: selections.includes(annotation),
+            selected: selections.includes(annotation),
             displayValue: annotation.displayName,
             value: annotation.name,
             data: annotation,

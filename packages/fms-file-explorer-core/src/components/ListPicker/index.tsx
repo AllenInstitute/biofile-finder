@@ -7,7 +7,7 @@ import { AnnotationValue } from "../../services/AnnotationService";
 const styles = require("./ListPicker.module.css");
 
 export interface ListItem<T = any> {
-    checked: boolean;
+    selected: boolean;
     displayValue: AnnotationValue;
     value: AnnotationValue;
     data?: T; // optional "user data" to stash on a list item to retrieve later
@@ -115,8 +115,8 @@ export default function ListPicker(props: ListPickerProps) {
                                 role="checkbox"
                                 name={String(item.value)}
                                 value={String(item.value)}
-                                checked={item.checked}
-                                aria-checked={item.checked}
+                                checked={item.selected}
+                                aria-checked={item.selected}
                                 onChange={(event) => {
                                     if (event.target.checked) {
                                         onSelect(item);

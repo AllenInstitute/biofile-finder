@@ -19,10 +19,10 @@ export default function FileListColumnPicker() {
     const columnAnnotations = useSelector(selection.selectors.getOrderedDisplayAnnotations);
     const selections = new Set(columnAnnotations.map((annot) => annot.name));
 
-    const items: ListItem[] = allAnnotations.map((annot) => ({
-        checked: selections.has(annot.name),
-        displayValue: annot.displayName,
-        value: annot.name,
+    const items: ListItem[] = allAnnotations.map((annotation) => ({
+        selected: selections.has(annotation.name),
+        displayValue: annotation.displayName,
+        value: annotation.name,
     }));
 
     const onSelect = (item: ListItem) => {

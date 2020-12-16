@@ -41,7 +41,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             .map((filter) => filter.value);
 
         return (annotationValues || []).map((value) => ({
-            checked: appliedFilters.includes(value),
+            selected: appliedFilters.includes(value),
             displayValue: annotation?.getDisplayValue(value) || value,
             value,
         }));
