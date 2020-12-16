@@ -10,6 +10,10 @@ export const getAnnotations = createSelector(
     (annotations) => Annotation.sort([...TOP_LEVEL_FILE_ANNOTATIONS, ...annotations])
 );
 
+/**
+ * Returns Annotation instances for those annotations that were previously used to generate
+ * either a CSV manifest or dataset (via Python snippet generation).
+ */
 export const getAnnotationsPreviouslySelected = createSelector(
     [interactionSelectors.getCsvColumns, getAnnotations],
     (annotationDisplayNames, annotations) => {
