@@ -35,6 +35,13 @@ export default function PythonSnippet({ onDismiss }: ModalProps) {
         setCodeCopied(true);
     };
 
+    // Prevent an event from bubbling up to its parent; useful because Modal will
+    // default to interpreting mousedown/move/up events as intentions to move the modal,
+    // which prevents being able to select text
+    const stopPropagationHandler = (evt: MouseEvent) => {
+        evt.stopPropagation();
+    };
+
     const body = (
         <>
             <div className={styles.header}>
@@ -47,7 +54,15 @@ export default function PythonSnippet({ onDismiss }: ModalProps) {
                     />
                 </TooltipHost>
             </div>
-            <SyntaxHighlighter language="bash">{setup || ""}</SyntaxHighlighter>
+            <SyntaxHighlighter
+                className={styles.code}
+                language="bash"
+                onMouseDown={stopPropagationHandler}
+                onMouseMove={stopPropagationHandler}
+                onMouseUp={stopPropagationHandler}
+            >
+                {setup || ""}
+            </SyntaxHighlighter>
             <div className={styles.header}>
                 <h4>Code</h4>
                 <TooltipHost content={isCodeCopied ? "Copied to clipboard!" : undefined}>
@@ -58,9 +73,17 @@ export default function PythonSnippet({ onDismiss }: ModalProps) {
                     />
                 </TooltipHost>
             </div>
-            <SyntaxHighlighter language="python">{code || ""}</SyntaxHighlighter>
+            <SyntaxHighlighter
+                className={styles.code}
+                language="python"
+                onMouseDown={stopPropagationHandler}
+                onMouseMove={stopPropagationHandler}
+                onMouseUp={stopPropagationHandler}
+            >
+                {code || ""}
+            </SyntaxHighlighter>
         </>
     );
 
-    return <BaseModal body={body} isModeless={true} onDismiss={onDismiss} title="Python snippet" />;
+    return <BaseModal body={body} onDismiss={onDismiss} title="Python snippet" />;
 }

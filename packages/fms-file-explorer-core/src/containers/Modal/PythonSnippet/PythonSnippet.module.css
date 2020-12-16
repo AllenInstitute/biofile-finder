@@ -15,3 +15,8 @@
     color: #827aa3;
     float: right;
 }
+
+.code {
+    cursor: text;
+    user-select: text;
+}
