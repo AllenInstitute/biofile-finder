@@ -24,23 +24,12 @@ export default function AnnotationSelector(props: AnnotationSelectorProps) {
     const { className, selections, setSelections } = props;
 
     const annotations = useSelector(modalSelectors.getAnnotations);
-    const items = React.useMemo(() => {
-        const sorted = sortBy(annotations, (annotation) => {
-            if (selections.includes(annotation)) {
-                // annotation is already properly sorted, so return its position within that list
-                return annotations.indexOf(annotation);
-            }
-
-            // else sort to the end of the list
-            return Number.POSITIVE_INFINITY;
-        });
-        return sorted.map((annotation) => ({
-            selected: selections.includes(annotation),
-            displayValue: annotation.displayName,
-            value: annotation.name,
-            data: annotation,
-        }));
-    }, [annotations, selections]);
+    const items = annotations.map((annotation) => ({
+        selected: selections.includes(annotation),
+        displayValue: annotation.displayName,
+        value: annotation.name,
+        data: annotation,
+    }));
 
     const removeSelection = (item: ListItem<Annotation>) => {
         setSelections(selections.filter((annotation) => annotation !== item.data));
