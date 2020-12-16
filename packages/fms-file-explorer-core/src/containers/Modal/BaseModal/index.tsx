@@ -7,7 +7,6 @@ const styles = require("./BaseModal.module.css");
 interface BaseModalProps {
     body: React.ReactNode;
     footer?: React.ReactNode;
-    isModeless?: boolean;
     onDismiss?: () => void;
     title?: string;
 }
@@ -29,14 +28,13 @@ const ICON_STYLES = {
  * for plugging content into.
  */
 export default function BaseModal(props: BaseModalProps) {
-    const { body, footer, isModeless, title, onDismiss } = props;
+    const { body, footer, title, onDismiss } = props;
 
     const titleId = "base-modal-title";
     return (
         <Modal
             containerClassName={styles.container}
             dragOptions={DRAG_OPTIONS}
-            isModeless={isModeless}
             isOpen={true}
             scrollableContentClassName={styles.scrollableContainer}
             titleAriaId={titleId}
