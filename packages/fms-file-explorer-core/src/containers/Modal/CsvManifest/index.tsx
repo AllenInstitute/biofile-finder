@@ -4,7 +4,7 @@ import * as React from "react";
 import { batch, useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
-import BaseModal from "../BaseModal/BaseModal";
+import BaseModal from "../BaseModal";
 import AnnotationSelector from "../AnnotationSelector";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import Annotation from "../../../entity/Annotation";

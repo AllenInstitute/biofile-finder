@@ -5,7 +5,7 @@ import SyntaxHighlighter from "react-syntax-highlighter";
 
 import { ModalProps } from "..";
 import { interaction } from "../../../state";
-import BaseModal from "../BaseModal/BaseModal";
+import BaseModal from "../BaseModal";
 
 const styles = require("./PythonSnippet.module.css");
 
