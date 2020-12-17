@@ -1,12 +1,10 @@
 import { DefaultButton } from "@fluentui/react";
-import { sortBy } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import ListPicker, { ListItem } from "../../../components/ListPicker";
-import * as modalSelectors from "../selectors";
+import { metadata } from "../../../state";
 
 const styles = require("./AnnotationSelector.module.css");
 
@@ -23,7 +21,9 @@ interface AnnotationSelectorProps {
 export default function AnnotationSelector(props: AnnotationSelectorProps) {
     const { className, selections, setSelections } = props;
 
-    const annotations = useSelector(modalSelectors.getAnnotations);
+    const annotations = useSelector(
+        metadata.selectors.getCustomAnnotationsCombinedWithFileAttributes
+    );
     const items = annotations.map((annotation) => ({
         selected: selections.includes(annotation),
         displayValue: annotation.displayName,

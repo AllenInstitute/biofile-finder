@@ -1,9 +1,7 @@
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
-import Annotation from "../../entity/Annotation";
 import ListPicker, { ListItem } from "../../components/ListPicker";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import { metadata, selection } from "../../state";
 
 /**
@@ -13,8 +11,9 @@ import { metadata, selection } from "../../state";
 export default function FileListColumnPicker() {
     const dispatch = useDispatch();
 
-    const sortedAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
-    const allAnnotations = Annotation.sort([...TOP_LEVEL_FILE_ANNOTATIONS, ...sortedAnnotations]);
+    const allAnnotations = useSelector(
+        metadata.selectors.getCustomAnnotationsCombinedWithFileAttributes
+    );
 
     const columnAnnotations = useSelector(selection.selectors.getOrderedDisplayAnnotations);
     const selections = new Set(columnAnnotations.map((annot) => annot.name));
