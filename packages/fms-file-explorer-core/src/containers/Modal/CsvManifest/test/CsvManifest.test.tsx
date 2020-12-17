@@ -106,8 +106,7 @@ describe("<CsvManifest />", () => {
         // Assert
         expect(
             actions.includesMatch({
-                type: interaction.actions.SET_CSV_COLUMNS,
-                payload: TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName),
+                type: interaction.actions.DOWNLOAD_MANIFEST,
             })
         ).to.be.true;
         expect(downloadTriggered).to.be.true;

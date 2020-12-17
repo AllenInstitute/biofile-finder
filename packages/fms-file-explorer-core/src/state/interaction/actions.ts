@@ -1,14 +1,15 @@
 import { makeConstant } from "@aics/redux-utils";
 
-import { ModalType } from "../../containers/Modal";
-import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
+import Annotation from "../../entity/Annotation";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
+import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
 import { PythonicDataAccessSnippet } from "../../services/DatasetService";
 import ExecutionEnvService from "../../services/ExecutionEnvService";
 import FileDownloadService from "../../services/FileDownloadService";
-import PersistentConfigService from "../../services/PersistentConfigService";
-import FileViewerService from "../../services/FileViewerService";
 import FileFilter from "../../entity/FileFilter";
+import FileViewerService from "../../services/FileViewerService";
+import { ModalType } from "../../containers/Modal";
+import PersistentConfigService from "../../services/PersistentConfigService";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -19,15 +20,15 @@ export const DOWNLOAD_MANIFEST = makeConstant(STATE_BRANCH_NAME, "download-manif
 
 export interface DownloadManifestAction {
     payload: {
-        columns: string[];
+        annotations: Annotation[];
     };
     type: string;
 }
 
-export function downloadManifest(columns: string[]): DownloadManifestAction {
+export function downloadManifest(annotations: Annotation[]): DownloadManifestAction {
     return {
         payload: {
-            columns,
+            annotations,
         },
         type: DOWNLOAD_MANIFEST,
     };
@@ -570,13 +571,13 @@ export interface GeneratePythonSnippetAction {
     payload: {
         dataset: string;
         expiration?: Date;
-        annotations: string[];
+        annotations: Annotation[];
     };
 }
 
 export function generatePythonSnippet(
     dataset: string,
-    annotations: string[],
+    annotations: Annotation[],
     expiration?: Date
 ): GeneratePythonSnippetAction {
     return {

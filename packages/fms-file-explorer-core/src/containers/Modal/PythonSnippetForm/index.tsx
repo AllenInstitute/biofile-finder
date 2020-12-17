@@ -9,7 +9,7 @@ import {
 import classNames from "classnames";
 import { isEmpty } from "lodash";
 import * as React from "react";
-import { batch, useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
@@ -99,18 +99,9 @@ export default function PythonSnippetForm({ onDismiss }: ModalProps) {
             expirationDate = undefined;
         }
 
-        batch(() => {
-            dispatch(
-                interaction.actions.setCsvColumns(
-                    selectedAnnotations.map((annotation) => annotation.displayName)
-                )
-            );
-
-            const annotationNames = selectedAnnotations.map((annotation) => annotation.name);
-            dispatch(
-                interaction.actions.generatePythonSnippet(dataset, annotationNames, expirationDate)
-            );
-        });
+        dispatch(
+            interaction.actions.generatePythonSnippet(dataset, selectedAnnotations, expirationDate)
+        );
     };
 
     const body = (

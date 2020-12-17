@@ -1,7 +1,7 @@
 import { PrimaryButton } from "@fluentui/react";
 import { isEmpty } from "lodash";
 import * as React from "react";
-import { batch, useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
@@ -29,18 +29,7 @@ export default function CsvManifest({ onDismiss }: ModalProps) {
 
     const onDownload = () => {
         onDismiss();
-        batch(() => {
-            dispatch(
-                interaction.actions.setCsvColumns(
-                    selectedAnnotations.map((annotation) => annotation.displayName)
-                )
-            );
-            dispatch(
-                interaction.actions.downloadManifest(
-                    selectedAnnotations.map((annotation) => annotation.name)
-                )
-            );
-        });
+        dispatch(interaction.actions.downloadManifest(selectedAnnotations));
     };
 
     const body = (

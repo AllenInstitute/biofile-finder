@@ -9,6 +9,7 @@ import fs from "fs";
 import os from "os";
 import { createSandbox } from "sinon";
 
+import { initialState, interaction, selection } from "../..";
 import {
     downloadManifest,
     ProcessStatus,
@@ -20,18 +21,22 @@ import {
     SET_IMAGE_J_LOCATION,
     generatePythonSnippet,
     SUCCEED_PYTHON_SNIPPET_GENERATION,
+    SET_CSV_COLUMNS,
 } from "../actions";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
+import DatasetService from "../../../services/DatasetService";
+import ExecutionEnvService, {
+    ExecutableEnvCancellationToken,
+} from "../../../services/ExecutionEnvService";
 import interactionLogics from "../logics";
-import { initialState, interaction, selection } from "../..";
+import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
+import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import FileFilter from "../../../entity/FileFilter";
 import FileSelection from "../../../entity/FileSelection";
 import FileService from "../../../services/FileService";
 import FileSet from "../../../entity/FileSet";
+import FileViewerService from "../../../services/FileViewerService";
 import NumericRange from "../../../entity/NumericRange";
-import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
-import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
-import { ExecutionEnvService, ExecutableEnvCancellationToken, FileViewerService } from "../../..";
-import DatasetService from "../../../services/DatasetService";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({
@@ -265,6 +270,35 @@ describe("Interaction logics", () => {
                 })
             ).to.equal(true);
         });
+
+        it("updates annotations to persist for the next time a user opens a selection action modal", async () => {
+            // arrange
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: new FileDownloadServiceNoop(),
+                    },
+                },
+                selection: {
+                    fileSelection,
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // act
+            store.dispatch(downloadManifest([]));
+            await logicMiddleware.whenComplete();
+
+            // assert
+            expect(
+                actions.includesMatch({
+                    type: SET_CSV_COLUMNS,
+                })
+            ).to.equal(true);
+        });
     });
 
     describe("cancelManifestDownloadLogic", () => {
@@ -430,7 +464,7 @@ describe("Interaction logics", () => {
             });
 
             // Act
-            const action = generatePythonSnippet("My name", ["Cell Line"], new Date());
+            const action = generatePythonSnippet("My name", TOP_LEVEL_FILE_ANNOTATIONS, new Date());
             store.dispatch(action);
             await logicMiddleware.whenComplete();
 

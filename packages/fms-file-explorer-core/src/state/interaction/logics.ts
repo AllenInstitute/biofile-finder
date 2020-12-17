@@ -6,6 +6,7 @@ import { createLogic } from "redux-logic";
 import { ReduxLogicDeps, selection } from "../";
 import {
     DOWNLOAD_MANIFEST,
+    DownloadManifestAction,
     succeedManifestDownload,
     failManifestDownload,
     removeStatus,
@@ -16,7 +17,9 @@ import {
     OPEN_FILES_IN_IMAGE_J,
     setImageJLocation,
     setAllenMountPoint,
+    setCsvColumns,
     GENERATE_PYTHON_SNIPPET,
+    GeneratePythonSnippetAction,
     startPythonSnippetGeneration,
     succeedPythonSnippetGeneration,
     failPythonSnippetGeneration,
@@ -36,11 +39,13 @@ import { ExecutableEnvCancellationToken } from "../../services/ExecutionEnvServi
 const downloadManifest = createLogic({
     type: DOWNLOAD_MANIFEST,
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { action, getState } = deps;
+        const {
+            payload: { annotations },
+        } = deps.action as DownloadManifestAction;
         const manifestDownloadProcessId = uniqueId();
 
         try {
-            const state = getState();
+            const state = deps.getState();
             const applicationVersion = interactionSelectors.getApplicationVersion(state);
             const baseUrl = interactionSelectors.getFileExplorerServiceBaseUrl(state);
             const platformDependentServices = interactionSelectors.getPlatformDependentServices(
@@ -96,7 +101,7 @@ const downloadManifest = createLogic({
             );
 
             const selectionRequest: SelectionRequest = {
-                annotations: action.payload.columns,
+                annotations: annotations.map((annotation) => annotation.name),
                 selections,
             };
             const message = await csvService.downloadCsv(
@@ -115,6 +120,7 @@ const downloadManifest = createLogic({
             const errorMsg = `Download of CSV manifest failed.<br/>${err}`;
             dispatch(failManifestDownload(manifestDownloadProcessId, errorMsg));
         } finally {
+            dispatch(setCsvColumns(annotations.map((annotation) => annotation.displayName)));
             done();
         }
     },
@@ -238,7 +244,7 @@ const generatePythonSnippet = createLogic({
         const { action, getState } = deps;
         const {
             payload: { dataset, expiration, annotations },
-        } = action;
+        } = action as GeneratePythonSnippetAction;
         const generatePythonSnippetProcessId = uniqueId();
         try {
             dispatch(startPythonSnippetGeneration(generatePythonSnippetProcessId));
@@ -270,7 +276,7 @@ const generatePythonSnippet = createLogic({
                 selections = [selection];
             }
             const request: CreateDatasetRequest = {
-                annotations,
+                annotations: annotations.map((annotation) => annotation.name),
                 expiration,
                 name: dataset,
                 selections,
@@ -284,11 +290,12 @@ const generatePythonSnippet = createLogic({
             dispatch(
                 failPythonSnippetGeneration(
                     generatePythonSnippetProcessId,
-                    `Failed to generate python snippet: ${err}`
+                    `Failed to generate Python snippet: ${err}`
                 )
             );
         }
 
+        dispatch(setCsvColumns(annotations.map((annotation) => annotation.displayName)));
         done();
     },
 });

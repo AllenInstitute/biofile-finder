@@ -8,7 +8,7 @@ import Modal, { ModalType } from "../..";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import { initialState } from "../../../../state";
-import { GENERATE_PYTHON_SNIPPET, SET_CSV_COLUMNS } from "../../../../state/interaction/actions";
+import { GENERATE_PYTHON_SNIPPET } from "../../../../state/interaction/actions";
 
 describe("<PythonSnippetForm />", () => {
     const visibleDialogState = mergeState(initialState, {
@@ -54,16 +54,10 @@ describe("<PythonSnippetForm />", () => {
             // Assert
             expect(
                 actions.includesMatch({
-                    type: SET_CSV_COLUMNS,
-                    payload: TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName),
-                })
-            ).to.be.true;
-            expect(
-                actions.includesMatch({
                     type: GENERATE_PYTHON_SNIPPET,
                     payload: {
                         dataset,
-                        annotations: TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.name),
+                        annotations: TOP_LEVEL_FILE_ANNOTATIONS,
                     },
                 })
             ).to.be.true;
@@ -86,11 +80,6 @@ describe("<PythonSnippetForm />", () => {
             fireEvent.click(generateButton);
 
             // Assert
-            expect(
-                actions.includesMatch({
-                    type: SET_CSV_COLUMNS,
-                })
-            ).to.be.false;
             expect(
                 actions.includesMatch({
                     type: GENERATE_PYTHON_SNIPPET,
@@ -116,11 +105,6 @@ describe("<PythonSnippetForm />", () => {
             fireEvent.click(generateButton);
 
             // Assert
-            expect(
-                actions.includesMatch({
-                    type: SET_CSV_COLUMNS,
-                })
-            ).to.be.false;
             expect(
                 actions.includesMatch({
                     type: GENERATE_PYTHON_SNIPPET,
