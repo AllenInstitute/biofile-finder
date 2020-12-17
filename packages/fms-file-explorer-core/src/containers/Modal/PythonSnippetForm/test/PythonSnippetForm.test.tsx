@@ -1,20 +1,56 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
+import {
+    configureMockStore,
+    createMockHttpClient,
+    mergeState,
+    ResponseStub,
+} from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
+import { createSandbox } from "sinon";
 
 import Modal, { ModalType } from "../..";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
-import { initialState } from "../../../../state";
+import DatasetService from "../../../../services/DatasetService";
+import { initialState, interaction } from "../../../../state";
 import { GENERATE_PYTHON_SNIPPET } from "../../../../state/interaction/actions";
 
 describe("<PythonSnippetForm />", () => {
+    const sandbox = createSandbox();
+
+    // All of the test setup related to stubbing an HTTP request is because the PythonSnippetForm,
+    // on mount, makes a call to fetch all available datasets
+    const baseUrl = "https://test-aics.corp.whatever";
     const visibleDialogState = mergeState(initialState, {
         interaction: {
+            fileExplorerServiceBaseUrl: baseUrl,
             visibleModal: ModalType.PythonSnippetForm,
         },
+    });
+
+    const responseStubs: ResponseStub[] = [
+        {
+            when: (config) => (config.url || "").includes(DatasetService.BASE_DATASET_URL),
+            respondWith: {
+                data: { data: [] },
+            },
+        },
+    ];
+    const mockHttpClient = createMockHttpClient(responseStubs);
+    const datasetService = new DatasetService({ baseUrl, httpClient: mockHttpClient });
+
+    before(() => {
+        sandbox.stub(interaction.selectors, "getDatasetService").returns(datasetService);
+    });
+
+    afterEach(() => {
+        sandbox.resetHistory();
+    });
+
+    after(() => {
+        sandbox.restore();
     });
 
     it("is visible when should not be hidden", async () => {
