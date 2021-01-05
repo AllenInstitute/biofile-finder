@@ -1,15 +1,21 @@
 import classNames from "classnames";
 import * as React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { interaction, selection } from "../../state";
 import AggregateInfoBox from "../AggregateInfoBox";
 import FilterDisplayBar from "../FilterDisplayBar";
+import { FocusDirective } from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
 
 const styles = require("./DirectoryTree.module.css");
+
+enum KeyboardCode {
+    ArrowUp = "ArrowUp",
+    ArrowDown = "ArrowDown",
+}
 
 interface FileListProps {
     className?: string;
@@ -30,14 +36,34 @@ interface FileListProps {
  *      [collapsible folder] plate789
  */
 export default function DirectoryTree(props: FileListProps) {
+    const dispatch = useDispatch();
     const fileService = useSelector(interaction.selectors.getFileService);
     const globalFilters = useSelector(selection.selectors.getFileFilters);
+    const fileSelection = useSelector(selection.selectors.getFileSelection);
     const fileSet = React.useMemo(() => {
         return new FileSet({
             fileService: fileService,
             filters: globalFilters,
         });
     }, [fileService, globalFilters]);
+
+    // Add event listeners for up & down arrow keys
+    React.useEffect(() => {
+        const onArrowKeyDown = (event: KeyboardEvent) => {
+            if (event.code === KeyboardCode.ArrowUp || event.code === KeyboardCode.ArrowDown) {
+                let focusDirective;
+                if (event.code === KeyboardCode.ArrowUp) {
+                    focusDirective = FocusDirective.PREVIOUS;
+                } else {
+                    // KeyboardCode.ArrowDown
+                    focusDirective = FocusDirective.NEXT;
+                }
+                dispatch(selection.actions.setFileSelection(fileSelection.focus(focusDirective)));
+            }
+        };
+        window.addEventListener("keydown", onArrowKeyDown, true);
+        return () => window.removeEventListener("keydown", onArrowKeyDown, true);
+    }, [fileSelection, dispatch]);
 
     const {
         state: { content, error, isLoading },
