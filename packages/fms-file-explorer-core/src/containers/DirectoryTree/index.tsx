@@ -5,13 +5,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { interaction, selection } from "../../state";
 import AggregateInfoBox from "../AggregateInfoBox";
 import FilterDisplayBar from "../FilterDisplayBar";
-import FileSelection from "../../entity/FileSelection";
-import FileSet from "../../entity/FileSet";
-import RootLoadingIndicator from "./RootLoadingIndicator";
-import useDirectoryHierarchy from "./useDirectoryHierarchy";
-import NumericRange from "../../entity/NumericRange";
 import FileFolder from "../../entity/FileFolder";
 import FileFilter from "../../entity/FileFilter";
+import FileSelection from "../../entity/FileSelection";
+import FileSet from "../../entity/FileSet";
+import NumericRange from "../../entity/NumericRange";
+import RootLoadingIndicator from "./RootLoadingIndicator";
+import useDirectoryHierarchy from "./useDirectoryHierarchy";
 
 const styles = require("./DirectoryTree.module.css");
 
@@ -52,68 +52,78 @@ export default function DirectoryTree(props: FileListProps) {
         });
     }, [fileService, globalFilters]);
 
-    // Add event listeners for up & down arrow keys
+    // Add event listener for up & down arrow keys
     React.useEffect(() => {
+        const openFileListPaths = openFileFolders.filter(
+            (fileFolder) => fileFolder.size() === hierarchy.length
+        );
+        const sortedOpenFileListPaths = FileFolder.sort(openFileListPaths);
         const onArrowKeyDown = async (event: KeyboardEvent) => {
             if (event.code === KeyboardCode.ArrowUp || event.code === KeyboardCode.ArrowDown) {
                 const currentFocusedItem = fileSelection.focusedItem;
-                // If no files are currently focused then we have no jumping off point to navigate to
+                // No-op no files are currently focused so no jumping off point to navigate from
                 if (!currentFocusedItem) {
                     return;
                 }
-                const openFileListPaths = openFileFolders.filter(
-                    (fileFolder) => fileFolder.size() === hierarchy.length
-                );
-                const sortedOpenFileListPaths = FileFolder.sort(openFileListPaths);
+
+                // Determine the file folder the current focused item is in as well as the relative
+                // position of the file list compared to the other open file lists
                 const fileFolderForCurrentFocusedItem = new FileFolder(
                     currentFocusedItem.fileSet.filters.map((filter) => filter.value)
                 );
                 const indexOfFocusedFileList = sortedOpenFileListPaths.findIndex((fileFolder) =>
                     fileFolder.equals(fileFolderForCurrentFocusedItem)
                 );
+
+                // If the event key pressed was the up arrow move to the file one row above the currently
+                // focused one. If already at the top of the file list navigate to the bottom of the next open
+                // file list above the current one. If already at the top file list and top file for that file list
+                // no operation is performed.
                 let nextFileSet;
                 let indexWithinFileSet;
                 if (event.code === KeyboardCode.ArrowUp) {
-                    if (currentFocusedItem.indexWithinFileSet !== 0) {
+                    const previousFileListIndex = indexOfFocusedFileList - 1;
+                    if (previousFileListIndex >= 0) {
+                        // If not at the top of the current file list navigate one row up
                         nextFileSet = currentFocusedItem.fileSet;
-                        indexWithinFileSet = currentFocusedItem.indexWithinFileSet - 1;
+                        indexWithinFileSet = previousFileListIndex;
                     } else if (indexOfFocusedFileList > 0) {
-                        const previousFileListIndex = indexOfFocusedFileList - 1;
-                        const filters = sortedOpenFileListPaths[
-                            previousFileListIndex
-                        ].fileFolder.map(
-                            (filterValue, index) =>
-                                new FileFilter(hierarchy[index].displayName, filterValue)
-                        );
+                        // If not at the top file list (but at the top of this file list) navigate
+                        // to the bottom of the next open file list above this one
                         nextFileSet = new FileSet({
-                            filters,
                             fileService,
+                            filters: sortedOpenFileListPaths[previousFileListIndex].fileFolder.map(
+                                (filterValue, index) =>
+                                    new FileFilter(hierarchy[index].displayName, filterValue)
+                            ),
                         });
                         const totalFileSetSize = await nextFileSet.fetchTotalCount();
                         indexWithinFileSet = totalFileSetSize - 1;
                     } else {
-                        // No-op can't navigate anywhere else
+                        // No-op no file list above to navigate to
                         return;
                     }
                 } else {
                     // KeyboardCode.ArrowDown
                     const nextFileListIndex = indexOfFocusedFileList + 1;
                     const totalFileSetSize = await currentFocusedItem.fileSet.fetchTotalCount();
-                    if (totalFileSetSize > currentFocusedItem.indexWithinFileSet + 1) {
+                    if (nextFileListIndex < totalFileSetSize) {
+                        // If not at the bottom of the current file list navigate one row down
                         nextFileSet = currentFocusedItem.fileSet;
-                        indexWithinFileSet = currentFocusedItem.indexWithinFileSet + 1;
+                        indexWithinFileSet = nextFileListIndex;
                     } else if (nextFileListIndex < sortedOpenFileListPaths.length) {
-                        const filters = sortedOpenFileListPaths[nextFileListIndex].fileFolder.map(
-                            (filterValue, index) =>
-                                new FileFilter(hierarchy[index].displayName, filterValue)
-                        );
+                        // If not at the bottom file list (but at the bottom of this file list) navigate
+                        // to the top of the next open file list below this one
                         nextFileSet = new FileSet({
-                            filters,
                             fileService,
+                            filters: sortedOpenFileListPaths[nextFileListIndex].fileFolder.map(
+                                (filterValue, index) =>
+                                    new FileFilter(hierarchy[index].displayName, filterValue)
+                            ),
                         });
                         indexWithinFileSet = 0;
                     } else {
-                        // No-op can't navigate anywhere else
+                        // No-op no file list below to navigate to
                         return;
                     }
                 }
@@ -128,6 +138,7 @@ export default function DirectoryTree(props: FileListProps) {
                 dispatch(selection.actions.setFileSelection(newFileSelection));
             }
         };
+
         window.addEventListener("keydown", onArrowKeyDown, true);
         return () => window.removeEventListener("keydown", onArrowKeyDown, true);
     }, [fileSelection, fileService, hierarchy, openFileFolders, dispatch]);
