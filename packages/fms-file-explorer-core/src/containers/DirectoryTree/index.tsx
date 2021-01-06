@@ -84,12 +84,12 @@ export default function DirectoryTree(props: FileListProps) {
                 // focused one. If already at the top of the file list navigate to the bottom of the next open
                 // file list above the current one. If already at the top file list and top file for that file list
                 // no operation is performed.
-                const newFileSelection = new FileSelection();
+                let newFileSelection;
                 if (event.code === KeyboardCode.ArrowUp) {
                     const indexAboveCurrentFileSetIndex = currentFocusedItem.indexWithinFileSet - 1;
                     if (indexAboveCurrentFileSetIndex >= 0) {
                         // If not at the top of the current file list navigate one row up
-                        newFileSelection.select({
+                        newFileSelection = new FileSelection().select({
                             index: indexAboveCurrentFileSetIndex,
                             fileSet: currentFocusedItem.fileSet,
                             sortOrder: currentFocusedItem.sortOrder,
@@ -110,7 +110,7 @@ export default function DirectoryTree(props: FileListProps) {
                             ),
                         });
                         const totalFileSetSize = await newFileSet.fetchTotalCount();
-                        newFileSelection.select({
+                        newFileSelection = new FileSelection().select({
                             index: totalFileSetSize - 1,
                             fileSet: newFileSet,
                             sortOrder: currentFocusedItem.sortOrder,
@@ -123,7 +123,7 @@ export default function DirectoryTree(props: FileListProps) {
                     const totalFileSetSize = await currentFocusedItem.fileSet.fetchTotalCount();
                     if (indexBelowCurrentFileSetIndex < totalFileSetSize) {
                         // If not at the bottom of the current file list navigate one row down
-                        newFileSelection.select({
+                        newFileSelection = new FileSelection().select({
                             index: indexBelowCurrentFileSetIndex,
                             fileSet: currentFocusedItem.fileSet,
                             sortOrder: currentFocusedItem.sortOrder,
@@ -142,14 +142,14 @@ export default function DirectoryTree(props: FileListProps) {
                                     new FileFilter(hierarchy[index].displayName, filterValue)
                             ),
                         });
-                        newFileSelection.select({
+                        newFileSelection = new FileSelection().select({
                             index: 0,
                             fileSet: newFileSet,
                             sortOrder: currentFocusedItem.sortOrder,
                         });
                     }
                 }
-                if (newFileSelection.count() === 1) {
+                if (newFileSelection) {
                     dispatch(selection.actions.setFileSelection(newFileSelection));
                 }
             }
