@@ -58,6 +58,12 @@ export default function DirectoryTree(props: FileListProps) {
             (fileFolder) => fileFolder.size() === hierarchy.length
         );
         const sortedOpenFileListPaths = FileFolder.sort(openFileListPaths);
+
+        // On a up arrow key or down arrow key press this event will update the file list selection & focused file
+        // to be either the row above (if the up arrow was pressed) or the row below (if the down arrow was pressed)
+        // this will effectively clear the current selection in favor of the newly navigated to row.
+        // If at the beginning or end of a file list and attempting to navigate up or down the file selected & focused will
+        // be in the file list above or below respectively if possible.
         const onArrowKeyDown = async (event: KeyboardEvent) => {
             if (event.code === KeyboardCode.ArrowUp || event.code === KeyboardCode.ArrowDown) {
                 const currentFocusedItem = fileSelection.focusedItem;
@@ -82,14 +88,15 @@ export default function DirectoryTree(props: FileListProps) {
                 let nextFileSet;
                 let indexWithinFileSet;
                 if (event.code === KeyboardCode.ArrowUp) {
-                    const previousFileListIndex = indexOfFocusedFileList - 1;
-                    if (previousFileListIndex >= 0) {
+                    const previousIndexWithinFileSet = currentFocusedItem.indexWithinFileSet - 1;
+                    if (previousIndexWithinFileSet >= 0) {
                         // If not at the top of the current file list navigate one row up
                         nextFileSet = currentFocusedItem.fileSet;
-                        indexWithinFileSet = previousFileListIndex;
+                        indexWithinFileSet = previousIndexWithinFileSet;
                     } else if (indexOfFocusedFileList > 0) {
                         // If not at the top file list (but at the top of this file list) navigate
                         // to the bottom of the next open file list above this one
+                        const previousFileListIndex = indexOfFocusedFileList - 1;
                         nextFileSet = new FileSet({
                             fileService,
                             filters: sortedOpenFileListPaths[previousFileListIndex].fileFolder.map(
@@ -105,12 +112,13 @@ export default function DirectoryTree(props: FileListProps) {
                     }
                 } else {
                     // KeyboardCode.ArrowDown
+                    const nextIndexWithinFileList = currentFocusedItem.indexWithinFileSet + 1;
                     const nextFileListIndex = indexOfFocusedFileList + 1;
                     const totalFileSetSize = await currentFocusedItem.fileSet.fetchTotalCount();
-                    if (nextFileListIndex < totalFileSetSize) {
+                    if (nextIndexWithinFileList < totalFileSetSize) {
                         // If not at the bottom of the current file list navigate one row down
                         nextFileSet = currentFocusedItem.fileSet;
-                        indexWithinFileSet = nextFileListIndex;
+                        indexWithinFileSet = nextIndexWithinFileList;
                     } else if (nextFileListIndex < sortedOpenFileListPaths.length) {
                         // If not at the bottom file list (but at the bottom of this file list) navigate
                         // to the top of the next open file list below this one

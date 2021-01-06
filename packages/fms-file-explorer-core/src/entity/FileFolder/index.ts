@@ -1,4 +1,7 @@
+import { isString, isNumber } from "lodash";
+
 import { AnnotationValue } from "../../services/AnnotationService";
+import { naturalComparator } from "../../util/strings";
 
 // Interface for map necessary to re-order annotations.
 // Maps the new index of an annotation to its old index.
@@ -31,8 +34,8 @@ export default class FileFolder {
             );
             const valueAtIndexForA = a.fileFolder[indexOfDifference];
             const valueAtIndexForB = b.fileFolder[indexOfDifference];
-            if (typeof valueAtIndexForA === "string" && typeof valueAtIndexForB === "string") {
-                return valueAtIndexForA.localeCompare(valueAtIndexForB);
+            if (isString(valueAtIndexForA) || isNumber(valueAtIndexForA)) {
+                return naturalComparator(valueAtIndexForA, valueAtIndexForB);
             }
             return valueAtIndexForA >= valueAtIndexForB ? 1 : -1;
         });
