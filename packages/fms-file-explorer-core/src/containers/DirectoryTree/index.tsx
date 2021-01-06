@@ -5,16 +5,19 @@ import { useDispatch, useSelector } from "react-redux";
 import { interaction, selection } from "../../state";
 import AggregateInfoBox from "../AggregateInfoBox";
 import FilterDisplayBar from "../FilterDisplayBar";
-import { FocusDirective } from "../../entity/FileSelection";
+import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
+import NumericRange from "../../entity/NumericRange";
+import FileFolder from "../../entity/FileFolder";
+import FileFilter from "../../entity/FileFilter";
 
 const styles = require("./DirectoryTree.module.css");
 
 enum KeyboardCode {
-    ArrowUp = "ArrowUp",
     ArrowDown = "ArrowDown",
+    ArrowUp = "ArrowUp",
 }
 
 interface FileListProps {
@@ -40,6 +43,8 @@ export default function DirectoryTree(props: FileListProps) {
     const fileService = useSelector(interaction.selectors.getFileService);
     const globalFilters = useSelector(selection.selectors.getFileFilters);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
+    const hierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
+    const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
     const fileSet = React.useMemo(() => {
         return new FileSet({
             fileService: fileService,
@@ -49,21 +54,83 @@ export default function DirectoryTree(props: FileListProps) {
 
     // Add event listeners for up & down arrow keys
     React.useEffect(() => {
-        const onArrowKeyDown = (event: KeyboardEvent) => {
+        const onArrowKeyDown = async (event: KeyboardEvent) => {
             if (event.code === KeyboardCode.ArrowUp || event.code === KeyboardCode.ArrowDown) {
-                let focusDirective;
+                const currentFocusedItem = fileSelection.focusedItem;
+                // If no files are currently focused then we have no jumping off point to navigate to
+                if (!currentFocusedItem) {
+                    return;
+                }
+                const openFileListPaths = openFileFolders.filter(
+                    (fileFolder) => fileFolder.size() === hierarchy.length
+                );
+                const sortedOpenFileListPaths = FileFolder.sort(openFileListPaths);
+                const fileFolderForCurrentFocusedItem = new FileFolder(
+                    currentFocusedItem.fileSet.filters.map((filter) => filter.value)
+                );
+                const indexOfFocusedFileList = sortedOpenFileListPaths.findIndex((fileFolder) =>
+                    fileFolder.equals(fileFolderForCurrentFocusedItem)
+                );
+                let nextFileSet;
+                let indexWithinFileSet;
                 if (event.code === KeyboardCode.ArrowUp) {
-                    focusDirective = FocusDirective.PREVIOUS;
+                    if (currentFocusedItem.indexWithinFileSet !== 0) {
+                        nextFileSet = currentFocusedItem.fileSet;
+                        indexWithinFileSet = currentFocusedItem.indexWithinFileSet - 1;
+                    } else if (indexOfFocusedFileList > 0) {
+                        const previousFileListIndex = indexOfFocusedFileList - 1;
+                        const filters = sortedOpenFileListPaths[
+                            previousFileListIndex
+                        ].fileFolder.map(
+                            (filterValue, index) =>
+                                new FileFilter(hierarchy[index].displayName, filterValue)
+                        );
+                        nextFileSet = new FileSet({
+                            filters,
+                            fileService,
+                        });
+                        const totalFileSetSize = await nextFileSet.fetchTotalCount();
+                        indexWithinFileSet = totalFileSetSize - 1;
+                    } else {
+                        // No-op can't navigate anywhere else
+                        return;
+                    }
                 } else {
                     // KeyboardCode.ArrowDown
-                    focusDirective = FocusDirective.NEXT;
+                    const nextFileListIndex = indexOfFocusedFileList + 1;
+                    const totalFileSetSize = await currentFocusedItem.fileSet.fetchTotalCount();
+                    if (totalFileSetSize > currentFocusedItem.indexWithinFileSet + 1) {
+                        nextFileSet = currentFocusedItem.fileSet;
+                        indexWithinFileSet = currentFocusedItem.indexWithinFileSet + 1;
+                    } else if (nextFileListIndex < sortedOpenFileListPaths.length) {
+                        const filters = sortedOpenFileListPaths[nextFileListIndex].fileFolder.map(
+                            (filterValue, index) =>
+                                new FileFilter(hierarchy[index].displayName, filterValue)
+                        );
+                        nextFileSet = new FileSet({
+                            filters,
+                            fileService,
+                        });
+                        indexWithinFileSet = 0;
+                    } else {
+                        // No-op can't navigate anywhere else
+                        return;
+                    }
                 }
-                dispatch(selection.actions.setFileSelection(fileSelection.focus(focusDirective)));
+                const newFocusedItem = {
+                    fileSet: nextFileSet,
+                    indexAcrossAllSelections: 0,
+                    indexWithinFileSet,
+                    selection: new NumericRange(indexWithinFileSet, indexWithinFileSet),
+                    sortOrder: currentFocusedItem ? currentFocusedItem.sortOrder : 0,
+                };
+                const newFileSelection = new FileSelection([newFocusedItem], newFocusedItem);
+                dispatch(selection.actions.setFileSelection(newFileSelection));
             }
         };
         window.addEventListener("keydown", onArrowKeyDown, true);
         return () => window.removeEventListener("keydown", onArrowKeyDown, true);
-    }, [fileSelection, dispatch]);
+    }, [fileSelection, fileService, hierarchy, openFileFolders, dispatch]);
 
     const {
         state: { content, error, isLoading },

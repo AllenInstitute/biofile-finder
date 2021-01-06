@@ -61,7 +61,7 @@ interface FocusedItem extends SelectionItem {
  * that the compiler should prevent such bugs.
  */
 export default class FileSelection {
-    private focusedItem: FocusedItem | null = null;
+    public readonly focusedItem: FocusedItem | null = null;
     private selections: SelectionItem[];
 
     public static selectionsAreEqual(selection1: FileSelection, selection2: FileSelection) {

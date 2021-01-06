@@ -15,6 +15,29 @@ export default class FileFolder {
     // the annotation at that index.
     private readonly fileFolderPath: AnnotationValue[];
 
+    public static sort(fileFolders: FileFolder[]) {
+        return fileFolders.sort((a, b) => {
+            if (a.size() > b.size()) {
+                return 1;
+            }
+            if (a.size() < b.size()) {
+                return -1;
+            }
+            if (a.equals(b)) {
+                return 0;
+            }
+            const indexOfDifference = a.fileFolder.findIndex(
+                (value, index) => value !== b.fileFolder[index]
+            );
+            const valueAtIndexForA = a.fileFolder[indexOfDifference];
+            const valueAtIndexForB = b.fileFolder[indexOfDifference];
+            if (typeof valueAtIndexForA === "string" && typeof valueAtIndexForB === "string") {
+                return valueAtIndexForA.localeCompare(valueAtIndexForB);
+            }
+            return valueAtIndexForA >= valueAtIndexForB ? 1 : -1;
+        });
+    }
+
     constructor(fileFolderPath: AnnotationValue[]) {
         this.fileFolderPath = fileFolderPath;
     }
@@ -25,6 +48,10 @@ export default class FileFolder {
 
     public isEmpty() {
         return this.fileFolderPath.length === 0;
+    }
+
+    public size(): number {
+        return this.fileFolderPath.length;
     }
 
     /**
