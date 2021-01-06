@@ -9,7 +9,6 @@ import FileFolder from "../../entity/FileFolder";
 import FileFilter from "../../entity/FileFilter";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
-import NumericRange from "../../entity/NumericRange";
 import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
 
@@ -85,65 +84,74 @@ export default function DirectoryTree(props: FileListProps) {
                 // focused one. If already at the top of the file list navigate to the bottom of the next open
                 // file list above the current one. If already at the top file list and top file for that file list
                 // no operation is performed.
-                let nextFileSet;
-                let indexWithinFileSet;
+                const newFileSelection = new FileSelection();
                 if (event.code === KeyboardCode.ArrowUp) {
-                    const previousIndexWithinFileSet = currentFocusedItem.indexWithinFileSet - 1;
-                    if (previousIndexWithinFileSet >= 0) {
+                    const indexAboveCurrentFileSetIndex = currentFocusedItem.indexWithinFileSet - 1;
+                    if (indexAboveCurrentFileSetIndex >= 0) {
                         // If not at the top of the current file list navigate one row up
-                        nextFileSet = currentFocusedItem.fileSet;
-                        indexWithinFileSet = previousIndexWithinFileSet;
+                        newFileSelection.select({
+                            index: indexAboveCurrentFileSetIndex,
+                            fileSet: currentFocusedItem.fileSet,
+                            sortOrder: currentFocusedItem.sortOrder,
+                        });
                     } else if (indexOfFocusedFileList > 0) {
                         // If not at the top file list (but at the top of this file list) navigate
                         // to the bottom of the next open file list above this one
-                        const previousFileListIndex = indexOfFocusedFileList - 1;
-                        nextFileSet = new FileSet({
+                        const fileListIndexAboveCurrentFileList = indexOfFocusedFileList - 1;
+                        const newFileSet = new FileSet({
                             fileService,
-                            filters: sortedOpenFileListPaths[previousFileListIndex].fileFolder.map(
+                            // Determine the filters of the previous file list based on the hierarchy & path
+                            // needed to open the file folder
+                            filters: sortedOpenFileListPaths[
+                                fileListIndexAboveCurrentFileList
+                            ].fileFolder.map(
                                 (filterValue, index) =>
                                     new FileFilter(hierarchy[index].displayName, filterValue)
                             ),
                         });
-                        const totalFileSetSize = await nextFileSet.fetchTotalCount();
-                        indexWithinFileSet = totalFileSetSize - 1;
-                    } else {
-                        // No-op no file list above to navigate to
-                        return;
+                        const totalFileSetSize = await newFileSet.fetchTotalCount();
+                        newFileSelection.select({
+                            index: totalFileSetSize - 1,
+                            fileSet: newFileSet,
+                            sortOrder: currentFocusedItem.sortOrder,
+                        });
                     }
                 } else {
                     // KeyboardCode.ArrowDown
-                    const nextIndexWithinFileList = currentFocusedItem.indexWithinFileSet + 1;
-                    const nextFileListIndex = indexOfFocusedFileList + 1;
+                    const indexBelowCurrentFileSetIndex = currentFocusedItem.indexWithinFileSet + 1;
+                    const fileListIndexBelowCurrentFileList = indexOfFocusedFileList + 1;
                     const totalFileSetSize = await currentFocusedItem.fileSet.fetchTotalCount();
-                    if (nextIndexWithinFileList < totalFileSetSize) {
+                    if (indexBelowCurrentFileSetIndex < totalFileSetSize) {
                         // If not at the bottom of the current file list navigate one row down
-                        nextFileSet = currentFocusedItem.fileSet;
-                        indexWithinFileSet = nextIndexWithinFileList;
-                    } else if (nextFileListIndex < sortedOpenFileListPaths.length) {
+                        newFileSelection.select({
+                            index: indexBelowCurrentFileSetIndex,
+                            fileSet: currentFocusedItem.fileSet,
+                            sortOrder: currentFocusedItem.sortOrder,
+                        });
+                    } else if (fileListIndexBelowCurrentFileList < sortedOpenFileListPaths.length) {
                         // If not at the bottom file list (but at the bottom of this file list) navigate
                         // to the top of the next open file list below this one
-                        nextFileSet = new FileSet({
+                        const newFileSet = new FileSet({
                             fileService,
-                            filters: sortedOpenFileListPaths[nextFileListIndex].fileFolder.map(
+                            // Determine the filters of the next file list based on the hierarchy & path
+                            // needed to open the file folder
+                            filters: sortedOpenFileListPaths[
+                                fileListIndexBelowCurrentFileList
+                            ].fileFolder.map(
                                 (filterValue, index) =>
                                     new FileFilter(hierarchy[index].displayName, filterValue)
                             ),
                         });
-                        indexWithinFileSet = 0;
-                    } else {
-                        // No-op no file list below to navigate to
-                        return;
+                        newFileSelection.select({
+                            index: 0,
+                            fileSet: newFileSet,
+                            sortOrder: currentFocusedItem.sortOrder,
+                        });
                     }
                 }
-                const newFocusedItem = {
-                    fileSet: nextFileSet,
-                    indexAcrossAllSelections: 0,
-                    indexWithinFileSet,
-                    selection: new NumericRange(indexWithinFileSet, indexWithinFileSet),
-                    sortOrder: currentFocusedItem ? currentFocusedItem.sortOrder : 0,
-                };
-                const newFileSelection = new FileSelection([newFocusedItem], newFocusedItem);
-                dispatch(selection.actions.setFileSelection(newFileSelection));
+                if (newFileSelection.count() === 1) {
+                    dispatch(selection.actions.setFileSelection(newFileSelection));
+                }
             }
         };
 
