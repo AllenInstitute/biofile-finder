@@ -218,6 +218,36 @@ export function selectFile(payload: SelectFileActionPayload): SelectFileAction {
 }
 
 /**
+ * SELECT_NEARBY_FILE
+ *
+ * Intention to mark the file directly above or below as "selected." If `payload.updateExistingSelection`, add the
+ * corresponding file to the existing selection, else, replace existing selection. The newly selected file will be displayed
+ * within the file details pane.
+ */
+export const SELECT_NEARBY_FILE = makeConstant(STATE_BRANCH_NAME, "");
+
+export interface SelectNearbyFileAction {
+    payload: {
+        direction: "up" | "down";
+        updateExistingSelection: boolean;
+    };
+    type: string;
+}
+
+export function selectNearbyFile(
+    direction: "up" | "down",
+    updateExistingSelection: boolean
+): SelectNearbyFileAction {
+    return {
+        payload: {
+            direction,
+            updateExistingSelection,
+        },
+        type: SELECT_NEARBY_FILE,
+    };
+}
+
+/**
  * SET_FILE_SELECTION
  *
  * This is not to be fired by UI; use the SELECT_FILE action instead.

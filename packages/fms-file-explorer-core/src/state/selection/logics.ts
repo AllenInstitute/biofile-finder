@@ -18,14 +18,16 @@ import {
     setOpenFileFolders,
     DECODE_FILE_EXPLORER_URL,
     SET_ANNOTATION_HIERARCHY,
+    SELECT_NEARBY_FILE,
 } from "./actions";
-import { interaction, metadata, ReduxLogicDeps } from "../";
+import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
 import Annotation from "../../entity/Annotation";
 import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
+import FileSet from "../../entity/FileSet";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -292,11 +294,128 @@ const decodeFileExplorerURL = createLogic({
     type: [DECODE_FILE_EXPLORER_URL],
 });
 
+/**
+ * Interceptor responsible for processing SELECT_NEARBY_FILE actions into SET_FILE_SELECTION actions.
+ */
+const selectNearbyFile = createLogic({
+    async transform(deps: ReduxLogicDeps, next, reject) {
+        const { direction, updateExistingSelection } = deps.action.payload;
+        const fileService = interaction.selectors.getFileService(deps.getState());
+        const fileSelection = selectionSelectors.getFileSelection(deps.getState());
+        const hierarchy = selectionSelectors.getAnnotationHierarchy(deps.getState());
+        const openFileFolders = selectionSelectors.getOpenFileFolders(deps.getState());
+
+        const openFileListPaths = openFileFolders.filter(
+            (fileFolder) => fileFolder.size() === hierarchy.length
+        );
+        const sortedOpenFileListPaths = FileFolder.sort(openFileListPaths);
+
+        const currentFocusedItem = fileSelection.focusedItem;
+        // No-op no files are currently focused so no jumping off point to navigate from
+        if (!currentFocusedItem) {
+            reject && reject(deps.action);
+            return;
+        }
+
+        // Determine the file folder the current focused item is in as well as the relative
+        // position of the file list compared to the other open file lists
+        const fileFolderForCurrentFocusedItem = new FileFolder(
+            currentFocusedItem.fileSet.filters.map((filter) => filter.value)
+        );
+        const indexOfFocusedFileList = sortedOpenFileListPaths.findIndex((fileFolder) =>
+            fileFolder.equals(fileFolderForCurrentFocusedItem)
+        );
+
+        // If not updating the existing selection start from scratch
+        let newFileSelection = updateExistingSelection ? fileSelection : new FileSelection();
+
+        // If the direction specified is "up" move to the file one row above the currently
+        // focused one. If already at the top of the file list navigate to the bottom of the next open
+        // file list above the current one. If already at the top file list and top file for that file list
+        // no operation is performed.
+        if (direction === "up") {
+            const indexAboveCurrentFileSetIndex = currentFocusedItem.indexWithinFileSet - 1;
+            if (indexAboveCurrentFileSetIndex >= 0) {
+                // If not at the top of the current file list navigate one row up
+                newFileSelection = newFileSelection.select({
+                    index: indexAboveCurrentFileSetIndex,
+                    fileSet: currentFocusedItem.fileSet,
+                    sortOrder: currentFocusedItem.sortOrder,
+                });
+            } else if (indexOfFocusedFileList > 0) {
+                // If not at the top file list (but at the top of this file list) navigate
+                // to the bottom of the next open file list above this one
+                const fileListIndexAboveCurrentFileList = indexOfFocusedFileList - 1;
+                const newFileSet = new FileSet({
+                    fileService,
+                    // Determine the filters of the previous file list based on the hierarchy & path
+                    // needed to open the file folder
+                    filters: sortedOpenFileListPaths[
+                        fileListIndexAboveCurrentFileList
+                    ].fileFolder.map(
+                        (filterValue, index) =>
+                            new FileFilter(hierarchy[index].displayName, filterValue)
+                    ),
+                });
+                const totalFileSetSize = await newFileSet.fetchTotalCount();
+                newFileSelection = newFileSelection.select({
+                    index: totalFileSetSize - 1,
+                    fileSet: newFileSet,
+                    sortOrder: currentFocusedItem.sortOrder,
+                });
+            } else {
+                // No-op no file above to navigate to
+                reject && reject(deps.action);
+                return;
+            }
+        } else {
+            // direction === "down"
+            const indexBelowCurrentFileSetIndex = currentFocusedItem.indexWithinFileSet + 1;
+            const fileListIndexBelowCurrentFileList = indexOfFocusedFileList + 1;
+            const totalFileSetSize = await currentFocusedItem.fileSet.fetchTotalCount();
+            if (indexBelowCurrentFileSetIndex < totalFileSetSize) {
+                // If not at the bottom of the current file list navigate one row down
+                newFileSelection = newFileSelection.select({
+                    index: indexBelowCurrentFileSetIndex,
+                    fileSet: currentFocusedItem.fileSet,
+                    sortOrder: currentFocusedItem.sortOrder,
+                });
+            } else if (fileListIndexBelowCurrentFileList < sortedOpenFileListPaths.length) {
+                // If not at the bottom file list (but at the bottom of this file list) navigate
+                // to the top of the next open file list below this one
+                const newFileSet = new FileSet({
+                    fileService,
+                    // Determine the filters of the next file list based on the hierarchy & path
+                    // needed to open the file folder
+                    filters: sortedOpenFileListPaths[
+                        fileListIndexBelowCurrentFileList
+                    ].fileFolder.map(
+                        (filterValue, index) =>
+                            new FileFilter(hierarchy[index].displayName, filterValue)
+                    ),
+                });
+                newFileSelection = newFileSelection.select({
+                    index: 0,
+                    fileSet: newFileSet,
+                    sortOrder: currentFocusedItem.sortOrder,
+                });
+            } else {
+                // No-op no file below to navigate to
+                reject && reject(deps.action);
+                return;
+            }
+        }
+        next(selection.actions.setFileSelection(newFileSelection));
+    },
+    type: [SELECT_NEARBY_FILE],
+});
+
 export default [
     selectFile,
     modifyAnnotationHierarchy,
     modifyFileFilters,
     toggleFileFolderCollapse,
     decodeFileExplorerURL,
+    selectNearbyFile,
     setAvailableAnnotationsLogic,
 ];

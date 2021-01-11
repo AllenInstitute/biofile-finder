@@ -15,6 +15,7 @@ import {
     SET_OPEN_FILE_FOLDERS,
     decodeFileExplorerURL,
     setAnnotationHierarchy,
+    selectNearbyFile,
 } from "../actions";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
@@ -300,6 +301,104 @@ describe("Selection logics", () => {
                         }),
                 })
             ).to.equal(true);
+        });
+    });
+
+    describe("selectNearbyFile", () => {
+        const fileSet = new FileSet();
+
+        it("selects file above current focused row", async () => {
+            // Arrange
+            const state = mergeState(initialState, {
+                selection: {
+                    fileSelection: new FileSelection()
+                        .select({
+                            fileSet,
+                            index: new NumericRange(8, 15),
+                            sortOrder: 1,
+                        })
+                        .focusByFileSet(fileSet, 8),
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
+            const expectation = new FileSelection().select({
+                fileSet,
+                index: 7,
+                sortOrder: 1,
+            });
+
+            // Act
+            store.dispatch(selectNearbyFile("up", false));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_FILE_SELECTION,
+                    payload: expectation,
+                })
+            ).to.be.true;
+        });
+
+        it("selects file below current focused row", async () => {
+            // Arrange
+            const fileSelection = new FileSelection().select({
+                fileSet,
+                index: new NumericRange(8, 15),
+                sortOrder: 1,
+            });
+            const state = mergeState(initialState, {
+                selection: {
+                    fileSelection: new FileSelection().select({
+                        fileSet,
+                        index: new NumericRange(8, 15),
+                        sortOrder: 1,
+                    }),
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
+            const expectation = fileSelection.select({
+                fileSet,
+                index: 16,
+                sortOrder: 1,
+            });
+
+            // Act
+            store.dispatch(selectNearbyFile("down", true));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_FILE_SELECTION,
+                    payload: expectation,
+                })
+            ).to.be.true;
+        });
+
+        it("does nothing if no file is currently selected", async () => {
+            // Arrange
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: initialState,
+            });
+
+            // Act
+            store.dispatch(selectNearbyFile("up", false));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_FILE_SELECTION,
+                })
+            ).to.be.false;
         });
     });
 
