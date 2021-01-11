@@ -193,4 +193,71 @@ describe("FileFolder", () => {
             expect(result).to.be.empty;
         });
     });
+
+    describe("sort", () => {
+        const olderDate = Date.now();
+        const newerDate = Date.now();
+        const testCases = [
+            {
+                input: [
+                    new FileFolder(["AICS-68", false, "14", 10]),
+                    new FileFolder(["AICS-68"]),
+                    new FileFolder(["AICS-68", false, "9", 7]),
+                    new FileFolder(["AICS-68", false]),
+                    new FileFolder(["AICS-68", false, "9", 10]),
+                    new FileFolder(["AICS-68", false, "9"]),
+                ],
+                expectation: [
+                    new FileFolder(["AICS-68"]),
+                    new FileFolder(["AICS-68", false]),
+                    new FileFolder(["AICS-68", false, "9"]),
+                    new FileFolder(["AICS-68", false, "9", 7]),
+                    new FileFolder(["AICS-68", false, "9", 10]),
+                    new FileFolder(["AICS-68", false, "14", 10]),
+                ],
+            },
+            {
+                input: [
+                    new FileFolder([true]),
+                    new FileFolder([true, 2]),
+                    new FileFolder([true, 2, "4", newerDate, 2]),
+                    new FileFolder([true, 2, "4"]),
+                    new FileFolder([true, 2, "4", olderDate, 2]),
+                    new FileFolder([false]),
+                    new FileFolder([false, 1]),
+                    new FileFolder([false, 1, "42"]),
+                    new FileFolder([false, 1, "4", olderDate, 5]),
+                    new FileFolder([false, 1, "42", newerDate]),
+                    new FileFolder([false, 1, "42", olderDate, 2]),
+                ],
+                expectation: [
+                    new FileFolder([false]),
+                    new FileFolder([true]),
+                    new FileFolder([false, 1]),
+                    new FileFolder([true, 2]),
+                    new FileFolder([false, 1, "42"]),
+                    new FileFolder([true, 2, "4"]),
+                    new FileFolder([false, 1, "42", newerDate]),
+                    new FileFolder([false, 1, "4", olderDate, 5]),
+                    new FileFolder([false, 1, "42", olderDate, 2]),
+                    new FileFolder([true, 2, "4", olderDate, 2]),
+                    new FileFolder([true, 2, "4", newerDate, 2]),
+                ],
+            },
+            {
+                input: [],
+                expectation: [],
+            },
+        ];
+
+        testCases.forEach(({ input, expectation }) =>
+            it(`formats ${input} as ${expectation}`, () => {
+                // Act
+                const result = FileFolder.sort(input);
+
+                // Assert
+                expect(result).to.be.deep.equal(expectation);
+            })
+        );
+    });
 });
