@@ -84,12 +84,16 @@ export default function DirectoryTree(props: FileListProps) {
                 // focused one. If already at the top of the file list navigate to the bottom of the next open
                 // file list above the current one. If already at the top file list and top file for that file list
                 // no operation is performed.
-                let newFileSelection;
+                let newFileSelection = fileSelection;
+                // If the shift key isn't being held down we don't want to add to current selection but instead replace it
+                if (!event.shiftKey) {
+                    newFileSelection = new FileSelection();
+                }
                 if (event.code === KeyboardCode.ArrowUp) {
                     const indexAboveCurrentFileSetIndex = currentFocusedItem.indexWithinFileSet - 1;
                     if (indexAboveCurrentFileSetIndex >= 0) {
                         // If not at the top of the current file list navigate one row up
-                        newFileSelection = new FileSelection().select({
+                        newFileSelection = newFileSelection.select({
                             index: indexAboveCurrentFileSetIndex,
                             fileSet: currentFocusedItem.fileSet,
                             sortOrder: currentFocusedItem.sortOrder,
@@ -110,7 +114,7 @@ export default function DirectoryTree(props: FileListProps) {
                             ),
                         });
                         const totalFileSetSize = await newFileSet.fetchTotalCount();
-                        newFileSelection = new FileSelection().select({
+                        newFileSelection = newFileSelection.select({
                             index: totalFileSetSize - 1,
                             fileSet: newFileSet,
                             sortOrder: currentFocusedItem.sortOrder,
@@ -123,7 +127,7 @@ export default function DirectoryTree(props: FileListProps) {
                     const totalFileSetSize = await currentFocusedItem.fileSet.fetchTotalCount();
                     if (indexBelowCurrentFileSetIndex < totalFileSetSize) {
                         // If not at the bottom of the current file list navigate one row down
-                        newFileSelection = new FileSelection().select({
+                        newFileSelection = newFileSelection.select({
                             index: indexBelowCurrentFileSetIndex,
                             fileSet: currentFocusedItem.fileSet,
                             sortOrder: currentFocusedItem.sortOrder,
@@ -142,7 +146,7 @@ export default function DirectoryTree(props: FileListProps) {
                                     new FileFilter(hierarchy[index].displayName, filterValue)
                             ),
                         });
-                        newFileSelection = new FileSelection().select({
+                        newFileSelection = newFileSelection.select({
                             index: 0,
                             fileSet: newFileSet,
                             sortOrder: currentFocusedItem.sortOrder,
