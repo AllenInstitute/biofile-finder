@@ -57,7 +57,9 @@ describe("Annotation formatters", () => {
         ];
 
         spec.forEach((testCase) =>
-            it(`formats ${testCase.input} as ${testCase.expected}`, () => {
+            it(`sorts ${JSON.stringify(testCase.input)} to ${JSON.stringify(
+                testCase.expected
+            )}`, () => {
                 expect(dateTimeFormatter.displayValue(testCase.input)).to.equal(testCase.expected);
             })
         );

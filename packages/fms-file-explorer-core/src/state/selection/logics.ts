@@ -346,7 +346,7 @@ const selectNearbyFile = createLogic({
                 // If not at the top file list (but at the top of this file list) navigate
                 // to the bottom of the next open file list above this one
                 const fileListIndexAboveCurrentFileList = indexOfFocusedFileList - 1;
-                const newFileSet = new FileSet({
+                const openFileSetAboveCurrent = new FileSet({
                     fileService,
                     // Determine the filters of the previous file list based on the hierarchy & path
                     // needed to open the file folder
@@ -357,10 +357,10 @@ const selectNearbyFile = createLogic({
                             new FileFilter(hierarchy[index].displayName, filterValue)
                     ),
                 });
-                const totalFileSetSize = await newFileSet.fetchTotalCount();
+                const totalFileSetSize = await openFileSetAboveCurrent.fetchTotalCount();
                 newFileSelection = newFileSelection.select({
                     index: totalFileSetSize - 1,
-                    fileSet: newFileSet,
+                    fileSet: openFileSetAboveCurrent,
                     sortOrder: currentFocusedItem.sortOrder,
                 });
             } else {
@@ -383,7 +383,7 @@ const selectNearbyFile = createLogic({
             } else if (fileListIndexBelowCurrentFileList < sortedOpenFileListPaths.length) {
                 // If not at the bottom file list (but at the bottom of this file list) navigate
                 // to the top of the next open file list below this one
-                const newFileSet = new FileSet({
+                const openFileSetBelowCurrent = new FileSet({
                     fileService,
                     // Determine the filters of the next file list based on the hierarchy & path
                     // needed to open the file folder
@@ -396,7 +396,7 @@ const selectNearbyFile = createLogic({
                 });
                 newFileSelection = newFileSelection.select({
                     index: 0,
-                    fileSet: newFileSet,
+                    fileSet: openFileSetBelowCurrent,
                     sortOrder: currentFocusedItem.sortOrder,
                 });
             } else {

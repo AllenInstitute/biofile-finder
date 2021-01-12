@@ -51,7 +51,7 @@ export default function DirectoryTree(props: FileListProps) {
     // If at the beginning or end of a file list and attempting to navigate up or down the file selected & focused will
     // be in the file list above or below respectively if possible.
     React.useEffect(() => {
-        const onArrowKeyDown = async (event: KeyboardEvent) => {
+        const onArrowKeyDown = (event: KeyboardEvent) => {
             if (event.code === KeyboardCode.ArrowUp) {
                 dispatch(selection.actions.selectNearbyFile("up", event.shiftKey));
             } else if (event.code === KeyboardCode.ArrowDown) {
