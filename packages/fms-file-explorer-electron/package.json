@@ -23,6 +23,9 @@
     "linux": {
       "target": "AppImage"
     },
+    "dmg": {
+      "icon": "assets/dmg-icon.icns"
+    },
     "mac": {
       "darkModeSupport": false,
       "target": "dmg"
