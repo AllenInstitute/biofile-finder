@@ -75,7 +75,7 @@
     "core-js": "3.3.x",
     "css-loader": "3.2.x",
     "electron": "9.1.x",
-    "electron-builder": "22.2.x",
+    "electron-builder": "22.9.x",
     "electron-mocha": "9.1.x",
     "enzyme": "3.10.x",
     "enzyme-adapter-react-16": "1.14.x",
