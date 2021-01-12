@@ -27,11 +27,20 @@ jobs:
 
       - name: Build/release Electron app
         uses: GabeMedrash/action-electron-builder@fms-file-explorer
+        env:
+          # Used to code sign artifacts produced for Windows
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
         with:
+          # N.b.: mac.identity is explicitly set to null to short-circuit attempt
+          # at code signing macOS artifact. Remove when/if attempting to accomplish that.
           config_overrides: >
             {
               "extraMetadata": {
                 "version": "${{ github.event.client_payload.version }}"
+              },
+              "mac": {
+                "identity": null
               }
             }
 
