@@ -27,6 +27,9 @@
       "darkModeSupport": false,
       "target": "dmg"
     },
+    "win": {
+      "target": "portable"
+    },
     "publish": {
       "provider": "github"
     },
