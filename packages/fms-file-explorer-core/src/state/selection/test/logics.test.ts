@@ -1,6 +1,12 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
+import {
+    configureMockStore,
+    createMockHttpClient,
+    mergeState,
+    ResponseStub,
+} from "@aics/redux-utils";
 import { expect } from "chai";
 import { shuffle } from "lodash";
+import { createSandbox } from "sinon";
 
 import {
     addFileFilter,
@@ -17,16 +23,17 @@ import {
     setAnnotationHierarchy,
     selectNearbyFile,
 } from "../actions";
+import { initialState, interaction } from "../../";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
-import { initialState } from "../../";
 import NumericRange from "../../../entity/NumericRange";
 import FileExplorerURL from "../../../entity/FileExplorerURL";
 import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
+import FileService from "../../../services/FileService";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -305,11 +312,39 @@ describe("Selection logics", () => {
     });
 
     describe("selectNearbyFile", () => {
-        const fileSet = new FileSet();
+        const sandbox = createSandbox();
+        const totalFileSize = 50;
+        const responseStubs: ResponseStub[] = [
+            {
+                when: (config) => (config.url || "").includes(FileService.BASE_FILE_COUNT_URL),
+                respondWith: {
+                    data: { data: [totalFileSize] },
+                },
+            },
+        ];
+        const baseUrl = "test";
+        const mockHttpClient = createMockHttpClient(responseStubs);
+        const fileService = new FileService({ baseUrl, httpClient: mockHttpClient });
+        const fileSet = new FileSet({ fileService: fileService });
+
+        before(() => {
+            sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
+        });
+
+        afterEach(() => {
+            sandbox.resetHistory();
+        });
+
+        after(() => {
+            sandbox.restore();
+        });
 
         it("selects file above current focused row", async () => {
             // Arrange
             const state = mergeState(initialState, {
+                interaction: {
+                    fileExplorerServiceBaseUrl: baseUrl,
+                },
                 selection: {
                     fileSelection: new FileSelection()
                         .select({
@@ -351,6 +386,9 @@ describe("Selection logics", () => {
                 sortOrder: 1,
             });
             const state = mergeState(initialState, {
+                interaction: {
+                    fileExplorerServiceBaseUrl: baseUrl,
+                },
                 selection: {
                     fileSelection: new FileSelection().select({
                         fileSet,
