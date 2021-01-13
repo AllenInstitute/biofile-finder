@@ -53,8 +53,10 @@ export default function DirectoryTree(props: FileListProps) {
     React.useEffect(() => {
         const onArrowKeyDown = (event: KeyboardEvent) => {
             if (event.code === KeyboardCode.ArrowUp) {
+                event.preventDefault(); // Prevent list from scrolling
                 dispatch(selection.actions.selectNearbyFile("up", event.shiftKey));
             } else if (event.code === KeyboardCode.ArrowDown) {
+                event.preventDefault(); // Prevent list from scrolling
                 dispatch(selection.actions.selectNearbyFile("down", event.shiftKey));
             }
         };
