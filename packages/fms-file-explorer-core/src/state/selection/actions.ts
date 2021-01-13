@@ -224,7 +224,7 @@ export function selectFile(payload: SelectFileActionPayload): SelectFileAction {
  * corresponding file to the existing selection, else, replace existing selection. The newly selected file will be displayed
  * within the file details pane.
  */
-export const SELECT_NEARBY_FILE = makeConstant(STATE_BRANCH_NAME, "");
+export const SELECT_NEARBY_FILE = makeConstant(STATE_BRANCH_NAME, "select-nearby-file");
 
 export interface SelectNearbyFileAction {
     payload: {
