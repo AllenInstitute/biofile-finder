@@ -58,7 +58,11 @@ const fijiViewerStrategy: ViewerStrategy = async (executable, filePaths) => {
 
     const tempDirPath = path.join(os.tmpdir(), "fms-explorer");
     await fsPromises.mkdir(tempDirPath, { recursive: true });
-    const scriptPath = path.join(tempDirPath, `${new Date().toISOString()}_fiji-entry-point.js`);
+    const now = new Date();
+    const scriptPath = path.join(
+        tempDirPath,
+        `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}-${now.getUTCHours()}-${now.getUTCMinutes()}-${now.getUTCSeconds()}_fiji-entry-point.js`
+    );
     const entryPointScript: fsPromises.FileHandle = await fsPromises.open(scriptPath, "w");
     await entryPointScript.writeFile(contents, "utf-8");
     await entryPointScript.close();
