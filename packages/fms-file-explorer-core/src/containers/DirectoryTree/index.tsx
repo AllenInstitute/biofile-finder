@@ -34,7 +34,7 @@ interface FileListProps {
  *      [collapsible folder] plate456
  *      [collapsible folder] plate789
  */
-function DirectoryTree(props: FileListProps) {
+export default function DirectoryTree(props: FileListProps) {
     const dispatch = useDispatch();
     const fileService = useSelector(interaction.selectors.getFileService);
     const globalFilters = useSelector(selection.selectors.getFileFilters);
@@ -85,9 +85,4 @@ function DirectoryTree(props: FileListProps) {
             <AggregateInfoBox />
         </div>
     );
-}
-
-export default function DirectoryTreeWrapper(props: FileListProps) {
-    const key = useSelector(selection.selectors.getRefreshKey);
-    return <DirectoryTree {...props} key={key} />;
 }
