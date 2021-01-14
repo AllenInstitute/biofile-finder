@@ -36,6 +36,10 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
                 public on() {
                     return;
                 }
+
+                public unref() {
+                    return;
+                }
             }
             const executable = "/some/path/to/a/test/imageJ";
             const filePaths = ["a", "b"];
