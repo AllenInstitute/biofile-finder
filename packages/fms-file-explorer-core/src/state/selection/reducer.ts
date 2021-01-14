@@ -1,5 +1,5 @@
 import { makeReducer } from "@aics/redux-utils";
-import { castArray, difference, omit, without } from "lodash";
+import { castArray, difference, omit, uniqueId, without } from "lodash";
 
 import interaction from "../interaction";
 import { AnnotationName } from "../../constants";
@@ -18,6 +18,8 @@ import {
     SET_OPEN_FILE_FOLDERS,
     RESIZE_COLUMN,
     RESET_COLUMN_WIDTH,
+    REFRESH,
+    FAIL_REFRESH,
 } from "./actions";
 import { metadata } from "..";
 
@@ -32,6 +34,7 @@ export interface SelectionStateBranch {
     fileSelection: FileSelection;
     filters: FileFilter[];
     openFileFolders: FileFolder[];
+    refreshKey?: string;
 }
 
 export const initialState = {
@@ -52,6 +55,10 @@ export const initialState = {
 
 export default makeReducer<SelectionStateBranch>(
     {
+        [FAIL_REFRESH]: (state) => ({
+            ...state,
+            availableAnnotationsForHierarchyLoading: false,
+        }),
         [SET_FILE_FILTERS]: (state, action) => ({
             ...state,
             filters: action.payload,
@@ -81,6 +88,11 @@ export default makeReducer<SelectionStateBranch>(
                 columnWidths: omit(state.columnWidths, columnWidthsToPrune),
             };
         },
+        [REFRESH]: (state) => ({
+            ...state,
+            availableAnnotationsForHierarchyLoading: true,
+            refreshKey: uniqueId(),
+        }),
         [RESET_COLUMN_WIDTH]: (state, action) => ({
             ...state,
             columnWidths: omit(state.columnWidths, [action.payload]),

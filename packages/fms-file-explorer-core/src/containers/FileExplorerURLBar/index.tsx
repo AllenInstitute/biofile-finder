@@ -41,6 +41,11 @@ function FileExplorerURLBar(props: FileExplorerURLBarProps) {
         }
     };
 
+    const onRefresh = () => {
+        setURL(props.existingEncodedURL);
+        dispatch(selection.actions.refresh());
+    };
+
     const onCopy = () => {
         navigator.clipboard.writeText(url);
         // Set copied to true so we know to display tooltip feedback awknowledging the copy success
@@ -86,6 +91,11 @@ function FileExplorerURLBar(props: FileExplorerURLBarProps) {
                     onContextMenu={onContextMenu}
                 />
             </form>
+            <IconButton
+                className={styles.copyButton}
+                iconProps={{ iconName: "refresh" }}
+                onClick={onRefresh}
+            />
             {!error ? (
                 <TooltipHost content={isCopied ? "Copied to clipboard!" : undefined}>
                     <IconButton

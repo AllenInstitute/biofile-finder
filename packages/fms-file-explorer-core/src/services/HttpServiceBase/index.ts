@@ -120,6 +120,10 @@ export default class HttpServiceBase {
         }
     }
 
+    public resetCache() {
+        this.urlToResponseDataCache.reset();
+    }
+
     public async get<T>(url: string): Promise<RestServiceResponse<T>> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
         console.log(`Sanitized ${url} to ${encodedUrl}`);

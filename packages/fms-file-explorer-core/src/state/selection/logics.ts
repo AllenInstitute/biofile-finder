@@ -19,6 +19,7 @@ import {
     DECODE_FILE_EXPLORER_URL,
     SET_ANNOTATION_HIERARCHY,
     SELECT_NEARBY_FILE,
+    REFRESH,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -410,12 +411,48 @@ const selectNearbyFile = createLogic({
     type: [SELECT_NEARBY_FILE],
 });
 
+/**
+ * Interceptor responsible for processing REFRESH actions into individual
+ * actions meant to update the directory tree and annotation hierarchy
+ */
+const refresh = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        try {
+            const { getState } = deps;
+
+            // Clear caches
+            const fileService = interaction.selectors.getFileService(getState());
+            const annotationService = interaction.selectors.getAnnotationService(getState());
+            fileService.resetCache();
+            annotationService.resetCache();
+
+            // Clear selections
+            dispatch(selection.actions.setFileSelection(new FileSelection()));
+
+            // Refresh list of available annotations
+            const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
+            const annotationNamesInHierachy = hierarchy.map((a) => a.name);
+            const availableAnnotations = await annotationService.fetchAvailableAnnotationsForHierarchy(
+                annotationNamesInHierachy
+            );
+            dispatch(selection.actions.setAvailableAnnotations(availableAnnotations));
+        } catch (e) {
+            console.error("Error encountered while refreshing");
+            dispatch(selection.actions.failRefresh());
+        } finally {
+            done();
+        }
+    },
+    type: [REFRESH],
+});
+
 export default [
     selectFile,
     modifyAnnotationHierarchy,
     modifyFileFilters,
     toggleFileFolderCollapse,
     decodeFileExplorerURL,
+    refresh,
     selectNearbyFile,
     setAvailableAnnotationsLogic,
 ];
