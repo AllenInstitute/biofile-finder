@@ -248,42 +248,6 @@ export function selectNearbyFile(
 }
 
 /**
- * REFRESH
- *
- * Intention to refresh cached queries
- */
-
-export const REFRESH = makeConstant(STATE_BRANCH_NAME, "refresh");
-
-export interface RefreshAction {
-    type: string;
-}
-
-export function refresh(): RefreshAction {
-    return {
-        type: REFRESH,
-    };
-}
-
-/**
- * FAIL_REFRESH
- *
- * Intention to fail the attempt to refresh cached queries
- */
-
-export const FAIL_REFRESH = makeConstant(STATE_BRANCH_NAME, "fail-refresh");
-
-export interface FailRefreshAction {
-    type: string;
-}
-
-export function failRefresh(): FailRefreshAction {
-    return {
-        type: FAIL_REFRESH,
-    };
-}
-
-/**
  * SET_FILE_SELECTION
  *
  * This is not to be fired by UI; use the SELECT_FILE action instead.

@@ -118,9 +118,6 @@ export default class HttpServiceBase {
         if (config.httpClient) {
             this.setHttpClient(config.httpClient);
         }
-    }
-
-    public resetCache() {
         this.urlToResponseDataCache.reset();
     }
 

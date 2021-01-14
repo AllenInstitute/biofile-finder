@@ -105,7 +105,6 @@ const useDirectoryHierarchy = (
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const fileService = useSelector(interaction.selectors.getFileService);
-    const refreshKey = useSelector(selection.selectors.getRefreshKey);
     const selectedFileFilters = useSelector(selection.selectors.getFileFilters);
     const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
 
@@ -271,7 +270,6 @@ const useDirectoryHierarchy = (
         hierarchy,
         isRoot,
         isLeaf,
-        refreshKey,
         selectedFileFilters,
         sortOrder,
     ]);

@@ -1,7 +1,7 @@
 import { isEmpty, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { ReduxLogicDeps, selection } from "../";
+import { metadata, ReduxLogicDeps, selection } from "../";
 import {
     DOWNLOAD_MANIFEST,
     DownloadManifestAction,
@@ -21,6 +21,7 @@ import {
     startPythonSnippetGeneration,
     succeedPythonSnippetGeneration,
     failPythonSnippetGeneration,
+    REFRESH,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -300,10 +301,41 @@ const generatePythonSnippet = createLogic({
     },
 });
 
+/**
+ * Interceptor responsible for processing REFRESH actions into individual
+ * actions meant to update the directory tree and annotation hierarchy
+ */
+const refresh = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        try {
+            const { getState } = deps;
+            const annotationService = interactionSelectors.getAnnotationService(getState());
+
+            // Refresh list of annotations & which annotations are available
+            const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
+            const annotationNamesInHierachy = hierarchy.map((a) => a.name);
+            const [annotations, availableAnnotations] = await Promise.all([
+                annotationService.fetchAnnotations(),
+                annotationService.fetchAvailableAnnotationsForHierarchy(annotationNamesInHierachy),
+            ]);
+            dispatch(metadata.actions.receiveAnnotations(annotations));
+            dispatch(selection.actions.setAvailableAnnotations(availableAnnotations));
+        } catch (e) {
+            console.error("Error encountered while refreshing");
+            const annotations = metadata.selectors.getAnnotations(deps.getState());
+            dispatch(selection.actions.setAvailableAnnotations(annotations.map((a) => a.name)));
+        } finally {
+            done();
+        }
+    },
+    type: [REFRESH],
+});
+
 export default [
     downloadManifest,
     cancelManifestDownloadLogic,
     openFilesInImageJ,
     showContextMenu,
     generatePythonSnippet,
+    refresh,
 ];

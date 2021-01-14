@@ -1,11 +1,12 @@
 import { makeReducer } from "@aics/redux-utils";
-import { filter } from "lodash";
+import { filter, uniqueId } from "lodash";
 
 import {
     GENERATE_PYTHON_SNIPPET,
     HIDE_CONTEXT_MENU,
     HIDE_VISIBLE_MODAL,
     PlatformDependentServices,
+    REFRESH,
     REMOVE_STATUS,
     SET_ALLEN_MOUNT_POINT,
     SET_APPLICATION_VERSION,
@@ -45,6 +46,7 @@ export interface InteractionStateBranch {
     imageJExecutable?: string;
     platformDependentServices: PlatformDependentServices;
     pythonSnippet?: PythonicDataAccessSnippet;
+    refreshKey?: string;
     status: StatusUpdate[];
     visibleModal?: ModalType;
 }
@@ -96,6 +98,10 @@ export default makeReducer<InteractionStateBranch>(
         [GENERATE_PYTHON_SNIPPET]: (state) => ({
             ...state,
             visibleModal: undefined,
+        }),
+        [REFRESH]: (state) => ({
+            ...state,
+            refreshKey: uniqueId(),
         }),
         [SET_STATUS]: (state, action) => ({
             ...state,

@@ -589,3 +589,21 @@ export function generatePythonSnippet(
         },
     };
 }
+
+/**
+ * REFRESH
+ *
+ * Intention to refresh cached queries
+ */
+
+export const REFRESH = makeConstant(STATE_BRANCH_NAME, "refresh");
+
+export interface RefreshAction {
+    type: string;
+}
+
+export function refresh(): RefreshAction {
+    return {
+        type: REFRESH,
+    };
+}

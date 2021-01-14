@@ -23,6 +23,7 @@ export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;
 export const getPythonSnippet = (state: State) => state.interaction.pythonSnippet;
+export const getRefreshKey = (state: State) => state.interaction.refreshKey;
 export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 
 // COMPOSED SELECTORS
@@ -37,14 +38,14 @@ export const getUserName = createSelector(
 );
 
 export const getFileService = createSelector(
-    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl],
+    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl, getRefreshKey],
     (applicationVersion, userName, fileExplorerBaseUrl) => {
         return new FileService({ applicationVersion, userName, baseUrl: fileExplorerBaseUrl });
     }
 );
 
 export const getAnnotationService = createSelector(
-    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl],
+    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl, getRefreshKey],
     (applicationVersion, userName, fileExplorerBaseUrl) => {
         return new AnnotationService({
             applicationVersion,
@@ -55,7 +56,7 @@ export const getAnnotationService = createSelector(
 );
 
 export const getDatasetService = createSelector(
-    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl],
+    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl, getRefreshKey],
     (applicationVersion, userName, fileExplorerBaseUrl) => {
         return new DatasetService({ applicationVersion, userName, baseUrl: fileExplorerBaseUrl });
     }

@@ -43,7 +43,7 @@ function FileExplorerURLBar(props: FileExplorerURLBarProps) {
 
     const onRefresh = () => {
         setURL(props.existingEncodedURL);
-        dispatch(selection.actions.refresh());
+        dispatch(interaction.actions.refresh());
     };
 
     const onCopy = () => {
