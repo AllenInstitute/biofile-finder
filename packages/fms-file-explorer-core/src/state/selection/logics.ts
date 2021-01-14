@@ -429,12 +429,14 @@ const refresh = createLogic({
             // Clear selections
             dispatch(selection.actions.setFileSelection(new FileSelection()));
 
-            // Refresh list of available annotations
+            // Refresh list of annotations & which annotations are available
             const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
             const annotationNamesInHierachy = hierarchy.map((a) => a.name);
-            const availableAnnotations = await annotationService.fetchAvailableAnnotationsForHierarchy(
-                annotationNamesInHierachy
-            );
+            const [annotations, availableAnnotations] = await Promise.all([
+                annotationService.fetchAnnotations(),
+                annotationService.fetchAvailableAnnotationsForHierarchy(annotationNamesInHierachy),
+            ]);
+            dispatch(metadata.actions.receiveAnnotations(annotations));
             dispatch(selection.actions.setAvailableAnnotations(availableAnnotations));
         } catch (e) {
             console.error("Error encountered while refreshing");
