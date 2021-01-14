@@ -83,6 +83,7 @@ export default makeReducer<SelectionStateBranch>(
         },
         [interaction.actions.REFRESH]: (state) => ({
             ...state,
+            availableAnnotationsForHierarchyLoading: true,
             fileSelection: new FileSelection(),
         }),
         [RESET_COLUMN_WIDTH]: (state, action) => ({
