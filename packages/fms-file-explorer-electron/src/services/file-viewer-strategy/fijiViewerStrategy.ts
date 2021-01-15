@@ -9,6 +9,15 @@ const isBioFormat = (filePath: string) => {
     return [".tiff", ".tif", ".czi"].includes(path.extname(filePath));
 };
 
+const escapeBackSlashes = (str: string): string => {
+    return [...str].reduce((next, char) => {
+        if (char === "\\") {
+            return `${next}\\\\`;
+        }
+        return `${next}${char}`;
+    }, "");
+};
+
 /**
  * Spawn FIJI with a templated, JavaScript-based "plugin" that is run on open.
  *
@@ -34,15 +43,12 @@ const fijiViewerStrategy: ViewerStrategy = async (executable, filePaths) => {
         importClass(Packages.loci.plugins.LociImporter);
 
         var bioFormatImgs = [
-            ${filePaths
-                .filter(isBioFormat)
-                .map((filePath) => `"${filePath}"`)
-                .join(",")}
+            ${filePaths.filter(isBioFormat).map(escapeBackSlashes).join(",")}
         ];
         var standardImgs = [
             ${filePaths
                 .filter((filePath) => !isBioFormat(filePath))
-                .map((filePath) => `"${filePath}"`)
+                .map(escapeBackSlashes)
                 .join(",")}
         ];
 
