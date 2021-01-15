@@ -45,13 +45,13 @@ const fijiViewerStrategy: ViewerStrategy = async (executable, filePaths) => {
         var bioFormatImgs = [
             ${filePaths
                 .filter(isBioFormat)
-                .map((filePath) => String.raw`${escapeBackSlashes(filePath)}`)
+                .map((filePath) => String.raw`"${escapeBackSlashes(filePath)}"`)
                 .join(",")}
         ];
         var standardImgs = [
             ${filePaths
                 .filter((filePath) => !isBioFormat(filePath))
-                .map((filePath) => String.raw`${escapeBackSlashes(filePath)}`)
+                .map((filePath) => String.raw`"${escapeBackSlashes(filePath)}"`)
                 .join(",")}
         ];
 
