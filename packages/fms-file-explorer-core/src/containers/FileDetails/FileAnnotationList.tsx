@@ -1,5 +1,4 @@
 import * as React from "react";
-import path from "path";
 import { useSelector } from "react-redux";
 
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
@@ -23,6 +22,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
     const { fileDetails, isLoading } = props;
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
     const allenMountPoint = useSelector(interaction.selectors.getAllenMountPoint);
+    const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
     const content: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
         if (isLoading) {
@@ -42,8 +42,9 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                 if (annotation.name === AnnotationName.FILE_PATH && allenMountPoint) {
                     // Use path.normalize() to convert slashes to OS default & remove the would be duplicate
                     // "/allen" from the beginning of the canonical path
-                    const localizedPath = path.normalize(
-                        allenMountPoint + values.substring("/allen".length)
+                    const localPath = executionEnvService.formatPathForOs(
+                        values.substring("/allen".length),
+                        allenMountPoint
                     );
                     return [
                         ...accum,
@@ -51,7 +52,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                             key="file-path-local"
                             className={styles.row}
                             name="File path (Local)"
-                            value={localizedPath}
+                            value={localPath}
                         />,
                         <FileAnnotationRow
                             key={annotation.displayName}
@@ -74,7 +75,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
 
             return accum;
         }, [] as JSX.Element[]);
-    }, [annotations, fileDetails, isLoading, allenMountPoint]);
+    }, [allenMountPoint, annotations, executionEnvService, fileDetails, isLoading]);
 
     return <div className={styles.list}>{content}</div>;
 }

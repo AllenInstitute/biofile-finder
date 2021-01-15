@@ -1,6 +1,13 @@
 import ExecutionEnvService from ".";
 
 export default class ExecutionEnvServiceNoop implements ExecutionEnvService {
+    public formatPathForOs(posixPath: string, prefix?: string): string {
+        if (prefix) {
+            return `${prefix}${posixPath}`;
+        }
+        return posixPath;
+    }
+
     public promptForAllenMountPoint(): Promise<string> {
         return Promise.resolve("Prompt triggered within ExecutionEnvServiceNoop.");
     }

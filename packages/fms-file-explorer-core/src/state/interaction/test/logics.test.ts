@@ -25,9 +25,8 @@ import {
 } from "../actions";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import DatasetService from "../../../services/DatasetService";
-import ExecutionEnvService, {
-    ExecutableEnvCancellationToken,
-} from "../../../services/ExecutionEnvService";
+import { ExecutableEnvCancellationToken } from "../../../services/ExecutionEnvService";
+import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import interactionLogics from "../logics";
 import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
@@ -516,7 +515,7 @@ describe("Interaction logics", () => {
                     return Promise.resolve();
                 }
             }
-            class UselessExecutionEnvService implements ExecutionEnvService {
+            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
                 promptForAllenMountPoint() {
                     return Promise.resolve(ExecutableEnvCancellationToken);
                 }
@@ -570,7 +569,7 @@ describe("Interaction logics", () => {
         it("prevents prompting to select Image J executable when user cancels selecting mount point", async () => {
             // Arrange
             let attemptedToSetImageJ = false;
-            class UselessExecutionEnvService implements ExecutionEnvService {
+            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
                 promptForAllenMountPoint() {
                     return Promise.resolve(ExecutableEnvCancellationToken);
                 }
@@ -608,7 +607,7 @@ describe("Interaction logics", () => {
         it("prevents prompting to select Allen Drive when it is at the expected location", async () => {
             // Arrange
             let attemptedToSetAllenDrive = false;
-            class UselessExecutionEnvService implements ExecutionEnvService {
+            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
                 promptForAllenMountPoint() {
                     attemptedToSetAllenDrive = true;
                     return Promise.resolve("test");
@@ -653,7 +652,7 @@ describe("Interaction logics", () => {
                     return Promise.resolve();
                 }
             }
-            class UselessExecutionEnvService implements ExecutionEnvService {
+            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
                 promptForAllenMountPoint() {
                     return Promise.resolve("test");
                 }
@@ -698,7 +697,7 @@ describe("Interaction logics", () => {
             let promptedForAllenMountPoint = false;
             let promptedForExecutable = false;
             const expectedExecutablePath = "some/path/to/imageJ";
-            class UselessExecutionEnvService implements ExecutionEnvService {
+            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
                 promptForAllenMountPoint() {
                     promptedForAllenMountPoint = true;
                     return Promise.resolve(expectedAllenDrive);

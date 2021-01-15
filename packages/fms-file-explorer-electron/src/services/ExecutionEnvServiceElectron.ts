@@ -98,6 +98,15 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         });
     }
 
+    public formatPathForOs(posixPath: string, prefix?: string): string {
+        // Assumption: file paths are persisted as POSIX paths. Split accordingly...
+        const originalPosixPathSplit = posixPath.split(path.posix.sep);
+        const parts = prefix ? [prefix, ...originalPosixPathSplit] : originalPosixPathSplit;
+
+        // ...then rejoin using whatever path.sep is at runtime
+        return parts.join(path.sep);
+    }
+
     public async promptForAllenMountPoint(displayMessageBeforePrompt?: boolean): Promise<string> {
         if (displayMessageBeforePrompt) {
             const result = await this.notificationService.showMessage(

@@ -1,5 +1,3 @@
-import path from "path";
-
 import { isEmpty, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
@@ -202,9 +200,11 @@ const openFilesInImageJ = createLogic({
                 // Collect the file paths from the selected files
                 const fileSelection = selection.selectors.getFileSelection(deps.getState());
                 const selectedFilesDetails = await fileSelection.fetchAllDetails();
-                const filePaths = selectedFilesDetails.map(
-                    (file) =>
-                        allenMountPoint + path.normalize(file.file_path.substring("/allen".length))
+                const filePaths = selectedFilesDetails.map((file) =>
+                    executionEnvService.formatPathForOs(
+                        file.file_path.substring("/allen".length),
+                        allenMountPoint
+                    )
                 );
 
                 // Open the files in the specified executable

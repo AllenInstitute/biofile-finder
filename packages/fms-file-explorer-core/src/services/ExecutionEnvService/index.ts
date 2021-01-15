@@ -3,6 +3,12 @@
  */
 export default interface ExecutionEnvService {
     /**
+     * Return file system path formatted for use on the current operating system.
+     * Assumes input is POSIX path.
+     */
+    formatPathForOs(posixPath: string, prefix?: string): string;
+
+    /**
      * Prompts the user for the allen mount point location.
      * Will first notify the user of this request if a prompt message is specified.
      *
