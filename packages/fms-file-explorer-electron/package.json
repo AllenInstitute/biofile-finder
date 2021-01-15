@@ -111,7 +111,7 @@
     "xvfb-maybe": "0.2.x"
   },
   "dependencies": {
-    "@aics/fms-file-explorer-core": "4.1.0",
+    "@aics/fms-file-explorer-core": "4.1.1-alpha.1",
     "axios": "0.19.x",
     "electron-devtools-installer": "3.1.x",
     "electron-store": "6.0.x",
