@@ -19,7 +19,6 @@ import {
     RESIZE_COLUMN,
     RESET_COLUMN_WIDTH,
 } from "./actions";
-import { metadata } from "..";
 
 export interface SelectionStateBranch {
     annotationHierarchy: Annotation[];
@@ -58,11 +57,6 @@ export default makeReducer<SelectionStateBranch>(
 
             // Reset file selections when file filters change
             fileSelection: new FileSelection(),
-        }),
-        // Reset hierarchy when annotations are re-requested (like when changing data source)
-        [metadata.actions.RECEIVE_ANNOTATIONS]: (state) => ({
-            ...state,
-            annotationHierarchy: [],
         }),
         [DESELECT_DISPLAY_ANNOTATION]: (state, action) => {
             const displayAnnotations = without(

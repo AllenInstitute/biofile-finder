@@ -19,7 +19,7 @@ import ExecutionEnvServiceNoop from "./services/ExecutionEnvService/ExecutionEnv
 import FileDownloadServiceNoop from "./services/FileDownloadService/FileDownloadServiceNoop";
 import FileViewerServiceNoop from "./services/FileViewerService/FileViewerServiceNoop";
 import PersistentConfigServiceNoop from "./services/PersistentConfigService/PersistentConfigServiceNoop";
-import { interaction, metadata } from "./state";
+import { interaction, metadata, selection } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
 
 import "./styles/global.css";
@@ -121,6 +121,7 @@ export default function App(props: AppProps) {
     React.useEffect(() => {
         dispatch(interaction.actions.setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl));
         dispatch(metadata.actions.requestAnnotations());
+        dispatch(selection.actions.setAnnotationHierarchy([]));
     }, [dispatch, fileExplorerServiceBaseUrl]);
 
     return (

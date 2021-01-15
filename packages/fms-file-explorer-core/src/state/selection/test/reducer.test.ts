@@ -183,27 +183,4 @@ describe("Selection reducer", () => {
             ).to.deep.equal(new FileSelection());
         });
     });
-
-    describe("metadata.actions.RECEIVE_ANNOTATIONS", () => {
-        it("clears annotations hierarchy", () => {
-            // arrange
-            const initialSelectionState = {
-                ...selection.initialState,
-                annotationHierarchy: TOP_LEVEL_FILE_ANNOTATIONS,
-            };
-
-            const action = metadata.actions.receiveAnnotations(TOP_LEVEL_FILE_ANNOTATIONS);
-
-            // act
-            const nextSelectionState = selection.reducer(initialSelectionState, action);
-
-            // assert
-            expect(
-                selection.selectors.getAnnotationHierarchy({
-                    ...initialState,
-                    selection: nextSelectionState,
-                })
-            ).to.be.empty;
-        });
-    });
 });
