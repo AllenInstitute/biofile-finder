@@ -43,12 +43,15 @@ const fijiViewerStrategy: ViewerStrategy = async (executable, filePaths) => {
         importClass(Packages.loci.plugins.LociImporter);
 
         var bioFormatImgs = [
-            ${filePaths.filter(isBioFormat).map(escapeBackSlashes).join(",")}
+            ${filePaths
+                .filter(isBioFormat)
+                .map((filePath) => String.raw`${escapeBackSlashes(filePath)}`)
+                .join(",")}
         ];
         var standardImgs = [
             ${filePaths
                 .filter((filePath) => !isBioFormat(filePath))
-                .map(escapeBackSlashes)
+                .map((filePath) => String.raw`${escapeBackSlashes(filePath)}`)
                 .join(",")}
         ];
 
