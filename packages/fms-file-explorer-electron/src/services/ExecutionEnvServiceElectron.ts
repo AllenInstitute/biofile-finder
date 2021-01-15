@@ -104,7 +104,7 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         const parts = prefix ? [prefix, ...originalPosixPathSplit] : originalPosixPathSplit;
 
         // ...then rejoin using whatever path.sep is at runtime
-        return parts.join(path.sep);
+        return path.join(...parts);
     }
 
     public async promptForAllenMountPoint(displayMessageBeforePrompt?: boolean): Promise<string> {
