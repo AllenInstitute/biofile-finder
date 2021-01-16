@@ -12,8 +12,9 @@ const FILE_TYPE_FOR_OS = {
 const INSTRUCTIONS_FOR_OS = {
     [OS.WINDOWS]: [
         "Click the 'Download' button to the left",
-        "Locate the download in your file browser and click to open as you would any other application",
-        'When prompted, select that you trust this application and would like to "Run anyway"',
+        "Move the downloaded executable from your Downloads folder to a more durable location. Note that ITO prevents executables from being stored <i>directly</i> on either your Desktop or in your Documents folder. The executable can, however, be placed within a folder in either location (e.g. <code>Desktop\\FMS Explorer\\explorer.exe</code>).",
+        '<strong>Recommendation:</strong> store the executable in someplace like <code>C:\\Users\\someuser\\FMS Explorer\\</code>. Once there, you can right-click on the .exe and select "Send to" -> "Desktop (create shortcut)"  to make it more convenient to find.',
+        '<strong>If on Windows 10:</strong> the <i>first</i> time you run the application, you\'ll see a blue pop-up warning that "Windows protected your PC." To continue, click "More Info," then press the "Run anyway" button.',
     ],
     [OS.MAC]: [
         "Click the 'Download' button to the left.",
