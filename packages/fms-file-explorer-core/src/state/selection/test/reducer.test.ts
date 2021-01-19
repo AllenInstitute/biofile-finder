@@ -183,4 +183,69 @@ describe("Selection reducer", () => {
             ).to.deep.equal(new FileSelection());
         });
     });
+
+    describe("interaction.actions.REFRESH", () => {
+        it("sets available annotations to loading", () => {
+            // Arrange
+            const initialSelectionState = { ...selection.initialState };
+
+            // (sanity-check) available annotations are not loading before refresh
+            expect(
+                selection.selectors.getAvailableAnnotationsForHierarchyLoading({
+                    ...initialState,
+                    selection: initialSelectionState,
+                })
+            ).to.be.false;
+
+            // Act
+            const nextSelectionState = selection.reducer(
+                initialSelectionState,
+                interaction.actions.refresh()
+            );
+
+            // Assert
+            expect(
+                selection.selectors.getAvailableAnnotationsForHierarchyLoading({
+                    ...initialState,
+                    selection: nextSelectionState,
+                })
+            ).to.be.true;
+        });
+
+        it("clears file selection", () => {
+            // Arrange
+            const initialSelectionState = {
+                ...selection.initialState,
+                fileSelection: new FileSelection([
+                    { fileSet: new FileSet(), selection: new NumericRange(0, 14), sortOrder: 0 },
+                ]),
+            };
+
+            // (sanity-check) file selection count is not 0 before
+            expect(
+                selection.selectors
+                    .getFileSelection({
+                        ...initialState,
+                        selection: initialSelectionState,
+                    })
+                    .count()
+            ).to.be.equal(15);
+
+            // Act
+            const nextSelectionState = selection.reducer(
+                initialSelectionState,
+                interaction.actions.refresh()
+            );
+
+            // Assert
+            expect(
+                selection.selectors
+                    .getFileSelection({
+                        ...initialState,
+                        selection: nextSelectionState,
+                    })
+                    .count()
+            ).to.be.equal(0);
+        });
+    });
 });
