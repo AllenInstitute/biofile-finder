@@ -89,12 +89,14 @@ function FileExplorerURLBar(props: FileExplorerURLBarProps) {
                     value={url}
                     spellCheck={false}
                     onContextMenu={onContextMenu}
+                    data-testid="fms-file-explorer-url-bar"
                 />
             </form>
             <IconButton
                 className={styles.copyButton}
                 iconProps={{ iconName: "refresh" }}
                 onClick={onRefresh}
+                data-testid="refresh-button"
             />
             {!error ? (
                 <TooltipHost content={isCopied ? "Copied to clipboard!" : undefined}>

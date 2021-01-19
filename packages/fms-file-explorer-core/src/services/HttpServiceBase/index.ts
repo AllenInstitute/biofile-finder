@@ -118,7 +118,6 @@ export default class HttpServiceBase {
         if (config.httpClient) {
             this.setHttpClient(config.httpClient);
         }
-        this.urlToResponseDataCache.reset();
     }
 
     public async get<T>(url: string): Promise<RestServiceResponse<T>> {

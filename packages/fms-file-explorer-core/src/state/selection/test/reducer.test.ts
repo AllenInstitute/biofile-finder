@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 import selection from "..";
-import { initialState, metadata } from "../..";
+import { initialState } from "../..";
 import interaction from "../../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import FileFilter from "../../../entity/FileFilter";

@@ -6,6 +6,7 @@ import {
 } from "@aics/redux-utils";
 import { expect } from "chai";
 import fs from "fs";
+import { get as _get } from "lodash";
 import os from "os";
 import { createSandbox } from "sinon";
 
@@ -22,20 +23,27 @@ import {
     generatePythonSnippet,
     SUCCEED_PYTHON_SNIPPET_GENERATION,
     SET_CSV_COLUMNS,
+    refresh,
 } from "../actions";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import DatasetService from "../../../services/DatasetService";
 import { ExecutableEnvCancellationToken } from "../../../services/ExecutionEnvService";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import interactionLogics from "../logics";
-import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
-import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
+import Annotation from "../../../entity/Annotation";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
-import FileSelection from "../../../entity/FileSelection";
-import FileService from "../../../services/FileService";
 import FileSet from "../../../entity/FileSet";
-import FileViewerService from "../../../services/FileViewerService";
+import FileSelection from "../../../entity/FileSelection";
 import NumericRange from "../../../entity/NumericRange";
+import { RECEIVE_ANNOTATIONS } from "../../metadata/actions";
+import { SET_AVAILABLE_ANNOTATIONS } from "../../selection/actions";
+import AnnotationService from "../../../services/AnnotationService";
+import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
+import FileService from "../../../services/FileService";
+import FileViewerService from "../../../services/FileViewerService";
+import { annotationsJson } from "../../../entity/Annotation/mocks";
+import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({
@@ -471,6 +479,97 @@ describe("Interaction logics", () => {
             expect(
                 actions.includesMatch({
                     type: SUCCEED_PYTHON_SNIPPET_GENERATION,
+                })
+            ).to.be.true;
+        });
+    });
+
+    describe("refresh", () => {
+        const sandbox = createSandbox();
+        const baseUrl = "test";
+        const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
+        const availableAnnotations = [annotations[1].displayName];
+        const responseStubs = [
+            {
+                when: `${baseUrl}/${AnnotationService.BASE_ANNOTATION_URL}`,
+                respondWith: {
+                    data: { data: annotations },
+                },
+            },
+            {
+                when: (config: any) =>
+                    _get(config, "url", "").includes(
+                        AnnotationService.BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY
+                    ),
+                respondWith: {
+                    data: { data: availableAnnotations },
+                },
+            },
+        ];
+        const mockHttpClient = createMockHttpClient(responseStubs);
+        const annotationService = new AnnotationService({
+            baseUrl,
+            httpClient: mockHttpClient,
+        });
+
+        afterEach(() => {
+            sandbox.restore();
+        });
+
+        it("refreshes annotations & which annotations are available based on hierarchy", async () => {
+            // Arrange
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+            const { actions, store, logicMiddleware } = configureMockStore({
+                state: initialState,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(refresh());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_AVAILABLE_ANNOTATIONS,
+                    payload: availableAnnotations,
+                })
+            ).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: RECEIVE_ANNOTATIONS,
+                })
+            ).to.be.true;
+        });
+
+        it("sets available annotations to all annotations on failure", async () => {
+            // Arrange
+            sandbox.stub(interaction.selectors, "getAnnotationService").throws();
+            const expectedAnnotation = new Annotation({
+                annotationName: "Failure",
+                annotationDisplayName: "Failure",
+                type: AnnotationType.BOOLEAN,
+                description: "Test annotation for failure",
+            });
+            const state = mergeState(initialState, {
+                metadata: {
+                    annotations: [expectedAnnotation],
+                },
+            });
+            const { actions, store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(refresh());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_AVAILABLE_ANNOTATIONS,
+                    payload: [expectedAnnotation.displayName],
                 })
             ).to.be.true;
         });
