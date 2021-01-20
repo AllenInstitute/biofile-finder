@@ -1,5 +1,5 @@
 import { makeReducer } from "@aics/redux-utils";
-import { filter, uniqueId } from "lodash";
+import { filter } from "lodash";
 
 import {
     GENERATE_PYTHON_SNIPPET,
@@ -99,9 +99,9 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             visibleModal: undefined,
         }),
-        [REFRESH]: (state) => ({
+        [REFRESH]: (state, action) => ({
             ...state,
-            refreshKey: uniqueId(),
+            refreshKey: action.payload,
         }),
         [SET_STATUS]: (state, action) => ({
             ...state,

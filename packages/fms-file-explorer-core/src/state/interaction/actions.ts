@@ -1,4 +1,5 @@
 import { makeConstant } from "@aics/redux-utils";
+import { uniqueId } from "lodash";
 
 import Annotation from "../../entity/Annotation";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
@@ -600,10 +601,12 @@ export const REFRESH = makeConstant(STATE_BRANCH_NAME, "refresh");
 
 export interface RefreshAction {
     type: string;
+    payload: string;
 }
 
 export function refresh(): RefreshAction {
     return {
         type: REFRESH,
+        payload: uniqueId(),
     };
 }
