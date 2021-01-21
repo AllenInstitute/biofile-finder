@@ -1,5 +1,6 @@
 import Tippy from "@tippy.js/react";
 import classNames from "classnames";
+import { debounce } from "lodash";
 import { IconButton, TextField, TooltipHost } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -41,10 +42,14 @@ function FileExplorerURLBar(props: FileExplorerURLBarProps) {
         }
     };
 
-    const onRefresh = () => {
-        setURL(props.existingEncodedURL);
-        dispatch(interaction.actions.refresh());
-    };
+    const onRefresh = debounce(
+        () => {
+            setURL(props.existingEncodedURL);
+            dispatch(interaction.actions.refresh());
+        },
+        1000,
+        { leading: true, trailing: false }
+    );
 
     const onCopy = () => {
         navigator.clipboard.writeText(url);
@@ -93,7 +98,7 @@ function FileExplorerURLBar(props: FileExplorerURLBarProps) {
                 />
             </form>
             <IconButton
-                className={styles.copyButton}
+                className={styles.button}
                 iconProps={{ iconName: "refresh" }}
                 onClick={onRefresh}
                 data-testid="refresh-button"
@@ -101,7 +106,7 @@ function FileExplorerURLBar(props: FileExplorerURLBarProps) {
             {!error ? (
                 <TooltipHost content={isCopied ? "Copied to clipboard!" : undefined}>
                     <IconButton
-                        className={styles.copyButton}
+                        className={styles.button}
                         iconProps={{ iconName: "link" }}
                         onClick={onCopy}
                     />
