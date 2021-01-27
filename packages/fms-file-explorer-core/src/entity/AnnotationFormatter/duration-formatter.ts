@@ -1,6 +1,6 @@
-const msInADay = 24 * 60 * 60 * 1000;
-const msInAnHour = 60 * 60 * 1000;
 const msInAMinute = 60 * 1000;
+const msInAnHour = 60 * msInAMinute;
+const msInADay = 24 * msInAnHour;
 
 export default {
     displayValue(value: string | number): string {
