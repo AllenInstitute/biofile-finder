@@ -332,4 +332,59 @@ describe("<AnnotationFilterForm />", () => {
             });
         });
     });
+
+    describe("Duration annotation", () => {
+        const fooAnnotation = new Annotation({
+            annotationDisplayName: "Foo",
+            annotationName: "foo",
+            description: "",
+            type: "Duration",
+        });
+        const annotations = [fooAnnotation];
+
+        const sandbox = createSandbox();
+
+        afterEach(() => {
+            sandbox.restore();
+        });
+
+        it("naturally sorts values", async () => {
+            // arrange
+            const responseStub = {
+                when: `test/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: [446582220, 125, 10845000, 86400000] },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new AnnotationService({
+                baseUrl: "test",
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            const state = mergeState(initialState, {
+                metadata: {
+                    annotations,
+                },
+            });
+
+            const { store } = configureMockStore({ state, responseStubs: responseStub });
+
+            const { findAllByRole } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotationName="foo" />
+                </Provider>
+            );
+
+            // wait a couple render cycles for the async react hook to retrieve the annotation values
+            const annotationValueListItems = await findAllByRole("listitem");
+
+            expect(annotationValueListItems.length).to.equal(4);
+            expect(annotationValueListItems[0].textContent).to.equal("0.125S");
+            expect(annotationValueListItems[1].textContent).to.equal("3H 45S");
+            expect(annotationValueListItems[2].textContent).to.equal("1D");
+            expect(annotationValueListItems[3].textContent).to.equal("5D 4H 3M 2.22S");
+        });
+    });
 });

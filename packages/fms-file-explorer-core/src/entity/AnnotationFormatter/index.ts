@@ -3,6 +3,7 @@ import dateFormatter from "./date-formatter";
 import dateTimeFormatter from "./date-time-formatter";
 import identityFormatter from "./identity-formatter";
 import numberFormatter from "./number-formatter";
+import durationFormatter from "./duration-formatter";
 
 export enum AnnotationType {
     DATE = "Date",
@@ -10,6 +11,7 @@ export enum AnnotationType {
     NUMBER = "Number",
     STRING = "Text",
     BOOLEAN = "YesNo",
+    DURATION = "Duration",
 }
 
 export interface AnnotationFormatter {
@@ -31,6 +33,8 @@ export default function annotationFormatterFactory(type: string): AnnotationForm
             return dateTimeFormatter;
         case AnnotationType.NUMBER:
             return numberFormatter;
+        case AnnotationType.DURATION:
+            return durationFormatter;
         case AnnotationType.STRING:
         // prettier-ignore
         default: // FALL-THROUGH

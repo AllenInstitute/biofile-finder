@@ -4,6 +4,7 @@ import booleanFormatter from "../boolean-formatter";
 import dateFormatter from "../date-formatter";
 import dateTimeFormatter from "../date-time-formatter";
 import numberFormatter from "../number-formatter";
+import durationFormatter from "../duration-formatter";
 
 describe("Annotation formatters", () => {
     describe("Boolean annotation formatter", () => {
@@ -105,6 +106,20 @@ describe("Annotation formatters", () => {
 
         it("formats a value according to its type", () => {
             expect(numberFormatter.valueOf("3")).to.equal(3);
+        });
+    });
+
+    describe("Duration annotation formatter", () => {
+        it("formats a duration with all units", () => {
+            expect(durationFormatter.displayValue(446582220)).to.equal("5D 4H 3M 2.22S");
+        });
+
+        it("formats a duration with only hours and seconds", () => {
+            expect(durationFormatter.displayValue(10845000)).to.equal("3H 45S");
+        });
+
+        it("formats a duration with less than a second", () => {
+            expect(durationFormatter.displayValue(125)).to.equal("0.125S");
         });
     });
 });
