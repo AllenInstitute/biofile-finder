@@ -518,6 +518,18 @@ describe("Selection logics", () => {
 
         it("removes an annotation from the hierarchy", async () => {
             // setup
+
+            // Create new Annotation entities rather than re-use existing
+            // ones to test proper comparison using annotationName
+            const annotationHierarchy = annotations.slice(0, 4).map(
+                (a) =>
+                    new Annotation({
+                        annotationDisplayName: a.displayName,
+                        annotationName: a.name,
+                        description: a.description,
+                        type: a.displayName,
+                    })
+            );
             const state = {
                 interaction: {
                     fileExplorerServiceBaseUrl: "test",
@@ -526,12 +538,7 @@ describe("Selection logics", () => {
                     annotations: [...annotations],
                 },
                 selection: {
-                    annotationHierarchy: [
-                        annotations[0],
-                        annotations[1],
-                        annotations[2],
-                        annotations[3],
-                    ],
+                    annotationHierarchy,
                     openFileFolders: [],
                 },
             };
@@ -548,7 +555,11 @@ describe("Selection logics", () => {
             expect(
                 actions.includes({
                     type: SET_ANNOTATION_HIERARCHY,
-                    payload: [annotations[0], annotations[1], annotations[3]],
+                    payload: [
+                        annotationHierarchy[0],
+                        annotationHierarchy[1],
+                        annotationHierarchy[3],
+                    ],
                 })
             ).to.equal(true);
         });
