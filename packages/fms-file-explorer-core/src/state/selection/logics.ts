@@ -1,4 +1,4 @@
-import { castArray, find, includes, sortBy, uniqWith, without } from "lodash";
+import { castArray, find, sortBy, uniqWith } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { batch } from "react-redux";
@@ -153,8 +153,8 @@ const modifyAnnotationHierarchy = createLogic({
         }
 
         let nextHierarchy: Annotation[];
-        if (includes(existingHierarchy, annotation)) {
-            const removed = without(existingHierarchy, annotation);
+        if (find(existingHierarchy, (a) => a.name === annotation.name)) {
+            const removed = existingHierarchy.filter((a) => a.name !== annotation.name);
 
             // if moveTo is defined, change the order
             // otherwise, remove it from the hierarchy
