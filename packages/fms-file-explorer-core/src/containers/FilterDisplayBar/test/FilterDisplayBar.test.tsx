@@ -4,12 +4,12 @@ import { expect } from "chai";
 import React from "react";
 import { Provider } from "react-redux";
 
+import Annotation from "../../../entity/Annotation";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
 import { initialState, reducer, reduxLogics } from "../../../state";
 
 import FilterDisplayBar from "../";
-import Annotation from "../../../entity/Annotation";
-import { AnnotationType } from "../../../entity/AnnotationFormatter";
 
 describe("<FilterDisplayBar />", () => {
     it("renders a medallion for each annotation represented in application state file filters", async () => {
