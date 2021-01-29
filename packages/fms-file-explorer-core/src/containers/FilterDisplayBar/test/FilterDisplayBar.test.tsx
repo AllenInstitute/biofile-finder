@@ -8,11 +8,29 @@ import FileFilter from "../../../entity/FileFilter";
 import { initialState, reducer, reduxLogics } from "../../../state";
 
 import FilterDisplayBar from "../";
+import Annotation from "../../../entity/Annotation";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 
 describe("<FilterDisplayBar />", () => {
     it("renders a medallion for each annotation represented in application state file filters", async () => {
         // Arrange
         const state = mergeState(initialState, {
+            metadata: {
+                annotations: [
+                    new Annotation({
+                        annotationDisplayName: "Cell Line",
+                        annotationName: "Cell Line",
+                        description: "Blah blah blah",
+                        type: AnnotationType.STRING,
+                    }),
+                    new Annotation({
+                        annotationDisplayName: "Workflow",
+                        annotationName: "Workflow",
+                        description: "Blah blah blah",
+                        type: AnnotationType.STRING,
+                    }),
+                ],
+            },
             selection: {
                 filters: [
                     new FileFilter("Cell Line", "Foo"),
@@ -39,6 +57,22 @@ describe("<FilterDisplayBar />", () => {
     it("uses EQUALS when only one filter is set for an annotation and ONE OF when multiple are", async () => {
         // Arrange
         const state = mergeState(initialState, {
+            metadata: {
+                annotations: [
+                    new Annotation({
+                        annotationDisplayName: "Cell Line",
+                        annotationName: "Cell Line",
+                        description: "Blah blah blah",
+                        type: AnnotationType.STRING,
+                    }),
+                    new Annotation({
+                        annotationDisplayName: "Workflow",
+                        annotationName: "Workflow",
+                        description: "Blah blah blah",
+                        type: AnnotationType.STRING,
+                    }),
+                ],
+            },
             selection: {
                 filters: [
                     new FileFilter("Cell Line", "Foo"),
@@ -65,6 +99,16 @@ describe("<FilterDisplayBar />", () => {
     it("clears all file filters related to the annotation when the 'close' icon is pressed", async () => {
         // Arrange
         const state = mergeState(initialState, {
+            metadata: {
+                annotations: [
+                    new Annotation({
+                        annotationDisplayName: "Cell Line",
+                        annotationName: "Cell Line",
+                        description: "Blah blah blah",
+                        type: AnnotationType.STRING,
+                    }),
+                ],
+            },
             selection: {
                 filters: [
                     new FileFilter("Cell Line", "Foo"),
@@ -94,5 +138,37 @@ describe("<FilterDisplayBar />", () => {
         const clearButton = await findByRole("button", { exact: false, name: "Clear" });
         fireEvent.click(clearButton);
         expect(() => getByText(/^Cell Line/)).to.throw;
+    });
+
+    it("presents the display value of a filter", async () => {
+        // Arrange
+        const state = mergeState(initialState, {
+            metadata: {
+                annotations: [
+                    new Annotation({
+                        annotationDisplayName: "Timelapse Interval",
+                        annotationName: "Timelapse Interval",
+                        description: "Blah blah blah",
+                        type: AnnotationType.DURATION,
+                    }),
+                ],
+            },
+            selection: {
+                filters: [
+                    new FileFilter("Timelapse Interval", 10000), // in milliseconds, 10 * 1000ms = 10s
+                ],
+            },
+        });
+        const { store } = configureMockStore({ state });
+
+        // Act
+        const { findByText } = render(
+            <Provider store={store}>
+                <FilterDisplayBar />
+            </Provider>
+        );
+
+        // Assert
+        expect(await findByText("Timelapse Interval EQUALS 10S")).to.exist;
     });
 });

@@ -10,9 +10,15 @@ import AnnotationFilter from "../AnnotationSidebar/AnnotationFilter";
 
 const styles = require("./FilterMedallion.module.css");
 
+export interface Filter {
+    name: string;
+    value: any;
+    displayValue: string;
+}
+
 interface Props {
     name: string;
-    filters: FileFilter[];
+    filters: Filter[];
 }
 
 const CLOSE_ICON = { iconName: "ChromeClose" };
@@ -64,7 +70,7 @@ export default function FilterMedallion(props: Props) {
     }, [textRef, filters]);
 
     const operator = filters.length > 1 ? "ONE OF" : "EQUALS";
-    const valueDisplay = map(filters, (filter) => filter.value).join(", ");
+    const valueDisplay = map(filters, (filter) => filter.displayValue).join(", ");
     const display = `${name} ${operator} ${valueDisplay}`;
 
     return (
@@ -90,7 +96,10 @@ export default function FilterMedallion(props: Props) {
                 ariaLabel="Clear"
                 iconProps={CLOSE_ICON}
                 onClick={() => {
-                    dispatch(selection.actions.removeFileFilter(filters));
+                    const fileFilters = filters.map(
+                        (filter) => new FileFilter(filter.name, filter.value)
+                    );
+                    dispatch(selection.actions.removeFileFilter(fileFilters));
                 }}
                 styles={BUTTON_STYLES}
             />
