@@ -35,8 +35,8 @@ export default function FileDetails(props: FileDetails) {
     const minimizedWidth =
         windowState.state === WindowState.MINIMIZED ? WINDOW_ACTION_BUTTON_WIDTH : undefined;
 
-    // If the file has a thumbnail image specified, display the specified thumbnail. Otherwise, display the file
-    // itself as the thumbnail if possible.
+    // If the file has a thumbnail image specified, we want to display the specified thumbnail. Otherwise, we want
+    // to display the file itself as the thumbnail if possible.
     let thumbnailUriPath = "";
     if (fileDetails?.thumbnail) {
         thumbnailUriPath = fileDetails.thumbnail;
