@@ -35,7 +35,7 @@ export default function FileDetails(props: FileDetails) {
     const minimizedWidth =
         windowState.state === WindowState.MINIMIZED ? WINDOW_ACTION_BUTTON_WIDTH : undefined;
 
-    const renderableImageFormats = ["jpg", "jpeg", "png", "gif"];
+    const renderableImageFormats = [".jpg", ".jpeg", ".png", ".gif"];
     const isFileRenderableImage = renderableImageFormats.some((format) =>
         fileDetails?.name.toLowerCase().endsWith(format)
     );
