@@ -35,16 +35,15 @@ export default function FileDetails(props: FileDetails) {
     const minimizedWidth =
         windowState.state === WindowState.MINIMIZED ? WINDOW_ACTION_BUTTON_WIDTH : undefined;
 
-    const hasThumbnail = fileDetails && fileDetails.thumbnail;
     const renderableImageFormats = ["jpg", "jpeg", "png", "gif"];
-    const isFileRenderableImage = (fileName: string) =>
-        renderableImageFormats.some((format) => fileName.endsWith(format));
-    const isImageWithoutThumbnail = fileDetails && isFileRenderableImage(fileDetails.name);
-    const showThumbnail = hasThumbnail || isImageWithoutThumbnail;
+    const isFileRenderableImage = renderableImageFormats.some((format) =>
+        fileDetails?.name.endsWith(format)
+    );
+
     let thumbnailUriPath = "";
-    if (fileDetails && fileDetails.thumbnail) {
+    if (fileDetails?.thumbnail) {
         thumbnailUriPath = fileDetails.thumbnail;
-    } else if (fileDetails && isFileRenderableImage(fileDetails.name)) {
+    } else if (fileDetails && isFileRenderableImage) {
         thumbnailUriPath = fileDetails.path;
     }
 
@@ -81,7 +80,7 @@ export default function FileDetails(props: FileDetails) {
                             [styles.hidden]: windowState.state === WindowState.MINIMIZED,
                         })}
                     >
-                        {showThumbnail && (
+                        {thumbnailUriPath && (
                             <div
                                 className={classNames(styles.fileThumbnailContainer, {
                                     [styles.thumbnailDefault]:
