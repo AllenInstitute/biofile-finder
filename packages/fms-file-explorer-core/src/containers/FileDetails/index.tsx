@@ -37,7 +37,7 @@ export default function FileDetails(props: FileDetails) {
 
     const renderableImageFormats = ["jpg", "jpeg", "png", "gif"];
     const isFileRenderableImage = renderableImageFormats.some((format) =>
-        fileDetails?.name.endsWith(format)
+        fileDetails?.name.toLowerCase().endsWith(format)
     );
 
     let thumbnailUriPath = "";
