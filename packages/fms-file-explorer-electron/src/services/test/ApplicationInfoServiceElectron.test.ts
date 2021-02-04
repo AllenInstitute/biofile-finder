@@ -1,9 +1,7 @@
 import { expect } from "chai";
-import { ipcRenderer } from "electron";
 import nock from "nock";
-import { createSandbox } from "sinon";
 
-import { RUN_IN_RENDERER } from "../../util/constants";
+import { EnvVars, RUN_IN_RENDERER } from "../../util/constants";
 import ApplicationInfoServiceElectron from "../ApplicationInfoServiceElectron";
 
 describe(`${RUN_IN_RENDERER} ApplicationInfoServiceElectron`, () => {
@@ -20,8 +18,6 @@ describe(`${RUN_IN_RENDERER} ApplicationInfoServiceElectron`, () => {
     });
 
     describe("updateAvailable", () => {
-        const sandbox = createSandbox();
-
         beforeEach(() => {
             if (!nock.isActive()) {
                 nock.activate();
@@ -30,7 +26,6 @@ describe(`${RUN_IN_RENDERER} ApplicationInfoServiceElectron`, () => {
 
         afterEach(() => {
             nock.restore();
-            sandbox.restore();
         });
 
         [
@@ -68,11 +63,7 @@ describe(`${RUN_IN_RENDERER} ApplicationInfoServiceElectron`, () => {
                         })
                     );
 
-                // intercept ipc request for application version
-                sandbox
-                    .stub(ipcRenderer, "invoke")
-                    .withArgs(ApplicationInfoServiceElectron.GET_APP_VERSION_IPC_CHANNEL)
-                    .resolves(spec.appVersion);
+                process.env[EnvVars.ApplicationVersion] = spec.appVersion;
 
                 const service = new ApplicationInfoServiceElectron();
 
@@ -85,18 +76,10 @@ describe(`${RUN_IN_RENDERER} ApplicationInfoServiceElectron`, () => {
         });
 
         describe("getApplicationVersion", () => {
-            const sandbox = createSandbox();
             const expectedAppVersion = "7.X.155";
 
             before(() => {
-                sandbox
-                    .stub(ipcRenderer, "invoke")
-                    .withArgs(ApplicationInfoServiceElectron.GET_APP_VERSION_IPC_CHANNEL)
-                    .resolves(expectedAppVersion);
-            });
-
-            after(() => {
-                sandbox.restore();
+                process.env[EnvVars.ApplicationVersion] = expectedAppVersion;
             });
 
             it("returns application version from ipcRenderer", async () => {

@@ -5,6 +5,8 @@ import axios from "axios";
 const httpAdapter = require("axios/lib/adapters/http"); // exported from lib, but not typed (can't be fixed through typing augmentation)
 import gt from "semver/functions/gt";
 
+import { EnvVars } from "../util/constants";
+
 export default class ApplicationInfoServiceElectron implements ApplicationInfoService {
     public static GET_APP_VERSION_IPC_CHANNEL = "get-app-version";
     public static LATEST_GITHUB_RELEASE_URL =
@@ -44,11 +46,12 @@ export default class ApplicationInfoServiceElectron implements ApplicationInfoSe
     }
 
     public getApplicationVersion() {
-        // Must be injected at build-time.
-        if (!process.env.APPLICATION_VERSION) {
+        // Must be injected at build-time
+        const applicationVersion = process.env[EnvVars.ApplicationVersion];
+        if (!applicationVersion) {
             throw new Error("APPLICATION_VERSION must be defined");
         }
-        return process.env.APPLICATION_VERSION;
+        return applicationVersion;
     }
 
     public getUserName(): string {
