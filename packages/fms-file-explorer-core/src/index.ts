@@ -8,13 +8,12 @@ import {
 } from "./services/PersistentConfigService";
 import { middleware as defaultMiddleware, reducer, initialState, State } from "./state";
 
-export function createReduxStore({
-    middleware,
-    persistedConfig,
-}: {
+interface CreateStoreOptions {
     middleware?: Middleware[];
     persistedConfig?: PersistedConfig;
-}) {
+}
+export function createReduxStore(options: CreateStoreOptions = {}) {
+    const { middleware, persistedConfig } = options;
     const preloadedState: State = mergeState(initialState, {
         interaction: {
             allenMountPoint:
