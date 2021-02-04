@@ -8,6 +8,10 @@ export default class ExecutionEnvServiceNoop implements ExecutionEnvService {
         return posixPath;
     }
 
+    public getOS(): string {
+        return "ExecutionEnvServiceNoop::getOS";
+    }
+
     public promptForAllenMountPoint(): Promise<string> {
         return Promise.resolve("Prompt triggered within ExecutionEnvServiceNoop.");
     }

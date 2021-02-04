@@ -3,19 +3,12 @@ import * as os from "os";
 import { ApplicationInfoService } from "@aics/fms-file-explorer-core";
 import axios from "axios";
 const httpAdapter = require("axios/lib/adapters/http"); // exported from lib, but not typed (can't be fixed through typing augmentation)
-import { app, ipcMain, ipcRenderer } from "electron";
 import gt from "semver/functions/gt";
 
 export default class ApplicationInfoServiceElectron implements ApplicationInfoService {
     public static GET_APP_VERSION_IPC_CHANNEL = "get-app-version";
     public static LATEST_GITHUB_RELEASE_URL =
         "https://api.github.com/repos/AllenInstitute/aics-fms-file-explorer-app/releases/latest";
-
-    public static registerIpcHandlers() {
-        ipcMain.handle(ApplicationInfoServiceElectron.GET_APP_VERSION_IPC_CHANNEL, () => {
-            return app.getVersion();
-        });
-    }
 
     public async updateAvailable(): Promise<boolean> {
         const response = await axios.get(ApplicationInfoServiceElectron.LATEST_GITHUB_RELEASE_URL, {
@@ -40,7 +33,7 @@ export default class ApplicationInfoServiceElectron implements ApplicationInfoSe
             latestReleaseVersion = latestReleaseVersion.substring(1);
         }
 
-        const currentAppVersion = await this.getApplicationVersion();
+        const currentAppVersion = this.getApplicationVersion();
         const latestIsGreater = gt(latestReleaseVersion, currentAppVersion);
         console.log(
             `Latest release (${latestReleaseVersion})
@@ -51,7 +44,11 @@ export default class ApplicationInfoServiceElectron implements ApplicationInfoSe
     }
 
     public getApplicationVersion() {
-        return ipcRenderer.invoke(ApplicationInfoServiceElectron.GET_APP_VERSION_IPC_CHANNEL);
+        // Must be injected at build-time.
+        if (!process.env.APPLICATION_VERSION) {
+            throw new Error("APPLICATION_VERSION must be defined");
+        }
+        return process.env.APPLICATION_VERSION;
     }
 
     public getUserName(): string {

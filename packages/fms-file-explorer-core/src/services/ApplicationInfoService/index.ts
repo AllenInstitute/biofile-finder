@@ -10,7 +10,7 @@ export default interface ApplicationInfoService {
     /**
      * Returns the current application version
      */
-    getApplicationVersion(): Promise<string>;
+    getApplicationVersion(): string;
 
     /**
      * Returns the current user name

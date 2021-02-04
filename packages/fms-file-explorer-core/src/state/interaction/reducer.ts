@@ -1,3 +1,4 @@
+import FrontendInsights from "@aics/frontend-insights";
 import { makeReducer } from "@aics/redux-utils";
 import { filter } from "lodash";
 
@@ -9,7 +10,6 @@ import {
     REFRESH,
     REMOVE_STATUS,
     SET_ALLEN_MOUNT_POINT,
-    SET_APPLICATION_VERSION,
     SET_CSV_COLUMNS,
     SET_FILE_EXPLORER_SERVICE_BASE_URL,
     SET_IMAGE_J_LOCATION,
@@ -65,6 +65,12 @@ export const initialState = {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
         fileViewerService: new FileViewerServiceNoop(),
+        frontendInsights: new FrontendInsights({
+            application: {
+                name: "FMS File Explorer",
+                version: "0.0.0-noop",
+            },
+        }),
         executionEnvService: new ExecutionEnvServiceNoop(),
         persistentConfigService: new PersistentConfigServiceNoop(),
     },
@@ -114,10 +120,6 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             ...action.payload,
         }),
-        [SET_APPLICATION_VERSION]: (state, action) => ({
-            ...state,
-            applicationVersion: action.payload,
-        }),
         [SET_CSV_COLUMNS]: (state, action) => ({
             ...state,
             csvColumns: action.payload,
@@ -130,10 +132,18 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             ...action.payload,
         }),
-        [SET_PLATFORM_DEPENDENT_SERVICES]: (state, action) => ({
-            ...state,
-            platformDependentServices: action.payload,
-        }),
+        [SET_PLATFORM_DEPENDENT_SERVICES]: (state, action) => {
+            const platformDependentServices: PlatformDependentServices = {
+                ...state.platformDependentServices,
+                ...action.payload,
+            };
+
+            return {
+                ...state,
+                applicationVersion: platformDependentServices.applicationInfoService.getApplicationVersion(),
+                platformDependentServices,
+            };
+        },
         [SET_VISIBLE_MODAL]: (state, action) => ({
             ...state,
             ...action.payload,

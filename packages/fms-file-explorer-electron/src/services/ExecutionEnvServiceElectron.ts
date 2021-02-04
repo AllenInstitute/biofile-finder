@@ -107,6 +107,10 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         return path.join(...parts);
     }
 
+    public getOS(): string {
+        return os.type();
+    }
+
     public async promptForAllenMountPoint(displayMessageBeforePrompt?: boolean): Promise<string> {
         if (displayMessageBeforePrompt) {
             const result = await this.notificationService.showMessage(

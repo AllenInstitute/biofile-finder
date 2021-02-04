@@ -6,7 +6,6 @@ import { app, BrowserWindow, Menu, shell } from "electron";
 import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
 
 import template from "./menu";
-import ApplicationInfoServiceElectron from "../services/ApplicationInfoServiceElectron";
 import ExecutionEnvServicelectron from "../services/ExecutionEnvServiceElectron";
 import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
@@ -24,7 +23,6 @@ let mainWindow: BrowserWindow | undefined;
 
 // register handlers called via ipc between renderer and main
 const registerIpcHandlers = () => {
-    ApplicationInfoServiceElectron.registerIpcHandlers();
     ExecutionEnvServicelectron.registerIpcHandlers();
     FileDownloadServiceElectron.registerIpcHandlers();
     NotificationServiceElectron.registerIpcHandlers();

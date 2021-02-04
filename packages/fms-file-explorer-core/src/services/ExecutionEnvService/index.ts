@@ -9,6 +9,11 @@ export default interface ExecutionEnvService {
     formatPathForOs(posixPath: string, prefix?: string): string;
 
     /**
+     * Return operating system. If running in the browser, expect the return value "Browser".
+     */
+    getOS(): string;
+
+    /**
      * Prompts the user for the allen mount point location.
      * Will first notify the user of this request if a prompt message is specified.
      *

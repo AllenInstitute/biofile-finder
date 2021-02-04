@@ -1,3 +1,4 @@
+import FrontendInsights from "@aics/frontend-insights";
 import { makeConstant } from "@aics/redux-utils";
 import { uniqueId } from "lodash";
 
@@ -206,25 +207,6 @@ export function hideVisibleModal(): HideVisibleModalAction {
 }
 
 /**
- * SET_APPLICATION_VERSION
- *
- * Set application version
- */
-export const SET_APPLICATION_VERSION = makeConstant(STATE_BRANCH_NAME, "set-application-version");
-
-export interface SetApplicationVersion {
-    type: string;
-    payload: string;
-}
-
-export function setApplicationVersion(applicationVersion: string): SetApplicationVersion {
-    return {
-        type: SET_APPLICATION_VERSION,
-        payload: applicationVersion,
-    };
-}
-
-/**
  * SET CONNECTION CONFIGURATION FOR THE FILE EXPLORER SERVICE
  */
 export const SET_FILE_EXPLORER_SERVICE_BASE_URL = makeConstant(
@@ -258,17 +240,18 @@ export interface PlatformDependentServices {
     applicationInfoService: ApplicationInfoService;
     fileDownloadService: FileDownloadService;
     fileViewerService: FileViewerService;
+    frontendInsights: FrontendInsights;
     executionEnvService: ExecutionEnvService;
     persistentConfigService: PersistentConfigService;
 }
 
 export interface SetPlatformDependentServices {
     type: string;
-    payload: PlatformDependentServices;
+    payload: Partial<PlatformDependentServices>;
 }
 
 export function setPlatformDependentServices(
-    services: PlatformDependentServices
+    services: Partial<PlatformDependentServices>
 ): SetPlatformDependentServices {
     return {
         type: SET_PLATFORM_DEPENDENT_SERVICES,

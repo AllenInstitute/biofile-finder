@@ -1,5 +1,7 @@
 import "regenerator-runtime/runtime";
 
+import FrontendInsights, { LogLevel, reduxMiddleware } from "@aics/frontend-insights";
+import AmplitudeNodePlugin from "@aics/frontend-insights-plugin-amplitude-node";
 import FmsFileExplorer, { createReduxStore } from "@aics/fms-file-explorer-core";
 import { ipcRenderer } from "electron";
 import * as React from "react";
@@ -25,15 +27,41 @@ const APP_ID = "fms-file-explorer-electron";
 
 const notificationService = new NotificationServiceElectron();
 const persistentConfigService = new PersistentConfigServiceElectron();
+const applicationInfoService = new ApplicationInfoServiceElectron();
+const executionEnvService = new ExecutionEnvServiceElectron(notificationService);
+// application analytics/metrics
+const frontendInsights = new FrontendInsights(
+    {
+        application: {
+            name: APP_ID,
+            version: applicationInfoService.getApplicationVersion(),
+        },
+        userInfo: {
+            userId: applicationInfoService.getUserName(),
+        },
+        session: {
+            platform: "Electron",
+            deviceId: `${applicationInfoService.getUserName()}-${executionEnvService.getOS()}`,
+        },
+        loglevel: process.env.NODE_ENV === "production" ? LogLevel.Error : LogLevel.Debug,
+    },
+    [new AmplitudeNodePlugin({ apiKey: process.env.AMPLITUDE_API_KEY })]
+);
+frontendInsights.dispatchUserEvent({ type: "SESSION_START" });
 const platformDependentServices = {
-    applicationInfoService: new ApplicationInfoServiceElectron(),
-    executionEnvService: new ExecutionEnvServiceElectron(notificationService),
+    applicationInfoService,
+    executionEnvService,
     fileDownloadService: new FileDownloadServiceElectron(),
     fileViewerService: new FileViewerServiceElectron(notificationService),
+    frontendInsights,
     persistentConfigService,
 };
 
-const store = createReduxStore(persistentConfigService.getAll());
+const frontendInsightsMiddleware = reduxMiddleware(frontendInsights);
+const store = createReduxStore({
+    middleware: [frontendInsightsMiddleware],
+    persistedConfig: persistentConfigService.getAll(),
+});
 // https://redux.js.org/api/store#subscribelistener
 store.subscribe(() => {
     const state = store.getState();

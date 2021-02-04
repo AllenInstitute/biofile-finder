@@ -1,13 +1,20 @@
 import { configureStore, mergeState } from "@aics/redux-utils";
+import { Middleware } from "redux";
 
 import {
     default as _PersistentConfigService,
     PersistedConfig as _PersistedConfig,
     PersistedConfigKeys,
 } from "./services/PersistentConfigService";
-import { middleware, reducer, initialState, State } from "./state";
+import { middleware as defaultMiddleware, reducer, initialState, State } from "./state";
 
-export function createReduxStore(persistedConfig?: PersistedConfig) {
+export function createReduxStore({
+    middleware,
+    persistedConfig,
+}: {
+    middleware?: Middleware[];
+    persistedConfig?: PersistedConfig;
+}) {
     const preloadedState: State = mergeState(initialState, {
         interaction: {
             allenMountPoint:
@@ -18,7 +25,7 @@ export function createReduxStore(persistedConfig?: PersistedConfig) {
         },
     });
     return configureStore<State>({
-        middleware,
+        middleware: [...defaultMiddleware, ...(middleware || [])],
         preloadedState,
         reducer,
     });

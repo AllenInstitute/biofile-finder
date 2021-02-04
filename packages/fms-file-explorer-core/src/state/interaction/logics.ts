@@ -22,6 +22,8 @@ import {
     succeedPythonSnippetGeneration,
     failPythonSnippetGeneration,
     REFRESH,
+    SET_PLATFORM_DEPENDENT_SERVICES,
+    promptUserToUpdateApp,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -31,6 +33,31 @@ import NumericRange from "../../entity/NumericRange";
 import { CreateDatasetRequest } from "../../services/DatasetService";
 import { SelectionRequest, Selection } from "../../services/FileService";
 import { ExecutableEnvCancellationToken } from "../../services/ExecutionEnvService";
+
+/**
+ * Interceptor responsible for responding to a SET_PLATFORM_DEPENDENT_SERVICES action and
+ * determining if an application update is available.
+ */
+const checkForUpdates = createLogic({
+    type: SET_PLATFORM_DEPENDENT_SERVICES,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const platformDependentServices = interactionSelectors.getPlatformDependentServices(
+            deps.getState()
+        );
+        try {
+            if (await platformDependentServices.applicationInfoService.updateAvailable()) {
+                const homepage = "https://alleninstitute.github.io/aics-fms-file-explorer-app/";
+                const msg = `A new version of the application is available!<br/>
+                Visit the <a href="${homepage}" target="_blank" title="FMS File Explorer homepage">FMS File Explorer homepage</a> to download.`;
+                dispatch(promptUserToUpdateApp(uniqueId(), msg));
+            }
+        } catch (e) {
+            console.error("Failed while checking if a newer application version is available", e);
+        } finally {
+            done();
+        }
+    },
+});
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -332,6 +359,7 @@ const refresh = createLogic({
 });
 
 export default [
+    checkForUpdates,
     downloadManifest,
     cancelManifestDownloadLogic,
     openFilesInImageJ,
