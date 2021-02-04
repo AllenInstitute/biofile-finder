@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import nock from "nock";
 
-import { EnvVars, RUN_IN_RENDERER } from "../../util/constants";
+import { RUN_IN_RENDERER } from "../../util/constants";
 import ApplicationInfoServiceElectron from "../ApplicationInfoServiceElectron";
 
 describe(`${RUN_IN_RENDERER} ApplicationInfoServiceElectron`, () => {
@@ -63,7 +63,7 @@ describe(`${RUN_IN_RENDERER} ApplicationInfoServiceElectron`, () => {
                         })
                     );
 
-                process.env[EnvVars.ApplicationVersion] = spec.appVersion;
+                process.env.APPLICATION_VERSION = spec.appVersion;
 
                 const service = new ApplicationInfoServiceElectron();
 
@@ -79,7 +79,7 @@ describe(`${RUN_IN_RENDERER} ApplicationInfoServiceElectron`, () => {
             const expectedAppVersion = "7.X.155";
 
             before(() => {
-                process.env[EnvVars.ApplicationVersion] = expectedAppVersion;
+                process.env.APPLICATION_VERSION = expectedAppVersion;
             });
 
             it("returns application version from ipcRenderer", async () => {
