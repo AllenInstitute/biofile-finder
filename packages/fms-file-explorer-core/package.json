@@ -91,6 +91,7 @@
     "typescript": "3.8.x"
   },
   "dependencies": {
+    "@aics/frontend-insights": "0.2.x",
     "@aics/redux-utils": "0.5.x",
     "@fluentui/react": "7.154.x",
     "@tippy.js/react": "3.1.x",

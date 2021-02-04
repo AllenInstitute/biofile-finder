@@ -113,6 +113,8 @@
   },
   "dependencies": {
     "@aics/fms-file-explorer-core": "4.2.2",
+    "@aics/frontend-insights": "0.2.x",
+    "@aics/frontend-insights-plugin-amplitude-node": "0.2.x",
     "axios": "0.19.x",
     "electron-devtools-installer": "3.1.x",
     "electron-store": "6.0.x",
