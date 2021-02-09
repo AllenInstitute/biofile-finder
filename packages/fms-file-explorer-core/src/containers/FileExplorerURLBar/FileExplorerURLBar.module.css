@@ -24,3 +24,8 @@
 .button:hover {
     color: #827aa3;
 }
+
+.container input {
+    font-family: monospace;
+    color: gray;
+}
