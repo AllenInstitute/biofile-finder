@@ -128,7 +128,7 @@ pipeline {
                 npx lerna bootstrap --hoist
 
                 # Increment version
-                npx lerna version --yes --no-commit-hooks --exact ${params.VERSION_BUMP_TYPE}
+                npx lerna version --force-publish --yes --no-commit-hooks --exact ${params.VERSION_BUMP_TYPE}
 
                 # Publish npm lib
                 npx lerna run publishArtifact --scope=@aics/fms-file-explorer-core
