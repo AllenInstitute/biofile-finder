@@ -26,7 +26,7 @@ jobs:
         run: npm install --global npm@next-7
 
       - name: Setup .env
-        run: echo "AMPLITUDE_API_KEY=$AMPLITUDE_API_KEY" > packages/fms-file-explorer-electron/.env
+        run: npx --yes shx echo "AMPLITUDE_API_KEY=$AMPLITUDE_API_KEY" > packages/fms-file-explorer-electron/.env
 
       - name: Build/release Electron app
         uses: GabeMedrash/action-electron-builder@fms-file-explorer
@@ -52,4 +52,4 @@ jobs:
 
       - name: Clean up (e.g., remove .env)
         if: ${{ always() }}
-        run: rm -f packages/fms-file-explorer-electron/.env
+        run: npx --yes shx rm -f packages/fms-file-explorer-electron/.env
