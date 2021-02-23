@@ -1,6 +1,6 @@
 {
   "name": "fms-file-explorer-electron",
-  "version": "4.3.0-alpha.2",
+  "version": "4.3.0-alpha.3",
   "description": "An application designed to simplify access and exploration of data produced by the Allen Institute for Cell Science, provide an intuitive mechanism for organizing that data, and provide simple hooks for incorporating that data into both programmatic and non-programmatic workflows.",
   "main": "dist/main/index.js",
   "repository": {
@@ -112,7 +112,7 @@
     "xvfb-maybe": "0.2.x"
   },
   "dependencies": {
-    "@aics/fms-file-explorer-core": "4.3.0-alpha.2",
+    "@aics/fms-file-explorer-core": "4.3.0-alpha.3",
     "@aics/frontend-insights": "0.2.x",
     "@aics/frontend-insights-plugin-amplitude-node": "0.2.x",
     "axios": "0.19.x",

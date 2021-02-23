@@ -1,6 +1,6 @@
 {
   "name": "@aics/fms-file-explorer-core",
-  "version": "4.3.0-alpha.2",
+  "version": "4.3.0-alpha.3",
   "description": "NPM library that exposes the core React/Redux FMS File Explorer application. Intended to be rendered into a container.",
   "main": "nodejs/index.js",
   "module": "web/index.js",
