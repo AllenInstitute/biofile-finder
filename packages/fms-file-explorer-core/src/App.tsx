@@ -4,15 +4,15 @@ import { initializeIcons, loadTheme } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import AnnotationSidebar from "./components/AnnotationSidebar";
+import ContextMenu from "./components/ContextMenu";
+import Modal from "./components/Modal";
+import DirectoryTree from "./components/DirectoryTree";
+import FileDetails from "./components/FileDetails";
+import FileExplorerURLBar from "./components/FileExplorerURLBar";
+import HeaderRibbon from "./components/HeaderRibbon";
+import StatusMessage from "./components/StatusMessage";
 import { DataSource } from "./constants";
-import AnnotationSidebar from "./containers/AnnotationSidebar";
-import ContextMenu from "./containers/ContextMenu";
-import Modal from "./containers/Modal";
-import DirectoryTree from "./containers/DirectoryTree";
-import FileDetails from "./containers/FileDetails";
-import FileExplorerURLBar from "./containers/FileExplorerURLBar";
-import HeaderRibbon from "./containers/HeaderRibbon";
-import StatusMessage from "./containers/StatusMessage";
 import { interaction, metadata, selection } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
 

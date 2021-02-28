@@ -57,7 +57,7 @@ export default function useFileSelector(fileSet: FileSet, sortOrder: number): On
                         fileSet,
                         selection: fileRow.index,
                         sortOrder,
-                        updateExistingSelection: eventParams.ctrlKeyIsPressed
+                        updateExistingSelection: eventParams.ctrlKeyIsPressed,
                     })
                 );
             }

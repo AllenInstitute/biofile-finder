@@ -22,8 +22,8 @@ import {
     StatusUpdate,
     SUCCEED_PYTHON_SNIPPET_GENERATION,
 } from "./actions";
-import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
-import { ModalType } from "../../containers/Modal";
+import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
+import { ModalType } from "../../components/Modal";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import { PythonicDataAccessSnippet } from "../../services/DatasetService";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";

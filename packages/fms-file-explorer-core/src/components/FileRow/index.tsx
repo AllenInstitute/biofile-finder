@@ -3,7 +3,7 @@ import { map } from "lodash";
 import * as React from "react";
 
 import Cell from "./Cell";
-import { OnSelect } from "../../containers/FileList/useFileSelector";
+import { OnSelect } from "../FileList/useFileSelector";
 
 const styles = require("./FileRow.module.css");
 

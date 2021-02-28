@@ -4,13 +4,13 @@ import { uniqueId } from "lodash";
 
 import Annotation from "../../entity/Annotation";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
-import { ContextMenuItem, PositionReference } from "../../containers/ContextMenu";
+import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { PythonicDataAccessSnippet } from "../../services/DatasetService";
 import ExecutionEnvService from "../../services/ExecutionEnvService";
 import FileDownloadService from "../../services/FileDownloadService";
 import FileFilter from "../../entity/FileFilter";
 import FileViewerService from "../../services/FileViewerService";
-import { ModalType } from "../../containers/Modal";
+import { ModalType } from "../../components/Modal";
 import PersistentConfigService from "../../services/PersistentConfigService";
 
 const STATE_BRANCH_NAME = "interaction";

@@ -40,10 +40,7 @@ describe("<FileDetails />", () => {
             );
 
             const getStyleNode = () =>
-                wrapper
-                    .find(`.${styles.expandable}`)
-                    .getDOMNode()
-                    .getAttribute("style");
+                wrapper.find(`.${styles.expandable}`).getDOMNode().getAttribute("style");
 
             // initial condition: the details window is not minimized
             expect(getStyleNode()).to.be.null;
