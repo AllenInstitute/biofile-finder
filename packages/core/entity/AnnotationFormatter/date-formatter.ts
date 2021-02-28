@@ -15,7 +15,7 @@ export default {
             day: "2-digit",
             year: "numeric",
             timeZone: "UTC",
-        };
+        } as Intl.DateTimeFormatOptions;
         const formatted = new Intl.DateTimeFormat("en-US", options).format(date);
         const [month, day, year] = formatted.split("/");
         return `${year}-${month}-${day}`;

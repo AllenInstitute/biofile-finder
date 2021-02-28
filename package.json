@@ -8,7 +8,6 @@
   "private": true,
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
-    "build": "lerna run build",
     "lint": "eslint \"packages/*/src/**/*.{js,jsx,ts,tsx}\"",
     "test": "BABEL_ENV=nodejs mocha --parallel",
     "typeCheck": "tsc --noEmit"
@@ -39,6 +38,7 @@
     "@types/react-window": "1.8.x",
     "@types/react-window-infinite-loader": "1.0.x",
     "@types/sinon": "7.0.x",
+    "@types/string-natural-compare": "^3.0.0",
     "@typescript-eslint/eslint-plugin": "4.15.x",
     "@typescript-eslint/parser": "4.15.x",
     "chai": "4.2.x",

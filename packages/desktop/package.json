@@ -53,6 +53,7 @@
   "license": "SEE LICENSE IN LICENSE.txt",
   "devDependencies": {
     "@types/electron-devtools-installer": "2.2.x",
+    "@types/node": "12.x",
     "@types/semver": "7.3.x",
     "babel-loader": "8.2.x",
     "clean-webpack-plugin": "3.0.x",
