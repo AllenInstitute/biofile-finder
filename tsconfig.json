@@ -1,15 +1,17 @@
 {
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
-    "downlevelIteration": true,
-    "jsx": "React",
-    "lib": ["DOM", "ES2015", "ES6", "DOM.Iterable", "ScriptHost"],
-    "module": "ES6",
+    "jsx": "react",
+    "module": "ESNext",
     "moduleResolution": "Node",
-    "noEmit": true,
     "preserveConstEnums": true,
     "sourceMap": true,
     "strict": true,
-    "target": "ES5"
-  }
+    "target": "ESNext"
+  },
+  "include": [
+    "packages/**/*",
+    "scripts/*",
+    "docs/**/*"
+  ]
 }

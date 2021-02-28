@@ -1,6 +1,7 @@
 {
   "packages": [
-    "packages/*"
+    "packages/desktop",
+    "packages/web"
   ],
   "version": "4.3.0"
 }

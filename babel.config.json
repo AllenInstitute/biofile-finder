@@ -1,0 +1,21 @@
+{
+  "presets": [
+    "@babel/preset-typescript",
+    ["@babel/preset-env", { "modules": false }],
+    "@babel/preset-react"
+  ],
+  "plugins": [
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-proposal-optional-chaining"
+  ],
+  "env": {
+    "nodejs": {
+      "presets": [["@babel/preset-env", {
+        "targets": {
+          "node": "current"
+        },
+        "modules": "commonjs"
+      }]]
+    }
+  }
+}

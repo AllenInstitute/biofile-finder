@@ -1,8 +1,6 @@
 .DS_Store
 .idea
 node_modules
-web
-nodejs
 dist
 type-declarations
 npm-debug.log

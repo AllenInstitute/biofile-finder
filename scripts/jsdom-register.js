@@ -42,14 +42,16 @@ const mockRaf = createMockRaf();
 [
     { prop: "requestAnimationFrame", mock: mockRaf.raf },
     { prop: "cancelAnimationFrame", mock: mockRaf.cancel },
-].forEach(({ prop, mock}) => {
+].forEach(({ prop, mock }) => {
     global[prop] = mock;
     dom.window[prop] = mock;
 });
 
 // Used to scroll the directory tree to ensure selected/focused items are in view
-Element.prototype.scrollIntoView = () => {};
+Element.prototype.scrollIntoView = () => {
+    /** noop */
+};
 
 global.navigator = {
-    userAgent: "node.js"
+    userAgent: "node.js",
 };
