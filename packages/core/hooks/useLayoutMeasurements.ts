@@ -1,6 +1,5 @@
 import { debounce } from "lodash";
 import * as React from "react";
-import { ResizeObserver } from "resize-observer";
 
 const DEBOUNCE_WAIT_TO_REMEASURE = 50; // ms
 
@@ -20,17 +19,9 @@ export default function useLayoutMeasurements<T extends HTMLElement>(): [
     React.useEffect(() => {
         let resizeObserver: ResizeObserver;
         if (ref.current) {
-            // GM: 11/18/2019
-            // Can ditch use of ponyfill once Typescript's lib.dom.ts includes ResizeObserver API:
-            // https://github.com/Microsoft/TypeScript/issues/28502
-            // https://github.com/Microsoft/TSJS-lib-generator/blob/master/inputfiles/idlSources.json
             resizeObserver = new ResizeObserver(
-                debounce(([entry]) => {
+                debounce(([entry]: ResizeObserverEntry[]) => {
                     if (ref.current && entry.target === ref.current) {
-                        // GM: 11/18/2019
-                        // When the ResizeObserver uniformly supports ResizeObserverEntry::borderBoxSize there will be no
-                        // need to query the bounding client rect off of ref
-                        // https://drafts.csswg.org/resize-observer-1/#dom-resizeobserverentry-borderboxsize
                         const {
                             height: currentHeight,
                             width: currentWidth,
