@@ -1,5 +1,6 @@
 const { JSDOM } = require("jsdom");
 const createMockRaf = require("mock-raf");
+const { ResizeObserver } = require("resize-observer");
 
 const html = `
     <!doctype html>
@@ -42,6 +43,7 @@ const mockRaf = createMockRaf();
 [
     { prop: "requestAnimationFrame", mock: mockRaf.raf },
     { prop: "cancelAnimationFrame", mock: mockRaf.cancel },
+    { prop: "ResizeObserver", mock: ResizeObserver },
 ].forEach(({ prop, mock }) => {
     global[prop] = mock;
     dom.window[prop] = mock;

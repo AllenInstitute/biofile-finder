@@ -85,6 +85,7 @@
     "redux": "4.0.x",
     "redux-logic": "2.1.x",
     "reselect": "4.0.x",
+    "resize-observer": "1.0.x",
     "string-natural-compare": "3.0.x"
   }
 }
