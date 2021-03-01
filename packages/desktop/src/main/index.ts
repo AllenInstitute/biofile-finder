@@ -1,12 +1,10 @@
-import "regenerator-runtime/runtime";
-
 import * as path from "path";
 
 import { app, BrowserWindow, Menu, shell } from "electron";
 import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
 
 import template from "./menu";
-import ExecutionEnvServicelectron from "../services/ExecutionEnvServiceElectron";
+import ExecutionEnvServicElectron from "../services/ExecutionEnvServiceElectron";
 import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
 
@@ -23,7 +21,7 @@ let mainWindow: BrowserWindow | undefined;
 
 // register handlers called via ipc between renderer and main
 const registerIpcHandlers = () => {
-    ExecutionEnvServicelectron.registerIpcHandlers();
+    ExecutionEnvServicElectron.registerIpcHandlers();
     FileDownloadServiceElectron.registerIpcHandlers();
     NotificationServiceElectron.registerIpcHandlers();
 };
@@ -84,7 +82,7 @@ const createMainWindow = () => {
             );
     } else {
         mainWindow
-            .loadURL(`file://${path.join(__dirname, "..", "renderer", "index.html")}`)
+            .loadURL(`file://${path.resolve(process.cwd(), "dist", "renderer", "index.html")}`)
             .catch((error: Error) => {
                 console.error("Failed to load from file", error);
             });

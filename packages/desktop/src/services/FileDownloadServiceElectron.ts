@@ -5,7 +5,7 @@ import * as path from "path";
 
 import { app, dialog, ipcMain, ipcRenderer } from "electron";
 
-import { FileDownloadService, CancellationToken } from "../../../core";
+import { FileDownloadService, FileDownloadCancellationToken } from "../../../core/services";
 
 // Maps active request ids (uuids) to request download info
 interface ActiveRequestMap {
@@ -34,7 +34,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         const result = await ipcRenderer.invoke(FileDownloadServiceElectron.GET_FILE_SAVE_PATH);
 
         if (result.canceled) {
-            return Promise.resolve(CancellationToken);
+            return Promise.resolve(FileDownloadCancellationToken);
         }
 
         return new Promise((resolve, reject) => {
@@ -77,7 +77,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                             // If the stream was stopped due to the socket being destroyed
                             // resolve to a sentinal value the client can interpret
                             if (res.aborted) {
-                                resolve(CancellationToken);
+                                resolve(FileDownloadCancellationToken);
                             } else {
                                 delete this.activeRequestMap[id];
                                 resolve(`CSV manifest saved to ${filePath}`);
@@ -96,8 +96,8 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             req.on("error", (err) => {
                 delete this.activeRequestMap[id];
                 // If the socket was too prematurely hung up it will emit this error
-                if (err.message === CancellationToken) {
-                    resolve(CancellationToken);
+                if (err.message === FileDownloadCancellationToken) {
+                    resolve(FileDownloadCancellationToken);
                 } else {
                     reject(`Failed to download CSV manifest. Error details: ${err}`);
                 }
@@ -114,7 +114,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         }
         return new Promise((resolve, reject) => {
             const { filePath, request } = this.activeRequestMap[id];
-            request.destroy(new Error(CancellationToken));
+            request.destroy(new Error(FileDownloadCancellationToken));
             delete this.activeRequestMap[id];
             // If an artifact has been created, we want to delete any remnants of it
             fs.access(filePath, fs.constants.F_OK, (err) => {

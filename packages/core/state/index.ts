@@ -1,6 +1,9 @@
+import { configureStore, mergeState } from "@aics/redux-utils";
 import axios, { AxiosInstance } from "axios";
-import { combineReducers, AnyAction } from "redux";
+import { combineReducers, AnyAction, Middleware } from "redux";
 import { createLogicMiddleware } from "redux-logic";
+
+import { PersistedConfig, PersistedConfigKeys } from "../services/PersistentConfigService";
 
 import interaction, { InteractionStateBranch } from "./interaction";
 import metadata, { MetadataStateBranch } from "./metadata";
@@ -47,3 +50,25 @@ const logicMiddleware = createLogicMiddleware(reduxLogics);
 logicMiddleware.addDeps(reduxLogicDependencies);
 
 export const middleware = [logicMiddleware];
+
+interface CreateStoreOptions {
+    middleware?: Middleware[];
+    persistedConfig?: PersistedConfig;
+}
+export function createReduxStore(options: CreateStoreOptions = {}) {
+    const { persistedConfig } = options;
+    const preloadedState: State = mergeState(initialState, {
+        interaction: {
+            allenMountPoint:
+                persistedConfig && persistedConfig[PersistedConfigKeys.AllenMountPoint],
+            csvColumns: persistedConfig && persistedConfig[PersistedConfigKeys.CsvColumns],
+            imageJExecutable:
+                persistedConfig && persistedConfig[PersistedConfigKeys.ImageJExecutable],
+        },
+    });
+    return configureStore<State>({
+        middleware: [...(options.middleware || []), ...(middleware || [])],
+        preloadedState,
+        reducer,
+    });
+}

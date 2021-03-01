@@ -5,7 +5,7 @@ import * as util from "util";
 
 import { dialog, ipcMain, ipcRenderer } from "electron";
 
-import { ExecutionEnvService, ExecutableEnvCancellationToken } from "../../../core";
+import { ExecutionEnvService, ExecutableEnvCancellationToken } from "../../../core/services";
 import NotificationServiceElectron from "./NotificationServiceElectron";
 import { GlobalVariableChannels } from "../util/constants";
 

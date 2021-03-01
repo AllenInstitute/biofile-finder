@@ -2,7 +2,7 @@ const path = require("path");
 
 module.exports = {
     extension: ["ts", "tsx", "js", "jsx"],
-    spec: "packages/core/src/**/test/*.test.*",
+    spec: "packages/core/**/test/*.test.*",
     require: [
         path.resolve(__dirname, "scripts/babel-register.js"),
         path.resolve(__dirname, "scripts/css-modules-register.js"),

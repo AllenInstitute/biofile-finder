@@ -3,7 +3,11 @@ import * as path from "path";
 
 import Store, { Schema } from "electron-store";
 
-import { PersistentConfigService, PersistedConfig, PersistedConfigKeys } from "../../../core";
+import {
+    PersistentConfigService,
+    PersistedConfig,
+    PersistedConfigKeys,
+} from "../../../core/services";
 
 // Defines a validation schema for data inserted into the persistent storage
 // if a breaking change is made see migration patterns in elecron-store docs

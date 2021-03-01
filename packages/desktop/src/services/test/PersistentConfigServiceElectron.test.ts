@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { PersistedConfigKeys } from "../../../../core";
+import { PersistedConfigKeys } from "../../../../core/services";
 import { RUN_IN_RENDERER } from "../../util/constants";
 import PersistentConfigServiceElectron from "../PersistentConfigServiceElectron";
 

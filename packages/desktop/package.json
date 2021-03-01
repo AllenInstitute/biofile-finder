@@ -39,15 +39,15 @@
     "productName": "FMS File Explorer"
   },
   "scripts": {
-    "build": "npm-run-all --print-label clean makeDistDir --parallel bundle transpile",
-    "bundle": "webpack --config ./webpack/webpack.config.js --env.env production",
+    "build": "npm-run-all --print-label clean makeDistDir --parallel bundle:main bundle:renderer",
+    "bundle:main": "webpack --config ./webpack/webpack.main.config.js --env.env production",
+    "bundle:renderer": "webpack --config ./webpack/webpack.renderer.config.js --env.env production",
     "clean": "rimraf dist",
     "makeDistDir": "mkdir -p dist",
     "publishArtifact": "echo 'npm run publishArtifact is a noop for fms-file-explorer-electron'",
     "start": "node ./scripts/start-dev.js",
     "test:renderer": "BABEL_ENV=nodejs xvfb-maybe electron-mocha --renderer --grep @renderer --preload ./scripts/test-env-setup.js",
-    "test": "npm-run-all --print-label test:renderer",
-    "transpile": "babel --root-mode upward src --ignore \"src/renderer.tsx\" --ignore \"src/test/**/*\" --source-maps --extensions .ts,.tsx,.js,.jsx --env-name nodejs --out-dir dist"
+    "test": "npm-run-all --print-label test:renderer"
   },
   "author": "Allen Institute for Cell Science",
   "license": "SEE LICENSE IN LICENSE.txt",
@@ -66,6 +66,7 @@
     "html-webpack-plugin": "3.2.x",
     "mini-css-extract-plugin": "0.8.x",
     "nock": "13.0.x",
+    "null-loader": "4.0.x",
     "postcss-flexbugs-fixes": "4.1.x",
     "postcss-loader": "3.0.x",
     "postcss-preset-env": "6.7.x",

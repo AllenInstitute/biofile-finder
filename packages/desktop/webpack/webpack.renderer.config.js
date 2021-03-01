@@ -28,6 +28,16 @@ module.exports = ({ analyze, env } = {}) => ({
                         loader: "babel-loader",
                         options: {
                             extends: path.resolve(__dirname, "../../../babel.config.json"),
+                            presets: [
+                                [
+                                    "@babel/preset-env",
+                                    {
+                                        targets: {
+                                            electron: "9.1.2",
+                                        },
+                                    },
+                                ],
+                            ],
                         },
                     },
                 ],

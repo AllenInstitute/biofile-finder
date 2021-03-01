@@ -1,4 +1,4 @@
-import { FileViewerService } from "../../../core";
+import { FileViewerService } from "../../../core/services";
 import NotificationServiceElectron from "./NotificationServiceElectron";
 import defaultViewerStrategy from "./file-viewer-strategy/defaultViewerStrategy";
 import fijiViewerStrategy from "./file-viewer-strategy/fijiViewerStrategy";

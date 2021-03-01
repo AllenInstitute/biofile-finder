@@ -22,7 +22,7 @@ global.window = dom.window;
 global.document = dom.window.document;
 
 // Enumerable properties on dom.window
-for (key in dom.window) {
+for (const key in dom.window) {
     if (dom.window.hasOwnProperty(key) && typeof global[key] === "undefined") {
         global[key] = dom.window[key];
     }
@@ -31,7 +31,7 @@ for (key in dom.window) {
 // Non-enumerable properties. Add to this list as needed. You'll know something is needed when
 // you write a new test and you get an error that looks like "ReferenceError: X is not defined."
 const NON_ENUMERABLE_KEYS = ["HTMLElement", "Element", "Event"];
-for (key of NON_ENUMERABLE_KEYS) {
+for (const key of NON_ENUMERABLE_KEYS) {
     if (dom.window.hasOwnProperty(key) && typeof global[key] === "undefined") {
         global[key] = dom.window[key];
     }

@@ -6,7 +6,7 @@ import { ipcRenderer } from "electron";
 import nock from "nock";
 import { createSandbox } from "sinon";
 
-import { CancellationToken } from "../../../../core";
+import { FileDownloadCancellationToken } from "../../../../core/services";
 import { RUN_IN_RENDERER } from "../../util/constants";
 import FileDownloadServiceElectron from "../FileDownloadServiceElectron";
 
@@ -95,7 +95,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     JSON.stringify({ some: "data" }),
                     "beepbop"
                 )
-            ).to.equal(CancellationToken);
+            ).to.equal(FileDownloadCancellationToken);
         });
 
         it("rejects with error message if request for CSV is unsuccessful", async () => {

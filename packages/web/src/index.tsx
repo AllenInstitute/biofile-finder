@@ -1,7 +1,7 @@
 import "regenerator-runtime/runtime";
 
 import FmsFileExplorer from "../../core/App";
-import { createReduxStore } from "../../core";
+import { createReduxStore } from "../../core/state";
 import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";

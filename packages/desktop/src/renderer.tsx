@@ -8,8 +8,8 @@ import { render } from "react-dom";
 import { Provider } from "react-redux";
 
 import FmsFileExplorer from "../../core/App";
-import { createReduxStore, PersistedConfigKeys } from "../../core";
-import { interaction } from "../../core/state";
+import { PersistedConfigKeys } from "../../core/services";
+import { createReduxStore, interaction } from "../../core/state";
 
 import ApplicationInfoServiceElectron from "./services/ApplicationInfoServiceElectron";
 import ExecutionEnvServiceElectron from "./services/ExecutionEnvServiceElectron";
