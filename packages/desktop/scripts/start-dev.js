@@ -2,7 +2,7 @@
  * The purpose of this script is to coordinate the start up of all of the processes necessary for development
  * in the context of Electron. This includes:
  *   - webpack-dev-server, which watches, recompiles, and serves code run in Electron's renderer process
- *   - babel, which compiles the code run in Electron's main process
+ *   - webpack, which compiles and watches the code run in Electron's main process
  *   - electron itself, which should only be started when the others are up and running
  *
  * This script is intended to be run in the foreground. Sending a SIGINT to this script will clean up the child
@@ -10,10 +10,9 @@
  */
 
 const childProcess = require("child_process");
-const { promises: fsPromises } = require("fs");
 const http = require("http");
 const os = require("os");
-const path = require("path");
+const process = require("process");
 
 const { devServer } = require("../webpack/constants");
 
@@ -32,25 +31,23 @@ function getNpmBinDir() {
     }
 }
 
-async function makeBuildDirectory() {
-    const buildDir = path.resolve(__dirname, "../", "dist");
-
-    console.log(`Ensuring ${buildDir} exists`);
-    try {
-        await fsPromises.stat(buildDir);
-        console.log(`${buildDir} already exists.`);
-        return await Promise.resolve();
-    } catch (err) {
-        console.log(`${buildDir} does not yet exist--creating.`);
-        return await fsPromises.mkdir(buildDir);
-    }
+function startMainWatcher(npmBin) {
+    console.log("Starting watcher for main process");
+    childProcess.spawn(
+        `${npmBin}/webpack`,
+        ["--watch", "--config", "./webpack/webpack.main.config.js", "--env.env", "development"],
+        {
+            shell: true,
+            stdio: "inherit",
+        }
+    );
 }
 
-function startWebpackDevServer(npmBin) {
-    console.log("Starting webpack-dev-server");
+function startRendererDevServer(npmBin) {
+    console.log("Starting webpack-dev-server for renderer process");
     childProcess.spawn(
         `${npmBin}/webpack-dev-server`,
-        ["--config", "./webpack/webpack.config.js", "--env.env", "dev"],
+        ["--config", "./webpack/webpack.renderer.config.js", "--env.env", "development"],
         {
             shell: true,
             stdio: "inherit",
@@ -85,39 +82,12 @@ async function checkIfWebpackDevServerIsReady() {
         } catch (err) {
             const timeout = 2000; // in ms; 2 seconds
             await wait(timeout);
-            console.log(`Retry ${i} for webpack-dev-server ready status`);
+            console.log(`Retry ${i} for renderer to be ready`);
         }
     }
 
     // couldn't connect to webpack-dev-server after 10 tries: bail
     return Promise.reject();
-}
-
-function startBabelWatch(npmBin) {
-    console.log("Starting babel watch of src/main.ts");
-    childProcess.spawn(
-        `${npmBin}/babel`,
-        [
-            "src",
-            "--ignore",
-            '"src/renderer.tsx"',
-            "--ignore",
-            '"src/test/**/*"',
-            "--env-name",
-            "nodejs",
-            "--extensions",
-            ".ts,.tsx,.js,.jsx",
-            "--out-dir",
-            "dist",
-            "--watch",
-            "--verbose",
-            "--source-maps",
-        ],
-        {
-            shell: true,
-            stdio: "inherit",
-        }
-    );
 }
 
 function startElectron(npmBin) {
@@ -131,23 +101,15 @@ function startElectron(npmBin) {
     });
 }
 
-// kick it all off
-makeBuildDirectory()
-    .then(() => {
-        const npmBin = getNpmBinDir();
-        startWebpackDevServer(npmBin);
-        startBabelWatch(npmBin);
-        checkIfWebpackDevServerIsReady()
-            .then(() => {
-                console.log("webpack-dev-server is up and running");
-                startElectron(npmBin);
-            })
-            .catch(() => {
-                console.error("Failed to connect to webpack-dev-server");
-            });
-    })
-    .catch(() => {
-        console.error(
-            "Could make build directory. Something has gone very wrong and nobody knows why."
-        );
+try {
+    // kick it all off
+    const npmBin = getNpmBinDir();
+    startMainWatcher(npmBin);
+    startRendererDevServer(npmBin);
+    checkIfWebpackDevServerIsReady().then(() => {
+        console.log("renderer webpack-dev-server is up and running");
+        startElectron(npmBin);
     });
+} catch (e) {
+    console.error(e);
+}

@@ -1,7 +1,5 @@
 const path = require("path");
 
-const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
-
 const { Env, stats } = require("./constants");
 
 module.exports = ({ env } = {}) => ({
@@ -44,7 +42,6 @@ module.exports = ({ env } = {}) => ({
         path: path.resolve(__dirname, "../", "dist", "main"),
         filename: "index.js",
     },
-    // plugins: [new BundleAnalyzerPlugin({ analyzerMode: "static" })],
     resolve: {
         extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
         mainFields: ["module", "main"],
