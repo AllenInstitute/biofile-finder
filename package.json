@@ -12,6 +12,7 @@
     "test:core": "pushd packages/core; BABEL_ENV=nodejs mocha; popd",
     "test:desktop": "pushd packages/desktop; npm test; popd",
     "test:web": "pushd packages/web; BABEL_ENV=nodejs mocha; popd",
+    "test": "npm-run-all test:core test:desktop test:web",
     "typeCheck": "tsc --noEmit"
   },
   "devDependencies": {
