@@ -29,7 +29,7 @@ jobs:
           # (No need to define this secret in the repo settings)
           github_token: ${{ secrets.github_token }}
 
-          package_root: "packages/fms-file-explorer-electron"
+          package_root: "packages/desktop"
 
           # Never release on an integration build
           release: false
