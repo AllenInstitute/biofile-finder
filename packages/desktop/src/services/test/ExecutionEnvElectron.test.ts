@@ -7,15 +7,12 @@ import { expect } from "chai";
 import { ipcRenderer } from "electron";
 import { createSandbox } from "sinon";
 
+import { ExecutableEnvCancellationToken } from "./../../../../core/services";
 import ExecutionEnvServiceElectron, {
     KNOWN_FOLDERS_IN_ALLEN_DRIVE,
 } from "../ExecutionEnvServiceElectron";
 import NotificationServiceElectron from "../NotificationServiceElectron";
 import { RUN_IN_RENDERER } from "../../util/constants";
-
-const {
-    ExecutableEnvCancellationToken,
-} = require("@aics/fms-file-explorer-core/nodejs/services/ExecutionEnvService");
 
 describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
     describe("promptForAllenMountPoint", () => {

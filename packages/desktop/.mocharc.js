@@ -1,6 +1,10 @@
 const path = require("path");
 
 module.exports = {
-    extends: path.resolve(__dirname, "../../.mocharc.js"),
-    require: ["./scripts/set-env-vars.js"],
+    extension: ["ts", "tsx", "js", "jsx"],
+    spec: "src/**/test/*.test.*",
+    require: [
+        path.resolve(__dirname, "..", "..", "scripts/babel-register.js"),
+        path.resolve(__dirname, "scripts/set-env-vars.js"),
+    ],
 };

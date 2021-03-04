@@ -45,7 +45,9 @@
     "clean": "rimraf dist",
     "makeDistDir": "mkdir -p dist",
     "publishArtifact": "echo 'npm run publishArtifact is a noop for fms-file-explorer-electron'",
-    "start": "node ./scripts/start-dev.js",
+    "start:main": "webpack --watch --config ./webpack/webpack.main.config.js --env.env development",
+    "start:renderer": "webpack-dev-server --config ./webpack/webpack.renderer.config.js --env.env development",
+    "start": "node scripts/start-dev.js",
     "test:renderer": "BABEL_ENV=nodejs xvfb-maybe electron-mocha --renderer --grep @renderer --preload ./scripts/test-env-setup.js",
     "test": "npm-run-all --print-label test:renderer"
   },

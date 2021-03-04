@@ -9,7 +9,9 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
     "lint": "eslint \"packages/*/src/**/*.{js,jsx,ts,tsx}\"",
-    "test": "BABEL_ENV=nodejs mocha --parallel",
+    "test:core": "pushd packages/core; BABEL_ENV=nodejs mocha; popd",
+    "test:desktop": "pushd packages/desktop; npm test; popd",
+    "test:web": "pushd packages/web; BABEL_ENV=nodejs mocha; popd",
     "typeCheck": "tsc --noEmit"
   },
   "devDependencies": {
@@ -52,7 +54,7 @@
     "jsdom": "16.4.x",
     "lerna": "3.22.x",
     "lint-staged": "10.4.x",
-    "mocha": "8.3.x",
+    "mocha": "8.1.x",
     "mock-raf": "1.0.x",
     "npm-run-all": "4.1.x",
     "prettier": "2.1.x",
