@@ -2,7 +2,7 @@
   "name": "root",
   "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
   "engines": {
-    "node": "12.x",
+    "node": "14.x",
     "npm": "7.x"
   },
   "private": true,

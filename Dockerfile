@@ -1,7 +1,7 @@
 FROM docker-virtual.artifactory.corp.alleninstitute.org/ubuntu:20.04
 
 RUN apt-get update && apt-get install -y curl && \
-    curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
+    curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     git \
     nodejs \
@@ -24,8 +24,8 @@ RUN apt-get update && apt-get install -y curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Make sure we're using npm 7 (auto installs peer deps); TODO: remove once 7 is released from beta
-RUN npm install --global npm@7.0.0-beta.13
+# Make sure we're using npm 7 (auto installs peer deps); TODO: remove once 7 is packaged with NodeJS
+RUN npm install --global npm@next-7
 
 ARG USER=jenkins
 ARG GROUP=jenkins
