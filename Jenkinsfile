@@ -81,27 +81,16 @@ pipeline {
                 sh "chmod 4755 ./node_modules/electron/dist/chrome-sandbox"
                 sh "sudo chown root ./node_modules/electron/dist/chrome-sandbox"
 
-                // For each subpackage, run lint, typeCheck, test, and build
                 script {
-                    def package_dirs = [
-                        "packages/fms-file-explorer-core",
-                        "packages/fms-file-explorer-electron",
-                        "packages/fms-file-explorer-web"
-                    ]
-                    for (int i = 0; i < package_dirs.size(); ++i) {
-                        sh """
-                        #!/bin/bash
+                    sh """
+                    #!/bin/bash
 
-                        set -e
+                    set -e
 
-                        pushd ${package_dirs[i]}
-                        npm run lint
-                        npm run typeCheck
-                        npm run test
-                        npm run build
-                        popd
-                        """.trim()
-                    }
+                    npm run lint
+                    npm run typeCheck
+                    npm run test
+                    """.trim()
                 }
             }
         }
