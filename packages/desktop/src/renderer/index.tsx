@@ -7,19 +7,19 @@ import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
 
-import FmsFileExplorer from "../../core/App";
-import { PersistedConfigKeys } from "../../core/services";
-import { createReduxStore, interaction } from "../../core/state";
+import FmsFileExplorer from "../../../core/App";
+import { PersistedConfigKeys } from "../../../core/services";
+import { createReduxStore, interaction } from "../../../core/state";
 
-import ApplicationInfoServiceElectron from "./services/ApplicationInfoServiceElectron";
-import ExecutionEnvServiceElectron from "./services/ExecutionEnvServiceElectron";
-import FileDownloadServiceElectron from "./services/FileDownloadServiceElectron";
-import FileViewerServiceElectron from "./services/FileViewerServiceElectron";
-import PersistentConfigServiceElectron from "./services/PersistentConfigServiceElectron";
-import NotificationServiceElectron from "./services/NotificationServiceElectron";
-import { GlobalVariableChannels } from "./util/constants";
+import ApplicationInfoServiceElectron from "../services/ApplicationInfoServiceElectron";
+import ExecutionEnvServiceElectron from "../services/ExecutionEnvServiceElectron";
+import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron";
+import FileViewerServiceElectron from "../services/FileViewerServiceElectron";
+import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
+import NotificationServiceElectron from "../services/NotificationServiceElectron";
+import { GlobalVariableChannels } from "../util/constants";
 
-const APP_ID = "fms-file-explorer-electron";
+const APP_ID = "fms-file-explorer";
 
 const notificationService = new NotificationServiceElectron();
 const persistentConfigService = new PersistentConfigServiceElectron();

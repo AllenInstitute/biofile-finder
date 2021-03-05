@@ -31,11 +31,11 @@ function getNpmBinDir() {
     }
 }
 
-function startMainWatcher(npmBin) {
-    console.log("Starting watcher for main process");
-    childProcess.spawn(
+function compileMain(npmBin) {
+    console.log("Compiling code to run in main process");
+    return childProcess.spawn(
         `${npmBin}/webpack`,
-        ["--watch", "--config", "./webpack/webpack.main.config.js", "--env.env", "development"],
+        ["--config", "./webpack/webpack.main.config.js", "--env.env", "development"],
         {
             shell: true,
             stdio: "inherit",
@@ -45,7 +45,7 @@ function startMainWatcher(npmBin) {
 
 function startRendererDevServer(npmBin) {
     console.log("Starting webpack-dev-server for renderer process");
-    childProcess.spawn(
+    return childProcess.spawn(
         `${npmBin}/webpack-dev-server`,
         ["--config", "./webpack/webpack.renderer.config.js", "--env.env", "development"],
         {
@@ -92,23 +92,29 @@ async function checkIfWebpackDevServerIsReady() {
 
 function startElectron(npmBin) {
     console.log("Starting electron");
-    childProcess.spawn(`${npmBin}/electron`, ["."], {
+    return childProcess.spawn(`${npmBin}/electron`, ["."], {
         env: Object.assign({}, process.env, {
             NODE_ENV: "development",
             WEBPACK_DEV_SERVER_PORT: devServer.port,
         }),
         shell: true,
+        stdio: "inherit",
     });
 }
 
 try {
     // kick it all off
     const npmBin = getNpmBinDir();
-    startMainWatcher(npmBin);
-    startRendererDevServer(npmBin);
+    const main = compileMain(npmBin);
+    const renderer = startRendererDevServer(npmBin);
     checkIfWebpackDevServerIsReady().then(() => {
         console.log("renderer webpack-dev-server is up and running");
-        startElectron(npmBin);
+        const electron = startElectron(npmBin);
+
+        electron.on("exit", () => {
+            main.kill();
+            renderer.kill();
+        });
     });
 } catch (e) {
     console.error(e);

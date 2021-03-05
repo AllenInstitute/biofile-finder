@@ -1,6 +1,6 @@
 import * as path from "path";
 
-import { app, BrowserWindow, Menu, shell } from "electron";
+import { app, BrowserWindow, Menu } from "electron";
 import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
 
 import template from "./menu";
@@ -29,7 +29,12 @@ const registerIpcHandlers = () => {
 const createMainWindow = () => {
     mainWindow = new BrowserWindow({
         height: 1000,
+        show: false,
         webPreferences: {
+            // Presumably defaults to false, but without setting, app fails to load with a reference error
+            // that "require" is undefined
+            contextIsolation: false,
+
             // NodeJS globals like "module", "exports", and "require" will be injected into the DOM to allow for using NodeJS and Electron APIs.
             // This would only be a problem if libraries or our own code attempted to define the same symbols.
             nodeIntegration: true,
@@ -37,7 +42,7 @@ const createMainWindow = () => {
         width: 1200,
     });
 
-    mainWindow.on("ready-to-show", () => {
+    mainWindow.once("ready-to-show", () => {
         if (mainWindow) {
             mainWindow.show();
         }
@@ -50,11 +55,12 @@ const createMainWindow = () => {
 
     // Allow the application to open webpages in the default web browser.
     // Used, e.g., for giving the user a link to the application's website to download a newer release.
-    mainWindow.webContents.on("new-window", (event, url) => {
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
         if (url && url.startsWith("http")) {
-            event.preventDefault();
-            shell.openExternal(url);
+            return { action: "allow" };
         }
+
+        return { action: "deny" };
     });
 
     if (isDevelopment) {
@@ -81,15 +87,14 @@ const createMainWindow = () => {
                 console.error("An error occurred loading React Dev Tools: ", err)
             );
     } else {
-        mainWindow
-            .loadURL(`file://${path.resolve(process.cwd(), "dist", "renderer", "index.html")}`)
-            .catch((error: Error) => {
-                console.error("Failed to load from file", error);
-            });
+        mainWindow.loadFile(path.join("dist", "renderer", "index.html")).catch((error: Error) => {
+            console.error("Failed to load from file", error);
+        });
     }
 };
 
 const init = () => {
+    // require("./init-electron-store");
     registerIpcHandlers();
     createMainWindow();
 };

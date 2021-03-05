@@ -6,16 +6,16 @@ const { devServer, Env, stats } = require("./constants");
 const getPluginsByEnv = require("./plugins");
 
 module.exports = ({ analyze, env } = {}) => ({
-    devtool: env !== Env.PRODUCTION && "source-map",
+    devtool: "source-map",
     devServer: {
-        contentBase: path.join(__dirname, "../", "dist", "renderer"),
+        contentBase: path.resolve(__dirname, "..", "dist", "renderer"),
         disableHostCheck: true,
         host: devServer.host,
         port: devServer.port,
         stats,
     },
     entry: {
-        app: "./src/renderer.tsx",
+        app: path.resolve("src", "renderer", "index.tsx"),
     },
     mode: env === Env.PRODUCTION ? "production" : "development",
     module: {
@@ -27,13 +27,13 @@ module.exports = ({ analyze, env } = {}) => ({
                     {
                         loader: "babel-loader",
                         options: {
-                            extends: path.resolve(__dirname, "../../../babel.config.json"),
+                            extends: path.resolve(__dirname, "..", "..", "..", "babel.config.json"),
                             presets: [
                                 [
                                     "@babel/preset-env",
                                     {
                                         targets: {
-                                            electron: "9.1.2",
+                                            electron: "12.0.0",
                                         },
                                     },
                                 ],
@@ -92,7 +92,7 @@ module.exports = ({ analyze, env } = {}) => ({
         ],
     },
     output: {
-        path: path.resolve(__dirname, "../", "dist", "renderer"),
+        path: path.resolve(__dirname, "..", "dist", "renderer"),
         filename: "[name].[chunkhash].js",
     },
     plugins: getPluginsByEnv(env, analyze),

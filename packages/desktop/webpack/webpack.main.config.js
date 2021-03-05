@@ -3,9 +3,9 @@ const path = require("path");
 const { Env, stats } = require("./constants");
 
 module.exports = ({ env } = {}) => ({
-    devtool: env !== Env.PRODUCTION && "source-map",
+    devtool: "source-map",
     entry: {
-        main: "./src/main/index.ts",
+        main: path.resolve("src", "main", "index.ts"),
     },
     mode: env === Env.PRODUCTION ? "production" : "development",
     module: {
@@ -17,7 +17,7 @@ module.exports = ({ env } = {}) => ({
                     {
                         loader: "babel-loader",
                         options: {
-                            extends: path.resolve(__dirname, "../../../babel.config.json"),
+                            extends: path.resolve(__dirname, "..", "..", "..", "babel.config.json"),
                             presets: [
                                 [
                                     "@babel/preset-env",
@@ -39,7 +39,7 @@ module.exports = ({ env } = {}) => ({
         ],
     },
     output: {
-        path: path.resolve(__dirname, "../", "dist", "main"),
+        path: path.resolve(__dirname, "..", "dist", "main"),
         filename: "index.js",
     },
     resolve: {

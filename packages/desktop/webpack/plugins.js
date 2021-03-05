@@ -14,7 +14,7 @@ const packageJson = require("../package.json");
 
 const BASE_PLUGINS = [
     new ForkTsCheckerWebpackPlugin({
-        tsconfig: path.resolve(__dirname, "../", "tsconfig.json"),
+        tsconfig: path.resolve(__dirname, "..", "tsconfig.json"),
         workers: ForkTsCheckerWebpackPlugin.ONE_CPU,
     }),
     new CleanWebpackPlugin(),
