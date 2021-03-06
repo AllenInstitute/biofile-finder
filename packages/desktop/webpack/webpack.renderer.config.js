@@ -6,7 +6,7 @@ const { devServer, Env, stats } = require("./constants");
 const getPluginsByEnv = require("./plugins");
 
 module.exports = ({ analyze, env } = {}) => ({
-    devtool: "source-map",
+    devtool: env !== Env.PRODUCTION && "source-map",
     devServer: {
         contentBase: path.resolve(__dirname, "..", "dist", "renderer"),
         disableHostCheck: true,

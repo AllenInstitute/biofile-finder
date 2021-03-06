@@ -3,7 +3,7 @@ const path = require("path");
 const { Env, stats } = require("./constants");
 
 module.exports = ({ env } = {}) => ({
-    devtool: "source-map",
+    devtool: env !== Env.PRODUCTION && "source-map",
     entry: {
         main: path.resolve("src", "main", "index.ts"),
     },
