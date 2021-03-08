@@ -1,9 +1,6 @@
-import groovy.json.JsonOutput
-
 // JOB_TYPE constants
 String INTEGRATION = "Integration build"
-String VERSION_AND_PUBLISH = "Version packages in the monorepo and publish @aics/fms-file-explore-core to npmjs.org"
-String RELEASE = "Trigger release workflow on Github"
+String VERSION = "Create version tag"
 
 // VERSION_BUMP_TYPE constants
 // The values of these constants must match the acceptable args to `lerna version`
@@ -29,7 +26,7 @@ pipeline {
     parameters {
         // N.b.: For choice parameters, the first choice is the default value
         // See https://github.com/jenkinsci/jenkins/blob/master/war/src/main/webapp/help/parameter/choice-choices.html
-        choice(name: "JOB_TYPE", choices: [INTEGRATION, VERSION_AND_PUBLISH, RELEASE], description: "Which type of job this is.")
+        choice(name: "JOB_TYPE", choices: [INTEGRATION, VERSION], description: "Type of job")
         choice(name: "VERSION_BUMP_TYPE", choices: [
             PATCH_VERSION_BUMP,
             MINOR_VERSION_BUMP,
@@ -38,7 +35,7 @@ pipeline {
             PREMINOR_VERSION_BUMP,
             PREPATCH_VERSION_BUMP,
             PRERELEASE_VERSION_BUMP
-        ], description: "Which kind of version bump to perform. Only valid when JOB_TYPE is '${VERSION_AND_PUBLISH}'.")
+        ], description: "Which kind of version bump to perform. Only valid when JOB_TYPE is '${VERSION}'.")
     }
     stages {
         stage ("initialize") {
@@ -100,12 +97,11 @@ pipeline {
                 dockerfile {
                     filename "Dockerfile"
                     additionalBuildArgs "--build-arg USER=`whoami` --build-arg GROUP=jenkins --build-arg UID=`id -u` --build-arg GID=`id -g`"
-                    args '-v $HOME/.ssh:/home/jenkins/.ssh:ro -v $HOME/.npmrc:/home/jenkins/.npmrc:ro -v $HOME/.gitconfig:/home/jenkins/.gitconfig:ro -v /etc/ssl/certs:/etc/ssl/certs:ro'
+                    args '-v $HOME/.ssh:/home/jenkins/.ssh:ro -v $HOME/.gitconfig:/home/jenkins/.gitconfig:ro -v /etc/ssl/certs:/etc/ssl/certs:ro'
                 }
             }
             when {
-                branch "master"
-                equals expected: VERSION_AND_PUBLISH, actual: params.JOB_TYPE
+                equals expected: VERSION, actual: params.JOB_TYPE
             }
             steps {
                 sh """
