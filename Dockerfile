@@ -41,5 +41,3 @@ RUN /usr/sbin/groupadd -g ${GID} ${GROUP} && \
 # "The SUID sandbox helper binary was found, but is not configured correctly"
 # Reference: https://github.com/electron/electron/issues/17972#issuecomment-487369441
 RUN echo "${USER} ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${USER}
-
-SHELL ["/bin/bash", "-c"]
