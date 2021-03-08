@@ -9,9 +9,9 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
     "lint": "eslint \"packages/*/src/**/*.{js,jsx,ts,tsx}\"",
-    "test:core": "pushd packages/core; BABEL_ENV=nodejs mocha; popd",
-    "test:desktop": "pushd packages/desktop; npm test; popd",
-    "test:web": "pushd packages/web; BABEL_ENV=nodejs mocha; popd",
+    "test:core": "cd packages/core && BABEL_ENV=nodejs mocha",
+    "test:desktop": "cd packages/desktop && npm test",
+    "test:web": "cd packages/web && BABEL_ENV=nodejs mocha",
     "test": "npm-run-all test:core test:desktop test:web",
     "typeCheck": "tsc --noEmit"
   },
