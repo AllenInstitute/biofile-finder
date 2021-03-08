@@ -95,7 +95,7 @@ pipeline {
             }
         }
 
-        stage ("version and publish") {
+        stage ("version") {
             agent {
                 dockerfile {
                     filename "Dockerfile"
@@ -118,38 +118,7 @@ pipeline {
 
                 # Increment version
                 npx lerna version --force-publish --yes --no-commit-hooks --exact ${params.VERSION_BUMP_TYPE}
-
-                # Publish npm lib
-                npx lerna run publishArtifact --scope=@aics/fms-file-explorer-core
                 """.trim()
-            }
-        }
-
-        stage ("trigger release") {
-            when {
-                equals expected: RELEASE, actual: params.JOB_TYPE
-            }
-            environment {
-                GH_TOKEN = credentials("aics-github-token-repo-access")
-            }
-            steps {
-                script {
-                    def packageJsonVersion = sh(
-                        returnStdout: true,
-                        script: "cat ${env.WORKSPACE}/packages/fms-file-explorer-electron/package.json | jq --raw-output '.version'"
-                    ).trim()
-                    def postData = JsonOutput.toJson([event_type: "on-demand-release", client_payload: [ref: "${env.BRANCH_NAME}", version: "${packageJsonVersion}"]])
-                    def authHeader = [name: "Authorization", value: "bearer ${GH_TOKEN}"]
-                    def acceptHeader = [name: "Accept", value: "application/vnd.github.everest-preview+json"]
-                    def response = httpRequest url: "https://api.github.com/repos/AllenInstitute/aics-fms-file-explorer-app/dispatches",
-                                               httpMode: "POST",
-                                               requestBody: postData,
-                                               customHeaders: [authHeader, acceptHeader]
-
-                    if (response.getStatus() >= 400) {
-                        throw new Exception("Failed to trigger a release workflow")
-                    }
-                }
             }
         }
     }

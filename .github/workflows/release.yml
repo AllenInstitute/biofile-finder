@@ -1,11 +1,13 @@
 name: release
 
 on:
-  - repository_dispatch
+  push:
+    tags:
+      # Match any tags that start with 'v'
+      - v*
 
 jobs:
-  release-fms-file-explorer-electron:
-    if: github.event.action == 'on-demand-release'
+  release-fms-file-explorer-desktop:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -30,21 +32,10 @@ jobs:
         env:
           AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
         with:
-          config_overrides: >
-            {
-              "extraMetadata": {
-                "version": "${{ github.event.client_payload.version }}"
-              }
-            }
-
           # GitHub token, automatically provided to the action
           # (No need to define this secret in the repo settings)
           github_token: ${{ secrets.github_token }}
-
           package_root: "packages/desktop"
-
-          # Always release when repo dispatch event is of type "release"
           release: true
-
           windows_certs: ${{ secrets.CSC_LINK }}
           windows_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}
