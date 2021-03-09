@@ -53,16 +53,6 @@ const createMainWindow = () => {
         mainWindow = undefined;
     });
 
-    // Allow the application to open webpages in the default web browser.
-    // Used, e.g., for giving the user a link to the application's website to download a newer release.
-    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-        if (url && url.startsWith("http")) {
-            return { action: "allow" };
-        }
-
-        return { action: "deny" };
-    });
-
     if (isDevelopment) {
         installExtension(REACT_DEVELOPER_TOOLS)
             .then((name: string) => {
