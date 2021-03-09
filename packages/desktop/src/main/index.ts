@@ -84,7 +84,7 @@ const createMainWindow = () => {
 };
 
 const init = () => {
-    // require("./init-electron-store");
+    require("./init-electron-store");
     registerIpcHandlers();
     createMainWindow();
 };
