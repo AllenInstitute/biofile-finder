@@ -22,15 +22,22 @@ module.exports = ({ analyze, env } = {}) => ({
         rules: [
             {
                 test: /\.(j|t)sx?/,
-                include: [path.resolve(__dirname, "../", "src")],
                 exclude: /node_modules/,
-                use: [{ loader: "babel-loader" }],
+                use: [
+                    {
+                        loader: "babel-loader",
+                        options: {
+                            extends: path.resolve(__dirname, "..", "..", "..", "babel.config.json"),
+                            presets: ["@babel/preset-env"],
+                        },
+                    },
+                ],
             },
 
-            // this rule processes any CSS written for this project and contained in src/
-            // it applies PostCSS plugins and converts it to CSS Modules
+            // this rule processes any CSS written for this project.
+            // It applies PostCSS plugins and converts it to CSS Modules
             {
-                test: /\.module.css/,
+                test: /\.css/,
                 exclude: /node_modules/,
                 use: [
                     {
@@ -94,6 +101,7 @@ module.exports = ({ analyze, env } = {}) => ({
     plugins: getPluginsByEnv(env, analyze),
     resolve: {
         extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
+        mainFields: ["module", "main"],
         symlinks: false,
     },
     stats: analyze ? "none" : stats,
