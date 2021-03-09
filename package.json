@@ -59,6 +59,7 @@
     "mock-raf": "1.0.x",
     "npm-run-all": "4.1.x",
     "prettier": "2.1.x",
+    "resize-observer": "1.0.x",
     "rimraf": "3.0.x",
     "sinon": "7.4.x",
     "typescript": "4.2.x"
@@ -88,7 +89,6 @@
     "redux": "4.0.x",
     "redux-logic": "2.1.x",
     "reselect": "4.0.x",
-    "resize-observer": "1.0.x",
     "string-natural-compare": "3.0.x"
   }
 }
