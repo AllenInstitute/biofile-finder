@@ -109,9 +109,6 @@ pipeline {
 
                 set -e
 
-                npm ci
-                npx lerna bootstrap --hoist
-
                 # Increment version
                 npx lerna version --force-publish --yes --no-commit-hooks --exact ${params.VERSION_BUMP_TYPE}
                 """.trim()
