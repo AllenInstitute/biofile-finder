@@ -53,7 +53,7 @@
     "eslint-plugin-react-hooks": "2.2.x",
     "husky": "3.1.0",
     "jsdom": "16.4.x",
-    "lerna": "3.22.x",
+    "lerna": "4.0.x",
     "lint-staged": "10.4.x",
     "mocha": "8.1.x",
     "mock-raf": "1.0.x",
