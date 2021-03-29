@@ -13,15 +13,14 @@ export enum DataSource {
 // TypeScript (3.9) raises a bizarre error if this is an enum
 // Reference issue without clear resolution: https://github.com/microsoft/TypeScript/issues/6307
 export const AnnotationName = {
-    KIND: "Kind", // matches an annotation in filemetadata.annoation
+    KIND: "Kind", // matches an annotation in filemetadata.annotation
     FILE_ID: "file_id", // a file attribute (top-level prop on file documents in MongoDb)
     FILE_NAME: "file_name", // a file attribute (top-level prop on file documents in MongoDb)
     FILE_SIZE: "file_size", // a file attribute (top-level prop on file documents in MongoDb)
     FILE_PATH: "file_path", // a file attribute (top-level prop on file documents in MongoDb)
     THUMBNAIL_PATH: "thumbnail", // (optional) file attribute (top-level prop on the file documents in MongoDb)
-    TYPE: "Type", // matches an annotation in filemetadata.annoation
-    UPLOADED: "uploaded", // matches an annotation in filemetadata.annoation
-    UPLOADED_BY: "uploaded_by", // matches an annotation in filemetadata.annoation
+    TYPE: "Type", // matches an annotation in filemetadata.annotation
+    UPLOADED: "uploaded", // matches an annotation in filemetadata.annotation
 };
 
 export const TOP_LEVEL_FILE_ANNOTATIONS = [
@@ -61,11 +60,5 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         annotationName: AnnotationName.UPLOADED,
         description: "Date and time file was uploaded.",
         type: AnnotationType.DATETIME,
-    }),
-    new Annotation({
-        annotationDisplayName: "Uploaded by",
-        annotationName: AnnotationName.UPLOADED_BY,
-        description: "Person or process who uploaded this file.",
-        type: AnnotationType.STRING,
     }),
 ];

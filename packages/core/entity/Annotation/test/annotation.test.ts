@@ -80,7 +80,6 @@ describe("Annotation", () => {
                 thumbnail:
                     "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
                 uploaded: new Date().toISOString(),
-                uploaded_by: "Her",
             };
 
             const annotation = new Annotation(annotationResponse);
@@ -105,7 +104,6 @@ describe("Annotation", () => {
                 thumbnailPath:
                     "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
                 uploaded: new Date().toISOString(),
-                uploaded_by: "Him",
             };
 
             const annotation = new Annotation(annotationResponse);
@@ -138,7 +136,6 @@ describe("Annotation", () => {
                 thumbnail:
                     "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
                 uploaded: new Date().toISOString(),
-                uploaded_by: "Me",
             };
 
             const annotation = new Annotation(annotationResponse);

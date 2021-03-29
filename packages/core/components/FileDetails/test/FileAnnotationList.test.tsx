@@ -27,7 +27,6 @@ describe("<FileAnnotationList />", () => {
                 file_name: "MyFile.txt",
                 file_size: 7,
                 uploaded: "01/01/01",
-                uploaded_by: "test-user",
                 annotations: [],
             });
             const { getByText } = render(
@@ -54,7 +53,6 @@ describe("<FileAnnotationList />", () => {
                 file_name: "MyFile.txt",
                 file_size: 7,
                 uploaded: "01/01/01",
-                uploaded_by: "test-user",
                 annotations: [],
             });
             const { getByText } = render(

@@ -29,7 +29,6 @@ export interface FmsFile {
     file_path: string;
     file_size: number;
     uploaded: string;
-    uploaded_by: string;
     positions?: { id: number }[]; // TODO: Add Ticket for this
     channels?: { id: number }[]; // TODO: Add Ticket for this
     times?: { id: number }[]; // TODO: Add Ticket for this

@@ -74,7 +74,6 @@ describe("<DirectoryTree />", () => {
             file_path: `/isilon/${fileName}`,
             file_size: 1000,
             uploaded: "Sun Aug 19 22:51:22 GMT 2018",
-            uploaded_by: "Human",
         };
     };
 

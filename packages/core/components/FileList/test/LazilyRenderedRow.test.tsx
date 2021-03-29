@@ -39,7 +39,6 @@ describe("<LazilyRenderedRow />", () => {
                     times: [],
                     thumbnail: "",
                     uploaded: new Date().toISOString(),
-                    uploaded_by: "Them",
                 };
             }
         });

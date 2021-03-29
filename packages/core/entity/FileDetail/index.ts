@@ -44,7 +44,6 @@ import { FmsFile } from "../../services/FileService";
  *     file_id: "26aa7881b8004dd0bcec857baf9a2f0a",
  *     thumbnail: "src/of/thumbnail",
  *     uploaded: "2019-08-15 13:50:24",
- *     uploaded_by: "svc_airflow",
  * }
  */
 
