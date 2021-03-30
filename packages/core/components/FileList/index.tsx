@@ -98,6 +98,7 @@ export default function FileList(props: FileListProps) {
     const onFileRowContextMenu = (evt: React.MouseEvent) => {
         const availableItems = getContextMenuItems(dispatch);
         const items: IContextualMenuItem[] = [];
+        // TODO: Dynamically add sub menu items to the OPEN_WITH context
         if (fileSelection.count() === 0) {
             Array.prototype.push.apply(
                 items,

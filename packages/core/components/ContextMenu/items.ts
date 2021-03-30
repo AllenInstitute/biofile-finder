@@ -7,7 +7,8 @@ export enum ContextMenuActions {
     COPY = "copy",
     CSV_MANIFEST = "csv-manifest",
     MODIFY_COLUMNS = "modify-columns",
-    OPEN_IN_IMAGEJ = "image-j",
+    OPEN_WITH_IMAGEJ = "open-with-imagej",
+    OPEN_WITH_OTHER = "open-with-other",
     PASTE = "paste",
     PYTHON_SNIPPET = "python-snippet",
 }
@@ -26,11 +27,29 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                 itemType: ContextualMenuItemType.Header,
             },
             {
-                key: ContextMenuActions.OPEN_IN_IMAGEJ,
-                text: "Open in ImageJ/Fiji",
-                title: "Open files in ImageJ/Fiji",
+                key: ContextMenuActions.OPEN_WITH_IMAGEJ,
+                text: "Open with ImageJ/Fiji",
+                title: "Open files with ImageJ/Fiji",
                 onClick() {
                     dispatch(interaction.actions.openFilesInImageJ());
+                },
+            },
+            {
+                key: "open-with",
+                text: "Open with",
+                title: "Open files with an application of your choosing",
+                subMenuProps: {
+                    items: [
+                        // Dynamically generated application options will/should be
+                        // inserted here
+                        {
+                            key: ContextMenuActions.OPEN_WITH_OTHER,
+                            text: "Other...",
+                            onClick() {
+                                dispatch(interaction.actions.promptUserForApplicationSelection());
+                            },
+                        },
+                    ],
                 },
             },
             {

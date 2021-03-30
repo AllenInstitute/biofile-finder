@@ -1,0 +1,10 @@
+.browse-button {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.helper-text {
+    color: #a7a7a7;
+    font-size: smaller;
+}

@@ -5,12 +5,20 @@ export enum PersistedConfigKeys {
     AllenMountPoint = "ALLEN_MOUNT_POINT",
     CsvColumns = "CSV_COLUMNS",
     ImageJExecutable = "IMAGE_J_EXECUTABLE",
+    UserSelectedApplications = "USER_SELECTED_APPLICATIONS",
+}
+
+export interface UserSelectedApplication {
+    defaultFileKinds: string[];
+    filePath: string;
+    title: string;
 }
 
 export interface PersistedConfig {
     [PersistedConfigKeys.AllenMountPoint]?: string;
     [PersistedConfigKeys.CsvColumns]?: string[];
     [PersistedConfigKeys.ImageJExecutable]?: string;
+    [PersistedConfigKeys.UserSelectedApplications]?: UserSelectedApplication[];
 }
 
 /**
