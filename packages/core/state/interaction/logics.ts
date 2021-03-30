@@ -24,7 +24,10 @@ import {
     REFRESH,
     SET_PLATFORM_DEPENDENT_SERVICES,
     promptUserToUpdateApp,
+    SAVE_APPLICATION_SELECTION,
+    OPEN_FILES_WITH_APPLICATION,
 } from "./actions";
+import * as interactionActions from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
 import { CancellationToken } from "../../services/FileDownloadService";
@@ -358,6 +361,63 @@ const refresh = createLogic({
     type: [REFRESH],
 });
 
+const saveApplicationSelection = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        // TODO: Persist new application
+        dispatch(interactionActions.openFilesWithApplication(deps.action.payload.filePath));
+        done();
+    },
+    type: SAVE_APPLICATION_SELECTION,
+});
+
+const openFilesWithApplication = createLogic({
+    async process(deps: ReduxLogicDeps, _, done) {
+        const fileSelection = selection.selectors.getFileSelection(deps.getState());
+        const savedAllenMountPoint = interactionSelectors.getAllenMountPoint(deps.getState());
+        const {
+            fileViewerService,
+            executionEnvService,
+        } = interactionSelectors.getPlatformDependentServices(deps.getState());
+
+        // Verify that the known Allen mount point is valid, if not prompt for it
+        let allenMountPoint = savedAllenMountPoint;
+        const isValidAllenDrive =
+            allenMountPoint && (await executionEnvService.isValidAllenMountPoint(allenMountPoint));
+        if (!isValidAllenDrive) {
+            allenMountPoint = await executionEnvService.promptForAllenMountPoint(true);
+        }
+
+        // If the user did not cancel out of the allen mount prompt, continue trying to open the executable
+        if (allenMountPoint && allenMountPoint !== ExecutableEnvCancellationToken) {
+            // Verify that the executable location leads to a valid executable
+            const { name, filePath } = deps.action.payload;
+            const isValidExecutableLocation = await executionEnvService.isValidExecutable(filePath);
+            if (!isValidExecutableLocation) {
+                filePath = await executionEnvService.promptForExecutable(
+                    `${name} Executable`,
+                    `It appears that your ${name} application isn't located where we thought it would be. ` +
+                        `Select your ${name} application now?`
+                );
+            }
+
+            // If the user did not cancel out of a prompt, continue trying to open the executable
+            if (filePath && filePath !== ExecutableEnvCancellationToken) {
+                // Gather up the file paths for the files selected currently
+                const selectedFilesDetails = await fileSelection.fetchAllDetails();
+                const filePaths = selectedFilesDetails.map((file) =>
+                    executionEnvService.formatPathForOs(
+                        file.file_path.substring("/allen".length),
+                        allenMountPoint
+                    )
+                );
+                await fileViewerService.open(filePath, filePaths);
+            }
+        }
+        done();
+    },
+    type: OPEN_FILES_WITH_APPLICATION,
+});
+
 export default [
     checkForUpdates,
     downloadManifest,
@@ -365,5 +425,7 @@ export default [
     openFilesInImageJ,
     showContextMenu,
     generatePythonSnippet,
+    openFilesWithApplication,
+    saveApplicationSelection,
     refresh,
 ];

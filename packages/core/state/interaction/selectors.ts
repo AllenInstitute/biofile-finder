@@ -24,6 +24,8 @@ export const getPlatformDependentServices = (state: State) =>
 export const getProcessStatuses = (state: State) => state.interaction.status;
 export const getPythonSnippet = (state: State) => state.interaction.pythonSnippet;
 export const getRefreshKey = (state: State) => state.interaction.refreshKey;
+export const getUserSelectedApplications = (state: State) =>
+    state.interaction.userSelectedApplications;
 export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 
 // COMPOSED SELECTORS

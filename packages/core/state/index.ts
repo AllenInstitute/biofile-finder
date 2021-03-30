@@ -64,6 +64,8 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
             csvColumns: persistedConfig && persistedConfig[PersistedConfigKeys.CsvColumns],
             imageJExecutable:
                 persistedConfig && persistedConfig[PersistedConfigKeys.ImageJExecutable],
+            userSelectedApplications:
+                persistedConfig && persistedConfig[PersistedConfigKeys.UserSelectedApplications],
         },
     });
     return configureStore<State>({

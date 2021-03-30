@@ -7,8 +7,10 @@ import {
     HIDE_CONTEXT_MENU,
     HIDE_VISIBLE_MODAL,
     PlatformDependentServices,
+    PROMPT_USER_FOR_APPLICATION_SELECTION,
     REFRESH,
     REMOVE_STATUS,
+    SAVE_APPLICATION_SELECTION,
     SET_ALLEN_MOUNT_POINT,
     SET_CSV_COLUMNS,
     SET_FILE_EXPLORER_SERVICE_BASE_URL,
@@ -32,6 +34,7 @@ import PersistentConfigServiceNoop from "../../services/PersistentConfigService/
 import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
 import FileFilter from "../../entity/FileFilter";
 import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
+import { UserSelectedApplication } from "../../services/PersistentConfigService";
 
 export interface InteractionStateBranch {
     allenMountPoint?: string;
@@ -48,6 +51,7 @@ export interface InteractionStateBranch {
     pythonSnippet?: PythonicDataAccessSnippet;
     refreshKey?: string;
     status: StatusUpdate[];
+    userSelectedApplications?: UserSelectedApplication[];
     visibleModal?: ModalType;
 }
 
@@ -105,9 +109,17 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             visibleModal: undefined,
         }),
+        [PROMPT_USER_FOR_APPLICATION_SELECTION]: (state) => ({
+            ...state,
+            visibleModal: ModalType.ApplicationSelection,
+        }),
         [REFRESH]: (state, action) => ({
             ...state,
             refreshKey: action.payload,
+        }),
+        [SAVE_APPLICATION_SELECTION]: (state, action) => ({
+            ...state,
+            userSelectedApplications: [...(state.userSelectedApplications || []), action.payload],
         }),
         [SET_STATUS]: (state, action) => ({
             ...state,

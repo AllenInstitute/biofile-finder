@@ -64,16 +64,19 @@ store.subscribe(() => {
     const allenMountPoint = interaction.selectors.getAllenMountPoint(state);
     const csvColumns = interaction.selectors.getCsvColumns(state);
     const imageJExecutable = interaction.selectors.getImageJExecutable(state);
+    const userSelectedApplications = interaction.selectors.getUserSelectedApplications(state);
     const appState = {
         [PersistedConfigKeys.AllenMountPoint]: allenMountPoint,
         [PersistedConfigKeys.CsvColumns]: csvColumns,
         [PersistedConfigKeys.ImageJExecutable]: imageJExecutable,
+        [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
     };
     if (JSON.stringify(appState) !== JSON.stringify(persistentConfigService.getAll())) {
         persistentConfigService.persist({
             [PersistedConfigKeys.AllenMountPoint]: allenMountPoint,
             [PersistedConfigKeys.CsvColumns]: csvColumns,
             [PersistedConfigKeys.ImageJExecutable]: imageJExecutable,
+            [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
         });
     }
 });

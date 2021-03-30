@@ -21,7 +21,7 @@ interface FileAnnotationRowProps {
 export default function FileAnnotationRow(props: FileAnnotationRowProps) {
     const dispatch = useDispatch();
 
-    const onContextMenuHandlerFactory = (cliboardText: string) => {
+    const onContextMenuHandlerFactory = (clipboardText: string) => {
         return (evt: React.MouseEvent) => {
             const availableItems = getContextMenuItems(dispatch);
             const items = [
@@ -29,7 +29,7 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                     ...availableItems.COPY,
                     title: "Copy to clipboard",
                     onClick: () => {
-                        navigator.clipboard.writeText(cliboardText);
+                        navigator.clipboard.writeText(clipboardText);
                     },
                 },
             ];

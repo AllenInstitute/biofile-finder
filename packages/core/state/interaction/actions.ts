@@ -11,7 +11,9 @@ import FileDownloadService from "../../services/FileDownloadService";
 import FileFilter from "../../entity/FileFilter";
 import FileViewerService from "../../services/FileViewerService";
 import { ModalType } from "../../components/Modal";
-import PersistentConfigService from "../../services/PersistentConfigService";
+import PersistentConfigService, {
+    UserSelectedApplication,
+} from "../../services/PersistentConfigService";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -519,6 +521,74 @@ export function showManifestDownloadDialog(
     return {
         type: SHOW_MANIFEST_DOWNLOAD_DIALOG,
         payload: fileFilters,
+    };
+}
+
+/**
+ * PROMPT_USER_FOR_APPLICATION_SELECTION
+ *
+ * Intention to prompt the user to select an application location on their machine
+ */
+export const PROMPT_USER_FOR_APPLICATION_SELECTION = makeConstant(
+    STATE_BRANCH_NAME,
+    "prompt-user-for-application-selector"
+);
+
+export interface PromptUserForApplicationSelectionAction {
+    type: string;
+}
+
+export function promptUserForApplicationSelection(): PromptUserForApplicationSelectionAction {
+    return {
+        type: PROMPT_USER_FOR_APPLICATION_SELECTION,
+    };
+}
+
+/**
+ * SAVE_APPLICATION_SELECTION
+ *
+ * Intention to save the application selected
+ */
+export const SAVE_APPLICATION_SELECTION = makeConstant(
+    STATE_BRANCH_NAME,
+    "save-application-selection"
+);
+
+export interface SaveApplicationSelectionAction {
+    payload: UserSelectedApplication;
+    type: string;
+}
+
+export function saveApplicationSelection(
+    title: string,
+    filePath: string,
+    defaultFileKinds: string[]
+): SaveApplicationSelectionAction {
+    return {
+        payload: { title, filePath, defaultFileKinds },
+        type: SAVE_APPLICATION_SELECTION,
+    };
+}
+
+/**
+ * OPEN_FILES_WITH_APPLICATION
+ *
+ * Intention to open selected file with application found at path given
+ */
+export const OPEN_FILES_WITH_APPLICATION = makeConstant(
+    STATE_BRANCH_NAME,
+    "open-files-with-application"
+);
+
+export interface OpenFilesWithApplication {
+    payload: string;
+    type: string;
+}
+
+export function openFilesWithApplication(applicationFilePath: string): OpenFilesWithApplication {
+    return {
+        payload: applicationFilePath,
+        type: OPEN_FILES_WITH_APPLICATION,
     };
 }
 
