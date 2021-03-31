@@ -6,7 +6,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { AnnotationName } from "../../../constants";
 
 import { ExecutableEnvCancellationToken } from "../../../services";
-import { interaction } from "../../../state";
+import { interaction, selection } from "../../../state";
+import { getContextMenuOnDismiss } from "../../../state/interaction/selectors";
 import useAnnotationValues from "../../AnnotationFilterForm/useAnnotationValues";
 import ListPicker, { ListItem } from "../../ListPicker";
 import BaseModal from "../BaseModal";
@@ -28,16 +29,30 @@ export default function ApplicationSelection(props: ApplicationSelectionModalPro
     const [name, setName] = React.useState<string>("");
     const [filePath, setFilePath] = React.useState<string>("");
     const [defaultFileKinds, setDefaultFileKinds] = React.useState<string[]>([]);
+    const fileSelection = useSelector(selection.selectors.getFileSelection);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
-    const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
     const userSelectedApplications = useSelector(interaction.selectors.getKnownApplications);
+    const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
+
+    // Auto-select the file kinds repesented in the current file selection
+    React.useEffect(() => {
+        async function getFileKinds() {
+            const selectedFilesDetails = await fileSelection.fetchAllDetails();
+            const kinds = selectedFilesDetails.flatMap(
+                (file) =>
+                    file.annotations.find((a) => a.name === AnnotationName.KIND)?.values as string[]
+            );
+            setDefaultFileKinds(kinds);
+        }
+        getFileKinds();
+    }, [fileSelection]);
 
     const [fileKinds, fileKindsIsLoading, errorMessage] = useAnnotationValues(
         AnnotationName.KIND,
         annotationService
     );
 
-    const appsReplacedByName = userSelectedApplications.filter((app) => app.name === name);
+    const isAppNameTaken = userSelectedApplications.some((app) => app.name === name);
     const appsReplacedByKind = userSelectedApplications
         .filter((app) => app.defaultFileKinds.some((kind) => defaultFileKinds.includes(kind)))
         .map((app) => app.name)
@@ -64,6 +79,7 @@ export default function ApplicationSelection(props: ApplicationSelectionModalPro
         const apps = [...existingApps, newApp];
         dispatch(interaction.actions.setUserSelectedApplication(apps));
         dispatch(interaction.actions.openFilesWithApplication(newApp));
+        props.onDismiss();
     }
 
     function onSelectFileKind(item: ListItem) {
@@ -99,7 +115,7 @@ export default function ApplicationSelection(props: ApplicationSelectionModalPro
                         spellCheck={false}
                         onChange={(_, value) => setName(value || "")}
                     />
-                    {appsReplacedByName && (
+                    {isAppNameTaken && (
                         <p className={styles.errorText}>Already have application with same name</p>
                     )}
                     <Label>Kinds of Files to Open with This Application by Default</Label>
@@ -126,7 +142,7 @@ export default function ApplicationSelection(props: ApplicationSelectionModalPro
             body={modalBody}
             footer={
                 <PrimaryButton
-                    disabled={!filePath || !!appsReplacedByName}
+                    disabled={!filePath || isAppNameTaken}
                     onClick={onOpenFilesWithApplication}
                     text={filePath ? `Open with ${name}` : "Open with..."}
                 />

@@ -1,6 +1,7 @@
 import { IContextualMenuItem } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { AnnotationName } from "../../constants";
 import { interaction, selection } from "../../state";
 import getContextMenuItems, { ContextMenuActions } from "../ContextMenu/items";
 
@@ -21,7 +22,10 @@ export default function useFileAccessContextMenu() {
     React.useEffect(() => {
         async function getFileKinds() {
             const selectedFilesDetails = await fileSelection.fetchAllDetails();
-            const kinds = selectedFilesDetails.map((file) => file.kind);
+            const kinds = selectedFilesDetails.flatMap(
+                (file) =>
+                    file.annotations.find((a) => a.name === AnnotationName.KIND)?.values as string[]
+            );
             setFileKinds(kinds);
         }
         getFileKinds();
@@ -37,18 +41,24 @@ export default function useFileAccessContextMenu() {
             userSelectedApplications
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .forEach((app) => {
-                    const appAsMenuOption = {
-                        key: `open-with-${app.name}`,
-                        text: app.name,
-                        title: `Open files with ${app.name}`,
-                        onClick() {
-                            dispatch(interaction.actions.openFilesWithApplication(app));
-                        },
-                    };
                     if (fileKinds.some((k) => app.defaultFileKinds.includes(k))) {
-                        defaultApps.push(appAsMenuOption);
+                        defaultApps.push({
+                            key: `open-with-${app.name}`,
+                            text: `Open with ${app.name}`,
+                            title: `Open files with ${app.name}`,
+                            onClick() {
+                                dispatch(interaction.actions.openFilesWithApplication(app));
+                            },
+                        });
                     } else {
-                        otherSavedApps.push(appAsMenuOption);
+                        otherSavedApps.push({
+                            key: `open-with-${app.name}`,
+                            text: app.name,
+                            title: `Open files with ${app.name}`,
+                            onClick() {
+                                dispatch(interaction.actions.openFilesWithApplication(app));
+                            },
+                        });
                     }
                 });
 
