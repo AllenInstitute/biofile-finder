@@ -1,19 +1,18 @@
 import classNames from "classnames";
 import debouncePromise from "debounce-promise";
 import { defaults, isFunction } from "lodash";
-import { IContextualMenuItem } from "@fluentui/react";
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 
-import getContextMenuItems from "../ContextMenu/items";
 import FileSet from "../../entity/FileSet";
 import Header from "./Header";
 import LazilyRenderedRow from "./LazilyRenderedRow";
-import { interaction, selection } from "../../state";
+import { selection } from "../../state";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileSelector from "./useFileSelector";
+import useFileAccessContextMenu from "./useFileAccessContextMenu";
 
 const styles = require("./FileList.module.css");
 
@@ -51,8 +50,10 @@ export default function FileList(props: FileListProps) {
     );
 
     const onSelect = useFileSelector(fileSet, sortOrder);
-    const dispatch = useDispatch();
     const fileSelection = useSelector(selection.selectors.getFileSelection);
+
+    // Callback provided to individual LazilyRenderedRows to be called on `contextmenu`
+    const onFileRowContextMenu = useFileAccessContextMenu();
 
     // If this is the "root" file list (e.g., all files in FMS), this component should take up
     // 100% of the height of its container.
@@ -93,22 +94,6 @@ export default function FileList(props: FileListProps) {
             }
         }
     }, [fileSelection, fileSet, height, rowHeight]);
-
-    // Callback provided to individual LazilyRenderedRows to be called on `contextmenu`
-    const onFileRowContextMenu = (evt: React.MouseEvent) => {
-        const availableItems = getContextMenuItems(dispatch);
-        const items: IContextualMenuItem[] = [];
-        // TODO: Dynamically add sub menu items to the OPEN_WITH context
-        if (fileSelection.count() === 0) {
-            Array.prototype.push.apply(
-                items,
-                availableItems.ACCESS.map((item) => ({ ...item, disabled: true }))
-            );
-        } else {
-            Array.prototype.push.apply(items, availableItems.ACCESS);
-        }
-        dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
-    };
 
     return (
         <div className={classNames(styles.container, className)}>

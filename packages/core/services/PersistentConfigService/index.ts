@@ -10,7 +10,7 @@ export enum PersistedConfigKeys {
 
 export interface UserSelectedApplication {
     defaultFileKinds: string[];
-    filePath: string;
+    filePath?: string;
     name: string;
 }
 
