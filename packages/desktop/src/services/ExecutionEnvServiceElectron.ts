@@ -21,7 +21,6 @@ enum Platform {
 export default class ExecutionEnvServiceElectron implements ExecutionEnvService {
     public static SHOW_OPEN_DIALOG = "show-open-dialog";
     public static PROMPT_ALLEN_MOUNT_POINT = "prompt-allen-mount-point";
-    public static PROMPT_IMAGE_J_LOCATION = "prompt-image-j-location";
     private notificationService: NotificationServiceElectron;
 
     public static registerIpcHandlers() {
@@ -40,11 +39,6 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         // Relay the selected Allen mount point to a listener in the renderer process
         ipcMain.on(GlobalVariableChannels.AllenMountPoint, (event, allenPath) => {
             event.reply(GlobalVariableChannels.AllenMountPoint, allenPath);
-        });
-
-        // Relay the selected ImageJ/Fiji executable to a listener in the renderer process
-        ipcMain.on(GlobalVariableChannels.ImageJExecutable, (event, imageJExecutable) => {
-            event.reply(GlobalVariableChannels.ImageJExecutable, imageJExecutable);
         });
     }
 
@@ -79,15 +73,6 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
             if (allenPath !== ExecutableEnvCancellationToken) {
                 // Pass the selected Allen mount point on to the global variables
                 ipcRenderer.send(GlobalVariableChannels.AllenMountPoint, allenPath);
-            }
-        });
-
-        ipcRenderer.removeAllListeners(ExecutionEnvServiceElectron.PROMPT_IMAGE_J_LOCATION);
-        ipcRenderer.on(ExecutionEnvServiceElectron.PROMPT_IMAGE_J_LOCATION, async () => {
-            const imageJExecutable = await this.promptForExecutable("ImageJ/Fiji Executable");
-            if (imageJExecutable !== ExecutableEnvCancellationToken) {
-                // Pass the selected ImageJ/Fiji executable on to the global variables
-                ipcRenderer.send(GlobalVariableChannels.ImageJExecutable, imageJExecutable);
             }
         });
     }

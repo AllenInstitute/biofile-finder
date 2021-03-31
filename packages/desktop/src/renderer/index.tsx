@@ -63,19 +63,16 @@ store.subscribe(() => {
     const state = store.getState();
     const allenMountPoint = interaction.selectors.getAllenMountPoint(state);
     const csvColumns = interaction.selectors.getCsvColumns(state);
-    const imageJExecutable = interaction.selectors.getImageJExecutable(state);
     const userSelectedApplications = interaction.selectors.getUserSelectedApplications(state);
     const appState = {
         [PersistedConfigKeys.AllenMountPoint]: allenMountPoint,
         [PersistedConfigKeys.CsvColumns]: csvColumns,
-        [PersistedConfigKeys.ImageJExecutable]: imageJExecutable,
         [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
     };
     if (JSON.stringify(appState) !== JSON.stringify(persistentConfigService.getAll())) {
         persistentConfigService.persist({
             [PersistedConfigKeys.AllenMountPoint]: allenMountPoint,
             [PersistedConfigKeys.CsvColumns]: csvColumns,
-            [PersistedConfigKeys.ImageJExecutable]: imageJExecutable,
             [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
         });
     }
@@ -86,7 +83,6 @@ function renderFmsFileExplorer() {
         <Provider store={store}>
             <FmsFileExplorer
                 allenMountPoint={global.fileExplorerServiceAllenMountPoint}
-                imageJExecutable={global.fileExplorerServiceImageJExecutable}
                 fileExplorerServiceBaseUrl={global.fileExplorerServiceBaseUrl}
                 platformDependentServices={platformDependentServices}
             />
@@ -102,11 +98,6 @@ ipcRenderer.addListener(GlobalVariableChannels.BaseUrl, (_, baseUrl: string) => 
 
 ipcRenderer.addListener(GlobalVariableChannels.AllenMountPoint, (_, allenMountPoint?: string) => {
     global.fileExplorerServiceAllenMountPoint = allenMountPoint;
-    renderFmsFileExplorer();
-});
-
-ipcRenderer.addListener(GlobalVariableChannels.ImageJExecutable, (_, imageJExecutable?: string) => {
-    global.fileExplorerServiceImageJExecutable = imageJExecutable;
     renderFmsFileExplorer();
 });
 
