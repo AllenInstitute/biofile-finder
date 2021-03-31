@@ -1,7 +1,6 @@
 import { IContextualMenuItem } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import { interaction, selection } from "../../state";
 import getContextMenuItems, { ContextMenuActions } from "../ContextMenu/items";
 
@@ -17,9 +16,7 @@ export default function useFileAccessContextMenu() {
     const dispatch = useDispatch();
     const [fileKinds, setFileKinds] = React.useState<string[]>([]);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
-    const imageJLocation = useSelector(interaction.selectors.getImageJExecutable);
-    const userSelectedApplications =
-        useSelector(interaction.selectors.getUserSelectedApplications) || [];
+    const userSelectedApplications = useSelector(interaction.selectors.getKnownApplications);
 
     React.useEffect(() => {
         async function getFileKinds() {
@@ -32,38 +29,28 @@ export default function useFileAccessContextMenu() {
 
     return React.useCallback(
         (evt: React.MouseEvent) => {
-            // Map and sort the applications the user has previously
-            // informed this app about, Image/Fiji is a constant option
-            const apps: UserSelectedApplication[] = [
-                ...userSelectedApplications,
-                {
-                    name: "ImageJ/Fiji",
-                    filePath: imageJLocation,
-                    defaultFileKinds: [],
-                },
-            ].sort((a, b) => a.name.localeCompare(b.name));
-
             // Map apps to context menu options splitting them up by
             // whether they are meant to be the default for the file kind
             // currently selected
             const defaultApps: IContextualMenuItem[] = [];
             const otherSavedApps: IContextualMenuItem[] = [];
-            apps.forEach((app) => {
-                const appAsMenuOption = {
-                    key: `open-with-${app.name}`,
-                    disabled: fileSelection.count() === 0,
-                    text: app.name,
-                    title: `Open files with ${app.name}`,
-                    onClick() {
-                        dispatch(interaction.actions.openFilesWithApplication(app));
-                    },
-                };
-                if (fileKinds.some((k) => app.defaultFileKinds.includes(k))) {
-                    defaultApps.push(appAsMenuOption);
-                } else {
-                    otherSavedApps.push(appAsMenuOption);
-                }
-            });
+            userSelectedApplications
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .forEach((app) => {
+                    const appAsMenuOption = {
+                        key: `open-with-${app.name}`,
+                        text: app.name,
+                        title: `Open files with ${app.name}`,
+                        onClick() {
+                            dispatch(interaction.actions.openFilesWithApplication(app));
+                        },
+                    };
+                    if (fileKinds.some((k) => app.defaultFileKinds.includes(k))) {
+                        defaultApps.push(appAsMenuOption);
+                    } else {
+                        otherSavedApps.push(appAsMenuOption);
+                    }
+                });
 
             const staticItems: IContextualMenuItem[] = getContextMenuItems(dispatch).ACCESS;
 
@@ -78,8 +65,8 @@ export default function useFileAccessContextMenu() {
                                 // to add another app for file access
                                 {
                                     key: ContextMenuActions.OPEN_WITH_OTHER,
-                                    disabled: fileSelection.count() === 0,
                                     text: "Other...",
+                                    title: "Select an application to open the selection with",
                                     onClick() {
                                         dispatch(
                                             interaction.actions.promptUserForApplicationSelection()
@@ -98,6 +85,6 @@ export default function useFileAccessContextMenu() {
                 }));
             dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
         },
-        [dispatch, fileKinds, imageJLocation, userSelectedApplications]
+        [dispatch, fileKinds, fileSelection, userSelectedApplications]
     );
 }

@@ -4,6 +4,7 @@ import { State } from "../";
 import AnnotationService from "../../services/AnnotationService";
 import DatasetService from "../../services/DatasetService";
 import FileService from "../../services/FileService";
+import { UserSelectedApplication } from "../../services/PersistentConfigService";
 
 // BASIC SELECTORS
 export const getAllenMountPoint = (state: State) => state.interaction.allenMountPoint;
@@ -18,7 +19,6 @@ export const getFileExplorerServiceBaseUrl = (state: State) =>
     state.interaction.fileExplorerServiceBaseUrl;
 export const getFileFiltersForVisibleModal = (state: State) =>
     state.interaction.fileFiltersForVisibleModal;
-export const getImageJExecutable = (state: State) => state.interaction.imageJExecutable;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;
@@ -78,3 +78,23 @@ export const getContextMenuKey = createSelector([getContextMenuPositionReference
 
     return JSON.stringify(target);
 });
+
+export const getKnownApplications = createSelector(
+    [getUserSelectedApplications],
+    (userSelectedApplications): UserSelectedApplication[] => {
+        const apps = userSelectedApplications || [];
+        if (apps.some((app) => app.name === "ImageJ/Fiji")) {
+            return apps;
+        }
+        // Ensure the user always has the ImageJ/Fiji option regardless of
+        // whether they have selected the app yet or not
+        return [
+            ...apps,
+            {
+                filePath: "",
+                name: "ImageJ/Fiji",
+                defaultFileKinds: [],
+            },
+        ];
+    }
+);

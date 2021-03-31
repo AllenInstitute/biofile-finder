@@ -30,24 +30,18 @@ export default function ApplicationSelection(props: ApplicationSelectionModalPro
     const [defaultFileKinds, setDefaultFileKinds] = React.useState<string[]>([]);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
-    const userSelectedApplications =
-        useSelector(interaction.selectors.getUserSelectedApplications) || [];
+    const userSelectedApplications = useSelector(interaction.selectors.getKnownApplications);
 
     const [fileKinds, fileKindsIsLoading, errorMessage] = useAnnotationValues(
         AnnotationName.KIND,
         annotationService
     );
 
-    const appsReplacedAsDefault = React.useMemo(
-        () =>
-            userSelectedApplications
-                .filter((app) =>
-                    app.defaultFileKinds.some((kind) => defaultFileKinds.includes(kind))
-                )
-                .map((app) => app.name)
-                .join(", "),
-        [defaultFileKinds, userSelectedApplications]
-    );
+    const appsReplacedByName = userSelectedApplications.filter((app) => app.name === name);
+    const appsReplacedByKind = userSelectedApplications
+        .filter((app) => app.defaultFileKinds.some((kind) => defaultFileKinds.includes(kind)))
+        .map((app) => app.name)
+        .join(", ");
 
     async function selectApplication() {
         const applicationSelected = await executionEnvService.promptForExecutable(
@@ -68,7 +62,7 @@ export default function ApplicationSelection(props: ApplicationSelectionModalPro
             ),
         }));
         const apps = [...existingApps, newApp];
-        dispatch(interaction.actions.saveApplicationSelection(apps));
+        dispatch(interaction.actions.setUserSelectedApplication(apps));
         dispatch(interaction.actions.openFilesWithApplication(newApp));
     }
 
@@ -105,6 +99,9 @@ export default function ApplicationSelection(props: ApplicationSelectionModalPro
                         spellCheck={false}
                         onChange={(_, value) => setName(value || "")}
                     />
+                    {appsReplacedByName && (
+                        <p className={styles.errorText}>Already have application with same name</p>
+                    )}
                     <Label>Kinds of Files to Open with This Application by Default</Label>
                     <ListPicker
                         className={styles.defaultFileKindPicker}
@@ -114,9 +111,9 @@ export default function ApplicationSelection(props: ApplicationSelectionModalPro
                         onDeselect={onDeselectFileKind}
                         onSelect={onSelectFileKind}
                     />
-                    {appsReplacedAsDefault && (
+                    {appsReplacedByKind && (
                         <p className={styles.helperText}>
-                            Would replace {appsReplacedAsDefault} as default
+                            Would replace {appsReplacedByKind} as default
                         </p>
                     )}
                 </>
@@ -129,7 +126,7 @@ export default function ApplicationSelection(props: ApplicationSelectionModalPro
             body={modalBody}
             footer={
                 <PrimaryButton
-                    disabled={!filePath}
+                    disabled={!filePath || !!appsReplacedByName}
                     onClick={onOpenFilesWithApplication}
                     text={filePath ? `Open with ${name}` : "Open with..."}
                 />
