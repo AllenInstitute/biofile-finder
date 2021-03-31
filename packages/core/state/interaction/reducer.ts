@@ -83,6 +83,10 @@ export const initialState = {
 
 export default makeReducer<InteractionStateBranch>(
     {
+        [SAVE_APPLICATION_SELECTION]: (state, action) => ({
+            ...state,
+            userSelectedApplications: action.payload,
+        }),
         [SHOW_CONTEXT_MENU]: (state, action) => ({
             ...state,
             contextMenuIsVisible: true,

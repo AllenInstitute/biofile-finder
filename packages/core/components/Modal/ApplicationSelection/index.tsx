@@ -1,10 +1,14 @@
-import { Dropdown, PrimaryButton, TextField } from "@fluentui/react";
+import { Label, PrimaryButton, TextField } from "@fluentui/react";
+import { uniq, without } from "lodash";
 import * as path from "path";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { AnnotationName } from "../../../constants";
+
 import { ExecutableEnvCancellationToken } from "../../../services";
 import { interaction } from "../../../state";
-import { getPlatformDependentServices } from "../../../state/interaction/selectors";
+import useAnnotationValues from "../../AnnotationFilterForm/useAnnotationValues";
+import ListPicker, { ListItem } from "../../ListPicker";
 import BaseModal from "../BaseModal";
 
 const styles = require("./ApplicationSelection.module.css");
@@ -21,25 +25,69 @@ interface ApplicationSelectionModalProps {
  */
 export default function ApplicationSelection(props: ApplicationSelectionModalProps) {
     const dispatch = useDispatch();
-    const [title, setTitle] = React.useState<string>();
-    const [filePath, setFilePath] = React.useState<string>();
+    const [name, setName] = React.useState<string>("");
+    const [filePath, setFilePath] = React.useState<string>("");
     const [defaultFileKinds, setDefaultFileKinds] = React.useState<string[]>([]);
-    const { executionEnvService } = useSelector(getPlatformDependentServices);
-    const kinds: string[] = []; // TODO might need to async call to request these when this is opened
+    const annotationService = useSelector(interaction.selectors.getAnnotationService);
+    const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
+    const userSelectedApplications =
+        useSelector(interaction.selectors.getUserSelectedApplications) || [];
+
+    const [fileKinds, fileKindsIsLoading, errorMessage] = useAnnotationValues(
+        AnnotationName.KIND,
+        annotationService
+    );
+
+    const appsReplacedAsDefault = React.useMemo(
+        () =>
+            userSelectedApplications
+                .filter((app) =>
+                    app.defaultFileKinds.some((kind) => defaultFileKinds.includes(kind))
+                )
+                .map((app) => app.name)
+                .join(", "),
+        [defaultFileKinds, userSelectedApplications]
+    );
 
     async function selectApplication() {
         const applicationSelected = await executionEnvService.promptForExecutable(
             "Select Application to Open Selected Files With"
         );
-        console.log("after selection");
         if (applicationSelected && applicationSelected !== ExecutableEnvCancellationToken) {
-            setTitle(path.basename(applicationSelected));
+            setName(path.basename(applicationSelected));
             setFilePath(applicationSelected);
         }
     }
 
+    function onOpenFilesWithApplication() {
+        const newApp = { name, filePath, defaultFileKinds };
+        const existingApps = userSelectedApplications.map((app) => ({
+            ...app,
+            defaultFileKinds: defaultFileKinds.filter(
+                (kind: string) => !defaultFileKinds.includes(kind)
+            ),
+        }));
+        const apps = [...existingApps, newApp];
+        dispatch(interaction.actions.saveApplicationSelection(apps));
+        dispatch(interaction.actions.openFilesWithApplication(newApp));
+    }
+
+    function onSelectFileKind(item: ListItem) {
+        setDefaultFileKinds(uniq([...defaultFileKinds, item.value as string]));
+    }
+
+    function onDeselectFileKind(item: ListItem) {
+        setDefaultFileKinds(without(defaultFileKinds, item.value as string));
+    }
+
+    const fileKindOptions = (fileKinds || []).map((value) => ({
+        selected: defaultFileKinds.includes(value as string),
+        displayValue: value,
+        value,
+    }));
+
     const modalBody = (
-        <>
+        <div className={props.className}>
             <p className={styles.helperText}>
                 Browse for an application to open your selected files with. This application will be
                 saved for easy access in the future.
@@ -53,24 +101,27 @@ export default function ApplicationSelection(props: ApplicationSelectionModalPro
                     <TextField
                         autoFocus
                         label="Application Name"
-                        value={title}
+                        value={name}
                         spellCheck={false}
-                        onChange={(_, value) => setTitle(value || "")}
+                        onChange={(_, value) => setName(value || "")}
                     />
-                    <Dropdown
-                        label="(Optional) Default Kinds to Open File With"
-                        // eslint-disable-next-line react/jsx-no-bind
-                        onChange={(_, s) => setDefaultFileKinds((s as unknown) as string[])}
-                        placeholder="Select default file kinds for future ease"
-                        options={kinds.map((k) => ({ key: k, text: k }))}
-                        selectedKey={defaultFileKinds}
+                    <Label>Kinds of Files to Open with This Application by Default</Label>
+                    <ListPicker
+                        className={styles.defaultFileKindPicker}
+                        items={fileKindOptions}
+                        loading={fileKindsIsLoading}
+                        errorMessage={errorMessage}
+                        onDeselect={onDeselectFileKind}
+                        onSelect={onSelectFileKind}
                     />
-                    <p className={styles.helperText}>
-                        Select file kinds to set this application as the default for
-                    </p>
+                    {appsReplacedAsDefault && (
+                        <p className={styles.helperText}>
+                            Would replace {appsReplacedAsDefault} as default
+                        </p>
+                    )}
                 </>
             )}
-        </>
+        </div>
     );
 
     return (
@@ -79,16 +130,8 @@ export default function ApplicationSelection(props: ApplicationSelectionModalPro
             footer={
                 <PrimaryButton
                     disabled={!filePath}
-                    onClick={() =>
-                        dispatch(
-                            interaction.actions.saveApplicationSelection(
-                                title || "",
-                                filePath || "",
-                                defaultFileKinds
-                            )
-                        )
-                    }
-                    text="Download"
+                    onClick={onOpenFilesWithApplication}
+                    text={filePath ? `Open with ${name}` : "Open with..."}
                 />
             }
             onDismiss={props.onDismiss}
