@@ -7,5 +7,4 @@ export const RUN_IN_RENDERER = "@renderer";
 export enum GlobalVariableChannels {
     AllenMountPoint = "file-explorer-service-allen-mount-point-change",
     BaseUrl = "file-explorer-service-connection-config",
-    ImageJExecutable = "file-explorer-service-image-j-executable-change",
 }

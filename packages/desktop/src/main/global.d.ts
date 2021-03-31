@@ -3,6 +3,5 @@ declare namespace NodeJS {
         // necessary in order to do: global.fileExplorerServiceBaseUrl = "..."
         fileExplorerServiceAllenMountPoint?: string;
         fileExplorerServiceBaseUrl: string;
-        fileExplorerServiceImageJExecutable?: string;
     }
 }
