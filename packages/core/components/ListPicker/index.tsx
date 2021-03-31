@@ -1,4 +1,5 @@
 import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "@fluentui/react";
+import classNames from "classnames";
 import Fuse from "fuse.js";
 import * as React from "react";
 
@@ -14,6 +15,7 @@ export interface ListItem<T = any> {
 }
 
 interface ListPickerProps {
+    className?: string;
     errorMessage?: string;
     items: ListItem[];
     loading?: boolean;
@@ -92,7 +94,11 @@ export default function ListPicker(props: ListPickerProps) {
     }
 
     return (
-        <div className={styles.container} data-is-scrollable="true" data-is-focusable="true">
+        <div
+            className={classNames(props.className, styles.container)}
+            data-is-scrollable="true"
+            data-is-focusable="true"
+        >
             <div className={styles.header}>
                 <SearchBox
                     className={styles.searchBox}

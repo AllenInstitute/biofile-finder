@@ -555,17 +555,15 @@ export const SAVE_APPLICATION_SELECTION = makeConstant(
 );
 
 export interface SaveApplicationSelectionAction {
-    payload: UserSelectedApplication;
+    payload: UserSelectedApplication[];
     type: string;
 }
 
 export function saveApplicationSelection(
-    title: string,
-    filePath: string,
-    defaultFileKinds: string[]
+    apps: UserSelectedApplication[]
 ): SaveApplicationSelectionAction {
     return {
-        payload: { title, filePath, defaultFileKinds },
+        payload: apps,
         type: SAVE_APPLICATION_SELECTION,
     };
 }
@@ -581,13 +579,13 @@ export const OPEN_FILES_WITH_APPLICATION = makeConstant(
 );
 
 export interface OpenFilesWithApplication {
-    payload: string;
+    payload: UserSelectedApplication;
     type: string;
 }
 
-export function openFilesWithApplication(applicationFilePath: string): OpenFilesWithApplication {
+export function openFilesWithApplication(app: UserSelectedApplication): OpenFilesWithApplication {
     return {
-        payload: applicationFilePath,
+        payload: app,
         type: OPEN_FILES_WITH_APPLICATION,
     };
 }

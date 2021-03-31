@@ -24,7 +24,6 @@ import {
     REFRESH,
     SET_PLATFORM_DEPENDENT_SERVICES,
     promptUserToUpdateApp,
-    SAVE_APPLICATION_SELECTION,
     OPEN_FILES_WITH_APPLICATION,
 } from "./actions";
 import * as interactionActions from "./actions";
@@ -361,17 +360,8 @@ const refresh = createLogic({
     type: [REFRESH],
 });
 
-const saveApplicationSelection = createLogic({
-    async process(deps: ReduxLogicDeps, dispatch, done) {
-        // TODO: Persist new application
-        dispatch(interactionActions.openFilesWithApplication(deps.action.payload.filePath));
-        done();
-    },
-    type: SAVE_APPLICATION_SELECTION,
-});
-
 const openFilesWithApplication = createLogic({
-    async process(deps: ReduxLogicDeps, _, done) {
+    async process(deps: ReduxLogicDeps, dispatch, done) {
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
         const savedAllenMountPoint = interactionSelectors.getAllenMountPoint(deps.getState());
         const {
@@ -389,19 +379,36 @@ const openFilesWithApplication = createLogic({
 
         // If the user did not cancel out of the allen mount prompt, continue trying to open the executable
         if (allenMountPoint && allenMountPoint !== ExecutableEnvCancellationToken) {
+            // Save the Allen Mount Point path for future use if new
+            if (allenMountPoint !== savedAllenMountPoint) {
+                dispatch(setAllenMountPoint(allenMountPoint));
+            }
+
             // Verify that the executable location leads to a valid executable
-            const { name, filePath } = deps.action.payload;
-            const isValidExecutableLocation = await executionEnvService.isValidExecutable(filePath);
+            const { name } = deps.action.payload;
+            let { filePath: executableLocation } = deps.action.payload;
+            const isValidExecutableLocation = await executionEnvService.isValidExecutable(
+                executableLocation
+            );
             if (!isValidExecutableLocation) {
-                filePath = await executionEnvService.promptForExecutable(
+                executableLocation = await executionEnvService.promptForExecutable(
                     `${name} Executable`,
                     `It appears that your ${name} application isn't located where we thought it would be. ` +
                         `Select your ${name} application now?`
                 );
+                // Save the executable location for future use if new
+                if (executableLocation !== ExecutableEnvCancellationToken) {
+                    dispatch(
+                        interactionActions.saveApplicationSelection({
+                            ...deps.action.payload,
+                            filePath: executableLocation,
+                        })
+                    );
+                }
             }
 
             // If the user did not cancel out of a prompt, continue trying to open the executable
-            if (filePath && filePath !== ExecutableEnvCancellationToken) {
+            if (executableLocation !== ExecutableEnvCancellationToken) {
                 // Gather up the file paths for the files selected currently
                 const selectedFilesDetails = await fileSelection.fetchAllDetails();
                 const filePaths = selectedFilesDetails.map((file) =>
@@ -410,7 +417,7 @@ const openFilesWithApplication = createLogic({
                         allenMountPoint
                     )
                 );
-                await fileViewerService.open(filePath, filePaths);
+                await fileViewerService.open(executableLocation, filePaths);
             }
         }
         done();
@@ -426,6 +433,5 @@ export default [
     showContextMenu,
     generatePythonSnippet,
     openFilesWithApplication,
-    saveApplicationSelection,
     refresh,
 ];
