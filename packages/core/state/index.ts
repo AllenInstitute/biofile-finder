@@ -57,15 +57,29 @@ interface CreateStoreOptions {
 }
 export function createReduxStore(options: CreateStoreOptions = {}) {
     const { persistedConfig } = options;
+    let userSelectedApplications;
+    if (persistedConfig) {
+        userSelectedApplications = persistedConfig[PersistedConfigKeys.UserSelectedApplications];
+        // This is included for backwards compatibility for versions <4.2.0
+        // so that users do not have to reselect their ImageJ/Fiji executable
+        // location just because of our persisted storage management
+        if (persistedConfig[PersistedConfigKeys.ImageJExecutable]) {
+            userSelectedApplications = [
+                ...(userSelectedApplications || []),
+                {
+                    name: "ImageJ/Fiji",
+                    filePath: persistedConfig[PersistedConfigKeys.ImageJExecutable],
+                    defaultFileKinds: [],
+                },
+            ];
+        }
+    }
     const preloadedState: State = mergeState(initialState, {
         interaction: {
             allenMountPoint:
                 persistedConfig && persistedConfig[PersistedConfigKeys.AllenMountPoint],
             csvColumns: persistedConfig && persistedConfig[PersistedConfigKeys.CsvColumns],
-            imageJExecutable:
-                persistedConfig && persistedConfig[PersistedConfigKeys.ImageJExecutable],
-            userSelectedApplications:
-                persistedConfig && persistedConfig[PersistedConfigKeys.UserSelectedApplications],
+            userSelectedApplications,
         },
     });
     return configureStore<State>({

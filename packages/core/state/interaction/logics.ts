@@ -12,8 +12,6 @@ import {
     SHOW_CONTEXT_MENU,
     CANCEL_MANIFEST_DOWNLOAD,
     cancelManifestDownload,
-    OPEN_FILES_IN_IMAGE_J,
-    setImageJLocation,
     setAllenMountPoint,
     setCsvColumns,
     GENERATE_PYTHON_SNIPPET,
@@ -179,56 +177,56 @@ const cancelManifestDownloadLogic = createLogic({
     },
 });
 
-/**
- * Interceptor responsible for responding to an OPEN_FILES_IN_IMAGE_J action and triggering the
- * opening of a file in ImageJ
- */
-const openFilesInImageJ = createLogic({
-    type: OPEN_FILES_IN_IMAGE_J,
+const openFilesWithApplication = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
+        const fileSelection = selection.selectors.getFileSelection(deps.getState());
         const savedAllenMountPoint = interactionSelectors.getAllenMountPoint(deps.getState());
-        const savedImageJExecutable = interactionSelectors.getImageJExecutable(deps.getState());
         const {
-            executionEnvService,
             fileViewerService,
+            executionEnvService,
         } = interactionSelectors.getPlatformDependentServices(deps.getState());
-        let allenMountPoint = savedAllenMountPoint;
-        let imageJExecutable = savedImageJExecutable;
+        const userSelectedApplications = interactionSelectors.getKnownApplications(deps.getState());
 
         // Verify that the known Allen mount point is valid, if not prompt for it
+        let allenMountPoint = savedAllenMountPoint;
         const isValidAllenDrive =
             allenMountPoint && (await executionEnvService.isValidAllenMountPoint(allenMountPoint));
         if (!isValidAllenDrive) {
             allenMountPoint = await executionEnvService.promptForAllenMountPoint(true);
         }
 
-        // If the user did not cancel out of a prompt, continue trying to open ImageJ/Fiji
+        // If the user did not cancel out of the allen mount prompt, continue trying to open the executable
         if (allenMountPoint && allenMountPoint !== ExecutableEnvCancellationToken) {
-            // Save Allen mount point for future use if new
+            // Save the Allen Mount Point path for future use if new
             if (allenMountPoint !== savedAllenMountPoint) {
                 dispatch(setAllenMountPoint(allenMountPoint));
             }
 
-            // Verify that the known ImageJ/Fiji location is valid, if not prompt for it
-            const isValidImageJLocation =
-                imageJExecutable && (await executionEnvService.isValidExecutable(imageJExecutable));
-            if (!isValidImageJLocation) {
-                imageJExecutable = await executionEnvService.promptForExecutable(
-                    "ImageJ/Fiji Executable",
-                    "It appears that your ImageJ/Fiji application isn't located where we thought it would be. " +
-                        "Select your ImageJ/Fiji application now?"
+            // Verify that the executable location leads to a valid executable
+            const { name } = deps.action.payload;
+            let { filePath: executableLocation } = deps.action.payload;
+            const isValidExecutableLocation = await executionEnvService.isValidExecutable(
+                executableLocation
+            );
+            if (!isValidExecutableLocation) {
+                executableLocation = await executionEnvService.promptForExecutable(
+                    `${name} Executable`,
+                    `It appears that your ${name} application isn't located where we thought it would be. ` +
+                        `Select your ${name} application now?`
                 );
+                // Save the executable location for future use if new
+                if (executableLocation !== ExecutableEnvCancellationToken) {
+                    const updatedApps = (userSelectedApplications || []).map((app) => ({
+                        ...app,
+                        filePath: app.name === name ? executableLocation : app.filePath,
+                    }));
+                    dispatch(interactionActions.setUserSelectedApplication(updatedApps));
+                }
             }
 
-            // If the user did not cancel out of a prompt, continue trying to open ImageJ/Fiji
-            if (imageJExecutable && imageJExecutable !== ExecutableEnvCancellationToken) {
-                // Save the ImageJ/Fiji executable location for future use if new
-                if (imageJExecutable !== savedImageJExecutable) {
-                    dispatch(setImageJLocation(imageJExecutable));
-                }
-
-                // Collect the file paths from the selected files
-                const fileSelection = selection.selectors.getFileSelection(deps.getState());
+            // If the user did not cancel out of a prompt, continue trying to open the executable
+            if (executableLocation !== ExecutableEnvCancellationToken) {
+                // Gather up the file paths for the files selected currently
                 const selectedFilesDetails = await fileSelection.fetchAllDetails();
                 const filePaths = selectedFilesDetails.map((file) =>
                     executionEnvService.formatPathForOs(
@@ -236,14 +234,12 @@ const openFilesInImageJ = createLogic({
                         allenMountPoint
                     )
                 );
-
-                // Open the files in the specified executable
-                await fileViewerService.open(imageJExecutable, filePaths);
+                await fileViewerService.open(executableLocation, filePaths);
             }
         }
-
         done();
     },
+    type: OPEN_FILES_WITH_APPLICATION,
 });
 
 /**
@@ -360,78 +356,12 @@ const refresh = createLogic({
     type: [REFRESH],
 });
 
-const openFilesWithApplication = createLogic({
-    async process(deps: ReduxLogicDeps, dispatch, done) {
-        const fileSelection = selection.selectors.getFileSelection(deps.getState());
-        const savedAllenMountPoint = interactionSelectors.getAllenMountPoint(deps.getState());
-        const {
-            fileViewerService,
-            executionEnvService,
-        } = interactionSelectors.getPlatformDependentServices(deps.getState());
-
-        // Verify that the known Allen mount point is valid, if not prompt for it
-        let allenMountPoint = savedAllenMountPoint;
-        const isValidAllenDrive =
-            allenMountPoint && (await executionEnvService.isValidAllenMountPoint(allenMountPoint));
-        if (!isValidAllenDrive) {
-            allenMountPoint = await executionEnvService.promptForAllenMountPoint(true);
-        }
-
-        // If the user did not cancel out of the allen mount prompt, continue trying to open the executable
-        if (allenMountPoint && allenMountPoint !== ExecutableEnvCancellationToken) {
-            // Save the Allen Mount Point path for future use if new
-            if (allenMountPoint !== savedAllenMountPoint) {
-                dispatch(setAllenMountPoint(allenMountPoint));
-            }
-
-            // Verify that the executable location leads to a valid executable
-            const { name } = deps.action.payload;
-            let { filePath: executableLocation } = deps.action.payload;
-            const isValidExecutableLocation = await executionEnvService.isValidExecutable(
-                executableLocation
-            );
-            if (!isValidExecutableLocation) {
-                executableLocation = await executionEnvService.promptForExecutable(
-                    `${name} Executable`,
-                    `It appears that your ${name} application isn't located where we thought it would be. ` +
-                        `Select your ${name} application now?`
-                );
-                // Save the executable location for future use if new
-                if (executableLocation !== ExecutableEnvCancellationToken) {
-                    dispatch(
-                        interactionActions.saveApplicationSelection({
-                            ...deps.action.payload,
-                            filePath: executableLocation,
-                        })
-                    );
-                }
-            }
-
-            // If the user did not cancel out of a prompt, continue trying to open the executable
-            if (executableLocation !== ExecutableEnvCancellationToken) {
-                // Gather up the file paths for the files selected currently
-                const selectedFilesDetails = await fileSelection.fetchAllDetails();
-                const filePaths = selectedFilesDetails.map((file) =>
-                    executionEnvService.formatPathForOs(
-                        file.file_path.substring("/allen".length),
-                        allenMountPoint
-                    )
-                );
-                await fileViewerService.open(executableLocation, filePaths);
-            }
-        }
-        done();
-    },
-    type: OPEN_FILES_WITH_APPLICATION,
-});
-
 export default [
     checkForUpdates,
     downloadManifest,
     cancelManifestDownloadLogic,
-    openFilesInImageJ,
+    openFilesWithApplication,
     showContextMenu,
     generatePythonSnippet,
-    openFilesWithApplication,
     refresh,
 ];

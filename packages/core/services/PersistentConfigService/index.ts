@@ -4,6 +4,7 @@
 export enum PersistedConfigKeys {
     AllenMountPoint = "ALLEN_MOUNT_POINT",
     CsvColumns = "CSV_COLUMNS",
+    // Deprecated
     ImageJExecutable = "IMAGE_J_EXECUTABLE",
     UserSelectedApplications = "USER_SELECTED_APPLICATIONS",
 }
@@ -17,6 +18,7 @@ export interface UserSelectedApplication {
 export interface PersistedConfig {
     [PersistedConfigKeys.AllenMountPoint]?: string;
     [PersistedConfigKeys.CsvColumns]?: string[];
+    // Deprecated
     [PersistedConfigKeys.ImageJExecutable]?: string;
     [PersistedConfigKeys.UserSelectedApplications]?: UserSelectedApplication[];
 }

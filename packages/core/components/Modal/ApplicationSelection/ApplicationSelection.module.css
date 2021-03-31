@@ -9,6 +9,11 @@
     padding: 0;
 }
 
+.error-text {
+    color: maroon;
+    font-size: smaller;
+}
+
 .helper-text {
     color: #a7a7a7;
     font-size: smaller;

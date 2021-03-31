@@ -10,11 +10,10 @@ import {
     PROMPT_USER_FOR_APPLICATION_SELECTION,
     REFRESH,
     REMOVE_STATUS,
-    SAVE_APPLICATION_SELECTION,
+    SET_USER_SELECTED_APPLICATIONS,
     SET_ALLEN_MOUNT_POINT,
     SET_CSV_COLUMNS,
     SET_FILE_EXPLORER_SERVICE_BASE_URL,
-    SET_IMAGE_J_LOCATION,
     SET_PLATFORM_DEPENDENT_SERVICES,
     SET_STATUS,
     SET_VISIBLE_MODAL,
@@ -46,7 +45,6 @@ export interface InteractionStateBranch {
     csvColumns?: string[];
     fileExplorerServiceBaseUrl: string;
     fileFiltersForVisibleModal: FileFilter[];
-    imageJExecutable?: string;
     platformDependentServices: PlatformDependentServices;
     pythonSnippet?: PythonicDataAccessSnippet;
     refreshKey?: string;
@@ -83,7 +81,7 @@ export const initialState = {
 
 export default makeReducer<InteractionStateBranch>(
     {
-        [SAVE_APPLICATION_SELECTION]: (state, action) => ({
+        [SET_USER_SELECTED_APPLICATIONS]: (state, action) => ({
             ...state,
             userSelectedApplications: action.payload,
         }),
@@ -121,9 +119,9 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             refreshKey: action.payload,
         }),
-        [SAVE_APPLICATION_SELECTION]: (state, action) => ({
+        [SET_USER_SELECTED_APPLICATIONS]: (state, action) => ({
             ...state,
-            userSelectedApplications: [...(state.userSelectedApplications || []), action.payload],
+            userSelectedApplications: action.payload,
         }),
         [SET_STATUS]: (state, action) => ({
             ...state,
@@ -143,10 +141,6 @@ export default makeReducer<InteractionStateBranch>(
         [SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state, action) => ({
             ...state,
             fileExplorerServiceBaseUrl: action.payload,
-        }),
-        [SET_IMAGE_J_LOCATION]: (state, action) => ({
-            ...state,
-            ...action.payload,
         }),
         [SET_PLATFORM_DEPENDENT_SERVICES]: (state, action) => {
             const platformDependentServices: PlatformDependentServices = {

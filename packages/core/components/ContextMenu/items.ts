@@ -8,7 +8,6 @@ export enum ContextMenuActions {
     CSV_MANIFEST = "csv-manifest",
     MODIFY_COLUMNS = "modify-columns",
     OPEN_WITH = "open-with",
-    OPEN_WITH_IMAGEJ = "open-with-imagej",
     OPEN_WITH_OTHER = "open-with-other",
     PASTE = "paste",
     PYTHON_SNIPPET = "python-snippet",

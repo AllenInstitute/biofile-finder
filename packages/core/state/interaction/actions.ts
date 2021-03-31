@@ -104,46 +104,6 @@ export function setCsvColumns(csvColumns: string[]): SetCsvColumnsAction {
 }
 
 /**
- * SET_IMAGE_J_LOCATION
- *
- * Intention to set the ImageJ/Fiji location
- */
-export const SET_IMAGE_J_LOCATION = makeConstant(STATE_BRANCH_NAME, "set-image-j-location");
-
-export interface SetImageJLocationAction {
-    payload: {
-        imageJExecutable: string;
-    };
-    type: string;
-}
-
-export function setImageJLocation(imageJExecutable: string): SetImageJLocationAction {
-    return {
-        payload: {
-            imageJExecutable,
-        },
-        type: SET_IMAGE_J_LOCATION,
-    };
-}
-
-/**
- * OPEN_FILES_IN_IMAGE_J
- *
- * Intention to open selected files in Image J viewer.
- */
-export const OPEN_FILES_IN_IMAGE_J = makeConstant(STATE_BRANCH_NAME, "open-files-in-image-j");
-
-export interface OpenFilesInImageJ {
-    type: string;
-}
-
-export function openFilesInImageJ(): OpenFilesInImageJ {
-    return {
-        type: OPEN_FILES_IN_IMAGE_J,
-    };
-}
-
-/**
  * SHOW_CONTEXT_MENU
  *
  * Intention to show context menu.
@@ -545,26 +505,26 @@ export function promptUserForApplicationSelection(): PromptUserForApplicationSel
 }
 
 /**
- * SAVE_APPLICATION_SELECTION
+ * SET_USER_SELECTED_APPLICATIONS
  *
- * Intention to save the application selected
+ * Intention to set the applications pre-selected by the user
  */
-export const SAVE_APPLICATION_SELECTION = makeConstant(
+export const SET_USER_SELECTED_APPLICATIONS = makeConstant(
     STATE_BRANCH_NAME,
-    "save-application-selection"
+    "set-user-selected-applications"
 );
 
-export interface SaveApplicationSelectionAction {
+export interface SetUserSelectedApplication {
     payload: UserSelectedApplication[];
     type: string;
 }
 
-export function saveApplicationSelection(
+export function setUserSelectedApplication(
     apps: UserSelectedApplication[]
-): SaveApplicationSelectionAction {
+): SetUserSelectedApplication {
     return {
         payload: apps,
-        type: SAVE_APPLICATION_SELECTION,
+        type: SET_USER_SELECTED_APPLICATIONS,
     };
 }
 

@@ -29,7 +29,6 @@ loadTheme({
 
 interface AppProps {
     allenMountPoint?: string;
-    imageJExecutable?: string;
     // E.g.:
     // Localhost: "https://localhost:9081"
     // Stage: "http://stg-aics-api.corp.alleninstitute.org"
@@ -46,7 +45,6 @@ const defaultProps = {
 export default function App(props: AppProps) {
     const {
         allenMountPoint,
-        imageJExecutable,
         fileExplorerServiceBaseUrl = defaultProps.fileExplorerServiceBaseUrl,
         platformDependentServices = defaultProps.platformDependentServices,
     } = props;
@@ -64,13 +62,6 @@ export default function App(props: AppProps) {
             dispatch(interaction.actions.setAllenMountPoint(allenMountPoint));
         }
     }, [dispatch, allenMountPoint]);
-
-    // If the ImageJ/Fiji executable location was set using the "Settings" menu pass along the change to app state
-    React.useEffect(() => {
-        if (imageJExecutable) {
-            dispatch(interaction.actions.setImageJLocation(imageJExecutable));
-        }
-    }, [dispatch, imageJExecutable]);
 
     // Set connection configuration for the file-explorer-service
     // And kick off the process of requesting metadata needed by the application.
