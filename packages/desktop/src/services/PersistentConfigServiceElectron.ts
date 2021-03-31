@@ -24,6 +24,12 @@ const STORAGE_SCHEMA: Schema<Record<string, unknown>> = {
     [PersistedConfigKeys.ImageJExecutable]: {
         type: "string",
     },
+    [PersistedConfigKeys.UserSelectedApplications]: {
+        type: "array",
+        items: {
+            type: "object",
+        },
+    },
 };
 
 interface PersistentConfigServiceElectronOptions {
