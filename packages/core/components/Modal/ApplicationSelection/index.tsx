@@ -72,7 +72,7 @@ export default function ApplicationSelection(props: ApplicationSelectionModalPro
         const newApp = { name, filePath, defaultFileKinds };
         const existingApps = userSelectedApplications.map((app) => ({
             ...app,
-            defaultFileKinds: defaultFileKinds.filter(
+            defaultFileKinds: app.defaultFileKinds.filter(
                 (kind: string) => !defaultFileKinds.includes(kind)
             ),
         }));
