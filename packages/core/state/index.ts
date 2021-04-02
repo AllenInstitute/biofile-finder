@@ -63,9 +63,8 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
         // This is included for backwards compatibility for versions <4.2.0
         // so that users do not have to reselect their ImageJ/Fiji executable
         // location just because of our persisted storage management
-        if (persistedConfig[PersistedConfigKeys.ImageJExecutable]) {
+        if (!userSelectedApplications && persistedConfig[PersistedConfigKeys.ImageJExecutable]) {
             userSelectedApplications = [
-                ...(userSelectedApplications || []),
                 {
                     name: "ImageJ/Fiji",
                     filePath: persistedConfig[PersistedConfigKeys.ImageJExecutable],
