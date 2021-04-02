@@ -66,36 +66,42 @@ export default function useFileAccessContextMenu() {
             const staticItems: IContextualMenuItem[] = getContextMenuItems(dispatch).ACCESS;
 
             // Combine the static and dynamically generated items
-            const items = staticItems
-                .flatMap((item) => {
-                    if (item.key === ContextMenuActions.OPEN_WITH) {
-                        item.subMenuProps = {
-                            items: [
-                                ...otherSavedApps,
-                                // Other is constant option that allows the user
-                                // to add another app for file access
-                                {
-                                    key: ContextMenuActions.OPEN_WITH_OTHER,
-                                    text: "Other...",
-                                    title: "Select an application to open the selection with",
-                                    onClick() {
-                                        dispatch(
-                                            interaction.actions.setVisibleModal(
-                                                ModalType.ApplicationSelection
-                                            )
-                                        );
-                                    },
+            const items = staticItems.flatMap((item) => {
+                if (item.key === ContextMenuActions.OPEN_WITH) {
+                    item.subMenuProps = {
+                        items: [
+                            ...otherSavedApps,
+                            // Other is constant option that allows the user
+                            // to add another app for file access
+                            {
+                                key: ContextMenuActions.OPEN_WITH_OTHER,
+                                text: "Other...",
+                                title: "Select an application to open the selection with",
+                                onClick() {
+                                    dispatch(
+                                        interaction.actions.setVisibleModal(
+                                            ModalType.ApplicationSelection
+                                        )
+                                    );
                                 },
-                            ],
-                        };
-                        return [...defaultApps, item];
-                    }
-                    return [item];
-                })
-                .map((item) => ({
-                    ...item,
-                    disabled: fileSelection.count() === 0,
-                }));
+                            },
+                        ],
+                    };
+                    return [
+                        ...defaultApps,
+                        {
+                            ...item,
+                            disabled: fileSelection.count() === 0,
+                        },
+                    ];
+                }
+                return [
+                    {
+                        ...item,
+                        disabled: fileSelection.count() === 0,
+                    },
+                ];
+            });
             dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
         },
         [dispatch, fileKinds, fileSelection, userSelectedApplications]

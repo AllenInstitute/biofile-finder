@@ -197,18 +197,18 @@ const openFilesWithApplication = createLogic({
 
         // If the user did not cancel out of the allen mount prompt, continue trying to open the executable
         if (allenMountPoint && allenMountPoint !== ExecutableEnvCancellationToken) {
-            // Save the Allen Mount Point path for future use if new
+            // Save Allen mount point for future use if new
             if (allenMountPoint !== savedAllenMountPoint) {
                 dispatch(setAllenMountPoint(allenMountPoint));
             }
 
             // Verify that the executable location leads to a valid executable
-            const { name } = deps.action.payload;
             let { filePath: executableLocation } = deps.action.payload;
             const isValidExecutableLocation = await executionEnvService.isValidExecutable(
                 executableLocation
             );
             if (!isValidExecutableLocation) {
+                const { name } = deps.action.payload;
                 executableLocation = await executionEnvService.promptForExecutable(
                     `${name} Executable`,
                     `It appears that your ${name} application isn't located where we thought it would be. ` +
@@ -234,6 +234,7 @@ const openFilesWithApplication = createLogic({
                         allenMountPoint
                     )
                 );
+                // Open the files in the specified executable
                 await fileViewerService.open(executableLocation, filePaths);
             }
         }
