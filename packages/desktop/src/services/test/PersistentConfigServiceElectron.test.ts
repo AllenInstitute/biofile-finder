@@ -48,13 +48,22 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const expectedAllenMountPoint = "/some/path/to/allen";
             const expectedCsvColumns = ["a", "b", "c"];
             const expectedImageJExecutable = "/some/path/to/imageJ";
+            const expectedUserSelectedApps = [
+                {
+                    filePath: "/some/path/to/ZEN",
+                    defautlFileKinds: ["CZI"],
+                    name: "ZEN",
+                },
+            ];
             service.persist(PersistedConfigKeys.AllenMountPoint, expectedAllenMountPoint);
             service.persist(PersistedConfigKeys.CsvColumns, expectedCsvColumns);
             service.persist(PersistedConfigKeys.ImageJExecutable, expectedImageJExecutable);
+            service.persist(PersistedConfigKeys.UserSelectedApplications, expectedUserSelectedApps);
             const expectedConfig = {
                 [PersistedConfigKeys.AllenMountPoint]: expectedAllenMountPoint,
                 [PersistedConfigKeys.CsvColumns]: expectedCsvColumns,
                 [PersistedConfigKeys.ImageJExecutable]: expectedImageJExecutable,
+                [PersistedConfigKeys.UserSelectedApplications]: expectedUserSelectedApps,
             };
 
             // Act
@@ -73,6 +82,13 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                 [PersistedConfigKeys.AllenMountPoint]: "/some/path/to/allen",
                 [PersistedConfigKeys.CsvColumns]: ["a", "b"],
                 [PersistedConfigKeys.ImageJExecutable]: "/my/imagej",
+                [PersistedConfigKeys.UserSelectedApplications]: [
+                    {
+                        filePath: "/some/path/to/ImageJ",
+                        defaultFileKinds: ["OMETIFF"],
+                        name: "ImageJ/Fiji",
+                    },
+                ],
             };
 
             // Act

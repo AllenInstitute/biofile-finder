@@ -7,7 +7,6 @@ import {
     HIDE_CONTEXT_MENU,
     HIDE_VISIBLE_MODAL,
     PlatformDependentServices,
-    PROMPT_USER_FOR_APPLICATION_SELECTION,
     REFRESH,
     REMOVE_STATUS,
     SET_USER_SELECTED_APPLICATIONS,
@@ -110,10 +109,6 @@ export default makeReducer<InteractionStateBranch>(
         [GENERATE_PYTHON_SNIPPET]: (state) => ({
             ...state,
             visibleModal: undefined,
-        }),
-        [PROMPT_USER_FOR_APPLICATION_SELECTION]: (state) => ({
-            ...state,
-            visibleModal: ModalType.ApplicationSelection,
         }),
         [REFRESH]: (state, action) => ({
             ...state,

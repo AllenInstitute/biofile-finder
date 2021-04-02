@@ -485,26 +485,6 @@ export function showManifestDownloadDialog(
 }
 
 /**
- * PROMPT_USER_FOR_APPLICATION_SELECTION
- *
- * Intention to prompt the user to select an application location on their machine
- */
-export const PROMPT_USER_FOR_APPLICATION_SELECTION = makeConstant(
-    STATE_BRANCH_NAME,
-    "prompt-user-for-application-selector"
-);
-
-export interface PromptUserForApplicationSelectionAction {
-    type: string;
-}
-
-export function promptUserForApplicationSelection(): PromptUserForApplicationSelectionAction {
-    return {
-        type: PROMPT_USER_FOR_APPLICATION_SELECTION,
-    };
-}
-
-/**
  * SET_USER_SELECTED_APPLICATIONS
  *
  * Intention to set the applications pre-selected by the user
