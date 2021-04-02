@@ -30,7 +30,7 @@
 }
 
 .error-icon {
-    fill: maroon;
+    fill: var(--brand-error); /* defined in App.module.css */;
 }
 
 .directory-name {
@@ -43,7 +43,7 @@
     display: inline-block;
     height: var(--height);
     border-radius: 2px;
-    background-color: var(--purple); /* defined in App.module.css */
+    background-color: var(--primary-brand-purple); /* defined in App.module.css */
     color: white; /* reverse type */
     padding: 2px 6px;
     font-size: smaller;

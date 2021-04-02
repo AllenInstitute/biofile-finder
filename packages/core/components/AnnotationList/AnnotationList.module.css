@@ -5,6 +5,7 @@
 }
 
 .title {
+    color: var(--primary-brand-dark-blue); /* defined in App.module.css */
     margin: 0 0 0.25rem 0;
 
     /* flex child */
@@ -73,7 +74,7 @@
 .clear-filters-button, .clear-filters-button:hover, .clear-filters-button:active {
     background: none;
     border: none;
-    color: #003057;
+    color: var(--primary-brand-dark-blue);
     font-size: 10px;
     margin: auto;
     margin-top: 3px;
@@ -90,12 +91,12 @@
 }
 
 .divider-title {
-    color: #7c7d7f;
+    color: var(--primary-brand-grey);
     font-size: smaller;
     padding-right: 2px;
     margin-bottom: 3px;
 }
 
 .divider-line {
-    border-top: 2px dashed #7c7d7f;
+    border-top: 2px dashed var(--primary-brand-grey);
 }

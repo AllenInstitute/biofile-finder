@@ -12,17 +12,17 @@
 }
 
 .error-icon {
-    fill: maroon;
+    fill: var(--brand-error); /* defined in App.module.css */
     margin-right: 9px;
 }
 
 .button {
-    color: #827aa3;
+    color: var(--primary-brand-purple); /* defined in App.module.css */
     margin-right: 4px;
 }
 
 .button:hover {
-    color: #827aa3;
+    color: var(--primary-brand-purple); /* defined in App.module.css */
 }
 
 .container input {

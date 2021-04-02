@@ -36,7 +36,7 @@
     transform: translateY(-50%);
     width: 100%;
 
-    color: maroon;
+    color: var(--brand-error); /* defined in App.module.css */;
     font-size: 2rem;
     text-align: center;
 }

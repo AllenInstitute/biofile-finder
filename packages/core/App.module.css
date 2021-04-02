@@ -10,12 +10,17 @@
     --annotation-hierarchy-max-width: 350px;
     --blue: steelblue;
     --grey: #c8c8c8;
-    --purple: #827aa3;
+    --white: #ffffff;
     --url-bar-height: 40px;
     --file-details-width: 20%;
     --header-ribbon-height: 40px;
     --margin: 12px;
     --transition-duration: 0.5s;
+    /* AICS brand colors pulled from AICS style guide */
+    --primary-brand-dark-blue: #003057;
+    --primary-brand-purple: #827aa3;
+    --primary-brand-grey: #7c7d7f;
+    --brand-error: #c23030;
 
     composes: relative;
     margin: 0;

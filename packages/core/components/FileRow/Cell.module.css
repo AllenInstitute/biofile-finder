@@ -11,6 +11,10 @@
     font-size: initial;
 }
 
+.cell:first-of-type {
+    padding-left: calc(var(--padding) / 2);
+}
+
 .cell:last-of-type {
     padding-right: 0;
 }

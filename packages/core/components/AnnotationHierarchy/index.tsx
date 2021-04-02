@@ -25,7 +25,7 @@ export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
 
     return (
         <div className={classNames(styles.root, className)}>
-            <h3 className={styles.title}>Annotation hierarchy</h3>
+            <h3 className={styles.title}>Annotation Hierarchy</h3>
             <h6 className={styles.description}>
                 Files will be grouped by the following annotations
             </h6>

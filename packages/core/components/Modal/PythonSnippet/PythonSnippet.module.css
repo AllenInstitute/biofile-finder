@@ -12,7 +12,7 @@
 }
 
 .copy-button, .copy-button:hover {
-    color: #827aa3;
+    color: var(--primary-brand-purple); /* defined in App.module.css */
     float: right;
 }
 

@@ -31,6 +31,8 @@
 }
 
 .title {
+    /* Primary dark blue based on AICS style guide */
+    color: #003057;
     display: inline-block;
     margin: 0;
 

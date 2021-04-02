@@ -91,7 +91,7 @@ export default function AnnotationList(props: AnnotationListProps) {
 
     return (
         <div className={classNames(styles.root, props.className)}>
-            <h3 className={styles.title}>Available annotations</h3>
+            <h3 className={styles.title}>Available Annotations</h3>
             <h6 className={styles.description}>Drag any annotation to the box above</h6>
             <div className={styles.listContainer}>
                 <div className={styles.searchBox}>
