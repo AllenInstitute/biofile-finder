@@ -21,7 +21,7 @@ const STORAGE_SCHEMA: Schema<Record<string, unknown>> = {
             type: "string",
         },
     },
-    // Deprecated
+    // ImageJExecutable is Deprecated
     [PersistedConfigKeys.ImageJExecutable]: {
         type: "string",
     },

@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AnnotationName } from "../../constants";
 import { interaction, selection } from "../../state";
 import getContextMenuItems, { ContextMenuActions } from "../ContextMenu/items";
+import { ModalType } from "../Modal";
 
 /**
  * Custom React hook for creating the file access context menu.
@@ -44,7 +45,7 @@ export default function useFileAccessContextMenu() {
                     if (fileKinds.some((k) => app.defaultFileKinds.includes(k))) {
                         defaultApps.push({
                             key: `open-with-${app.name}`,
-                            text: `Open with ${app.name}`,
+                            text: `Open with ${app.name} (default)`,
                             title: `Open files with ${app.name}`,
                             onClick() {
                                 dispatch(interaction.actions.openFilesWithApplication(app));
@@ -79,7 +80,9 @@ export default function useFileAccessContextMenu() {
                                     title: "Select an application to open the selection with",
                                     onClick() {
                                         dispatch(
-                                            interaction.actions.promptUserForApplicationSelection()
+                                            interaction.actions.setVisibleModal(
+                                                ModalType.ApplicationSelection
+                                            )
                                         );
                                     },
                                 },

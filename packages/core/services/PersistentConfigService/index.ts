@@ -4,8 +4,7 @@
 export enum PersistedConfigKeys {
     AllenMountPoint = "ALLEN_MOUNT_POINT",
     CsvColumns = "CSV_COLUMNS",
-    // Deprecated
-    ImageJExecutable = "IMAGE_J_EXECUTABLE",
+    ImageJExecutable = "IMAGE_J_EXECUTABLE", // Deprecated
     UserSelectedApplications = "USER_SELECTED_APPLICATIONS",
 }
 
@@ -18,8 +17,7 @@ export interface UserSelectedApplication {
 export interface PersistedConfig {
     [PersistedConfigKeys.AllenMountPoint]?: string;
     [PersistedConfigKeys.CsvColumns]?: string[];
-    // Deprecated
-    [PersistedConfigKeys.ImageJExecutable]?: string;
+    [PersistedConfigKeys.ImageJExecutable]?: string; // Deprecated
     [PersistedConfigKeys.UserSelectedApplications]?: UserSelectedApplication[];
 }
 
