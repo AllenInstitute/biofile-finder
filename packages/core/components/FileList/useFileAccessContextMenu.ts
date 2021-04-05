@@ -1,10 +1,10 @@
-import { IContextualMenuItem } from "@fluentui/react";
+import { ContextualMenuItemType, IContextualMenuItem } from "@fluentui/react";
+import * as path from "path";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AnnotationName } from "../../constants";
 import { interaction, selection } from "../../state";
 import getContextMenuItems, { ContextMenuActions } from "../ContextMenu/items";
-import { ModalType } from "../Modal";
 
 /**
  * Custom React hook for creating the file access context menu.
@@ -18,7 +18,7 @@ export default function useFileAccessContextMenu() {
     const dispatch = useDispatch();
     const [fileKinds, setFileKinds] = React.useState<string[]>([]);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
-    const userSelectedApplications = useSelector(interaction.selectors.getKnownApplications);
+    const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
 
     React.useEffect(() => {
         async function getFileKinds() {
@@ -39,7 +39,8 @@ export default function useFileAccessContextMenu() {
             // currently selected
             const defaultApps: IContextualMenuItem[] = [];
             const otherSavedApps: IContextualMenuItem[] = [];
-            userSelectedApplications
+            (userSelectedApplications || [])
+                .map((app) => ({ ...app, name: path.basename(app.filePath) }))
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .forEach((app) => {
                     if (fileKinds.some((k) => app.defaultFileKinds.includes(k))) {
@@ -70,7 +71,24 @@ export default function useFileAccessContextMenu() {
                 if (item.key === ContextMenuActions.OPEN_WITH) {
                     item.subMenuProps = {
                         items: [
+                            ...defaultApps,
+                            ...(defaultApps.length > 0
+                                ? [
+                                      {
+                                          key: "default-apps-border",
+                                          itemType: ContextualMenuItemType.Divider,
+                                      },
+                                  ]
+                                : []),
                             ...otherSavedApps,
+                            ...(otherSavedApps.length > 0
+                                ? [
+                                      {
+                                          key: "other-saved-apps-border",
+                                          itemType: ContextualMenuItemType.Divider,
+                                      },
+                                  ]
+                                : []),
                             // Other is constant option that allows the user
                             // to add another app for file access
                             {
@@ -78,11 +96,7 @@ export default function useFileAccessContextMenu() {
                                 text: "Other...",
                                 title: "Select an application to open the selection with",
                                 onClick() {
-                                    dispatch(
-                                        interaction.actions.setVisibleModal(
-                                            ModalType.ApplicationSelection
-                                        )
-                                    );
+                                    dispatch(interaction.actions.promptForNewExecutable());
                                 },
                             },
                         ],

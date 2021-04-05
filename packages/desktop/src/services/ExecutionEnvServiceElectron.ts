@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import * as util from "util";
 
 import { dialog, ipcMain, ipcRenderer } from "electron";
 
@@ -13,7 +12,7 @@ import { GlobalVariableChannels } from "../util/constants";
 // have access to
 export const KNOWN_FOLDERS_IN_ALLEN_DRIVE = ["programs", "aics"].map((f) => path.normalize(f));
 
-enum Platform {
+export enum Platform {
     Mac = "darwin",
     Windows = "win32",
 }
@@ -149,10 +148,10 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
                 return ExecutableEnvCancellationToken;
             }
 
-            try {
-                const executable = await this.resolveExecutable(executablePath);
-                return executable;
-            } catch (_) {
+            const isValidExecutable = await this.isValidExecutable(executablePath);
+            if (isValidExecutable) {
+                return executablePath;
+            } else {
                 // Alert user to error with executable location
                 await this.notificationService.showError(
                     promptTitle,
@@ -176,46 +175,21 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
 
     public async isValidExecutable(executablePath: string): Promise<boolean> {
         try {
+            // On macOS, applications are bundled as packages. `executablePath` is expected to be a package.
+            if (os.platform() === Platform.Mac) {
+                if (executablePath.endsWith(".app")) {
+                    const pathStat = await fs.promises.stat(executablePath);
+                    if (pathStat.isDirectory()) {
+                        return true;
+                    }
+                }
+                return false;
+            }
             await fs.promises.access(executablePath, fs.constants.X_OK);
             return true;
         } catch (_) {
             return false;
         }
-    }
-
-    private async resolveExecutable(executablePath: string): Promise<string> {
-        let executablePathForOs = executablePath;
-        // On macOS, applications are bundled as packages. At this point, `executablePath` is expected to be a package. Inspect the package's Info.plist to determine
-        // the name of the _actual_ executable to use.
-        if (os.platform() === Platform.Mac) {
-            const infoPlistPath = path.join(executablePath, "Contents", "Info.plist");
-            const infoPListStat = await fs.promises.stat(infoPlistPath);
-
-            if (!infoPListStat.isFile()) {
-                return Promise.reject(
-                    `No P-List available for executable ${executablePath}, cannot determine actual executable source`
-                );
-            }
-
-            const plistParser = await import("simple-plist");
-            const promisifiedPlistReader = util.promisify(plistParser.readFile);
-            const plist = await promisifiedPlistReader(infoPlistPath);
-
-            executablePathForOs = path.join(
-                executablePath,
-                "Contents",
-                "MacOS",
-                plist.CFBundleExecutable
-            );
-        }
-
-        const isValidExecutable = await this.isValidExecutable(executablePathForOs);
-        if (!isValidExecutable) {
-            return Promise.reject(
-                `Unable to verify that executable ${executablePathForOs} is valid`
-            );
-        }
-        return executablePathForOs;
     }
 
     // Prompts user using native file browser for a file path

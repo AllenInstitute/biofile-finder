@@ -50,6 +50,7 @@ const platformDependentServices = {
     fileDownloadService: new FileDownloadServiceElectron(),
     fileViewerService: new FileViewerServiceElectron(notificationService),
     frontendInsights,
+    notificationService,
     persistentConfigService,
 };
 

@@ -10,6 +10,7 @@ export { default as FileService } from "./FileService";
 export type { default as FileViewerService } from "./FileViewerService";
 export { FileViewerCancellationToken } from "./FileViewerService";
 export { default as HttpServiceBase } from "./HttpServiceBase";
+export type { default as NotificationService } from "./NotificationService";
 export type {
     default as PersistentConfigService,
     PersistedConfig,

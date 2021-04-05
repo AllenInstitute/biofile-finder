@@ -1,3 +1,4 @@
+import * as path from "path";
 import { isEmpty, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
@@ -23,8 +24,10 @@ import {
     SET_PLATFORM_DEPENDENT_SERVICES,
     promptUserToUpdateApp,
     OPEN_FILES_WITH_APPLICATION,
+    PROMPT_FOR_NEW_EXECUTABLE,
+    setUserSelectedApplication,
+    openFilesWithApplication,
 } from "./actions";
-import * as interactionActions from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
 import { CancellationToken } from "../../services/FileDownloadService";
@@ -33,6 +36,7 @@ import NumericRange from "../../entity/NumericRange";
 import { CreateDatasetRequest } from "../../services/DatasetService";
 import { SelectionRequest, Selection } from "../../services/FileService";
 import { ExecutableEnvCancellationToken } from "../../services/ExecutionEnvService";
+import { AnnotationName } from "../../constants";
 
 /**
  * Interceptor responsible for responding to a SET_PLATFORM_DEPENDENT_SERVICES action and
@@ -177,7 +181,61 @@ const cancelManifestDownloadLogic = createLogic({
     },
 });
 
-const openFilesWithApplication = createLogic({
+const promptForNewExecutable = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const {
+            executionEnvService,
+            notificationService,
+        } = interactionSelectors.getPlatformDependentServices(deps.getState());
+        const fileSelection = selection.selectors.getFileSelection(deps.getState());
+        const userSelectedApplications = interactionSelectors.getUserSelectedApplications(
+            deps.getState()
+        );
+
+        const executableLocation = await executionEnvService.promptForExecutable(
+            "Select Application to Open Selected Files With"
+        );
+
+        // Continue unless the user cancelled the prompt
+        if (executableLocation !== ExecutableEnvCancellationToken) {
+            // Determine the kinds of files currently selected
+            const selectedFilesDetails = await fileSelection.fetchAllDetails();
+            const fileKinds = selectedFilesDetails.flatMap(
+                (file) =>
+                    file.annotations.find((a) => a.name === AnnotationName.KIND)?.values as string[]
+            );
+
+            // Ask whether this app should be the default for
+            // the file kinds selected
+            const filename = path.basename(executableLocation);
+            const shouldSetAsDefault = await notificationService.showQuestion(
+                `${filename}`,
+                `Set ${filename} as the default for ${fileKinds} files?`
+            );
+            const defaultFileKinds = shouldSetAsDefault ? fileKinds : [];
+
+            // Update previously saved apps if necessary & add this one
+            const newApp = { filePath: executableLocation, defaultFileKinds };
+            const existingApps = (userSelectedApplications || [])
+                .filter((app) => path.basename(app.filePath) !== filename)
+                .map((app) => ({
+                    ...app,
+                    defaultFileKinds: app.defaultFileKinds.filter(
+                        (kind: string) => !defaultFileKinds.includes(kind)
+                    ),
+                }));
+            const apps = [...existingApps, newApp];
+
+            // Save app configuration & open files in new app
+            dispatch(setUserSelectedApplication(apps));
+            dispatch(openFilesWithApplication(newApp));
+        }
+        done();
+    },
+    type: PROMPT_FOR_NEW_EXECUTABLE,
+});
+
+const openFilesWithApplicationLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
         const savedAllenMountPoint = interactionSelectors.getAllenMountPoint(deps.getState());
@@ -185,7 +243,9 @@ const openFilesWithApplication = createLogic({
             fileViewerService,
             executionEnvService,
         } = interactionSelectors.getPlatformDependentServices(deps.getState());
-        const userSelectedApplications = interactionSelectors.getKnownApplications(deps.getState());
+        const userSelectedApplications = interactionSelectors.getUserSelectedApplications(
+            deps.getState()
+        );
 
         // Verify that the known Allen mount point is valid, if not prompt for it
         let allenMountPoint = savedAllenMountPoint;
@@ -203,12 +263,13 @@ const openFilesWithApplication = createLogic({
             }
 
             // Verify that the executable location leads to a valid executable
-            let { filePath: executableLocation } = deps.action.payload;
+            const { filePath: savedExecutableLocation } = deps.action.payload;
+            let executableLocation = savedExecutableLocation;
             const isValidExecutableLocation = await executionEnvService.isValidExecutable(
                 executableLocation
             );
             if (!isValidExecutableLocation) {
-                const { name } = deps.action.payload;
+                const name = path.basename(executableLocation);
                 executableLocation = await executionEnvService.promptForExecutable(
                     `${name} Executable`,
                     `It appears that your ${name} application isn't located where we thought it would be. ` +
@@ -218,9 +279,12 @@ const openFilesWithApplication = createLogic({
                 if (executableLocation !== ExecutableEnvCancellationToken) {
                     const updatedApps = (userSelectedApplications || []).map((app) => ({
                         ...app,
-                        filePath: app.name === name ? executableLocation : app.filePath,
+                        filePath:
+                            app.filePath === savedExecutableLocation
+                                ? executableLocation
+                                : app.filePath,
                     }));
-                    dispatch(interactionActions.setUserSelectedApplication(updatedApps));
+                    dispatch(setUserSelectedApplication(updatedApps));
                 }
             }
 
@@ -361,7 +425,8 @@ export default [
     checkForUpdates,
     downloadManifest,
     cancelManifestDownloadLogic,
-    openFilesWithApplication,
+    openFilesWithApplicationLogic,
+    promptForNewExecutable,
     showContextMenu,
     generatePythonSnippet,
     refresh,

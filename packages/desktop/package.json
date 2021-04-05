@@ -80,7 +80,6 @@
     "electron-devtools-installer": "3.1.x",
     "electron-store": "7.0.x",
     "regenerator-runtime": "0.13.x",
-    "semver": "7.3.x",
-    "simple-plist": "1.1.x"
+    "semver": "7.3.x"
   }
 }
