@@ -132,29 +132,15 @@ describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
         const sandbox = createSandbox();
         const runningOnMacOS = os.platform() === "darwin";
         const executablePath = path.resolve(os.tmpdir(), "ImageJTest");
-        const macOSExecutable = "ImageJTest-macosx";
-        const macOSExecutablePath = path.resolve(
-            executablePath,
-            ...["Contents", "MacOS", macOSExecutable]
-        );
+        const macOSExecutablePath = `${executablePath}.app`;
 
         beforeEach(async () => {
             if (runningOnMacOS) {
                 // !!! IMPLEMENTATION DETAIL !!!
                 // On macOS, packages are actually directories, and the callable executables live within those packages.
-                // The name of the executable is declared in the Info.plist file. So, if running this test on macOS, need to ensure
-                // there is both an Info.plist as well as the nested executable.
-                const macOSPackage = path.resolve(executablePath, ...["Contents", "MacOS"]);
-                const infoPlistPath = path.resolve(executablePath, ...["Contents", "Info.plist"]);
-
-                await fs.promises.mkdir(macOSPackage, { recursive: true });
-                const plistParser = await import("simple-plist");
-                const promisifiedPlistWriter = util.promisify(plistParser.writeFile);
-                await promisifiedPlistWriter(infoPlistPath, {
-                    CFBundleExecutable: macOSExecutable,
-                });
-                const fd = await fs.promises.open(macOSExecutablePath, "w", 0o777);
-                await fd.close();
+                // So, if running this test on macOS, need to ensure the app selected ends with the appropriate app
+                // bundle extension ".app" & is a directory
+                await fs.promises.mkdir(macOSExecutablePath);
             } else {
                 const fd = await fs.promises.open(executablePath, "w", 0o777);
                 await fd.close();

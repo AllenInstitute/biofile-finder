@@ -14,6 +14,7 @@ import { ModalType } from "../../components/Modal";
 import PersistentConfigService, {
     UserSelectedApplication,
 } from "../../services/PersistentConfigService";
+import { NotificationService } from "../../services";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -204,6 +205,7 @@ export interface PlatformDependentServices {
     fileViewerService: FileViewerService;
     frontendInsights: FrontendInsights;
     executionEnvService: ExecutionEnvService;
+    notificationService: NotificationService;
     persistentConfigService: PersistentConfigService;
 }
 
@@ -481,6 +483,26 @@ export function showManifestDownloadDialog(
     return {
         type: SHOW_MANIFEST_DOWNLOAD_DIALOG,
         payload: fileFilters,
+    };
+}
+
+/**
+ * PROMPT_FOR_NEW_EXECUTABLE
+ *
+ * Intention to prompt the user for a new executable to use
+ */
+export const PROMPT_FOR_NEW_EXECUTABLE = makeConstant(
+    STATE_BRANCH_NAME,
+    "prompt-for-new-executable"
+);
+
+export interface PromptForNewExecutable {
+    type: string;
+}
+
+export function promptForNewExecutable() {
+    return {
+        type: PROMPT_FOR_NEW_EXECUTABLE,
     };
 }
 

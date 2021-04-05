@@ -66,7 +66,6 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
         if (!userSelectedApplications && persistedConfig[PersistedConfigKeys.ImageJExecutable]) {
             userSelectedApplications = [
                 {
-                    name: "ImageJ/Fiji",
                     filePath: persistedConfig[PersistedConfigKeys.ImageJExecutable],
                     defaultFileKinds: [],
                 },

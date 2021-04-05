@@ -15,7 +15,6 @@ export interface ListItem<T = any> {
 }
 
 interface ListPickerProps {
-    className?: string;
     errorMessage?: string;
     items: ListItem[];
     loading?: boolean;
@@ -94,11 +93,7 @@ export default function ListPicker(props: ListPickerProps) {
     }
 
     return (
-        <div
-            className={classNames(props.className, styles.container)}
-            data-is-scrollable="true"
-            data-is-focusable="true"
-        >
+        <div className={styles.container} data-is-scrollable="true" data-is-focusable="true">
             <div className={styles.header}>
                 <SearchBox
                     className={styles.searchBox}

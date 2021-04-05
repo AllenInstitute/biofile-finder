@@ -78,23 +78,3 @@ export const getContextMenuKey = createSelector([getContextMenuPositionReference
 
     return JSON.stringify(target);
 });
-
-export const getKnownApplications = createSelector(
-    [getUserSelectedApplications],
-    (userSelectedApplications): UserSelectedApplication[] => {
-        const apps = userSelectedApplications || [];
-        if (apps.some((app) => app.name === "ImageJ/Fiji")) {
-            return apps;
-        }
-        // Ensure the user always has the ImageJ/Fiji option regardless of
-        // whether they have selected the app yet or not
-        return [
-            ...apps,
-            {
-                filePath: "",
-                name: "ImageJ/Fiji",
-                defaultFileKinds: [],
-            },
-        ];
-    }
-);

@@ -33,6 +33,7 @@ import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
 import FileFilter from "../../entity/FileFilter";
 import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
+import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
 
 export interface InteractionStateBranch {
     allenMountPoint?: string;
@@ -73,6 +74,7 @@ export const initialState = {
             },
         }),
         executionEnvService: new ExecutionEnvServiceNoop(),
+        notificationService: new NotificationServiceNoop(),
         persistentConfigService: new PersistentConfigServiceNoop(),
     },
     status: [],

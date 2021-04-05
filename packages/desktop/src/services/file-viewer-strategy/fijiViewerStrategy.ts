@@ -2,6 +2,7 @@ import childProcess from "child_process";
 import { promises as fsPromises } from "fs";
 import os from "os";
 import path from "path";
+import { Platform } from "../ExecutionEnvServiceElectron";
 
 import ViewerStrategy from "./ViewerStrategy";
 
@@ -76,10 +77,22 @@ const fijiViewerStrategy: ViewerStrategy = async (executable, filePaths) => {
     await entryPointScript.writeFile(contents, "utf-8");
     await entryPointScript.close();
 
-    const executableProcess = childProcess.spawn(executable, ["--run", scriptPath], {
-        detached: true,
-        stdio: "ignore", // If the parent's stdio is inherited, the child will remain attached to the controlling terminal.
-    });
+    let executableProcess;
+    if (os.platform() === Platform.Mac) {
+        executableProcess = childProcess.spawn(
+            "open",
+            ["-n", "-a", executable, "--run", scriptPath],
+            {
+                detached: true,
+                stdio: "ignore", // If the parent's stdio is inherited, the child will remain attached to the controlling terminal.
+            }
+        );
+    } else {
+        executableProcess = childProcess.spawn(executable, ["--run", scriptPath], {
+            detached: true,
+            stdio: "ignore", // If the parent's stdio is inherited, the child will remain attached to the controlling terminal.
+        });
+    }
 
     // From the docs: https://nodejs.org/docs/latest-v12.x/api/child_process.html#child_process_options_detached
     // By default, the parent will wait for the detached child to exit.
