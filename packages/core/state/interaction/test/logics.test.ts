@@ -25,8 +25,9 @@ import {
     OPEN_FILES_WITH_APPLICATION,
     openFilesWithApplication,
     SET_USER_SELECTED_APPLICATIONS,
+    promptForNewExecutable,
 } from "../actions";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
+import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import DatasetService from "../../../services/DatasetService";
 import { ExecutableEnvCancellationToken } from "../../../services/ExecutionEnvService";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
@@ -45,6 +46,8 @@ import FileService from "../../../services/FileService";
 import FileViewerService from "../../../services/FileViewerService";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
+import { NotificationService } from "../../../services";
+import NotificationServiceNoop from "../../../services/NotificationService/NotificationServiceNoop";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({
@@ -571,6 +574,228 @@ describe("Interaction logics", () => {
                 actions.includesMatch({
                     type: SET_AVAILABLE_ANNOTATIONS,
                     payload: [expectedAnnotation.displayName],
+                })
+            ).to.be.true;
+        });
+    });
+
+    describe("promptForNewExecutable", () => {
+        const files = [];
+        const fileKinds = ["PNG", "TIFF"];
+        for (let i = 0; i <= 100; i++) {
+            files.push({
+                annotations: [
+                    {
+                        name: AnnotationName.KIND,
+                        values: fileKinds,
+                    },
+                    {
+                        name: "Cell Line",
+                        values: ["AICS-10", "AICS-12"],
+                    },
+                ],
+            });
+        }
+        const baseUrl = "test";
+        const responseStub = {
+            when: () => true, // `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=101`,
+            respondWith: {
+                data: { data: files },
+            },
+        };
+        const mockHttpClient = createMockHttpClient(responseStub);
+        const fileService = new FileService({
+            baseUrl,
+            httpClient: mockHttpClient,
+        });
+        const fakeSelection = new FileSelection().select({
+            fileSet: new FileSet({ fileService }),
+            index: new NumericRange(0, 100),
+            sortOrder: 0,
+        });
+
+        it("saves and opens selected files", async () => {
+            // Arrange
+            let userWasPromptedForDefault = false;
+            let userWasPromptedForExecutable = false;
+            const expectedExecutablePath = "/some/path/to/imageJ";
+            class UselessNotificationService extends NotificationServiceNoop {
+                showQuestion() {
+                    userWasPromptedForDefault = true;
+                    return Promise.resolve(true);
+                }
+            }
+            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
+                promptForExecutable() {
+                    userWasPromptedForExecutable = true;
+                    return Promise.resolve(expectedExecutablePath);
+                }
+                promptForAllenMountPoint() {
+                    return Promise.resolve(ExecutableEnvCancellationToken);
+                }
+                isValidAllenMountPoint() {
+                    return Promise.resolve(false);
+                }
+                isValidExecutable() {
+                    return Promise.resolve(false);
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        executionEnvService: new UselessExecutionEnvService(),
+                        notificationService: new UselessNotificationService(),
+                    },
+                },
+                selection: {
+                    fileSelection: fakeSelection,
+                },
+            });
+            const { actions, store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+            const app = {
+                filePath: expectedExecutablePath,
+                defaultFileKinds: fileKinds,
+            };
+
+            // Act
+            store.dispatch(promptForNewExecutable());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(userWasPromptedForDefault).to.be.true;
+            expect(userWasPromptedForExecutable).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: SET_USER_SELECTED_APPLICATIONS,
+                    payload: [app],
+                })
+            ).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: OPEN_FILES_WITH_APPLICATION,
+                    payload: app,
+                })
+            ).to.be.true;
+        });
+
+        it("stops when user cancels", async () => {
+            // Arrange
+            let userWasPromptedForDefault = false;
+            let userWasPromptedForExecutable = false;
+            class UselessNotificationService extends NotificationServiceNoop {
+                showQuestion() {
+                    userWasPromptedForDefault = true;
+                    return Promise.resolve(false);
+                }
+            }
+            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
+                promptForExecutable() {
+                    userWasPromptedForExecutable = true;
+                    return Promise.resolve(ExecutableEnvCancellationToken);
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        executionEnvService: new UselessExecutionEnvService(),
+                        notificationService: new UselessNotificationService(),
+                    },
+                },
+                selection: {
+                    fileSelection: fakeSelection,
+                },
+            });
+            const { actions, store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(promptForNewExecutable());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(userWasPromptedForDefault).to.be.false;
+            expect(userWasPromptedForExecutable).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: SET_USER_SELECTED_APPLICATIONS,
+                })
+            ).to.be.false;
+            expect(
+                actions.includesMatch({
+                    type: OPEN_FILES_WITH_APPLICATION,
+                })
+            ).to.be.false;
+        });
+
+        it("does not set as default when user selects 'No'", async () => {
+            // Arrange
+            let userWasPromptedForDefault = false;
+            let userWasPromptedForExecutable = false;
+            const expectedExecutablePath = "/some/path/to/imageJ";
+            class UselessNotificationService extends NotificationServiceNoop {
+                showQuestion() {
+                    userWasPromptedForDefault = true;
+                    return Promise.resolve(false);
+                }
+            }
+            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
+                promptForExecutable() {
+                    userWasPromptedForExecutable = true;
+                    return Promise.resolve(expectedExecutablePath);
+                }
+                promptForAllenMountPoint() {
+                    return Promise.resolve(ExecutableEnvCancellationToken);
+                }
+                isValidAllenMountPoint() {
+                    return Promise.resolve(false);
+                }
+                isValidExecutable() {
+                    return Promise.resolve(false);
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        ...initialState.interaction.platformDependentServices,
+                        executionEnvService: new UselessExecutionEnvService(),
+                        notificationService: new UselessNotificationService(),
+                    },
+                },
+                selection: {
+                    fileSelection: fakeSelection,
+                },
+            });
+            const { actions, store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+            const app = {
+                filePath: expectedExecutablePath,
+                defaultFileKinds: [],
+            };
+
+            // Act
+            store.dispatch(promptForNewExecutable());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(userWasPromptedForDefault).to.be.true;
+            expect(userWasPromptedForExecutable).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: SET_USER_SELECTED_APPLICATIONS,
+                    payload: [app],
+                })
+            ).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: OPEN_FILES_WITH_APPLICATION,
+                    payload: app,
                 })
             ).to.be.true;
         });

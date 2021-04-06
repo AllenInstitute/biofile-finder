@@ -29,7 +29,6 @@ export default function getContextMenuItems(dispatch: Dispatch) {
             {
                 key: ContextMenuActions.OPEN_WITH,
                 text: "Open with",
-                title: "Open files with an application of your choosing",
                 // Dynamically generated application options will/should be
                 // inserted here
             },

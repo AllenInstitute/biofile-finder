@@ -1,5 +1,5 @@
 import * as path from "path";
-import { isEmpty, uniqueId } from "lodash";
+import { isEmpty, uniq, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { metadata, ReduxLogicDeps, selection } from "../";
@@ -200,9 +200,12 @@ const promptForNewExecutable = createLogic({
         if (executableLocation !== ExecutableEnvCancellationToken) {
             // Determine the kinds of files currently selected
             const selectedFilesDetails = await fileSelection.fetchAllDetails();
-            const fileKinds = selectedFilesDetails.flatMap(
-                (file) =>
-                    file.annotations.find((a) => a.name === AnnotationName.KIND)?.values as string[]
+            const fileKinds = uniq(
+                selectedFilesDetails.flatMap(
+                    (file) =>
+                        file.annotations.find((a) => a.name === AnnotationName.KIND)
+                            ?.values as string[]
+                )
             );
 
             // Ask whether this app should be the default for
@@ -228,7 +231,7 @@ const promptForNewExecutable = createLogic({
 
             // Save app configuration & open files in new app
             dispatch(setUserSelectedApplication(apps));
-            dispatch(openFilesWithApplication(newApp));
+            dispatch(openFilesWithApplication(newApp, deps.action.payload));
         }
         done();
     },
@@ -237,6 +240,7 @@ const promptForNewExecutable = createLogic({
 
 const openFilesWithApplicationLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
+        const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
         const savedAllenMountPoint = interactionSelectors.getAllenMountPoint(deps.getState());
         const {
@@ -263,7 +267,10 @@ const openFilesWithApplicationLogic = createLogic({
             }
 
             // Verify that the executable location leads to a valid executable
-            const { filePath: savedExecutableLocation } = deps.action.payload;
+            const {
+                filters,
+                app: { filePath: savedExecutableLocation },
+            } = deps.action.payload;
             let executableLocation = savedExecutableLocation;
             const isValidExecutableLocation = await executionEnvService.isValidExecutable(
                 executableLocation
@@ -291,13 +298,24 @@ const openFilesWithApplicationLogic = createLogic({
             // If the user did not cancel out of a prompt, continue trying to open the executable
             if (executableLocation !== ExecutableEnvCancellationToken) {
                 // Gather up the file paths for the files selected currently
-                const selectedFilesDetails = await fileSelection.fetchAllDetails();
-                const filePaths = selectedFilesDetails.map((file) =>
+                let files;
+                if (filters) {
+                    const fileSet = new FileSet({
+                        filters,
+                        fileService,
+                    });
+                    const totalFileCount = await fileSet.fetchTotalCount();
+                    files = await fileSet.fetchFileRange(0, totalFileCount);
+                } else {
+                    files = await fileSelection.fetchAllDetails();
+                }
+                const filePaths = files.map((file) =>
                     executionEnvService.formatPathForOs(
                         file.file_path.substring("/allen".length),
                         allenMountPoint
                     )
                 );
+
                 // Open the files in the specified executable
                 await fileViewerService.open(executableLocation, filePaths);
             }

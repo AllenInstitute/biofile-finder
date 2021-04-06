@@ -498,11 +498,13 @@ export const PROMPT_FOR_NEW_EXECUTABLE = makeConstant(
 
 export interface PromptForNewExecutable {
     type: string;
+    payload?: FileFilter[];
 }
 
-export function promptForNewExecutable() {
+export function promptForNewExecutable(filters?: FileFilter[]) {
     return {
         type: PROMPT_FOR_NEW_EXECUTABLE,
+        payload: filters,
     };
 }
 
@@ -533,7 +535,7 @@ export function setUserSelectedApplication(
 /**
  * OPEN_FILES_WITH_APPLICATION
  *
- * Intention to open selected file with application found at path given
+ * Intention to open selected files with application found at path given
  */
 export const OPEN_FILES_WITH_APPLICATION = makeConstant(
     STATE_BRANCH_NAME,
@@ -541,13 +543,22 @@ export const OPEN_FILES_WITH_APPLICATION = makeConstant(
 );
 
 export interface OpenFilesWithApplication {
-    payload: UserSelectedApplication;
+    payload: {
+        app: UserSelectedApplication;
+        filters?: FileFilter[];
+    };
     type: string;
 }
 
-export function openFilesWithApplication(app: UserSelectedApplication): OpenFilesWithApplication {
+export function openFilesWithApplication(
+    app: UserSelectedApplication,
+    filters?: FileFilter[]
+): OpenFilesWithApplication {
     return {
-        payload: app,
+        payload: {
+            app,
+            filters,
+        },
         type: OPEN_FILES_WITH_APPLICATION,
     };
 }

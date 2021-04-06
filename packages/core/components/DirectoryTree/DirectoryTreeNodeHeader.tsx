@@ -1,15 +1,15 @@
 import classNames from "classnames";
 import { Spinner, SpinnerSize } from "@fluentui/react";
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import Tippy from "@tippy.js/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 
-import getContextMenuItems, { ContextMenuActions } from "../ContextMenu/items";
 import SvgIcon from "../../components/SvgIcon";
-import { interaction, selection } from "../../state";
+import { selection } from "../../state";
 import FileSet from "../../entity/FileSet";
 import { ERROR_ICON_PATH_DATA } from "../../icons";
+import useFileAccessContextMenu from "../FileList/useFileAccessContextMenu";
 
 const styles = require("./DirectoryTreeNode.module.css");
 
@@ -54,35 +54,12 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
         return fileSelections.count(fileSet.filters);
     }, [fileSelections, fileSet]);
 
-    const dispatch = useDispatch();
+    const onDismiss = () => {
+        setContextMenuActive(false);
+    };
+    const onFileHeaderContextMenu = useFileAccessContextMenu(fileSet.filters, onDismiss);
     const onContextMenu = (evt: React.MouseEvent) => {
-        const availableItems = getContextMenuItems(dispatch);
-        const items = availableItems.ACCESS.map((item) => {
-            if (item.key === ContextMenuActions.CSV_MANIFEST) {
-                return {
-                    ...item,
-                    onClick() {
-                        dispatch(interaction.actions.showManifestDownloadDialog(fileSet.filters));
-                    },
-                };
-            }
-            if (item.key === ContextMenuActions.PYTHON_SNIPPET) {
-                return {
-                    ...item,
-                    onClick() {
-                        dispatch(
-                            interaction.actions.showGeneratePythonSnippetDialog(fileSet.filters)
-                        );
-                    },
-                };
-            }
-            return item;
-        });
-
-        const onDismiss = () => {
-            setContextMenuActive(false);
-        };
-        dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent, onDismiss));
+        onFileHeaderContextMenu(evt);
         setContextMenuActive(true);
     };
 
