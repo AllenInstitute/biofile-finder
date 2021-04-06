@@ -1,5 +1,4 @@
 import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "@fluentui/react";
-import classNames from "classnames";
 import Fuse from "fuse.js";
 import * as React from "react";
 
