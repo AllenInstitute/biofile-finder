@@ -676,7 +676,9 @@ describe("Interaction logics", () => {
             expect(
                 actions.includesMatch({
                     type: OPEN_FILES_WITH_APPLICATION,
-                    payload: app,
+                    payload: {
+                        app,
+                    },
                 })
             ).to.be.true;
         });
@@ -795,7 +797,7 @@ describe("Interaction logics", () => {
             expect(
                 actions.includesMatch({
                     type: OPEN_FILES_WITH_APPLICATION,
-                    payload: app,
+                    payload: { app },
                 })
             ).to.be.true;
         });
