@@ -29,6 +29,17 @@ const STORAGE_SCHEMA: Schema<Record<string, unknown>> = {
         type: "array",
         items: {
             type: "object",
+            properties: {
+                defaultFileKinds: {
+                    type: "array",
+                    items: {
+                        type: "string",
+                    },
+                },
+                filePath: {
+                    type: "string",
+                },
+            },
         },
     },
 };
