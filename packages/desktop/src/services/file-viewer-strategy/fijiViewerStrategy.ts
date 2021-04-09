@@ -81,7 +81,7 @@ const fijiViewerStrategy: ViewerStrategy = async (executable, filePaths) => {
     if (os.platform() === Platform.Mac) {
         executableProcess = childProcess.spawn(
             "open",
-            ["-n", "-a", executable, "--run", scriptPath],
+            ["-n", "-a", executable, "--args", "--run", scriptPath],
             {
                 detached: true,
                 stdio: "ignore", // If the parent's stdio is inherited, the child will remain attached to the controlling terminal.
