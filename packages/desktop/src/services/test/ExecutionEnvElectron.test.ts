@@ -9,29 +9,27 @@ import { createSandbox } from "sinon";
 import { ExecutableEnvCancellationToken } from "./../../../../core/services";
 import ExecutionEnvServiceElectron, {
     KNOWN_FOLDERS_IN_ALLEN_DRIVE,
+    Platform,
 } from "../ExecutionEnvServiceElectron";
 import NotificationServiceElectron from "../NotificationServiceElectron";
 import { RUN_IN_RENDERER } from "../../util/constants";
 
 describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
+    const runningOnMacOS = os.platform() === Platform.Mac;
+
     describe("promptForAllenMountPoint", () => {
         const sandbox = createSandbox();
-        const tempAllenDrive = path.resolve(os.tmpdir(), "testAllenDir");
+        const tempAllenDrive = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`);
 
-        beforeEach(async () => {
-            await fs.promises.mkdir(tempAllenDrive);
+        beforeEach(() => {
             for (const folder of KNOWN_FOLDERS_IN_ALLEN_DRIVE) {
-                await fs.promises.mkdir(path.resolve(tempAllenDrive, folder));
+                fs.mkdirSync(path.resolve(tempAllenDrive, folder), { recursive: true });
             }
         });
 
-        afterEach(async () => {
+        afterEach(() => {
             sandbox.restore();
-            // While recursive removal is experimental manually empty the tempAllenDrive
-            for (const folder of KNOWN_FOLDERS_IN_ALLEN_DRIVE) {
-                await fs.promises.rmdir(path.resolve(tempAllenDrive, folder));
-            }
-            await fs.promises.rmdir(tempAllenDrive);
+            fs.rmSync(tempAllenDrive, { recursive: true });
         });
 
         it("returns mount point as selected", async () => {
@@ -129,32 +127,26 @@ describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
 
     describe("promptForExecutable", () => {
         const sandbox = createSandbox();
-        const runningOnMacOS = os.platform() === "darwin";
-        const executablePath = path.resolve(os.tmpdir(), "ImageJTest");
-        const macOSExecutablePath = `${executablePath}.app`;
+        const tmpDir = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`);
+        const executablePath = runningOnMacOS
+            ? path.resolve(tmpDir, "ImageJTest.app")
+            : path.resolve(tmpDir, "ImageJTest");
 
-        beforeEach(async () => {
+        beforeEach(() => {
             if (runningOnMacOS) {
                 // !!! IMPLEMENTATION DETAIL !!!
                 // On macOS, packages are actually directories, and the callable executables live within those packages.
                 // So, if running this test on macOS, need to ensure the app selected ends with the appropriate app
                 // bundle extension ".app" & is a directory
-                await fs.promises.mkdir(macOSExecutablePath);
+                fs.mkdirSync(executablePath, { recursive: true });
             } else {
-                const fd = await fs.promises.open(executablePath, "w", 0o777);
-                await fd.close();
+                fs.openSync(executablePath, "w", 0o777);
             }
         });
 
-        afterEach(async () => {
+        afterEach(() => {
             sandbox.restore();
-
-            const stats = await fs.promises.stat(executablePath);
-            if (stats.isDirectory()) {
-                await fs.promises.rmdir(executablePath, { recursive: true });
-            } else {
-                await fs.promises.unlink(executablePath);
-            }
+            fs.rmSync(tmpDir, { recursive: true });
         });
 
         it("returns executable as selected", async () => {
@@ -186,11 +178,7 @@ describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
             );
 
             // Assert
-            if (runningOnMacOS) {
-                expect(selectedPath).to.equal(macOSExecutablePath);
-            } else {
-                expect(selectedPath).to.equal(executablePath);
-            }
+            expect(selectedPath).to.equal(executablePath);
             expect(wasMessageShown).to.be.true;
             expect(wasErrorShown).to.be.false;
         });
@@ -286,39 +274,25 @@ describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
             const selectedPath = await service.promptForExecutable("Select ImageJ/Fiji");
 
             // Assert
-            if (runningOnMacOS) {
-                expect(selectedPath).to.equal(macOSExecutablePath);
-            } else {
-                expect(selectedPath).to.equal(executablePath);
-            }
+            expect(selectedPath).to.equal(executablePath);
             expect(wasErrorShown).to.be.true;
         });
     });
 
     describe("isValidAllenMountPoint", () => {
-        const tempAllenPath = path.resolve(os.tmpdir(), "testAllen");
+        const tmpDir = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`);
+        const tempAllenPath = path.join(tmpDir, "/test-allen");
         const knownPaths = KNOWN_FOLDERS_IN_ALLEN_DRIVE.map((f) => path.resolve(tempAllenPath, f));
 
-        afterEach(async () => {
-            // Make sure the folders get cleaned up after each test (if they exist)
-            for (const folder of [...knownPaths, tempAllenPath]) {
-                let exists = false;
-                try {
-                    await fs.promises.access(folder, fs.constants.F_OK);
-                    exists = true;
-                } catch (_) {}
-                if (exists) {
-                    await fs.promises.rmdir(folder);
-                }
-            }
+        afterEach(() => {
+            fs.rmSync(tempAllenPath, { recursive: true, force: true });
         });
 
         it("returns true when allen drive is valid", async () => {
             // Arrange
             const service = new ExecutionEnvServiceElectron(new NotificationServiceElectron());
-            await fs.promises.mkdir(tempAllenPath);
             for (const expectedFolder of knownPaths) {
-                await fs.promises.mkdir(path.resolve(tempAllenPath, expectedFolder));
+                fs.mkdirSync(path.resolve(tempAllenPath, expectedFolder), { recursive: true });
             }
 
             // Act
@@ -331,7 +305,7 @@ describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
         it("returns false when allen drive does not contain expected folder", async () => {
             // Arrange
             const service = new ExecutionEnvServiceElectron(new NotificationServiceElectron());
-            await fs.promises.mkdir(tempAllenPath);
+            fs.mkdirSync(tempAllenPath);
 
             // Act
             const result = await service.isValidAllenMountPoint(tempAllenPath);
@@ -353,15 +327,21 @@ describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
     });
 
     describe("isValidExecutable", () => {
-        const executable = path.resolve(os.tmpdir(), "testExecutable");
+        const tmpDir = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`);
+        const executable = runningOnMacOS
+            ? path.resolve(tmpDir, "TestExecutable.app")
+            : path.resolve(tmpDir, "TestExecutable");
 
-        before(async () => {
-            await fs.promises.writeFile(executable, "hello", { mode: 111 });
-            await fs.promises.access(executable, fs.constants.X_OK);
+        before(() => {
+            if (runningOnMacOS) {
+                fs.mkdirSync(executable, { recursive: true });
+            } else {
+                fs.openSync(executable, "w", 0o777);
+            }
         });
 
-        after(async () => {
-            await fs.promises.unlink(executable);
+        after(() => {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
         });
 
         it("returns true when valid", async () => {
