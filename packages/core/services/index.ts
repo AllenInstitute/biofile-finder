@@ -3,7 +3,7 @@ export type { default as ApplicationInfoService } from "./ApplicationInfoService
 export { default as CsvService } from "./CsvService";
 export { default as DatasetService } from "./DatasetService";
 export type { default as ExecutionEnvService } from "./ExecutionEnvService";
-export { ExecutableEnvCancellationToken } from "./ExecutionEnvService";
+export { ExecutableEnvCancellationToken, SystemDefaultAppLocation } from "./ExecutionEnvService";
 export type { default as FileDownloadService } from "./FileDownloadService";
 export { CancellationToken as FileDownloadCancellationToken } from "./FileDownloadService";
 export { default as FileService } from "./FileService";

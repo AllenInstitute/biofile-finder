@@ -15,6 +15,7 @@ import PersistentConfigService, {
     UserSelectedApplication,
 } from "../../services/PersistentConfigService";
 import { NotificationService } from "../../services";
+import { FmsFile } from "../../services/FileService";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -533,33 +534,53 @@ export function setUserSelectedApplication(
 }
 
 /**
- * OPEN_FILES_WITH_APPLICATION
+ * OPEN_WITH_DEFAULT
+ *
+ * Intention to open selected files with the default application either
+ * previously selected by the user or defaulted to by the user's system
+ */
+export const OPEN_WITH_DEFAULT = makeConstant(STATE_BRANCH_NAME, "open-with-default");
+
+export interface OpenWithDefaultAction {
+    payload?: FileFilter[];
+    type: string;
+}
+
+export function openWithDefault(filters?: FileFilter[]): OpenWithDefaultAction {
+    return {
+        payload: filters,
+        type: OPEN_WITH_DEFAULT,
+    };
+}
+
+/**
+ * OPEN_WITH
  *
  * Intention to open selected files with application found at path given
  */
-export const OPEN_FILES_WITH_APPLICATION = makeConstant(
-    STATE_BRANCH_NAME,
-    "open-files-with-application"
-);
+export const OPEN_WITH = makeConstant(STATE_BRANCH_NAME, "open-with");
 
-export interface OpenFilesWithApplication {
+export interface OpenWithAction {
     payload: {
         app: UserSelectedApplication;
         filters?: FileFilter[];
+        files?: FmsFile[];
     };
     type: string;
 }
 
-export function openFilesWithApplication(
+export function openWith(
     app: UserSelectedApplication,
-    filters?: FileFilter[]
-): OpenFilesWithApplication {
+    filters?: FileFilter[],
+    files?: FmsFile[]
+): OpenWithAction {
     return {
         payload: {
             app,
             filters,
+            files,
         },
-        type: OPEN_FILES_WITH_APPLICATION,
+        type: OPEN_WITH,
     };
 }
 

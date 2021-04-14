@@ -4,7 +4,11 @@ import * as path from "path";
 
 import { dialog, ipcMain, ipcRenderer } from "electron";
 
-import { ExecutionEnvService, ExecutableEnvCancellationToken } from "../../../core/services";
+import {
+    ExecutionEnvService,
+    ExecutableEnvCancellationToken,
+    SystemDefaultAppLocation,
+} from "../../../core/services";
 import NotificationServiceElectron from "./NotificationServiceElectron";
 import { GlobalVariableChannels } from "../util/constants";
 
@@ -83,6 +87,10 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
 
         // ...then rejoin using whatever path.sep is at runtime
         return path.join(...parts);
+    }
+
+    public getFilename(filePath: string): string {
+        return path.basename(filePath, path.extname(filePath));
     }
 
     public getOS(): string {
@@ -174,6 +182,9 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
     }
 
     public async isValidExecutable(executablePath: string): Promise<boolean> {
+        if (executablePath === SystemDefaultAppLocation) {
+            return true;
+        }
         try {
             // On macOS, applications are bundled as packages. `executablePath` is expected to be a package.
             if (os.platform() === Platform.Mac) {

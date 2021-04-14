@@ -22,14 +22,18 @@ import {
     SUCCEED_PYTHON_SNIPPET_GENERATION,
     SET_CSV_COLUMNS,
     refresh,
-    OPEN_FILES_WITH_APPLICATION,
-    openFilesWithApplication,
+    OPEN_WITH,
+    openWith,
     SET_USER_SELECTED_APPLICATIONS,
     promptForNewExecutable,
+    openWithDefault,
 } from "../actions";
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import DatasetService from "../../../services/DatasetService";
-import { ExecutableEnvCancellationToken } from "../../../services/ExecutionEnvService";
+import {
+    ExecutableEnvCancellationToken,
+    SystemDefaultAppLocation,
+} from "../../../services/ExecutionEnvService";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import interactionLogics from "../logics";
 import Annotation from "../../../entity/Annotation";
@@ -42,7 +46,7 @@ import { RECEIVE_ANNOTATIONS } from "../../metadata/actions";
 import { SET_AVAILABLE_ANNOTATIONS } from "../../selection/actions";
 import AnnotationService from "../../../services/AnnotationService";
 import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
-import FileService from "../../../services/FileService";
+import FileService, { FmsFile } from "../../../services/FileService";
 import FileViewerService from "../../../services/FileViewerService";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
@@ -675,7 +679,7 @@ describe("Interaction logics", () => {
             ).to.be.true;
             expect(
                 actions.includesMatch({
-                    type: OPEN_FILES_WITH_APPLICATION,
+                    type: OPEN_WITH,
                     payload: {
                         app,
                     },
@@ -729,7 +733,7 @@ describe("Interaction logics", () => {
             ).to.be.false;
             expect(
                 actions.includesMatch({
-                    type: OPEN_FILES_WITH_APPLICATION,
+                    type: OPEN_WITH,
                 })
             ).to.be.false;
         });
@@ -796,14 +800,144 @@ describe("Interaction logics", () => {
             ).to.be.true;
             expect(
                 actions.includesMatch({
-                    type: OPEN_FILES_WITH_APPLICATION,
+                    type: OPEN_WITH,
                     payload: { app },
                 })
             ).to.be.true;
         });
     });
 
-    describe("openFilesWithApplication", () => {
+    describe("openWithDefault", () => {
+        const csvKind = "CSV";
+        const csvFiles: Partial<FmsFile>[] = [];
+        for (let i = 0; i <= 50; i++) {
+            csvFiles.push({ annotations: [{ name: AnnotationName.KIND, values: [csvKind] }] });
+        }
+        const pngKind = "PNG";
+        const pngFiles: Partial<FmsFile>[] = [];
+        for (let i = 0; i <= 50; i++) {
+            pngFiles.push({ annotations: [{ name: AnnotationName.KIND, values: [pngKind] }] });
+        }
+        const files = [...csvFiles, ...pngFiles];
+        const baseUrl = "test";
+        const responseStub = {
+            when: `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=101`,
+            respondWith: {
+                data: { data: files },
+            },
+        };
+        const mockHttpClient = createMockHttpClient(responseStub);
+        const fileService = new FileService({
+            baseUrl,
+            httpClient: mockHttpClient,
+        });
+        const fakeSelection = new FileSelection().select({
+            fileSet: new FileSet({ fileService }),
+            index: new NumericRange(0, 100),
+            sortOrder: 0,
+        });
+
+        it("attempts to open selected files with default apps", async () => {
+            const app1 = {
+                defaultFileKinds: [csvKind],
+                filePath: "my/path/to/my/first/fake.app",
+            };
+            const app2 = {
+                defaultFileKinds: [pngKind],
+                filePath: "my/path/to/my/second/fake.app",
+            };
+            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
+                promptForAllenMountPoint() {
+                    return Promise.resolve(ExecutableEnvCancellationToken);
+                }
+                isValidAllenMountPoint() {
+                    return Promise.resolve(false);
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        executionEnvService: new UselessExecutionEnvService(),
+                    },
+                    userSelectedApplications: [app1, app2],
+                },
+                selection: {
+                    fileSelection: fakeSelection,
+                },
+            });
+            const { actions, store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(openWithDefault());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: OPEN_WITH,
+                    payload: {
+                        app: app1,
+                        files: csvFiles,
+                    },
+                })
+            ).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: OPEN_WITH,
+                    payload: {
+                        app: app2,
+                    },
+                })
+            ).to.be.true;
+        });
+
+        it("attempts to open selected files by system default", async () => {
+            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
+                promptForAllenMountPoint() {
+                    return Promise.resolve(ExecutableEnvCancellationToken);
+                }
+                isValidAllenMountPoint() {
+                    return Promise.resolve(false);
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        executionEnvService: new UselessExecutionEnvService(),
+                    },
+                },
+                selection: {
+                    fileSelection: fakeSelection,
+                },
+            });
+            const { actions, store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(openWithDefault());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: OPEN_WITH,
+                    payload: {
+                        app: {
+                            defaultFileKinds: [],
+                            filePath: SystemDefaultAppLocation,
+                        },
+                    },
+                })
+            ).to.be.true;
+        });
+    });
+
+    describe("openWith", () => {
         const files = [];
         const filePaths: string[] = [];
         const expectedAllenDrive = "/some/test/path/to/fakeAllen";
@@ -879,7 +1013,7 @@ describe("Interaction logics", () => {
             };
 
             // Act
-            store.dispatch(openFilesWithApplication(app));
+            store.dispatch(openWith(app));
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -892,7 +1026,7 @@ describe("Interaction logics", () => {
             ).to.be.false;
             expect(
                 actions.includesMatch({
-                    type: OPEN_FILES_WITH_APPLICATION,
+                    type: OPEN_WITH,
                     payload: [
                         {
                             ...app,
@@ -939,7 +1073,7 @@ describe("Interaction logics", () => {
             };
 
             // Act
-            store.dispatch(openFilesWithApplication(app));
+            store.dispatch(openWith(app));
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -983,7 +1117,7 @@ describe("Interaction logics", () => {
             };
 
             // Act
-            store.dispatch(openFilesWithApplication(app));
+            store.dispatch(openWith(app));
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -1032,7 +1166,7 @@ describe("Interaction logics", () => {
             };
 
             // Act
-            store.dispatch(openFilesWithApplication(app));
+            store.dispatch(openWith(app));
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -1090,7 +1224,7 @@ describe("Interaction logics", () => {
             });
 
             // Act
-            store.dispatch(openFilesWithApplication(app));
+            store.dispatch(openWith(app));
             await logicMiddleware.whenComplete();
 
             // Assert
