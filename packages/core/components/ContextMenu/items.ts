@@ -7,6 +7,7 @@ export enum ContextMenuActions {
     COPY = "copy",
     CSV_MANIFEST = "csv-manifest",
     MODIFY_COLUMNS = "modify-columns",
+    OPEN = "open",
     OPEN_WITH = "open-with",
     OPEN_WITH_OTHER = "open-with-other",
     PASTE = "paste",
@@ -25,6 +26,13 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                 key: "non-programmatic-access",
                 text: "Non-programmatic access",
                 itemType: ContextualMenuItemType.Header,
+            },
+            {
+                key: ContextMenuActions.OPEN,
+                text: "Open",
+                onClick() {
+                    dispatch(interaction.actions.openWithDefault());
+                },
             },
             {
                 key: ContextMenuActions.OPEN_WITH,

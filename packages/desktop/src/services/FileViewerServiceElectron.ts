@@ -1,12 +1,13 @@
 import * as os from "os";
 
-import { FileViewerService } from "../../../core/services";
+import { FileViewerService, SystemDefaultAppLocation } from "../../../core/services";
 import NotificationServiceElectron from "./NotificationServiceElectron";
 import defaultViewerStrategy from "./file-viewer-strategy/defaultViewerStrategy";
 import fijiViewerStrategy from "./file-viewer-strategy/fijiViewerStrategy";
 import ViewerStrategy from "./file-viewer-strategy/ViewerStrategy";
 import { Platform } from "./ExecutionEnvServiceElectron";
 import macViewerStrategy from "./file-viewer-strategy/macViewerStrategy";
+import systemDefaultViewerStrategy from "./file-viewer-strategy/systemDefaultViewerStrategy";
 
 export default class FileViewerServiceElectron implements FileViewerService {
     private notificationService: NotificationServiceElectron;
@@ -32,6 +33,8 @@ export default class FileViewerServiceElectron implements FileViewerService {
         let viewerStrategy: ViewerStrategy = defaultViewerStrategy;
         if (executable.includes("Fiji") || RegExp("ImageJ-.*$").test(executable)) {
             viewerStrategy = fijiViewerStrategy;
+        } else if (executable === SystemDefaultAppLocation) {
+            viewerStrategy = systemDefaultViewerStrategy;
         } else if (os.platform() === Platform.Mac) {
             viewerStrategy = macViewerStrategy;
         }

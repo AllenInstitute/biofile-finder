@@ -23,10 +23,12 @@ import {
     REFRESH,
     SET_PLATFORM_DEPENDENT_SERVICES,
     promptUserToUpdateApp,
-    OPEN_FILES_WITH_APPLICATION,
+    OPEN_WITH,
     PROMPT_FOR_NEW_EXECUTABLE,
     setUserSelectedApplication,
-    openFilesWithApplication,
+    openWith,
+    OpenWithAction,
+    OPEN_WITH_DEFAULT,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -34,9 +36,13 @@ import { CancellationToken } from "../../services/FileDownloadService";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
 import { CreateDatasetRequest } from "../../services/DatasetService";
-import { SelectionRequest, Selection } from "../../services/FileService";
-import { ExecutableEnvCancellationToken } from "../../services/ExecutionEnvService";
+import { SelectionRequest, Selection, FmsFile } from "../../services/FileService";
+import {
+    ExecutableEnvCancellationToken,
+    SystemDefaultAppLocation,
+} from "../../services/ExecutionEnvService";
 import { AnnotationName } from "../../constants";
+import { UserSelectedApplication } from "../../services/PersistentConfigService";
 
 /**
  * Interceptor responsible for responding to a SET_PLATFORM_DEPENDENT_SERVICES action and
@@ -231,14 +237,78 @@ const promptForNewExecutable = createLogic({
 
             // Save app configuration & open files in new app
             dispatch(setUserSelectedApplication(apps));
-            dispatch(openFilesWithApplication(newApp, deps.action.payload));
+            dispatch(openWith(newApp, deps.action.payload));
         }
         done();
     },
     type: PROMPT_FOR_NEW_EXECUTABLE,
 });
 
-const openFilesWithApplicationLogic = createLogic({
+const SYSTEM_DEFAULT_APP: UserSelectedApplication = Object.freeze({
+    defaultFileKinds: [],
+    filePath: SystemDefaultAppLocation,
+});
+
+const openWithDefault = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const filters = deps.action.payload;
+        const fileService = interactionSelectors.getFileService(deps.getState());
+        const fileSelection = selection.selectors.getFileSelection(deps.getState());
+        const userSelectedApplications =
+            interactionSelectors.getUserSelectedApplications(deps.getState()) || [];
+
+        // Collect file information from either the folder filter or the file selection
+        let files;
+        if (!filters) {
+            files = await fileSelection.fetchAllDetails();
+        } else {
+            const fileSet = new FileSet({
+                filters,
+                fileService,
+            });
+            const totalFileCount = await fileSet.fetchTotalCount();
+            files = await fileSet.fetchFileRange(0, totalFileCount);
+        }
+
+        // Map file kinds to their default applications
+        const kindToApp = userSelectedApplications.reduce(
+            (kindToAppMap, app) =>
+                app.defaultFileKinds.reduce(
+                    (map, kind) => ({
+                        ...map,
+                        [kind]: app,
+                    }),
+                    kindToAppMap
+                ),
+            {} as { [kind: string]: UserSelectedApplication }
+        );
+
+        // Map apps to the files they are meant to open
+        const appToFiles = files.reduce((appToFilesMap, file) => {
+            const kinds =
+                (file.annotations.find((a) => a.name === AnnotationName.KIND)
+                    ?.values as string[]) || [];
+            const kind = kinds.length ? kinds[0] : "SYSTEM_DEFAULT";
+            const app = kindToApp[kind] || SYSTEM_DEFAULT_APP;
+            return {
+                ...appToFilesMap,
+                [app.filePath]: [...(appToFilesMap[app.filePath] || []), file],
+            };
+        }, {} as { [appFilePath: string]: FmsFile[] });
+
+        // Dispatch openWith events for the files grouped by app
+        Object.entries(appToFiles).forEach(([appFilePath, files]) => {
+            const app =
+                userSelectedApplications.find((a) => a.filePath === appFilePath) ||
+                SYSTEM_DEFAULT_APP;
+            dispatch(openWith(app, filters, files));
+        });
+        done();
+    },
+    type: OPEN_WITH_DEFAULT,
+});
+
+const openWithLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
@@ -268,9 +338,12 @@ const openFilesWithApplicationLogic = createLogic({
 
             // Verify that the executable location leads to a valid executable
             const {
-                filters,
-                app: { filePath: savedExecutableLocation },
-            } = deps.action.payload;
+                payload: {
+                    files,
+                    filters,
+                    app: { filePath: savedExecutableLocation },
+                },
+            } = deps.action as OpenWithAction;
             let executableLocation = savedExecutableLocation;
             const isValidExecutableLocation = await executionEnvService.isValidExecutable(
                 executableLocation
@@ -298,18 +371,20 @@ const openFilesWithApplicationLogic = createLogic({
             // If the user did not cancel out of a prompt, continue trying to open the executable
             if (executableLocation !== ExecutableEnvCancellationToken) {
                 // Gather up the file paths for the files selected currently
-                let files;
-                if (filters) {
+                let filesToOpen;
+                if (files) {
+                    filesToOpen = files;
+                } else if (filters) {
                     const fileSet = new FileSet({
                         filters,
                         fileService,
                     });
                     const totalFileCount = await fileSet.fetchTotalCount();
-                    files = await fileSet.fetchFileRange(0, totalFileCount);
+                    filesToOpen = await fileSet.fetchFileRange(0, totalFileCount);
                 } else {
-                    files = await fileSelection.fetchAllDetails();
+                    filesToOpen = await fileSelection.fetchAllDetails();
                 }
-                const filePaths = files.map((file) =>
+                const filePaths = filesToOpen.map((file) =>
                     executionEnvService.formatPathForOs(
                         file.file_path.substring("/allen".length),
                         allenMountPoint
@@ -322,7 +397,7 @@ const openFilesWithApplicationLogic = createLogic({
         }
         done();
     },
-    type: OPEN_FILES_WITH_APPLICATION,
+    type: OPEN_WITH,
 });
 
 /**
@@ -443,7 +518,8 @@ export default [
     checkForUpdates,
     downloadManifest,
     cancelManifestDownloadLogic,
-    openFilesWithApplicationLogic,
+    openWithDefault,
+    openWithLogic,
     promptForNewExecutable,
     showContextMenu,
     generatePythonSnippet,

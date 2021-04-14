@@ -9,6 +9,11 @@ export default interface ExecutionEnvService {
     formatPathForOs(posixPath: string, prefix?: string): string;
 
     /**
+     * Return file name from path. Removes extension as well.
+     */
+    getFilename(filePath: string): string;
+
+    /**
      * Return operating system. If running in the browser, expect the return value "Browser".
      */
     getOS(): string;
@@ -46,6 +51,11 @@ export default interface ExecutionEnvService {
      */
     isValidExecutable(executablePath: string): Promise<boolean>;
 }
+
+/**
+ * Sentinal value used to open files using the system default application.
+ */
+export const SystemDefaultAppLocation = "SYSTEM_DEFAULT_APP_LOCATION";
 
 /**
  * Sentinel value used to send and check for cancellation of a executable prompt.

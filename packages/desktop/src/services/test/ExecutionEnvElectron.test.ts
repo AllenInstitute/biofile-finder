@@ -6,7 +6,10 @@ import { expect } from "chai";
 import { ipcRenderer } from "electron";
 import { createSandbox } from "sinon";
 
-import { ExecutableEnvCancellationToken } from "./../../../../core/services";
+import {
+    ExecutableEnvCancellationToken,
+    SystemDefaultAppLocation,
+} from "./../../../../core/services";
 import ExecutionEnvServiceElectron, {
     KNOWN_FOLDERS_IN_ALLEN_DRIVE,
     Platform,
@@ -364,6 +367,17 @@ describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
 
             // Assert
             expect(result).to.be.false;
+        });
+
+        it("returns true if path is alias for system default value", async () => {
+            // Arrange
+            const service = new ExecutionEnvServiceElectron(new NotificationServiceElectron());
+
+            // Act
+            const result = await service.isValidExecutable(SystemDefaultAppLocation);
+
+            // Assert
+            expect(result).to.be.true;
         });
     });
 });

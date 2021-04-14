@@ -8,6 +8,10 @@ export default class ExecutionEnvServiceNoop implements ExecutionEnvService {
         return posixPath;
     }
 
+    public getFilename(): string {
+        return "ExecutionEnvServiceNoop::getFilename";
+    }
+
     public getOS(): string {
         return "ExecutionEnvServiceNoop::getOS";
     }
