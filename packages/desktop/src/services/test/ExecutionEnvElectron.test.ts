@@ -146,7 +146,7 @@ describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
 
         afterEach(() => {
             sandbox.restore();
-            fs.rmSync(tmpDir, { recursive: true });
+            fs.rmSync(executablePath, { recursive: true });
         });
 
         it("returns executable as selected", async () => {
