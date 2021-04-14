@@ -341,7 +341,7 @@ describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
         });
 
         after(() => {
-            fs.rmSync(tmpDir, { recursive: true, force: true });
+            fs.rmSync(executable, { recursive: true, force: true });
         });
 
         it("returns true when valid", async () => {
