@@ -17,11 +17,14 @@ const systemDefaultViewerStrategy: ViewerStrategy = async (_, filePaths) => {
         args = filePaths;
     } else if (os.platform() === Platform.Windows) {
         command = "start";
-        args = filePaths;
+        // The "start" command does not accept multiple file arguments so
+        // this chains the commands together instead
+        args = filePaths.join(" && start ").split(" ");
     }
 
     const executableProcess = childProcess.spawn(command, args, {
         detached: true,
+        shell: os.platform() === Platform.Windows,
         stdio: "ignore", // If the parent's stdio is inherited, the child will remain attached to the controlling terminal.
     });
 
