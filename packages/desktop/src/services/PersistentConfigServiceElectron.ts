@@ -1,45 +1,74 @@
 import * as os from "os";
 import * as path from "path";
 
-import Store, { Schema } from "electron-store";
+import Store, { Options } from "electron-store";
 
 import {
     PersistentConfigService,
     PersistedConfig,
     PersistedConfigKeys,
+    UserSelectedApplication,
 } from "../../../core/services";
+import { find } from "lodash";
 
-// Defines a validation schema for data inserted into the persistent storage
-// if a breaking change is made see migration patterns in elecron-store docs
-const STORAGE_SCHEMA: Schema<Record<string, unknown>> = {
-    [PersistedConfigKeys.AllenMountPoint]: {
-        type: "string",
-    },
-    [PersistedConfigKeys.CsvColumns]: {
-        type: "array",
-        items: {
+const OPTIONS: Options<Record<string, unknown>> = {
+    // Defines a validation schema for data inserted into the persistent storage
+    // if a breaking change is made see migration patterns in elecron-store docs
+    schema: {
+        [PersistedConfigKeys.AllenMountPoint]: {
             type: "string",
         },
-    },
-    // ImageJExecutable is Deprecated
-    [PersistedConfigKeys.ImageJExecutable]: {
-        type: "string",
-    },
-    [PersistedConfigKeys.UserSelectedApplications]: {
-        type: "array",
-        items: {
-            type: "object",
-            properties: {
-                defaultFileKinds: {
-                    type: "array",
-                    items: {
+        [PersistedConfigKeys.CsvColumns]: {
+            type: "array",
+            items: {
+                type: "string",
+            },
+        },
+        // ImageJExecutable is Deprecated
+        [PersistedConfigKeys.ImageJExecutable]: {
+            type: "string",
+        },
+        [PersistedConfigKeys.UserSelectedApplications]: {
+            type: "array",
+            items: {
+                type: "object",
+                properties: {
+                    defaultFileKinds: {
+                        type: "array",
+                        items: {
+                            type: "string",
+                        },
+                    },
+                    filePath: {
                         type: "string",
                     },
                 },
-                filePath: {
-                    type: "string",
-                },
             },
+        },
+    },
+    migrations: {
+        // Migrate deprecated ImageJExecutable to new UserSelectedApplication key
+        ">4.3.0": (store) => {
+            if (store.has(PersistedConfigKeys.ImageJExecutable)) {
+                const fijiExePath = store.get(PersistedConfigKeys.ImageJExecutable) as string;
+                const userSelectedApplications = store.get(
+                    PersistedConfigKeys.UserSelectedApplications,
+                    []
+                ) as UserSelectedApplication[];
+                const fijiConfig = find(
+                    userSelectedApplications,
+                    (config) => config.filePath === fijiExePath
+                );
+                if (!fijiConfig) {
+                    store.set(PersistedConfigKeys.UserSelectedApplications, [
+                        ...userSelectedApplications,
+                        { filePath: fijiExePath, defaultFileKinds: [] },
+                    ]);
+                }
+
+                // Once migrated, remove the deprecated path
+                store.delete(PersistedConfigKeys.ImageJExecutable);
+            }
         },
     },
 };
@@ -59,7 +88,7 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     }
 
     public constructor(options: PersistentConfigServiceElectronOptions = {}) {
-        this.store = new Store({ schema: STORAGE_SCHEMA });
+        this.store = new Store(OPTIONS);
         if (options.clearExistingData) {
             this.store.clear();
         }

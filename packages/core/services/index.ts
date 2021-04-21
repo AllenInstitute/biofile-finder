@@ -15,4 +15,4 @@ export type {
     default as PersistentConfigService,
     PersistedConfig,
 } from "./PersistentConfigService";
-export { PersistedConfigKeys } from "./PersistentConfigService";
+export { PersistedConfigKeys, UserSelectedApplication } from "./PersistentConfigService";
