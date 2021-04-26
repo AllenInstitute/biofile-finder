@@ -73,6 +73,10 @@ export default class FileDetail {
         return this.fileDetail.file_path;
     }
 
+    public get size() {
+        return this.fileDetail.file_size;
+    }
+
     public get thumbnail() {
         return this.fileDetail.thumbnail;
     }

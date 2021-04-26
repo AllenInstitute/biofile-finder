@@ -40,7 +40,13 @@ export default function Download(props: DownloadProps) {
             ariaLabel="Download file"
             iconProps={{ iconName: "Download" }}
             onClick={() => {
-                dispatch(interaction.actions.downloadFile(fileDetails.path));
+                dispatch(
+                    interaction.actions.downloadFile(
+                        fileDetails.name,
+                        fileDetails.path,
+                        fileDetails.size
+                    )
+                );
             }}
             styles={ICON_BUTTON_STYLES}
             title="Download file"

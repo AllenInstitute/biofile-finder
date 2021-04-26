@@ -70,15 +70,23 @@ export const DOWNLOAD_FILE = makeConstant(STATE_BRANCH_NAME, "download-file");
 
 export interface DownloadFileAction {
     payload: {
+        fileName: string;
         filePath: string;
+        fileSize: number;
     };
     type: string;
 }
 
-export function downloadFile(filePath: string): DownloadFileAction {
+export function downloadFile(
+    fileName: string,
+    filePath: string,
+    fileSize: number
+): DownloadFileAction {
     return {
         payload: {
+            fileName,
             filePath,
+            fileSize,
         },
         type: DOWNLOAD_FILE,
     };
@@ -274,6 +282,7 @@ export function setPlatformDependentServices(
 
 export enum ProcessStatus {
     STARTED,
+    PROGRESS,
     SUCCEEDED,
     FAILED,
     NOT_SET,
@@ -283,6 +292,7 @@ export interface StatusUpdate {
     data: {
         msg: string;
         status?: ProcessStatus;
+        progress?: number; // num in range [0, 1] indicating progress
     };
     id: string; // uuid
     onCancel?: () => void;
@@ -350,6 +360,36 @@ export function startManifestDownload(
             data: {
                 msg,
                 status: ProcessStatus.STARTED,
+            },
+            id,
+            onCancel,
+        },
+    };
+}
+
+/**
+ * FILE_DOWNLOAD_PROGRESS
+ *
+ * Intention to inform the user of progress toward downloading a file.
+ */
+export interface FileDownloadProgressAction {
+    type: string;
+    payload: StatusUpdate;
+}
+
+export function fileDownloadProgress(
+    id: string,
+    progress: number,
+    msg: string,
+    onCancel: () => void
+): FileDownloadProgressAction {
+    return {
+        type: SET_STATUS,
+        payload: {
+            data: {
+                msg,
+                status: ProcessStatus.PROGRESS,
+                progress,
             },
             id,
             onCancel,

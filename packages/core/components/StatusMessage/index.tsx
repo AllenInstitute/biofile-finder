@@ -2,6 +2,7 @@ import { map } from "lodash";
 import {
     MessageBar,
     MessageBarType,
+    ProgressIndicator,
     Spinner,
     SpinnerSize,
     Stack,
@@ -17,6 +18,7 @@ const styles = require("./StatusMessage.module.css");
 
 const statusToTypeMap = {
     [ProcessStatus.STARTED]: MessageBarType.info,
+    [ProcessStatus.PROGRESS]: MessageBarType.info,
     [ProcessStatus.SUCCEEDED]: MessageBarType.success,
     [ProcessStatus.FAILED]: MessageBarType.error,
     [ProcessStatus.NOT_SET]: MessageBarType.info,
@@ -24,6 +26,7 @@ const statusToTypeMap = {
 
 const statusToBackgroundColorMap = {
     [ProcessStatus.STARTED]: "rgb(210, 207, 212)", // gray
+    [ProcessStatus.PROGRESS]: "rgb(210, 207, 212)", // gray
     [ProcessStatus.SUCCEEDED]: "rgb(95, 210, 85)", // green
     [ProcessStatus.FAILED]: "rgb(245, 135, 145)", // red
     [ProcessStatus.NOT_SET]: "rgb(210, 207, 212)", // gray
@@ -54,7 +57,7 @@ export default function StatusMessage() {
                 useSelector(interaction.selectors.getProcessStatuses),
                 (statusUpdate: StatusUpdate) => {
                     const {
-                        data: { msg, status = ProcessStatus.NOT_SET },
+                        data: { msg, status = ProcessStatus.NOT_SET, progress },
                         onCancel,
                     } = statusUpdate;
                     let cancelButton;
@@ -86,6 +89,9 @@ export default function StatusMessage() {
                                     style={{ userSelect: "text" }}
                                 ></div>
                             </div>
+                            {progress !== undefined && (
+                                <ProgressIndicator percentComplete={progress} />
+                            )}
                         </MessageBar>
                     );
                 }

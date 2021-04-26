@@ -31,10 +31,12 @@ import {
     OPEN_WITH_DEFAULT,
     DOWNLOAD_FILE,
     DownloadFileAction,
+    fileDownloadProgress,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
 import { CancellationToken } from "../../services/FileDownloadService";
+import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
 import { CreateDatasetRequest } from "../../services/DatasetService";
@@ -194,25 +196,44 @@ const cancelManifestDownloadLogic = createLogic({
  */
  const downloadFile = createLogic({
     type: DOWNLOAD_FILE,
-    process(deps: ReduxLogicDeps, dispatch, done) {
+    async process(deps: ReduxLogicDeps, dispatch, done) {
         const {
-            payload: { filePath },
+            payload: { fileName, filePath, fileSize },
         } = deps.action as DownloadFileAction;
         const downloadRequestId = uniqueId();
         const state = deps.getState();
         const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(state);
 
-        const onProgress = debounce((bytesDownloaded: number) => {
-            console.log(bytesDownloaded);
-        });
+        const numberFormatter = annotationFormatterFactory(AnnotationType.NUMBER);
+        const msg = `Downloading ${fileName} - ${numberFormatter.displayValue(fileSize, "bytes")}`;
+        const onCancel = () => {
+            dispatch(cancelManifestDownload(downloadRequestId));
+        };
 
-        fileDownloadService
-            .downloadFile(filePath, downloadRequestId, onProgress)
-            .catch((err) => {
-                const errorMsg = `File download failed.<br/>${err}`;
-                console.error(errorMsg);
-            })
-            .finally(done);
+        const onProgress = (bytesDownloaded: number) => {
+            dispatch(
+                fileDownloadProgress(downloadRequestId, bytesDownloaded / fileSize, msg, onCancel)
+            );
+        };
+
+        try {
+            const result = await fileDownloadService.downloadFile(
+                filePath,
+                downloadRequestId,
+                onProgress
+            );
+            if (result === CancellationToken) {
+                dispatch(removeStatus(downloadRequestId));
+                return;
+            }
+            const successMsg = `Downloaded ${fileName}`;
+            dispatch(succeedManifestDownload(downloadRequestId, successMsg));
+        } catch (err) {
+            const errorMsg = `File download failed.<br/>${err}`;
+            dispatch(failManifestDownload(downloadRequestId, errorMsg));
+        } finally {
+            done();
+        }
     },
 });
 
