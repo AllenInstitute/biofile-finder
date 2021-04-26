@@ -1,5 +1,5 @@
 import * as path from "path";
-import { isEmpty, uniq, uniqueId } from "lodash";
+import { debounce, isEmpty, uniq, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { metadata, ReduxLogicDeps, selection } from "../";
@@ -29,6 +29,8 @@ import {
     openWith,
     OpenWithAction,
     OPEN_WITH_DEFAULT,
+    DOWNLOAD_FILE,
+    DownloadFileAction,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -184,6 +186,33 @@ const cancelManifestDownloadLogic = createLogic({
                 )
             );
         }
+    },
+});
+
+/**
+ * TODO
+ */
+ const downloadFile = createLogic({
+    type: DOWNLOAD_FILE,
+    process(deps: ReduxLogicDeps, dispatch, done) {
+        const {
+            payload: { filePath },
+        } = deps.action as DownloadFileAction;
+        const downloadRequestId = uniqueId();
+        const state = deps.getState();
+        const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(state);
+
+        const onProgress = debounce((bytesDownloaded: number) => {
+            console.log(bytesDownloaded);
+        });
+
+        fileDownloadService
+            .downloadFile(filePath, downloadRequestId, onProgress)
+            .catch((err) => {
+                const errorMsg = `File download failed.<br/>${err}`;
+                console.error(errorMsg);
+            })
+            .finally(done);
     },
 });
 
@@ -521,6 +550,7 @@ export default [
     openWithDefault,
     openWithLogic,
     promptForNewExecutable,
+    downloadFile,
     showContextMenu,
     generatePythonSnippet,
     refresh,

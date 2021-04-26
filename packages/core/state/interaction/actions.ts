@@ -64,6 +64,50 @@ export function cancelManifestDownload(id: string): CancelManifestDownloadAction
 }
 
 /**
+ * DOWNLOAD_FILE
+ */
+export const DOWNLOAD_FILE = makeConstant(STATE_BRANCH_NAME, "download-file");
+
+export interface DownloadFileAction {
+    payload: {
+        filePath: string;
+    };
+    type: string;
+}
+
+export function downloadFile(filePath: string): DownloadFileAction {
+    return {
+        payload: {
+            filePath,
+        },
+        type: DOWNLOAD_FILE,
+    };
+}
+
+/**
+ * CANCEL_FILE_DOWNLOAD
+ *
+ * Intention to cancel an in-progress file download.
+ */
+export const CANCEL_FILE_DOWNLOAD = makeConstant(STATE_BRANCH_NAME, "cancel-file-download");
+
+export interface CancelFileDownloadAction {
+    payload: {
+        id: string;
+    };
+    type: string;
+}
+
+export function cancelFileDownload(id: string): CancelFileDownloadAction {
+    return {
+        payload: {
+            id,
+        },
+        type: CANCEL_FILE_DOWNLOAD,
+    };
+}
+
+/**
  * SET_ALLEN_MOUNT_POINT
  *
  * Intention to set the allen mount point.

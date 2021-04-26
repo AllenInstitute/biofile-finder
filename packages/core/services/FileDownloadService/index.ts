@@ -6,13 +6,22 @@ export default interface FileDownloadService {
      * Download a CSV manifest from `url` of selected files described by `data` (POST data). `totalCount` represents
      * the total number of selected files.
      */
-    downloadCsvManifest(url: string, data: string, id: string): Promise<string>;
+    downloadCsvManifest(url: string, data: string, downloadRequestId: string): Promise<string>;
+
+    /**
+     * TODO
+     */
+    downloadFile(
+        filePath: string,
+        downloadRequestId: string,
+        onProgress?: (bytesDownloaded: number) => void
+    ): Promise<string>;
 
     /**
      * Attempt to cancel an active download request, deleting the downloaded artifact if present.
      * Returns whether or not the file was present (to be deleted).
      */
-    cancelActiveRequest(id: string): Promise<void>;
+    cancelActiveRequest(downloadRequestId: string): Promise<void>;
 }
 
 /**

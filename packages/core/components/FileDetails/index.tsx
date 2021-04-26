@@ -5,6 +5,7 @@ import FileThumbnail from "../../components/FileThumbnail";
 import WindowActionButton from "../../components/WindowActionButton";
 import useFileDetails from "./useFileDetails";
 import windowStateReducer, { INITIAL_STATE, WindowState } from "./windowStateReducer";
+import Download from "./Download";
 import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
 
@@ -95,6 +96,7 @@ export default function FileDetails(props: FileDetails) {
                                 />
                             </div>
                         )}
+                        <Download fileDetails={fileDetails} />
                         <FileAnnotationList fileDetails={fileDetails} isLoading={isLoading} />
                         <div className={styles.spacer} />
                         <div className={styles.gradientTeaser} />

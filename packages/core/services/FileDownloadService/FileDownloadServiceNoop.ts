@@ -7,6 +7,12 @@ export default class FileDownloadServiceNoop implements FileDownloadService {
         );
     }
 
+    public downloadFile(filePath: string) {
+        return Promise.resolve(
+            `Download of ${filePath} triggered on FileDownloadServiceNoop; returning without triggering a download.`
+        );
+    }
+
     public cancelActiveRequest(): Promise<void> {
         return Promise.resolve();
     }
