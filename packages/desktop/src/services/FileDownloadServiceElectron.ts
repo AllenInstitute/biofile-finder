@@ -121,14 +121,14 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         return this.download({ downloadRequestId, url, outFilePath, requestOptions, onProgress });
     }
 
-    public async cancelActiveRequest(id: string): Promise<void> {
-        if (!this.activeRequestMap.hasOwnProperty(id)) {
+    public async cancelActiveRequest(downloadRequestId: string): Promise<void> {
+        if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
             return Promise.resolve();
         }
         return new Promise((resolve, reject) => {
-            const { filePath, request } = this.activeRequestMap[id];
+            const { filePath, request } = this.activeRequestMap[downloadRequestId];
             request.destroy(new Error(FileDownloadCancellationToken));
-            delete this.activeRequestMap[id];
+            delete this.activeRequestMap[downloadRequestId];
             // If an artifact has been created, we want to delete any remnants of it
             fs.access(filePath, fs.constants.F_OK, (err) => {
                 if (!err) {
@@ -136,7 +136,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         if (!err) {
                             resolve();
                         } else {
-                            reject();
+                            reject(err);
                         }
                     });
                 } else {

@@ -5,21 +5,21 @@ import { initialState } from "../..";
 import {
     ProcessStatus,
     removeStatus,
-    startManifestDownload,
-    succeedManifestDownload,
-    failManifestDownload,
+    processStart,
+    processSuccess,
+    processFailure,
 } from "../actions";
 
 describe("Interaction reducer", () => {
     describe("Process status management", () => {
         it("clears status state for a given process id", () => {
             // arrange
-            const id = "abc123";
+            const processId = "abc123";
             const prevState = {
                 ...interaction.initialState,
                 status: [
                     {
-                        id,
+                        processId,
                         data: {
                             msg: "something is in progress",
                             status: ProcessStatus.STARTED,
@@ -29,7 +29,7 @@ describe("Interaction reducer", () => {
             };
 
             // act
-            const nextState = interaction.reducer(prevState, removeStatus(id));
+            const nextState = interaction.reducer(prevState, removeStatus(processId));
 
             // assert
             // sanity-check on prevState to ensure this isn't evergreen
@@ -48,14 +48,14 @@ describe("Interaction reducer", () => {
             ).to.be.empty;
         });
 
-        it("records the start of a manifest download, leaving only the start status in state", () => {
+        it("records the start of a process, leaving only the start status in state", () => {
             // arrange
-            const id = "abc123";
+            const processId = "abc123";
             const prevState = {
                 ...interaction.initialState,
                 status: [
                     {
-                        id,
+                        processId,
                         data: {
                             msg: "something failed",
                             status: ProcessStatus.FAILED, // say, a previous failure and the user is going to retry
@@ -63,16 +63,10 @@ describe("Interaction reducer", () => {
                     },
                 ],
             };
-            const manifestDownloadStartAction = startManifestDownload(
-                id,
-                "something started",
-                () => {
-                    /** noop */
-                }
-            );
+            const startAction = processStart(processId, "something started");
 
             // act
-            const nextState = interaction.reducer(prevState, manifestDownloadStartAction);
+            const nextState = interaction.reducer(prevState, startAction);
 
             // assert
             expect(
@@ -83,17 +77,17 @@ describe("Interaction reducer", () => {
             )
                 .to.be.an("array")
                 .of.length(1)
-                .and.to.deep.include(manifestDownloadStartAction.payload);
+                .and.to.deep.include(startAction.payload);
         });
 
-        it("updates the status of a manifest download to success, leaving only the success status in state", () => {
+        it("updates the status of a process to success, leaving only the success status in state", () => {
             // arrange
-            const id = "abc123";
+            const processId = "abc123";
             const prevState = {
                 ...interaction.initialState,
                 status: [
                     {
-                        id,
+                        processId,
                         data: {
                             msg: "something is in progress",
                             status: ProcessStatus.STARTED,
@@ -101,10 +95,10 @@ describe("Interaction reducer", () => {
                     },
                 ],
             };
-            const manifestDownloadSuccessAction = succeedManifestDownload(id, "huzzah");
+            const successAction = processSuccess(processId, "huzzah");
 
             // act
-            const nextState = interaction.reducer(prevState, manifestDownloadSuccessAction);
+            const nextState = interaction.reducer(prevState, successAction);
 
             // assert
             expect(
@@ -115,17 +109,17 @@ describe("Interaction reducer", () => {
             )
                 .to.be.an("array")
                 .of.length(1)
-                .and.to.deep.include(manifestDownloadSuccessAction.payload);
+                .and.to.deep.include(successAction.payload);
         });
 
-        it("updates the status of a manifest download to failed, leaving only the failure status in state", () => {
+        it("updates the status of a process to failed, leaving only the failure status in state", () => {
             // arrange
-            const id = "abc123";
+            const processId = "abc123";
             const prevState = {
                 ...interaction.initialState,
                 status: [
                     {
-                        id,
+                        processId,
                         data: {
                             msg: "something is in progress",
                             status: ProcessStatus.STARTED,
@@ -133,10 +127,10 @@ describe("Interaction reducer", () => {
                     },
                 ],
             };
-            const manifestDownloadFailAction = failManifestDownload(id, "whoops");
+            const failAction = processFailure(processId, "whoops");
 
             // act
-            const nextState = interaction.reducer(prevState, manifestDownloadFailAction);
+            const nextState = interaction.reducer(prevState, failAction);
 
             // assert
             expect(
@@ -147,7 +141,7 @@ describe("Interaction reducer", () => {
             )
                 .to.be.an("array")
                 .of.length(1)
-                .and.to.deep.include(manifestDownloadFailAction.payload);
+                .and.to.deep.include(failAction.payload);
         });
     });
 });

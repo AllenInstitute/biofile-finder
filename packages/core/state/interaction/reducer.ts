@@ -91,7 +91,10 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [REMOVE_STATUS]: (state, action) => ({
             ...state,
-            status: filter(state.status, (status: StatusUpdate) => status.id !== action.payload.id),
+            status: filter(
+                state.status,
+                (status: StatusUpdate) => status.processId !== action.payload.processId
+            ),
         }),
         [HIDE_CONTEXT_MENU]: (state) => ({
             ...state,
@@ -119,7 +122,10 @@ export default makeReducer<InteractionStateBranch>(
         [SET_STATUS]: (state, action) => ({
             ...state,
             status: [
-                ...filter(state.status, (status: StatusUpdate) => status.id !== action.payload.id),
+                ...filter(
+                    state.status,
+                    (status: StatusUpdate) => status.processId !== action.payload.processId
+                ),
                 action.payload,
             ],
         }),
@@ -165,7 +171,10 @@ export default makeReducer<InteractionStateBranch>(
         [SUCCEED_PYTHON_SNIPPET_GENERATION]: (state, action) => ({
             ...state,
             pythonSnippet: action.payload.pythonSnippet,
-            status: filter(state.status, (status: StatusUpdate) => status.id !== action.payload.id),
+            status: filter(
+                state.status,
+                (status: StatusUpdate) => status.processId !== action.payload.processId
+            ),
             visibleModal: ModalType.PythonSnippet,
         }),
     },

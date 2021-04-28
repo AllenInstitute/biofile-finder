@@ -6,20 +6,19 @@ import { metadata, ReduxLogicDeps, selection } from "../";
 import {
     DOWNLOAD_MANIFEST,
     DownloadManifestAction,
-    succeedManifestDownload,
-    failManifestDownload,
+    processSuccess,
+    processFailure,
     removeStatus,
-    startManifestDownload,
+    processStart,
     SHOW_CONTEXT_MENU,
     CANCEL_FILE_DOWNLOAD,
     cancelFileDownload,
+    CancelFileDownloadAction,
     setAllenMountPoint,
     setCsvColumns,
     GENERATE_PYTHON_SNIPPET,
     GeneratePythonSnippetAction,
-    startPythonSnippetGeneration,
     succeedPythonSnippetGeneration,
-    failPythonSnippetGeneration,
     REFRESH,
     SET_PLATFORM_DEPENDENT_SERVICES,
     promptUserToUpdateApp,
@@ -31,7 +30,7 @@ import {
     OPEN_WITH_DEFAULT,
     DOWNLOAD_FILE,
     DownloadFileAction,
-    fileDownloadProgress,
+    processProgress,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -133,7 +132,7 @@ const downloadManifest = createLogic({
                 dispatch(cancelFileDownload(manifestDownloadProcessId));
             };
             dispatch(
-                startManifestDownload(
+                processStart(
                     manifestDownloadProcessId,
                     "Download of CSV manifest in progress.",
                     onManifestDownloadCancel
@@ -155,10 +154,10 @@ const downloadManifest = createLogic({
             }
 
             const successMsg = `Download of CSV manifest successfully finished.<br/>${message}`;
-            dispatch(succeedManifestDownload(manifestDownloadProcessId, successMsg));
+            dispatch(processSuccess(manifestDownloadProcessId, successMsg));
         } catch (err) {
             const errorMsg = `Download of CSV manifest failed.<br/>${err}`;
-            dispatch(failManifestDownload(manifestDownloadProcessId, errorMsg));
+            dispatch(processFailure(manifestDownloadProcessId, errorMsg));
         } finally {
             dispatch(setCsvColumns(annotations.map((annotation) => annotation.displayName)));
             done();
@@ -167,23 +166,23 @@ const downloadManifest = createLogic({
 });
 
 /**
- * Interceptor responsible for responding to a CANCEL_MANIFEST_DOWNLOAD action and cancelling
- * the corresponding manifest download request (including deleting the potential artifact)
+ * Interceptor responsible for responding to a CANCEL_FILE_DOWNLOAD action and cancelling
+ * the corresponding download request (including deleting the partially downloaded artifact, if any)
  */
 const cancelFileDownloadLogic = createLogic({
     type: CANCEL_FILE_DOWNLOAD,
     async transform(deps: ReduxLogicDeps, next, reject) {
-        const { action, getState } = deps;
+        const action = deps.action as CancelFileDownloadAction;
         const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(
-            getState()
+            deps.getState()
         );
         try {
-            await fileDownloadService.cancelActiveRequest(action.payload.id);
+            await fileDownloadService.cancelActiveRequest(action.payload.downloadProcessId);
             reject && reject(action);
         } catch (err) {
             next(
-                failManifestDownload(
-                    action.payload.id,
+                processFailure(
+                    action.payload.downloadProcessId,
                     "Something went wrong cleaning up cancelled download."
                 )
             );
@@ -211,9 +210,7 @@ const cancelFileDownloadLogic = createLogic({
         };
 
         const onProgress = (bytesDownloaded: number) => {
-            dispatch(
-                fileDownloadProgress(downloadRequestId, bytesDownloaded / fileSize, msg, onCancel)
-            );
+            dispatch(processProgress(downloadRequestId, bytesDownloaded / fileSize, msg, onCancel));
         };
 
         try {
@@ -227,10 +224,10 @@ const cancelFileDownloadLogic = createLogic({
                 return;
             }
             const successMsg = `Downloaded ${fileName}`;
-            dispatch(succeedManifestDownload(downloadRequestId, successMsg));
+            dispatch(processSuccess(downloadRequestId, successMsg));
         } catch (err) {
             const errorMsg = `File download failed.<br/>${err}`;
-            dispatch(failManifestDownload(downloadRequestId, errorMsg));
+            dispatch(processFailure(downloadRequestId, errorMsg));
         } finally {
             done();
         }
@@ -481,7 +478,12 @@ const generatePythonSnippet = createLogic({
         } = action as GeneratePythonSnippetAction;
         const generatePythonSnippetProcessId = uniqueId();
         try {
-            dispatch(startPythonSnippetGeneration(generatePythonSnippetProcessId));
+            dispatch(
+                processStart(
+                    generatePythonSnippetProcessId,
+                    "Generation of Python snippet is in progress."
+                )
+            );
             const datasetService = interactionSelectors.getDatasetService(getState());
             const fileService = interactionSelectors.getFileService(getState());
             const filters = interactionSelectors.getFileFiltersForVisibleModal(getState());
@@ -522,7 +524,7 @@ const generatePythonSnippet = createLogic({
             dispatch(succeedPythonSnippetGeneration(generatePythonSnippetProcessId, pythonSnippet));
         } catch (err) {
             dispatch(
-                failPythonSnippetGeneration(
+                processFailure(
                     generatePythonSnippetProcessId,
                     `Failed to generate Python snippet: ${err}`
                 )

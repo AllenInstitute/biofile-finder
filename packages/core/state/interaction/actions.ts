@@ -273,7 +273,7 @@ export interface StatusUpdate {
         status?: ProcessStatus;
         progress?: number; // num in range [0, 1] indicating progress
     };
-    id: string; // uuid
+    processId: string; // uuid
     onCancel?: () => void;
 }
 
@@ -283,15 +283,15 @@ export const REMOVE_STATUS = makeConstant(STATE_BRANCH_NAME, "remove-status");
 export interface RemoveStatusAction {
     type: string;
     payload: {
-        id: string; // references a StatusUpdate.id
+        processId: string; // references a StatusUpdate.id
     };
 }
 
-export function removeStatus(id: string): RemoveStatusAction {
+export function removeStatus(processId: string): RemoveStatusAction {
     return {
         type: REMOVE_STATUS,
         payload: {
-            id,
+            processId,
         },
     };
 }
@@ -306,33 +306,33 @@ export interface PromptUserToUpdateApp {
     payload: StatusUpdate;
 }
 
-export function promptUserToUpdateApp(id: string, msg: string): PromptUserToUpdateApp {
+export function promptUserToUpdateApp(processId: string, msg: string): PromptUserToUpdateApp {
     return {
         type: SET_STATUS,
         payload: {
             data: {
                 msg,
             },
-            id,
+            processId,
         },
     };
 }
 
 /**
- * MANIFEST_DOWNLOAD_START
+ * START PROCESS
  *
- * Intention to inform the user of the start of a manifest download.
+ * Intention to inform the user of the start of a (potentially long-running) process.
  */
-export interface ManifestDownloadStartAction {
+export interface ProcessStartAction {
     type: string;
     payload: StatusUpdate;
 }
 
-export function startManifestDownload(
-    id: string,
+export function processStart(
+    processId: string,
     msg: string,
-    onCancel: () => void
-): ManifestDownloadStartAction {
+    onCancel?: () => void
+): ProcessStartAction {
     return {
         type: SET_STATUS,
         payload: {
@@ -340,74 +340,28 @@ export function startManifestDownload(
                 msg,
                 status: ProcessStatus.STARTED,
             },
-            id,
+            processId,
             onCancel,
         },
     };
 }
 
 /**
- * MANIFEST_DOWNLOAD_SUCCESS
+ * PROCESS PROGRESS
  *
- * Intention to inform the user of the success of a manifest download.
+ * Intention to inform the user of progress toward a (potentially long-running) process.
  */
-export interface ManifestDownloadSuccessAction {
+export interface ProcessProgressAction {
     type: string;
     payload: StatusUpdate;
 }
 
-export function succeedManifestDownload(id: string, msg: string): ManifestDownloadSuccessAction {
-    return {
-        type: SET_STATUS,
-        payload: {
-            data: {
-                msg,
-                status: ProcessStatus.SUCCEEDED,
-            },
-            id,
-        },
-    };
-}
-
-/**
- * MANIFEST_DOWNLOAD_FAILURE
- *
- * Intention to inform the user of a failure in a download of a manifest.
- */
-export interface ManifestDownloadFailureAction {
-    type: string;
-    payload: StatusUpdate;
-}
-
-export function failManifestDownload(id: string, msg: string): ManifestDownloadFailureAction {
-    return {
-        type: SET_STATUS,
-        payload: {
-            data: {
-                msg,
-                status: ProcessStatus.FAILED,
-            },
-            id,
-        },
-    };
-}
-
-/**
- * FILE_DOWNLOAD_PROGRESS
- *
- * Intention to inform the user of progress toward downloading a file.
- */
-export interface FileDownloadProgressAction {
-    type: string;
-    payload: StatusUpdate;
-}
-
-export function fileDownloadProgress(
-    id: string,
+export function processProgress(
+    processId: string,
     progress: number,
     msg: string,
     onCancel: () => void
-): FileDownloadProgressAction {
+): ProcessProgressAction {
     return {
         type: SET_STATUS,
         payload: {
@@ -416,31 +370,54 @@ export function fileDownloadProgress(
                 status: ProcessStatus.PROGRESS,
                 progress,
             },
-            id,
+            processId,
             onCancel,
         },
     };
 }
 
 /**
- * PYTHON_SNIPPET_GENERATION_START
+ * PROCESS SUCCESS
  *
- * Intention to inform the user of the start of a python snippet generation.
+ * Intention to inform the user of the success of a (potentially long-running) process.
  */
-export interface StartPythonSnippetGenerationAction {
+export interface ProcessSuccessAction {
     type: string;
     payload: StatusUpdate;
 }
 
-export function startPythonSnippetGeneration(id: string): StartPythonSnippetGenerationAction {
+export function processSuccess(processId: string, msg: string): ProcessSuccessAction {
     return {
         type: SET_STATUS,
         payload: {
             data: {
-                msg: "Generation of Python snippet is in progress.",
-                status: ProcessStatus.STARTED,
+                msg,
+                status: ProcessStatus.SUCCEEDED,
             },
-            id,
+            processId,
+        },
+    };
+}
+
+/**
+ * PROCESS FAILURE
+ *
+ * Intention to inform the user of a failure in a (potentially long-running) process.
+ */
+export interface ProcessFailureAction {
+    type: string;
+    payload: StatusUpdate;
+}
+
+export function processFailure(processId: string, msg: string): ProcessFailureAction {
+    return {
+        type: SET_STATUS,
+        payload: {
+            data: {
+                msg,
+                status: ProcessStatus.FAILED,
+            },
+            processId,
         },
     };
 }
@@ -458,46 +435,20 @@ export const SUCCEED_PYTHON_SNIPPET_GENERATION = makeConstant(
 export interface SucceedPythonSnippetGeneration {
     type: string;
     payload: {
-        id: string;
+        processId: string;
         pythonSnippet: PythonicDataAccessSnippet;
     };
 }
 
 export function succeedPythonSnippetGeneration(
-    id: string,
+    processId: string,
     pythonSnippet: PythonicDataAccessSnippet
 ): SucceedPythonSnippetGeneration {
     return {
         type: SUCCEED_PYTHON_SNIPPET_GENERATION,
         payload: {
-            id,
+            processId,
             pythonSnippet,
-        },
-    };
-}
-
-/**
- * PYTHON_SNIPPET_GENERATION_FAILURE
- *
- * Intention to inform the user of a failure in a download of a manifest.
- */
-export interface FailPythonSnippetGenerationAction {
-    type: string;
-    payload: StatusUpdate;
-}
-
-export function failPythonSnippetGeneration(
-    id: string,
-    msg: string
-): FailPythonSnippetGenerationAction {
-    return {
-        type: SET_STATUS,
-        payload: {
-            data: {
-                msg,
-                status: ProcessStatus.FAILED,
-            },
-            id,
         },
     };
 }

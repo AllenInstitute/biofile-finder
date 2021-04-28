@@ -68,10 +68,10 @@ export default function StatusMessage() {
                     return (
                         <MessageBar
                             actions={cancelButton}
-                            key={statusUpdate.id}
+                            key={statusUpdate.processId}
                             messageBarType={statusToTypeMap[status]}
                             onDismiss={() =>
-                                dispatch(interaction.actions.removeStatus(statusUpdate.id))
+                                dispatch(interaction.actions.removeStatus(statusUpdate.processId))
                             }
                             styles={{
                                 root: {
