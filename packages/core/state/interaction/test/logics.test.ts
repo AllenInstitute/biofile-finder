@@ -16,7 +16,7 @@ import {
     ProcessStatus,
     REMOVE_STATUS,
     SET_STATUS,
-    cancelManifestDownload,
+    cancelFileDownload,
     SET_ALLEN_MOUNT_POINT,
     generatePythonSnippet,
     SUCCEED_PYTHON_SNIPPET_GENERATION,
@@ -141,6 +141,9 @@ describe("Interaction logics", () => {
                 downloadCsvManifest() {
                     return Promise.reject();
                 }
+                downloadFile() {
+                    return Promise.reject();
+                }
                 cancelActiveRequest() {
                     return Promise.reject();
                 }
@@ -194,6 +197,9 @@ describe("Interaction logics", () => {
             // arrange
             class CancellingDownloadService implements FileDownloadService {
                 downloadCsvManifest() {
+                    return Promise.resolve(CancellationToken);
+                }
+                downloadFile() {
                     return Promise.resolve(CancellationToken);
                 }
                 cancelActiveRequest() {
@@ -323,6 +329,9 @@ describe("Interaction logics", () => {
                 downloadCsvManifest() {
                     return Promise.resolve(CancellationToken);
                 }
+                downloadFile() {
+                    return Promise.resolve(CancellationToken);
+                }
                 cancelActiveRequest() {
                     return Promise.reject(false);
                 }
@@ -344,7 +353,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(cancelManifestDownload("123456"));
+            store.dispatch(cancelFileDownload("123456"));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -367,6 +376,10 @@ describe("Interaction logics", () => {
             class CancellingDownloadService implements FileDownloadService {
                 downloadCsvManifest() {
                     fs.closeSync(fs.openSync(tempFilePath, "w"));
+                    return Promise.resolve(CancellationToken);
+                }
+
+                downloadFile() {
                     return Promise.resolve(CancellationToken);
                 }
 
@@ -399,7 +412,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(cancelManifestDownload("123456"));
+            store.dispatch(cancelFileDownload("123456"));
             await logicMiddleware.whenComplete();
 
             // assert

@@ -41,30 +41,32 @@ export function downloadManifest(annotations: Annotation[]): DownloadManifestAct
 }
 
 /**
- * CANCEL_MANIFEST_DOWNLOAD
+ * CANCEL_FILE_DOWNLOAD
  *
- * Intention to cancel a running manifest download.
+ * Intention to cancel an in-progress file download.
  */
-export const CANCEL_MANIFEST_DOWNLOAD = makeConstant(STATE_BRANCH_NAME, "cancel-manifest-download");
+export const CANCEL_FILE_DOWNLOAD = makeConstant(STATE_BRANCH_NAME, "cancel-file-download");
 
-export interface CancelManifestDownloadAction {
+export interface CancelFileDownloadAction {
     payload: {
-        id: string;
+        downloadProcessId: string;
     };
     type: string;
 }
 
-export function cancelManifestDownload(id: string): CancelManifestDownloadAction {
+export function cancelFileDownload(id: string): CancelFileDownloadAction {
     return {
         payload: {
-            id,
+            downloadProcessId: id,
         },
-        type: CANCEL_MANIFEST_DOWNLOAD,
+        type: CANCEL_FILE_DOWNLOAD,
     };
 }
 
 /**
  * DOWNLOAD_FILE
+ *
+ * Intention to download a file to local disk.
  */
 export const DOWNLOAD_FILE = makeConstant(STATE_BRANCH_NAME, "download-file");
 
@@ -89,29 +91,6 @@ export function downloadFile(
             fileSize,
         },
         type: DOWNLOAD_FILE,
-    };
-}
-
-/**
- * CANCEL_FILE_DOWNLOAD
- *
- * Intention to cancel an in-progress file download.
- */
-export const CANCEL_FILE_DOWNLOAD = makeConstant(STATE_BRANCH_NAME, "cancel-file-download");
-
-export interface CancelFileDownloadAction {
-    payload: {
-        id: string;
-    };
-    type: string;
-}
-
-export function cancelFileDownload(id: string): CancelFileDownloadAction {
-    return {
-        payload: {
-            id,
-        },
-        type: CANCEL_FILE_DOWNLOAD,
     };
 }
 
@@ -368,36 +347,6 @@ export function startManifestDownload(
 }
 
 /**
- * FILE_DOWNLOAD_PROGRESS
- *
- * Intention to inform the user of progress toward downloading a file.
- */
-export interface FileDownloadProgressAction {
-    type: string;
-    payload: StatusUpdate;
-}
-
-export function fileDownloadProgress(
-    id: string,
-    progress: number,
-    msg: string,
-    onCancel: () => void
-): FileDownloadProgressAction {
-    return {
-        type: SET_STATUS,
-        payload: {
-            data: {
-                msg,
-                status: ProcessStatus.PROGRESS,
-                progress,
-            },
-            id,
-            onCancel,
-        },
-    };
-}
-
-/**
  * MANIFEST_DOWNLOAD_SUCCESS
  *
  * Intention to inform the user of the success of a manifest download.
@@ -439,6 +388,36 @@ export function failManifestDownload(id: string, msg: string): ManifestDownloadF
                 status: ProcessStatus.FAILED,
             },
             id,
+        },
+    };
+}
+
+/**
+ * FILE_DOWNLOAD_PROGRESS
+ *
+ * Intention to inform the user of progress toward downloading a file.
+ */
+export interface FileDownloadProgressAction {
+    type: string;
+    payload: StatusUpdate;
+}
+
+export function fileDownloadProgress(
+    id: string,
+    progress: number,
+    msg: string,
+    onCancel: () => void
+): FileDownloadProgressAction {
+    return {
+        type: SET_STATUS,
+        payload: {
+            data: {
+                msg,
+                status: ProcessStatus.PROGRESS,
+                progress,
+            },
+            id,
+            onCancel,
         },
     };
 }
@@ -725,7 +704,6 @@ export function generatePythonSnippet(
  *
  * Intention to refresh cached queries
  */
-
 export const REFRESH = makeConstant(STATE_BRANCH_NAME, "refresh");
 
 export interface RefreshAction {

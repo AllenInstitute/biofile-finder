@@ -1,5 +1,5 @@
 import * as path from "path";
-import { debounce, isEmpty, uniq, uniqueId } from "lodash";
+import { isEmpty, uniq, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { metadata, ReduxLogicDeps, selection } from "../";
@@ -11,8 +11,8 @@ import {
     removeStatus,
     startManifestDownload,
     SHOW_CONTEXT_MENU,
-    CANCEL_MANIFEST_DOWNLOAD,
-    cancelManifestDownload,
+    CANCEL_FILE_DOWNLOAD,
+    cancelFileDownload,
     setAllenMountPoint,
     setCsvColumns,
     GENERATE_PYTHON_SNIPPET,
@@ -130,7 +130,7 @@ const downloadManifest = createLogic({
             }
 
             const onManifestDownloadCancel = () => {
-                dispatch(cancelManifestDownload(manifestDownloadProcessId));
+                dispatch(cancelFileDownload(manifestDownloadProcessId));
             };
             dispatch(
                 startManifestDownload(
@@ -170,8 +170,8 @@ const downloadManifest = createLogic({
  * Interceptor responsible for responding to a CANCEL_MANIFEST_DOWNLOAD action and cancelling
  * the corresponding manifest download request (including deleting the potential artifact)
  */
-const cancelManifestDownloadLogic = createLogic({
-    type: CANCEL_MANIFEST_DOWNLOAD,
+const cancelFileDownloadLogic = createLogic({
+    type: CANCEL_FILE_DOWNLOAD,
     async transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState } = deps;
         const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(
@@ -207,7 +207,7 @@ const cancelManifestDownloadLogic = createLogic({
         const numberFormatter = annotationFormatterFactory(AnnotationType.NUMBER);
         const msg = `Downloading ${fileName} - ${numberFormatter.displayValue(fileSize, "bytes")}`;
         const onCancel = () => {
-            dispatch(cancelManifestDownload(downloadRequestId));
+            dispatch(cancelFileDownload(downloadRequestId));
         };
 
         const onProgress = (bytesDownloaded: number) => {
@@ -567,7 +567,7 @@ const refresh = createLogic({
 export default [
     checkForUpdates,
     downloadManifest,
-    cancelManifestDownloadLogic,
+    cancelFileDownloadLogic,
     openWithDefault,
     openWithLogic,
     promptForNewExecutable,

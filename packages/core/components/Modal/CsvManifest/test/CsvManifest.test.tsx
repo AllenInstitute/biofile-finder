@@ -68,12 +68,16 @@ describe("<CsvManifest />", () => {
         // Arrange
         let downloadTriggered = false;
         class ScopedFileDownloadService implements FileDownloadService {
-            public downloadCsvManifest() {
+            downloadCsvManifest() {
                 downloadTriggered = true;
                 return Promise.resolve("test");
             }
 
-            public cancelActiveRequest() {
+            downloadFile() {
+                return Promise.reject();
+            }
+
+            cancelActiveRequest() {
                 return Promise.reject();
             }
         }
