@@ -10,22 +10,31 @@ import ViewerStrategy from "./ViewerStrategy";
  */
 const systemDefaultViewerStrategy: ViewerStrategy = async (_, filePaths) => {
     // Determine the default system command for opening files (default Linux)
+    let detached = true;
+    let shell: string | boolean = false;
     let command = "gio";
     let args = ["open", ...filePaths];
     if (os.platform() === Platform.Mac) {
         command = "open";
         args = filePaths;
     } else if (os.platform() === Platform.Windows) {
+        detached = false;
+        shell = "PowerShell.exe";
         command = "start";
-        // The "start" command does not accept multiple file arguments so
-        // this chains the commands together instead
-        args = filePaths.join(" && start ").split(" ");
+        args = filePaths.flatMap((path, index) => {
+            if (index === 0) {
+                return [path];
+            }
+            // The "start" command does not accept multiple file arguments so
+            // this chains the commands together instead
+            return [";", "start", path];
+        });
     }
 
     const executableProcess = childProcess.spawn(command, args, {
-        detached: true,
-        shell: os.platform() === Platform.Windows,
-        stdio: "ignore", // If the parent's stdio is inherited, the child will remain attached to the controlling terminal.
+        shell,
+        detached,
+        stdio: "ignore",
     });
 
     // From the docs: https://nodejs.org/docs/latest-v12.x/api/child_process.html#child_process_options_detached
