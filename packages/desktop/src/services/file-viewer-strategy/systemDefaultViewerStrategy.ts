@@ -1,19 +1,16 @@
 import * as os from "os";
-import * as path from "path";
 
 import childProcess from "child_process";
 import { Platform } from "../ExecutionEnvServiceElectron";
 
 import ViewerStrategy from "./ViewerStrategy";
 
-const PROGRAMS_FOLDER_SEP = `${path.sep}programs${path.sep}allencell${path.sep}`;
-
 /**
  * Spawn executable with default system command for opening files with file paths as arguments.
  */
 const systemDefaultViewerStrategy: ViewerStrategy = async (_, filePaths) => {
     // Determine the default system command for opening files (default Linux)
-    let cwd: string | undefined;
+    let detached = true;
     let shell: string | boolean = false;
     let command = "gio";
     let args = ["open", ...filePaths];
@@ -21,22 +18,23 @@ const systemDefaultViewerStrategy: ViewerStrategy = async (_, filePaths) => {
         command = "open";
         args = filePaths;
     } else if (os.platform() === Platform.Windows) {
-        shell = true;
+        detached = false;
+        shell = "PowerShell.exe";
         command = "start";
-        // Set current working directory to inside allen drive to avoid
-        // weirdness with the "start" command and UNC paths
-        cwd = `${filePaths[0].split(PROGRAMS_FOLDER_SEP)[0]}${PROGRAMS_FOLDER_SEP}`;
-        const files = filePaths.map((filePath) => filePath.split(PROGRAMS_FOLDER_SEP)[1]);
-        // The "start" command does not accept multiple file arguments so
-        // this chains the commands together instead
-        args = files.join(" ; start ").split(" ");
+        args = filePaths.flatMap((path, index) => {
+            if (index === 0) {
+                return [path];
+            }
+            // The "start" command does not accept multiple file arguments so
+            // this chains the commands together instead
+            return [";", "start", path];
+        });
     }
 
     const executableProcess = childProcess.spawn(command, args, {
-        cwd,
         shell,
-        detached: true,
-        stdio: "ignore", // If the parent's stdio is inherited, the child will remain attached to the controlling terminal.
+        detached,
+        stdio: "ignore",
     });
 
     // From the docs: https://nodejs.org/docs/latest-v12.x/api/child_process.html#child_process_options_detached
