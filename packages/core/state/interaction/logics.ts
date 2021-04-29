@@ -214,6 +214,8 @@ const cancelFileDownloadLogic = createLogic({
         };
 
         try {
+            dispatch(processStart(downloadRequestId, msg));
+
             const result = await fileDownloadService.downloadFile(
                 filePath,
                 downloadRequestId,

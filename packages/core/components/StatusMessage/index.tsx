@@ -81,7 +81,7 @@ export default function StatusMessage() {
                             isMultiline={msg !== undefined}
                         >
                             <div className={styles.centeringParent}>
-                                {status === ProcessStatus.STARTED && (
+                                {progress === undefined && status === ProcessStatus.STARTED && (
                                     <Spinner className={styles.spinner} size={SpinnerSize.small} />
                                 )}
                                 <div
