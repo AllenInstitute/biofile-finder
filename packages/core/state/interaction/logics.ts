@@ -191,7 +191,8 @@ const cancelFileDownloadLogic = createLogic({
 });
 
 /**
- * TODO
+ * Interceptor responsible for responding to a DOWNLOAD_FILE action and
+ * initiating the download of the correct file, showing notifications of process status along the way.
  */
  const downloadFile = createLogic({
     type: DOWNLOAD_FILE,
