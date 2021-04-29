@@ -1,6 +1,6 @@
 import FrontendInsights from "@aics/frontend-insights";
 import { makeConstant } from "@aics/redux-utils";
-import { uniqueId } from "lodash";
+import { castArray, uniqueId } from "lodash";
 
 import Annotation from "../../entity/Annotation";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
@@ -70,26 +70,20 @@ export function cancelFileDownload(id: string): CancelFileDownloadAction {
  */
 export const DOWNLOAD_FILE = makeConstant(STATE_BRANCH_NAME, "download-file");
 
+interface FileInfo {
+    name: string;
+    path: string;
+    size: number;
+}
+
 export interface DownloadFileAction {
-    payload: {
-        fileName: string;
-        filePath: string;
-        fileSize: number;
-    };
+    payload: FileInfo[];
     type: string;
 }
 
-export function downloadFile(
-    fileName: string,
-    filePath: string,
-    fileSize: number
-): DownloadFileAction {
+export function downloadFile(fileInfo: FileInfo | FileInfo[]): DownloadFileAction {
     return {
-        payload: {
-            fileName,
-            filePath,
-            fileSize,
-        },
+        payload: castArray(fileInfo),
         type: DOWNLOAD_FILE,
     };
 }

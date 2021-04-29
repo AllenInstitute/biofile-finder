@@ -46,6 +46,7 @@ import {
 } from "../../services/ExecutionEnvService";
 import { AnnotationName } from "../../constants";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
+import { batch } from "react-redux";
 
 /**
  * Interceptor responsible for responding to a SET_PLATFORM_DEPENDENT_SERVICES action and
@@ -194,40 +195,76 @@ const cancelFileDownloadLogic = createLogic({
  * Interceptor responsible for responding to a DOWNLOAD_FILE action and
  * initiating the download of the correct file, showing notifications of process status along the way.
  */
- const downloadFile = createLogic({
+const downloadFile = createLogic({
     type: DOWNLOAD_FILE,
+    warnTimeout: 0,
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const {
-            payload: { fileName, filePath, fileSize },
-        } = deps.action as DownloadFileAction;
+        const { payload: files } = deps.action as DownloadFileAction;
         const downloadRequestId = uniqueId();
         const state = deps.getState();
         const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(state);
 
         const numberFormatter = annotationFormatterFactory(AnnotationType.NUMBER);
-        const msg = `Downloading ${fileName} - ${numberFormatter.displayValue(fileSize, "bytes")}`;
+        const totalSize = files.reduce((accum, { size }) => (accum += size), 0);
+        const msg = `Downloading ${files.length} file(s), ${numberFormatter.displayValue(
+            totalSize,
+            "bytes"
+        )} in total`;
         const onCancel = () => {
             dispatch(cancelFileDownload(downloadRequestId));
         };
 
+        let totalBytesDownloaded = 0;
         const onProgress = (bytesDownloaded: number) => {
-            dispatch(processProgress(downloadRequestId, bytesDownloaded / fileSize, msg, onCancel));
+            totalBytesDownloaded += bytesDownloaded;
+            dispatch(
+                processProgress(downloadRequestId, totalBytesDownloaded / totalSize, msg, onCancel)
+            );
         };
 
         try {
             dispatch(processStart(downloadRequestId, msg));
 
-            const result = await fileDownloadService.downloadFile(
-                filePath,
-                downloadRequestId,
-                onProgress
+            interface Resolution {
+                downloadRequestId: string;
+                msg: string;
+            }
+            const promises: Promise<Resolution>[] = files.map((fileInfo) =>
+                fileDownloadService.downloadFile(fileInfo.path, uniqueId(), onProgress)
             );
-            if (result === CancellationToken) {
+            const resolutions = await Promise.allSettled(promises);
+
+            if (
+                resolutions.every(
+                    (result) =>
+                        result.status === "fulfilled" && result.value.msg === CancellationToken
+                )
+            ) {
                 dispatch(removeStatus(downloadRequestId));
                 return;
             }
-            const successMsg = `Downloaded ${fileName}`;
-            dispatch(processSuccess(downloadRequestId, successMsg));
+
+            const successes = resolutions.filter(
+                (result) => result.status === "fulfilled" && result.value.msg !== CancellationToken
+            ) as PromiseFulfilledResult<Resolution>[];
+            const failures = resolutions.filter(
+                (result) => result.status === "rejected"
+            ) as PromiseRejectedResult[];
+
+            if (successes.length) {
+                const successMsg = successes.map((result) => result.value.msg).join("</br>");
+                dispatch(processSuccess(downloadRequestId, successMsg));
+            }
+
+            if (failures.length) {
+                batch(() => {
+                    for (const failure of failures) {
+                        dispatch(
+                            processFailure(failure.reason.downloadRequestId, failure.reason.msg)
+                        );
+                    }
+                });
+            }
         } catch (err) {
             const errorMsg = `File download failed.<br/>${err}`;
             dispatch(processFailure(downloadRequestId, errorMsg));

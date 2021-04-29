@@ -154,7 +154,9 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         });
     }
 
-    private async download(params: DownloadParams): Promise<string> {
+    private async download(
+        params: DownloadParams
+    ): Promise<{ downloadRequestId: string; msg: string }> {
         const {
             downloadRequestId,
             url,
@@ -192,15 +194,18 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         // If the stream was stopped due to the socket being destroyed
                         // resolve to a sentinal value the client can interpret
                         if (res.aborted) {
-                            resolve(FileDownloadCancellationToken);
+                            resolve({ downloadRequestId, msg: FileDownloadCancellationToken });
                         } else {
                             delete this.activeRequestMap[downloadRequestId];
-                            resolve(`Successfully downloaded ${outFilePath}`);
+                            resolve({
+                                downloadRequestId,
+                                msg: `Successfully downloaded ${outFilePath}`,
+                            });
                         }
                     });
                     res.on("error", (err) => {
                         delete this.activeRequestMap[downloadRequestId];
-                        reject(err.message);
+                        reject({ downloadRequestId, msg: err.message });
                     });
 
                     const writeStream = fs.createWriteStream(outFilePath);
@@ -222,9 +227,12 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                 delete this.activeRequestMap[downloadRequestId];
                 // If the socket was too prematurely hung up it will emit this error
                 if (err.message === FileDownloadCancellationToken) {
-                    resolve(FileDownloadCancellationToken);
+                    resolve({ downloadRequestId, msg: FileDownloadCancellationToken });
                 } else {
-                    reject(`Failed to download file. Error details: ${err}`);
+                    reject({
+                        downloadRequestId,
+                        msg: `Failed to download file. Error details: ${err}`,
+                    });
                 }
             });
             this.activeRequestMap[downloadRequestId] = { filePath: outFilePath, request: req };

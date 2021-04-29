@@ -15,7 +15,7 @@ export default interface FileDownloadService {
         filePath: string,
         downloadRequestId: string,
         onProgress?: (bytesDownloaded: number) => void
-    ): Promise<string>;
+    ): Promise<{ downloadRequestId: string; msg: string }>;
 
     /**
      * Attempt to cancel an active download request, deleting the downloaded artifact if present.

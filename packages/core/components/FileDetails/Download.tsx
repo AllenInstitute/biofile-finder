@@ -37,7 +37,11 @@ export default function Download(props: DownloadProps) {
     // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
     const onClick = throttle(() => {
         dispatch(
-            interaction.actions.downloadFile(fileDetails.name, fileDetails.path, fileDetails.size)
+            interaction.actions.downloadFile({
+                name: fileDetails.name,
+                path: fileDetails.path,
+                size: fileDetails.size,
+            })
         );
     }, 1000); // in ms
 
