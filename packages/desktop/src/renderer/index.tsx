@@ -3,6 +3,7 @@ import "regenerator-runtime/runtime";
 import FrontendInsights, { LogLevel, reduxMiddleware } from "@aics/frontend-insights";
 import AmplitudeNodePlugin from "@aics/frontend-insights-plugin-amplitude-node";
 import { ipcRenderer } from "electron";
+import { memoize } from "lodash";
 import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
@@ -17,7 +18,7 @@ import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron
 import FileViewerServiceElectron from "../services/FileViewerServiceElectron";
 import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
-import { GlobalVariableChannels } from "../util/constants";
+import { GlobalVariableChannels, FileDownloadServiceBaseUrl } from "../util/constants";
 
 const APP_ID = "fms-file-explorer";
 
@@ -44,15 +45,19 @@ const frontendInsights = new FrontendInsights(
     [new AmplitudeNodePlugin({ apiKey: process.env.AMPLITUDE_API_KEY })]
 );
 frontendInsights.dispatchUserEvent({ type: "SESSION_START" });
-const platformDependentServices = {
-    applicationInfoService,
-    executionEnvService,
-    fileDownloadService: new FileDownloadServiceElectron(),
-    fileViewerService: new FileViewerServiceElectron(notificationService),
-    frontendInsights,
-    notificationService,
-    persistentConfigService,
-};
+
+// Memoized to make sure the object that collects these services doesn't
+// unnecessarily change with regard to referential equality between re-renders of the application
+const collectPlatformDependentServices = memoize(
+    (downloadServiceBaseUrl: FileDownloadServiceBaseUrl) => ({
+        applicationInfoService,
+        executionEnvService,
+        fileDownloadService: new FileDownloadServiceElectron(downloadServiceBaseUrl),
+        fileViewerService: new FileViewerServiceElectron(notificationService),
+        frontendInsights,
+        persistentConfigService,
+    })
+);
 
 const frontendInsightsMiddleware = reduxMiddleware(frontendInsights);
 const store = createReduxStore({
@@ -85,17 +90,23 @@ function renderFmsFileExplorer() {
             <FmsFileExplorer
                 allenMountPoint={global.fileExplorerServiceAllenMountPoint}
                 fileExplorerServiceBaseUrl={global.fileExplorerServiceBaseUrl}
-                platformDependentServices={platformDependentServices}
+                platformDependentServices={collectPlatformDependentServices(
+                    global.fileDownloadServiceBaseUrl as FileDownloadServiceBaseUrl
+                )}
             />
         </Provider>,
         document.getElementById(APP_ID)
     );
 }
 
-ipcRenderer.addListener(GlobalVariableChannels.BaseUrl, (_, baseUrl: string) => {
-    global.fileExplorerServiceBaseUrl = baseUrl;
-    renderFmsFileExplorer();
-});
+ipcRenderer.addListener(
+    GlobalVariableChannels.BaseUrl,
+    (_, { fileExplorerServiceBaseUrl, fileDownloadServiceBaseUrl }) => {
+        global.fileDownloadServiceBaseUrl = fileDownloadServiceBaseUrl;
+        global.fileExplorerServiceBaseUrl = fileExplorerServiceBaseUrl;
+        renderFmsFileExplorer();
+    }
+);
 
 ipcRenderer.addListener(GlobalVariableChannels.AllenMountPoint, (_, allenMountPoint?: string) => {
     global.fileExplorerServiceAllenMountPoint = allenMountPoint;

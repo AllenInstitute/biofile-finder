@@ -2,7 +2,7 @@ import "normalize.css";
 import classNames from "classnames";
 import { initializeIcons, loadTheme } from "@fluentui/react";
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { batch, useDispatch, useSelector } from "react-redux";
 
 import AnnotationSidebar from "./components/AnnotationSidebar";
 import ContextMenu from "./components/ContextMenu";
@@ -12,7 +12,7 @@ import FileDetails from "./components/FileDetails";
 import FileExplorerURLBar from "./components/FileExplorerURLBar";
 import HeaderRibbon from "./components/HeaderRibbon";
 import StatusMessage from "./components/StatusMessage";
-import { DataSource } from "./constants";
+import { FileExplorerServiceBaseUrl } from "./constants";
 import { interaction, metadata, selection } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
 
@@ -37,16 +37,13 @@ interface AppProps {
     platformDependentServices?: Partial<PlatformDependentServices>;
 }
 
-const defaultProps = {
-    fileExplorerServiceBaseUrl: DataSource.PRODUCTION,
-    platformDependentServices: {},
-};
+const DEFAULT_PLATFORM_DEPENDENT_SERVICES = Object.freeze({});
 
 export default function App(props: AppProps) {
     const {
         allenMountPoint,
-        fileExplorerServiceBaseUrl = defaultProps.fileExplorerServiceBaseUrl,
-        platformDependentServices = defaultProps.platformDependentServices,
+        fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION,
+        platformDependentServices = DEFAULT_PLATFORM_DEPENDENT_SERVICES,
     } = props;
 
     const dispatch = useDispatch();
@@ -63,12 +60,14 @@ export default function App(props: AppProps) {
         }
     }, [dispatch, allenMountPoint]);
 
-    // Set connection configuration for the file-explorer-service
+    // Set data source base urls
     // And kick off the process of requesting metadata needed by the application.
     React.useEffect(() => {
-        dispatch(interaction.actions.setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl));
-        dispatch(metadata.actions.requestAnnotations());
-        dispatch(selection.actions.setAnnotationHierarchy([]));
+        batch(() => {
+            dispatch(interaction.actions.setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl));
+            dispatch(metadata.actions.requestAnnotations());
+            dispatch(selection.actions.setAnnotationHierarchy([]));
+        });
     }, [dispatch, fileExplorerServiceBaseUrl]);
 
     return (

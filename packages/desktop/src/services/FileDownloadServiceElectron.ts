@@ -7,6 +7,7 @@ import * as stream from "stream";
 import { app, dialog, FileFilter, ipcMain, IpcMainInvokeEvent, ipcRenderer } from "electron";
 
 import { FileDownloadService, FileDownloadCancellationToken } from "../../../core/services";
+import { FileDownloadServiceBaseUrl } from "../util/constants";
 
 // Maps active request ids (uuids) to request download info
 interface ActiveRequestMap {
@@ -36,6 +37,7 @@ interface DownloadParams {
 export default class FileDownloadServiceElectron implements FileDownloadService {
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
     private activeRequestMap: ActiveRequestMap = {};
+    private fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl;
 
     public static registerIpcHandlers() {
         async function handler(_: IpcMainInvokeEvent, params: ShowSaveDialogParams) {
@@ -47,6 +49,12 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             });
         }
         ipcMain.handle(FileDownloadServiceElectron.GET_FILE_SAVE_PATH, handler);
+    }
+
+    constructor(
+        fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl = FileDownloadServiceBaseUrl.PRODUCTION
+    ) {
+        this.fileDownloadServiceBaseUrl = fileDownloadServiceBaseUrl;
     }
 
     public async downloadCsvManifest(url: string, postData: string, id: string): Promise<string> {
@@ -117,7 +125,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             ? promptResult.filePath
             : `${promptResult.filePath}.${path.extname(filePath)}`;
 
-        const url = `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${filePath}`;
+        const url = `${this.fileDownloadServiceBaseUrl}${filePath}`;
         return this.download({ downloadRequestId, url, outFilePath, requestOptions, onProgress });
     }
 

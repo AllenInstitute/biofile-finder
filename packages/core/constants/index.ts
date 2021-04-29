@@ -4,7 +4,7 @@ import { AnnotationType } from "../entity/AnnotationFormatter";
 export const APP_ID = "fms-file-explorer-core";
 
 // Refer to packages/fms-file-explorer-electron/src/main/menu
-export enum DataSource {
+export enum FileExplorerServiceBaseUrl {
     LOCALHOST = "http://localhost:9081",
     STAGING = "https://staging.int.allencell.org",
     PRODUCTION = "https://production.int.allencell.org",

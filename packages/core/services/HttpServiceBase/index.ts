@@ -2,18 +2,18 @@ import axios, { AxiosInstance } from "axios";
 import { Policy } from "cockatiel";
 import LRUCache from "lru-cache";
 
-import { DataSource } from "../../constants";
+import { FileExplorerServiceBaseUrl } from "../../constants";
 import RestServiceResponse from "../../entity/RestServiceResponse";
 
 export interface ConnectionConfig {
     applicationVersion?: string;
-    baseUrl?: string | keyof typeof DataSource;
+    baseUrl?: string | keyof typeof FileExplorerServiceBaseUrl;
     httpClient?: AxiosInstance;
     userName?: string;
 }
 
 export const DEFAULT_CONNECTION_CONFIG = {
-    baseUrl: DataSource.PRODUCTION,
+    baseUrl: FileExplorerServiceBaseUrl.PRODUCTION,
     httpClient: axios.create(),
 };
 
@@ -96,7 +96,8 @@ export default class HttpServiceBase {
             .join("");
     }
 
-    public baseUrl: string | keyof typeof DataSource = DEFAULT_CONNECTION_CONFIG.baseUrl;
+    public baseUrl: string | keyof typeof FileExplorerServiceBaseUrl =
+        DEFAULT_CONNECTION_CONFIG.baseUrl;
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
     private applicationVersion = "NOT SET";
     private userName?: string;
@@ -192,7 +193,7 @@ export default class HttpServiceBase {
         this.setHeaders();
     }
 
-    public setBaseUrl(baseUrl: string | keyof typeof DataSource) {
+    public setBaseUrl(baseUrl: string | keyof typeof FileExplorerServiceBaseUrl) {
         if (this.baseUrl !== baseUrl) {
             // bust cache when base url changes
             this.urlToResponseDataCache.reset();
