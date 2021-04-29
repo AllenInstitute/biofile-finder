@@ -14,5 +14,6 @@ export type { default as NotificationService } from "./NotificationService";
 export type {
     default as PersistentConfigService,
     PersistedConfig,
+    UserSelectedApplication,
 } from "./PersistentConfigService";
-export { PersistedConfigKeys, UserSelectedApplication } from "./PersistentConfigService";
+export { PersistedConfigKeys } from "./PersistentConfigService";
