@@ -96,8 +96,14 @@ export default function FileDetails(props: FileDetails) {
                                 />
                             </div>
                         )}
-                        <Download fileDetails={fileDetails} />
-                        <FileAnnotationList fileDetails={fileDetails} isLoading={isLoading} />
+                        <div className={styles.fileActions}>
+                            <Download fileDetails={fileDetails} />
+                        </div>
+                        <FileAnnotationList
+                            className={styles.annotationList}
+                            fileDetails={fileDetails}
+                            isLoading={isLoading}
+                        />
                         <div className={styles.spacer} />
                         <div className={styles.gradientTeaser} />
                     </div>

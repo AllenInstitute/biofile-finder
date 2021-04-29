@@ -1,6 +1,4 @@
 .list {
-  padding: 10px;
-
   /* flex parent */
   display: flex;
   flex-direction: column;

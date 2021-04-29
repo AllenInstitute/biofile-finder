@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -10,6 +11,7 @@ import FileAnnotationRow from "./FileAnnotationRow";
 const styles = require("./FileAnnotationList.module.css");
 
 interface FileAnnotationListProps {
+    className?: string;
     fileDetails: FileDetail | null;
     isLoading: boolean;
 }
@@ -19,7 +21,7 @@ interface FileAnnotationListProps {
  * details pane on right hand side of the application.
  */
 export default function FileAnnotationList(props: FileAnnotationListProps) {
-    const { fileDetails, isLoading } = props;
+    const { className, fileDetails, isLoading } = props;
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
     const allenMountPoint = useSelector(interaction.selectors.getAllenMountPoint);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
@@ -77,5 +79,5 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
         }, [] as JSX.Element[]);
     }, [allenMountPoint, annotations, executionEnvService, fileDetails, isLoading]);
 
-    return <div className={styles.list}>{content}</div>;
+    return <div className={classNames(styles.list, className)}>{content}</div>;
 }
