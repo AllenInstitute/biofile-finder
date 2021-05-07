@@ -1,5 +1,6 @@
 import * as path from "path";
 import { isEmpty, uniq, uniqueId } from "lodash";
+import { batch } from "react-redux";
 import { createLogic } from "redux-logic";
 
 import { metadata, ReduxLogicDeps, selection } from "../";
@@ -46,7 +47,6 @@ import {
 } from "../../services/ExecutionEnvService";
 import { AnnotationName } from "../../constants";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
-import { batch } from "react-redux";
 
 /**
  * Interceptor responsible for responding to a SET_PLATFORM_DEPENDENT_SERVICES action and
