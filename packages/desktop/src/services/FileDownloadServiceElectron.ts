@@ -6,7 +6,12 @@ import * as stream from "stream";
 
 import { app, dialog, FileFilter, ipcMain, IpcMainInvokeEvent, ipcRenderer } from "electron";
 
-import { FileDownloadService, FileDownloadCancellationToken } from "../../../core/services";
+import {
+    FileDownloadService,
+    FileDownloadCancellationToken,
+    DownloadResolution,
+    DownloadResult,
+} from "../../../core/services";
 import { FileDownloadServiceBaseUrl } from "../util/constants";
 
 // Maps active request ids (uuids) to request download info
@@ -57,7 +62,11 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         this.fileDownloadServiceBaseUrl = fileDownloadServiceBaseUrl;
     }
 
-    public async downloadCsvManifest(url: string, postData: string, id: string): Promise<string> {
+    public async downloadCsvManifest(
+        url: string,
+        postData: string,
+        downloadRequestId: string
+    ): Promise<DownloadResult> {
         const saveDialogParams = {
             title: "Save CSV manifest",
             defaultFileName: "fms-explorer-selections.csv",
@@ -70,7 +79,11 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         );
 
         if (result.canceled) {
-            return Promise.resolve(FileDownloadCancellationToken);
+            return Promise.resolve({
+                downloadRequestId,
+                msg: FileDownloadCancellationToken,
+                resolution: DownloadResolution.CANCELLED,
+            });
         }
 
         const requestOptions = {
@@ -89,7 +102,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             : result.filePath + ".csv";
 
         return this.download({
-            downloadRequestId: id,
+            downloadRequestId,
             url,
             outFilePath,
             requestOptions,
@@ -102,7 +115,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         filePath: string,
         downloadRequestId: string,
         onProgress?: (bytesDownloaded: number) => void
-    ): Promise<string> {
+    ): Promise<DownloadResult> {
         const saveDialogParams = {
             title: "Save file",
             defaultFileName: path.basename(filePath),
@@ -114,7 +127,11 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         );
 
         if (promptResult.canceled) {
-            return Promise.resolve(FileDownloadCancellationToken);
+            return Promise.resolve({
+                downloadRequestId,
+                msg: FileDownloadCancellationToken,
+                resolution: DownloadResolution.CANCELLED,
+            });
         }
 
         const requestOptions = {
@@ -154,9 +171,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         });
     }
 
-    private async download(
-        params: DownloadParams
-    ): Promise<{ downloadRequestId: string; msg: string }> {
+    private async download(params: DownloadParams): Promise<DownloadResult> {
         const {
             downloadRequestId,
             url,
@@ -172,7 +187,6 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             // this logic can be safely removed.
             const requestor = new URL(url).protocol === "http:" ? http : https;
 
-            let bytesDownloaded = 0;
             const req = requestor.request(url, requestOptions, (res) => {
                 if (responseEncoding) {
                     res.setEncoding(responseEncoding);
@@ -186,30 +200,42 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                     res.on("end", () => {
                         delete this.activeRequestMap[downloadRequestId];
                         const error = errorChunks.join("");
-                        const message = `Failed to download file. Error details: ${error}`;
-                        reject(message);
+                        const msg = `Failed to download file. Error details: ${error}`;
+                        reject({
+                            downloadRequestId,
+                            msg,
+                            resolution: DownloadResolution.FAILURE,
+                        });
                     });
                 } else {
                     res.on("end", () => {
-                        // If the stream was stopped due to the socket being destroyed
-                        // resolve to a sentinal value the client can interpret
                         if (res.aborted) {
-                            resolve({ downloadRequestId, msg: FileDownloadCancellationToken });
+                            resolve({
+                                downloadRequestId,
+                                msg: FileDownloadCancellationToken,
+                                resolution: DownloadResolution.CANCELLED,
+                            });
                         } else {
                             delete this.activeRequestMap[downloadRequestId];
                             resolve({
                                 downloadRequestId,
                                 msg: `Successfully downloaded ${outFilePath}`,
+                                resolution: DownloadResolution.SUCCESS,
                             });
                         }
                     });
                     res.on("error", (err) => {
                         delete this.activeRequestMap[downloadRequestId];
-                        reject({ downloadRequestId, msg: err.message });
+                        reject({
+                            downloadRequestId,
+                            msg: err.message,
+                            resolution: DownloadResolution.FAILURE,
+                        });
                     });
 
                     const writeStream = fs.createWriteStream(outFilePath);
                     if (onProgress) {
+                        let bytesDownloaded = 0;
                         const progressTrackingStream = new stream.Transform({
                             transform(chunk, encoding, callback) {
                                 bytesDownloaded += chunk.length;
@@ -227,11 +253,16 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                 delete this.activeRequestMap[downloadRequestId];
                 // If the socket was too prematurely hung up it will emit this error
                 if (err.message === FileDownloadCancellationToken) {
-                    resolve({ downloadRequestId, msg: FileDownloadCancellationToken });
+                    resolve({
+                        downloadRequestId,
+                        msg: FileDownloadCancellationToken,
+                        resolution: DownloadResolution.CANCELLED,
+                    });
                 } else {
                     reject({
                         downloadRequestId,
                         msg: `Failed to download file. Error details: ${err}`,
+                        resolution: DownloadResolution.FAILURE,
                     });
                 }
             });

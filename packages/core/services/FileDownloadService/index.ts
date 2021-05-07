@@ -1,21 +1,37 @@
+export enum DownloadResolution {
+    CANCELLED = "CANCELLED",
+    SUCCESS = "SUCCESS",
+    FAILURE = "FAILURE",
+}
+
+export interface DownloadResult {
+    downloadRequestId: string;
+    msg: string;
+    resolution: DownloadResolution;
+}
+
 /**
  * Interface that defines a platform-dependent service for implementing download functionality.
  */
 export default interface FileDownloadService {
     /**
-     * Download a CSV manifest from `url` of selected files described by `data` (POST data). `totalCount` represents
-     * the total number of selected files.
+     * Download a CSV manifest from `url` of selected files described by `data` (POST data).
      */
-    downloadCsvManifest(url: string, data: string, downloadRequestId: string): Promise<string>;
+    downloadCsvManifest(
+        url: string,
+        data: string,
+        downloadRequestId: string
+    ): Promise<DownloadResult>;
 
     /**
-     * TODO
+     * Download a file located at `filePath`. Optionally provide an "onProgress" callback that will be
+     * called repeatedly over the course of the file download with the number of bytes downloaded so far.
      */
     downloadFile(
         filePath: string,
         downloadRequestId: string,
         onProgress?: (bytesDownloaded: number) => void
-    ): Promise<{ downloadRequestId: string; msg: string }>;
+    ): Promise<DownloadResult>;
 
     /**
      * Attempt to cancel an active download request, deleting the downloaded artifact if present.
