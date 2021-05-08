@@ -6,7 +6,7 @@ export enum DownloadResolution {
 
 export interface DownloadResult {
     downloadRequestId: string;
-    msg: string;
+    msg?: string;
     resolution: DownloadResolution;
 }
 
@@ -39,8 +39,3 @@ export default interface FileDownloadService {
      */
     cancelActiveRequest(downloadRequestId: string): Promise<void>;
 }
-
-/**
- * Sentinel value used to send and check for cancellation of a download request.
- */
-export const CancellationToken = "FMS_EXPLORER_DOWNLOAD_SERVICE_CANCELLATION_TOKEN";

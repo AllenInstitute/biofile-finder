@@ -45,12 +45,11 @@ import NumericRange from "../../../entity/NumericRange";
 import { RECEIVE_ANNOTATIONS } from "../../metadata/actions";
 import { SET_AVAILABLE_ANNOTATIONS } from "../../selection/actions";
 import AnnotationService from "../../../services/AnnotationService";
-import FileDownloadService, { CancellationToken } from "../../../services/FileDownloadService";
+import FileDownloadService, { DownloadResolution } from "../../../services/FileDownloadService";
 import FileService, { FmsFile } from "../../../services/FileService";
 import FileViewerService from "../../../services/FileViewerService";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
-import { NotificationService } from "../../../services";
 import NotificationServiceNoop from "../../../services/NotificationService/NotificationServiceNoop";
 
 describe("Interaction logics", () => {
@@ -59,6 +58,24 @@ describe("Interaction logics", () => {
         index: new NumericRange(0, 100),
         sortOrder: 0,
     });
+
+    class CancellingDownloadService implements FileDownloadService {
+        downloadCsvManifest(_url: string, _data: string, downloadRequestId: string) {
+            return Promise.resolve({
+                downloadRequestId,
+                resolution: DownloadResolution.CANCELLED,
+            });
+        }
+        downloadFile(_filePath: string, downloadRequestId: string) {
+            return Promise.resolve({
+                downloadRequestId,
+                resolution: DownloadResolution.CANCELLED,
+            });
+        }
+        cancelActiveRequest() {
+            return Promise.resolve();
+        }
+    }
 
     describe("downloadManifest", () => {
         const sandbox = createSandbox();
@@ -195,18 +212,6 @@ describe("Interaction logics", () => {
 
         it("clears status if cancelled", async () => {
             // arrange
-            class CancellingDownloadService implements FileDownloadService {
-                downloadCsvManifest() {
-                    return Promise.resolve(CancellationToken);
-                }
-                downloadFile() {
-                    return Promise.resolve(CancellationToken);
-                }
-                cancelActiveRequest() {
-                    return Promise.reject();
-                }
-            }
-
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
@@ -325,18 +330,6 @@ describe("Interaction logics", () => {
     describe("cancelManifestDownloadLogic", () => {
         it("marks the failure of a manifest download cancellation (on error)", async () => {
             // arrange
-            class CancellingDownloadService implements FileDownloadService {
-                downloadCsvManifest() {
-                    return Promise.resolve(CancellationToken);
-                }
-                downloadFile() {
-                    return Promise.resolve(CancellationToken);
-                }
-                cancelActiveRequest() {
-                    return Promise.reject(false);
-                }
-            }
-
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
@@ -369,18 +362,24 @@ describe("Interaction logics", () => {
             ).to.equal(true);
         });
 
-        it("delete the downloaded artifact on cancel", async () => {
+        it("deletes the downloaded artifact on cancel", async () => {
             // arrange
             const tempDir = os.tmpdir();
             const tempFilePath = tempDir + "/TEMPORARY_FILE_EXPLORER_APP_FILE_FOR_TESTING";
-            class CancellingDownloadService implements FileDownloadService {
-                downloadCsvManifest() {
+            class TestDownloadService implements FileDownloadService {
+                downloadCsvManifest(_url: string, _data: string, downloadRequestId: string) {
                     fs.closeSync(fs.openSync(tempFilePath, "w"));
-                    return Promise.resolve(CancellationToken);
+                    return Promise.resolve({
+                        downloadRequestId,
+                        resolution: DownloadResolution.CANCELLED,
+                    });
                 }
 
-                downloadFile() {
-                    return Promise.resolve(CancellationToken);
+                downloadFile(_filePath: string, downloadRequestId: string) {
+                    return Promise.resolve({
+                        downloadRequestId,
+                        resolution: DownloadResolution.CANCELLED,
+                    });
                 }
 
                 cancelActiveRequest(): Promise<void> {
@@ -399,7 +398,7 @@ describe("Interaction logics", () => {
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        fileDownloadService: new CancellingDownloadService(),
+                        fileDownloadService: new TestDownloadService(),
                     },
                 },
                 selection: {

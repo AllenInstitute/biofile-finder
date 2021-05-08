@@ -1,19 +1,26 @@
-import FileDownloadService from ".";
+import { uniqueId } from "lodash";
+
+import FileDownloadService, { DownloadResolution } from ".";
 
 export default class FileDownloadServiceNoop implements FileDownloadService {
-    public downloadCsvManifest() {
-        return Promise.resolve(
-            "Download of CSV manifest triggered on FileDownloadServiceNoop; returning without triggering a download."
-        );
+    downloadCsvManifest() {
+        return Promise.resolve({
+            downloadRequestId: uniqueId(),
+            msg:
+                "Download of CSV manifest triggered on FileDownloadServiceNoop; returning without triggering a download.",
+            resolution: DownloadResolution.SUCCESS,
+        });
     }
 
-    public downloadFile(filePath: string) {
-        return Promise.resolve(
-            `Download of ${filePath} triggered on FileDownloadServiceNoop; returning without triggering a download.`
-        );
+    downloadFile(filePath: string) {
+        return Promise.resolve({
+            downloadRequestId: uniqueId(),
+            msg: `Download of ${filePath} triggered on FileDownloadServiceNoop; returning without triggering a download.`,
+            resolution: DownloadResolution.SUCCESS,
+        });
     }
 
-    public cancelActiveRequest(): Promise<void> {
+    cancelActiveRequest(): Promise<void> {
         return Promise.resolve();
     }
 }

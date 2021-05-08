@@ -15,7 +15,7 @@ import Modal, { ModalType } from "../..";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import FileFilter from "../../../../entity/FileFilter";
-import FileDownloadService from "../../../../services/FileDownloadService";
+import FileDownloadService, { DownloadResolution } from "../../../../services/FileDownloadService";
 import FileService from "../../../../services/FileService";
 import { initialState, interaction, reduxLogics } from "../../../../state";
 
@@ -67,10 +67,13 @@ describe("<CsvManifest />", () => {
     it("starts download and saves columns when download button is clicked", async () => {
         // Arrange
         let downloadTriggered = false;
-        class ScopedFileDownloadService implements FileDownloadService {
-            downloadCsvManifest() {
+        class TestDownloadService implements FileDownloadService {
+            downloadCsvManifest(_url: string, _data: string, downloadRequestId: string) {
                 downloadTriggered = true;
-                return Promise.resolve("test");
+                return Promise.resolve({
+                    downloadRequestId,
+                    resolution: DownloadResolution.SUCCESS,
+                });
             }
 
             downloadFile() {
@@ -86,7 +89,7 @@ describe("<CsvManifest />", () => {
             interaction: {
                 fileFiltersForVisibleModal: [new FileFilter("Cell Line", "AICS-11")],
                 platformDependentServices: {
-                    fileDownloadService: new ScopedFileDownloadService(),
+                    fileDownloadService: new TestDownloadService(),
                 },
             },
         });

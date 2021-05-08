@@ -6,7 +6,7 @@ import { ipcRenderer } from "electron";
 import nock from "nock";
 import { createSandbox } from "sinon";
 
-import { FileDownloadCancellationToken } from "../../../../core/services";
+import { DownloadResolution } from "../../../../core/services";
 import { RUN_IN_RENDERER } from "../../util/constants";
 import FileDownloadServiceElectron from "../FileDownloadServiceElectron";
 
@@ -40,7 +40,15 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
         afterEach(async () => {
             nock.restore();
 
-            await fs.promises.unlink(tempfile);
+            try {
+                await fs.promises.unlink(tempfile);
+            } catch (err) {
+                // if the file doesn't exist (e.g., because it was already cleaned up), ignore. else, re-raise.
+                if (err.code !== "ENOENT") {
+                    throw err;
+                }
+            }
+
             sandbox.restore();
         });
 
@@ -77,7 +85,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             expect(await fs.promises.readFile(tempfile, "utf-8")).to.equal(CSV_BODY);
         });
 
-        it("resolves CancellationToken if user cancels download when prompted for save path", async () => {
+        it("resolves meaningfully if user cancels download when prompted for save path", async () => {
             // Arrange
             sandbox
                 .stub(ipcRenderer, "invoke")
@@ -87,15 +95,18 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                 });
 
             const service = new FileDownloadServiceElectron();
+            const downloadRequestId = "beepbop";
 
-            // Act / Assert
-            expect(
-                await service.downloadCsvManifest(
-                    "/some/url",
-                    JSON.stringify({ some: "data" }),
-                    "beepbop"
-                )
-            ).to.equal(FileDownloadCancellationToken);
+            // Act
+            const result = await service.downloadCsvManifest(
+                "/some/url",
+                JSON.stringify({ some: "data" }),
+                downloadRequestId
+            );
+
+            // Assert
+            expect(result).to.have.property("downloadRequestId", downloadRequestId);
+            expect(result).to.have.property("resolution", DownloadResolution.CANCELLED);
         });
 
         it("rejects with error message if request for CSV is unsuccessful", async () => {
@@ -115,17 +126,20 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                 });
 
             const service = new FileDownloadServiceElectron();
+            const downloadRequestId = "beepbop";
 
             try {
                 // Act
                 await service.downloadCsvManifest(
                     `${DOWNLOAD_HOST}${DOWNLOAD_PATH}`,
                     JSON.stringify({ some: "data" }),
-                    "beepbop"
+                    downloadRequestId
                 );
             } catch (msg) {
                 // Assert
-                expect(msg).to.include(ERROR_MSG);
+                expect(msg).to.have.property("downloadRequestId", downloadRequestId);
+                expect(msg).to.have.property("msg").that.includes(ERROR_MSG);
+                expect(msg).to.have.property("resolution", DownloadResolution.FAILURE);
             }
         });
     });

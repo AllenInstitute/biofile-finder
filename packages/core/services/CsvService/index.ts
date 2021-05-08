@@ -1,5 +1,5 @@
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
-import FileDownloadService from "../FileDownloadService";
+import FileDownloadService, { DownloadResult } from "../FileDownloadService";
 import { SelectionRequest } from "../FileService";
 
 interface CsvServiceConfig extends ConnectionConfig {
@@ -24,7 +24,7 @@ export default class CsvService extends HttpServiceBase {
     public downloadCsv(
         selectionRequest: SelectionRequest,
         manifestDownloadId: string
-    ): Promise<string> {
+    ): Promise<DownloadResult> {
         const stringifiedPostBody = JSON.stringify(selectionRequest);
         const url = `${this.baseUrl}/${CsvService.BASE_CSV_DOWNLOAD_URL}`;
 

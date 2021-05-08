@@ -6,12 +6,7 @@ import * as stream from "stream";
 
 import { app, dialog, FileFilter, ipcMain, IpcMainInvokeEvent, ipcRenderer } from "electron";
 
-import {
-    FileDownloadService,
-    FileDownloadCancellationToken,
-    DownloadResolution,
-    DownloadResult,
-} from "../../../core/services";
+import { FileDownloadService, DownloadResolution, DownloadResult } from "../../../core/services";
 import { FileDownloadServiceBaseUrl } from "../util/constants";
 
 // Maps active request ids (uuids) to request download info
@@ -41,6 +36,7 @@ interface DownloadParams {
 
 export default class FileDownloadServiceElectron implements FileDownloadService {
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
+    private CANCELLATION_TOKEN = "CANCEL";
     private activeRequestMap: ActiveRequestMap = {};
     private fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl;
 
@@ -81,7 +77,6 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         if (result.canceled) {
             return Promise.resolve({
                 downloadRequestId,
-                msg: FileDownloadCancellationToken,
                 resolution: DownloadResolution.CANCELLED,
             });
         }
@@ -129,7 +124,6 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         if (promptResult.canceled) {
             return Promise.resolve({
                 downloadRequestId,
-                msg: FileDownloadCancellationToken,
                 resolution: DownloadResolution.CANCELLED,
             });
         }
@@ -150,11 +144,17 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
             return Promise.resolve();
         }
+        const { filePath, request } = this.activeRequestMap[downloadRequestId];
+        request.destroy(new Error(this.CANCELLATION_TOKEN));
+        delete this.activeRequestMap[downloadRequestId];
+        return this.deleteArtifact(filePath);
+    }
+
+    /**
+     * If a downloaded artifact (partial or otherwise) exists, delete it
+     */
+    private deleteArtifact(filePath: string): Promise<void> {
         return new Promise((resolve, reject) => {
-            const { filePath, request } = this.activeRequestMap[downloadRequestId];
-            request.destroy(new Error(FileDownloadCancellationToken));
-            delete this.activeRequestMap[downloadRequestId];
-            // If an artifact has been created, we want to delete any remnants of it
             fs.access(filePath, fs.constants.F_OK, (err) => {
                 if (!err) {
                     fs.unlink(filePath, (err) => {
@@ -187,36 +187,49 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             // this logic can be safely removed.
             const requestor = new URL(url).protocol === "http:" ? http : https;
 
-            const req = requestor.request(url, requestOptions, (res) => {
+            const req = requestor.request(url, requestOptions, (incomingMsg) => {
                 if (responseEncoding) {
-                    res.setEncoding(responseEncoding);
+                    incomingMsg.setEncoding(responseEncoding);
                 }
 
-                if (res.statusCode !== undefined && res.statusCode >= 400) {
+                incomingMsg.on("aborted", () => {
+                    console.error("aborted!");
+                    console.log(incomingMsg);
+                });
+
+                if (incomingMsg.statusCode !== undefined && incomingMsg.statusCode >= 400) {
                     const errorChunks: string[] = [];
-                    res.on("data", (chunk: string) => {
+                    incomingMsg.on("data", (chunk: string) => {
                         errorChunks.push(chunk);
                     });
-                    res.on("end", () => {
-                        delete this.activeRequestMap[downloadRequestId];
-                        const error = errorChunks.join("");
-                        const msg = `Failed to download file. Error details: ${error}`;
-                        reject({
-                            downloadRequestId,
-                            msg,
-                            resolution: DownloadResolution.FAILURE,
-                        });
+                    incomingMsg.on("end", async () => {
+                        try {
+                            delete this.activeRequestMap[downloadRequestId];
+                            await this.deleteArtifact(outFilePath);
+                        } finally {
+                            const error = errorChunks.join("");
+                            const msg = `Failed to download file. Error details: ${error}`;
+                            reject({
+                                downloadRequestId,
+                                msg,
+                                resolution: DownloadResolution.FAILURE,
+                            });
+                        }
                     });
                 } else {
-                    res.on("end", () => {
-                        if (res.aborted) {
-                            resolve({
-                                downloadRequestId,
-                                msg: FileDownloadCancellationToken,
-                                resolution: DownloadResolution.CANCELLED,
-                            });
+                    incomingMsg.on("end", async () => {
+                        delete this.activeRequestMap[downloadRequestId];
+
+                        if (incomingMsg.aborted) {
+                            try {
+                                await this.deleteArtifact(outFilePath);
+                            } finally {
+                                resolve({
+                                    downloadRequestId,
+                                    resolution: DownloadResolution.CANCELLED,
+                                });
+                            }
                         } else {
-                            delete this.activeRequestMap[downloadRequestId];
                             resolve({
                                 downloadRequestId,
                                 msg: `Successfully downloaded ${outFilePath}`,
@@ -224,48 +237,55 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                             });
                         }
                     });
-                    res.on("error", (err) => {
-                        delete this.activeRequestMap[downloadRequestId];
-                        reject({
-                            downloadRequestId,
-                            msg: err.message,
-                            resolution: DownloadResolution.FAILURE,
-                        });
+                    incomingMsg.on("error", async (err) => {
+                        try {
+                            delete this.activeRequestMap[downloadRequestId];
+                            await this.deleteArtifact(outFilePath);
+                        } finally {
+                            reject({
+                                downloadRequestId,
+                                msg: err.message,
+                                resolution: DownloadResolution.FAILURE,
+                            });
+                        }
                     });
 
                     const writeStream = fs.createWriteStream(outFilePath);
                     if (onProgress) {
-                        let bytesDownloaded = 0;
                         const progressTrackingStream = new stream.Transform({
                             transform(chunk, encoding, callback) {
-                                bytesDownloaded += chunk.length;
-                                onProgress(bytesDownloaded);
+                                onProgress(chunk.byteLength);
                                 callback(null, chunk);
                             },
                         });
-                        res.pipe(progressTrackingStream).pipe(writeStream);
+                        incomingMsg.pipe(progressTrackingStream).pipe(writeStream);
                     } else {
-                        res.pipe(writeStream);
+                        incomingMsg.pipe(writeStream);
                     }
                 }
             });
-            req.on("error", (err) => {
+
+            req.on("error", async (err) => {
                 delete this.activeRequestMap[downloadRequestId];
-                // If the socket was too prematurely hung up it will emit this error
-                if (err.message === FileDownloadCancellationToken) {
+                // This first branch applies when the download has been explicitly cancelled
+                if (err.message === this.CANCELLATION_TOKEN) {
                     resolve({
                         downloadRequestId,
-                        msg: FileDownloadCancellationToken,
                         resolution: DownloadResolution.CANCELLED,
                     });
                 } else {
-                    reject({
-                        downloadRequestId,
-                        msg: `Failed to download file. Error details: ${err}`,
-                        resolution: DownloadResolution.FAILURE,
-                    });
+                    try {
+                        await this.deleteArtifact(outFilePath);
+                    } finally {
+                        reject({
+                            downloadRequestId,
+                            msg: `Failed to download file. Error details: ${err}`,
+                            resolution: DownloadResolution.FAILURE,
+                        });
+                    }
                 }
             });
+
             this.activeRequestMap[downloadRequestId] = { filePath: outFilePath, request: req };
             if (postData) {
                 req.write(postData);
