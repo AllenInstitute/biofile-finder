@@ -1,6 +1,8 @@
+import * as assert from "assert";
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
+import * as os from "os";
 import * as path from "path";
 import * as stream from "stream";
 
@@ -30,13 +32,15 @@ interface DownloadParams {
     outFilePath: string;
     requestOptions: http.RequestOptions | https.RequestOptions;
     postData?: string;
-    responseEncoding?: BufferEncoding;
+    encoding?: BufferEncoding;
     onProgress?: (totalBytesDownloaded: number) => void;
 }
 
 export default class FileDownloadServiceElectron implements FileDownloadService {
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
     private CANCELLATION_TOKEN = "CANCEL";
+    private CHUNK_SIZE = 1 * 1024 * 1024; // 10 Mb, in bytes
+    private MAX_CONCURRENT_CONNECTIONS = 10;
     private activeRequestMap: ActiveRequestMap = {};
     private fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl;
 
@@ -102,12 +106,13 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             outFilePath,
             requestOptions,
             postData,
-            responseEncoding: "utf-8",
+            encoding: "utf-8",
         });
     }
 
     public async downloadFile(
         filePath: string,
+        fileSize: number,
         downloadRequestId: string,
         onProgress?: (bytesDownloaded: number) => void
     ): Promise<DownloadResult> {
@@ -128,16 +133,65 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             });
         }
 
-        const requestOptions = {
-            method: "GET",
-        };
-
         const outFilePath = path.extname(promptResult.filePath)
             ? promptResult.filePath
             : `${promptResult.filePath}.${path.extname(filePath)}`;
 
         const url = `${this.fileDownloadServiceBaseUrl}${filePath}`;
-        return this.download({ downloadRequestId, url, outFilePath, requestOptions, onProgress });
+
+        const fileName = path.basename(outFilePath);
+        const outFileHandle = fs.createWriteStream(outFilePath, { flags: "w" });
+        let downloaded = 0;
+        do {
+            console.log(`Downloaded ${downloaded} / ${fileSize}`);
+            const promises = [];
+            for (
+                let i = 0, bytesRemaining = fileSize - downloaded;
+                i < this.MAX_CONCURRENT_CONNECTIONS && bytesRemaining > 0;
+                i += 1, bytesRemaining = fileSize - downloaded
+            ) {
+                promises.push(this.downloadChunk(url, fileName, downloaded, this.CHUNK_SIZE));
+                downloaded += this.CHUNK_SIZE;
+            }
+
+            try {
+                const chunks = await Promise.all(promises);
+                for (const chunk of chunks) {
+                    fs.createReadStream(chunk).pipe(outFileHandle, { end: false });
+                    await fs.promises.unlink(chunk);
+                }
+            } catch (err) {
+                // todo
+                console.error(err);
+                return Promise.reject({
+                    downloadRequestId,
+                    msg: err.message,
+                    resolution: DownloadResolution.FAILURE,
+                });
+            }
+            if (onProgress) {
+                onProgress(downloaded);
+            }
+        } while (downloaded < fileSize);
+
+        return new Promise((resolve, reject) => {
+            outFileHandle.end((err: Error) => {
+                if (err) {
+                    reject({
+                        downloadRequestId,
+                        msg: err.message,
+                        resolution: DownloadResolution.FAILURE,
+                    });
+                    return;
+                }
+
+                resolve({
+                    downloadRequestId,
+                    msg: `Successfully downloaded ${outFilePath}`,
+                    resolution: DownloadResolution.SUCCESS,
+                });
+            });
+        });
     }
 
     public async cancelActiveRequest(downloadRequestId: string): Promise<void> {
@@ -171,16 +225,40 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         });
     }
 
+    private async downloadChunk(
+        url: string,
+        fileName: string,
+        startPosition: number,
+        chunkSize: number
+    ): Promise<string> {
+        const tmpFilePath = `${os.tmpdir()}/${fileName}_${startPosition}`;
+        const endPosition = startPosition + chunkSize - 1;
+        const headers = {
+            Range: `bytes=${startPosition}-${endPosition}`,
+        };
+
+        try {
+            const result = await this.download({
+                downloadRequestId: `${fileName}_${startPosition}`,
+                url,
+                outFilePath: tmpFilePath,
+                encoding: "binary",
+                requestOptions: {
+                    headers,
+                    method: "GET",
+                },
+            });
+            assert.strictEqual(result.resolution, DownloadResolution.SUCCESS);
+        } catch (e) {
+            // TODO retry
+            console.error(e.msg);
+        }
+
+        return tmpFilePath;
+    }
+
     private async download(params: DownloadParams): Promise<DownloadResult> {
-        const {
-            downloadRequestId,
-            url,
-            outFilePath,
-            requestOptions,
-            postData,
-            responseEncoding,
-            onProgress,
-        } = params;
+        const { downloadRequestId, url, outFilePath, requestOptions, postData, encoding } = params;
 
         return new Promise((resolve, reject) => {
             // HTTP requests are made when pointed at localhost, HTTPS otherwise. If that ever changes,
@@ -188,13 +266,22 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             const requestor = new URL(url).protocol === "http:" ? http : https;
 
             const req = requestor.request(url, requestOptions, (incomingMsg) => {
-                if (responseEncoding) {
-                    incomingMsg.setEncoding(responseEncoding);
+                if (encoding) {
+                    incomingMsg.setEncoding(encoding);
                 }
 
-                incomingMsg.on("aborted", () => {
-                    console.error("aborted!");
-                    console.log(incomingMsg);
+                incomingMsg.on("aborted", async () => {
+                    try {
+                        delete this.activeRequestMap[downloadRequestId];
+                        await this.deleteArtifact(outFilePath);
+                    } finally {
+                        console.error("aborted");
+                        reject({
+                            downloadRequestId,
+                            msg: "Aborted somehow",
+                            resolution: DownloadResolution.FAILURE,
+                        });
+                    }
                 });
 
                 if (incomingMsg.statusCode !== undefined && incomingMsg.statusCode >= 400) {
@@ -209,6 +296,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         } finally {
                             const error = errorChunks.join("");
                             const msg = `Failed to download file. Error details: ${error}`;
+                            console.error(msg);
                             reject({
                                 downloadRequestId,
                                 msg,
@@ -242,6 +330,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                             delete this.activeRequestMap[downloadRequestId];
                             await this.deleteArtifact(outFilePath);
                         } finally {
+                            console.error(err);
                             reject({
                                 downloadRequestId,
                                 msg: err.message,
@@ -250,22 +339,13 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         }
                     });
 
-                    const writeStream = fs.createWriteStream(outFilePath);
-                    if (onProgress) {
-                        const progressTrackingStream = new stream.Transform({
-                            transform(chunk, encoding, callback) {
-                                onProgress(chunk.byteLength);
-                                callback(null, chunk);
-                            },
-                        });
-                        incomingMsg.pipe(progressTrackingStream).pipe(writeStream);
-                    } else {
-                        incomingMsg.pipe(writeStream);
-                    }
+                    const writeStream = fs.createWriteStream(outFilePath, { flags: "w" });
+                    incomingMsg.pipe(writeStream);
                 }
             });
 
             req.on("error", async (err) => {
+                console.error(err);
                 delete this.activeRequestMap[downloadRequestId];
                 // This first branch applies when the download has been explicitly cancelled
                 if (err.message === this.CANCELLATION_TOKEN) {

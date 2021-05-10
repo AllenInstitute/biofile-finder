@@ -66,7 +66,7 @@ describe("Interaction logics", () => {
                 resolution: DownloadResolution.CANCELLED,
             });
         }
-        downloadFile(_filePath: string, downloadRequestId: string) {
+        downloadFile(_filePath: string, _fileSize: number, downloadRequestId: string) {
             return Promise.resolve({
                 downloadRequestId,
                 resolution: DownloadResolution.CANCELLED,
@@ -375,7 +375,7 @@ describe("Interaction logics", () => {
                     });
                 }
 
-                downloadFile(_filePath: string, downloadRequestId: string) {
+                downloadFile(_filePath: string, _fileSize: number, downloadRequestId: string) {
                     return Promise.resolve({
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,

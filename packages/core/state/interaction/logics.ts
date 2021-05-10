@@ -248,6 +248,7 @@ const downloadFile = createLogic({
             const promises: Promise<DownloadResult>[] = files.map((fileInfo) =>
                 fileDownloadService.downloadFile(
                     fileInfo.path,
+                    fileInfo.size,
                     fileToDownloadRequestIdMap[fileInfo.path],
                     onProgress
                 )
