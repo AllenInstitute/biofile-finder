@@ -1,15 +1,21 @@
-import * as assert from "assert";
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
-import * as os from "os";
 import * as path from "path";
-import * as stream from "stream";
 
-import { app, dialog, FileFilter, ipcMain, IpcMainInvokeEvent, ipcRenderer } from "electron";
+import {
+    app,
+    dialog,
+    FileFilter,
+    ipcMain,
+    IpcMainInvokeEvent,
+    ipcRenderer,
+    IpcRendererEvent,
+} from "electron";
 
 import { FileDownloadService, DownloadResolution, DownloadResult } from "../../../core/services";
 import { FileDownloadServiceBaseUrl } from "../util/constants";
+import ElectronDownloader, { ElectronDownloadResolution } from "./ElectronDownloader";
 
 // Maps active request ids (uuids) to request download info
 interface ActiveRequestMap {
@@ -38,14 +44,16 @@ interface DownloadParams {
 
 export default class FileDownloadServiceElectron implements FileDownloadService {
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
+    public static DOWNLOAD_FROM_URL = "download-from-url";
+    public static PAUSE_DOWNLOAD = "pause-download";
+    public static CANCEL_DOWNLOAD = "cancel-download";
+
     private CANCELLATION_TOKEN = "CANCEL";
-    private CHUNK_SIZE = 1 * 1024 * 1024; // 10 Mb, in bytes
-    private MAX_CONCURRENT_CONNECTIONS = 10;
     private activeRequestMap: ActiveRequestMap = {};
     private fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl;
 
     public static registerIpcHandlers() {
-        async function handler(_: IpcMainInvokeEvent, params: ShowSaveDialogParams) {
+        async function getSavePathHandler(_: IpcMainInvokeEvent, params: ShowSaveDialogParams) {
             return await dialog.showSaveDialog({
                 title: params.title,
                 defaultPath: path.resolve(app.getPath("downloads"), params.defaultFileName),
@@ -53,13 +61,87 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                 filters: params.filters || [],
             });
         }
-        ipcMain.handle(FileDownloadServiceElectron.GET_FILE_SAVE_PATH, handler);
+        ipcMain.handle(FileDownloadServiceElectron.GET_FILE_SAVE_PATH, getSavePathHandler);
+
+        const downloader = new ElectronDownloader();
+        async function downloadHandler(
+            event: IpcMainInvokeEvent,
+            url: string,
+            fileName: string,
+            downloadRequestId: string,
+            progressHandlerChannel: string
+        ) {
+            function onProgress(progress: number) {
+                event.sender.send(progressHandlerChannel, progress);
+            }
+
+            const downloadsDir = app.getPath("downloads");
+            const filePath = path.join(downloadsDir, fileName);
+            const resolution = await downloader.download(event.sender.session, url, {
+                filePath,
+                onProgress,
+                uid: downloadRequestId,
+            });
+            if (resolution === ElectronDownloadResolution.COMPLETED) {
+                return {
+                    downloadRequestId,
+                    msg: `Successfully downloaded ${filePath}`,
+                    resolution: DownloadResolution.SUCCESS,
+                };
+            } else if (resolution === ElectronDownloadResolution.CANCELLED) {
+                return {
+                    downloadRequestId,
+                    resolution: DownloadResolution.CANCELLED,
+                };
+            }
+        }
+        ipcMain.handle(FileDownloadServiceElectron.DOWNLOAD_FROM_URL, downloadHandler);
+
+        function downloadCancelHandler(_event: IpcMainInvokeEvent, uid: string) {
+            downloader.cancelDownload(uid);
+        }
+        ipcMain.handle(FileDownloadServiceElectron.CANCEL_DOWNLOAD, downloadCancelHandler);
     }
 
     constructor(
         fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl = FileDownloadServiceBaseUrl.PRODUCTION
     ) {
         this.fileDownloadServiceBaseUrl = fileDownloadServiceBaseUrl;
+    }
+
+    public async downloadFile(
+        filePath: string,
+        downloadRequestId: string,
+        onProgress?: (bytesDownloaded: number) => void
+    ): Promise<DownloadResult> {
+        const url = `${this.fileDownloadServiceBaseUrl}${filePath}`;
+
+        const progressHandlerChannel = `download-progress-${downloadRequestId}`;
+        function progressHandler(_: IpcRendererEvent, transferredBytes: number) {
+            if (onProgress) {
+                onProgress(transferredBytes);
+            }
+        }
+        ipcRenderer.on(progressHandlerChannel, progressHandler);
+
+        try {
+            const fileName = path.basename(filePath);
+            return await ipcRenderer.invoke(
+                FileDownloadServiceElectron.DOWNLOAD_FROM_URL,
+                url,
+                fileName,
+                downloadRequestId,
+                progressHandlerChannel
+            );
+        } catch (err) {
+            return {
+                downloadRequestId,
+                msg: err.message,
+                resolution: DownloadResolution.FAILURE,
+            };
+        } finally {
+            ipcRenderer.removeListener(progressHandlerChannel, progressHandler);
+        }
     }
 
     public async downloadCsvManifest(
@@ -110,92 +192,12 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         });
     }
 
-    public async downloadFile(
-        filePath: string,
-        fileSize: number,
-        downloadRequestId: string,
-        onProgress?: (bytesDownloaded: number) => void
-    ): Promise<DownloadResult> {
-        const saveDialogParams = {
-            title: "Save file",
-            defaultFileName: path.basename(filePath),
-            buttonLabel: "Save",
-        };
-        const promptResult = await ipcRenderer.invoke(
-            FileDownloadServiceElectron.GET_FILE_SAVE_PATH,
-            saveDialogParams
-        );
-
-        if (promptResult.canceled) {
-            return Promise.resolve({
-                downloadRequestId,
-                resolution: DownloadResolution.CANCELLED,
-            });
-        }
-
-        const outFilePath = path.extname(promptResult.filePath)
-            ? promptResult.filePath
-            : `${promptResult.filePath}.${path.extname(filePath)}`;
-
-        const url = `${this.fileDownloadServiceBaseUrl}${filePath}`;
-
-        const fileName = path.basename(outFilePath);
-        const outFileHandle = fs.createWriteStream(outFilePath, { flags: "w" });
-        let downloaded = 0;
-        do {
-            console.log(`Downloaded ${downloaded} / ${fileSize}`);
-            const promises = [];
-            for (
-                let i = 0, bytesRemaining = fileSize - downloaded;
-                i < this.MAX_CONCURRENT_CONNECTIONS && bytesRemaining > 0;
-                i += 1, bytesRemaining = fileSize - downloaded
-            ) {
-                promises.push(this.downloadChunk(url, fileName, downloaded, this.CHUNK_SIZE));
-                downloaded += this.CHUNK_SIZE;
-            }
-
-            try {
-                const chunks = await Promise.all(promises);
-                for (const chunk of chunks) {
-                    fs.createReadStream(chunk).pipe(outFileHandle, { end: false });
-                    await fs.promises.unlink(chunk);
-                }
-            } catch (err) {
-                // todo
-                console.error(err);
-                return Promise.reject({
-                    downloadRequestId,
-                    msg: err.message,
-                    resolution: DownloadResolution.FAILURE,
-                });
-            }
-            if (onProgress) {
-                onProgress(downloaded);
-            }
-        } while (downloaded < fileSize);
-
-        return new Promise((resolve, reject) => {
-            outFileHandle.end((err: Error) => {
-                if (err) {
-                    reject({
-                        downloadRequestId,
-                        msg: err.message,
-                        resolution: DownloadResolution.FAILURE,
-                    });
-                    return;
-                }
-
-                resolve({
-                    downloadRequestId,
-                    msg: `Successfully downloaded ${outFilePath}`,
-                    resolution: DownloadResolution.SUCCESS,
-                });
-            });
-        });
-    }
-
     public async cancelActiveRequest(downloadRequestId: string): Promise<void> {
         if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
+            await ipcRenderer.invoke(
+                FileDownloadServiceElectron.CANCEL_DOWNLOAD,
+                downloadRequestId
+            );
             return Promise.resolve();
         }
         const { filePath, request } = this.activeRequestMap[downloadRequestId];
@@ -225,38 +227,6 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         });
     }
 
-    private async downloadChunk(
-        url: string,
-        fileName: string,
-        startPosition: number,
-        chunkSize: number
-    ): Promise<string> {
-        const tmpFilePath = `${os.tmpdir()}/${fileName}_${startPosition}`;
-        const endPosition = startPosition + chunkSize - 1;
-        const headers = {
-            Range: `bytes=${startPosition}-${endPosition}`,
-        };
-
-        try {
-            const result = await this.download({
-                downloadRequestId: `${fileName}_${startPosition}`,
-                url,
-                outFilePath: tmpFilePath,
-                encoding: "binary",
-                requestOptions: {
-                    headers,
-                    method: "GET",
-                },
-            });
-            assert.strictEqual(result.resolution, DownloadResolution.SUCCESS);
-        } catch (e) {
-            // TODO retry
-            console.error(e.msg);
-        }
-
-        return tmpFilePath;
-    }
-
     private async download(params: DownloadParams): Promise<DownloadResult> {
         const { downloadRequestId, url, outFilePath, requestOptions, postData, encoding } = params;
 
@@ -278,7 +248,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         console.error("aborted");
                         reject({
                             downloadRequestId,
-                            msg: "Aborted somehow",
+                            msg: "Aborted",
                             resolution: DownloadResolution.FAILURE,
                         });
                     }
@@ -339,7 +309,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         }
                     });
 
-                    const writeStream = fs.createWriteStream(outFilePath, { flags: "w" });
+                    const writeStream = fs.createWriteStream(outFilePath);
                     incomingMsg.pipe(writeStream);
                 }
             });

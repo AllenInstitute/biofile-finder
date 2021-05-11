@@ -1,6 +1,6 @@
 import FrontendInsights from "@aics/frontend-insights";
 import { makeReducer } from "@aics/redux-utils";
-import { filter } from "lodash";
+import { filter, sortBy } from "lodash";
 
 import {
     GENERATE_PYTHON_SNIPPET,
@@ -121,13 +121,16 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [SET_STATUS]: (state, action) => ({
             ...state,
-            status: [
-                ...filter(
-                    state.status,
-                    (status: StatusUpdate) => status.processId !== action.payload.processId
-                ),
-                action.payload,
-            ],
+            status: sortBy(
+                [
+                    ...filter(
+                        state.status,
+                        (status: StatusUpdate) => status.processId !== action.payload.processId
+                    ),
+                    action.payload,
+                ],
+                "processId"
+            ),
         }),
         [SET_ALLEN_MOUNT_POINT]: (state, action) => ({
             ...state,

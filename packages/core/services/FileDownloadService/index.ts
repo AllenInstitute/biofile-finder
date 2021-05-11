@@ -24,12 +24,11 @@ export default interface FileDownloadService {
     ): Promise<DownloadResult>;
 
     /**
-     * Download a file located at `filePath` of size `fileSize` (in bytes). Optionally provide an "onProgress" callback that will be
+     * Download a file located at `filePath`. Optionally provide an "onProgress" callback that will be
      * called repeatedly over the course of the file download with the number of bytes downloaded so far.
      */
     downloadFile(
         filePath: string,
-        fileSize: number,
         downloadRequestId: string,
         onProgress?: (bytesDownloaded: number) => void
     ): Promise<DownloadResult>;

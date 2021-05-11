@@ -248,7 +248,6 @@ const downloadFile = createLogic({
             const promises: Promise<DownloadResult>[] = files.map((fileInfo) =>
                 fileDownloadService.downloadFile(
                     fileInfo.path,
-                    fileInfo.size,
                     fileToDownloadRequestIdMap[fileInfo.path],
                     onProgress
                 )
@@ -278,7 +277,8 @@ const downloadFile = createLogic({
                 dispatch(processSuccess(parentRequestId, successMsg));
             } else if (failures.length === promises.length) {
                 // if all failed, treat entire download request as failure
-                const errorMsg = "File(s) failed to download";
+                const errors = failures.map((result) => result.reason.msg).join("</br>- ");
+                const errorMsg = `File(s) failed to download:</br>${errors}`;
                 dispatch(processFailure(parentRequestId, errorMsg));
             } else {
                 // Some failed, some succeeded--report individually.
