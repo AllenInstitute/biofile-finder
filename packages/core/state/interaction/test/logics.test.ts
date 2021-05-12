@@ -5,9 +5,7 @@ import {
     ResponseStub,
 } from "@aics/redux-utils";
 import { expect } from "chai";
-import fs from "fs";
 import { get as _get } from "lodash";
-import os from "os";
 import { createSandbox } from "sinon";
 
 import { initialState, interaction, selection } from "../..";
@@ -192,53 +190,6 @@ describe("Interaction logics", () => {
             ).to.equal(false);
         });
 
-        it("clears status if cancelled", async () => {
-            // arrange
-            class TestDownloadService implements FileDownloadService {
-                downloadCsvManifest(_url: string, _data: string, downloadRequestId: string) {
-                    return Promise.resolve({
-                        downloadRequestId,
-                        resolution: DownloadResolution.CANCELLED,
-                    });
-                }
-                downloadFile(_filePath: string, downloadRequestId: string) {
-                    return Promise.resolve({
-                        downloadRequestId,
-                        resolution: DownloadResolution.CANCELLED,
-                    });
-                }
-                cancelActiveRequest() {
-                    return Promise.reject();
-                }
-            }
-
-            const state = mergeState(initialState, {
-                interaction: {
-                    platformDependentServices: {
-                        fileDownloadService: new TestDownloadService(),
-                    },
-                },
-                selection: {
-                    fileSelection,
-                },
-            });
-            const { store, logicMiddleware, actions } = configureMockStore({
-                state,
-                logics: interactionLogics,
-            });
-
-            // act
-            store.dispatch(downloadManifest([]));
-            await logicMiddleware.whenComplete();
-
-            // assert
-            expect(
-                actions.includesMatch({
-                    type: REMOVE_STATUS,
-                })
-            ).to.equal(true);
-        });
-
         it("doesn't use selected files when given a specific file folder path", async () => {
             // arrange
             const baseUrl = "test";
@@ -327,8 +278,8 @@ describe("Interaction logics", () => {
         });
     });
 
-    describe("cancelManifestDownloadLogic", () => {
-        it("marks the failure of a manifest download cancellation (on error)", async () => {
+    describe("cancelFileDownloadLogic", () => {
+        it("marks the failure of a download cancellation (on error)", async () => {
             // arrange
             class TestDownloadService implements FileDownloadService {
                 downloadCsvManifest(_url: string, _data: string, downloadRequestId: string) {
@@ -380,36 +331,24 @@ describe("Interaction logics", () => {
             ).to.equal(true);
         });
 
-        it("deletes the downloaded artifact on cancel", async () => {
+        it("clears status if cancelled", async () => {
             // arrange
-            const tempDir = os.tmpdir();
-            const tempFilePath = tempDir + "/TEMPORARY_FILE_EXPLORER_APP_FILE_FOR_TESTING";
+            const downloadRequestId = "beepbop";
             class TestDownloadService implements FileDownloadService {
-                downloadCsvManifest(_url: string, _data: string, downloadRequestId: string) {
-                    fs.closeSync(fs.openSync(tempFilePath, "w"));
+                downloadCsvManifest() {
                     return Promise.resolve({
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,
                     });
                 }
-
-                downloadFile(_filePath: string, downloadRequestId: string) {
+                downloadFile() {
                     return Promise.resolve({
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,
                     });
                 }
-
-                cancelActiveRequest(): Promise<void> {
-                    return new Promise((resolve, reject) => {
-                        fs.unlink(tempFilePath, (err) => {
-                            if (err) {
-                                reject();
-                            } else {
-                                resolve();
-                            }
-                        });
-                    });
+                cancelActiveRequest() {
+                    return Promise.resolve();
                 }
             }
 
@@ -418,22 +357,39 @@ describe("Interaction logics", () => {
                     platformDependentServices: {
                         fileDownloadService: new TestDownloadService(),
                     },
+                    status: [
+                        {
+                            data: {
+                                msg: "downloading...",
+                                status: ProcessStatus.STARTED,
+                            },
+                            processId: downloadRequestId,
+                        },
+                    ],
                 },
                 selection: {
                     fileSelection,
                 },
             });
-            const { store, logicMiddleware } = configureMockStore({
+            const { store, logicMiddleware, actions } = configureMockStore({
                 state,
                 logics: interactionLogics,
             });
 
             // act
-            store.dispatch(cancelFileDownload("123456"));
+            store.dispatch(cancelFileDownload(downloadRequestId));
             await logicMiddleware.whenComplete();
 
             // assert
-            expect(() => fs.accessSync(tempFilePath)).to.throw();
+            console.log(actions.list);
+            expect(
+                actions.includes({
+                    type: REMOVE_STATUS,
+                    payload: {
+                        processId: downloadRequestId,
+                    },
+                })
+            ).to.equal(true);
         });
     });
 
