@@ -12,6 +12,9 @@ export enum ElectronDownloadResolution {
     INTERRUPTED = "INTERRUPTED",
 }
 
+/**
+ * Simplified abstraction for working with Electron's built-in file download capabilities.
+ */
 export default class ElectronDownloader {
     private state: Map<string, DownloadItem>;
 
@@ -55,7 +58,7 @@ export default class ElectronDownloader {
         item.setSavePath(filePath);
 
         let progress = 0;
-        item.on("updated", (_event: Electron.Event, state) => {
+        item.on("updated", (_event: Electron.Event, state: "progressing" | "interrupted") => {
             if (state !== "progressing") {
                 return;
             }
@@ -65,16 +68,19 @@ export default class ElectronDownloader {
             onProgress(progress);
         });
 
-        item.on("done", (_event: Electron.Event, state) => {
-            this.state.delete(uid);
+        item.on(
+            "done",
+            (_event: Electron.Event, state: "completed" | "cancelled" | "interrupted") => {
+                this.state.delete(uid);
 
-            if (state === "completed") {
-                resolve(ElectronDownloadResolution.COMPLETED);
-            } else if (state === "cancelled") {
-                resolve(ElectronDownloadResolution.CANCELLED);
-            } else if (state === "interrupted") {
-                reject(ElectronDownloadResolution.INTERRUPTED);
+                if (state === "completed") {
+                    resolve(ElectronDownloadResolution.COMPLETED);
+                } else if (state === "cancelled") {
+                    resolve(ElectronDownloadResolution.CANCELLED);
+                } else if (state === "interrupted") {
+                    reject(ElectronDownloadResolution.INTERRUPTED);
+                }
             }
-        });
+        );
     }
 }
