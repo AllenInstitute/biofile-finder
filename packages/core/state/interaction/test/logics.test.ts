@@ -59,24 +59,6 @@ describe("Interaction logics", () => {
         sortOrder: 0,
     });
 
-    class CancellingDownloadService implements FileDownloadService {
-        downloadCsvManifest(_url: string, _data: string, downloadRequestId: string) {
-            return Promise.resolve({
-                downloadRequestId,
-                resolution: DownloadResolution.CANCELLED,
-            });
-        }
-        downloadFile(_filePath: string, downloadRequestId: string) {
-            return Promise.resolve({
-                downloadRequestId,
-                resolution: DownloadResolution.CANCELLED,
-            });
-        }
-        cancelActiveRequest() {
-            return Promise.resolve();
-        }
-    }
-
     describe("downloadManifest", () => {
         const sandbox = createSandbox();
 
@@ -212,10 +194,28 @@ describe("Interaction logics", () => {
 
         it("clears status if cancelled", async () => {
             // arrange
+            class TestDownloadService implements FileDownloadService {
+                downloadCsvManifest(_url: string, _data: string, downloadRequestId: string) {
+                    return Promise.resolve({
+                        downloadRequestId,
+                        resolution: DownloadResolution.CANCELLED,
+                    });
+                }
+                downloadFile(_filePath: string, downloadRequestId: string) {
+                    return Promise.resolve({
+                        downloadRequestId,
+                        resolution: DownloadResolution.CANCELLED,
+                    });
+                }
+                cancelActiveRequest() {
+                    return Promise.reject();
+                }
+            }
+
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        fileDownloadService: new CancellingDownloadService(),
+                        fileDownloadService: new TestDownloadService(),
                     },
                 },
                 selection: {
@@ -330,10 +330,28 @@ describe("Interaction logics", () => {
     describe("cancelManifestDownloadLogic", () => {
         it("marks the failure of a manifest download cancellation (on error)", async () => {
             // arrange
+            class TestDownloadService implements FileDownloadService {
+                downloadCsvManifest(_url: string, _data: string, downloadRequestId: string) {
+                    return Promise.resolve({
+                        downloadRequestId,
+                        resolution: DownloadResolution.CANCELLED,
+                    });
+                }
+                downloadFile(_filePath: string, downloadRequestId: string) {
+                    return Promise.resolve({
+                        downloadRequestId,
+                        resolution: DownloadResolution.CANCELLED,
+                    });
+                }
+                cancelActiveRequest() {
+                    return Promise.reject();
+                }
+            }
+
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        fileDownloadService: new CancellingDownloadService(),
+                        fileDownloadService: new TestDownloadService(),
                     },
                 },
                 selection: {
