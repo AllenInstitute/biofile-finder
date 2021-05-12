@@ -21,7 +21,8 @@ import ElectronDownloader, { ElectronDownloadResolution } from "./ElectronDownlo
 interface ActiveRequestMap {
     [id: string]: {
         filePath: string;
-        request: http.ClientRequest;
+        cancel: () => void;
+        onProgress?: (bytes: number) => void;
     };
 }
 
@@ -47,6 +48,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
     public static DOWNLOAD_FROM_URL = "download-from-url";
     public static PAUSE_DOWNLOAD = "pause-download";
     public static CANCEL_DOWNLOAD = "cancel-download";
+    public static REPORT_DOWNLOAD_PROGRESS = "report-download-progress";
 
     private CANCELLATION_TOKEN = "CANCEL";
     private activeRequestMap: ActiveRequestMap = {};
@@ -68,11 +70,10 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             event: IpcMainInvokeEvent,
             url: string,
             fileName: string,
-            downloadRequestId: string,
-            progressHandlerChannel: string
+            downloadRequestId: string
         ) {
             function onProgress(progress: number) {
-                event.sender.send(progressHandlerChannel, progress);
+                event.sender.send(FileDownloadServiceElectron.REPORT_DOWNLOAD_PROGRESS, progress);
             }
 
             const downloadsDir = app.getPath("downloads");
@@ -107,22 +108,24 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl = FileDownloadServiceBaseUrl.PRODUCTION
     ) {
         this.fileDownloadServiceBaseUrl = fileDownloadServiceBaseUrl;
+
+        this.reportProgress = this.reportProgress.bind(this);
+        ipcRenderer.on(FileDownloadServiceElectron.REPORT_DOWNLOAD_PROGRESS, this.reportProgress);
     }
 
     public async downloadFile(
         filePath: string,
         downloadRequestId: string,
-        onProgress?: (bytesDownloaded: number) => void
+        onProgress?: (transferredBytes: number) => void
     ): Promise<DownloadResult> {
         const url = `${this.fileDownloadServiceBaseUrl}${filePath}`;
-
-        const progressHandlerChannel = `download-progress-${downloadRequestId}`;
-        function progressHandler(_: IpcRendererEvent, transferredBytes: number) {
-            if (onProgress) {
-                onProgress(transferredBytes);
-            }
-        }
-        ipcRenderer.on(progressHandlerChannel, progressHandler);
+        this.activeRequestMap[downloadRequestId] = {
+            cancel: () => {
+                ipcRenderer.invoke(FileDownloadServiceElectron.CANCEL_DOWNLOAD, downloadRequestId);
+            },
+            filePath,
+            onProgress,
+        };
 
         try {
             const fileName = path.basename(filePath);
@@ -130,8 +133,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                 FileDownloadServiceElectron.DOWNLOAD_FROM_URL,
                 url,
                 fileName,
-                downloadRequestId,
-                progressHandlerChannel
+                downloadRequestId
             );
         } catch (err) {
             return {
@@ -139,8 +141,6 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                 msg: err.message,
                 resolution: DownloadResolution.FAILURE,
             };
-        } finally {
-            ipcRenderer.removeListener(progressHandlerChannel, progressHandler);
         }
     }
 
@@ -194,16 +194,25 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
 
     public async cancelActiveRequest(downloadRequestId: string): Promise<void> {
         if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
-            await ipcRenderer.invoke(
-                FileDownloadServiceElectron.CANCEL_DOWNLOAD,
-                downloadRequestId
-            );
             return Promise.resolve();
         }
-        const { filePath, request } = this.activeRequestMap[downloadRequestId];
-        request.destroy(new Error(this.CANCELLATION_TOKEN));
+
+        const { filePath, cancel } = this.activeRequestMap[downloadRequestId];
+        cancel();
         delete this.activeRequestMap[downloadRequestId];
         return this.deleteArtifact(filePath);
+    }
+
+    private reportProgress(
+        _event: IpcRendererEvent,
+        downloadRequestId: string,
+        transferredBytes: number
+    ): void {
+        const { onProgress } = this.activeRequestMap[downloadRequestId] || {};
+
+        if (onProgress) {
+            onProgress(transferredBytes);
+        }
     }
 
     /**
@@ -336,7 +345,12 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                 }
             });
 
-            this.activeRequestMap[downloadRequestId] = { filePath: outFilePath, request: req };
+            this.activeRequestMap[downloadRequestId] = {
+                cancel: () => {
+                    req.destroy(new Error(this.CANCELLATION_TOKEN));
+                },
+                filePath: outFilePath,
+            };
             if (postData) {
                 req.write(postData);
             }
