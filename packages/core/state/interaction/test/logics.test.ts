@@ -381,7 +381,6 @@ describe("Interaction logics", () => {
             await logicMiddleware.whenComplete();
 
             // assert
-            console.log(actions.list);
             expect(
                 actions.includes({
                     type: REMOVE_STATUS,
