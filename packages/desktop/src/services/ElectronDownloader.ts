@@ -28,9 +28,14 @@ export default class ElectronDownloader {
         config: ElectronDownloadConfig
     ): Promise<ElectronDownloadResolution> {
         return new Promise((resolve, reject) => {
-            const onWillDownload = (_event: Electron.Event, item: DownloadItem) => {
+            const onWillDownload = async (_event: Electron.Event, item: DownloadItem) => {
                 this.state.set(config.uid, item);
-                this.onWillDownload(item, config, resolve, reject);
+                try {
+                    const resolution = await this.onWillDownload(item, config);
+                    resolve(resolution);
+                } catch (reason) {
+                    reject(reason);
+                }
             };
             session.once("will-download", onWillDownload);
 
@@ -49,38 +54,39 @@ export default class ElectronDownloader {
 
     private onWillDownload(
         item: DownloadItem,
-        config: ElectronDownloadConfig,
-        resolve: (value: ElectronDownloadResolution) => void,
-        reject: (value: ElectronDownloadResolution) => void
-    ) {
-        const { filePath, onProgress, uid } = config;
+        config: ElectronDownloadConfig
+    ): Promise<ElectronDownloadResolution> {
+        return new Promise((resolve, reject) => {
+            const { filePath, onProgress, uid } = config;
 
-        item.setSavePath(filePath);
+            item.setSavePath(filePath);
 
-        let progress = 0;
-        item.on("updated", (_event: Electron.Event, state: "progressing" | "interrupted") => {
-            if (state !== "progressing") {
-                return;
-            }
-
-            const receivedBytes = item.getReceivedBytes();
-            progress = receivedBytes - progress;
-            onProgress(progress);
-        });
-
-        item.on(
-            "done",
-            (_event: Electron.Event, state: "completed" | "cancelled" | "interrupted") => {
-                this.state.delete(uid);
-
-                if (state === "completed") {
-                    resolve(ElectronDownloadResolution.COMPLETED);
-                } else if (state === "cancelled") {
-                    resolve(ElectronDownloadResolution.CANCELLED);
-                } else if (state === "interrupted") {
+            let progress = 0;
+            item.on("updated", (_event: Electron.Event, state: "progressing" | "interrupted") => {
+                if (state !== "progressing") {
                     reject(ElectronDownloadResolution.INTERRUPTED);
+                    return;
                 }
-            }
-        );
+
+                const receivedBytes = item.getReceivedBytes();
+                progress = receivedBytes - progress;
+                onProgress(progress);
+            });
+
+            item.on(
+                "done",
+                (_event: Electron.Event, state: "completed" | "cancelled" | "interrupted") => {
+                    this.state.delete(uid);
+
+                    if (state === "completed") {
+                        resolve(ElectronDownloadResolution.COMPLETED);
+                    } else if (state === "cancelled") {
+                        resolve(ElectronDownloadResolution.CANCELLED);
+                    } else if (state === "interrupted") {
+                        reject(ElectronDownloadResolution.INTERRUPTED);
+                    }
+                }
+            );
+        });
     }
 }
