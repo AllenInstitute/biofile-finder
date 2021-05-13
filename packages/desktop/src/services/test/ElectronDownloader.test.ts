@@ -74,7 +74,7 @@ describe(`${RUN_IN_MAIN} ElectronDownloader`, () => {
             const config = {
                 filePath: downloadPath,
                 onProgress: () => {
-                    /** */
+                    /** noop */
                 },
                 uid: "foo",
             };
