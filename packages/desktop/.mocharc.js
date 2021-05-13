@@ -7,4 +7,5 @@ module.exports = {
         path.resolve(__dirname, "..", "..", "scripts/babel-register.js"),
         path.resolve(__dirname, "scripts", "set-env-vars.js"),
     ],
+    timeout: 10000, // 10s, in ms
 };

@@ -46,7 +46,8 @@
     "publishArtifact": "echo 'npm run publishArtifact is a noop for fms-file-explorer-desktop'",
     "start": "node scripts/start-dev.js",
     "test:renderer": "BABEL_ENV=nodejs xvfb-maybe electron-mocha --require-main src/main/init-electron-store.js --renderer --grep @renderer --preload ./scripts/test-env-setup.js",
-    "test": "npm-run-all --print-label test:renderer"
+    "test:main": "BABEL_ENV=nodejs xvfb-maybe electron-mocha --grep @main",
+    "test": "npm-run-all --print-label test:renderer test:main"
   },
   "author": "Allen Institute for Cell Science",
   "license": "SEE LICENSE IN LICENSE.txt",
