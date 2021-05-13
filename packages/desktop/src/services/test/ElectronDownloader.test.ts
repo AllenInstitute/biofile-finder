@@ -59,7 +59,7 @@ describe(`${RUN_IN_MAIN} ElectronDownloader`, () => {
         const downloadPath = `${os.tmpdir()}/file-to-download.txt`;
         afterEach(async () => {
             try {
-                await fs.promises.unlink(tempfile);
+                await fs.promises.unlink(downloadPath);
             } catch (err) {
                 // If the file doesn't exist, ignore. Else, re-raise.
                 if (err.code !== "ENOENT") {
