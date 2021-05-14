@@ -33,16 +33,6 @@ interface ShowSaveDialogParams {
     filters?: FileFilter[];
 }
 
-interface DownloadParams {
-    downloadRequestId: string;
-    url: string;
-    outFilePath: string;
-    requestOptions: http.RequestOptions | https.RequestOptions;
-    postData?: string;
-    encoding?: BufferEncoding;
-    onProgress?: (totalBytesDownloaded: number) => void;
-}
-
 export default class FileDownloadServiceElectron implements FileDownloadService {
     // IPC events registered both within the main and renderer processes
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
@@ -189,84 +179,22 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             ? result.filePath
             : result.filePath + ".csv";
 
-        return this.download({
-            downloadRequestId,
-            url,
-            outFilePath,
-            requestOptions,
-            postData,
-            encoding: "utf-8",
-        });
-    }
-
-    public async cancelActiveRequest(downloadRequestId: string): Promise<void> {
-        if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
-            return Promise.resolve();
-        }
-
-        const { filePath, cancel } = this.activeRequestMap[downloadRequestId];
-        cancel();
-        delete this.activeRequestMap[downloadRequestId];
-        return this.deleteArtifact(filePath);
-    }
-
-    /**
-     * If onProgress handler is registered for given download request, call
-     * with the number of bytes tranferred in each download update event.
-     *
-     * This is registered as an ipcRenderer event handler in the constructor
-     * of this class, and triggered from the main process (see FileDownloadServiceElectron:registerIpcHandlers).
-     */
-    private reportProgress(
-        _event: IpcRendererEvent,
-        downloadRequestId: string,
-        transferredBytes: number
-    ): void {
-        const { onProgress } = this.activeRequestMap[downloadRequestId] || {};
-
-        if (onProgress) {
-            onProgress(transferredBytes);
-        }
-    }
-
-    /**
-     * If a downloaded artifact (partial or otherwise) exists, delete it
-     */
-    private deleteArtifact(filePath: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            fs.unlink(filePath, (err) => {
-                // No error or file doesn't exist (e.g., already cleaned up)
-                if (!err || err.code === "ENOENT") {
-                    resolve();
-                } else {
-                    reject(err);
-                }
-            });
-        });
-    }
-
-    private async download(params: DownloadParams): Promise<DownloadResult> {
-        const { downloadRequestId, url, outFilePath, requestOptions, postData, encoding } = params;
-
         return new Promise((resolve, reject) => {
             // HTTP requests are made when pointed at localhost, HTTPS otherwise. If that ever changes,
             // this logic can be safely removed.
             const requestor = new URL(url).protocol === "http:" ? http : https;
 
             const req = requestor.request(url, requestOptions, (incomingMsg) => {
-                if (encoding) {
-                    incomingMsg.setEncoding(encoding);
-                }
+                incomingMsg.setEncoding("utf-8");
 
                 incomingMsg.on("aborted", async () => {
                     try {
                         delete this.activeRequestMap[downloadRequestId];
                         await this.deleteArtifact(outFilePath);
                     } finally {
-                        console.error("aborted");
                         reject({
                             downloadRequestId,
-                            msg: "Aborted",
+                            msg: `Download of ${outFilePath} aborted.`,
                             resolution: DownloadResolution.FAILURE,
                         });
                     }
@@ -283,8 +211,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                             await this.deleteArtifact(outFilePath);
                         } finally {
                             const error = errorChunks.join("");
-                            const msg = `Failed to download file. Error details: ${error}`;
-                            console.error(msg);
+                            const msg = `Failed to download ${outFilePath}. Error details: ${error}`;
                             reject({
                                 downloadRequestId,
                                 msg,
@@ -333,7 +260,6 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             });
 
             req.on("error", async (err) => {
-                console.error(err);
                 delete this.activeRequestMap[downloadRequestId];
                 // This first branch applies when the download has been explicitly cancelled
                 if (err.message === this.CANCELLATION_TOKEN) {
@@ -364,6 +290,51 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                 req.write(postData);
             }
             req.end();
+        });
+    }
+
+    public async cancelActiveRequest(downloadRequestId: string) {
+        if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
+            return;
+        }
+
+        const { cancel } = this.activeRequestMap[downloadRequestId];
+        cancel();
+        delete this.activeRequestMap[downloadRequestId];
+    }
+
+    /**
+     * If onProgress handler is registered for given download request, call
+     * with the number of bytes tranferred in each download update event.
+     *
+     * This is registered as an ipcRenderer event handler in the constructor
+     * of this class, and triggered from the main process (see FileDownloadServiceElectron:registerIpcHandlers).
+     */
+    private reportProgress(
+        _event: IpcRendererEvent,
+        downloadRequestId: string,
+        transferredBytes: number
+    ): void {
+        const { onProgress } = this.activeRequestMap[downloadRequestId] || {};
+
+        if (onProgress) {
+            onProgress(transferredBytes);
+        }
+    }
+
+    /**
+     * If a downloaded artifact (partial or otherwise) exists, delete it
+     */
+    private deleteArtifact(filePath: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            fs.unlink(filePath, (err) => {
+                // No error or file doesn't exist (e.g., already cleaned up)
+                if (!err || err.code === "ENOENT") {
+                    resolve();
+                } else {
+                    reject(err);
+                }
+            });
         });
     }
 }
