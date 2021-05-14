@@ -1,3 +1,4 @@
+import * as assert from "assert";
 import * as fs from "fs";
 import * as os from "os";
 
@@ -109,7 +110,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             expect(result).to.have.property("resolution", DownloadResolution.CANCELLED);
         });
 
-        it("rejects with error message if request for CSV is unsuccessful", async () => {
+        it("rejects with error message and clears partial artifact if request for CSV is unsuccessful", async () => {
             // Arrange
             const DOWNLOAD_HOST = "https://aics-test.corp.alleninstitute.org";
             const DOWNLOAD_PATH = "/file-explorer-service/1.0/files/selection/manifest";
@@ -128,6 +129,9 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             const service = new FileDownloadServiceElectron();
             const downloadRequestId = "beepbop";
 
+            // Write a partial CSV manifest to enable testing that it is cleaned up on error
+            await fs.promises.writeFile(tempfile, "This, That, The Other");
+
             try {
                 // Act
                 await service.downloadCsvManifest(
@@ -135,11 +139,26 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     JSON.stringify({ some: "data" }),
                     downloadRequestId
                 );
-            } catch (msg) {
+
+                // Evergreen detector
+                throw new assert.AssertionError({
+                    message:
+                        "FileDownloadServiceElectron::downloadCsvManifest expected to throw on failure",
+                });
+            } catch (reason) {
                 // Assert
-                expect(msg).to.have.property("downloadRequestId", downloadRequestId);
-                expect(msg).to.have.property("msg").that.includes(ERROR_MSG);
-                expect(msg).to.have.property("resolution", DownloadResolution.FAILURE);
+                expect(reason).to.have.property("downloadRequestId", downloadRequestId);
+                expect(reason).to.have.property("msg").that.includes(ERROR_MSG);
+                expect(reason).to.have.property("resolution", DownloadResolution.FAILURE);
+            } finally {
+                // Assert that any partial file is cleaned up
+                try {
+                    await fs.promises.access(tempfile);
+                    throw new assert.AssertionError({ message: `${tempfile} not cleaned up` });
+                } catch (err) {
+                    // Expect the file to be missing
+                    expect(err.code).to.equal("ENOENT", err.message);
+                }
             }
         });
     });
