@@ -158,7 +158,7 @@ const downloadManifest = createLogic({
                 return;
             }
         } catch (err) {
-            const errorMsg = `Download of CSV manifest failed. Details: ${err.message}`;
+            const errorMsg = `Download of CSV manifest failed. Details: ${err?.message}`;
             dispatch(processFailure(manifestDownloadProcessId, errorMsg));
         } finally {
             dispatch(setCsvColumns(annotations.map((annotation) => annotation.displayName)));
@@ -185,7 +185,7 @@ const cancelFileDownloadLogic = createLogic({
             dispatch(
                 processFailure(
                     action.payload.downloadProcessId,
-                    `Something went wrong cleaning up cancelled download. Details: ${err.message}`
+                    `Something went wrong cleaning up cancelled download. Details: ${err?.message}`
                 )
             );
         } finally {
@@ -246,7 +246,7 @@ const downloadFile = createLogic({
                 dispatch(processSuccess(downloadRequestId, result.msg || ""));
             }
         } catch (err) {
-            const errorMsg = `File download failed. Details:<br/>${err.message}`;
+            const errorMsg = `File download failed. Details:<br/>${err?.message}`;
             dispatch(processFailure(downloadRequestId, errorMsg));
         } finally {
             done();
