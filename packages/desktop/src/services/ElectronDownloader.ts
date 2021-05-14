@@ -2,7 +2,7 @@ import { DownloadItem, Session } from "electron";
 
 interface ElectronDownloadConfig {
     filePath: string;
-    onProgress: (progress: number) => void;
+    onProgress: (bytesTransferred: number) => void;
     uid: string;
 }
 
@@ -61,7 +61,7 @@ export default class ElectronDownloader {
 
             item.setSavePath(filePath);
 
-            let progress = 0;
+            let prevReceivedBytes = 0;
             item.on("updated", (_event: Electron.Event, state: "progressing" | "interrupted") => {
                 if (state !== "progressing") {
                     reject(ElectronDownloadResolution.INTERRUPTED);
@@ -69,7 +69,8 @@ export default class ElectronDownloader {
                 }
 
                 const receivedBytes = item.getReceivedBytes();
-                progress = receivedBytes - progress;
+                const progress = receivedBytes - prevReceivedBytes;
+                prevReceivedBytes = receivedBytes;
                 onProgress(progress);
             });
 

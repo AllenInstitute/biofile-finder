@@ -235,8 +235,8 @@ const downloadFile = createLogic({
         };
 
         let totalBytesDownloaded = 0;
-        const onProgress = (bytesDownloaded: number) => {
-            totalBytesDownloaded += bytesDownloaded;
+        const onProgress = (transferredBytes: number) => {
+            totalBytesDownloaded += transferredBytes;
             dispatch(
                 processProgress(parentRequestId, totalBytesDownloaded / totalSize, msg, onCancel)
             );

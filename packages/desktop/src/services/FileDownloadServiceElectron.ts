@@ -44,9 +44,9 @@ interface DownloadParams {
 }
 
 export default class FileDownloadServiceElectron implements FileDownloadService {
+    // IPC events registered both within the main and renderer processes
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
     public static DOWNLOAD_FROM_URL = "download-from-url";
-    public static PAUSE_DOWNLOAD = "pause-download";
     public static CANCEL_DOWNLOAD = "cancel-download";
     public static REPORT_DOWNLOAD_PROGRESS = "report-download-progress";
 
@@ -55,6 +55,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
     private fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl;
 
     public static registerIpcHandlers() {
+        // Handler for displaying "Save as" prompt
         async function getSavePathHandler(_: IpcMainInvokeEvent, params: ShowSaveDialogParams) {
             return await dialog.showSaveDialog({
                 title: params.title,
@@ -65,6 +66,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         }
         ipcMain.handle(FileDownloadServiceElectron.GET_FILE_SAVE_PATH, getSavePathHandler);
 
+        // Handler for hooking into Electron's native download manager, by way of the `ElectronDownloader` facade
         const downloader = new ElectronDownloader();
         async function downloadHandler(
             event: IpcMainInvokeEvent,
@@ -73,7 +75,11 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             downloadRequestId: string
         ) {
             function onProgress(progress: number) {
-                event.sender.send(FileDownloadServiceElectron.REPORT_DOWNLOAD_PROGRESS, progress);
+                event.sender.send(
+                    FileDownloadServiceElectron.REPORT_DOWNLOAD_PROGRESS,
+                    downloadRequestId,
+                    progress
+                );
             }
 
             const downloadsDir = app.getPath("downloads");
@@ -98,8 +104,9 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         }
         ipcMain.handle(FileDownloadServiceElectron.DOWNLOAD_FROM_URL, downloadHandler);
 
-        function downloadCancelHandler(_event: IpcMainInvokeEvent, uid: string) {
-            downloader.cancelDownload(uid);
+        // Handler for canceling in-flight download
+        function downloadCancelHandler(_event: IpcMainInvokeEvent, downloadRequestId: string) {
+            downloader.cancelDownload(downloadRequestId);
         }
         ipcMain.handle(FileDownloadServiceElectron.CANCEL_DOWNLOAD, downloadCancelHandler);
     }
@@ -203,6 +210,13 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         return this.deleteArtifact(filePath);
     }
 
+    /**
+     * If onProgress handler is registered for given download request, call
+     * with the number of bytes tranferred in each download update event.
+     *
+     * This is registered as an ipcRenderer event handler in the constructor
+     * of this class, and triggered from the main process (see FileDownloadServiceElectron:registerIpcHandlers).
+     */
     private reportProgress(
         _event: IpcRendererEvent,
         downloadRequestId: string,
@@ -220,17 +234,12 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
      */
     private deleteArtifact(filePath: string): Promise<void> {
         return new Promise((resolve, reject) => {
-            fs.access(filePath, fs.constants.F_OK, (err) => {
-                if (!err) {
-                    fs.unlink(filePath, (err) => {
-                        if (!err) {
-                            resolve();
-                        } else {
-                            reject(err);
-                        }
-                    });
+            fs.unlink(filePath, (err) => {
+                // No error or file doesn't exist (e.g., already cleaned up)
+                if (!err || err.code === "ENOENT") {
+                    resolve();
                 } else {
-                    resolve(); // File does not exist
+                    reject(err);
                 }
             });
         });
