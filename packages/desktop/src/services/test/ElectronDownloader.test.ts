@@ -6,6 +6,7 @@ import * as os from "os";
 
 import { expect } from "chai";
 import { session } from "electron";
+import { createSandbox } from "sinon";
 
 import { DownloadFailure } from "../../../../core/errors";
 import { RUN_IN_MAIN } from "../../util/constants";
@@ -75,8 +76,10 @@ describe(`${RUN_IN_MAIN} ElectronDownloader`, () => {
         });
     });
 
+    const sandbox = createSandbox();
     const downloadPath = `${os.tmpdir()}/file-to-download.txt`;
     afterEach(async () => {
+        sandbox.reset();
         try {
             await fs.promises.unlink(downloadPath);
         } catch (err) {
@@ -107,6 +110,29 @@ describe(`${RUN_IN_MAIN} ElectronDownloader`, () => {
         expect(result).to.equal(ElectronDownloadResolution.COMPLETED);
         const actualContent = await fs.promises.readFile(downloadPath, { encoding: "utf-8" });
         expect(actualContent).to.equal(expectedFileContent);
+    });
+
+    it("calls onProgress handler", async () => {
+        // Arrange
+        const downloader = new ElectronDownloader();
+        const onProgressSpy = sandbox.spy();
+        const config = {
+            filePath: downloadPath,
+            onProgress: onProgressSpy,
+            uid: "foo",
+        };
+        const { port } = getServerAddress();
+        const url = `http://localhost:${port}/succeed`;
+
+        // Act
+        await downloader.download(session.defaultSession, url, config);
+
+        // Assert
+        expect(onProgressSpy.called).to.equal(true);
+        expect(onProgressSpy.calledWith(0)).to.equal(true);
+
+        const { size } = await fs.promises.stat(tempfile);
+        expect(onProgressSpy.calledWith(size)).to.equal(true);
     });
 
     it("cancels a download and cleans up after itself", async () => {
