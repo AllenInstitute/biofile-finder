@@ -7,6 +7,7 @@ import * as os from "os";
 import { expect } from "chai";
 import { session } from "electron";
 
+import { DownloadFailure } from "../../../../core/errors";
 import { RUN_IN_MAIN } from "../../util/constants";
 import ElectronDownloader, { ElectronDownloadResolution } from "../ElectronDownloader";
 
@@ -157,9 +158,11 @@ describe(`${RUN_IN_MAIN} ElectronDownloader`, () => {
 
             // Shouldn't hit, but here to ensure test isn't evergreen
             throw new assert.AssertionError({ message: `Expected exception to be thrown` });
-        } catch (reason) {
+        } catch (err) {
             // Assert
-            expect(reason).to.equal(ElectronDownloadResolution.INTERRUPTED);
+            expect(err).to.be.instanceOf(DownloadFailure);
+            expect(err.message).to.equal(ElectronDownloadResolution.INTERRUPTED);
+            expect((err as DownloadFailure).downloadIdentifier).to.equal("foo");
         } finally {
             try {
                 await fs.promises.access(downloadPath);

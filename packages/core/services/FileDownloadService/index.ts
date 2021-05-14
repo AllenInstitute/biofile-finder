@@ -1,7 +1,6 @@
 export enum DownloadResolution {
     CANCELLED = "CANCELLED",
     SUCCESS = "SUCCESS",
-    FAILURE = "FAILURE",
 }
 
 export interface DownloadResult {

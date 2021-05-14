@@ -13,6 +13,7 @@ import {
     IpcRendererEvent,
 } from "electron";
 
+import { DownloadFailure } from "../../../core/errors";
 import { FileDownloadService, DownloadResolution, DownloadResult } from "../../../core/services";
 import { FileDownloadServiceBaseUrl } from "../util/constants";
 import ElectronDownloader, { ElectronDownloadResolution } from "./ElectronDownloader";
@@ -124,21 +125,13 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             onProgress,
         };
 
-        try {
-            const fileName = path.basename(filePath);
-            return await ipcRenderer.invoke(
-                FileDownloadServiceElectron.DOWNLOAD_FROM_URL,
-                url,
-                fileName,
-                downloadRequestId
-            );
-        } catch (err) {
-            return {
-                downloadRequestId,
-                msg: err.message,
-                resolution: DownloadResolution.FAILURE,
-            };
-        }
+        const fileName = path.basename(filePath);
+        return await ipcRenderer.invoke(
+            FileDownloadServiceElectron.DOWNLOAD_FROM_URL,
+            url,
+            fileName,
+            downloadRequestId
+        );
     }
 
     public async downloadCsvManifest(
@@ -192,11 +185,12 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         delete this.activeRequestMap[downloadRequestId];
                         await this.deleteArtifact(outFilePath);
                     } finally {
-                        reject({
-                            downloadRequestId,
-                            msg: `Download of ${outFilePath} aborted.`,
-                            resolution: DownloadResolution.FAILURE,
-                        });
+                        reject(
+                            new DownloadFailure(
+                                `Download of ${outFilePath} aborted.`,
+                                downloadRequestId
+                            )
+                        );
                     }
                 });
 
@@ -212,11 +206,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         } finally {
                             const error = errorChunks.join("");
                             const msg = `Failed to download ${outFilePath}. Error details: ${error}`;
-                            reject({
-                                downloadRequestId,
-                                msg,
-                                resolution: DownloadResolution.FAILURE,
-                            });
+                            reject(new DownloadFailure(msg, downloadRequestId));
                         }
                     });
                 } else {
@@ -245,12 +235,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                             delete this.activeRequestMap[downloadRequestId];
                             await this.deleteArtifact(outFilePath);
                         } finally {
-                            console.error(err);
-                            reject({
-                                downloadRequestId,
-                                msg: err.message,
-                                resolution: DownloadResolution.FAILURE,
-                            });
+                            reject(new DownloadFailure(err.message, downloadRequestId));
                         }
                     });
 
@@ -271,11 +256,12 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                     try {
                         await this.deleteArtifact(outFilePath);
                     } finally {
-                        reject({
-                            downloadRequestId,
-                            msg: `Failed to download file. Error details: ${err}`,
-                            resolution: DownloadResolution.FAILURE,
-                        });
+                        reject(
+                            new DownloadFailure(
+                                `Failed to download file: ${err.message}`,
+                                downloadRequestId
+                            )
+                        );
                     }
                 }
             });

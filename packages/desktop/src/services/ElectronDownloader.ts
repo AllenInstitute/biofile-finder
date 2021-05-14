@@ -1,5 +1,7 @@
 import { DownloadItem, Session } from "electron";
 
+import { DownloadFailure } from "../../../core/errors";
+
 interface ElectronDownloadConfig {
     filePath: string;
     onProgress: (bytesTransferred: number) => void;
@@ -64,7 +66,7 @@ export default class ElectronDownloader {
             let prevReceivedBytes = 0;
             item.on("updated", (_event: Electron.Event, state: "progressing" | "interrupted") => {
                 if (state !== "progressing") {
-                    reject(ElectronDownloadResolution.INTERRUPTED);
+                    reject(new DownloadFailure(ElectronDownloadResolution.INTERRUPTED, uid));
                     return;
                 }
 
@@ -84,7 +86,7 @@ export default class ElectronDownloader {
                     } else if (state === "cancelled") {
                         resolve(ElectronDownloadResolution.CANCELLED);
                     } else if (state === "interrupted") {
-                        reject(ElectronDownloadResolution.INTERRUPTED);
+                        reject(new DownloadFailure(ElectronDownloadResolution.INTERRUPTED, uid));
                     }
                 }
             );

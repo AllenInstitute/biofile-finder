@@ -153,16 +153,13 @@ const downloadManifest = createLogic({
             if (result.resolution === DownloadResolution.CANCELLED) {
                 dispatch(removeStatus(manifestDownloadProcessId));
                 return;
-            } else if (result.resolution === DownloadResolution.SUCCESS) {
+            } else {
                 const successMsg = `Download of CSV manifest successfully finished.<br/>${result.msg}`;
                 dispatch(processSuccess(manifestDownloadProcessId, successMsg));
                 return;
-            } else {
-                const errorMsg = `Download of CSV manifest failed.<br/>${result.msg}`;
-                dispatch(processFailure(manifestDownloadProcessId, errorMsg));
             }
         } catch (err) {
-            const errorMsg = `Download of CSV manifest failed.<br/>${err}`;
+            const errorMsg = `Download of CSV manifest failed. Details: ${err.message}`;
             dispatch(processFailure(manifestDownloadProcessId, errorMsg));
         } finally {
             dispatch(setCsvColumns(annotations.map((annotation) => annotation.displayName)));
@@ -189,7 +186,7 @@ const cancelFileDownloadLogic = createLogic({
             dispatch(
                 processFailure(
                     action.payload.downloadProcessId,
-                    "Something went wrong cleaning up cancelled download."
+                    `Something went wrong cleaning up cancelled download. Details: ${err.message}`
                 )
             );
         } finally {
@@ -277,8 +274,8 @@ const downloadFile = createLogic({
                 dispatch(processSuccess(parentRequestId, successMsg));
             } else if (failures.length === promises.length) {
                 // if all failed, treat entire download request as failure
-                const errors = failures.map((result) => result.reason.msg).join("</br>- ");
-                const errorMsg = `File(s) failed to download:</br>${errors}`;
+                const errors = failures.map((result) => result.reason.message).join("</br>- ");
+                const errorMsg = `File(s) failed to download. Details:</br>${errors}`;
                 dispatch(processFailure(parentRequestId, errorMsg));
             } else {
                 // Some failed, some succeeded--report individually.
@@ -293,13 +290,13 @@ const downloadFile = createLogic({
 
                     for (const failure of failures) {
                         dispatch(
-                            processFailure(failure.reason.downloadRequestId, failure.reason.msg)
+                            processFailure(failure.reason.downloadRequestId, failure.reason.message)
                         );
                     }
                 });
             }
         } catch (err) {
-            const errorMsg = `File download failed.<br/>${err}`;
+            const errorMsg = `File download failed. Details:<br/>${err.message}`;
             dispatch(processFailure(parentRequestId, errorMsg));
         } finally {
             done();

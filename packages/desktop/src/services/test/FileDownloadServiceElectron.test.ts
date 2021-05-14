@@ -7,6 +7,7 @@ import { ipcRenderer } from "electron";
 import nock from "nock";
 import { createSandbox } from "sinon";
 
+import { DownloadFailure } from "../../../../core/errors";
 import { DownloadResolution } from "../../../../core/services";
 import { RUN_IN_RENDERER } from "../../util/constants";
 import FileDownloadServiceElectron from "../FileDownloadServiceElectron";
@@ -145,11 +146,11 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     message:
                         "FileDownloadServiceElectron::downloadCsvManifest expected to throw on failure",
                 });
-            } catch (reason) {
+            } catch (err) {
                 // Assert
-                expect(reason).to.have.property("downloadRequestId", downloadRequestId);
-                expect(reason).to.have.property("msg").that.includes(ERROR_MSG);
-                expect(reason).to.have.property("resolution", DownloadResolution.FAILURE);
+                expect(err).to.be.instanceOf(DownloadFailure);
+                expect(err.message).to.include(ERROR_MSG);
+                expect((err as DownloadFailure).downloadIdentifier).to.equal(downloadRequestId);
             } finally {
                 // Assert that any partial file is cleaned up
                 try {
