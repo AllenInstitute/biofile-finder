@@ -77,13 +77,13 @@ interface FileInfo {
 }
 
 export interface DownloadFileAction {
-    payload: FileInfo[];
+    payload: FileInfo;
     type: string;
 }
 
-export function downloadFile(fileInfo: FileInfo | FileInfo[]): DownloadFileAction {
+export function downloadFile(fileInfo: FileInfo): DownloadFileAction {
     return {
-        payload: castArray(fileInfo),
+        payload: fileInfo,
         type: DOWNLOAD_FILE,
     };
 }

@@ -1,6 +1,5 @@
 import * as path from "path";
 import { isEmpty, uniq, uniqueId } from "lodash";
-import { batch } from "react-redux";
 import { createLogic } from "redux-logic";
 
 import { metadata, ReduxLogicDeps, selection } from "../";
@@ -35,7 +34,7 @@ import {
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
-import { DownloadResolution, DownloadResult } from "../../services/FileDownloadService";
+import { DownloadResolution } from "../../services/FileDownloadService";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
@@ -203,101 +202,52 @@ const downloadFile = createLogic({
     type: DOWNLOAD_FILE,
     warnTimeout: 0, // no way to know how long this will take--don't print console warning if it takes a while
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { payload: files } = deps.action as DownloadFileAction;
-        const parentRequestId = uniqueId();
+        const { payload: fileInfo } = deps.action as DownloadFileAction;
+        const downloadRequestId = uniqueId();
         const state = deps.getState();
         const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(state);
 
         const numberFormatter = annotationFormatterFactory(AnnotationType.NUMBER);
-        const totalSize = files.reduce((accum, { size }) => (accum += size), 0);
-        const msg = `Downloading ${files.length} file(s), ${numberFormatter.displayValue(
-            totalSize,
+        const msg = `Downloading ${fileInfo.name}, ${numberFormatter.displayValue(
+            fileInfo.size,
             "bytes"
         )} in total`;
 
-        // There may be many files to download, so keep track of each of them individually
-        const fileToDownloadRequestIdMap = files.reduce((accum, fileInfo) => {
-            if (!accum.hasOwnProperty(fileInfo.path)) {
-                accum[fileInfo.path] = uniqueId();
-            }
-            return accum;
-        }, {} as { [key: string]: string });
-
         const onCancel = () => {
-            batch(() => {
-                Object.values(fileToDownloadRequestIdMap).forEach((requestId) => {
-                    dispatch(cancelFileDownload(requestId));
-                });
-            });
+            dispatch(cancelFileDownload(downloadRequestId));
         };
 
         let totalBytesDownloaded = 0;
         const onProgress = (transferredBytes: number) => {
             totalBytesDownloaded += transferredBytes;
             dispatch(
-                processProgress(parentRequestId, totalBytesDownloaded / totalSize, msg, onCancel)
+                processProgress(
+                    downloadRequestId,
+                    totalBytesDownloaded / fileInfo.size,
+                    msg,
+                    onCancel
+                )
             );
         };
 
         try {
-            dispatch(processStart(parentRequestId, msg));
+            dispatch(processStart(downloadRequestId, msg));
 
-            const promises: Promise<DownloadResult>[] = files.map((fileInfo) =>
-                fileDownloadService.downloadFile(
-                    fileInfo.path,
-                    fileToDownloadRequestIdMap[fileInfo.path],
-                    onProgress
-                )
+            const result = await fileDownloadService.downloadFile(
+                fileInfo.path,
+                downloadRequestId,
+                onProgress
             );
-            const resolutions = await Promise.allSettled(promises);
 
-            const cancellations = resolutions.filter(
-                (result) =>
-                    result.status === "fulfilled" &&
-                    result.value.resolution === DownloadResolution.CANCELLED
-            );
-            const successes = resolutions.filter(
-                (result) =>
-                    result.status === "fulfilled" &&
-                    result.value.resolution === DownloadResolution.SUCCESS
-            ) as PromiseFulfilledResult<DownloadResult>[];
-            const failures = resolutions.filter(
-                (result) => result.status === "rejected"
-            ) as PromiseRejectedResult[];
-
-            if (cancellations.length === promises.length) {
-                // Clear status if every download as part of this batch of requests was cancelled
-                dispatch(removeStatus(parentRequestId));
-            } else if (successes.length === promises.length) {
-                // If all succeeded, treat entire download request as success
-                const successMsg = successes.map((result) => result.value.msg).join("</br>");
-                dispatch(processSuccess(parentRequestId, successMsg));
-            } else if (failures.length === promises.length) {
-                // if all failed, treat entire download request as failure
-                const errors = failures.map((result) => result.reason.message).join("</br>- ");
-                const errorMsg = `File(s) failed to download. Details:</br>${errors}`;
-                dispatch(processFailure(parentRequestId, errorMsg));
+            if (result.resolution === DownloadResolution.CANCELLED) {
+                // Clear status if request was cancelled
+                dispatch(removeStatus(downloadRequestId));
             } else {
-                // Some failed, some succeeded--report individually.
-                batch(() => {
-                    dispatch(removeStatus(parentRequestId));
-
-                    for (const success of successes) {
-                        dispatch(
-                            processSuccess(success.value.downloadRequestId, success.value.msg || "")
-                        );
-                    }
-
-                    for (const failure of failures) {
-                        dispatch(
-                            processFailure(failure.reason.downloadRequestId, failure.reason.message)
-                        );
-                    }
-                });
+                dispatch(processSuccess(downloadRequestId, result.msg || ""));
             }
         } catch (err) {
             const errorMsg = `File download failed. Details:<br/>${err.message}`;
-            dispatch(processFailure(parentRequestId, errorMsg));
+            dispatch(processFailure(downloadRequestId, errorMsg));
         } finally {
             done();
         }
