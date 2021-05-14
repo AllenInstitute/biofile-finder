@@ -25,6 +25,7 @@ import {
     SET_USER_SELECTED_APPLICATIONS,
     promptForNewExecutable,
     openWithDefault,
+    downloadFile,
 } from "../actions";
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import DatasetService from "../../../services/DatasetService";
@@ -273,6 +274,251 @@ describe("Interaction logics", () => {
             expect(
                 actions.includesMatch({
                     type: SET_CSV_COLUMNS,
+                })
+            ).to.equal(true);
+        });
+    });
+
+    describe("downloadFile", () => {
+        const sandbox = createSandbox();
+
+        afterEach(() => {
+            sandbox.restore();
+        });
+
+        it("marks the beginning of a file download with a status update", async () => {
+            // Arrange
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: new FileDownloadServiceNoop(),
+                    },
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(
+                downloadFile({
+                    name: "foo.ext",
+                    path: "/some/path/foo.ext",
+                    size: 5,
+                })
+            );
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.STARTED,
+                        },
+                    },
+                })
+            ).to.equal(true);
+        });
+
+        it("marks the success of a file download with a status update", async () => {
+            // Arrange
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: new FileDownloadServiceNoop(),
+                    },
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(
+                downloadFile({
+                    name: "foo.ext",
+                    path: "/some/path/foo.ext",
+                    size: 5,
+                })
+            );
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.SUCCEEDED,
+                        },
+                    },
+                })
+            ).to.equal(true);
+        });
+
+        it("dispatches progress events", async () => {
+            // Arrange
+            class TestDownloadSerivce implements FileDownloadService {
+                downloadCsvManifest() {
+                    return Promise.reject();
+                }
+                downloadFile(
+                    _filePath: string,
+                    downloadRequestId: string,
+                    onProgress: (bytesDownloaded: number) => void
+                ) {
+                    onProgress(1);
+                    return Promise.resolve({
+                        downloadRequestId,
+                        msg: "Success",
+                        resolution: DownloadResolution.SUCCESS,
+                    });
+                }
+                cancelActiveRequest() {
+                    return Promise.reject();
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: new TestDownloadSerivce(),
+                    },
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(
+                downloadFile({
+                    name: "foo.ext",
+                    path: "/some/path/foo.ext",
+                    size: 5,
+                })
+            );
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.PROGRESS,
+                        },
+                    },
+                })
+            ).to.equal(true);
+        });
+
+        it("marks the failure of a file download with a status update", async () => {
+            // Arrange
+            class TestDownloadSerivce implements FileDownloadService {
+                downloadCsvManifest() {
+                    return Promise.reject();
+                }
+                downloadFile() {
+                    return Promise.reject();
+                }
+                cancelActiveRequest() {
+                    return Promise.reject();
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: new TestDownloadSerivce(),
+                    },
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(
+                downloadFile({
+                    name: "foo.ext",
+                    path: "/some/path/foo.ext",
+                    size: 5,
+                })
+            );
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.FAILED,
+                        },
+                    },
+                })
+            ).to.equal(true);
+
+            // sanity-check: make certain this isn't evergreen
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.SUCCEEDED,
+                        },
+                    },
+                })
+            ).to.equal(false);
+        });
+
+        it("clears status for download request if request was cancelled", async () => {
+            // Arrange
+            class TestDownloadSerivce implements FileDownloadService {
+                downloadCsvManifest() {
+                    return Promise.reject();
+                }
+                downloadFile(_filePath: string, downloadRequestId: string) {
+                    return Promise.resolve({
+                        downloadRequestId,
+                        resolution: DownloadResolution.CANCELLED,
+                    });
+                }
+                cancelActiveRequest() {
+                    return Promise.reject();
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: new TestDownloadSerivce(),
+                    },
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(
+                downloadFile({
+                    name: "foo.ext",
+                    path: "/some/path/foo.ext",
+                    size: 5,
+                })
+            );
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: REMOVE_STATUS,
                 })
             ).to.equal(true);
         });
