@@ -1,5 +1,5 @@
 import * as path from "path";
-import { isEmpty, uniq, uniqueId } from "lodash";
+import { isEmpty, throttle, uniq, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { metadata, ReduxLogicDeps, selection } from "../";
@@ -218,8 +218,9 @@ const downloadFile = createLogic({
         };
 
         let totalBytesDownloaded = 0;
-        const onProgress = (transferredBytes: number) => {
-            totalBytesDownloaded += transferredBytes;
+        // A function that dispatches progress events, throttled
+        // to only be invokable at most once/second
+        const throttledProgressDispatcher = throttle(() => {
             dispatch(
                 processProgress(
                     downloadRequestId,
@@ -228,6 +229,10 @@ const downloadFile = createLogic({
                     onCancel
                 )
             );
+        }, 1000);
+        const onProgress = (transferredBytes: number) => {
+            totalBytesDownloaded += transferredBytes;
+            throttledProgressDispatcher();
         };
 
         try {
