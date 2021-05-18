@@ -5,7 +5,7 @@ import * as os from "os";
 import { expect } from "chai";
 import { ipcRenderer } from "electron";
 import nock from "nock";
-import { createSandbox } from "sinon";
+import sinon from "sinon";
 
 import { DownloadFailure } from "../../../../core/errors";
 import { DownloadResolution } from "../../../../core/services";
@@ -26,7 +26,6 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
     });
 
     describe("downloadCsvManifest", () => {
-        const sandbox = createSandbox();
         const tempfile = `${os.tmpdir()}/manifest.csv`;
 
         beforeEach(async () => {
@@ -51,7 +50,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                 }
             }
 
-            sandbox.restore();
+            sinon.restore();
         });
 
         it("saves CSV to a file", async () => {
@@ -67,7 +66,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                 "Content-Disposition": "attachment;filename=manifest.csv",
             });
 
-            sandbox
+            sinon
                 .stub(ipcRenderer, "invoke")
                 .withArgs(FileDownloadServiceElectron.GET_FILE_SAVE_PATH)
                 .resolves({
@@ -89,7 +88,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
 
         it("resolves meaningfully if user cancels download when prompted for save path", async () => {
             // Arrange
-            sandbox
+            sinon
                 .stub(ipcRenderer, "invoke")
                 .withArgs(FileDownloadServiceElectron.GET_FILE_SAVE_PATH)
                 .resolves({
@@ -120,7 +119,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             // intercept request for download and return canned error
             nock(DOWNLOAD_HOST).post(DOWNLOAD_PATH).reply(500, ERROR_MSG);
 
-            sandbox
+            sinon
                 .stub(ipcRenderer, "invoke")
                 .withArgs(FileDownloadServiceElectron.GET_FILE_SAVE_PATH)
                 .resolves({
