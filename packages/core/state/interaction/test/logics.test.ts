@@ -306,6 +306,7 @@ describe("Interaction logics", () => {
             // Act
             store.dispatch(
                 downloadFile({
+                    id: "abc123",
                     name: "foo.ext",
                     path: "/some/path/foo.ext",
                     size: 5,
@@ -343,6 +344,7 @@ describe("Interaction logics", () => {
             // Act
             store.dispatch(
                 downloadFile({
+                    id: "abc123",
                     name: "foo.ext",
                     path: "/some/path/foo.ext",
                     size: 5,
@@ -400,6 +402,7 @@ describe("Interaction logics", () => {
             // Act
             store.dispatch(
                 downloadFile({
+                    id: "abc123",
                     name: "foo.ext",
                     path: "/some/path/foo.ext",
                     size: 5,
@@ -448,6 +451,7 @@ describe("Interaction logics", () => {
             // Act
             store.dispatch(
                 downloadFile({
+                    id: "abc123",
                     name: "foo.ext",
                     path: "/some/path/foo.ext",
                     size: 5,
@@ -511,6 +515,7 @@ describe("Interaction logics", () => {
             // Act
             store.dispatch(
                 downloadFile({
+                    id: "abc123",
                     name: "foo.ext",
                     path: "/some/path/foo.ext",
                     size: 5,

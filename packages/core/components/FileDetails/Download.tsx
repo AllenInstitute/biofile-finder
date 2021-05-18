@@ -1,7 +1,7 @@
 import { IconButton } from "@fluentui/react";
 import { throttle } from "lodash";
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
 import FileDetail from "../../entity/FileDetail";
@@ -29,25 +29,36 @@ export default function Download(props: DownloadProps) {
     const { fileDetails } = props;
 
     const dispatch = useDispatch();
+    const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
+
+    // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
+    const onClick = React.useCallback(() => {
+        if (!fileDetails) {
+            return;
+        }
+
+        throttle(() => {
+            dispatch(
+                interaction.actions.downloadFile({
+                    id: fileDetails.id,
+                    name: fileDetails.name,
+                    path: fileDetails.path,
+                    size: fileDetails.size,
+                })
+            );
+        }, 1000); // in ms
+    }, [dispatch, fileDetails]);
 
     if (!fileDetails) {
         return null;
     }
 
-    // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
-    const onClick = throttle(() => {
-        dispatch(
-            interaction.actions.downloadFile({
-                name: fileDetails.name,
-                path: fileDetails.path,
-                size: fileDetails.size,
-            })
-        );
-    }, 1000); // in ms
-
     return (
         <IconButton
             ariaLabel="Download file"
+            disabled={processStatuses.some((status) =>
+                status.data.fileId?.includes(fileDetails.id)
+            )}
             iconProps={{ iconName: "Download" }}
             onClick={onClick}
             styles={ICON_BUTTON_STYLES}

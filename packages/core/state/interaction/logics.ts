@@ -226,7 +226,8 @@ const downloadFile = createLogic({
                     downloadRequestId,
                     totalBytesDownloaded / fileInfo.size,
                     msg,
-                    onCancel
+                    onCancel,
+                    [fileInfo.id]
                 )
             );
         }, 1000);
@@ -236,7 +237,7 @@ const downloadFile = createLogic({
         };
 
         try {
-            dispatch(processStart(downloadRequestId, msg));
+            dispatch(processStart(downloadRequestId, msg, onCancel, [fileInfo.id]));
 
             const result = await fileDownloadService.downloadFile(
                 fileInfo,

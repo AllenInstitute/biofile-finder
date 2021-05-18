@@ -231,6 +231,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             const expectedMD5 = sourceFileHash.digest("hex");
 
             const fileInfo = {
+                id: "abc123",
                 name: fileName,
                 path: filePath,
                 size: (await fs.promises.stat(sourceFile)).size,
@@ -276,6 +277,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             const downloadRequestId = "beepbop";
             const onProgressSpy = sinon.spy();
             const fileInfo = {
+                id: "abc123",
                 name: fileName,
                 path: filePath,
                 size: (await fs.promises.stat(sourceFile)).size,
@@ -320,6 +322,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             };
             const expectedDownloadPath = path.join(tempdir, fileName);
             const fileInfo = {
+                id: "abc123",
                 name: fileName,
                 path: filePath,
                 size: (await fs.promises.stat(sourceFile)).size,
@@ -369,6 +372,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             const downloadRequestId = "beepbop";
             const expectedDownloadPath = path.join(tempdir, fileName);
             const fileInfo = {
+                id: "abc123",
                 name: fileName,
                 path: filePath,
                 size: (await fs.promises.stat(sourceFile)).size,
