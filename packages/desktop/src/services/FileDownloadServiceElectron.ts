@@ -7,7 +7,12 @@ import { Policy } from "cockatiel";
 import { app, dialog, FileFilter, ipcMain, IpcMainInvokeEvent, ipcRenderer } from "electron";
 
 import { DownloadFailure } from "../../../core/errors";
-import { FileDownloadService, DownloadResolution, DownloadResult } from "../../../core/services";
+import {
+    FileDownloadService,
+    DownloadResolution,
+    DownloadResult,
+    FileInfo,
+} from "../../../core/services";
 import { FileDownloadServiceBaseUrl } from "../util/constants";
 
 // Maps active request ids (uuids) to request download info
@@ -77,26 +82,24 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
     }
 
     public async downloadFile(
-        filePath: string,
-        fileSize: number,
+        fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void
     ): Promise<DownloadResult> {
-        const url = `${this.fileDownloadServiceBaseUrl}${filePath}`;
+        const url = `${this.fileDownloadServiceBaseUrl}${fileInfo.path}`;
 
-        const fileName = path.basename(filePath);
         const downloadsDir = await ipcRenderer.invoke(
             FileDownloadServiceElectron.GET_DOWNLOADS_DIR
         );
-        const outFilePath = path.join(downloadsDir, fileName);
+        const outFilePath = path.join(downloadsDir, fileInfo.name);
         const chunkSize = 1024 * 1024 * 5; // 5MB; arbitrary
 
         // retry policy: 3 times no matter the exception, with randomized exponential backoff between attempts
         const retry = Policy.handleAll().retry().attempts(3).exponential();
         let bytesDownloaded = -1;
-        while (bytesDownloaded < fileSize) {
+        while (bytesDownloaded < fileInfo.size) {
             const startByte = bytesDownloaded + 1;
-            const endByte = Math.min(startByte + chunkSize - 1, fileSize);
+            const endByte = Math.min(startByte + chunkSize - 1, fileInfo.size);
 
             let writeStreamOptions: WriteStreamOptions;
             if (startByte === 0) {

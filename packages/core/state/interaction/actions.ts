@@ -1,13 +1,13 @@
 import FrontendInsights from "@aics/frontend-insights";
 import { makeConstant } from "@aics/redux-utils";
-import { castArray, uniqueId } from "lodash";
+import { uniqueId } from "lodash";
 
 import Annotation from "../../entity/Annotation";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { PythonicDataAccessSnippet } from "../../services/DatasetService";
 import ExecutionEnvService from "../../services/ExecutionEnvService";
-import FileDownloadService from "../../services/FileDownloadService";
+import FileDownloadService, { FileInfo } from "../../services/FileDownloadService";
 import FileFilter from "../../entity/FileFilter";
 import FileViewerService from "../../services/FileViewerService";
 import { ModalType } from "../../components/Modal";
@@ -69,12 +69,6 @@ export function cancelFileDownload(id: string): CancelFileDownloadAction {
  * Intention to download a file to local disk.
  */
 export const DOWNLOAD_FILE = makeConstant(STATE_BRANCH_NAME, "download-file");
-
-interface FileInfo {
-    name: string;
-    path: string;
-    size: number;
-}
 
 export interface DownloadFileAction {
     payload: FileInfo;

@@ -9,6 +9,12 @@ export interface DownloadResult {
     resolution: DownloadResolution;
 }
 
+export interface FileInfo {
+    name: string;
+    path: string;
+    size: number;
+}
+
 /**
  * Interface that defines a platform-dependent service for implementing download functionality.
  */
@@ -23,12 +29,11 @@ export default interface FileDownloadService {
     ): Promise<DownloadResult>;
 
     /**
-     * Download a file located at `filePath`. Optionally provide an "onProgress" callback that will be
+     * Download a file described by `fileInfo`. Optionally provide an "onProgress" callback that will be
      * called repeatedly over the course of the file download with the number of bytes downloaded so far.
      */
     downloadFile(
-        filePath: string,
-        fileSize: number,
+        fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (bytesDownloaded: number) => void
     ): Promise<DownloadResult>;

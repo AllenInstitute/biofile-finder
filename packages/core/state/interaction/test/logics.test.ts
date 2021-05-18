@@ -44,7 +44,10 @@ import NumericRange from "../../../entity/NumericRange";
 import { RECEIVE_ANNOTATIONS } from "../../metadata/actions";
 import { SET_AVAILABLE_ANNOTATIONS } from "../../selection/actions";
 import AnnotationService from "../../../services/AnnotationService";
-import FileDownloadService, { DownloadResolution } from "../../../services/FileDownloadService";
+import FileDownloadService, {
+    DownloadResolution,
+    FileInfo,
+} from "../../../services/FileDownloadService";
 import FileService, { FmsFile } from "../../../services/FileService";
 import FileViewerService from "../../../services/FileViewerService";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
@@ -367,8 +370,7 @@ describe("Interaction logics", () => {
                     return Promise.reject();
                 }
                 downloadFile(
-                    _filePath: string,
-                    _fileSize: number,
+                    _fileInfo: FileInfo,
                     downloadRequestId: string,
                     onProgress: (bytesDownloaded: number) => void
                 ) {
@@ -484,7 +486,7 @@ describe("Interaction logics", () => {
                 downloadCsvManifest() {
                     return Promise.reject();
                 }
-                downloadFile(_filePath: string, _fileSize: number, downloadRequestId: string) {
+                downloadFile(_fileInfo: FileInfo, downloadRequestId: string) {
                     return Promise.resolve({
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,
@@ -535,7 +537,7 @@ describe("Interaction logics", () => {
                         resolution: DownloadResolution.CANCELLED,
                     });
                 }
-                downloadFile(_filePath: string, _fileSize: number, downloadRequestId: string) {
+                downloadFile(_fileInfo: FileInfo, downloadRequestId: string) {
                     return Promise.resolve({
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,

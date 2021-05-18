@@ -4,7 +4,11 @@ export { default as CsvService } from "./CsvService";
 export { default as DatasetService } from "./DatasetService";
 export type { default as ExecutionEnvService } from "./ExecutionEnvService";
 export { ExecutableEnvCancellationToken, SystemDefaultAppLocation } from "./ExecutionEnvService";
-export type { default as FileDownloadService, DownloadResult } from "./FileDownloadService";
+export type {
+    default as FileDownloadService,
+    DownloadResult,
+    FileInfo,
+} from "./FileDownloadService";
 export { DownloadResolution } from "./FileDownloadService";
 export { default as FileService } from "./FileService";
 export type { default as FileViewerService } from "./FileViewerService";

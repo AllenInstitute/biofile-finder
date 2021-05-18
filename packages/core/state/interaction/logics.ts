@@ -234,8 +234,7 @@ const downloadFile = createLogic({
             dispatch(processStart(downloadRequestId, msg));
 
             const result = await fileDownloadService.downloadFile(
-                fileInfo.path,
-                fileInfo.size,
+                fileInfo,
                 downloadRequestId,
                 onProgress
             );

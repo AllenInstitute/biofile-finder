@@ -230,12 +230,14 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             sourceFileHash.update(await fs.promises.readFile(sourceFile));
             const expectedMD5 = sourceFileHash.digest("hex");
 
+            const fileInfo = {
+                name: fileName,
+                path: filePath,
+                size: (await fs.promises.stat(sourceFile)).size,
+            };
+
             // Act
-            const result = await service.downloadFile(
-                filePath,
-                (await fs.promises.stat(sourceFile)).size,
-                downloadRequestId
-            );
+            const result = await service.downloadFile(fileInfo, downloadRequestId);
 
             // Assert
             expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
@@ -273,14 +275,14 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             );
             const downloadRequestId = "beepbop";
             const onProgressSpy = sinon.spy();
+            const fileInfo = {
+                name: fileName,
+                path: filePath,
+                size: (await fs.promises.stat(sourceFile)).size,
+            };
 
             // Act
-            const result = await service.downloadFile(
-                filePath,
-                (await fs.promises.stat(sourceFile)).size,
-                downloadRequestId,
-                onProgressSpy
-            );
+            const result = await service.downloadFile(fileInfo, downloadRequestId, onProgressSpy);
 
             // Assert
             expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
@@ -317,14 +319,14 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                 service.cancelActiveRequest(downloadRequestId);
             };
             const expectedDownloadPath = path.join(tempdir, fileName);
+            const fileInfo = {
+                name: fileName,
+                path: filePath,
+                size: (await fs.promises.stat(sourceFile)).size,
+            };
 
             // Act
-            const result = await service.downloadFile(
-                filePath,
-                (await fs.promises.stat(sourceFile)).size,
-                downloadRequestId,
-                onProgress
-            );
+            const result = await service.downloadFile(fileInfo, downloadRequestId, onProgress);
 
             // Assert
             expect(result.resolution).to.equal(DownloadResolution.CANCELLED);
@@ -366,14 +368,15 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             );
             const downloadRequestId = "beepbop";
             const expectedDownloadPath = path.join(tempdir, fileName);
+            const fileInfo = {
+                name: fileName,
+                path: filePath,
+                size: (await fs.promises.stat(sourceFile)).size,
+            };
 
             try {
                 // Act
-                await service.downloadFile(
-                    filePath,
-                    (await fs.promises.stat(sourceFile)).size,
-                    downloadRequestId
-                );
+                await service.downloadFile(fileInfo, downloadRequestId);
 
                 // Shouldn't hit, but here to ensure test isn't evergreen
                 throw new assert.AssertionError({ message: `Expected exception to be thrown` });
