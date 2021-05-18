@@ -143,7 +143,7 @@ describe("Interaction logics", () => {
                     return Promise.reject();
                 }
                 cancelActiveRequest() {
-                    return Promise.reject();
+                    /** noop */
                 }
             }
 
@@ -380,7 +380,7 @@ describe("Interaction logics", () => {
                     });
                 }
                 cancelActiveRequest() {
-                    return Promise.reject();
+                    /** noop */
                 }
             }
             const state = mergeState(initialState, {
@@ -428,7 +428,7 @@ describe("Interaction logics", () => {
                     return Promise.reject();
                 }
                 cancelActiveRequest() {
-                    return Promise.reject();
+                    /** noop */
                 }
             }
             const state = mergeState(initialState, {
@@ -542,7 +542,7 @@ describe("Interaction logics", () => {
                     });
                 }
                 cancelActiveRequest() {
-                    return Promise.reject();
+                    throw new Error("KABOOM");
                 }
             }
 
@@ -595,7 +595,7 @@ describe("Interaction logics", () => {
                     });
                 }
                 cancelActiveRequest() {
-                    return Promise.resolve();
+                    /** noop */
                 }
             }
 

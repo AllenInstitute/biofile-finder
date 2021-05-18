@@ -313,12 +313,9 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                 downloadHost as FileDownloadServiceBaseUrl
             );
             const downloadRequestId = "beepbop";
-            let onProgress;
-            const progressPromise = new Promise((resolve) => {
-                onProgress = () => {
-                    service.cancelActiveRequest(downloadRequestId).then(resolve);
-                };
-            });
+            const onProgress = () => {
+                service.cancelActiveRequest(downloadRequestId);
+            };
             const expectedDownloadPath = path.join(tempdir, fileName);
 
             // Act
@@ -328,7 +325,6 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                 downloadRequestId,
                 onProgress
             );
-            await progressPromise;
 
             // Assert
             expect(result.resolution).to.equal(DownloadResolution.CANCELLED);

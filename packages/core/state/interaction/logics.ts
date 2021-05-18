@@ -173,13 +173,13 @@ const downloadManifest = createLogic({
  */
 const cancelFileDownloadLogic = createLogic({
     type: CANCEL_FILE_DOWNLOAD,
-    async process(deps: ReduxLogicDeps, dispatch, done) {
+    process(deps: ReduxLogicDeps, dispatch, done) {
         const action = deps.action as CancelFileDownloadAction;
         const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(
             deps.getState()
         );
         try {
-            await fileDownloadService.cancelActiveRequest(action.payload.downloadProcessId);
+            fileDownloadService.cancelActiveRequest(action.payload.downloadProcessId);
             dispatch(removeStatus(action.payload.downloadProcessId));
         } catch (err) {
             dispatch(

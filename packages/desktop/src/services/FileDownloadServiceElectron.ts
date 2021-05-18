@@ -203,7 +203,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         });
     }
 
-    public async cancelActiveRequest(downloadRequestId: string) {
+    public cancelActiveRequest(downloadRequestId: string) {
         this.cancellationRequests.add(downloadRequestId);
         if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
             return;

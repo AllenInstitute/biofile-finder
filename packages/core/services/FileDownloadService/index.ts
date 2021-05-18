@@ -35,7 +35,6 @@ export default interface FileDownloadService {
 
     /**
      * Attempt to cancel an active download request, deleting the downloaded artifact if present.
-     * Returns whether or not the file was present (to be deleted).
      */
-    cancelActiveRequest(downloadRequestId: string): Promise<void>;
+    cancelActiveRequest(downloadRequestId: string): void;
 }
