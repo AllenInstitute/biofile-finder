@@ -48,6 +48,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
 
     private CANCELLATION_TOKEN = "CANCEL";
     private activeRequestMap: ActiveRequestMap = {};
+    private cancellationRequests: Set<string> = new Set();
     private fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl;
 
     public static registerIpcHandlers() {
@@ -99,11 +100,21 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
 
             let writeStreamOptions: WriteStreamOptions;
             if (startByte === 0) {
+                // First request: ensure outfile is created if doesn't exist or truncated if it does
                 writeStreamOptions = {
-                    // The file is created (if it does not exist) or truncated (if it exists).
                     flags: "w",
                 };
             } else {
+                // Handle edge-case in which cancellation requested in-between range requests
+                if (this.cancellationRequests.has(downloadRequestId)) {
+                    this.cancellationRequests.delete(downloadRequestId);
+                    await this.deleteArtifact(outFilePath);
+                    return {
+                        downloadRequestId,
+                        resolution: DownloadResolution.CANCELLED,
+                    };
+                }
+
                 writeStreamOptions = {
                     // Open file for reading and writing. Required with use of `start` param.
                     flags: "r+",
@@ -193,6 +204,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
     }
 
     public async cancelActiveRequest(downloadRequestId: string) {
+        this.cancellationRequests.add(downloadRequestId);
         if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
             return;
         }
@@ -310,6 +322,9 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
 
             this.activeRequestMap[downloadRequestId] = {
                 cancel: () => {
+                    if (this.cancellationRequests.has(downloadRequestId)) {
+                        this.cancellationRequests.delete(downloadRequestId);
+                    }
                     req.destroy(new Error(this.CANCELLATION_TOKEN));
                 },
                 filePath: outFilePath,
