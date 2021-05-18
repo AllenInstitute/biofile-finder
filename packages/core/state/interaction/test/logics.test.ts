@@ -368,6 +368,7 @@ describe("Interaction logics", () => {
                 }
                 downloadFile(
                     _filePath: string,
+                    _fileSize: number,
                     downloadRequestId: string,
                     onProgress: (bytesDownloaded: number) => void
                 ) {
@@ -483,7 +484,7 @@ describe("Interaction logics", () => {
                 downloadCsvManifest() {
                     return Promise.reject();
                 }
-                downloadFile(_filePath: string, downloadRequestId: string) {
+                downloadFile(_filePath: string, _fileSize: number, downloadRequestId: string) {
                     return Promise.resolve({
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,
@@ -534,7 +535,7 @@ describe("Interaction logics", () => {
                         resolution: DownloadResolution.CANCELLED,
                     });
                 }
-                downloadFile(_filePath: string, downloadRequestId: string) {
+                downloadFile(_filePath: string, _fileSize: number, downloadRequestId: string) {
                     return Promise.resolve({
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,

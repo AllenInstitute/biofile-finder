@@ -71,7 +71,7 @@
     "@tippy.js/react": "3.1.x",
     "axios": "0.21.x",
     "classnames": "2.2.x",
-    "cockatiel": "0.1.x",
+    "cockatiel": "2.0.x",
     "debounce-promise": "3.1.x",
     "filesize": "5.0.x",
     "fuse.js": "3.4.x",

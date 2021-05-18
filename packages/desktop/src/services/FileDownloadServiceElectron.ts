@@ -3,20 +3,12 @@ import * as http from "http";
 import * as https from "https";
 import * as path from "path";
 
-import {
-    app,
-    dialog,
-    FileFilter,
-    ipcMain,
-    IpcMainInvokeEvent,
-    ipcRenderer,
-    IpcRendererEvent,
-} from "electron";
+import { Policy } from "cockatiel";
+import { app, dialog, FileFilter, ipcMain, IpcMainInvokeEvent, ipcRenderer } from "electron";
 
 import { DownloadFailure } from "../../../core/errors";
 import { FileDownloadService, DownloadResolution, DownloadResult } from "../../../core/services";
 import { FileDownloadServiceBaseUrl } from "../util/constants";
-import ElectronDownloader, { ElectronDownloadResolution } from "./ElectronDownloader";
 
 // Maps active request ids (uuids) to request download info
 interface ActiveRequestMap {
@@ -34,12 +26,25 @@ interface ShowSaveDialogParams {
     filters?: FileFilter[];
 }
 
+interface WriteStreamOptions {
+    flags: string;
+    start?: number;
+}
+
+interface DownloadOptions {
+    downloadRequestId: string;
+    encoding?: BufferEncoding;
+    outFilePath: string;
+    postData?: string;
+    requestOptions: http.RequestOptions | https.RequestOptions;
+    url: string;
+    writeStreamOptions: WriteStreamOptions;
+}
+
 export default class FileDownloadServiceElectron implements FileDownloadService {
     // IPC events registered both within the main and renderer processes
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
-    public static DOWNLOAD_FROM_URL = "download-from-url";
-    public static CANCEL_DOWNLOAD = "cancel-download";
-    public static REPORT_DOWNLOAD_PROGRESS = "report-download-progress";
+    public static GET_DOWNLOADS_DIR = "get-downloads-dir";
 
     private CANCELLATION_TOKEN = "CANCEL";
     private activeRequestMap: ActiveRequestMap = {};
@@ -57,81 +62,85 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         }
         ipcMain.handle(FileDownloadServiceElectron.GET_FILE_SAVE_PATH, getSavePathHandler);
 
-        // Handler for hooking into Electron's native download manager, by way of the `ElectronDownloader` facade
-        const downloader = new ElectronDownloader();
-        async function downloadHandler(
-            event: IpcMainInvokeEvent,
-            url: string,
-            fileName: string,
-            downloadRequestId: string
-        ) {
-            function onProgress(progress: number) {
-                event.sender.send(
-                    FileDownloadServiceElectron.REPORT_DOWNLOAD_PROGRESS,
-                    downloadRequestId,
-                    progress
-                );
-            }
-
-            const downloadsDir = app.getPath("downloads");
-            const filePath = path.join(downloadsDir, fileName);
-            const resolution = await downloader.download(event.sender.session, url, {
-                filePath,
-                onProgress,
-                uid: downloadRequestId,
-            });
-            if (resolution === ElectronDownloadResolution.COMPLETED) {
-                return {
-                    downloadRequestId,
-                    msg: `Successfully downloaded ${filePath}`,
-                    resolution: DownloadResolution.SUCCESS,
-                };
-            } else if (resolution === ElectronDownloadResolution.CANCELLED) {
-                return {
-                    downloadRequestId,
-                    resolution: DownloadResolution.CANCELLED,
-                };
-            }
+        // Handler for returning where the downloads directory lives on this computer
+        async function getDownloadsDirHandler() {
+            return app.getPath("downloads");
         }
-        ipcMain.handle(FileDownloadServiceElectron.DOWNLOAD_FROM_URL, downloadHandler);
-
-        // Handler for canceling in-flight download
-        function downloadCancelHandler(_event: IpcMainInvokeEvent, downloadRequestId: string) {
-            downloader.cancelDownload(downloadRequestId);
-        }
-        ipcMain.handle(FileDownloadServiceElectron.CANCEL_DOWNLOAD, downloadCancelHandler);
+        ipcMain.handle(FileDownloadServiceElectron.GET_DOWNLOADS_DIR, getDownloadsDirHandler);
     }
 
     constructor(
         fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl = FileDownloadServiceBaseUrl.PRODUCTION
     ) {
         this.fileDownloadServiceBaseUrl = fileDownloadServiceBaseUrl;
-
-        this.reportProgress = this.reportProgress.bind(this);
-        ipcRenderer.on(FileDownloadServiceElectron.REPORT_DOWNLOAD_PROGRESS, this.reportProgress);
     }
 
     public async downloadFile(
         filePath: string,
+        fileSize: number,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void
     ): Promise<DownloadResult> {
         const url = `${this.fileDownloadServiceBaseUrl}${filePath}`;
-        this.activeRequestMap[downloadRequestId] = {
-            cancel: () => {
-                ipcRenderer.invoke(FileDownloadServiceElectron.CANCEL_DOWNLOAD, downloadRequestId);
-            },
-            filePath,
-            onProgress,
-        };
 
         const fileName = path.basename(filePath);
-        return await ipcRenderer.invoke(
-            FileDownloadServiceElectron.DOWNLOAD_FROM_URL,
-            url,
-            fileName,
-            downloadRequestId
+        const downloadsDir = await ipcRenderer.invoke(
+            FileDownloadServiceElectron.GET_DOWNLOADS_DIR
         );
+        const outFilePath = path.join(downloadsDir, fileName);
+        const chunkSize = 1024 * 1024 * 5; // 5MB; arbitrary
+
+        // retry policy: 3 times no matter the exception, with randomized exponential backoff between attempts
+        const retry = Policy.handleAll().retry().attempts(3).exponential();
+        let bytesDownloaded = -1;
+        while (bytesDownloaded < fileSize) {
+            const startByte = bytesDownloaded + 1;
+            const endByte = Math.min(startByte + chunkSize - 1, fileSize);
+
+            let writeStreamOptions: WriteStreamOptions;
+            if (startByte === 0) {
+                writeStreamOptions = {
+                    // The file is created (if it does not exist) or truncated (if it exists).
+                    flags: "w",
+                };
+            } else {
+                writeStreamOptions = {
+                    // Open file for reading and writing. Required with use of `start` param.
+                    flags: "r+",
+
+                    // Start writing at this offset. Enables retrying chunks that may have failed
+                    // part of the way through.
+                    start: startByte,
+                };
+            }
+            const result = await retry.execute(() =>
+                this.download({
+                    downloadRequestId,
+                    outFilePath,
+                    requestOptions: {
+                        method: "GET",
+                        headers: {
+                            Range: `bytes=${startByte}-${endByte}`,
+                        },
+                    },
+                    url,
+                    writeStreamOptions,
+                })
+            );
+            if (result.resolution !== DownloadResolution.SUCCESS) {
+                return result;
+            }
+            if (onProgress) {
+                onProgress(endByte - startByte + 1);
+            }
+            bytesDownloaded = endByte;
+        }
+
+        return {
+            downloadRequestId,
+            msg: `Successfully downloaded ${outFilePath}`,
+            resolution: DownloadResolution.SUCCESS,
+        };
     }
 
     public async downloadCsvManifest(
@@ -172,13 +181,46 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             ? result.filePath
             : result.filePath + ".csv";
 
+        return this.download({
+            downloadRequestId,
+            encoding: "utf-8",
+            outFilePath,
+            postData,
+            requestOptions,
+            url,
+            writeStreamOptions: { flags: "w" }, // The file is created (if it does not exist) or truncated (if it exists).
+        });
+    }
+
+    public async cancelActiveRequest(downloadRequestId: string) {
+        if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
+            return;
+        }
+
+        const { cancel } = this.activeRequestMap[downloadRequestId];
+        cancel();
+        delete this.activeRequestMap[downloadRequestId];
+    }
+
+    private download(options: DownloadOptions): Promise<DownloadResult> {
+        const {
+            downloadRequestId,
+            encoding,
+            outFilePath,
+            postData,
+            requestOptions,
+            url,
+            writeStreamOptions,
+        } = options;
         return new Promise((resolve, reject) => {
             // HTTP requests are made when pointed at localhost, HTTPS otherwise. If that ever changes,
             // this logic can be safely removed.
             const requestor = new URL(url).protocol === "http:" ? http : https;
 
             const req = requestor.request(url, requestOptions, (incomingMsg) => {
-                incomingMsg.setEncoding("utf-8");
+                if (encoding) {
+                    incomingMsg.setEncoding(encoding);
+                }
 
                 incomingMsg.on("aborted", async () => {
                     try {
@@ -212,7 +254,6 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                 } else {
                     incomingMsg.on("end", async () => {
                         delete this.activeRequestMap[downloadRequestId];
-
                         if (incomingMsg.aborted) {
                             try {
                                 await this.deleteArtifact(outFilePath);
@@ -230,18 +271,19 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                             });
                         }
                     });
-                    incomingMsg.on("error", async (err) => {
-                        try {
-                            delete this.activeRequestMap[downloadRequestId];
-                            await this.deleteArtifact(outFilePath);
-                        } finally {
-                            reject(new DownloadFailure(err.message, downloadRequestId));
-                        }
-                    });
 
-                    const writeStream = fs.createWriteStream(outFilePath);
+                    const writeStream = fs.createWriteStream(outFilePath, writeStreamOptions);
                     incomingMsg.pipe(writeStream);
                 }
+
+                incomingMsg.on("error", async (err) => {
+                    try {
+                        delete this.activeRequestMap[downloadRequestId];
+                        await this.deleteArtifact(outFilePath);
+                    } finally {
+                        reject(new DownloadFailure(err.message, downloadRequestId));
+                    }
+                });
             });
 
             req.on("error", async (err) => {
@@ -277,35 +319,6 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             }
             req.end();
         });
-    }
-
-    public async cancelActiveRequest(downloadRequestId: string) {
-        if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
-            return;
-        }
-
-        const { cancel } = this.activeRequestMap[downloadRequestId];
-        cancel();
-        delete this.activeRequestMap[downloadRequestId];
-    }
-
-    /**
-     * If onProgress handler is registered for given download request, call
-     * with the number of bytes tranferred in each download update event.
-     *
-     * This is registered as an ipcRenderer event handler in the constructor
-     * of this class, and triggered from the main process (see FileDownloadServiceElectron:registerIpcHandlers).
-     */
-    private reportProgress(
-        _event: IpcRendererEvent,
-        downloadRequestId: string,
-        transferredBytes: number
-    ): void {
-        const { onProgress } = this.activeRequestMap[downloadRequestId] || {};
-
-        if (onProgress) {
-            onProgress(transferredBytes);
-        }
     }
 
     /**

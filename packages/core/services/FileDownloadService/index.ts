@@ -28,6 +28,7 @@ export default interface FileDownloadService {
      */
     downloadFile(
         filePath: string,
+        fileSize: number,
         downloadRequestId: string,
         onProgress?: (bytesDownloaded: number) => void
     ): Promise<DownloadResult>;

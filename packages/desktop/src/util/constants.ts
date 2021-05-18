@@ -2,7 +2,6 @@
 // of an Electron renderer process. If this constant is changed, you _must_ update the grep
 // pattern used in the npm script used to invoke electron-mocha.
 export const RUN_IN_RENDERER = "@renderer";
-export const RUN_IN_MAIN = "@main";
 
 export enum FileDownloadServiceBaseUrl {
     LOCALHOST = "http://localhost:8080/labkey/fmsfiles/image",
