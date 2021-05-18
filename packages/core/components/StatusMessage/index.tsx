@@ -90,7 +90,14 @@ export default function StatusMessage() {
                                 ></div>
                             </div>
                             {progress !== undefined && (
-                                <ProgressIndicator percentComplete={progress} />
+                                <ProgressIndicator
+                                    percentComplete={progress}
+                                    styles={{
+                                        progressBar: {
+                                            backgroundColor: "rgb(0, 48, 87)", // brand dark blue
+                                        },
+                                    }}
+                                />
                             )}
                         </MessageBar>
                     );
