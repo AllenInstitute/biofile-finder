@@ -68,7 +68,7 @@
     "postcss-flexbugs-fixes": "4.1.x",
     "postcss-loader": "3.0.x",
     "postcss-preset-env": "6.7.x",
-    "webpack": "4.40.x",
+    "webpack": "4.44.x",
     "webpack-bundle-analyzer": "3.5.x",
     "webpack-cli": "3.3.x",
     "webpack-dev-server": "3.8.x",
