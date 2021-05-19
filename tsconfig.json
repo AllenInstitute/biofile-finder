@@ -5,6 +5,7 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "preserveConstEnums": true,
+    "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
     "target": "ESNext"
