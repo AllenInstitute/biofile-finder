@@ -32,12 +32,14 @@ export default function Download(props: DownloadProps) {
     const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
 
     // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
-    const onClick = React.useCallback(() => {
+    const onClick = React.useMemo(() => {
         if (!fileDetails) {
-            return;
+            return () => {
+                /** noop */
+            };
         }
 
-        throttle(() => {
+        return throttle(() => {
             dispatch(
                 interaction.actions.downloadFile({
                     id: fileDetails.id,
@@ -46,7 +48,7 @@ export default function Download(props: DownloadProps) {
                     size: fileDetails.size,
                 })
             );
-        }, 1000); // in ms
+        }, 1000); // 1s, in ms (arbitrary)
     }, [dispatch, fileDetails]);
 
     if (!fileDetails) {
