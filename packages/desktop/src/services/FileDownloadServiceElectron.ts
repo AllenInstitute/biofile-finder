@@ -278,35 +278,8 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                     incomingMsg.pipe(outFileStream);
                 }
 
-                incomingMsg.on("error", async (err) => {
-                    const errors = [err.message];
-                    try {
-                        delete this.activeRequestMap[downloadRequestId];
-
-                        // Need to manually close outFileStream if attached read stream
-                        // (i.e., `incomingMsg`) ends with error
-                        await new Promise<void>((resolve, reject) =>
-                            outFileStream.end((endErr: Error) => {
-                                if (endErr) {
-                                    reject(endErr);
-                                } else {
-                                    resolve();
-                                }
-                            })
-                        );
-                        await this.deleteArtifact(outFilePath);
-                    } catch (cleanupError) {
-                        if (cleanupError.name && cleanupError.message) {
-                            const formatted = `${cleanupError.name}: ${cleanupError.message}`;
-                            errors.push(formatted);
-                        }
-                    } finally {
-                        reject(new DownloadFailure(errors.join("<br />"), downloadRequestId));
-                    }
-                });
-
-                incomingMsg.on("aborted", async () => {
-                    const errors = [`Download of ${outFilePath} aborted.`];
+                const cleanUp = async (sourceErrorMessage: string) => {
+                    const errors = [sourceErrorMessage];
                     try {
                         delete this.activeRequestMap[downloadRequestId];
 
@@ -330,6 +303,18 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                     } finally {
                         reject(new DownloadFailure(errors.join("<br />"), downloadRequestId));
                     }
+                };
+
+                incomingMsg.on("error", (err) => {
+                    cleanUp(err.message);
+                });
+
+                incomingMsg.on("aborted", () => {
+                    cleanUp(`Download of ${outFilePath} aborted.`);
+                });
+
+                incomingMsg.on("timeout", () => {
+                    cleanUp(`Download of ${outFilePath} timed out.`);
                 });
             });
 
