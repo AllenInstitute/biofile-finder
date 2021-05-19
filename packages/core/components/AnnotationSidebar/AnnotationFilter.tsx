@@ -53,7 +53,7 @@ export default function AnnotationFilter(props: FilterProps) {
                 fontSize: "10px",
             },
             menuIcon: {
-                display: "none" as "none", // bizarre typings issue
+                display: "none",
             },
             root: {
                 height: 22,

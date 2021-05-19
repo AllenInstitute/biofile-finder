@@ -28,7 +28,7 @@ const BUTTON_STYLES = {
         fontSize: "8px",
     },
     menuIcon: {
-        display: "none" as "none", // bizarre typings issue
+        display: "none",
     },
     root: {
         height: 22,

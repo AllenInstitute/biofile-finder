@@ -4,7 +4,6 @@ import { State } from "../";
 import AnnotationService from "../../services/AnnotationService";
 import DatasetService from "../../services/DatasetService";
 import FileService from "../../services/FileService";
-import { UserSelectedApplication } from "../../services/PersistentConfigService";
 
 // BASIC SELECTORS
 export const getAllenMountPoint = (state: State) => state.interaction.allenMountPoint;

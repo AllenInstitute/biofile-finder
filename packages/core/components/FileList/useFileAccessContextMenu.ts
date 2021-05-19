@@ -77,6 +77,6 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
 
             dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent, onDismiss));
         },
-        [dispatch, fileSelection, executionEnvService, userSelectedApplications]
+        [dispatch, fileSelection, executionEnvService, userSelectedApplications, filters, onDismiss]
     );
 }

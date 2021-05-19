@@ -1,23 +1,12 @@
+import { mergeState } from "@aics/redux-utils";
 import { expect } from "chai";
-import { isArray, map, mergeWith } from "lodash";
+import { map } from "lodash";
 
 import Annotation from "../../../entity/Annotation";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import * as annotationSelectors from "../selectors";
 import { initialState } from "../../../state";
 import FileFilter from "../../../entity/FileFilter";
-
-type PartialDeep<T> = {
-    [P in keyof T]?: PartialDeep<T[P]>;
-};
-
-function mergeState<State = {}>(initial: State, src: PartialDeep<State>): State {
-    return mergeWith({}, initial, src, (objValue, srcValue) => {
-        if (isArray(objValue)) {
-            return objValue.concat(srcValue);
-        }
-    });
-}
 
 describe("<AnnotationSidebar /> selectors", () => {
     describe("getAnnotationListItems", () => {

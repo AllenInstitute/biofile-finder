@@ -18,7 +18,7 @@ const styles = require("./Header.module.css");
  * header.
  */
 function Header(
-    { children, ...rest }: React.PropsWithChildren<{}>,
+    { children, ...rest }: React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>,
     ref: React.Ref<HTMLDivElement>
 ) {
     const dispatch = useDispatch();
@@ -76,4 +76,7 @@ function Header(
     );
 }
 
-export default React.forwardRef<HTMLDivElement, React.PropsWithChildren<{}>>(Header);
+export default React.forwardRef<
+    HTMLDivElement,
+    React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>
+>(Header);
