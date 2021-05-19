@@ -5,7 +5,7 @@ export const RUN_IN_RENDERER = "@renderer";
 
 export enum FileDownloadServiceBaseUrl {
     LOCALHOST = "http://localhost:8080/labkey/fmsfiles/image",
-    STAGING = "https://stg-aics.corp.alleninstitute.org/labkey/fmsfiles/image",
+    STAGING = "http://stg-aics.corp.alleninstitute.org/labkey/fmsfiles/image",
     PRODUCTION = "http://aics.corp.alleninstitute.org/labkey/fmsfiles/image",
 }
 
