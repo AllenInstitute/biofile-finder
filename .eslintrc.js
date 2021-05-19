@@ -15,6 +15,8 @@ module.exports = {
     plugins: ["@typescript-eslint", "react-hooks"],
     root: true,
     rules: {
+        "no-unused-vars": "off", // Per documentation (https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/no-unused-vars.md), turned off in favor of @typescript-eslint/no-unused-vars
+        "@typescript-eslint/no-unused-vars": ["error"],
         "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/explicit-member-accessibility": "off",
         "@typescript-eslint/explicit-module-boundary-types": "off",
