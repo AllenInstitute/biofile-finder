@@ -237,19 +237,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                     incomingMsg.setEncoding(encoding);
                 }
 
-                incomingMsg.on("aborted", async () => {
-                    try {
-                        delete this.activeRequestMap[downloadRequestId];
-                        await this.deleteArtifact(outFilePath);
-                    } finally {
-                        reject(
-                            new DownloadFailure(
-                                `Download of ${outFilePath} aborted.`,
-                                downloadRequestId
-                            )
-                        );
-                    }
-                });
+                const outFileStream = fs.createWriteStream(outFilePath, writeStreamOptions);
 
                 if (incomingMsg.statusCode !== undefined && incomingMsg.statusCode >= 400) {
                     const errorChunks: string[] = [];
@@ -287,16 +275,60 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         }
                     });
 
-                    const writeStream = fs.createWriteStream(outFilePath, writeStreamOptions);
-                    incomingMsg.pipe(writeStream);
+                    incomingMsg.pipe(outFileStream);
                 }
 
                 incomingMsg.on("error", async (err) => {
+                    const errors = [err.message];
                     try {
                         delete this.activeRequestMap[downloadRequestId];
+
+                        // Need to manually close outFileStream if attached read stream
+                        // (i.e., `incomingMsg`) ends with error
+                        await new Promise<void>((resolve, reject) =>
+                            outFileStream.end((endErr: Error) => {
+                                if (endErr) {
+                                    reject(endErr);
+                                } else {
+                                    resolve();
+                                }
+                            })
+                        );
                         await this.deleteArtifact(outFilePath);
+                    } catch (cleanupError) {
+                        if (cleanupError.name && cleanupError.message) {
+                            const formatted = `${cleanupError.name}: ${cleanupError.message}`;
+                            errors.push(formatted);
+                        }
                     } finally {
-                        reject(new DownloadFailure(err.message, downloadRequestId));
+                        reject(new DownloadFailure(errors.join("<br />"), downloadRequestId));
+                    }
+                });
+
+                incomingMsg.on("aborted", async () => {
+                    const errors = [`Download of ${outFilePath} aborted.`];
+                    try {
+                        delete this.activeRequestMap[downloadRequestId];
+
+                        // Need to manually close outFileStream if attached read stream
+                        // (i.e., `incomingMsg`) ends with error
+                        await new Promise<void>((resolve, reject) =>
+                            outFileStream.end((err: Error) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve();
+                                }
+                            })
+                        );
+                        await this.deleteArtifact(outFilePath);
+                    } catch (err) {
+                        if (err.name && err.message) {
+                            const formatted = `${err.name}: ${err.message}`;
+                            errors.push(formatted);
+                        }
+                    } finally {
+                        reject(new DownloadFailure(errors.join("<br />"), downloadRequestId));
                     }
                 });
             });
