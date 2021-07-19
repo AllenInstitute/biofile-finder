@@ -40,14 +40,7 @@ export default function Download(props: DownloadProps) {
         }
 
         return throttle(() => {
-            dispatch(
-                interaction.actions.downloadFile({
-                    id: fileDetails.id,
-                    name: fileDetails.name,
-                    path: fileDetails.path,
-                    size: fileDetails.size,
-                })
-            );
+            dispatch(interaction.actions.downloadFile(fileDetails.details));
         }, 1000); // 1s, in ms (arbitrary)
     }, [dispatch, fileDetails]);
 

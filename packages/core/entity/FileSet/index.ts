@@ -88,10 +88,15 @@ export default class FileSet {
         return this.cache.get(index);
     }
 
+    public async fetchAll(): Promise<FmsFile[]> {
+        const totalCount = await this.fetchTotalCount();
+        return this.fetchFileRange(0, totalCount - 1);
+    }
+
     /**
      * Fetch metadata for a range of files from within the result set this query corresponds to.
      */
-    public async fetchFileRange(startIndex: number, endIndex: number) {
+    public async fetchFileRange(startIndex: number, endIndex: number): Promise<FmsFile[]> {
         const { limit, offset } = this.calculatePaginationFromIndices(startIndex, endIndex);
         const response = await this.fileService.getFiles({
             from: offset,

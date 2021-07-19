@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import FileRow from "../../components/FileRow";
 import FileSet from "../../entity/FileSet";
 import { selection } from "../../state";
+import useFileAccessContextMenu from "./useFileAccessContextMenu";
 import { OnSelect } from "./useFileSelector";
 
 const styles = require("./LazilyRenderedRow.module.css");
@@ -16,7 +17,6 @@ const styles = require("./LazilyRenderedRow.module.css");
  */
 export interface LazilyRenderedRowContext {
     fileSet: FileSet;
-    onContextMenu: (evt: React.MouseEvent) => void;
     onSelect: OnSelect;
 }
 
@@ -33,7 +33,7 @@ const MARGIN = 1.5; // px; defined in LazilyRenderedRow.module.css
  */
 export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     const {
-        data: { fileSet, onContextMenu, onSelect },
+        data: { fileSet, onSelect },
         index,
         style,
     } = props;
@@ -43,6 +43,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     const fileSelection = useSelector(selection.selectors.getFileSelection);
 
     const file = fileSet.getFileByIndex(index);
+    const onContextMenu = useFileAccessContextMenu(file);
 
     const isSelected = React.useMemo(() => {
         return fileSelection.isSelected(fileSet, index);

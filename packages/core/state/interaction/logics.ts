@@ -1,9 +1,12 @@
 import * as path from "path";
 import { isEmpty, throttle, uniq, uniqueId } from "lodash";
+import { batch } from "react-redux";
 import { createLogic } from "redux-logic";
 
 import { metadata, ReduxLogicDeps, selection } from "../";
 import {
+    contextIsFileSelection,
+    contextIsFolder,
     DOWNLOAD_MANIFEST,
     DownloadManifestAction,
     processSuccess,
@@ -34,7 +37,7 @@ import {
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
-import { DownloadResolution } from "../../services/FileDownloadService";
+import { DownloadResolution, DownloadResult, FileInfo } from "../../services/FileDownloadService";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
@@ -202,19 +205,61 @@ const downloadFile = createLogic({
     type: DOWNLOAD_FILE,
     warnTimeout: 0, // no way to know how long this will take--don't print console warning if it takes a while
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { payload: fileInfo } = deps.action as DownloadFileAction;
+        const { payload } = deps.action as DownloadFileAction;
         const downloadRequestId = uniqueId();
         const state = deps.getState();
         const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(state);
 
+        // payload can be one of FmsFile | FileSelection | FileFolder[]
+        let files: FileInfo[];
+        if (contextIsFileSelection(payload)) {
+            files = (await payload.fetchAllDetails()).map((file: FmsFile) => ({
+                id: file.file_id,
+                name: file.file_name,
+                path: file.file_path,
+                size: file.file_size,
+            }));
+        } else if (contextIsFolder(payload)) {
+            const fileService = interactionSelectors.getFileService(state);
+            const fileSet = new FileSet({
+                filters: payload,
+                fileService,
+            });
+            files = (await fileSet.fetchAll()).map((file: FmsFile) => ({
+                id: file.file_id,
+                name: file.file_name,
+                path: file.file_path,
+                size: file.file_size,
+            }));
+        } else {
+            files = [
+                {
+                    id: payload.file_id,
+                    name: payload.file_name,
+                    path: payload.file_path,
+                    size: payload.file_size,
+                },
+            ];
+        }
+
         const numberFormatter = annotationFormatterFactory(AnnotationType.NUMBER);
-        const msg = `Downloading ${fileInfo.name}, ${numberFormatter.displayValue(
-            fileInfo.size,
+        const totalSize = files.reduce((total, file) => (total += file.size), 0);
+        const msgDetails = files.map(
+            (file) => `<li>${file.name} (${numberFormatter.displayValue(file.size, "bytes")})</li>`
+        );
+        const msg = `Downloading ${files.length} file(s), ${numberFormatter.displayValue(
+            totalSize,
             "bytes"
-        )} in total`;
+        )} in total. Details:<ul style="list-style-type: ' - ';">${msgDetails}</ul>`;
+
+        const fileIds = files.map((file) => file.id);
 
         const onCancel = () => {
-            dispatch(cancelFileDownload(downloadRequestId));
+            batch(() => {
+                for (const id of fileIds) {
+                    dispatch(cancelFileDownload(id));
+                }
+            });
         };
 
         let totalBytesDownloaded = 0;
@@ -224,10 +269,10 @@ const downloadFile = createLogic({
             dispatch(
                 processProgress(
                     downloadRequestId,
-                    totalBytesDownloaded / fileInfo.size,
+                    totalBytesDownloaded / totalSize,
                     msg,
                     onCancel,
-                    [fileInfo.id]
+                    fileIds
                 )
             );
         }, 1000);
@@ -237,19 +282,48 @@ const downloadFile = createLogic({
         };
 
         try {
-            dispatch(processStart(downloadRequestId, msg, onCancel, [fileInfo.id]));
+            dispatch(processStart(downloadRequestId, msg, onCancel, fileIds));
 
-            const result = await fileDownloadService.downloadFile(
-                fileInfo,
-                downloadRequestId,
-                onProgress
+            const promises = files.map((file) =>
+                fileDownloadService.downloadFile(file, file.id, onProgress)
             );
+            const results = await Promise.allSettled(promises);
 
-            if (result.resolution === DownloadResolution.CANCELLED) {
+            const successes = results.filter(
+                (result) =>
+                    result.status === "fulfilled" &&
+                    result.value.resolution === DownloadResolution.SUCCESS
+            ) as PromiseFulfilledResult<DownloadResult>[];
+            const cancellations = results.filter(
+                (result) =>
+                    result.status === "fulfilled" &&
+                    result.value.resolution === DownloadResolution.CANCELLED
+            ) as PromiseFulfilledResult<DownloadResult>[];
+            const failures = results.filter(
+                (result) => result.status === "rejected"
+            ) as PromiseRejectedResult[];
+
+            if (cancellations.length === files.length) {
                 // Clear status if request was cancelled
                 dispatch(removeStatus(downloadRequestId));
+            } else if (successes.length === files.length) {
+                const successDetails = successes.map((result) => `<li>${result.value.msg}</li>`);
+                const successMsg = `<ul style="list-style-type: '-';">${successDetails}</ul>`;
+                dispatch(processSuccess(downloadRequestId, successMsg));
+            } else if (failures.length === files.length) {
+                const failureDetails = failures.map((result) => `<li>${result.reason}</li>`);
+                const failureMsg = `File download failed. Details:<ul style="list-style-type: '-';">${failureDetails}</ul>`;
+                dispatch(processFailure(downloadRequestId, failureMsg));
             } else {
-                dispatch(processSuccess(downloadRequestId, result.msg || ""));
+                const details = [...successes, ...failures].map((result) => {
+                    if (result.status === "fulfilled") {
+                        return `<li>${result.value.msg}</li>`;
+                    } else if (result.status === "rejected") {
+                        return `<li>${result.reason.message}</li>`;
+                    }
+                });
+                const msg = `File download finished with mixed results. Details:<ul style="list-style-type: '-';">${details}</ul>`;
+                dispatch(processSuccess(downloadRequestId, msg));
             }
         } catch (err) {
             const errorMsg = `File download failed. Details:<br/>${err?.message}`;

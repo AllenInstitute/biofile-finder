@@ -12,7 +12,6 @@ import LazilyRenderedRow from "./LazilyRenderedRow";
 import { selection } from "../../state";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileSelector from "./useFileSelector";
-import useFileAccessContextMenu from "./useFileAccessContextMenu";
 
 const styles = require("./FileList.module.css");
 
@@ -51,9 +50,6 @@ export default function FileList(props: FileListProps) {
 
     const onSelect = useFileSelector(fileSet, sortOrder);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
-
-    // Callback provided to individual LazilyRenderedRows to be called on `contextmenu`
-    const onFileRowContextMenu = useFileAccessContextMenu();
 
     // If this is the "root" file list (e.g., all files in FMS), this component should take up
     // 100% of the height of its container.
@@ -129,7 +125,6 @@ export default function FileList(props: FileListProps) {
                                 itemData={{
                                     fileSet: fileSet,
                                     onSelect,
-                                    onContextMenu: onFileRowContextMenu,
                                 }}
                                 itemSize={rowHeight} // row height
                                 height={height} // height of the list itself; affects number of rows rendered at any given time

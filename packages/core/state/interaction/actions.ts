@@ -3,11 +3,12 @@ import { makeConstant } from "@aics/redux-utils";
 import { uniqueId } from "lodash";
 
 import Annotation from "../../entity/Annotation";
+import FileSelection from "../../entity/FileSelection";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { PythonicDataAccessSnippet } from "../../services/DatasetService";
 import ExecutionEnvService from "../../services/ExecutionEnvService";
-import FileDownloadService, { FileInfo } from "../../services/FileDownloadService";
+import FileDownloadService from "../../services/FileDownloadService";
 import FileFilter from "../../entity/FileFilter";
 import FileViewerService from "../../services/FileViewerService";
 import { ModalType } from "../../components/Modal";
@@ -18,6 +19,18 @@ import { NotificationService } from "../../services";
 import { FmsFile } from "../../services/FileService";
 
 const STATE_BRANCH_NAME = "interaction";
+
+// Union type and type discriminants for things that can be right-clicked
+export type Context = FmsFile | FileSelection | FileFilter[];
+export const contextIsFileSelection = (context: Context): context is FileSelection => {
+    return context instanceof FileSelection;
+};
+export const contextIsFolder = (context: Context): context is FileFilter[] => {
+    return Array.isArray(context) && context.every((c) => c instanceof FileFilter);
+};
+export const contextIsFmsFile = (context: Context): context is FmsFile => {
+    return !contextIsFileSelection(context) && !contextIsFolder(context);
+};
 
 /**
  * DOWNLOAD_MANIFEST
@@ -71,13 +84,13 @@ export function cancelFileDownload(id: string): CancelFileDownloadAction {
 export const DOWNLOAD_FILE = makeConstant(STATE_BRANCH_NAME, "download-file");
 
 export interface DownloadFileAction {
-    payload: FileInfo;
+    payload: FmsFile | FileSelection | FileFilter[];
     type: string;
 }
 
-export function downloadFile(fileInfo: FileInfo): DownloadFileAction {
+export function downloadFile(payload: FmsFile | FileSelection | FileFilter[]): DownloadFileAction {
     return {
-        payload: fileInfo,
+        payload,
         type: DOWNLOAD_FILE,
     };
 }
@@ -458,15 +471,15 @@ export const SHOW_GENERATE_PYTHON_SNIPPET_DIALOG = makeConstant(
 
 export interface ShowGeneratePythonSnippetDialogAction {
     type: string;
-    payload: FileFilter[];
+    payload: Context;
 }
 
 export function showGeneratePythonSnippetDialog(
-    fileFilters: FileFilter[] = []
+    payload: Context
 ): ShowGeneratePythonSnippetDialogAction {
     return {
         type: SHOW_GENERATE_PYTHON_SNIPPET_DIALOG,
-        payload: fileFilters,
+        payload,
     };
 }
 
@@ -482,15 +495,13 @@ export const SHOW_MANIFEST_DOWNLOAD_DIALOG = makeConstant(
 
 export interface ShowManifestDownloadDialogAction {
     type: string;
-    payload: FileFilter[];
+    payload: Context;
 }
 
-export function showManifestDownloadDialog(
-    fileFilters: FileFilter[] = []
-): ShowManifestDownloadDialogAction {
+export function showManifestDownloadDialog(payload: Context): ShowManifestDownloadDialogAction {
     return {
         type: SHOW_MANIFEST_DOWNLOAD_DIALOG,
-        payload: fileFilters,
+        payload,
     };
 }
 
@@ -506,13 +517,13 @@ export const PROMPT_FOR_NEW_EXECUTABLE = makeConstant(
 
 export interface PromptForNewExecutable {
     type: string;
-    payload?: FileFilter[];
+    payload: Context;
 }
 
-export function promptForNewExecutable(filters?: FileFilter[]) {
+export function promptForNewExecutable(payload: Context) {
     return {
         type: PROMPT_FOR_NEW_EXECUTABLE,
-        payload: filters,
+        payload,
     };
 }
 
@@ -549,13 +560,13 @@ export function setUserSelectedApplication(
 export const OPEN_WITH_DEFAULT = makeConstant(STATE_BRANCH_NAME, "open-with-default");
 
 export interface OpenWithDefaultAction {
-    payload?: FileFilter[];
+    payload: Context;
     type: string;
 }
 
-export function openWithDefault(filters?: FileFilter[]): OpenWithDefaultAction {
+export function openWithDefault(payload: Context): OpenWithDefaultAction {
     return {
-        payload: filters,
+        payload,
         type: OPEN_WITH_DEFAULT,
     };
 }
@@ -570,22 +581,16 @@ export const OPEN_WITH = makeConstant(STATE_BRANCH_NAME, "open-with");
 export interface OpenWithAction {
     payload: {
         app: UserSelectedApplication;
-        filters?: FileFilter[];
-        files?: FmsFile[];
+        context: Context;
     };
     type: string;
 }
 
-export function openWith(
-    app: UserSelectedApplication,
-    filters?: FileFilter[],
-    files?: FmsFile[]
-): OpenWithAction {
+export function openWith(app: UserSelectedApplication, context: Context): OpenWithAction {
     return {
         payload: {
             app,
-            filters,
-            files,
+            context,
         },
         type: OPEN_WITH,
     };

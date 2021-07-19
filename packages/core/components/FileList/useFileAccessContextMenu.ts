@@ -2,6 +2,7 @@ import { ContextualMenuItemType, IContextualMenuItem } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import FileFilter from "../../entity/FileFilter";
+import { FmsFile } from "../../services/FileService";
 import { interaction, selection } from "../../state";
 import getContextMenuItems, { ContextMenuActions } from "../ContextMenu/items";
 
@@ -12,9 +13,12 @@ import getContextMenuItems, { ContextMenuActions } from "../ContextMenu/items";
  * previously saved applications. Can be supplied an array of filters to use
  * to find files to access instead of the currently selected files.
  */
-export default function useFileAccessContextMenu(filters?: FileFilter[], onDismiss?: () => void) {
+export default function useFileAccessContextMenu(
+    context?: FmsFile | FileFilter[],
+    onDismiss?: () => void
+) {
     const dispatch = useDispatch();
-    const fileSelection = useSelector(selection.selectors.getFileSelection);
+    // const fileSelection = useSelector(selection.selectors.getFileSelection);
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
@@ -30,7 +34,7 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                         text: app.name,
                         title: `Open files with ${app.name}`,
                         onClick() {
-                            dispatch(interaction.actions.openWith(app, filters));
+                            dispatch(interaction.actions.openWith(app, context));
                         },
                     })),
                 ...(savedApps.length > 0
@@ -48,35 +52,43 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                     text: "Other...",
                     title: "Select an application to open the selection with",
                     onClick() {
-                        dispatch(interaction.actions.promptForNewExecutable(filters));
+                        dispatch(interaction.actions.promptForNewExecutable(context));
                     },
                 },
             ];
 
-            const items = getContextMenuItems(dispatch).ACCESS.map((item: IContextualMenuItem) => {
+            const items = getContextMenuItems().ACCESS.map((item: IContextualMenuItem) => {
+                if (!context) {
+                    return {
+                        ...item,
+                        disabled: true,
+                    };
+                }
+
                 if (item.key === ContextMenuActions.OPEN_WITH) {
                     item.subMenuProps = { items: openWithOptions };
                 } else if (item.key === ContextMenuActions.OPEN) {
                     item.onClick = () => {
-                        dispatch(interaction.actions.openWithDefault(filters));
+                        dispatch(interaction.actions.openWithDefault(context));
                     };
                 } else if (item.key === ContextMenuActions.CSV_MANIFEST) {
                     item.onClick = () => {
-                        dispatch(interaction.actions.showManifestDownloadDialog(filters));
+                        dispatch(interaction.actions.showManifestDownloadDialog(context));
                     };
                 } else if (item.key === ContextMenuActions.PYTHON_SNIPPET) {
                     item.onClick = () => {
-                        dispatch(interaction.actions.showGeneratePythonSnippetDialog(filters));
+                        dispatch(interaction.actions.showGeneratePythonSnippetDialog(context));
+                    };
+                } else if (item.key === ContextMenuActions.DOWNLOAD) {
+                    item.onClick = () => {
+                        dispatch(interaction.actions.downloadFile(context));
                     };
                 }
-                return {
-                    ...item,
-                    disabled: !filters && fileSelection.count() === 0,
-                };
+                return item;
             });
 
             dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent, onDismiss));
         },
-        [dispatch, fileSelection, executionEnvService, userSelectedApplications]
+        [dispatch, executionEnvService, userSelectedApplications, context, onDismiss]
     );
 }

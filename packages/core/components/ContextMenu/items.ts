@@ -1,11 +1,11 @@
 import { Dispatch } from "redux";
 
 import { ContextualMenuItemType } from "./";
-import { interaction } from "../../state";
 
 export enum ContextMenuActions {
     COPY = "copy",
     CSV_MANIFEST = "csv-manifest",
+    DOWNLOAD = "download-file",
     MODIFY_COLUMNS = "modify-columns",
     OPEN = "open",
     OPEN_WITH = "open-with",
@@ -16,10 +16,9 @@ export enum ContextMenuActions {
 
 /**
  * This is intended to be a catalogue of context menu items and that can be reused as various context menus are built up
- * throughout the app. Many of the `onClick` methods of the items/subitems will require access to the Redux store's `dispatch`,
- * so this "factory" of sorts is parameterized by `dispatch`, and thereby available to `onClick` handlers through closure.
+ * throughout the app.
  */
-export default function getContextMenuItems(dispatch: Dispatch) {
+export default function getContextMenuItems() {
     return {
         ACCESS: [
             {
@@ -30,23 +29,24 @@ export default function getContextMenuItems(dispatch: Dispatch) {
             {
                 key: ContextMenuActions.OPEN,
                 text: "Open",
-                onClick() {
-                    dispatch(interaction.actions.openWithDefault());
-                },
+                // onClick dynamically generated in useFileAccessContextMenu
             },
             {
                 key: ContextMenuActions.OPEN_WITH,
                 text: "Open with",
-                // Dynamically generated application options will/should be
-                // inserted here
+                // submenu dynamically generated in useFileAccessContextMenu
+            },
+            {
+                key: ContextMenuActions.DOWNLOAD,
+                text: "Download",
+                title: "Download file(s)",
+                // onClick dynamically generated in useFileAccessContextMenu
             },
             {
                 key: ContextMenuActions.CSV_MANIFEST,
                 text: "Generate CSV manifest",
                 title: "CSV file of metadata of selected files",
-                onClick() {
-                    dispatch(interaction.actions.showManifestDownloadDialog());
-                },
+                // onClick dynamically generated in useFileAccessContextMenu
             },
             {
                 key: "programmatic-access",
@@ -57,9 +57,7 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                 key: ContextMenuActions.PYTHON_SNIPPET,
                 text: "Generate Python snippet",
                 title: "Get a snippet in Python to work with your file selection programmatically",
-                onClick() {
-                    dispatch(interaction.actions.showGeneratePythonSnippetDialog());
-                },
+                // onClick dynamically generated in useFileAccessContextMenu
             },
         ],
         COPY: {
