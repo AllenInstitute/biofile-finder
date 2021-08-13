@@ -63,7 +63,7 @@ export function calcNodeSortOrder({
         );
     }
 
-    // Take into account how many siblings this node neeeds to be sorted amongst.
+    // Take into account how many siblings this node needs to be sorted amongst.
     // E.g.: in a list of dozens of items, 0.1 is the same number as 0.10 (0.2 === 0.20, etc), so use 0.01, 0.02 instead.
     const maxPadLength = Math.floor(Math.log10(sourceListLength) + 1);
     const nodeOrder = String(idxWithinSourceList).padStart(maxPadLength, "0");
@@ -164,14 +164,17 @@ const useDirectoryHierarchy = (
                         .filter((filter) => filter.name === annotationNameAtDepth)
                         .map((filter) => filter.value);
 
-                    // TODO, send user-selected filters to backend
                     let values: any[];
                     if (isRoot) {
-                        values = await annotationService.fetchRootHierarchyValues(hierarchy);
+                        values = await annotationService.fetchRootHierarchyValues(
+                            hierarchy,
+                            selectedFileFilters
+                        );
                     } else {
                         values = await annotationService.fetchHierarchyValuesUnderPath(
                             hierarchy,
-                            pathToNode
+                            pathToNode,
+                            selectedFileFilters
                         );
                     }
 

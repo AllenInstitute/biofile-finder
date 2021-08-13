@@ -2,6 +2,7 @@ import { map } from "lodash";
 
 import HttpServiceBase from "../HttpServiceBase";
 import Annotation from "../../entity/Annotation";
+import FileFilter from "../../entity/FileFilter";
 
 /**
  * Expected JSON structure of an annotation returned from the query service.
@@ -50,15 +51,21 @@ export default class AnnotationService extends HttpServiceBase {
         return response.data;
     }
 
-    public async fetchRootHierarchyValues(hierarchy: string[]): Promise<string[]> {
+    public async fetchRootHierarchyValues(
+        hierarchy: string[],
+        filters: FileFilter[]
+    ): Promise<string[]> {
         // It's important that we fetch values for the correct (i.e., first) level of the hierarchy.
         // But after that, sort the levels so that we can effectively cache the result
         // resorting the hierarchy underneath the first level should have no effect on the result.
         // This is a huge optimization.
         const [first, ...rest] = hierarchy;
-        const queryParams = [first, ...rest.sort()]
-            .map((annotationName) => `order=${annotationName}`)
-            .join("&");
+        const orderParams = [first, ...rest.sort()].map(
+            (annotationName) => `order=${annotationName}`
+        );
+        const filterParams = filters.map((filter) => `filter=${filter.toQueryString()}`);
+        const queryParams = [...orderParams, ...filterParams].join("&");
+
         const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?${queryParams}`;
         console.log(`Requesting root hierarchy values: ${requestUrl}`);
 
@@ -68,11 +75,13 @@ export default class AnnotationService extends HttpServiceBase {
 
     public async fetchHierarchyValuesUnderPath(
         hierarchy: string[],
-        path: string[]
+        path: string[],
+        filters: FileFilter[]
     ): Promise<string[]> {
         const queryParams = [
             ...hierarchy.map((annotationName) => `order=${annotationName}`),
             ...path.map((annotationValue) => `path=${annotationValue}`),
+            ...filters.map((filter) => `filter=${filter.toQueryString()}`),
         ].join("&");
         const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}?${queryParams}`;
         console.log(`Requesting hierarchy values under path: ${requestUrl}`);
