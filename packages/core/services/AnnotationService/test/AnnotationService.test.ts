@@ -58,7 +58,7 @@ describe("AnnotationService", () => {
             });
 
             const annotationService = new AnnotationService({ baseUrl: "test", httpClient });
-            const values = await annotationService.fetchRootHierarchyValues(["foo"]);
+            const values = await annotationService.fetchRootHierarchyValues(["foo"], []);
             expect(values).to.equal(expectedValues);
         });
 
@@ -79,12 +79,10 @@ describe("AnnotationService", () => {
             const annotationService = new AnnotationService({ baseUrl: "test", httpClient });
 
             // first time around
-            const firstCallRet = await annotationService.fetchRootHierarchyValues([
-                "z",
-                "a",
-                "b",
-                "c",
-            ]); // note order
+            const firstCallRet = await annotationService.fetchRootHierarchyValues(
+                ["z", "a", "b", "c"],
+                []
+            ); // note order
             expect(firstCallRet).to.equal(expectedValues);
             expect(getSpy.called).to.equal(true);
 
@@ -92,12 +90,10 @@ describe("AnnotationService", () => {
             getSpy.resetHistory();
 
             // call again, with tail of hierarchy reordered
-            const secondCallRet = await annotationService.fetchRootHierarchyValues([
-                "z",
-                "c",
-                "a",
-                "b",
-            ]); // note order
+            const secondCallRet = await annotationService.fetchRootHierarchyValues(
+                ["z", "c", "a", "b"],
+                []
+            ); // note order
             expect(secondCallRet).to.equal(firstCallRet);
             expect(getSpy.called).to.equal(false);
         });
@@ -119,7 +115,8 @@ describe("AnnotationService", () => {
             const annotationService = new AnnotationService({ baseUrl: "test", httpClient });
             const values = await annotationService.fetchHierarchyValuesUnderPath(
                 ["foo", "bar"],
-                ["baz"]
+                ["baz"],
+                []
             );
             expect(values).to.equal(expectedValues);
         });
