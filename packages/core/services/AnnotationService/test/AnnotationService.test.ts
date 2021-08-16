@@ -5,6 +5,7 @@ import { spy } from "sinon";
 import Annotation from "../../../entity/Annotation";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import AnnotationService from "..";
+import FileFilter from "../../../entity/FileFilter";
 
 describe("AnnotationService", () => {
     describe("fetchAnnotations", () => {
@@ -97,6 +98,24 @@ describe("AnnotationService", () => {
             expect(secondCallRet).to.equal(firstCallRet);
             expect(getSpy.called).to.equal(false);
         });
+
+        it("issues a request for annotation values for the first level of the annotation hierarchy with filters", async () => {
+            const expectedValues = ["foo", "barValue", "baz"];
+            const httpClient = createMockHttpClient({
+                when:
+                    "test/file-explorer-service/1.0/annotations/hierarchy/root?order=foo&filter=bar=barValue",
+                respondWith: {
+                    data: {
+                        data: expectedValues,
+                    },
+                },
+            });
+
+            const annotationService = new AnnotationService({ baseUrl: "test", httpClient });
+            const filter = new FileFilter("bar", "barValue");
+            const values = await annotationService.fetchRootHierarchyValues(["foo"], [filter]);
+            expect(values).to.equal(expectedValues);
+        });
     });
 
     describe("fetchHierarchyValuesUnderPath", () => {
@@ -117,6 +136,28 @@ describe("AnnotationService", () => {
                 ["foo", "bar"],
                 ["baz"],
                 []
+            );
+            expect(values).to.equal(expectedValues);
+        });
+
+        it("issues request for hierarchy values under a specific path within the hierarchy with filters", async () => {
+            const expectedValues = [1, "barValue", 3];
+            const httpClient = createMockHttpClient({
+                when:
+                    "test/file-explorer-service/1.0/annotations/hierarchy/under-path?order=foo&order=bar&path=baz&filter=bar=barValue",
+                respondWith: {
+                    data: {
+                        data: expectedValues,
+                    },
+                },
+            });
+
+            const annotationService = new AnnotationService({ baseUrl: "test", httpClient });
+            const filter = new FileFilter("bar", "barValue");
+            const values = await annotationService.fetchHierarchyValuesUnderPath(
+                ["foo", "bar"],
+                ["baz"],
+                [filter]
             );
             expect(values).to.equal(expectedValues);
         });
