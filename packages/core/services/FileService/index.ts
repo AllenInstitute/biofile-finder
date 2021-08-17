@@ -46,6 +46,10 @@ export interface Selection {
         [index: string]: (string | number | boolean)[];
     };
     indexRanges: JSONReadyRange[];
+    sort?: {
+        annotationName: string;
+        ascending: boolean;
+    };
 }
 
 export interface SelectionRequest {

@@ -4,6 +4,7 @@ import { IndexError, ValueError } from "../../errors";
 import { FmsFile, Selection } from "../../services/FileService";
 import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
+import { SortOrder } from "../FileSort";
 import NumericRange from "../NumericRange";
 
 /**
@@ -25,6 +26,7 @@ export enum FocusDirective {
 interface SelectionItem {
     fileSet: FileSet;
     selection: NumericRange;
+    // TODO: Why is sortorder here????
     sortOrder: number; // Used to determine how to position this SelectionItem relative to other SelectionItems with unequal FileSets
 }
 
@@ -518,6 +520,12 @@ export default class FileSelection {
                     };
                 }, accumulator),
                 indexRanges: selectedRanges.map((range) => range.toJSON()),
+                sort: fileSet.sortOrder
+                    ? {
+                          annotationName: fileSet.sortOrder.annotationName,
+                          ascending: fileSet.sortOrder.order === SortOrder.ASC,
+                      }
+                    : undefined,
             };
             selections.push(selection);
         }

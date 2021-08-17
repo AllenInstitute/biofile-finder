@@ -46,6 +46,7 @@ import {
 } from "../../services/ExecutionEnvService";
 import { AnnotationName } from "../../constants";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
+import { SortOrder } from "../../entity/FileSort";
 
 /**
  * Interceptor responsible for responding to a SET_PLATFORM_DEPENDENT_SERVICES action and
@@ -120,6 +121,12 @@ const downloadManifest = createLogic({
                         };
                     }, accumulator),
                     indexRanges: [new NumericRange(0, count - 1).toJSON()],
+                    sort: sortColumn
+                        ? {
+                              annotationName: sortColumn.annotationName,
+                              ascending: sortColumn.order === SortOrder.ASC,
+                          }
+                        : undefined,
                 };
                 selections = [selection];
             } else {
@@ -542,6 +549,12 @@ const generatePythonSnippet = createLogic({
                         };
                     }, accumulator),
                     indexRanges: [new NumericRange(0, count - 1).toJSON()],
+                    sort: sortColumn
+                        ? {
+                              annotationName: sortColumn.annotationName,
+                              ascending: sortColumn.order === SortOrder.ASC,
+                          }
+                        : undefined,
                 };
                 selections = [selection];
             }

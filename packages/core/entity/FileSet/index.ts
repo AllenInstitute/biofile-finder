@@ -33,7 +33,7 @@ export default class FileSet {
     private cache: LRUCache<number, FmsFile>;
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
-    private readonly sortOrder?: FileSort;
+    public readonly sortOrder?: FileSort;
     private totalFileCount: number | undefined;
 
     public static isFileSet(candidate: any): candidate is FileSet {
