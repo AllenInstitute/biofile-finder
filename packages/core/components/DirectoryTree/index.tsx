@@ -38,12 +38,14 @@ export default function DirectoryTree(props: FileListProps) {
     const dispatch = useDispatch();
     const fileService = useSelector(interaction.selectors.getFileService);
     const globalFilters = useSelector(selection.selectors.getFileFilters);
+    const sortColumn = useSelector(selection.selectors.getSortColumn);
     const fileSet = React.useMemo(() => {
         return new FileSet({
             fileService: fileService,
             filters: globalFilters,
+            sortOrder: sortColumn,
         });
-    }, [fileService, globalFilters]);
+    }, [fileService, globalFilters, sortColumn]);
 
     // On a up arrow key or down arrow key press this event will update the file list selection & focused file
     // to be either the row above (if the up arrow was pressed) or the row below (if the down arrow was pressed)

@@ -93,6 +93,7 @@ const downloadManifest = createLogic({
             );
             const filters = interactionSelectors.getFileFiltersForVisibleModal(state);
             const fileService = interactionSelectors.getFileService(state);
+            const sortColumn = selection.selectors.getSortColumn(state);
             const csvService = new CsvService({
                 applicationVersion,
                 baseUrl,
@@ -106,6 +107,7 @@ const downloadManifest = createLogic({
                 const fileSet = new FileSet({
                     filters,
                     fileService,
+                    sortOrder: sortColumn,
                 });
                 const count = await fileSet.fetchTotalCount();
                 const accumulator: { [index: string]: any } = {};
@@ -327,6 +329,7 @@ const openWithDefault = createLogic({
         const filters = deps.action.payload;
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
+        const sortColumn = selection.selectors.getSortColumn(deps.getState());
         const userSelectedApplications =
             interactionSelectors.getUserSelectedApplications(deps.getState()) || [];
 
@@ -338,6 +341,7 @@ const openWithDefault = createLogic({
             const fileSet = new FileSet({
                 filters,
                 fileService,
+                sortOrder: sortColumn,
             });
             const totalFileCount = await fileSet.fetchTotalCount();
             files = await fileSet.fetchFileRange(0, totalFileCount);
@@ -393,6 +397,7 @@ const openWithLogic = createLogic({
         const userSelectedApplications = interactionSelectors.getUserSelectedApplications(
             deps.getState()
         );
+        const sortColumn = selection.selectors.getSortColumn(deps.getState());
 
         // Verify that the known Allen mount point is valid, if not prompt for it
         let allenMountPoint = savedAllenMountPoint;
@@ -451,6 +456,7 @@ const openWithLogic = createLogic({
                     const fileSet = new FileSet({
                         filters,
                         fileService,
+                        sortOrder: sortColumn,
                     });
                     const totalFileCount = await fileSet.fetchTotalCount();
                     filesToOpen = await fileSet.fetchFileRange(0, totalFileCount);
@@ -513,6 +519,7 @@ const generatePythonSnippet = createLogic({
             const datasetService = interactionSelectors.getDatasetService(getState());
             const fileService = interactionSelectors.getFileService(getState());
             const filters = interactionSelectors.getFileFiltersForVisibleModal(getState());
+            const sortColumn = selection.selectors.getSortColumn(deps.getState());
 
             let selections;
             if (!filters.length) {
@@ -522,6 +529,7 @@ const generatePythonSnippet = createLogic({
                 const fileSet = new FileSet({
                     filters,
                     fileService,
+                    sortOrder: sortColumn,
                 });
                 const count = await fileSet.fetchTotalCount();
                 const accumulator: { [index: string]: any } = {};

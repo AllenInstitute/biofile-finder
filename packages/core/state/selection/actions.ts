@@ -69,6 +69,25 @@ export function removeFileFilter(filter: FileFilter | FileFilter[]): RemoveFileF
 }
 
 /**
+ * SORT_COLUMN
+ *
+ * Intention to sort files by a specific column
+ */
+export const SORT_COLUMN = makeConstant(STATE_BRANCH_NAME, "sort-column");
+
+export interface SortColumnAction {
+    payload: string;
+    type: string;
+}
+
+export function sortColumn(annotation: string): SortColumnAction {
+    return {
+        payload: annotation,
+        type: SORT_COLUMN,
+    };
+}
+
+/**
  * SELECT_DISPLAY_ANNOTATION
  *
  * Intention to select one or many annotations for a file to display in the file list (i.e., as a column).
