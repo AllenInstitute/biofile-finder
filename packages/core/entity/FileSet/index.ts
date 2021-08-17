@@ -1,4 +1,4 @@
-import { defaults, find, flatten, join, map, uniqueId } from "lodash";
+import { defaults, find, join, map, uniqueId } from "lodash";
 import LRUCache from "lru-cache";
 
 import FileFilter from "../FileFilter";
@@ -9,14 +9,13 @@ interface Opts {
     fileService: FileService;
     filters: FileFilter[];
     maxCacheSize: number;
-    sortOrder: FileSort[];
+    sortOrder?: FileSort;
 }
 
 const DEFAULT_OPTS: Opts = {
     fileService: new FileService(),
     filters: [],
     maxCacheSize: 1000,
-    sortOrder: [],
 };
 
 /**
@@ -34,7 +33,7 @@ export default class FileSet {
     private cache: LRUCache<number, FmsFile>;
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
-    private readonly sortOrder: FileSort[];
+    private readonly sortOrder?: FileSort;
     private totalFileCount: number | undefined;
 
     public static isFileSet(candidate: any): candidate is FileSet {
@@ -142,13 +141,13 @@ export default class FileSet {
         const sortedFilters = [...this.filters].sort((a, b) =>
             a.toQueryString().localeCompare(b.toQueryString())
         );
-        return join(
-            flatten([
-                map(sortedFilters, (filter) => filter.toQueryString()),
-                map(this.sortOrder, (sortBy) => sortBy.toQueryString()),
-            ]),
-            "&"
-        );
+        const query = map(sortedFilters, (filter) => filter.toQueryString());
+
+        if (this.sortOrder) {
+            query.push(this.sortOrder.toQueryString());
+        }
+
+        return join(query, "&");
     }
 
     public toJSON() {

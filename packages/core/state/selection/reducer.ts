@@ -18,7 +18,9 @@ import {
     SET_OPEN_FILE_FOLDERS,
     RESIZE_COLUMN,
     RESET_COLUMN_WIDTH,
+    SORT_COLUMN,
 } from "./actions";
+import FileSort, { SortOrder } from "../../entity/FileSort";
 
 export interface SelectionStateBranch {
     annotationHierarchy: Annotation[];
@@ -31,6 +33,7 @@ export interface SelectionStateBranch {
     fileSelection: FileSelection;
     filters: FileFilter[];
     openFileFolders: FileFolder[];
+    sortColumn?: FileSort;
 }
 
 export const initialState = {
@@ -47,6 +50,11 @@ export const initialState = {
     fileSelection: new FileSelection(),
     filters: [],
     openFileFolders: [],
+    // TODO: Default to sorting by uploaded by
+    // sortColumn: {
+    //     key: Annotation.
+    //     direction: "DESC",
+    // };
 };
 
 export default makeReducer<SelectionStateBranch>(
@@ -58,6 +66,30 @@ export default makeReducer<SelectionStateBranch>(
             // Reset file selections when file filters change
             fileSelection: new FileSelection(),
         }),
+        [SORT_COLUMN]: (state, action) => {
+            if (state.sortColumn?.annotationName === action.payload) {
+                // If already sorting by this column descending
+                // try sorting ascending
+                if (state.sortColumn?.order === SortOrder.DESC) {
+                    return {
+                        ...state,
+                        sortColumn: new FileSort(action.payload, SortOrder.ASC),
+                    };
+                }
+
+                // Otherwise already sorted ascending so remove sort
+                return {
+                    ...state,
+                    sortColumn: undefined,
+                };
+            }
+
+            // Default to sorting descending on initial sort
+            return {
+                ...state,
+                sortColumn: new FileSort(action.payload, SortOrder.DESC),
+            };
+        },
         [DESELECT_DISPLAY_ANNOTATION]: (state, action) => {
             const displayAnnotations = without(
                 state.displayAnnotations,

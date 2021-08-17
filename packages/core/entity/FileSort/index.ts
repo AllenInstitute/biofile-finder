@@ -8,8 +8,8 @@ export enum SortOrder {
  * query string friendly format.
  */
 export default class FileSort {
-    private readonly annotationName: string;
-    private readonly order: SortOrder;
+    public readonly annotationName: string;
+    public readonly order: SortOrder;
 
     constructor(annotationName: string, order: SortOrder) {
         this.annotationName = annotationName;

@@ -9,6 +9,7 @@ const styles = require("./Cell.module.css");
 export interface CellProps {
     className?: string;
     columnKey: string;
+    onClick?: (columnKey: string) => void;
     onContextMenu?: (evt: React.MouseEvent) => void;
     onResize?: (columnKey: string, nextWidth?: number) => void; // nextWith is a percentage of parent element's width, a number between 0 and 1.
     width: number; // percentage of parent element's width, a number between 0 and 1.
@@ -94,6 +95,7 @@ export default class Cell extends React.Component<CellProps, CellState> {
             <div
                 ref={this.cell}
                 className={classNames(styles.resizableCell, containerClassName, className)}
+                onClick={() => this.props.onClick?.(this.props.columnKey)}
                 onContextMenu={this.props.onContextMenu}
                 onDoubleClick={this.onDoubleClick}
                 style={{

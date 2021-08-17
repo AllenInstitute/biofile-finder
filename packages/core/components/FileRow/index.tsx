@@ -7,9 +7,9 @@ import { OnSelect } from "../FileList/useFileSelector";
 
 const styles = require("./FileRow.module.css");
 
-interface CellConfig {
+export interface CellConfig {
     columnKey: string;
-    displayValue: string;
+    displayValue: string | React.ReactNode;
     width: number;
 }
 
@@ -17,6 +17,7 @@ interface FileRowProps {
     cells: CellConfig[];
     className?: string;
     rowIdentifier?: any;
+    onClick?: (columnKey: string) => void;
     onContextMenu?: (evt: React.MouseEvent) => void;
     onResize?: (columnKey: string, nextWidth?: number) => void;
     onSelect?: OnSelect;
@@ -48,6 +49,7 @@ export default function FileRow(props: FileRowProps) {
                 <Cell
                     key={cell.columnKey}
                     columnKey={cell.columnKey}
+                    onClick={props.onClick}
                     onContextMenu={onContextMenu}
                     onResize={onResize}
                     width={cell.width}

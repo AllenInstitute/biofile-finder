@@ -1,3 +1,7 @@
+.bold {
+  font-weight: bold;
+}
+
 .header-wrapper {
   --inner-header-size: 30px;
 
@@ -18,6 +22,15 @@
     0 2px 2.5px 0 rgba(0, 0, 0, 0.14), 0 0.5px 5px 0 rgba(0, 0, 0, 0.12);
   color: var(--white); /* defined in App.module.css */
   font-size: var(--inner-header-size); /* our only hook for increasing the height of the header, but need to re-adjust font-size for header cells */
+}
+
+.header-cell {
+  cursor: not-allowed;
+  width: 100%;
+}
+
+.clickable {
+  cursor: pointer;
 }
 
 .list-parent {
