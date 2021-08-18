@@ -46,34 +46,41 @@ function Header(
     };
 
     // TODO: Resize needs to factor in space for caret now
-    const headerCells: CellConfig[] = map(columnAnnotations, (annotation) => ({
-        columnKey: annotation.name, // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
-        displayValue: (
-            <span
-                className={classNames(styles.headerCell, {
-                    [styles.clickable]: TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name),
-                    [styles.bold]: sortColumn?.annotationName === annotation.name,
-                })}
-            >
-                <TooltipHost
-                    content={
-                        TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name)
-                            ? undefined
-                            : `${annotation.displayName} is not sortable. Try one of ${SORTABLE_ANNOTATION_DISPLAY_NAMES}.`
+    const headerCells: CellConfig[] = map(columnAnnotations, (annotation) => {
+        const isSortedColumn = sortColumn?.annotationName === annotation.name;
+        const isFileAttribute = TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name);
+        return {
+            columnKey: annotation.name, // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
+            displayValue: (
+                <span
+                    className={classNames(styles.headerCell, {
+                        [styles.clickable]: isFileAttribute,
+                        [styles.bold]: isSortedColumn,
+                    })}
+                    onClick={() =>
+                        isFileAttribute && dispatch(selection.actions.sortColumn(annotation.name))
                     }
                 >
-                    {annotation.displayName}&nbsp;
-                    {sortColumn?.annotationName === annotation.name &&
-                        (sortColumn.order === SortOrder.DESC ? (
-                            <Icon iconName="CaretSolidDown" />
-                        ) : (
-                            <Icon iconName="CaretSolidUp" />
-                        ))}
-                </TooltipHost>
-            </span>
-        ),
-        width: columnWidths[annotation.name] || 1 / columnAnnotations.length,
-    }));
+                    <TooltipHost
+                        content={
+                            isFileAttribute
+                                ? undefined
+                                : `${annotation.displayName} is not sortable. Try one of ${SORTABLE_ANNOTATION_DISPLAY_NAMES}.`
+                        }
+                    >
+                        {annotation.displayName}&nbsp;
+                        {isSortedColumn &&
+                            (sortColumn?.order === SortOrder.DESC ? (
+                                <Icon iconName="CaretSolidDown" />
+                            ) : (
+                                <Icon iconName="CaretSolidUp" />
+                            ))}
+                    </TooltipHost>
+                </span>
+            ),
+            width: columnWidths[annotation.name] || 1 / columnAnnotations.length,
+        };
+    });
 
     const onHeaderColumnContextMenu = (evt: React.MouseEvent) => {
         const availableContextMenuItem = getContextMenuItems(dispatch);
@@ -103,7 +110,6 @@ function Header(
                 <FileRow
                     cells={headerCells}
                     className={styles.header}
-                    onClick={(a) => dispatch(selection.actions.sortColumn(a))}
                     onContextMenu={onHeaderColumnContextMenu}
                     onResize={onResize}
                 />
