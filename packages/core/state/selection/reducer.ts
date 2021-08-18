@@ -43,8 +43,8 @@ export const initialState = {
     columnWidths: {
         [AnnotationName.FILE_NAME]: 0.4,
         [AnnotationName.KIND]: 0.2,
-        [AnnotationName.TYPE]: 0.3,
-        [AnnotationName.FILE_SIZE]: 0.1,
+        [AnnotationName.TYPE]: 0.25,
+        [AnnotationName.FILE_SIZE]: 0.15,
     },
     displayAnnotations: [],
     fileSelection: new FileSelection(),
