@@ -43,7 +43,7 @@ export default function DirectoryTree(props: FileListProps) {
         return new FileSet({
             fileService: fileService,
             filters: globalFilters,
-            sortOrder: sortColumn,
+            sort: sortColumn,
         });
     }, [fileService, globalFilters, sortColumn]);
 

@@ -9,7 +9,7 @@ interface Opts {
     fileService: FileService;
     filters: FileFilter[];
     maxCacheSize: number;
-    sortOrder?: FileSort;
+    sort?: FileSort;
 }
 
 const DEFAULT_OPTS: Opts = {
@@ -33,7 +33,7 @@ export default class FileSet {
     private cache: LRUCache<number, FmsFile>;
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
-    public readonly sortOrder?: FileSort;
+    public readonly sort?: FileSort;
     private totalFileCount: number | undefined;
 
     public static isFileSet(candidate: any): candidate is FileSet {
@@ -41,11 +41,11 @@ export default class FileSet {
     }
 
     constructor(opts: Partial<Opts> = {}) {
-        const { fileService, filters, maxCacheSize, sortOrder } = defaults({}, opts, DEFAULT_OPTS);
+        const { fileService, filters, maxCacheSize, sort } = defaults({}, opts, DEFAULT_OPTS);
 
         this.cache = new LRUCache<number, FmsFile>({ max: maxCacheSize });
         this._filters = filters;
-        this.sortOrder = sortOrder;
+        this.sort = sort;
         this.fileService = fileService;
 
         this.fetchFileRange = this.fetchFileRange.bind(this);
@@ -133,7 +133,7 @@ export default class FileSet {
     }
 
     /**
-     * Combine filters and sortOrder into a single query string that can be sent to a query service.
+     * Combine filters and sort into a single query string that can be sent to a query service.
      */
     public toQueryString(): string {
         // filters must be sorted in order to ensure requests can be effectively cached
@@ -143,8 +143,8 @@ export default class FileSet {
         );
         const query = map(sortedFilters, (filter) => filter.toQueryString());
 
-        if (this.sortOrder) {
-            query.push(this.sortOrder.toQueryString());
+        if (this.sort) {
+            query.push(this.sort.toQueryString());
         }
 
         return join(query, "&");

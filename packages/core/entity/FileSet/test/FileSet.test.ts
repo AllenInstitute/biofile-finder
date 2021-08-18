@@ -22,7 +22,7 @@ describe("FileSet", () => {
         it("includes filters and sort order in query string", () => {
             const fileSet = new FileSet({
                 filters: [scientistEqualsJane, matrigelIsHard],
-                sortOrder: [dateCreatedDescending],
+                sort: dateCreatedDescending,
             });
             expect(fileSet.toQueryString()).equals(
                 "matrigel_is_hardened=true&scientist=jane&sort=date_created(DESC)"

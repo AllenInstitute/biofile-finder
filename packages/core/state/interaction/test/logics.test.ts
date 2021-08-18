@@ -214,7 +214,7 @@ describe("Interaction logics", () => {
                 },
             });
             const responseStub = {
-                when: `${baseUrl}/${FileService.BASE_FILE_COUNT_URL}?Cell%20Line=AICS-12&Notes=Hello`,
+                when: `${baseUrl}/${FileService.BASE_FILE_COUNT_URL}?Cell%20Line=AICS-12&Notes=Hello&sort=uploaded(DESC)`,
                 respondWith: {
                     data: { data: [42] },
                 },

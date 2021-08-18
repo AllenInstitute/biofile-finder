@@ -357,7 +357,7 @@ const selectNearbyFile = createLogic({
                         (filterValue, index) =>
                             new FileFilter(hierarchy[index].displayName, filterValue)
                     ),
-                    sortOrder: sortColumn,
+                    sort: sortColumn,
                 });
                 const totalFileSetSize = await openFileSetAboveCurrent.fetchTotalCount();
                 newFileSelection = newFileSelection.select({
@@ -395,7 +395,7 @@ const selectNearbyFile = createLogic({
                         (filterValue, index) =>
                             new FileFilter(hierarchy[index].displayName, filterValue)
                     ),
-                    sortOrder: sortColumn,
+                    sort: sortColumn,
                 });
                 newFileSelection = newFileSelection.select({
                     index: 0,
