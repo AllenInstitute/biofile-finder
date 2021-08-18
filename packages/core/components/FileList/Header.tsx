@@ -45,7 +45,6 @@ function Header(
         }
     };
 
-    // TODO: Resize needs to factor in space for caret now
     const headerCells: CellConfig[] = map(columnAnnotations, (annotation) => {
         const isSortedColumn = sortColumn?.annotationName === annotation.name;
         const isFileAttribute = TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name);
