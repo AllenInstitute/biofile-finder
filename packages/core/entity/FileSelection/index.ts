@@ -519,10 +519,10 @@ export default class FileSelection {
                     };
                 }, accumulator),
                 indexRanges: selectedRanges.map((range) => range.toJSON()),
-                sort: fileSet.sortOrder
+                sort: fileSet.sort
                     ? {
-                          annotationName: fileSet.sortOrder.annotationName,
-                          ascending: fileSet.sortOrder.order === SortOrder.ASC,
+                          annotationName: fileSet.sort.annotationName,
+                          ascending: fileSet.sort.order === SortOrder.ASC,
                       }
                     : undefined,
             };
