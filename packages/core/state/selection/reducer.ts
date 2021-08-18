@@ -50,11 +50,7 @@ export const initialState = {
     fileSelection: new FileSelection(),
     filters: [],
     openFileFolders: [],
-    // TODO: Default to sorting by uploaded by
-    // sortColumn: {
-    //     key: Annotation.
-    //     direction: "DESC",
-    // };
+    sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
 };
 
 export default makeReducer<SelectionStateBranch>(

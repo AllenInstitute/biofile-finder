@@ -108,7 +108,7 @@ const downloadManifest = createLogic({
                 const fileSet = new FileSet({
                     filters,
                     fileService,
-                    sortOrder: sortColumn,
+                    sort: sortColumn,
                 });
                 const count = await fileSet.fetchTotalCount();
                 const accumulator: { [index: string]: any } = {};
@@ -348,7 +348,7 @@ const openWithDefault = createLogic({
             const fileSet = new FileSet({
                 filters,
                 fileService,
-                sortOrder: sortColumn,
+                sort: sortColumn,
             });
             const totalFileCount = await fileSet.fetchTotalCount();
             files = await fileSet.fetchFileRange(0, totalFileCount);
@@ -463,7 +463,7 @@ const openWithLogic = createLogic({
                     const fileSet = new FileSet({
                         filters,
                         fileService,
-                        sortOrder: sortColumn,
+                        sort: sortColumn,
                     });
                     const totalFileCount = await fileSet.fetchTotalCount();
                     filesToOpen = await fileSet.fetchFileRange(0, totalFileCount);
@@ -536,7 +536,7 @@ const generatePythonSnippet = createLogic({
                 const fileSet = new FileSet({
                     filters,
                     fileService,
-                    sortOrder: sortColumn,
+                    sort: sortColumn,
                 });
                 const count = await fileSet.fetchTotalCount();
                 const accumulator: { [index: string]: any } = {};

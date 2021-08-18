@@ -228,7 +228,7 @@ const useDirectoryHierarchy = (
                         const childNodeFileSet = new FileSet({
                             fileService,
                             filters,
-                            sortOrder: sortColumn,
+                            sort: sortColumn,
                         });
 
                         return (

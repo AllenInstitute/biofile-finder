@@ -26,7 +26,6 @@ export enum FocusDirective {
 interface SelectionItem {
     fileSet: FileSet;
     selection: NumericRange;
-    // TODO: Why is sortorder here????
     sortOrder: number; // Used to determine how to position this SelectionItem relative to other SelectionItems with unequal FileSets
 }
 
