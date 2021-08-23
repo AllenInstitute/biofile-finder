@@ -5,6 +5,7 @@ import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
+import FileSort from "../../entity/FileSort";
 import NumericRange from "../../entity/NumericRange";
 
 const STATE_BRANCH_NAME = "selection";
@@ -84,6 +85,25 @@ export function sortColumn(annotation: string): SortColumnAction {
     return {
         payload: annotation,
         type: SORT_COLUMN,
+    };
+}
+
+/**
+ * SET_SORT_COLUMN
+ *
+ * Intention to set the column to sort on
+ */
+export const SET_SORT_COLUMN = makeConstant(STATE_BRANCH_NAME, "set-sort-column");
+
+export interface SetSortColumnAction {
+    payload?: FileSort;
+    type: string;
+}
+
+export function setSortColumn(fileSort?: FileSort): SetSortColumnAction {
+    return {
+        payload: fileSort,
+        type: SET_SORT_COLUMN,
     };
 }
 

@@ -19,6 +19,7 @@ import {
     RESIZE_COLUMN,
     RESET_COLUMN_WIDTH,
     SORT_COLUMN,
+    SET_SORT_COLUMN,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 
@@ -86,6 +87,10 @@ export default makeReducer<SelectionStateBranch>(
                 sortColumn: new FileSort(action.payload, SortOrder.DESC),
             };
         },
+        [SET_SORT_COLUMN]: (state, action) => ({
+            ...state,
+            sortColumn: action.payload,
+        }),
         [DESELECT_DISPLAY_ANNOTATION]: (state, action) => {
             const displayAnnotations = without(
                 state.displayAnnotations,

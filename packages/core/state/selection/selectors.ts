@@ -5,6 +5,7 @@ import Annotation from "../../entity/Annotation";
 import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
+import FileSort from "../../entity/FileSort";
 
 // BASIC SELECTORS
 export const getAnnotationHierarchy = (state: State) => state.selection.annotationHierarchy;
@@ -28,8 +29,13 @@ export const getOrderedDisplayAnnotations = createSelector(
 );
 
 export const getEncodedFileExplorerUrl = createSelector(
-    [getAnnotationHierarchy, getFileFilters, getOpenFileFolders],
-    (hierarchy: Annotation[], filters: FileFilter[], openFolders: FileFolder[]) => {
-        return FileExplorerURL.encode({ hierarchy, filters, openFolders });
+    [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn],
+    (
+        hierarchy: Annotation[],
+        filters: FileFilter[],
+        openFolders: FileFolder[],
+        sortColumn?: FileSort
+    ) => {
+        return FileExplorerURL.encode({ hierarchy, filters, openFolders, sortColumn });
     }
 );

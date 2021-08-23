@@ -19,6 +19,7 @@ import {
     DECODE_FILE_EXPLORER_URL,
     SET_ANNOTATION_HIERARCHY,
     SELECT_NEARBY_FILE,
+    setSortColumn,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -283,11 +284,15 @@ const decodeFileExplorerURL = createLogic({
     process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
         const annotations = metadata.selectors.getAnnotations(deps.getState());
-        const { hierarchy, filters, openFolders } = FileExplorerURL.decode(encodedURL, annotations);
+        const { hierarchy, filters, openFolders, sortColumn } = FileExplorerURL.decode(
+            encodedURL,
+            annotations
+        );
         batch(() => {
             dispatch(setAnnotationHierarchy(hierarchy));
             dispatch(setFileFilters(filters));
             dispatch(setOpenFileFolders(openFolders));
+            dispatch(setSortColumn(sortColumn));
         });
         done();
     },
