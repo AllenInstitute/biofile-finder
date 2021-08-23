@@ -1,3 +1,5 @@
+import { Icon, TooltipHost } from "@fluentui/react";
+import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -7,19 +9,10 @@ import getContextMenuItems from "../ContextMenu/items";
 import FileRow, { CellConfig } from "../../components/FileRow";
 import { interaction, selection } from "../../state";
 import FileListColumnPicker from "./FileListColumnPicker";
-import { Icon, TooltipHost } from "@fluentui/react";
-import classNames from "classnames";
 import { SortOrder } from "../../entity/FileSort";
-import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 
 const styles = require("./Header.module.css");
-
-const TOP_LEVEL_FILE_ANNOTATION_NAMES = TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.name);
-const SORTABLE_ANNOTATION_DISPLAY_NAMES = TOP_LEVEL_FILE_ANNOTATIONS.filter(
-    (a) => a.name !== AnnotationName.FILE_ID
-) // While File ID is sortable, sorting by it doesn't provide much value
-    .map((a) => a.displayName)
-    .join(", ");
 
 /**
  * The FileList table header. Its cells are determined by the annotations the user has selected to display. It is rendered directly into the virtualized list within the FileList component
@@ -61,19 +54,27 @@ function Header(
                     }
                 >
                     <TooltipHost
+                        hostClassName={styles.headerCellTooltip}
                         content={
                             isFileAttribute
                                 ? undefined
-                                : `${annotation.displayName} is not sortable. Try one of ${SORTABLE_ANNOTATION_DISPLAY_NAMES}.`
+                                : `${
+                                      annotation.displayName
+                                  } is not sortable. Try one of ${TOP_LEVEL_FILE_ANNOTATION_NAMES.join(
+                                      ","
+                                  )}.`
                         }
                     >
                         {annotation.displayName}&nbsp;
-                        {isSortedColumn &&
-                            (sortColumn?.order === SortOrder.DESC ? (
-                                <Icon iconName="CaretSolidDown" />
-                            ) : (
-                                <Icon iconName="CaretSolidUp" />
-                            ))}
+                        {isSortedColumn && (
+                            <div>
+                                {sortColumn?.order === SortOrder.DESC ? (
+                                    <Icon iconName="ChevronDown" />
+                                ) : (
+                                    <Icon iconName="ChevronUp" />
+                                )}
+                            </div>
+                        )}
                     </TooltipHost>
                 </span>
             ),
