@@ -1,9 +1,11 @@
 import { expect } from "chai";
 
 import FileExplorerURL, { FileExplorerURLComponents } from "..";
+import { AnnotationName } from "../../../constants";
 import Annotation from "../../Annotation";
 import FileFilter from "../../FileFilter";
 import FileFolder from "../../FileFolder";
+import FileSort, { SortOrder } from "../../FileSort";
 
 describe("FileExplorerURL", () => {
     describe("encode", () => {
@@ -20,6 +22,10 @@ describe("FileExplorerURL", () => {
                 ["AICS-0", "ACTB-mEGFP", false],
                 ["AICS-0", "ACTB-mEGFP", true],
             ];
+            const expectedSort = {
+                annotationName: AnnotationName.FILE_SIZE,
+                order: SortOrder.DESC,
+            };
             const components: FileExplorerURLComponents = {
                 hierarchy: expectedAnnotationNames.map(
                     (annotationName) =>
@@ -32,6 +38,7 @@ describe("FileExplorerURL", () => {
                 ),
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
+                sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC),
             };
             const expectedResult =
                 FileExplorerURL.PROTOCOL +
@@ -39,6 +46,7 @@ describe("FileExplorerURL", () => {
                     groupBy: expectedAnnotationNames,
                     filters: expectedFilters,
                     openFolders: expectedOpenFolders,
+                    sort: expectedSort,
                 });
 
             // Act
@@ -106,6 +114,7 @@ describe("FileExplorerURL", () => {
                 hierarchy,
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
+                sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
             };
             const encodedUrl = FileExplorerURL.encode(components);
             const encodedUrlWithWhitespace = " " + encodedUrl + " ";
@@ -123,6 +132,7 @@ describe("FileExplorerURL", () => {
                 hierarchy: [],
                 filters: [],
                 openFolders: [],
+                sortColumn: undefined,
             };
             const encodedUrl = FileExplorerURL.encode(components);
 
@@ -224,6 +234,90 @@ describe("FileExplorerURL", () => {
             // Act / Assert
             expect(() => FileExplorerURL.decode(encodedUrl, annotations)).to.throw();
         });
+
+        it("Throws error when sort column is not a file attribute", () => {
+            // Arrange
+            const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid", "Balls?"];
+            const expectedFilters = [
+                { name: "Cas9", value: "spCas9" },
+                { name: "Donor Plasmid", value: "ACTB-mEGFP" },
+            ];
+            const expectedOpenFolders = [
+                ["3500000654"],
+                ["3500000654", "ACTB-mEGFP"],
+                ["3500000654", "ACTB-mEGFP", false],
+                ["3500000654", "ACTB-mEGFP", true],
+            ];
+            const hierarchy = expectedAnnotationNames.map(
+                (annotationName) =>
+                    new Annotation({
+                        annotationName,
+                        annotationDisplayName: "test-display-name",
+                        description: "test-description",
+                        type: "Date",
+                    })
+            );
+            const annotations = hierarchy.concat([
+                new Annotation({
+                    annotationName: "Cas9",
+                    annotationDisplayName: "test-display-name",
+                    description: "test-description",
+                    type: "Date",
+                }),
+            ]);
+            const components: FileExplorerURLComponents = {
+                hierarchy,
+                filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
+                sortColumn: new FileSort(AnnotationName.KIND, SortOrder.DESC),
+            };
+            const encodedUrl = FileExplorerURL.encode(components);
+
+            // Act / Assert
+            expect(() => FileExplorerURL.decode(encodedUrl, annotations)).to.throw();
+        });
+
+        it("Throws error when sort order is not DESC or ASC", () => {
+            // Arrange
+            const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid", "Balls?"];
+            const expectedFilters = [
+                { name: "Cas9", value: "spCas9" },
+                { name: "Donor Plasmid", value: "ACTB-mEGFP" },
+            ];
+            const expectedOpenFolders = [
+                ["3500000654"],
+                ["3500000654", "ACTB-mEGFP"],
+                ["3500000654", "ACTB-mEGFP", false],
+                ["3500000654", "ACTB-mEGFP", true],
+            ];
+            const hierarchy = expectedAnnotationNames.map(
+                (annotationName) =>
+                    new Annotation({
+                        annotationName,
+                        annotationDisplayName: "test-display-name",
+                        description: "test-description",
+                        type: "Date",
+                    })
+            );
+            const annotations = hierarchy.concat([
+                new Annotation({
+                    annotationName: "Cas9",
+                    annotationDisplayName: "test-display-name",
+                    description: "test-description",
+                    type: "Date",
+                }),
+            ]);
+            const components: FileExplorerURLComponents = {
+                hierarchy,
+                filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
+                sortColumn: new FileSort(AnnotationName.FILE_PATH, "Garbage" as any),
+            };
+            const encodedUrl = FileExplorerURL.encode(components);
+
+            // Act / Assert
+            expect(() => FileExplorerURL.decode(encodedUrl, annotations)).to.throw();
+        });
     });
 
     describe("validateEncodedFileExplorerURL", () => {
@@ -255,6 +349,7 @@ describe("FileExplorerURL", () => {
                 hierarchy,
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: [],
+                sortColumn: new FileSort(AnnotationName.FILE_ID, SortOrder.ASC),
             };
             const encodedUrl = FileExplorerURL.encode(components);
             const encodedUrlWithWhitespace = " " + encodedUrl + " ";
@@ -350,6 +445,84 @@ describe("FileExplorerURL", () => {
                     type: "Text",
                 }),
             ];
+            const encodedUrl = FileExplorerURL.encode(components);
+
+            // Act
+            const result = FileExplorerURL.validateEncodedFileExplorerURL(encodedUrl, annotations);
+
+            // Assert
+            expect(result).to.not.be.empty;
+        });
+
+        it("Returns error message when sort column is not a file attribute", () => {
+            // Arrange
+            const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid", "Balls?"];
+            const expectedFilters = [
+                { name: "Cas9", value: "spCas9" },
+                { name: "Donor Plasmid", value: "ACTB-mEGFP" },
+            ];
+            const hierarchy = expectedAnnotationNames.map(
+                (annotationName) =>
+                    new Annotation({
+                        annotationName,
+                        annotationDisplayName: "test-display-name",
+                        description: "test-description",
+                        type: "Date",
+                    })
+            );
+            const annotations = hierarchy.concat([
+                new Annotation({
+                    annotationName: "Cas9",
+                    annotationDisplayName: "test-display-name",
+                    description: "test-description",
+                    type: "Date",
+                }),
+            ]);
+            const components: FileExplorerURLComponents = {
+                hierarchy,
+                filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                openFolders: [],
+                sortColumn: new FileSort(AnnotationName.KIND, SortOrder.ASC),
+            };
+            const encodedUrl = FileExplorerURL.encode(components);
+
+            // Act
+            const result = FileExplorerURL.validateEncodedFileExplorerURL(encodedUrl, annotations);
+
+            // Assert
+            expect(result).to.not.be.empty;
+        });
+
+        it("Returns error message when sort order is not ASC or DESC", () => {
+            // Arrange
+            const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid", "Balls?"];
+            const expectedFilters = [
+                { name: "Cas9", value: "spCas9" },
+                { name: "Donor Plasmid", value: "ACTB-mEGFP" },
+            ];
+            const hierarchy = expectedAnnotationNames.map(
+                (annotationName) =>
+                    new Annotation({
+                        annotationName,
+                        annotationDisplayName: "test-display-name",
+                        description: "test-description",
+                        type: "Date",
+                    })
+            );
+            const annotations = hierarchy.concat([
+                new Annotation({
+                    annotationName: "Cas9",
+                    annotationDisplayName: "test-display-name",
+                    description: "test-description",
+                    type: "Date",
+                }),
+            ]);
+            const components: FileExplorerURLComponents = {
+                hierarchy,
+                filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                openFolders: [],
+                sortColumn: new FileSort(AnnotationName.FILE_PATH, "Not ASC" as any),
+            };
             const encodedUrl = FileExplorerURL.encode(components);
 
             // Act

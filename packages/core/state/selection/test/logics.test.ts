@@ -22,6 +22,7 @@ import {
     decodeFileExplorerURL,
     setAnnotationHierarchy,
     selectNearbyFile,
+    SET_SORT_COLUMN,
 } from "../actions";
 import { initialState, interaction } from "../../";
 import Annotation from "../../../entity/Annotation";
@@ -34,6 +35,8 @@ import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
 import FileService from "../../../services/FileService";
+import FileSort, { SortOrder } from "../../../entity/FileSort";
+import { AnnotationName } from "../../../constants";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -898,7 +901,7 @@ describe("Selection logics", () => {
     });
 
     describe("decodeFileExplorerURL", () => {
-        it("dispatches new hierarchy, filters, & opened folders from given URL", async () => {
+        it("dispatches new hierarchy, filters, sort, & opened folders from given URL", async () => {
             // Arrange
             const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
             const state = mergeState(initialState, {
@@ -913,7 +916,13 @@ describe("Selection logics", () => {
             const hierarchy = annotations.slice(0, 2);
             const filters = [new FileFilter(annotations[3].name, "20x")];
             const openFolders = [["a"], ["a", false]].map((folder) => new FileFolder(folder));
-            const encodedURL = FileExplorerURL.encode({ hierarchy, filters, openFolders });
+            const sortColumn = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
+            const encodedURL = FileExplorerURL.encode({
+                hierarchy,
+                filters,
+                openFolders,
+                sortColumn,
+            });
 
             // Act
             store.dispatch(decodeFileExplorerURL(encodedURL));
@@ -936,6 +945,12 @@ describe("Selection logics", () => {
                 actions.includesMatch({
                     type: SET_OPEN_FILE_FOLDERS,
                     payload: openFolders,
+                })
+            ).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: SET_SORT_COLUMN,
+                    payload: sortColumn,
                 })
             ).to.be.true;
         });

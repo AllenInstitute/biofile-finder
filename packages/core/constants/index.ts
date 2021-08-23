@@ -62,3 +62,5 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         type: AnnotationType.DATETIME,
     }),
 ];
+
+export const TOP_LEVEL_FILE_ANNOTATION_NAMES = TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.name);

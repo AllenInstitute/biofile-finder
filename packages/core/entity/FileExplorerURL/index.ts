@@ -3,12 +3,15 @@ import FileFilter, { FileFilterJson } from "../FileFilter";
 import FileFolder from "../FileFolder";
 import { AnnotationValue } from "../../services/AnnotationService";
 import { ValueError } from "../../errors";
+import FileSort, { SortOrder } from "../FileSort";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 
 // Components of the application state this captures
 export interface FileExplorerURLComponents {
     hierarchy: Annotation[];
     filters: FileFilter[];
     openFolders: FileFolder[];
+    sortColumn?: FileSort;
 }
 
 // JSON format this outputs & expects to receive back from the user
@@ -16,6 +19,10 @@ interface FileExplorerURLJson {
     groupBy: string[];
     filters: FileFilterJson[];
     openFolders: AnnotationValue[][];
+    sort?: {
+        annotationName: string;
+        order: SortOrder;
+    };
 }
 
 /**
@@ -47,11 +54,18 @@ export default class FileExplorerURL {
         const groupBy = urlComponents.hierarchy.map((annotation) => annotation.name);
         const filters = urlComponents.filters.map((filter) => filter.toJSON());
         const openFolders = urlComponents.openFolders.map((folder) => folder.fileFolder);
+        const sort = urlComponents.sortColumn
+            ? {
+                  annotationName: urlComponents.sortColumn.annotationName,
+                  order: urlComponents.sortColumn.order,
+              }
+            : undefined;
 
         const dataToEncode: FileExplorerURLJson = {
             groupBy,
             filters,
             openFolders,
+            sort,
         };
         return `${FileExplorerURL.PROTOCOL}${JSON.stringify(dataToEncode)}`;
     }
@@ -71,6 +85,23 @@ export default class FileExplorerURL {
         const parsedURL: FileExplorerURLJson = JSON.parse(
             trimmedEncodedURL.substring(FileExplorerURL.PROTOCOL.length)
         );
+
+        let sortColumn = undefined;
+        if (parsedURL.sort) {
+            if (!TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(parsedURL.sort.annotationName)) {
+                throw new ValueError(
+                    `Unable to decode FileExplorerURL, sort column must be one of ${TOP_LEVEL_FILE_ANNOTATION_NAMES}`
+                );
+            }
+            if (!Object.values(SortOrder).includes(parsedURL.sort.order)) {
+                throw new Error(
+                    `Unable to decode FileExplorerURL, sort order must be one of ${Object.values(
+                        SortOrder
+                    )}`
+                );
+            }
+            sortColumn = new FileSort(parsedURL.sort.annotationName, parsedURL.sort.order);
+        }
 
         const hierarchyDepth = parsedURL.groupBy.length;
         const annotationNameSet = new Set(annotations.map((annotation) => annotation.name));
@@ -100,6 +131,7 @@ export default class FileExplorerURL {
                 }
                 return new FileFolder(folder);
             }),
+            sortColumn,
         };
     }
 }
