@@ -3,11 +3,12 @@ import { expect } from "chai";
 import selection from "..";
 import { initialState } from "../..";
 import interaction from "../../interaction";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
+import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import FileFilter from "../../../entity/FileFilter";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
+import FileSort, { SortOrder } from "../../../entity/FileSort";
 
 describe("Selection reducer", () => {
     [
@@ -181,6 +182,95 @@ describe("Selection reducer", () => {
                     selection: nextSelectionState,
                 })
             ).to.deep.equal(new FileSelection());
+        });
+    });
+
+    describe("SORT_COLUMN", () => {
+        it("sorts column to descending if no sort present", () => {
+            // Arrange
+            const state = {
+                ...selection.initialState,
+                sortColumn: undefined,
+            };
+            const expected = new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC);
+
+            // Act
+            const selectionState = selection.reducer(
+                state,
+                selection.actions.sortColumn(AnnotationName.FILE_SIZE)
+            );
+            const actual = selection.selectors.getSortColumn({
+                ...initialState,
+                selection: selectionState,
+            });
+
+            // Assert
+            expect(expected.equals(actual)).to.be.true;
+        });
+
+        it("sorts column to descending if another column is sorted", () => {
+            // Arrange
+            const state = {
+                ...selection.initialState,
+                sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
+            };
+            const expected = new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC);
+
+            // Act
+            const selectionState = selection.reducer(
+                state,
+                selection.actions.sortColumn(AnnotationName.FILE_SIZE)
+            );
+            const actual = selection.selectors.getSortColumn({
+                ...initialState,
+                selection: selectionState,
+            });
+
+            // Assert
+            expect(expected.equals(actual)).to.be.true;
+        });
+
+        it("makes sort ascending upon sorting an already descending sorted column", () => {
+            // Arrange
+            const state = {
+                ...selection.initialState,
+                sortColumn: new FileSort(AnnotationName.FILE_NAME, SortOrder.DESC),
+            };
+            const expected = new FileSort(AnnotationName.FILE_NAME, SortOrder.ASC);
+
+            // Act
+            const selectionState = selection.reducer(
+                state,
+                selection.actions.sortColumn(AnnotationName.FILE_NAME)
+            );
+            const actual = selection.selectors.getSortColumn({
+                ...initialState,
+                selection: selectionState,
+            });
+
+            // Assert
+            expect(expected.equals(actual)).to.be.true;
+        });
+
+        it("removes sort upon sorting an already ascending sorted column", () => {
+            // Arrange
+            const state = {
+                ...selection.initialState,
+                sortColumn: new FileSort(AnnotationName.FILE_ID, SortOrder.ASC),
+            };
+
+            // Act
+            const selectionState = selection.reducer(
+                state,
+                selection.actions.sortColumn(AnnotationName.FILE_ID)
+            );
+            const actual = selection.selectors.getSortColumn({
+                ...initialState,
+                selection: selectionState,
+            });
+
+            // Assert
+            expect(actual).to.be.undefined;
         });
     });
 
