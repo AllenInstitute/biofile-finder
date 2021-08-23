@@ -19,4 +19,10 @@ export default class FileSort {
     public toQueryString(): string {
         return `sort=${this.annotationName}(${this.order})`;
     }
+
+    public equals(other?: FileSort): boolean {
+        return (
+            !!other && this.annotationName === other.annotationName && this.order === other.order
+        );
+    }
 }
