@@ -10,9 +10,11 @@ import FileRow, { CellConfig } from "../../components/FileRow";
 import { interaction, selection } from "../../state";
 import FileListColumnPicker from "./FileListColumnPicker";
 import { SortOrder } from "../../entity/FileSort";
-import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
+import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 
 const styles = require("./Header.module.css");
+
+const SORTABLE_ANNOTATIONS = TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName).join(",");
 
 /**
  * The FileList table header. Its cells are determined by the annotations the user has selected to display. It is rendered directly into the virtualized list within the FileList component
@@ -58,23 +60,16 @@ function Header(
                         content={
                             isFileAttribute
                                 ? undefined
-                                : `${
-                                      annotation.displayName
-                                  } is not sortable. Try one of ${TOP_LEVEL_FILE_ANNOTATION_NAMES.join(
-                                      ","
-                                  )}.`
+                                : `${annotation.displayName} is not sortable. Try one of ${SORTABLE_ANNOTATIONS}.`
                         }
                     >
-                        {annotation.displayName}&nbsp;
-                        {isSortedColumn && (
-                            <div>
-                                {sortColumn?.order === SortOrder.DESC ? (
-                                    <Icon iconName="ChevronDown" />
-                                ) : (
-                                    <Icon iconName="ChevronUp" />
-                                )}
-                            </div>
-                        )}
+                        <span className={styles.headerTitle}>{annotation.displayName}</span>
+                        {isSortedColumn &&
+                            (sortColumn?.order === SortOrder.DESC ? (
+                                <Icon className={styles.sortIcon} iconName="ChevronDown" />
+                            ) : (
+                                <Icon className={styles.sortIcon} iconName="ChevronUp" />
+                            ))}
                     </TooltipHost>
                 </span>
             ),
