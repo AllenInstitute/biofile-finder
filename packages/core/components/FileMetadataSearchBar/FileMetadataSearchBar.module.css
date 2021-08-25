@@ -1,0 +1,22 @@
+.search-bar-container {
+    display: flex;
+    margin-bottom: 5px;
+}
+
+.search-box, .search-box-selector {
+    flex: auto;
+}
+
+.search-box-selector {
+    display: flex;
+}
+
+.search-box-button {
+    color: black;
+    border: 1px solid black;
+}
+
+.file-attribute-selector {
+    width: 100%;
+    max-width: 185px;
+}
