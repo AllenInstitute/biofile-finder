@@ -26,7 +26,7 @@ const FILE_ATTRIBUTE_OPTIONS = TOP_LEVEL_FILE_ANNOTATIONS.filter(
 const FILE_NAME_OPTION = FILE_ATTRIBUTE_OPTIONS.find(
     (o) => o.key === AnnotationName.FILE_NAME
 ) as IDropdownOption;
-const DATE_RANGE_SEPARATOR = "-to-"; // Not arbitrary, defined per contract with FES
+export const DATE_RANGE_SEPARATOR = "-to-"; // Not arbitrary, defined per contract with FES
 
 /**
  * This component renders a dynamic search bar for querying file records by
@@ -47,13 +47,13 @@ export default function FileMetadataSearchBar() {
     }
 
     function onSearch(filterValue: string) {
-        if (filterValue) {
+        if (filterValue && filterValue.trim()) {
             const fileFilter = new FileFilter(selectedAttribute.key as string, filterValue);
             dispatch(selection.actions.addFileFilter(fileFilter));
         }
     }
 
-    function onDateRangeSelection(newDateRange: { startDate?: Date; endDate?: Date }) {
+    function onDateRangeSelection(newDateRange: { startDate?: string; endDate?: string }) {
         const [oldStartDate = undefined, oldEndDate = undefined] =
             fileAttributeFilter?.value.split(DATE_RANGE_SEPARATOR) || [];
         const { startDate = oldStartDate, endDate = oldEndDate } = newDateRange;
@@ -79,7 +79,7 @@ export default function FileMetadataSearchBar() {
                     ariaLabel="Select a start date"
                     placeholder={`Start of date range`}
                     onSelectDate={(v) =>
-                        v ? onDateRangeSelection({ startDate: v }) : onResetSearch()
+                        v ? onDateRangeSelection({ startDate: v.toISOString() }) : onResetSearch()
                     }
                     value={startDate ? new Date(startDate) : undefined}
                 />
@@ -92,7 +92,7 @@ export default function FileMetadataSearchBar() {
                     ariaLabel="Select a end date"
                     placeholder={`End of date range`}
                     onSelectDate={(v) =>
-                        v ? onDateRangeSelection({ endDate: v }) : onResetSearch()
+                        v ? onDateRangeSelection({ endDate: v.toISOString() }) : onResetSearch()
                     }
                     value={endDate ? new Date(endDate) : undefined}
                 />
