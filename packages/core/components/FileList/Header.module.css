@@ -32,7 +32,6 @@
 
 .header-cell {
   cursor: not-allowed;
-  text-overflow: ellipsis;
 }
 
 .header-cell-tooltip {
