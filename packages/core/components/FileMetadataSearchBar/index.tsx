@@ -8,6 +8,7 @@ import {
 } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
+
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
