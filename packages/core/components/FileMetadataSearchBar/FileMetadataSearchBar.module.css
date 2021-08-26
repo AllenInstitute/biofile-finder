@@ -3,20 +3,35 @@
     margin-bottom: 5px;
 }
 
-.search-box, .search-box-selector {
+.search-box, .search-box-selector, .date-range-box {
     flex: auto;
 }
 
-.search-box-selector {
+.search-box-selector, .date-range-box {
     display: flex;
 }
 
-.search-box-button {
+.search-box-button, .search-box-button:hover {
     color: black;
-    border: 1px solid black;
 }
 
 .file-attribute-selector {
     width: 100%;
     max-width: 185px;
+}
+
+.date-range-box {
+    border: solid black 1px;
+    max-height: 32px;
+    overflow: hidden;
+}
+
+.date-range-separator {
+    display: flex;
+    font-size: small;
+    padding: 0 2px;
+}
+
+.date-range-separator i {
+    margin: auto;
 }

@@ -10,6 +10,7 @@ import Modal from "./components/Modal";
 import DirectoryTree from "./components/DirectoryTree";
 import FileDetails from "./components/FileDetails";
 import FileExplorerURLBar from "./components/FileExplorerURLBar";
+import FileMetadataSearchBar from "./components/FileMetadataSearchBar";
 import HeaderRibbon from "./components/HeaderRibbon";
 import StatusMessage from "./components/StatusMessage";
 import { FileExplorerServiceBaseUrl } from "./constants";
@@ -78,7 +79,10 @@ export default function App(props: AppProps) {
                     <FileExplorerURLBar className={classNames(styles.urlBar)} />
                     <div className={styles.annotationHierarchyAndFileList}>
                         <AnnotationSidebar className={styles.annotationHierarchy} />
-                        <DirectoryTree className={styles.fileList} />
+                        <div className={styles.searchBoxAndFileList}>
+                            <FileMetadataSearchBar />
+                            <DirectoryTree className={styles.fileList} />
+                        </div>
                     </div>
                 </div>
                 <FileDetails className={styles.fileDetails} />

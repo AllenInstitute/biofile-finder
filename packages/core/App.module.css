@@ -95,11 +95,17 @@
     max-width: var(--annotation-hierarchy-max-width);
 }
 
-.file-list {
+.search-box-and-file-list {
+    display: flex;
+    flex-direction: column;
     flex: auto;
     height: 100%;
     width: calc(70% - var(--margin));
     margin-left: var(--margin);
+}
+
+.file-list {
+    height: 100%;
 }
 
 .file-details {
