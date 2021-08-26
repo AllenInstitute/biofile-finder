@@ -3,16 +3,16 @@
     margin-bottom: 5px;
 }
 
-.search-box, .search-box-selector, .date-range-box {
+.filter-input div i, .cancel-button, .cancel-button:hover {
+    color: var(--primary-brand-purple); /* defined in App.module.css */
+}
+
+.filter-input, .search-box-selector, .date-range-box {
     flex: auto;
 }
 
 .search-box-selector, .date-range-box {
     display: flex;
-}
-
-.search-box-button, .search-box-button:hover {
-    color: black;
 }
 
 .file-attribute-selector {

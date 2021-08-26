@@ -74,7 +74,7 @@ export default function FileMetadataSearchBar() {
             <span className={styles.dateRangeBox}>
                 <DatePicker
                     borderless
-                    className={styles.searchBox}
+                    className={styles.filterInput}
                     ariaLabel="Select a start date"
                     placeholder={`Start of date range`}
                     onSelectDate={(v) =>
@@ -87,7 +87,7 @@ export default function FileMetadataSearchBar() {
                 </div>
                 <DatePicker
                     borderless
-                    className={styles.searchBox}
+                    className={styles.filterInput}
                     ariaLabel="Select a end date"
                     placeholder={`End of date range`}
                     onSelectDate={(v) =>
@@ -96,7 +96,7 @@ export default function FileMetadataSearchBar() {
                     value={endDate ? new Date(endDate) : undefined}
                 />
                 <IconButton
-                    className={styles.searchBoxButton}
+                    className={styles.cancelButton}
                     ariaLabel="Clear filter date"
                     iconProps={{ iconName: "Cancel" }}
                     onClick={onResetSearch}
@@ -108,7 +108,7 @@ export default function FileMetadataSearchBar() {
         searchBox = (
             <SearchBox
                 onClear={onResetSearch}
-                className={styles.searchBox}
+                className={styles.filterInput}
                 placeholder={`Search by ${selectedAttribute.text}`}
                 onSearch={onSearch}
             />
