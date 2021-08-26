@@ -25,7 +25,7 @@ const FILTERS_APPLIED_COLOR_INDICATOR = "#0b9aab"; // style guide torquise
 export default function AnnotationFilter(props: FilterProps) {
     const { annotationName, iconColor, styleOverrides } = props;
 
-    const fileFilters = useSelector(selection.selectors.getFileFilters);
+    const fileFilters = useSelector(selection.selectors.getAnnotationFilters);
 
     const annotationIsFiltered = React.useMemo(
         () => fileFilters.some((filter) => filter.name === annotationName),

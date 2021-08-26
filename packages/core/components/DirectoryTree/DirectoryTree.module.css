@@ -1,12 +1,13 @@
 .container {
-    --filter-display-height: 50px;
+    display: flex;
+    flex-direction: column;
     position: relative;
 }
 
 .filter-display-bar {
     width: 100%;
-    height: var(--filter-display-height);
     margin-bottom: calc(var(--margin) / 2); /* --margin defined in App.module.css */
+    padding-bottom: 3px;
 }
 
 .filter-display-bar.hidden {
@@ -19,9 +20,9 @@
 }
 
 .scroll-container {
+    flex: auto;
     overflow-y: auto;
     width: 100%;
-    height: calc(100% - var(--filter-display-height) - calc(var(--margin) / 2)); /* --margin defined in App.module.css */
     margin: 0;
     padding: 0;
 }

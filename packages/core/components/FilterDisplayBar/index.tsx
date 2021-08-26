@@ -22,7 +22,7 @@ interface Props {
 export default function FilterDisplayBar(props: Props) {
     const { className, classNameHidden } = props;
 
-    const globalFilters = useSelector(selection.selectors.getFileFilters);
+    const globalFilters = useSelector(selection.selectors.getAnnotationFilters);
     const annotations = useSelector(metadata.selectors.getAnnotations);
     const groupedByFilterName = React.useMemo(() => {
         const annotationNameToInstanceMap = keyBy(annotations, "name");

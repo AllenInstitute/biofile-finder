@@ -12,7 +12,7 @@ import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import { selection } from "../../state";
-import { getFileFilters } from "../../state/selection/selectors";
+import { getFileAttributeFilter } from "../../state/selection/selectors";
 
 const styles = require("./FileMetadataSearchBar.module.css");
 
@@ -25,7 +25,7 @@ const FILE_ATTRIBUTE_OPTIONS = TOP_LEVEL_FILE_ANNOTATIONS.filter(
 const FILE_NAME_OPTION = FILE_ATTRIBUTE_OPTIONS.find(
     (o) => o.key === AnnotationName.FILE_NAME
 ) as IDropdownOption;
-const DATE_RANGE_SEPARATOR = "-to-";
+const DATE_RANGE_SEPARATOR = "-to-"; // Not arbitrary, defined per contract with FES
 
 /**
  * This component renders a dynamic search bar for querying file records by
@@ -34,12 +34,10 @@ const DATE_RANGE_SEPARATOR = "-to-";
  */
 export default function FileMetadataSearchBar() {
     const dispatch = useDispatch();
-    const fileFilters = useSelector(getFileFilters);
+    const fileAttributeFilter = useSelector(getFileAttributeFilter);
     const [selectedAttribute, setSelectedAttribute] = React.useState<IDropdownOption>(
         FILE_NAME_OPTION
     );
-    const fileAttributeFilter = fileFilters.find((f) => f.name === selectedAttribute.key);
-    console.log(selectedAttribute, fileAttributeFilter);
 
     function onResetSearch() {
         if (fileAttributeFilter) {
@@ -50,7 +48,6 @@ export default function FileMetadataSearchBar() {
     function onSearch(filterValue: string) {
         if (filterValue) {
             const fileFilter = new FileFilter(selectedAttribute.key as string, filterValue);
-            console.log(selectedAttribute.key, filterValue);
             dispatch(selection.actions.addFileFilter(fileFilter));
         }
     }

@@ -1,6 +1,7 @@
 import { createSelector } from "reselect";
 
 import { State } from "../";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
@@ -39,3 +40,11 @@ export const getEncodedFileExplorerUrl = createSelector(
         return FileExplorerURL.encode({ hierarchy, filters, openFolders, sortColumn });
     }
 );
+
+export const getAnnotationFilters = createSelector([getFileFilters], (fileFilters): FileFilter[] =>
+    fileFilters.filter((f) => !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(f.name))
+);
+
+export const getFileAttributeFilter = createSelector([getFileFilters], (fileFilters):
+    | FileFilter
+    | undefined => fileFilters.find((f) => TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(f.name)));
