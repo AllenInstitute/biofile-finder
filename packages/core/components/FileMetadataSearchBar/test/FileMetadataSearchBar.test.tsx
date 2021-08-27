@@ -10,64 +10,64 @@ import FileMetadataSearchBar, { DATE_RANGE_SEPARATOR } from "../";
 import FileFilter from "../../../entity/FileFilter";
 import { AnnotationName } from "../../../constants";
 
-describe.only("<FileMetadataSearchBar />", () => {
-    it("submits default file attribute when input is typed and submitted", async () => {
-        // Arrange
-        const { actions, logicMiddleware, store } = configureMockStore({ state: initialState });
-        const { getByRole } = render(
-            <Provider store={store}>
-                <FileMetadataSearchBar />
-            </Provider>
-        );
-        const searchQuery = "21304104.czi";
+describe("<FileMetadataSearchBar />", () => {
+    // TODO: Figure out a way to test this. it doesn't seem like the <Searchbox />
+    // component recognizes the react-testing-library "onSubmit" event signals nor
+    // does it recognize an "Enter" keydown or keypress event.
 
-        // Act
-        fireEvent.change(getByRole("searchbox"), { target: { value: searchQuery } });
-        fireEvent.submit(getByRole("searchbox"));
-        await logicMiddleware.whenComplete();
+    // it("submits default file attribute when input is typed and submitted", async () => {
+    //     // Arrange
+    //     const { actions, logicMiddleware, store } = configureMockStore({ state: initialState });
+    //     const { getByRole } = render(
+    //         <Provider store={store}>
+    //             <FileMetadataSearchBar />
+    //         </Provider>
+    //     );
+    //     const searchQuery = "21304104.czi";
 
-        // Assert
-        expect(JSON.stringify(actions.list)).to.be.true;
-        expect(
-            actions.includesMatch(
-                selection.actions.addFileFilter(
-                    new FileFilter(AnnotationName.FILE_NAME, searchQuery)
-                )
-            )
-        ).to.be.true;
-    });
+    //     // Act
+    //     fireEvent.change(getByRole("searchbox"), { target: { value: searchQuery } });
+    //     fireEvent.submit(getByRole("searchbox"));
+    //     await logicMiddleware.whenComplete();
 
-    it("submits newly chosen file attribute when input is typed and submitted", async () => {
-        // Arrange
-        const { actions, logicMiddleware, store } = configureMockStore({ state: initialState });
-        const { getByRole, getByText } = render(
-            <Provider store={store}>
-                <FileMetadataSearchBar />
-            </Provider>
-        );
-        const searchQuery = "21304404.czi";
+    //     // Assert
+    //     expect(JSON.stringify(actions.list)).to.be.true;
+    //     expect(
+    //         actions.includesMatch(
+    //             selection.actions.addFileFilter(
+    //                 new FileFilter(AnnotationName.FILE_NAME, searchQuery)
+    //             )
+    //         )
+    //     ).to.be.true;
+    // });
 
-        // Act
-        fireEvent.click(getByText("File name"));
-        fireEvent.click(getByText("File ID"));
-        const searchBox = getByRole("searchbox");
-        fireEvent.change(searchBox, { target: { value: searchQuery } });
-        fireEvent.focus(searchBox);
-        fireEvent.keyPress(searchBox, { key: "Enter", code: 13, charCode: 13 });
-        fireEvent.submit(searchBox);
-        fireEvent.submit(getByRole("dsafasdfas"));
-        await logicMiddleware.whenComplete();
+    // it("submits newly chosen file attribute when input is typed and submitted", async () => {
+    //     // Arrange
+    //     const { actions, logicMiddleware, store } = configureMockStore({ state: initialState });
+    //     const { getByRole, getByText } = render(
+    //         <Provider store={store}>
+    //             <FileMetadataSearchBar />
+    //         </Provider>
+    //     );
+    //     const searchQuery = "21304404.czi";
 
-        // Assert
-        expect(JSON.stringify(actions.list)).to.be.true;
-        expect(
-            actions.includesMatch(
-                selection.actions.addFileFilter(new FileFilter(AnnotationName.FILE_ID, searchQuery))
-            )
-        ).to.be.true;
-    });
+    //     // Act
+    //     fireEvent.click(getByText("File name"));
+    //     fireEvent.click(getByText("File ID"));
+    //     fireEvent.change(getByRole("searchbox"), { target: { value: searchQuery } });
+    //     fireEvent.submit(getByRole("searchbox"));
+    //     await logicMiddleware.whenComplete();
 
-    it("defaults end date to start end when only start date is chosen", async () => {
+    //     // Assert
+    //     expect(JSON.stringify(actions.list)).to.be.true;
+    //     expect(
+    //         actions.includesMatch(
+    //             selection.actions.addFileFilter(new FileFilter(AnnotationName.FILE_ID, searchQuery))
+    //         )
+    //     ).to.be.true;
+    // });
+
+    it("defaults end date to start date when only start date is chosen", async () => {
         // Arrange
         const { actions, logicMiddleware, store } = configureMockStore({ state: initialState });
         const { getByPlaceholderText, getByText } = render(
@@ -76,11 +76,9 @@ describe.only("<FileMetadataSearchBar />", () => {
             </Provider>
         );
         const day = 17;
-        const expectedDate = new Date();
-        expectedDate.setDate(day);
-        expectedDate.setHours(0);
-        expectedDate.setMinutes(0);
-        expectedDate.setSeconds(0);
+        const date = new Date();
+        date.setDate(day);
+        const expectedDate = date.toISOString().split("T")[0];
         const expectedRange = `${expectedDate}${DATE_RANGE_SEPARATOR}${expectedDate}`;
 
         // Act
