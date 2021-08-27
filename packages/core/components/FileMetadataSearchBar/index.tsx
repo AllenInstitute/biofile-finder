@@ -62,6 +62,9 @@ export default function FileMetadataSearchBar() {
     function onSearch(filterValue: string) {
         if (filterValue && filterValue.trim()) {
             const fileFilter = new FileFilter(selectedAttribute.key as string, filterValue);
+            if (fileAttributeFilter) {
+                dispatch(selection.actions.removeFileFilter(fileAttributeFilter));
+            }
             dispatch(selection.actions.addFileFilter(fileFilter));
         }
     }
