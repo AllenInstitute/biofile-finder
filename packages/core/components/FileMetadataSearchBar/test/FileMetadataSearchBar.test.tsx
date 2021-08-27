@@ -4,11 +4,10 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import { initialState, selection } from "../../../state";
-
 import FileMetadataSearchBar, { DATE_RANGE_SEPARATOR } from "../";
 import FileFilter from "../../../entity/FileFilter";
 import { AnnotationName } from "../../../constants";
+import { initialState, selection } from "../../../state";
 
 describe("<FileMetadataSearchBar />", () => {
     // TODO: Figure out a way to test this. it doesn't seem like the <Searchbox />
