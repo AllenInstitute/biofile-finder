@@ -24,6 +24,12 @@
   font-size: var(--inner-header-size); /* our only hook for increasing the height of the header, but need to re-adjust font-size for header cells */
 }
 
+.header-title {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 .header-cell {
   cursor: not-allowed;
 }
@@ -34,6 +40,12 @@
 
 .clickable {
   cursor: pointer;
+}
+
+.sort-icon {
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 0.5em;
 }
 
 .list-parent {
