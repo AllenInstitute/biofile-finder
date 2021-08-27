@@ -1,4 +1,6 @@
 .search-bar-container {
+    border: solid black 1px;
+    border-radius: 3px;
     display: flex;
     margin-bottom: 5px;
 }
@@ -8,6 +10,7 @@
 }
 
 .filter-input, .search-box-selector, .date-range-box {
+    border: none;
     flex: auto;
 }
 
@@ -20,8 +23,12 @@
     max-width: 185px;
 }
 
+.file-attribute-selector div span:first-child {
+    border: none;
+    border-right: 1px dashed black;
+}
+
 .date-range-box {
-    border: solid black 1px;
     max-height: 32px;
     overflow: hidden;
 }

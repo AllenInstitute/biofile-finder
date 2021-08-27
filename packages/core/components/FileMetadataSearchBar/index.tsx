@@ -28,6 +28,19 @@ const FILE_NAME_OPTION = FILE_ATTRIBUTE_OPTIONS.find(
 ) as IDropdownOption;
 export const DATE_RANGE_SEPARATOR = "-to-"; // Not arbitrary, defined per contract with FES
 
+// Because the datestring comes in as an ISO formatted date like 01-02-21
+// creating a new date from that would result in a date displayed as the
+// day before due to the UTC offset, to account for this we can add in the offset
+// ahead of time.
+function extractDateFromDateString(dateString?: string): Date | undefined {
+    if (!dateString) {
+        return undefined;
+    }
+    const date = new Date(dateString);
+    date.setMinutes(date.getTimezoneOffset());
+    return date;
+}
+
 /**
  * This component renders a dynamic search bar for querying file records by
  * basic file attributes that are otherwise not queryable through usual means like
@@ -53,10 +66,15 @@ export default function FileMetadataSearchBar() {
         }
     }
 
-    function onDateRangeSelection(newDateRange: { startDate?: string; endDate?: string }) {
+    function onDateRangeSelection(newDateRange: { startDate?: Date; endDate?: Date }) {
         const [oldStartDate = undefined, oldEndDate = undefined] =
             fileAttributeFilter?.value.split(DATE_RANGE_SEPARATOR) || [];
-        const { startDate = oldStartDate, endDate = oldEndDate } = newDateRange;
+        const startDate = newDateRange.startDate
+            ? newDateRange.startDate.toISOString().split("T")[0]
+            : oldStartDate;
+        const endDate = newDateRange.endDate
+            ? newDateRange.endDate.toISOString().split("T")[0]
+            : oldEndDate;
         onSearch(`${startDate || endDate}${DATE_RANGE_SEPARATOR}${endDate || startDate}`);
     }
 
@@ -79,9 +97,9 @@ export default function FileMetadataSearchBar() {
                     ariaLabel="Select a start date"
                     placeholder={`Start of date range`}
                     onSelectDate={(v) =>
-                        v ? onDateRangeSelection({ startDate: v.toISOString() }) : onResetSearch()
+                        v ? onDateRangeSelection({ startDate: v }) : onResetSearch()
                     }
-                    value={startDate ? new Date(startDate) : undefined}
+                    value={extractDateFromDateString(startDate)}
                 />
                 <div className={styles.dateRangeSeparator}>
                     <Icon iconName="Forward" />
@@ -92,9 +110,9 @@ export default function FileMetadataSearchBar() {
                     ariaLabel="Select a end date"
                     placeholder={`End of date range`}
                     onSelectDate={(v) =>
-                        v ? onDateRangeSelection({ endDate: v.toISOString() }) : onResetSearch()
+                        v ? onDateRangeSelection({ endDate: v }) : onResetSearch()
                     }
-                    value={endDate ? new Date(endDate) : undefined}
+                    value={extractDateFromDateString(endDate)}
                 />
                 <IconButton
                     className={styles.cancelButton}
