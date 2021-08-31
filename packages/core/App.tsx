@@ -71,7 +71,7 @@ export default function App(props: AppProps) {
     }, [dispatch, fileExplorerServiceBaseUrl]);
 
     return (
-        <div className={styles.root}>
+        <div id="root" className={styles.root}>
             <HeaderRibbon className={classNames(styles.headerRibbon, styles.placeholder)} />
             <div className={styles.everythingExceptHeaderRibbon}>
                 <div className={styles.core}>

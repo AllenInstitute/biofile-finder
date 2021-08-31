@@ -49,10 +49,33 @@ export default function FileDetails(props: FileDetails) {
         if (isFileRenderableImage) thumbnailUriPath = fileDetails.path;
     }
 
+    function onMouseDown(e) {
+        const rootElement = document.getElementById("root");
+        const fileDetailsPane = document.getElementById("file-details-pane");
+        const startingWidth = fileDetailsPane.offsetWidth;
+        const startingPageX = e.pageX;
+
+        const moveFunction = (mouseEvent) => {
+            mouseEvent.preventDefault();
+            const newWidth = startingWidth + (startingPageX - mouseEvent.pageX);
+
+            if (mouseEvent.buttons === 1) {
+                // If primary button (left-click) is still pressed
+                rootElement.style.setProperty("--file-details-width", newWidth + "px");
+            } else {
+                rootElement.removeEventListener("mousemove", moveFunction);
+            }
+        };
+
+        rootElement.addEventListener("mousemove", moveFunction);
+    }
+
     return (
         <div
             className={classNames(styles.root, props.className)}
-            style={{ flexBasis: minimizedWidth }}
+            style={{
+                flexBasis: minimizedWidth,
+            }}
         >
             <div
                 className={classNames(
@@ -60,52 +83,56 @@ export default function FileDetails(props: FileDetails) {
                     windowStateToClassnameMap[windowState.state]
                 )}
                 style={{ width: minimizedWidth }}
+                id="file-details-pane"
             >
-                <div className={styles.windowButtons}>
-                    {windowState.possibleActions.map((action) => (
-                        <WindowActionButton
-                            key={action}
-                            action={action}
-                            onClick={() => dispatch({ type: action })}
-                            width={WINDOW_ACTION_BUTTON_WIDTH}
-                        />
-                    ))}
-                </div>
-                <Pagination
-                    className={classNames(styles.pagination, {
-                        [styles.hidden]: windowState.state === WindowState.MINIMIZED,
-                    })}
-                />
-                <div className={styles.contentContainer}>
-                    <div
-                        className={classNames(styles.overflowContainer, {
+                <div className={styles.resizeHandle} onMouseDown={(e) => onMouseDown(e)} />
+                <div style={{ float: "left" }}>
+                    <div className={styles.windowButtons}>
+                        {windowState.possibleActions.map((action) => (
+                            <WindowActionButton
+                                key={action}
+                                action={action}
+                                onClick={() => dispatch({ type: action })}
+                                width={WINDOW_ACTION_BUTTON_WIDTH}
+                            />
+                        ))}
+                    </div>
+                    <Pagination
+                        className={classNames(styles.pagination, {
                             [styles.hidden]: windowState.state === WindowState.MINIMIZED,
                         })}
-                    >
-                        {thumbnailUriPath && (
-                            <div
-                                className={classNames(styles.fileThumbnailContainer, {
-                                    [styles.thumbnailDefault]:
-                                        windowState.state === WindowState.DEFAULT,
-                                    [styles.thumbnailMaximized]:
-                                        windowState.state === WindowState.MAXIMIZED,
-                                })}
-                            >
-                                <FileThumbnail
-                                    uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${thumbnailUriPath}`}
-                                />
+                    />
+                    <div className={styles.contentContainer}>
+                        <div
+                            className={classNames(styles.overflowContainer, {
+                                [styles.hidden]: windowState.state === WindowState.MINIMIZED,
+                            })}
+                        >
+                            {thumbnailUriPath && (
+                                <div
+                                    className={classNames(styles.fileThumbnailContainer, {
+                                        [styles.thumbnailDefault]:
+                                            windowState.state === WindowState.DEFAULT,
+                                        [styles.thumbnailMaximized]:
+                                            windowState.state === WindowState.MAXIMIZED,
+                                    })}
+                                >
+                                    <FileThumbnail
+                                        uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${thumbnailUriPath}`}
+                                    />
+                                </div>
+                            )}
+                            <div className={styles.fileActions}>
+                                <Download fileDetails={fileDetails} />
                             </div>
-                        )}
-                        <div className={styles.fileActions}>
-                            <Download fileDetails={fileDetails} />
+                            <FileAnnotationList
+                                className={styles.annotationList}
+                                fileDetails={fileDetails}
+                                isLoading={isLoading}
+                            />
+                            <div className={styles.spacer} />
+                            <div className={styles.gradientTeaser} />
                         </div>
-                        <FileAnnotationList
-                            className={styles.annotationList}
-                            fileDetails={fileDetails}
-                            isLoading={isLoading}
-                        />
-                        <div className={styles.spacer} />
-                        <div className={styles.gradientTeaser} />
                     </div>
                 </div>
             </div>
