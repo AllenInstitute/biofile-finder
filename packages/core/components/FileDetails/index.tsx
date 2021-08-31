@@ -89,7 +89,9 @@ export default function FileDetails(props: FileDetails) {
                 style={{ width: minimizedWidth }}
                 id="file-details-pane"
             >
-                <div className={styles.resizeHandle} onMouseDown={(e) => onMouseDown(e)} />
+                {windowState.state === WindowState.DEFAULT && (
+                    <div className={styles.resizeHandle} onMouseDown={(e) => onMouseDown(e)} />
+                )}
                 <div className={styles.fileDetailsContent}>
                     <div className={styles.windowButtons}>
                         {windowState.possibleActions.map((action) => (
