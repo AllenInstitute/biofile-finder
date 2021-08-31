@@ -49,28 +49,34 @@ export default function FileDetails(props: FileDetails) {
         if (isFileRenderableImage) thumbnailUriPath = fileDetails.path;
     }
 
-    function onMouseDown(e) {
-        const rootElement = document.getElementById("root");
-        const fileDetailsPane = document.getElementById("file-details-pane");
-        fileDetailsPane.classList.remove(styles.expandableTransition);
+    function onMouseDown(mouseDownEvent: React.MouseEvent<HTMLDivElement>) {
+        const rootElement: HTMLElement | null = document.getElementById("root");
+        const fileDetailsPane: HTMLElement | null = document.getElementById("file-details-pane");
+        if (rootElement && fileDetailsPane) {
+            // This _should_ always be true, but is otherwise not a huge deal
+            fileDetailsPane.classList.remove(styles.expandableTransition);
 
-        const startingWidth = fileDetailsPane.offsetWidth;
-        const startingPageX = e.pageX;
+            const startingWidth = fileDetailsPane.offsetWidth;
+            const startingPageX = mouseDownEvent.pageX;
 
-        const moveFunction = (mouseEvent) => {
-            mouseEvent.preventDefault();
-            const newWidth = startingWidth + (startingPageX - mouseEvent.pageX);
+            const moveFunction = (mouseMoveEvent: MouseEvent) => {
+                mouseMoveEvent.preventDefault();
+                const newWidth = startingWidth + (startingPageX - mouseMoveEvent.pageX);
 
-            if (mouseEvent.buttons === 1) {
-                // If primary button (left-click) is still pressed
-                rootElement.style.setProperty("--file-details-width", newWidth + "px");
-            } else {
-                rootElement.removeEventListener("mousemove", moveFunction);
-                fileDetailsPane.classList.add(styles.expandableTransition);
-            }
-        };
+                if (mouseMoveEvent.buttons === 1) {
+                    // If primary button (left-click) is still pressed
+                    rootElement.style.setProperty("--file-details-width", newWidth + "px");
+                } else {
+                    // Remove this listener if user releases the primary button
+                    rootElement.removeEventListener("mousemove", moveFunction);
+                    fileDetailsPane.classList.add(styles.expandableTransition);
+                }
+            };
 
-        rootElement.addEventListener("mousemove", moveFunction);
+            rootElement.addEventListener("mousemove", moveFunction);
+        } else {
+            console.log('"Root" element or "file-details-pane" element not found');
+        }
     }
 
     return (
