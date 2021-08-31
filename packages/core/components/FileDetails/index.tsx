@@ -52,8 +52,8 @@ export default function FileDetails(props: FileDetails) {
     function onMouseDown(mouseDownEvent: React.MouseEvent<HTMLDivElement>) {
         const rootElement: HTMLElement | null = document.getElementById("root");
         const fileDetailsPane: HTMLElement | null = document.getElementById("file-details-pane");
+        // This _should_ always be true, but is otherwise not a huge deal
         if (rootElement && fileDetailsPane) {
-            // This _should_ always be true, but is otherwise not a huge deal
             fileDetailsPane.classList.remove(styles.expandableTransition);
 
             const startingWidth = fileDetailsPane.offsetWidth;
