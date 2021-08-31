@@ -52,6 +52,8 @@ export default function FileDetails(props: FileDetails) {
     function onMouseDown(e) {
         const rootElement = document.getElementById("root");
         const fileDetailsPane = document.getElementById("file-details-pane");
+        fileDetailsPane.classList.remove(styles.expandableTransition);
+
         const startingWidth = fileDetailsPane.offsetWidth;
         const startingPageX = e.pageX;
 
@@ -64,6 +66,7 @@ export default function FileDetails(props: FileDetails) {
                 rootElement.style.setProperty("--file-details-width", newWidth + "px");
             } else {
                 rootElement.removeEventListener("mousemove", moveFunction);
+                fileDetailsPane.classList.add(styles.expandableTransition);
             }
         };
 
@@ -80,13 +83,14 @@ export default function FileDetails(props: FileDetails) {
             <div
                 className={classNames(
                     styles.expandable,
+                    styles.expandableTransition,
                     windowStateToClassnameMap[windowState.state]
                 )}
                 style={{ width: minimizedWidth }}
                 id="file-details-pane"
             >
                 <div className={styles.resizeHandle} onMouseDown={(e) => onMouseDown(e)} />
-                <div style={{ float: "left" }}>
+                <div className={styles.fileDetailsContent}>
                     <div className={styles.windowButtons}>
                         {windowState.possibleActions.map((action) => (
                             <WindowActionButton
