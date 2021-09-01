@@ -49,7 +49,7 @@ export default function FileDetails(props: FileDetails) {
         if (isFileRenderableImage) thumbnailUriPath = fileDetails.path;
     }
 
-    function onMouseDown(mouseDownEvent: React.MouseEvent<HTMLDivElement>) {
+    function resizeHandleOnMouseDown(mouseDownEvent: React.MouseEvent<HTMLDivElement>) {
         const rootElement: HTMLElement | null = document.getElementById("root");
         const fileDetailsPane: HTMLElement | null = document.getElementById("file-details-pane");
         // This _should_ always be true, but is otherwise not a huge deal
@@ -59,7 +59,7 @@ export default function FileDetails(props: FileDetails) {
             const startingWidth = fileDetailsPane.offsetWidth;
             const startingPageX = mouseDownEvent.pageX;
 
-            const moveFunction = (mouseMoveEvent: MouseEvent) => {
+            const resizeHandleRootOnMouseMove = (mouseMoveEvent: MouseEvent) => {
                 mouseMoveEvent.preventDefault();
                 const newWidth = startingWidth + (startingPageX - mouseMoveEvent.pageX);
 
@@ -68,12 +68,12 @@ export default function FileDetails(props: FileDetails) {
                     rootElement.style.setProperty("--file-details-width", `${newWidth}px`);
                 } else {
                     // Remove this listener if user releases the primary button
-                    rootElement.removeEventListener("mousemove", moveFunction);
+                    rootElement.removeEventListener("mousemove", resizeHandleRootOnMouseMove);
                     fileDetailsPane.classList.add(styles.expandableTransition);
                 }
             };
 
-            rootElement.addEventListener("mousemove", moveFunction);
+            rootElement.addEventListener("mousemove", resizeHandleRootOnMouseMove);
         } else {
             console.log('"Root" element or "file-details-pane" element not found');
         }
@@ -96,7 +96,10 @@ export default function FileDetails(props: FileDetails) {
                 id="file-details-pane"
             >
                 {windowState.state === WindowState.DEFAULT && (
-                    <div className={styles.resizeHandle} onMouseDown={(e) => onMouseDown(e)} />
+                    <div
+                        className={styles.resizeHandle}
+                        onMouseDown={(e) => resizeHandleOnMouseDown(e)}
+                    />
                 )}
                 <div className={styles.fileDetailsContent}>
                     <div className={styles.windowButtonsContainer}>
