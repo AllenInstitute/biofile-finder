@@ -26,6 +26,8 @@ const FILE_ATTRIBUTE_OPTIONS = TOP_LEVEL_FILE_ANNOTATIONS.filter(
 const FILE_NAME_OPTION = FILE_ATTRIBUTE_OPTIONS.find(
     (o) => o.key === AnnotationName.FILE_NAME
 ) as IDropdownOption;
+// Color chosen from App.module.css
+const PURPLE_ICON_STYLE = { icon: { color: "#827aa3" } };
 export const DATE_RANGE_SEPARATOR = "-to-"; // Not arbitrary, defined per contract with FES
 
 // Because the datestring comes in as an ISO formatted date like 01-02-21
@@ -102,6 +104,7 @@ export default function FileMetadataSearchBar() {
                     onSelectDate={(v) =>
                         v ? onDateRangeSelection({ startDate: v }) : onResetSearch()
                     }
+                    styles={PURPLE_ICON_STYLE}
                     value={extractDateFromDateString(startDate)}
                 />
                 <div className={styles.dateRangeSeparator}>
@@ -115,13 +118,14 @@ export default function FileMetadataSearchBar() {
                     onSelectDate={(v) =>
                         v ? onDateRangeSelection({ endDate: v }) : onResetSearch()
                     }
+                    styles={PURPLE_ICON_STYLE}
                     value={extractDateFromDateString(endDate)}
                 />
                 <IconButton
-                    className={styles.cancelButton}
                     ariaLabel="Clear filter date"
                     iconProps={{ iconName: "Cancel" }}
                     onClick={onResetSearch}
+                    styles={PURPLE_ICON_STYLE}
                     title="Clear"
                 />
             </span>
@@ -132,6 +136,7 @@ export default function FileMetadataSearchBar() {
                 onClear={onResetSearch}
                 className={styles.filterInput}
                 placeholder={`Search by ${selectedAttribute.text}`}
+                styles={PURPLE_ICON_STYLE}
                 onSearch={onSearch}
             />
         );
@@ -144,6 +149,7 @@ export default function FileMetadataSearchBar() {
                 options={FILE_ATTRIBUTE_OPTIONS}
                 selectedKey={selectedAttribute.key}
                 onChange={onAttributeSelection}
+                styles={{ title: { border: "none", borderRight: "1px solid black" } }}
             />
             {searchBox}
         </div>

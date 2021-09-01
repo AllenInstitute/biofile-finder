@@ -5,10 +5,6 @@
     margin-bottom: 5px;
 }
 
-.filter-input div i, .cancel-button, .cancel-button:hover {
-    color: var(--primary-brand-purple); /* defined in App.module.css */
-}
-
 .filter-input, .search-box-selector, .date-range-box {
     border: none;
     flex: auto;
@@ -21,11 +17,6 @@
 .file-attribute-selector {
     width: 100%;
     max-width: 185px;
-}
-
-.file-attribute-selector div span:first-child {
-    border: none;
-    border-right: 1px dashed black;
 }
 
 .date-range-box {
