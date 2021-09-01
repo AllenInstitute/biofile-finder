@@ -1,4 +1,4 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
+import { configureMockStore } from "@aics/redux-utils";
 import { render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -13,12 +13,7 @@ describe("<FileAnnotationList />", () => {
         it("has both canonical file path and file path adjusted to OS & allen mount point", () => {
             // Arrange
             const expectedMountPoint = "/home/testUser/my/path/to/my-isilon";
-            const state = mergeState(initialState, {
-                interaction: {
-                    allenMountPoint: expectedMountPoint,
-                },
-            });
-            const { store } = configureMockStore({ state });
+            const { store } = configureMockStore({ state: initialState });
             const filePathInsideAllenDrive = "/path/to/MyFile.txt";
             const filePath = "/allen" + filePathInsideAllenDrive;
             const fileDetails = new FileDetail({

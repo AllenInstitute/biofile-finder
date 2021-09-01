@@ -80,6 +80,14 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         });
     }
 
+    public get fmsStorageDeviceMountPoint(): string {
+        throw new Error("Not implemented");
+    }
+
+    public async ensureFmsStorageDeviceAccessible(): Promise<void> {
+        throw new Error("Not implemented");
+    }
+
     public formatPathForOs(posixPath: string, prefix?: string): string {
         // Assumption: file paths are persisted as POSIX paths. Split accordingly...
         const originalPosixPathSplit = posixPath.split(path.posix.sep);

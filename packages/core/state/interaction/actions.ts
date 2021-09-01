@@ -83,29 +83,6 @@ export function downloadFile(fileInfo: FileInfo): DownloadFileAction {
 }
 
 /**
- * SET_ALLEN_MOUNT_POINT
- *
- * Intention to set the allen mount point.
- */
-export const SET_ALLEN_MOUNT_POINT = makeConstant(STATE_BRANCH_NAME, "set-allen-mount-point");
-
-export interface SetAllenMountPointAction {
-    payload: {
-        allenMountPoint: string;
-    };
-    type: string;
-}
-
-export function setAllenMountPoint(allenMountPoint: string): SetAllenMountPointAction {
-    return {
-        payload: {
-            allenMountPoint,
-        },
-        type: SET_ALLEN_MOUNT_POINT,
-    };
-}
-
-/**
  * SET_CSV_COLUMNS
  *
  * Intention to set the csv columns

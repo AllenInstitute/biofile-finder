@@ -2,6 +2,10 @@
  * Interface that defines a platform-dependent service for prompting users about executables.
  */
 export default interface ExecutionEnvService {
+    ensureFmsStorageDeviceAccessible(): Promise<void>;
+
+    fmsStorageDeviceMountPoint: string;
+
     /**
      * Return file system path formatted for use on the current operating system.
      * Assumes input is POSIX path.

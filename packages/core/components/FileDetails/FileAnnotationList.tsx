@@ -23,7 +23,6 @@ interface FileAnnotationListProps {
 export default function FileAnnotationList(props: FileAnnotationListProps) {
     const { className, fileDetails, isLoading } = props;
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
-    const allenMountPoint = useSelector(interaction.selectors.getAllenMountPoint);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
     const content: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
@@ -37,47 +36,45 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
 
         const sorted = Annotation.sort([...TOP_LEVEL_FILE_ANNOTATIONS, ...annotations]);
         return sorted.reduce((accum, annotation) => {
-            const values = annotation.extractFromFile(fileDetails.details);
-            // If it was found, append it to our list of custom annotation rows
-            if (values !== Annotation.MISSING_VALUE) {
-                // Derive a more specific file path from the canonical file path
-                if (annotation.name === AnnotationName.FILE_PATH && allenMountPoint) {
-                    // Use path.normalize() to convert slashes to OS default & remove the would be duplicate
-                    // "/allen" from the beginning of the canonical path
-                    const localPath = executionEnvService.formatPathForOs(
-                        values.substring("/allen".length),
-                        allenMountPoint
-                    );
-                    return [
-                        ...accum,
+            const annotationValue = annotation.extractFromFile(fileDetails.details);
+            if (annotationValue === Annotation.MISSING_VALUE) {
+                // Nothing to show for this annotation -- skip
+                return accum;
+            }
+
+            const ret = [
+                ...accum,
+                <FileAnnotationRow
+                    key={annotation.displayName}
+                    className={styles.row}
+                    name={annotation.displayName}
+                    value={annotationValue}
+                />,
+            ];
+
+            // Special case for file paths: we want to display both the "canonical" FMS path
+            // (i.e. POSIX path held in the database; what we have an annotation for)
+            // as well as the path at which the file is *actually* accessible on _this_ computer ("local" file path)
+            if (annotation.name === AnnotationName.FILE_PATH) {
+                const localPath = executionEnvService.formatPathForOs(annotationValue);
+                // In certain circumstances (i.e., linux), the path at which a file is accessible is === the canonical path
+                if (localPath !== annotationValue) {
+                    ret.splice(
+                        -1, // Insert before the "canonical" path so that it is the first path-like row to be seen
+                        0, // ...don't delete the "canonical" path
                         <FileAnnotationRow
                             key="file-path-local"
                             className={styles.row}
                             name="File path (Local)"
                             value={localPath}
-                        />,
-                        <FileAnnotationRow
-                            key={annotation.displayName}
-                            className={styles.row}
-                            name={annotation.displayName}
-                            value={values}
-                        />,
-                    ];
+                        />
+                    );
                 }
-                return [
-                    ...accum,
-                    <FileAnnotationRow
-                        key={annotation.displayName}
-                        className={styles.row}
-                        name={annotation.displayName}
-                        value={values}
-                    />,
-                ];
             }
 
-            return accum;
+            return ret;
         }, [] as JSX.Element[]);
-    }, [allenMountPoint, annotations, executionEnvService, fileDetails, isLoading]);
+    }, [annotations, executionEnvService, fileDetails, isLoading]);
 
     return <div className={classNames(styles.list, className)}>{content}</div>;
 }

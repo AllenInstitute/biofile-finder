@@ -9,7 +9,6 @@ import {
     REFRESH,
     REMOVE_STATUS,
     SET_USER_SELECTED_APPLICATIONS,
-    SET_ALLEN_MOUNT_POINT,
     SET_CSV_COLUMNS,
     SET_FILE_EXPLORER_SERVICE_BASE_URL,
     SET_PLATFORM_DEPENDENT_SERVICES,
@@ -38,7 +37,6 @@ import { UserSelectedApplication } from "../../services/PersistentConfigService"
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
 
 export interface InteractionStateBranch {
-    allenMountPoint?: string;
     applicationVersion?: string;
     contextMenuIsVisible: boolean;
     contextMenuItems: ContextMenuItem[];
@@ -129,10 +127,6 @@ export default makeReducer<InteractionStateBranch>(
                 ],
                 "processId"
             ),
-        }),
-        [SET_ALLEN_MOUNT_POINT]: (state, action) => ({
-            ...state,
-            ...action.payload,
         }),
         [SET_CSV_COLUMNS]: (state, action) => ({
             ...state,

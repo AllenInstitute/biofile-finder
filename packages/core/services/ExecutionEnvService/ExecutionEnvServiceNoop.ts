@@ -1,6 +1,14 @@
 import ExecutionEnvService from ".";
 
 export default class ExecutionEnvServiceNoop implements ExecutionEnvService {
+    public get fmsStorageDeviceMountPoint(): string {
+        return "ExecutionEnvServiceNoop::fmsStorageDeviceMountPoint";
+    }
+
+    public ensureFmsStorageDeviceAccessible(): Promise<void> {
+        return Promise.resolve();
+    }
+
     public formatPathForOs(posixPath: string, prefix?: string): string {
         if (prefix) {
             return `${prefix}${posixPath}`;

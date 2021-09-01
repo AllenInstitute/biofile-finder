@@ -1,6 +1,3 @@
-import * as os from "os";
-import * as path from "path";
-
 import Store, { Options } from "electron-store";
 
 import {
@@ -15,6 +12,7 @@ const OPTIONS: Options<Record<string, unknown>> = {
     // Defines a validation schema for data inserted into the persistent storage
     // if a breaking change is made see migration patterns in elecron-store docs
     schema: {
+        // Deprecated in 6.0.0
         [PersistedConfigKeys.AllenMountPoint]: {
             type: "string",
         },
@@ -70,6 +68,12 @@ const OPTIONS: Options<Record<string, unknown>> = {
                 store.delete(PersistedConfigKeys.ImageJExecutable);
             }
         },
+        // Remove PersistedConfigKeys.AllenMountPoint
+        ">5.2.0": (store) => {
+            if (store.has(PersistedConfigKeys.AllenMountPoint)) {
+                store.delete(PersistedConfigKeys.AllenMountPoint);
+            }
+        },
     },
 };
 
@@ -80,13 +84,6 @@ interface PersistentConfigServiceElectronOptions {
 export default class PersistentConfigServiceElectron implements PersistentConfigService {
     private store: Store;
 
-    private static getDefault(key: PersistedConfigKeys) {
-        if (key === PersistedConfigKeys.AllenMountPoint) {
-            return os.platform() === "win32" ? "\\\\allen" : path.normalize("/allen");
-        }
-        return undefined;
-    }
-
     public constructor(options: PersistentConfigServiceElectronOptions = {}) {
         this.store = new Store(OPTIONS);
         if (options.clearExistingData) {
@@ -95,7 +92,7 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     }
 
     public get(key: PersistedConfigKeys): any {
-        return this.store.get(key, PersistentConfigServiceElectron.getDefault(key));
+        return this.store.get(key);
     }
 
     public getAll(): PersistedConfig {
