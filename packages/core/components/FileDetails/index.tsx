@@ -65,7 +65,7 @@ export default function FileDetails(props: FileDetails) {
 
                 if (mouseMoveEvent.buttons === 1) {
                     // If primary button (left-click) is still pressed
-                    rootElement.style.setProperty("--file-details-width", newWidth + "px");
+                    rootElement.style.setProperty("--file-details-width", `${newWidth}px`);
                 } else {
                     // Remove this listener if user releases the primary button
                     rootElement.removeEventListener("mousemove", moveFunction);
