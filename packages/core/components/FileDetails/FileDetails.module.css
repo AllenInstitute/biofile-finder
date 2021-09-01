@@ -25,6 +25,13 @@
     display: flex;
     justify-content: flex-end;
     flex-wrap: wrap;
+    position: absolute;
+    right: 0;
+}
+
+.window-buttons-container {
+    width: 100%;
+    height: var(--window-buttons-height);
 }
 
 .default {

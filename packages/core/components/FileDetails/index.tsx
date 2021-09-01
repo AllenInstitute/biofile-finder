@@ -99,15 +99,17 @@ export default function FileDetails(props: FileDetails) {
                     <div className={styles.resizeHandle} onMouseDown={(e) => onMouseDown(e)} />
                 )}
                 <div className={styles.fileDetailsContent}>
-                    <div className={styles.windowButtons}>
-                        {windowState.possibleActions.map((action) => (
-                            <WindowActionButton
-                                key={action}
-                                action={action}
-                                onClick={() => dispatch({ type: action })}
-                                width={WINDOW_ACTION_BUTTON_WIDTH}
-                            />
-                        ))}
+                    <div className={styles.windowButtonsContainer}>
+                        <div className={styles.windowButtons}>
+                            {windowState.possibleActions.map((action) => (
+                                <WindowActionButton
+                                    key={action}
+                                    action={action}
+                                    onClick={() => dispatch({ type: action })}
+                                    width={WINDOW_ACTION_BUTTON_WIDTH}
+                                />
+                            ))}
+                        </div>
                     </div>
                     <Pagination
                         className={classNames(styles.pagination, {
