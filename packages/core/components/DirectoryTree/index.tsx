@@ -8,6 +8,7 @@ import FilterDisplayBar from "../FilterDisplayBar";
 import FileSet from "../../entity/FileSet";
 import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
+import FileMetadataSearchBar from "../FileMetadataSearchBar";
 
 const styles = require("./DirectoryTree.module.css");
 
@@ -75,6 +76,7 @@ export default function DirectoryTree(props: FileListProps) {
         <div className={classNames(props.className, styles.container)}>
             <RootLoadingIndicator visible={isLoading} />
             <FilterDisplayBar className={styles.filterDisplayBar} classNameHidden={styles.hidden} />
+            <FileMetadataSearchBar />
             <ul className={styles.scrollContainer} role="tree" aria-multiselectable="true">
                 {!error && content}
                 {error && (
