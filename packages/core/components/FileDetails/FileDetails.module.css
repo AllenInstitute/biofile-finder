@@ -105,6 +105,8 @@
 
 .file-thumbnail-container {
     margin: var(--margin) 10px 10px 10px; /* defined in App.module.css under .root{} */
+    margin-left: auto;
+    margin-right: auto;
     height: 200px;
     transition: width var(--transition-duration);
 }
