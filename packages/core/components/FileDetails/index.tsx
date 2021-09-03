@@ -67,8 +67,9 @@ export default function FileDetails(props: FileDetails) {
                 mouseMoveEvent.preventDefault();
                 const newWidth = startingWidth + (startingPageX - mouseMoveEvent.pageX);
 
-                if (mouseMoveEvent.buttons === 1) {
-                    // If primary button (left-click) is still pressed
+                if (mouseMoveEvent.buttons === 1 && newWidth >= 175) {
+                    // If primary button (left-click) is still pressed and newWidth is still greater
+                    //   than the minimum width we want for the pane
                     rootElement.style.setProperty(FILE_DETAILS_WIDTH_ATTRIBUTE, `${newWidth}px`);
                 } else {
                     // Remove this listener if user releases the primary button
