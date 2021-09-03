@@ -8,6 +8,7 @@ import windowStateReducer, { INITIAL_STATE, WindowState } from "./windowStateRed
 import Download from "./Download";
 import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
+import { ROOT_ELEMENT_ID } from "../../App";
 
 const styles = require("./FileDetails.module.css");
 
@@ -22,6 +23,9 @@ const windowStateToClassnameMap: { [index: string]: string } = {
 };
 
 export const WINDOW_ACTION_BUTTON_WIDTH = 23; // arbitrary
+
+const FILE_DETAILS_PANE_ID = "file-details-pane";
+const FILE_DETAILS_WIDTH_ATTRIBUTE = "--file-details-width";
 
 /**
  * Right-hand sidebar of application. Displays details of selected file(s).
@@ -50,8 +54,8 @@ export default function FileDetails(props: FileDetails) {
     }
 
     function resizeHandleOnMouseDown(mouseDownEvent: React.MouseEvent<HTMLDivElement>) {
-        const rootElement: HTMLElement | null = document.getElementById("root");
-        const fileDetailsPane: HTMLElement | null = document.getElementById("file-details-pane");
+        const rootElement: HTMLElement | null = document.getElementById(ROOT_ELEMENT_ID);
+        const fileDetailsPane: HTMLElement | null = document.getElementById(FILE_DETAILS_PANE_ID);
         // This _should_ always be true, but is otherwise not a huge deal
         if (rootElement && fileDetailsPane) {
             fileDetailsPane.classList.remove(styles.expandableTransition);
@@ -65,7 +69,7 @@ export default function FileDetails(props: FileDetails) {
 
                 if (mouseMoveEvent.buttons === 1) {
                     // If primary button (left-click) is still pressed
-                    rootElement.style.setProperty("--file-details-width", `${newWidth}px`);
+                    rootElement.style.setProperty(FILE_DETAILS_WIDTH_ATTRIBUTE, `${newWidth}px`);
                 } else {
                     // Remove this listener if user releases the primary button
                     rootElement.removeEventListener("mousemove", resizeHandleRootOnMouseMove);
@@ -75,19 +79,24 @@ export default function FileDetails(props: FileDetails) {
 
             rootElement.addEventListener("mousemove", resizeHandleRootOnMouseMove);
         } else {
-            console.log('"Root" element or "file-details-pane" element not found');
+            console.log(
+                `"${ROOT_ELEMENT_ID}" element or "${FILE_DETAILS_PANE_ID}" element not found`
+            );
         }
     }
 
     function resizeHandleDoubleClick() {
-        // TODO Next 3 lines are dupes - at least use constants for IDs?
-        const rootElement: HTMLElement | null = document.getElementById("root");
-        const fileDetailsPane: HTMLElement | null = document.getElementById("file-details-pane");
+        const rootElement: HTMLElement | null = document.getElementById(ROOT_ELEMENT_ID);
+        const fileDetailsPane: HTMLElement | null = document.getElementById(FILE_DETAILS_PANE_ID);
 
-        // This _should_ always be true, but is otherwise not a huge deal
         if (rootElement && fileDetailsPane) {
+            // Return details pane width to the default (20%)
             fileDetailsPane.classList.add(styles.expandableTransition);
-            rootElement.style.setProperty("--file-details-width", "20%"); // TODO Should this value be defined elsewhere?
+            rootElement.style.setProperty(FILE_DETAILS_WIDTH_ATTRIBUTE, "20%");
+        } else {
+            console.log(
+                `"${ROOT_ELEMENT_ID}" element or "${FILE_DETAILS_PANE_ID}" element not found`
+            );
         }
     }
 
@@ -105,7 +114,7 @@ export default function FileDetails(props: FileDetails) {
                     windowStateToClassnameMap[windowState.state]
                 )}
                 style={{ width: minimizedWidth }}
-                id="file-details-pane"
+                id={FILE_DETAILS_PANE_ID}
             >
                 {windowState.state === WindowState.DEFAULT && (
                     <div
