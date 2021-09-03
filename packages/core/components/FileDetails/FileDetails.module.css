@@ -2,6 +2,7 @@
     --window-buttons-height: var(--url-bar-height); /* defined in App.module.css under .root{} */
     --pagination-height: var(--url-bar-height); /* defined in App.module.css under .root{} */
     --padding: 10px;
+    --resize-handle-width: 5px;
 }
 
 .expandable {
@@ -37,7 +38,7 @@
 .default {
     width: var(--file-details-width); /* defined in App.module.css under .root{} */
     min-width: 175px;
-    max-width: 80%;
+    max-width: 95%;
 }
 
 .minimized {
@@ -127,11 +128,11 @@
 
 .file-details-content {
     float: left;
-    width: 98%;
+    width: 96%;
 }
 
 .resize-handle {
-    width: 3px;
+    width: var(--resize-handle-width);
     height: 100%;
     cursor: col-resize;
     float: left;
