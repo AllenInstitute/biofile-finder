@@ -79,6 +79,18 @@ export default function FileDetails(props: FileDetails) {
         }
     }
 
+    function resizeHandleDoubleClick() {
+        // TODO Next 3 lines are dupes - at least use constants for IDs?
+        const rootElement: HTMLElement | null = document.getElementById("root");
+        const fileDetailsPane: HTMLElement | null = document.getElementById("file-details-pane");
+
+        // This _should_ always be true, but is otherwise not a huge deal
+        if (rootElement && fileDetailsPane) {
+            fileDetailsPane.classList.add(styles.expandableTransition);
+            rootElement.style.setProperty("--file-details-width", "20%"); // TODO Should this value be defined elsewhere?
+        }
+    }
+
     return (
         <div
             className={classNames(styles.root, props.className)}
@@ -99,6 +111,7 @@ export default function FileDetails(props: FileDetails) {
                     <div
                         className={styles.resizeHandle}
                         onMouseDown={(e) => resizeHandleOnMouseDown(e)}
+                        onDoubleClick={resizeHandleDoubleClick}
                     />
                 )}
                 <div className={styles.fileDetailsContent}>
