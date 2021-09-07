@@ -4,7 +4,7 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import FileMetadataSearchBar, { DATE_RANGE_SEPARATOR } from "../";
+import FileMetadataSearchBar, { DATE_RANGE_SEPARATOR, extractDateFromDateString } from "../";
 import FileFilter from "../../../entity/FileFilter";
 import { AnnotationName } from "../../../constants";
 import { initialState, selection } from "../../../state";
@@ -95,5 +95,32 @@ describe("<FileMetadataSearchBar />", () => {
                 )
             )
         ).to.be.true;
+    });
+});
+
+describe("extractDateFromDateString", () => {
+    [
+        ["2021-02-01", 1612166400000],
+        ["3030-03-04", 33455750400000],
+        ["2018-3-4", 1520179200000],
+    ].forEach(([dateString, expectedInMs]) => {
+        it(`returns expected point in time as date instance for ${dateString}`, () => {
+            // Arrange
+            const expected = new Date(expectedInMs);
+
+            // Act
+            const actual = extractDateFromDateString(dateString as string);
+
+            // Assert
+            expect(actual).to.deep.equal(expected);
+        });
+    });
+
+    it("returns undefined when given falsy input", () => {
+        // Act
+        const actual = extractDateFromDateString(undefined);
+
+        // Assert
+        expect(actual).to.be.undefined;
     });
 });
