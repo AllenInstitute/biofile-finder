@@ -5,6 +5,7 @@
 }
 
 .filter-display-bar {
+    flex-shrink: 0;
     width: 100%;
     margin-bottom: calc(var(--margin) / 2); /* --margin defined in App.module.css */
     padding-bottom: 3px;
@@ -37,7 +38,7 @@
     transform: translateY(-50%);
     width: 100%;
 
-    color: var(--brand-error); /* defined in App.module.css */;
+    color: var(--brand-error); /* defined in App.module.css */
     font-size: 2rem;
     text-align: center;
 }
