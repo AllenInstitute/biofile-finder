@@ -51,9 +51,12 @@ function extractDateFromDateString(dateString?: string): Date | undefined {
 export default function FileMetadataSearchBar() {
     const dispatch = useDispatch();
     const fileAttributeFilter = useSelector(getFileAttributeFilter);
-    const [selectedAttribute, setSelectedAttribute] = React.useState<IDropdownOption>(
+    const [lastSelectedAttribute, setLastSelectedAttribute] = React.useState<IDropdownOption>(
         FILE_NAME_OPTION
     );
+    const selectedAttribute =
+        FILE_ATTRIBUTE_OPTIONS.find((a) => a.key === fileAttributeFilter?.name) ||
+        lastSelectedAttribute;
 
     function onResetSearch() {
         if (fileAttributeFilter) {
@@ -85,7 +88,9 @@ export default function FileMetadataSearchBar() {
 
     function onAttributeSelection(_: React.FormEvent, option?: IDropdownOption) {
         onResetSearch();
-        option && setSelectedAttribute(option);
+        if (option) {
+            setLastSelectedAttribute(option);
+        }
     }
 
     let searchBox: React.ReactNode;
@@ -138,6 +143,7 @@ export default function FileMetadataSearchBar() {
                 placeholder={`Search by ${selectedAttribute.text}`}
                 styles={PURPLE_ICON_STYLE}
                 onSearch={onSearch}
+                value={fileAttributeFilter?.value}
             />
         );
     }
