@@ -107,9 +107,7 @@
 }
 
 .file-thumbnail-container {
-    margin: var(--margin) 10px 10px 10px; /* defined in App.module.css under .root{} */
-    margin-left: auto;
-    margin-right: auto;
+    margin: var(--margin) auto 10px; /* --margin defined in App.module.css under .root{} */
     height: 200px;
     transition: width var(--transition-duration);
 }
