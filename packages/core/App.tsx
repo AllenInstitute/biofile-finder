@@ -19,6 +19,7 @@ import { PlatformDependentServices } from "./state/interaction/actions";
 import "./styles/global.css";
 const styles = require("./App.module.css");
 
+// Used for mousemove listeners when resizing elements via click and drag (eg. File Details pane)
 export const ROOT_ELEMENT_ID = "root";
 
 // initialize @fluentui/react
