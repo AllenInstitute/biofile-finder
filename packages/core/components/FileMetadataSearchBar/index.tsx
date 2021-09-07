@@ -113,7 +113,7 @@ export default function FileMetadataSearchBar() {
                 <DatePicker
                     borderless
                     className={styles.filterInput}
-                    ariaLabel="Select a end date"
+                    ariaLabel="Select an end date"
                     placeholder={`End of date range`}
                     onSelectDate={(v) =>
                         v ? onDateRangeSelection({ endDate: v }) : onResetSearch()
