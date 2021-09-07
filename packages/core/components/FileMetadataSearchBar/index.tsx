@@ -30,7 +30,7 @@ const FILE_NAME_OPTION = FILE_ATTRIBUTE_OPTIONS.find(
 const PURPLE_ICON_STYLE = { icon: { color: "#827aa3" } };
 export const DATE_RANGE_SEPARATOR = "-to-"; // Not arbitrary, defined per contract with FES
 
-// Because the datestring comes in as an ISO formatted date like 01-02-21
+// Because the datestring comes in as an ISO formatted date like 2021-01-02
 // creating a new date from that would result in a date displayed as the
 // day before due to the UTC offset, to account for this we can add in the offset
 // ahead of time.
