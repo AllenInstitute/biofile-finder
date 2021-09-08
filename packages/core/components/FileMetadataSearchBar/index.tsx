@@ -34,7 +34,7 @@ export const DATE_RANGE_SEPARATOR = "-to-"; // Not arbitrary, defined per contra
 // creating a new date from that would result in a date displayed as the
 // day before due to the UTC offset, to account for this we can add in the offset
 // ahead of time.
-function extractDateFromDateString(dateString?: string): Date | undefined {
+export function extractDateFromDateString(dateString?: string): Date | undefined {
     if (!dateString) {
         return undefined;
     }
