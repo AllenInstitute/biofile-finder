@@ -23,7 +23,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const dispatch = useDispatch();
     const annotations = useSelector(metadata.selectors.getAnnotations);
-    const fileFilters = useSelector(selection.selectors.getFileFilters);
+    const fileFilters = useSelector(selection.selectors.getAnnotationFilters);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
         annotationName,

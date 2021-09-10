@@ -112,7 +112,7 @@ describe("<AnnotationList />", () => {
             fireEvent.click(button);
 
             // Assert
-            expect(selection.selectors.getFileFilters(store.getState())).to.be.empty;
+            expect(selection.selectors.getAnnotationFilters(store.getState())).to.be.empty;
         });
     });
 

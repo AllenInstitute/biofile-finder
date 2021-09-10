@@ -104,7 +104,10 @@ export default class FileExplorerURL {
         }
 
         const hierarchyDepth = parsedURL.groupBy.length;
-        const annotationNameSet = new Set(annotations.map((annotation) => annotation.name));
+        const annotationNameSet = new Set([
+            ...annotations.map((annotation) => annotation.name),
+            ...TOP_LEVEL_FILE_ANNOTATION_NAMES,
+        ]);
         return {
             hierarchy: parsedURL.groupBy.map((annotationName) => {
                 if (!annotationNameSet.has(annotationName)) {

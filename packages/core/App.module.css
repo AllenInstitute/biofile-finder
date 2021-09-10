@@ -96,6 +96,8 @@
 }
 
 .file-list {
+    display: flex;
+    flex-direction: column;
     flex: auto;
     height: 100%;
     width: calc(70% - var(--margin));

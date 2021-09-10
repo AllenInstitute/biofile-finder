@@ -44,7 +44,7 @@ const SEARCH_ICON_PATH_DATA =
  */
 export default function AnnotationList(props: AnnotationListProps) {
     const dispatch = useDispatch();
-    const filters = useSelector(selection.selectors.getFileFilters);
+    const filters = useSelector(selection.selectors.getAnnotationFilters);
     const annotationsLoading = useSelector(
         selection.selectors.getAvailableAnnotationsForHierarchyLoading
     );

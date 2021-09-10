@@ -12,7 +12,7 @@ export const getAnnotationListItems = createSelector(
         metadata.selectors.getSortedAnnotations,
         selection.selectors.getAvailableAnnotationsForHierarchy,
         selection.selectors.getAnnotationHierarchy,
-        selection.selectors.getFileFilters,
+        selection.selectors.getAnnotationFilters,
     ],
     (
         annotations: Annotation[],
