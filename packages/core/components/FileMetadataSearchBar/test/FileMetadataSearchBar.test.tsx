@@ -126,8 +126,9 @@ describe("<FileMetadataSearchBar />", () => {
         );
         const day = 17;
         const date = new Date();
-        date.setDate(day - 1);
-        const expectedDate = date.toISOString().split("T")[0];
+        const expectedDate = `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(
+            -2
+        )}-${day}`;
         const expectedRange = `${expectedDate}${DATE_RANGE_SEPARATOR}${expectedDate}`;
 
         // Act
@@ -149,13 +150,14 @@ describe("<FileMetadataSearchBar />", () => {
 
     describe("extractDateFromDateString", () => {
         [
-            ["2021-02-01", 1612166400000],
-            ["3030-03-04", 33455750400000],
-            ["2018-3-4", 1520179200000],
+            ["2021-02-01", 1612137600000],
+            ["3030-03-04", 33455721600000],
+            ["2018-3-4", 1520150400000],
         ].forEach(([dateString, expectedInMs]) => {
             it(`returns expected point in time as date instance for ${dateString}`, () => {
                 // Arrange
                 const expected = new Date(expectedInMs);
+                expected.setMinutes(expected.getTimezoneOffset());
 
                 // Act
                 const actual = extractDateFromDateString(dateString as string);
