@@ -163,7 +163,10 @@ describe("<FileMetadataSearchBar />", () => {
                 const actual = extractDateFromDateString(dateString as string);
 
                 // Assert
-                expect(actual).to.deep.equal(expected);
+                expect(actual).to.not.be.undefined;
+                expect(actual?.getFullYear()).to.equal(expected.getFullYear());
+                expect(actual?.getMonth()).to.equal(expected.getMonth());
+                expect(actual?.getDate()).to.equal(expected.getDate());
             });
         });
 
