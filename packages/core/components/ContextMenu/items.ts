@@ -12,6 +12,9 @@ export enum ContextMenuActions {
     OPEN_WITH_OTHER = "open-with-other",
     PASTE = "paste",
     PYTHON_SNIPPET = "python-snippet",
+    SHARE_FILE_SELECTION = "share-file-selection",
+    SHARE_FILE_SELECTION_CUSTOM = "share-file-selection-custom",
+    SHARE_FILE_SELECTION_DEFAULT = "share-file-selection-default",
 }
 
 /**
@@ -39,6 +42,33 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                 text: "Open with",
                 // Dynamically generated application options will/should be
                 // inserted here
+            },
+            {
+                key: ContextMenuActions.SHARE_FILE_SELECTION,
+                text: "Generate shareable link",
+                title: "Shareable FMS File Explorer URL to file selection",
+                subMenuProps: {
+                    items: [
+                        {
+                            key: ContextMenuActions.SHARE_FILE_SELECTION_DEFAULT,
+                            text: "Generate shareable link",
+                            title: "Shareable FMS File Explorer URL to file selection",
+                            onClick() {
+                                dispatch(interaction.actions.generateShareableFileSelectionLink());
+                            },
+                        },
+                        {
+                            key: ContextMenuActions.SHARE_FILE_SELECTION_CUSTOM,
+                            text: "Generate shareable link with custom options",
+                            title: "Shareable FMS File Explorer URL to file selection",
+                            onClick() {
+                                dispatch(
+                                    interaction.actions.showGenerateShareableFileSelectionDialog()
+                                );
+                            },
+                        },
+                    ],
+                },
             },
             {
                 key: ContextMenuActions.CSV_MANIFEST,

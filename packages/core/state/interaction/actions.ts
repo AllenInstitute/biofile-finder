@@ -5,7 +5,7 @@ import { uniqueId } from "lodash";
 import Annotation from "../../entity/Annotation";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
-import { PythonicDataAccessSnippet } from "../../services/DatasetService";
+import { Dataset, PythonicDataAccessSnippet } from "../../services/DatasetService";
 import ExecutionEnvService from "../../services/ExecutionEnvService";
 import FileDownloadService, { FileInfo } from "../../services/FileDownloadService";
 import FileFilter from "../../entity/FileFilter";
@@ -412,6 +412,81 @@ export function processFailure(processId: string, msg: string): ProcessFailureAc
             },
             processId,
         },
+    };
+}
+
+/**
+ * SHOW_GENERATE_SHAREABLE_FILE_SELECTION_DIALOG
+ *
+ * TODO
+ */
+
+export const SHOW_GENERATE_SHAREABLE_FILE_SELECTION_DIALOG = makeConstant(
+    STATE_BRANCH_NAME,
+    "show-generate-shareable-file-selection-dialog"
+);
+
+export interface ShowGenerateShareableFileSelectionDialogAction {
+    type: string;
+}
+
+export function showGenerateShareableFileSelectionDialog(): ShowGenerateShareableFileSelectionDialogAction {
+    return {
+        type: SHOW_GENERATE_SHAREABLE_FILE_SELECTION_DIALOG,
+    };
+}
+
+/**
+ * GENERATE_SHAREABLE_FILE_SELECTION_LINK
+ *
+ * TODO
+ */
+export const GENERATE_SHAREABLE_FILE_SELECTION_LINK = makeConstant(
+    STATE_BRANCH_NAME,
+    "generate-shareable-file-selection-link"
+);
+
+export interface GenerateShareableFileSelectionLinkAction {
+    type: string;
+}
+
+export function generateShareableFileSelectionLink(): GenerateShareableFileSelectionLinkAction {
+    return {
+        type: GENERATE_SHAREABLE_FILE_SELECTION_LINK,
+    };
+}
+
+/**
+ * SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION
+ *
+ * TODO
+ */
+export const SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION = makeConstant(
+    STATE_BRANCH_NAME,
+    "succeed-shareable-file-selection-link-generation"
+);
+
+export interface SucceedShareableFileSelectionLinkGenerationAction {
+    payload: {
+        processId: string;
+        dataset: Dataset;
+        statusUpdate: StatusUpdate;
+    };
+    type: string;
+}
+
+export function succeedShareableFileSelectionLinkGeneration(
+    processId: string,
+    dataset: Dataset,
+    statusUpdate: StatusUpdate
+): SucceedShareableFileSelectionLinkGenerationAction {
+    return {
+        payload: {
+            processId,
+            dataset,
+            statusUpdate,
+        },
+        type: SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
     };
 }
 

@@ -1,0 +1,24 @@
+.title {
+    color: var(--primary-brand-dark-blue); /* defined in App.module.css */
+    display: flex;
+}
+
+.title h3 {
+    margin: 0 0 0.25rem 0;
+
+    /* flex child */
+    flex: 0 0 auto;
+}
+
+.info-icon {
+    font-size: smaller;
+    margin-left: 4px;
+}
+
+.dropdown {
+    display: flex;
+}
+
+.dropdown-selector {
+    width: 100%;
+}

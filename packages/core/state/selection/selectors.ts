@@ -48,3 +48,8 @@ export const getAnnotationFilters = createSelector([getFileFilters], (fileFilter
 export const getFileAttributeFilter = createSelector([getFileFilters], (fileFilters):
     | FileFilter
     | undefined => fileFilters.find((f) => TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(f.name)));
+
+export const getDatasetId = createSelector(
+    getFileFilters,
+    (filters): string | undefined => filters.find((filter) => filter.name === "Dataset")?.value
+);

@@ -21,6 +21,7 @@ import {
     SHOW_MANIFEST_DOWNLOAD_DIALOG,
     StatusUpdate,
     SUCCEED_PYTHON_SNIPPET_GENERATION,
+    SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -163,13 +164,26 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [SHOW_GENERATE_PYTHON_SNIPPET_DIALOG]: (state, action) => ({
             ...state,
-            visibleModal: ModalType.PythonSnippetForm,
+            visibleModal: ModalType.DatasetForm,
             fileFiltersForVisibleModal: action.payload,
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action) => ({
             ...state,
             visibleModal: ModalType.CsvManifest,
             fileFiltersForVisibleModal: action.payload,
+        }),
+        [SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION]: (state, action) => ({
+            ...state,
+            status: sortBy(
+                [
+                    ...filter(
+                        state.status,
+                        (status: StatusUpdate) => status.processId !== action.payload.processId
+                    ),
+                    action.payload.statusUpdate,
+                ],
+                "processId"
+            ),
         }),
         [SUCCEED_PYTHON_SNIPPET_GENERATION]: (state, action) => ({
             ...state,

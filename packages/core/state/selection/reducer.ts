@@ -20,6 +20,7 @@ import {
     RESET_COLUMN_WIDTH,
     SORT_COLUMN,
     SET_SORT_COLUMN,
+    CHANGE_DATA_SOURCE,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 
@@ -87,6 +88,10 @@ export default makeReducer<SelectionStateBranch>(
                 sortColumn: new FileSort(action.payload, SortOrder.DESC),
             };
         },
+        [CHANGE_DATA_SOURCE]: (state, action) => ({
+            ...state,
+            dataSource: action.payload,
+        }),
         [SET_SORT_COLUMN]: (state, action) => ({
             ...state,
             sortColumn: action.payload,

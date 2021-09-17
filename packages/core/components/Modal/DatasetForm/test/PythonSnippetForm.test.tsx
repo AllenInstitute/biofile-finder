@@ -17,16 +17,16 @@ import DatasetService from "../../../../services/DatasetService";
 import { initialState, interaction } from "../../../../state";
 import { GENERATE_PYTHON_SNIPPET } from "../../../../state/interaction/actions";
 
-describe("<PythonSnippetForm />", () => {
+describe("<DatasetForm />", () => {
     const sandbox = createSandbox();
 
-    // All of the test setup related to stubbing an HTTP request is because the PythonSnippetForm,
+    // All of the test setup related to stubbing an HTTP request is because the DatasetForm,
     // on mount, makes a call to fetch all available datasets
     const baseUrl = "https://test-aics.corp.whatever";
     const visibleDialogState = mergeState(initialState, {
         interaction: {
             fileExplorerServiceBaseUrl: baseUrl,
-            visibleModal: ModalType.PythonSnippetForm,
+            visibleModal: ModalType.DatasetForm,
         },
     });
 

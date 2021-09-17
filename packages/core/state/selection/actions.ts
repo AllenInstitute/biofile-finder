@@ -7,6 +7,7 @@ import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import FileSort from "../../entity/FileSort";
 import NumericRange from "../../entity/NumericRange";
+import { Dataset } from "../../services/DatasetService";
 
 const STATE_BRANCH_NAME = "selection";
 
@@ -462,5 +463,24 @@ export function decodeFileExplorerURL(decodedFileExplorerURL: string): DecodeFil
     return {
         payload: decodedFileExplorerURL,
         type: DECODE_FILE_EXPLORER_URL,
+    };
+}
+
+/**
+ * CHANGE_DATA_SOURCE
+ *
+ * TODO
+ */
+export const CHANGE_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "change-data-source");
+
+export interface ChangeDataSourceAction {
+    payload?: Dataset;
+    type: string;
+}
+
+export function changeDataSource(dataset?: Dataset): ChangeDataSourceAction {
+    return {
+        payload: dataset,
+        type: CHANGE_DATA_SOURCE,
     };
 }

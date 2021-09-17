@@ -2,7 +2,12 @@ import { compact, find } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { interaction, ReduxLogicDeps, selection } from "..";
-import { receiveAnnotations, REQUEST_ANNOTATIONS } from "./actions";
+import {
+    receiveAnnotations,
+    receiveDatasets,
+    REQUEST_ANNOTATIONS,
+    REQUEST_DATASETS,
+} from "./actions";
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import AnnotationService from "../../services/AnnotationService";
 
@@ -47,4 +52,26 @@ const requestAnnotations = createLogic({
     type: REQUEST_ANNOTATIONS,
 });
 
-export default [requestAnnotations];
+/**
+ * TODO
+ */
+const requestDatasets = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { getState } = deps;
+        // TODO: This might prevent testing as a selector?
+        const datasetService = interaction.selectors.getDatasetService(getState());
+
+        try {
+            const datasets = await datasetService.getDatasets();
+            dispatch(receiveDatasets(datasets));
+        } catch (err) {
+            console.error("Failed to fetch datasets", err);
+            // TODO: Dispatch alert?
+        } finally {
+            done();
+        }
+    },
+    type: [REQUEST_DATASETS, interaction.actions.REFRESH],
+});
+
+export default [requestAnnotations, requestDatasets];

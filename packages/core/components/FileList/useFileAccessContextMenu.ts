@@ -41,7 +41,7 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                           },
                       ]
                     : []),
-                // Other is constant option that allows the user
+                // Other is a permanent option that allows the user
                 // to add another app for file access
                 {
                     key: ContextMenuActions.OPEN_WITH_OTHER,
@@ -53,27 +53,34 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                 },
             ];
 
-            const items = getContextMenuItems(dispatch).ACCESS.map((item: IContextualMenuItem) => {
-                if (item.key === ContextMenuActions.OPEN_WITH) {
-                    item.subMenuProps = { items: openWithOptions };
-                } else if (item.key === ContextMenuActions.OPEN) {
-                    item.onClick = () => {
-                        dispatch(interaction.actions.openWithDefault(filters));
-                    };
-                } else if (item.key === ContextMenuActions.CSV_MANIFEST) {
-                    item.onClick = () => {
-                        dispatch(interaction.actions.showManifestDownloadDialog(filters));
-                    };
-                } else if (item.key === ContextMenuActions.PYTHON_SNIPPET) {
-                    item.onClick = () => {
-                        dispatch(interaction.actions.showGeneratePythonSnippetDialog(filters));
-                    };
+            const items = getContextMenuItems(dispatch).ACCESS.flatMap(
+                (item: IContextualMenuItem) => {
+                    if (item.key === ContextMenuActions.OPEN_WITH) {
+                        item.subMenuProps = { items: openWithOptions };
+                    } else if (item.key === ContextMenuActions.OPEN) {
+                        item.onClick = () => {
+                            dispatch(interaction.actions.openWithDefault(filters));
+                        };
+                    } else if (item.key === ContextMenuActions.CSV_MANIFEST) {
+                        item.onClick = () => {
+                            dispatch(interaction.actions.showManifestDownloadDialog(filters));
+                        };
+                    } else if (item.key === ContextMenuActions.PYTHON_SNIPPET) {
+                        item.onClick = () => {
+                            dispatch(interaction.actions.showGeneratePythonSnippetDialog(filters));
+                        };
+                    } else if (item.key === ContextMenuActions.SHARE_FILE_SELECTION && filters) {
+                        // Don't attempt to generate file selection from filters
+                        return [];
+                    }
+                    return [
+                        {
+                            ...item,
+                            disabled: !filters && fileSelection.count() === 0,
+                        },
+                    ];
                 }
-                return {
-                    ...item,
-                    disabled: !filters && fileSelection.count() === 0,
-                };
-            });
+            );
 
             dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent, onDismiss));
         },

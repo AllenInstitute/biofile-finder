@@ -1,6 +1,7 @@
 import { makeConstant } from "@aics/redux-utils";
 
 import Annotation from "../../entity/Annotation";
+import { Dataset } from "../../services/DatasetService";
 
 const STATE_BRANCH_NAME = "metadata";
 
@@ -38,5 +39,41 @@ export interface RequestAnnotationAction {
 export function requestAnnotations(): RequestAnnotationAction {
     return {
         type: REQUEST_ANNOTATIONS,
+    };
+}
+
+/**
+ * RECEIVE_DATASETS
+ *
+ * TODO
+ */
+export const RECEIVE_DATASETS = makeConstant(STATE_BRANCH_NAME, "receive-datasets");
+
+export interface ReceiveDatasetAction {
+    payload: Dataset[];
+    type: string;
+}
+
+export function receiveDatasets(payload: Dataset[]): ReceiveDatasetAction {
+    return {
+        payload,
+        type: RECEIVE_DATASETS,
+    };
+}
+
+/**
+ * REQUEST_DATASETS
+ *
+ * Intention to request listing of available datasets usable as a data source for files.
+ */
+export const REQUEST_DATASETS = makeConstant(STATE_BRANCH_NAME, "request-datasets");
+
+export interface RequestDatasetAction {
+    type: string;
+}
+
+export function requestDatasets(): RequestDatasetAction {
+    return {
+        type: REQUEST_DATASETS,
     };
 }

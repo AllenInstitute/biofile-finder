@@ -6,16 +6,17 @@ export interface Dataset {
     name: string;
     version: number;
     expiration?: Date;
-    collection: string;
+    collection?: string; // When frozen Dataset should not point to a collection
     query: string;
     createdBy: string;
     created: Date;
     client: string;
+    isFixed?: boolean; // If true, dataset represents a collection of file metadata frozen in time
 }
 
 export interface CreateDatasetRequest {
     name: string;
-    annotations: string[];
+    annotations?: string[]; // Undefined is equivalent to all annotations
     expiration?: Date; // Undefined is equivalent to never expiring
     selections: Selection[];
 }

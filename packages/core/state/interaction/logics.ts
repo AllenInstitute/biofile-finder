@@ -1,3 +1,4 @@
+import { batchActions, mergeState } from "@aics/redux-utils";
 import * as path from "path";
 import { isEmpty, throttle, uniq, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
@@ -31,6 +32,8 @@ import {
     DOWNLOAD_FILE,
     DownloadFileAction,
     processProgress,
+    GENERATE_SHAREABLE_FILE_SELECTION_LINK,
+    succeedShareableFileSelectionLinkGeneration,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -47,6 +50,8 @@ import {
 import { AnnotationName } from "../../constants";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import { SortOrder } from "../../entity/FileSort";
+import { setFileFilters } from "../selection/actions";
+import FileFilter from "../../entity/FileFilter";
 
 /**
  * Interceptor responsible for responding to a SET_PLATFORM_DEPENDENT_SERVICES action and
@@ -505,6 +510,74 @@ const showContextMenu = createLogic({
 });
 
 /**
+ * TODO
+ */
+const generateShareableFileSelectionLink = createLogic({
+    type: GENERATE_SHAREABLE_FILE_SELECTION_LINK,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const generateShareableFileSelectionLinkId = uniqueId();
+        dispatch(
+            processStart(
+                generateShareableFileSelectionLinkId,
+                "Generation of shareable file selection link is in progress."
+            )
+        );
+        try {
+            // TODO: Save expiration, name defaults?
+            const defaultDatasetSettings: any = {};
+
+            const datasetService = interactionSelectors.getDatasetService(deps.getState());
+            const fileSelection = selection.selectors.getFileSelection(deps.getState());
+            const fileFilters = selection.selectors.getFileFilters(deps.getState());
+            const selections = fileSelection.toCompactSelectionList();
+
+            const request: CreateDatasetRequest = {
+                ...defaultDatasetSettings,
+                ...deps.action.payload,
+                selections,
+            };
+            const dataset = await datasetService.createDataset(request);
+
+            const statusUpdate = {
+                processId: uniqueId(),
+                data: {
+                    msg: "Copied FMS File Explorer URL link to clipboard!",
+                },
+            };
+
+            const filtersWithoutDataset = fileFilters.filter((filter) => filter.name === "Dataset");
+            const filters = [...filtersWithoutDataset, new FileFilter("Dataset", dataset.id)];
+            const url = selection.selectors.getEncodedFileExplorerUrl(
+                mergeState(deps.getState(), {
+                    selection: {
+                        filters,
+                    },
+                })
+            );
+            navigator.clipboard.writeText(url);
+            dispatch(
+                batchActions([
+                    setFileFilters(filters),
+                    succeedShareableFileSelectionLinkGeneration(
+                        generateShareableFileSelectionLinkId,
+                        dataset,
+                        statusUpdate
+                    ),
+                ])
+            );
+        } catch (err) {
+            dispatch(
+                processFailure(
+                    generateShareableFileSelectionLinkId,
+                    `Failed to generate shareable file selection link: ${err}`
+                )
+            );
+        }
+        done();
+    },
+});
+
+/**
  * Interceptor responsible for responding to a GENERATE_PYTHON_SNIPPET action and generating the corresponding
  * python snippet.
  */
@@ -622,6 +695,7 @@ export default [
     promptForNewExecutable,
     downloadFile,
     showContextMenu,
+    generateShareableFileSelectionLink,
     generatePythonSnippet,
     refresh,
 ];

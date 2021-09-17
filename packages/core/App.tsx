@@ -66,6 +66,7 @@ export default function App(props: AppProps) {
         batch(() => {
             dispatch(interaction.actions.setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl));
             dispatch(metadata.actions.requestAnnotations());
+            dispatch(metadata.actions.requestDatasets());
             dispatch(selection.actions.setAnnotationHierarchy([]));
         });
     }, [dispatch, fileExplorerServiceBaseUrl]);

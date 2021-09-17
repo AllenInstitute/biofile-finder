@@ -14,13 +14,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import Annotation from "../../../entity/Annotation";
-import { interaction } from "../../../state";
+import { interaction, metadata } from "../../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import AnnotationSelector from "../AnnotationSelector";
 import * as modalSelectors from "../selectors";
-import { Dataset } from "../../../services/DatasetService";
 
-const styles = require("./PythonSnippetForm.module.css");
+const styles = require("./DatasetForm.module.css");
 
 export enum Expiration {
     OneDay = "1 Day",
@@ -44,9 +43,10 @@ const DATASET_SUBTITLES = [
 /**
  * Dialog form for generating a Python Snippet based on current selection state
  */
-export default function PythonSnippetForm({ onDismiss }: ModalProps) {
+export default function DatasetForm({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
 
+    const existingDatasets = useSelector(metadata.selectors.getDatasets);
     const annotationsPreviouslySelected = useSelector(
         modalSelectors.getAnnotationsPreviouslySelected
     );
@@ -56,20 +56,10 @@ export default function PythonSnippetForm({ onDismiss }: ModalProps) {
             : annotationsPreviouslySelected
     );
 
+    // TODO: Pull defaults here
     const [expiration, setExpiration] = React.useState<string>();
     const [dataset, setDataset] = React.useState<string>("");
-    const [existingDatasets, setExistingDatasets] = React.useState<Dataset[]>([]);
     const [isDatasetSubtitleExpanded, setIsDatasetSubtitleExpanded] = React.useState(true);
-
-    // Determine the existing datasets to provide some feedback on the input dataset (if any)
-    const datasetService = useSelector(interaction.selectors.getDatasetService);
-    React.useEffect(() => {
-        const getDatasets = async () => {
-            const datasets = await datasetService.getDatasets();
-            setExistingDatasets(datasets);
-        };
-        getDatasets();
-    }, [datasetService]);
 
     // Datasets can have the same name with different versions, see if this would
     // need to be a new version based on the name
@@ -106,7 +96,7 @@ export default function PythonSnippetForm({ onDismiss }: ModalProps) {
 
     const body = (
         <>
-            <h4>Step 1: Dataset creation</h4>
+            <h4>Step 1: Dataset Metadata</h4>
             {isDatasetSubtitleExpanded ? (
                 <div>
                     {DATASET_SUBTITLES.map((text) => (
@@ -161,13 +151,20 @@ export default function PythonSnippetForm({ onDismiss }: ModalProps) {
                 </div>
             </div>
             <hr />
-            <h4>Step 2: Select dataframe columns</h4>
-            <p>Select which annotations you would like included as columns in the dataframe.</p>
-            <AnnotationSelector
-                className={styles.form}
-                selections={selectedAnnotations}
-                setSelections={setSelectedAnnotations}
-            />
+            {isFixed && (
+                <>
+                    <h4>Step 2: Select dataframe columns</h4>
+                    <p>
+                        Select which annotations you would like included as columns in the
+                        dataframe.
+                    </p>
+                    <AnnotationSelector
+                        className={styles.form}
+                        selections={selectedAnnotations}
+                        setSelections={setSelectedAnnotations}
+                    />
+                </>
+            )}
         </>
     );
 
