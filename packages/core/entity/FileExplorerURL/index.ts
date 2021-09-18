@@ -5,10 +5,12 @@ import { AnnotationValue } from "../../services/AnnotationService";
 import { ValueError } from "../../errors";
 import FileSort, { SortOrder } from "../FileSort";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
+import { Dataset } from "../../services/DatasetService";
 
 // Components of the application state this captures
 export interface FileExplorerURLComponents {
     hierarchy: Annotation[];
+    fileSetSourceId?: string;
     filters: FileFilter[];
     openFolders: FileFolder[];
     sortColumn?: FileSort;
@@ -17,6 +19,7 @@ export interface FileExplorerURLComponents {
 // JSON format this outputs & expects to receive back from the user
 interface FileExplorerURLJson {
     groupBy: string[];
+    fileSetSourceId?: string;
     filters: FileFilterJson[];
     openFolders: AnnotationValue[][];
     sort?: {
@@ -34,9 +37,13 @@ export default class FileExplorerURL {
     public static PROTOCOL = "fms-file-explorer://";
 
     // Returns an error message if the URL is invalid, returns undefined otherwise
-    public static validateEncodedFileExplorerURL(encodedURL: string, annotations: Annotation[]) {
+    public static validateEncodedFileExplorerURL(
+        encodedURL: string,
+        annotations: Annotation[],
+        datasets: Dataset[]
+    ) {
         try {
-            FileExplorerURL.decode(encodedURL, annotations);
+            FileExplorerURL.decode(encodedURL, annotations, datasets);
             return undefined;
         } catch (error) {
             return error.message;
@@ -66,6 +73,7 @@ export default class FileExplorerURL {
             filters,
             openFolders,
             sort,
+            fileSetSourceId: urlComponents.fileSetSourceId,
         };
         return `${FileExplorerURL.PROTOCOL}${JSON.stringify(dataToEncode)}`;
     }
@@ -74,7 +82,11 @@ export default class FileExplorerURL {
      * Decode a previously encoded FileExplorerURL into components that can be rehydrated into the
      * application state
      */
-    public static decode(encodedURL: string, annotations: Annotation[]): FileExplorerURLComponents {
+    public static decode(
+        encodedURL: string,
+        annotations: Annotation[],
+        datasets: Dataset[]
+    ): FileExplorerURLComponents {
         const trimmedEncodedURL = encodedURL.trim();
         if (!trimmedEncodedURL.startsWith(FileExplorerURL.PROTOCOL)) {
             throw new ValueError(
@@ -103,6 +115,15 @@ export default class FileExplorerURL {
             sortColumn = new FileSort(parsedURL.sort.annotationName, parsedURL.sort.order);
         }
 
+        if (
+            parsedURL.fileSetSourceId &&
+            !datasets.find((dataset) => dataset.id === parsedURL.fileSetSourceId)
+        ) {
+            throw new ValueError(
+                `Unable to decode FileExplorerURL, couldn't find File Set Source (${parsedURL.fileSetSourceId})`
+            );
+        }
+
         const hierarchyDepth = parsedURL.groupBy.length;
         const annotationNameSet = new Set([
             ...annotations.map((annotation) => annotation.name),
@@ -118,6 +139,7 @@ export default class FileExplorerURL {
                 const matchingAnnotation = annotations.filter((a) => a.name === annotationName)[0];
                 return matchingAnnotation;
             }),
+            fileSetSourceId: parsedURL.fileSetSourceId,
             filters: parsedURL.filters.map((filter) => {
                 if (!annotationNameSet.has(filter.name)) {
                     throw new ValueError(

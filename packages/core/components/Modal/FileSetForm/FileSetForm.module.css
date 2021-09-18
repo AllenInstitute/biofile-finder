@@ -1,0 +1,34 @@
+.subtitle-button {
+    border: none;
+    font-size: small;
+    margin-left: auto;
+}
+
+.subtitle-button-container {
+    display: flex;
+}
+
+.form {
+    padding: 0 3%;
+}
+
+.dataset-form {
+    display: flex;
+    margin-bottom: 1em;
+}
+
+.name-input {
+    padding-left: 15px;
+    width: 100%;
+}
+
+.name-input-subtext {
+    color: #a7a7a7;
+    font-size: smaller;
+    padding-top: 5px;
+}
+
+.expiration-input {
+    max-width: 100px;
+    width: 100%;
+}

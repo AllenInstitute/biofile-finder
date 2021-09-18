@@ -511,6 +511,7 @@ export default class FileSelection {
         for (const [fileSet, selectedRanges] of this.groupByFileSet().entries()) {
             const accumulator: { [index: string]: any } = {};
             const selection: Selection = {
+                fileSetSourceId: fileSet.fileSetSourceId,
                 filters: fileSet.filters.reduce((accum, filter) => {
                     const existing = accum[filter.name] || [];
                     return {

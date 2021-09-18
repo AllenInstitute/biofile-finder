@@ -1,4 +1,3 @@
-import { orderBy, uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
@@ -21,8 +20,5 @@ export const getCustomAnnotationsCombinedWithFileAttributes = createSelector(
 );
 
 export const getActiveDatasets = createSelector(getDatasets, (datasets): Dataset[] =>
-    uniqBy(
-        orderBy(datasets, ["name", "version"], ["asc", "desc"]),
-        (dataset) => `${dataset.name}${dataset.version}`
-    ).filter((dataset) => !dataset.expiration || new Date(dataset.expiration) > new Date())
+    datasets.filter((dataset) => !dataset.expiration || new Date(dataset.expiration) > new Date())
 );

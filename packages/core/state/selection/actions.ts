@@ -7,7 +7,6 @@ import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import FileSort from "../../entity/FileSort";
 import NumericRange from "../../entity/NumericRange";
-import { Dataset } from "../../services/DatasetService";
 
 const STATE_BRANCH_NAME = "selection";
 
@@ -467,20 +466,20 @@ export function decodeFileExplorerURL(decodedFileExplorerURL: string): DecodeFil
 }
 
 /**
- * CHANGE_DATA_SOURCE
+ * SET_FILE_SET_SOURCE
  *
- * TODO
+ * Intention to update the file set source queries are made against
  */
-export const CHANGE_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "change-data-source");
+export const SET_FILE_SET_SOURCE = makeConstant(STATE_BRANCH_NAME, "set-file-set-source");
 
-export interface ChangeDataSourceAction {
-    payload?: Dataset;
+export interface SetFileSetSourceAction {
+    payload?: string;
     type: string;
 }
 
-export function changeDataSource(dataset?: Dataset): ChangeDataSourceAction {
+export function setFileSetSource(datasetId?: string): SetFileSetSourceAction {
     return {
-        payload: dataset,
-        type: CHANGE_DATA_SOURCE,
+        payload: datasetId,
+        type: SET_FILE_SET_SOURCE,
     };
 }

@@ -45,7 +45,8 @@ export function requestAnnotations(): RequestAnnotationAction {
 /**
  * RECEIVE_DATASETS
  *
- * TODO
+ * Intention to store listing of datasets returned from data service. These are sets of file metadata
+ * that can be used to narrow the set of explorable files down.
  */
 export const RECEIVE_DATASETS = makeConstant(STATE_BRANCH_NAME, "receive-datasets");
 

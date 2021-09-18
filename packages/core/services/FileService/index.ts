@@ -42,6 +42,7 @@ export interface GetFilesRequest {
 }
 
 export interface Selection {
+    fileSetSourceId?: string;
     filters: {
         [index: string]: (string | number | boolean)[];
     };

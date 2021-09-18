@@ -7,6 +7,7 @@ import FileService, { FmsFile } from "../../services/FileService";
 
 interface Opts {
     fileService: FileService;
+    fileSetSourceId?: string;
     filters: FileFilter[];
     maxCacheSize: number;
     sort?: FileSort;
@@ -33,6 +34,7 @@ export default class FileSet {
     private cache: LRUCache<number, FmsFile>;
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
+    public readonly fileSetSourceId?: string;
     public readonly sort?: FileSort;
     private totalFileCount: number | undefined;
 
@@ -41,12 +43,17 @@ export default class FileSet {
     }
 
     constructor(opts: Partial<Opts> = {}) {
-        const { fileService, filters, maxCacheSize, sort } = defaults({}, opts, DEFAULT_OPTS);
+        const { fileService, fileSetSourceId, filters, maxCacheSize, sort } = defaults(
+            {},
+            opts,
+            DEFAULT_OPTS
+        );
 
         this.cache = new LRUCache<number, FmsFile>({ max: maxCacheSize });
         this._filters = filters;
         this.sort = sort;
         this.fileService = fileService;
+        this.fileSetSourceId = fileSetSourceId;
 
         this.fetchFileRange = this.fetchFileRange.bind(this);
         this.isFileMetadataLoaded = this.isFileMetadataLoaded.bind(this);
@@ -145,6 +152,10 @@ export default class FileSet {
 
         if (this.sort) {
             query.push(this.sort.toQueryString());
+        }
+        if (this.fileSetSourceId) {
+            // TODO: Add after FES works
+            // query.push(`source=${this.fileSetSourceId}`);
         }
 
         return join(query, "&");

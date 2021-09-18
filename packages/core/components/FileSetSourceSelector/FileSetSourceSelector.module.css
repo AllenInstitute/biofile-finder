@@ -16,9 +16,9 @@
 }
 
 .dropdown {
-    display: flex;
+    width: 100%;
 }
 
-.dropdown-selector {
-    width: 100%;
+.file-set-option-header {
+    color: orange;
 }

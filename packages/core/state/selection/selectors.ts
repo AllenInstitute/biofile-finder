@@ -17,6 +17,7 @@ export const getAvailableAnnotationsForHierarchyLoading = (state: State) =>
     state.selection.availableAnnotationsForHierarchyLoading;
 export const getColumnWidths = (state: State) => state.selection.columnWidths;
 export const getFileFilters = (state: State) => state.selection.filters;
+export const getFileSetSourceId = (state: State) => state.selection.fileSetSourceId;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getSortColumn = (state: State) => state.selection.sortColumn;
@@ -30,26 +31,28 @@ export const getOrderedDisplayAnnotations = createSelector(
 );
 
 export const getEncodedFileExplorerUrl = createSelector(
-    [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn],
+    [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn, getFileSetSourceId],
     (
         hierarchy: Annotation[],
         filters: FileFilter[],
         openFolders: FileFolder[],
-        sortColumn?: FileSort
+        sortColumn?: FileSort,
+        fileSetSourceId?: string
     ) => {
-        return FileExplorerURL.encode({ hierarchy, filters, openFolders, sortColumn });
+        return FileExplorerURL.encode({
+            hierarchy,
+            filters,
+            openFolders,
+            sortColumn,
+            fileSetSourceId,
+        });
     }
 );
 
 export const getAnnotationFilters = createSelector([getFileFilters], (fileFilters): FileFilter[] =>
-    fileFilters.filter((f) => !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(f.name))
+    fileFilters.filter((f) => ![...TOP_LEVEL_FILE_ANNOTATION_NAMES, "source"].includes(f.name))
 );
 
 export const getFileAttributeFilter = createSelector([getFileFilters], (fileFilters):
     | FileFilter
     | undefined => fileFilters.find((f) => TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(f.name)));
-
-export const getDatasetId = createSelector(
-    getFileFilters,
-    (filters): string | undefined => filters.find((filter) => filter.name === "Dataset")?.value
-);

@@ -53,12 +53,12 @@ const requestAnnotations = createLogic({
 });
 
 /**
- * TODO
+ * Interceptor responsible for turning REQUEST_DATASETS action into a network call for datasets. Outputs
+ * RECEIVE_DATASETS action.
  */
 const requestDatasets = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { getState } = deps;
-        // TODO: This might prevent testing as a selector?
         const datasetService = interaction.selectors.getDatasetService(getState());
 
         try {

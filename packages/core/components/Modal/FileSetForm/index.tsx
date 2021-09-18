@@ -7,19 +7,14 @@ import {
     TextField,
 } from "@fluentui/react";
 import classNames from "classnames";
-import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
-import Annotation from "../../../entity/Annotation";
 import { interaction, metadata } from "../../../state";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
-import AnnotationSelector from "../AnnotationSelector";
-import * as modalSelectors from "../selectors";
 
-const styles = require("./DatasetForm.module.css");
+const styles = require("./FileSetForm.module.css");
 
 export enum Expiration {
     OneDay = "1 Day",
@@ -35,26 +30,17 @@ const EXPIRATIONS: IChoiceGroupOption[] = Object.values(Expiration).map((key) =>
 }));
 
 const DATASET_SUBTITLES = [
-    "In order to reproduce your exact selection later, we’ll create an immutable, point-in-time snapshot of the metadata for the files you’ve selected (a \"dataset\"). You won't be able to add to or remove from this dataset once created, nor will the files' metadata be modifiable.",
-    "In order to reference this dataset, give it a name. If a dataset of that name already exists, we’ll create a new version of that dataset automatically; any previous versions will still be accessible.",
-    "Last, select how long to keep this dataset around. If this is being created for a one-off task, consider selecting a shorter lifespan.",
+    "In order to reference this file set, give it a name. If a file set of that name already exists, we’ll create a new version of that file set automatically; any previous versions will still be accessible.",
+    "Last, select how long to keep this file set around. If this is being created for a one-off task, consider selecting a shorter lifespan.",
 ];
 
 /**
  * Dialog form for generating a Python Snippet based on current selection state
  */
-export default function DatasetForm({ onDismiss }: ModalProps) {
+export default function FileSetForm({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
 
     const existingDatasets = useSelector(metadata.selectors.getDatasets);
-    const annotationsPreviouslySelected = useSelector(
-        modalSelectors.getAnnotationsPreviouslySelected
-    );
-    const [selectedAnnotations, setSelectedAnnotations] = React.useState<Annotation[]>(() =>
-        isEmpty(annotationsPreviouslySelected)
-            ? [...TOP_LEVEL_FILE_ANNOTATIONS]
-            : annotationsPreviouslySelected
-    );
 
     const [expiration, setExpiration] = React.useState<string>();
     const [dataset, setDataset] = React.useState<string>("");
@@ -88,14 +74,12 @@ export default function DatasetForm({ onDismiss }: ModalProps) {
             expirationDate = undefined;
         }
 
-        dispatch(
-            interaction.actions.generatePythonSnippet(dataset, selectedAnnotations, expirationDate)
-        );
+        dispatch(interaction.actions.generatePythonSnippet(dataset, [], expirationDate));
     };
 
     const body = (
         <>
-            <h4>Step 1: Dataset Metadata</h4>
+            <h4>Step 1: File Set Metadata</h4>
             {isDatasetSubtitleExpanded ? (
                 <div>
                     {DATASET_SUBTITLES.map((text) => (
@@ -140,7 +124,7 @@ export default function DatasetForm({ onDismiss }: ModalProps) {
                         value={dataset}
                         spellCheck={false}
                         onChange={(_, value) => setDataset(value || "")}
-                        placeholder="Enter dataset name..."
+                        placeholder="Enter file set name..."
                     />
                     {dataset && (
                         <div className={styles.nameInputSubtext}>
@@ -149,14 +133,6 @@ export default function DatasetForm({ onDismiss }: ModalProps) {
                     )}
                 </div>
             </div>
-            <hr />
-            <h4>Step 2: Select dataframe columns</h4>
-            <p>Select which annotations you would like included as columns in the dataframe.</p>
-            <AnnotationSelector
-                className={styles.form}
-                selections={selectedAnnotations}
-                setSelections={setSelectedAnnotations}
-            />
         </>
     );
 
@@ -166,12 +142,12 @@ export default function DatasetForm({ onDismiss }: ModalProps) {
             footer={
                 <PrimaryButton
                     text="Generate"
-                    disabled={!selectedAnnotations.length || !dataset || !expiration}
+                    disabled={!dataset || !expiration}
                     onClick={onGenerate}
                 />
             }
             onDismiss={onDismiss}
-            title="Generate Fixed Dataset"
+            title="Generate Live File Set"
         />
     );
 }

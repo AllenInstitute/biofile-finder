@@ -1,20 +1,19 @@
 import { Dispatch } from "redux";
 
-import { ContextualMenuItemType } from "./";
 import { interaction } from "../../state";
 
 export enum ContextMenuActions {
     COPY = "copy",
     CSV_MANIFEST = "csv-manifest",
+    FIXED_DATASET = "fixed-dataset",
+    LIVE_FILE_SET = "live-file-set",
     MODIFY_COLUMNS = "modify-columns",
     OPEN = "open",
     OPEN_WITH = "open-with",
     OPEN_WITH_OTHER = "open-with-other",
     PASTE = "paste",
-    PYTHON_SNIPPET = "python-snippet",
-    SHARE_FILE_SELECTION = "share-file-selection",
-    SHARE_FILE_SELECTION_CUSTOM = "share-file-selection-custom",
-    SHARE_FILE_SELECTION_DEFAULT = "share-file-selection-default",
+    SHARE = "share",
+    TEMPORARY_LINK = "temporary-link",
 }
 
 /**
@@ -25,11 +24,6 @@ export enum ContextMenuActions {
 export default function getContextMenuItems(dispatch: Dispatch) {
     return {
         ACCESS: [
-            {
-                key: "non-programmatic-access",
-                text: "Non-programmatic access",
-                itemType: ContextualMenuItemType.Header,
-            },
             {
                 key: ContextMenuActions.OPEN,
                 text: "Open",
@@ -44,27 +38,33 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                 // inserted here
             },
             {
-                key: ContextMenuActions.SHARE_FILE_SELECTION,
-                text: "Generate shareable link",
-                title: "Shareable FMS File Explorer URL to file selection",
+                key: ContextMenuActions.SHARE,
+                text: "Share",
                 subMenuProps: {
                     items: [
                         {
-                            key: ContextMenuActions.SHARE_FILE_SELECTION_DEFAULT,
-                            text: "Generate shareable link",
+                            key: ContextMenuActions.TEMPORARY_LINK,
+                            text: "Copy temporary link to files",
                             title: "Shareable FMS File Explorer URL to file selection",
                             onClick() {
                                 dispatch(interaction.actions.generateShareableFileSelectionLink());
                             },
                         },
                         {
-                            key: ContextMenuActions.SHARE_FILE_SELECTION_CUSTOM,
-                            text: "Generate shareable link with custom options",
-                            title: "Shareable FMS File Explorer URL to file selection",
+                            key: ContextMenuActions.LIVE_FILE_SET,
+                            text: "Generate live file set",
+                            title: "Generate a live file set to share",
                             onClick() {
-                                dispatch(
-                                    interaction.actions.showGenerateShareableFileSelectionDialog()
-                                );
+                                dispatch(interaction.actions.showGenerateLiveFileSetDialog());
+                            },
+                        },
+                        {
+                            key: ContextMenuActions.FIXED_DATASET,
+                            text: "Generate fixed immutable dataset",
+                            title:
+                                "Generate a fixed dataset with immutable metadata from this point in time",
+                            onClick() {
+                                dispatch(interaction.actions.showGenerateFixedDatasetDialog());
                             },
                         },
                     ],
@@ -76,19 +76,6 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                 title: "CSV file of metadata of selected files",
                 onClick() {
                     dispatch(interaction.actions.showManifestDownloadDialog());
-                },
-            },
-            {
-                key: "programmatic-access",
-                text: "Programmatic access",
-                itemType: ContextualMenuItemType.Header,
-            },
-            {
-                key: ContextMenuActions.PYTHON_SNIPPET,
-                text: "Generate Python snippet",
-                title: "Get a snippet in Python to work with your file selection programmatically",
-                onClick() {
-                    dispatch(interaction.actions.showGeneratePythonSnippetDialog());
                 },
             },
         ],

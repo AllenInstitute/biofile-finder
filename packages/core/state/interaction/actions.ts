@@ -416,30 +416,9 @@ export function processFailure(processId: string, msg: string): ProcessFailureAc
 }
 
 /**
- * SHOW_GENERATE_SHAREABLE_FILE_SELECTION_DIALOG
- *
- * TODO
- */
-
-export const SHOW_GENERATE_SHAREABLE_FILE_SELECTION_DIALOG = makeConstant(
-    STATE_BRANCH_NAME,
-    "show-generate-shareable-file-selection-dialog"
-);
-
-export interface ShowGenerateShareableFileSelectionDialogAction {
-    type: string;
-}
-
-export function showGenerateShareableFileSelectionDialog(): ShowGenerateShareableFileSelectionDialogAction {
-    return {
-        type: SHOW_GENERATE_SHAREABLE_FILE_SELECTION_DIALOG,
-    };
-}
-
-/**
  * GENERATE_SHAREABLE_FILE_SELECTION_LINK
  *
- * TODO
+ * Intention to generate a shareable link to the selected files.
  */
 export const GENERATE_SHAREABLE_FILE_SELECTION_LINK = makeConstant(
     STATE_BRANCH_NAME,
@@ -447,11 +426,15 @@ export const GENERATE_SHAREABLE_FILE_SELECTION_LINK = makeConstant(
 );
 
 export interface GenerateShareableFileSelectionLinkAction {
+    payload?: FileFilter[];
     type: string;
 }
 
-export function generateShareableFileSelectionLink(): GenerateShareableFileSelectionLinkAction {
+export function generateShareableFileSelectionLink(
+    fileFilters?: FileFilter[]
+): GenerateShareableFileSelectionLinkAction {
     return {
+        payload: fileFilters,
         type: GENERATE_SHAREABLE_FILE_SELECTION_LINK,
     };
 }
@@ -459,7 +442,7 @@ export function generateShareableFileSelectionLink(): GenerateShareableFileSelec
 /**
  * SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION
  *
- * TODO
+ * Intention to inform user of successful generation of shareable link to selected files.
  */
 export const SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION = makeConstant(
     STATE_BRANCH_NAME,
@@ -522,25 +505,49 @@ export function succeedPythonSnippetGeneration(
 }
 
 /**
- * SHOW_GENERATE_PYTHON_SNIPPET_DIALOG
+ * SHOW_GENERATE_LIVE_FILE_SET_DIALOG
  *
  * Intention to show the generate python snippet dialog.
  */
-export const SHOW_GENERATE_PYTHON_SNIPPET_DIALOG = makeConstant(
+export const SHOW_GENERATE_LIVE_FILE_SET_DIALOG = makeConstant(
     STATE_BRANCH_NAME,
-    "show-generate-python-snippet-dialog"
+    "show-generate-live-file-set-dialog"
 );
 
-export interface ShowGeneratePythonSnippetDialogAction {
+export interface ShowGenerateLiveFileSetDialogAction {
     type: string;
     payload: FileFilter[];
 }
 
-export function showGeneratePythonSnippetDialog(
+export function showGenerateLiveFileSetDialog(
     fileFilters: FileFilter[] = []
-): ShowGeneratePythonSnippetDialogAction {
+): ShowGenerateLiveFileSetDialogAction {
     return {
-        type: SHOW_GENERATE_PYTHON_SNIPPET_DIALOG,
+        type: SHOW_GENERATE_LIVE_FILE_SET_DIALOG,
+        payload: fileFilters,
+    };
+}
+
+/**
+ * SHOW_GENERATE_PYTHON_SNIPPET_DIALOG
+ *
+ * Intention to show the dialog for generating a fixed dataset.
+ */
+export const SHOW_GENERATE_FIXED_DATASET_DIALOG = makeConstant(
+    STATE_BRANCH_NAME,
+    "show-generate-fixed-dataset-dialog"
+);
+
+export interface ShowGenerateFixedDatasetDialogAction {
+    type: string;
+    payload: FileFilter[];
+}
+
+export function showGenerateFixedDatasetDialog(
+    fileFilters: FileFilter[] = []
+): ShowGenerateFixedDatasetDialogAction {
+    return {
+        type: SHOW_GENERATE_FIXED_DATASET_DIALOG,
         payload: fileFilters,
     };
 }

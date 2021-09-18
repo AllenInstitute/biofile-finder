@@ -1,4 +1,4 @@
-import { batchActions, mergeState } from "@aics/redux-utils";
+import { mergeState } from "@aics/redux-utils";
 import * as path from "path";
 import { isEmpty, throttle, uniq, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
@@ -42,16 +42,14 @@ import annotationFormatterFactory, { AnnotationType } from "../../entity/Annotat
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
 import { CreateDatasetRequest } from "../../services/DatasetService";
-import { SelectionRequest, Selection, FmsFile } from "../../services/FileService";
+import { SelectionRequest, FmsFile } from "../../services/FileService";
 import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
 } from "../../services/ExecutionEnvService";
 import { AnnotationName } from "../../constants";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
-import { SortOrder } from "../../entity/FileSort";
-import { setFileFilters } from "../selection/actions";
-import FileFilter from "../../entity/FileFilter";
+import FileSelection from "../../entity/FileSelection";
 
 /**
  * Interceptor responsible for responding to a SET_PLATFORM_DEPENDENT_SERVICES action and
@@ -97,7 +95,9 @@ const downloadManifest = createLogic({
             const platformDependentServices = interactionSelectors.getPlatformDependentServices(
                 state
             );
+            let fileSelection = selection.selectors.getFileSelection(state);
             const filters = interactionSelectors.getFileFiltersForVisibleModal(state);
+            const fileSetSourceId = selection.selectors.getFileSetSourceId(state);
             const fileService = interactionSelectors.getFileService(state);
             const sortColumn = selection.selectors.getSortColumn(state);
             const csvService = new CsvService({
@@ -106,38 +106,25 @@ const downloadManifest = createLogic({
                 downloadService: platformDependentServices.fileDownloadService,
             });
 
-            let selections: Selection[];
-
             // If we have a specific path to get files from ignore selected files
             if (filters.length) {
                 const fileSet = new FileSet({
+                    fileSetSourceId,
                     filters,
                     fileService,
                     sort: sortColumn,
                 });
                 const count = await fileSet.fetchTotalCount();
-                const accumulator: { [index: string]: any } = {};
-                const selection: Selection = {
-                    filters: fileSet.filters.reduce((accum, filter) => {
-                        const existing = accum[filter.name] || [];
-                        return {
-                            ...accum,
-                            [filter.name]: [...existing, filter.value],
-                        };
-                    }, accumulator),
-                    indexRanges: [new NumericRange(0, count - 1).toJSON()],
-                    sort: sortColumn
-                        ? {
-                              annotationName: sortColumn.annotationName,
-                              ascending: sortColumn.order === SortOrder.ASC,
-                          }
-                        : undefined,
-                };
-                selections = [selection];
-            } else {
-                const fileSelection = selection.selectors.getFileSelection(state);
-                selections = fileSelection.toCompactSelectionList();
+                fileSelection = new FileSelection([
+                    {
+                        selection: new NumericRange(0, count - 1),
+                        fileSet,
+                        sortOrder: 0,
+                    },
+                ]);
             }
+
+            const selections = fileSelection.toCompactSelectionList();
 
             if (isEmpty(selections)) {
                 return;
@@ -341,6 +328,7 @@ const openWithDefault = createLogic({
         const filters = deps.action.payload;
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
+        const fileSetSourceId = selection.selectors.getFileSetSourceId(deps.getState());
         const sortColumn = selection.selectors.getSortColumn(deps.getState());
         const userSelectedApplications =
             interactionSelectors.getUserSelectedApplications(deps.getState()) || [];
@@ -351,6 +339,7 @@ const openWithDefault = createLogic({
             files = await fileSelection.fetchAllDetails();
         } else {
             const fileSet = new FileSet({
+                fileSetSourceId,
                 filters,
                 fileService,
                 sort: sortColumn,
@@ -401,6 +390,7 @@ const openWithLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
+        const fileSetSourceId = selection.selectors.getFileSetSourceId(deps.getState());
         const savedAllenMountPoint = interactionSelectors.getAllenMountPoint(deps.getState());
         const {
             fileViewerService,
@@ -466,6 +456,7 @@ const openWithLogic = createLogic({
                     filesToOpen = files;
                 } else if (filters) {
                     const fileSet = new FileSet({
+                        fileSetSourceId,
                         filters,
                         fileService,
                         sort: sortColumn,
@@ -510,7 +501,9 @@ const showContextMenu = createLogic({
 });
 
 /**
- * TODO
+ * Interceptor responsible for responding to GENERATE_SHAREABLE_FILE_SELECTION_LINK actions
+ * and processing the current file selection into a shareable link that will be copied to
+ * the user's clipboard and dispatching SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION
  */
 const generateShareableFileSelectionLink = createLogic({
     type: GENERATE_SHAREABLE_FILE_SELECTION_LINK,
@@ -523,12 +516,36 @@ const generateShareableFileSelectionLink = createLogic({
             )
         );
         try {
-            // TODO: Save expiration, name defaults?
-            const defaultDatasetSettings: any = {};
+            const user = "seanm"; // TODO: Get user?
+            const defaultDatasetSettings: any = {
+                name: `${user} - ${new Date().getDate()}`,
+            };
 
+            const filters = deps.action.payload;
+            let fileSelection = selection.selectors.getFileSelection(deps.getState());
             const datasetService = interactionSelectors.getDatasetService(deps.getState());
-            const fileSelection = selection.selectors.getFileSelection(deps.getState());
-            const fileFilters = selection.selectors.getFileFilters(deps.getState());
+
+            // If we have a specific path to get files from ignore selected files
+            if (filters.length) {
+                const fileSetSourceId = selection.selectors.getFileSetSourceId(deps.getState());
+                const sortColumn = selection.selectors.getSortColumn(deps.getState());
+                const fileService = interactionSelectors.getFileService(deps.getState());
+                const fileSet = new FileSet({
+                    fileSetSourceId,
+                    filters,
+                    fileService,
+                    sort: sortColumn,
+                });
+                const count = await fileSet.fetchTotalCount();
+                fileSelection = new FileSelection([
+                    {
+                        selection: new NumericRange(0, count - 1),
+                        fileSet,
+                        sortOrder: 0,
+                    },
+                ]);
+            }
+
             const selections = fileSelection.toCompactSelectionList();
 
             const request: CreateDatasetRequest = {
@@ -545,25 +562,20 @@ const generateShareableFileSelectionLink = createLogic({
                 },
             };
 
-            const filtersWithoutDataset = fileFilters.filter((filter) => filter.name === "Dataset");
-            const filters = [...filtersWithoutDataset, new FileFilter("Dataset", dataset.id)];
             const url = selection.selectors.getEncodedFileExplorerUrl(
                 mergeState(deps.getState(), {
                     selection: {
-                        filters,
+                        fileSetSourceId: dataset.id,
                     },
                 })
             );
             navigator.clipboard.writeText(url);
             dispatch(
-                batchActions([
-                    setFileFilters(filters),
-                    succeedShareableFileSelectionLinkGeneration(
-                        generateShareableFileSelectionLinkId,
-                        dataset,
-                        statusUpdate
-                    ),
-                ])
+                succeedShareableFileSelectionLinkGeneration(
+                    generateShareableFileSelectionLinkId,
+                    dataset,
+                    statusUpdate
+                )
             );
         } catch (err) {
             dispatch(
@@ -596,41 +608,33 @@ const generatePythonSnippet = createLogic({
                     "Generation of Python snippet is in progress."
                 )
             );
+            let fileSelection = selection.selectors.getFileSelection(getState());
             const datasetService = interactionSelectors.getDatasetService(getState());
-            const fileService = interactionSelectors.getFileService(getState());
             const filters = interactionSelectors.getFileFiltersForVisibleModal(getState());
-            const sortColumn = selection.selectors.getSortColumn(deps.getState());
 
-            let selections;
-            if (!filters.length) {
-                const fileSelection = selection.selectors.getFileSelection(getState());
-                selections = fileSelection.toCompactSelectionList();
-            } else {
+            // If we have a specific path to get files from ignore selected files
+            if (filters.length) {
+                const fileSetSourceId = selection.selectors.getFileSetSourceId(deps.getState());
+                const sortColumn = selection.selectors.getSortColumn(deps.getState());
+                const fileService = interactionSelectors.getFileService(deps.getState());
                 const fileSet = new FileSet({
+                    fileSetSourceId,
                     filters,
                     fileService,
                     sort: sortColumn,
                 });
                 const count = await fileSet.fetchTotalCount();
-                const accumulator: { [index: string]: any } = {};
-                const selection: Selection = {
-                    filters: fileSet.filters.reduce((accum, filter) => {
-                        const existing = accum[filter.name] || [];
-                        return {
-                            ...accum,
-                            [filter.name]: [...existing, filter.value],
-                        };
-                    }, accumulator),
-                    indexRanges: [new NumericRange(0, count - 1).toJSON()],
-                    sort: sortColumn
-                        ? {
-                              annotationName: sortColumn.annotationName,
-                              ascending: sortColumn.order === SortOrder.ASC,
-                          }
-                        : undefined,
-                };
-                selections = [selection];
+                fileSelection = new FileSelection([
+                    {
+                        selection: new NumericRange(0, count - 1),
+                        fileSet,
+                        sortOrder: 0,
+                    },
+                ]);
             }
+
+            const selections = fileSelection.toCompactSelectionList();
+
             const request: CreateDatasetRequest = {
                 annotations: annotations.map((annotation) => annotation.name),
                 expiration,

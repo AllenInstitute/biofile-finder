@@ -20,7 +20,7 @@ import {
     RESET_COLUMN_WIDTH,
     SORT_COLUMN,
     SET_SORT_COLUMN,
-    CHANGE_DATA_SOURCE,
+    SET_FILE_SET_SOURCE,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 
@@ -33,6 +33,7 @@ export interface SelectionStateBranch {
     };
     displayAnnotations: Annotation[];
     fileSelection: FileSelection;
+    fileSetSourceId?: string; // DatasetID
     filters: FileFilter[];
     openFileFolders: FileFolder[];
     sortColumn?: FileSort;
@@ -88,9 +89,9 @@ export default makeReducer<SelectionStateBranch>(
                 sortColumn: new FileSort(action.payload, SortOrder.DESC),
             };
         },
-        [CHANGE_DATA_SOURCE]: (state, action) => ({
+        [SET_FILE_SET_SOURCE]: (state, action) => ({
             ...state,
-            dataSource: action.payload,
+            fileSetSourceId: action.payload,
         }),
         [SET_SORT_COLUMN]: (state, action) => ({
             ...state,
