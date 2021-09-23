@@ -483,3 +483,22 @@ export function setFileSetSource(datasetId?: string): SetFileSetSourceAction {
         type: SET_FILE_SET_SOURCE,
     };
 }
+
+/**
+ * CHANGE_VIEW
+ * 
+ * TODO
+ */
+export const CHANGE_VIEW = makeConstant(STATE_BRANCH_NAME, "change-view");
+
+export interface ChangeViewAction {
+    payload: string;
+    type: string;
+}
+
+export function changeView(viewId: string): ChangeViewAction {
+    return {
+        payload: viewId,
+        type: CHANGE_VIEW,
+    }
+}

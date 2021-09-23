@@ -11,13 +11,16 @@ export interface Dataset {
     createdBy: string;
     created: Date;
     client: string;
-    isFixed?: boolean; // If true, dataset represents a collection of file metadata frozen in time
+    fixed: boolean; // If true, dataset represents a collection of file metadata frozen in time
+    private: boolean;
 }
 
 export interface CreateDatasetRequest {
     name: string;
     annotations?: string[]; // Undefined is equivalent to all annotations
     expiration?: Date; // Undefined is equivalent to never expiring
+    fixed: boolean;
+    private: boolean;
     selections: Selection[];
 }
 

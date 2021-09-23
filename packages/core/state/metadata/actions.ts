@@ -70,11 +70,13 @@ export function receiveDatasets(payload: Dataset[]): ReceiveDatasetAction {
 export const REQUEST_DATASETS = makeConstant(STATE_BRANCH_NAME, "request-datasets");
 
 export interface RequestDatasetAction {
+    payload?: string;
     type: string;
 }
 
-export function requestDatasets(): RequestDatasetAction {
+export function requestDatasets(name?: string): RequestDatasetAction {
     return {
+        payload: name,
         type: REQUEST_DATASETS,
     };
 }

@@ -56,7 +56,7 @@ export default function AnnotationSidebar(props: AnnotationSidebarProps) {
     return (
         <div className={classNames(styles.root, props.className)}>
             <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
-                <FileSetSourceSelector className={styles.dataSourceSelector} />
+                {/* <FileSetSourceSelector className={styles.dataSourceSelector} /> */}
                 <AnnotationHierarchy
                     className={styles.annotationHierarchy}
                     highlightDropZone={highlightDropZone}

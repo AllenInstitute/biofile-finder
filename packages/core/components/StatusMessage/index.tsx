@@ -12,7 +12,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
-import { StatusUpdate, ProcessStatus } from "../../state/interaction/actions";
+import { StatusUpdate, ProcessStatus, generatePythonSnippet } from "../../state/interaction/actions";
 
 const styles = require("./StatusMessage.module.css");
 
@@ -98,6 +98,11 @@ export default function StatusMessage() {
                                         },
                                     }}
                                 />
+                            )}
+                            {statusUpdate.data.dataset && (
+                                <DefaultButton className={styles.showPythonSnippetButton} onClick={() => dispatch(generatePythonSnippet(statusUpdate.data.dataset))}>
+                                    Show Python Snippet
+                                </DefaultButton>
                             )}
                         </MessageBar>
                     );

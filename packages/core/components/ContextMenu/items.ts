@@ -1,3 +1,4 @@
+import { ContextualMenuItemType } from "@fluentui/react";
 import { Dispatch } from "redux";
 
 import { interaction } from "../../state";
@@ -5,16 +6,22 @@ import { interaction } from "../../state";
 export enum ContextMenuActions {
     COPY = "copy",
     CSV_MANIFEST = "csv-manifest",
-    FIXED_DATASET = "fixed-dataset",
-    LIVE_FILE_SET = "live-file-set",
+    CUSTOM_FILE_SET = "custom-file-set",
+    DEFAULT_FILE_SET = "default-file-set",
     MODIFY_COLUMNS = "modify-columns",
     OPEN = "open",
     OPEN_WITH = "open-with",
     OPEN_WITH_OTHER = "open-with-other",
     PASTE = "paste",
     SHARE = "share",
-    TEMPORARY_LINK = "temporary-link",
 }
+
+export const MENU_HEADER_STYLES = {
+        label: {
+            // Color pulled from App.module.css "primary-brand-purple"
+            color: "#827aa3",
+        },
+    };
 
 /**
  * This is intended to be a catalogue of context menu items and that can be reused as various context menus are built up
@@ -43,28 +50,35 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                 subMenuProps: {
                     items: [
                         {
-                            key: ContextMenuActions.TEMPORARY_LINK,
-                            text: "Copy temporary link to files",
+                            key: "default-configuration",
+                            text: "Default Configuration",
+                            itemType: ContextualMenuItemType.Header,
+                            itemProps: {
+                                styles: MENU_HEADER_STYLES
+                            },
+                        },
+                        {
+                            key: ContextMenuActions.DEFAULT_FILE_SET,
+                            text: "Live file set, expires tomorrow",
                             title: "Shareable FMS File Explorer URL to file selection",
                             onClick() {
-                                dispatch(interaction.actions.generateShareableFileSelectionLink());
+                                dispatch(interaction.actions.generateShareableFileSelectionLink({private: true}));
                             },
                         },
                         {
-                            key: ContextMenuActions.LIVE_FILE_SET,
-                            text: "Generate live file set",
-                            title: "Generate a live file set to share",
-                            onClick() {
-                                dispatch(interaction.actions.showGenerateLiveFileSetDialog());
+                            key: "custom-configuration",
+                            text: "Custom Configuration",
+                            itemType: ContextualMenuItemType.Header,
+                            itemProps: {
+                                styles: MENU_HEADER_STYLES
                             },
                         },
                         {
-                            key: ContextMenuActions.FIXED_DATASET,
-                            text: "Generate fixed immutable dataset",
-                            title:
-                                "Generate a fixed dataset with immutable metadata from this point in time",
+                            key: ContextMenuActions.CUSTOM_FILE_SET,
+                            text: "Configure...",
+                            title: "Shareable custom file set",
                             onClick() {
-                                dispatch(interaction.actions.showGenerateFixedDatasetDialog());
+                                dispatch(interaction.actions.showGenerateFileSetDialog());
                             },
                         },
                     ],

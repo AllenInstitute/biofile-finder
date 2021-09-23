@@ -37,6 +37,7 @@ export interface SelectionStateBranch {
     filters: FileFilter[];
     openFileFolders: FileFolder[];
     sortColumn?: FileSort;
+    viewId?: string;
 }
 
 export const initialState = {

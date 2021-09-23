@@ -73,7 +73,7 @@ export default function App(props: AppProps) {
 
     return (
         <div className={styles.root}>
-            <HeaderRibbon className={classNames(styles.headerRibbon, styles.placeholder)} />
+            <HeaderRibbon className={styles.headerRibbon} />
             <div className={styles.everythingExceptHeaderRibbon}>
                 <div className={styles.core}>
                     <FileExplorerURLBar className={classNames(styles.urlBar)} />

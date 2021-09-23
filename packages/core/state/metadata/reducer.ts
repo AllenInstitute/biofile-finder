@@ -6,14 +6,21 @@ import { Dataset } from "../../services/DatasetService";
 
 import { RECEIVE_ANNOTATIONS, RECEIVE_DATASETS } from "./actions";
 
+export interface View {
+    id: string;
+    name: string;
+}
+
 export interface MetadataStateBranch {
     annotations: Annotation[];
     datasets: Dataset[];
+    views: View[];
 }
 
 export const initialState = {
     annotations: [],
     datasets: [],
+    views: [],
 };
 
 export default makeReducer<MetadataStateBranch>(

@@ -18,7 +18,6 @@ import {
     setAllenMountPoint,
     setCsvColumns,
     GENERATE_PYTHON_SNIPPET,
-    GeneratePythonSnippetAction,
     succeedPythonSnippetGeneration,
     REFRESH,
     SET_PLATFORM_DEPENDENT_SERVICES,
@@ -34,6 +33,7 @@ import {
     processProgress,
     GENERATE_SHAREABLE_FILE_SELECTION_LINK,
     succeedShareableFileSelectionLinkGeneration,
+    StatusUpdate,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -41,7 +41,7 @@ import { DownloadResolution } from "../../services/FileDownloadService";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
-import { CreateDatasetRequest } from "../../services/DatasetService";
+import { CreateDatasetRequest, Dataset } from "../../services/DatasetService";
 import { SelectionRequest, FmsFile } from "../../services/FileService";
 import {
     ExecutableEnvCancellationToken,
@@ -517,16 +517,21 @@ const generateShareableFileSelectionLink = createLogic({
         );
         try {
             const user = "seanm"; // TODO: Get user?
-            const defaultDatasetSettings: any = {
+            const defaultExpiration = new Date();
+            defaultExpiration.setDate(defaultExpiration.getDate() + 1);
+            const defaultDatasetSettings: Partial<CreateDatasetRequest> = {
                 name: `${user} - ${new Date().getDate()}`,
+                expiration: defaultExpiration,
+                fixed: false,
+                private: true,
             };
 
-            const filters = deps.action.payload;
+            const {filters} = deps.action.payload;
             let fileSelection = selection.selectors.getFileSelection(deps.getState());
             const datasetService = interactionSelectors.getDatasetService(deps.getState());
 
             // If we have a specific path to get files from ignore selected files
-            if (filters.length) {
+            if (filters?.length) {
                 const fileSetSourceId = selection.selectors.getFileSetSourceId(deps.getState());
                 const sortColumn = selection.selectors.getSortColumn(deps.getState());
                 const fileService = interactionSelectors.getFileService(deps.getState());
@@ -555,9 +560,10 @@ const generateShareableFileSelectionLink = createLogic({
             };
             const dataset = await datasetService.createDataset(request);
 
-            const statusUpdate = {
+            const statusUpdate: StatusUpdate = {
                 processId: uniqueId(),
                 data: {
+                    dataset,
                     msg: "Copied FMS File Explorer URL link to clipboard!",
                 },
             };
@@ -596,55 +602,11 @@ const generateShareableFileSelectionLink = createLogic({
 const generatePythonSnippet = createLogic({
     type: GENERATE_PYTHON_SNIPPET,
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { action, getState } = deps;
-        const {
-            payload: { dataset, expiration, annotations },
-        } = action as GeneratePythonSnippetAction;
         const generatePythonSnippetProcessId = uniqueId();
+        const dataset = deps.action.payload as Dataset;
+        const datasetService = interactionSelectors.getDatasetService(deps.getState());
         try {
-            dispatch(
-                processStart(
-                    generatePythonSnippetProcessId,
-                    "Generation of Python snippet is in progress."
-                )
-            );
-            let fileSelection = selection.selectors.getFileSelection(getState());
-            const datasetService = interactionSelectors.getDatasetService(getState());
-            const filters = interactionSelectors.getFileFiltersForVisibleModal(getState());
-
-            // If we have a specific path to get files from ignore selected files
-            if (filters.length) {
-                const fileSetSourceId = selection.selectors.getFileSetSourceId(deps.getState());
-                const sortColumn = selection.selectors.getSortColumn(deps.getState());
-                const fileService = interactionSelectors.getFileService(deps.getState());
-                const fileSet = new FileSet({
-                    fileSetSourceId,
-                    filters,
-                    fileService,
-                    sort: sortColumn,
-                });
-                const count = await fileSet.fetchTotalCount();
-                fileSelection = new FileSelection([
-                    {
-                        selection: new NumericRange(0, count - 1),
-                        fileSet,
-                        sortOrder: 0,
-                    },
-                ]);
-            }
-
-            const selections = fileSelection.toCompactSelectionList();
-
-            const request: CreateDatasetRequest = {
-                annotations: annotations.map((annotation) => annotation.name),
-                expiration,
-                name: dataset,
-                selections,
-            };
-
-            const { name, version } = await datasetService.createDataset(request);
-            const pythonSnippet = await datasetService.getPythonicDataAccessSnippet(name, version);
-
+            const pythonSnippet = await datasetService.getPythonicDataAccessSnippet(dataset.name, dataset.version);
             dispatch(succeedPythonSnippetGeneration(generatePythonSnippetProcessId, pythonSnippet));
         } catch (err) {
             dispatch(
@@ -654,8 +616,6 @@ const generatePythonSnippet = createLogic({
                 )
             );
         }
-
-        dispatch(setCsvColumns(annotations.map((annotation) => annotation.displayName)));
         done();
     },
 });

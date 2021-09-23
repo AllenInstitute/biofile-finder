@@ -21,6 +21,7 @@ export const getFileSetSourceId = (state: State) => state.selection.fileSetSourc
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getSortColumn = (state: State) => state.selection.sortColumn;
+export const getViewId = (state: State) => state.selection.viewId;
 
 // COMPOSED SELECTORS
 export const getOrderedDisplayAnnotations = createSelector(

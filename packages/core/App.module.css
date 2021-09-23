@@ -13,7 +13,7 @@
     --white: #ffffff;
     --url-bar-height: 40px;
     --file-details-width: 20%;
-    --header-ribbon-height: 40px;
+    --header-ribbon-height: 80px;
     --margin: 12px;
     --transition-duration: 0.5s;
     /* AICS brand colors pulled from AICS style guide */
@@ -68,7 +68,7 @@
     flex-direction: column;
 }
 
-.placeholder + .everything-except-header-ribbon .core .file-details{
+.everything-except-header-ribbon .core .file-details{
     margin-right: 0;
     width: 100%;
 }

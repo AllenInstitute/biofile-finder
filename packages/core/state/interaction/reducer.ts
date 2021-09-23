@@ -17,12 +17,11 @@ import {
     SET_STATUS,
     SET_VISIBLE_MODAL,
     SHOW_CONTEXT_MENU,
-    SHOW_GENERATE_FIXED_DATASET_DIALOG,
+    SHOW_GENERATE_FILE_SET_DIALOG,
     SHOW_MANIFEST_DOWNLOAD_DIALOG,
     StatusUpdate,
     SUCCEED_PYTHON_SNIPPET_GENERATION,
     SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
-    SHOW_GENERATE_LIVE_FILE_SET_DIALOG,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -163,14 +162,9 @@ export default makeReducer<InteractionStateBranch>(
             ...action.payload,
             fileFiltersForVisibleModal: [],
         }),
-        [SHOW_GENERATE_LIVE_FILE_SET_DIALOG]: (state, action) => ({
+        [SHOW_GENERATE_FILE_SET_DIALOG]: (state, action) => ({
             ...state,
             visibleModal: ModalType.FileSetForm,
-            fileFiltersForVisibleModal: action.payload,
-        }),
-        [SHOW_GENERATE_FIXED_DATASET_DIALOG]: (state, action) => ({
-            ...state,
-            visibleModal: ModalType.DatasetForm,
             fileFiltersForVisibleModal: action.payload,
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action) => ({

@@ -257,6 +257,7 @@ export enum ProcessStatus {
 
 export interface StatusUpdate {
     data: {
+        dataset?: Dataset; // if relevant/applicable, dataset related to this status update
         fileId?: string[]; // if relevant/applicable, fileid(s) related to this status update
         msg: string;
         status?: ProcessStatus;
@@ -426,15 +427,27 @@ export const GENERATE_SHAREABLE_FILE_SELECTION_LINK = makeConstant(
 );
 
 export interface GenerateShareableFileSelectionLinkAction {
-    payload?: FileFilter[];
+    payload: {
+        annotations?: Annotation[];
+        expiration?: Date;
+        filters?: FileFilter[];
+        fixed?: boolean;
+        private: boolean;
+        name?: string;
+    };
     type: string;
 }
 
-export function generateShareableFileSelectionLink(
-    fileFilters?: FileFilter[]
-): GenerateShareableFileSelectionLinkAction {
+export function generateShareableFileSelectionLink(config: {
+    annotations?: Annotation[];
+    expiration?: Date;
+    filters?: FileFilter[];
+    fixed?: boolean;
+    private: boolean;
+    name?: string;
+}): GenerateShareableFileSelectionLinkAction {
     return {
-        payload: fileFilters,
+        payload: config,
         type: GENERATE_SHAREABLE_FILE_SELECTION_LINK,
     };
 }
@@ -505,49 +518,25 @@ export function succeedPythonSnippetGeneration(
 }
 
 /**
- * SHOW_GENERATE_LIVE_FILE_SET_DIALOG
+ * SHOW_GENERATE_FILE_SET_DIALOG
  *
- * Intention to show the generate python snippet dialog.
+ * Intention to show the dialog for generating a custom file set.
  */
-export const SHOW_GENERATE_LIVE_FILE_SET_DIALOG = makeConstant(
+export const SHOW_GENERATE_FILE_SET_DIALOG = makeConstant(
     STATE_BRANCH_NAME,
-    "show-generate-live-file-set-dialog"
+    "show-generate-file-set-dialog"
 );
 
-export interface ShowGenerateLiveFileSetDialogAction {
+export interface ShowGenerateFileSetDialogAction {
     type: string;
     payload: FileFilter[];
 }
 
-export function showGenerateLiveFileSetDialog(
+export function showGenerateFileSetDialog(
     fileFilters: FileFilter[] = []
-): ShowGenerateLiveFileSetDialogAction {
+): ShowGenerateFileSetDialogAction {
     return {
-        type: SHOW_GENERATE_LIVE_FILE_SET_DIALOG,
-        payload: fileFilters,
-    };
-}
-
-/**
- * SHOW_GENERATE_PYTHON_SNIPPET_DIALOG
- *
- * Intention to show the dialog for generating a fixed dataset.
- */
-export const SHOW_GENERATE_FIXED_DATASET_DIALOG = makeConstant(
-    STATE_BRANCH_NAME,
-    "show-generate-fixed-dataset-dialog"
-);
-
-export interface ShowGenerateFixedDatasetDialogAction {
-    type: string;
-    payload: FileFilter[];
-}
-
-export function showGenerateFixedDatasetDialog(
-    fileFilters: FileFilter[] = []
-): ShowGenerateFixedDatasetDialogAction {
-    return {
-        type: SHOW_GENERATE_FIXED_DATASET_DIALOG,
+        type: SHOW_GENERATE_FILE_SET_DIALOG,
         payload: fileFilters,
     };
 }
@@ -702,26 +691,14 @@ export function setVisibleModal(visibleModal: ModalType): SetVisibleModalAction 
 export const GENERATE_PYTHON_SNIPPET = makeConstant(STATE_BRANCH_NAME, "generate-python-snippet");
 
 export interface GeneratePythonSnippetAction {
+    payload: Dataset;
     type: string;
-    payload: {
-        dataset: string;
-        expiration?: Date;
-        annotations: Annotation[];
-    };
 }
 
-export function generatePythonSnippet(
-    dataset: string,
-    annotations: Annotation[],
-    expiration?: Date
-): GeneratePythonSnippetAction {
+export function generatePythonSnippet(dataset: Dataset): GeneratePythonSnippetAction {
     return {
+        payload: dataset,
         type: GENERATE_PYTHON_SNIPPET,
-        payload: {
-            dataset,
-            expiration,
-            annotations,
-        },
     };
 }
 

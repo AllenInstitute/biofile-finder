@@ -12,13 +12,44 @@
     padding: 0 3%;
 }
 
+.checkbox-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.checkbox-container {
+    cursor: default;
+    display: flex;
+}
+
+.checkbox {
+    max-width: 25px;
+}
+
+.checkbox-row div {
+    width: 100%;
+}
+
+.checkbox-label {
+    margin: 0.5em 5px 0.5em 0;
+}
+
+.checkbox-info-icon {
+    color: var(--primary-brand-dark-blue);
+}
+
 .dataset-form {
     display: flex;
     margin-bottom: 1em;
 }
 
-.name-input {
+.metadata-form {
     padding-left: 15px;
+    width: 100%;
+}
+
+.name-input {
+    margin-bottom: 10px;
     width: 100%;
 }
 

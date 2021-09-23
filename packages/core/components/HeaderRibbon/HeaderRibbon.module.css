@@ -1,0 +1,51 @@
+.root {
+    /* placeholder */
+    background-color: #ebebeb;
+}
+
+.collapsed {
+    height: 50%;
+}
+
+.option-button {
+    margin: 4px 0 4px 4px;
+    padding-top: 25px;
+    padding-bottom: 25px;
+    width: 100px;
+}
+
+.option-button:first-child {
+    margin-left: 6px;
+}
+
+.inner-option-button {
+    margin: 0 auto;
+}
+
+.inner-option-button-icon {
+    font-size: 20px;
+}
+
+.inner-option-button-text {
+    margin: 0;
+}
+
+.collapse-button {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.collapse-icon {
+    padding: 8px 0 0 0;
+    margin: 0;
+}
+
+.collapse-icon {
+    color: black;
+}
+
+.collapse-icon:hover, .collapse-button:active {
+    background-color: unset;
+    color: black;
+}

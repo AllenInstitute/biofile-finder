@@ -8,6 +8,7 @@ import { Dataset } from "../../services/DatasetService";
 // BASIC SELECTORS
 export const getAnnotations = (state: State) => state.metadata.annotations;
 export const getDatasets = (state: State) => state.metadata.datasets;
+export const getViews = (state: State) => state.metadata.views;
 
 // COMPOSED SELECTORS
 export const getSortedAnnotations = createSelector(getAnnotations, (annotations: Annotation[]) =>
