@@ -46,7 +46,7 @@ export default function getContextMenuItems(dispatch: Dispatch) {
             },
             {
                 key: ContextMenuActions.SHARE,
-                text: "Share",
+                text: "Share Collection",
                 subMenuProps: {
                     items: [
                         {
@@ -59,7 +59,7 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                         },
                         {
                             key: ContextMenuActions.DEFAULT_FILE_SET,
-                            text: "Live file set, expires tomorrow",
+                            text: "Not-fixed, expires tomorrow",
                             title: "Shareable FMS File Explorer URL to file selection",
                             onClick() {
                                 dispatch(interaction.actions.generateShareableFileSelectionLink({private: true}));
@@ -76,7 +76,7 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                         {
                             key: ContextMenuActions.CUSTOM_FILE_SET,
                             text: "Configure...",
-                            title: "Shareable custom file set",
+                            title: "Shareable custom collection",
                             onClick() {
                                 dispatch(interaction.actions.showGenerateFileSetDialog());
                             },

@@ -37,15 +37,15 @@ const EXPIRATIONS: IChoiceGroupOption[] = Object.values(Expiration).map((key) =>
 }));
 
 const SUBTITLES = [
-    "In order to reference this file set, give it a name. If a file set of that name already exists, we’ll create a new version of that file set automatically; any previous versions will still be accessible.",
+    "In order to reference this collection, give it a name. If a collection of that name already exists, we’ll create a new version of that collection automatically; any previous versions will still be accessible.",
     "Last, select how long to keep this dataset around. If this is being created for a one-off task, consider selecting a shorter lifespan.",
 ];
 
-const FIXED_CHECKBOX_TOOLTIP = "In order to reproduce your exact selection later, if checked, this will make your file set an immutable, point-in-time snapshot of the metadata for the files you’ve selected (a \"dataset\"). You won't be able to add to or remove from this dataset once created, nor will the files' metadata be modifiable.";
-const PRIVATE_CHECK_BOX_TOOLTIP = "If checked, this file set will not appear in the file set dropdown for other users as an option. However, this file set will still be able to be sent by you as an FMS File Explorer URL."
+const FIXED_CHECKBOX_TOOLTIP = "In order to reproduce your exact selection later, if checked, this will make your collection an immutable, point-in-time snapshot of the metadata for the files you’ve selected (a \"dataset\"). You won't be able to add to or remove from this dataset once created, nor will the files' metadata be modifiable.";
+const PRIVATE_CHECK_BOX_TOOLTIP = "If checked, this collection will not appear in the collection dropdown for other users as an option. However, this collection will still be able to be sent by you as an FMS File Explorer URL."
 
 /**
- * Dialog form for generating a customized shareable file set
+ * Dialog form for generating a customized shareable collection
  */
 export default function FileSetForm({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
@@ -55,17 +55,24 @@ export default function FileSetForm({ onDismiss }: ModalProps) {
     const annotationsPreviouslySelected = useSelector(
         modalSelectors.getAnnotationsPreviouslySelected
     );
+    const collectionId = useSelector(selection.selectors.getFileSetSourceId);
+
+    const collection = existingDatasets.find(d => d.id === collectionId);
+
     const [selectedAnnotations, setSelectedAnnotations] = React.useState<Annotation[]>(() =>
         isEmpty(annotationsPreviouslySelected)
             ? [...TOP_LEVEL_FILE_ANNOTATIONS]
             : annotationsPreviouslySelected
     );
-
     const [isFixed, setIsFixed] = React.useState(false);
     const [isPrivate, setIsPrivate] = React.useState(true);
     const [expiration, setExpiration] = React.useState<string>();
     const [name, setName] = React.useState<string>("");
     const [isSubtitleExpanded, setIsSubtitleExpanded] = React.useState(true);
+
+    React.useEffect(() => {
+        setName(collection?.name || "");
+    }, [collection, setExpiration, setName])
 
     // Datasets can have the same name with different versions, see if this would
     // need to be a new version based on the name
@@ -109,7 +116,7 @@ export default function FileSetForm({ onDismiss }: ModalProps) {
 
     const body = (
         <>
-            <h4>Step 1: File Set Metadata</h4>
+            <h4>Step 1: Collection Metadata</h4>
             {isSubtitleExpanded ? (
                 <div>
                     {SUBTITLES.map((text) => (
@@ -139,6 +146,14 @@ export default function FileSetForm({ onDismiss }: ModalProps) {
                     </div>
                 </div>
             )}
+            {collectionId && (
+                <div className={styles.expirationWarning}>
+                    <Icon iconName="InfoSolid" />
+                    <h6>
+                        Currently expires 10/25/21 02:03:40
+                    </h6>
+                </div>
+            )}
             <div className={classNames(styles.form, styles.datasetForm)}>
                 <ChoiceGroup
                     className={styles.expirationInput}
@@ -155,7 +170,7 @@ export default function FileSetForm({ onDismiss }: ModalProps) {
                             value={name}
                             spellCheck={false}
                             onChange={(_, value) => setName(value || "")}
-                            placeholder="Enter file set name..."
+                            placeholder="Enter collection name..."
                         />
                         {name && (
                             <div className={styles.nameInputSubtext}>
@@ -203,13 +218,13 @@ export default function FileSetForm({ onDismiss }: ModalProps) {
             body={body}
             footer={
                 <PrimaryButton
-                    text="Generate"
+                    text={collection ? "Update": "Generate"}
                     disabled={!name || !expiration || (isFixed && !selectedAnnotations.length)}
                     onClick={onGenerate}
                 />
             }
             onDismiss={onDismiss}
-            title="Generate File Set"
+            title={collection ? `Update ${collection.name}` : "Generate Collection"}
         />
     );
 }

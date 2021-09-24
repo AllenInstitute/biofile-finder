@@ -21,6 +21,7 @@ import {
     SELECT_NEARBY_FILE,
     setSortColumn,
     setFileSetSource,
+    CHANGE_VIEW,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -30,6 +31,9 @@ import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
+import FileSort, { SortOrder } from "../../entity/FileSort";
+import { AnnotationName } from "../../constants";
+import { getAnnotations } from "../metadata/selectors";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -427,6 +431,26 @@ const selectNearbyFile = createLogic({
     type: [SELECT_NEARBY_FILE],
 });
 
+const changeView = createLogic({
+    type: CHANGE_VIEW,
+    process(deps: ReduxLogicDeps, dispatch, done) {
+        if (deps.action.payload) {
+            const annotations = getAnnotations(deps.getState());
+            const beatDate = annotations.filter(a => a.name === "Beat Date");
+            dispatch(setFileFilters([new FileFilter("Cell Line", "AICS-0")]));
+            dispatch(setSortColumn(new FileSort(AnnotationName.FILE_NAME, SortOrder.DESC)));
+            dispatch(setAnnotationHierarchy(beatDate));
+        } else {
+            dispatch(setFileFilters([]));
+            dispatch(setSortColumn());
+            dispatch(setAnnotationHierarchy([]));
+         }
+        done();
+        
+    }
+});
+
+
 export default [
     selectFile,
     modifyAnnotationHierarchy,
@@ -435,4 +459,5 @@ export default [
     decodeFileExplorerURL,
     selectNearbyFile,
     setAvailableAnnotationsLogic,
+    changeView,
 ];

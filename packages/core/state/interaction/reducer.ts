@@ -23,6 +23,8 @@ import {
     SUCCEED_PYTHON_SNIPPET_GENERATION,
     SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
     SHOW_CREATE_VIEW_DIALOG,
+    SHOW_EDIT_VIEW_DIALOG,
+    SHOW_EDIT_FILE_SET_DIALOG,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -167,10 +169,18 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             visibleModal: ModalType.ViewForm,
         }),
+        [SHOW_EDIT_VIEW_DIALOG]: (state) => ({
+            ...state,
+            visibleModal: ModalType.ViewForm,
+        }),
         [SHOW_GENERATE_FILE_SET_DIALOG]: (state, action) => ({
             ...state,
             visibleModal: ModalType.FileSetForm,
             fileFiltersForVisibleModal: action.payload,
+        }),
+        [SHOW_EDIT_FILE_SET_DIALOG]: (state) => ({
+            ...state,
+            visibleModal: ModalType.FileSetForm,
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action) => ({
             ...state,

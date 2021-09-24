@@ -95,6 +95,14 @@ export default makeReducer<SelectionStateBranch>(
                 sortColumn: new FileSort(action.payload, SortOrder.DESC),
             };
         },
+        [interaction.actions.SHOW_CREATE_VIEW_DIALOG]: (state) => ({
+            ...state,
+            viewId: undefined,
+        }),
+        [interaction.actions.SHOW_GENERATE_FILE_SET_DIALOG]: (state) => ({
+            ...state,
+            fileSetSourceId: undefined,
+        }),
         [SET_FILE_SET_SOURCE]: (state, action) => ({
             ...state,
             fileSetSourceId: action.payload,

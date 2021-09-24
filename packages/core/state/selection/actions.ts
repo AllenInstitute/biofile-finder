@@ -492,11 +492,11 @@ export function setFileSetSource(datasetId?: string): SetFileSetSourceAction {
 export const CHANGE_VIEW = makeConstant(STATE_BRANCH_NAME, "change-view");
 
 export interface ChangeViewAction {
-    payload: string;
+    payload?: string;
     type: string;
 }
 
-export function changeView(viewId: string): ChangeViewAction {
+export function changeView(viewId?: string): ChangeViewAction {
     return {
         payload: viewId,
         type: CHANGE_VIEW,

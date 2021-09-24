@@ -16,6 +16,7 @@ import PersistentConfigService, {
 } from "../../services/PersistentConfigService";
 import { NotificationService } from "../../services";
 import { FmsFile } from "../../services/FileService";
+import { View } from "../metadata/reducer";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -536,6 +537,23 @@ export function showCreateViewDialog(): ShowCreateViewDialogAction {
 }
 
 /**
+ * 
+ * 
+ * TODO
+ */
+export const SHOW_EDIT_VIEW_DIALOG = makeConstant(STATE_BRANCH_NAME, "show-edit-view-dialog");
+
+export interface ShowEditViewDialogAction {
+    type: string;
+}
+
+export function showEditViewDialog(): ShowEditViewDialogAction {
+    return {
+        type: SHOW_EDIT_VIEW_DIALOG
+    }
+}
+
+/**
  * SHOW_GENERATE_FILE_SET_DIALOG
  *
  * Intention to show the dialog for generating a custom file set.
@@ -557,6 +575,23 @@ export function showGenerateFileSetDialog(
         type: SHOW_GENERATE_FILE_SET_DIALOG,
         payload: fileFilters,
     };
+}
+
+/**
+ * TODO
+ * 
+ * 
+ */
+export const SHOW_EDIT_FILE_SET_DIALOG = makeConstant(STATE_BRANCH_NAME, "show-edit-file-set-dialog");
+
+export interface ShowEditFileSetDialogAction {
+    type: string;
+}
+
+export function showEditFileSetDialog(): ShowEditFileSetDialogAction {
+    return {
+        type: SHOW_EDIT_FILE_SET_DIALOG,
+    }
 }
 
 /**

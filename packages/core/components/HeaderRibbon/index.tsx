@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { DefaultButton, Dropdown, IButtonStyles, IconButton, IDropdownOption } from "office-ui-fabric-react";
+import { DefaultButton, Dropdown, IButtonStyles, IDropdownOption } from "office-ui-fabric-react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -22,6 +22,11 @@ const ALL_FILES_OPTION: IDropdownOption = {
     text: "All of FMS",
 }
 
+const BAD_OPTION: IDropdownOption = {
+    key: "None",
+    text: "None",
+}
+
 /**
  * Ribbon-like toolbar at the top of the application to contain features like application-level view options.
  */
@@ -30,11 +35,11 @@ export default function HeaderRibbon(props: HeaderRibbonProps) {
     const selectedViewId = useSelector(selection.selectors.getViewId);
     const selectedCollectionId = useSelector(selection.selectors.getFileSetSourceId);
     const views = useSelector(metadata.selectors.getViews);
-    const collections = useSelector(metadata.selectors.getDatasets);
+    const collections = useSelector(metadata.selectors.getActiveDatasets);
     const filters = useSelector(selection.selectors.getFileFilters);
     const hierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
-    const fileSelection = useSelector(selection.selectors.getFileSelection);
+    // const fileSelection = useSelector(selection.selectors.getFileSelection);
 
     const [isCollapsed, setCollapsed] = React.useState(false);
 
@@ -69,23 +74,27 @@ export default function HeaderRibbon(props: HeaderRibbonProps) {
                     <Dropdown
                         placeholder="No view selected"
                         selectedKey={selectedViewId}
-                        onChange={(_, o) => dispatch(selection.actions.changeView(o?.key as string))}
-                        options={viewOptions}
+                        onChange={(_, o) => o?.key === BAD_OPTION.key ? dispatch(selection.actions.changeView()) : dispatch(selection.actions.changeView(o?.key as string))}
+                        options={selectedViewId ? [BAD_OPTION, ...viewOptions] : viewOptions}
                     />
                     <div className={styles.buttonRow}>
-                        <DefaultButton
-                            className={styles.button}
-                            disabled={!sortColumn && !hierarchy.length && !filters.length}
-                            iconProps={{iconName: "save"}}
-                            text="Save As..."
-                            styles={SECONDARY_BUTTON_STYLES}
-                            onClick={() => dispatch(interaction.actions.showCreateViewDialog())}
-                        />
                         <DefaultButton
                             className={styles.button}
                             disabled={!selectedViewId}
                             iconProps={{iconName: "edit"}}
                             text="Edit"
+                            styles={SECONDARY_BUTTON_STYLES}
+                            onClick={() => dispatch(interaction.actions.showEditViewDialog())}
+                        />
+                        <DefaultButton
+                            className={styles.button}
+                            disabled={!sortColumn && !hierarchy.length && !filters.length}
+                            iconProps={{iconName: "save"}}
+                            text="Save"
+                            menuProps={{ items: [
+                                {key: "save", text: "Save", disabled: !selectedView},
+                            {key:"save-as", text:"Save as...", onClick: () => { dispatch(interaction.actions.showCreateViewDialog())}}
+                        ]}}
                             styles={SECONDARY_BUTTON_STYLES}
                             onClick={() => dispatch(interaction.actions.showCreateViewDialog())}
                         />
@@ -110,12 +119,20 @@ export default function HeaderRibbon(props: HeaderRibbonProps) {
                             onClick={() => dispatch(interaction.actions.showGenerateFileSetDialog())}
                         /> */}
                         <DefaultButton
-                            className={classNames(styles.button, styles.fullWidth)}
+                            className={styles.button}
                             disabled={!selectedCollectionId}
                             iconProps={{iconName: "edit"}}
                             text="Edit"
                             styles={SECONDARY_BUTTON_STYLES}
-                            onClick={() => dispatch(interaction.actions.showGenerateFileSetDialog())}
+                            onClick={() => dispatch(interaction.actions.showEditFileSetDialog())}
+                        />
+                        <DefaultButton
+                            className={styles.button}
+                            iconProps={{iconName: "export"}}
+                            text="Export"
+                            menuProps={{ items: [{key: "python", text: "Python Snippet", onClick: () => { selectedCollection && dispatch(interaction.actions.generatePythonSnippet(selectedCollection))}}]}}
+                            disabled={!selectedCollection}
+                            styles={SECONDARY_BUTTON_STYLES}
                         />
                     </div>
                 </div>
