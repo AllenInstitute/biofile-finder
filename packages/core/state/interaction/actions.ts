@@ -518,6 +518,24 @@ export function succeedPythonSnippetGeneration(
 }
 
 /**
+ * ?
+ * 
+ * TODO
+ */
+export const SHOW_CREATE_VIEW_DIALOG = makeConstant(STATE_BRANCH_NAME, "show-create-view-dialog");
+
+export interface ShowCreateViewDialogAction {
+    type: string;
+}
+
+
+export function showCreateViewDialog(): ShowCreateViewDialogAction {
+    return {
+        type: SHOW_CREATE_VIEW_DIALOG
+    }
+}
+
+/**
  * SHOW_GENERATE_FILE_SET_DIALOG
  *
  * Intention to show the dialog for generating a custom file set.

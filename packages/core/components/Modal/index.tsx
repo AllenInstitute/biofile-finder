@@ -5,6 +5,7 @@ import { interaction } from "../../state";
 import CsvManifest from "./CsvManifest";
 import FileSetForm from "./FileSetForm";
 import PythonSnippet from "./PythonSnippet";
+import ViewForm from "./ViewForm";
 
 export interface ModalProps {
     onDismiss: () => void;
@@ -14,6 +15,7 @@ export enum ModalType {
     CsvManifest = 1,
     FileSetForm = 2,
     PythonSnippet = 3,
+    ViewForm = 4,
 }
 
 /**
@@ -34,6 +36,8 @@ export default function Modal() {
             return <FileSetForm onDismiss={onDismiss} />;
         case ModalType.PythonSnippet:
             return <PythonSnippet onDismiss={onDismiss} />;
+        case ModalType.ViewForm:
+            return <ViewForm onDismiss={onDismiss} />;
         default:
             return null;
     }

@@ -22,6 +22,7 @@ import {
     StatusUpdate,
     SUCCEED_PYTHON_SNIPPET_GENERATION,
     SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
+    SHOW_CREATE_VIEW_DIALOG,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -161,6 +162,10 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             ...action.payload,
             fileFiltersForVisibleModal: [],
+        }),
+        [SHOW_CREATE_VIEW_DIALOG]: (state) => ({
+            ...state,
+            visibleModal: ModalType.ViewForm,
         }),
         [SHOW_GENERATE_FILE_SET_DIALOG]: (state, action) => ({
             ...state,

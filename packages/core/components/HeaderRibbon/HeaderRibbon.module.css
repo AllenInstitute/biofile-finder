@@ -1,51 +1,64 @@
 .root {
-    /* placeholder */
-    background-color: #ebebeb;
+    /* Defined in App.module.css */
+    background-color: var(--secondary-brand-purple);
+    border-bottom: 1px solid var(--primary-brand-purple);
 }
 
-.collapsed {
-    height: 50%;
-}
-
-.option-button {
-    margin: 4px 0 4px 4px;
-    padding-top: 25px;
-    padding-bottom: 25px;
-    width: 100px;
-}
-
-.option-button:first-child {
-    margin-left: 6px;
-}
-
-.inner-option-button {
-    margin: 0 auto;
-}
-
-.inner-option-button-icon {
-    font-size: 20px;
-}
-
-.inner-option-button-text {
-    margin: 0;
-}
-
-.collapse-button {
+.row {
     display: flex;
-    justify-content: center;
+}
+
+.button-group {
+    margin: 8px 4px;
+    width: 200px;
+}
+
+.button-group:first-child {
+    margin-left: 16px;
+}
+
+.button-group:last-child {
+    margin-right: 16px;
+}
+
+.button-row {
+    display: flex;
+    margin: 4px 0;
+}
+
+.button-group-label {
+    cursor: pointer;
+    margin: 0 0 4px 0;
+    text-align: center;
     width: 100%;
 }
 
-.collapse-icon {
-    padding: 8px 0 0 0;
-    margin: 0;
+.button {
+    border-radius: 25px;
+    font-size: 12px;
+    height: 30px;
+    width: 50%;
 }
 
-.collapse-icon {
-    color: black;
+.button:first-child {
+    margin-right: 4px;
 }
 
-.collapse-icon:hover, .collapse-button:active {
-    background-color: unset;
-    color: black;
+.group-divider {
+    border: 0.5px solid var(--primary-brand-purple);
+    height: 80px;
+    margin: 10px 10px 0 10px;
+    width: 0;
+}
+
+.collapsed {
+    height: 1.8em;
+}
+
+.collapsed-divider {
+    height: 0.7em;
+}
+
+.full-width {
+    width: 100%;
 }

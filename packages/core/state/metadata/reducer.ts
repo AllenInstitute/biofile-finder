@@ -20,7 +20,10 @@ export interface MetadataStateBranch {
 export const initialState = {
     annotations: [],
     datasets: [],
-    views: [],
+    views: [{
+        id: "12341324",
+        name: "Fake Query"
+    }],
 };
 
 export default makeReducer<MetadataStateBranch>(
