@@ -4,7 +4,6 @@ import {
     Icon,
     IconButton,
     IContextualMenuItem,
-    SearchBox,
     TooltipHost,
 } from "@fluentui/react";
 import { orderBy } from "lodash";
@@ -32,11 +31,11 @@ const SELECTED_STYLES: Partial<IContextualMenuItem> = {
         styles: {
             root: {
                 // Color derived from background of selected dropdown item
-                backgroundColor: "#EFEFEF"
-            }
-        }
-    }
-}
+                backgroundColor: "#EFEFEF",
+            },
+        },
+    },
+};
 
 const FROZEN_DATASET_HEADER: IContextualMenuItem = {
     key: "Fixed Datasets",
@@ -44,7 +43,7 @@ const FROZEN_DATASET_HEADER: IContextualMenuItem = {
     title: "Fixed Datasets have files with immutable metadata, meaning they may not be up to date",
     itemType: ContextualMenuItemType.Header,
     itemProps: {
-        styles: MENU_HEADER_STYLES
+        styles: MENU_HEADER_STYLES,
     },
 };
 
@@ -54,7 +53,7 @@ const LIVE_DATASET_HEADER: IContextualMenuItem = {
     title: "Live File Sets act as a filter to narrow the files in FMS down to a specific set",
     itemType: ContextualMenuItemType.Header,
     itemProps: {
-        styles: MENU_HEADER_STYLES
+        styles: MENU_HEADER_STYLES,
     },
 };
 
@@ -82,20 +81,22 @@ export default function FileSetSourceSelector(props: Props) {
             onClick: () => {
                 dispatch(setFileSetSource(undefined));
             },
-            ...(!datasetId && SELECTED_STYLES)
+            ...(!datasetId && SELECTED_STYLES),
         };
 
-        const nameToDatasetMap = datasets.filter(dataset => dataset.name.toLowerCase().includes(searchValue)).reduce(
-            (accum, dataset) => ({
-                ...accum,
-                [dataset.name]: orderBy(
-                    [...(accum[dataset.name] || []), dataset],
-                    "version",
-                    "desc"
-                ),
-            }),
-            {} as { [name: string]: Dataset[] }
-        );
+        const nameToDatasetMap = datasets
+            .filter((dataset) => dataset.name.toLowerCase().includes(searchValue))
+            .reduce(
+                (accum, dataset) => ({
+                    ...accum,
+                    [dataset.name]: orderBy(
+                        [...(accum[dataset.name] || []), dataset],
+                        "version",
+                        "desc"
+                    ),
+                }),
+                {} as { [name: string]: Dataset[] }
+            );
 
         const frozenDatasets: IContextualMenuItem[] = [];
         const liveDatasets: IContextualMenuItem[] = [];
@@ -109,26 +110,26 @@ export default function FileSetSourceSelector(props: Props) {
                 subMenuProps:
                     datasetsWithSameName.length > 1
                         ? {
-                                items: datasetsWithSameName.map((dataset, index) => ({
-                                    key: dataset.id,
-                                    text:
-                                        index === 0
-                                            ? `${dataset.name} (Default - V${dataset.version})`
-                                            : `${dataset.name} (V${dataset.version})`,
-                                    title: `Created ${new Date(
-                                        dataset.created
-                                    ).toLocaleString()} by ${dataset.createdBy}`,
-                                    onClick: () => {
-                                        dispatch(setFileSetSource(dataset.id));
-                                    },
-                                    ...(dataset.id === datasetId && SELECTED_STYLES)
-                                })),
-                            }
+                              items: datasetsWithSameName.map((dataset, index) => ({
+                                  key: dataset.id,
+                                  text:
+                                      index === 0
+                                          ? `${dataset.name} (Default - V${dataset.version})`
+                                          : `${dataset.name} (V${dataset.version})`,
+                                  title: `Created ${new Date(
+                                      dataset.created
+                                  ).toLocaleString()} by ${dataset.createdBy}`,
+                                  onClick: () => {
+                                      dispatch(setFileSetSource(dataset.id));
+                                  },
+                                  ...(dataset.id === datasetId && SELECTED_STYLES),
+                              })),
+                          }
                         : undefined,
                 onClick: () => {
                     dispatch(setFileSetSource(datasetsWithSameName[0].id));
                 },
-                ...(datasetsWithSameName[0].id === datasetId && SELECTED_STYLES)
+                ...(datasetsWithSameName[0].id === datasetId && SELECTED_STYLES),
             };
             if (datasetsWithSameName[0].fixed) {
                 frozenDatasets.push(option);
@@ -174,21 +175,27 @@ export default function FileSetSourceSelector(props: Props) {
                     type="search"
                 />
                 {datasetId && (
-                    <IconButton 
+                    <IconButton
                         className={styles.shareButton}
                         iconProps={{ iconName: "share" }}
-                        menuProps={{ items: [
-                            {
-                                key: "Create Python Snippet",
-                                text: "Create Python Snippet",
-                                onClick: () => {
-                                    const dataset = datasets.find(dataset => dataset.id === datasetId);
-                                    if (dataset) {
-                                        dispatch(interaction.actions.generatePythonSnippet(dataset))
-                                    }
-                                }
-                            }
-                        ] }}
+                        menuProps={{
+                            items: [
+                                {
+                                    key: "Create Python Snippet",
+                                    text: "Create Python Snippet",
+                                    onClick: () => {
+                                        const dataset = datasets.find(
+                                            (dataset) => dataset.id === datasetId
+                                        );
+                                        if (dataset) {
+                                            dispatch(
+                                                interaction.actions.generatePythonSnippet(dataset)
+                                            );
+                                        }
+                                    },
+                                },
+                            ],
+                        }}
                     />
                 )}
             </div>

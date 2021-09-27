@@ -1,60 +1,68 @@
 .root {
+    --primary: var(--primary-brand-purple);
+    --secondary: var(--secondary-brand-purple);
+    --tertiary: lightgrey;
+    --text: white;
+
     /* Defined in App.module.css */
-    background-color: var(--secondary-brand-purple);
-    border-bottom: 1px solid var(--primary-brand-purple);
-}
-
-.row {
+    background-color: var(--primary);
+    border-bottom: 1px solid var(--secondary);
+    color: white;
     display: flex;
+    padding: var(--margin);
 }
 
-.button-group {
-    margin: 8px 4px;
-    width: 200px;
+.control-group {
+    min-width: 150px;
+    max-width: 25%;
 }
 
-.button-group:first-child {
-    margin-left: 16px;
-}
-
-.button-group:last-child {
-    margin-right: 16px;
-}
-
-.button-row {
-    display: flex;
-    margin: 4px 0;
-}
-
-.button-group-label {
+.control-group-label {
     cursor: pointer;
     margin: 0 0 4px 0;
     text-align: center;
     width: 100%;
 }
 
-.button {
-    border-radius: 25px;
-    font-size: 12px;
-    height: 30px;
-    width: 50%;
+.control-group-display {
+    display: flex;
 }
 
-.button:first-child {
-    margin-right: 4px;
+.control-group-input-group {
+    width: 100%;
 }
 
-.group-divider {
-    border: 0.5px solid var(--primary-brand-purple);
-    height: 80px;
-    margin: 10px 10px 0 10px;
-    width: 0;
+.control-group-dropdown {
+    background-color: var(--secondary);
 }
 
-.collapsed {
-    height: 1.8em;
+.control-group-checkbox-group {
+    display: flex;
+    justify-content: space-around;
+    margin: 4px 0;
 }
 
-.collapsed-divider {
-    height: 0.7em;
+.control-group-checkbox {
+    color: white;
+}
+
+.control-group-buttons {
+    margin-left: 5px;
+    width: 45px;
+}
+
+.control-group-button {
+    border-radius: 10px;
+    height: 25px;
+    margin-bottom: 5px;
+    width: 100%;
+}
+
+.control-group-button {
+    background-color: var(--secondary);
+    border-radius: 10px;
+    color: black;
+    height: 25px;
+    margin-bottom: 5px;
+    width: 100%;
 }

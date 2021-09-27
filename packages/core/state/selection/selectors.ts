@@ -1,12 +1,13 @@
 import { createSelector } from "reselect";
 
-import { State } from "../";
+import { metadata, State } from "../";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSort from "../../entity/FileSort";
+import { Dataset } from "../../services/DatasetService";
 
 // BASIC SELECTORS
 export const getAnnotationHierarchy = (state: State) => state.selection.annotationHierarchy;
@@ -21,7 +22,6 @@ export const getFileSetSourceId = (state: State) => state.selection.fileSetSourc
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getSortColumn = (state: State) => state.selection.sortColumn;
-export const getViewId = (state: State) => state.selection.viewId;
 
 // COMPOSED SELECTORS
 export const getOrderedDisplayAnnotations = createSelector(
@@ -29,6 +29,12 @@ export const getOrderedDisplayAnnotations = createSelector(
     (annotations: Annotation[]) => {
         return Annotation.sort(annotations);
     }
+);
+
+export const getSelectedCollection = createSelector(
+    [getFileSetSourceId, metadata.selectors.getActiveDatasets],
+    (collectionId, collections): Dataset | undefined =>
+        collections.find((collection) => collection.id === collectionId)
 );
 
 export const getEncodedFileExplorerUrl = createSelector(

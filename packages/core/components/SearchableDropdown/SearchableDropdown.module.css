@@ -1,0 +1,16 @@
+/* Remove 'X' icon from search bar */
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration { display: none; }
+
+.dropdown {
+    border-color: black;
+    border-radius: 5px;
+    border-width: 1px;
+    font-size: smaller;
+    padding: 0.5em 0.25em;
+    text-overflow: ellipsis;
+    outline: none;
+    width: 100%;
+}

@@ -7,7 +7,6 @@ import AnnotationHierarchy from "../AnnotationHierarchy";
 import AnnotationList, { DROPPABLE_ID as ANNOTATION_LIST_DROPPABLE_ID } from "../AnnotationList";
 
 import { selection } from "../../state";
-import FileSetSourceSelector from "../FileSetSourceSelector";
 
 const styles = require("./AnnotationSidebar.module.css");
 

@@ -21,7 +21,6 @@ import {
     SORT_COLUMN,
     SET_SORT_COLUMN,
     SET_FILE_SET_SOURCE,
-    CHANGE_VIEW,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 
@@ -38,7 +37,6 @@ export interface SelectionStateBranch {
     filters: FileFilter[];
     openFileFolders: FileFolder[];
     sortColumn?: FileSort;
-    viewId?: string;
 }
 
 export const initialState = {
@@ -60,10 +58,6 @@ export const initialState = {
 
 export default makeReducer<SelectionStateBranch>(
     {
-        [CHANGE_VIEW]: (state, action) => ({
-            ...state,
-            viewId: action.payload,
-        }),
         [SET_FILE_FILTERS]: (state, action) => ({
             ...state,
             filters: action.payload,

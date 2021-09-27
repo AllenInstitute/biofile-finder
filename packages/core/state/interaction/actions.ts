@@ -16,7 +16,6 @@ import PersistentConfigService, {
 } from "../../services/PersistentConfigService";
 import { NotificationService } from "../../services";
 import { FmsFile } from "../../services/FileService";
-import { View } from "../metadata/reducer";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -520,7 +519,7 @@ export function succeedPythonSnippetGeneration(
 
 /**
  * ?
- * 
+ *
  * TODO
  */
 export const SHOW_CREATE_VIEW_DIALOG = makeConstant(STATE_BRANCH_NAME, "show-create-view-dialog");
@@ -529,16 +528,15 @@ export interface ShowCreateViewDialogAction {
     type: string;
 }
 
-
 export function showCreateViewDialog(): ShowCreateViewDialogAction {
     return {
-        type: SHOW_CREATE_VIEW_DIALOG
-    }
+        type: SHOW_CREATE_VIEW_DIALOG,
+    };
 }
 
 /**
- * 
- * 
+ *
+ *
  * TODO
  */
 export const SHOW_EDIT_VIEW_DIALOG = makeConstant(STATE_BRANCH_NAME, "show-edit-view-dialog");
@@ -549,8 +547,8 @@ export interface ShowEditViewDialogAction {
 
 export function showEditViewDialog(): ShowEditViewDialogAction {
     return {
-        type: SHOW_EDIT_VIEW_DIALOG
-    }
+        type: SHOW_EDIT_VIEW_DIALOG,
+    };
 }
 
 /**
@@ -579,10 +577,13 @@ export function showGenerateFileSetDialog(
 
 /**
  * TODO
- * 
- * 
+ *
+ *
  */
-export const SHOW_EDIT_FILE_SET_DIALOG = makeConstant(STATE_BRANCH_NAME, "show-edit-file-set-dialog");
+export const SHOW_EDIT_FILE_SET_DIALOG = makeConstant(
+    STATE_BRANCH_NAME,
+    "show-edit-file-set-dialog"
+);
 
 export interface ShowEditFileSetDialogAction {
     type: string;
@@ -591,7 +592,7 @@ export interface ShowEditFileSetDialogAction {
 export function showEditFileSetDialog(): ShowEditFileSetDialogAction {
     return {
         type: SHOW_EDIT_FILE_SET_DIALOG,
-    }
+    };
 }
 
 /**
