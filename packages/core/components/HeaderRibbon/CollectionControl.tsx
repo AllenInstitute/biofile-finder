@@ -18,6 +18,7 @@ const styles = require("./HeaderRibbon.module.css");
 
 interface Props {
     className?: string;
+    selectedCollection?: Dataset;
 }
 
 const ALL_FILES_KEY = "All of FMS";
@@ -93,12 +94,14 @@ const LIVE_COLLECTION_HEADER: IContextualMenuItem = {
 };
 
 /**
- * TODO
+ * Form group for controlling the file collection all file queries
+ * are run against. Includes display for current collection as well
+ * as various ways to interact with collections.
  */
 export default function CollectionControl(props: Props) {
+    const { selectedCollection } = props;
     const dispatch = useDispatch();
     const collections = useSelector(metadata.selectors.getActiveCollections);
-    const selectedCollection = useSelector(selection.selectors.getSelectedCollection);
 
     const [searchValue, setSearchValue] = React.useState("");
 

@@ -2,7 +2,7 @@
     --primary-ribbon-color:var(--primary-brand-dark-blue);
     /* Color is lightened tint of --primary-brand-dark-blue defined in App.module.css */
     --secondary-ribbon-color: #1A4A71;
-    --collapsed-rheight: 1.5em;
+    --collapsed-ribbon-height: 1.5em;
     --ribbon-padding: 6px;
 
     /* Defined in App.module.css */
