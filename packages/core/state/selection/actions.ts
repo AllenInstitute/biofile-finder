@@ -472,12 +472,12 @@ export function decodeFileExplorerURL(decodedFileExplorerURL: string): DecodeFil
  */
 export const CHANGE_COLLECTION = makeConstant(STATE_BRANCH_NAME, "change-collection");
 
-export interface SetChangeCollectionAction {
+export interface ChangeCollectionAction {
     payload?: string;
     type: string;
 }
 
-export function changeCollection(collectionId?: string): SetChangeCollectionAction {
+export function changeCollection(collectionId?: string): ChangeCollectionAction {
     return {
         payload: collectionId,
         type: CHANGE_COLLECTION,

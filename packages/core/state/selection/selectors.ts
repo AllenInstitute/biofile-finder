@@ -38,20 +38,26 @@ export const getSelectedCollection = createSelector(
 );
 
 export const getEncodedFileExplorerUrl = createSelector(
-    [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn, getCollectionId],
+    [
+        getAnnotationHierarchy,
+        getFileFilters,
+        getOpenFileFolders,
+        getSortColumn,
+        getSelectedCollection,
+    ],
     (
         hierarchy: Annotation[],
         filters: FileFilter[],
         openFolders: FileFolder[],
         sortColumn?: FileSort,
-        collectionId?: string
+        collection?: Dataset
     ) => {
         return FileExplorerURL.encode({
             hierarchy,
             filters,
             openFolders,
             sortColumn,
-            collectionId,
+            collection,
         });
     }
 );

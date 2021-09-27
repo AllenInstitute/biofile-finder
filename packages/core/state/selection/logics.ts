@@ -282,17 +282,30 @@ const toggleFileFolderCollapse = createLogic({
  * other actions responsible for rehydrating the FileExplorerURL into application state.
  */
 const decodeFileExplorerURL = createLogic({
-    process(deps: ReduxLogicDeps, dispatch, done) {
+    async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
         const annotations = metadata.selectors.getAnnotations(deps.getState());
         const collections = metadata.selectors.getActiveCollections(deps.getState());
-        const {
-            hierarchy,
-            filters,
-            openFolders,
-            sortColumn,
-            collectionId,
-        } = FileExplorerURL.decode(encodedURL, annotations, collections);
+        const { hierarchy, filters, openFolders, sortColumn, collection } = FileExplorerURL.decode(
+            encodedURL,
+            annotations
+        );
+
+        let collectionId = collections.find(
+            (c) => c.name === collection?.name && c.version === collection?.version
+        )?.id;
+        // It is possible the user was sent a private collection, in that event the collection is likely not stored
+        // in the state's collection set yet & should be loaded in.
+        if (collection && !collectionId) {
+            const datasetService = interaction.selectors.getDatasetService(deps.getState());
+            const newCollection = await datasetService.getDataset(
+                collection.name,
+                collection.version
+            );
+            dispatch(metadata.actions.receiveCollections([...collections, newCollection]));
+            collectionId = newCollection.id;
+        }
+
         batch(() => {
             dispatch(setAnnotationHierarchy(hierarchy));
             dispatch(setFileFilters(filters));

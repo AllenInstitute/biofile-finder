@@ -69,6 +69,19 @@ export default class DatasetService extends HttpServiceBase {
         return response.data;
     }
 
+    /**
+     * Request for a specific dataset.
+     */
+    public async getDataset(name: string, version: number): Promise<Dataset> {
+        const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}/${name}/${version}`;
+        console.log(`Requesting dataset from the following url: ${requestUrl}`);
+
+        // This data should never be stale, so, avoid using a response cache
+        const response = await this.getWithoutCaching<Dataset>(requestUrl);
+
+        return response.data[0];
+    }
+
     public async getPythonicDataAccessSnippet(
         datasetName: string,
         datasetVersion: number
