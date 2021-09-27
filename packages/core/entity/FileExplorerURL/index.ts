@@ -10,7 +10,7 @@ import { Dataset } from "../../services/DatasetService";
 // Components of the application state this captures
 export interface FileExplorerURLComponents {
     hierarchy: Annotation[];
-    fileSetSourceId?: string;
+    collectionId?: string;
     filters: FileFilter[];
     openFolders: FileFolder[];
     sortColumn?: FileSort;
@@ -19,7 +19,7 @@ export interface FileExplorerURLComponents {
 // JSON format this outputs & expects to receive back from the user
 interface FileExplorerURLJson {
     groupBy: string[];
-    fileSetSourceId?: string;
+    collectionId?: string;
     filters: FileFilterJson[];
     openFolders: AnnotationValue[][];
     sort?: {
@@ -73,7 +73,7 @@ export default class FileExplorerURL {
             filters,
             openFolders,
             sort,
-            fileSetSourceId: urlComponents.fileSetSourceId,
+            collectionId: urlComponents.collectionId,
         };
         return `${FileExplorerURL.PROTOCOL}${JSON.stringify(dataToEncode)}`;
     }
@@ -116,11 +116,11 @@ export default class FileExplorerURL {
         }
 
         if (
-            parsedURL.fileSetSourceId &&
-            !datasets.find((dataset) => dataset.id === parsedURL.fileSetSourceId)
+            parsedURL.collectionId &&
+            !datasets.find((dataset) => dataset.id === parsedURL.collectionId)
         ) {
             throw new ValueError(
-                `Unable to decode FileExplorerURL, couldn't find File Set Source (${parsedURL.fileSetSourceId})`
+                `Unable to decode FileExplorerURL, couldn't find Collection (${parsedURL.collectionId})`
             );
         }
 
@@ -139,7 +139,7 @@ export default class FileExplorerURL {
                 const matchingAnnotation = annotations.filter((a) => a.name === annotationName)[0];
                 return matchingAnnotation;
             }),
-            fileSetSourceId: parsedURL.fileSetSourceId,
+            collectionId: parsedURL.collectionId,
             filters: parsedURL.filters.map((filter) => {
                 if (!annotationNameSet.has(filter.name)) {
                     throw new ValueError(

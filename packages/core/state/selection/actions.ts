@@ -466,20 +466,20 @@ export function decodeFileExplorerURL(decodedFileExplorerURL: string): DecodeFil
 }
 
 /**
- * SET_FILE_SET_SOURCE
+ * CHANGE_COLLECTION
  *
- * Intention to update the file set source queries are made against
+ * Intention to update the collection queries are run against.
  */
-export const SET_FILE_SET_SOURCE = makeConstant(STATE_BRANCH_NAME, "set-file-set-source");
+export const CHANGE_COLLECTION = makeConstant(STATE_BRANCH_NAME, "change-collection");
 
-export interface SetFileSetSourceAction {
+export interface SetChangeCollectionAction {
     payload?: string;
     type: string;
 }
 
-export function setFileSetSource(datasetId?: string): SetFileSetSourceAction {
+export function changeCollection(collectionId?: string): SetChangeCollectionAction {
     return {
-        payload: datasetId,
-        type: SET_FILE_SET_SOURCE,
+        payload: collectionId,
+        type: CHANGE_COLLECTION,
     };
 }

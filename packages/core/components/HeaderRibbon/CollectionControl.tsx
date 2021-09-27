@@ -67,7 +67,7 @@ const LIVE_COLLECTION_HEADER: IContextualMenuItem = {
  */
 export default function CollectionControl(props: Props) {
     const dispatch = useDispatch();
-    const collections = useSelector(metadata.selectors.getActiveDatasets);
+    const collections = useSelector(metadata.selectors.getActiveCollections);
     const selectedCollection = useSelector(selection.selectors.getSelectedCollection);
 
     const [searchValue, setSearchValue] = React.useState("");
@@ -79,7 +79,7 @@ export default function CollectionControl(props: Props) {
             text: ALL_FILES_KEY,
             key: ALL_FILES_KEY,
             onClick: () => {
-                dispatch(selection.actions.setFileSetSource(undefined));
+                dispatch(selection.actions.changeCollection(undefined));
             },
             ...(!selectedCollection && SELECTED_STYLES),
         };
@@ -120,14 +120,14 @@ export default function CollectionControl(props: Props) {
                                       collection.created
                                   ).toLocaleString()} by ${collection.createdBy}`,
                                   onClick: () => {
-                                      dispatch(selection.actions.setFileSetSource(collection.id));
+                                      dispatch(selection.actions.changeCollection(collection.id));
                                   },
                                   ...(collection.id === selectedCollection?.id && SELECTED_STYLES),
                               })),
                           }
                         : undefined,
                 onClick: () => {
-                    dispatch(selection.actions.setFileSetSource(collectionsWithSameName[0].id));
+                    dispatch(selection.actions.changeCollection(collectionsWithSameName[0].id));
                 },
                 ...(collectionsWithSameName[0].id === selectedCollection?.id && SELECTED_STYLES),
             };
@@ -214,7 +214,7 @@ export default function CollectionControl(props: Props) {
                             disabled={!selectedCollection}
                             iconProps={{ iconName: "edit" }}
                             styles={SECONDARY_BUTTON_STYLES}
-                            onClick={() => dispatch(interaction.actions.showEditFileSetDialog())}
+                            onClick={() => dispatch(interaction.actions.showEditCollectionDialog())}
                         />
                         <IconButton
                             className={styles.controlGroupButton}

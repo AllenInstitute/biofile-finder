@@ -20,7 +20,7 @@ import {
     SET_ANNOTATION_HIERARCHY,
     SELECT_NEARBY_FILE,
     setSortColumn,
-    setFileSetSource,
+    changeCollection,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -285,20 +285,20 @@ const decodeFileExplorerURL = createLogic({
     process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
         const annotations = metadata.selectors.getAnnotations(deps.getState());
-        const datasets = metadata.selectors.getActiveDatasets(deps.getState());
+        const collections = metadata.selectors.getActiveCollections(deps.getState());
         const {
             hierarchy,
             filters,
             openFolders,
             sortColumn,
-            fileSetSourceId,
-        } = FileExplorerURL.decode(encodedURL, annotations, datasets);
+            collectionId,
+        } = FileExplorerURL.decode(encodedURL, annotations, collections);
         batch(() => {
             dispatch(setAnnotationHierarchy(hierarchy));
             dispatch(setFileFilters(filters));
             dispatch(setOpenFileFolders(openFolders));
             dispatch(setSortColumn(sortColumn));
-            dispatch(setFileSetSource(fileSetSourceId));
+            dispatch(changeCollection(collectionId));
         });
         done();
     },
@@ -311,7 +311,7 @@ const decodeFileExplorerURL = createLogic({
 const selectNearbyFile = createLogic({
     async transform(deps: ReduxLogicDeps, next, reject) {
         const { direction, updateExistingSelection } = deps.action.payload;
-        const fileSetSourceId = selection.selectors.getFileSetSourceId(deps.getState());
+        const collectionId = selection.selectors.getCollectionId(deps.getState());
         const fileService = interaction.selectors.getFileService(deps.getState());
         const fileSelection = selectionSelectors.getFileSelection(deps.getState());
         const hierarchy = selectionSelectors.getAnnotationHierarchy(deps.getState());
@@ -360,7 +360,7 @@ const selectNearbyFile = createLogic({
                 // to the bottom of the next open file list above this one
                 const fileListIndexAboveCurrentFileList = indexOfFocusedFileList - 1;
                 const openFileSetAboveCurrent = new FileSet({
-                    fileSetSourceId,
+                    collectionId,
                     fileService,
                     // Determine the filters of the previous file list based on the hierarchy & path
                     // needed to open the file folder
@@ -399,7 +399,7 @@ const selectNearbyFile = createLogic({
                 // If not at the bottom file list (but at the bottom of this file list) navigate
                 // to the top of the next open file list below this one
                 const openFileSetBelowCurrent = new FileSet({
-                    fileSetSourceId,
+                    collectionId,
                     fileService,
                     // Determine the filters of the next file list based on the hierarchy & path
                     // needed to open the file folder

@@ -257,7 +257,7 @@ export enum ProcessStatus {
 
 export interface StatusUpdate {
     data: {
-        dataset?: Dataset; // if relevant/applicable, dataset related to this status update
+        collection?: Dataset; // if relevant/applicable, collection related to this status update
         fileId?: string[]; // if relevant/applicable, fileid(s) related to this status update
         msg: string;
         status?: ProcessStatus;
@@ -428,6 +428,7 @@ export const GENERATE_SHAREABLE_FILE_SELECTION_LINK = makeConstant(
 
 export interface GenerateShareableFileSelectionLinkAction {
     payload: {
+        id?: string;
         annotations?: Annotation[];
         expiration?: Date;
         filters?: FileFilter[];
@@ -439,6 +440,7 @@ export interface GenerateShareableFileSelectionLinkAction {
 }
 
 export function generateShareableFileSelectionLink(config: {
+    id?: string;
     annotations?: Annotation[];
     expiration?: Date;
     filters?: FileFilter[];
@@ -518,80 +520,46 @@ export function succeedPythonSnippetGeneration(
 }
 
 /**
- * ?
+ * SHOW_CREATE_COLLECTION_DIALOG
  *
- * TODO
+ * Intention to show the dialog for generating a custom collection.
  */
-export const SHOW_CREATE_VIEW_DIALOG = makeConstant(STATE_BRANCH_NAME, "show-create-view-dialog");
-
-export interface ShowCreateViewDialogAction {
-    type: string;
-}
-
-export function showCreateViewDialog(): ShowCreateViewDialogAction {
-    return {
-        type: SHOW_CREATE_VIEW_DIALOG,
-    };
-}
-
-/**
- *
- *
- * TODO
- */
-export const SHOW_EDIT_VIEW_DIALOG = makeConstant(STATE_BRANCH_NAME, "show-edit-view-dialog");
-
-export interface ShowEditViewDialogAction {
-    type: string;
-}
-
-export function showEditViewDialog(): ShowEditViewDialogAction {
-    return {
-        type: SHOW_EDIT_VIEW_DIALOG,
-    };
-}
-
-/**
- * SHOW_GENERATE_FILE_SET_DIALOG
- *
- * Intention to show the dialog for generating a custom file set.
- */
-export const SHOW_GENERATE_FILE_SET_DIALOG = makeConstant(
+export const SHOW_CREATE_COLLECTION_DIALOG = makeConstant(
     STATE_BRANCH_NAME,
-    "show-generate-file-set-dialog"
+    "show-create-collection-dialog"
 );
 
-export interface ShowGenerateFileSetDialogAction {
+export interface ShowCreateCollectionDialogAction {
     type: string;
     payload: FileFilter[];
 }
 
-export function showGenerateFileSetDialog(
+export function showCreateCollectionDialog(
     fileFilters: FileFilter[] = []
-): ShowGenerateFileSetDialogAction {
+): ShowCreateCollectionDialogAction {
     return {
-        type: SHOW_GENERATE_FILE_SET_DIALOG,
+        type: SHOW_CREATE_COLLECTION_DIALOG,
         payload: fileFilters,
     };
 }
 
 /**
- * TODO
+ * SHOW_EDIT_COLLECTION_DIALOG
  *
- *
+ * Intention to show the dialog for editing an existing collection.
  */
-export const SHOW_EDIT_FILE_SET_DIALOG = makeConstant(
+export const SHOW_EDIT_COLLECTION_DIALOG = makeConstant(
     STATE_BRANCH_NAME,
-    "show-edit-file-set-dialog"
+    "show-edit-collection-dialog"
 );
 
-export interface ShowEditFileSetDialogAction {
+export interface ShowEditCollectionDialogAction {
     type: string;
 }
 
-export function showEditFileSetDialog(): ShowEditFileSetDialogAction {
+export function showEditCollectionDialog(): ShowEditCollectionDialogAction {
     return {
-        type: SHOW_EDIT_FILE_SET_DIALOG,
+        type: SHOW_EDIT_COLLECTION_DIALOG,
     };
 }
 

@@ -9,7 +9,12 @@
     border-bottom: 1px solid var(--secondary);
     color: white;
     display: flex;
+    height: var(--header-ribbon-height);
     padding: var(--margin);
+}
+
+.collapsed {
+    height: 2em;
 }
 
 .control-group {

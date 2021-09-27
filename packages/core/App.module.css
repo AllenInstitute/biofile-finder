@@ -37,22 +37,23 @@
     user-select: none;
 }
 
+.content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
 .header-ribbon {
     display: block;
     width: 100%;
-    height: var(--header-ribbon-height);
 }
 
 .everything-except-header-ribbon {
     composes: relative;
     display: flex;
+    flex: auto;
     margin: var(--margin);
     width: calc(100% - (2 * var(--margin)));
-    height: calc(100% - (2 * var(--margin)) - var(--header-ribbon-height));
-}
-
-.placeholder + .everything-except-header-ribbon {
-    height: calc(100% - (2 * var(--margin)));
 }
 
 .core {
@@ -86,10 +87,6 @@
     height: calc(100% - var(--url-bar-height) - var(--margin));
 }
 
-.placeholder + .annotation-hierarchy-and-file-list {
-    height: 100%;
-}
-
 .annotation-hierarchy {
     height: 100%;
     width: 30%;
@@ -111,8 +108,4 @@
 
     /* flex child */
     flex: 0 0 var(--file-details-width);
-}
-
-.placeholder {
-    display: none;
 }

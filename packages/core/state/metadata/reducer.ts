@@ -4,26 +4,16 @@ import { interaction } from "..";
 import Annotation from "../../entity/Annotation";
 import { Dataset } from "../../services/DatasetService";
 
-import { RECEIVE_ANNOTATIONS, RECEIVE_DATASETS } from "./actions";
-
-export interface View {
-    id: string;
-    name: string;
-}
+import { RECEIVE_ANNOTATIONS, RECEIVE_COLLECTIONS } from "./actions";
 
 export interface MetadataStateBranch {
     annotations: Annotation[];
-    datasets: Dataset[];
-    views: View[];
+    collections: Dataset[];
 }
 
 export const initialState = {
     annotations: [],
-    datasets: [],
-    views: [{
-        id: "12341324",
-        name: "Fake Query"
-    }],
+    collections: [],
 };
 
 export default makeReducer<MetadataStateBranch>(
@@ -33,15 +23,15 @@ export default makeReducer<MetadataStateBranch>(
             action
         ) => ({
             ...state,
-            datasets: [...state.datasets, action.payload.dataset],
+            collections: [...state.collections, action.payload.dataset],
         }),
         [RECEIVE_ANNOTATIONS]: (state, action) => ({
             ...state,
             annotations: action.payload,
         }),
-        [RECEIVE_DATASETS]: (state, action) => ({
+        [RECEIVE_COLLECTIONS]: (state, action) => ({
             ...state,
-            datasets: action.payload,
+            collections: action.payload,
         }),
     },
     initialState

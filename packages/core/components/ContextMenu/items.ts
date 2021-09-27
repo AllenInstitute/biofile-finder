@@ -6,8 +6,8 @@ import { interaction } from "../../state";
 export enum ContextMenuActions {
     COPY = "copy",
     CSV_MANIFEST = "csv-manifest",
-    CUSTOM_FILE_SET = "custom-file-set",
-    DEFAULT_FILE_SET = "default-file-set",
+    CUSTOM_COLLECTION = "custom-collection",
+    DEFAULT_COLLECTION = "default-collection",
     MODIFY_COLUMNS = "modify-columns",
     OPEN = "open",
     OPEN_WITH = "open-with",
@@ -17,11 +17,11 @@ export enum ContextMenuActions {
 }
 
 export const MENU_HEADER_STYLES = {
-        label: {
-            // Color pulled from App.module.css "primary-brand-purple"
-            color: "#827aa3",
-        },
-    };
+    label: {
+        // Color pulled from App.module.css "primary-brand-purple"
+        color: "#827aa3",
+    },
+};
 
 /**
  * This is intended to be a catalogue of context menu items and that can be reused as various context menus are built up
@@ -54,15 +54,19 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                             text: "Default Configuration",
                             itemType: ContextualMenuItemType.Header,
                             itemProps: {
-                                styles: MENU_HEADER_STYLES
+                                styles: MENU_HEADER_STYLES,
                             },
                         },
                         {
-                            key: ContextMenuActions.DEFAULT_FILE_SET,
+                            key: ContextMenuActions.DEFAULT_COLLECTION,
                             text: "Not-fixed, expires tomorrow",
                             title: "Shareable FMS File Explorer URL to file selection",
                             onClick() {
-                                dispatch(interaction.actions.generateShareableFileSelectionLink({private: true}));
+                                dispatch(
+                                    interaction.actions.generateShareableFileSelectionLink({
+                                        private: true,
+                                    })
+                                );
                             },
                         },
                         {
@@ -70,15 +74,15 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                             text: "Custom Configuration",
                             itemType: ContextualMenuItemType.Header,
                             itemProps: {
-                                styles: MENU_HEADER_STYLES
+                                styles: MENU_HEADER_STYLES,
                             },
                         },
                         {
-                            key: ContextMenuActions.CUSTOM_FILE_SET,
+                            key: ContextMenuActions.CUSTOM_COLLECTION,
                             text: "Configure...",
                             title: "Shareable custom collection",
                             onClick() {
-                                dispatch(interaction.actions.showGenerateFileSetDialog());
+                                dispatch(interaction.actions.showCreateCollectionDialog());
                             },
                         },
                     ],

@@ -73,16 +73,18 @@ export default function App(props: AppProps) {
 
     return (
         <div className={styles.root}>
-            <HeaderRibbon className={styles.headerRibbon} />
-            <div className={styles.everythingExceptHeaderRibbon}>
-                <div className={styles.core}>
-                    <FileExplorerURLBar className={classNames(styles.urlBar)} />
-                    <div className={styles.annotationHierarchyAndFileList}>
-                        <AnnotationSidebar className={styles.annotationHierarchy} />
-                        <DirectoryTree className={styles.fileList} />
+            <div className={styles.content}>
+                <HeaderRibbon className={styles.headerRibbon} />
+                <div className={styles.everythingExceptHeaderRibbon}>
+                    <div className={styles.core}>
+                        <FileExplorerURLBar className={classNames(styles.urlBar)} />
+                        <div className={styles.annotationHierarchyAndFileList}>
+                            <AnnotationSidebar className={styles.annotationHierarchy} />
+                            <DirectoryTree className={styles.fileList} />
+                        </div>
                     </div>
+                    <FileDetails className={styles.fileDetails} />
                 </div>
-                <FileDetails className={styles.fileDetails} />
             </div>
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
             <StatusMessage />

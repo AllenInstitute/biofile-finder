@@ -21,7 +21,11 @@ import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import AnnotationSelector from "../AnnotationSelector";
 import * as modalSelectors from "../selectors";
 
-const styles = require("./FileSetForm.module.css");
+const styles = require("./CollectionForm.module.css");
+
+interface Props extends ModalProps {
+    isEditing?: boolean;
+}
 
 export enum Expiration {
     OneDay = "1 Day",
@@ -41,23 +45,23 @@ const SUBTITLES = [
     "Last, select how long to keep this dataset around. If this is being created for a one-off task, consider selecting a shorter lifespan.",
 ];
 
-const FIXED_CHECKBOX_TOOLTIP = "In order to reproduce your exact selection later, if checked, this will make your collection an immutable, point-in-time snapshot of the metadata for the files you’ve selected (a \"dataset\"). You won't be able to add to or remove from this dataset once created, nor will the files' metadata be modifiable.";
-const PRIVATE_CHECK_BOX_TOOLTIP = "If checked, this collection will not appear in the collection dropdown for other users as an option. However, this collection will still be able to be sent by you as an FMS File Explorer URL."
+const FIXED_CHECKBOX_TOOLTIP =
+    "In order to reproduce your exact selection later, if checked, this will make your collection an immutable, point-in-time snapshot of the metadata for the files you’ve selected (a \"dataset\"). You won't be able to add to or remove from this dataset once created, nor will the files' metadata be modifiable.";
+const PRIVATE_CHECK_BOX_TOOLTIP =
+    "If checked, this collection will not appear in the collection dropdown for other users as an option. However, this collection will still be able to be sent by you as an FMS File Explorer URL.";
 
 /**
  * Dialog form for generating a customized shareable collection
  */
-export default function FileSetForm({ onDismiss }: ModalProps) {
+export default function CollectionForm({ isEditing, onDismiss }: Props) {
     const dispatch = useDispatch();
 
     const filters = useSelector(interaction.selectors.getFileFiltersForVisibleModal);
-    const existingDatasets = useSelector(metadata.selectors.getDatasets);
+    const existingCollections = useSelector(metadata.selectors.getCollections);
     const annotationsPreviouslySelected = useSelector(
         modalSelectors.getAnnotationsPreviouslySelected
     );
-    const collectionId = useSelector(selection.selectors.getFileSetSourceId);
-
-    const collection = existingDatasets.find(d => d.id === collectionId);
+    const collection = useSelector(selection.selectors.getSelectedCollection);
 
     const [selectedAnnotations, setSelectedAnnotations] = React.useState<Annotation[]>(() =>
         isEmpty(annotationsPreviouslySelected)
@@ -70,21 +74,24 @@ export default function FileSetForm({ onDismiss }: ModalProps) {
     const [name, setName] = React.useState<string>("");
     const [isSubtitleExpanded, setIsSubtitleExpanded] = React.useState(true);
 
+    const isDisabled =
+        !name.trim() || (isFixed && !!selectedAnnotations.length) || (!isEditing && !expiration);
+
     React.useEffect(() => {
         setName(collection?.name || "");
-    }, [collection, setExpiration, setName])
+    }, [collection, setExpiration, setName]);
 
-    // Datasets can have the same name with different versions, see if this would
+    // Collections can have the same name with different versions, see if this would
     // need to be a new version based on the name
     const nextVersionForName = React.useMemo(() => {
-        const matchingExistingDatasets = existingDatasets
-            .filter((d) => d.name === name)
+        const matchingExistingCollections = existingCollections
+            .filter((c) => c.name === name)
             .sort((a, b) => (a.version > b.version ? -1 : 1));
-        if (!matchingExistingDatasets.length) {
+        if (!matchingExistingCollections.length) {
             return 1;
         }
-        return matchingExistingDatasets[0].version + 1;
-    }, [name, existingDatasets]);
+        return matchingExistingCollections[0].version + 1;
+    }, [name, existingCollections]);
 
     const onGenerate = () => {
         let expirationDate: Date | undefined = new Date();
@@ -98,12 +105,15 @@ export default function FileSetForm({ onDismiss }: ModalProps) {
             expirationDate.setFullYear(expirationDate.getFullYear() + 1);
         } else if (expiration === Expiration.ThreeYears) {
             expirationDate.setFullYear(expirationDate.getFullYear() + 3);
-        } else {
+        } else if (expiration === Expiration.Forever) {
             expirationDate = undefined;
+        } else {
+            expirationDate = collection?.expiration;
         }
 
         dispatch(
             interaction.actions.generateShareableFileSelectionLink({
+                id: isEditing ? collection?.id : undefined,
                 annotations: selectedAnnotations,
                 expiration: expirationDate,
                 filters,
@@ -146,15 +156,13 @@ export default function FileSetForm({ onDismiss }: ModalProps) {
                     </div>
                 </div>
             )}
-            {collectionId && (
+            {isEditing && (
                 <div className={styles.expirationWarning}>
                     <Icon iconName="InfoSolid" />
-                    <h6>
-                        Currently expires 10/25/21 02:03:40
-                    </h6>
+                    <h6>Currently expires 10/25/21 02:03:40</h6>
                 </div>
             )}
-            <div className={classNames(styles.form, styles.datasetForm)}>
+            <div className={classNames(styles.form, styles.collectionForm)}>
                 <ChoiceGroup
                     className={styles.expirationInput}
                     label="Accessible for"
@@ -181,19 +189,35 @@ export default function FileSetForm({ onDismiss }: ModalProps) {
                     <div className={styles.checkboxRow}>
                         <div className={styles.checkboxContainer}>
                             <Checkbox
-                             className={styles.checkbox}
+                                className={styles.checkbox}
                                 checked={isFixed}
                                 onChange={(_, checked) => setIsFixed(checked || false)}
                             />
-                            <h5 className={styles.checkboxLabel}>Is Fixed? <TooltipHost content={FIXED_CHECKBOX_TOOLTIP}><Icon className={styles.checkboxInfoIcon} iconName="InfoSolid" /></TooltipHost></h5>
+                            <h5 className={styles.checkboxLabel}>
+                                Is Fixed?{" "}
+                                <TooltipHost content={FIXED_CHECKBOX_TOOLTIP}>
+                                    <Icon
+                                        className={styles.checkboxInfoIcon}
+                                        iconName="InfoSolid"
+                                    />
+                                </TooltipHost>
+                            </h5>
                         </div>
                         <div className={styles.checkboxContainer}>
                             <Checkbox
-                             className={styles.checkbox}
+                                className={styles.checkbox}
                                 checked={isPrivate}
                                 onChange={(_, checked) => setIsPrivate(checked || false)}
                             />
-                            <h5 className={styles.checkboxLabel}>Is Private? <TooltipHost content={PRIVATE_CHECK_BOX_TOOLTIP}><Icon className={styles.checkboxInfoIcon} iconName="InfoSolid" /></TooltipHost></h5>
+                            <h5 className={styles.checkboxLabel}>
+                                Is Private?{" "}
+                                <TooltipHost content={PRIVATE_CHECK_BOX_TOOLTIP}>
+                                    <Icon
+                                        className={styles.checkboxInfoIcon}
+                                        iconName="InfoSolid"
+                                    />
+                                </TooltipHost>
+                            </h5>
                         </div>
                     </div>
                 </div>
@@ -202,7 +226,9 @@ export default function FileSetForm({ onDismiss }: ModalProps) {
                 <>
                     <hr />
                     <h4>Step 2: Select columns</h4>
-                    <p>Select which annotations you would like available as metadata in the result.</p>
+                    <p>
+                        Select which annotations you would like available as metadata in the result.
+                    </p>
                     <AnnotationSelector
                         className={styles.form}
                         selections={selectedAnnotations}
@@ -218,13 +244,13 @@ export default function FileSetForm({ onDismiss }: ModalProps) {
             body={body}
             footer={
                 <PrimaryButton
-                    text={collection ? "Update": "Generate"}
-                    disabled={!name || !expiration || (isFixed && !selectedAnnotations.length)}
+                    text={isEditing ? "Update" : "Generate"}
+                    disabled={isDisabled}
                     onClick={onGenerate}
                 />
             }
             onDismiss={onDismiss}
-            title={collection ? `Update ${collection.name}` : "Generate Collection"}
+            title={isEditing ? `Update ${collection?.name}` : "Generate Collection"}
         />
     );
 }

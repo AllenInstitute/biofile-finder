@@ -45,20 +45,20 @@ export function requestAnnotations(): RequestAnnotationAction {
 /**
  * RECEIVE_DATASETS
  *
- * Intention to store listing of datasets returned from data service. These are sets of file metadata
+ * Intention to store listing of collections returned from data service. These are sets of file metadata
  * that can be used to narrow the set of explorable files down.
  */
-export const RECEIVE_DATASETS = makeConstant(STATE_BRANCH_NAME, "receive-datasets");
+export const RECEIVE_COLLECTIONS = makeConstant(STATE_BRANCH_NAME, "receive-collections");
 
-export interface ReceiveDatasetAction {
+export interface ReceiveCollectionAction {
     payload: Dataset[];
     type: string;
 }
 
-export function receiveDatasets(payload: Dataset[]): ReceiveDatasetAction {
+export function receiveCollections(payload: Dataset[]): ReceiveCollectionAction {
     return {
         payload,
-        type: RECEIVE_DATASETS,
+        type: RECEIVE_COLLECTIONS,
     };
 }
 

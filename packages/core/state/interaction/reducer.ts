@@ -17,14 +17,12 @@ import {
     SET_STATUS,
     SET_VISIBLE_MODAL,
     SHOW_CONTEXT_MENU,
-    SHOW_GENERATE_FILE_SET_DIALOG,
+    SHOW_CREATE_COLLECTION_DIALOG,
     SHOW_MANIFEST_DOWNLOAD_DIALOG,
     StatusUpdate,
     SUCCEED_PYTHON_SNIPPET_GENERATION,
     SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
-    SHOW_CREATE_VIEW_DIALOG,
-    SHOW_EDIT_VIEW_DIALOG,
-    SHOW_EDIT_FILE_SET_DIALOG,
+    SHOW_EDIT_COLLECTION_DIALOG,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -165,22 +163,14 @@ export default makeReducer<InteractionStateBranch>(
             ...action.payload,
             fileFiltersForVisibleModal: [],
         }),
-        [SHOW_CREATE_VIEW_DIALOG]: (state) => ({
+        [SHOW_CREATE_COLLECTION_DIALOG]: (state, action) => ({
             ...state,
-            visibleModal: ModalType.ViewForm,
-        }),
-        [SHOW_EDIT_VIEW_DIALOG]: (state) => ({
-            ...state,
-            visibleModal: ModalType.ViewForm,
-        }),
-        [SHOW_GENERATE_FILE_SET_DIALOG]: (state, action) => ({
-            ...state,
-            visibleModal: ModalType.FileSetForm,
+            visibleModal: ModalType.CreateCollectionForm,
             fileFiltersForVisibleModal: action.payload,
         }),
-        [SHOW_EDIT_FILE_SET_DIALOG]: (state) => ({
+        [SHOW_EDIT_COLLECTION_DIALOG]: (state) => ({
             ...state,
-            visibleModal: ModalType.FileSetForm,
+            visibleModal: ModalType.EditCollectionForm,
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action) => ({
             ...state,

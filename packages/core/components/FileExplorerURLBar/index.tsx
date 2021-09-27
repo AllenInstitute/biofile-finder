@@ -26,13 +26,13 @@ interface FileExplorerURLBarProps {
 function FileExplorerURLBar(props: FileExplorerURLBarProps) {
     const dispatch = useDispatch();
     const annotations = useSelector(metadata.selectors.getAnnotations);
-    const datasets = useSelector(metadata.selectors.getActiveDatasets);
+    const collections = useSelector(metadata.selectors.getActiveCollections);
 
     const [url, setURL] = React.useState<string>(props.existingEncodedURL);
     const [isCopied, setCopied] = React.useState(false);
     const error = React.useMemo(
-        () => FileExplorerURL.validateEncodedFileExplorerURL(url, annotations, datasets),
-        [url, annotations, datasets]
+        () => FileExplorerURL.validateEncodedFileExplorerURL(url, annotations, collections),
+        [url, annotations, collections]
     );
 
     const onURLChange = (_: React.FormEvent, input?: string) => {

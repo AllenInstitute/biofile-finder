@@ -4,7 +4,7 @@ import { createLogic } from "redux-logic";
 import { interaction, ReduxLogicDeps, selection } from "..";
 import {
     receiveAnnotations,
-    receiveDatasets,
+    receiveCollections,
     REQUEST_ANNOTATIONS,
     REQUEST_DATASETS,
 } from "./actions";
@@ -63,7 +63,7 @@ const requestDatasets = createLogic({
 
         try {
             const datasets = await datasetService.getDatasets();
-            dispatch(receiveDatasets(datasets));
+            dispatch(receiveCollections(datasets));
         } catch (err) {
             console.error("Failed to fetch datasets", err);
             // TODO: Dispatch alert?

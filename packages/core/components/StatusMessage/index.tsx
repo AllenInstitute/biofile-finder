@@ -12,7 +12,8 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
-import { StatusUpdate, ProcessStatus, generatePythonSnippet } from "../../state/interaction/actions";
+import { StatusUpdate, ProcessStatus } from "../../state/interaction/actions";
+import { Dataset } from "../../services/DatasetService";
 
 const styles = require("./StatusMessage.module.css");
 
@@ -99,8 +100,17 @@ export default function StatusMessage() {
                                     }}
                                 />
                             )}
-                            {statusUpdate.data.dataset && (
-                                <DefaultButton className={styles.showPythonSnippetButton} onClick={() => dispatch(generatePythonSnippet(statusUpdate.data.dataset))}>
+                            {statusUpdate.data.collection && (
+                                <DefaultButton
+                                    className={styles.showPythonSnippetButton}
+                                    onClick={() =>
+                                        dispatch(
+                                            interaction.actions.generatePythonSnippet(
+                                                statusUpdate.data.collection as Dataset
+                                            )
+                                        )
+                                    }
+                                >
                                     Show Python Snippet
                                 </DefaultButton>
                             )}

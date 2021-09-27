@@ -13,10 +13,16 @@ interface HeaderRibbonProps {
  * Ribbon-like toolbar at the top of the application to contain features like application-level view options.
  */
 export default function HeaderRibbon(props: HeaderRibbonProps) {
-    const [isCollapsed, setCollapsed] = React.useState(false); // TODO: True
+    const [isCollapsed, setCollapsed] = React.useState(true);
 
     return (
-        <div className={classNames(styles.root, props.className)}>
+        <div
+            className={classNames(
+                styles.root,
+                { [styles.collapsed]: isCollapsed },
+                props.className
+            )}
+        >
             <CollectionControl
                 isCollapsed={isCollapsed}
                 onToggleCollapse={() => setCollapsed(!isCollapsed)}

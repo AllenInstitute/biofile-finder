@@ -97,7 +97,7 @@ const downloadManifest = createLogic({
             );
             let fileSelection = selection.selectors.getFileSelection(state);
             const filters = interactionSelectors.getFileFiltersForVisibleModal(state);
-            const fileSetSourceId = selection.selectors.getFileSetSourceId(state);
+            const collectionId = selection.selectors.getCollectionId(state);
             const fileService = interactionSelectors.getFileService(state);
             const sortColumn = selection.selectors.getSortColumn(state);
             const csvService = new CsvService({
@@ -109,7 +109,7 @@ const downloadManifest = createLogic({
             // If we have a specific path to get files from ignore selected files
             if (filters.length) {
                 const fileSet = new FileSet({
-                    fileSetSourceId,
+                    collectionId,
                     filters,
                     fileService,
                     sort: sortColumn,
@@ -328,7 +328,7 @@ const openWithDefault = createLogic({
         const filters = deps.action.payload;
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
-        const fileSetSourceId = selection.selectors.getFileSetSourceId(deps.getState());
+        const collectionId = selection.selectors.getCollectionId(deps.getState());
         const sortColumn = selection.selectors.getSortColumn(deps.getState());
         const userSelectedApplications =
             interactionSelectors.getUserSelectedApplications(deps.getState()) || [];
@@ -339,7 +339,7 @@ const openWithDefault = createLogic({
             files = await fileSelection.fetchAllDetails();
         } else {
             const fileSet = new FileSet({
-                fileSetSourceId,
+                collectionId,
                 filters,
                 fileService,
                 sort: sortColumn,
@@ -390,7 +390,7 @@ const openWithLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
-        const fileSetSourceId = selection.selectors.getFileSetSourceId(deps.getState());
+        const collectionId = selection.selectors.getCollectionId(deps.getState());
         const savedAllenMountPoint = interactionSelectors.getAllenMountPoint(deps.getState());
         const {
             fileViewerService,
@@ -456,7 +456,7 @@ const openWithLogic = createLogic({
                     filesToOpen = files;
                 } else if (filters) {
                     const fileSet = new FileSet({
-                        fileSetSourceId,
+                        collectionId,
                         filters,
                         fileService,
                         sort: sortColumn,
@@ -526,17 +526,17 @@ const generateShareableFileSelectionLink = createLogic({
                 private: true,
             };
 
-            const {filters} = deps.action.payload;
+            const { filters } = deps.action.payload;
             let fileSelection = selection.selectors.getFileSelection(deps.getState());
             const datasetService = interactionSelectors.getDatasetService(deps.getState());
 
             // If we have a specific path to get files from ignore selected files
             if (filters?.length) {
-                const fileSetSourceId = selection.selectors.getFileSetSourceId(deps.getState());
+                const collectionId = selection.selectors.getCollectionId(deps.getState());
                 const sortColumn = selection.selectors.getSortColumn(deps.getState());
                 const fileService = interactionSelectors.getFileService(deps.getState());
                 const fileSet = new FileSet({
-                    fileSetSourceId,
+                    collectionId,
                     filters,
                     fileService,
                     sort: sortColumn,
@@ -558,12 +558,12 @@ const generateShareableFileSelectionLink = createLogic({
                 ...deps.action.payload,
                 selections,
             };
-            const dataset = await datasetService.createDataset(request);
+            const collection = await datasetService.createDataset(request);
 
             const statusUpdate: StatusUpdate = {
                 processId: uniqueId(),
                 data: {
-                    dataset,
+                    collection,
                     msg: "Copied FMS File Explorer URL link to clipboard!",
                 },
             };
@@ -571,7 +571,7 @@ const generateShareableFileSelectionLink = createLogic({
             const url = selection.selectors.getEncodedFileExplorerUrl(
                 mergeState(deps.getState(), {
                     selection: {
-                        fileSetSourceId: dataset.id,
+                        collectionId: collection.id,
                     },
                 })
             );
@@ -579,7 +579,7 @@ const generateShareableFileSelectionLink = createLogic({
             dispatch(
                 succeedShareableFileSelectionLinkGeneration(
                     generateShareableFileSelectionLinkId,
-                    dataset,
+                    collection,
                     statusUpdate
                 )
             );
@@ -606,7 +606,10 @@ const generatePythonSnippet = createLogic({
         const dataset = deps.action.payload as Dataset;
         const datasetService = interactionSelectors.getDatasetService(deps.getState());
         try {
-            const pythonSnippet = await datasetService.getPythonicDataAccessSnippet(dataset.name, dataset.version);
+            const pythonSnippet = await datasetService.getPythonicDataAccessSnippet(
+                dataset.name,
+                dataset.version
+            );
             dispatch(succeedPythonSnippetGeneration(generatePythonSnippetProcessId, pythonSnippet));
         } catch (err) {
             dispatch(

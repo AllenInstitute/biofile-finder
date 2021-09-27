@@ -65,13 +65,18 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                         item.onClick = () => {
                             dispatch(interaction.actions.showManifestDownloadDialog(filters));
                         };
-                    } else if (item.key === ContextMenuActions.CUSTOM_FILE_SET) {
+                    } else if (item.key === ContextMenuActions.CUSTOM_COLLECTION) {
                         item.onClick = () => {
-                            dispatch(interaction.actions.generateShareableFileSelectionLink({filters, private: true }));
+                            dispatch(
+                                interaction.actions.generateShareableFileSelectionLink({
+                                    filters,
+                                    private: true,
+                                })
+                            );
                         };
-                    } else if (item.key === ContextMenuActions.DEFAULT_FILE_SET) {
+                    } else if (item.key === ContextMenuActions.DEFAULT_COLLECTION) {
                         item.onClick = () => {
-                            dispatch(interaction.actions.showGenerateFileSetDialog(filters));
+                            dispatch(interaction.actions.showCreateCollectionDialog(filters));
                         };
                     }
                     return [

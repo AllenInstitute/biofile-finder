@@ -7,8 +7,7 @@ import { Dataset } from "../../services/DatasetService";
 
 // BASIC SELECTORS
 export const getAnnotations = (state: State) => state.metadata.annotations;
-export const getDatasets = (state: State) => state.metadata.datasets;
-export const getViews = (state: State) => state.metadata.views;
+export const getCollections = (state: State) => state.metadata.collections;
 
 // COMPOSED SELECTORS
 export const getSortedAnnotations = createSelector(getAnnotations, (annotations: Annotation[]) =>
@@ -20,6 +19,8 @@ export const getCustomAnnotationsCombinedWithFileAttributes = createSelector(
     (annotations) => Annotation.sort([...TOP_LEVEL_FILE_ANNOTATIONS, ...annotations])
 );
 
-export const getActiveDatasets = createSelector(getDatasets, (datasets): Dataset[] =>
-    datasets.filter((dataset) => !dataset.expiration || new Date(dataset.expiration) > new Date())
+export const getActiveCollections = createSelector(getCollections, (collections): Dataset[] =>
+    collections.filter(
+        (collection) => !collection.expiration || new Date(collection.expiration) > new Date()
+    )
 );
