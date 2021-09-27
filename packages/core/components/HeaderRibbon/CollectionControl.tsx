@@ -2,8 +2,9 @@ import {
     IButtonStyles,
     ContextualMenuItemType,
     IContextualMenuItem,
-    Checkbox,
     IconButton,
+    Icon,
+    IContextualMenuItemProps,
 } from "@fluentui/react";
 import { orderBy } from "lodash";
 import * as React from "react";
@@ -11,7 +12,6 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { Dataset } from "../../services/DatasetService";
 import { interaction, metadata, selection } from "../../state";
-import { MENU_HEADER_STYLES } from "../ContextMenu/items";
 import SearchableDropdown from "../SearchableDropdown";
 
 const styles = require("./HeaderRibbon.module.css");
@@ -28,12 +28,47 @@ const SECONDARY_BUTTON_STYLES: IButtonStyles = {
     },
 };
 
-const SELECTED_STYLES: Partial<IContextualMenuItem> = {
-    itemProps: {
-        styles: {
-            root: {
-                // Color derived from background of selected dropdown item
-                backgroundColor: "#EFEFEF",
+const DEFAULT_OPTION_PROPS: Partial<IContextualMenuItemProps> = {
+    styles: {
+        divider: {
+            // Color is lightened tint of --primary-brand-dark-blue defined in App.module.css
+            backgroundColor: "#1A4A71",
+        },
+        item: {
+            // Color is lightened tint of --primary-brand-dark-blue defined in App.module.css
+            backgroundColor: "#1A4A71",
+            color: "white",
+        },
+        label: {
+            color: "white",
+        },
+        root: {
+            ":hover": {
+                // Equivalent to --primary-brand-dark-blue defined in App.module.css
+                backgroundColor: "#003057",
+                color: "white",
+            },
+            ":active": {
+                backgroundColor: "#003057",
+                color: "white",
+            },
+        },
+    },
+};
+
+const SELECTED_OPTION_PROPS: Partial<IContextualMenuItemProps> = {
+    styles: {
+        root: {
+            // Equivalent to --primary-brand-dark-blue defined in App.module.css
+            backgroundColor: "#003057",
+            color: "white",
+            ":hover": {
+                backgroundColor: "#003057",
+                color: "white",
+            },
+            ":active": {
+                backgroundColor: "#003057",
+                color: "white",
             },
         },
     },
@@ -45,9 +80,7 @@ const FROZEN_COLLECTION_HEADER: IContextualMenuItem = {
     title:
         "Fixed collections have files with immutable metadata, meaning they may not be up to date",
     itemType: ContextualMenuItemType.Header,
-    itemProps: {
-        styles: MENU_HEADER_STYLES,
-    },
+    itemProps: DEFAULT_OPTION_PROPS,
 };
 
 const LIVE_COLLECTION_HEADER: IContextualMenuItem = {
@@ -56,9 +89,7 @@ const LIVE_COLLECTION_HEADER: IContextualMenuItem = {
     title:
         "Non-fixed collections act as a filter to narrow the files in FMS down to a specific set",
     itemType: ContextualMenuItemType.Header,
-    itemProps: {
-        styles: MENU_HEADER_STYLES,
-    },
+    itemProps: DEFAULT_OPTION_PROPS,
 };
 
 /**
@@ -80,7 +111,7 @@ export default function CollectionControl(props: Props) {
             onClick: () => {
                 dispatch(selection.actions.changeCollection(undefined));
             },
-            ...(!selectedCollection && SELECTED_STYLES),
+            itemProps: selectedCollection ? DEFAULT_OPTION_PROPS : SELECTED_OPTION_PROPS,
         };
 
         const nameToCollectionMap = collections
@@ -121,14 +152,20 @@ export default function CollectionControl(props: Props) {
                                   onClick: () => {
                                       dispatch(selection.actions.changeCollection(collection.id));
                                   },
-                                  ...(collection.id === selectedCollection?.id && SELECTED_STYLES),
+                                  itemProps:
+                                      collection.id !== selectedCollection?.id
+                                          ? DEFAULT_OPTION_PROPS
+                                          : SELECTED_OPTION_PROPS,
                               })),
                           }
                         : undefined,
                 onClick: () => {
                     dispatch(selection.actions.changeCollection(collectionsWithSameName[0].id));
                 },
-                ...(collectionsWithSameName[0].id === selectedCollection?.id && SELECTED_STYLES),
+                itemProps:
+                    collectionsWithSameName[0].id !== selectedCollection?.id
+                        ? DEFAULT_OPTION_PROPS
+                        : SELECTED_OPTION_PROPS,
             };
             if (collectionsWithSameName[0].fixed) {
                 frozenCollections.push(option);
@@ -154,6 +191,7 @@ export default function CollectionControl(props: Props) {
                 selectedCollection &&
                     dispatch(interaction.actions.generatePythonSnippet(selectedCollection));
             },
+            itemProps: DEFAULT_OPTION_PROPS,
         },
     ];
 
@@ -168,36 +206,20 @@ export default function CollectionControl(props: Props) {
                     searchValue={searchValue}
                 />
                 <div className={styles.controlGroupCheckboxGroup}>
-                    <Checkbox
-                        className={styles.controlGroupCheckbox}
-                        disabled={!selectedCollection}
-                        label="Private?"
-                        checked={selectedCollection?.private}
-                    />
-                    <Checkbox
-                        className={styles.controlGroupCheckbox}
-                        disabled={!selectedCollection}
-                        label="Fixed?"
-                        checked={selectedCollection?.fixed}
-                        styles={{
-                            root: {
-                                color: "white",
-                            },
-                            text: {
-                                color: "white",
-                            },
-                            label: {
-                                color: "white",
-                            },
-                            checkbox: {
-                                // Pulled from App.module.css
-                                backgroundColor: selectedCollection?.fixed ? "#bab5c9" : undefined,
-                            },
-                            checkmark: {
-                                color: "black",
-                            },
-                        }}
-                    />
+                    <div className={styles.controlGroupCheckbox}>
+                        <Icon
+                            iconName={
+                                selectedCollection?.private ? "CheckboxComposite" : "Checkbox"
+                            }
+                        />
+                        <h6 className={styles.controlGroupCheckboxLabel}>Is Private?</h6>
+                    </div>
+                    <div className={styles.controlGroupCheckbox}>
+                        <Icon
+                            iconName={selectedCollection?.fixed ? "CheckboxComposite" : "Checkbox"}
+                        />
+                        <h6 className={styles.controlGroupCheckboxLabel}>Is Fixed?</h6>
+                    </div>
                 </div>
             </div>
             <div className={styles.controlGroupButtons}>

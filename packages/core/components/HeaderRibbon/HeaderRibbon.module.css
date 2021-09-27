@@ -1,32 +1,31 @@
 .root {
-    --primary: var(--primary-brand-purple);
-    --secondary: var(--secondary-brand-purple);
-    --tertiary: lightgrey;
-    --text: white;
-    --collapsed-height: 1.5em;
+    --primary-ribbon-color:var(--primary-brand-dark-blue);
+    /* Color is lightened tint of --primary-brand-dark-blue defined in App.module.css */
+    --secondary-ribbon-color: #1A4A71;
+    --collapsed-rheight: 1.5em;
     --ribbon-padding: 6px;
 
     /* Defined in App.module.css */
-    background-color: var(--primary);
-    border-bottom: 1px solid var(--secondary);
+    background-color: var(--primary-ribbon-color);
+    border-bottom: 1px solid var(--secondary-ribbon-color);
     color: white;
     display: flex;
     height: var(--header-ribbon-height);
 }
 
 .collapsed {
-    height: var(--collapsed-height);
+    height: var(--collapsed-ribbon-height);
 }
 
 .header-bar {
     cursor: pointer;
     display: flex;
-    height: var(--collapsed-height);
+    height: var(--collapsed-ribbon-height);
     padding: var(--ribbon-padding) var(--ribbon-padding) var(--ribbon-padding) 0;
 }
 
 .header-bar:hover {
-    background-color: var(--secondary);
+    background-color: var(--secondary-ribbon-color);
 }
 
 .control-group {
@@ -50,17 +49,30 @@ h5.control-group {
 }
 
 .control-group-dropdown {
-    background-color: var(--secondary);
+    background-color: var(--secondary-ribbon-color);
+    border: none;
+    color: white;
+}
+
+.control-group-dropdown:hover {
+    background-color: white;
+    color: var(--primary-ribbon-color);
 }
 
 .control-group-checkbox-group {
     display: flex;
-    justify-content: space-around;
-    margin: 4px 0;
+    justify-content: space-evenly;
+    margin-top: 8px;
 }
 
 .control-group-checkbox {
-    color: white;
+    cursor: not-allowed;
+    display: flex;
+}
+
+.control-group-checkbox-label {
+    font-weight: normal;
+    margin: 0.25em 0 0 0.25em;
 }
 
 .control-group-buttons {
@@ -69,17 +81,15 @@ h5.control-group {
 }
 
 .control-group-button {
+    background-color: var(--secondary-ribbon-color);
     border-radius: 10px;
+    color: white;
     height: 25px;
     margin-bottom: 5px;
     width: 100%;
 }
 
-.control-group-button {
-    background-color: var(--secondary);
-    border-radius: 10px;
-    color: black;
-    height: 25px;
-    margin-bottom: 5px;
-    width: 100%;
+.control-group-button:hover {
+    background-color: white;
+    color: var(--primary-ribbon-color);
 }

@@ -16,7 +16,7 @@ export enum ContextMenuActions {
     SHARE = "share",
 }
 
-export const MENU_HEADER_STYLES = {
+const MENU_HEADER_STYLES = {
     label: {
         // Color pulled from App.module.css "primary-brand-purple"
         color: "#827aa3",
