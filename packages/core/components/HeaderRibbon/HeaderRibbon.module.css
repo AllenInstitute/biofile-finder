@@ -3,6 +3,8 @@
     --secondary: var(--secondary-brand-purple);
     --tertiary: lightgrey;
     --text: white;
+    --collapsed-height: 1.5em;
+    --ribbon-padding: 6px;
 
     /* Defined in App.module.css */
     background-color: var(--primary);
@@ -10,27 +12,37 @@
     color: white;
     display: flex;
     height: var(--header-ribbon-height);
-    padding: var(--margin);
 }
 
 .collapsed {
-    height: 2em;
+    height: var(--collapsed-height);
+}
+
+.header-bar {
+    cursor: pointer;
+    display: flex;
+    height: var(--collapsed-height);
+    padding: var(--ribbon-padding) var(--ribbon-padding) var(--ribbon-padding) 0;
+}
+
+.header-bar:hover {
+    background-color: var(--secondary);
 }
 
 .control-group {
+    display: flex;
     min-width: 150px;
+    margin: 0;
     max-width: 25%;
-}
-
-.control-group-label {
-    cursor: pointer;
-    margin: 0 0 4px 0;
+    padding: 0 var(--margin) var(--margin) var(--margin);
+    padding-top: calc(var(--margin) - var(--ribbon-padding));
     text-align: center;
     width: 100%;
 }
 
-.control-group-display {
-    display: flex;
+h5.control-group {
+    justify-content: center;
+    padding: 0;
 }
 
 .control-group-input-group {

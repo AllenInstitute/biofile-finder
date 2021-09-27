@@ -23,10 +23,10 @@ export default function HeaderRibbon(props: HeaderRibbonProps) {
                 props.className
             )}
         >
-            <CollectionControl
-                isCollapsed={isCollapsed}
-                onToggleCollapse={() => setCollapsed(!isCollapsed)}
-            />
+            <div className={styles.headerBar} onClick={() => setCollapsed(!isCollapsed)}>
+                <h5 className={styles.controlGroup}>Collection</h5>
+            </div>
+            {!isCollapsed && <CollectionControl className={styles.controlGroup} />}
         </div>
     );
 }

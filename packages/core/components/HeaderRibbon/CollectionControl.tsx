@@ -17,8 +17,7 @@ import SearchableDropdown from "../SearchableDropdown";
 const styles = require("./HeaderRibbon.module.css");
 
 interface Props {
-    isCollapsed: boolean;
-    onToggleCollapse: () => void;
+    className?: string;
 }
 
 const ALL_FILES_KEY = "All of FMS";
@@ -159,74 +158,65 @@ export default function CollectionControl(props: Props) {
     ];
 
     return (
-        <div className={styles.controlGroup}>
-            <h5 className={styles.controlGroupLabel} onClick={props.onToggleCollapse}>
-                Collection
-            </h5>
-            {!props.isCollapsed && (
-                <div className={styles.controlGroupDisplay}>
-                    <div className={styles.controlGroupInputGroup}>
-                        <SearchableDropdown
-                            className={styles.controlGroupDropdown}
-                            options={collectionOptions}
-                            selectedOption={selectedCollection?.name || ALL_FILES_KEY}
-                            onSearch={setSearchValue}
-                            searchValue={searchValue}
-                        />
-                        <div className={styles.controlGroupCheckboxGroup}>
-                            <Checkbox
-                                className={styles.controlGroupCheckbox}
-                                disabled={!selectedCollection}
-                                label="Private?"
-                                checked={selectedCollection?.private}
-                            />
-                            <Checkbox
-                                className={styles.controlGroupCheckbox}
-                                disabled={!selectedCollection}
-                                label="Fixed?"
-                                checked={selectedCollection?.fixed}
-                                styles={{
-                                    root: {
-                                        color: "white",
-                                    },
-                                    text: {
-                                        color: "white",
-                                    },
-                                    label: {
-                                        color: "white",
-                                    },
-                                    checkbox: {
-                                        // Pulled from App.module.css
-                                        backgroundColor: selectedCollection?.fixed
-                                            ? "#bab5c9"
-                                            : undefined,
-                                    },
-                                    checkmark: {
-                                        color: "black",
-                                    },
-                                }}
-                            />
-                        </div>
-                    </div>
-                    <div className={styles.controlGroupButtons}>
-                        <IconButton
-                            className={styles.controlGroupButton}
-                            disabled={!selectedCollection}
-                            iconProps={{ iconName: "edit" }}
-                            styles={SECONDARY_BUTTON_STYLES}
-                            onClick={() => dispatch(interaction.actions.showEditCollectionDialog())}
-                        />
-                        <IconButton
-                            className={styles.controlGroupButton}
-                            iconProps={{ iconName: "export" }}
-                            title="Export"
-                            menuProps={{ items: collectionExportMenuOptions }}
-                            disabled={!selectedCollection}
-                            styles={SECONDARY_BUTTON_STYLES}
-                        />
-                    </div>
+        <div className={props.className}>
+            <div className={styles.controlGroupInputGroup}>
+                <SearchableDropdown
+                    className={styles.controlGroupDropdown}
+                    options={collectionOptions}
+                    selectedOption={selectedCollection?.name || ALL_FILES_KEY}
+                    onSearch={setSearchValue}
+                    searchValue={searchValue}
+                />
+                <div className={styles.controlGroupCheckboxGroup}>
+                    <Checkbox
+                        className={styles.controlGroupCheckbox}
+                        disabled={!selectedCollection}
+                        label="Private?"
+                        checked={selectedCollection?.private}
+                    />
+                    <Checkbox
+                        className={styles.controlGroupCheckbox}
+                        disabled={!selectedCollection}
+                        label="Fixed?"
+                        checked={selectedCollection?.fixed}
+                        styles={{
+                            root: {
+                                color: "white",
+                            },
+                            text: {
+                                color: "white",
+                            },
+                            label: {
+                                color: "white",
+                            },
+                            checkbox: {
+                                // Pulled from App.module.css
+                                backgroundColor: selectedCollection?.fixed ? "#bab5c9" : undefined,
+                            },
+                            checkmark: {
+                                color: "black",
+                            },
+                        }}
+                    />
                 </div>
-            )}
+            </div>
+            <div className={styles.controlGroupButtons}>
+                <IconButton
+                    className={styles.controlGroupButton}
+                    disabled={!selectedCollection}
+                    iconProps={{ iconName: "edit" }}
+                    styles={SECONDARY_BUTTON_STYLES}
+                    onClick={() => dispatch(interaction.actions.showEditCollectionDialog())}
+                />
+                <IconButton
+                    className={styles.controlGroupButton}
+                    iconProps={{ iconName: "export" }}
+                    title="Export"
+                    menuProps={{ items: collectionExportMenuOptions }}
+                    disabled={!selectedCollection}
+                    styles={SECONDARY_BUTTON_STYLES}
+                />
+            </div>
         </div>
     );
 }
