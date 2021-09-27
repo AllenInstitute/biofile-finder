@@ -6,7 +6,7 @@ import {
     receiveAnnotations,
     receiveCollections,
     REQUEST_ANNOTATIONS,
-    REQUEST_DATASETS,
+    REQUEST_COLLECTIONS,
 } from "./actions";
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import AnnotationService from "../../services/AnnotationService";
@@ -56,7 +56,7 @@ const requestAnnotations = createLogic({
  * Interceptor responsible for turning REQUEST_DATASETS action into a network call for datasets. Outputs
  * RECEIVE_DATASETS action.
  */
-const requestDatasets = createLogic({
+const requestCollections = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { getState } = deps;
         const datasetService = interaction.selectors.getDatasetService(getState());
@@ -71,7 +71,7 @@ const requestDatasets = createLogic({
             done();
         }
     },
-    type: [REQUEST_DATASETS, interaction.actions.REFRESH],
+    type: [REQUEST_COLLECTIONS, interaction.actions.REFRESH],
 });
 
-export default [requestAnnotations, requestDatasets];
+export default [requestAnnotations, requestCollections];

@@ -63,20 +63,20 @@ export function receiveCollections(payload: Dataset[]): ReceiveCollectionAction 
 }
 
 /**
- * REQUEST_DATASETS
+ * REQUEST_COLLECTIONS
  *
- * Intention to request listing of available datasets usable as a data source for files.
+ * Intention to request listing of available collections usable as a data source for files.
  */
-export const REQUEST_DATASETS = makeConstant(STATE_BRANCH_NAME, "request-datasets");
+export const REQUEST_COLLECTIONS = makeConstant(STATE_BRANCH_NAME, "request-collections");
 
-export interface RequestDatasetAction {
+export interface RequestCollectionsAction {
     payload?: string;
     type: string;
 }
 
-export function requestDatasets(name?: string): RequestDatasetAction {
+export function requestCollections(name?: string): RequestCollectionsAction {
     return {
         payload: name,
-        type: REQUEST_DATASETS,
+        type: REQUEST_COLLECTIONS,
     };
 }
