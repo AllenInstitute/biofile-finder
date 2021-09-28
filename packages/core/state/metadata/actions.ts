@@ -50,12 +50,12 @@ export function requestAnnotations(): RequestAnnotationAction {
  */
 export const RECEIVE_COLLECTIONS = makeConstant(STATE_BRANCH_NAME, "receive-collections");
 
-export interface ReceiveCollectionAction {
+export interface ReceiveCollectionsAction {
     payload: Dataset[];
     type: string;
 }
 
-export function receiveCollections(payload: Dataset[]): ReceiveCollectionAction {
+export function receiveCollections(payload: Dataset[]): ReceiveCollectionsAction {
     return {
         payload,
         type: RECEIVE_COLLECTIONS,
@@ -70,13 +70,11 @@ export function receiveCollections(payload: Dataset[]): ReceiveCollectionAction 
 export const REQUEST_COLLECTIONS = makeConstant(STATE_BRANCH_NAME, "request-collections");
 
 export interface RequestCollectionsAction {
-    payload?: string;
     type: string;
 }
 
-export function requestCollections(name?: string): RequestCollectionsAction {
+export function requestCollections(): RequestCollectionsAction {
     return {
-        payload: name,
         type: REQUEST_COLLECTIONS,
     };
 }

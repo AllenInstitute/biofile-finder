@@ -13,7 +13,7 @@ interface Props {
 }
 
 /**
- * TODO
+ * Generic component responsible for rendering a dropdown whose options are searchable
  */
 export default function SearchableDropdown(props: Props) {
     const searchBoxReference = React.useRef(null);

@@ -13,7 +13,6 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
 import { StatusUpdate, ProcessStatus } from "../../state/interaction/actions";
-import { Dataset } from "../../services/DatasetService";
 
 const styles = require("./StatusMessage.module.css");
 
@@ -99,20 +98,6 @@ export default function StatusMessage() {
                                         },
                                     }}
                                 />
-                            )}
-                            {statusUpdate.data.collection && (
-                                <DefaultButton
-                                    className={styles.showPythonSnippetButton}
-                                    onClick={() =>
-                                        dispatch(
-                                            interaction.actions.generatePythonSnippet(
-                                                statusUpdate.data.collection as Dataset
-                                            )
-                                        )
-                                    }
-                                >
-                                    Show Python Snippet
-                                </DefaultButton>
                             )}
                         </MessageBar>
                     );

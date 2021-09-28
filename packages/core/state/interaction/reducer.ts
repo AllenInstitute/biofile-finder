@@ -179,15 +179,9 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION]: (state, action) => ({
             ...state,
-            status: sortBy(
-                [
-                    ...filter(
-                        state.status,
-                        (status: StatusUpdate) => status.processId !== action.payload.processId
-                    ),
-                    action.payload.statusUpdate,
-                ],
-                "processId"
+            status: filter(
+                state.status,
+                (status: StatusUpdate) => status.processId !== action.payload.processId
             ),
         }),
         [SUCCEED_PYTHON_SNIPPET_GENERATION]: (state, action) => ({

@@ -1,16 +1,18 @@
 .root {
-    --primary-ribbon-color:var(--primary-brand-dark-blue);
+    /* Defined in App.module.css */
+    --primary-ribbon-color: var(--primary-brand-dark-blue);
     /* Color is lightened tint of --primary-brand-dark-blue defined in App.module.css */
     --secondary-ribbon-color: #1A4A71;
     --collapsed-ribbon-height: 1.5em;
-    --ribbon-padding: 6px;
+    --header-ribbon-padding: 6px;
 
-    /* Defined in App.module.css */
     background-color: var(--primary-ribbon-color);
     border-bottom: 1px solid var(--secondary-ribbon-color);
     color: white;
     display: flex;
-    height: var(--header-ribbon-height);
+    height: 100px;
+    overflow: hidden;
+    transition: height 1s;
 }
 
 .collapsed {
@@ -21,7 +23,7 @@
     cursor: pointer;
     display: flex;
     height: var(--collapsed-ribbon-height);
-    padding: var(--ribbon-padding) var(--ribbon-padding) var(--ribbon-padding) 0;
+    padding: var(--header-ribbon-padding) var(--header-ribbon-padding) var(--header-ribbon-padding) 0;
 }
 
 .header-bar:hover {
@@ -34,7 +36,7 @@
     margin: 0;
     max-width: 25%;
     padding: 0 var(--margin) var(--margin) var(--margin);
-    padding-top: calc(var(--margin) - var(--ribbon-padding));
+    padding-top: calc(var(--margin) - var(--header-ribbon-padding));
     text-align: center;
     width: 100%;
 }

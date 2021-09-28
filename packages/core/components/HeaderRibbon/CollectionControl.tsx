@@ -9,6 +9,7 @@ import {
 import { orderBy } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Dispatch } from "redux";
 
 import { Dataset } from "../../services/DatasetService";
 import { interaction, metadata, selection } from "../../state";
@@ -93,6 +94,25 @@ const LIVE_COLLECTION_HEADER: IContextualMenuItem = {
     itemProps: DEFAULT_OPTION_PROPS,
 };
 
+function convertCollectionToOption(
+    collection: Dataset,
+    dispatch: Dispatch,
+    selectedCollection?: Dataset
+): IContextualMenuItem {
+    return {
+        key: collection.id,
+        text: collection.name,
+        title: `Created ${new Date(collection.created).toLocaleString()} by ${
+            collection.createdBy
+        }`,
+        onClick: () => {
+            dispatch(selection.actions.changeCollection(collection.id));
+        },
+        itemProps:
+            collection.id !== selectedCollection?.id ? DEFAULT_OPTION_PROPS : SELECTED_OPTION_PROPS,
+    };
+}
+
 /**
  * Form group for controlling the file collection all file queries
  * are run against. Includes display for current collection as well
@@ -135,41 +155,30 @@ export default function CollectionControl(props: Props) {
         const liveCollections: IContextualMenuItem[] = [];
         Object.values(nameToCollectionMap).forEach((collectionsWithSameName) => {
             const option = {
-                key: collectionsWithSameName[0].id,
-                text: collectionsWithSameName[0].name,
-                title: `Created ${new Date(
-                    collectionsWithSameName[0].created
-                ).toLocaleString()} by ${collectionsWithSameName[0].createdBy}`,
+                ...convertCollectionToOption(
+                    collectionsWithSameName[0],
+                    dispatch,
+                    selectedCollection
+                ),
+                // Add datasets of the same name, but different version, as sub options
                 subMenuProps:
                     collectionsWithSameName.length > 1
                         ? {
                               items: collectionsWithSameName.map((collection, index) => ({
-                                  key: collection.id,
+                                  ...convertCollectionToOption(
+                                      collection,
+                                      dispatch,
+                                      selectedCollection
+                                  ),
                                   text:
                                       index === 0
                                           ? `${collection.name} (Default - V${collection.version})`
                                           : `${collection.name} (V${collection.version})`,
-                                  title: `Created ${new Date(
-                                      collection.created
-                                  ).toLocaleString()} by ${collection.createdBy}`,
-                                  onClick: () => {
-                                      dispatch(selection.actions.changeCollection(collection.id));
-                                  },
-                                  itemProps:
-                                      collection.id !== selectedCollection?.id
-                                          ? DEFAULT_OPTION_PROPS
-                                          : SELECTED_OPTION_PROPS,
                               })),
                           }
                         : undefined,
-                onClick: () => {
-                    dispatch(selection.actions.changeCollection(collectionsWithSameName[0].id));
-                },
-                itemProps:
-                    collectionsWithSameName[0].id !== selectedCollection?.id
-                        ? DEFAULT_OPTION_PROPS
-                        : SELECTED_OPTION_PROPS,
             };
+
             if (collectionsWithSameName[0].fixed) {
                 frozenCollections.push(option);
             } else {

@@ -77,10 +77,6 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
     const isDisabled =
         !name.trim() || (isFixed && !!selectedAnnotations.length) || (!isEditing && !expiration);
 
-    React.useEffect(() => {
-        setName(collection?.name || "");
-    }, [collection, setExpiration, setName]);
-
     // Collections can have the same name with different versions, see if this would
     // need to be a new version based on the name
     const nextVersionForName = React.useMemo(() => {
@@ -119,7 +115,7 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
                 filters,
                 fixed: isFixed,
                 private: isPrivate,
-                name,
+                name: isEditing ? collection?.name : name,
             })
         );
     };
@@ -174,8 +170,9 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
                     <div className={styles.nameInput}>
                         <TextField
                             autoFocus
+                            disabled={isEditing}
                             label="Name"
-                            value={name}
+                            value={isEditing ? collection?.name : name}
                             spellCheck={false}
                             onChange={(_, value) => setName(value || "")}
                             placeholder="Enter collection name..."

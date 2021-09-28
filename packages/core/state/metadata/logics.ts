@@ -53,20 +53,18 @@ const requestAnnotations = createLogic({
 });
 
 /**
- * Interceptor responsible for turning REQUEST_DATASETS action into a network call for datasets. Outputs
- * RECEIVE_DATASETS action.
+ * Interceptor responsible for turning REQUEST_COLLECTIONS action into a network call for collections. Outputs
+ * RECEIVE_COLLECTIONS action.
  */
 const requestCollections = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { getState } = deps;
-        const datasetService = interaction.selectors.getDatasetService(getState());
+        const datasetService = interaction.selectors.getDatasetService(deps.getState());
 
         try {
             const datasets = await datasetService.getDatasets();
             dispatch(receiveCollections(datasets));
         } catch (err) {
             console.error("Failed to fetch datasets", err);
-            // TODO: Dispatch alert?
         } finally {
             done();
         }

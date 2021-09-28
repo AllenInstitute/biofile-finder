@@ -257,7 +257,6 @@ export enum ProcessStatus {
 
 export interface StatusUpdate {
     data: {
-        collection?: Dataset; // if relevant/applicable, collection related to this status update
         fileId?: string[]; // if relevant/applicable, fileid(s) related to this status update
         msg: string;
         status?: ProcessStatus;
@@ -427,25 +426,25 @@ export const GENERATE_SHAREABLE_FILE_SELECTION_LINK = makeConstant(
 );
 
 export interface GenerateShareableFileSelectionLinkAction {
-    payload: {
+    payload?: {
         id?: string;
         annotations?: Annotation[];
         expiration?: Date;
         filters?: FileFilter[];
         fixed?: boolean;
-        private: boolean;
+        private?: boolean;
         name?: string;
     };
     type: string;
 }
 
-export function generateShareableFileSelectionLink(config: {
+export function generateShareableFileSelectionLink(config?: {
     id?: string;
     annotations?: Annotation[];
     expiration?: Date;
     filters?: FileFilter[];
     fixed?: boolean;
-    private: boolean;
+    private?: boolean;
     name?: string;
 }): GenerateShareableFileSelectionLinkAction {
     return {
@@ -467,22 +466,19 @@ export const SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION = makeConstant(
 export interface SucceedShareableFileSelectionLinkGenerationAction {
     payload: {
         processId: string;
-        dataset: Dataset;
-        statusUpdate: StatusUpdate;
+        collection: Dataset;
     };
     type: string;
 }
 
 export function succeedShareableFileSelectionLinkGeneration(
     processId: string,
-    dataset: Dataset,
-    statusUpdate: StatusUpdate
+    collection: Dataset
 ): SucceedShareableFileSelectionLinkGenerationAction {
     return {
         payload: {
             processId,
-            dataset,
-            statusUpdate,
+            collection,
         },
         type: SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
     };

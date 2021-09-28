@@ -33,7 +33,6 @@ import {
     processProgress,
     GENERATE_SHAREABLE_FILE_SELECTION_LINK,
     succeedShareableFileSelectionLinkGeneration,
-    StatusUpdate,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -50,6 +49,7 @@ import {
 import { AnnotationName } from "../../constants";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import FileSelection from "../../entity/FileSelection";
+import FileFilter from "../../entity/FileFilter";
 
 /**
  * Interceptor responsible for responding to a SET_PLATFORM_DEPENDENT_SERVICES action and
@@ -516,7 +516,7 @@ const generateShareableFileSelectionLink = createLogic({
             )
         );
         try {
-            const user = "seanm"; // TODO: Get user?
+            const user = interactionSelectors.getUserName(deps.getState());
             const defaultExpiration = new Date();
             defaultExpiration.setDate(defaultExpiration.getDate() + 1);
             const defaultDatasetSettings: Partial<CreateDatasetRequest> = {
@@ -526,7 +526,7 @@ const generateShareableFileSelectionLink = createLogic({
                 private: true,
             };
 
-            const { filters } = deps.action.payload;
+            const filters: FileFilter[] | undefined = deps.action.payload?.filters;
             let fileSelection = selection.selectors.getFileSelection(deps.getState());
             const datasetService = interactionSelectors.getDatasetService(deps.getState());
 
@@ -555,18 +555,10 @@ const generateShareableFileSelectionLink = createLogic({
 
             const request: CreateDatasetRequest = {
                 ...defaultDatasetSettings,
-                ...deps.action.payload,
+                ...(deps.action.payload || {}),
                 selections,
             };
             const collection = await datasetService.createDataset(request);
-
-            const statusUpdate: StatusUpdate = {
-                processId: uniqueId(),
-                data: {
-                    collection,
-                    msg: "Copied FMS File Explorer URL link to clipboard!",
-                },
-            };
 
             const url = selection.selectors.getEncodedFileExplorerUrl(
                 mergeState(deps.getState(), {
@@ -579,8 +571,7 @@ const generateShareableFileSelectionLink = createLogic({
             dispatch(
                 succeedShareableFileSelectionLinkGeneration(
                     generateShareableFileSelectionLinkId,
-                    collection,
-                    statusUpdate
+                    collection
                 )
             );
         } catch (err) {

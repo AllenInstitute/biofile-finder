@@ -14,8 +14,3 @@
     /* flex child */
     flex: 1 1 60%;
 }
-
-.data-source-selector {
-    flex: auto;
-    margin-bottom: 10px;
-}

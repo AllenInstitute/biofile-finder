@@ -63,7 +63,7 @@ export const getEncodedFileExplorerUrl = createSelector(
 );
 
 export const getAnnotationFilters = createSelector([getFileFilters], (fileFilters): FileFilter[] =>
-    fileFilters.filter((f) => ![...TOP_LEVEL_FILE_ANNOTATION_NAMES, "source"].includes(f.name))
+    fileFilters.filter((f) => !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(f.name))
 );
 
 export const getFileAttributeFilter = createSelector([getFileFilters], (fileFilters):

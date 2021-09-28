@@ -62,11 +62,7 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                             text: "Not-fixed, expires tomorrow",
                             title: "Shareable FMS File Explorer URL to file selection",
                             onClick() {
-                                dispatch(
-                                    interaction.actions.generateShareableFileSelectionLink({
-                                        private: true,
-                                    })
-                                );
+                                dispatch(interaction.actions.generateShareableFileSelectionLink());
                             },
                         },
                         {

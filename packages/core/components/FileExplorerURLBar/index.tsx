@@ -46,7 +46,7 @@ function FileExplorerURLBar(props: FileExplorerURLBarProps) {
             setLoading(false);
         }
         checkUrl();
-    }, [url, annotations, datasetService]);
+    }, [url, annotations, datasetService, setError, setLoading]);
 
     const onURLChange = (_: React.FormEvent, input?: string) => {
         setURL(input || "");

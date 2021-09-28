@@ -70,7 +70,6 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                             dispatch(
                                 interaction.actions.generateShareableFileSelectionLink({
                                     filters,
-                                    private: true,
                                 })
                             );
                         };

@@ -134,7 +134,7 @@ export default class FileExplorerURL {
                 !parsedURL.collection.version)
         ) {
             throw new ValueError(
-                `Unable to decode FileExplorerURL, couldn't find Collection (${parsedURL.collection})`
+                `Unable to decode FileExplorerURL, unexpected format (${parsedURL.collection})`
             );
         }
 
