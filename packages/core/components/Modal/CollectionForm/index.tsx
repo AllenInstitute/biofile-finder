@@ -187,12 +187,12 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
                         <div className={styles.checkboxContainer}>
                             <Checkbox
                                 className={styles.checkbox}
-                                checked={isFixed}
-                                onChange={(_, checked) => setIsFixed(checked || false)}
+                                checked={isPrivate}
+                                onChange={(_, checked) => setIsPrivate(checked || false)}
                             />
                             <h5 className={styles.checkboxLabel}>
-                                Is Fixed?{" "}
-                                <TooltipHost content={FIXED_CHECKBOX_TOOLTIP}>
+                                Is Private?{" "}
+                                <TooltipHost content={PRIVATE_CHECK_BOX_TOOLTIP}>
                                     <Icon
                                         className={styles.checkboxInfoIcon}
                                         iconName="InfoSolid"
@@ -203,12 +203,12 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
                         <div className={styles.checkboxContainer}>
                             <Checkbox
                                 className={styles.checkbox}
-                                checked={isPrivate}
-                                onChange={(_, checked) => setIsPrivate(checked || false)}
+                                checked={isFixed}
+                                onChange={(_, checked) => setIsFixed(checked || false)}
                             />
                             <h5 className={styles.checkboxLabel}>
-                                Is Private?{" "}
-                                <TooltipHost content={PRIVATE_CHECK_BOX_TOOLTIP}>
+                                Is Fixed?{" "}
+                                <TooltipHost content={FIXED_CHECKBOX_TOOLTIP}>
                                     <Icon
                                         className={styles.checkboxInfoIcon}
                                         iconName="InfoSolid"

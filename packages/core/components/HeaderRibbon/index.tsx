@@ -20,22 +20,22 @@ export default function HeaderRibbon(props: HeaderRibbonProps) {
 
     return (
         <div
-            className={classNames(
-                styles.root,
-                { [styles.collapsed]: isCollapsed },
-                props.className
-            )}
+            className={classNames(styles.root, props.className)}
+            onMouseEnter={() => setCollapsed(false)}
+            onMouseLeave={() => setCollapsed(true)}
         >
-            <div className={styles.headerBar} onClick={() => setCollapsed(!isCollapsed)}>
+            <div className={styles.headerBar}>
                 <h5 className={styles.controlGroup}>
-                    Collection{" "}
-                    {isCollapsed && selectedCollection && `(${selectedCollection?.name})`}
+                    Collection {selectedCollection && `(${selectedCollection?.name})`}
                 </h5>
             </div>
-            <CollectionControl
-                className={styles.controlGroup}
-                selectedCollection={selectedCollection}
-            />
+            <div className={classNames(styles.controlGroups, { [styles.collapsed]: isCollapsed })}>
+                <CollectionControl
+                    className={styles.controlGroup}
+                    selectedCollection={selectedCollection}
+                    onCollapse={() => setCollapsed(true)}
+                />
+            </div>
         </div>
     );
 }

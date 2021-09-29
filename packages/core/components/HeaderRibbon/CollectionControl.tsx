@@ -3,8 +3,8 @@ import {
     ContextualMenuItemType,
     IContextualMenuItem,
     IconButton,
-    Icon,
     IContextualMenuItemProps,
+    TooltipHost,
 } from "@fluentui/react";
 import { orderBy } from "lodash";
 import * as React from "react";
@@ -19,6 +19,7 @@ const styles = require("./HeaderRibbon.module.css");
 
 interface Props {
     className?: string;
+    onCollapse: () => void;
     selectedCollection?: Dataset;
 }
 
@@ -93,6 +94,11 @@ const LIVE_COLLECTION_HEADER: IContextualMenuItem = {
     itemType: ContextualMenuItemType.Header,
     itemProps: DEFAULT_OPTION_PROPS,
 };
+
+const IS_FIXED_TOOLTIP =
+    'If fixed, the collection is an immutable, point-in-time snapshot of the metadata for the files you’ve selected (a "dataset"). No files have been added to or removed from the collection, nor has the files\' metadata been modified since creation of the collection.';
+const IS_PRIVATE_TOOLTIP =
+    "If private, this collection will not appear in the collection dropdown for users other than the creator's as an option by default. However, the collection can still be sent as part of a FMS File Explorer URL.";
 
 function convertCollectionToOption(
     collection: Dataset,
@@ -200,8 +206,10 @@ export default function CollectionControl(props: Props) {
             key: "python",
             text: "Python Snippet",
             onClick: () => {
-                selectedCollection &&
+                if (selectedCollection) {
+                    props.onCollapse();
                     dispatch(interaction.actions.generatePythonSnippet(selectedCollection));
+                }
             },
             itemProps: DEFAULT_OPTION_PROPS,
         },
@@ -217,26 +225,23 @@ export default function CollectionControl(props: Props) {
                     onSearch={setSearchValue}
                     searchValue={searchValue}
                 />
-                <div className={styles.controlGroupCheckboxGroup}>
-                    <div className={styles.controlGroupCheckbox}>
-                        <Icon
-                            iconName={
-                                selectedCollection?.private ? "CheckboxComposite" : "Checkbox"
-                            }
-                        />
-                        <h6 className={styles.controlGroupCheckboxLabel}>Is Private?</h6>
-                    </div>
-                    <div className={styles.controlGroupCheckbox}>
-                        <Icon
-                            iconName={selectedCollection?.fixed ? "CheckboxComposite" : "Checkbox"}
-                        />
-                        <h6 className={styles.controlGroupCheckboxLabel}>Is Fixed?</h6>
-                    </div>
+                <div className={styles.controlGroupDisplayGroup}>
+                    <TooltipHost content={IS_PRIVATE_TOOLTIP} onMouseLeave={props.onCollapse}>
+                        <h6 className={styles.controlGroupDisplay}>
+                            {selectedCollection?.private ? "Private" : "Public"}
+                        </h6>
+                    </TooltipHost>
+                    <TooltipHost content={IS_FIXED_TOOLTIP} onMouseLeave={props.onCollapse}>
+                        <h6 className={styles.controlGroupDisplay}>
+                            {selectedCollection?.fixed ? "Fixed" : "Not Fixed"}
+                        </h6>
+                    </TooltipHost>
                 </div>
             </div>
             <div className={styles.controlGroupButtons}>
                 <IconButton
                     className={styles.controlGroupButton}
+                    data-testid="edit-button"
                     disabled={!selectedCollection}
                     iconProps={{ iconName: "edit" }}
                     styles={SECONDARY_BUTTON_STYLES}
@@ -244,6 +249,7 @@ export default function CollectionControl(props: Props) {
                 />
                 <IconButton
                     className={styles.controlGroupButton}
+                    data-testid="export-button"
                     iconProps={{ iconName: "export" }}
                     title="Export"
                     menuProps={{ items: collectionExportMenuOptions }}

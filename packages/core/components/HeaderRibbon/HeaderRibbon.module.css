@@ -3,31 +3,37 @@
     --primary-ribbon-color: var(--primary-brand-dark-blue);
     /* Color is lightened tint of --primary-brand-dark-blue defined in App.module.css */
     --secondary-ribbon-color: #1A4A71;
-    --collapsed-ribbon-height: 1.5em;
+    --ribbon-header-height: 1.5em;
     --header-ribbon-padding: 6px;
 
     background-color: var(--primary-ribbon-color);
-    border-bottom: 1px solid var(--secondary-ribbon-color);
     color: white;
     display: flex;
-    height: 100px;
-    overflow: hidden;
-    transition: height 1s;
-}
-
-.collapsed {
-    height: var(--collapsed-ribbon-height);
+    height: var(--ribbon-header-height);
 }
 
 .header-bar {
-    cursor: pointer;
+    background-color: var(--primary-ribbon-color);
     display: flex;
-    height: var(--collapsed-ribbon-height);
+    height: var(--ribbon-header-height);
     padding: var(--header-ribbon-padding) var(--header-ribbon-padding) var(--header-ribbon-padding) 0;
+    position: fixed;
+    width: 100%;
+    z-index: 2;
 }
 
-.header-bar:hover {
-    background-color: var(--secondary-ribbon-color);
+.control-groups {
+    background-color: var(--primary-ribbon-color);
+    border-bottom: 1px solid var(--secondary-ribbon-color);
+    position: fixed;
+    margin-top: var(--ribbon-header-height);
+    transition: transform 1s ease;
+    width: 100%;
+    z-index: 1;
+}
+
+.collapsed {
+    transform: translateY(-100%);
 }
 
 .control-group {
@@ -61,18 +67,18 @@ h5.control-group {
     color: var(--primary-ribbon-color);
 }
 
-.control-group-checkbox-group {
+.control-group-display-group {
     display: flex;
     justify-content: space-evenly;
     margin-top: 8px;
 }
 
-.control-group-checkbox {
-    cursor: not-allowed;
-    display: flex;
+.control-group-display-icon {
+    color: white;
+    font-size: small;
 }
 
-.control-group-checkbox-label {
+.control-group-display {
     font-weight: normal;
     margin: 0.25em 0 0 0.25em;
 }

@@ -704,7 +704,7 @@ export function setVisibleModal(visibleModal: ModalType): SetVisibleModalAction 
 /**
  * GENERATE_PYTHON_SNIPPET
  *
- * Intention to generate a python snippet for a dataset.
+ * Intention to generate a python snippet for a collection.
  */
 export const GENERATE_PYTHON_SNIPPET = makeConstant(STATE_BRANCH_NAME, "generate-python-snippet");
 
@@ -713,9 +713,9 @@ export interface GeneratePythonSnippetAction {
     type: string;
 }
 
-export function generatePythonSnippet(dataset: Dataset): GeneratePythonSnippetAction {
+export function generatePythonSnippet(collection: Dataset): GeneratePythonSnippetAction {
     return {
-        payload: dataset,
+        payload: collection,
         type: GENERATE_PYTHON_SNIPPET,
     };
 }
