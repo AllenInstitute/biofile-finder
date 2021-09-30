@@ -1,7 +1,7 @@
 import { createSelector } from "reselect";
 
 import { metadata, State } from "../";
-import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
+import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
@@ -35,6 +35,23 @@ export const getSelectedCollection = createSelector(
     [getCollectionId, metadata.selectors.getActiveCollections],
     (collectionId, collections): Dataset | undefined =>
         collections.find((collection) => collection.id === collectionId)
+);
+
+export const getSelectedCollectionAnnotations = createSelector(
+    [getSelectedCollection, metadata.selectors.getAnnotations],
+    (collection, annotations): Annotation[] | undefined =>
+        collection?.annotations?.flatMap((collectionAnnotation) => {
+            const annotation = [...TOP_LEVEL_FILE_ANNOTATIONS, ...annotations].find(
+                (annotation) => annotation.name === collectionAnnotation
+            );
+            // Ideally should never occur if annotation options are aligned with annotations
+            // available in the collection
+            if (!annotation) {
+                console.error(`Unable to find match for annotation ${collectionAnnotation}`);
+                return [];
+            }
+            return [annotation];
+        })
 );
 
 export const getEncodedFileExplorerUrl = createSelector(

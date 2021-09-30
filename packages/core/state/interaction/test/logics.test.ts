@@ -8,7 +8,7 @@ import { expect } from "chai";
 import { get as _get } from "lodash";
 import { createSandbox } from "sinon";
 
-import { initialState, interaction, selection } from "../..";
+import { initialState, interaction } from "../..";
 import {
     downloadManifest,
     ProcessStatus,
@@ -27,8 +27,8 @@ import {
     openWithDefault,
     downloadFile,
 } from "../actions";
-import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
-import DatasetService from "../../../services/DatasetService";
+import { AnnotationName } from "../../../constants";
+import DatasetService, { Dataset } from "../../../services/DatasetService";
 import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
@@ -201,6 +201,7 @@ describe("Interaction logics", () => {
                 new FileFilter("Cell Line", "AICS-12"),
                 new FileFilter("Notes", "Hello"),
             ];
+            sandbox.stub(fileSelection, "toCompactSelectionList").throws("Test failed");
             const state = mergeState(initialState, {
                 interaction: {
                     fileFiltersForVisibleModal: filters,
@@ -226,7 +227,6 @@ describe("Interaction logics", () => {
             });
 
             sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
-            sandbox.stub(selection.selectors, "getFileSelection").throws("Test failed");
 
             const { store, logicMiddleware, actions } = configureMockStore({
                 state,
@@ -249,7 +249,7 @@ describe("Interaction logics", () => {
                         },
                     },
                 })
-            ).to.equal(true);
+            ).to.be.true;
         });
 
         it("updates annotations to persist for the next time a user opens a selection action modal", async () => {
@@ -648,10 +648,16 @@ describe("Interaction logics", () => {
 
     describe("generatePythonSnippet", () => {
         const baseUrl = "test";
-        const dataset = {
+        const mockCollection: Dataset = {
             id: "89j1d321a",
             name: "test",
             version: 1,
+            query: "",
+            client: "",
+            private: false,
+            fixed: false,
+            created: new Date(),
+            createdBy: "test",
         };
         const pythonSnippet = {
             setup: "pip install aicsfiles",
@@ -663,19 +669,6 @@ describe("Interaction logics", () => {
             `,
         };
         const responseStubs: ResponseStub[] = [
-            // dataset creation
-            {
-                when: (requestConfig) => {
-                    if (!requestConfig.url) {
-                        return false;
-                    }
-                    return requestConfig.url === `${baseUrl}/${DatasetService.BASE_DATASET_URL}`;
-                },
-                respondWith: {
-                    data: { data: [dataset] },
-                },
-            },
-
             // python snippet generation
             {
                 when: (requestConfig) => {
@@ -706,7 +699,7 @@ describe("Interaction logics", () => {
             sandbox.restore();
         });
 
-        it("it creates datasets before generating snippet for dataset related snippets", async () => {
+        it("it creates expected snippet", async () => {
             const state = mergeState(initialState, {
                 selection: {
                     fileSelection,
@@ -718,7 +711,7 @@ describe("Interaction logics", () => {
             });
 
             // Act
-            const action = generatePythonSnippet("My name", TOP_LEVEL_FILE_ANNOTATIONS, new Date());
+            const action = generatePythonSnippet(mockCollection);
             store.dispatch(action);
             await logicMiddleware.whenComplete();
 
@@ -726,6 +719,9 @@ describe("Interaction logics", () => {
             expect(
                 actions.includesMatch({
                     type: SUCCEED_PYTHON_SNIPPET_GENERATION,
+                    payload: {
+                        pythonSnippet,
+                    },
                 })
             ).to.be.true;
         });

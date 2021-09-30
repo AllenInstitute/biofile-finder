@@ -1,6 +1,7 @@
 import { configureMockStore } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
+import { noop } from "lodash";
 import * as React from "react";
 import { Provider } from "react-redux";
 
@@ -31,7 +32,7 @@ describe("<CollectionControl />", () => {
         });
         const { getByText } = render(
             <Provider store={store}>
-                <CollectionControl />
+                <CollectionControl onCollapse={noop} />
             </Provider>
         );
 
@@ -46,41 +47,30 @@ describe("<CollectionControl />", () => {
         });
         const { getByTestId } = render(
             <Provider store={store}>
-                <CollectionControl />
+                <CollectionControl onCollapse={noop} />
             </Provider>
         );
 
         // Act / Assert
         [EDIT_BUTTON, EXPORT_BUTTON].forEach((button) => {
-            const element = getByTestId(button).closest("button");
-            expect(element).to.exist;
-            expect(element?.disabled).to.be.false;
+            const element = getByTestId(button) as HTMLButtonElement;
+            expect(element?.disabled).to.be.true;
         });
     });
 
     it("opens collection editor when edit button clicked", () => {
         // Arrange
         const { actions, store } = configureMockStore({
-            state: {
-                ...initialState,
-                metadata: {
-                    ...initialState.metadata,
-                    collections: [mockCollection],
-                },
-                selection: {
-                    ...initialState.selection,
-                    collectionId: mockCollection.id,
-                },
-            },
+            state: initialState,
         });
         const { getByTestId } = render(
             <Provider store={store}>
-                <CollectionControl />
+                <CollectionControl onCollapse={noop} selectedCollection={mockCollection} />
             </Provider>
         );
 
         // Act
-        fireEvent.click(getByTestId(EDIT_BUTTON).closest("button") as HTMLElement);
+        fireEvent.click(getByTestId(EDIT_BUTTON));
 
         // Assert
         expect(actions.includesMatch({ type: interaction.actions.SHOW_EDIT_COLLECTION_DIALOG })).to
@@ -90,26 +80,17 @@ describe("<CollectionControl />", () => {
     it("opens python snippet dialog when export > python snippet clicked", () => {
         // Arrange
         const { actions, store } = configureMockStore({
-            state: {
-                ...initialState,
-                metadata: {
-                    ...initialState.metadata,
-                    collections: [mockCollection],
-                },
-                selection: {
-                    ...initialState.selection,
-                    collectionId: mockCollection.id,
-                },
-            },
+            state: initialState,
         });
-        const { getByTestId } = render(
+        const { getByTestId, getByText } = render(
             <Provider store={store}>
-                <CollectionControl />
+                <CollectionControl onCollapse={noop} selectedCollection={mockCollection} />
             </Provider>
         );
 
         // Act
-        fireEvent.click(getByTestId(EXPORT_BUTTON).closest("button") as HTMLElement);
+        fireEvent.click(getByTestId(EXPORT_BUTTON));
+        fireEvent.click(getByText("Python Snippet"));
 
         // Assert
         expect(actions.includesMatch(interaction.actions.generatePythonSnippet(mockCollection))).to
@@ -129,7 +110,7 @@ describe("<CollectionControl />", () => {
         });
         const { getByText } = render(
             <Provider store={store}>
-                <CollectionControl />
+                <CollectionControl onCollapse={noop} />
             </Provider>
         );
 
@@ -159,7 +140,7 @@ describe("<CollectionControl />", () => {
         });
         const { getByText } = render(
             <Provider store={store}>
-                <CollectionControl />
+                <CollectionControl onCollapse={noop} />
             </Provider>
         );
 

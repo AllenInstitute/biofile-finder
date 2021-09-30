@@ -253,7 +253,7 @@ const downloadFile = createLogic({
                 dispatch(processSuccess(downloadRequestId, result.msg || ""));
             }
         } catch (err) {
-            const errorMsg = `File download failed. Details:<br/>${err?.message}`;
+            const errorMsg = `File download failed. Details:<br/>${err?.message || err}`;
             dispatch(processFailure(downloadRequestId, errorMsg));
         } finally {
             done();

@@ -62,20 +62,30 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
         modalSelectors.getAnnotationsPreviouslySelected
     );
     const collection = useSelector(selection.selectors.getSelectedCollection);
+    const collectionAnnotations = useSelector(selection.selectors.getSelectedCollectionAnnotations);
+
+    const collectionExpiration = collection?.expiration
+        ? `${
+              new Date(collection.expiration).toISOString().replace("T", " ").split(".")[0]
+          } (Current)`
+        : Expiration.Forever;
+    const existingAnnotations =
+        (isEditing && collectionAnnotations) || annotationsPreviouslySelected;
 
     const [selectedAnnotations, setSelectedAnnotations] = React.useState<Annotation[]>(() =>
-        isEmpty(annotationsPreviouslySelected)
-            ? [...TOP_LEVEL_FILE_ANNOTATIONS]
-            : annotationsPreviouslySelected
+        isEmpty(existingAnnotations) ? [...TOP_LEVEL_FILE_ANNOTATIONS] : existingAnnotations
     );
-    const [isFixed, setIsFixed] = React.useState(false);
-    const [isPrivate, setIsPrivate] = React.useState(true);
-    const [expiration, setExpiration] = React.useState<string>();
-    const [name, setName] = React.useState<string>("");
+    const [isFixed, setFixed] = React.useState(isEditing && collection ? collection.fixed : false);
+    const [isPrivate, setPrivate] = React.useState(
+        isEditing && collection ? collection.private : true
+    );
+    const [expiration, setExpiration] = React.useState<string | undefined>(
+        isEditing ? collectionExpiration : undefined
+    );
+    const [name, setName] = React.useState<string>(isEditing && collection ? collection.name : "");
     const [isSubtitleExpanded, setIsSubtitleExpanded] = React.useState(true);
 
-    const isDisabled =
-        !name.trim() || (isFixed && !!selectedAnnotations.length) || (!isEditing && !expiration);
+    const isDisabled = !name.trim() || !expiration || (isFixed && !!selectedAnnotations.length);
 
     // Collections can have the same name with different versions, see if this would
     // need to be a new version based on the name
@@ -103,14 +113,14 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
             expirationDate.setFullYear(expirationDate.getFullYear() + 3);
         } else if (expiration === Expiration.Forever) {
             expirationDate = undefined;
-        } else {
+        } else if (isEditing && expiration === collectionExpiration) {
             expirationDate = collection?.expiration;
         }
 
         dispatch(
             interaction.actions.generateShareableFileSelectionLink({
                 id: isEditing ? collection?.id : undefined,
-                annotations: selectedAnnotations,
+                annotations: isFixed ? selectedAnnotations : undefined,
                 expiration: expirationDate,
                 filters,
                 fixed: isFixed,
@@ -152,18 +162,19 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
                     </div>
                 </div>
             )}
-            {isEditing && (
-                <div className={styles.expirationWarning}>
-                    <Icon iconName="InfoSolid" />
-                    <h6>Currently expires 10/25/21 02:03:40</h6>
-                </div>
-            )}
             <div className={classNames(styles.form, styles.collectionForm)}>
                 <ChoiceGroup
                     className={styles.expirationInput}
                     label="Accessible for"
                     selectedKey={expiration}
-                    options={EXPIRATIONS}
+                    options={
+                        isEditing && collectionExpiration !== Expiration.Forever
+                            ? [
+                                  ...EXPIRATIONS,
+                                  { key: collectionExpiration, text: collectionExpiration },
+                              ]
+                            : EXPIRATIONS
+                    }
                     onChange={(_, o) => o && setExpiration(o.key)}
                 />
                 <div className={styles.metadataForm}>
@@ -188,7 +199,7 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
                             <Checkbox
                                 className={styles.checkbox}
                                 checked={isPrivate}
-                                onChange={(_, checked) => setIsPrivate(checked || false)}
+                                onChange={(_, checked) => setPrivate(checked || false)}
                             />
                             <h5 className={styles.checkboxLabel}>
                                 Is Private?{" "}
@@ -200,11 +211,11 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
                                 </TooltipHost>
                             </h5>
                         </div>
-                        <div className={styles.checkboxContainer}>
+                        <div className={styles.checkboxContainer} data-testid="is-fixed-checkbox">
                             <Checkbox
                                 className={styles.checkbox}
                                 checked={isFixed}
-                                onChange={(_, checked) => setIsFixed(checked || false)}
+                                onChange={(_, checked) => setFixed(checked || false)}
                             />
                             <h5 className={styles.checkboxLabel}>
                                 Is Fixed?{" "}

@@ -48,8 +48,13 @@
 }
 
 h5.control-group {
+    display: block;
+    height: var(--ribbon-header-height);
     justify-content: center;
-    padding: 0;
+    overflow: hidden;
+    padding: 0 15px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .control-group-input-group {

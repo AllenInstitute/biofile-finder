@@ -4,6 +4,7 @@ import { Selection } from "../FileService";
 export interface Dataset {
     id: string;
     name: string;
+    annotations?: string[];
     version: number;
     expiration?: Date;
     collection?: string; // When frozen Dataset should not point to a collection

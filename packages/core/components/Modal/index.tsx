@@ -30,11 +30,11 @@ export default function Modal() {
 
     switch (visibleModal) {
         case ModalType.CreateCollectionForm:
-            return <CollectionForm isEditing onDismiss={onDismiss} />;
+            return <CollectionForm onDismiss={onDismiss} />;
         case ModalType.CsvManifest:
             return <CsvManifest onDismiss={onDismiss} />;
         case ModalType.EditCollectionForm:
-            return <CollectionForm onDismiss={onDismiss} />;
+            return <CollectionForm isEditing onDismiss={onDismiss} />;
         case ModalType.PythonSnippet:
             return <PythonSnippet onDismiss={onDismiss} />;
         default:

@@ -6,6 +6,8 @@ import * as React from "react";
 import SearchableDropdown from "..";
 
 describe("<SearchableDropdown />", () => {
+    const searchPlaceholder = "Search...";
+
     it("sends 'onSearch' feedback on user input", () => {
         // Arrange
         const expected = "My Collection";
@@ -23,7 +25,7 @@ describe("<SearchableDropdown />", () => {
                 text: selectedOption,
             },
         ];
-        const { getByText } = render(
+        const { getByText, getByPlaceholderText } = render(
             <SearchableDropdown
                 options={options}
                 onSearch={onSearch}
@@ -34,17 +36,17 @@ describe("<SearchableDropdown />", () => {
 
         // Act
         fireEvent.click(getByText(selectedOption)); // Open dropdown
-        const input = getByText("Search");
+        const input = getByPlaceholderText(searchPlaceholder);
         fireEvent.click(input); // Focus search input
         fireEvent.change(input, {
             target: { value: expected },
         });
 
         // Assert
-        expect(actual).to.equal(expected);
+        expect(actual).to.equal(expected.toLowerCase());
     });
 
-    it("selecting option closes dropdown", () => {
+    it("selecting option closes dropdown", async () => {
         // Arrange
         const selectedOption = "default";
         const keyToClick = "Assay Dev";
@@ -57,9 +59,10 @@ describe("<SearchableDropdown />", () => {
             },
             {
                 key: keyToClick,
+                text: keyToClick,
             },
         ];
-        const { getByText } = render(
+        const { getByDisplayValue, getByText } = render(
             <SearchableDropdown
                 options={options}
                 onSearch={noop}
@@ -69,16 +72,14 @@ describe("<SearchableDropdown />", () => {
         );
 
         // Act
-        fireEvent.click(getByText(selectedOption)); // Open dropdown
+        fireEvent.click(getByDisplayValue(selectedOption)); // Open dropdown
 
         // (sanity-check) check if modal is open
-        expect(getByText("Search")).to.exist;
-        expect(getByText(selectedOption)).to.not.exist;
+        expect(() => getByDisplayValue(selectedOption)).to.throw();
 
         fireEvent.click(getByText(keyToClick)); // Click option
 
-        // Assert
-        expect(getByText("Search")).to.not.exist;
-        expect(getByText(selectedOption)).to.exist;
+        // // Assert
+        expect(getByDisplayValue(selectedOption)).to.exist;
     });
 });

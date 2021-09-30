@@ -48,13 +48,19 @@ export default class FileExplorerURL {
         encodedURL: string,
         annotations: Annotation[],
         datasetService: DatasetService
-    ) {
+    ): Promise<string | undefined> {
         try {
             const url = FileExplorerURL.decode(encodedURL, annotations);
+
             if (url.collection) {
-                // Request the given collection from the server to check its validity
-                await datasetService.getDataset(url.collection.name, url.collection.version);
+                try {
+                    // Request the given collection from the server to check its validity
+                    await datasetService.getDataset(url.collection.name, url.collection.version);
+                } catch (error) {
+                    return `Unable to decode FileExplorerURL, dataset could not be found ${error.message}`;
+                }
             }
+
             return undefined;
         } catch (error) {
             return error.message;

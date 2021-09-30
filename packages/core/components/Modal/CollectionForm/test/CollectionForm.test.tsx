@@ -13,9 +13,8 @@ import { createSandbox } from "sinon";
 import Modal, { ModalType } from "../..";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
-import DatasetService from "../../../../services/DatasetService";
+import DatasetService, { Dataset } from "../../../../services/DatasetService";
 import { initialState, interaction } from "../../../../state";
-import { GENERATE_PYTHON_SNIPPET } from "../../../../state/interaction/actions";
 
 describe("<CollectionForm />", () => {
     const sandbox = createSandbox();
@@ -55,7 +54,7 @@ describe("<CollectionForm />", () => {
             },
         });
 
-        it("is visible when should not be hidden", async () => {
+        it("is visible when should not be hidden", () => {
             // Arrange
             const { store } = configureMockStore({ state: visibleDialogState });
             const { getByText } = render(
@@ -65,11 +64,11 @@ describe("<CollectionForm />", () => {
             );
 
             // Assert
-            expect(getByText("Generate Python Snippet")).to.exist;
+            expect(getByText("Generate Collection")).to.exist;
         });
 
         describe("generate button", () => {
-            it("dispatches generation and persistence events when clicked", async () => {
+            it("dispatches generation and persistence events when clicked", () => {
                 // Arrange
                 const { actions, store } = configureMockStore({ state: visibleDialogState });
                 const { getByText, getByPlaceholderText } = render(
@@ -77,14 +76,14 @@ describe("<CollectionForm />", () => {
                         <Modal />
                     </Provider>
                 );
-                const dataset = "My Cool Dataset";
+                const collection = "My Cool Collection";
 
                 // Act
                 const oneDayExpirationOption = getByText("1 Day");
                 fireEvent.click(oneDayExpirationOption);
 
-                const datasetNameInput = getByPlaceholderText("Enter dataset name...");
-                fireEvent.change(datasetNameInput, { target: { value: dataset } });
+                const collectionNameInput = getByPlaceholderText("Enter collection name...");
+                fireEvent.change(collectionNameInput, { target: { value: collection } });
 
                 const generateButton = getByText("Generate");
                 fireEvent.click(generateButton);
@@ -92,16 +91,17 @@ describe("<CollectionForm />", () => {
                 // Assert
                 expect(
                     actions.includesMatch({
-                        type: GENERATE_PYTHON_SNIPPET,
+                        type: interaction.actions.GENERATE_SHAREABLE_FILE_SELECTION_LINK,
                         payload: {
-                            dataset,
-                            annotations: TOP_LEVEL_FILE_ANNOTATIONS,
+                            name: collection,
+                            fixed: false,
+                            private: true,
                         },
                     })
                 ).to.be.true;
             });
 
-            it("is disabled when no name is selected for dataset", () => {
+            it("is disabled when no name is selected for collection", () => {
                 // Arrange
                 const { actions, store } = configureMockStore({ state: visibleDialogState });
                 const { getByText } = render(
@@ -120,14 +120,171 @@ describe("<CollectionForm />", () => {
                 // Assert
                 expect(
                     actions.includesMatch({
-                        type: GENERATE_PYTHON_SNIPPET,
+                        type: interaction.actions.GENERATE_SHAREABLE_FILE_SELECTION_LINK,
                     })
                 ).to.be.false;
             });
         });
 
         describe("column list", () => {
-            it("has default columns when none were previousuly saved", async () => {
+            it("has default columns when none were previously saved", () => {
+                // Arrange
+                const { store } = configureMockStore({ state: visibleDialogState });
+                const { getByText, getByTestId } = render(
+                    <Provider store={store}>
+                        <Modal />
+                    </Provider>
+                );
+
+                // (sanity-check) should not be visible until collection is marked as 'fixed'
+                TOP_LEVEL_FILE_ANNOTATIONS.forEach((annotation) => {
+                    expect(() => getByText(annotation.displayName)).to.throw();
+                });
+
+                // Act
+                const checkbox = getByTestId("is-fixed-checkbox").querySelector("input");
+                expect(checkbox).to.exist;
+                fireEvent.click(checkbox as HTMLElement);
+
+                // Assert
+                TOP_LEVEL_FILE_ANNOTATIONS.forEach((annotation) => {
+                    expect(getByText(annotation.displayName)).to.exist;
+                });
+            });
+
+            it("has pre-saved columns when some were previously saved", () => {
+                // Arrange
+                const preSavedColumns = ["Cas9", "Cell Line", "Donor Plasmid"];
+                const state = mergeState(visibleDialogState, {
+                    interaction: {
+                        csvColumns: preSavedColumns,
+                    },
+                    metadata: {
+                        annotations: preSavedColumns.map(
+                            (c) =>
+                                new Annotation({
+                                    annotationDisplayName: c,
+                                    annotationName: c,
+                                    description: "test",
+                                    type: "text",
+                                })
+                        ),
+                    },
+                });
+                const { store } = configureMockStore({ state });
+                const { getByText, getByTestId } = render(
+                    <Provider store={store}>
+                        <Modal />
+                    </Provider>
+                );
+
+                // (sanity-check) should not be visible until collection is marked as 'fixed'
+                preSavedColumns.forEach((value) => {
+                    expect(() => getByText(value)).to.throw();
+                });
+
+                // Act
+                const checkbox = getByTestId("is-fixed-checkbox").querySelector("input");
+                expect(checkbox).to.exist;
+                fireEvent.click(checkbox as HTMLElement);
+
+                // Assert
+                preSavedColumns.forEach((value) => {
+                    expect(getByText(value)).to.exist;
+                });
+            });
+        });
+    });
+
+    describe("Edit Mode", () => {
+        const mockCollection: Dataset = {
+            id: "12341",
+            name: "Fake Collection",
+            version: 2,
+            query: "test",
+            client: "test",
+            fixed: true,
+            private: true,
+            created: new Date(),
+            createdBy: "test",
+        };
+        const visibleDialogState = mergeState(initialState, {
+            interaction: {
+                fileExplorerServiceBaseUrl: baseUrl,
+                visibleModal: ModalType.EditCollectionForm,
+            },
+            metadata: {
+                collections: [mockCollection],
+            },
+            selection: {
+                collectionId: mockCollection.id,
+            },
+        });
+
+        it("is visible when should not be hidden", () => {
+            // Arrange
+            const { store } = configureMockStore({ state: visibleDialogState });
+            const { getByText } = render(
+                <Provider store={store}>
+                    <Modal />
+                </Provider>
+            );
+
+            // Assert
+            expect(getByText(`Update ${mockCollection.name}`)).to.exist;
+        });
+
+        it("disables name input", () => {
+            // Arrange
+            const { store } = configureMockStore({ state: visibleDialogState });
+            const { getByDisplayValue } = render(
+                <Provider store={store}>
+                    <Modal />
+                </Provider>
+            );
+
+            // Assert
+            expect((getByDisplayValue(mockCollection.name) as HTMLInputElement).disabled).to.be
+                .true;
+        });
+
+        it("shows current expiration as an option", () => {
+            // Arrange
+            const expirationDate = new Date();
+            expirationDate.setDate(expirationDate.getDate() + 1);
+            const expiration = `${
+                expirationDate.toISOString().replace("T", " ").split(".")[0]
+            } (Current)`;
+            const state = mergeState(initialState, {
+                interaction: {
+                    fileExplorerServiceBaseUrl: baseUrl,
+                    visibleModal: ModalType.EditCollectionForm,
+                },
+                metadata: {
+                    collections: [
+                        {
+                            ...mockCollection,
+                            expiration: expirationDate,
+                        },
+                    ],
+                },
+                selection: {
+                    collectionId: mockCollection.id,
+                },
+            });
+            const { store } = configureMockStore({ state });
+            const { getByText } = render(
+                <Provider store={store}>
+                    <Modal />
+                </Provider>
+            );
+
+            // Act / Assert
+            expect(getByText(expiration)).to.exist;
+        });
+
+        describe("column list", () => {
+            it("has default columns when none were previously saved", () => {
                 // Arrange
                 const { store } = configureMockStore({ state: visibleDialogState });
                 const { getByText } = render(
@@ -142,7 +299,7 @@ describe("<CollectionForm />", () => {
                 });
             });
 
-            it("has pre-saved columns when some were previousuly saved", async () => {
+            it("has pre-saved columns when some were previously saved", () => {
                 // Arrange
                 const preSavedColumns = ["Cas9", "Cell Line", "Donor Plasmid"];
                 const state = mergeState(visibleDialogState, {
@@ -171,135 +328,6 @@ describe("<CollectionForm />", () => {
                 // Assert
                 preSavedColumns.forEach((value) => {
                     expect(getByText(value)).to.exist;
-                });
-            });
-        });
-    });
-
-    describe("Edit Mode", () => {
-        const visibleDialogState = mergeState(initialState, {
-            interaction: {
-                fileExplorerServiceBaseUrl: baseUrl,
-                visibleModal: ModalType.EditCollectionForm,
-            },
-        });
-
-        it("is visible when should not be hidden", async () => {
-            // Arrange
-            const { store } = configureMockStore({ state: visibleDialogState });
-            const { getByText } = render(
-                <Provider store={store}>
-                    <Modal />
-                </Provider>
-            );
-
-            // Assert
-            expect(getByText("Generate Python Snippet")).to.exist;
-        });
-
-        describe("generate button", () => {
-            it("dispatches generation and persistence events when clicked", async () => {
-                // Arrange
-                const { actions, store } = configureMockStore({ state: visibleDialogState });
-                const { getByText, getByPlaceholderText } = render(
-                    <Provider store={store}>
-                        <Modal />
-                    </Provider>
-                );
-                const dataset = "My Cool Dataset";
-
-                // Act
-                const oneDayExpirationOption = getByText("1 Day");
-                fireEvent.click(oneDayExpirationOption);
-
-                const datasetNameInput = getByPlaceholderText("Enter dataset name...");
-                fireEvent.change(datasetNameInput, { target: { value: dataset } });
-
-                const generateButton = getByText("Generate");
-                fireEvent.click(generateButton);
-
-                // Assert
-                expect(
-                    actions.includesMatch({
-                        type: GENERATE_PYTHON_SNIPPET,
-                        payload: {
-                            dataset,
-                            annotations: TOP_LEVEL_FILE_ANNOTATIONS,
-                        },
-                    })
-                ).to.be.true;
-            });
-
-            it("is disabled when no name is selected for dataset", () => {
-                // Arrange
-                const { actions, store } = configureMockStore({ state: visibleDialogState });
-                const { getByText } = render(
-                    <Provider store={store}>
-                        <Modal />
-                    </Provider>
-                );
-
-                // Act
-                const oneDayExpirationOption = getByText("1 Day");
-                fireEvent.click(oneDayExpirationOption);
-
-                const generateButton = getByText("Generate");
-                fireEvent.click(generateButton);
-
-                // Assert
-                expect(
-                    actions.includesMatch({
-                        type: GENERATE_PYTHON_SNIPPET,
-                    })
-                ).to.be.false;
-            });
-
-            describe("column list", () => {
-                it("has default columns when none were previousuly saved", async () => {
-                    // Arrange
-                    const { store } = configureMockStore({ state: visibleDialogState });
-                    const { getByText } = render(
-                        <Provider store={store}>
-                            <Modal />
-                        </Provider>
-                    );
-
-                    // Assert
-                    TOP_LEVEL_FILE_ANNOTATIONS.forEach((annotation) => {
-                        expect(getByText(annotation.displayName)).to.exist;
-                    });
-                });
-
-                it("has pre-saved columns when some were previousuly saved", async () => {
-                    // Arrange
-                    const preSavedColumns = ["Cas9", "Cell Line", "Donor Plasmid"];
-                    const state = mergeState(visibleDialogState, {
-                        interaction: {
-                            csvColumns: preSavedColumns,
-                        },
-                        metadata: {
-                            annotations: preSavedColumns.map(
-                                (c) =>
-                                    new Annotation({
-                                        annotationDisplayName: c,
-                                        annotationName: c,
-                                        description: "test",
-                                        type: "text",
-                                    })
-                            ),
-                        },
-                    });
-                    const { store } = configureMockStore({ state });
-                    const { getByText } = render(
-                        <Provider store={store}>
-                            <Modal />
-                        </Provider>
-                    );
-
-                    // Assert
-                    preSavedColumns.forEach((value) => {
-                        expect(getByText(value)).to.exist;
-                    });
                 });
             });
         });

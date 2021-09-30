@@ -3,7 +3,6 @@ import { makeReducer } from "@aics/redux-utils";
 import { filter, sortBy } from "lodash";
 
 import {
-    GENERATE_PYTHON_SNIPPET,
     HIDE_CONTEXT_MENU,
     HIDE_VISIBLE_MODAL,
     PlatformDependentServices,
@@ -23,6 +22,7 @@ import {
     SUCCEED_PYTHON_SNIPPET_GENERATION,
     SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
     SHOW_EDIT_COLLECTION_DIALOG,
+    GENERATE_SHAREABLE_FILE_SELECTION_LINK,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -109,10 +109,6 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             visibleModal: undefined,
         }),
-        [GENERATE_PYTHON_SNIPPET]: (state) => ({
-            ...state,
-            visibleModal: undefined,
-        }),
         [REFRESH]: (state, action) => ({
             ...state,
             refreshKey: action.payload,
@@ -176,6 +172,11 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             visibleModal: ModalType.CsvManifest,
             fileFiltersForVisibleModal: action.payload,
+        }),
+        [GENERATE_SHAREABLE_FILE_SELECTION_LINK]: (state) => ({
+            ...state,
+            visibleModal: undefined,
+            fileFiltersForVisibleModal: undefined,
         }),
         [SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION]: (state, action) => ({
             ...state,
