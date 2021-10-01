@@ -8,7 +8,7 @@ import { expect } from "chai";
 import { get as _get } from "lodash";
 import { createSandbox } from "sinon";
 
-import { initialState, interaction } from "../..";
+import { initialState, interaction, State } from "../..";
 import {
     downloadManifest,
     ProcessStatus,
@@ -26,6 +26,8 @@ import {
     promptForNewExecutable,
     openWithDefault,
     downloadFile,
+    generateShareableFileSelectionLink,
+    SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
 } from "../actions";
 import { AnnotationName } from "../../../constants";
 import DatasetService, { Dataset } from "../../../services/DatasetService";
@@ -646,6 +648,158 @@ describe("Interaction logics", () => {
         });
     });
 
+    describe("generateShareableFileSelectionLink", () => {
+        const sandbox = createSandbox();
+        let isCopiedToClipboard = false;
+        class ClipboardMock {
+            public writeText(): void {
+                isCopiedToClipboard = true;
+            }
+        }
+        class NavigatorMock {
+            public clipboard = new ClipboardMock();
+        }
+        const collection: Dataset = {
+            id: "89j1d321a",
+            name: "test",
+            version: 1,
+            query: "",
+            client: "",
+            private: false,
+            fixed: false,
+            created: new Date(),
+            createdBy: "test",
+        };
+
+        before(() => {
+            const datasetService = new DatasetService();
+            const navigatorStub = new NavigatorMock();
+            sandbox.stub(global, "navigator").value(navigatorStub);
+            sandbox.stub(datasetService, "createDataset").resolves(collection);
+            sandbox.stub(interaction.selectors, "getDatasetService").returns(datasetService);
+        });
+
+        afterEach(() => {
+            isCopiedToClipboard = false;
+            sandbox.resetHistory();
+        });
+
+        after(() => {
+            sandbox.restore();
+        });
+
+        it("creates collection and url from file selection & copies to clipboard", async () => {
+            // Arrange
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: initialState,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(generateShareableFileSelectionLink());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(isCopiedToClipboard).to.be.true;
+            expect(
+                actions.includesMatch({
+                    payload: {
+                        collection,
+                    },
+                    type: SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
+                })
+            ).to.be.true;
+        });
+
+        it("utilizes filters instead of explicit file selection when given", async () => {
+            // Arrange
+            const baseUrl = "test";
+            const fileSelection = new FileSelection();
+            sandbox.stub(fileSelection, "toCompactSelectionList").throws("Test failed");
+            const state: State = mergeState(initialState, {
+                interaction: {
+                    fileExplorerServiceBaseUrl: baseUrl,
+                },
+                selection: {
+                    fileSelection,
+                },
+            });
+            const responseStub = {
+                when: `${baseUrl}/${FileService.BASE_FILE_COUNT_URL}?Cell%20Line=AICS-12&Notes=Hello&sort=uploaded(DESC)`,
+                respondWith: {
+                    data: { data: [42] },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const fileService = new FileService({
+                baseUrl,
+                httpClient: mockHttpClient,
+            });
+
+            sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+                responseStubs: responseStub,
+            });
+            const filters = [
+                new FileFilter("Cell Line", "AICS-12"),
+                new FileFilter("Notes", "Hello"),
+            ];
+
+            // Act
+            store.dispatch(generateShareableFileSelectionLink({ filters }));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(isCopiedToClipboard).to.be.true;
+            expect(
+                actions.includesMatch({
+                    payload: {
+                        collection,
+                    },
+                    type: SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
+                })
+            ).to.be.true;
+        });
+
+        it("dispatches process failure action on error", async () => {
+            // Arrange
+            const baseUrl = "test";
+            const fileSelection = new FileSelection();
+            const errorMsg = "Test failed";
+            sandbox.stub(fileSelection, "toCompactSelectionList").throws(errorMsg);
+            const state: State = mergeState(initialState, {
+                interaction: {
+                    fileExplorerServiceBaseUrl: baseUrl,
+                },
+                selection: {
+                    fileSelection,
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(generateShareableFileSelectionLink());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    payload: {
+                        data: {
+                            msg: `Failed to generate shareable file selection link: ${errorMsg}`,
+                        },
+                    },
+                    type: SET_STATUS,
+                })
+            ).to.be.true;
+        });
+    });
+
     describe("generatePythonSnippet", () => {
         const baseUrl = "test";
         const mockCollection: Dataset = {
@@ -691,11 +845,15 @@ describe("Interaction logics", () => {
 
         const sandbox = createSandbox();
 
-        beforeEach(() => {
+        before(() => {
             sandbox.stub(interaction.selectors, "getDatasetService").returns(datasetService);
         });
 
         afterEach(() => {
+            sandbox.resetHistory();
+        });
+
+        after(() => {
             sandbox.restore();
         });
 

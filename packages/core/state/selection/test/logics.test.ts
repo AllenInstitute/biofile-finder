@@ -23,6 +23,7 @@ import {
     setAnnotationHierarchy,
     selectNearbyFile,
     SET_SORT_COLUMN,
+    changeCollection,
 } from "../actions";
 import { initialState, interaction } from "../../";
 import Annotation from "../../../entity/Annotation";
@@ -37,6 +38,9 @@ import FileSelection from "../../../entity/FileSelection";
 import FileService from "../../../services/FileService";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
 import { AnnotationName } from "../../../constants";
+import { DatasetService } from "../../../services";
+import { Dataset } from "../../../services/DatasetService";
+import { receiveCollections } from "../../metadata/actions";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -901,12 +905,40 @@ describe("Selection logics", () => {
     });
 
     describe("decodeFileExplorerURL", () => {
-        it("dispatches new hierarchy, filters, sort, & opened folders from given URL", async () => {
+        const sandbox = createSandbox();
+        const mockCollection: Dataset = {
+            id: "1234148",
+            name: "Test Collection",
+            version: 1,
+            query: "",
+            client: "",
+            fixed: false,
+            private: true,
+            created: new Date(),
+            createdBy: "test",
+        };
+
+        before(() => {
+            const datasetService = new DatasetService();
+            sandbox.stub(interaction.selectors, "getDatasetService").returns(datasetService);
+            sandbox.stub(datasetService, "getDataset").resolves(mockCollection);
+        });
+
+        afterEach(() => {
+            sandbox.resetHistory();
+        });
+
+        after(() => {
+            sandbox.restore();
+        });
+
+        it("dispatches new hierarchy, filters, sort, collection, & opened folders from given URL", async () => {
             // Arrange
             const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
             const state = mergeState(initialState, {
                 metadata: {
                     annotations,
+                    collections: [mockCollection],
                 },
             });
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -917,11 +949,16 @@ describe("Selection logics", () => {
             const filters = [new FileFilter(annotations[3].name, "20x")];
             const openFolders = [["a"], ["a", false]].map((folder) => new FileFolder(folder));
             const sortColumn = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
+            const collection = {
+                name: mockCollection.name,
+                version: mockCollection.version,
+            };
             const encodedURL = FileExplorerURL.encode({
                 hierarchy,
                 filters,
                 openFolders,
                 sortColumn,
+                collection,
             });
 
             // Act
@@ -953,6 +990,34 @@ describe("Selection logics", () => {
                     payload: sortColumn,
                 })
             ).to.be.true;
+            expect(actions.includesMatch(changeCollection(mockCollection.id))).to.be.true;
+        });
+
+        it("validates unknown collection against dataset service", async () => {
+            // Arrange
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: initialState,
+            });
+            const collection = {
+                name: mockCollection.name,
+                version: mockCollection.version,
+            };
+            const encodedURL = FileExplorerURL.encode({
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                sortColumn: undefined,
+                collection,
+            });
+
+            // Act
+            store.dispatch(decodeFileExplorerURL(encodedURL));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch(changeCollection(mockCollection.id))).to.be.true;
+            expect(actions.includesMatch(receiveCollections([mockCollection]))).to.be.true;
         });
     });
 });

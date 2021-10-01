@@ -1,4 +1,3 @@
-import { mergeState } from "@aics/redux-utils";
 import * as path from "path";
 import { isEmpty, throttle, uniq, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
@@ -50,6 +49,7 @@ import { AnnotationName } from "../../constants";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import FileSelection from "../../entity/FileSelection";
 import FileFilter from "../../entity/FileFilter";
+import FileExplorerURL from "../../entity/FileExplorerURL";
 
 /**
  * Interceptor responsible for responding to a SET_PLATFORM_DEPENDENT_SERVICES action and
@@ -253,7 +253,7 @@ const downloadFile = createLogic({
                 dispatch(processSuccess(downloadRequestId, result.msg || ""));
             }
         } catch (err) {
-            const errorMsg = `File download failed. Details:<br/>${err?.message || err}`;
+            const errorMsg = `File download failed. Details:<br/>${err?.message}`;
             dispatch(processFailure(downloadRequestId, errorMsg));
         } finally {
             done();
@@ -508,15 +508,23 @@ const showContextMenu = createLogic({
 const generateShareableFileSelectionLink = createLogic({
     type: GENERATE_SHAREABLE_FILE_SELECTION_LINK,
     async process(deps: ReduxLogicDeps, dispatch, done) {
+        const state = deps.getState();
         const generateShareableFileSelectionLinkId = uniqueId();
+        const filters: FileFilter[] | undefined = deps.action.payload?.filters;
+
         dispatch(
             processStart(
                 generateShareableFileSelectionLinkId,
                 "Generation of shareable file selection link is in progress."
             )
         );
+
         try {
-            const user = interactionSelectors.getUserName(deps.getState());
+            const user = interactionSelectors.getUserName(state);
+            const sortColumn = selection.selectors.getSortColumn(state);
+            let fileSelection = selection.selectors.getFileSelection(state);
+            const datasetService = interactionSelectors.getDatasetService(state);
+
             const defaultExpiration = new Date();
             defaultExpiration.setDate(defaultExpiration.getDate() + 1);
             const defaultDatasetSettings: Partial<CreateDatasetRequest> = {
@@ -526,15 +534,10 @@ const generateShareableFileSelectionLink = createLogic({
                 private: true,
             };
 
-            const filters: FileFilter[] | undefined = deps.action.payload?.filters;
-            let fileSelection = selection.selectors.getFileSelection(deps.getState());
-            const datasetService = interactionSelectors.getDatasetService(deps.getState());
-
             // If we have a specific path to get files from ignore selected files
             if (filters?.length) {
-                const collectionId = selection.selectors.getCollectionId(deps.getState());
-                const sortColumn = selection.selectors.getSortColumn(deps.getState());
-                const fileService = interactionSelectors.getFileService(deps.getState());
+                const collectionId = selection.selectors.getCollectionId(state);
+                const fileService = interactionSelectors.getFileService(state);
                 const fileSet = new FileSet({
                     collectionId,
                     filters,
@@ -560,14 +563,15 @@ const generateShareableFileSelectionLink = createLogic({
             };
             const collection = await datasetService.createDataset(request);
 
-            const url = selection.selectors.getEncodedFileExplorerUrl(
-                mergeState(deps.getState(), {
-                    selection: {
-                        collectionId: collection.id,
-                    },
-                })
-            );
+            const url = FileExplorerURL.encode({
+                collection,
+                sortColumn,
+                filters: selection.selectors.getFileFilters(state),
+                openFolders: selection.selectors.getOpenFileFolders(state),
+                hierarchy: selection.selectors.getAnnotationHierarchy(state),
+            });
             navigator.clipboard.writeText(url);
+
             dispatch(
                 succeedShareableFileSelectionLinkGeneration(
                     generateShareableFileSelectionLinkId,
