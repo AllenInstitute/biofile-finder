@@ -1,6 +1,6 @@
 import { map } from "lodash";
 
-import HttpServiceBase from "../HttpServiceBase";
+import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 
@@ -14,8 +14,16 @@ export interface AnnotationResponse {
     type: string;
     units?: string;
 }
+// TODO: Add some more tests
 
 export type AnnotationValue = string | number | boolean | Date;
+
+enum QueryParam {
+    FILTER = "filter",
+    HIERARCHY = "hierarchy",
+    ORDER = "order",
+    PATH = "path",
+}
 
 /**
  * Service responsible for fetching annotation related metadata.
@@ -27,11 +35,15 @@ export default class AnnotationService extends HttpServiceBase {
     public static BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/under-path`;
     public static BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/available`;
 
+    public constructor(config: ConnectionConfig = {}) {
+        super(config);
+    }
+
     /**
      * Fetch all annotations.
      */
     public async fetchAnnotations(): Promise<Annotation[]> {
-        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_URL}`;
+        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_URL}${this.pathSuffix}`;
         console.log(`Requesting annotation values from ${requestUrl}`);
 
         const response = await this.get<AnnotationResponse>(requestUrl);
@@ -44,7 +56,7 @@ export default class AnnotationService extends HttpServiceBase {
     public async fetchValues(annotation: string): Promise<AnnotationValue[]> {
         // Encode any special characters in the annotation as necessary
         const encodedAnnotation = HttpServiceBase.encodeURISection(annotation);
-        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_URL}/${encodedAnnotation}/values`;
+        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_URL}/${encodedAnnotation}/values${this.pathSuffix}`;
         console.log(`Requesting annotation values from ${requestUrl}`);
 
         const response = await this.get<AnnotationValue>(requestUrl);
@@ -60,13 +72,15 @@ export default class AnnotationService extends HttpServiceBase {
         // resorting the hierarchy underneath the first level should have no effect on the result.
         // This is a huge optimization.
         const [first, ...rest] = hierarchy;
-        const orderParams = [first, ...rest.sort()].map(
-            (annotationName) => `order=${annotationName}`
-        );
-        const filterParams = filters.map((filter) => `filter=${filter.toQueryString()}`);
-        const queryParams = [...orderParams, ...filterParams].join("&");
+        const queryParams = [
+            this.buildQueryParams(QueryParam.ORDER, [first, ...rest.sort()]),
+            this.buildQueryParams(
+                QueryParam.FILTER,
+                filters.map((f) => f.toQueryString())
+            ),
+        ].join("&");
 
-        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?${queryParams}`;
+        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}${this.pathSuffix}?${queryParams}`;
         console.log(`Requesting root hierarchy values: ${requestUrl}`);
 
         const response = await this.get<string>(requestUrl);
@@ -79,11 +93,14 @@ export default class AnnotationService extends HttpServiceBase {
         filters: FileFilter[]
     ): Promise<string[]> {
         const queryParams = [
-            ...hierarchy.map((annotationName) => `order=${annotationName}`),
-            ...path.map((annotationValue) => `path=${annotationValue}`),
-            ...filters.map((filter) => `filter=${filter.toQueryString()}`),
+            this.buildQueryParams(QueryParam.ORDER, hierarchy),
+            this.buildQueryParams(QueryParam.PATH, path),
+            this.buildQueryParams(
+                QueryParam.FILTER,
+                filters.map((f) => f.toQueryString())
+            ),
         ].join("&");
-        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}?${queryParams}`;
+        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}${this.pathSuffix}?${queryParams}`;
         console.log(`Requesting hierarchy values under path: ${requestUrl}`);
 
         const response = await this.get<string>(requestUrl);
@@ -95,14 +112,15 @@ export default class AnnotationService extends HttpServiceBase {
      * file set
      */
     public async fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]> {
-        const queryParams = [...annotations]
-            .sort() // sort in order to effectively cache
-            .map((annotation) => `hierarchy=${annotation}`)
-            .join("&");
-        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY}?${queryParams}`;
+        const queryParams = this.buildQueryParams(QueryParam.HIERARCHY, [...annotations].sort());
+        const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY}${this.pathSuffix}?${queryParams}`;
         console.log(`Requesting available annotations with current hierarchy: ${requestUrl}`);
 
         const response = await this.get<string>(requestUrl);
         return response.data;
+    }
+
+    private buildQueryParams(param: QueryParam, values: string[]): string {
+        return values.map((value) => `${param}=${value}`).join("&");
     }
 }

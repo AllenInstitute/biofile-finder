@@ -7,13 +7,13 @@ export interface Dataset {
     annotations?: string[];
     version: number;
     expiration?: Date;
-    collection?: string; // When frozen Dataset should not point to a collection
+    collection?: string; // When fixed Dataset should not point to a collection
     query: string;
-    createdBy: string;
-    created: Date;
     client: string;
-    fixed: boolean; // If true, dataset represents a collection of file metadata frozen in time
+    fixed: boolean;
     private: boolean;
+    created: Date;
+    createdBy: string;
 }
 
 export interface CreateDatasetRequest {
@@ -34,6 +34,7 @@ export interface PythonicDataAccessSnippet {
  * Service responsible for fetching dataset related metadata.
  */
 export default class DatasetService extends HttpServiceBase {
+    // TODO: Bump version
     public static readonly DATASET_ENDPOINT_VERSION = "1.0";
     public static readonly BASE_DATASET_URL = `file-explorer-service/${DatasetService.DATASET_ENDPOINT_VERSION}/dataset`;
 

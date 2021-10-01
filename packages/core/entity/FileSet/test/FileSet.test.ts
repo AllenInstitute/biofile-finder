@@ -52,7 +52,6 @@ describe("FileSet", () => {
 
         it("returns slices of the file list represented by the FileSet, specified by index position", async () => {
             const fileService = new FileService();
-            sandbox.replace(fileService, "getFileIds", () => Promise.resolve(fileIds));
             sandbox.replace(fileService, "getFiles", () =>
                 Promise.resolve(
                     new RestServiceResponse({
@@ -145,7 +144,6 @@ describe("FileSet", () => {
 
         const fileService = new FileService();
         const fileSet = new FileSet({ fileService });
-        sandbox.replace(fileService, "getFileIds", () => Promise.resolve(fileIds));
         sandbox.replace(fileService, "getFiles", () =>
             Promise.resolve(
                 new RestServiceResponse({

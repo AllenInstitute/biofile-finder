@@ -9,6 +9,7 @@ export interface ConnectionConfig {
     applicationVersion?: string;
     baseUrl?: string | keyof typeof FileExplorerServiceBaseUrl;
     httpClient?: AxiosInstance;
+    pathSuffix?: string;
     userName?: string;
 }
 
@@ -101,6 +102,7 @@ export default class HttpServiceBase {
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
     private applicationVersion = "NOT SET";
     private userName?: string;
+    protected readonly pathSuffix: string = "";
     private urlToResponseDataCache = new LRUCache<string, any>({ max: MAX_CACHE_SIZE });
 
     constructor(config: ConnectionConfig = {}) {
@@ -118,6 +120,10 @@ export default class HttpServiceBase {
 
         if (config.httpClient) {
             this.setHttpClient(config.httpClient);
+        }
+
+        if (config.pathSuffix) {
+            this.pathSuffix = config.pathSuffix;
         }
     }
 

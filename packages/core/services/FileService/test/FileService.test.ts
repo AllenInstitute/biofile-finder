@@ -46,23 +46,6 @@ describe("FileService", () => {
         });
     });
 
-    describe("getFileIds", () => {
-        const httpClient = createMockHttpClient({
-            when: `${baseUrl}/file-explorer-service/1.0/files/ids?file_id=abc123`,
-            respondWith: {
-                data: {
-                    data: fileIds,
-                },
-            },
-        });
-
-        it("issues request for all file ids matching given parameters", async () => {
-            const fileService = new FileService({ baseUrl, httpClient });
-            const ids = await fileService.getFileIds("file_id=abc123");
-            expect(ids).to.equal(fileIds);
-        });
-    });
-
     describe("getAggregateInformation", () => {
         const totalFileSize = 12424114;
         const totalFileCount = 7;

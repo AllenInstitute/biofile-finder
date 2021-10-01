@@ -42,7 +42,6 @@ export interface GetFilesRequest {
 }
 
 export interface Selection {
-    collectionId?: string;
     filters: {
         [index: string]: (string | number | boolean)[];
     };
@@ -73,14 +72,15 @@ enum Version {
  */
 export default class FileService extends HttpServiceBase {
     public static readonly BASE_FILES_URL = `file-explorer-service/${Version.ONE}/files`;
-    public static readonly BASE_FILE_IDS_URL = `file-explorer-service/${Version.ONE}/files/ids`;
     public static readonly BASE_FILE_COUNT_URL = `file-explorer-service/${Version.ONE}/files/count`;
     public static readonly SELECTION_AGGREGATE_URL = `file-explorer-service/${Version.TWO}/files/selection/aggregate`;
-    public static readonly PYTHON_SNIPPET_URL = `file-explorer-service/${Version.TWO}/files/selection/pythonSnippet`;
 
     public async getCountOfMatchingFiles(queryString: string): Promise<number> {
         const requestUrl = join(
-            compact([`${this.baseUrl}/${FileService.BASE_FILE_COUNT_URL}`, queryString]),
+            compact([
+                `${this.baseUrl}/${FileService.BASE_FILE_COUNT_URL}${this.pathSuffix}`,
+                queryString,
+            ]),
             "?"
         );
         console.log(`Requesting count of matching files from ${requestUrl}`);
@@ -98,7 +98,7 @@ export default class FileService extends HttpServiceBase {
     public async getAggregateInformation(fileSelection: FileSelection): Promise<SelectionResult> {
         const selections = fileSelection.toCompactSelectionList();
         const postBody: SelectionRequest = { annotations: [], selections };
-        const requestUrl = `${this.baseUrl}/${FileService.SELECTION_AGGREGATE_URL}`;
+        const requestUrl = `${this.baseUrl}/${FileService.SELECTION_AGGREGATE_URL}${this.pathSuffix}`;
         console.log(`Requesting aggregate results of matching files ${postBody}`);
 
         const response = await this.post<SelectionResult>(requestUrl, JSON.stringify(postBody));
@@ -117,36 +117,10 @@ export default class FileService extends HttpServiceBase {
     public async getFiles(request: GetFilesRequest): Promise<RestServiceResponse<FmsFile>> {
         const { from, limit, queryString } = request;
 
-        const base = `${this.baseUrl}/${FileService.BASE_FILES_URL}?from=${from}&limit=${limit}`;
+        const base = `${this.baseUrl}/${FileService.BASE_FILES_URL}${this.pathSuffix}?from=${from}&limit=${limit}`;
         const requestUrl = join(compact([base, queryString]), "&");
         console.log(`Requesting files from ${requestUrl}`);
 
         return await this.get<FmsFile>(requestUrl);
-    }
-
-    /**
-     * GM 1/29/2020: This is a TEMPORARY service method that is only necessary until we move manifest generation to a backend service.
-     * When that happens, this method can be deleted.
-     */
-    public async getFilesById(fileIds: string[]): Promise<FmsFile[]> {
-        const url = `${this.baseUrl}/${FileService.BASE_FILES_URL}`;
-        const result = await this.httpClient.post<RestServiceResponse<FmsFile>>(url, fileIds);
-
-        // first .data to access out of AxiosResponse, second .data to get out of RestServiceResponse. :(.
-        return result.data.data;
-    }
-
-    /**
-     * Get list of file_ids of file documents that match a given filter, potentially according to a particular sort order.
-     */
-    public async getFileIds(queryString: string): Promise<string[]> {
-        const requestUrl = join(
-            compact([`${this.baseUrl}/${FileService.BASE_FILE_IDS_URL}`, queryString]),
-            "?"
-        );
-        console.log(`Requesting file ids from ${requestUrl}`);
-
-        const response = await this.get<string>(requestUrl);
-        return response.data;
     }
 }

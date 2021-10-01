@@ -105,7 +105,6 @@ const useDirectoryHierarchy = (
     const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const fileService = useSelector(interaction.selectors.getFileService);
-    const collectionId = useSelector(selection.selectors.getCollectionId);
     const selectedFileFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
     const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
@@ -228,7 +227,6 @@ const useDirectoryHierarchy = (
 
                         const childNodeFileSet = new FileSet({
                             fileService,
-                            collectionId,
                             filters,
                             sort: sortColumn,
                         });
@@ -274,7 +272,6 @@ const useDirectoryHierarchy = (
         collapsed,
         fileService,
         fileSet,
-        collectionId,
         hierarchy,
         isRoot,
         isLeaf,

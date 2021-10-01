@@ -97,7 +97,6 @@ const downloadManifest = createLogic({
             );
             let fileSelection = selection.selectors.getFileSelection(state);
             const filters = interactionSelectors.getFileFiltersForVisibleModal(state);
-            const collectionId = selection.selectors.getCollectionId(state);
             const fileService = interactionSelectors.getFileService(state);
             const sortColumn = selection.selectors.getSortColumn(state);
             const csvService = new CsvService({
@@ -109,7 +108,6 @@ const downloadManifest = createLogic({
             // If we have a specific path to get files from ignore selected files
             if (filters.length) {
                 const fileSet = new FileSet({
-                    collectionId,
                     filters,
                     fileService,
                     sort: sortColumn,
@@ -328,7 +326,6 @@ const openWithDefault = createLogic({
         const filters = deps.action.payload;
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
-        const collectionId = selection.selectors.getCollectionId(deps.getState());
         const sortColumn = selection.selectors.getSortColumn(deps.getState());
         const userSelectedApplications =
             interactionSelectors.getUserSelectedApplications(deps.getState()) || [];
@@ -339,7 +336,6 @@ const openWithDefault = createLogic({
             files = await fileSelection.fetchAllDetails();
         } else {
             const fileSet = new FileSet({
-                collectionId,
                 filters,
                 fileService,
                 sort: sortColumn,
@@ -390,7 +386,6 @@ const openWithLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
-        const collectionId = selection.selectors.getCollectionId(deps.getState());
         const savedAllenMountPoint = interactionSelectors.getAllenMountPoint(deps.getState());
         const {
             fileViewerService,
@@ -456,7 +451,6 @@ const openWithLogic = createLogic({
                     filesToOpen = files;
                 } else if (filters) {
                     const fileSet = new FileSet({
-                        collectionId,
                         filters,
                         fileService,
                         sort: sortColumn,
@@ -536,10 +530,8 @@ const generateShareableFileSelectionLink = createLogic({
 
             // If we have a specific path to get files from ignore selected files
             if (filters?.length) {
-                const collectionId = selection.selectors.getCollectionId(state);
                 const fileService = interactionSelectors.getFileService(state);
                 const fileSet = new FileSet({
-                    collectionId,
                     filters,
                     fileService,
                     sort: sortColumn,
