@@ -15,7 +15,7 @@ interface HeaderRibbonProps {
  * Ribbon-like toolbar at the top of the application to contain features like application-level view options.
  */
 export default function HeaderRibbon(props: HeaderRibbonProps) {
-    const selectedCollection = useSelector(selection.selectors.getSelectedCollection);
+    const selectedCollection = useSelector(selection.selectors.getCollection);
     const [isCollapsed, setCollapsed] = React.useState(true);
 
     return (

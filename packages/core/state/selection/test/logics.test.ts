@@ -990,7 +990,7 @@ describe("Selection logics", () => {
                     payload: sortColumn,
                 })
             ).to.be.true;
-            expect(actions.includesMatch(changeCollection(mockCollection.id))).to.be.true;
+            expect(actions.includesMatch(changeCollection(mockCollection))).to.be.true;
         });
 
         it("validates unknown collection against dataset service", async () => {
@@ -1016,7 +1016,7 @@ describe("Selection logics", () => {
             await logicMiddleware.whenComplete();
 
             // Assert
-            expect(actions.includesMatch(changeCollection(mockCollection.id))).to.be.true;
+            expect(actions.includesMatch(changeCollection(mockCollection))).to.be.true;
             expect(actions.includesMatch(receiveCollections([mockCollection]))).to.be.true;
         });
     });

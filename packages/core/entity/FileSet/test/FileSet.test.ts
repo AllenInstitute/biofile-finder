@@ -71,37 +71,37 @@ describe("FileSet", () => {
             const baseUrl = "test";
             const spec = [
                 {
-                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=1&limit=28`,
+                    expectedUrl: `${baseUrl}/${FileService.BASE_FILES_URL}?from=1&limit=28`,
                     start: 35,
                     end: 55,
                 },
                 {
-                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=11&limit=23`,
+                    expectedUrl: `${baseUrl}/${FileService.BASE_FILES_URL}?from=11&limit=23`,
                     start: 256,
                     end: 274,
                 },
                 {
-                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=0&limit=6`,
+                    expectedUrl: `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=6`,
                     start: 0,
                     end: 5,
                 },
                 {
-                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=1&limit=11`,
+                    expectedUrl: `${baseUrl}/${FileService.BASE_FILES_URL}?from=1&limit=11`,
                     start: 14,
                     end: 21,
                 },
                 {
-                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=0&limit=6`,
+                    expectedUrl: `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=6`,
                     start: 2,
                     end: 5,
                 },
                 {
-                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=3&limit=4`,
+                    expectedUrl: `${baseUrl}/${FileService.BASE_FILES_URL}?from=3&limit=4`,
                     start: 12,
                     end: 15,
                 },
                 {
-                    expectedUrl: `${baseUrl}/file-explorer-service/1.0/files?from=0&limit=301`,
+                    expectedUrl: `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=301`,
                     start: 2,
                     end: 300,
                 },

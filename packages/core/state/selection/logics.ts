@@ -291,19 +291,19 @@ const decodeFileExplorerURL = createLogic({
             annotations
         );
 
-        let collectionId = collections.find(
+        let selectedCollection = collections.find(
             (c) => c.name === collection?.name && c.version === collection?.version
-        )?.id;
+        );
         // It is possible the user was sent a private collection, in that event the collection is likely not stored
         // in the state's collection set yet & should be loaded in.
-        if (collection && !collectionId) {
+        if (collection && !selectedCollection) {
             const datasetService = interaction.selectors.getDatasetService(deps.getState());
             const newCollection = await datasetService.getDataset(
                 collection.name,
                 collection.version
             );
             dispatch(metadata.actions.receiveCollections([...collections, newCollection]));
-            collectionId = newCollection.id;
+            selectedCollection = newCollection;
         }
 
         batch(() => {
@@ -312,7 +312,7 @@ const decodeFileExplorerURL = createLogic({
             dispatch(setOpenFileFolders(openFolders));
             dispatch(setSortColumn(sortColumn));
             // Some weirdness here with dispatch not loving the optional payload
-            dispatch(changeCollection(collectionId) as AnyAction);
+            dispatch(changeCollection(selectedCollection));
         });
         done();
     },

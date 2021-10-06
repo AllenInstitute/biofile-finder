@@ -112,7 +112,7 @@ function convertCollectionToOption(
             collection.createdBy
         }`,
         onClick: () => {
-            dispatch(selection.actions.changeCollection(collection.id));
+            dispatch(selection.actions.changeCollection(collection));
         },
         itemProps:
             collection.id !== selectedCollection?.id ? DEFAULT_OPTION_PROPS : SELECTED_OPTION_PROPS,

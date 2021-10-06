@@ -34,9 +34,8 @@ export interface PythonicDataAccessSnippet {
  * Service responsible for fetching dataset related metadata.
  */
 export default class DatasetService extends HttpServiceBase {
-    // TODO: Bump version
-    public static readonly DATASET_ENDPOINT_VERSION = "1.0";
-    public static readonly BASE_DATASET_URL = `file-explorer-service/${DatasetService.DATASET_ENDPOINT_VERSION}/dataset`;
+    private static readonly ENDPOINT_VERSION = "2.0";
+    public static readonly BASE_DATASET_URL = `file-explorer-service/${DatasetService.ENDPOINT_VERSION}/dataset`;
 
     /**
      * Requests to create a dataset matching given specification including index-based file selection.

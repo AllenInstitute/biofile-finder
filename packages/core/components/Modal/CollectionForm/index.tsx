@@ -61,8 +61,8 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
     const annotationsPreviouslySelected = useSelector(
         modalSelectors.getAnnotationsPreviouslySelected
     );
-    const collection = useSelector(selection.selectors.getSelectedCollection);
-    const collectionAnnotations = useSelector(selection.selectors.getSelectedCollectionAnnotations);
+    const collection = useSelector(selection.selectors.getCollection);
+    const collectionAnnotations = useSelector(modalSelectors.getSelectedCollectionAnnotations);
 
     const collectionExpiration = collection?.expiration
         ? `${

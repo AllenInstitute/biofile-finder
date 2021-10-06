@@ -29,11 +29,11 @@ enum QueryParam {
  * Service responsible for fetching annotation related metadata.
  */
 export default class AnnotationService extends HttpServiceBase {
-    public static ANNOTATION_ENDPOINT_VERSION = "1.0";
-    public static BASE_ANNOTATION_URL = `file-explorer-service/${AnnotationService.ANNOTATION_ENDPOINT_VERSION}/annotations`;
-    public static BASE_ANNOTATION_HIERARCHY_ROOT_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/root`;
-    public static BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/under-path`;
-    public static BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/available`;
+    private static readonly ENDPOINT_VERSION = "1.0";
+    public static readonly BASE_ANNOTATION_URL = `file-explorer-service/${AnnotationService.ENDPOINT_VERSION}/annotations`;
+    public static readonly BASE_ANNOTATION_HIERARCHY_ROOT_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/root`;
+    public static readonly BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/under-path`;
+    public static readonly BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/available`;
 
     public constructor(config: ConnectionConfig = {}) {
         super(config);
@@ -78,7 +78,9 @@ export default class AnnotationService extends HttpServiceBase {
                 QueryParam.FILTER,
                 filters.map((f) => f.toQueryString())
             ),
-        ].join("&");
+        ]
+            .filter((param) => !!param)
+            .join("&");
 
         const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}${this.pathSuffix}?${queryParams}`;
         console.log(`Requesting root hierarchy values: ${requestUrl}`);
@@ -99,7 +101,9 @@ export default class AnnotationService extends HttpServiceBase {
                 QueryParam.FILTER,
                 filters.map((f) => f.toQueryString())
             ),
-        ].join("&");
+        ]
+            .filter((param) => !!param)
+            .join("&");
         const requestUrl = `${this.baseUrl}/${AnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}${this.pathSuffix}?${queryParams}`;
         console.log(`Requesting hierarchy values under path: ${requestUrl}`);
 

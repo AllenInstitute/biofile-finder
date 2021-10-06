@@ -19,13 +19,9 @@ describe("<HeaderRibbon />", () => {
         const { store } = configureMockStore({
             state: {
                 ...initialState,
-                metadata: {
-                    ...initialState.metadata,
-                    collections: [mockCollection],
-                },
                 selection: {
                     ...initialState.selection,
-                    collectionId: mockCollection.id,
+                    collection: mockCollection,
                 },
             },
         });

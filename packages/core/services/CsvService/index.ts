@@ -11,8 +11,8 @@ interface CsvServiceConfig extends ConnectionConfig {
  * heavy-lifting of the downloading to a platform-dependent implementation of the FileDownloadService.
  */
 export default class CsvService extends HttpServiceBase {
-    private static CSV_ENDPOINT_VERSION = "2.0";
-    public static BASE_CSV_DOWNLOAD_URL = `file-explorer-service/${CsvService.CSV_ENDPOINT_VERSION}/files/selection/manifest`;
+    private static readonly ENDPOINT_VERSION = "2.0";
+    public static readonly BASE_CSV_DOWNLOAD_URL = `file-explorer-service/${CsvService.ENDPOINT_VERSION}/files/selection/manifest`;
 
     private downloadService: FileDownloadService;
 

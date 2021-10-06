@@ -1,11 +1,11 @@
 import { createSelector } from "reselect";
 
-import { selection, State } from "../";
+import { State } from "../";
 import { HttpServiceBase } from "../../services";
 import AnnotationService from "../../services/AnnotationService";
 import DatasetService from "../../services/DatasetService";
 import FileService from "../../services/FileService";
-import { getSelectedCollection } from "../selection/selectors";
+import { getCollection } from "../selection/selectors";
 
 // BASIC SELECTORS
 export const getAllenMountPoint = (state: State) => state.interaction.allenMountPoint;
@@ -40,13 +40,12 @@ export const getUserName = createSelector(
     }
 );
 
-// TODO: Add selector test
 export const getFileService = createSelector(
     [
         getApplicationVersion,
         getUserName,
         getFileExplorerServiceBaseUrl,
-        getSelectedCollection,
+        getCollection,
         getRefreshKey,
     ],
     (applicationVersion, userName, fileExplorerBaseUrl, collection) => {
@@ -62,13 +61,12 @@ export const getFileService = createSelector(
     }
 );
 
-// TODO: Add selector test
 export const getAnnotationService = createSelector(
     [
         getApplicationVersion,
         getUserName,
         getFileExplorerServiceBaseUrl,
-        selection.selectors.getSelectedCollection,
+        getCollection,
         getRefreshKey,
     ],
     (applicationVersion, userName, fileExplorerBaseUrl, collection) => {

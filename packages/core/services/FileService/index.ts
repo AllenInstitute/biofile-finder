@@ -62,18 +62,14 @@ interface SelectionResult {
     size: number;
 }
 
-enum Version {
-    ONE = "1.0",
-    TWO = "2.0",
-}
-
 /**
  * Service responsible for fetching file related metadata.
  */
 export default class FileService extends HttpServiceBase {
-    public static readonly BASE_FILES_URL = `file-explorer-service/${Version.ONE}/files`;
-    public static readonly BASE_FILE_COUNT_URL = `file-explorer-service/${Version.ONE}/files/count`;
-    public static readonly SELECTION_AGGREGATE_URL = `file-explorer-service/${Version.TWO}/files/selection/aggregate`;
+    private static readonly ENDPOINT_VERSION = "2.0";
+    public static readonly BASE_FILES_URL = `file-explorer-service/${FileService.ENDPOINT_VERSION}/files`;
+    public static readonly BASE_FILE_COUNT_URL = `${FileService.BASE_FILES_URL}/count`;
+    public static readonly SELECTION_AGGREGATE_URL = `${FileService.BASE_FILES_URL}/selection/aggregate`;
 
     public async getCountOfMatchingFiles(queryString: string): Promise<number> {
         const requestUrl = join(

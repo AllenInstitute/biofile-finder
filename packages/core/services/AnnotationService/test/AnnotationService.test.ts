@@ -10,7 +10,7 @@ import FileFilter from "../../../entity/FileFilter";
 describe("AnnotationService", () => {
     describe("fetchAnnotations", () => {
         const httpClient = createMockHttpClient({
-            when: "test/file-explorer-service/1.0/annotations",
+            when: `test/${AnnotationService.BASE_ANNOTATION_URL}`,
             respondWith: {
                 data: {
                     data: annotationsJson,
@@ -31,7 +31,7 @@ describe("AnnotationService", () => {
             const annotation = "foo";
             const values = ["a", "b", "c"];
             const httpClient = createMockHttpClient({
-                when: `test/file-explorer-service/1.0/annotations/${annotation}/values`,
+                when: `test/${AnnotationService.BASE_ANNOTATION_URL}/${annotation}/values`,
                 respondWith: {
                     data: {
                         data: values,
@@ -50,7 +50,7 @@ describe("AnnotationService", () => {
         it("issues a request for annotation values for the first level of the annotation hierarchy", async () => {
             const expectedValues = ["foo", "bar", "baz"];
             const httpClient = createMockHttpClient({
-                when: "test/file-explorer-service/1.0/annotations/hierarchy/root?order=foo",
+                when: `test/${AnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?order=foo`,
                 respondWith: {
                     data: {
                         data: expectedValues,
@@ -67,8 +67,7 @@ describe("AnnotationService", () => {
             const expectedValues = ["foo", "bar", "baz"];
             const httpClient = createMockHttpClient({
                 // note order of query params
-                when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/root?order=z&order=a&order=b&order=c",
+                when: `test/${AnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?order=z&order=a&order=b&order=c`,
                 respondWith: {
                     data: {
                         data: expectedValues,
@@ -102,8 +101,7 @@ describe("AnnotationService", () => {
         it("issues a request for annotation values for the first level of the annotation hierarchy with filters", async () => {
             const expectedValues = ["foo", "barValue", "baz"];
             const httpClient = createMockHttpClient({
-                when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/root?order=foo&filter=bar=barValue",
+                when: `test/${AnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?order=foo&filter=bar=barValue`,
                 respondWith: {
                     data: {
                         data: expectedValues,
@@ -122,8 +120,7 @@ describe("AnnotationService", () => {
         it("issues request for hierarchy values under a specific path within the hierarchy", async () => {
             const expectedValues = [1, 2, 3];
             const httpClient = createMockHttpClient({
-                when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/under-path?order=foo&order=bar&path=baz",
+                when: `test/${AnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}?order=foo&order=bar&path=baz`,
                 respondWith: {
                     data: {
                         data: expectedValues,
@@ -143,8 +140,7 @@ describe("AnnotationService", () => {
         it("issues request for hierarchy values under a specific path within the hierarchy with filters", async () => {
             const expectedValues = [1, "barValue", 3];
             const httpClient = createMockHttpClient({
-                when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/under-path?order=foo&order=bar&path=baz&filter=bar=barValue",
+                when: `test/${AnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}?order=foo&order=bar&path=baz&filter=bar=barValue`,
                 respondWith: {
                     data: {
                         data: expectedValues,
@@ -167,8 +163,7 @@ describe("AnnotationService", () => {
         it("issues request for annotations that can be combined with current hierarchy", async () => {
             const expectedValues = ["cell_dead", "date_created"];
             const httpClient = createMockHttpClient({
-                when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=cas9&hierarchy=cell_line",
+                when: `test/${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/available?hierarchy=cas9&hierarchy=cell_line`,
                 respondWith: {
                     data: {
                         data: expectedValues,

@@ -23,12 +23,13 @@ import {
     CHANGE_COLLECTION,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
+import { Dataset } from "../../services/DatasetService";
 
 export interface SelectionStateBranch {
     annotationHierarchy: Annotation[];
     availableAnnotationsForHierarchy: string[];
     availableAnnotationsForHierarchyLoading: boolean;
-    collectionId?: string;
+    collection?: Dataset;
     columnWidths: {
         [index: string]: number; // columnName to widthPercent mapping
     };
@@ -91,7 +92,7 @@ export default makeReducer<SelectionStateBranch>(
         },
         [CHANGE_COLLECTION]: (state, action) => ({
             ...state,
-            collectionId: action.payload,
+            collection: action.payload,
         }),
         [SET_SORT_COLUMN]: (state, action) => ({
             ...state,

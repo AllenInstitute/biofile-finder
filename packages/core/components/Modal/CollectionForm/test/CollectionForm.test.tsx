@@ -213,11 +213,8 @@ describe("<CollectionForm />", () => {
                 fileExplorerServiceBaseUrl: baseUrl,
                 visibleModal: ModalType.EditCollectionForm,
             },
-            metadata: {
-                collections: [mockCollection],
-            },
             selection: {
-                collectionId: mockCollection.id,
+                collection: mockCollection,
             },
         });
 
@@ -260,16 +257,11 @@ describe("<CollectionForm />", () => {
                     fileExplorerServiceBaseUrl: baseUrl,
                     visibleModal: ModalType.EditCollectionForm,
                 },
-                metadata: {
-                    collections: [
-                        {
-                            ...mockCollection,
-                            expiration: expirationDate,
-                        },
-                    ],
-                },
                 selection: {
-                    collectionId: mockCollection.id,
+                    collection: {
+                        ...mockCollection,
+                        expiration: expirationDate,
+                    },
                 },
             });
             const { store } = configureMockStore({ state });

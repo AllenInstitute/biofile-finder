@@ -119,7 +119,7 @@ describe("<CollectionControl />", () => {
         fireEvent.click(getByText(mockCollection.name));
 
         // Assert
-        expect(actions.includesMatch(selection.actions.changeCollection(mockCollection.id))).to.be
+        expect(actions.includesMatch(selection.actions.changeCollection(mockCollection))).to.be
             .true;
     });
 
@@ -128,13 +128,9 @@ describe("<CollectionControl />", () => {
         const { store } = configureMockStore({
             state: {
                 ...initialState,
-                metadata: {
-                    ...initialState.metadata,
-                    collections: [mockCollection],
-                },
                 selection: {
                     ...initialState.selection,
-                    collectionId: mockCollection.id,
+                    collection: mockCollection,
                 },
             },
         });
