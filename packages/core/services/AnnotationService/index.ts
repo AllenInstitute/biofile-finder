@@ -1,6 +1,6 @@
 import { map } from "lodash";
 
-import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
+import HttpServiceBase from "../HttpServiceBase";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 
@@ -34,10 +34,6 @@ export default class AnnotationService extends HttpServiceBase {
     public static readonly BASE_ANNOTATION_HIERARCHY_ROOT_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/root`;
     public static readonly BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/under-path`;
     public static readonly BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY = `${AnnotationService.BASE_ANNOTATION_URL}/hierarchy/available`;
-
-    public constructor(config: ConnectionConfig = {}) {
-        super(config);
-    }
 
     /**
      * Fetch all annotations.

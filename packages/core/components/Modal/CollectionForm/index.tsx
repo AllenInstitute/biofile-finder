@@ -85,7 +85,7 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
     const [name, setName] = React.useState<string>(isEditing && collection ? collection.name : "");
     const [isSubtitleExpanded, setIsSubtitleExpanded] = React.useState(true);
 
-    const isDisabled = !name.trim() || !expiration || (isFixed && !!selectedAnnotations.length);
+    const isDisabled = !name.trim() || !expiration || (isFixed && !selectedAnnotations.length);
 
     // Collections can have the same name with different versions, see if this would
     // need to be a new version based on the name
@@ -99,7 +99,7 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
         return matchingExistingCollections[0].version + 1;
     }, [name, existingCollections]);
 
-    const onGenerate = () => {
+    const onSubmit = () => {
         let expirationDate: Date | undefined = new Date();
         if (expiration === Expiration.OneDay) {
             expirationDate.setDate(expirationDate.getDate() + 1);
@@ -117,17 +117,25 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
             expirationDate = collection?.expiration;
         }
 
-        dispatch(
-            interaction.actions.generateShareableFileSelectionLink({
-                id: isEditing ? collection?.id : undefined,
-                annotations: isFixed ? selectedAnnotations : undefined,
-                expiration: expirationDate,
-                filters,
-                fixed: isFixed,
-                private: isPrivate,
-                name: isEditing ? collection?.name : name,
-            })
-        );
+        if (isEditing) {
+            dispatch(
+                interaction.actions.updateCollection({
+                    expiration: expirationDate,
+                    private: isPrivate,
+                })
+            );
+        } else {
+            dispatch(
+                interaction.actions.generateShareableFileSelectionLink({
+                    annotations: isFixed ? selectedAnnotations : undefined,
+                    expiration: expirationDate,
+                    filters,
+                    fixed: isFixed,
+                    private: isPrivate,
+                    name: isEditing ? collection?.name : name,
+                })
+            );
+        }
     };
 
     const body = (
@@ -211,9 +219,15 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
                                 </TooltipHost>
                             </h5>
                         </div>
-                        <div className={styles.checkboxContainer} data-testid="is-fixed-checkbox">
+                        <div
+                            className={classNames(styles.checkboxContainer, {
+                                [styles.disabled]: isEditing,
+                            })}
+                            data-testid="is-fixed-checkbox"
+                        >
                             <Checkbox
                                 className={styles.checkbox}
+                                disabled={isEditing}
                                 checked={isFixed}
                                 onChange={(_, checked) => setFixed(checked || false)}
                             />
@@ -254,7 +268,7 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
                 <PrimaryButton
                     text={isEditing ? "Update" : "Generate"}
                     disabled={isDisabled}
-                    onClick={onGenerate}
+                    onClick={onSubmit}
                 />
             }
             onDismiss={onDismiss}

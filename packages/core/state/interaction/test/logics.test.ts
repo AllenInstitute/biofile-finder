@@ -703,9 +703,7 @@ describe("Interaction logics", () => {
             expect(isCopiedToClipboard).to.be.true;
             expect(
                 actions.includesMatch({
-                    payload: {
-                        collection,
-                    },
+                    payload: collection,
                     type: SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
                 })
             ).to.be.true;
@@ -755,9 +753,7 @@ describe("Interaction logics", () => {
             expect(isCopiedToClipboard).to.be.true;
             expect(
                 actions.includesMatch({
-                    payload: {
-                        collection,
-                    },
+                    payload: collection,
                     type: SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
                 })
             ).to.be.true;

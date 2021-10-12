@@ -20,9 +20,9 @@ import {
     SHOW_MANIFEST_DOWNLOAD_DIALOG,
     StatusUpdate,
     SUCCEED_PYTHON_SNIPPET_GENERATION,
-    SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
     SHOW_EDIT_COLLECTION_DIALOG,
     GENERATE_SHAREABLE_FILE_SELECTION_LINK,
+    UPDATE_COLLECTION,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -173,17 +173,15 @@ export default makeReducer<InteractionStateBranch>(
             visibleModal: ModalType.CsvManifest,
             fileFiltersForVisibleModal: action.payload,
         }),
-        [GENERATE_SHAREABLE_FILE_SELECTION_LINK]: (state) => ({
+        [UPDATE_COLLECTION]: (state) => ({
             ...state,
             visibleModal: undefined,
             fileFiltersForVisibleModal: undefined,
         }),
-        [SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION]: (state, action) => ({
+        [GENERATE_SHAREABLE_FILE_SELECTION_LINK]: (state) => ({
             ...state,
-            status: filter(
-                state.status,
-                (status: StatusUpdate) => status.processId !== action.payload.processId
-            ),
+            visibleModal: undefined,
+            fileFiltersForVisibleModal: undefined,
         }),
         [SUCCEED_PYTHON_SNIPPET_GENERATION]: (state, action) => ({
             ...state,

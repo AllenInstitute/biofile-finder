@@ -678,6 +678,27 @@ describe("Selection logics", () => {
         });
     });
 
+    describe("changeCollectionLogic", () => {
+        it("dispatches refresh action", async () => {
+            // Arrange
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: initialState,
+                logics: selectionLogics,
+            });
+
+            // Act
+            store.dispatch(changeCollection({} as any));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: interaction.actions.REFRESH,
+                })
+            ).to.be.true;
+        });
+    });
+
     describe("setAvailableAnnotationsLogics", () => {
         let annotations: Annotation[];
 

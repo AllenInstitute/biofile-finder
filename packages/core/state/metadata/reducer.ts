@@ -23,7 +23,7 @@ export default makeReducer<MetadataStateBranch>(
             action
         ) => ({
             ...state,
-            collections: [...state.collections, action.payload.collection],
+            collections: [...state.collections, action.payload],
         }),
         [RECEIVE_ANNOTATIONS]: (state, action) => ({
             ...state,

@@ -416,6 +416,31 @@ export function processFailure(processId: string, msg: string): ProcessFailureAc
 }
 
 /**
+ * UPDATE_COLLECTION
+ *
+ * Intention to update the metadata of an existing collection.
+ */
+export const UPDATE_COLLECTION = makeConstant(STATE_BRANCH_NAME, "update-collection");
+
+export interface UpdateCollectionAction {
+    payload?: {
+        expiration?: Date;
+        private: boolean;
+    };
+    type: string;
+}
+
+export function updateCollection(config?: {
+    expiration?: Date;
+    private: boolean;
+}): UpdateCollectionAction {
+    return {
+        payload: config,
+        type: UPDATE_COLLECTION,
+    };
+}
+
+/**
  * GENERATE_SHAREABLE_FILE_SELECTION_LINK
  *
  * Intention to generate a shareable link to the selected files.
@@ -427,7 +452,6 @@ export const GENERATE_SHAREABLE_FILE_SELECTION_LINK = makeConstant(
 
 export interface GenerateShareableFileSelectionLinkAction {
     payload?: {
-        id?: string;
         annotations?: Annotation[];
         expiration?: Date;
         filters?: FileFilter[];
@@ -439,7 +463,6 @@ export interface GenerateShareableFileSelectionLinkAction {
 }
 
 export function generateShareableFileSelectionLink(config?: {
-    id?: string;
     annotations?: Annotation[];
     expiration?: Date;
     filters?: FileFilter[];
@@ -464,22 +487,15 @@ export const SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION = makeConstant(
 );
 
 export interface SucceedShareableFileSelectionLinkGenerationAction {
-    payload: {
-        processId: string;
-        collection: Dataset;
-    };
+    payload: Dataset;
     type: string;
 }
 
 export function succeedShareableFileSelectionLinkGeneration(
-    processId: string,
     collection: Dataset
 ): SucceedShareableFileSelectionLinkGenerationAction {
     return {
-        payload: {
-            processId,
-            collection,
-        },
+        payload: collection,
         type: SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
     };
 }

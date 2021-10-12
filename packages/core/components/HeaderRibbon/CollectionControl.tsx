@@ -5,6 +5,7 @@ import {
     IconButton,
     IContextualMenuItemProps,
     TooltipHost,
+    IStyle,
 } from "@fluentui/react";
 import { orderBy } from "lodash";
 import * as React from "react";
@@ -31,31 +32,33 @@ const SECONDARY_BUTTON_STYLES: IButtonStyles = {
     },
 };
 
+const MENU_STYLES: IStyle = {
+    // Color is lightened tint of --primary-brand-dark-blue defined in App.module.css
+    backgroundColor: "#1A4A71",
+    color: "white",
+    ":hover": {
+        // Equivalent to --primary-brand-dark-blue defined in App.module.css
+        backgroundColor: "#003057",
+        color: "white",
+    },
+    ":active": {
+        // Equivalent to --primary-brand-dark-blue defined in App.module.css
+        backgroundColor: "#003057",
+        color: "white",
+    },
+};
+
 const DEFAULT_OPTION_PROPS: Partial<IContextualMenuItemProps> = {
     styles: {
-        divider: {
-            // Color is lightened tint of --primary-brand-dark-blue defined in App.module.css
-            backgroundColor: "#1A4A71",
-        },
-        item: {
-            // Color is lightened tint of --primary-brand-dark-blue defined in App.module.css
-            backgroundColor: "#1A4A71",
-            color: "white",
-        },
         label: {
             color: "white",
         },
-        root: {
-            ":hover": {
-                // Equivalent to --primary-brand-dark-blue defined in App.module.css
-                backgroundColor: "#003057",
-                color: "white",
-            },
-            ":active": {
-                backgroundColor: "#003057",
-                color: "white",
-            },
-        },
+        divider: MENU_STYLES,
+        splitMenu: MENU_STYLES,
+        splitPrimary: MENU_STYLES,
+        item: MENU_STYLES,
+        root: MENU_STYLES,
+        subMenuIcon: { ...MENU_STYLES, width: "28px" },
     },
 };
 
@@ -166,6 +169,7 @@ export default function CollectionControl(props: Props) {
                     dispatch,
                     selectedCollection
                 ),
+                split: collectionsWithSameName.length > 1,
                 // Add datasets of the same name, but different version, as sub options
                 subMenuProps:
                     collectionsWithSameName.length > 1
@@ -178,8 +182,8 @@ export default function CollectionControl(props: Props) {
                                   ),
                                   text:
                                       index === 0
-                                          ? `${collection.name} (Default - V${collection.version})`
-                                          : `${collection.name} (V${collection.version})`,
+                                          ? `Version ${collection.version} (Default)`
+                                          : `Version ${collection.version}`,
                               })),
                           }
                         : undefined,

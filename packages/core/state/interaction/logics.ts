@@ -1,6 +1,7 @@
 import * as path from "path";
 import { isEmpty, throttle, uniq, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
+import { batch } from "react-redux";
 
 import { metadata, ReduxLogicDeps, selection } from "../";
 import {
@@ -32,6 +33,7 @@ import {
     processProgress,
     GENERATE_SHAREABLE_FILE_SELECTION_LINK,
     succeedShareableFileSelectionLinkGeneration,
+    UPDATE_COLLECTION,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -495,6 +497,28 @@ const showContextMenu = createLogic({
 });
 
 /**
+ * Interceptor responsible for responding to UPDATE_COLLECTION actions
+ * and processing them into actual metadata update requests to the backend
+ */
+const updateCollection = createLogic({
+    type: UPDATE_COLLECTION,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const collection = selection.selectors.getCollection(deps.getState());
+        if (collection) {
+            try {
+                const { name, version } = collection;
+                const datasetService = interactionSelectors.getDatasetService(deps.getState());
+                await datasetService.updateCollection(name, version, deps.action.payload);
+            } catch (err) {
+                const errorMsg = `Something went wrong updating the collection. Details:<br/>${err?.message}`;
+                dispatch(processFailure(uniqueId(), errorMsg));
+            }
+        }
+        done();
+    },
+});
+
+/**
  * Interceptor responsible for responding to GENERATE_SHAREABLE_FILE_SELECTION_LINK actions
  * and processing the current file selection into a shareable link that will be copied to
  * the user's clipboard and dispatching SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION
@@ -515,6 +539,7 @@ const generateShareableFileSelectionLink = createLogic({
 
         try {
             const user = interactionSelectors.getUserName(state);
+            const currentCollection = selection.selectors.getCollection(state);
             const sortColumn = selection.selectors.getSortColumn(state);
             let fileSelection = selection.selectors.getFileSelection(state);
             const datasetService = interactionSelectors.getDatasetService(state);
@@ -522,7 +547,7 @@ const generateShareableFileSelectionLink = createLogic({
             const defaultExpiration = new Date();
             defaultExpiration.setDate(defaultExpiration.getDate() + 1);
             const defaultDatasetSettings: Partial<CreateDatasetRequest> = {
-                name: `${user} - ${new Date().getDate()}`,
+                name: `${user} - ${new Date().toDateString()}`,
                 expiration: defaultExpiration,
                 fixed: false,
                 private: true,
@@ -553,7 +578,7 @@ const generateShareableFileSelectionLink = createLogic({
                 ...(deps.action.payload || {}),
                 selections,
             };
-            const collection = await datasetService.createDataset(request);
+            const collection = await datasetService.createDataset(request, currentCollection);
 
             const url = FileExplorerURL.encode({
                 collection,
@@ -564,12 +589,15 @@ const generateShareableFileSelectionLink = createLogic({
             });
             navigator.clipboard.writeText(url);
 
-            dispatch(
-                succeedShareableFileSelectionLinkGeneration(
-                    generateShareableFileSelectionLinkId,
-                    collection
-                )
-            );
+            batch(() => {
+                dispatch(succeedShareableFileSelectionLinkGeneration(collection));
+                dispatch(
+                    processSuccess(
+                        generateShareableFileSelectionLinkId,
+                        `Successfully created collection ${collection.name} & copied shareable link to clipboard.`
+                    )
+                );
+            });
         } catch (err) {
             dispatch(
                 processFailure(
@@ -637,7 +665,7 @@ const refresh = createLogic({
             done();
         }
     },
-    type: [REFRESH],
+    type: REFRESH,
 });
 
 export default [
@@ -649,6 +677,7 @@ export default [
     promptForNewExecutable,
     downloadFile,
     showContextMenu,
+    updateCollection,
     generateShareableFileSelectionLink,
     generatePythonSnippet,
     refresh,

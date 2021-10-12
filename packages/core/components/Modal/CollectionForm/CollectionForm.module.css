@@ -63,3 +63,8 @@
     max-width: 100px;
     width: 100%;
 }
+
+.disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
+}

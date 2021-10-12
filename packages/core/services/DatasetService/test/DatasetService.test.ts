@@ -53,7 +53,7 @@ describe("DatasetService", () => {
 
         it("issues request for datasets", async () => {
             // Arrange
-            const service = new DatasetService({ baseUrl, httpClient });
+            const service = new DatasetService({ baseUrl, httpClient, userName: "test" });
 
             // Act
             const datasets = await service.getDatasets();

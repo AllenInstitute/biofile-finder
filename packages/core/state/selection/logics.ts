@@ -21,6 +21,7 @@ import {
     SELECT_NEARBY_FILE,
     setSortColumn,
     changeCollection,
+    CHANGE_COLLECTION,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -438,6 +439,18 @@ const selectNearbyFile = createLogic({
     type: [SELECT_NEARBY_FILE],
 });
 
+/**
+ * Interceptor responsible for processing the changed collection into
+ * a refresh action so that the resources pertain to the current collection
+ */
+const changeCollectionLogic = createLogic({
+    async process(_: ReduxLogicDeps, dispatch, done) {
+        dispatch(interaction.actions.refresh() as AnyAction);
+        done();
+    },
+    type: CHANGE_COLLECTION,
+});
+
 export default [
     selectFile,
     modifyAnnotationHierarchy,
@@ -446,4 +459,5 @@ export default [
     decodeFileExplorerURL,
     selectNearbyFile,
     setAvailableAnnotationsLogic,
+    changeCollectionLogic,
 ];
