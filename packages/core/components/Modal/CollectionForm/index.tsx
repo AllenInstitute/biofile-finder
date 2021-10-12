@@ -254,6 +254,7 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
                     </p>
                     <AnnotationSelector
                         className={styles.form}
+                        disabled={isEditing}
                         selections={selectedAnnotations}
                         setSelections={setSelectedAnnotations}
                     />

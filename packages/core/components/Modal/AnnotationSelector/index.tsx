@@ -10,6 +10,7 @@ const styles = require("./AnnotationSelector.module.css");
 
 interface AnnotationSelectorProps {
     className?: string;
+    disabled?: boolean;
     selections: Annotation[];
     setSelections: (annotations: Annotation[]) => void;
 }
@@ -46,19 +47,26 @@ export default function AnnotationSelector(props: AnnotationSelectorProps) {
 
     return (
         <div className={className}>
-            <div className={styles.buttonBar}>
-                <DefaultButton
-                    disabled={annotations.length === selections.length}
-                    onClick={() => setSelections(annotations)}
-                    text="Select All"
-                />
-                <DefaultButton
-                    disabled={!selections.length}
-                    onClick={() => setSelections([])}
-                    text="Select None"
-                />
-            </div>
-            <ListPicker items={items} onDeselect={removeSelection} onSelect={addSelection} />
+            {!props.disabled && (
+                <div className={styles.buttonBar}>
+                    <DefaultButton
+                        disabled={annotations.length === selections.length}
+                        onClick={() => setSelections(annotations)}
+                        text="Select All"
+                    />
+                    <DefaultButton
+                        disabled={!selections.length}
+                        onClick={() => setSelections([])}
+                        text="Select None"
+                    />
+                </div>
+            )}
+            <ListPicker
+                disabled={props.disabled}
+                items={items}
+                onDeselect={removeSelection}
+                onSelect={addSelection}
+            />
         </div>
     );
 }

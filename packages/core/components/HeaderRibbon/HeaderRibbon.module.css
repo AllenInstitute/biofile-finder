@@ -10,6 +10,7 @@
     color: white;
     display: flex;
     height: var(--ribbon-header-height);
+    min-height: var(--ribbon-header-height);
 }
 
 .header-bar {
