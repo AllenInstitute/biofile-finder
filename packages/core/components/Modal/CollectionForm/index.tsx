@@ -125,9 +125,10 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
                 })
             );
         } else {
+            const annotations = selectedAnnotations.map((annotation) => annotation.name);
             dispatch(
                 interaction.actions.generateShareableFileSelectionLink({
-                    annotations: isFixed ? selectedAnnotations : undefined,
+                    annotations: isFixed ? annotations : undefined,
                     expiration: expirationDate,
                     filters,
                     fixed: isFixed,

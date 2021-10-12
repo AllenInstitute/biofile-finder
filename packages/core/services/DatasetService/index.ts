@@ -25,6 +25,11 @@ export interface CreateDatasetRequest {
     selections: Selection[];
 }
 
+interface PatchDatasetRequest {
+    expiration?: Date; // Undefined is equivalent to never expiring
+    private: boolean;
+}
+
 export interface PythonicDataAccessSnippet {
     code: string;
     setup: string;
@@ -41,9 +46,16 @@ export default class DatasetService extends HttpServiceBase {
      * Requests to create a dataset matching given specification including index-based file selection.
      * Returns the ObjectId of the Dataset document created.
      */
-    public async createDataset(request: CreateDatasetRequest): Promise<Dataset> {
+    public async createDataset(
+        request: CreateDatasetRequest,
+        currentCollection?: Dataset
+    ): Promise<Dataset> {
         const postBody = JSON.stringify(request);
-        const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}`;
+        let pathSuffix = "";
+        if (currentCollection) {
+            pathSuffix = `/${currentCollection.name}/${currentCollection.version}`;
+        }
+        const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}${pathSuffix}`;
         console.log(`Requesting to create the following dataset ${postBody}`);
 
         const response = await this.post<Dataset>(requestUrl, postBody);
@@ -58,9 +70,39 @@ export default class DatasetService extends HttpServiceBase {
     }
 
     /**
+     * Requests to patch the given dataset metadata matching the specification.
+     * Returns the updated Dataset.
+     */
+    public async updateCollection(
+        name: string,
+        version: number,
+        request: PatchDatasetRequest
+    ): Promise<Dataset> {
+        const patchBody = JSON.stringify(request);
+        const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}/${name}/${version}`;
+        console.log(`Requesting to perform the following update ${patchBody}`);
+
+        const response = await this.patch<Dataset>(requestUrl, patchBody);
+
+        // data is always an array, this endpoint should always return an array of length 1
+        if (response.data.length !== 1) {
+            throw new Error(
+                `Error updating dataset. Expected single dataset in response from file-explorer-service, but got ${response.data.length}.`
+            );
+        }
+        return response.data[0];
+    }
+
+    /**
      * Requests for all available (e.g., non-expired) datasets.
      */
     public async getDatasets(): Promise<Dataset[]> {
+        // TODO: Remove if not replicatable in regular scenario?
+        if (!this.userName) {
+            throw new Error("Unexpectedly do not have a username");
+        }
+        this.setUserName(this.userName);
+
         const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}`;
         console.log(`Requesting all datasets from the following url: ${requestUrl}`);
 

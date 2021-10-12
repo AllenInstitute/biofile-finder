@@ -504,16 +504,32 @@ const updateCollection = createLogic({
     type: UPDATE_COLLECTION,
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const collection = selection.selectors.getCollection(deps.getState());
+        const collections = metadata.selectors.getCollections(deps.getState());
+        const datasetService = interactionSelectors.getDatasetService(deps.getState());
         if (collection) {
             try {
                 const { name, version } = collection;
-                const datasetService = interactionSelectors.getDatasetService(deps.getState());
-                await datasetService.updateCollection(name, version, deps.action.payload);
+                const updatedCollection = await datasetService.updateCollection(
+                    name,
+                    version,
+                    deps.action.payload
+                );
+                batch(() => {
+                    dispatch(selection.actions.changeCollection(updatedCollection));
+                    dispatch(
+                        metadata.actions.receiveCollections(
+                            collections.map((c) =>
+                                c.id === updatedCollection.id ? updatedCollection : c
+                            )
+                        )
+                    );
+                });
             } catch (err) {
                 const errorMsg = `Something went wrong updating the collection. Details:<br/>${err?.message}`;
                 dispatch(processFailure(uniqueId(), errorMsg));
             }
         }
+
         done();
     },
 });
