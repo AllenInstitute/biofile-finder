@@ -19,6 +19,9 @@ import { PlatformDependentServices } from "./state/interaction/actions";
 import "./styles/global.css";
 const styles = require("./App.module.css");
 
+// Used for mousemove listeners when resizing elements via click and drag (eg. File Details pane)
+export const ROOT_ELEMENT_ID = "root";
+
 // initialize @fluentui/react
 initializeIcons();
 loadTheme({
@@ -72,7 +75,7 @@ export default function App(props: AppProps) {
     }, [dispatch, fileExplorerServiceBaseUrl]);
 
     return (
-        <div className={styles.root}>
+        <div id={ROOT_ELEMENT_ID} className={styles.root}>
             <div className={styles.content}>
                 <HeaderRibbon className={styles.headerRibbon} />
                 <div className={styles.everythingExceptHeaderRibbon}>
