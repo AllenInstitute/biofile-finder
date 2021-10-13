@@ -97,12 +97,6 @@ export default class DatasetService extends HttpServiceBase {
      * Requests for all available (e.g., non-expired) datasets.
      */
     public async getDatasets(): Promise<Dataset[]> {
-        // TODO: Remove if not replicatable in regular scenario?
-        if (!this.userName) {
-            throw new Error("Unexpectedly do not have a username");
-        }
-        this.setUserName(this.userName);
-
         const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}`;
         console.log(`Requesting all datasets from the following url: ${requestUrl}`);
 

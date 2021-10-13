@@ -14,7 +14,6 @@ export interface AnnotationResponse {
     type: string;
     units?: string;
 }
-// TODO: Add some more tests
 
 export type AnnotationValue = string | number | boolean | Date;
 
