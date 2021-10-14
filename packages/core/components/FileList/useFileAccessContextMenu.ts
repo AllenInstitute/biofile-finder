@@ -3,6 +3,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import FileFilter from "../../entity/FileFilter";
 import { interaction, selection } from "../../state";
+import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems, { ContextMenuActions } from "../ContextMenu/items";
 
 /**
@@ -53,39 +54,50 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                 },
             ];
 
-            const items = getContextMenuItems(dispatch).ACCESS.flatMap(
-                (item: IContextualMenuItem) => {
-                    if (item.key === ContextMenuActions.OPEN_WITH) {
-                        item.subMenuProps = { items: openWithOptions };
-                    } else if (item.key === ContextMenuActions.OPEN) {
-                        item.onClick = () => {
-                            dispatch(interaction.actions.openWithDefault(filters));
-                        };
-                    } else if (item.key === ContextMenuActions.CSV_MANIFEST) {
-                        item.onClick = () => {
-                            dispatch(interaction.actions.showManifestDownloadDialog(filters));
-                        };
-                    } else if (item.key === ContextMenuActions.CUSTOM_COLLECTION) {
-                        item.onClick = () => {
-                            dispatch(
-                                interaction.actions.generateShareableFileSelectionLink({
-                                    filters,
-                                })
-                            );
-                        };
-                    } else if (item.key === ContextMenuActions.DEFAULT_COLLECTION) {
-                        item.onClick = () => {
-                            dispatch(interaction.actions.showCreateCollectionDialog(filters));
-                        };
-                    }
-                    return [
-                        {
-                            ...item,
-                            disabled: !filters && fileSelection.count() === 0,
-                        },
-                    ];
+            const items = getContextMenuItems(dispatch).ACCESS.map((item: IContextualMenuItem) => {
+                const disabled = !filters && fileSelection.count() === 0;
+                if (item.key === ContextMenuActions.OPEN_WITH) {
+                    item.subMenuProps = { items: openWithOptions };
+                } else if (item.key === ContextMenuActions.OPEN) {
+                    item.onClick = () => {
+                        dispatch(interaction.actions.openWithDefault(filters));
+                    };
+                } else if (item.key === ContextMenuActions.CSV_MANIFEST) {
+                    item.onClick = () => {
+                        dispatch(interaction.actions.showManifestDownloadDialog(filters));
+                    };
+                } else if (item.key === ContextMenuActions.SHARE) {
+                    item.subMenuProps = {
+                        items: item.subMenuProps?.items.map((subItem) => {
+                            if (subItem.key === ContextMenuActions.CUSTOM_COLLECTION) {
+                                subItem.onClick = () => {
+                                    dispatch(
+                                        interaction.actions.showCreateCollectionDialog(filters)
+                                    );
+                                };
+                            } else if (subItem.key === ContextMenuActions.DEFAULT_COLLECTION) {
+                                subItem.onClick = () => {
+                                    dispatch(
+                                        interaction.actions.generateShareableFileSelectionLink({
+                                            filters,
+                                        })
+                                    );
+                                };
+                            }
+
+                            return {
+                                ...subItem,
+                                disabled,
+                            };
+                        }) as ContextMenuItem[],
+                    };
                 }
-            );
+
+                return {
+                    ...item,
+                    disabled,
+                };
+            });
 
             dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent, onDismiss));
         },

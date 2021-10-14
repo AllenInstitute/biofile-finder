@@ -451,7 +451,7 @@ export const GENERATE_SHAREABLE_FILE_SELECTION_LINK = makeConstant(
 );
 
 export interface GenerateShareableFileSelectionLinkAction {
-    payload?: {
+    payload: {
         annotations?: string[];
         expiration?: Date;
         filters?: FileFilter[];
@@ -462,14 +462,16 @@ export interface GenerateShareableFileSelectionLinkAction {
     type: string;
 }
 
-export function generateShareableFileSelectionLink(config?: {
-    annotations?: string[];
-    expiration?: Date;
-    filters?: FileFilter[];
-    fixed?: boolean;
-    private?: boolean;
-    name?: string;
-}): GenerateShareableFileSelectionLinkAction {
+export function generateShareableFileSelectionLink(
+    config: {
+        annotations?: string[];
+        expiration?: Date;
+        filters?: FileFilter[];
+        fixed?: boolean;
+        private?: boolean;
+        name?: string;
+    } = {}
+): GenerateShareableFileSelectionLinkAction {
     return {
         payload: config,
         type: GENERATE_SHAREABLE_FILE_SELECTION_LINK,
