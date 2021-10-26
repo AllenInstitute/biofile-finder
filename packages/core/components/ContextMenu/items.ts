@@ -50,7 +50,7 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                 subMenuProps: {
                     items: [
                         {
-                            key: "default-configuration",
+                            key: "default-configuration-header",
                             text: "Default Configuration",
                             itemType: ContextualMenuItemType.Header,
                             itemProps: {
@@ -66,7 +66,7 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                             },
                         },
                         {
-                            key: "custom-configuration",
+                            key: "custom-configuration-header",
                             text: "Custom Configuration",
                             itemType: ContextualMenuItemType.Header,
                             itemProps: {
