@@ -6,7 +6,7 @@ import {
 } from "@aics/redux-utils";
 import { expect } from "chai";
 import { shuffle } from "lodash";
-import { createSandbox } from "sinon";
+import sinon from "sinon";
 
 import {
     addFileFilter,
@@ -319,7 +319,6 @@ describe("Selection logics", () => {
     });
 
     describe("selectNearbyFile", () => {
-        const sandbox = createSandbox();
         const totalFileSize = 50;
         const responseStubs: ResponseStub[] = [
             {
@@ -335,15 +334,15 @@ describe("Selection logics", () => {
         const fileSet = new FileSet({ fileService: fileService });
 
         before(() => {
-            sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
+            sinon.stub(interaction.selectors, "getFileService").returns(fileService);
         });
 
         afterEach(() => {
-            sandbox.resetHistory();
+            sinon.resetHistory();
         });
 
         after(() => {
-            sandbox.restore();
+            sinon.restore();
         });
 
         it("selects file above current focused row", async () => {
@@ -926,7 +925,6 @@ describe("Selection logics", () => {
     });
 
     describe("decodeFileExplorerURL", () => {
-        const sandbox = createSandbox();
         const mockCollection: Dataset = {
             id: "1234148",
             name: "Test Collection",
@@ -941,16 +939,16 @@ describe("Selection logics", () => {
 
         before(() => {
             const datasetService = new DatasetService();
-            sandbox.stub(interaction.selectors, "getDatasetService").returns(datasetService);
-            sandbox.stub(datasetService, "getDataset").resolves(mockCollection);
+            sinon.stub(interaction.selectors, "getDatasetService").returns(datasetService);
+            sinon.stub(datasetService, "getDataset").resolves(mockCollection);
         });
 
         afterEach(() => {
-            sandbox.resetHistory();
+            sinon.resetHistory();
         });
 
         after(() => {
-            sandbox.restore();
+            sinon.restore();
         });
 
         it("dispatches new hierarchy, filters, sort, collection, & opened folders from given URL", async () => {

@@ -8,7 +8,7 @@ import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
-import { createSandbox } from "sinon";
+import sinon from "sinon";
 
 import Modal, { ModalType } from "../..";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
@@ -17,8 +17,6 @@ import DatasetService, { Dataset } from "../../../../services/DatasetService";
 import { initialState, interaction } from "../../../../state";
 
 describe("<CollectionForm />", () => {
-    const sandbox = createSandbox();
-
     // All of the test setup related to stubbing an HTTP request is because the PythonSnippetForm,
     // on mount, makes a call to fetch all available datasets
     const baseUrl = "https://test-aics.corp.whatever";
@@ -35,15 +33,15 @@ describe("<CollectionForm />", () => {
     const datasetService = new DatasetService({ baseUrl, httpClient: mockHttpClient });
 
     before(() => {
-        sandbox.stub(interaction.selectors, "getDatasetService").returns(datasetService);
+        sinon.stub(interaction.selectors, "getDatasetService").returns(datasetService);
     });
 
     afterEach(() => {
-        sandbox.resetHistory();
+        sinon.resetHistory();
     });
 
     after(() => {
-        sandbox.restore();
+        sinon.restore();
     });
 
     describe("Create Mode", () => {

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { createSandbox } from "sinon";
+import sinon from "sinon";
 
 import FileExplorerURL, { FileExplorerURLComponents } from "..";
 import { AnnotationName } from "../../../constants";
@@ -349,16 +349,15 @@ describe("FileExplorerURL", () => {
     });
 
     describe("validateEncodedFileExplorerURL", () => {
-        const sandbox = createSandbox();
         const datasetService = new DatasetService();
 
         afterEach(() => {
-            sandbox.restore();
+            sinon.restore();
         });
 
         it("Returns undefined when valid URL is given", async () => {
             // Arrange
-            sandbox.stub(datasetService, "getDataset").resolves(mockCollection);
+            sinon.stub(datasetService, "getDataset").resolves(mockCollection);
             const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid", "Balls?"];
             const expectedFilters = [
                 { name: "Cas9", value: "spCas9" },
@@ -407,7 +406,7 @@ describe("FileExplorerURL", () => {
 
         it("returns error message when dataset could not be found", async () => {
             // Arrange
-            sandbox.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
+            sinon.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
             const components: FileExplorerURLComponents = {
                 hierarchy: [],
                 filters: [],
@@ -432,7 +431,7 @@ describe("FileExplorerURL", () => {
 
         it("Returns error message when not in expected JSON format", async () => {
             // Arrange
-            sandbox.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
+            sinon.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
             const encodedUrl =
                 FileExplorerURL.PROTOCOL +
                 JSON.stringify({
@@ -454,7 +453,7 @@ describe("FileExplorerURL", () => {
 
         it("Returns error message when protocol is not present as expected", async () => {
             // Arrange
-            sandbox.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
+            sinon.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
             const components: FileExplorerURLComponents = {
                 hierarchy: [],
                 filters: [],
@@ -477,7 +476,7 @@ describe("FileExplorerURL", () => {
 
         it("Returns error message when hierarchy has annotation outside of list of annotations", async () => {
             // Arrange
-            sandbox.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
+            sinon.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
             const components: FileExplorerURLComponents = {
                 hierarchy: [
                     new Annotation({
@@ -513,7 +512,7 @@ describe("FileExplorerURL", () => {
 
         it("Returns error message when filters has annotation outside of list of annotations", async () => {
             // Arrange
-            sandbox.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
+            sinon.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
             const components: FileExplorerURLComponents = {
                 hierarchy: [],
                 filters: [new FileFilter("Cas9", "spCas9")],
@@ -542,7 +541,7 @@ describe("FileExplorerURL", () => {
 
         it("Returns error message when sort column is not a file attribute", async () => {
             // Arrange
-            sandbox.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
+            sinon.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
             const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid", "Balls?"];
             const expectedFilters = [
                 { name: "Cas9", value: "spCas9" },
@@ -586,7 +585,7 @@ describe("FileExplorerURL", () => {
 
         it("Returns error message when sort order is not ASC or DESC", async () => {
             // Arrange
-            sandbox.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
+            sinon.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
             const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid", "Balls?"];
             const expectedFilters = [
                 { name: "Cas9", value: "spCas9" },
