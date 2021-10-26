@@ -25,7 +25,7 @@ export const getAnnotationsPreviouslySelected = createSelector(
 export const getSelectedCollectionAnnotations = createSelector(
     [selectionSelectors.getCollection, metadataSelectors.getAnnotations],
     (collection, annotations): Annotation[] =>
-        collection?.annotations?.flatMap((collectionAnnotation) => {
+        collection?.annotations?.reduce((accum, collectionAnnotation) => {
             const annotation = [...TOP_LEVEL_FILE_ANNOTATIONS, ...annotations].find(
                 (annotation) => annotation.name === collectionAnnotation
             );
@@ -33,8 +33,8 @@ export const getSelectedCollectionAnnotations = createSelector(
             // available in the collection
             if (!annotation) {
                 console.error(`Unable to find match for annotation ${collectionAnnotation}`);
-                return [];
+                return accum;
             }
-            return [annotation];
-        }) || []
+            return [...accum, annotation];
+        }, [] as Annotation[]) || []
 );
