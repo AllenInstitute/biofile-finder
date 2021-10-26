@@ -69,8 +69,7 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
               new Date(collection.expiration).toISOString().replace("T", " ").split(".")[0]
           } (Current)`
         : Expiration.Forever;
-    const existingAnnotations =
-        (isEditing && collectionAnnotations) || annotationsPreviouslySelected;
+    const existingAnnotations = isEditing ? collectionAnnotations : annotationsPreviouslySelected;
 
     const [selectedAnnotations, setSelectedAnnotations] = React.useState<Annotation[]>(() =>
         isEmpty(existingAnnotations) ? [...TOP_LEVEL_FILE_ANNOTATIONS] : existingAnnotations
