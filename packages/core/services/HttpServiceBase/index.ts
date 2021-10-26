@@ -247,6 +247,11 @@ export default class HttpServiceBase {
     private setHeaders() {
         this.httpClient.defaults.headers.common["X-Application-Version"] = this.applicationVersion;
         this.httpClient.defaults.headers.common["X-Client"] = "FMS File Explorer App";
-        this.httpClient.defaults.headers.common["X-User-Id"] = this.userName;
+        // Prevent assigning undefined X-User-Id which interferes with downstream requests
+        if (this.userName) {
+            this.httpClient.defaults.headers.common["X-User-Id"] = this.userName;
+        } else {
+            delete this.httpClient.defaults.headers.common["X-User-Id"];
+        }
     }
 }
