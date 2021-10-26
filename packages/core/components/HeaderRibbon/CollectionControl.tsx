@@ -20,6 +20,7 @@ const styles = require("./HeaderRibbon.module.css");
 
 interface Props {
     className?: string;
+    isCollapsed?: boolean;
     onCollapse: () => void;
     selectedCollection?: Dataset;
 }
@@ -224,6 +225,7 @@ export default function CollectionControl(props: Props) {
             <div className={styles.controlGroupInputGroup}>
                 <SearchableDropdown
                     className={styles.controlGroupDropdown}
+                    isHidden={props.isCollapsed}
                     options={collectionOptions}
                     selectedOption={selectedCollection?.name || ALL_FILES_KEY}
                     onSearch={setSearchValue}

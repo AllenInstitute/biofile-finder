@@ -32,6 +32,7 @@ export default function HeaderRibbon(props: HeaderRibbonProps) {
             <div className={classNames(styles.controlGroups, { [styles.collapsed]: isCollapsed })}>
                 <CollectionControl
                     className={styles.controlGroup}
+                    isCollapsed={isCollapsed}
                     selectedCollection={selectedCollection}
                     onCollapse={() => setCollapsed(true)}
                 />

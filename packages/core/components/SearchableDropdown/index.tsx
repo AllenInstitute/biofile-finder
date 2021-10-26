@@ -6,6 +6,7 @@ const styles = require("./SearchableDropdown.module.css");
 
 interface Props {
     className?: string;
+    isHidden?: boolean;
     options: IContextualMenuItem[];
     selectedOption?: string;
     onSearch: (value: string) => void;
@@ -23,6 +24,15 @@ export default function SearchableDropdown(props: Props) {
         props.onSearch("");
         setShowDropdown(false);
     }
+
+    // Derive empty state whenever props signal state as hidden
+    const { isHidden, onSearch } = props;
+    React.useEffect(() => {
+        if (isHidden) {
+            onSearch("");
+            setShowDropdown(false);
+        }
+    }, [isHidden, onSearch, setShowDropdown]);
 
     return (
         <>
