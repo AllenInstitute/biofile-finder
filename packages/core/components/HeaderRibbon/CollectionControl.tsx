@@ -63,21 +63,31 @@ const DEFAULT_OPTION_PROPS: Partial<IContextualMenuItemProps> = {
     },
 };
 
+const SELECTED_MENU_STYLES: IStyle = {
+    // Equivalent to --primary-brand-dark-blue defined in App.module.css
+    backgroundColor: "#003057",
+    color: "white",
+    ":hover": {
+        backgroundColor: "#003057",
+        color: "white",
+    },
+    ":active": {
+        backgroundColor: "#003057",
+        color: "white",
+    },
+};
+
 const SELECTED_OPTION_PROPS: Partial<IContextualMenuItemProps> = {
     styles: {
-        root: {
-            // Equivalent to --primary-brand-dark-blue defined in App.module.css
-            backgroundColor: "#003057",
+        label: {
             color: "white",
-            ":hover": {
-                backgroundColor: "#003057",
-                color: "white",
-            },
-            ":active": {
-                backgroundColor: "#003057",
-                color: "white",
-            },
         },
+        divider: SELECTED_MENU_STYLES,
+        splitMenu: SELECTED_MENU_STYLES,
+        splitPrimary: SELECTED_MENU_STYLES,
+        item: SELECTED_MENU_STYLES,
+        root: SELECTED_MENU_STYLES,
+        subMenuIcon: { ...SELECTED_MENU_STYLES, width: "28px" },
     },
 };
 

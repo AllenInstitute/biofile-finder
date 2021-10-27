@@ -1,3 +1,4 @@
+import { sortBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
@@ -20,7 +21,11 @@ export const getCustomAnnotationsCombinedWithFileAttributes = createSelector(
 );
 
 export const getActiveCollections = createSelector(getCollections, (collections): Dataset[] =>
-    collections.filter(
-        (collection) => !collection.expiration || new Date(collection.expiration) > new Date()
+    sortBy(
+        collections.filter(
+            (collection) => !collection.expiration || new Date(collection.expiration) > new Date()
+        ),
+        "name",
+        "version"
     )
 );
