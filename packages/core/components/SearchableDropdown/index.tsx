@@ -55,6 +55,10 @@ export default function SearchableDropdown(props: Props) {
                 target={searchBoxReference.current}
                 onDismiss={onMenuDismiss}
                 onItemClick={onMenuDismiss}
+                // Auto adjusts width minimum to input width
+                useTargetAsMinWidth
+                // Required to have width auto-adjust
+                shouldUpdateWhenHidden
             />
         </>
     );
