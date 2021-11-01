@@ -11,6 +11,7 @@ const styles = require("./AnnotationSelector.module.css");
 interface AnnotationSelectorProps {
     className?: string;
     disabled?: boolean;
+    excludeFileAttributes?: boolean;
     selections: Annotation[];
     setSelections: (annotations: Annotation[]) => void;
 }
@@ -22,9 +23,13 @@ interface AnnotationSelectorProps {
 export default function AnnotationSelector(props: AnnotationSelectorProps) {
     const { className, selections, setSelections } = props;
 
-    const annotations = useSelector(
+    const sortedAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
+    const sortedAnnotationsWithFileAttributes = useSelector(
         metadata.selectors.getCustomAnnotationsCombinedWithFileAttributes
     );
+    const annotations = props.excludeFileAttributes
+        ? sortedAnnotations
+        : sortedAnnotationsWithFileAttributes;
     const items = annotations.map((annotation) => ({
         selected: selections.includes(annotation),
         displayValue: annotation.displayName,

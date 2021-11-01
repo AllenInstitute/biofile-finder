@@ -252,6 +252,7 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
                         Select which annotations you would like available as metadata in the result.
                     </p>
                     <AnnotationSelector
+                        excludeFileAttributes
                         className={styles.form}
                         disabled={isEditing}
                         selections={selectedAnnotations}

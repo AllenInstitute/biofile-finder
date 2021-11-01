@@ -11,7 +11,6 @@ import { Provider } from "react-redux";
 import sinon from "sinon";
 
 import Modal, { ModalType } from "../..";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import DatasetService, { Dataset } from "../../../../services/DatasetService";
 import { initialState, interaction } from "../../../../state";
@@ -125,31 +124,6 @@ describe("<CollectionForm />", () => {
         });
 
         describe("column list", () => {
-            it("has default columns when none were previously saved", () => {
-                // Arrange
-                const { store } = configureMockStore({ state: visibleDialogState });
-                const { getByText, getByTestId } = render(
-                    <Provider store={store}>
-                        <Modal />
-                    </Provider>
-                );
-
-                // (sanity-check) should not be visible until collection is marked as 'fixed'
-                TOP_LEVEL_FILE_ANNOTATIONS.forEach((annotation) => {
-                    expect(() => getByText(annotation.displayName)).to.throw();
-                });
-
-                // Act
-                const checkbox = getByTestId("is-fixed-checkbox").querySelector("input");
-                expect(checkbox).to.exist;
-                fireEvent.click(checkbox as HTMLElement);
-
-                // Assert
-                TOP_LEVEL_FILE_ANNOTATIONS.forEach((annotation) => {
-                    expect(getByText(annotation.displayName)).to.exist;
-                });
-            });
-
             it("has pre-saved columns when some were previously saved", () => {
                 // Arrange
                 const preSavedColumns = ["Cas9", "Cell Line", "Donor Plasmid"];
@@ -274,21 +248,6 @@ describe("<CollectionForm />", () => {
         });
 
         describe("column list", () => {
-            it("has default columns when none were previously saved", () => {
-                // Arrange
-                const { store } = configureMockStore({ state: visibleDialogState });
-                const { getByText } = render(
-                    <Provider store={store}>
-                        <Modal />
-                    </Provider>
-                );
-
-                // Assert
-                TOP_LEVEL_FILE_ANNOTATIONS.forEach((annotation) => {
-                    expect(getByText(annotation.displayName)).to.exist;
-                });
-            });
-
             it("has pre-saved columns when some were previously saved", () => {
                 // Arrange
                 const preSavedColumns = ["Cas9", "Cell Line", "Donor Plasmid"];
