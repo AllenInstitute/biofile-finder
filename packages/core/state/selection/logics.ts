@@ -308,12 +308,11 @@ const decodeFileExplorerURL = createLogic({
         }
 
         batch(() => {
+            dispatch(changeCollection(selectedCollection));
             dispatch(setAnnotationHierarchy(hierarchy));
             dispatch(setFileFilters(filters));
             dispatch(setOpenFileFolders(openFolders));
             dispatch(setSortColumn(sortColumn));
-            // Some weirdness here with dispatch not loving the optional payload
-            dispatch(changeCollection(selectedCollection));
         });
         done();
     },

@@ -92,7 +92,11 @@ export default makeReducer<SelectionStateBranch>(
         },
         [CHANGE_COLLECTION]: (state, action) => ({
             ...state,
+            annotationHierarchy: [],
             collection: action.payload,
+            filters: [],
+            fileSelection: new FileSelection(),
+            openFileFolders: [],
         }),
         [SET_SORT_COLUMN]: (state, action) => ({
             ...state,
