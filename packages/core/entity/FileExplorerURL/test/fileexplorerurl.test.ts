@@ -404,16 +404,17 @@ describe("FileExplorerURL", () => {
             expect(result).to.be.undefined;
         });
 
-        it("returns error message when dataset could not be found", async () => {
+        it("Returns error message when dataset can not be found", async () => {
             // Arrange
-            sinon.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
+            const errMsg = "No Dataset found";
+            sinon.stub(datasetService, "getDataset").rejects(new Error(errMsg));
             const components: FileExplorerURLComponents = {
                 hierarchy: [],
                 filters: [],
                 openFolders: [],
                 collection: {
-                    name: mockCollection.name,
-                    version: mockCollection.version,
+                    name: "My Tiffs",
+                    version: 1,
                 },
             };
             const encodedUrl = FileExplorerURL.encode(components);
@@ -426,12 +427,13 @@ describe("FileExplorerURL", () => {
             );
 
             // Assert
-            expect(result).to.not.be.empty;
+            expect(result).to.equal(
+                `Unable to decode FileExplorerURL, collection could not be found ${errMsg}`
+            );
         });
 
         it("Returns error message when not in expected JSON format", async () => {
             // Arrange
-            sinon.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
             const encodedUrl =
                 FileExplorerURL.PROTOCOL +
                 JSON.stringify({
@@ -453,7 +455,6 @@ describe("FileExplorerURL", () => {
 
         it("Returns error message when protocol is not present as expected", async () => {
             // Arrange
-            sinon.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
             const components: FileExplorerURLComponents = {
                 hierarchy: [],
                 filters: [],
@@ -476,7 +477,6 @@ describe("FileExplorerURL", () => {
 
         it("Returns error message when hierarchy has annotation outside of list of annotations", async () => {
             // Arrange
-            sinon.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
             const components: FileExplorerURLComponents = {
                 hierarchy: [
                     new Annotation({
@@ -512,7 +512,6 @@ describe("FileExplorerURL", () => {
 
         it("Returns error message when filters has annotation outside of list of annotations", async () => {
             // Arrange
-            sinon.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
             const components: FileExplorerURLComponents = {
                 hierarchy: [],
                 filters: [new FileFilter("Cas9", "spCas9")],
@@ -541,7 +540,6 @@ describe("FileExplorerURL", () => {
 
         it("Returns error message when sort column is not a file attribute", async () => {
             // Arrange
-            sinon.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
             const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid", "Balls?"];
             const expectedFilters = [
                 { name: "Cas9", value: "spCas9" },
@@ -585,7 +583,6 @@ describe("FileExplorerURL", () => {
 
         it("Returns error message when sort order is not ASC or DESC", async () => {
             // Arrange
-            sinon.stub(datasetService, "getDataset").rejects(new Error("No Dataset found"));
             const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid", "Balls?"];
             const expectedFilters = [
                 { name: "Cas9", value: "spCas9" },

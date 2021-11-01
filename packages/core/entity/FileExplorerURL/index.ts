@@ -57,7 +57,7 @@ export default class FileExplorerURL {
                     // Request the given collection from the server to check its validity
                     await datasetService.getDataset(url.collection.name, url.collection.version);
                 } catch (error) {
-                    return `Unable to decode FileExplorerURL, dataset could not be found ${error.message}`;
+                    return `Unable to decode FileExplorerURL, collection could not be found ${error.message}`;
                 }
             }
 
