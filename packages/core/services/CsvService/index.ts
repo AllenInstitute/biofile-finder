@@ -26,7 +26,7 @@ export default class CsvService extends HttpServiceBase {
         manifestDownloadId: string
     ): Promise<DownloadResult> {
         const stringifiedPostBody = JSON.stringify(selectionRequest);
-        const url = `${this.baseUrl}/${CsvService.BASE_CSV_DOWNLOAD_URL}`;
+        const url = `${this.baseUrl}/${CsvService.BASE_CSV_DOWNLOAD_URL}${this.pathSuffix}`;
 
         return this.downloadService.downloadCsvManifest(
             url,

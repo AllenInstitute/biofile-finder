@@ -52,6 +52,8 @@ import { UserSelectedApplication } from "../../services/PersistentConfigService"
 import FileSelection from "../../entity/FileSelection";
 import FileFilter from "../../entity/FileFilter";
 import FileExplorerURL from "../../entity/FileExplorerURL";
+import FileSort, { SortOrder } from "../../entity/FileSort";
+import { HttpServiceBase } from "../../services";
 
 /**
  * Interceptor responsible for responding to a SET_PLATFORM_DEPENDENT_SERVICES action and
@@ -93,6 +95,7 @@ const downloadManifest = createLogic({
         try {
             const state = deps.getState();
             const applicationVersion = interactionSelectors.getApplicationVersion(state);
+            const collection = selection.selectors.getCollection(state);
             const baseUrl = interactionSelectors.getFileExplorerServiceBaseUrl(state);
             const platformDependentServices = interactionSelectors.getPlatformDependentServices(
                 state
@@ -101,9 +104,13 @@ const downloadManifest = createLogic({
             const filters = interactionSelectors.getFileFiltersForVisibleModal(state);
             const fileService = interactionSelectors.getFileService(state);
             const sortColumn = selection.selectors.getSortColumn(state);
+            const pathSuffix = collection
+                ? `/within/${HttpServiceBase.encodeURI(collection.name)}/${collection.version}`
+                : undefined;
             const csvService = new CsvService({
                 applicationVersion,
                 baseUrl,
+                pathSuffix,
                 downloadService: platformDependentServices.fileDownloadService,
             });
 
@@ -598,10 +605,10 @@ const generateShareableFileSelectionLink = createLogic({
 
             const url = FileExplorerURL.encode({
                 collection,
-                sortColumn,
-                filters: selection.selectors.getFileFilters(state),
-                openFolders: selection.selectors.getOpenFileFolders(state),
-                hierarchy: selection.selectors.getAnnotationHierarchy(state),
+                sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
+                filters: [],
+                openFolders: [],
+                hierarchy: [],
             });
             navigator.clipboard.writeText(url);
 
@@ -610,7 +617,7 @@ const generateShareableFileSelectionLink = createLogic({
                 dispatch(
                     processSuccess(
                         generateShareableFileSelectionLinkId,
-                        `Successfully created collection ${collection.name} & copied shareable link to clipboard.`
+                        `Successfully created collection "${collection.name}" and copied shareable link to clipboard.`
                     )
                 );
             });
