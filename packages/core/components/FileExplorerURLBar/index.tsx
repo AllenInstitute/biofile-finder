@@ -26,13 +26,27 @@ interface FileExplorerURLBarProps {
 function FileExplorerURLBar(props: FileExplorerURLBarProps) {
     const dispatch = useDispatch();
     const annotations = useSelector(metadata.selectors.getAnnotations);
+    const datasetService = useSelector(interaction.selectors.getDatasetService);
 
     const [url, setURL] = React.useState<string>(props.existingEncodedURL);
     const [isCopied, setCopied] = React.useState(false);
-    const error = React.useMemo(
-        () => FileExplorerURL.validateEncodedFileExplorerURL(url, annotations),
-        [url, annotations]
-    );
+    const [error, setError] = React.useState<string>();
+    const [isLoading, setLoading] = React.useState(false);
+
+    // Check for valid URL
+    React.useEffect(() => {
+        setLoading(true);
+        async function checkUrl() {
+            const err = await FileExplorerURL.validateEncodedFileExplorerURL(
+                url,
+                annotations,
+                datasetService
+            );
+            setError(err);
+            setLoading(false);
+        }
+        checkUrl();
+    }, [url, annotations, datasetService, setError, setLoading]);
 
     const onURLChange = (_: React.FormEvent, input?: string) => {
         setURL(input || "");
@@ -89,6 +103,7 @@ function FileExplorerURLBar(props: FileExplorerURLBarProps) {
             <form className={styles.urlForm} onSubmit={onSubmit}>
                 <TextField
                     borderless
+                    disabled={isLoading}
                     prefix={"FMS File Explorer URL"}
                     onChange={onURLChange}
                     value={url}

@@ -69,22 +69,25 @@ export default function App(props: AppProps) {
         batch(() => {
             dispatch(interaction.actions.setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl));
             dispatch(metadata.actions.requestAnnotations());
+            dispatch(metadata.actions.requestCollections());
             dispatch(selection.actions.setAnnotationHierarchy([]));
         });
     }, [dispatch, fileExplorerServiceBaseUrl]);
 
     return (
         <div id={ROOT_ELEMENT_ID} className={styles.root}>
-            <HeaderRibbon className={classNames(styles.headerRibbon, styles.placeholder)} />
-            <div className={styles.everythingExceptHeaderRibbon}>
-                <div className={styles.core}>
-                    <FileExplorerURLBar className={classNames(styles.urlBar)} />
-                    <div className={styles.annotationHierarchyAndFileList}>
-                        <AnnotationSidebar className={styles.annotationHierarchy} />
-                        <DirectoryTree className={styles.fileList} />
+            <div className={styles.content}>
+                <HeaderRibbon className={styles.headerRibbon} />
+                <div className={styles.everythingExceptHeaderRibbon}>
+                    <div className={styles.core}>
+                        <FileExplorerURLBar className={classNames(styles.urlBar)} />
+                        <div className={styles.annotationHierarchyAndFileList}>
+                            <AnnotationSidebar className={styles.annotationHierarchy} />
+                            <DirectoryTree className={styles.fileList} />
+                        </div>
                     </div>
+                    <FileDetails className={styles.fileDetails} />
                 </div>
-                <FileDetails className={styles.fileDetails} />
             </div>
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
             <StatusMessage />

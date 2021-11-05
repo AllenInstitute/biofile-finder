@@ -6,7 +6,7 @@ import {
 } from "@aics/redux-utils";
 import { expect } from "chai";
 import { shuffle } from "lodash";
-import { createSandbox } from "sinon";
+import sinon from "sinon";
 
 import {
     addFileFilter,
@@ -23,6 +23,7 @@ import {
     setAnnotationHierarchy,
     selectNearbyFile,
     SET_SORT_COLUMN,
+    changeCollection,
 } from "../actions";
 import { initialState, interaction } from "../../";
 import Annotation from "../../../entity/Annotation";
@@ -37,6 +38,9 @@ import FileSelection from "../../../entity/FileSelection";
 import FileService from "../../../services/FileService";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
 import { AnnotationName } from "../../../constants";
+import { DatasetService } from "../../../services";
+import { Dataset } from "../../../services/DatasetService";
+import { receiveCollections } from "../../metadata/actions";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -315,7 +319,6 @@ describe("Selection logics", () => {
     });
 
     describe("selectNearbyFile", () => {
-        const sandbox = createSandbox();
         const totalFileSize = 50;
         const responseStubs: ResponseStub[] = [
             {
@@ -331,15 +334,15 @@ describe("Selection logics", () => {
         const fileSet = new FileSet({ fileService: fileService });
 
         before(() => {
-            sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
+            sinon.stub(interaction.selectors, "getFileService").returns(fileService);
         });
 
         afterEach(() => {
-            sandbox.resetHistory();
+            sinon.resetHistory();
         });
 
         after(() => {
-            sandbox.restore();
+            sinon.restore();
         });
 
         it("selects file above current focused row", async () => {
@@ -674,6 +677,27 @@ describe("Selection logics", () => {
         });
     });
 
+    describe("changeCollectionLogic", () => {
+        it("dispatches refresh action", async () => {
+            // Arrange
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: initialState,
+                logics: selectionLogics,
+            });
+
+            // Act
+            store.dispatch(changeCollection({} as any));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: interaction.actions.REFRESH,
+                })
+            ).to.be.true;
+        });
+    });
+
     describe("setAvailableAnnotationsLogics", () => {
         let annotations: Annotation[];
 
@@ -901,12 +925,39 @@ describe("Selection logics", () => {
     });
 
     describe("decodeFileExplorerURL", () => {
-        it("dispatches new hierarchy, filters, sort, & opened folders from given URL", async () => {
+        const mockCollection: Dataset = {
+            id: "1234148",
+            name: "Test Collection",
+            version: 1,
+            query: "",
+            client: "",
+            fixed: false,
+            private: true,
+            created: new Date(),
+            createdBy: "test",
+        };
+
+        before(() => {
+            const datasetService = new DatasetService();
+            sinon.stub(interaction.selectors, "getDatasetService").returns(datasetService);
+            sinon.stub(datasetService, "getDataset").resolves(mockCollection);
+        });
+
+        afterEach(() => {
+            sinon.resetHistory();
+        });
+
+        after(() => {
+            sinon.restore();
+        });
+
+        it("dispatches new hierarchy, filters, sort, collection, & opened folders from given URL", async () => {
             // Arrange
             const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
             const state = mergeState(initialState, {
                 metadata: {
                     annotations,
+                    collections: [mockCollection],
                 },
             });
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -917,11 +968,16 @@ describe("Selection logics", () => {
             const filters = [new FileFilter(annotations[3].name, "20x")];
             const openFolders = [["a"], ["a", false]].map((folder) => new FileFolder(folder));
             const sortColumn = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
+            const collection = {
+                name: mockCollection.name,
+                version: mockCollection.version,
+            };
             const encodedURL = FileExplorerURL.encode({
                 hierarchy,
                 filters,
                 openFolders,
                 sortColumn,
+                collection,
             });
 
             // Act
@@ -953,6 +1009,34 @@ describe("Selection logics", () => {
                     payload: sortColumn,
                 })
             ).to.be.true;
+            expect(actions.includesMatch(changeCollection(mockCollection))).to.be.true;
+        });
+
+        it("validates unknown collection against dataset service", async () => {
+            // Arrange
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: initialState,
+            });
+            const collection = {
+                name: mockCollection.name,
+                version: mockCollection.version,
+            };
+            const encodedURL = FileExplorerURL.encode({
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                sortColumn: undefined,
+                collection,
+            });
+
+            // Act
+            store.dispatch(decodeFileExplorerURL(encodedURL));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch(changeCollection(mockCollection))).to.be.true;
+            expect(actions.includesMatch(receiveCollections([mockCollection]))).to.be.true;
         });
     });
 });

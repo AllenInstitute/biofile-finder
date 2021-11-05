@@ -2,7 +2,12 @@ import { compact, find } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { interaction, ReduxLogicDeps, selection } from "..";
-import { receiveAnnotations, REQUEST_ANNOTATIONS } from "./actions";
+import {
+    receiveAnnotations,
+    receiveCollections,
+    REQUEST_ANNOTATIONS,
+    REQUEST_COLLECTIONS,
+} from "./actions";
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import AnnotationService from "../../services/AnnotationService";
 
@@ -47,4 +52,24 @@ const requestAnnotations = createLogic({
     type: REQUEST_ANNOTATIONS,
 });
 
-export default [requestAnnotations];
+/**
+ * Interceptor responsible for turning REQUEST_COLLECTIONS action into a network call for collections. Outputs
+ * RECEIVE_COLLECTIONS action.
+ */
+const requestCollections = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const datasetService = interaction.selectors.getDatasetService(deps.getState());
+
+        try {
+            const datasets = await datasetService.getDatasets();
+            dispatch(receiveCollections(datasets));
+        } catch (err) {
+            console.error("Failed to fetch datasets", err);
+        } finally {
+            done();
+        }
+    },
+    type: [REQUEST_COLLECTIONS, interaction.actions.REFRESH],
+});
+
+export default [requestAnnotations, requestCollections];

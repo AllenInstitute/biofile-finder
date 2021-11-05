@@ -1,9 +1,11 @@
 import { createSelector } from "reselect";
 
 import { State } from "../";
+import { HttpServiceBase } from "../../services";
 import AnnotationService from "../../services/AnnotationService";
 import DatasetService from "../../services/DatasetService";
 import FileService from "../../services/FileService";
+import { getCollection } from "../selection/selectors";
 
 // BASIC SELECTORS
 export const getAllenMountPoint = (state: State) => state.interaction.allenMountPoint;
@@ -39,19 +41,43 @@ export const getUserName = createSelector(
 );
 
 export const getFileService = createSelector(
-    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl, getRefreshKey],
-    (applicationVersion, userName, fileExplorerBaseUrl) => {
-        return new FileService({ applicationVersion, userName, baseUrl: fileExplorerBaseUrl });
+    [
+        getApplicationVersion,
+        getUserName,
+        getFileExplorerServiceBaseUrl,
+        getCollection,
+        getRefreshKey,
+    ],
+    (applicationVersion, userName, fileExplorerBaseUrl, collection) => {
+        const pathSuffix = collection
+            ? `/within/${HttpServiceBase.encodeURI(collection.name)}/${collection.version}`
+            : undefined;
+        return new FileService({
+            applicationVersion,
+            userName,
+            baseUrl: fileExplorerBaseUrl,
+            pathSuffix,
+        });
     }
 );
 
 export const getAnnotationService = createSelector(
-    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl, getRefreshKey],
-    (applicationVersion, userName, fileExplorerBaseUrl) => {
+    [
+        getApplicationVersion,
+        getUserName,
+        getFileExplorerServiceBaseUrl,
+        getCollection,
+        getRefreshKey,
+    ],
+    (applicationVersion, userName, fileExplorerBaseUrl, collection) => {
+        const pathSuffix = collection
+            ? `/within/${HttpServiceBase.encodeURI(collection.name)}/${collection.version}`
+            : undefined;
         return new AnnotationService({
             applicationVersion,
             userName,
             baseUrl: fileExplorerBaseUrl,
+            pathSuffix,
         });
     }
 );

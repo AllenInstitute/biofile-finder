@@ -4,7 +4,7 @@ import { initialState, selection } from "../..";
 import { AnnotationName } from "../../../constants";
 import FileFilter from "../../../entity/FileFilter";
 
-describe("Selection reducer", () => {
+describe("Selection selectors", () => {
     describe("getAnnotationFilters", () => {
         it("filters out file attribute filter", () => {
             // Arrange

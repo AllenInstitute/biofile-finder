@@ -1,3 +1,5 @@
+import { isObject } from "lodash";
+
 import Annotation from "../Annotation";
 import FileFilter, { FileFilterJson } from "../FileFilter";
 import FileFolder from "../FileFolder";
@@ -5,10 +7,17 @@ import { AnnotationValue } from "../../services/AnnotationService";
 import { ValueError } from "../../errors";
 import FileSort, { SortOrder } from "../FileSort";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
+import DatasetService from "../../services/DatasetService";
+
+interface Collection {
+    name: string;
+    version: number;
+}
 
 // Components of the application state this captures
 export interface FileExplorerURLComponents {
     hierarchy: Annotation[];
+    collection?: Collection;
     filters: FileFilter[];
     openFolders: FileFolder[];
     sortColumn?: FileSort;
@@ -17,6 +26,7 @@ export interface FileExplorerURLComponents {
 // JSON format this outputs & expects to receive back from the user
 interface FileExplorerURLJson {
     groupBy: string[];
+    collection?: Collection;
     filters: FileFilterJson[];
     openFolders: AnnotationValue[][];
     sort?: {
@@ -34,9 +44,23 @@ export default class FileExplorerURL {
     public static PROTOCOL = "fms-file-explorer://";
 
     // Returns an error message if the URL is invalid, returns undefined otherwise
-    public static validateEncodedFileExplorerURL(encodedURL: string, annotations: Annotation[]) {
+    public static async validateEncodedFileExplorerURL(
+        encodedURL: string,
+        annotations: Annotation[],
+        datasetService: DatasetService
+    ): Promise<string | undefined> {
         try {
-            FileExplorerURL.decode(encodedURL, annotations);
+            const url = FileExplorerURL.decode(encodedURL, annotations);
+
+            if (url.collection) {
+                try {
+                    // Request the given collection from the server to check its validity
+                    await datasetService.getDataset(url.collection.name, url.collection.version);
+                } catch (error) {
+                    return `Unable to decode FileExplorerURL, collection could not be found ${error.message}`;
+                }
+            }
+
             return undefined;
         } catch (error) {
             return error.message;
@@ -66,6 +90,12 @@ export default class FileExplorerURL {
             filters,
             openFolders,
             sort,
+            collection: urlComponents.collection
+                ? {
+                      name: urlComponents.collection.name,
+                      version: urlComponents.collection.version,
+                  }
+                : undefined,
         };
         return `${FileExplorerURL.PROTOCOL}${JSON.stringify(dataToEncode)}`;
     }
@@ -103,6 +133,17 @@ export default class FileExplorerURL {
             sortColumn = new FileSort(parsedURL.sort.annotationName, parsedURL.sort.order);
         }
 
+        if (
+            parsedURL.collection &&
+            (!isObject(parsedURL.collection) ||
+                !parsedURL.collection.name ||
+                !parsedURL.collection.version)
+        ) {
+            throw new ValueError(
+                `Unable to decode FileExplorerURL, unexpected format (${parsedURL.collection})`
+            );
+        }
+
         const hierarchyDepth = parsedURL.groupBy.length;
         const annotationNameSet = new Set([
             ...annotations.map((annotation) => annotation.name),
@@ -118,6 +159,7 @@ export default class FileExplorerURL {
                 const matchingAnnotation = annotations.filter((a) => a.name === annotationName)[0];
                 return matchingAnnotation;
             }),
+            collection: parsedURL.collection,
             filters: parsedURL.filters.map((filter) => {
                 if (!annotationNameSet.has(filter.name)) {
                     throw new ValueError(

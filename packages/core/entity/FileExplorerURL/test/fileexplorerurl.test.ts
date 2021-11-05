@@ -1,15 +1,30 @@
 import { expect } from "chai";
+import sinon from "sinon";
 
 import FileExplorerURL, { FileExplorerURLComponents } from "..";
 import { AnnotationName } from "../../../constants";
+import { DatasetService } from "../../../services";
+import { Dataset } from "../../../services/DatasetService";
 import Annotation from "../../Annotation";
 import FileFilter from "../../FileFilter";
 import FileFolder from "../../FileFolder";
 import FileSort, { SortOrder } from "../../FileSort";
 
 describe("FileExplorerURL", () => {
+    const mockCollection: Dataset = {
+        id: "12341",
+        name: "Fake Collection",
+        version: 1,
+        query: "test",
+        client: "test",
+        fixed: true,
+        private: true,
+        created: new Date(),
+        createdBy: "test",
+    };
+
     describe("encode", () => {
-        it("Encodes hierarchy, filters, and open folders", () => {
+        it("Encodes hierarchy, filters, open folders, and collection", () => {
             // Arrange
             const expectedAnnotationNames = ["Cell Line", "Donor Plasmid", "Lifting?"];
             const expectedFilters = [
@@ -39,6 +54,10 @@ describe("FileExplorerURL", () => {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC),
+                collection: {
+                    name: mockCollection.name,
+                    version: mockCollection.version,
+                },
             };
             const expectedResult =
                 FileExplorerURL.PROTOCOL +
@@ -47,6 +66,10 @@ describe("FileExplorerURL", () => {
                     filters: expectedFilters,
                     openFolders: expectedOpenFolders,
                     sort: expectedSort,
+                    collection: {
+                        name: mockCollection.name,
+                        version: mockCollection.version,
+                    },
                 });
 
             // Act
@@ -115,6 +138,10 @@ describe("FileExplorerURL", () => {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
+                collection: {
+                    name: mockCollection.name,
+                    version: mockCollection.version,
+                },
             };
             const encodedUrl = FileExplorerURL.encode(components);
             const encodedUrlWithWhitespace = " " + encodedUrl + " ";
@@ -133,6 +160,7 @@ describe("FileExplorerURL", () => {
                 filters: [],
                 openFolders: [],
                 sortColumn: undefined,
+                collection: undefined,
             };
             const encodedUrl = FileExplorerURL.encode(components);
 
@@ -321,8 +349,15 @@ describe("FileExplorerURL", () => {
     });
 
     describe("validateEncodedFileExplorerURL", () => {
-        it("Returns undefined when valid URL is given", () => {
+        const datasetService = new DatasetService();
+
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("Returns undefined when valid URL is given", async () => {
             // Arrange
+            sinon.stub(datasetService, "getDataset").resolves(mockCollection);
             const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid", "Balls?"];
             const expectedFilters = [
                 { name: "Cas9", value: "spCas9" },
@@ -350,21 +385,54 @@ describe("FileExplorerURL", () => {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: [],
                 sortColumn: new FileSort(AnnotationName.FILE_ID, SortOrder.ASC),
+                collection: {
+                    name: mockCollection.name,
+                    version: mockCollection.version,
+                },
             };
             const encodedUrl = FileExplorerURL.encode(components);
             const encodedUrlWithWhitespace = " " + encodedUrl + " ";
 
             // Act
-            const result = FileExplorerURL.validateEncodedFileExplorerURL(
+            const result = await FileExplorerURL.validateEncodedFileExplorerURL(
                 encodedUrlWithWhitespace,
-                annotations
+                annotations,
+                datasetService
             );
 
             // Assert
             expect(result).to.be.undefined;
         });
 
-        it("Returns error message when not in expected JSON format", () => {
+        it("Returns error message when dataset can not be found", async () => {
+            // Arrange
+            const errMsg = "No Dataset found";
+            sinon.stub(datasetService, "getDataset").rejects(new Error(errMsg));
+            const components: FileExplorerURLComponents = {
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                collection: {
+                    name: "My Tiffs",
+                    version: 1,
+                },
+            };
+            const encodedUrl = FileExplorerURL.encode(components);
+
+            // Act
+            const result = await FileExplorerURL.validateEncodedFileExplorerURL(
+                encodedUrl,
+                [],
+                datasetService
+            );
+
+            // Assert
+            expect(result).to.equal(
+                `Unable to decode FileExplorerURL, collection could not be found ${errMsg}`
+            );
+        });
+
+        it("Returns error message when not in expected JSON format", async () => {
             // Arrange
             const encodedUrl =
                 FileExplorerURL.PROTOCOL +
@@ -375,13 +443,17 @@ describe("FileExplorerURL", () => {
                 });
 
             // Act
-            const result = FileExplorerURL.validateEncodedFileExplorerURL(encodedUrl, []);
+            const result = await FileExplorerURL.validateEncodedFileExplorerURL(
+                encodedUrl,
+                [],
+                datasetService
+            );
 
             // Assert
             expect(result).to.not.be.empty;
         });
 
-        it("Returns error message when protocol is not present as expected", () => {
+        it("Returns error message when protocol is not present as expected", async () => {
             // Arrange
             const components: FileExplorerURLComponents = {
                 hierarchy: [],
@@ -393,13 +465,17 @@ describe("FileExplorerURL", () => {
             );
 
             // Act
-            const result = FileExplorerURL.validateEncodedFileExplorerURL(encodedUrl, []);
+            const result = await FileExplorerURL.validateEncodedFileExplorerURL(
+                encodedUrl,
+                [],
+                datasetService
+            );
 
             // Assert
             expect(result).to.not.be.empty;
         });
 
-        it("Returns error message when hierarchy has annotation outside of list of annotations", () => {
+        it("Returns error message when hierarchy has annotation outside of list of annotations", async () => {
             // Arrange
             const components: FileExplorerURLComponents = {
                 hierarchy: [
@@ -424,13 +500,17 @@ describe("FileExplorerURL", () => {
             const encodedUrl = FileExplorerURL.encode(components);
 
             // Act
-            const result = FileExplorerURL.validateEncodedFileExplorerURL(encodedUrl, annotations);
+            const result = await FileExplorerURL.validateEncodedFileExplorerURL(
+                encodedUrl,
+                annotations,
+                datasetService
+            );
 
             // Assert
             expect(result).to.not.be.empty;
         });
 
-        it("Returns error message when filters has annotation outside of list of annotations", () => {
+        it("Returns error message when filters has annotation outside of list of annotations", async () => {
             // Arrange
             const components: FileExplorerURLComponents = {
                 hierarchy: [],
@@ -448,13 +528,17 @@ describe("FileExplorerURL", () => {
             const encodedUrl = FileExplorerURL.encode(components);
 
             // Act
-            const result = FileExplorerURL.validateEncodedFileExplorerURL(encodedUrl, annotations);
+            const result = await FileExplorerURL.validateEncodedFileExplorerURL(
+                encodedUrl,
+                annotations,
+                datasetService
+            );
 
             // Assert
             expect(result).to.not.be.empty;
         });
 
-        it("Returns error message when sort column is not a file attribute", () => {
+        it("Returns error message when sort column is not a file attribute", async () => {
             // Arrange
             const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid", "Balls?"];
             const expectedFilters = [
@@ -487,13 +571,17 @@ describe("FileExplorerURL", () => {
             const encodedUrl = FileExplorerURL.encode(components);
 
             // Act
-            const result = FileExplorerURL.validateEncodedFileExplorerURL(encodedUrl, annotations);
+            const result = await FileExplorerURL.validateEncodedFileExplorerURL(
+                encodedUrl,
+                annotations,
+                datasetService
+            );
 
             // Assert
             expect(result).to.not.be.empty;
         });
 
-        it("Returns error message when sort order is not ASC or DESC", () => {
+        it("Returns error message when sort order is not ASC or DESC", async () => {
             // Arrange
             const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid", "Balls?"];
             const expectedFilters = [
@@ -526,7 +614,11 @@ describe("FileExplorerURL", () => {
             const encodedUrl = FileExplorerURL.encode(components);
 
             // Act
-            const result = FileExplorerURL.validateEncodedFileExplorerURL(encodedUrl, annotations);
+            const result = await FileExplorerURL.validateEncodedFileExplorerURL(
+                encodedUrl,
+                annotations,
+                datasetService
+            );
 
             // Assert
             expect(result).to.not.be.empty;

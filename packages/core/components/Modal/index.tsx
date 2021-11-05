@@ -3,17 +3,18 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
 import CsvManifest from "./CsvManifest";
+import CollectionForm from "./CollectionForm";
 import PythonSnippet from "./PythonSnippet";
-import PythonSnippetForm from "./PythonSnippetForm";
 
 export interface ModalProps {
     onDismiss: () => void;
 }
 
 export enum ModalType {
-    CsvManifest = 1,
-    PythonSnippet = 2,
-    PythonSnippetForm = 3,
+    CreateCollectionForm = 1,
+    CsvManifest = 2,
+    EditCollectionForm = 3,
+    PythonSnippet = 4,
 }
 
 /**
@@ -28,12 +29,14 @@ export default function Modal() {
     };
 
     switch (visibleModal) {
+        case ModalType.CreateCollectionForm:
+            return <CollectionForm onDismiss={onDismiss} />;
         case ModalType.CsvManifest:
             return <CsvManifest onDismiss={onDismiss} />;
+        case ModalType.EditCollectionForm:
+            return <CollectionForm isEditing onDismiss={onDismiss} />;
         case ModalType.PythonSnippet:
             return <PythonSnippet onDismiss={onDismiss} />;
-        case ModalType.PythonSnippetForm:
-            return <PythonSnippetForm onDismiss={onDismiss} />;
         default:
             return null;
     }

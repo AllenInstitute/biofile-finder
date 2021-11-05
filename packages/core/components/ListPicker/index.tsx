@@ -14,6 +14,7 @@ export interface ListItem<T = any> {
 }
 
 interface ListPickerProps {
+    disabled?: boolean;
     errorMessage?: string;
     items: ListItem[];
     loading?: boolean;
@@ -96,6 +97,7 @@ export default function ListPicker(props: ListPickerProps) {
             <div className={styles.header}>
                 <SearchBox
                     className={styles.searchBox}
+                    disabled={props.disabled}
                     onChange={onSearchBoxChange}
                     onClear={() => setSearchValue("")}
                     styles={SEARCH_BOX_STYLE_OVERRIDES}
@@ -112,6 +114,7 @@ export default function ListPicker(props: ListPickerProps) {
                         <label className={styles.item}>
                             <input
                                 className={styles.checkbox}
+                                disabled={props.disabled}
                                 type="checkbox"
                                 role="checkbox"
                                 name={String(item.value)}

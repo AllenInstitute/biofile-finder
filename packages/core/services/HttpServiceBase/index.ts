@@ -9,6 +9,7 @@ export interface ConnectionConfig {
     applicationVersion?: string;
     baseUrl?: string | keyof typeof FileExplorerServiceBaseUrl;
     httpClient?: AxiosInstance;
+    pathSuffix?: string;
     userName?: string;
 }
 
@@ -101,7 +102,8 @@ export default class HttpServiceBase {
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
     private applicationVersion = "NOT SET";
     private userName?: string;
-    private urlToResponseDataCache = new LRUCache<string, any>({ max: MAX_CACHE_SIZE });
+    protected readonly pathSuffix: string = "";
+    private readonly urlToResponseDataCache = new LRUCache<string, any>({ max: MAX_CACHE_SIZE });
 
     constructor(config: ConnectionConfig = {}) {
         if (config.applicationVersion) {
@@ -118,6 +120,10 @@ export default class HttpServiceBase {
 
         if (config.httpClient) {
             this.setHttpClient(config.httpClient);
+        }
+
+        if (config.pathSuffix) {
+            this.pathSuffix = config.pathSuffix;
         }
     }
 
@@ -183,6 +189,32 @@ export default class HttpServiceBase {
         return new RestServiceResponse(response.data);
     }
 
+    public async patch<T>(url: string, body: string): Promise<RestServiceResponse<T>> {
+        const encodedUrl = HttpServiceBase.encodeURI(url);
+        console.log(`Sanitized ${url} to ${encodedUrl}`);
+        const config = { headers: { "Content-Type": "application/json" } };
+
+        let response;
+        try {
+            // if this fails, bubble up exception
+            response = await retry.execute(() => this.httpClient.patch(encodedUrl, body, config));
+        } catch (err) {
+            console.error(err);
+            // Specific errors about the failure from services will be in this path
+            if (err.response && err.response.data && err.response.data.message) {
+                throw new Error(JSON.stringify(err.response.data.message));
+            }
+            throw err;
+        }
+
+        if (response.status >= 400 || response.data === undefined) {
+            // by default axios will reject if does not satisfy: status >= 200 && status < 300
+            throw new Error(`Request for ${encodedUrl} failed`);
+        }
+
+        return new RestServiceResponse(response.data);
+    }
+
     public setApplicationVersion(applicationVersion: string) {
         this.applicationVersion = applicationVersion;
         this.setHeaders();
@@ -215,6 +247,11 @@ export default class HttpServiceBase {
     private setHeaders() {
         this.httpClient.defaults.headers.common["X-Application-Version"] = this.applicationVersion;
         this.httpClient.defaults.headers.common["X-Client"] = "FMS File Explorer App";
-        this.httpClient.defaults.headers.common["X-User-Id"] = this.userName;
+        // Prevent assigning undefined X-User-Id which interferes with downstream requests
+        if (this.userName) {
+            this.httpClient.defaults.headers.common["X-User-Id"] = this.userName;
+        } else {
+            delete this.httpClient.defaults.headers.common["X-User-Id"];
+        }
     }
 }

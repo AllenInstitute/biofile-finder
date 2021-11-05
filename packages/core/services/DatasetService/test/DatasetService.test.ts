@@ -16,7 +16,7 @@ describe("DatasetService", () => {
     describe("createDataset", () => {
         const httpClient = createMockHttpClient([
             {
-                when: `${baseUrl}/file-explorer-service/1.0/dataset`,
+                when: `${baseUrl}/${DatasetService.BASE_DATASET_URL}`,
                 respondWith: {
                     data: {
                         data: [{ id: expectedDatasetId }],
@@ -34,6 +34,8 @@ describe("DatasetService", () => {
                 name: "anyName",
                 annotations: [],
                 selections: [],
+                fixed: false,
+                private: false,
             });
             expect(dataset.id).to.equal(expectedDatasetId);
         });
@@ -41,7 +43,7 @@ describe("DatasetService", () => {
 
     describe("getDatasets", () => {
         const httpClient = createMockHttpClient({
-            when: `${baseUrl}/file-explorer-service/1.0/dataset`,
+            when: `${baseUrl}/${DatasetService.BASE_DATASET_URL}`,
             respondWith: {
                 data: {
                     data: expectedDatasets,
@@ -51,7 +53,7 @@ describe("DatasetService", () => {
 
         it("issues request for datasets", async () => {
             // Arrange
-            const service = new DatasetService({ baseUrl, httpClient });
+            const service = new DatasetService({ baseUrl, httpClient, userName: "test" });
 
             // Act
             const datasets = await service.getDatasets();
@@ -73,7 +75,7 @@ describe("DatasetService", () => {
             };
 
             const httpClient = createMockHttpClient({
-                when: `${baseUrl}/file-explorer-service/1.0/dataset/${datasetName}/${datasetVersion}/pythonSnippet`,
+                when: `${baseUrl}/${DatasetService.BASE_DATASET_URL}/${datasetName}/${datasetVersion}/pythonSnippet`,
                 respondWith: {
                     data: {
                         data: [expected],
@@ -94,7 +96,7 @@ describe("DatasetService", () => {
             const datasetName = "files & more?";
             const encodedDatasetName = "files%20%26%20more%3F";
             const datasetVersion = 3;
-            const expectedUrl = `${baseUrl}/file-explorer-service/1.0/dataset/files%20%26%20more%3F/${encodedDatasetName}/pythonSnippet`;
+            const expectedUrl = `${baseUrl}/${DatasetService.BASE_DATASET_URL}/files%20%26%20more%3F/${encodedDatasetName}/pythonSnippet`;
 
             const httpClient = createMockHttpClient();
             const getStub = sinon.stub(httpClient, "get").resolves({

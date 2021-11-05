@@ -3,7 +3,6 @@ import { makeReducer } from "@aics/redux-utils";
 import { filter, sortBy } from "lodash";
 
 import {
-    GENERATE_PYTHON_SNIPPET,
     HIDE_CONTEXT_MENU,
     HIDE_VISIBLE_MODAL,
     PlatformDependentServices,
@@ -17,10 +16,13 @@ import {
     SET_STATUS,
     SET_VISIBLE_MODAL,
     SHOW_CONTEXT_MENU,
-    SHOW_GENERATE_PYTHON_SNIPPET_DIALOG,
+    SHOW_CREATE_COLLECTION_DIALOG,
     SHOW_MANIFEST_DOWNLOAD_DIALOG,
     StatusUpdate,
     SUCCEED_PYTHON_SNIPPET_GENERATION,
+    SHOW_EDIT_COLLECTION_DIALOG,
+    GENERATE_SHAREABLE_FILE_SELECTION_LINK,
+    UPDATE_COLLECTION,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -107,10 +109,6 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             visibleModal: undefined,
         }),
-        [GENERATE_PYTHON_SNIPPET]: (state) => ({
-            ...state,
-            visibleModal: undefined,
-        }),
         [REFRESH]: (state, action) => ({
             ...state,
             refreshKey: action.payload,
@@ -161,15 +159,29 @@ export default makeReducer<InteractionStateBranch>(
             ...action.payload,
             fileFiltersForVisibleModal: [],
         }),
-        [SHOW_GENERATE_PYTHON_SNIPPET_DIALOG]: (state, action) => ({
+        [SHOW_CREATE_COLLECTION_DIALOG]: (state, action) => ({
             ...state,
-            visibleModal: ModalType.PythonSnippetForm,
+            visibleModal: ModalType.CreateCollectionForm,
             fileFiltersForVisibleModal: action.payload,
+        }),
+        [SHOW_EDIT_COLLECTION_DIALOG]: (state) => ({
+            ...state,
+            visibleModal: ModalType.EditCollectionForm,
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action) => ({
             ...state,
             visibleModal: ModalType.CsvManifest,
             fileFiltersForVisibleModal: action.payload,
+        }),
+        [UPDATE_COLLECTION]: (state) => ({
+            ...state,
+            visibleModal: undefined,
+            fileFiltersForVisibleModal: undefined,
+        }),
+        [GENERATE_SHAREABLE_FILE_SELECTION_LINK]: (state) => ({
+            ...state,
+            visibleModal: undefined,
+            fileFiltersForVisibleModal: undefined,
         }),
         [SUCCEED_PYTHON_SNIPPET_GENERATION]: (state, action) => ({
             ...state,

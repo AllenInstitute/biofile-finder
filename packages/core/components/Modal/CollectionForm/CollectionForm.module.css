@@ -1,0 +1,70 @@
+.subtitle-button {
+    border: none;
+    font-size: small;
+    margin-left: auto;
+}
+
+.subtitle-button-container {
+    display: flex;
+}
+
+.form {
+    padding: 0 3%;
+}
+
+.checkbox-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.checkbox-container {
+    cursor: default;
+    display: flex;
+}
+
+.checkbox {
+    max-width: 25px;
+}
+
+.checkbox-row div {
+    width: 100%;
+}
+
+.checkbox-label {
+    margin: 0.5em 5px 0.5em 0;
+}
+
+.checkbox-info-icon {
+    color: var(--primary-brand-dark-blue);
+}
+
+.collection-form {
+    display: flex;
+    margin-bottom: 1em;
+}
+
+.metadata-form {
+    padding-left: 15px;
+    width: 100%;
+}
+
+.name-input {
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.name-input-subtext {
+    color: #a7a7a7;
+    font-size: smaller;
+    padding-top: 5px;
+}
+
+.expiration-input {
+    max-width: 100px;
+    width: 100%;
+}
+
+.disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
+}

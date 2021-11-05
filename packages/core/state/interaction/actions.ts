@@ -5,7 +5,7 @@ import { uniqueId } from "lodash";
 import Annotation from "../../entity/Annotation";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
-import { PythonicDataAccessSnippet } from "../../services/DatasetService";
+import { Dataset, PythonicDataAccessSnippet } from "../../services/DatasetService";
 import ExecutionEnvService from "../../services/ExecutionEnvService";
 import FileDownloadService, { FileInfo } from "../../services/FileDownloadService";
 import FileFilter from "../../entity/FileFilter";
@@ -416,6 +416,93 @@ export function processFailure(processId: string, msg: string): ProcessFailureAc
 }
 
 /**
+ * UPDATE_COLLECTION
+ *
+ * Intention to update the metadata of an existing collection.
+ */
+export const UPDATE_COLLECTION = makeConstant(STATE_BRANCH_NAME, "update-collection");
+
+export interface UpdateCollectionAction {
+    payload?: {
+        expiration?: Date;
+        private: boolean;
+    };
+    type: string;
+}
+
+export function updateCollection(config?: {
+    expiration?: Date;
+    private: boolean;
+}): UpdateCollectionAction {
+    return {
+        payload: config,
+        type: UPDATE_COLLECTION,
+    };
+}
+
+/**
+ * GENERATE_SHAREABLE_FILE_SELECTION_LINK
+ *
+ * Intention to generate a shareable link to the selected files.
+ */
+export const GENERATE_SHAREABLE_FILE_SELECTION_LINK = makeConstant(
+    STATE_BRANCH_NAME,
+    "generate-shareable-file-selection-link"
+);
+
+export interface GenerateShareableFileSelectionLinkAction {
+    payload: {
+        annotations?: string[];
+        expiration?: Date;
+        filters?: FileFilter[];
+        fixed?: boolean;
+        private?: boolean;
+        name?: string;
+    };
+    type: string;
+}
+
+export function generateShareableFileSelectionLink(
+    config: {
+        annotations?: string[];
+        expiration?: Date;
+        filters?: FileFilter[];
+        fixed?: boolean;
+        private?: boolean;
+        name?: string;
+    } = {}
+): GenerateShareableFileSelectionLinkAction {
+    return {
+        payload: config,
+        type: GENERATE_SHAREABLE_FILE_SELECTION_LINK,
+    };
+}
+
+/**
+ * SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION
+ *
+ * Intention to inform user of successful generation of shareable link to selected files.
+ */
+export const SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION = makeConstant(
+    STATE_BRANCH_NAME,
+    "succeed-shareable-file-selection-link-generation"
+);
+
+export interface SucceedShareableFileSelectionLinkGenerationAction {
+    payload: Dataset;
+    type: string;
+}
+
+export function succeedShareableFileSelectionLinkGeneration(
+    collection: Dataset
+): SucceedShareableFileSelectionLinkGenerationAction {
+    return {
+        payload: collection,
+        type: SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
+    };
+}
+
+/**
  * SUCCEED_PYTHON_SNIPPET_GENERATION
  *
  * Intention to inform the user of the success of a python snippet generation.
@@ -447,26 +534,46 @@ export function succeedPythonSnippetGeneration(
 }
 
 /**
- * SHOW_GENERATE_PYTHON_SNIPPET_DIALOG
+ * SHOW_CREATE_COLLECTION_DIALOG
  *
- * Intention to show the generate python snippet dialog.
+ * Intention to show the dialog for generating a custom collection.
  */
-export const SHOW_GENERATE_PYTHON_SNIPPET_DIALOG = makeConstant(
+export const SHOW_CREATE_COLLECTION_DIALOG = makeConstant(
     STATE_BRANCH_NAME,
-    "show-generate-python-snippet-dialog"
+    "show-create-collection-dialog"
 );
 
-export interface ShowGeneratePythonSnippetDialogAction {
+export interface ShowCreateCollectionDialogAction {
     type: string;
     payload: FileFilter[];
 }
 
-export function showGeneratePythonSnippetDialog(
+export function showCreateCollectionDialog(
     fileFilters: FileFilter[] = []
-): ShowGeneratePythonSnippetDialogAction {
+): ShowCreateCollectionDialogAction {
     return {
-        type: SHOW_GENERATE_PYTHON_SNIPPET_DIALOG,
+        type: SHOW_CREATE_COLLECTION_DIALOG,
         payload: fileFilters,
+    };
+}
+
+/**
+ * SHOW_EDIT_COLLECTION_DIALOG
+ *
+ * Intention to show the dialog for editing an existing collection.
+ */
+export const SHOW_EDIT_COLLECTION_DIALOG = makeConstant(
+    STATE_BRANCH_NAME,
+    "show-edit-collection-dialog"
+);
+
+export interface ShowEditCollectionDialogAction {
+    type: string;
+}
+
+export function showEditCollectionDialog(): ShowEditCollectionDialogAction {
+    return {
+        type: SHOW_EDIT_COLLECTION_DIALOG,
     };
 }
 
@@ -615,31 +722,19 @@ export function setVisibleModal(visibleModal: ModalType): SetVisibleModalAction 
 /**
  * GENERATE_PYTHON_SNIPPET
  *
- * Intention to generate a python snippet for a dataset.
+ * Intention to generate a python snippet for a collection.
  */
 export const GENERATE_PYTHON_SNIPPET = makeConstant(STATE_BRANCH_NAME, "generate-python-snippet");
 
 export interface GeneratePythonSnippetAction {
+    payload: Dataset;
     type: string;
-    payload: {
-        dataset: string;
-        expiration?: Date;
-        annotations: Annotation[];
-    };
 }
 
-export function generatePythonSnippet(
-    dataset: string,
-    annotations: Annotation[],
-    expiration?: Date
-): GeneratePythonSnippetAction {
+export function generatePythonSnippet(collection: Dataset): GeneratePythonSnippetAction {
     return {
+        payload: collection,
         type: GENERATE_PYTHON_SNIPPET,
-        payload: {
-            dataset,
-            expiration,
-            annotations,
-        },
     };
 }
 

@@ -10,6 +10,8 @@ const styles = require("./AnnotationSelector.module.css");
 
 interface AnnotationSelectorProps {
     className?: string;
+    disabled?: boolean;
+    excludeFileAttributes?: boolean;
     selections: Annotation[];
     setSelections: (annotations: Annotation[]) => void;
 }
@@ -21,9 +23,13 @@ interface AnnotationSelectorProps {
 export default function AnnotationSelector(props: AnnotationSelectorProps) {
     const { className, selections, setSelections } = props;
 
-    const annotations = useSelector(
+    const sortedAnnotations = useSelector(metadata.selectors.getSortedAnnotations);
+    const sortedAnnotationsWithFileAttributes = useSelector(
         metadata.selectors.getCustomAnnotationsCombinedWithFileAttributes
     );
+    const annotations = props.excludeFileAttributes
+        ? sortedAnnotations
+        : sortedAnnotationsWithFileAttributes;
     const items = annotations.map((annotation) => ({
         selected: selections.includes(annotation),
         displayValue: annotation.displayName,
@@ -46,19 +52,26 @@ export default function AnnotationSelector(props: AnnotationSelectorProps) {
 
     return (
         <div className={className}>
-            <div className={styles.buttonBar}>
-                <DefaultButton
-                    disabled={annotations.length === selections.length}
-                    onClick={() => setSelections(annotations)}
-                    text="Select All"
-                />
-                <DefaultButton
-                    disabled={!selections.length}
-                    onClick={() => setSelections([])}
-                    text="Select None"
-                />
-            </div>
-            <ListPicker items={items} onDeselect={removeSelection} onSelect={addSelection} />
+            {!props.disabled && (
+                <div className={styles.buttonBar}>
+                    <DefaultButton
+                        disabled={annotations.length === selections.length}
+                        onClick={() => setSelections(annotations)}
+                        text="Select All"
+                    />
+                    <DefaultButton
+                        disabled={!selections.length}
+                        onClick={() => setSelections([])}
+                        text="Select None"
+                    />
+                </div>
+            )}
+            <ListPicker
+                disabled={props.disabled}
+                items={items}
+                onDeselect={removeSelection}
+                onSelect={addSelection}
+            />
         </div>
     );
 }

@@ -3,6 +3,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import FileFilter from "../../entity/FileFilter";
 import { interaction, selection } from "../../state";
+import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems, { ContextMenuActions } from "../ContextMenu/items";
 
 /**
@@ -41,7 +42,7 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                           },
                       ]
                     : []),
-                // Other is constant option that allows the user
+                // Other is a permanent option that allows the user
                 // to add another app for file access
                 {
                     key: ContextMenuActions.OPEN_WITH_OTHER,
@@ -54,6 +55,7 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
             ];
 
             const items = getContextMenuItems(dispatch).ACCESS.map((item: IContextualMenuItem) => {
+                const disabled = !filters && fileSelection.count() === 0;
                 if (item.key === ContextMenuActions.OPEN_WITH) {
                     item.subMenuProps = { items: openWithOptions };
                 } else if (item.key === ContextMenuActions.OPEN) {
@@ -64,14 +66,36 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                     item.onClick = () => {
                         dispatch(interaction.actions.showManifestDownloadDialog(filters));
                     };
-                } else if (item.key === ContextMenuActions.PYTHON_SNIPPET) {
-                    item.onClick = () => {
-                        dispatch(interaction.actions.showGeneratePythonSnippetDialog(filters));
+                } else if (item.key === ContextMenuActions.SHARE) {
+                    item.subMenuProps = {
+                        items: item.subMenuProps?.items.map((subItem) => {
+                            if (subItem.key === ContextMenuActions.CUSTOM_COLLECTION) {
+                                subItem.onClick = () => {
+                                    dispatch(
+                                        interaction.actions.showCreateCollectionDialog(filters)
+                                    );
+                                };
+                            } else if (subItem.key === ContextMenuActions.DEFAULT_COLLECTION) {
+                                subItem.onClick = () => {
+                                    dispatch(
+                                        interaction.actions.generateShareableFileSelectionLink({
+                                            filters,
+                                        })
+                                    );
+                                };
+                            }
+
+                            return {
+                                ...subItem,
+                                disabled,
+                            };
+                        }) as ContextMenuItem[],
                     };
                 }
+
                 return {
                     ...item,
-                    disabled: !filters && fileSelection.count() === 0,
+                    disabled,
                 };
             });
 

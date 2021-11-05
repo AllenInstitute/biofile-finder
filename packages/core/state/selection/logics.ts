@@ -20,6 +20,8 @@ import {
     SET_ANNOTATION_HIERARCHY,
     SELECT_NEARBY_FILE,
     setSortColumn,
+    changeCollection,
+    CHANGE_COLLECTION,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -281,14 +283,32 @@ const toggleFileFolderCollapse = createLogic({
  * other actions responsible for rehydrating the FileExplorerURL into application state.
  */
 const decodeFileExplorerURL = createLogic({
-    process(deps: ReduxLogicDeps, dispatch, done) {
+    async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
         const annotations = metadata.selectors.getAnnotations(deps.getState());
-        const { hierarchy, filters, openFolders, sortColumn } = FileExplorerURL.decode(
+        const collections = metadata.selectors.getActiveCollections(deps.getState());
+        const { hierarchy, filters, openFolders, sortColumn, collection } = FileExplorerURL.decode(
             encodedURL,
             annotations
         );
+
+        let selectedCollection = collections.find(
+            (c) => c.name === collection?.name && c.version === collection?.version
+        );
+        // It is possible the user was sent a private collection, in that event the collection is likely not stored
+        // in the state's collection set yet & should be loaded in.
+        if (collection && !selectedCollection) {
+            const datasetService = interaction.selectors.getDatasetService(deps.getState());
+            const newCollection = await datasetService.getDataset(
+                collection.name,
+                collection.version
+            );
+            dispatch(metadata.actions.receiveCollections([...collections, newCollection]));
+            selectedCollection = newCollection;
+        }
+
         batch(() => {
+            dispatch(changeCollection(selectedCollection));
             dispatch(setAnnotationHierarchy(hierarchy));
             dispatch(setFileFilters(filters));
             dispatch(setOpenFileFolders(openFolders));
@@ -418,6 +438,18 @@ const selectNearbyFile = createLogic({
     type: [SELECT_NEARBY_FILE],
 });
 
+/**
+ * Interceptor responsible for processing the changed collection into
+ * a refresh action so that the resources pertain to the current collection
+ */
+const changeCollectionLogic = createLogic({
+    async process(_: ReduxLogicDeps, dispatch, done) {
+        dispatch(interaction.actions.refresh() as AnyAction);
+        done();
+    },
+    type: CHANGE_COLLECTION,
+});
+
 export default [
     selectFile,
     modifyAnnotationHierarchy,
@@ -426,4 +458,5 @@ export default [
     decodeFileExplorerURL,
     selectNearbyFile,
     setAvailableAnnotationsLogic,
+    changeCollectionLogic,
 ];

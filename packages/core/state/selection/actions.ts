@@ -7,6 +7,7 @@ import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import FileSort from "../../entity/FileSort";
 import NumericRange from "../../entity/NumericRange";
+import { Dataset } from "../../services/DatasetService";
 
 const STATE_BRANCH_NAME = "selection";
 
@@ -462,5 +463,24 @@ export function decodeFileExplorerURL(decodedFileExplorerURL: string): DecodeFil
     return {
         payload: decodedFileExplorerURL,
         type: DECODE_FILE_EXPLORER_URL,
+    };
+}
+
+/**
+ * CHANGE_COLLECTION
+ *
+ * Intention to update the collection queries are run against.
+ */
+export const CHANGE_COLLECTION = makeConstant(STATE_BRANCH_NAME, "change-collection");
+
+export interface ChangeCollectionAction {
+    payload?: Dataset;
+    type: string;
+}
+
+export function changeCollection(collection?: Dataset): ChangeCollectionAction {
+    return {
+        payload: collection,
+        type: CHANGE_COLLECTION,
     };
 }

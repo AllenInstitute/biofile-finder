@@ -7,6 +7,7 @@ import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSort from "../../entity/FileSort";
+import { Dataset } from "../../services/DatasetService";
 
 // BASIC SELECTORS
 export const getAnnotationHierarchy = (state: State) => state.selection.annotationHierarchy;
@@ -17,6 +18,7 @@ export const getAvailableAnnotationsForHierarchyLoading = (state: State) =>
     state.selection.availableAnnotationsForHierarchyLoading;
 export const getColumnWidths = (state: State) => state.selection.columnWidths;
 export const getFileFilters = (state: State) => state.selection.filters;
+export const getCollection = (state: State) => state.selection.collection;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getSortColumn = (state: State) => state.selection.sortColumn;
@@ -30,14 +32,21 @@ export const getOrderedDisplayAnnotations = createSelector(
 );
 
 export const getEncodedFileExplorerUrl = createSelector(
-    [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn],
+    [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn, getCollection],
     (
         hierarchy: Annotation[],
         filters: FileFilter[],
         openFolders: FileFolder[],
-        sortColumn?: FileSort
+        sortColumn?: FileSort,
+        collection?: Dataset
     ) => {
-        return FileExplorerURL.encode({ hierarchy, filters, openFolders, sortColumn });
+        return FileExplorerURL.encode({
+            hierarchy,
+            filters,
+            openFolders,
+            sortColumn,
+            collection,
+        });
     }
 );
 

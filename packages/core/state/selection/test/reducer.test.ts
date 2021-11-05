@@ -9,6 +9,8 @@ import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
+import Annotation from "../../../entity/Annotation";
+import FileFolder from "../../../entity/FileFolder";
 
 describe("Selection reducer", () => {
     [
@@ -43,6 +45,51 @@ describe("Selection reducer", () => {
             expect(nextSelection.count()).to.equal(0);
         })
     );
+
+    describe(selection.actions.CHANGE_COLLECTION, () => {
+        it("clears hierarchy, filters, file selection, and open folders", () => {
+            // Arrange
+            const state = {
+                ...selection.initialState,
+                annotationHierarchy: [
+                    new Annotation({
+                        annotationName: "Cell Line",
+                        annotationDisplayName: "Cell Line",
+                        description: "Line of cells",
+                        type: "lookup",
+                    }),
+                ],
+                fileSelection: new FileSelection().select({
+                    fileSet: new FileSet(),
+                    index: 4,
+                    sortOrder: 3,
+                }),
+                filters: [new FileFilter("file_id", "1238401234")],
+                openFileFolders: [new FileFolder(["AICS-11"])],
+            };
+            const collection = {
+                name: "My Tiffs",
+                version: 2,
+                id: "13123019",
+                query: "",
+                fixed: false,
+                private: true,
+                client: "explorer",
+                created: new Date(),
+                createdBy: "test",
+            };
+
+            // Act
+            const actual = selection.reducer(state, selection.actions.changeCollection(collection));
+
+            // Assert
+            expect(actual.annotationHierarchy).to.be.empty;
+            expect(actual.collection).to.deep.equal(collection);
+            expect(actual.fileSelection.count()).to.equal(0);
+            expect(actual.filters).to.be.empty;
+            expect(actual.openFileFolders).to.be.empty;
+        });
+    });
 
     describe("DESELECT_DISPLAY_ANNOTATION", () => {
         it("removes any column widths configured for a display annotation if a user has removed it from the list of annotations to display", () => {

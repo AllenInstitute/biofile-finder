@@ -65,7 +65,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
         it("saves CSV to a file", async () => {
             // Arrange
             const DOWNLOAD_HOST = "https://aics-test.corp.alleninstitute.org";
-            const DOWNLOAD_PATH = "/file-explorer-service/1.0/files/selection/manifest";
+            const DOWNLOAD_PATH = "/file-explorer-service/2.0/files/selection/manifest";
             const CSV_BODY =
                 "Hello, it's me, I was wondering if after all these years you'd like to meet";
 
@@ -122,7 +122,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
         it("rejects with error message and clears partial artifact if request for CSV is unsuccessful", async () => {
             // Arrange
             const DOWNLOAD_HOST = "https://aics-test.corp.alleninstitute.org";
-            const DOWNLOAD_PATH = "/file-explorer-service/1.0/files/selection/manifest";
+            const DOWNLOAD_PATH = "/file-explorer-service/2.0/files/selection/manifest";
             const ERROR_MSG = "Something went wrong and nobody knows why";
 
             // intercept request for download and return canned error

@@ -1,5 +1,5 @@
 .container {
-    background: #bab5c9;
+    background: var(--secondary-brand-purple);
     opacity: 0.90;
     border-radius: 3px;
     /* Allow the element to be fixed to the bottom of the file list */

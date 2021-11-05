@@ -1,6 +1,7 @@
 import * as path from "path";
 import { isEmpty, throttle, uniq, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
+import { batch } from "react-redux";
 
 import { metadata, ReduxLogicDeps, selection } from "../";
 import {
@@ -17,7 +18,6 @@ import {
     setAllenMountPoint,
     setCsvColumns,
     GENERATE_PYTHON_SNIPPET,
-    GeneratePythonSnippetAction,
     succeedPythonSnippetGeneration,
     REFRESH,
     SET_PLATFORM_DEPENDENT_SERVICES,
@@ -31,6 +31,9 @@ import {
     DOWNLOAD_FILE,
     DownloadFileAction,
     processProgress,
+    GENERATE_SHAREABLE_FILE_SELECTION_LINK,
+    succeedShareableFileSelectionLinkGeneration,
+    UPDATE_COLLECTION,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService from "../../services/CsvService";
@@ -38,15 +41,19 @@ import { DownloadResolution } from "../../services/FileDownloadService";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
-import { CreateDatasetRequest } from "../../services/DatasetService";
-import { SelectionRequest, Selection, FmsFile } from "../../services/FileService";
+import { CreateDatasetRequest, Dataset } from "../../services/DatasetService";
+import { SelectionRequest, FmsFile } from "../../services/FileService";
 import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
 } from "../../services/ExecutionEnvService";
 import { AnnotationName } from "../../constants";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
-import { SortOrder } from "../../entity/FileSort";
+import FileSelection from "../../entity/FileSelection";
+import FileFilter from "../../entity/FileFilter";
+import FileExplorerURL from "../../entity/FileExplorerURL";
+import FileSort, { SortOrder } from "../../entity/FileSort";
+import { HttpServiceBase } from "../../services";
 
 /**
  * Interceptor responsible for responding to a SET_PLATFORM_DEPENDENT_SERVICES action and
@@ -88,20 +95,24 @@ const downloadManifest = createLogic({
         try {
             const state = deps.getState();
             const applicationVersion = interactionSelectors.getApplicationVersion(state);
+            const collection = selection.selectors.getCollection(state);
             const baseUrl = interactionSelectors.getFileExplorerServiceBaseUrl(state);
             const platformDependentServices = interactionSelectors.getPlatformDependentServices(
                 state
             );
+            let fileSelection = selection.selectors.getFileSelection(state);
             const filters = interactionSelectors.getFileFiltersForVisibleModal(state);
             const fileService = interactionSelectors.getFileService(state);
             const sortColumn = selection.selectors.getSortColumn(state);
+            const pathSuffix = collection
+                ? `/within/${HttpServiceBase.encodeURI(collection.name)}/${collection.version}`
+                : undefined;
             const csvService = new CsvService({
                 applicationVersion,
                 baseUrl,
+                pathSuffix,
                 downloadService: platformDependentServices.fileDownloadService,
             });
-
-            let selections: Selection[];
 
             // If we have a specific path to get files from ignore selected files
             if (filters.length) {
@@ -111,28 +122,16 @@ const downloadManifest = createLogic({
                     sort: sortColumn,
                 });
                 const count = await fileSet.fetchTotalCount();
-                const accumulator: { [index: string]: any } = {};
-                const selection: Selection = {
-                    filters: fileSet.filters.reduce((accum, filter) => {
-                        const existing = accum[filter.name] || [];
-                        return {
-                            ...accum,
-                            [filter.name]: [...existing, filter.value],
-                        };
-                    }, accumulator),
-                    indexRanges: [new NumericRange(0, count - 1).toJSON()],
-                    sort: sortColumn
-                        ? {
-                              annotationName: sortColumn.annotationName,
-                              ascending: sortColumn.order === SortOrder.ASC,
-                          }
-                        : undefined,
-                };
-                selections = [selection];
-            } else {
-                const fileSelection = selection.selectors.getFileSelection(state);
-                selections = fileSelection.toCompactSelectionList();
+                fileSelection = new FileSelection([
+                    {
+                        selection: new NumericRange(0, count - 1),
+                        fileSet,
+                        sortOrder: 0,
+                    },
+                ]);
             }
+
+            const selections = fileSelection.toCompactSelectionList();
 
             if (isEmpty(selections)) {
                 return;
@@ -505,69 +504,150 @@ const showContextMenu = createLogic({
 });
 
 /**
- * Interceptor responsible for responding to a GENERATE_PYTHON_SNIPPET action and generating the corresponding
- * python snippet.
+ * Interceptor responsible for responding to UPDATE_COLLECTION actions
+ * and processing them into actual metadata update requests to the backend
  */
-const generatePythonSnippet = createLogic({
-    type: GENERATE_PYTHON_SNIPPET,
+const updateCollection = createLogic({
+    type: UPDATE_COLLECTION,
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { action, getState } = deps;
-        const {
-            payload: { dataset, expiration, annotations },
-        } = action as GeneratePythonSnippetAction;
-        const generatePythonSnippetProcessId = uniqueId();
-        try {
-            dispatch(
-                processStart(
-                    generatePythonSnippetProcessId,
-                    "Generation of Python snippet is in progress."
-                )
-            );
-            const datasetService = interactionSelectors.getDatasetService(getState());
-            const fileService = interactionSelectors.getFileService(getState());
-            const filters = interactionSelectors.getFileFiltersForVisibleModal(getState());
-            const sortColumn = selection.selectors.getSortColumn(deps.getState());
+        const collection = selection.selectors.getCollection(deps.getState());
+        const collections = metadata.selectors.getCollections(deps.getState());
+        const datasetService = interactionSelectors.getDatasetService(deps.getState());
+        if (collection) {
+            try {
+                const { name, version } = collection;
+                const updatedCollection = await datasetService.updateCollection(
+                    name,
+                    version,
+                    deps.action.payload
+                );
+                batch(() => {
+                    dispatch(selection.actions.changeCollection(updatedCollection));
+                    dispatch(
+                        metadata.actions.receiveCollections(
+                            collections.map((c) =>
+                                c.id === updatedCollection.id ? updatedCollection : c
+                            )
+                        )
+                    );
+                });
+            } catch (err) {
+                const errorMsg = `Something went wrong updating the collection. Details:<br/>${err?.message}`;
+                dispatch(processFailure(uniqueId(), errorMsg));
+            }
+        }
 
-            let selections;
-            if (!filters.length) {
-                const fileSelection = selection.selectors.getFileSelection(getState());
-                selections = fileSelection.toCompactSelectionList();
-            } else {
+        done();
+    },
+});
+
+/**
+ * Interceptor responsible for responding to GENERATE_SHAREABLE_FILE_SELECTION_LINK actions
+ * and processing the current file selection into a shareable link that will be copied to
+ * the user's clipboard and dispatching SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION
+ */
+const generateShareableFileSelectionLink = createLogic({
+    type: GENERATE_SHAREABLE_FILE_SELECTION_LINK,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const state = deps.getState();
+        const generateShareableFileSelectionLinkId = uniqueId();
+        const filters: FileFilter[] | undefined = deps.action.payload?.filters;
+
+        dispatch(
+            processStart(
+                generateShareableFileSelectionLinkId,
+                "Generation of shareable file selection link is in progress."
+            )
+        );
+
+        try {
+            const user = interactionSelectors.getUserName(state);
+            const currentCollection = selection.selectors.getCollection(state);
+            const sortColumn = selection.selectors.getSortColumn(state);
+            let fileSelection = selection.selectors.getFileSelection(state);
+            const datasetService = interactionSelectors.getDatasetService(state);
+
+            const defaultExpiration = new Date();
+            defaultExpiration.setDate(defaultExpiration.getDate() + 1);
+            const defaultDatasetSettings: Partial<CreateDatasetRequest> = {
+                name: `${user} - ${new Date().toDateString()}`,
+                expiration: defaultExpiration,
+                fixed: false,
+                private: true,
+            };
+
+            // If we have a specific path to get files from ignore selected files
+            if (filters?.length) {
+                const fileService = interactionSelectors.getFileService(state);
                 const fileSet = new FileSet({
                     filters,
                     fileService,
                     sort: sortColumn,
                 });
                 const count = await fileSet.fetchTotalCount();
-                const accumulator: { [index: string]: any } = {};
-                const selection: Selection = {
-                    filters: fileSet.filters.reduce((accum, filter) => {
-                        const existing = accum[filter.name] || [];
-                        return {
-                            ...accum,
-                            [filter.name]: [...existing, filter.value],
-                        };
-                    }, accumulator),
-                    indexRanges: [new NumericRange(0, count - 1).toJSON()],
-                    sort: sortColumn
-                        ? {
-                              annotationName: sortColumn.annotationName,
-                              ascending: sortColumn.order === SortOrder.ASC,
-                          }
-                        : undefined,
-                };
-                selections = [selection];
+                fileSelection = new FileSelection([
+                    {
+                        selection: new NumericRange(0, count - 1),
+                        fileSet,
+                        sortOrder: 0,
+                    },
+                ]);
             }
+
+            const selections = fileSelection.toCompactSelectionList();
+
             const request: CreateDatasetRequest = {
-                annotations: annotations.map((annotation) => annotation.name),
-                expiration,
-                name: dataset,
+                ...defaultDatasetSettings,
+                ...(deps.action.payload || {}),
                 selections,
             };
+            const collection = await datasetService.createDataset(request, currentCollection);
 
-            const { name, version } = await datasetService.createDataset(request);
-            const pythonSnippet = await datasetService.getPythonicDataAccessSnippet(name, version);
+            const url = FileExplorerURL.encode({
+                collection,
+                sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
+                filters: [],
+                openFolders: [],
+                hierarchy: [],
+            });
+            navigator.clipboard.writeText(url);
 
+            batch(() => {
+                dispatch(succeedShareableFileSelectionLinkGeneration(collection));
+                dispatch(
+                    processSuccess(
+                        generateShareableFileSelectionLinkId,
+                        `Successfully created collection "${collection.name}" and copied shareable link to clipboard.`
+                    )
+                );
+            });
+        } catch (err) {
+            dispatch(
+                processFailure(
+                    generateShareableFileSelectionLinkId,
+                    `Failed to generate shareable file selection link: ${err}`
+                )
+            );
+        }
+        done();
+    },
+});
+
+/**
+ * Interceptor responsible for responding to a GENERATE_PYTHON_SNIPPET action and generating the corresponding
+ * python snippet.
+ */
+const generatePythonSnippet = createLogic({
+    type: GENERATE_PYTHON_SNIPPET,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const generatePythonSnippetProcessId = uniqueId();
+        const dataset = deps.action.payload as Dataset;
+        const datasetService = interactionSelectors.getDatasetService(deps.getState());
+        try {
+            const pythonSnippet = await datasetService.getPythonicDataAccessSnippet(
+                dataset.name,
+                dataset.version
+            );
             dispatch(succeedPythonSnippetGeneration(generatePythonSnippetProcessId, pythonSnippet));
         } catch (err) {
             dispatch(
@@ -577,8 +657,6 @@ const generatePythonSnippet = createLogic({
                 )
             );
         }
-
-        dispatch(setCsvColumns(annotations.map((annotation) => annotation.displayName)));
         done();
     },
 });
@@ -610,7 +688,7 @@ const refresh = createLogic({
             done();
         }
     },
-    type: [REFRESH],
+    type: REFRESH,
 });
 
 export default [
@@ -622,6 +700,8 @@ export default [
     promptForNewExecutable,
     downloadFile,
     showContextMenu,
+    updateCollection,
+    generateShareableFileSelectionLink,
     generatePythonSnippet,
     refresh,
 ];

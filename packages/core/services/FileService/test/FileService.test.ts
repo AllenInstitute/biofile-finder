@@ -16,7 +16,7 @@ describe("FileService", () => {
     describe("getFiles", () => {
         const httpClient = createMockHttpClient([
             {
-                when: `${baseUrl}/file-explorer-service/1.0/files`,
+                when: `${baseUrl}/${FileService.BASE_FILES_URL}`,
                 respondWith: {
                     data: {
                         data: files,
@@ -24,7 +24,7 @@ describe("FileService", () => {
                 },
             },
             {
-                when: `${baseUrl}/file-explorer-service/1.0/files?from=0&limit=1&file_id=abc123`,
+                when: `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=1&file_id=abc123`,
                 respondWith: {
                     data: {
                         data: files.slice(0, 1),
@@ -43,23 +43,6 @@ describe("FileService", () => {
             const data = response.data;
             expect(data.length).to.equal(1);
             expect(data[0]).to.equal(files[0]);
-        });
-    });
-
-    describe("getFileIds", () => {
-        const httpClient = createMockHttpClient({
-            when: `${baseUrl}/file-explorer-service/1.0/files/ids?file_id=abc123`,
-            respondWith: {
-                data: {
-                    data: fileIds,
-                },
-            },
-        });
-
-        it("issues request for all file ids matching given parameters", async () => {
-            const fileService = new FileService({ baseUrl, httpClient });
-            const ids = await fileService.getFileIds("file_id=abc123");
-            expect(ids).to.equal(fileIds);
         });
     });
 
@@ -95,7 +78,7 @@ describe("FileService", () => {
 
     describe("getCountOfMatchingFiles", () => {
         const httpClient = createMockHttpClient({
-            when: `${baseUrl}/file-explorer-service/1.0/files/count?file_id=abc123&file_id=def456`,
+            when: `${baseUrl}/${FileService.BASE_FILE_COUNT_URL}?file_id=abc123&file_id=def456`,
             respondWith: {
                 data: {
                     data: [2],

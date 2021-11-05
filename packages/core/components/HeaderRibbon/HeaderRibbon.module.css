@@ -1,0 +1,109 @@
+.root {
+    /* Defined in App.module.css */
+    --primary-ribbon-color: var(--primary-brand-dark-blue);
+    /* Color is lightened tint of --primary-brand-dark-blue defined in App.module.css */
+    --secondary-ribbon-color: #1A4A71;
+    --ribbon-header-height: 1.5em;
+    --header-ribbon-padding: 6px;
+
+    background-color: var(--primary-ribbon-color);
+    color: white;
+    display: flex;
+    height: var(--ribbon-header-height);
+    min-height: var(--ribbon-header-height);
+}
+
+.header-bar {
+    background-color: var(--primary-ribbon-color);
+    display: flex;
+    height: var(--ribbon-header-height);
+    padding: var(--header-ribbon-padding) var(--header-ribbon-padding) var(--header-ribbon-padding) 0;
+    position: fixed;
+    width: 100%;
+    z-index: 2;
+}
+
+.control-groups {
+    background-color: var(--primary-ribbon-color);
+    border-bottom: 1px solid var(--secondary-ribbon-color);
+    position: fixed;
+    margin-top: var(--ribbon-header-height);
+    transition: transform 1s ease;
+    width: 100%;
+    z-index: 1;
+}
+
+.collapsed {
+    transform: translateY(-100%);
+}
+
+.control-group {
+    display: flex;
+    min-width: 150px;
+    margin: 0;
+    max-width: 25%;
+    padding: 0 var(--margin) var(--margin) var(--margin);
+    padding-top: calc(var(--margin) - var(--header-ribbon-padding));
+    text-align: center;
+    width: 100%;
+}
+
+h5.control-group {
+    display: block;
+    height: var(--ribbon-header-height);
+    justify-content: center;
+    overflow: hidden;
+    padding: 0 15px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.control-group-input-group {
+    width: 100%;
+}
+
+.control-group-dropdown {
+    background-color: var(--secondary-ribbon-color);
+    border: none;
+    color: white;
+}
+
+.control-group-dropdown:hover {
+    background-color: white;
+    color: var(--primary-ribbon-color);
+}
+
+.control-group-display-group {
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 8px;
+}
+
+.control-group-display-icon {
+    color: white;
+    font-size: small;
+}
+
+.control-group-display {
+    font-weight: normal;
+    margin: 0.25em 0 0 0.25em;
+}
+
+.control-group-buttons {
+    margin-left: 5px;
+    width: 45px;
+}
+
+.control-group-button {
+    background-color: var(--secondary-ribbon-color);
+    border-radius: 10px;
+    color: white;
+    height: 25px;
+    margin-bottom: 5px;
+    width: 100%;
+}
+
+.control-group-button:hover {
+    background-color: white;
+    color: var(--primary-ribbon-color);
+}
