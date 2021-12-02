@@ -1,6 +1,6 @@
 {
   "name": "fms-file-explorer-desktop",
-  "version": "5.4.0",
+  "version": "6.0.0",
   "description": "An application designed to simplify access and exploration of data produced by the Allen Institute for Cell Science, provide an intuitive mechanism for organizing that data, and provide simple hooks for incorporating that data into both programmatic and non-programmatic workflows.",
   "main": "dist/main/index.js",
   "repository": {
