@@ -92,25 +92,25 @@ const SELECTED_OPTION_PROPS: Partial<IContextualMenuItemProps> = {
 };
 
 const FROZEN_COLLECTION_HEADER: IContextualMenuItem = {
-    key: "fixed-collections",
-    text: "Fixed Collections",
+    key: "frozen-collections",
+    text: "Frozen Collections",
     title:
-        "Fixed collections have files with immutable metadata, meaning they may not be up to date",
+        "Frozen collections have files with immutable metadata, meaning they may not be up to date",
     itemType: ContextualMenuItemType.Header,
     itemProps: DEFAULT_OPTION_PROPS,
 };
 
 const LIVE_COLLECTION_HEADER: IContextualMenuItem = {
-    key: "non-fixed-collections",
-    text: "Non-Fixed Collections",
+    key: "non-frozen-collections",
+    text: "Non-Frozen Collections",
     title:
-        "Non-fixed collections act as a filter to narrow the files in FMS down to a specific set",
+        "Non-frozen collections act as a filter to narrow the files in FMS down to a specific set",
     itemType: ContextualMenuItemType.Header,
     itemProps: DEFAULT_OPTION_PROPS,
 };
 
 const IS_FIXED_TOOLTIP =
-    'If fixed, the collection is an immutable, point-in-time snapshot of the metadata for the files you’ve selected (a "dataset"). No files have been added to or removed from the collection, nor has the files\' metadata been modified since creation of the collection.';
+    'If frozen, the collection is an immutable, point-in-time snapshot of the metadata for the files you’ve selected (a "dataset"). No files have been added to or removed from the collection, nor has the files\' metadata been modified since creation of the collection.';
 const IS_PRIVATE_TOOLTIP =
     "If private, this collection will not appear in the collection dropdown for users other than the creator's as an option by default. However, the collection can still be sent as part of a FMS File Explorer URL.";
 
@@ -249,7 +249,7 @@ export default function CollectionControl(props: Props) {
                     </TooltipHost>
                     <TooltipHost content={IS_FIXED_TOOLTIP} onMouseLeave={props.onCollapse}>
                         <h6 className={styles.controlGroupDisplay}>
-                            {selectedCollection?.fixed ? "Fixed" : "Not Fixed"}
+                            {selectedCollection?.fixed ? "Frozen" : "Not Frozen"}
                         </h6>
                     </TooltipHost>
                 </div>

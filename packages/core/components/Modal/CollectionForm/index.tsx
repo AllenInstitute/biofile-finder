@@ -232,7 +232,7 @@ export default function CollectionForm({ isEditing, onDismiss }: Props) {
                                 onChange={(_, checked) => setFixed(checked || false)}
                             />
                             <h5 className={styles.checkboxLabel}>
-                                Is Fixed?{" "}
+                                Is Frozen?{" "}
                                 <TooltipHost content={FIXED_CHECKBOX_TOOLTIP}>
                                     <Icon
                                         className={styles.checkboxInfoIcon}
