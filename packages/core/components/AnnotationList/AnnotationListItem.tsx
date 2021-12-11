@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { Spinner, SpinnerSize } from "@fluentui/react";
-import Tippy from "@tippy.js/react";
+import Tippy from "@tippyjs/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 import * as React from "react";
 

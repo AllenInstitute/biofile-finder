@@ -1,8 +1,5 @@
+/*eslint no-var: "off"*/
 // necessary in order to do: global.fileExplorerServiceBaseUrl = "..."
-declare namespace NodeJS {
-    export interface Global {
-        fileDownloadServiceBaseUrl: string;
-        fileExplorerServiceAllenMountPoint?: string;
-        fileExplorerServiceBaseUrl: string;
-    }
-}
+declare var fileDownloadServiceBaseUrl: string;
+declare var fileExplorerServiceAllenMountPoint: string | undefined;
+declare var fileExplorerServiceBaseUrl: string;

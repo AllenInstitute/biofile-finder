@@ -1,4 +1,4 @@
-import Tippy from "@tippy.js/react";
+import Tippy from "@tippyjs/react";
 import classNames from "classnames";
 import { debounce } from "lodash";
 import { IconButton, TextField, TooltipHost } from "@fluentui/react";

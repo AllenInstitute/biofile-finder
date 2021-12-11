@@ -107,7 +107,7 @@ export default function FileList(props: FileListProps) {
                 <InfiniteLoader
                     key={fileSet.instanceId} // force a re-render whenever FileSet changes
                     isItemLoaded={fileSet.isFileMetadataLoaded}
-                    loadMoreItems={debouncePromise(
+                    loadMoreItems={debouncePromise<any>(
                         fileSet.fetchFileRange,
                         DEBOUNCE_WAIT_FOR_DATA_FETCHING
                     )}

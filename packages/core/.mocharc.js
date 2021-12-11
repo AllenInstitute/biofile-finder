@@ -7,7 +7,7 @@ module.exports = {
         path.resolve(__dirname, "..", "..", "scripts", "babel-register.js"),
         path.resolve(__dirname, "..", "..", "scripts", "css-modules-register.js"),
         path.resolve(__dirname, "..", "..", "scripts", "jsdom-register.js"),
-        path.resolve(__dirname, "..", "..", "scripts", "setup-office-ui-fabric.js"),
+        path.resolve(__dirname, "..", "..", "scripts", "setup-fluentui.js"),
         path.resolve(__dirname, "..", "..", "scripts", "adapt-enzyme-to-react-16.js"),
     ],
 };

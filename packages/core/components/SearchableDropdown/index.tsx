@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { ContextualMenu, IContextualMenuItem } from "office-ui-fabric-react";
+import { ContextualMenu, IContextualMenuItem } from "@fluentui/react";
 import * as React from "react";
 
 const styles = require("./SearchableDropdown.module.css");
