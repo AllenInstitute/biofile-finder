@@ -5,7 +5,7 @@ import {
     DraggableProvidedDragHandleProps,
 } from "react-beautiful-dnd";
 
-const styles = require("./DnDListItem.module.css");
+import styles from "./DnDListItem.module.css";
 
 interface DnDListItemProps {
     className?: string;

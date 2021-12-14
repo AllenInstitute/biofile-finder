@@ -6,7 +6,7 @@ import Annotation from "../../../entity/Annotation";
 import ListPicker, { ListItem } from "../../../components/ListPicker";
 import { metadata } from "../../../state";
 
-const styles = require("./AnnotationSelector.module.css");
+import styles from "./AnnotationSelector.module.css";
 
 interface AnnotationSelectorProps {
     className?: string;

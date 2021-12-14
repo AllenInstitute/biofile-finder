@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { interaction } from "../../state";
 import { StatusUpdate, ProcessStatus } from "../../state/interaction/actions";
 
-const styles = require("./StatusMessage.module.css");
+import styles from "./StatusMessage.module.css";
 
 const statusToTypeMap = {
     [ProcessStatus.STARTED]: MessageBarType.info,

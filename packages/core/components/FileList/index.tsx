@@ -14,7 +14,7 @@ import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileSelector from "./useFileSelector";
 import useFileAccessContextMenu from "./useFileAccessContextMenu";
 
-const styles = require("./FileList.module.css");
+import styles from "./FileList.module.css";
 
 const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 50; // ms
 

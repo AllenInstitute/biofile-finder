@@ -8,7 +8,7 @@ import AnnotationList, { DROPPABLE_ID as ANNOTATION_LIST_DROPPABLE_ID } from "..
 
 import { selection } from "../../state";
 
-const styles = require("./AnnotationSidebar.module.css");
+import styles from "./AnnotationSidebar.module.css";
 
 interface AnnotationSidebarProps {
     className?: string;

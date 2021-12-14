@@ -7,9 +7,8 @@ CSS files live alongside the component they style, and the classes they declare 
 CSS assets are parsed, transformed, and concatenated together to form a single stylesheet. This is accomplished by a series
 of webpack loaders:
 
-1. First, `postcss-loader` applies a number of plugins:
-    - one to fix known flexbox bugs [postcss-flexbugs-fixes](https://github.com/luisrudge/postcss-flexbugs-fixes),
-    - another to make available new features of CSS [postcss-preset-env](https://github.com/csstools/postcss-preset-env) (which by default also auto-prefixes CSS declarations),
+1. First, `postcss-loader` applies plugins:
+    - [postcss-preset-env](https://github.com/csstools/postcss-preset-env),
 2. Next, `css-loader` makes the CSS classes available as an exported module to be consumed within JS/TS, and transforms the
    classname that will be applied in the browser to be hyper-local. That this, this loader provides [CSS Modules](https://github.com/css-modules/css-modules).
 3. Last, `MiniCssExtractPlugin.loader` concatenates together the individual CSS files into a single stylesheet. That stylesheet,
@@ -21,8 +20,8 @@ The `src/styles` directory holds base CSS classes and shared CSS Custom Properti
 Files within this directory should be topical: e.g., `typography.css` holds CSS variables related to font sizing,
 font family, color, etc.
 
-For more information about using CSS Custom Properties (i.e. CSS variables), refer to: 
-    - https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_variables 
+For more information about using CSS Custom Properties (i.e. CSS variables), refer to:
+    - https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_variables
     - https://www.smashingmagazine.com/2018/05/css-custom-properties-strategy-guide/
 
 To use a base CSS class declared in this directory, use [`composes`](https://github.com/css-modules/css-modules#composing-from-other-files).
@@ -91,7 +90,7 @@ To apply these CSS classes, in `index.tsx`:
 ```
 import * as React from "react";
 
-const styles = require("./style.css");
+import styles from "./style.css";
 
 const button = (props) => {
     return (
@@ -102,12 +101,3 @@ const button = (props) => {
 }
 
 ```
-
-### Note on `require()` versus `import ... from ...`
-
-Notice in the example above that when CSS classes are imported into TypeScript files we use `const ... = require(...)` instead of
-`import ... from ...` syntax. This is because using the latter syntax will prompt the TypeScript compiler to look for
-an associated module for the CSS, and failing in its search, will not compile. While there are existing tools
-for getting around this problem, none are robust solutions, so we use the `require(...)` syntax as a temporary
-stop-gap measure until we implement a solution that we are happy with. **Note that we only use `require(...)` for CSS
-files; all npm libraries and local modules should be imported using `import ... from ...` syntax.**

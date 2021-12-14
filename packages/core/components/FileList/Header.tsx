@@ -12,7 +12,7 @@ import FileListColumnPicker from "./FileListColumnPicker";
 import { SortOrder } from "../../entity/FileSort";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 
-const styles = require("./Header.module.css");
+import styles from "./Header.module.css";
 
 const SORTABLE_ANNOTATIONS = TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName).join(",");
 

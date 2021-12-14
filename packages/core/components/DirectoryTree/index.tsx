@@ -10,7 +10,7 @@ import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
 import FileMetadataSearchBar from "../FileMetadataSearchBar";
 
-const styles = require("./DirectoryTree.module.css");
+import styles from "./DirectoryTree.module.css";
 
 enum KeyboardCode {
     ArrowDown = "ArrowDown",

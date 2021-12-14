@@ -4,7 +4,7 @@ import InteractEvent from "@interactjs/core/InteractEvent"; // unfortunately nec
 import interact from "interactjs";
 import * as React from "react";
 
-const styles = require("./Cell.module.css");
+import styles from "./Cell.module.css";
 
 export interface CellProps {
     className?: string;

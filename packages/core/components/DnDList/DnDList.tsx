@@ -4,7 +4,7 @@ import { Droppable, Draggable } from "react-beautiful-dnd";
 
 import DnDListItem from "./DnDListItem";
 
-const styles = require("./DnDList.module.css");
+import styles from "./DnDList.module.css";
 
 export interface DnDItem {
     description: string;

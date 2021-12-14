@@ -8,11 +8,8 @@ const getPluginsByEnv = require("./plugins");
 module.exports = ({ analyze, production } = {}) => ({
     devtool: !production && "source-map",
     devServer: {
-        contentBase: path.join(__dirname, "../", "dist"),
-        disableHostCheck: true,
         host: devServer.host,
         port: devServer.port,
-        stats,
     },
     entry: {
         app: "./src/index.tsx",

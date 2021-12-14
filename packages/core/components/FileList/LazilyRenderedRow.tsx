@@ -8,7 +8,7 @@ import FileSet from "../../entity/FileSet";
 import { selection } from "../../state";
 import { OnSelect } from "./useFileSelector";
 
-const styles = require("./LazilyRenderedRow.module.css");
+import styles from "./LazilyRenderedRow.module.css";
 
 /**
  * Contextual data passed to LazilyRenderedRows by react-window. Basically a light-weight React context. The same data

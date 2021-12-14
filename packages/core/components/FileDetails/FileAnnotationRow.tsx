@@ -6,7 +6,7 @@ import getContextMenuItems from "../ContextMenu/items";
 import Cell from "../../components/FileRow/Cell";
 import { interaction } from "../../state";
 
-const styles = require("./FileAnnotationRow.module.css");
+import styles from "./FileAnnotationRow.module.css";
 
 interface FileAnnotationRowProps {
     className?: string;

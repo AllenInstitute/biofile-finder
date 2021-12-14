@@ -6,7 +6,7 @@ import DnDList from "../../components/DnDList";
 import HierarchyListItem from "./HierarchyListItem";
 import * as annotationSelectors from "../AnnotationSidebar/selectors";
 
-const styles = require("./AnnotationHierarchy.module.css");
+import styles from "./AnnotationHierarchy.module.css";
 
 export const DROPPABLE_ID = "HIERARCHY_LIST";
 

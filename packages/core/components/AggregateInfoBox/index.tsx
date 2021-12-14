@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 import FileSelection from "../../entity/FileSelection";
 import { interaction, selection } from "../../state";
 
-const styles = require("./AggregateInfoBox.module.css");
+import styles from "./AggregateInfoBox.module.css";
 
 interface AggregateData {
     count: number;

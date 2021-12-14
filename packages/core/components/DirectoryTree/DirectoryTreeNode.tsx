@@ -8,7 +8,7 @@ import { selection } from "../../state";
 import FileFolder from "../../entity/FileFolder";
 import FileSet from "../../entity/FileSet";
 
-const styles = require("./DirectoryTreeNode.module.css");
+import styles from "./DirectoryTreeNode.module.css";
 
 interface DirectoryTreeNodeProps {
     ancestorNodes: string[];

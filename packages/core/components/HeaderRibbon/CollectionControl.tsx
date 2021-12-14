@@ -16,7 +16,7 @@ import { Dataset } from "../../services/DatasetService";
 import { interaction, metadata, selection } from "../../state";
 import SearchableDropdown from "../SearchableDropdown";
 
-const styles = require("./HeaderRibbon.module.css");
+import styles from "./HeaderRibbon.module.css";
 
 interface Props {
     className?: string;

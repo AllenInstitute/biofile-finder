@@ -11,7 +11,7 @@ import FileSet from "../../entity/FileSet";
 import { ERROR_ICON_PATH_DATA } from "../../icons";
 import useFileAccessContextMenu from "../FileList/useFileAccessContextMenu";
 
-const styles = require("./DirectoryTreeNode.module.css");
+import styles from "./DirectoryTreeNode.module.css";
 
 interface DirectoryTreeNodeHeaderProps {
     collapsed: boolean;

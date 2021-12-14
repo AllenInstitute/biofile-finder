@@ -28,7 +28,7 @@ import { initialState, interaction, reducer, reduxLogics, selection } from "../.
 
 import DirectoryTree from "../";
 
-const styles = require("../DirectoryTreeNode.module.css");
+import styles from "../DirectoryTreeNode.module.css";
 
 describe("<DirectoryTree />", () => {
     const sandbox = createSandbox();

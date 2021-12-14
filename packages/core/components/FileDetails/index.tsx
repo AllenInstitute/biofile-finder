@@ -10,7 +10,7 @@ import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
 import { ROOT_ELEMENT_ID } from "../../App";
 
-const styles = require("./FileDetails.module.css");
+import styles from "./FileDetails.module.css";
 
 interface FileDetails {
     className?: string;

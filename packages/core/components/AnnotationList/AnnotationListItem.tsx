@@ -8,7 +8,7 @@ import AnnotationFilter from "../AnnotationSidebar/AnnotationFilter";
 import { DnDItem, DnDItemRendererParams } from "../../components/DnDList/DnDList";
 import SvgIcon from "../../components/SvgIcon";
 
-const styles = require("./AnnotationListItem.module.css");
+import styles from "./AnnotationListItem.module.css";
 
 // Designed Daniel Bruce (www.entypo.com)
 // License: https://creativecommons.org/licenses/by-sa/4.0/

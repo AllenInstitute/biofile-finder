@@ -7,7 +7,7 @@ import FileFilter from "../../entity/FileFilter";
 import { metadata, selection } from "../../state";
 import FilterMedallion, { Filter } from "./FilterMedallion";
 
-const styles = require("./FilterDisplayBar.module.css");
+import styles from "./FilterDisplayBar.module.css";
 
 interface Props {
     className?: string;

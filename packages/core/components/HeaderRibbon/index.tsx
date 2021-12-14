@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { selection } from "../../state";
 import CollectionControl from "./CollectionControl";
 
-const styles = require("./HeaderRibbon.module.css");
+import styles from "./HeaderRibbon.module.css";
 
 interface HeaderRibbonProps {
     className?: string;

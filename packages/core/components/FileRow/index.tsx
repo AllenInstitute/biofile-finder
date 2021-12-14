@@ -5,7 +5,7 @@ import * as React from "react";
 import Cell from "./Cell";
 import { OnSelect } from "../FileList/useFileSelector";
 
-const styles = require("./FileRow.module.css");
+import styles from "./FileRow.module.css";
 
 export interface CellConfig {
     columnKey: string;

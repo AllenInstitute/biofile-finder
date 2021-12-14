@@ -8,7 +8,7 @@ import { selection } from "../../state";
 import FileFilter from "../../entity/FileFilter";
 import AnnotationFilter from "../AnnotationSidebar/AnnotationFilter";
 
-const styles = require("./FilterMedallion.module.css");
+import styles from "./FilterMedallion.module.css";
 
 export interface Filter {
     name: string;

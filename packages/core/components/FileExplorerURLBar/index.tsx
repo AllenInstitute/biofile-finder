@@ -11,7 +11,7 @@ import FileExplorerURL from "../../entity/FileExplorerURL";
 import { ERROR_ICON_PATH_DATA } from "../../icons";
 import { interaction, metadata, selection } from "../../state";
 
-const styles = require("./FileExplorerURLBar.module.css");
+import styles from "./FileExplorerURLBar.module.css";
 
 interface FileExplorerURLBarProps {
     className?: string;
