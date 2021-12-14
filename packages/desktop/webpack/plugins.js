@@ -14,8 +14,9 @@ const packageJson = require("../package.json");
 
 const BASE_PLUGINS = [
     new ForkTsCheckerWebpackPlugin({
-        tsconfig: path.resolve(__dirname, "..", "tsconfig.json"),
-        workers: ForkTsCheckerWebpackPlugin.ONE_CPU,
+        typescript: {
+            configFile: path.resolve(__dirname, "../", "tsconfig.json"),
+        },
     }),
     new CleanWebpackPlugin(),
     new MiniCssExtractPlugin({ filename: "style.[contenthash].css" }),
@@ -35,7 +36,6 @@ const PLUGINS_BY_ENV = {
             "process.env.APPLICATION_VERSION": JSON.stringify(packageJson.version),
             "process.env.NODE_ENV": JSON.stringify("production"),
         }),
-        new webpack.HashedModuleIdsPlugin(),
     ],
     [Env.DEVELOPMENT]: [
         new webpack.DefinePlugin({
@@ -46,8 +46,8 @@ const PLUGINS_BY_ENV = {
     ],
 };
 
-module.exports = (env, analyzer) => [
+module.exports = (isProduction, analyzer) => [
     ...BASE_PLUGINS,
     ...(analyzer ? BUNDLE_ANALYZER : []),
-    ...(PLUGINS_BY_ENV[env] || []),
+    ...(isProduction ? PLUGINS_BY_ENV[Env.PRODUCTION] : PLUGINS_BY_ENV[Env.DEVELOPMENT]),
 ];

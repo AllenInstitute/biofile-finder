@@ -2,22 +2,19 @@ const path = require("path");
 
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
-const { devServer, Env, stats } = require("./constants");
+const { devServer, stats } = require("./constants");
 const getPluginsByEnv = require("./plugins");
 
-module.exports = ({ analyze, env } = {}) => ({
-    devtool: env !== Env.PRODUCTION && "source-map",
+module.exports = ({ analyze, production } = {}) => ({
+    devtool: !production && "source-map",
     devServer: {
-        contentBase: path.resolve(__dirname, "..", "dist", "renderer"),
-        disableHostCheck: true,
         host: devServer.host,
         port: devServer.port,
-        stats,
     },
     entry: {
         app: path.resolve("src", "renderer", "index.tsx"),
     },
-    mode: env === Env.PRODUCTION ? "production" : "development",
+    mode: production ? "production" : "development",
     module: {
         rules: [
             {
@@ -56,26 +53,20 @@ module.exports = ({ analyze, env } = {}) => ({
                         loader: "css-loader",
                         options: {
                             importLoaders: 1,
-                            localsConvention: "camelCase",
                             modules: {
+                                exportLocalsConvention: "camelCase",
                                 localIdentName: "[name]__[local]--[hash:base64:5]",
                             },
-                            sourceMap: env !== Env.PRODUCTION,
+                            sourceMap: !production,
                         },
                     },
                     {
                         loader: "postcss-loader",
                         options: {
-                            ident: "postcss",
-                            plugins: [
-                                require("postcss-flexbugs-fixes"),
-                                require("postcss-preset-env")({
-                                    autoprefixer: {
-                                        flexbox: "no-2009",
-                                    },
-                                }),
-                            ],
-                            sourceMap: env !== Env.PRODUCTION,
+                            postcssOptions: {
+                                plugins: ["postcss-preset-env"],
+                            },
+                            sourceMap: !production,
                         },
                     },
                 ],
@@ -95,7 +86,7 @@ module.exports = ({ analyze, env } = {}) => ({
         path: path.resolve(__dirname, "..", "dist", "renderer"),
         filename: "[name].[chunkhash].js",
     },
-    plugins: getPluginsByEnv(env, analyze),
+    plugins: getPluginsByEnv(production, analyze),
     resolve: {
         extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
         mainFields: ["module", "main"],

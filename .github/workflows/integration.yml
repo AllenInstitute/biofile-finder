@@ -20,10 +20,7 @@ jobs:
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@master
         with:
-          node-version: 14
-
-      - name: Use npm@7
-        run: npm install --global npm@next-7
+          node-version: 16
 
       - name: Build/release Electron app
         uses: GabeMedrash/action-electron-builder@fms-file-explorer
@@ -31,8 +28,7 @@ jobs:
           # GitHub token, automatically provided to the action
           # (No need to define this secret in the repo settings)
           github_token: ${{ secrets.github_token }}
-
           package_root: "packages/desktop"
-
-          # Never release on an integration build
-          release: false
+          release: false  # Never release on an integration build
+          windows_certs: ${{ secrets.CSC_LINK }}
+          windows_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}

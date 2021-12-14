@@ -2,12 +2,15 @@
   "name": "root",
   "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
   "engines": {
-    "node": "^14.4",
-    "npm": "7.x"
+    "node": "16.x",
+    "npm": "8.x"
   },
+  "workspaces": [
+    "packages/desktop",
+    "packages/web"
+  ],
   "private": true,
   "scripts": {
-    "bootstrap": "lerna bootstrap --hoist",
     "lint": "eslint --ext .jsx --ext .js --ext .tsx --ext .ts packages/",
     "test:core": "cd packages/core && BABEL_ENV=nodejs mocha",
     "test:desktop": "cd packages/desktop && npm test",
@@ -24,12 +27,12 @@
     "@babel/preset-react": "7.x",
     "@babel/preset-typescript": "7.x",
     "@babel/register": "7.x",
-    "@testing-library/react": "11.1.x",
+    "@testing-library/react": "12.x",
     "@types/chai": "4.2.x",
     "@types/classnames": "2.2.x",
     "@types/debounce-promise": "3.1.x",
     "@types/enzyme": "3.10.x",
-    "@types/jsdom": "12.2.x",
+    "@types/jsdom": "16.x",
     "@types/lodash": "4.14.x",
     "@types/lru-cache": "5.1.x",
     "@types/mocha": "9.x",
@@ -42,18 +45,18 @@
     "@types/react-window-infinite-loader": "1.0.x",
     "@types/sinon": "10.x",
     "@types/string-natural-compare": "3.0.x",
-    "@typescript-eslint/eslint-plugin": "4.23.x",
-    "@typescript-eslint/parser": "4.23.x",
+    "@typescript-eslint/eslint-plugin": "5.x",
+    "@typescript-eslint/parser": "5.x",
     "chai": "4.2.x",
     "css-modules-require-hook": "4.2.x",
     "enzyme": "3.10.x",
     "enzyme-adapter-react-16": "1.14.x",
-    "eslint-config-prettier": "6.5.x",
-    "eslint-plugin-react": "7.16.x",
-    "eslint-plugin-react-hooks": "2.2.x",
+    "eslint": "8.x",
+    "eslint-config-prettier": "8.x",
+    "eslint-plugin-react": "7.x",
+    "eslint-plugin-react-hooks": "4.x",
     "husky": "3.1.0",
     "jsdom": "19.x",
-    "lerna": "4.0.x",
     "lint-staged": "10.4.x",
     "mocha": "9.x",
     "mock-raf": "1.0.x",
@@ -62,7 +65,7 @@
     "resize-observer": "1.0.x",
     "rimraf": "3.0.x",
     "sinon": "12.x",
-    "typescript": "4.2.x"
+    "typescript": "4.x"
   },
   "dependencies": {
     "@aics/frontend-insights": "0.2.x",

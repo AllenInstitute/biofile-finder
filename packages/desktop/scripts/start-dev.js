@@ -11,31 +11,15 @@
 
 const childProcess = require("child_process");
 const http = require("http");
-const os = require("os");
 const process = require("process");
 
 const { devServer } = require("../webpack/constants");
 
-function getNpmBinDir() {
-    try {
-        const output = childProcess.spawnSync("npm", ["bin"], {
-            encoding: "utf-8",
-            shell: process.platform == "win32",
-        });
-        if (output.stdout.endsWith(os.EOL) || output.stdout.endsWith("\n")) {
-            return output.stdout.slice(0, output.stdout.length - 1);
-        }
-        return output.stdout;
-    } catch (err) {
-        console.err("Failed to determine npm bin location");
-    }
-}
-
-function compileMain(npmBin) {
+function compileMain() {
     console.log("Compiling code to run in main process");
     return childProcess.spawn(
-        `${npmBin}/webpack`,
-        ["--config", "./webpack/webpack.main.config.js", "--env.env", "development"],
+        "npx",
+        ["--no-install", "webpack", "--config", "./webpack/webpack.main.config.js"],
         {
             shell: true,
             stdio: "inherit",
@@ -43,11 +27,11 @@ function compileMain(npmBin) {
     );
 }
 
-function startRendererDevServer(npmBin) {
+function startRendererDevServer() {
     console.log("Starting webpack-dev-server for renderer process");
     return childProcess.spawn(
-        `${npmBin}/webpack-dev-server`,
-        ["--config", "./webpack/webpack.renderer.config.js", "--env.env", "development"],
+        "npx",
+        ["--no-install", "webpack-dev-server", "--config", "./webpack/webpack.renderer.config.js"],
         {
             shell: true,
             stdio: "inherit",
@@ -90,9 +74,9 @@ async function checkIfWebpackDevServerIsReady() {
     return Promise.reject();
 }
 
-function startElectron(npmBin) {
+function startElectron() {
     console.log("Starting electron");
-    return childProcess.spawn(`${npmBin}/electron`, ["."], {
+    return childProcess.spawn("npx", ["--no-install", "electron", "."], {
         env: Object.assign({}, process.env, {
             NODE_ENV: "development",
             WEBPACK_DEV_SERVER_PORT: devServer.port,
@@ -104,12 +88,11 @@ function startElectron(npmBin) {
 
 try {
     // kick it all off
-    const npmBin = getNpmBinDir();
-    const main = compileMain(npmBin);
-    const renderer = startRendererDevServer(npmBin);
+    const main = compileMain();
+    const renderer = startRendererDevServer();
     checkIfWebpackDevServerIsReady().then(() => {
         console.log("renderer webpack-dev-server is up and running");
-        const electron = startElectron(npmBin);
+        const electron = startElectron();
 
         electron.on("exit", () => {
             main.kill();
