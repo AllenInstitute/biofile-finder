@@ -1,132 +1,68 @@
 import { configureMockStore } from "@aics/redux-utils";
+import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
-import { mount } from "enzyme";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import FileDetails, { WINDOW_ACTION_BUTTON_WIDTH } from "../";
+import FileDetails from "../";
 import { initialState } from "../../../state";
-
-const styles = require("../FileDetails.module.css");
 
 describe("<FileDetails />", () => {
     describe("Expand and collapse behavior", () => {
-        it("expands when the maximize button is clicked", () => {
-            const { store } = configureMockStore({ state: initialState });
-            const wrapper = mount(
-                <Provider store={store}>
-                    <FileDetails />
-                </Provider>
-            );
-
-            // initial condition: the details window is not expanded
-            expect(wrapper.find(`.${styles.expandable}`).hasClass(styles.maximized)).to.equal(
-                false
-            );
-
-            // press the maximize button
-            wrapper.find("[aria-label='Maximize details window']").simulate("click");
-
-            // expected: details window is maximized
-            expect(wrapper.find(`.${styles.expandable}`).hasClass(styles.maximized)).to.equal(true);
-        });
-
-        it("contracts when the minimize button is clicked", () => {
-            const { store } = configureMockStore({ state: initialState });
-            const wrapper = mount(
-                <Provider store={store}>
-                    <FileDetails />
-                </Provider>
-            );
-
-            const getStyleNode = () =>
-                wrapper.find(`.${styles.expandable}`).getDOMNode().getAttribute("style");
-
-            // initial condition: the details window is not minimized
-            expect(getStyleNode()).to.be.null;
-
-            // press the minimize button
-            wrapper.find("[aria-label='Minimize details window']").simulate("click");
-
-            // expected: details window is minimized
-            expect(getStyleNode()).to.equal(`width: ${WINDOW_ACTION_BUTTON_WIDTH}px;`);
-        });
-
-        it("resets to its default size when the reset button is clicked", () => {
-            const { store } = configureMockStore({ state: initialState });
-            const wrapper = mount(
-                <Provider store={store}>
-                    <FileDetails />
-                </Provider>
-            );
-
-            // initial condition: the window is maximized
-            wrapper.find("[aria-label='Maximize details window']").simulate("click");
-            expect(wrapper.find(`.${styles.expandable}`).hasClass(styles.maximized)).to.equal(true);
-            expect(wrapper.find(`.${styles.expandable}`).hasClass(styles.default)).to.equal(false);
-
-            // press the restore button
-            wrapper.find("[aria-label='Restore details window']").simulate("click");
-
-            // expected: details window is in its "default" state
-            expect(wrapper.find(`.${styles.expandable}`).hasClass(styles.maximized)).to.equal(
-                false
-            );
-            expect(wrapper.find(`.${styles.expandable}`).hasClass(styles.default)).to.equal(true);
-        });
-
         it("renders minimize and maximize buttons when at its default size", () => {
+            // Arrange
             const { store } = configureMockStore({ state: initialState });
-            const wrapper = mount(
+            const { queryByLabelText } = render(
                 <Provider store={store}>
                     <FileDetails />
                 </Provider>
             );
 
-            [
-                "[aria-label='Minimize details window']",
-                "[aria-label='Maximize details window']",
-            ].forEach((selector) => {
-                expect(wrapper.exists(selector)).to.equal(true);
+            // Act / Assert
+            ["Minimize details window", "Maximize details window"].forEach(async (label) => {
+                expect(queryByLabelText(label)).to.not.equal(null);
             });
+
+            expect(queryByLabelText("Restore details window")).to.equal(null);
         });
 
-        it("renders restore and maximize buttons when it is minimized", () => {
+        it("renders restore and maximize buttons when it is minimized", async () => {
+            // Arrange
             const { store } = configureMockStore({ state: initialState });
-            const wrapper = mount(
+            const { findByLabelText, queryByLabelText } = render(
                 <Provider store={store}>
                     <FileDetails />
                 </Provider>
             );
 
-            // setup: minimize the details pane
-            wrapper.find("[aria-label='Minimize details window']").simulate("click");
+            // Act
+            fireEvent.click(await findByLabelText("Minimize details window"));
 
-            [
-                "[aria-label='Restore details window']",
-                "[aria-label='Maximize details window']",
-            ].forEach((selector) => {
-                expect(wrapper.exists(selector)).to.equal(true);
+            // Assert
+            ["Restore details window", "Maximize details window"].forEach((label) => {
+                expect(queryByLabelText(label)).to.not.equal(null);
             });
+
+            expect(queryByLabelText("Minimize details window")).to.equal(null);
         });
 
-        it("renders restore and minimize buttons when it is maximized", () => {
+        it("renders restore and minimize buttons when it is maximized", async () => {
+            // Arrange
             const { store } = configureMockStore({ state: initialState });
-            const wrapper = mount(
+            const { findByLabelText, queryByLabelText } = render(
                 <Provider store={store}>
                     <FileDetails />
                 </Provider>
             );
 
-            // setup: maximize the details pane
-            wrapper.find("[aria-label='Maximize details window']").simulate("click");
+            // Act
+            fireEvent.click(await findByLabelText("Maximize details window"));
 
-            [
-                "[aria-label='Minimize details window']",
-                "[aria-label='Restore details window']",
-            ].forEach((selector) => {
-                expect(wrapper.exists(selector)).to.equal(true);
+            ["Restore details window", "Minimize details window"].forEach((label) => {
+                expect(queryByLabelText(label)).to.not.equal(null);
             });
+
+            expect(queryByLabelText("Maximize details window")).to.equal(null);
         });
     });
 });

@@ -1,3 +1,5 @@
 const { initializeIcons } = require("@fluentui/react");
 
-initializeIcons();
+exports.mochaGlobalSetup = function () {
+    initializeIcons();
+};

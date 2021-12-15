@@ -104,7 +104,7 @@ describe("<FileMetadataSearchBar />", () => {
             },
         };
         const { store } = configureMockStore({ state });
-        const { getByText, getByDisplayValue } = render(
+        const { getByText } = render(
             <Provider store={store}>
                 <FileMetadataSearchBar />
             </Provider>
@@ -112,14 +112,14 @@ describe("<FileMetadataSearchBar />", () => {
 
         // Assert
         expect(getByText(uploadedDisplayName)).to.not.be.empty;
-        expect(getByDisplayValue("Thu Mar 04 2021")).to.not.be.empty;
-        expect(getByDisplayValue("Sun Aug 30 2020")).to.not.be.empty;
+        expect(getByText("Thu Mar 04 2021")).to.not.be.empty;
+        expect(getByText("Sun Aug 30 2020")).to.not.be.empty;
     });
 
     it("defaults end date to start date when only start date is chosen", async () => {
         // Arrange
         const { actions, logicMiddleware, store } = configureMockStore({ state: initialState });
-        const { getByPlaceholderText, getByText } = render(
+        const { getByText } = render(
             <Provider store={store}>
                 <FileMetadataSearchBar />
             </Provider>
@@ -134,7 +134,7 @@ describe("<FileMetadataSearchBar />", () => {
         // Act
         fireEvent.click(getByText("File name"));
         fireEvent.click(getByText("Uploaded"));
-        fireEvent.click(getByPlaceholderText("Start of date range"));
+        fireEvent.click(getByText("Start of date range"));
         fireEvent.click(getByText(`${day}`));
         await logicMiddleware.whenComplete();
 

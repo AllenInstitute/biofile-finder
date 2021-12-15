@@ -175,7 +175,7 @@ export default class HttpServiceBase {
             response = await retry.execute(() => this.httpClient.post(encodedUrl, body, config));
         } catch (err) {
             // Specific errors about the failure from services will be in this path
-            if (err.response && err.response.data && err.response.data.message) {
+            if (axios.isAxiosError(err) && err?.response?.data?.message) {
                 throw new Error(JSON.stringify(err.response.data.message));
             }
             throw err;
@@ -199,9 +199,8 @@ export default class HttpServiceBase {
             // if this fails, bubble up exception
             response = await retry.execute(() => this.httpClient.patch(encodedUrl, body, config));
         } catch (err) {
-            console.error(err);
             // Specific errors about the failure from services will be in this path
-            if (err.response && err.response.data && err.response.data.message) {
+            if (axios.isAxiosError(err) && err?.response?.data?.message) {
                 throw new Error(JSON.stringify(err.response.data.message));
             }
             throw err;

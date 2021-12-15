@@ -1,5 +1,5 @@
 import { configureMockStore, mergeState, createMockHttpClient } from "@aics/redux-utils";
-import { fireEvent, render, wait, within } from "@testing-library/react";
+import { fireEvent, render, waitFor, within } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
@@ -107,7 +107,7 @@ describe("<AnnotationFilterForm />", () => {
             );
 
             // wait a couple render cycles for the async react hook to retrieve the annotation values
-            await wait(async () =>
+            await waitFor(() =>
                 // assert that the input is selected
                 expect(getByLabelText("b").getAttribute("aria-checked")).to.equal("true")
             );
@@ -254,7 +254,7 @@ describe("<AnnotationFilterForm />", () => {
                 </Provider>
             );
             // Wait a couple render cycles for the async react hook to retrieve the annotation values
-            await wait(async () =>
+            await waitFor(() =>
                 // Assert: Check that the "False" input is selected
                 expect(getByLabelText("False").getAttribute("aria-checked")).to.equal("true")
             );

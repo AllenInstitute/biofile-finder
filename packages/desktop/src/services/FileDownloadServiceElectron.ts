@@ -296,7 +296,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                         );
                         await this.deleteArtifact(outFilePath);
                     } catch (err) {
-                        if (err.name && err.message) {
+                        if (err instanceof Error) {
                             const formatted = `${err.name}: ${err.message}`;
                             errors.push(formatted);
                         }

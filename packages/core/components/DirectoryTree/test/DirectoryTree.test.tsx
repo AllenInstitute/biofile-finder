@@ -10,7 +10,7 @@ import * as React from "react";
 import {
     fireEvent,
     render,
-    wait,
+    waitFor,
     findByTestId,
     getByText as getByTextWithin,
     findAllByText as findAllByTextWithin,
@@ -336,7 +336,7 @@ describe("<DirectoryTree />", () => {
 
         // after going through the store and an update cycle or two, the tree should be filtered
         // down to just the one annotation value selected
-        await wait(async () => expect((await findAllByRole("treeitem")).length).to.equal(1));
+        await waitFor(async () => expect((await findAllByRole("treeitem")).length).to.equal(1));
         expect(getByText(topLevelFilter)).to.exist;
 
         // the remainder top level items should should be gone from the DOM
@@ -384,7 +384,7 @@ describe("<DirectoryTree />", () => {
 
         // after going through the store and an update cycle or two, the tree should be filtered
         // down to just the two annotation values selected
-        await wait(async () => expect((await findAllByRole("treeitem")).length).to.equal(2));
+        await waitFor(async () => expect((await findAllByRole("treeitem")).length).to.equal(2));
 
         // the remainder top level items should should be gone from the DOM
         topLevelHierarchyValues.slice(2).forEach((value) => {

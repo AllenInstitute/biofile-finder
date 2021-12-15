@@ -54,7 +54,8 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                 await fs.promises.unlink(tempfile);
             } catch (err) {
                 // if the file doesn't exist (e.g., because it was already cleaned up), ignore. else, re-raise.
-                if (err.code !== "ENOENT") {
+                const typedErr = err as NodeJS.ErrnoException;
+                if (typedErr.code !== "ENOENT") {
                     throw err;
                 }
             }
@@ -157,7 +158,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             } catch (err) {
                 // Assert
                 expect(err).to.be.instanceOf(DownloadFailure);
-                expect(err.message).to.include(ERROR_MSG);
+                expect((err as DownloadFailure).message).to.include(ERROR_MSG);
                 expect((err as DownloadFailure).downloadIdentifier).to.equal(downloadRequestId);
             } finally {
                 // Assert that any partial file is cleaned up
@@ -166,7 +167,8 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     throw new assert.AssertionError({ message: `${tempfile} not cleaned up` });
                 } catch (err) {
                     // Expect the file to be missing
-                    expect(err.code).to.equal("ENOENT", err.message);
+                    const typedErr = err as NodeJS.ErrnoException;
+                    expect(typedErr.code).to.equal("ENOENT", typedErr.message);
                 }
             }
         });
@@ -341,7 +343,8 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                 });
             } catch (err) {
                 // Expect the file to be missing
-                expect(err.code).to.equal("ENOENT", err.message);
+                const typedErr = err as NodeJS.ErrnoException;
+                expect(typedErr.code).to.equal("ENOENT", typedErr.message);
             }
         });
 
@@ -396,7 +399,8 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     });
                 } catch (err) {
                     // Expect the file to be missing
-                    expect(err.code).to.equal("ENOENT", err.message);
+                    const typedErr = err as NodeJS.ErrnoException;
+                    expect(typedErr.code).to.equal("ENOENT", typedErr.message);
                 }
             }
         });
