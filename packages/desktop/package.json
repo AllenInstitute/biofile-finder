@@ -43,6 +43,7 @@
     "bundle:main": "webpack --config ./webpack/webpack.main.config.js --env production",
     "bundle:renderer": "webpack --config ./webpack/webpack.renderer.config.js --env production",
     "clean": "git clean -Xfd -e \"!node_modules\"",
+    "postversion": "git push origin `git rev-parse --abbrev-ref HEAD` && git push origin --tags `git rev-parse --abbrev-ref HEAD`",
     "publishArtifact": "echo 'npm run publishArtifact is a noop for fms-file-explorer-desktop'",
     "start": "node scripts/start-dev.js",
     "test:renderer": "BABEL_ENV=nodejs xvfb-maybe electron-mocha --require-main src/main/init-electron-store.js --renderer --grep @renderer --preload ./scripts/test-env-setup.js",

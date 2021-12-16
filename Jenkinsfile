@@ -108,8 +108,8 @@ pipeline {
 
                 set -e
 
-                # Increment version
-                npm --no-commit-hooks version ${params.VERSION_BUMP_TYPE}
+                # Increment version within desktop package. Skip web package until that's deployed.
+                npm --no-commit-hooks version --workspace packages/desktop ${params.VERSION_BUMP_TYPE} -m "v%s"
                 """.trim()
             }
         }
