@@ -8,6 +8,11 @@ const getPluginsByEnv = require("./plugins");
 module.exports = ({ analyze, production } = {}) => ({
     devtool: !production && "source-map",
     devServer: {
+        client: {
+            // Disable showing overlay for warnings until
+            // https://github.com/amplitude/Amplitude-Node/issues/122 is addressed
+            warnings: false,
+        },
         host: devServer.host,
         port: devServer.port,
     },
@@ -30,7 +35,7 @@ module.exports = ({ analyze, production } = {}) => ({
                                     "@babel/preset-env",
                                     {
                                         targets: {
-                                            electron: "12.0.0",
+                                            electron: "16.0.0",
                                         },
                                     },
                                 ],
