@@ -9,9 +9,11 @@ module.exports = ({ analyze, production } = {}) => ({
     devtool: !production && "source-map",
     devServer: {
         client: {
-            // Disable showing overlay for warnings until
-            // https://github.com/amplitude/Amplitude-Node/issues/122 is addressed
-            warnings: false,
+            overlay: {
+                // Disable showing overlay for warnings until
+                // https://github.com/amplitude/Amplitude-Node/issues/122 is addressed
+                warnings: false,
+            },
         },
         host: devServer.host,
         port: devServer.port,
