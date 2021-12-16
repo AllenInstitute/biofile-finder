@@ -21,7 +21,7 @@ describe("<ContextMenu />", () => {
 
     it("changes store state to hide itself onDismiss", async () => {
         // Arrange
-        const state = mergeState(initialState, {
+        const state = mergeState<unknown>(initialState, {
             interaction: {
                 contextMenuIsVisible: true,
                 contextMenuItems: items,
