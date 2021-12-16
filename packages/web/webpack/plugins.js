@@ -14,11 +14,11 @@ const packageJson = require("../package.json");
 const BASE_PLUGINS = [
     new ForkTsCheckerWebpackPlugin({
         typescript: {
-            configFile: path.resolve(__dirname, "../", "tsconfig.json"),
+            configFile: path.resolve(__dirname, "..", "..", "..", "tsconfig.json"),
         },
     }),
     new CleanWebpackPlugin(),
-    new MiniCssExtractPlugin({ filename: "style.[contenthash].css" }),
+    new MiniCssExtractPlugin({ filename: "[name].[contenthash].css" }),
     new HtmlWebpackPlugin({
         template: path.resolve(__dirname, "index.html"),
     }),
