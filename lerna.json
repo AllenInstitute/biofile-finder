@@ -1,7 +1,0 @@
-{
-  "packages": [
-    "packages/desktop",
-    "packages/web"
-  ],
-  "version": "6.0.0"
-}
