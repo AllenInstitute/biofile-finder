@@ -67,7 +67,7 @@
   },
   "dependencies": {
     "@aics/frontend-insights": "0.2.x",
-    "@aics/redux-utils": "0.6.0-1",
+    "@aics/redux-utils": "0.6.0",
     "@fluentui/react": "8.47.x",
     "@tippyjs/react": "4.2.x",
     "axios": "0.21.x",
