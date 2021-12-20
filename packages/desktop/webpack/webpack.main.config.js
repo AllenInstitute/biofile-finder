@@ -1,13 +1,13 @@
 const path = require("path");
 
-const { Env, stats } = require("./constants");
+const { stats } = require("./constants");
 
-module.exports = ({ env } = {}) => ({
-    devtool: env !== Env.PRODUCTION && "source-map",
+module.exports = ({ production } = {}) => ({
+    devtool: !production && "source-map",
     entry: {
         main: path.resolve("src", "main", "index.ts"),
     },
-    mode: env === Env.PRODUCTION ? "production" : "development",
+    mode: production ? "production" : "development",
     module: {
         rules: [
             {

@@ -14,7 +14,7 @@ import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileSelector from "./useFileSelector";
 import useFileAccessContextMenu from "./useFileAccessContextMenu";
 
-const styles = require("./FileList.module.css");
+import styles from "./FileList.module.css";
 
 const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 50; // ms
 
@@ -107,7 +107,7 @@ export default function FileList(props: FileListProps) {
                 <InfiniteLoader
                     key={fileSet.instanceId} // force a re-render whenever FileSet changes
                     isItemLoaded={fileSet.isFileMetadataLoaded}
-                    loadMoreItems={debouncePromise(
+                    loadMoreItems={debouncePromise<any>(
                         fileSet.fetchFileRange,
                         DEBOUNCE_WAIT_FOR_DATA_FETCHING
                     )}

@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { Spinner, SpinnerSize } from "@fluentui/react";
-import Tippy from "@tippy.js/react";
+import Tippy from "@tippyjs/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 import * as React from "react";
 
@@ -8,7 +8,7 @@ import AnnotationFilter from "../AnnotationSidebar/AnnotationFilter";
 import { DnDItem, DnDItemRendererParams } from "../../components/DnDList/DnDList";
 import SvgIcon from "../../components/SvgIcon";
 
-const styles = require("./AnnotationListItem.module.css");
+import styles from "./AnnotationListItem.module.css";
 
 // Designed Daniel Bruce (www.entypo.com)
 // License: https://creativecommons.org/licenses/by-sa/4.0/

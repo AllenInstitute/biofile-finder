@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { defaults } from "lodash";
 import * as React from "react";
 
-const styles = require("./SvgIcon.module.css");
+import styles from "./SvgIcon.module.css";
 
 interface SvgIconProps {
     className?: string;

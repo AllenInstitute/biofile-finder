@@ -1,4 +1,4 @@
-import Tippy from "@tippy.js/react";
+import Tippy from "@tippyjs/react";
 import classNames from "classnames";
 import { debounce } from "lodash";
 import { IconButton, TextField, TooltipHost } from "@fluentui/react";
@@ -11,7 +11,7 @@ import FileExplorerURL from "../../entity/FileExplorerURL";
 import { ERROR_ICON_PATH_DATA } from "../../icons";
 import { interaction, metadata, selection } from "../../state";
 
-const styles = require("./FileExplorerURLBar.module.css");
+import styles from "./FileExplorerURLBar.module.css";
 
 interface FileExplorerURLBarProps {
     className?: string;

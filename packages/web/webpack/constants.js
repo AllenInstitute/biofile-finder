@@ -6,7 +6,6 @@ const devServer = {
 const Env = {
     DEVELOPMENT: "dev",
     PRODUCTION: "production",
-    STAGE: "staging",
 };
 
 const stats = {

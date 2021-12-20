@@ -15,7 +15,7 @@ import FileFilter from "../../entity/FileFilter";
 import { selection } from "../../state";
 import { getFileAttributeFilter } from "../../state/selection/selectors";
 
-const styles = require("./FileMetadataSearchBar.module.css");
+import styles from "./FileMetadataSearchBar.module.css";
 
 const FILE_ATTRIBUTE_OPTIONS = TOP_LEVEL_FILE_ANNOTATIONS.filter(
     (a) => a.name !== AnnotationName.FILE_SIZE

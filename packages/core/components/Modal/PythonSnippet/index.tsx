@@ -7,7 +7,7 @@ import { ModalProps } from "..";
 import { interaction } from "../../../state";
 import BaseModal from "../BaseModal";
 
-const styles = require("./PythonSnippet.module.css");
+import styles from "./PythonSnippet.module.css";
 
 const COPY_ICON = { iconName: "copy" };
 

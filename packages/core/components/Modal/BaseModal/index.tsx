@@ -2,7 +2,7 @@ import { ContextualMenu, IconButton, IIconProps, IDragOptions, Modal } from "@fl
 import { noop } from "lodash";
 import * as React from "react";
 
-const styles = require("./BaseModal.module.css");
+import styles from "./BaseModal.module.css";
 
 interface BaseModalProps {
     body: React.ReactNode;

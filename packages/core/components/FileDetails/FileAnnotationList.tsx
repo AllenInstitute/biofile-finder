@@ -8,7 +8,7 @@ import FileDetail from "../../entity/FileDetail";
 import { interaction, metadata } from "../../state";
 import FileAnnotationRow from "./FileAnnotationRow";
 
-const styles = require("./FileAnnotationList.module.css");
+import styles from "./FileAnnotationList.module.css";
 
 interface FileAnnotationListProps {
     className?: string;

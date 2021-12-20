@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { Spinner, SpinnerSize } from "@fluentui/react";
 import * as React from "react";
 import { useSelector } from "react-redux";
-import Tippy from "@tippy.js/react";
+import Tippy from "@tippyjs/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 
 import SvgIcon from "../../components/SvgIcon";
@@ -11,7 +11,7 @@ import FileSet from "../../entity/FileSet";
 import { ERROR_ICON_PATH_DATA } from "../../icons";
 import useFileAccessContextMenu from "../FileList/useFileAccessContextMenu";
 
-const styles = require("./DirectoryTreeNode.module.css");
+import styles from "./DirectoryTreeNode.module.css";
 
 interface DirectoryTreeNodeHeaderProps {
     collapsed: boolean;

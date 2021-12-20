@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const styles = require("./FileThumbnail.module.css");
+import styles from "./FileThumbnail.module.css";
 
 interface FileThumbnailProps {
     uri: string;

@@ -22,10 +22,7 @@ jobs:
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@main
         with:
-          node-version: 14
-
-      - name: Use npm@7
-        run: npm install --global npm@next-7
+          node-version: 16
 
       - name: Build/release Electron app
         uses: GabeMedrash/action-electron-builder@fms-file-explorer

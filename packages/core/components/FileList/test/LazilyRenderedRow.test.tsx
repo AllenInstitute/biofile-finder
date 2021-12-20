@@ -1,6 +1,6 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
+import { render } from "@testing-library/react";
 import { expect } from "chai";
-import { mount } from "enzyme";
 import * as React from "react";
 import { Provider } from "react-redux";
 import * as sinon from "sinon";
@@ -51,34 +51,41 @@ describe("<LazilyRenderedRow />", () => {
     }
 
     it("renders data when available", () => {
+        // Arrange
         const state = mergeState(initialState, {});
         state.metadata.annotations = [fileNameAnnotation];
         state.selection.displayAnnotations = [fileNameAnnotation];
 
         const { store } = configureMockStore({ state });
-        const wrapper = mount(
+
+        // Act
+        const { getByText } = render(
             <Provider store={store}>
                 <LazilyRenderedRow data={makeItemData()} index={3} style={{}} />
             </Provider>
         );
 
-        const expectedTextNode = "my_image.czi";
-        expect(wrapper.contains(expectedTextNode)).to.equal(true);
+        // Assert
+        expect(getByText("my_image.czi")).to.not.equal(null);
     });
 
     it("renders a loading indicator when data is not available", () => {
+        // Arrange
         const state = mergeState(initialState, {});
         state.metadata.annotations = [fileNameAnnotation];
         state.selection.displayAnnotations = [fileNameAnnotation];
 
         const { store } = configureMockStore({ state });
-        const wrapper = mount(
+
+        // Act
+        const { queryByText } = render(
             <Provider store={store}>
                 <LazilyRenderedRow data={makeItemData()} index={23} style={{}} />
             </Provider>
         );
 
-        const expectedTextNode = "Loading...";
-        expect(wrapper.contains(expectedTextNode)).to.equal(true);
+        // Assert
+        expect(queryByText("my_image.czi")).to.equal(null);
+        expect(queryByText("Loading...")).to.not.equal(null);
     });
 });

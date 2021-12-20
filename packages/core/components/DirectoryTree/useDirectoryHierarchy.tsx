@@ -149,7 +149,7 @@ const useDirectoryHierarchy = (
                         e
                     );
                     if (!cancel) {
-                        dispatch(setError(e, isRoot));
+                        dispatch(setError(e as Error, isRoot));
                     }
                 }
             } else {
@@ -253,7 +253,7 @@ const useDirectoryHierarchy = (
                     );
 
                     if (!cancel) {
-                        dispatch(setError(e, isRoot));
+                        dispatch(setError(e as Error, isRoot));
                     }
                 }
             }

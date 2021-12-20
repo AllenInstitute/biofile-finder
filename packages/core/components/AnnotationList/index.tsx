@@ -10,7 +10,7 @@ import SvgIcon from "../../components/SvgIcon";
 import * as annotationSelectors from "../AnnotationSidebar/selectors";
 import selection from "../../state/selection";
 
-const styles = require("./AnnotationList.module.css");
+import styles from "./AnnotationList.module.css";
 
 export const DROPPABLE_ID = "ANNOTATION_LIST";
 

@@ -21,7 +21,7 @@ import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import AnnotationSelector from "../AnnotationSelector";
 import * as modalSelectors from "../selectors";
 
-const styles = require("./CollectionForm.module.css");
+import styles from "./CollectionForm.module.css";
 
 interface Props extends ModalProps {
     isEditing?: boolean;

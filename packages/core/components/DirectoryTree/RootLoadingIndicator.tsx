@@ -2,7 +2,7 @@ import classNames from "classnames";
 import * as React from "react";
 import { ProgressIndicator } from "@fluentui/react";
 
-const styles = require("./RootLoadingIndicator.module.css");
+import styles from "./RootLoadingIndicator.module.css";
 
 interface LoadingIndicatorProps {
     visible: boolean;

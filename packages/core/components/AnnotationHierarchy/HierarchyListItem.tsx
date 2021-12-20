@@ -7,7 +7,7 @@ import SvgIcon from "../../components/SvgIcon";
 import { REMOVE_ICON_PATH_DATA } from "../../icons";
 import { selection } from "../../state";
 
-const styles = require("./HierarchyListItem.module.css");
+import styles from "./HierarchyListItem.module.css";
 
 const MARGIN_STEP = 10; // in px
 

@@ -1,15 +1,14 @@
 {
   "name": "fms-file-explorer-web",
-  "version": "6.0.0",
   "description": "",
   "main": "src/index.tsx",
   "scripts": {
-    "build": "webpack --config ./webpack/webpack.config.js --env.env production",
-    "clean": "rimraf dist",
+    "build": "webpack --config ./webpack/webpack.config.js --env production",
+    "clean": "git clean -Xfd -e \"!node_modules\"",
     "packageForPublish": "node ./scripts/package-for-publish.js",
     "publishToArtifactory": "node ./scripts/publish-to-artifactory.js",
     "publishArtifact": "npm-run-all --sequential build packageForPublish publishToArtifactory",
-    "start": "webpack-dev-server --config ./webpack/webpack.config.js --env.env dev"
+    "start": "webpack-dev-server --config ./webpack/webpack.config.js"
   },
   "repository": {
     "type": "git",
@@ -19,20 +18,18 @@
   "license": "SEE LICENSE IN LICENSE.txt",
   "devDependencies": {
     "babel-loader": "8.2.x",
-    "clean-webpack-plugin": "3.0.x",
-    "css-loader": "3.2.x",
-    "dotenv-webpack": "6.0.x",
-    "fork-ts-checker-webpack-plugin": "1.5.x",
-    "html-webpack-plugin": "3.2.x",
-    "mini-css-extract-plugin": "0.8.x",
-    "postcss-flexbugs-fixes": "4.1.x",
-    "postcss-loader": "3.0.x",
-    "postcss-preset-env": "6.7.x",
-    "rimraf": "3.0.x",
-    "webpack": "4.44.x",
-    "webpack-bundle-analyzer": "3.5.x",
-    "webpack-cli": "3.3.x",
-    "webpack-dev-server": "3.8.x"
+    "clean-webpack-plugin": "4.x",
+    "css-loader": "6.x",
+    "dotenv-webpack": "7.x",
+    "fork-ts-checker-webpack-plugin": "6.x",
+    "html-webpack-plugin": "5.x",
+    "mini-css-extract-plugin": "2.x",
+    "postcss-loader": "6.x",
+    "postcss-preset-env": "7.x",
+    "webpack": "5.x",
+    "webpack-bundle-analyzer": "4.x",
+    "webpack-cli": "4.x",
+    "webpack-dev-server": "4.x"
   },
   "dependencies": {
     "regenerator-runtime": "0.13.x"

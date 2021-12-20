@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { AnnotationValue } from "../../services/AnnotationService";
 
-const styles = require("./ListPicker.module.css");
+import styles from "./ListPicker.module.css";
 
 export interface ListItem<T = any> {
     selected: boolean;

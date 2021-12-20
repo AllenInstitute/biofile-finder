@@ -2,7 +2,7 @@ import * as React from "react";
 
 import SvgIcon from "../SvgIcon";
 
-const styles = require("./WindowActionButton.module.css");
+import styles from "./WindowActionButton.module.css";
 
 export enum WindowAction {
     MINIMIZE = "MINIMIZE",

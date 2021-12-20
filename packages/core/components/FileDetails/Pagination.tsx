@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { selection } from "../../state";
 import { FocusDirective } from "../../entity/FileSelection";
 
-const styles = require("./Pagination.module.css");
+import styles from "./Pagination.module.css";
 
 interface PaginationProps {
     className?: string;
