@@ -1,10 +1,6 @@
 name: integration
 
-on:
-  push:
-    tags-ignore:
-      # No reason to run an integration build on a version/release commit
-      - v*
+on: pull_request
 
 jobs:
   build-fms-file-explorer-electron:
