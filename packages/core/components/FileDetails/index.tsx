@@ -165,7 +165,7 @@ export default function FileDetails(props: FileDetails) {
                                         uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${thumbnailUriPath}`}
                                     />
                                 </div>
-                            ) : (
+                            ) : fileDetails ? (
                                 <div>
                                     <SvgIcon
                                         height={100}
@@ -174,7 +174,7 @@ export default function FileDetails(props: FileDetails) {
                                         width={100}
                                         className={classNames(
                                             styles.fileThumbnailContainer,
-                                            styles.noImagePlaceHolder,
+                                            styles.noThumbnail,
                                             {
                                                 [styles.thumbnailDefault]:
                                                     windowState.state === WindowState.DEFAULT,
@@ -184,7 +184,7 @@ export default function FileDetails(props: FileDetails) {
                                         )}
                                     />
                                 </div>
-                            )}
+                            ) : null}
                             <div className={styles.fileActions}>
                                 <Download fileDetails={fileDetails} />
                             </div>
