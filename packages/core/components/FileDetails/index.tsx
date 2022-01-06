@@ -89,19 +89,57 @@ export default function FileDetails(props: FileDetails) {
     // If the file has a thumbnail image specified, we want to display the specified thumbnail. Otherwise, we want
     // to display the file itself as the thumbnail if possible.
     // If there is no thumbnail and the file cannot be displayed as the thumbnail- show a no image icon
-    let thumbnailUriPath = "";
-    let displayThumbnail = false;
+    let thumbnail = null;
     if (fileDetails?.thumbnail) {
-        thumbnailUriPath = fileDetails.thumbnail;
-        displayThumbnail = true;
+        // thumbnail exists
+        thumbnail = (
+            <div
+                className={classNames(styles.fileThumbnailContainer, {
+                    [styles.thumbnailDefault]: windowState.state === WindowState.DEFAULT,
+                    [styles.thumbnailMaximized]: windowState.state === WindowState.MAXIMIZED,
+                })}
+            >
+                <FileThumbnail
+                    uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${fileDetails.thumbnail}`}
+                />
+            </div>
+        );
     } else if (fileDetails) {
         const renderableImageFormats = [".jpg", ".jpeg", ".png", ".gif"];
         const isFileRenderableImage = renderableImageFormats.some((format) =>
             fileDetails?.name.toLowerCase().endsWith(format)
         );
         if (isFileRenderableImage) {
-            thumbnailUriPath = fileDetails.path;
-            displayThumbnail = true;
+            // render the image as the thumbnail
+            thumbnail = (
+                <div
+                    className={classNames(styles.fileThumbnailContainer, {
+                        [styles.thumbnailDefault]: windowState.state === WindowState.DEFAULT,
+                        [styles.thumbnailMaximized]: windowState.state === WindowState.MAXIMIZED,
+                    })}
+                >
+                    <FileThumbnail
+                        uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${fileDetails.path}`}
+                    />
+                </div>
+            );
+        } else {
+            //show placeholder
+            thumbnail = (
+                <div>
+                    <SvgIcon
+                        height={100}
+                        pathData={NO_IMAGE_ICON_PATH_DATA}
+                        viewBox="0,0,20,20"
+                        width={100}
+                        className={classNames(styles.fileThumbnailContainer, styles.noThumbnail, {
+                            [styles.thumbnailDefault]: windowState.state === WindowState.DEFAULT,
+                            [styles.thumbnailMaximized]:
+                                windowState.state === WindowState.MAXIMIZED,
+                        })}
+                    />
+                </div>
+            );
         }
     }
 
@@ -152,39 +190,7 @@ export default function FileDetails(props: FileDetails) {
                                 [styles.hidden]: windowState.state === WindowState.MINIMIZED,
                             })}
                         >
-                            {displayThumbnail ? (
-                                <div
-                                    className={classNames(styles.fileThumbnailContainer, {
-                                        [styles.thumbnailDefault]:
-                                            windowState.state === WindowState.DEFAULT,
-                                        [styles.thumbnailMaximized]:
-                                            windowState.state === WindowState.MAXIMIZED,
-                                    })}
-                                >
-                                    <FileThumbnail
-                                        uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${thumbnailUriPath}`}
-                                    />
-                                </div>
-                            ) : fileDetails ? (
-                                <div>
-                                    <SvgIcon
-                                        height={100}
-                                        pathData={NO_IMAGE_ICON_PATH_DATA}
-                                        viewBox="0,0,20,20"
-                                        width={100}
-                                        className={classNames(
-                                            styles.fileThumbnailContainer,
-                                            styles.noThumbnail,
-                                            {
-                                                [styles.thumbnailDefault]:
-                                                    windowState.state === WindowState.DEFAULT,
-                                                [styles.thumbnailMaximized]:
-                                                    windowState.state === WindowState.MAXIMIZED,
-                                            }
-                                        )}
-                                    />
-                                </div>
-                            ) : null}
+                            {thumbnail}
                             <div className={styles.fileActions}>
                                 <Download fileDetails={fileDetails} />
                             </div>

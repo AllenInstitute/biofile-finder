@@ -1,0 +1,273 @@
+"filename", "language", "JSON", "JavaScript", "Markdown", "HTML", "TypeScript", "TypeScript React", "Shell Script", "CSS", "Groovy", "Docker", "YAML", "comment", "blank", "total"
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\.eslintrc.js", "JavaScript", 0, 29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 30
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\.github\workflows\integration.yml", "YAML", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 2, 5, 30
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\.github\workflows\release.yml", "YAML", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 3, 6, 39
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\CONTRIBUTING.md", "Markdown", 0, 0, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 27
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\Dockerfile", "Docker", 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 0, 6, 5, 41
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\Jenkinsfile", "Groovy", 0, 0, 0, 0, 0, 0, 0, 0, 115, 0, 0, 16, 17, 148
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\README.md", "Markdown", 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 20
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\babel.config.json", "JSON", 21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 22
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\dev-docs\01-project-layout.md", "Markdown", 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 27
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\dev-docs\02-setup-and-workflow.md", "Markdown", 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 62
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\dev-docs\03-using-localhost-datasource.md", "Markdown", 0, 0, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 16
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\dev-docs\04-versioning-and-deployment.md", "Markdown", 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 19
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\dev-docs\05-code-signing.md", "Markdown", 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 22
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\dev-docs\06-monitoring-metrics-tracking.md", "Markdown", 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 15
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\docs\index.html", "HTML", 0, 0, 0, 134, 0, 0, 0, 0, 0, 0, 0, 4, 18, 156
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\docs\js\scripts.js", "JavaScript", 0, 249, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 21, 287
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\docs\styles.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 178, 0, 0, 0, 12, 50, 240
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\package-lock.json", "JSON", 30511, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 30512
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\package.json", "JSON", 95, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 96
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\.mocharc.js", "JavaScript", 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 13
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\App.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 89, 0, 0, 0, 5, 18, 112
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\App.tsx", "TypeScript React", 0, 0, 0, 0, 0, 75, 0, 0, 0, 0, 0, 10, 13, 98
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AggregateInfoBox\AggregateInfoBox.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 31, 0, 0, 0, 1, 6, 38
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AggregateInfoBox\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 102, 0, 0, 0, 0, 0, 7, 8, 117
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AggregateInfoBox\test\AggregateInfoBox.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 113, 0, 0, 0, 0, 0, 10, 23, 146
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationFilterForm\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 76, 0, 0, 0, 0, 0, 9, 12, 97
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationFilterForm\test\AnnotationFilterForm.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 297, 0, 0, 0, 0, 0, 35, 59, 391
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationFilterForm\useAnnotationValues.ts", "TypeScript", 0, 0, 0, 0, 41, 0, 0, 0, 0, 0, 0, 9, 7, 57
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationHierarchy\AnnotationHierarchy.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 4, 6, 30
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationHierarchy\HierarchyListItem.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 13, 0, 0, 0, 0, 4, 17
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationHierarchy\HierarchyListItem.tsx", "TypeScript React", 0, 0, 0, 0, 0, 33, 0, 0, 0, 0, 0, 3, 6, 42
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationHierarchy\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 31, 0, 0, 0, 0, 0, 4, 7, 42
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationList\AnnotationList.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 75, 0, 0, 0, 8, 20, 103
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationList\AnnotationListItem.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 21, 0, 0, 0, 0, 4, 25
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationList\AnnotationListItem.tsx", "TypeScript React", 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 7, 8, 65
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationList\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 101, 0, 0, 0, 0, 0, 13, 14, 128
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationList\test\AnnotationList.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 170, 0, 0, 0, 0, 0, 23, 20, 213
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationSidebar\AnnotationFilter.tsx", "TypeScript React", 0, 0, 0, 0, 0, 59, 0, 0, 0, 0, 0, 9, 12, 80
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationSidebar\AnnotationSidebar.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 3, 3, 17
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationSidebar\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 11, 11, 67
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationSidebar\selectors.ts", "TypeScript", 0, 0, 0, 0, 52, 0, 0, 0, 0, 0, 0, 1, 4, 57
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\AnnotationSidebar\test\selectors.test.ts", "TypeScript", 0, 0, 0, 0, 82, 0, 0, 0, 0, 0, 0, 0, 14, 96
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\ContextMenu\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 31, 0, 0, 0, 0, 0, 4, 5, 40
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\ContextMenu\items.ts", "TypeScript", 0, 0, 0, 0, 98, 0, 0, 0, 0, 0, 0, 8, 5, 111
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\ContextMenu\test\ContextMenu.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 51, 0, 0, 0, 0, 0, 7, 10, 68
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DirectoryTree\DirectoryTree.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 40, 0, 0, 0, 0, 9, 49
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DirectoryTree\DirectoryTreeNode.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 49, 0, 0, 0, 3, 12, 64
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DirectoryTree\DirectoryTreeNode.tsx", "TypeScript React", 0, 0, 0, 0, 0, 78, 0, 0, 0, 0, 0, 13, 12, 103
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DirectoryTree\DirectoryTreeNodeHeader.tsx", "TypeScript React", 0, 0, 0, 0, 0, 97, 0, 0, 0, 0, 0, 16, 15, 128
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DirectoryTree\RootLoadingIndicator.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 19, 0, 0, 0, 0, 3, 22
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DirectoryTree\RootLoadingIndicator.tsx", "TypeScript React", 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 4, 24
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DirectoryTree\directory-hierarchy-state.ts", "TypeScript", 0, 0, 0, 0, 65, 0, 0, 0, 0, 0, 0, 23, 11, 99
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DirectoryTree\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 64, 0, 0, 0, 0, 0, 19, 10, 93
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DirectoryTree\selectors.ts", "TypeScript", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 3, 11
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DirectoryTree\test\DirectoryTree.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 367, 0, 0, 0, 0, 0, 43, 68, 478
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DirectoryTree\test\utils.test.ts", "TypeScript", 0, 0, 0, 0, 55, 0, 0, 0, 0, 0, 0, 3, 5, 63
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DirectoryTree\useDirectoryHierarchy.tsx", "TypeScript React", 0, 0, 0, 0, 0, 223, 0, 0, 0, 0, 0, 36, 31, 290
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DnDList\DnDList.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 4, 4, 22
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DnDList\DnDList.tsx", "TypeScript React", 0, 0, 0, 0, 0, 101, 0, 0, 0, 0, 0, 5, 9, 115
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DnDList\DnDListItem.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 22, 0, 0, 0, 5, 5, 32
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DnDList\DnDListItem.tsx", "TypeScript React", 0, 0, 0, 0, 0, 31, 0, 0, 0, 0, 0, 3, 6, 40
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\DnDList\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 3
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileDetails\Download.tsx", "TypeScript React", 0, 0, 0, 0, 0, 56, 0, 0, 0, 0, 0, 5, 10, 71
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileDetails\FileAnnotationList.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 2, 3, 15
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileDetails\FileAnnotationList.tsx", "TypeScript React", 0, 0, 0, 0, 0, 66, 0, 0, 0, 0, 0, 8, 10, 84
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileDetails\FileAnnotationRow.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 22, 0, 0, 0, 4, 7, 33
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileDetails\FileAnnotationRow.tsx", "TypeScript React", 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 4, 7, 61
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileDetails\FileDetails.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 115, 0, 0, 0, 5, 28, 148
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileDetails\Pagination.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 1, 5
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileDetails\Pagination.tsx", "TypeScript React", 0, 0, 0, 0, 0, 89, 0, 0, 0, 0, 0, 3, 7, 99
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileDetails\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 173, 0, 0, 0, 0, 0, 14, 18, 205
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileDetails\test\Download.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 93, 0, 0, 0, 0, 0, 12, 17, 122
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileDetails\test\FileAnnotationList.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 60, 0, 0, 0, 0, 0, 4, 6, 70
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileDetails\test\FileDetails.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 7, 13, 69
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileDetails\useFileDetails.ts", "TypeScript", 0, 0, 0, 0, 38, 0, 0, 0, 0, 0, 0, 8, 9, 55
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileDetails\windowStateReducer.ts", "TypeScript", 0, 0, 0, 0, 29, 0, 0, 0, 0, 0, 0, 13, 5, 47
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileExplorerURLBar\FileExplorerURLBar.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 24, 0, 0, 0, 1, 6, 31
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileExplorerURLBar\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 133, 0, 0, 0, 0, 0, 14, 14, 161
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileExplorerURLBar\test\FileExplorerURLBar.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 42, 0, 0, 0, 0, 0, 8, 11, 61
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileList\FileList.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 19, 0, 0, 0, 1, 5, 25
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileList\FileListColumnPicker.tsx", "TypeScript React", 0, 0, 0, 0, 0, 30, 0, 0, 0, 0, 0, 4, 9, 43
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileList\Header.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 39, 0, 0, 0, 5, 10, 54
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileList\Header.tsx", "TypeScript React", 0, 0, 0, 0, 0, 103, 0, 0, 0, 0, 0, 7, 11, 121
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileList\LazilyRenderedRow.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 1, 3, 15
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileList\LazilyRenderedRow.tsx", "TypeScript React", 0, 0, 0, 0, 0, 69, 0, 0, 0, 0, 0, 7, 13, 89
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileList\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 120, 0, 0, 0, 0, 0, 15, 18, 153
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileList\test\Header.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 164, 0, 0, 0, 0, 0, 12, 14, 190
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileList\test\LazilyRenderedRow.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 73, 0, 0, 0, 0, 0, 6, 13, 92
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileList\useFileAccessContextMenu.ts", "TypeScript", 0, 0, 0, 0, 91, 0, 0, 0, 0, 0, 0, 9, 7, 107
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileList\useFileSelector.ts", "TypeScript", 0, 0, 0, 0, 48, 0, 0, 0, 0, 0, 0, 13, 7, 68
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileMetadataSearchBar\FileMetadataSearchBar.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 29, 0, 0, 0, 0, 7, 36
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileMetadataSearchBar\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 141, 0, 0, 0, 0, 0, 10, 13, 164
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileMetadataSearchBar\test\FileMetadataSearchBar.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 143, 0, 0, 0, 0, 0, 18, 21, 182
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileRow\Cell.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 36, 0, 0, 0, 0, 7, 43
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileRow\Cell.tsx", "TypeScript React", 0, 0, 0, 0, 0, 175, 0, 0, 0, 0, 0, 31, 38, 244
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileRow\FileRow.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 0, 5
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileRow\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 47, 0, 0, 0, 0, 0, 5, 9, 61
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileThumbnail\FileThumbnail.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 1, 7
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FileThumbnail\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 3, 4, 15
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FilterDisplayBar\FilterDisplayBar.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 21, 0, 0, 0, 4, 6, 31
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FilterDisplayBar\FilterMedallion.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 40, 0, 0, 0, 2, 10, 52
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FilterDisplayBar\FilterMedallion.tsx", "TypeScript React", 0, 0, 0, 0, 0, 89, 0, 0, 0, 0, 0, 8, 12, 109
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FilterDisplayBar\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 43, 0, 0, 0, 0, 0, 4, 8, 55
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\FilterDisplayBar\test\FilterDisplayBar.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 145, 0, 0, 0, 0, 0, 14, 16, 175
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\HeaderRibbon\CollectionControl.tsx", "TypeScript React", 0, 0, 0, 0, 0, 244, 0, 0, 0, 0, 0, 12, 23, 279
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\HeaderRibbon\HeaderRibbon.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 92, 0, 0, 0, 2, 16, 110
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\HeaderRibbon\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 34, 0, 0, 0, 0, 0, 3, 6, 43
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\HeaderRibbon\test\CollectionControl.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 114, 0, 0, 0, 0, 0, 15, 19, 148
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\HeaderRibbon\test\HeaderRibbon.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 32, 0, 0, 0, 0, 0, 2, 4, 38
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\ListPicker\ListPicker.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 32, 0, 0, 0, 0, 5, 37
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\ListPicker\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 111, 0, 0, 0, 0, 0, 11, 18, 140
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\ListPicker\test\ListPicker.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 72, 0, 0, 0, 0, 0, 15, 16, 103
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\AnnotationSelector\AnnotationSelector.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 26, 0, 0, 0, 1, 6, 33
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\AnnotationSelector\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 63, 0, 0, 0, 0, 0, 5, 10, 78
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\BaseModal\BaseModal.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 42, 0, 0, 0, 6, 11, 59
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\BaseModal\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 55, 0, 0, 0, 0, 0, 4, 7, 66
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\CollectionForm\CollectionForm.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 56, 0, 0, 0, 0, 15, 71
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\CollectionForm\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 259, 0, 0, 0, 0, 0, 5, 17, 281
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\CollectionForm\test\CollectionForm.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 231, 0, 0, 0, 0, 0, 22, 32, 285
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\CsvManifest\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 49, 0, 0, 0, 0, 0, 4, 7, 60
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\CsvManifest\test\CsvManifest.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 140, 0, 0, 0, 0, 0, 9, 22, 171
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\PythonSnippet\PythonSnippet.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 1, 4, 22
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\PythonSnippet\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 72, 0, 0, 0, 0, 0, 8, 10, 90
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\PythonSnippet\test\PythonSnippet.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 44, 0, 0, 0, 0, 0, 4, 7, 55
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 34, 0, 0, 0, 0, 0, 3, 7, 44
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\selectors.ts", "TypeScript", 0, 0, 0, 0, 31, 0, 0, 0, 0, 0, 0, 6, 4, 41
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\Modal\test\selectors.test.ts", "TypeScript", 0, 0, 0, 0, 52, 0, 0, 0, 0, 0, 0, 6, 9, 67
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\SearchableDropdown\SearchableDropdown.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 1, 2, 17
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\SearchableDropdown\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 53, 0, 0, 0, 0, 0, 6, 7, 66
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\SearchableDropdown\test\SearchableDropdown.test.tsx", "TypeScript React", 0, 0, 0, 0, 0, 68, 0, 0, 0, 0, 0, 7, 11, 86
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\StatusMessage\StatusMessage.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0, 3, 18
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\StatusMessage\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 96, 0, 0, 0, 0, 0, 4, 9, 109
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\SvgIcon\SvgIcon.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 1, 4
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\SvgIcon\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 39, 0, 0, 0, 0, 0, 4, 6, 49
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\WindowActionButton\WindowActionButton.module.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 1, 9
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\components\WindowActionButton\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 65, 0, 0, 0, 0, 0, 10, 11, 86
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\constants\README.md", "Markdown", 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 16
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\constants\index.ts", "TypeScript", 0, 0, 0, 0, 58, 0, 0, 0, 0, 0, 0, 3, 6, 67
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\AnnotationFormatter\boolean-formatter.ts", "TypeScript", 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 1, 7, 32
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\AnnotationFormatter\date-formatter.ts", "TypeScript", 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 8, 3, 28
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\AnnotationFormatter\date-time-formatter.ts", "TypeScript", 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 4, 2, 16
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\AnnotationFormatter\duration-formatter.ts", "TypeScript", 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 1, 6, 31
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\AnnotationFormatter\identity-formatter.ts", "TypeScript", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 2, 10
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\AnnotationFormatter\index.ts", "TypeScript", 0, 0, 0, 0, 35, 0, 0, 0, 0, 0, 0, 5, 4, 44
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\AnnotationFormatter\number-formatter.ts", "TypeScript", 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 4, 16
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\AnnotationFormatter\test\formatters.test.ts", "TypeScript", 0, 0, 0, 0, 89, 0, 0, 0, 0, 0, 0, 11, 26, 126
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\Annotation\index.ts", "TypeScript", 0, 0, 0, 0, 71, 0, 0, 0, 0, 0, 0, 27, 20, 118
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\Annotation\mocks.ts", "TypeScript", 0, 0, 0, 0, 32, 0, 0, 0, 0, 0, 0, 0, 1, 33
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\Annotation\test\annotation.test.ts", "TypeScript", 0, 0, 0, 0, 123, 0, 0, 0, 0, 0, 0, 5, 18, 146
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\FileDetail\index.ts", "TypeScript", 0, 0, 0, 0, 28, 0, 0, 0, 0, 0, 0, 49, 11, 88
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\FileDetail\mocks.ts", "TypeScript", 0, 0, 0, 0, 39, 0, 0, 0, 0, 0, 0, 0, 4, 43
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\FileExplorerURL\index.ts", "TypeScript", 0, 0, 0, 0, 149, 0, 0, 0, 0, 0, 0, 20, 16, 185
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\FileExplorerURL\test\fileexplorerurl.test.ts", "TypeScript", 0, 0, 0, 0, 527, 0, 0, 0, 0, 0, 0, 48, 53, 628
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\FileFilter\index.ts", "TypeScript", 0, 0, 0, 0, 36, 0, 0, 0, 0, 0, 0, 4, 9, 49
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\FileFolder\index.ts", "TypeScript", 0, 0, 0, 0, 83, 0, 0, 0, 0, 0, 0, 50, 19, 152
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\FileFolder\test\filefolder.test.ts", "TypeScript", 0, 0, 0, 0, 179, 0, 0, 0, 0, 0, 0, 41, 44, 264
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\FileSelection\index.ts", "TypeScript", 0, 0, 0, 0, 368, 0, 0, 0, 0, 0, 0, 137, 67, 572
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\FileSelection\test\FileSelection.test.ts", "TypeScript", 0, 0, 0, 0, 666, 0, 0, 0, 0, 0, 0, 136, 132, 934
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\FileSet\index.ts", "TypeScript", 0, 0, 0, 0, 120, 0, 0, 0, 0, 0, 0, 56, 34, 210
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\FileSet\test\FileSet.test.ts", "TypeScript", 0, 0, 0, 0, 155, 0, 0, 0, 0, 0, 0, 1, 21, 177
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\FileSort\index.ts", "TypeScript", 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 4, 5, 29
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\NumericRange\index.ts", "TypeScript", 0, 0, 0, 0, 153, 0, 0, 0, 0, 0, 0, 32, 39, 224
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\NumericRange\test\NumericRange.test.ts", "TypeScript", 0, 0, 0, 0, 352, 0, 0, 0, 0, 0, 0, 59, 71, 482
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\entity\RestServiceResponse\index.ts", "TypeScript", 0, 0, 0, 0, 28, 0, 0, 0, 0, 0, 0, 4, 8, 40
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\errors\DownloadFailure.ts", "TypeScript", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 4, 15
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\errors\IndexError.ts", "TypeScript", 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 4, 1, 11
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\errors\ValueError.ts", "TypeScript", 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 6, 1, 13
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\errors\index.ts", "TypeScript", 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 4
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\hooks\useLayoutMeasurements.ts", "TypeScript", 0, 0, 0, 0, 36, 0, 0, 0, 0, 0, 0, 4, 7, 47
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\icons\index.ts", "TypeScript", 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 12, 3, 21
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\AnnotationService\index.ts", "TypeScript", 0, 0, 0, 0, 87, 0, 0, 0, 0, 0, 0, 21, 18, 126
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\AnnotationService\test\AnnotationService.test.ts", "TypeScript", 0, 0, 0, 0, 158, 0, 0, 0, 0, 0, 0, 4, 21, 183
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\ApplicationInfoService\ApplicationInfoServiceNoop.ts", "TypeScript", 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 4, 16
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\ApplicationInfoService\index.ts", "TypeScript", 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 12, 3, 20
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\CsvService\index.ts", "TypeScript", 0, 0, 0, 0, 27, 0, 0, 0, 0, 0, 0, 4, 7, 38
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\DatasetService\index.ts", "TypeScript", 0, 0, 0, 0, 97, 0, 0, 0, 0, 0, 0, 21, 22, 140
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\DatasetService\test\DatasetService.test.ts", "TypeScript", 0, 0, 0, 0, 89, 0, 0, 0, 0, 0, 0, 11, 19, 119
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\ExecutionEnvService\ExecutionEnvServiceNoop.ts", "TypeScript", 0, 0, 0, 0, 27, 0, 0, 0, 0, 0, 0, 0, 8, 35
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\ExecutionEnvService\index.ts", "TypeScript", 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 44, 9, 65
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\FileDownloadService\FileDownloadServiceNoop.ts", "TypeScript", 0, 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 1, 5, 27
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\FileDownloadService\index.ts", "TypeScript", 0, 0, 0, 0, 28, 0, 0, 0, 0, 0, 0, 13, 6, 47
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\FileService\index.ts", "TypeScript", 0, 0, 0, 0, 85, 0, 0, 0, 0, 0, 0, 19, 19, 123
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\FileService\test\FileService.test.ts", "TypeScript", 0, 0, 0, 0, 84, 0, 0, 0, 0, 0, 0, 3, 11, 98
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\FileViewerService\FileViewerServiceNoop.ts", "TypeScript", 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 2, 8
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\FileViewerService\index.ts", "TypeScript", 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 12, 2, 18
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\HttpServiceBase\index.ts", "TypeScript", 0, 0, 0, 0, 184, 0, 0, 0, 0, 0, 0, 29, 44, 257
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\HttpServiceBase\test\HttpServiceBase.test.ts", "TypeScript", 0, 0, 0, 0, 36, 0, 0, 0, 0, 0, 0, 0, 8, 44
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\NotificationService\NotificationServiceNoop.ts", "TypeScript", 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 4, 16
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\NotificationService\index.ts", "TypeScript", 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 15, 3, 23
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\PersistentConfigService\PersistentConfigServiceNoop.ts", "TypeScript", 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 4, 16
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\PersistentConfigService\index.ts", "TypeScript", 0, 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 15, 6, 43
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\services\index.ts", "TypeScript", 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 1, 24
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\README.md", "Markdown", 0, 0, 73, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21, 94
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\index.ts", "TypeScript", 0, 0, 0, 0, 59, 0, 0, 0, 0, 0, 0, 3, 13, 75
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\interaction\actions.ts", "TypeScript", 0, 0, 0, 0, 522, 0, 0, 0, 0, 0, 0, 145, 92, 759
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\interaction\index.ts", "TypeScript", 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 3, 18
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\interaction\logics.ts", "TypeScript", 0, 0, 0, 0, 601, 0, 0, 0, 0, 0, 0, 62, 53, 716
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\interaction\reducer.ts", "TypeScript", 0, 0, 0, 0, 188, 0, 0, 0, 0, 0, 0, 4, 6, 198
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\interaction\selectors.ts", "TypeScript", 0, 0, 0, 0, 88, 0, 0, 0, 0, 0, 0, 9, 9, 106
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\interaction\test\logics.test.ts", "TypeScript", 0, 0, 0, 0, 1441, 0, 0, 0, 0, 0, 0, 90, 115, 1646
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\interaction\test\reducer.test.ts", "TypeScript", 0, 0, 0, 0, 120, 0, 0, 0, 0, 0, 0, 13, 15, 148
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\metadata\actions.ts", "TypeScript", 0, 0, 0, 0, 44, 0, 0, 0, 0, 0, 0, 22, 15, 81
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\metadata\index.ts", "TypeScript", 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 3, 15
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\metadata\logics.ts", "TypeScript", 0, 0, 0, 0, 60, 0, 0, 0, 0, 0, 0, 8, 8, 76
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\metadata\reducer.ts", "TypeScript", 0, 0, 0, 0, 33, 0, 0, 0, 0, 0, 0, 0, 6, 39
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\metadata\selectors.ts", "TypeScript", 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 2, 6, 32
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\metadata\test\logics.test.ts", "TypeScript", 0, 0, 0, 0, 89, 0, 0, 0, 0, 0, 0, 6, 14, 109
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\metadata\test\selectors.test.ts", "TypeScript", 0, 0, 0, 0, 56, 0, 0, 0, 0, 0, 0, 3, 5, 64
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\selection\actions.ts", "TypeScript", 0, 0, 0, 0, 309, 0, 0, 0, 0, 0, 0, 112, 66, 487
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\selection\index.ts", "TypeScript", 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 3, 15
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\selection\logics.ts", "TypeScript", 0, 0, 0, 0, 357, 0, 0, 0, 0, 0, 0, 67, 39, 463
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\selection\reducer.ts", "TypeScript", 0, 0, 0, 0, 157, 0, 0, 0, 0, 0, 0, 7, 14, 178
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\selection\selectors.ts", "TypeScript", 0, 0, 0, 0, 51, 0, 0, 0, 0, 0, 0, 2, 7, 60
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\selection\test\logics.test.ts", "TypeScript", 0, 0, 0, 0, 869, 0, 0, 0, 0, 0, 0, 80, 94, 1043
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\selection\test\reducer.test.ts", "TypeScript", 0, 0, 0, 0, 299, 0, 0, 0, 0, 0, 0, 41, 49, 389
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\state\selection\test\selectors.test.ts", "TypeScript", 0, 0, 0, 0, 90, 0, 0, 0, 0, 0, 0, 18, 20, 128
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\styles\README.md", "Markdown", 0, 0, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 26, 104
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\styles\css-modules.d.ts", "TypeScript", 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 1, 1, 6
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\styles\global.css", "CSS", 0, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 5, 28
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\util\strings.ts", "TypeScript", 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 8, 4, 23
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\core\util\test\strings.test.ts", "TypeScript", 0, 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 9, 11, 41
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\.mocharc.js", "JavaScript", 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 1, 12
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\package.json", "JSON", 86, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 87
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\scripts\set-env-vars.js", "JavaScript", 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 2, 8
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\scripts\start-dev.js", "JavaScript", 0, 81, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 12, 105
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\scripts\test-env-setup.js", "JavaScript", 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 1, 6
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\main\global.d.ts", "TypeScript", 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 2, 1, 6
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\main\index.ts", "TypeScript", 0, 0, 0, 0, 89, 0, 0, 0, 0, 0, 0, 17, 22, 128
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\main\init-electron-store.js", "JavaScript", 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 2, 8
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\main\menu\data-source.ts", "TypeScript", 0, 0, 0, 0, 53, 0, 0, 0, 0, 0, 0, 1, 5, 59
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\main\menu\index.ts", "TypeScript", 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 2, 6, 25
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\main\menu\settings.ts", "TypeScript", 0, 0, 0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 3, 21
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\renderer\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 101, 0, 0, 0, 0, 0, 4, 12, 117
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\ApplicationInfoServiceElectron.ts", "TypeScript", 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 5, 10, 60
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\ExecutionEnvServiceElectron.ts", "TypeScript", 0, 0, 0, 0, 178, 0, 0, 0, 0, 0, 0, 14, 26, 218
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\FileDownloadServiceElectron.ts", "TypeScript", 0, 0, 0, 0, 314, 0, 0, 0, 0, 0, 0, 22, 39, 375
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\FileViewerServiceElectron.ts", "TypeScript", 0, 0, 0, 0, 36, 0, 0, 0, 0, 0, 0, 6, 7, 49
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\NotificationServiceElectron.ts", "TypeScript", 0, 0, 0, 0, 43, 0, 0, 0, 0, 0, 0, 2, 8, 53
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\PersistentConfigServiceElectron.ts", "TypeScript", 0, 0, 0, 0, 108, 0, 0, 0, 0, 0, 0, 5, 12, 125
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\file-viewer-strategy\ViewerStrategy.ts", "TypeScript", 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 5, 2, 9
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\file-viewer-strategy\defaultViewerStrategy.ts", "TypeScript", 0, 0, 0, 0, 13, 0, 0, 0, 0, 0, 0, 8, 6, 27
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\file-viewer-strategy\fijiViewerStrategy.ts", "TypeScript", 0, 0, 0, 0, 74, 0, 0, 0, 0, 0, 0, 24, 12, 110
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\file-viewer-strategy\macViewerStrategy.ts", "TypeScript", 0, 0, 0, 0, 13, 0, 0, 0, 0, 0, 0, 8, 6, 27
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\file-viewer-strategy\systemDefaultViewerStrategy.ts", "TypeScript", 0, 0, 0, 0, 34, 0, 0, 0, 0, 0, 0, 11, 8, 53
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\test\ApplicationInfoServiceElectron.test.ts", "TypeScript", 0, 0, 0, 0, 72, 0, 0, 0, 0, 0, 0, 10, 16, 98
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\test\ExecutionEnvElectron.test.ts", "TypeScript", 0, 0, 0, 0, 281, 0, 0, 0, 0, 0, 0, 46, 57, 384
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\test\FileDownloadServiceElectron.test.ts", "TypeScript", 0, 0, 0, 0, 307, 0, 0, 0, 0, 0, 0, 39, 63, 409
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\test\FileViewerServiceElectron.test.ts", "TypeScript", 0, 0, 0, 0, 53, 0, 0, 0, 0, 0, 0, 7, 13, 73
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\services\test\PersistentConfigServiceElectron.test.ts", "TypeScript", 0, 0, 0, 0, 103, 0, 0, 0, 0, 0, 0, 27, 29, 159
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\src\util\constants.ts", "TypeScript", 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 4, 4, 23
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\webpack\constants.js", "JavaScript", 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 24
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\webpack\index.html", "HTML", 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\webpack\plugins.js", "JavaScript", 0, 47, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 54
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\webpack\webpack.main.config.js", "JavaScript", 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 53
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\desktop\webpack\webpack.renderer.config.js", "JavaScript", 0, 92, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 6, 105
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\web\.mocharc.js", "JavaScript", 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 8
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\web\package.json", "JSON", 37, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 38
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\web\scripts\bust-cloudfront-cache.sh", "Shell Script", 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 4, 5, 12
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\web\scripts\package-for-publish.js", "JavaScript", 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 8, 42
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\web\scripts\publish-to-artifactory.js", "JavaScript", 0, 34, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 41
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\web\src\index.tsx", "TypeScript React", 0, 0, 0, 0, 0, 13, 0, 0, 0, 0, 0, 0, 4, 17
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\web\src\test\index.test.ts", "TypeScript", 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 2, 8
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\web\webpack\constants.js", "JavaScript", 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 24
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\web\webpack\index.html", "HTML", 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\web\webpack\plugins.js", "JavaScript", 0, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 52
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\packages\web\webpack\webpack.config.js", "JavaScript", 0, 77, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 88
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\scripts\babel-register.js", "JavaScript", 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1, 15
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\scripts\css-modules-register.js", "JavaScript", 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 11
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\scripts\jsdom-register.js", "JavaScript", 0, 42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 10, 60
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\scripts\setup-fluentui.js", "JavaScript", 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 6
+"c:\Users\brian\code\work\aics-fms-file-explorer-app\tsconfig.json", "JSON", 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18
+"Total", "-", 30768, 857, 315, 156, 12609, 6367, 3, 1290, 115, 30, 53, 2900, 3520, 58983
