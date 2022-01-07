@@ -89,7 +89,18 @@ export default function FileDetails(props: FileDetails) {
     // If the file has a thumbnail image specified, we want to display the specified thumbnail. Otherwise, we want
     // to display the file itself as the thumbnail if possible.
     // If there is no thumbnail and the file cannot be displayed as the thumbnail- show a no image icon
-    let thumbnail = null;
+    let thumbnail = (
+        <SvgIcon
+            height={100}
+            pathData={NO_IMAGE_ICON_PATH_DATA}
+            viewBox="0,0,20,20"
+            width={100}
+            className={classNames(styles.fileThumbnailContainer, styles.noThumbnail, {
+                [styles.thumbnailDefault]: windowState.state === WindowState.DEFAULT,
+                [styles.thumbnailMaximized]: windowState.state === WindowState.MAXIMIZED,
+            })}
+        />
+    ); // placeholder if no thumbnail exists
     if (fileDetails?.thumbnail) {
         // thumbnail exists
         thumbnail = (
@@ -120,23 +131,6 @@ export default function FileDetails(props: FileDetails) {
                 >
                     <FileThumbnail
                         uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${fileDetails.path}`}
-                    />
-                </div>
-            );
-        } else {
-            //show placeholder
-            thumbnail = (
-                <div>
-                    <SvgIcon
-                        height={100}
-                        pathData={NO_IMAGE_ICON_PATH_DATA}
-                        viewBox="0,0,20,20"
-                        width={100}
-                        className={classNames(styles.fileThumbnailContainer, styles.noThumbnail, {
-                            [styles.thumbnailDefault]: windowState.state === WindowState.DEFAULT,
-                            [styles.thumbnailMaximized]:
-                                windowState.state === WindowState.MAXIMIZED,
-                        })}
                     />
                 </div>
             );
