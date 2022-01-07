@@ -184,7 +184,7 @@ export default function FileDetails(props: FileDetails) {
                                 [styles.hidden]: windowState.state === WindowState.MINIMIZED,
                             })}
                         >
-                            {thumbnail}
+                            {fileDetails && thumbnail}
                             <div className={styles.fileActions}>
                                 <Download fileDetails={fileDetails} />
                             </div>
