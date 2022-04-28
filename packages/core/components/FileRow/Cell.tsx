@@ -34,7 +34,7 @@ enum ResizeDirection {
  * it enables a configuration of, "each cell should take up 25% of the total width," without having to resolve that
  * within pixel space.
  */
-export default class Cell extends React.Component<CellProps, CellState> {
+export default class Cell extends React.Component<React.PropsWithChildren<CellProps>, CellState> {
     public static MINIMUM_WIDTH = 50; // px; somewhat arbitrary
 
     public state: CellState = {
