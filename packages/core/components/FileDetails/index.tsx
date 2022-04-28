@@ -9,6 +9,8 @@ import Download from "./Download";
 import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
 import { ROOT_ELEMENT_ID } from "../../App";
+import SvgIcon from "../../components/SvgIcon";
+import { NO_IMAGE_ICON_PATH_DATA } from "../../icons";
 
 import styles from "./FileDetails.module.css";
 
@@ -86,15 +88,53 @@ export default function FileDetails(props: FileDetails) {
 
     // If the file has a thumbnail image specified, we want to display the specified thumbnail. Otherwise, we want
     // to display the file itself as the thumbnail if possible.
-    let thumbnailUriPath = "";
+    // If there is no thumbnail and the file cannot be displayed as the thumbnail- show a no image icon
+    let thumbnail = (
+        <SvgIcon
+            height={100}
+            pathData={NO_IMAGE_ICON_PATH_DATA}
+            viewBox="0,0,20,20"
+            width={100}
+            className={classNames(styles.fileThumbnailContainer, styles.noThumbnail, {
+                [styles.thumbnailDefault]: windowState.state === WindowState.DEFAULT,
+                [styles.thumbnailMaximized]: windowState.state === WindowState.MAXIMIZED,
+            })}
+        />
+    ); // placeholder if no thumbnail exists
     if (fileDetails?.thumbnail) {
-        thumbnailUriPath = fileDetails.thumbnail;
+        // thumbnail exists
+        thumbnail = (
+            <div
+                className={classNames(styles.fileThumbnailContainer, {
+                    [styles.thumbnailDefault]: windowState.state === WindowState.DEFAULT,
+                    [styles.thumbnailMaximized]: windowState.state === WindowState.MAXIMIZED,
+                })}
+            >
+                <FileThumbnail
+                    uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${fileDetails.thumbnail}`}
+                />
+            </div>
+        );
     } else if (fileDetails) {
         const renderableImageFormats = [".jpg", ".jpeg", ".png", ".gif"];
         const isFileRenderableImage = renderableImageFormats.some((format) =>
             fileDetails?.name.toLowerCase().endsWith(format)
         );
-        if (isFileRenderableImage) thumbnailUriPath = fileDetails.path;
+        if (isFileRenderableImage) {
+            // render the image as the thumbnail
+            thumbnail = (
+                <div
+                    className={classNames(styles.fileThumbnailContainer, {
+                        [styles.thumbnailDefault]: windowState.state === WindowState.DEFAULT,
+                        [styles.thumbnailMaximized]: windowState.state === WindowState.MAXIMIZED,
+                    })}
+                >
+                    <FileThumbnail
+                        uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${fileDetails.path}`}
+                    />
+                </div>
+            );
+        }
     }
 
     return (
@@ -144,20 +184,7 @@ export default function FileDetails(props: FileDetails) {
                                 [styles.hidden]: windowState.state === WindowState.MINIMIZED,
                             })}
                         >
-                            {thumbnailUriPath && (
-                                <div
-                                    className={classNames(styles.fileThumbnailContainer, {
-                                        [styles.thumbnailDefault]:
-                                            windowState.state === WindowState.DEFAULT,
-                                        [styles.thumbnailMaximized]:
-                                            windowState.state === WindowState.MAXIMIZED,
-                                    })}
-                                >
-                                    <FileThumbnail
-                                        uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${thumbnailUriPath}`}
-                                    />
-                                </div>
-                            )}
+                            {fileDetails && thumbnail}
                             <div className={styles.fileActions}>
                                 <Download fileDetails={fileDetails} />
                             </div>

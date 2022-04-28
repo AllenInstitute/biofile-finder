@@ -112,6 +112,10 @@
     transition: width var(--transition-duration);
 }
 
+.no-thumbnail {
+    fill: var(--grey);
+}
+
 .file-thumbnail-container.thumbnail-default {
     width: 90%;
 }
