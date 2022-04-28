@@ -31,7 +31,6 @@ loadTheme({
 });
 
 interface AppProps {
-    allenMountPoint?: string;
     // E.g.:
     // Localhost: "https://localhost:9081"
     // Stage: "http://stg-aics-api.corp.alleninstitute.org"
@@ -44,7 +43,6 @@ const DEFAULT_PLATFORM_DEPENDENT_SERVICES = Object.freeze({});
 
 export default function App(props: AppProps) {
     const {
-        allenMountPoint,
         fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION,
         platformDependentServices = DEFAULT_PLATFORM_DEPENDENT_SERVICES,
     } = props;
@@ -55,13 +53,6 @@ export default function App(props: AppProps) {
     React.useEffect(() => {
         dispatch(interaction.actions.setPlatformDependentServices(platformDependentServices));
     }, [dispatch, platformDependentServices]);
-
-    // If the Allen mount point was set using the "Settings" menu pass along the change to app state
-    React.useEffect(() => {
-        if (allenMountPoint) {
-            dispatch(interaction.actions.setAllenMountPoint(allenMountPoint));
-        }
-    }, [dispatch, allenMountPoint]);
 
     // Set data source base urls
     // And kick off the process of requesting metadata needed by the application.

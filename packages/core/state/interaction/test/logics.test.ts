@@ -1022,12 +1022,6 @@ describe("Interaction logics", () => {
                     userWasPromptedForExecutable = true;
                     return Promise.resolve(expectedExecutablePath);
                 }
-                promptForAllenMountPoint() {
-                    return Promise.resolve(ExecutableEnvCancellationToken);
-                }
-                isValidAllenMountPoint() {
-                    return Promise.resolve(false);
-                }
                 isValidExecutable() {
                     return Promise.resolve(false);
                 }
@@ -1142,12 +1136,6 @@ describe("Interaction logics", () => {
                     userWasPromptedForExecutable = true;
                     return Promise.resolve(expectedExecutablePath);
                 }
-                promptForAllenMountPoint() {
-                    return Promise.resolve(ExecutableEnvCancellationToken);
-                }
-                isValidAllenMountPoint() {
-                    return Promise.resolve(false);
-                }
                 isValidExecutable() {
                     return Promise.resolve(false);
                 }
@@ -1234,18 +1222,10 @@ describe("Interaction logics", () => {
                 defaultFileKinds: [pngKind],
                 filePath: "my/path/to/my/second/fake.app",
             };
-            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
-                promptForAllenMountPoint() {
-                    return Promise.resolve(ExecutableEnvCancellationToken);
-                }
-                isValidAllenMountPoint() {
-                    return Promise.resolve(false);
-                }
-            }
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        executionEnvService: new UselessExecutionEnvService(),
+                        executionEnvService: new ExecutionEnvServiceNoop(),
                     },
                     userSelectedApplications: [app1, app2],
                 },
@@ -1283,18 +1263,10 @@ describe("Interaction logics", () => {
         });
 
         it("attempts to open selected files by system default", async () => {
-            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
-                promptForAllenMountPoint() {
-                    return Promise.resolve(ExecutableEnvCancellationToken);
-                }
-                isValidAllenMountPoint() {
-                    return Promise.resolve(false);
-                }
-            }
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        executionEnvService: new UselessExecutionEnvService(),
+                        executionEnvService: new ExecutionEnvServiceNoop(),
                     },
                 },
                 selection: {
@@ -1364,19 +1336,10 @@ describe("Interaction logics", () => {
                     return Promise.resolve();
                 }
             }
-            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
-                public get fmsStorageDeviceMountPoint(): string {
-                    throw new Error("Not implemented");
-                }
-
-                public async ensureFmsStorageDeviceAccessible(): Promise<void> {
-                    throw new Error("Not implemented");
-                }
-            }
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        executionEnvService: new UselessExecutionEnvService(),
+                        executionEnvService: new ExecutionEnvServiceNoop(),
                         fileViewerService: new UselessFileViewerService(),
                     },
                 },

@@ -413,10 +413,6 @@ const openWithLogic = createLogic({
             },
         } = deps.action as OpenWithAction;
 
-        try {
-            await executionEnvService.ensureFmsStorageDeviceAccessible();
-        } catch {}
-
         // Gather up the file paths for the files selected currently
         let filesToOpen;
         if (files) {
