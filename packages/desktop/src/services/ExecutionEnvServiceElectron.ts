@@ -1,3 +1,4 @@
+import * as child_process from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -9,6 +10,7 @@ import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
 } from "../../../core/services";
+import FmsFilePath from "../util/FmsFilePath";
 import NotificationServiceElectron from "./NotificationServiceElectron";
 
 export enum Platform {
@@ -61,13 +63,23 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         this.notificationService = notificationService;
     }
 
-    public formatPathForOs(posixPath: string, prefix?: string): string {
-        // Assumption: file paths are persisted as POSIX paths. Split accordingly...
-        const originalPosixPathSplit = posixPath.split(path.posix.sep);
-        const parts = prefix ? [prefix, ...originalPosixPathSplit] : originalPosixPathSplit;
+    public async formatPathForHost(posixPath: string): Promise<string> {
+        const fmsPath = new FmsFilePath(posixPath, this.getOS());
 
-        // ...then rejoin using whatever path.sep is at runtime
-        return path.join(...parts);
+        if (this.getOS() === Platform.Mac) {
+            let mountPoint;
+            try {
+                mountPoint = await this.lookUpMount(fmsPath.server, fmsPath.fileShare);
+            } catch (exc) {
+                console.error(exc);
+            } finally {
+                if (mountPoint) {
+                    return fmsPath.withMountPoint(mountPoint).formatForOs();
+                }
+            }
+        }
+
+        return fmsPath.formatForOs();
     }
 
     public getFilename(filePath: string): string {
@@ -136,6 +148,44 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         } catch (_) {
             return false;
         }
+    }
+
+    private async lookUpMount(server: string, fileShare: string): Promise<string | null> {
+        const regex = /(?<src>[^@\s]+)\son\s(?<dest>\S+)/;
+        const mounts = child_process.spawn("mount");
+        return new Promise((resolve, reject) => {
+            let mountsOutput = "";
+            mounts.stdout.on("data", (output: string) => {
+                mountsOutput += output;
+            });
+
+            mounts.on("close", (code: number) => {
+                if (code !== 0) {
+                    reject(
+                        `Attempting to determing available mounts failed with error code ${code}`
+                    );
+                    return;
+                }
+
+                for (const mount of mountsOutput.split(os.EOL)) {
+                    const match = mount.match(regex);
+                    if (match && match.groups?.src) {
+                        const src = match.groups.src; // E.g., "allen/programs"
+                        const [mountedServer, mountedFileShare] = src.split(path.sep);
+                        if (mountedServer === server && mountedFileShare === fileShare) {
+                            resolve(match.groups.dest);
+                        }
+                    }
+                }
+
+                // Could not find a mount on this host matching `server` and `fileShare`
+                resolve(null);
+            });
+
+            mounts.stderr.on("data", (output: string) => {
+                reject(output);
+            });
+        });
     }
 
     // Prompts user using native file browser for a file path

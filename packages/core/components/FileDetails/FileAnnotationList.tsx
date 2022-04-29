@@ -56,7 +56,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
             // (i.e. POSIX path held in the database; what we have an annotation for)
             // as well as the path at which the file is *actually* accessible on _this_ computer ("local" file path)
             if (annotation.name === AnnotationName.FILE_PATH) {
-                const localPath = executionEnvService.formatPathForOs(annotationValue);
+                const localPath = await executionEnvService.formatPathForHost(annotationValue);
                 // In certain circumstances (i.e., linux), the path at which a file is accessible is === the canonical path
                 if (localPath !== annotationValue) {
                     ret.splice(

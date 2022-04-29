@@ -428,8 +428,8 @@ const openWithLogic = createLogic({
         } else {
             filesToOpen = await fileSelection.fetchAllDetails();
         }
-        const filePaths = filesToOpen.map((file) =>
-            executionEnvService.formatPathForOs(file.file_path)
+        const filePaths = filesToOpen.map(
+            (file) => await executionEnvService.formatPathForHost(file.file_path)
         );
 
         // Open the files in the specified executable

@@ -6,7 +6,7 @@ export default interface ExecutionEnvService {
      * Return file system path formatted for use on the current operating system.
      * Assumes input is POSIX path.
      */
-    formatPathForOs(posixPath: string, prefix?: string): string;
+    formatPathForHost(posixPath: string): Promise<string>;
 
     /**
      * Return file name from path. Removes extension as well.
