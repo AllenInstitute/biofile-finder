@@ -1,35 +1,78 @@
 import * as path from "path";
 
+/**
+ * Value object for encapsulating minor queries and operations
+ * on file paths to FMS data.
+ *
+ * Assumes FMS file paths are:
+ *  1. absolute
+ *  2. in POSIX format
+ *  3. remote (and therefore accessed via SMB/NFS)
+ *  4. formatted as `/<server>/<fileShare>/path/to/object.foo`
+ */
 export default class FmsFilePath {
     private mountPoint: string | undefined;
-    private os: string;
+    private parts: string[];
     private pathSeparator: string = path.sep;
     private posixFilePath: string;
-    private splitPath: string[];
 
-    constructor(posixFilePath: string, os: string, pathSeparator?: string) {
-        this.os = os;
+    constructor(posixFilePath: string, pathSeparator?: string) {
         this.posixFilePath = posixFilePath;
-        this.splitPath = posixFilePath.split(path.posix.sep);
+        this.parts = posixFilePath.split(path.posix.sep);
 
         if (pathSeparator) {
             this.pathSeparator = pathSeparator;
         }
     }
 
-    public get server(): string {
-        return this.splitPath[0] !== "" ? this.splitPath[0] : this.splitPath[1];
-    }
-
+    /**
+     * E.g., given "/allen/programs/allencell/.../file.txt", return "programs"
+     */
     public get fileShare(): string {
-        return this.splitPath[0] !== "" ? this.splitPath[1] : this.splitPath[2];
+        // Because POSIX paths saved in DB are absolute (i.e., start with "/")
+        // the 0th part of this path is expected to be an empty string.
+        return this.parts[2];
     }
 
     /**
-     * E.g., "/allen/programs" (production) or "/allen/aics" (staging)
+     * E.g., given "/allen/programs/allencell/.../file.txt", return "allen"
      */
-    public get assumedFSMount(): string {
-        return path.posix.join("", this.server, this.fileShare);
+    public get server(): string {
+        // Because POSIX paths saved in DB are absolute (i.e., start with "/")
+        // the 0th part of this path is expected to be an empty string.
+        return this.parts[1];
+    }
+
+    /**
+     * Return formatted file system path that takes into account
+     *   1. the path separator for the operating system this application is running within
+     *   2. the mount point for the file share of FMS data on this host.
+     */
+    public formatForOs(os: string): string {
+        // If `mountPoint` is defined, replace /<server>/<fileShare> within
+        // the original path.
+        let pathToFormat = this.posixFilePath;
+        if (this.mountPoint) {
+            const pathWithoutMount = path.posix.relative(
+                this.assumedFileSystemMount,
+                this.posixFilePath
+            );
+            pathToFormat = path.join(this.mountPoint, pathWithoutMount);
+        }
+
+        // Assumption: file paths are persisted as POSIX paths
+        const split = pathToFormat.split(path.posix.sep);
+
+        // Rejoin using `pathSeparator`
+        const formatted = split.join(this.pathSeparator);
+
+        if (os === "win32") {
+            // `formatted`, at this point, will look something like `\\allen\\programs\\allencell\\...`
+            // Prepend an additional escaped backslash (`\\`) to turn the path into a UNC path.
+            return `\\${formatted}`;
+        }
+
+        return formatted;
     }
 
     /**
@@ -40,27 +83,12 @@ export default class FmsFilePath {
         return this;
     }
 
-    public formatForOs(): string {
-        // If `mountPoint` is defined, replace /<server>/<fileShare> within
-        // the original path.
-        let pathToFormat = this.posixFilePath;
-        if (this.mountPoint) {
-            const pathWithoutMount = path.posix.relative(this.assumedFSMount, this.posixFilePath);
-            pathToFormat = path.join(this.mountPoint, pathWithoutMount);
-        }
-
-        // Assumption: file paths are persisted as POSIX paths
-        const split = pathToFormat.split(path.posix.sep);
-
-        // Rejoin using `pathSeparator`
-        const formatted = split.join(this.pathSeparator);
-
-        if (this.os === "win32") {
-            // `formatted`, at this point, will look something like `\\allen\\programs\\allencell\\...`
-            // Prepend an additional escaped backslash (`\\`) to turn the path into a UNC path.
-            return `\\${formatted}`;
-        }
-
-        return formatted;
+    /**
+     * This is the file system mount assumed by the FMS database file paths.
+     * It is always in POSIX format.
+     * E.g., "/allen/programs" (production) or "/allen/aics" (staging)
+     */
+    private get assumedFileSystemMount(): string {
+        return `/${this.server}/${this.fileShare}`;
     }
 }

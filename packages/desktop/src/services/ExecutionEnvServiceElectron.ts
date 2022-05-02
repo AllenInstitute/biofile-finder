@@ -1,4 +1,3 @@
-import * as child_process from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -16,6 +15,9 @@ import NotificationServiceElectron from "./NotificationServiceElectron";
 export default class ExecutionEnvServiceElectron implements ExecutionEnvService {
     public static SHOW_OPEN_DIALOG = "show-open-dialog";
     private notificationService: NotificationServiceElectron;
+
+    // Used to cache output of ExecutionEnvServiceElectron::probeForMountPoint
+    private mountPoint: string | null = null;
 
     public static registerIpcHandlers() {
         // Handle opening a native file browser dialog
@@ -59,22 +61,16 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
     }
 
     public async formatPathForHost(posixPath: string): Promise<string> {
-        const fmsPath = new FmsFilePath(posixPath, this.getOS());
+        const fmsPath = new FmsFilePath(posixPath);
 
         if (this.getOS() === "Darwin") {
-            let mountPoint;
-            try {
-                mountPoint = await this.lookUpMount(fmsPath.server, fmsPath.fileShare);
-            } catch (exc) {
-                console.error(exc);
-            } finally {
-                if (mountPoint) {
-                    return fmsPath.withMountPoint(mountPoint).formatForOs();
-                }
+            const mountPoint = await this.probeForMountPoint(fmsPath.fileShare);
+            if (mountPoint) {
+                return fmsPath.withMountPoint(mountPoint).formatForOs(this.getOS());
             }
         }
 
-        return fmsPath.formatForOs();
+        return fmsPath.formatForOs(this.getOS());
     }
 
     public getFilename(filePath: string): string {
@@ -145,42 +141,47 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         }
     }
 
-    private async lookUpMount(server: string, fileShare: string): Promise<string | null> {
-        const regex = /(?<src>[^@\s]+)\son\s(?<dest>\S+)/;
-        const mounts = child_process.spawn("mount");
-        return new Promise((resolve, reject) => {
-            let mountsOutput = "";
-            mounts.stdout.on("data", (output: string) => {
-                mountsOutput += output;
-            });
+    /**
+     * Determine where mount point for `fileShare` exists on this host.
+     * Expected to only be needed on macOS: on Linux, `fileShare` is expected
+     * to be found at `/allen/<fileShare`; on Windows, `fileShare` is expected
+     * to be found at `\\allen\<fileShare>`.
+     *
+     * Implementation: return first non-empty path within either `/Volumes` or
+     * `os.homedir()` that matches `fileShare`.
+     * This could alternately be accomplished via a lookup (e.g., parse output of `mount`),
+     * but that is complicated by how different types of mounts (e.g., `smbfs` versus `macfuse`)
+     * are displayed by `mount`.
+     *
+     * Additional context: https://aicsjira.corp.alleninstitute.org/browse/UR-31
+     */
+    private async probeForMountPoint(fileShare: string): Promise<string | null> {
+        if (!this.mountPoint) {
+            const POSSIBLE_BASE_LOCATIONS = [
+                // Most likely location, particularly when using this application while in the 615 Westlake building.
+                // Accomplished by: "Go" -> "Connect to server" -> "smb://allen/programs"
+                "/Volumes",
 
-            mounts.on("close", (code: number) => {
-                if (code !== 0) {
-                    reject(
-                        `Attempting to determing available mounts failed with error code ${code}`
-                    );
-                    return;
-                }
-
-                for (const mount of mountsOutput.split(os.EOL)) {
-                    const match = mount.match(regex);
-                    if (match && match.groups?.src) {
-                        const src = match.groups.src; // E.g., "allen/programs"
-                        const [mountedServer, mountedFileShare] = src.split(path.sep);
-                        if (mountedServer === server && mountedFileShare === fileShare) {
-                            resolve(match.groups.dest);
-                        }
+                // Somewhat niche case, but here to enable making use of `sshfs`
+                // when working outside of the 615 Westlake building.
+                // If/when SMB/NFS is allowed through the Institute's firewall, this can be safely deleted.
+                os.homedir(),
+            ];
+            for (const base of POSSIBLE_BASE_LOCATIONS) {
+                const possibleMount = path.join(base, fileShare);
+                try {
+                    const content = await fs.promises.readdir(possibleMount);
+                    if (content.length) {
+                        this.mountPoint = possibleMount;
+                        break;
                     }
+                } catch (_) {
+                    // Swallow.
                 }
+            }
+        }
 
-                // Could not find a mount on this host matching `server` and `fileShare`
-                resolve(null);
-            });
-
-            mounts.stderr.on("data", (output: string) => {
-                reject(output);
-            });
-        });
+        return Promise.resolve(this.mountPoint);
     }
 
     // Prompts user using native file browser for a file path
