@@ -25,6 +25,32 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
+    // The path to this file on the host this application is running on
+    // may not match the path to this file stored in the database.
+    // Determine this local path.
+    const [localPath, setLocalPath] = React.useState<string | null>(null);
+    React.useEffect(() => {
+        let active = true;
+
+        async function formatPath() {
+            if (!fileDetails) {
+                return;
+            }
+
+            const res = await executionEnvService.formatPathForHost(fileDetails.path);
+            if (!active) {
+                return;
+            }
+            setLocalPath(res);
+        }
+
+        formatPath();
+
+        return () => {
+            active = false;
+        };
+    }, [fileDetails, executionEnvService]);
+
     const content: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
         if (isLoading) {
             return <div>Loading...</div>;
@@ -56,9 +82,8 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
             // (i.e. POSIX path held in the database; what we have an annotation for)
             // as well as the path at which the file is *actually* accessible on _this_ computer ("local" file path)
             if (annotation.name === AnnotationName.FILE_PATH) {
-                const localPath = await executionEnvService.formatPathForHost(annotationValue);
                 // In certain circumstances (i.e., linux), the path at which a file is accessible is === the canonical path
-                if (localPath !== annotationValue) {
+                if (localPath && localPath !== annotationValue) {
                     ret.splice(
                         -1, // Insert before the "canonical" path so that it is the first path-like row to be seen
                         0, // ...don't delete the "canonical" path
@@ -74,7 +99,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
 
             return ret;
         }, [] as JSX.Element[]);
-    }, [annotations, executionEnvService, fileDetails, isLoading]);
+    }, [annotations, fileDetails, isLoading, localPath]);
 
     return <div className={classNames(styles.list, className)}>{content}</div>;
 }

@@ -10,12 +10,12 @@ import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
 } from "./../../../../core/services";
-import ExecutionEnvServiceElectron, { Platform } from "../ExecutionEnvServiceElectron";
+import ExecutionEnvServiceElectron from "../ExecutionEnvServiceElectron";
 import NotificationServiceElectron from "../NotificationServiceElectron";
 import { RUN_IN_RENDERER } from "../../util/constants";
 
 describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
-    const runningOnMacOS = os.platform() === Platform.Mac;
+    const runningOnMacOS = os.type() === "Darwin";
 
     describe("promptForExecutable", () => {
         const sandbox = createSandbox();

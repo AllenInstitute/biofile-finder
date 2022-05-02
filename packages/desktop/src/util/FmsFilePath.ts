@@ -25,10 +25,16 @@ export default class FmsFilePath {
         return this.splitPath[0] !== "" ? this.splitPath[1] : this.splitPath[2];
     }
 
+    /**
+     * E.g., "/allen/programs" (production) or "/allen/aics" (staging)
+     */
     public get assumedFSMount(): string {
         return path.posix.join("", this.server, this.fileShare);
     }
 
+    /**
+     * E.g., fmsPath.withMountPoint("/Volumes/programs")
+     */
     public withMountPoint(mountPoint: string): FmsFilePath {
         this.mountPoint = mountPoint;
         return this;
@@ -39,7 +45,7 @@ export default class FmsFilePath {
         // the original path.
         let pathToFormat = this.posixFilePath;
         if (this.mountPoint) {
-            const pathWithoutMount = path.relative(this.assumedFSMount, this.posixFilePath);
+            const pathWithoutMount = path.posix.relative(this.assumedFSMount, this.posixFilePath);
             pathToFormat = path.join(this.mountPoint, pathWithoutMount);
         }
 
@@ -51,8 +57,7 @@ export default class FmsFilePath {
 
         if (this.os === "win32") {
             // `formatted`, at this point, will look something like `\\allen\\programs\\allencell\\...`
-            // Assume that the first path component is actually a server,
-            // and prepend an additional escaped backslash (`\\`) to turn the path into a UNC path.
+            // Prepend an additional escaped backslash (`\\`) to turn the path into a UNC path.
             return `\\${formatted}`;
         }
 

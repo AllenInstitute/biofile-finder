@@ -13,11 +13,6 @@ import {
 import FmsFilePath from "../util/FmsFilePath";
 import NotificationServiceElectron from "./NotificationServiceElectron";
 
-export enum Platform {
-    Mac = "darwin",
-    Windows = "win32",
-}
-
 export default class ExecutionEnvServiceElectron implements ExecutionEnvService {
     public static SHOW_OPEN_DIALOG = "show-open-dialog";
     private notificationService: NotificationServiceElectron;
@@ -40,14 +35,14 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         platform: NodeJS.Platform
     ): Partial<Electron.OpenDialogOptions> {
         // MacOS
-        if (platform === Platform.Mac) {
+        if (platform === "darwin") {
             return {
                 defaultPath: path.normalize("/Applications/"),
                 filters: [{ name: "Executable", extensions: ["app"] }],
             };
         }
         // Windows
-        if (platform === Platform.Windows) {
+        if (platform === "win32") {
             return {
                 defaultPath: os.homedir(),
                 filters: [{ name: "Executable", extensions: ["exe"] }],
@@ -66,7 +61,7 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
     public async formatPathForHost(posixPath: string): Promise<string> {
         const fmsPath = new FmsFilePath(posixPath, this.getOS());
 
-        if (this.getOS() === Platform.Mac) {
+        if (this.getOS() === "Darwin") {
             let mountPoint;
             try {
                 mountPoint = await this.lookUpMount(fmsPath.server, fmsPath.fileShare);
@@ -86,8 +81,8 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         return path.basename(filePath, path.extname(filePath));
     }
 
-    public getOS(): string {
-        return os.type();
+    public getOS(): "Linux" | "Darwin" | "Windows_NT" {
+        return os.type() as "Linux" | "Darwin" | "Windows_NT";
     }
 
     public async promptForExecutable(
@@ -134,7 +129,7 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         }
         try {
             // On macOS, applications are bundled as packages. `executablePath` is expected to be a package.
-            if (os.platform() === Platform.Mac) {
+            if (this.getOS() === "Darwin") {
                 if (executablePath.endsWith(".app")) {
                     const pathStat = await fs.promises.stat(executablePath);
                     if (pathStat.isDirectory()) {

@@ -5,7 +5,6 @@ import NotificationServiceElectron from "./NotificationServiceElectron";
 import defaultViewerStrategy from "./file-viewer-strategy/defaultViewerStrategy";
 import fijiViewerStrategy from "./file-viewer-strategy/fijiViewerStrategy";
 import ViewerStrategy from "./file-viewer-strategy/ViewerStrategy";
-import { Platform } from "./ExecutionEnvServiceElectron";
 import macViewerStrategy from "./file-viewer-strategy/macViewerStrategy";
 import systemDefaultViewerStrategy from "./file-viewer-strategy/systemDefaultViewerStrategy";
 
@@ -35,7 +34,7 @@ export default class FileViewerServiceElectron implements FileViewerService {
             viewerStrategy = fijiViewerStrategy;
         } else if (executable === SystemDefaultAppLocation) {
             viewerStrategy = systemDefaultViewerStrategy;
-        } else if (os.platform() === Platform.Mac) {
+        } else if (os.type() === "Darwin") {
             viewerStrategy = macViewerStrategy;
         }
 
