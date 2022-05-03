@@ -17,6 +17,33 @@ import { RUN_IN_RENDERER } from "../../util/constants";
 describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
     const runningOnMacOS = os.type() === "Darwin";
 
+    describe("formatPathForHost", () => {
+        it("modifies the mount point within FMS db path if on macOS and it can be found", async () => {
+            // Arrange
+            class FakeExecutionEnvServiceElectron extends ExecutionEnvServiceElectron {
+                public getOS(): "Linux" | "Darwin" | "Windows_NT" {
+                    return "Darwin";
+                }
+
+                protected async probeForMountPoint(): Promise<string | null> {
+                    return Promise.resolve("/Volumes/programs");
+                }
+            }
+
+            const dbPath = "/allen/programs/object/path.ext";
+
+            const executionEnvService = new FakeExecutionEnvServiceElectron(
+                new NotificationServiceElectron()
+            );
+
+            // Act
+            const actual = await executionEnvService.formatPathForHost(dbPath);
+
+            // Assert
+            expect(actual).to.equal("/Volumes/programs/object/path.ext");
+        });
+    });
+
     describe("promptForExecutable", () => {
         const sandbox = createSandbox();
         const tmpDir = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`);

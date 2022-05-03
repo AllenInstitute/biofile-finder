@@ -155,7 +155,7 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
      *
      * Additional context: https://aicsjira.corp.alleninstitute.org/browse/UR-31
      */
-    private async probeForMountPoint(fileShare: string): Promise<string | null> {
+    protected async probeForMountPoint(fileShare: string): Promise<string | null> {
         if (!this.mountPoint) {
             const POSSIBLE_BASE_LOCATIONS = [
                 // Most likely location, particularly when using this application while in the 615 Westlake building.
