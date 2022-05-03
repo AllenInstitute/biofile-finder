@@ -1298,13 +1298,9 @@ describe("Interaction logics", () => {
     });
 
     describe("openWith", () => {
-        const files = [];
-        const filePaths: string[] = [];
-        const expectedAllenDrive = "/some/test/path/to/fakeAllen";
+        const files: { file_path: string }[] = [];
         for (let i = 0; i <= 100; i++) {
-            const filePath = "/fakeFile" + i;
-            files.push({ file_path: "/allen" + filePath });
-            filePaths.push(expectedAllenDrive + filePath);
+            files.push({ file_path: `/allen/file_${i}.ext` });
         }
         const baseUrl = "test";
         const responseStub = {
@@ -1329,28 +1325,38 @@ describe("Interaction logics", () => {
             const expectedExecutablePath = "/some/path/to/imageJ";
             let actualFilePaths: string[] | undefined = undefined;
             let actualExecutablePath: string | undefined = undefined;
-            class UselessFileViewerService implements FileViewerService {
+
+            class FakeFileViewerService implements FileViewerService {
                 open(executablePath: string, filePaths?: string[]) {
                     actualFilePaths = filePaths;
                     actualExecutablePath = executablePath;
                     return Promise.resolve();
                 }
             }
+
+            class FakeExecutionEnvService extends ExecutionEnvServiceNoop {
+                public formatPathForHost(posixPath: string): Promise<string> {
+                    return Promise.resolve(posixPath);
+                }
+            }
+
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        executionEnvService: new ExecutionEnvServiceNoop(),
-                        fileViewerService: new UselessFileViewerService(),
+                        executionEnvService: new FakeExecutionEnvService(),
+                        fileViewerService: new FakeFileViewerService(),
                     },
                 },
                 selection: {
                     fileSelection: fakeSelection,
                 },
             });
+
             const { actions, store, logicMiddleware } = configureMockStore({
                 state,
                 logics: interactionLogics,
             });
+
             const app = {
                 filePath: expectedExecutablePath,
                 name: "ImageJ",
@@ -1362,7 +1368,7 @@ describe("Interaction logics", () => {
             await logicMiddleware.whenComplete();
 
             // Assert
-            expect(actualFilePaths).to.be.deep.equal(filePaths);
+            expect(actualFilePaths).to.be.deep.equal(files.map((file) => file.file_path));
             expect(actualExecutablePath).to.be.equal(expectedExecutablePath);
             expect(
                 actions.includesMatch({
