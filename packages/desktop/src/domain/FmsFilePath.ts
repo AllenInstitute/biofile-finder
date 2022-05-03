@@ -21,6 +21,24 @@ export default class FmsFilePath {
     }
 
     /**
+     * E.g., given "/allen/programs/allencell/.../file.txt", return "programs"
+     */
+    public get fileShare(): string {
+        // Because POSIX paths saved in DB are absolute (i.e., start with "/")
+        // the 0th part of this path is expected to be an empty string.
+        return this.parts[2];
+    }
+
+    /**
+     * E.g., given "/allen/programs/allencell/.../file.txt", return "allen"
+     */
+    public get server(): string {
+        // Because POSIX paths saved in DB are absolute (i.e., start with "/")
+        // the 0th part of this path is expected to be an empty string.
+        return this.parts[1];
+    }
+
+    /**
      * Return formatted file system path that takes into account
      *   1. the path separator for the operating system this application is running within
      *   2. the mount point for the file share of FMS data on this host.
@@ -60,24 +78,6 @@ export default class FmsFilePath {
     public withMountPoint(mountPoint: string): FmsFilePath {
         this.mountPoint = mountPoint;
         return this;
-    }
-
-    /**
-     * E.g., given "/allen/programs/allencell/.../file.txt", return "programs"
-     */
-    private get fileShare(): string {
-        // Because POSIX paths saved in DB are absolute (i.e., start with "/")
-        // the 0th part of this path is expected to be an empty string.
-        return this.parts[2];
-    }
-
-    /**
-     * E.g., given "/allen/programs/allencell/.../file.txt", return "allen"
-     */
-    private get server(): string {
-        // Because POSIX paths saved in DB are absolute (i.e., start with "/")
-        // the 0th part of this path is expected to be an empty string.
-        return this.parts[1];
     }
 
     /**
