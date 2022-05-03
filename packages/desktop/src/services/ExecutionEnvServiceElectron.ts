@@ -12,12 +12,18 @@ import {
 import FmsFilePath from "../domain/FmsFilePath";
 import NotificationServiceElectron from "./NotificationServiceElectron";
 
+// Output of os.type()
+type OSType = "Linux" | "Darwin" | "Windows_NT";
+
 export default class ExecutionEnvServiceElectron implements ExecutionEnvService {
     public static SHOW_OPEN_DIALOG = "show-open-dialog";
     private notificationService: NotificationServiceElectron;
 
     // Used to cache output of ExecutionEnvServiceElectron::probeForMountPoint
     private mountPoint: string | null = null;
+
+    // Used to cache output of ExecutionEnvServiceElectron::getOS
+    private OS: OSType | null = null;
 
     public static registerIpcHandlers() {
         // Handle opening a native file browser dialog
@@ -77,8 +83,11 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         return path.basename(filePath, path.extname(filePath));
     }
 
-    public getOS(): "Linux" | "Darwin" | "Windows_NT" {
-        return os.type() as "Linux" | "Darwin" | "Windows_NT";
+    public getOS(): OSType {
+        if (!this.OS) {
+            this.OS = os.type() as OSType;
+        }
+        return this.OS;
     }
 
     public async promptForExecutable(

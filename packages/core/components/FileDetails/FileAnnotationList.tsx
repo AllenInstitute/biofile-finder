@@ -32,19 +32,19 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
     React.useEffect(() => {
         let active = true;
 
-        async function formatPath() {
+        async function formatPathForHost() {
             if (!fileDetails) {
                 return;
             }
 
-            const res = await executionEnvService.formatPathForHost(fileDetails.path);
+            const path = await executionEnvService.formatPathForHost(fileDetails.path);
             if (!active) {
                 return;
             }
-            setLocalPath(res);
+            setLocalPath(path);
         }
 
-        formatPath();
+        formatPathForHost();
 
         return () => {
             active = false;
