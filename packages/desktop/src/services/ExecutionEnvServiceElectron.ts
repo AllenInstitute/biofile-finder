@@ -9,7 +9,7 @@ import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
 } from "../../../core/services";
-import FmsFilePath from "../util/FmsFilePath";
+import FmsFilePath from "../domain/FmsFilePath";
 import NotificationServiceElectron from "./NotificationServiceElectron";
 
 export default class ExecutionEnvServiceElectron implements ExecutionEnvService {

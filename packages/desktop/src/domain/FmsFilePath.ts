@@ -13,42 +13,21 @@ import * as path from "path";
 export default class FmsFilePath {
     private mountPoint: string | undefined;
     private parts: string[];
-    private pathSeparator: string = path.sep;
     private posixFilePath: string;
 
-    constructor(posixFilePath: string, pathSeparator?: string) {
+    constructor(posixFilePath: string) {
         this.posixFilePath = posixFilePath;
         this.parts = posixFilePath.split(path.posix.sep);
-
-        if (pathSeparator) {
-            this.pathSeparator = pathSeparator;
-        }
-    }
-
-    /**
-     * E.g., given "/allen/programs/allencell/.../file.txt", return "programs"
-     */
-    public get fileShare(): string {
-        // Because POSIX paths saved in DB are absolute (i.e., start with "/")
-        // the 0th part of this path is expected to be an empty string.
-        return this.parts[2];
-    }
-
-    /**
-     * E.g., given "/allen/programs/allencell/.../file.txt", return "allen"
-     */
-    public get server(): string {
-        // Because POSIX paths saved in DB are absolute (i.e., start with "/")
-        // the 0th part of this path is expected to be an empty string.
-        return this.parts[1];
     }
 
     /**
      * Return formatted file system path that takes into account
      *   1. the path separator for the operating system this application is running within
      *   2. the mount point for the file share of FMS data on this host.
+     *
+     * The parameter `os` should be the output of `os.type()`.
      */
-    public formatForOs(os: string): string {
+    public formatForOs(os: string, pathSeparator = path.sep): string {
         // If `mountPoint` is defined, replace /<server>/<fileShare> within
         // the original path.
         let pathToFormat = this.posixFilePath;
@@ -64,9 +43,9 @@ export default class FmsFilePath {
         const split = pathToFormat.split(path.posix.sep);
 
         // Rejoin using `pathSeparator`
-        const formatted = split.join(this.pathSeparator);
+        const formatted = split.join(pathSeparator);
 
-        if (os === "win32") {
+        if (os === "Windows_NT") {
             // `formatted`, at this point, will look something like `\\allen\\programs\\allencell\\...`
             // Prepend an additional escaped backslash (`\\`) to turn the path into a UNC path.
             return `\\${formatted}`;
@@ -81,6 +60,24 @@ export default class FmsFilePath {
     public withMountPoint(mountPoint: string): FmsFilePath {
         this.mountPoint = mountPoint;
         return this;
+    }
+
+    /**
+     * E.g., given "/allen/programs/allencell/.../file.txt", return "programs"
+     */
+    private get fileShare(): string {
+        // Because POSIX paths saved in DB are absolute (i.e., start with "/")
+        // the 0th part of this path is expected to be an empty string.
+        return this.parts[2];
+    }
+
+    /**
+     * E.g., given "/allen/programs/allencell/.../file.txt", return "allen"
+     */
+    private get server(): string {
+        // Because POSIX paths saved in DB are absolute (i.e., start with "/")
+        // the 0th part of this path is expected to be an empty string.
+        return this.parts[1];
     }
 
     /**
