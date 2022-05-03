@@ -44,6 +44,16 @@ const INSTRUCTIONS_FOR_OS = {
             </figcaption>
         </figure>
         `,
+        `
+        <figure class="figure installation-instr">
+            <img class="screenshot" src="resources/macos-connect-to-fms-storage.png">
+            <figcaption class="figure-caption">
+            (Optional) If you'd like to access any of the files found in the FMS File Explorer in a third-party application
+            (e.g., opening an image in an image viewer), you'll need to mount FMS storage on your computer.
+            To do this: <code>Go</code> → <code>Connect to server</code> → enter <code>smb://allen/programs</code> → <code>Connect</code>.
+            </figcaption>
+        </figure>
+        `,
     ],
     [OS.LINUX]: [
         "Click the 'Download' button to the left",
