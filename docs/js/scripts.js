@@ -51,6 +51,8 @@ const INSTRUCTIONS_FOR_OS = {
             (Optional) If you'd like to access any of the files found in the FMS File Explorer in a third-party application
             (e.g., opening an image in an image viewer), you'll need to mount FMS storage on your computer.
             To do this: <code>Go</code> → <code>Connect to server</code> → enter <code>smb://allen/programs</code> → <code>Connect</code>.
+            <strong>Note! This is only possible when connected to the Allen Institute network; you will be unable to do this
+            over VPN.</strong>
             </figcaption>
         </figure>
         `,
