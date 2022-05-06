@@ -17,6 +17,5 @@ export enum FileExplorerServiceBaseUrl {
 
 // Channels global variables can be modified on / listen to
 export enum GlobalVariableChannels {
-    AllenMountPoint = "file-explorer-service-allen-mount-point-change",
     BaseUrl = "data-source-base-url",
 }

@@ -9,22 +9,21 @@ import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
 } from "../../../core/services";
+import FmsFilePath from "../domain/FmsFilePath";
 import NotificationServiceElectron from "./NotificationServiceElectron";
-import { GlobalVariableChannels } from "../util/constants";
 
-// These are paths known (and unlikely to change) inside the allen drive that any given user should
-// have access to
-export const KNOWN_FOLDERS_IN_ALLEN_DRIVE = ["programs", "aics"].map((f) => path.normalize(f));
-
-export enum Platform {
-    Mac = "darwin",
-    Windows = "win32",
-}
+// Output of os.type()
+type OSType = "Linux" | "Darwin" | "Windows_NT";
 
 export default class ExecutionEnvServiceElectron implements ExecutionEnvService {
     public static SHOW_OPEN_DIALOG = "show-open-dialog";
-    public static PROMPT_ALLEN_MOUNT_POINT = "prompt-allen-mount-point";
     private notificationService: NotificationServiceElectron;
+
+    // Used to cache output of ExecutionEnvServiceElectron::probeForMountPoint
+    private mountPoint: string | null = null;
+
+    // Used to cache output of ExecutionEnvServiceElectron::getOS
+    private OS: OSType | null = null;
 
     public static registerIpcHandlers() {
         // Handle opening a native file browser dialog
@@ -38,25 +37,20 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
                 });
             }
         );
-
-        // Relay the selected Allen mount point to a listener in the renderer process
-        ipcMain.on(GlobalVariableChannels.AllenMountPoint, (event, allenPath) => {
-            event.reply(GlobalVariableChannels.AllenMountPoint, allenPath);
-        });
     }
 
     private static getDefaultOpenDialogOptions(
         platform: NodeJS.Platform
     ): Partial<Electron.OpenDialogOptions> {
         // MacOS
-        if (platform === Platform.Mac) {
+        if (platform === "darwin") {
             return {
                 defaultPath: path.normalize("/Applications/"),
                 filters: [{ name: "Executable", extensions: ["app"] }],
             };
         }
         // Windows
-        if (platform === Platform.Windows) {
+        if (platform === "win32") {
             return {
                 defaultPath: os.homedir(),
                 filters: [{ name: "Executable", extensions: ["exe"] }],
@@ -70,65 +64,30 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
 
     public constructor(notificationService: NotificationServiceElectron) {
         this.notificationService = notificationService;
-        ipcRenderer.removeAllListeners(ExecutionEnvServiceElectron.PROMPT_ALLEN_MOUNT_POINT);
-        ipcRenderer.on(ExecutionEnvServiceElectron.PROMPT_ALLEN_MOUNT_POINT, async () => {
-            const allenPath = await this.promptForAllenMountPoint();
-            if (allenPath !== ExecutableEnvCancellationToken) {
-                // Pass the selected Allen mount point on to the global variables
-                ipcRenderer.send(GlobalVariableChannels.AllenMountPoint, allenPath);
-            }
-        });
     }
 
-    public formatPathForOs(posixPath: string, prefix?: string): string {
-        // Assumption: file paths are persisted as POSIX paths. Split accordingly...
-        const originalPosixPathSplit = posixPath.split(path.posix.sep);
-        const parts = prefix ? [prefix, ...originalPosixPathSplit] : originalPosixPathSplit;
+    public async formatPathForHost(posixPath: string): Promise<string> {
+        const fmsPath = new FmsFilePath(posixPath);
 
-        // ...then rejoin using whatever path.sep is at runtime
-        return path.join(...parts);
+        if (this.getOS() === "Darwin") {
+            const mountPoint = await this.probeForMountPoint(fmsPath.fileShare);
+            if (mountPoint) {
+                return fmsPath.withMountPoint(mountPoint).formatForOs(this.getOS());
+            }
+        }
+
+        return fmsPath.formatForOs(this.getOS());
     }
 
     public getFilename(filePath: string): string {
         return path.basename(filePath, path.extname(filePath));
     }
 
-    public getOS(): string {
-        return os.type();
-    }
-
-    public async promptForAllenMountPoint(displayMessageBeforePrompt?: boolean): Promise<string> {
-        if (displayMessageBeforePrompt) {
-            const result = await this.notificationService.showMessage(
-                "Allen Drive Mount Point",
-                "It appears that your Allen Drive isn't where we thought it would be. " +
-                    "Select your Allen Drive Mount Point location now?"
-            );
-            if (!result) {
-                return ExecutableEnvCancellationToken;
-            }
+    public getOS(): OSType {
+        if (!this.OS) {
+            this.OS = os.type() as OSType;
         }
-        // Continuously try to set a valid allen drive mount point unless the user cancels
-        while (true) {
-            const allenPath = await this.selectPath({
-                properties: ["openDirectory"],
-                title: "Select Allen drive mount point",
-            });
-
-            if (allenPath === ExecutableEnvCancellationToken) {
-                return ExecutableEnvCancellationToken;
-            }
-
-            const isValidAllenPath = await this.isValidAllenMountPoint(allenPath);
-            if (isValidAllenPath) {
-                return allenPath;
-            }
-
-            await this.notificationService.showError(
-                "Allen Drive Mount Point Selection",
-                `Whoops! ${allenPath} is not verifiably the root of the Allen drive on your computer. Select the parent folder to the "/aics" and "/programs" folders. For example, "/allen," "/Users/johnd/allen," etc.`
-            );
-        }
+        return this.OS;
     }
 
     public async promptForExecutable(
@@ -169,25 +128,13 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         }
     }
 
-    public async isValidAllenMountPoint(allenPath: string): Promise<boolean> {
-        try {
-            const expectedPaths = KNOWN_FOLDERS_IN_ALLEN_DRIVE.map((f) => path.join(allenPath, f));
-            await Promise.all(
-                expectedPaths.map((path) => fs.promises.access(path, fs.constants.R_OK))
-            );
-            return true;
-        } catch (_) {
-            return false;
-        }
-    }
-
     public async isValidExecutable(executablePath: string): Promise<boolean> {
         if (executablePath === SystemDefaultAppLocation) {
             return true;
         }
         try {
             // On macOS, applications are bundled as packages. `executablePath` is expected to be a package.
-            if (os.platform() === Platform.Mac) {
+            if (this.getOS() === "Darwin") {
                 if (executablePath.endsWith(".app")) {
                     const pathStat = await fs.promises.stat(executablePath);
                     if (pathStat.isDirectory()) {
@@ -201,6 +148,49 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         } catch (_) {
             return false;
         }
+    }
+
+    /**
+     * Determine where mount point for `fileShare` exists on this host.
+     * Expected to only be needed on macOS: on Linux, `fileShare` is expected
+     * to be found at `/allen/<fileShare`; on Windows, `fileShare` is expected
+     * to be found at `\\allen\<fileShare>`.
+     *
+     * Implementation: return first non-empty path within either `/Volumes` or
+     * `os.homedir()` that matches `fileShare`.
+     * This could alternately be accomplished via a lookup (e.g., parse output of `mount`),
+     * but that is complicated by how different types of mounts (e.g., `smbfs` versus `macfuse`)
+     * are displayed by `mount`.
+     *
+     * Additional context: https://aicsjira.corp.alleninstitute.org/browse/UR-31
+     */
+    protected async probeForMountPoint(fileShare: string): Promise<string | null> {
+        if (!this.mountPoint) {
+            const POSSIBLE_BASE_LOCATIONS = [
+                // Most likely location, particularly when using this application while in the 615 Westlake building.
+                // Accomplished by: "Go" -> "Connect to server" -> "smb://allen/programs"
+                "/Volumes",
+
+                // Somewhat niche case, but here to enable making use of `sshfs`
+                // when working outside of the 615 Westlake building.
+                // If/when SMB/NFS is allowed through the Institute's firewall, this can be safely deleted.
+                os.homedir(),
+            ];
+            for (const base of POSSIBLE_BASE_LOCATIONS) {
+                const possibleMount = path.join(base, fileShare);
+                try {
+                    const content = await fs.promises.readdir(possibleMount);
+                    if (content.length) {
+                        this.mountPoint = possibleMount;
+                        break;
+                    }
+                } catch (_) {
+                    // Swallow.
+                }
+            }
+        }
+
+        return Promise.resolve(this.mountPoint);
     }
 
     // Prompts user using native file browser for a file path

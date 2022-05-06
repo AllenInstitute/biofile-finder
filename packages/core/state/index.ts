@@ -59,8 +59,6 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
     const { persistedConfig } = options;
     const preloadedState: State = mergeState(initialState, {
         interaction: {
-            allenMountPoint:
-                persistedConfig && persistedConfig[PersistedConfigKeys.AllenMountPoint],
             csvColumns: persistedConfig && persistedConfig[PersistedConfigKeys.CsvColumns],
             userSelectedApplications:
                 persistedConfig && persistedConfig[PersistedConfigKeys.UserSelectedApplications],

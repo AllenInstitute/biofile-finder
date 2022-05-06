@@ -15,7 +15,6 @@ import {
     REMOVE_STATUS,
     SET_STATUS,
     cancelFileDownload,
-    SET_ALLEN_MOUNT_POINT,
     generatePythonSnippet,
     SUCCEED_PYTHON_SNIPPET_GENERATION,
     SET_CSV_COLUMNS,
@@ -1023,12 +1022,6 @@ describe("Interaction logics", () => {
                     userWasPromptedForExecutable = true;
                     return Promise.resolve(expectedExecutablePath);
                 }
-                promptForAllenMountPoint() {
-                    return Promise.resolve(ExecutableEnvCancellationToken);
-                }
-                isValidAllenMountPoint() {
-                    return Promise.resolve(false);
-                }
                 isValidExecutable() {
                     return Promise.resolve(false);
                 }
@@ -1143,12 +1136,6 @@ describe("Interaction logics", () => {
                     userWasPromptedForExecutable = true;
                     return Promise.resolve(expectedExecutablePath);
                 }
-                promptForAllenMountPoint() {
-                    return Promise.resolve(ExecutableEnvCancellationToken);
-                }
-                isValidAllenMountPoint() {
-                    return Promise.resolve(false);
-                }
                 isValidExecutable() {
                     return Promise.resolve(false);
                 }
@@ -1235,18 +1222,10 @@ describe("Interaction logics", () => {
                 defaultFileKinds: [pngKind],
                 filePath: "my/path/to/my/second/fake.app",
             };
-            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
-                promptForAllenMountPoint() {
-                    return Promise.resolve(ExecutableEnvCancellationToken);
-                }
-                isValidAllenMountPoint() {
-                    return Promise.resolve(false);
-                }
-            }
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        executionEnvService: new UselessExecutionEnvService(),
+                        executionEnvService: new ExecutionEnvServiceNoop(),
                     },
                     userSelectedApplications: [app1, app2],
                 },
@@ -1284,18 +1263,10 @@ describe("Interaction logics", () => {
         });
 
         it("attempts to open selected files by system default", async () => {
-            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
-                promptForAllenMountPoint() {
-                    return Promise.resolve(ExecutableEnvCancellationToken);
-                }
-                isValidAllenMountPoint() {
-                    return Promise.resolve(false);
-                }
-            }
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        executionEnvService: new UselessExecutionEnvService(),
+                        executionEnvService: new ExecutionEnvServiceNoop(),
                     },
                 },
                 selection: {
@@ -1327,13 +1298,9 @@ describe("Interaction logics", () => {
     });
 
     describe("openWith", () => {
-        const files = [];
-        const filePaths: string[] = [];
-        const expectedAllenDrive = "/some/test/path/to/fakeAllen";
+        const files: { file_path: string }[] = [];
         for (let i = 0; i <= 100; i++) {
-            const filePath = "/fakeFile" + i;
-            files.push({ file_path: "/allen" + filePath });
-            filePaths.push(expectedAllenDrive + filePath);
+            files.push({ file_path: `/allen/file_${i}.ext` });
         }
         const baseUrl = "test";
         const responseStub = {
@@ -1358,43 +1325,38 @@ describe("Interaction logics", () => {
             const expectedExecutablePath = "/some/path/to/imageJ";
             let actualFilePaths: string[] | undefined = undefined;
             let actualExecutablePath: string | undefined = undefined;
-            class UselessFileViewerService implements FileViewerService {
+
+            class FakeFileViewerService implements FileViewerService {
                 open(executablePath: string, filePaths?: string[]) {
                     actualFilePaths = filePaths;
                     actualExecutablePath = executablePath;
                     return Promise.resolve();
                 }
             }
-            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
-                promptForAllenMountPoint() {
-                    return Promise.resolve(ExecutableEnvCancellationToken);
-                }
-                promptForExecutable() {
-                    return Promise.resolve(ExecutableEnvCancellationToken);
-                }
-                isValidAllenMountPoint() {
-                    return Promise.resolve(true);
-                }
-                isValidExecutable() {
-                    return Promise.resolve(true);
+
+            class FakeExecutionEnvService extends ExecutionEnvServiceNoop {
+                public formatPathForHost(posixPath: string): Promise<string> {
+                    return Promise.resolve(posixPath);
                 }
             }
+
             const state = mergeState(initialState, {
                 interaction: {
-                    allenMountPoint: expectedAllenDrive,
                     platformDependentServices: {
-                        executionEnvService: new UselessExecutionEnvService(),
-                        fileViewerService: new UselessFileViewerService(),
+                        executionEnvService: new FakeExecutionEnvService(),
+                        fileViewerService: new FakeFileViewerService(),
                     },
                 },
                 selection: {
                     fileSelection: fakeSelection,
                 },
             });
+
             const { actions, store, logicMiddleware } = configureMockStore({
                 state,
                 logics: interactionLogics,
             });
+
             const app = {
                 filePath: expectedExecutablePath,
                 name: "ImageJ",
@@ -1406,13 +1368,8 @@ describe("Interaction logics", () => {
             await logicMiddleware.whenComplete();
 
             // Assert
-            expect(actualFilePaths).to.be.deep.equal(filePaths);
+            expect(actualFilePaths).to.be.deep.equal(files.map((file) => file.file_path));
             expect(actualExecutablePath).to.be.equal(expectedExecutablePath);
-            expect(
-                actions.includesMatch({
-                    type: SET_ALLEN_MOUNT_POINT,
-                })
-            ).to.be.false;
             expect(
                 actions.includesMatch({
                     type: OPEN_WITH,
@@ -1424,222 +1381,6 @@ describe("Interaction logics", () => {
                     ],
                 })
             ).to.be.false;
-        });
-
-        it("prevents prompting to select executable location when user cancels selecting mount point", async () => {
-            // Arrange
-            let attemptedToSetImageJ = false;
-            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
-                promptForAllenMountPoint() {
-                    return Promise.resolve(ExecutableEnvCancellationToken);
-                }
-                promptForExecutable() {
-                    attemptedToSetImageJ = true;
-                    return Promise.resolve("test");
-                }
-                isValidAllenMountPoint() {
-                    return Promise.resolve(false);
-                }
-                isValidExecutable() {
-                    return Promise.resolve(false);
-                }
-            }
-            const state = mergeState(initialState, {
-                interaction: {
-                    platformDependentServices: {
-                        executionEnvService: new UselessExecutionEnvService(),
-                    },
-                },
-            });
-            const { store, logicMiddleware } = configureMockStore({
-                state,
-                logics: interactionLogics,
-            });
-            const app = {
-                filePath: "",
-                name: "ImageJ",
-                defaultFileKinds: [],
-            };
-
-            // Act
-            store.dispatch(openWith(app));
-            await logicMiddleware.whenComplete();
-
-            // Assert
-            expect(attemptedToSetImageJ).to.be.false;
-        });
-
-        it("prevents prompting to select Allen Drive when it is at the expected location", async () => {
-            // Arrange
-            let attemptedToSetAllenDrive = false;
-            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
-                promptForAllenMountPoint() {
-                    attemptedToSetAllenDrive = true;
-                    return Promise.resolve("test");
-                }
-                promptForExecutable() {
-                    return Promise.resolve(ExecutableEnvCancellationToken);
-                }
-                isValidAllenMountPoint() {
-                    return Promise.resolve(true);
-                }
-                isValidExecutable() {
-                    return Promise.resolve(false);
-                }
-            }
-            const state = mergeState(initialState, {
-                interaction: {
-                    allenMountPoint: "test",
-                    platformDependentServices: {
-                        executionEnvService: new UselessExecutionEnvService(),
-                    },
-                },
-            });
-            const { store, logicMiddleware } = configureMockStore({
-                state,
-                logics: interactionLogics,
-            });
-            const app = {
-                filePath: "/some/path/to/ZEN",
-                name: "ZEN 2",
-                defaultFileKinds: ["CZI"],
-            };
-
-            // Act
-            store.dispatch(openWith(app));
-            await logicMiddleware.whenComplete();
-
-            // Assert
-            expect(attemptedToSetAllenDrive).to.be.false;
-        });
-
-        it("prevents opening selecting files when user cancels selecting image J executable", async () => {
-            // Arrange
-            let attemptedToOpenFiles = false;
-            class UselessFileViewerService implements FileViewerService {
-                open() {
-                    attemptedToOpenFiles = true;
-                    return Promise.resolve();
-                }
-            }
-            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
-                promptForAllenMountPoint() {
-                    return Promise.resolve("test");
-                }
-                promptForExecutable() {
-                    return Promise.resolve(ExecutableEnvCancellationToken);
-                }
-                isValidAllenMountPoint() {
-                    return Promise.resolve(true);
-                }
-                isValidExecutable() {
-                    return Promise.resolve(false);
-                }
-            }
-            const state = mergeState(initialState, {
-                interaction: {
-                    platformDependentServices: {
-                        executionEnvService: new UselessExecutionEnvService(),
-                        fileViewerService: new UselessFileViewerService(),
-                    },
-                },
-            });
-            const { store, logicMiddleware } = configureMockStore({
-                state,
-                logics: interactionLogics,
-            });
-            const app = {
-                filePath: "",
-                name: "ZEN 2",
-                defaultFileKinds: ["CZI"],
-            };
-
-            // Act
-            store.dispatch(openWith(app));
-            await logicMiddleware.whenComplete();
-
-            // Assert
-            expect(attemptedToOpenFiles).to.be.false;
-        });
-
-        it("prompts & sets allen mount point & image j location when not present/valid", async () => {
-            // Arrange
-            class UselessFileViewerService implements FileViewerService {
-                open() {
-                    return Promise.resolve();
-                }
-            }
-            let promptedForAllenMountPoint = false;
-            let promptedForExecutable = false;
-            const expectedExecutablePath = "some/path/to/imageJ";
-            class UselessExecutionEnvService extends ExecutionEnvServiceNoop {
-                promptForAllenMountPoint() {
-                    promptedForAllenMountPoint = true;
-                    return Promise.resolve(expectedAllenDrive);
-                }
-                promptForExecutable() {
-                    promptedForExecutable = true;
-                    return Promise.resolve(expectedExecutablePath);
-                }
-                isValidAllenMountPoint() {
-                    return Promise.resolve(false);
-                }
-                isValidExecutable() {
-                    return Promise.resolve(false);
-                }
-            }
-            const app = {
-                filePath: "",
-                name: "ImageJ/Fiji",
-                defaultFileKinds: ["OMETIFF"],
-            };
-            const anotherApp = {
-                filePath: "my/fun/path/to/AdobePhotoshop",
-                name: "Photoshop",
-                defaultFileKinds: ["PNG", "JPG"],
-            };
-            const state = mergeState(initialState, {
-                interaction: {
-                    platformDependentServices: {
-                        executionEnvService: new UselessExecutionEnvService(),
-                        fileViewerService: new UselessFileViewerService(),
-                    },
-                    userSelectedApplications: [app, anotherApp],
-                },
-            });
-            const { actions, store, logicMiddleware } = configureMockStore({
-                state,
-                logics: interactionLogics,
-            });
-
-            // Act
-            store.dispatch(openWith(app));
-            await logicMiddleware.whenComplete();
-
-            // Assert
-            expect(promptedForAllenMountPoint).to.be.true;
-            expect(promptedForExecutable).to.be.true;
-            expect(
-                actions.includesMatch({
-                    type: SET_ALLEN_MOUNT_POINT,
-                    payload: {
-                        allenMountPoint: expectedAllenDrive,
-                    },
-                })
-            ).to.be.true;
-            // expect(JSON.stringify(actions.list)).to.be.true;
-            expect(
-                actions.includesMatch({
-                    type: SET_USER_SELECTED_APPLICATIONS,
-                    payload: [
-                        {
-                            ...app,
-                            filePath: expectedExecutablePath,
-                        },
-                        anotherApp,
-                    ],
-                })
-            ).to.be.true;
         });
     });
 });

@@ -67,17 +67,14 @@ const store = createReduxStore({
 // https://redux.js.org/api/store#subscribelistener
 store.subscribe(() => {
     const state = store.getState();
-    const allenMountPoint = interaction.selectors.getAllenMountPoint(state);
     const csvColumns = interaction.selectors.getCsvColumns(state);
     const userSelectedApplications = interaction.selectors.getUserSelectedApplications(state);
     const appState = {
-        [PersistedConfigKeys.AllenMountPoint]: allenMountPoint,
         [PersistedConfigKeys.CsvColumns]: csvColumns,
         [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
     };
     if (JSON.stringify(appState) !== JSON.stringify(persistentConfigService.getAll())) {
         persistentConfigService.persist({
-            [PersistedConfigKeys.AllenMountPoint]: allenMountPoint,
             [PersistedConfigKeys.CsvColumns]: csvColumns,
             [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
         });
@@ -88,7 +85,6 @@ function renderFmsFileExplorer() {
     render(
         <Provider store={store}>
             <FmsFileExplorer
-                allenMountPoint={global.fileExplorerServiceAllenMountPoint}
                 fileExplorerServiceBaseUrl={global.fileExplorerServiceBaseUrl}
                 platformDependentServices={collectPlatformDependentServices(
                     global.fileDownloadServiceBaseUrl as FileDownloadServiceBaseUrl
@@ -107,10 +103,5 @@ ipcRenderer.addListener(
         renderFmsFileExplorer();
     }
 );
-
-ipcRenderer.addListener(GlobalVariableChannels.AllenMountPoint, (_, allenMountPoint?: string) => {
-    global.fileExplorerServiceAllenMountPoint = allenMountPoint;
-    renderFmsFileExplorer();
-});
 
 renderFmsFileExplorer();

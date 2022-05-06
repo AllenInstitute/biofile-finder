@@ -1,7 +1,6 @@
 import * as os from "os";
 
 import childProcess from "child_process";
-import { Platform } from "../ExecutionEnvServiceElectron";
 
 import ViewerStrategy from "./ViewerStrategy";
 
@@ -14,10 +13,10 @@ const systemDefaultViewerStrategy: ViewerStrategy = async (_, filePaths) => {
     let shell: string | boolean = false;
     let command = "gio";
     let args = ["open", ...filePaths];
-    if (os.platform() === Platform.Mac) {
+    if (os.type() === "Darwin") {
         command = "open";
         args = filePaths;
-    } else if (os.platform() === Platform.Windows) {
+    } else if (os.type() === "Windows_NT") {
         detached = false;
         shell = "PowerShell.exe";
         command = "start";

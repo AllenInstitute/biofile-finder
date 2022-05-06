@@ -15,7 +15,6 @@ import {
     CANCEL_FILE_DOWNLOAD,
     cancelFileDownload,
     CancelFileDownloadAction,
-    setAllenMountPoint,
     setCsvColumns,
     GENERATE_PYTHON_SNIPPET,
     succeedPythonSnippetGeneration,
@@ -401,91 +400,43 @@ const openWithLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
-        const savedAllenMountPoint = interactionSelectors.getAllenMountPoint(deps.getState());
         const {
             fileViewerService,
             executionEnvService,
         } = interactionSelectors.getPlatformDependentServices(deps.getState());
-        const userSelectedApplications = interactionSelectors.getUserSelectedApplications(
-            deps.getState()
-        );
         const sortColumn = selection.selectors.getSortColumn(deps.getState());
+        const {
+            payload: {
+                files,
+                filters,
+                app: { filePath: exePath },
+            },
+        } = deps.action as OpenWithAction;
 
-        // Verify that the known Allen mount point is valid, if not prompt for it
-        let allenMountPoint = savedAllenMountPoint;
-        const isValidAllenDrive =
-            allenMountPoint && (await executionEnvService.isValidAllenMountPoint(allenMountPoint));
-        if (!isValidAllenDrive) {
-            allenMountPoint = await executionEnvService.promptForAllenMountPoint(true);
+        // Gather up the file paths for the files selected currently
+        let filesToOpen;
+        if (files) {
+            filesToOpen = files;
+        } else if (filters) {
+            const fileSet = new FileSet({
+                filters,
+                fileService,
+                sort: sortColumn,
+            });
+            const totalFileCount = await fileSet.fetchTotalCount();
+            filesToOpen = await fileSet.fetchFileRange(0, totalFileCount);
+        } else {
+            filesToOpen = await fileSelection.fetchAllDetails();
         }
+        const filePaths = await Promise.all(
+            filesToOpen.map(
+                async (file) => await executionEnvService.formatPathForHost(file.file_path)
+            )
+        );
 
-        // If the user did not cancel out of the allen mount prompt, continue trying to open the executable
-        if (allenMountPoint && allenMountPoint !== ExecutableEnvCancellationToken) {
-            // Save Allen mount point for future use if new
-            if (allenMountPoint !== savedAllenMountPoint) {
-                dispatch(setAllenMountPoint(allenMountPoint));
-            }
+        // Open the files in the specified executable
+        await fileViewerService.open(exePath, filePaths);
 
-            // Verify that the executable location leads to a valid executable
-            const {
-                payload: {
-                    files,
-                    filters,
-                    app: { filePath: savedExecutableLocation },
-                },
-            } = deps.action as OpenWithAction;
-            let executableLocation = savedExecutableLocation;
-            const isValidExecutableLocation = await executionEnvService.isValidExecutable(
-                executableLocation
-            );
-            if (!isValidExecutableLocation) {
-                const name = path.basename(executableLocation);
-                executableLocation = await executionEnvService.promptForExecutable(
-                    `${name} Executable`,
-                    `It appears that your ${name} application isn't located where we thought it would be. ` +
-                        `Select your ${name} application now?`
-                );
-                // Save the executable location for future use if new
-                if (executableLocation !== ExecutableEnvCancellationToken) {
-                    const updatedApps = (userSelectedApplications || []).map((app) => ({
-                        ...app,
-                        filePath:
-                            app.filePath === savedExecutableLocation
-                                ? executableLocation
-                                : app.filePath,
-                    }));
-                    dispatch(setUserSelectedApplication(updatedApps));
-                }
-            }
-
-            // If the user did not cancel out of a prompt, continue trying to open the executable
-            if (executableLocation !== ExecutableEnvCancellationToken) {
-                // Gather up the file paths for the files selected currently
-                let filesToOpen;
-                if (files) {
-                    filesToOpen = files;
-                } else if (filters) {
-                    const fileSet = new FileSet({
-                        filters,
-                        fileService,
-                        sort: sortColumn,
-                    });
-                    const totalFileCount = await fileSet.fetchTotalCount();
-                    filesToOpen = await fileSet.fetchFileRange(0, totalFileCount);
-                } else {
-                    filesToOpen = await fileSelection.fetchAllDetails();
-                }
-                const filePaths = filesToOpen.map((file) =>
-                    executionEnvService.formatPathForOs(
-                        file.file_path.substring("/allen".length),
-                        allenMountPoint
-                    )
-                );
-
-                // Open the files in the specified executable
-                await fileViewerService.open(executableLocation, filePaths);
-            }
-        }
         done();
     },
     type: OPEN_WITH,

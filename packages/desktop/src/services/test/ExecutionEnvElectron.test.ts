@@ -10,121 +10,37 @@ import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
 } from "./../../../../core/services";
-import ExecutionEnvServiceElectron, {
-    KNOWN_FOLDERS_IN_ALLEN_DRIVE,
-    Platform,
-} from "../ExecutionEnvServiceElectron";
+import ExecutionEnvServiceElectron from "../ExecutionEnvServiceElectron";
 import NotificationServiceElectron from "../NotificationServiceElectron";
 import { RUN_IN_RENDERER } from "../../util/constants";
 
 describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
-    const runningOnMacOS = os.platform() === Platform.Mac;
+    const runningOnMacOS = os.type() === "Darwin";
 
-    describe("promptForAllenMountPoint", () => {
-        const sandbox = createSandbox();
-        const tempAllenDrive = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`);
-
-        beforeEach(() => {
-            for (const folder of KNOWN_FOLDERS_IN_ALLEN_DRIVE) {
-                fs.mkdirSync(path.resolve(tempAllenDrive, folder), { recursive: true });
-            }
-        });
-
-        afterEach(() => {
-            sandbox.restore();
-            fs.rmSync(tempAllenDrive, { recursive: true });
-        });
-
-        it("returns mount point as selected", async () => {
+    describe("formatPathForHost", () => {
+        it("modifies the mount point within FMS db path if on macOS and it can be found", async () => {
             // Arrange
-            let wasMessageShown = false;
-            class UselessNotificationService extends NotificationServiceElectron {
-                showMessage() {
-                    wasMessageShown = true;
-                    return Promise.resolve(true);
+            class FakeExecutionEnvServiceElectron extends ExecutionEnvServiceElectron {
+                public getOS(): "Linux" | "Darwin" | "Windows_NT" {
+                    return "Darwin";
+                }
+
+                protected async probeForMountPoint(): Promise<string | null> {
+                    return Promise.resolve("/Volumes/programs");
                 }
             }
-            const service = new ExecutionEnvServiceElectron(new UselessNotificationService());
-            sandbox
-                .stub(ipcRenderer, "invoke")
-                .withArgs(ExecutionEnvServiceElectron.SHOW_OPEN_DIALOG)
-                .resolves({
-                    filePaths: [tempAllenDrive],
-                });
+
+            const dbPath = "/allen/programs/object/path.ext";
+
+            const executionEnvService = new FakeExecutionEnvServiceElectron(
+                new NotificationServiceElectron()
+            );
 
             // Act
-            const mountPoint = await service.promptForAllenMountPoint(true);
+            const actual = await executionEnvService.formatPathForHost(dbPath);
 
             // Assert
-            expect(mountPoint).to.equal(tempAllenDrive);
-            expect(wasMessageShown).to.be.true;
-        });
-
-        it("returns cancellation token when message prompt cancelled", async () => {
-            // Arrange
-            let wasMessageShown = false;
-            class UselessNotificationService extends NotificationServiceElectron {
-                showMessage() {
-                    wasMessageShown = true;
-                    return Promise.resolve(false);
-                }
-            }
-            const service = new ExecutionEnvServiceElectron(new UselessNotificationService());
-
-            // Act
-            const mountPoint = await service.promptForAllenMountPoint(true);
-
-            // Assert
-            expect(mountPoint).to.equal(ExecutableEnvCancellationToken);
-            expect(wasMessageShown).to.be.true;
-        });
-
-        it("returns cancellation token when browser prompt cancelled", async () => {
-            // Arrange
-            const service = new ExecutionEnvServiceElectron(new NotificationServiceElectron());
-            sandbox
-                .stub(ipcRenderer, "invoke")
-                .withArgs(ExecutionEnvServiceElectron.SHOW_OPEN_DIALOG)
-                .resolves({
-                    canceled: true,
-                    filePaths: [],
-                });
-
-            // Act
-            const mountPoint = await service.promptForAllenMountPoint();
-
-            // Assert
-            expect(mountPoint).to.equal(ExecutableEnvCancellationToken);
-        });
-
-        it("prompts reselection of valid mount point when invalid one is chosen", async () => {
-            // Arrange
-            let wasErrorShown = false;
-            class UselessNotificationService extends NotificationServiceElectron {
-                showError() {
-                    wasErrorShown = true;
-                    return Promise.resolve();
-                }
-            }
-            const service = new ExecutionEnvServiceElectron(new UselessNotificationService());
-            const stub = sandbox.stub(ipcRenderer, "invoke");
-            stub.withArgs(ExecutionEnvServiceElectron.SHOW_OPEN_DIALOG)
-                .onCall(0)
-                .resolves({
-                    filePaths: ["/some/not/allen/path"],
-                });
-            stub.withArgs(ExecutionEnvServiceElectron.SHOW_OPEN_DIALOG)
-                .onCall(1)
-                .resolves({
-                    filePaths: [tempAllenDrive],
-                });
-
-            // Act
-            const mountPoint = await service.promptForAllenMountPoint();
-
-            // Assert
-            expect(mountPoint).to.equal(tempAllenDrive);
-            expect(wasErrorShown).to.be.true;
+            expect(actual).to.equal("/Volumes/programs/object/path.ext");
         });
     });
 
@@ -279,53 +195,6 @@ describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
             // Assert
             expect(selectedPath).to.equal(executablePath);
             expect(wasErrorShown).to.be.true;
-        });
-    });
-
-    describe("isValidAllenMountPoint", () => {
-        const tmpDir = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`);
-        const tempAllenPath = path.join(tmpDir, "/test-allen");
-        const knownPaths = KNOWN_FOLDERS_IN_ALLEN_DRIVE.map((f) => path.resolve(tempAllenPath, f));
-
-        afterEach(() => {
-            fs.rmSync(tempAllenPath, { recursive: true, force: true });
-        });
-
-        it("returns true when allen drive is valid", async () => {
-            // Arrange
-            const service = new ExecutionEnvServiceElectron(new NotificationServiceElectron());
-            for (const expectedFolder of knownPaths) {
-                fs.mkdirSync(path.resolve(tempAllenPath, expectedFolder), { recursive: true });
-            }
-
-            // Act
-            const result = await service.isValidAllenMountPoint(tempAllenPath);
-
-            // Assert
-            expect(result).to.be.true;
-        });
-
-        it("returns false when allen drive does not contain expected folder", async () => {
-            // Arrange
-            const service = new ExecutionEnvServiceElectron(new NotificationServiceElectron());
-            fs.mkdirSync(tempAllenPath);
-
-            // Act
-            const result = await service.isValidAllenMountPoint(tempAllenPath);
-
-            // Assert
-            expect(result).to.be.false;
-        });
-
-        it("returns false when allen drive itself does not exist", async () => {
-            // Arrange
-            const service = new ExecutionEnvServiceElectron(new NotificationServiceElectron());
-
-            // Act
-            const result = await service.isValidAllenMountPoint(tempAllenPath);
-
-            // Assert
-            expect(result).to.be.false;
         });
     });
 

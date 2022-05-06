@@ -1,6 +1,6 @@
 {
   "name": "fms-file-explorer-desktop",
-  "version": "6.1.0-0",
+  "version": "6.1.0-1",
   "description": "An application designed to simplify access and exploration of data produced by the Allen Institute for Cell Science, provide an intuitive mechanism for organizing that data, and provide simple hooks for incorporating that data into both programmatic and non-programmatic workflows.",
   "main": "dist/main/index.js",
   "repository": {
@@ -47,7 +47,8 @@
     "publishArtifact": "echo 'npm run publishArtifact is a noop for fms-file-explorer-desktop'",
     "start": "node scripts/start-dev.js",
     "test:renderer": "BABEL_ENV=nodejs xvfb-maybe electron-mocha --require-main src/main/init-electron-store.js --renderer --grep @renderer --preload ./scripts/test-env-setup.js",
-    "test": "npm-run-all --print-label test:renderer",
+    "test:nodejs": "BABEL_ENV=nodejs mocha --grep @renderer --invert",
+    "test": "npm-run-all --print-label test:renderer test:nodejs",
     "version": "git add package.json && git commit -m \"v${npm_package_version}\" && git tag -am \"v${npm_package_version}\" \"v${npm_package_version}\""
   },
   "author": "Allen Institute for Cell Science",

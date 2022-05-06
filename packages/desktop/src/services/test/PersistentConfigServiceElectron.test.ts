@@ -18,17 +18,6 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             }
         });
 
-        it("returns default when key does not exist & default does", () => {
-            // Arrange
-            const service = new PersistentConfigServiceElectron({ clearExistingData: true });
-
-            // Act
-            const actual = service.get(PersistedConfigKeys.AllenMountPoint);
-
-            // Assert
-            expect(actual).to.not.be.undefined;
-        });
-
         it("returns undefined when key does not exist & no default does", () => {
             // Arrange
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
@@ -96,27 +85,6 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
 
             // Assert
             expect(service.getAll()).to.deep.equal(config);
-        });
-
-        it(`persists valid ${PersistedConfigKeys.AllenMountPoint}`, () => {
-            // Arrange
-            const service = new PersistentConfigServiceElectron({ clearExistingData: true });
-            const expected = "home/users/me/allen";
-
-            // Act
-            service.persist(PersistedConfigKeys.AllenMountPoint, expected);
-
-            // Assert
-            const actual = service.get(PersistedConfigKeys.AllenMountPoint);
-            expect(actual).to.be.equal(expected);
-        });
-
-        it(`rejects invalid ${PersistedConfigKeys.AllenMountPoint}`, () => {
-            // Arrange
-            const service = new PersistentConfigServiceElectron({ clearExistingData: true });
-
-            // Act / Assert
-            expect(() => service.persist(PersistedConfigKeys.AllenMountPoint, [])).to.throw();
         });
 
         it(`persists valid ${PersistedConfigKeys.CsvColumns}`, () => {

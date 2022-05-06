@@ -8,7 +8,6 @@ import FileService from "../../services/FileService";
 import { getCollection } from "../selection/selectors";
 
 // BASIC SELECTORS
-export const getAllenMountPoint = (state: State) => state.interaction.allenMountPoint;
 export const getApplicationVersion = (state: State) => state.interaction.applicationVersion;
 export const getContextMenuVisibility = (state: State) => state.interaction.contextMenuIsVisible;
 export const getContextMenuItems = (state: State) => state.interaction.contextMenuItems;

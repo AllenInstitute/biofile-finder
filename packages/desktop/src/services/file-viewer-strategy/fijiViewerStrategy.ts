@@ -2,7 +2,6 @@ import childProcess from "child_process";
 import { promises as fsPromises } from "fs";
 import os from "os";
 import path from "path";
-import { Platform } from "../ExecutionEnvServiceElectron";
 
 import ViewerStrategy from "./ViewerStrategy";
 
@@ -78,7 +77,7 @@ const fijiViewerStrategy: ViewerStrategy = async (executable, filePaths) => {
     await entryPointScript.close();
 
     let executableProcess;
-    if (os.platform() === Platform.Mac) {
+    if (os.type() === "Darwin") {
         executableProcess = childProcess.spawn(
             "open",
             ["-n", "-a", executable, "--args", "--run", scriptPath],
