@@ -60,7 +60,7 @@
     "clean-webpack-plugin": "4.x",
     "css-loader": "6.x",
     "dotenv-webpack": "7.x",
-    "electron": "16.0.x",
+    "electron": "16.2.x",
     "electron-builder": "22.14.x",
     "electron-mocha": "11.0.x",
     "fork-ts-checker-webpack-plugin": "6.x",
