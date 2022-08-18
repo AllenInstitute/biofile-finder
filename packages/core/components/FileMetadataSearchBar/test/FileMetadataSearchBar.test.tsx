@@ -4,7 +4,7 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import FileMetadataSearchBar, { DATE_RANGE_SEPARATOR, extractDateFromDateString } from "../";
+import FileMetadataSearchBar, { extractDateFromDateString } from "../";
 import FileFilter from "../../../entity/FileFilter";
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import { initialState, selection } from "../../../state";
@@ -91,12 +91,9 @@ describe("<FileMetadataSearchBar />", () => {
         const uploadedDisplayName =
             TOP_LEVEL_FILE_ANNOTATIONS.find((a) => a.name === AnnotationName.UPLOADED)
                 ?.displayName || "";
-        const date1 = "2021-03-04";
-        const date2 = "2020-08-30";
-        const filter = new FileFilter(
-            AnnotationName.UPLOADED,
-            `${date1}${DATE_RANGE_SEPARATOR}${date2}`
-        );
+        const date1 = "2021-03-04T00:00:00.000Z";
+        const date2 = "2020-08-30T00:00:00.000Z";
+        const filter = new FileFilter(AnnotationName.UPLOADED, `RANGE(${date1},${date2})`);
         const state = {
             ...initialState,
             selection: {
@@ -124,18 +121,18 @@ describe("<FileMetadataSearchBar />", () => {
                 <FileMetadataSearchBar />
             </Provider>
         );
-        const day = 17;
         const date = new Date();
-        const expectedDate = `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(
-            -2
-        )}-${day}`;
-        const expectedRange = `${expectedDate}${DATE_RANGE_SEPARATOR}${expectedDate}`;
+        date.setHours(0);
+        date.setMinutes(0);
+        date.setSeconds(0);
+        date.setMilliseconds(0);
+        const expectedRange = `RANGE(${date.toISOString()},${date.toISOString()})`;
 
         // Act
         fireEvent.click(getByText("File name"));
         fireEvent.click(getByText("Uploaded"));
         fireEvent.click(getByText("Start of date range"));
-        fireEvent.click(getByText(`${day}`));
+        fireEvent.click(getByText(`${date.getDate()}`));
         await logicMiddleware.whenComplete();
 
         // Assert

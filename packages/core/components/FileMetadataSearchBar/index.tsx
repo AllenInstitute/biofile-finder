@@ -28,7 +28,6 @@ const FILE_NAME_OPTION = FILE_ATTRIBUTE_OPTIONS.find(
 ) as IDropdownOption;
 // Color chosen from App.module.css
 const PURPLE_ICON_STYLE = { icon: { color: "#827aa3" } };
-export const DATE_RANGE_SEPARATOR = "-to-"; // Not arbitrary, defined per contract with FES
 
 // Because the datestring comes in as an ISO formatted date like 2021-01-02
 // creating a new date from that would result in a date displayed as the
@@ -41,6 +40,14 @@ export function extractDateFromDateString(dateString?: string): Date | undefined
     const date = new Date(dateString);
     date.setMinutes(date.getTimezoneOffset());
     return date;
+}
+
+function extractDatesFromRangeOperatorFilterString(filterString: string) {
+    // Regex with capture groups for identifying strings using the RANGE() operator with full ISO strings
+    // e.g. RANGE(2022-01-01T00:00:00.000Z,2022-01-31T00:00:00.000Z)
+    // Captures "2022-01-01T00:00:00.000Z" and "2022-01-31T00:00:00.000Z"
+    const RANGE_OPERATOR_REGEX = /RANGE\(([\d\-:TZ.]+),([\d\-:TZ.]+)\)/g;
+    return RANGE_OPERATOR_REGEX.exec(filterString);
 }
 
 /**
@@ -75,15 +82,20 @@ export default function FileMetadataSearchBar() {
     }
 
     function onDateRangeSelection(newDateRange: { startDate?: Date; endDate?: Date }) {
-        const [oldStartDate = undefined, oldEndDate = undefined] =
-            fileAttributeFilter?.value.split(DATE_RANGE_SEPARATOR) || [];
+        let oldStartDate;
+        let oldEndDate;
+        const splitFileAttributeFilter = extractDatesFromRangeOperatorFilterString(
+            fileAttributeFilter?.value
+        );
+        if (splitFileAttributeFilter !== null) {
+            oldStartDate = splitFileAttributeFilter[1];
+            oldEndDate = splitFileAttributeFilter[2];
+        }
         const startDate = newDateRange.startDate
-            ? newDateRange.startDate.toISOString().split("T")[0]
+            ? newDateRange.startDate.toISOString()
             : oldStartDate;
-        const endDate = newDateRange.endDate
-            ? newDateRange.endDate.toISOString().split("T")[0]
-            : oldEndDate;
-        onSearch(`${startDate || endDate}${DATE_RANGE_SEPARATOR}${endDate || startDate}`);
+        const endDate = newDateRange.endDate ? newDateRange.endDate.toISOString() : oldEndDate;
+        onSearch(`RANGE(${startDate || endDate},${endDate || startDate})`);
     }
 
     function onAttributeSelection(_: React.FormEvent, option?: IDropdownOption) {
@@ -96,8 +108,12 @@ export default function FileMetadataSearchBar() {
     let searchBox: React.ReactNode;
     const annotation = TOP_LEVEL_FILE_ANNOTATIONS.find((a) => a.name === selectedAttribute.key);
     if (annotation?.type === AnnotationType.DATETIME) {
-        const [startDate = undefined, endDate = undefined] =
-            fileAttributeFilter?.value.split(DATE_RANGE_SEPARATOR) || [];
+        let startDate;
+        let endDate;
+        const splitDates = extractDatesFromRangeOperatorFilterString(fileAttributeFilter?.value);
+        if (splitDates !== null) {
+            [, startDate, endDate] = splitDates;
+        }
 
         searchBox = (
             <span className={styles.dateRangeBox}>
