@@ -92,7 +92,7 @@ describe("<FileMetadataSearchBar />", () => {
             TOP_LEVEL_FILE_ANNOTATIONS.find((a) => a.name === AnnotationName.UPLOADED)
                 ?.displayName || "";
         const date1 = "2021-03-04T00:00:00.000Z";
-        const date2 = "2020-08-30T00:00:00.000Z";
+        const date2 = "2020-08-31T00:00:00.000Z";
         const filter = new FileFilter(AnnotationName.UPLOADED, `RANGE(${date1},${date2})`);
         const state = {
             ...initialState,
@@ -113,7 +113,7 @@ describe("<FileMetadataSearchBar />", () => {
         expect(getByText("Sun Aug 30 2020")).to.not.be.empty;
     });
 
-    it("defaults end date to start date when only start date is chosen", async () => {
+    it("creates RANGE() file filter of RANGE(day,day+1) when only start date is selected", async () => {
         // Arrange
         const { actions, logicMiddleware, store } = configureMockStore({ state: initialState });
         const { getByText } = render(
@@ -121,18 +121,21 @@ describe("<FileMetadataSearchBar />", () => {
                 <FileMetadataSearchBar />
             </Provider>
         );
-        const date = new Date();
-        date.setHours(0);
-        date.setMinutes(0);
-        date.setSeconds(0);
-        date.setMilliseconds(0);
-        const expectedRange = `RANGE(${date.toISOString()},${date.toISOString()})`;
+        const startDate = new Date();
+        startDate.setDate(15);
+        startDate.setHours(0);
+        startDate.setMinutes(0);
+        startDate.setSeconds(0);
+        startDate.setMilliseconds(0);
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + 1);
+        const expectedRange = `RANGE(${startDate.toISOString()},${endDate.toISOString()})`;
 
         // Act
         fireEvent.click(getByText("File name"));
         fireEvent.click(getByText("Uploaded"));
         fireEvent.click(getByText("Start of date range"));
-        fireEvent.click(getByText(`${date.getDate()}`));
+        fireEvent.click(getByText(15));
         await logicMiddleware.whenComplete();
 
         // Assert

@@ -81,21 +81,26 @@ export default function FileMetadataSearchBar() {
         }
     }
 
-    function onDateRangeSelection(newDateRange: { startDate?: Date; endDate?: Date }) {
+    function onDateRangeSelection(startDate: Date | null, endDate: Date | null) {
+        // Derive previous startDate/endDate from current filter state
         let oldStartDate;
         let oldEndDate;
         const splitFileAttributeFilter = extractDatesFromRangeOperatorFilterString(
             fileAttributeFilter?.value
         );
         if (splitFileAttributeFilter !== null) {
-            oldStartDate = splitFileAttributeFilter[1];
-            oldEndDate = splitFileAttributeFilter[2];
+            oldStartDate = new Date(splitFileAttributeFilter[1]);
+            oldEndDate = new Date(splitFileAttributeFilter[2]);
+            oldEndDate.setDate(oldEndDate.getDate() - 1);
         }
-        const startDate = newDateRange.startDate
-            ? newDateRange.startDate.toISOString()
-            : oldStartDate;
-        const endDate = newDateRange.endDate ? newDateRange.endDate.toISOString() : oldEndDate;
-        onSearch(`RANGE(${startDate || endDate},${endDate || startDate})`);
+
+        const newStartDate = startDate || oldStartDate || endDate;
+        const newEndDate = endDate || oldEndDate || startDate;
+        if (newStartDate && newEndDate) {
+            const newEndDatePlusOne = new Date(newEndDate);
+            newEndDatePlusOne.setDate(newEndDatePlusOne.getDate() + 1);
+            onSearch(`RANGE(${newStartDate.toISOString()},${newEndDatePlusOne.toISOString()})`);
+        }
     }
 
     function onAttributeSelection(_: React.FormEvent, option?: IDropdownOption) {
@@ -113,6 +118,12 @@ export default function FileMetadataSearchBar() {
         const splitDates = extractDatesFromRangeOperatorFilterString(fileAttributeFilter?.value);
         if (splitDates !== null) {
             [, startDate, endDate] = splitDates;
+            // End date is "+1'd" on selection in order to create the filter used when querying FES, which has an
+            // exclusive upper bound.
+            // We "-1" it here to feign an inclusive upper bound in the UI
+            endDate = new Date(endDate);
+            endDate.setDate(endDate.getDate() - 1);
+            endDate = endDate.toISOString();
         }
 
         searchBox = (
@@ -122,9 +133,7 @@ export default function FileMetadataSearchBar() {
                     className={styles.filterInput}
                     ariaLabel="Select a start date"
                     placeholder={`Start of date range`}
-                    onSelectDate={(v) =>
-                        v ? onDateRangeSelection({ startDate: v }) : onResetSearch()
-                    }
+                    onSelectDate={(v) => (v ? onDateRangeSelection(v, null) : onResetSearch())}
                     styles={PURPLE_ICON_STYLE}
                     value={extractDateFromDateString(startDate)}
                 />
@@ -136,9 +145,7 @@ export default function FileMetadataSearchBar() {
                     className={styles.filterInput}
                     ariaLabel="Select an end date"
                     placeholder={`End of date range`}
-                    onSelectDate={(v) =>
-                        v ? onDateRangeSelection({ endDate: v }) : onResetSearch()
-                    }
+                    onSelectDate={(v) => (v ? onDateRangeSelection(null, v) : onResetSearch())}
                     styles={PURPLE_ICON_STYLE}
                     value={extractDateFromDateString(endDate)}
                 />
