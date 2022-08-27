@@ -42,12 +42,26 @@ export function extractDateFromDateString(dateString?: string): Date | undefined
     return date;
 }
 
-function extractDatesFromRangeOperatorFilterString(filterString: string) {
+function extractDatesFromRangeOperatorFilterString(
+    filterString: string
+): { startDate: Date; endDate: Date } | null {
     // Regex with capture groups for identifying strings using the RANGE() operator with full ISO strings
     // e.g. RANGE(2022-01-01T00:00:00.000Z,2022-01-31T00:00:00.000Z)
     // Captures "2022-01-01T00:00:00.000Z" and "2022-01-31T00:00:00.000Z"
     const RANGE_OPERATOR_REGEX = /RANGE\(([\d\-:TZ.]+),([\d\-:TZ.]+)\)/g;
-    return RANGE_OPERATOR_REGEX.exec(filterString);
+    const exec = RANGE_OPERATOR_REGEX.exec(filterString);
+    if (exec && exec.length === 3) {
+        // Length of 3 because we use two capture groups
+        const startDate = new Date(exec[1]);
+        // The RANGE() filter uses an exclusive upper bound.
+        // However, we want to present dates in the UI as if the upper bound was inclusive.
+        // To handle that, we'll subtract a day from the upper bound used by the filter, then present the result
+        const endDate = new Date(exec[2]);
+        endDate.setDate(endDate.getDate() - 1);
+
+        return { startDate, endDate };
+    }
+    return null;
 }
 
 /**
@@ -82,21 +96,21 @@ export default function FileMetadataSearchBar() {
     }
 
     function onDateRangeSelection(startDate: Date | null, endDate: Date | null) {
-        // Derive previous startDate/endDate from current filter state
+        // Derive previous startDate/endDate from current filter state, if possible
         let oldStartDate;
         let oldEndDate;
         const splitFileAttributeFilter = extractDatesFromRangeOperatorFilterString(
             fileAttributeFilter?.value
         );
         if (splitFileAttributeFilter !== null) {
-            oldStartDate = new Date(splitFileAttributeFilter[1]);
-            oldEndDate = new Date(splitFileAttributeFilter[2]);
-            oldEndDate.setDate(oldEndDate.getDate() - 1);
+            oldStartDate = splitFileAttributeFilter.startDate;
+            oldEndDate = splitFileAttributeFilter.endDate;
         }
 
         const newStartDate = startDate || oldStartDate || endDate;
         const newEndDate = endDate || oldEndDate || startDate;
         if (newStartDate && newEndDate) {
+            // Add 1 day to endDate to account for RANGE() filter upper bound exclusivity
             const newEndDatePlusOne = new Date(newEndDate);
             newEndDatePlusOne.setDate(newEndDatePlusOne.getDate() + 1);
             onSearch(`RANGE(${newStartDate.toISOString()},${newEndDatePlusOne.toISOString()})`);
@@ -117,13 +131,8 @@ export default function FileMetadataSearchBar() {
         let endDate;
         const splitDates = extractDatesFromRangeOperatorFilterString(fileAttributeFilter?.value);
         if (splitDates !== null) {
-            [, startDate, endDate] = splitDates;
-            // End date is "+1'd" on selection in order to create the filter used when querying FES, which has an
-            // exclusive upper bound.
-            // We "-1" it here to feign an inclusive upper bound in the UI
-            endDate = new Date(endDate);
-            endDate.setDate(endDate.getDate() - 1);
-            endDate = endDate.toISOString();
+            startDate = splitDates.startDate;
+            endDate = splitDates.endDate;
         }
 
         searchBox = (
@@ -135,7 +144,7 @@ export default function FileMetadataSearchBar() {
                     placeholder={`Start of date range`}
                     onSelectDate={(v) => (v ? onDateRangeSelection(v, null) : onResetSearch())}
                     styles={PURPLE_ICON_STYLE}
-                    value={extractDateFromDateString(startDate)}
+                    value={extractDateFromDateString(startDate?.toISOString())}
                 />
                 <div className={styles.dateRangeSeparator}>
                     <Icon iconName="Forward" />
@@ -147,7 +156,7 @@ export default function FileMetadataSearchBar() {
                     placeholder={`End of date range`}
                     onSelectDate={(v) => (v ? onDateRangeSelection(null, v) : onResetSearch())}
                     styles={PURPLE_ICON_STYLE}
-                    value={extractDateFromDateString(endDate)}
+                    value={extractDateFromDateString(endDate?.toISOString())}
                 />
                 <IconButton
                     ariaLabel="Clear filter date"
