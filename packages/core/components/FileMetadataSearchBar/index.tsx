@@ -45,7 +45,7 @@ export function extractDateFromDateString(dateString?: string): Date | undefined
 function extractDatesFromRangeOperatorFilterString(
     filterString: string
 ): { startDate: Date; endDate: Date } | null {
-    // Regex with capture groups for identifying strings using the RANGE() operator with full ISO strings
+    // Regex with capture groups for identifying ISO datestrings in the RANGE() filter operator
     // e.g. RANGE(2022-01-01T00:00:00.000Z,2022-01-31T00:00:00.000Z)
     // Captures "2022-01-01T00:00:00.000Z" and "2022-01-31T00:00:00.000Z"
     const RANGE_OPERATOR_REGEX = /RANGE\(([\d\-:TZ.]+),([\d\-:TZ.]+)\)/g;

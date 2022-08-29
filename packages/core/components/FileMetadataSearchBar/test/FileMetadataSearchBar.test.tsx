@@ -122,7 +122,8 @@ describe("<FileMetadataSearchBar />", () => {
             </Provider>
         );
         const startDate = new Date();
-        startDate.setDate(15);
+        const day = 15; // Arbitrary day of the month that isn't likely to render twice
+        startDate.setDate(day);
         startDate.setHours(0);
         startDate.setMinutes(0);
         startDate.setSeconds(0);
@@ -135,7 +136,7 @@ describe("<FileMetadataSearchBar />", () => {
         fireEvent.click(getByText("File name"));
         fireEvent.click(getByText("Uploaded"));
         fireEvent.click(getByText("Start of date range"));
-        fireEvent.click(getByText(15));
+        fireEvent.click(getByText(day));
         await logicMiddleware.whenComplete();
 
         // Assert
