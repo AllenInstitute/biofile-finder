@@ -119,10 +119,14 @@ export default class FileExplorerURL {
         );
 
         let sortColumn = undefined;
+        const annotationNameSet = new Set([
+            ...annotations.map((annotation) => annotation.name),
+            ...TOP_LEVEL_FILE_ANNOTATION_NAMES,
+        ]);
         if (parsedURL.sort) {
-            if (!TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(parsedURL.sort.annotationName)) {
+            if (!annotationNameSet.has(parsedURL.sort.annotationName)) {
                 throw new ValueError(
-                    `Unable to decode FileExplorerURL, sort column must be one of ${TOP_LEVEL_FILE_ANNOTATION_NAMES}`
+                    `Unable to decode FileExplorerURL, couldn't find Annotation(${parsedURL.sort.annotationName})`
                 );
             }
             if (!Object.values(SortOrder).includes(parsedURL.sort.order)) {
@@ -147,10 +151,6 @@ export default class FileExplorerURL {
         }
 
         const hierarchyDepth = parsedURL.groupBy.length;
-        const annotationNameSet = new Set([
-            ...annotations.map((annotation) => annotation.name),
-            ...TOP_LEVEL_FILE_ANNOTATION_NAMES,
-        ]);
         return {
             hierarchy: parsedURL.groupBy.map((annotationName) => {
                 if (!annotationNameSet.has(annotationName)) {

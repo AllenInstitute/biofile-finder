@@ -31,14 +31,6 @@
 }
 
 .header-cell {
-  cursor: not-allowed;
-}
-
-.header-cell-tooltip {
-  display: flex;
-}
-
-.clickable {
   cursor: pointer;
 }
 
