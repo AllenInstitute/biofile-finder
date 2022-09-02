@@ -86,31 +86,45 @@ describe("<FileMetadataSearchBar />", () => {
         expect(getByDisplayValue(filter.value)).to.not.be.empty;
     });
 
-    it("loads date search bar with filter from URL", () => {
-        // Arrange
-        const uploadedDisplayName =
-            TOP_LEVEL_FILE_ANNOTATIONS.find((a) => a.name === AnnotationName.UPLOADED)
-                ?.displayName || "";
-        const date1 = "2021-03-04T00:00:00.000Z";
-        const date2 = "2020-08-31T00:00:00.000Z";
-        const filter = new FileFilter(AnnotationName.UPLOADED, `RANGE(${date1},${date2})`);
-        const state = {
-            ...initialState,
-            selection: {
-                filters: [filter],
-            },
-        };
-        const { store } = configureMockStore({ state });
-        const { getByText } = render(
-            <Provider store={store}>
-                <FileMetadataSearchBar />
-            </Provider>
-        );
+    describe("load date search bar with filter from URL", () => {
+        [
+            ["2022-01-01", "2022-02-01", "Sat Jan 01 2022", "Mon Jan 31 2022"],
+            ["2022-01-01", "2022-01-31", "Sat Jan 01 2022", "Sun Jan 30 2022"],
+            ["2022-01-01", "2022-02-02", "Sat Jan 01 2022", "Tue Feb 01 2022"],
+            ["2022-01-31", "2022-01-02", "Mon Jan 31 2022", "Sat Jan 01 2022"],
+        ].forEach(([dateLowerBound, dateUpperBound, expectedDate1, expectedDate2]) => {
+            it(`loads correct dates for filter "RANGE(${dateLowerBound},{${dateUpperBound})"`, () => {
+                // Arrange
+                const uploadedDisplayName =
+                    TOP_LEVEL_FILE_ANNOTATIONS.find((a) => a.name === AnnotationName.UPLOADED)
+                        ?.displayName || "";
+                const dateLowerAsDate = new Date(dateLowerBound);
+                const dateUpperAsDate = new Date(dateUpperBound);
+                const dateLowerISO = dateLowerAsDate.toISOString();
+                const dateUpperISO = dateUpperAsDate.toISOString();
+                const filter = new FileFilter(
+                    AnnotationName.UPLOADED,
+                    `RANGE(${dateLowerISO},${dateUpperISO})`
+                );
+                const state = {
+                    ...initialState,
+                    selection: {
+                        filters: [filter],
+                    },
+                };
+                const { store } = configureMockStore({ state });
+                const { getByText } = render(
+                    <Provider store={store}>
+                        <FileMetadataSearchBar />
+                    </Provider>
+                );
 
-        // Assert
-        expect(getByText(uploadedDisplayName)).to.not.be.empty;
-        expect(getByText("Thu Mar 04 2021")).to.not.be.empty;
-        expect(getByText("Sun Aug 30 2020")).to.not.be.empty;
+                // Assert
+                expect(getByText(uploadedDisplayName)).to.not.be.empty;
+                expect(getByText(expectedDate1)).to.not.be.empty;
+                expect(getByText(expectedDate2)).to.not.be.empty;
+            });
+        });
     });
 
     it("creates RANGE() file filter of RANGE(day,day+1) when only start date is selected", async () => {
