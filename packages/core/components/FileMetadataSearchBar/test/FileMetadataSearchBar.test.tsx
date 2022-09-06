@@ -136,7 +136,7 @@ describe("<FileMetadataSearchBar />", () => {
             </Provider>
         );
         const startDate = new Date();
-        const day = 15; // Arbitrary day of the month that isn't likely to render twice
+        const day = 15; // Arbitrary day of the month that won't show up twice in the Calendar popup
         startDate.setDate(day);
         startDate.setHours(0);
         startDate.setMinutes(0);
