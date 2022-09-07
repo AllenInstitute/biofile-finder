@@ -130,16 +130,10 @@ const useDirectoryHierarchy = (
             if (isLeaf || hierarchy.length === 0) {
                 // if we're at the top or bottom of the hierarchy, render a FileList
                 try {
-                    const totalCount = await fileSet.fetchTotalCount();
                     if (!cancel) {
                         dispatch(
                             receiveContent(
-                                <FileList
-                                    fileSet={fileSet}
-                                    isRoot={isRoot}
-                                    sortOrder={sortOrder}
-                                    totalCount={totalCount}
-                                />
+                                <FileList fileSet={fileSet} isRoot={isRoot} sortOrder={sortOrder} />
                             )
                         );
                     }

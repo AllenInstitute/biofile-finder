@@ -4,6 +4,7 @@ import LRUCache from "lru-cache";
 import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
 import FileService, { FmsFile } from "../../services/FileService";
+import RestServiceResponse from "../RestServiceResponse";
 
 interface Opts {
     fileService: FileService;
@@ -90,7 +91,10 @@ export default class FileSet {
     /**
      * Fetch metadata for a range of files from within the result set this query corresponds to.
      */
-    public async fetchFileRange(startIndex: number, endIndex: number) {
+    public async fetchFileRange(
+        startIndex: number,
+        endIndex: number
+    ): Promise<RestServiceResponse<FmsFile>> {
         const { limit, offset } = this.calculatePaginationFromIndices(startIndex, endIndex);
         const response = await this.fileService.getFiles({
             from: offset,
@@ -107,7 +111,7 @@ export default class FileSet {
         }
 
         this.totalFileCount = response.totalCount;
-        return response.data;
+        return response;
     }
 
     public isFileMetadataLoaded(index: number) {

@@ -64,7 +64,7 @@ describe("FileSet", () => {
                 )
             );
             const fileSet = new FileSet({ fileService });
-            expect(await fileSet.fetchFileRange(1, 3)).to.deep.equal(files.slice(1, 4)); // Array.prototype.slice is exclusive of end bound
+            expect((await fileSet.fetchFileRange(1, 3)).data).to.deep.equal(files.slice(1, 4)); // Array.prototype.slice is exclusive of end bound
         });
 
         it("turns indicies for requested data into a properly formed pagination query", async () => {

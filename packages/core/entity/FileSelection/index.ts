@@ -6,6 +6,7 @@ import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
 import { SortOrder } from "../FileSort";
 import NumericRange from "../NumericRange";
+import RestServiceResponse from "../RestServiceResponse";
 
 /**
  * Enumeration of directives that can be used to change the focus of the FileSelection.
@@ -202,7 +203,7 @@ export default class FileSelection {
             return Promise.resolve(fileSet.getFileByIndex(indexWithinFileSet));
         }
 
-        return (await fileSet.fetchFileRange(indexWithinFileSet, indexWithinFileSet))[0];
+        return (await fileSet.fetchFileRange(indexWithinFileSet, indexWithinFileSet)).data[0];
     }
 
     /**
@@ -212,7 +213,7 @@ export default class FileSelection {
         const fileRangesByFileSets = this.groupByFileSet();
         // Load file metadata for every file selected (however do to some performance enhancements
         // the fetch will overshoot)
-        const fileRangePromises: Promise<FmsFile[]>[] = [];
+        const fileRangePromises: Promise<RestServiceResponse<FmsFile>>[] = [];
         fileRangesByFileSets.forEach((ranges, fileSet) => {
             ranges.forEach((range) => {
                 fileRangePromises.push(fileSet.fetchFileRange(range.from, range.to));

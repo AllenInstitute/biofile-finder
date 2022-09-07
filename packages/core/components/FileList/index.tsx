@@ -15,6 +15,8 @@ import useFileSelector from "./useFileSelector";
 import useFileAccessContextMenu from "./useFileAccessContextMenu";
 
 import styles from "./FileList.module.css";
+import RestServiceResponse from "../../entity/RestServiceResponse";
+import { FmsFile } from "../../services/FileService";
 
 const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 50; // ms
 
@@ -28,7 +30,6 @@ interface FileListProps {
     isRoot: boolean;
     rowHeight?: number; // how tall each row of the list will be, in px
     sortOrder: number;
-    totalCount?: number;
 }
 
 const DEFAULTS = {
@@ -43,11 +44,9 @@ const MAX_NON_ROOT_HEIGHT = 300;
  * itself out to be 100% the height and width of its parent.
  */
 export default function FileList(props: FileListProps) {
-    const { className, fileSet, isRoot, rowHeight, sortOrder, totalCount } = defaults(
-        {},
-        props,
-        DEFAULTS
-    );
+    const { className, fileSet, isRoot, rowHeight, sortOrder } = defaults({}, props, DEFAULTS);
+
+    const [totalCount, setTotalCount] = React.useState<number | null>(null);
 
     const onSelect = useFileSelector(fileSet, sortOrder);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
@@ -62,12 +61,28 @@ export default function FileList(props: FileListProps) {
     const [measuredNodeRef, measuredHeight, measuredWidth] = useLayoutMeasurements<
         HTMLDivElement
     >();
-    const dataDrivenHeight = rowHeight * totalCount + 3 * rowHeight; // adding three additional rowHeights leaves room for the header + horz. scroll bar
+    const dataDrivenHeight = rowHeight * (totalCount || DEFAULT_TOTAL_COUNT) + 3 * rowHeight; // adding three additional rowHeights leaves room for the header + horz. scroll bar
     const calculatedHeight = Math.min(MAX_NON_ROOT_HEIGHT, dataDrivenHeight);
     const height = isRoot ? measuredHeight : calculatedHeight;
 
     const listRef = React.useRef<FixedSizeList | null>(null);
     const outerRef = React.useRef<HTMLDivElement | null>(null);
+
+    async function fetchRowsAndSetCount(
+        filesetFunc: (
+            startIndex: number,
+            endIndex: number
+        ) => Promise<RestServiceResponse<FmsFile>>,
+        startIndex: number,
+        endIndex: number
+    ) {
+        const { data, totalCount: newTotalCount } = await filesetFunc(startIndex, endIndex);
+        if (totalCount === null) {
+            // We should only have to do this once per FileList
+            setTotalCount(newTotalCount);
+        }
+        return data;
+    }
 
     // This hook is responsible for ensuring that if the details pane is currently showing a file row
     // within this FileList the file row shown in the details pane is scrolled into view.
@@ -108,10 +123,11 @@ export default function FileList(props: FileListProps) {
                     key={fileSet.instanceId} // force a re-render whenever FileSet changes
                     isItemLoaded={fileSet.isFileMetadataLoaded}
                     loadMoreItems={debouncePromise<any>(
-                        fileSet.fetchFileRange,
+                        (startIndex: number, endIndex: number) =>
+                            fetchRowsAndSetCount(fileSet.fetchFileRange, startIndex, endIndex),
                         DEBOUNCE_WAIT_FOR_DATA_FETCHING
                     )}
-                    itemCount={totalCount}
+                    itemCount={totalCount || DEFAULT_TOTAL_COUNT}
                 >
                     {({ onItemsRendered, ref: innerRef }) => {
                         const callbackRef = (instance: FixedSizeList | null) => {
@@ -133,7 +149,7 @@ export default function FileList(props: FileListProps) {
                                 }}
                                 itemSize={rowHeight} // row height
                                 height={height} // height of the list itself; affects number of rows rendered at any given time
-                                itemCount={totalCount}
+                                itemCount={totalCount || DEFAULT_TOTAL_COUNT}
                                 onItemsRendered={onItemsRendered}
                                 outerElementType={Header}
                                 outerRef={outerRef}
@@ -146,7 +162,9 @@ export default function FileList(props: FileListProps) {
                     }}
                 </InfiniteLoader>
             </div>
-            <p className={styles.rowCountDisplay}>{totalCount} files</p>
+            <p className={styles.rowCountDisplay}>
+                {totalCount ? `${totalCount} files` : "Loading files..."}
+            </p>
         </div>
     );
 }

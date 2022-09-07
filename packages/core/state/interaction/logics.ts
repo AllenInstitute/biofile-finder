@@ -355,7 +355,7 @@ const openWithDefault = createLogic({
                 sort: sortColumn,
             });
             const totalFileCount = await fileSet.fetchTotalCount();
-            files = await fileSet.fetchFileRange(0, totalFileCount);
+            files = (await fileSet.fetchFileRange(0, totalFileCount)).data;
         }
 
         // Map file kinds to their default applications
@@ -424,7 +424,8 @@ const openWithLogic = createLogic({
                 sort: sortColumn,
             });
             const totalFileCount = await fileSet.fetchTotalCount();
-            filesToOpen = await fileSet.fetchFileRange(0, totalFileCount);
+            const filesToOpenResponse = await fileSet.fetchFileRange(0, totalFileCount);
+            filesToOpen = filesToOpenResponse.data;
         } else {
             filesToOpen = await fileSelection.fetchAllDetails();
         }
