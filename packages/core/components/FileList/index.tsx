@@ -105,9 +105,11 @@ export default function FileList(props: FileListProps) {
                 ref={measuredNodeRef}
             >
                 {/* 
-                    Avoid rendering a flat list which causes the <InfiniteLoader />
-                    to request for files unnecessarily when the root file list,
-                    instead wait a few milliseconds for the height to be either measured
+                    When this component isRoot the height is measured. It takes
+                    a few milliseconds for that to happen along with a re-render, but
+                    by then the <InfiniteLoader /> used here will already have made a 
+                    request for files based on that height that it didn't need to
+                    if it had just waited until the measured height was present.
                  */}
                 {height !== 0 && (
                     <InfiniteLoader
