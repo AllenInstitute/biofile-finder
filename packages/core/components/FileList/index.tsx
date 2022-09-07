@@ -16,7 +16,7 @@ import useFileAccessContextMenu from "./useFileAccessContextMenu";
 
 import styles from "./FileList.module.css";
 
-const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 50; // ms
+const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 100; // ms
 
 // This is an arbitrary value that needs to be set to some number > 0 in order to prompt react-window-infinite-loader
 // to start calling `loadMoreItems`.
@@ -64,7 +64,7 @@ export default function FileList(props: FileListProps) {
     >();
     const dataDrivenHeight = rowHeight * totalCount + 3 * rowHeight; // adding three additional rowHeights leaves room for the header + horz. scroll bar
     const calculatedHeight = Math.min(MAX_NON_ROOT_HEIGHT, dataDrivenHeight);
-    const height = isRoot ? measuredHeight : calculatedHeight;
+    const height = isRoot ? measuredHeight : calculatedHeight || MAX_NON_ROOT_HEIGHT;
 
     const listRef = React.useRef<FixedSizeList | null>(null);
     const outerRef = React.useRef<HTMLDivElement | null>(null);
@@ -104,47 +104,54 @@ export default function FileList(props: FileListProps) {
                 }}
                 ref={measuredNodeRef}
             >
-                <InfiniteLoader
-                    key={fileSet.instanceId} // force a re-render whenever FileSet changes
-                    isItemLoaded={fileSet.isFileMetadataLoaded}
-                    loadMoreItems={debouncePromise<any>(
-                        fileSet.fetchFileRange,
-                        DEBOUNCE_WAIT_FOR_DATA_FETCHING
-                    )}
-                    itemCount={totalCount}
-                >
-                    {({ onItemsRendered, ref: innerRef }) => {
-                        const callbackRef = (instance: FixedSizeList | null) => {
-                            listRef.current = instance;
+                {/* 
+                    Avoid rendering a flat list which causes the <InfiniteLoader />
+                    to request for files unnecessarily when the root file list,
+                    instead wait a few milliseconds for the height to be either measured
+                 */}
+                {height !== 0 && (
+                    <InfiniteLoader
+                        key={fileSet.instanceId} // force a re-render whenever FileSet changes
+                        isItemLoaded={fileSet.isFileMetadataLoadingOrLoaded}
+                        loadMoreItems={debouncePromise<any>(
+                            fileSet.fetchFileRange,
+                            DEBOUNCE_WAIT_FOR_DATA_FETCHING
+                        )}
+                        itemCount={totalCount}
+                    >
+                        {({ onItemsRendered, ref: innerRef }) => {
+                            const callbackRef = (instance: FixedSizeList | null) => {
+                                listRef.current = instance;
 
-                            // react-window-infinite-loader takes a reference to the List component instance:
-                            // https://github.com/bvaughn/react-window-infinite-loader/blob/571f6c37b692d2e01bd3b762cdc93ca7c8f7ebf3/src/InfiniteLoader.js#L103-L105
-                            if (isFunction(innerRef)) {
-                                innerRef(instance);
-                            }
-                        };
+                                // react-window-infinite-loader takes a reference to the List component instance:
+                                // https://github.com/bvaughn/react-window-infinite-loader/blob/571f6c37b692d2e01bd3b762cdc93ca7c8f7ebf3/src/InfiniteLoader.js#L103-L105
+                                if (isFunction(innerRef)) {
+                                    innerRef(instance);
+                                }
+                            };
 
-                        return (
-                            <FixedSizeList
-                                itemData={{
-                                    fileSet: fileSet,
-                                    onSelect,
-                                    onContextMenu: onFileRowContextMenu,
-                                }}
-                                itemSize={rowHeight} // row height
-                                height={height} // height of the list itself; affects number of rows rendered at any given time
-                                itemCount={totalCount}
-                                onItemsRendered={onItemsRendered}
-                                outerElementType={Header}
-                                outerRef={outerRef}
-                                ref={callbackRef}
-                                width={measuredWidth}
-                            >
-                                {LazilyRenderedRow}
-                            </FixedSizeList>
-                        );
-                    }}
-                </InfiniteLoader>
+                            return (
+                                <FixedSizeList
+                                    itemData={{
+                                        fileSet: fileSet,
+                                        onSelect,
+                                        onContextMenu: onFileRowContextMenu,
+                                    }}
+                                    itemSize={rowHeight} // row height
+                                    height={height} // height of the list itself; affects number of rows rendered at any given time
+                                    itemCount={totalCount}
+                                    onItemsRendered={onItemsRendered}
+                                    outerElementType={Header}
+                                    outerRef={outerRef}
+                                    ref={callbackRef}
+                                    width={measuredWidth}
+                                >
+                                    {LazilyRenderedRow}
+                                </FixedSizeList>
+                            );
+                        }}
+                    </InfiniteLoader>
+                )}
             </div>
             <p className={styles.rowCountDisplay}>{totalCount} files</p>
         </div>
