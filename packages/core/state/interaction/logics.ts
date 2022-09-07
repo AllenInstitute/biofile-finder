@@ -424,8 +424,7 @@ const openWithLogic = createLogic({
                 sort: sortColumn,
             });
             const totalFileCount = await fileSet.fetchTotalCount();
-            const filesToOpenResponse = await fileSet.fetchFileRange(0, totalFileCount);
-            filesToOpen = filesToOpenResponse.data;
+            filesToOpen = (await fileSet.fetchFileRange(0, totalFileCount)).data;
         } else {
             filesToOpen = await fileSelection.fetchAllDetails();
         }
