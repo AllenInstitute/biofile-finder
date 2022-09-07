@@ -4,7 +4,7 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import FileMetadataSearchBar, { DATE_RANGE_SEPARATOR, extractDateFromDateString } from "../";
+import FileMetadataSearchBar, { extractDateFromDateString } from "../";
 import FileFilter from "../../../entity/FileFilter";
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import { initialState, selection } from "../../../state";
@@ -86,37 +86,48 @@ describe("<FileMetadataSearchBar />", () => {
         expect(getByDisplayValue(filter.value)).to.not.be.empty;
     });
 
-    it("loads date search bar with filter from URL", () => {
-        // Arrange
-        const uploadedDisplayName =
-            TOP_LEVEL_FILE_ANNOTATIONS.find((a) => a.name === AnnotationName.UPLOADED)
-                ?.displayName || "";
-        const date1 = "2021-03-04";
-        const date2 = "2020-08-30";
-        const filter = new FileFilter(
-            AnnotationName.UPLOADED,
-            `${date1}${DATE_RANGE_SEPARATOR}${date2}`
-        );
-        const state = {
-            ...initialState,
-            selection: {
-                filters: [filter],
-            },
-        };
-        const { store } = configureMockStore({ state });
-        const { getByText } = render(
-            <Provider store={store}>
-                <FileMetadataSearchBar />
-            </Provider>
-        );
+    describe("load date search bar with filter from URL", () => {
+        [
+            ["2022-01-01", "2022-02-01", "Sat Jan 01 2022", "Mon Jan 31 2022"],
+            ["2022-01-01", "2022-01-31", "Sat Jan 01 2022", "Sun Jan 30 2022"],
+            ["2022-01-01", "2022-02-02", "Sat Jan 01 2022", "Tue Feb 01 2022"],
+            ["2022-01-31", "2022-01-02", "Mon Jan 31 2022", "Sat Jan 01 2022"],
+        ].forEach(([dateLowerBound, dateUpperBound, expectedDate1, expectedDate2]) => {
+            it(`loads correct dates for filter "RANGE(${dateLowerBound},{${dateUpperBound})"`, () => {
+                // Arrange
+                const uploadedDisplayName =
+                    TOP_LEVEL_FILE_ANNOTATIONS.find((a) => a.name === AnnotationName.UPLOADED)
+                        ?.displayName || "";
+                const dateLowerAsDate = new Date(dateLowerBound);
+                const dateUpperAsDate = new Date(dateUpperBound);
+                const dateLowerISO = dateLowerAsDate.toISOString();
+                const dateUpperISO = dateUpperAsDate.toISOString();
+                const filter = new FileFilter(
+                    AnnotationName.UPLOADED,
+                    `RANGE(${dateLowerISO},${dateUpperISO})`
+                );
+                const state = {
+                    ...initialState,
+                    selection: {
+                        filters: [filter],
+                    },
+                };
+                const { store } = configureMockStore({ state });
+                const { getByText } = render(
+                    <Provider store={store}>
+                        <FileMetadataSearchBar />
+                    </Provider>
+                );
 
-        // Assert
-        expect(getByText(uploadedDisplayName)).to.not.be.empty;
-        expect(getByText("Thu Mar 04 2021")).to.not.be.empty;
-        expect(getByText("Sun Aug 30 2020")).to.not.be.empty;
+                // Assert
+                expect(getByText(uploadedDisplayName)).to.not.be.empty;
+                expect(getByText(expectedDate1)).to.not.be.empty;
+                expect(getByText(expectedDate2)).to.not.be.empty;
+            });
+        });
     });
 
-    it("defaults end date to start date when only start date is chosen", async () => {
+    it("creates RANGE() file filter of RANGE(day,day+1) when only start date is selected", async () => {
         // Arrange
         const { actions, logicMiddleware, store } = configureMockStore({ state: initialState });
         const { getByText } = render(
@@ -124,18 +135,22 @@ describe("<FileMetadataSearchBar />", () => {
                 <FileMetadataSearchBar />
             </Provider>
         );
-        const day = 17;
-        const date = new Date();
-        const expectedDate = `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(
-            -2
-        )}-${day}`;
-        const expectedRange = `${expectedDate}${DATE_RANGE_SEPARATOR}${expectedDate}`;
+        const startDate = new Date();
+        const day = 15; // Arbitrary day of the month that won't show up twice in the Calendar popup
+        startDate.setDate(day);
+        startDate.setHours(0);
+        startDate.setMinutes(0);
+        startDate.setSeconds(0);
+        startDate.setMilliseconds(0);
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + 1);
+        const expectedRange = `RANGE(${startDate.toISOString()},${endDate.toISOString()})`;
 
         // Act
         fireEvent.click(getByText("File name"));
         fireEvent.click(getByText("Uploaded"));
         fireEvent.click(getByText("Start of date range"));
-        fireEvent.click(getByText(`${day}`));
+        fireEvent.click(getByText(day));
         await logicMiddleware.whenComplete();
 
         // Assert
