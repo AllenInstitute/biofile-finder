@@ -1,15 +1,14 @@
 import FileList from "../index";
-import {findByText, render, waitFor} from "@testing-library/react";
+import { render } from "@testing-library/react";
 import * as React from "react";
 import FileSet from "../../../entity/FileSet";
-import {expect} from "chai";
-import {Provider} from "react-redux";
-import {configureMockStore, mergeState} from "@aics/redux-utils";
-import {initialState} from "../../../state";
+import { expect } from "chai";
+import { Provider } from "react-redux";
+import { configureMockStore, mergeState } from "@aics/redux-utils";
+import { initialState } from "../../../state";
 import RestServiceResponse from "../../../entity/RestServiceResponse";
-import FileService, {FmsFile} from "../../../services/FileService";
-import {createSandbox} from "sinon";
-
+import FileService, { FmsFile } from "../../../services/FileService";
+import { createSandbox } from "sinon";
 
 describe("<FileList />", () => {
     it("Renders 'Loading files...' when files have not yet loaded", async () => {
@@ -23,7 +22,7 @@ describe("<FileList />", () => {
             file_size: 1000,
             annotations: [],
             uploaded: "Sat Jan 01 00:00:000 GMT 2022",
-        }
+        };
         const sandbox = createSandbox();
         const fileService = new FileService();
         sandbox.replace(fileService, "getFiles", () =>
@@ -42,13 +41,9 @@ describe("<FileList />", () => {
 
         const { findByText, queryByText } = render(
             <Provider store={store}>
-                <FileList
-                    fileSet={fileSet}
-                    isRoot={false}
-                    sortOrder={4}
-                />
+                <FileList fileSet={fileSet} isRoot={false} sortOrder={4} />
             </Provider>
-        )
+        );
 
         // This should be present on the initial render and disappear once the file info comes in
         expect(queryByText("Loading files...")).to.exist;
