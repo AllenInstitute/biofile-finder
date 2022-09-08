@@ -39,6 +39,9 @@ function Header(
 
     const headerCells: CellConfig[] = map(columnAnnotations, (annotation) => {
         const isSortedColumn = sortColumn?.annotationName === annotation.name;
+        // Return header component that represents a sortable column, if sorting by
+        // an annotation slows performance to greater than a minute per query or some
+        // other seemingly unreasonable amount reconsider allowing this feature
         return {
             columnKey: annotation.name, // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
             displayValue: (
