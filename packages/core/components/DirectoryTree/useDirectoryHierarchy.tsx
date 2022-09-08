@@ -129,22 +129,12 @@ const useDirectoryHierarchy = (
         async function getContent() {
             if (isLeaf || hierarchy.length === 0) {
                 // if we're at the top or bottom of the hierarchy, render a FileList
-                try {
-                    if (!cancel) {
-                        dispatch(
-                            receiveContent(
-                                <FileList fileSet={fileSet} isRoot={isRoot} sortOrder={sortOrder} />
-                            )
-                        );
-                    }
-                } catch (e) {
-                    console.error(
-                        `Failed to fetch the total number of documents belonging to ${fileSet.toString()}`,
-                        e
+                if (!cancel) {
+                    dispatch(
+                        receiveContent(
+                            <FileList fileSet={fileSet} isRoot={isRoot} sortOrder={sortOrder} />
+                        )
                     );
-                    if (!cancel) {
-                        dispatch(setError(e as Error, isRoot));
-                    }
                 }
             } else {
                 // otherwise, there's more hierarchy to show
