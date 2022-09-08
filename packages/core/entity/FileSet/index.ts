@@ -50,6 +50,7 @@ export default class FileSet {
         this.fileService = fileService;
 
         this.fetchFileRange = this.fetchFileRange.bind(this);
+        this.fetchFileRangeResponse = this.fetchFileRangeResponse.bind(this);
         this.isFileMetadataLoaded = this.isFileMetadataLoaded.bind(this);
     }
 
@@ -91,7 +92,7 @@ export default class FileSet {
     /**
      * Fetch metadata for a range of files from within the result set this query corresponds to.
      */
-    public async fetchFileRange(
+    public async fetchFileRangeResponse(
         startIndex: number,
         endIndex: number
     ): Promise<RestServiceResponse<FmsFile>> {
@@ -112,6 +113,13 @@ export default class FileSet {
 
         this.totalFileCount = response.totalCount;
         return response;
+    }
+
+    /**
+     * Fetch the same info as in fetchFileRangeResponse(), but only return the file info
+     */
+    public async fetchFileRange(startIndex: number, endIndex: number) {
+        return (await this.fetchFileRangeResponse(startIndex, endIndex)).data;
     }
 
     public isFileMetadataLoaded(index: number) {

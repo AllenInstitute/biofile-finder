@@ -124,7 +124,11 @@ export default function FileList(props: FileListProps) {
                     isItemLoaded={fileSet.isFileMetadataLoaded}
                     loadMoreItems={debouncePromise<any>(
                         (startIndex: number, endIndex: number) =>
-                            fetchRowsAndSetCount(fileSet.fetchFileRange, startIndex, endIndex),
+                            fetchRowsAndSetCount(
+                                fileSet.fetchFileRangeResponse,
+                                startIndex,
+                                endIndex
+                            ),
                         DEBOUNCE_WAIT_FOR_DATA_FETCHING
                     )}
                     itemCount={totalCount || DEFAULT_TOTAL_COUNT}
