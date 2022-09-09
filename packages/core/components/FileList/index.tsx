@@ -28,7 +28,6 @@ interface FileListProps {
     isRoot: boolean;
     rowHeight?: number; // how tall each row of the list will be, in px
     sortOrder: number;
-    totalCount?: number;
 }
 
 const DEFAULTS = {
@@ -43,11 +42,9 @@ const MAX_NON_ROOT_HEIGHT = 300;
  * itself out to be 100% the height and width of its parent.
  */
 export default function FileList(props: FileListProps) {
-    const { className, fileSet, isRoot, rowHeight, sortOrder, totalCount } = defaults(
-        {},
-        props,
-        DEFAULTS
-    );
+    const { className, fileSet, isRoot, rowHeight, sortOrder } = defaults({}, props, DEFAULTS);
+
+    const [totalCount, setTotalCount] = React.useState<number | null>(null);
 
     const onSelect = useFileSelector(fileSet, sortOrder);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
@@ -62,7 +59,7 @@ export default function FileList(props: FileListProps) {
     const [measuredNodeRef, measuredHeight, measuredWidth] = useLayoutMeasurements<
         HTMLDivElement
     >();
-    const dataDrivenHeight = rowHeight * totalCount + 3 * rowHeight; // adding three additional rowHeights leaves room for the header + horz. scroll bar
+    const dataDrivenHeight = rowHeight * (totalCount || DEFAULT_TOTAL_COUNT) + 3 * rowHeight; // adding three additional rowHeights leaves room for the header + horz. scroll bar
     const calculatedHeight = Math.min(MAX_NON_ROOT_HEIGHT, dataDrivenHeight);
     const height = isRoot ? measuredHeight : calculatedHeight;
 
@@ -95,6 +92,19 @@ export default function FileList(props: FileListProps) {
         }
     }, [fileSelection, fileSet, height, rowHeight]);
 
+    // Get a count of all files in the FileList, but don't wait on it
+    React.useEffect(() => {
+        let cancel = false;
+        fileSet.fetchTotalCount().then((count) => {
+            if (!cancel) {
+                setTotalCount(count);
+            }
+        });
+        return () => {
+            cancel = true;
+        };
+    }, [fileSet]);
+
     return (
         <div className={classNames(styles.container, className)}>
             <div
@@ -111,7 +121,7 @@ export default function FileList(props: FileListProps) {
                         fileSet.fetchFileRange,
                         DEBOUNCE_WAIT_FOR_DATA_FETCHING
                     )}
-                    itemCount={totalCount}
+                    itemCount={totalCount || DEFAULT_TOTAL_COUNT}
                 >
                     {({ onItemsRendered, ref: innerRef }) => {
                         const callbackRef = (instance: FixedSizeList | null) => {
@@ -133,7 +143,7 @@ export default function FileList(props: FileListProps) {
                                 }}
                                 itemSize={rowHeight} // row height
                                 height={height} // height of the list itself; affects number of rows rendered at any given time
-                                itemCount={totalCount}
+                                itemCount={totalCount || DEFAULT_TOTAL_COUNT}
                                 onItemsRendered={onItemsRendered}
                                 outerElementType={Header}
                                 outerRef={outerRef}
@@ -146,7 +156,9 @@ export default function FileList(props: FileListProps) {
                     }}
                 </InfiniteLoader>
             </div>
-            <p className={styles.rowCountDisplay}>{totalCount} files</p>
+            <p className={styles.rowCountDisplay}>
+                {totalCount ? `${totalCount} files` : "Counting files..."}
+            </p>
         </div>
     );
 }
