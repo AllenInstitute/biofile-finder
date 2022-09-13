@@ -56,7 +56,6 @@ describe("FileSet", () => {
                 Promise.resolve(
                     new RestServiceResponse({
                         data: files.slice(1, 4),
-                        hasMore: false,
                         offset: 0,
                         responseType: "SUCCESS",
                         totalCount: fileIds.length,
@@ -148,7 +147,6 @@ describe("FileSet", () => {
             Promise.resolve(
                 new RestServiceResponse({
                     data: files.slice(),
-                    hasMore: false,
                     offset: 0,
                     responseType: "SUCCESS",
                     totalCount: fileIds.length,

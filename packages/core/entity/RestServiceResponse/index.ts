@@ -1,6 +1,5 @@
 export interface Response<T> {
     data: T[];
-    hasMore: boolean;
     offset: number;
     responseType: string;
     totalCount: number;
@@ -21,19 +20,11 @@ export default class RestServiceResponse<T = any> {
         return this.response.data;
     }
 
-    get hasMore(): boolean {
-        return this.response.hasMore;
-    }
-
     get offset(): number {
         return this.response.offset;
     }
 
     get responseType(): string {
         return this.response.responseType;
-    }
-
-    get totalCount(): number {
-        return this.response.totalCount;
     }
 }

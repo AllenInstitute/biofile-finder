@@ -118,7 +118,6 @@ export default class FileSet {
                 this.cache.set(startIndexOfPage + i, response.data[i]);
             }
 
-            this.totalFileCount = response.totalCount;
             return response.data;
         } finally {
             // Clear the previously saved indexes as they are no longer loading
