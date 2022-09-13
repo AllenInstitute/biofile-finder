@@ -66,7 +66,7 @@ interface SelectionResult {
  * Service responsible for fetching file related metadata.
  */
 export default class FileService extends HttpServiceBase {
-    private static readonly ENDPOINT_VERSION = "2.0";
+    private static readonly ENDPOINT_VERSION = "3.0";
     public static readonly BASE_FILES_URL = `file-explorer-service/${FileService.ENDPOINT_VERSION}/files`;
     public static readonly BASE_FILE_COUNT_URL = `${FileService.BASE_FILES_URL}/count`;
     public static readonly SELECTION_AGGREGATE_URL = `${FileService.BASE_FILES_URL}/selection/aggregate`;
