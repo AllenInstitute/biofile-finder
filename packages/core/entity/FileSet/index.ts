@@ -35,6 +35,7 @@ export default class FileSet {
     private readonly _filters: FileFilter[];
     public readonly sort?: FileSort;
     private totalFileCount: number | undefined;
+    private indexesForFilesCurrentlyLoading: Set<number> = new Set();
 
     public static isFileSet(candidate: any): candidate is FileSet {
         return candidate instanceof FileSet;
@@ -50,6 +51,7 @@ export default class FileSet {
 
         this.fetchFileRange = this.fetchFileRange.bind(this);
         this.isFileMetadataLoaded = this.isFileMetadataLoaded.bind(this);
+        this.isFileMetadataLoadingOrLoaded = this.isFileMetadataLoadingOrLoaded.bind(this);
     }
 
     public get files() {
@@ -92,26 +94,46 @@ export default class FileSet {
      */
     public async fetchFileRange(startIndex: number, endIndex: number) {
         const { limit, offset } = this.calculatePaginationFromIndices(startIndex, endIndex);
-        const response = await this.fileService.getFiles({
-            from: offset,
-            limit,
-            queryString: this.toQueryString(),
-        });
 
         // Because of how pagination is implemented, it is not guaranteed that the start index for the requested range of files will
         // in fact be the start index of the page of data returned. Pages are designed to be inclusive of the requested range, but
         // may overfetch.
         const startIndexOfPage = offset * limit;
-        for (let i = 0; i < response.data.length; i++) {
-            this.cache.set(startIndexOfPage + i, response.data[i]);
-        }
 
-        this.totalFileCount = response.totalCount;
-        return response.data;
+        // Save indexes that are about to be fetched
+        for (let i = startIndexOfPage; i < startIndexOfPage + limit; i++) {
+            this.indexesForFilesCurrentlyLoading.add(i);
+        }
+        try {
+            const response = await this.fileService.getFiles({
+                from: offset,
+                limit,
+                queryString: this.toQueryString(),
+            });
+
+            // Update cache for files fetched, due to overfetching the indexes updated
+            // in the cache will be inclusive of the range requested but may not necessarily start
+            // at the requested index, therefore here startIndexOfPage is used instead of startIndex
+            for (let i = 0; i < response.data.length; i++) {
+                this.cache.set(startIndexOfPage + i, response.data[i]);
+            }
+
+            this.totalFileCount = response.totalCount;
+            return response.data;
+        } finally {
+            // Clear the previously saved indexes as they are no longer loading
+            for (let i = startIndexOfPage; i < startIndexOfPage + limit; i++) {
+                this.indexesForFilesCurrentlyLoading.delete(i);
+            }
+        }
     }
 
     public isFileMetadataLoaded(index: number) {
         return this.cache.get(index) !== undefined;
+    }
+
+    public isFileMetadataLoadingOrLoaded(index: number) {
+        return this.isFileMetadataLoaded(index) || this.indexesForFilesCurrentlyLoading.has(index);
     }
 
     public equals(other: FileSet): boolean {

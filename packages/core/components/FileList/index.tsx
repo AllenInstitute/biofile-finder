@@ -16,7 +16,7 @@ import useFileAccessContextMenu from "./useFileAccessContextMenu";
 
 import styles from "./FileList.module.css";
 
-const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 50; // ms
+const DEBOUNCE_WAIT_FOR_DATA_FETCHING = 100; // ms
 
 // This is an arbitrary value that needs to be set to some number > 0 in order to prompt react-window-infinite-loader
 // to start calling `loadMoreItems`.
@@ -114,47 +114,56 @@ export default function FileList(props: FileListProps) {
                 }}
                 ref={measuredNodeRef}
             >
-                <InfiniteLoader
-                    key={fileSet.instanceId} // force a re-render whenever FileSet changes
-                    isItemLoaded={fileSet.isFileMetadataLoaded}
-                    loadMoreItems={debouncePromise<any>(
-                        fileSet.fetchFileRange,
-                        DEBOUNCE_WAIT_FOR_DATA_FETCHING
-                    )}
-                    itemCount={totalCount || DEFAULT_TOTAL_COUNT}
-                >
-                    {({ onItemsRendered, ref: innerRef }) => {
-                        const callbackRef = (instance: FixedSizeList | null) => {
-                            listRef.current = instance;
+                {/* 
+                    When this component isRoot the height is measured. It takes
+                    a few milliseconds for that to happen along with a re-render, but
+                    by then the <InfiniteLoader /> used here will already have made a 
+                    request for files based on that height that it didn't need to
+                    if it had just waited until the measured height was present.
+                 */}
+                {height !== 0 && (
+                    <InfiniteLoader
+                        key={fileSet.instanceId} // force a re-render whenever FileSet changes
+                        isItemLoaded={fileSet.isFileMetadataLoadingOrLoaded}
+                        loadMoreItems={debouncePromise<any>(
+                            fileSet.fetchFileRange,
+                            DEBOUNCE_WAIT_FOR_DATA_FETCHING
+                        )}
+                        itemCount={totalCount || DEFAULT_TOTAL_COUNT}
+                    >
+                        {({ onItemsRendered, ref: innerRef }) => {
+                            const callbackRef = (instance: FixedSizeList | null) => {
+                                listRef.current = instance;
 
-                            // react-window-infinite-loader takes a reference to the List component instance:
-                            // https://github.com/bvaughn/react-window-infinite-loader/blob/571f6c37b692d2e01bd3b762cdc93ca7c8f7ebf3/src/InfiniteLoader.js#L103-L105
-                            if (isFunction(innerRef)) {
-                                innerRef(instance);
-                            }
-                        };
+                                // react-window-infinite-loader takes a reference to the List component instance:
+                                // https://github.com/bvaughn/react-window-infinite-loader/blob/571f6c37b692d2e01bd3b762cdc93ca7c8f7ebf3/src/InfiniteLoader.js#L103-L105
+                                if (isFunction(innerRef)) {
+                                    innerRef(instance);
+                                }
+                            };
 
-                        return (
-                            <FixedSizeList
-                                itemData={{
-                                    fileSet: fileSet,
-                                    onSelect,
-                                    onContextMenu: onFileRowContextMenu,
-                                }}
-                                itemSize={rowHeight} // row height
-                                height={height} // height of the list itself; affects number of rows rendered at any given time
-                                itemCount={totalCount || DEFAULT_TOTAL_COUNT}
-                                onItemsRendered={onItemsRendered}
-                                outerElementType={Header}
-                                outerRef={outerRef}
-                                ref={callbackRef}
-                                width={measuredWidth}
-                            >
-                                {LazilyRenderedRow}
-                            </FixedSizeList>
-                        );
-                    }}
-                </InfiniteLoader>
+                            return (
+                                <FixedSizeList
+                                    itemData={{
+                                        fileSet: fileSet,
+                                        onSelect,
+                                        onContextMenu: onFileRowContextMenu,
+                                    }}
+                                    itemSize={rowHeight} // row height
+                                    height={height} // height of the list itself; affects number of rows rendered at any given time
+                                    itemCount={totalCount || DEFAULT_TOTAL_COUNT}
+                                    onItemsRendered={onItemsRendered}
+                                    outerElementType={Header}
+                                    outerRef={outerRef}
+                                    ref={callbackRef}
+                                    width={measuredWidth}
+                                >
+                                    {LazilyRenderedRow}
+                                </FixedSizeList>
+                            );
+                        }}
+                    </InfiniteLoader>
+                )}
             </div>
             <p className={styles.rowCountDisplay}>
                 {totalCount ? `${totalCount} files` : "Counting files..."}
