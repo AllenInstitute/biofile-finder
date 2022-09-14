@@ -2,7 +2,6 @@ export interface Response<T> {
     data: T[];
     offset: number;
     responseType: string;
-    totalCount: number;
 }
 
 /**

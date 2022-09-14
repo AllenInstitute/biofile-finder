@@ -58,7 +58,6 @@ describe("FileSet", () => {
                         data: files.slice(1, 4),
                         offset: 0,
                         responseType: "SUCCESS",
-                        totalCount: fileIds.length,
                     })
                 )
             );
@@ -149,7 +148,6 @@ describe("FileSet", () => {
                     data: files.slice(),
                     offset: 0,
                     responseType: "SUCCESS",
-                    totalCount: fileIds.length,
                 })
             )
         );
