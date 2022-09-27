@@ -20,6 +20,32 @@ import { initialState, interaction } from "../../../state";
 import AggregateInfoBox from "..";
 
 describe("<AggregateInfoBox />", () => {
+    const sandbox = createSandbox();
+    const baseUrl = "test";
+    const uniqueFileCount = 3413;
+    const responseStubs: ResponseStub[] = [
+        {
+            when: (config) => _get(config, "url", "").includes(FileService.SELECTION_AGGREGATE_URL),
+            respondWith: {
+                data: { data: [{ count: uniqueFileCount, size: 3 }] },
+            },
+        },
+    ];
+    const mockHttpClient = createMockHttpClient(responseStubs);
+    const fileService = new FileService({ baseUrl, httpClient: mockHttpClient });
+
+    before(() => {
+        sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
+    });
+
+    afterEach(() => {
+        sandbox.resetHistory();
+    });
+
+    after(() => {
+        sandbox.restore();
+    });
+
     const state = mergeState(initialState, {
         selection: {
             fileSelection: new FileSelection().select({
@@ -63,83 +89,54 @@ describe("<AggregateInfoBox />", () => {
         expect(getAllByTestId("aggregate-info-box-spinner")).to.exist;
     });
 
-    describe("aggregated data rendered", () => {
-        const sandbox = createSandbox();
-        const baseUrl = "test";
-        const uniqueFileCount = 3413;
-        const responseStubs: ResponseStub[] = [
-            {
-                when: (config) =>
-                    _get(config, "url", "").includes(FileService.SELECTION_AGGREGATE_URL),
-                respondWith: {
-                    data: { data: [{ count: uniqueFileCount, size: 3 }] },
-                },
-            },
-        ];
-        const mockHttpClient = createMockHttpClient(responseStubs);
-        const fileService = new FileService({ baseUrl, httpClient: mockHttpClient });
-
-        before(() => {
-            sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
+    it("renders aggregated file size", async () => {
+        // Arrange
+        const { store } = configureMockStore({
+            state,
         });
 
-        afterEach(() => {
-            sandbox.resetHistory();
+        const { findByText } = render(
+            <Provider store={store}>
+                <AggregateInfoBox />
+            </Provider>
+        );
+
+        // Assert
+        expect(await findByText((content) => content.endsWith("Size"))).to.exist;
+        expect(await findByText("3 B")).to.exist;
+    });
+
+    it("renders aggregated total file count", async () => {
+        // Arrange
+        const { store } = configureMockStore({
+            state,
         });
 
-        after(() => {
-            sandbox.restore();
+        const { findByText, findAllByText } = render(
+            <Provider store={store}>
+                <AggregateInfoBox />
+            </Provider>
+        );
+
+        // Assert
+        expect(await findAllByText((content) => content.endsWith("Selected"))).to.lengthOf(2);
+        expect(await findByText("101")).to.exist;
+    });
+
+    it("renders aggregated unique file count", async () => {
+        // Arrange
+        const { store } = configureMockStore({
+            state,
         });
 
-        it("renders aggregated file size", async () => {
-            // Arrange
-            const { store } = configureMockStore({
-                state,
-            });
+        const { findByText } = render(
+            <Provider store={store}>
+                <AggregateInfoBox />
+            </Provider>
+        );
 
-            const { findByText } = render(
-                <Provider store={store}>
-                    <AggregateInfoBox />
-                </Provider>
-            );
-
-            // Assert
-            expect(await findByText((content) => content.endsWith("Size"))).to.exist;
-            expect(await findByText("3 B")).to.exist;
-        });
-
-        it("renders aggregated total file count", async () => {
-            // Arrange
-            const { store } = configureMockStore({
-                state,
-            });
-
-            const { findByText, findAllByText } = render(
-                <Provider store={store}>
-                    <AggregateInfoBox />
-                </Provider>
-            );
-
-            // Assert
-            expect(await findAllByText((content) => content.endsWith("Selected"))).to.lengthOf(2);
-            expect(await findByText("101")).to.exist;
-        });
-
-        it("renders aggregated unique file count", async () => {
-            // Arrange
-            const { store } = configureMockStore({
-                state,
-            });
-
-            const { findByText } = render(
-                <Provider store={store}>
-                    <AggregateInfoBox />
-                </Provider>
-            );
-
-            // Assert
-            expect(await findByText((content) => content.startsWith("Unique"))).to.exist;
-            expect(await findByText(`${uniqueFileCount}`)).to.exist;
-        });
+        // Assert
+        expect(await findByText((content) => content.startsWith("Unique"))).to.exist;
+        expect(await findByText(`${uniqueFileCount}`)).to.exist;
     });
 });
