@@ -35,13 +35,13 @@ import {
     UPDATE_COLLECTION,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
-import CsvService from "../../services/CsvService";
+import CsvService, { CsvManifestRequest } from "../../services/CsvService";
 import { DownloadResolution } from "../../services/FileDownloadService";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
 import { CreateDatasetRequest, Dataset } from "../../services/DatasetService";
-import { SelectionRequest, FmsFile } from "../../services/FileService";
+import { FmsFile } from "../../services/FileService";
 import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
@@ -147,14 +147,11 @@ const downloadManifest = createLogic({
                 )
             );
 
-            const selectionRequest: SelectionRequest = {
+            const request: CsvManifestRequest = {
                 annotations: annotations.map((annotation) => annotation.name),
                 selections,
             };
-            const result = await csvService.downloadCsv(
-                selectionRequest,
-                manifestDownloadProcessId
-            );
+            const result = await csvService.downloadCsv(request, manifestDownloadProcessId);
 
             if (result.resolution === DownloadResolution.CANCELLED) {
                 dispatch(removeStatus(manifestDownloadProcessId));

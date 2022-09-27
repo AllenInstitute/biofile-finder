@@ -1,9 +1,14 @@
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 import FileDownloadService, { DownloadResult } from "../FileDownloadService";
-import { SelectionRequest } from "../FileService";
+import { Selection } from "../FileService";
 
 interface CsvServiceConfig extends ConnectionConfig {
     downloadService: FileDownloadService;
+}
+
+export interface CsvManifestRequest {
+    annotations: string[];
+    selections: Selection[];
 }
 
 /**
@@ -22,7 +27,7 @@ export default class CsvService extends HttpServiceBase {
     }
 
     public downloadCsv(
-        selectionRequest: SelectionRequest,
+        selectionRequest: CsvManifestRequest,
         manifestDownloadId: string
     ): Promise<DownloadResult> {
         const stringifiedPostBody = JSON.stringify(selectionRequest);
