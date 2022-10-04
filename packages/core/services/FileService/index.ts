@@ -29,9 +29,6 @@ export interface FmsFile {
     file_path: string;
     file_size: number;
     uploaded: string;
-    positions?: { id: number }[]; // TODO: Add Ticket for this
-    channels?: { id: number }[]; // TODO: Add Ticket for this
-    times?: { id: number }[]; // TODO: Add Ticket for this
     thumbnail?: string;
 }
 
@@ -52,12 +49,11 @@ export interface Selection {
     };
 }
 
-export interface SelectionRequest {
-    annotations: string[];
+interface SelectionAggregationRequest {
     selections: Selection[];
 }
 
-interface SelectionResult {
+interface SelectionAggregationResult {
     count: number;
     size: number;
 }
@@ -91,13 +87,18 @@ export default class FileService extends HttpServiceBase {
         return response.data[0];
     }
 
-    public async getAggregateInformation(fileSelection: FileSelection): Promise<SelectionResult> {
+    public async getAggregateInformation(
+        fileSelection: FileSelection
+    ): Promise<SelectionAggregationResult> {
         const selections = fileSelection.toCompactSelectionList();
-        const postBody: SelectionRequest = { annotations: [], selections };
+        const postBody: SelectionAggregationRequest = { selections };
         const requestUrl = `${this.baseUrl}/${FileService.SELECTION_AGGREGATE_URL}${this.pathSuffix}`;
         console.log(`Requesting aggregate results of matching files ${postBody}`);
 
-        const response = await this.post<SelectionResult>(requestUrl, JSON.stringify(postBody));
+        const response = await this.post<SelectionAggregationResult>(
+            requestUrl,
+            JSON.stringify(postBody)
+        );
 
         // data is always an array, this endpoint should always return an array of length 1
         if (response.data.length !== 1) {
