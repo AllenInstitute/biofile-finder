@@ -59,7 +59,7 @@ const collectPlatformDependentServices = memoize(
     })
 );
 
-const frontendInsightsMiddleware = reduxMiddleware(frontendInsights);
+const frontendInsightsMiddleware = reduxMiddleware(frontendInsights, { useActionAsProperties: true });
 const store = createReduxStore({
     middleware: [frontendInsightsMiddleware],
     persistedConfig: persistentConfigService.getAll(),
