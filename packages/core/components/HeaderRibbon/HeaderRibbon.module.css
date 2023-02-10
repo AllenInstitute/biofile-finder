@@ -26,6 +26,7 @@
 .control-groups {
     background-color: var(--primary-ribbon-color);
     border-bottom: 1px solid var(--secondary-ribbon-color);
+    display: flex;
     position: fixed;
     margin-top: var(--ribbon-header-height);
     transition: transform 1s ease;
@@ -49,7 +50,7 @@
 }
 
 h5.control-group {
-    display: block;
+    display: flex;
     height: var(--ribbon-header-height);
     justify-content: center;
     overflow: hidden;
@@ -106,4 +107,11 @@ h5.control-group {
 .control-group-button:hover {
     background-color: white;
     color: var(--primary-ribbon-color);
+}
+
+.info-icon {
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 0.5em;
+  margin-top: 0.05em;
 }

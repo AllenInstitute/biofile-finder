@@ -22,6 +22,7 @@ import {
     setSortColumn,
     changeCollection,
     CHANGE_COLLECTION,
+    CHANGE_VIEW,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -31,6 +32,7 @@ import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
+import { RELATIVE_DATE_RANGES } from "../../constants";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -450,6 +452,33 @@ const changeCollectionLogic = createLogic({
     type: CHANGE_COLLECTION,
 });
 
+/**
+ * Interceptor responsible for processing the changed view into
+ * various filters and sorts.
+ */
+const changeViewLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const selectedView = deps.action.payload;
+        const views = RELATIVE_DATE_RANGES;
+
+        const filtersFromView = views.find((v) => v.name === selectedView)?.filters;
+
+        if (filtersFromView) {
+            const annotationsInFilters = new Set(
+                filtersFromView.map((fileFilter) => fileFilter.name)
+            );
+            const fileFilters = selectionSelectors
+                .getFileFilters(deps.getState())
+                .filter((fileFilter) => !annotationsInFilters.has(fileFilter.name));
+            dispatch(setFileFilters([...fileFilters, ...filtersFromView]));
+        }
+
+        // Could eventually set hierarchy and sort column too based on view
+        done();
+    },
+    type: CHANGE_VIEW,
+});
+
 export default [
     selectFile,
     modifyAnnotationHierarchy,
@@ -459,4 +488,5 @@ export default [
     selectNearbyFile,
     setAvailableAnnotationsLogic,
     changeCollectionLogic,
+    changeViewLogic,
 ];
