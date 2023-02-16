@@ -1,5 +1,4 @@
 import "normalize.css";
-import classNames from "classnames";
 import { initializeIcons, loadTheme } from "@fluentui/react";
 import * as React from "react";
 import { batch, useDispatch, useSelector } from "react-redux";
@@ -71,7 +70,7 @@ export default function App(props: AppProps) {
                 <HeaderRibbon className={styles.headerRibbon} />
                 <div className={styles.everythingExceptHeaderRibbon}>
                     <div className={styles.core}>
-                        <FileExplorerURLBar className={classNames(styles.urlBar)} />
+                        <FileExplorerURLBar className={styles.urlBar} />
                         <div className={styles.annotationHierarchyAndFileList}>
                             <AnnotationSidebar className={styles.annotationHierarchy} />
                             <DirectoryTree className={styles.fileList} />

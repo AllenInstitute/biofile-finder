@@ -288,6 +288,25 @@ export function selectNearbyFile(
 }
 
 /**
+ * CHANGE_VIEW
+ *
+ * Intention is to select a pre-saved view to switch to (a view includes things like filters and sorts).
+ */
+export const CHANGE_VIEW = makeConstant(STATE_BRANCH_NAME, "change-view");
+
+export interface ChangeView {
+    payload: string;
+    type: string;
+}
+
+export function changeView(view: string): ChangeView {
+    return {
+        payload: view,
+        type: CHANGE_VIEW,
+    };
+}
+
+/**
  * SET_FILE_SELECTION
  *
  * This is not to be fired by UI; use the SELECT_FILE action instead.

@@ -21,6 +21,7 @@ import {
     SORT_COLUMN,
     SET_SORT_COLUMN,
     CHANGE_COLLECTION,
+    CHANGE_VIEW,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import { Dataset } from "../../services/DatasetService";
@@ -95,6 +96,11 @@ export default makeReducer<SelectionStateBranch>(
             annotationHierarchy: [],
             collection: action.payload,
             filters: [],
+            fileSelection: new FileSelection(),
+            openFileFolders: [],
+        }),
+        [CHANGE_VIEW]: (state) => ({
+            ...state,
             fileSelection: new FileSelection(),
             openFileFolders: [],
         }),
