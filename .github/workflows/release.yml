@@ -25,7 +25,7 @@ jobs:
           node-version: 16
 
       - name: Build/release Electron app
-        uses: GabeMedrash/action-electron-builder@fms-file-explorer
+        uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
         env:
           AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
         with:
