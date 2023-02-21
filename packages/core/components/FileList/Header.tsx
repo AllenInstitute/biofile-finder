@@ -7,9 +7,10 @@ import { useSelector, useDispatch } from "react-redux";
 import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems from "../ContextMenu/items";
 import FileRow, { CellConfig } from "../../components/FileRow";
+import { SortOrder } from "../../entity/FileSort";
+import Tutorial from "../../entity/Tutorial";
 import { interaction, selection } from "../../state";
 import FileListColumnPicker from "./FileListColumnPicker";
-import { SortOrder } from "../../entity/FileSort";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 
 import styles from "./Header.module.css";
@@ -101,7 +102,7 @@ function Header(
 
     return (
         <div ref={ref} {...rest}>
-            <div className={styles.headerWrapper}>
+            <div className={styles.headerWrapper} id={Tutorial.COLUMN_HEADERS_ID}>
                 <FileRow
                     cells={headerCells}
                     className={styles.header}

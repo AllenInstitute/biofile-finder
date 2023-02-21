@@ -7,8 +7,9 @@ import AnnotationListItem from "./AnnotationListItem";
 import DnDList from "../../components/DnDList";
 import { DnDListDividers } from "../../components/DnDList/DnDList";
 import SvgIcon from "../../components/SvgIcon";
-import * as annotationSelectors from "../AnnotationSidebar/selectors";
+import Tutorial from "../../entity/Tutorial";
 import selection from "../../state/selection";
+import * as annotationSelectors from "../AnnotationSidebar/selectors";
 
 import styles from "./AnnotationList.module.css";
 
@@ -93,7 +94,7 @@ export default function AnnotationList(props: AnnotationListProps) {
         <div className={classNames(styles.root, props.className)}>
             <h3 className={styles.title}>Available Annotations</h3>
             <h6 className={styles.description}>Drag any annotation to the box above</h6>
-            <div className={styles.listContainer}>
+            <div className={styles.listContainer} id={Tutorial.ANNOTATION_LIST_ID}>
                 <div className={styles.searchBox}>
                     <SvgIcon
                         className={styles.searchIcon}

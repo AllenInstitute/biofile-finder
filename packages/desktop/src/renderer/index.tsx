@@ -59,7 +59,9 @@ const collectPlatformDependentServices = memoize(
     })
 );
 
-const frontendInsightsMiddleware = reduxMiddleware(frontendInsights, { useActionAsProperties: true });
+const frontendInsightsMiddleware = reduxMiddleware(frontendInsights, {
+    useActionAsProperties: true,
+});
 const store = createReduxStore({
     middleware: [frontendInsightsMiddleware],
     persistedConfig: persistentConfigService.getAll(),
@@ -69,6 +71,7 @@ store.subscribe(() => {
     const state = store.getState();
     const csvColumns = interaction.selectors.getCsvColumns(state);
     const userSelectedApplications = interaction.selectors.getUserSelectedApplications(state);
+    const hasUsedApplicationBefore = interaction.selectors.hasUsedApplicationBefore(state);
     const appState = {
         [PersistedConfigKeys.CsvColumns]: csvColumns,
         [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
@@ -77,6 +80,7 @@ store.subscribe(() => {
         persistentConfigService.persist({
             [PersistedConfigKeys.CsvColumns]: csvColumns,
             [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
+            [PersistedConfigKeys.HasUsedApplicationBefore]: hasUsedApplicationBefore,
         });
     }
 });

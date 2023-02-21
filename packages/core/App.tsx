@@ -11,6 +11,7 @@ import FileDetails from "./components/FileDetails";
 import FileExplorerURLBar from "./components/FileExplorerURLBar";
 import HeaderRibbon from "./components/HeaderRibbon";
 import StatusMessage from "./components/StatusMessage";
+import TutorialTooltip from "./components/TutorialTooltip";
 import { FileExplorerServiceBaseUrl } from "./constants";
 import { interaction, metadata, selection } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
@@ -82,6 +83,7 @@ export default function App(props: AppProps) {
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
             <StatusMessage />
             <Modal />
+            <TutorialTooltip />
         </div>
     );
 }

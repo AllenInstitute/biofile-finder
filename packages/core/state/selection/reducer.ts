@@ -22,8 +22,10 @@ import {
     SET_SORT_COLUMN,
     CHANGE_COLLECTION,
     CHANGE_VIEW,
+    SELECT_TUTORIAL,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
+import Tutorial from "../../entity/Tutorial";
 import { Dataset } from "../../services/DatasetService";
 
 export interface SelectionStateBranch {
@@ -39,6 +41,7 @@ export interface SelectionStateBranch {
     filters: FileFilter[];
     openFileFolders: FileFolder[];
     sortColumn?: FileSort;
+    tutorial?: Tutorial;
 }
 
 export const initialState = {
@@ -60,6 +63,10 @@ export const initialState = {
 
 export default makeReducer<SelectionStateBranch>(
     {
+        [SELECT_TUTORIAL]: (state, action) => ({
+            ...state,
+            tutorial: action.payload,
+        }),
         [SET_FILE_FILTERS]: (state, action) => ({
             ...state,
             filters: action.payload,

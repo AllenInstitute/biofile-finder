@@ -59,6 +59,11 @@ h5.control-group {
     white-space: nowrap;
 }
 
+.control-group.filler {
+    max-width: 37.5%;
+    min-width: 0;
+}
+
 .control-group-input-group {
     width: 100%;
 }
@@ -113,4 +118,61 @@ h5.control-group {
   font-size: 12px;
   margin-left: 0.5em;
   margin-top: 0.05em;
+}
+
+.smaller-control-group {
+    width: 12.5%;
+}
+
+.help-button-circle {
+    background-color: white;
+    border-radius: 48px;
+    height: 48px;
+    margin-left: 3.75%;
+    margin-top: 1.2%;
+    position: absolute;
+    top: 0;
+    width: 48px;
+}
+
+.help-button-container {
+    background-color: var(--secondary-ribbon-color);
+    border: none;
+    border-radius: 7.5px;
+    height: 100%;
+    width: 100%;
+}
+
+.help-button-container:hover {
+    background-color: white;
+}
+
+.help-button-container:hover > .help-button-circle {
+    background-color: var(--secondary-ribbon-color);
+}
+
+.help-button-container i {
+    color: var(--secondary-ribbon-color);
+}
+
+.help-button-container:hover i {
+    color: white;
+}
+
+.help-button {
+    background: transparent;
+    border: none;
+    border-radius: 7.5px;
+    display: flex;
+    height: 100%;
+    padding: calc(var(--ribbon-header-height) - 30px);
+    width: 100%;
+}
+
+.help-button > span {
+    margin: auto;
+}
+
+.help-button i:first-child {
+    font-size: 2.25em;
 }

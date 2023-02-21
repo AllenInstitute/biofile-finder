@@ -1,0 +1,50 @@
+.button-footer {
+    display: flex;
+}
+
+.header {
+    display: flex;
+}
+
+.header > h6 {
+    margin-left: auto;
+}
+
+.tutorial-container {
+    background-color: var(--primary-brand-purple);
+}
+
+.tutorial-step-button {
+    border: none;
+    background-color: var(--secondary-brand-purple);
+}
+
+.tutorial-step-button.disabled:hover {
+    border: none;
+    background: none;
+}
+
+.tutorial-step-button:hover {
+    background-color: white;
+}
+
+.tutorial-step-button:first-child {
+    margin-left: auto;
+}
+
+.tutorial-step-button:last-child i {
+    font-size: 1.5em;
+    font-weight: bolder;
+}
+
+.tutorial-step-button i {
+    color: white;
+}
+
+.tutorial-step-button:hover i {
+    color: var(--primary-brand-purple);
+}
+
+.tutorial-step-button.disabled i {
+    opacity: 0;
+}

@@ -8,6 +8,7 @@ import { FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 
 import FileSet from "../../entity/FileSet";
+import Tutorial from "../../entity/Tutorial";
 import Header from "./Header";
 import LazilyRenderedRow from "./LazilyRenderedRow";
 import { selection } from "../../state";
@@ -180,6 +181,7 @@ export default function FileList(props: FileListProps) {
                 style={{
                     height: isRoot ? undefined : `${calculatedHeight}px`,
                 }}
+                id={Tutorial.FILE_LIST_ID}
                 ref={measuredNodeRef}
             >
                 {content}

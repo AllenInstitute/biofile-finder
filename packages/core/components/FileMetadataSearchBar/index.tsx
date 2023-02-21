@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
+import Tutorial from "../../entity/Tutorial";
 import { selection } from "../../state";
 import { getFileAttributeFilter } from "../../state/selection/selectors";
 
@@ -181,7 +182,7 @@ export default function FileMetadataSearchBar() {
     }
 
     return (
-        <div className={styles.searchBarContainer}>
+        <div className={styles.searchBarContainer} id={Tutorial.FILE_ATTRIBUTE_FILTER_ID}>
             <Dropdown
                 className={styles.fileAttributeSelector}
                 options={FILE_ATTRIBUTE_OPTIONS}

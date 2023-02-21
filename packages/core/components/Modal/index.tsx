@@ -5,6 +5,7 @@ import { interaction } from "../../state";
 import CsvManifest from "./CsvManifest";
 import CollectionForm from "./CollectionForm";
 import PythonSnippet from "./PythonSnippet";
+import TipsAndTricks from "./TipsAndTricks";
 
 export interface ModalProps {
     onDismiss: () => void;
@@ -15,6 +16,7 @@ export enum ModalType {
     CsvManifest = 2,
     EditCollectionForm = 3,
     PythonSnippet = 4,
+    TipsAndTricks = 5,
 }
 
 /**
@@ -37,6 +39,8 @@ export default function Modal() {
             return <CollectionForm isEditing onDismiss={onDismiss} />;
         case ModalType.PythonSnippet:
             return <PythonSnippet onDismiss={onDismiss} />;
+        case ModalType.TipsAndTricks:
+            return <TipsAndTricks onDismiss={onDismiss} />;
         default:
             return null;
     }
