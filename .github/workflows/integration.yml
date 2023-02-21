@@ -19,7 +19,7 @@ jobs:
           node-version: 16
 
       - name: Build/release Electron app
-        uses: GabeMedrash/action-electron-builder@fms-file-explorer
+        uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
         with:
           # GitHub token, automatically provided to the action
           # (No need to define this secret in the repo settings)
