@@ -69,8 +69,8 @@ describe("<AggregateInfoBox />", () => {
         );
 
         // Assert
-        expect(() => getAllByTestId("aggregate-info-box-spinner")).to.throw;
-        expect(() => getByText("Total Files")).to.throw;
+        expect(() => getAllByTestId("aggregate-info-box-spinner")).to.throw();
+        expect(() => getByText("Total Files")).to.throw();
     });
 
     it("renders loading spinner when data has yet to load", async () => {

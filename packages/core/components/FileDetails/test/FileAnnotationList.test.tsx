@@ -100,7 +100,7 @@ describe("<FileAnnotationList />", () => {
             );
 
             // Assert
-            expect(() => getByText("File path (Local)")).to.throw;
+            expect(() => getByText("File path (Local)")).to.throw();
             ["File path (Canonical)", filePath].forEach((cellText) => {
                 expect(getByText(cellText)).to.not.be.undefined;
             });

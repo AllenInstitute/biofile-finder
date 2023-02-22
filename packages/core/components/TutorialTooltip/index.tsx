@@ -64,6 +64,7 @@ export default function TutorialTooltip() {
                     disabled={!tutorial.hasStep(previousStepIndex)}
                     iconProps={{ iconName: "CaretSolidLeft" }}
                     onClick={() => setTutorialStepIndex(previousStepIndex)}
+                    title="Previous step"
                 />
                 <IconButton
                     className={classNames(
@@ -76,6 +77,7 @@ export default function TutorialTooltip() {
                         iconName: tutorial.hasStep(nextStepIndex) ? "CaretSolidRight" : "Checkmark",
                     }}
                     onClick={selectNextTutorial}
+                    title={tutorial.hasStep(nextStepIndex) ? "Next step" : "Finished"}
                 />
             </div>
         </TeachingBubble>
