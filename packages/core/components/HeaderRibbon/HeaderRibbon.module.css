@@ -128,11 +128,11 @@ h5.control-group {
     background-color: white;
     border-radius: 48px;
     height: 48px;
-    margin-left: 3.75%;
-    margin-top: 1.2%;
-    position: absolute;
-    top: 0;
+    top: calc(-50% - 24px);
+    left: calc(50% - 24px);
+    position: relative;
     width: 48px;
+    z-index: 1;
 }
 
 .help-button-container {
@@ -147,16 +147,8 @@ h5.control-group {
     background-color: white;
 }
 
-.help-button-container:hover > .help-button-circle {
-    background-color: var(--secondary-ribbon-color);
-}
-
 .help-button-container i {
     color: var(--secondary-ribbon-color);
-}
-
-.help-button-container:hover i {
-    color: white;
 }
 
 .help-button {
@@ -167,6 +159,7 @@ h5.control-group {
     height: 100%;
     padding: calc(var(--ribbon-header-height) - 30px);
     width: 100%;
+    z-index: 2;
 }
 
 .help-button > span {

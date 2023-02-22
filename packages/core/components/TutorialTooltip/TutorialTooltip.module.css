@@ -1,3 +1,8 @@
+.bigger-icon {
+    font-size: 1.5em;
+    font-weight: bolder;
+}
+
 .button-footer {
     display: flex;
 }
@@ -30,11 +35,6 @@
 
 .tutorial-step-button:first-child {
     margin-left: auto;
-}
-
-.tutorial-step-button:last-child i {
-    font-size: 1.5em;
-    font-weight: bolder;
 }
 
 .tutorial-step-button i {

@@ -33,7 +33,7 @@ export default class Tutorial {
     }
 
     public hasStep(index: number): boolean {
-        return index > 0 && index < this.steps.length;
+        return index >= 0 && index < this.steps.length;
     }
 
     public getStep(index: number): TutorialStep {
@@ -46,6 +46,6 @@ export default class Tutorial {
     }
 
     public toString(): string {
-        return `<Tutorial(title: ${this.title}, steps: ${this.steps})>`;
+        return `<Tutorial(title: ${this.title}, steps: ${JSON.stringify(this.steps)})>`;
     }
 }

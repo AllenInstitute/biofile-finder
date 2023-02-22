@@ -332,7 +332,6 @@ export default function HelpControl(props: Props) {
     return (
         <div className={props.className} id={props.id} onMouseLeave={() => setShowDropdown(false)}>
             <div className={styles.helpButtonContainer} ref={iconButtonReference}>
-                <div className={styles.helpButtonCircle} />
                 <IconButton
                     ariaDescription="Help menu"
                     iconProps={{ iconName: "Help" }}
@@ -340,6 +339,7 @@ export default function HelpControl(props: Props) {
                     onMouseEnter={() => !isCollapsed && setShowDropdown(true)}
                     styles={ICON_BUTTON_STYLES}
                 />
+                <div className={styles.helpButtonCircle} />
             </div>
             <ContextualMenu
                 items={helpOptions}

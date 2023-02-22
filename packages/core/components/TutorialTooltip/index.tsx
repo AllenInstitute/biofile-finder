@@ -66,7 +66,12 @@ export default function TutorialTooltip() {
                     onClick={() => setTutorialStepIndex(previousStepIndex)}
                 />
                 <IconButton
-                    className={styles.tutorialStepButton}
+                    className={classNames(
+                        {
+                            [styles.biggerIcon]: !tutorial.hasStep(nextStepIndex),
+                        },
+                        styles.tutorialStepButton
+                    )}
                     iconProps={{
                         iconName: tutorial.hasStep(nextStepIndex) ? "CaretSolidRight" : "Checkmark",
                     }}
