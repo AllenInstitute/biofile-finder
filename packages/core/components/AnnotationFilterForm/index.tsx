@@ -76,6 +76,19 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         dispatch(selection.actions.addFileFilter(fileFilter));
     };
 
+    const onSelectAll = () => {
+        const filters = items.map(
+            (item) =>
+                new FileFilter(
+                    annotationName,
+                    isNil(annotation?.valueOf(item.value))
+                        ? item.value
+                        : annotation?.valueOf(item.value)
+                )
+        );
+        dispatch(selection.actions.addFileFilter(filters));
+    };
+
     // TODO, return different pickers based on annotation type
     // e.g., a date picker, a range (numeric) picker, etc.
     switch (annotation?.type) {
@@ -90,6 +103,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     onDeselect={onDeselect}
                     onDeselectAll={onDeselectAll}
                     onSelect={onSelect}
+                    onSelectAll={onSelectAll}
                 />
             );
     }

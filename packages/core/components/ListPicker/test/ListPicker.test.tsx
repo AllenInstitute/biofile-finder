@@ -99,4 +99,42 @@ describe("<ListPicker />", () => {
         fireEvent.click(getByText("Reset"));
         expect(onDeselectAll.called).to.equal(true);
     });
+
+    it("Renders a 'Select All' button if given a callback for selecting all items", () => {
+        // Arrange
+        const onSelectAll = sinon.spy();
+        const items: ListItem[] = ["foo", "bar"].map((val) => ({
+            selected: true, // start with all items selected
+            displayValue: val,
+            value: val,
+        }));
+        const { getAllByRole, getByText } = render(
+            <ListPicker items={items} onDeselect={noop} onSelectAll={onSelectAll} onSelect={noop} />
+        );
+
+        // (sanity-check)
+        expect(getAllByRole("checkbox", { checked: true }).length).to.equal(2);
+        expect(onSelectAll.called).to.be.false;
+
+        // Act
+        fireEvent.click(getByText("Select All"));
+
+        // Assert
+        expect(onSelectAll.called).to.be.true;
+    });
+
+    it("Displays count of items", () => {
+        // Arrange
+        const items: ListItem[] = ["foo", "bar"].map((val) => ({
+            selected: true, // start with all items selected
+            displayValue: val,
+            value: val,
+        }));
+        const { getByText } = render(
+            <ListPicker items={items} onDeselect={noop} onSelect={noop} />
+        );
+
+        // Act / Assert
+        expect(getByText(`Displaying ${items.length} of ${items.length} Options`)).to.exist;
+    });
 });

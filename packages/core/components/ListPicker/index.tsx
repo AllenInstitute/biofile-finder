@@ -1,4 +1,5 @@
 import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "@fluentui/react";
+import classNames from "classnames";
 import Fuse from "fuse.js";
 import * as React from "react";
 
@@ -21,20 +22,18 @@ interface ListPickerProps {
     onDeselect: (item: ListItem) => void;
     onDeselectAll?: () => void;
     onSelect: (item: ListItem) => void;
+    onSelectAll?: () => void;
 }
 
 const FUZZY_SEARCH_OPTIONS = {
     // which keys on FilterItem to search
-    keys: [
-        { name: "displayValue", weight: 0.7 },
-        { name: "value", weight: 0.3 },
-    ],
+    keys: [{ name: "displayValue", weight: 1.0 }],
 
     // return resulting matches sorted
     shouldSort: true,
 
     // arbitrarily tuned; 0.0 requires a perfect match, 1.0 would match anything
-    threshold: 0.1,
+    threshold: 0.3,
 };
 
 const SEARCH_BOX_STYLE_OVERRIDES = {
@@ -51,7 +50,15 @@ const SEARCH_BOX_STYLE_OVERRIDES = {
  * It is best suited for selecting items that are strings.
  */
 export default function ListPicker(props: ListPickerProps) {
-    const { errorMessage, items, loading, onDeselect, onDeselectAll, onSelect } = props;
+    const {
+        errorMessage,
+        items,
+        loading,
+        onDeselect,
+        onDeselectAll,
+        onSelect,
+        onSelectAll,
+    } = props;
 
     const [searchValue, setSearchValue] = React.useState("");
 
@@ -71,6 +78,8 @@ export default function ListPicker(props: ListPickerProps) {
         return fuse.search(searchValue);
     }, [items, searchValue]);
 
+    const hasSelectedItem = React.useMemo(() => items.find((item) => item.selected), [items]);
+
     if (errorMessage) {
         return <div className={styles.container}>Whoops! Encountered an error: {errorMessage}</div>;
     }
@@ -80,15 +89,6 @@ export default function ListPicker(props: ListPickerProps) {
             <div className={styles.container}>
                 <Spinner size={SpinnerSize.small} />
             </div>
-        );
-    }
-
-    let resetButton = null;
-    if (onDeselectAll) {
-        resetButton = (
-            <ActionButton ariaLabel="Reset" className={styles.actionButton} onClick={onDeselectAll}>
-                Reset
-            </ActionButton>
         );
     }
 
@@ -102,7 +102,42 @@ export default function ListPicker(props: ListPickerProps) {
                     onClear={() => setSearchValue("")}
                     styles={SEARCH_BOX_STYLE_OVERRIDES}
                 />
-                {resetButton}
+                <div className={styles.buttons}>
+                    {onSelectAll && (
+                        <ActionButton
+                            ariaLabel="Select All"
+                            className={classNames(
+                                {
+                                    [styles.disabled]: filteredItems.length > 100,
+                                },
+                                styles.actionButton
+                            )}
+                            disabled={filteredItems.length > 100}
+                            title={
+                                filteredItems.length > 100
+                                    ? "Too many options to select at once"
+                                    : undefined
+                            }
+                            onClick={onSelectAll}
+                        >
+                            Select All
+                        </ActionButton>
+                    )}
+                    <ActionButton
+                        ariaLabel="Reset"
+                        className={classNames(
+                            {
+                                [styles.disabled]: !hasSelectedItem,
+                            },
+                            styles.actionButton
+                        )}
+                        disabled={!hasSelectedItem}
+                        title={hasSelectedItem ? undefined : "No options selected"}
+                        onClick={onDeselectAll}
+                    >
+                        Reset
+                    </ActionButton>
+                </div>
             </div>
             <List
                 getKey={(item) => String(item.value)}
@@ -134,6 +169,11 @@ export default function ListPicker(props: ListPickerProps) {
                     )
                 }
             />
+            <div className={styles.footer}>
+                <h6>
+                    Displaying {filteredItems.length} of {items.length} Options
+                </h6>
+            </div>
         </div>
     );
 }
