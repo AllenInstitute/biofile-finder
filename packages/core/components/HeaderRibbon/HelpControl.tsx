@@ -10,8 +10,17 @@ import {
 import * as React from "react";
 import { useDispatch } from "react-redux";
 
-import Tutorial from "../../entity/Tutorial";
 import { interaction, selection } from "../../state";
+import {
+    CREATE_COLLECTION_TUTORIAL,
+    FILTER_FILES_TUTORIAL,
+    GENERATE_MANIFEST_TUTORIAL,
+    MODIFY_COLUMNS_TUTORIAL,
+    OPEN_FILES_TUTORIAL,
+    ORGANIZE_FILES_TUTORIAL,
+    SHARE_VIEW_TUTORIAL,
+    SORT_FILES_TUTORIAL,
+} from "./tutorials";
 
 import styles from "./HeaderRibbon.module.css";
 
@@ -56,124 +65,6 @@ const ICON_BUTTON_STYLES = {
         color: "#FFFFFF",
     },
 };
-
-const ORGANIZE_FILES_TUTORIAL = new Tutorial("Organizing")
-    .addStep({
-        targetId: Tutorial.ANNOTATION_LIST_ID,
-        message:
-            'All annotations that have files tagged with them are present in this list. Drag and drop an annotation in this list into the "Annotation Hierarchy" above (try "Cell Line" for example).',
-    })
-    .addStep({
-        targetId: Tutorial.FILE_LIST_ID,
-        message:
-            "Each folder represents a value for the annotation and the files within the folder are guaranteed to have been annotated with that annotation name + value",
-    })
-    .addStep({
-        targetId: Tutorial.ANNOTATION_HIERARCHY_ID,
-        message:
-            "This will display the hierarchy of the dynamically generated folders to the right which are determined by the order in which you add annotations to this hierarchy (they can be rearranged by dragging them around)",
-    });
-
-const OPEN_FILES_TUTORIAL = new Tutorial("Opening files")
-    .addStep({
-        targetId: Tutorial.FILE_LIST_ID,
-        message:
-            "Select the file you want to open (or at least one you could open like maybe a CZI)",
-    })
-    .addStep({
-        targetId: Tutorial.FILE_LIST_ID,
-        message:
-            'Right-click the now highlighted file and select "Open with" to select a specific application with which to open the file in. You can also have the explorer guess at which application to open by selecting the "Open" option instead, this will open the file in the default application your computer has saved for this file type or just the last application used to open the same type',
-    });
-
-const GENERATE_MANIFEST_TUTORIAL = new Tutorial("Generating manifests")
-    .addStep({
-        targetId: Tutorial.FILE_LIST_ID,
-        message:
-            "Select a file by left-clicking or multiple by holding Shift or Ctrl and clicking multiple files (any will do for this tutorial)",
-    })
-    .addStep({
-        targetId: Tutorial.FILE_LIST_ID,
-        message:
-            'Right-click any of the highlighted files and select "Generate CSV manifest". This will open a modal in which you will be guided through creating a CSV that is a list of the files selected where the columns are the annotations present for those files.',
-    });
-
-const CREATE_COLLECTION_TUTORIAL = new Tutorial("Creating collections")
-    .addStep({
-        targetId: Tutorial.FILE_LIST_ID,
-        message:
-            "Select a file by left-clicking or multiple by holding Shift or Ctrl and clicking multiple files (any will do for this tutorial)",
-    })
-    .addStep({
-        targetId: Tutorial.FILE_LIST_ID,
-        message:
-            'Right-click any of the highlighted files and select "Share Collection" then choose a Configuration. Use the default for this tutorial which will make the collection available for one day and allow the metadata to be updated (if any updates occur), but in the future select "Configure..." and explore the options available.',
-    })
-    .addStep({
-        targetId: Tutorial.COLLECTIONS_TITLE_ID,
-        message: (
-            <span>
-                Once the app reports that your collection has been created (as a status near the top
-                of the app) it will be available here in this dropdown. Select the option that has
-                your username + a timestamp of when you created it. If you used the default
-                configuration it will be present here for one day and only available to you{" "}
-                <strong>unless</strong> you share it using the URL feature (see the &quot;Sharing
-                current view&quot; tutorial for that)
-            </span>
-        ),
-    })
-    .addStep({
-        targetId: Tutorial.FILE_LIST_ID,
-        message:
-            'The files available to search against are now limited to just those selected to be a part of your collection. To return back to the default of "All of FMS" (i.e. all files) navigate to the Collection header again and select that option from the dropdown',
-    });
-
-const SHARE_VIEW_TUTORIAL = new Tutorial("Sharing current view (URL)")
-    .addStep({
-        targetId: Tutorial.COPY_URL_BUTTON_ID,
-        message:
-            "Copy your current view (i.e. your combination of filters, sorts, and open files) by clicking here. This will automatically copy the URL to your clipboard (like when you press Ctrl+C)",
-    })
-    .addStep({
-        targetId: Tutorial.URL_BOX_ID,
-        message: "Paste a copied view (URL) here and press Enter to have it load",
-    });
-
-const FILTER_FILES_TUTORIAL = new Tutorial("Filtering")
-    .addStep({
-        targetId: Tutorial.ANNOTATION_LIST_ID,
-        message: (
-            <span>
-                Filters for <strong>annotations</strong> can be found and used by clicking the{" "}
-                <Icon iconName="FilterSolid" /> icon for the annotation to filter by and selecting
-                which annotation values the files must have
-            </span>
-        ),
-    })
-    .addStep({
-        targetId: Tutorial.FILE_ATTRIBUTE_FILTER_ID,
-        message:
-            "Files can also be filtered by these attributes by selecting one from the dropdown menu (ex. 'Uploaded') " +
-            'and entering a value. The value for attributes like "File "name" do not have to be exact and can instead be ' +
-            'partial matches (ex. entering "AD0000057" would show file "AD00000573_100x_20220729_H01_001_Scene-44_aligned.ome.tiff")',
-    })
-    .addStep({
-        targetId: Tutorial.VIEWS_TITLE_ID,
-        message:
-            'Views can be useful to quickly apply a set of filters and sorts. Currently there are only "Views" surrounding the "Uploaded" attribute, but there could be more in the future.',
-    });
-
-const SORT_FILES_TUTORIAL = new Tutorial("Sorting").addStep({
-    targetId: Tutorial.COLUMN_HEADERS_ID,
-    message:
-        'Files can be sorted by clicking the title of a column, by default files are sorted by the "Uploaded" date. Can\'t find the column you want to sort by? To modify the columns shown so that you can sort by another column see the "Modifying columns in file list" tutorial.',
-});
-
-const MODIFY_COLUMNS_TUTORIAL = new Tutorial("Modifying file list columns").addStep({
-    targetId: Tutorial.COLUMN_HEADERS_ID,
-    message:
-        'The columns in the file list can be added or removed at will by right-clicking anywhere near the titles of the columns and selecting "Modify columns" and selecting which columns to show. The width of a column can be changed by dragging the bars | following the column titles.',
-});
 
 /**
  * Menu group providing quick links to useful related pages and also a tutorial system
