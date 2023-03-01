@@ -112,7 +112,7 @@ const LIVE_COLLECTION_HEADER: IContextualMenuItem = {
 const IS_FIXED_TOOLTIP =
     'If frozen, the collection is an immutable, point-in-time snapshot of the metadata for the files you’ve selected (a "dataset"). No files have been added to or removed from the collection, nor has the files\' metadata been modified since creation of the collection.';
 const IS_PRIVATE_TOOLTIP =
-    "If private, this collection will not appear in the collection dropdown for users other than the creator's as an option by default. However, the collection can still be sent as part of a FMS File Explorer URL.";
+    'If private, this collection will not appear in the collection dropdown for users other than the creator\'s as an option by default. However, the collection can still be sent as part of a FMS File Explorer URL. "Internal" means it is visible to everyone able to connect to our network.';
 
 function convertCollectionToOption(
     collection: Dataset,
@@ -244,7 +244,7 @@ export default function CollectionControl(props: Props) {
                 <div className={styles.controlGroupDisplayGroup}>
                     <TooltipHost content={IS_PRIVATE_TOOLTIP} onMouseLeave={props.onCollapse}>
                         <h6 className={styles.controlGroupDisplay}>
-                            {selectedCollection?.private ? "Private" : "Public"}
+                            {selectedCollection?.private ? "Private" : "Internal"}
                         </h6>
                     </TooltipHost>
                     <TooltipHost content={IS_FIXED_TOOLTIP} onMouseLeave={props.onCollapse}>
