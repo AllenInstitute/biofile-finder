@@ -7,7 +7,8 @@ interface TutorialStep {
 
 /**
  * Entity responsible for containing information about a tutorial in which to guide
- * a user through
+ * a user through. The "targetId" on each step is what the <TutorialTooltip /> uses to
+ * find and display the corresponding "message".
  */
 export default class Tutorial {
     public static readonly ANNOTATION_HIERARCHY_ID = "annotation-hierarchy";

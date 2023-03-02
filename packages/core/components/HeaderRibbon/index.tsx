@@ -20,7 +20,7 @@ const COLLECTION_TOOLTIP =
 const VIEW_TOOLTIP =
     'A "view" is a pre-selected set of filters and/or sorts that when selected using this dropdown will add to (or potentially replace) your current filters and/or sorts with the pre-selected filters/sorts. You can then add or remove any filters/sorts at will.';
 const HELP_TOOLTIP =
-    "This menu provides access to tutorials and useful links to things like the new version download page";
+    "This menu provides quick links to related pages, as well as a tutorial system";
 
 const HELP_CONTROL_ID = "help-control";
 const HELP_TITLE_ID = "help-title";
@@ -110,8 +110,8 @@ export default function HeaderRibbon(props: HeaderRibbonProps) {
                         },
                     }}
                 >
-                    New or returning user? Please check this Help section for useful links and
-                    tutorials, the tutorial list might help uncover features you might not know
+                    New or returning user? Please refer to this Help section for useful links and
+                    tutorials. The tutorial list might help uncover features you might not know
                     about!
                 </TeachingBubble>
             )}

@@ -8,18 +8,19 @@ export const FILTER_FILES_TUTORIAL = new Tutorial("Filtering")
         targetId: Tutorial.ANNOTATION_LIST_ID,
         message: (
             <span>
-                Filters for <strong>annotations</strong> can be found and used by clicking the{" "}
-                <Icon iconName="FilterSolid" /> icon for the annotation to filter by and selecting
-                which annotation values the files must have
+                Filter for specific annotation values by clicking the{" "}
+                <Icon iconName="FilterSolid" /> icon next to the annotation you want to filter by.
             </span>
         ),
     })
     .addStep({
         targetId: Tutorial.FILE_ATTRIBUTE_FILTER_ID,
+        message: "All files have the attributes listed in this dropdown",
+    })
+    .addStep({
+        targetId: Tutorial.FILE_ATTRIBUTE_FILTER_ID,
         message:
-            "Files can also be filtered by these attributes by selecting one from the dropdown menu (ex. 'Uploaded') " +
-            'and entering a value. The value for attributes like "File "name" do not have to be exact and can instead be ' +
-            'partial matches (ex. entering "AD0000057" would show file "AD00000573_100x_20220729_H01_001_Scene-44_aligned.ome.tiff")',
+            'You can filter on the selected attribute by entering a value here. These values do not have to be exact, e.g. entering a File Name of "ZSD1" would return all files with names starting with or containing "ZSD1".',
     })
     .addStep({
         targetId: Tutorial.VIEWS_TITLE_ID,

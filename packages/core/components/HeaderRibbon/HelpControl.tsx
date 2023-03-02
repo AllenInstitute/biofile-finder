@@ -132,8 +132,8 @@ export default function HelpControl(props: Props) {
             subMenuProps: {
                 items: [
                     {
-                        key: "Organizing",
-                        text: 'Organizing ("Annotation Hierarchy")',
+                        key: "Annotation Hierarchy",
+                        text: "Annotation Hierarchy",
                         title:
                             "How to organize the files in the file list into hierarchical folders using the annotation hierarchy",
                         onClick: () => {
