@@ -15,7 +15,7 @@ export const FILTER_FILES_TUTORIAL = new Tutorial("Filtering")
     })
     .addStep({
         targetId: Tutorial.FILE_ATTRIBUTE_FILTER_ID,
-        message: "All files have the attributes listed in this dropdown",
+        message: "All files have the attributes listed in this dropdown.",
     })
     .addStep({
         targetId: Tutorial.FILE_ATTRIBUTE_FILTER_ID,

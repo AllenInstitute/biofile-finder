@@ -20,7 +20,7 @@ const COLLECTION_TOOLTIP =
 const VIEW_TOOLTIP =
     'A "view" is a pre-selected set of filters and/or sorts that when selected using this dropdown will add to (or potentially replace) your current filters and/or sorts with the pre-selected filters/sorts. You can then add or remove any filters/sorts at will.';
 const HELP_TOOLTIP =
-    "This menu provides quick links to related pages, as well as a tutorial system";
+    "This menu provides quick links to related pages, as well as a tutorial system.";
 
 const HELP_CONTROL_ID = "help-control";
 const HELP_TITLE_ID = "help-title";
