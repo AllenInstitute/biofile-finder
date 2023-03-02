@@ -1,7 +1,6 @@
 import { configureMockStore } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
-import { noop } from "lodash";
 import * as React from "react";
 import { Provider } from "react-redux";
 import { RELATIVE_DATE_RANGES } from "../../../constants";
@@ -17,7 +16,7 @@ describe("<ViewControl />", () => {
         });
         const { getByPlaceholderText } = render(
             <Provider store={store}>
-                <ViewControl onCollapse={noop} />
+                <ViewControl />
             </Provider>
         );
 
@@ -33,7 +32,7 @@ describe("<ViewControl />", () => {
         });
         const { getByText, getByPlaceholderText } = render(
             <Provider store={store}>
-                <ViewControl onCollapse={noop} />
+                <ViewControl />
             </Provider>
         );
 

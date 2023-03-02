@@ -3,6 +3,7 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 
 import DnDList from "../../components/DnDList";
+import Tutorial from "../../entity/Tutorial";
 import HierarchyListItem from "./HierarchyListItem";
 import * as annotationSelectors from "../AnnotationSidebar/selectors";
 
@@ -24,7 +25,7 @@ export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
     const annotationHierarchyListItems = useSelector(annotationSelectors.getHierarchyListItems);
 
     return (
-        <div className={classNames(styles.root, className)}>
+        <div className={classNames(styles.root, className)} id={Tutorial.ANNOTATION_HIERARCHY_ID}>
             <h3 className={styles.title}>Annotation Hierarchy</h3>
             <h6 className={styles.description}>
                 Files will be grouped by the following annotations

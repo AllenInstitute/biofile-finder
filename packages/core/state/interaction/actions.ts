@@ -83,6 +83,27 @@ export function downloadFile(fileInfo: FileInfo): DownloadFileAction {
 }
 
 /**
+ * MARK_AS_USED_APPLICATION_BEFORE
+ *
+ * Intention to mark application as having been used by user before
+ */
+
+export const MARK_AS_USED_APPLICATION_BEFORE = makeConstant(
+    STATE_BRANCH_NAME,
+    "mark-as-used-application-before"
+);
+
+export interface MarkAsUsedApplicationBefore {
+    type: string;
+}
+
+export function markAsUsedApplicationBefore(): MarkAsUsedApplicationBefore {
+    return {
+        type: MARK_AS_USED_APPLICATION_BEFORE,
+    };
+}
+
+/**
  * SET_CSV_COLUMNS
  *
  * Intention to set the csv columns
@@ -575,6 +596,26 @@ export function showManifestDownloadDialog(
     return {
         type: SHOW_MANIFEST_DOWNLOAD_DIALOG,
         payload: fileFilters,
+    };
+}
+
+/**
+ * SHOW_TIPS_AND_TRICKS_DIALOG
+ *
+ * Intention to show the tips and tricks dialog.
+ */
+export const SHOW_TIPS_AND_TRICKS_DIALOG = makeConstant(
+    STATE_BRANCH_NAME,
+    "show-tips-and-tricks-dialog"
+);
+
+export interface ShowTipsAndTricksDialogAction {
+    type: string;
+}
+
+export function showTipsAndTricksDialog(): ShowTipsAndTricksDialogAction {
+    return {
+        type: SHOW_TIPS_AND_TRICKS_DIALOG,
     };
 }
 

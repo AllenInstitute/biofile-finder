@@ -137,7 +137,7 @@ describe("<FilterDisplayBar />", () => {
         // now you don't
         const clearButton = await findByRole("button", { exact: false, name: "Clear" });
         fireEvent.click(clearButton);
-        expect(() => getByText(/^Cell Line/)).to.throw;
+        expect(() => getByText(/^Cell Line/)).to.throw();
     });
 
     it("presents the display value of a filter", async () => {

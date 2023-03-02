@@ -37,6 +37,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const expectedAllenMountPoint = "/some/path/to/allen";
             const expectedCsvColumns = ["a", "b", "c"];
             const expectedImageJExecutable = "/some/path/to/imageJ";
+            const expectedHasUsedApplicationBefore = true;
             const expectedUserSelectedApps = [
                 {
                     filePath: "/some/path/to/ZEN",
@@ -47,11 +48,16 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             service.persist(PersistedConfigKeys.AllenMountPoint, expectedAllenMountPoint);
             service.persist(PersistedConfigKeys.CsvColumns, expectedCsvColumns);
             service.persist(PersistedConfigKeys.ImageJExecutable, expectedImageJExecutable);
+            service.persist(
+                PersistedConfigKeys.HasUsedApplicationBefore,
+                expectedHasUsedApplicationBefore
+            );
             service.persist(PersistedConfigKeys.UserSelectedApplications, expectedUserSelectedApps);
             const expectedConfig = {
                 [PersistedConfigKeys.AllenMountPoint]: expectedAllenMountPoint,
                 [PersistedConfigKeys.CsvColumns]: expectedCsvColumns,
                 [PersistedConfigKeys.ImageJExecutable]: expectedImageJExecutable,
+                [PersistedConfigKeys.HasUsedApplicationBefore]: expectedHasUsedApplicationBefore,
                 [PersistedConfigKeys.UserSelectedApplications]: expectedUserSelectedApps,
             };
 
@@ -71,6 +77,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                 [PersistedConfigKeys.AllenMountPoint]: "/some/path/to/allen",
                 [PersistedConfigKeys.CsvColumns]: ["a", "b"],
                 [PersistedConfigKeys.ImageJExecutable]: "/my/imagej",
+                [PersistedConfigKeys.HasUsedApplicationBefore]: undefined,
                 [PersistedConfigKeys.UserSelectedApplications]: [
                     {
                         filePath: "/some/path/to/ImageJ",

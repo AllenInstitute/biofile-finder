@@ -22,6 +22,7 @@ export const getCollection = (state: State) => state.selection.collection;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getSortColumn = (state: State) => state.selection.sortColumn;
+export const getTutorial = (state: State) => state.selection.tutorial;
 
 // COMPOSED SELECTORS
 export const getOrderedDisplayAnnotations = createSelector(

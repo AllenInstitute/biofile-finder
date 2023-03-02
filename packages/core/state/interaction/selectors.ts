@@ -19,6 +19,8 @@ export const getFileExplorerServiceBaseUrl = (state: State) =>
     state.interaction.fileExplorerServiceBaseUrl;
 export const getFileFiltersForVisibleModal = (state: State) =>
     state.interaction.fileFiltersForVisibleModal;
+export const hasUsedApplicationBefore = (state: State) =>
+    state.interaction.hasUsedApplicationBefore;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;

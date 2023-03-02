@@ -26,6 +26,9 @@ const OPTIONS: Options<Record<string, unknown>> = {
         [PersistedConfigKeys.ImageJExecutable]: {
             type: "string",
         },
+        [PersistedConfigKeys.HasUsedApplicationBefore]: {
+            type: "boolean",
+        },
         [PersistedConfigKeys.UserSelectedApplications]: {
             type: "array",
             items: {

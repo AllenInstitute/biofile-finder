@@ -7,6 +7,7 @@ import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import FileSort from "../../entity/FileSort";
 import NumericRange from "../../entity/NumericRange";
+import Tutorial from "../../entity/Tutorial";
 import { Dataset } from "../../services/DatasetService";
 
 const STATE_BRANCH_NAME = "selection";
@@ -501,5 +502,24 @@ export function changeCollection(collection?: Dataset): ChangeCollectionAction {
     return {
         payload: collection,
         type: CHANGE_COLLECTION,
+    };
+}
+
+/**
+ * SELECT_TUTORIAL
+ *
+ * Intention to update the current tutorial step displayed to users
+ */
+export const SELECT_TUTORIAL = makeConstant(STATE_BRANCH_NAME, "select-tutorial");
+
+export interface SelectTutorial {
+    payload?: Tutorial;
+    type: string;
+}
+
+export function selectTutorial(tutorial?: Tutorial): SelectTutorial {
+    return {
+        payload: tutorial,
+        type: SELECT_TUTORIAL,
     };
 }

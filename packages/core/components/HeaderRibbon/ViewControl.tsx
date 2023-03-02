@@ -11,7 +11,6 @@ import styles from "./HeaderRibbon.module.css";
 interface Props {
     className?: string;
     isCollapsed?: boolean;
-    onCollapse: () => void;
 }
 
 const MENU_STYLES: IStyle = {

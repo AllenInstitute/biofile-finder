@@ -6,6 +6,7 @@ import { interaction, selection } from "../../state";
 import AggregateInfoBox from "../AggregateInfoBox";
 import FilterDisplayBar from "../FilterDisplayBar";
 import FileSet from "../../entity/FileSet";
+import Tutorial from "../../entity/Tutorial";
 import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
 import FileMetadataSearchBar from "../FileMetadataSearchBar";
@@ -77,7 +78,12 @@ export default function DirectoryTree(props: FileListProps) {
             <RootLoadingIndicator visible={isLoading} />
             <FilterDisplayBar className={styles.filterDisplayBar} classNameHidden={styles.hidden} />
             <FileMetadataSearchBar />
-            <ul className={styles.scrollContainer} role="tree" aria-multiselectable="true">
+            <ul
+                className={styles.scrollContainer}
+                role="tree"
+                aria-multiselectable="true"
+                id={Tutorial.FILE_LIST_ID}
+            >
                 {!error && content}
                 {error && (
                     <aside className={styles.errorMessage}>

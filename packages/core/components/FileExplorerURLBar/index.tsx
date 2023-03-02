@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import getContextMenuItems from "../ContextMenu/items";
 import SvgIcon from "../../components/SvgIcon";
 import FileExplorerURL from "../../entity/FileExplorerURL";
+import Tutorial from "../../entity/Tutorial";
 import { ERROR_ICON_PATH_DATA } from "../../icons";
 import { interaction, metadata, selection } from "../../state";
 
@@ -100,7 +101,7 @@ function FileExplorerURLBar(props: FileExplorerURLBarProps) {
 
     return (
         <div className={classNames(styles.container, props.className)}>
-            <form className={styles.urlForm} onSubmit={onSubmit}>
+            <form className={styles.urlForm} id={Tutorial.URL_BOX_ID} onSubmit={onSubmit}>
                 <TextField
                     borderless
                     disabled={isLoading}
@@ -122,6 +123,7 @@ function FileExplorerURLBar(props: FileExplorerURLBarProps) {
                 <TooltipHost content={isCopied ? "Copied to clipboard!" : undefined}>
                     <IconButton
                         className={styles.button}
+                        id={Tutorial.COPY_URL_BUTTON_ID}
                         iconProps={{ iconName: "link" }}
                         onClick={onCopy}
                     />

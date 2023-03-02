@@ -59,6 +59,11 @@ h5.control-group {
     white-space: nowrap;
 }
 
+.control-group.filler {
+    max-width: 37.5%;
+    min-width: 0;
+}
+
 .control-group-input-group {
     width: 100%;
 }
@@ -113,4 +118,54 @@ h5.control-group {
   font-size: 12px;
   margin-left: 0.5em;
   margin-top: 0.05em;
+}
+
+.smaller-control-group {
+    width: 12.5%;
+}
+
+.help-button-circle {
+    background-color: white;
+    border-radius: 48px;
+    height: 48px;
+    top: calc(-50% - 24px);
+    left: calc(50% - 24px);
+    position: relative;
+    width: 48px;
+    z-index: 1;
+}
+
+.help-button-container {
+    background-color: var(--secondary-ribbon-color);
+    border: none;
+    border-radius: 7.5px;
+    height: 100%;
+    width: 100%;
+}
+
+.help-button-container:hover {
+    background-color: white;
+}
+
+.help-button-container i {
+    color: var(--secondary-ribbon-color);
+}
+
+.help-button {
+    background: transparent;
+    border: none;
+    border-radius: 7.5px;
+    display: flex;
+    height: 100%;
+    padding: calc(var(--ribbon-header-height) - 30px);
+    width: 100%;
+    z-index: 2;
+}
+
+.help-button > span {
+    margin: auto;
+}
+
+.help-button i:first-child {
+    font-size: 2.25em;
 }

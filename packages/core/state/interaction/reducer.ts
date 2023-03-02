@@ -22,6 +22,8 @@ import {
     SHOW_EDIT_COLLECTION_DIALOG,
     GENERATE_SHAREABLE_FILE_SELECTION_LINK,
     UPDATE_COLLECTION,
+    MARK_AS_USED_APPLICATION_BEFORE,
+    SHOW_TIPS_AND_TRICKS_DIALOG,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -45,6 +47,7 @@ export interface InteractionStateBranch {
     csvColumns?: string[];
     fileExplorerServiceBaseUrl: string;
     fileFiltersForVisibleModal: FileFilter[];
+    hasUsedApplicationBefore: boolean;
     platformDependentServices: PlatformDependentServices;
     pythonSnippet?: PythonicDataAccessSnippet;
     refreshKey?: string;
@@ -63,6 +66,7 @@ export const initialState = {
     contextMenuPositionReference: null,
     fileExplorerServiceBaseUrl: DEFAULT_CONNECTION_CONFIG.baseUrl,
     fileFiltersForVisibleModal: [],
+    hasUsedApplicationBefore: false,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
@@ -82,6 +86,10 @@ export const initialState = {
 
 export default makeReducer<InteractionStateBranch>(
     {
+        [MARK_AS_USED_APPLICATION_BEFORE]: (state) => ({
+            ...state,
+            hasUsedApplicationBefore: true,
+        }),
         [SHOW_CONTEXT_MENU]: (state, action) => ({
             ...state,
             contextMenuIsVisible: true,
@@ -166,6 +174,10 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             visibleModal: ModalType.CsvManifest,
             fileFiltersForVisibleModal: action.payload,
+        }),
+        [SHOW_TIPS_AND_TRICKS_DIALOG]: (state) => ({
+            ...state,
+            visibleModal: ModalType.TipsAndTricks,
         }),
         [UPDATE_COLLECTION]: (state) => ({
             ...state,
