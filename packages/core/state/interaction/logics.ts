@@ -270,6 +270,103 @@ const downloadFile = createLogic({
     },
 });
 
+/**
+ * Interceptor responsible for responding to a DOWNLOAD_FILES action and
+ * initiating the downloads of the selected files, showing notifications of process status along the way.
+ */
+// const downloadSelectedFiles = createLogic({
+//     type: DOWNLOAD_SELECTED_FILES,
+//     warnTimeout: 0, // no way to know how long this will take--don't print console warning if it takes a while
+//     async process(deps: ReduxLogicDeps, dispatch, done) {
+//         // TODO: Consider this applying to DOWNLOAD_FILE too like how OPEN_WITH works
+//         const fileService = interactionSelectors.getFileService(deps.getState());
+//         const fileSelection = selection.selectors.getFileSelection(deps.getState());
+//         const {
+//             fileDownloadService,
+//             executionEnvService,
+//         } = interactionSelectors.getPlatformDependentServices(deps.getState());
+//         const sortColumn = selection.selectors.getSortColumn(deps.getState());
+
+//         const numberFormatter = annotationFormatterFactory(AnnotationType.NUMBER);
+
+//         let filesToOpen;
+//         if (files) {
+//             filesToOpen = files;
+//         } else if (filters) {
+//             const fileSet = new FileSet({
+//                 filters,
+//                 fileService,
+//                 sort: sortColumn,
+//             });
+//             const totalFileCount = await fileSet.fetchTotalCount();
+//             filesToOpen = await fileSet.fetchFileRange(0, totalFileCount);
+//         } else {
+//             filesToOpen = await fileSelection.fetchAllDetails();
+//         }
+//         const filePaths = await Promise.all(
+//             // TODO: Need this function out of the executation env???
+//             filesToOpen.map(
+//                 async (file) => await executionEnvService.formatPathForHost(file.file_path)
+//             )
+//         );
+
+//         filePaths.forEach(filePath => {
+//             const downloadRequestId = uniqueId();
+//             const msg = `Downloading ${fileInfo.name}, ${numberFormatter.displayValue(
+//                 fileInfo.size,
+//                 "bytes"
+//             )} in total`;
+
+//             const onCancel = () => {
+//                 dispatch(cancelFileDownload(downloadRequestId));
+//             };
+
+//             let totalBytesDownloaded = 0;
+//             // A function that dispatches progress events, throttled
+//             // to only be invokable at most once/second
+//             const throttledProgressDispatcher = throttle(() => {
+//                 dispatch(
+//                     processProgress(
+//                         downloadRequestId,
+//                         totalBytesDownloaded / fileInfo.size,
+//                         msg,
+//                         onCancel,
+//                         [fileInfo.id]
+//                     )
+//                 );
+//             }, 1000);
+//             const onProgress = (transferredBytes: number) => {
+//                 totalBytesDownloaded += transferredBytes;
+//                 throttledProgressDispatcher();
+//             };
+
+//             try {
+//                 dispatch(processStart(downloadRequestId, msg, onCancel, [fileInfo.id]));
+
+//                 const result = await fileDownloadService.downloadFile(
+//                     fileInfo,
+//                     downloadRequestId,
+//                     onProgress
+//                 );
+
+//                 if (result.resolution === DownloadResolution.CANCELLED) {
+//                     // Clear status if request was cancelled
+//                     dispatch(removeStatus(downloadRequestId));
+//                 } else {
+//                     dispatch(processSuccess(downloadRequestId, result.msg || ""));
+//                 }
+//             } catch (err) {
+//                 const errorMsg = `File download failed. Details:<br/>${
+//                     err instanceof Error ? err.message : err
+//                 }`;
+//                 dispatch(processFailure(downloadRequestId, errorMsg));
+//             }
+//         })
+
+//         done();
+//     }
+// });
+
 const promptForNewExecutable = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const {
@@ -655,6 +752,7 @@ export default [
     openWithLogic,
     promptForNewExecutable,
     downloadFile,
+    // downloadSelectedFiles,
     showContextMenu,
     updateCollection,
     generateShareableFileSelectionLink,

@@ -8,6 +8,7 @@ export enum ContextMenuActions {
     CSV_MANIFEST = "csv-manifest",
     CUSTOM_COLLECTION = "custom-collection",
     DEFAULT_COLLECTION = "default-collection",
+    DOWNLOAD = "download",
     MODIFY_COLUMNS = "modify-columns",
     OPEN = "open",
     OPEN_WITH = "open-with",
@@ -90,6 +91,14 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                 title: "CSV file of metadata of selected files",
                 onClick() {
                     dispatch(interaction.actions.showManifestDownloadDialog());
+                },
+            },
+            {
+                key: ContextMenuActions.DOWNLOAD,
+                text: "Download",
+                title: "Download selected files",
+                onClick() {
+                    dispatch(interaction.actions.downloadSelectedFiles());
                 },
             },
         ],

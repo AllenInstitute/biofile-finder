@@ -83,6 +83,23 @@ export function downloadFile(fileInfo: FileInfo): DownloadFileAction {
 }
 
 /**
+ * DOWNLOAD_SELECTED_FILES
+ *
+ * Intention to download selected files to local disk.
+ */
+export const DOWNLOAD_SELECTED_FILES = makeConstant(STATE_BRANCH_NAME, "download-selected-files");
+
+export interface DownloadSelectedFilesAction {
+    type: string;
+}
+
+export function downloadSelectedFiles(): DownloadSelectedFilesAction {
+    return {
+        type: DOWNLOAD_SELECTED_FILES,
+    };
+}
+
+/**
  * SET_CSV_COLUMNS
  *
  * Intention to set the csv columns
