@@ -141,7 +141,7 @@ describe("<CollectionControl />", () => {
         );
 
         // Assert
-        expect(getByText("Public")).to.exist;
+        expect(getByText("Internal")).to.exist;
         expect(getByText("Not Frozen")).to.exist;
     });
 });

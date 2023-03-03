@@ -98,7 +98,7 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                 text: "Download",
                 title: "Download selected files",
                 onClick() {
-                    dispatch(interaction.actions.downloadSelectedFiles());
+                    dispatch(interaction.actions.downloadFiles());
                 },
             },
         ],

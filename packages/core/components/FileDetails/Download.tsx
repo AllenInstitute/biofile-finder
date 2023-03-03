@@ -1,4 +1,4 @@
-import { IconButton } from "@fluentui/react";
+import { ActionButton, IButtonStyles } from "@fluentui/react";
 import { throttle } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,20 +7,9 @@ import { interaction } from "../../state";
 import FileDetail from "../../entity/FileDetail";
 
 interface DownloadProps {
+    buttonStyles?: IButtonStyles;
     fileDetails: FileDetail | null;
 }
-
-const ICON_BUTTON_STYLES = {
-    icon: {
-        color: "black",
-        fontSize: "13px",
-    },
-    root: {
-        background: "none",
-        height: 24,
-        width: 24,
-    },
-};
 
 /**
  * Button for dispatching an event declaring intention to download a file.
@@ -32,7 +21,7 @@ export default function Download(props: DownloadProps) {
     const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
 
     // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
-    const onClick = React.useMemo(() => {
+    const onDownload = React.useMemo(() => {
         if (!fileDetails) {
             return () => {
                 /** noop */
@@ -40,14 +29,7 @@ export default function Download(props: DownloadProps) {
         }
 
         return throttle(() => {
-            dispatch(
-                interaction.actions.downloadFile({
-                    id: fileDetails.id,
-                    name: fileDetails.name,
-                    path: fileDetails.path,
-                    size: fileDetails.size,
-                })
-            );
+            dispatch(interaction.actions.downloadFiles([fileDetails.details]));
         }, 1000); // 1s, in ms (arbitrary)
     }, [dispatch, fileDetails]);
 
@@ -56,15 +38,16 @@ export default function Download(props: DownloadProps) {
     }
 
     return (
-        <IconButton
+        <ActionButton
             ariaLabel="Download file"
+            iconProps={{ iconName: "Download" }}
             disabled={processStatuses.some((status) =>
                 status.data.fileId?.includes(fileDetails.id)
             )}
-            iconProps={{ iconName: "Download" }}
-            onClick={onClick}
-            styles={ICON_BUTTON_STYLES}
-            title="Download file"
+            onClick={onDownload}
+            styles={props.buttonStyles}
+            title="Download"
+            text="Download"
         />
     );
 }

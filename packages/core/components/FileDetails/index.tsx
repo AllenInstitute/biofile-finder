@@ -1,3 +1,4 @@
+import { IButtonStyles } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
@@ -7,6 +8,7 @@ import useFileDetails from "./useFileDetails";
 import windowStateReducer, { INITIAL_STATE, WindowState } from "./windowStateReducer";
 import Download from "./Download";
 import FileAnnotationList from "./FileAnnotationList";
+import OpenFileButton from "./OpenFileButton";
 import Pagination from "./Pagination";
 import { ROOT_ELEMENT_ID } from "../../App";
 import SvgIcon from "../../components/SvgIcon";
@@ -25,6 +27,48 @@ const windowStateToClassnameMap: { [index: string]: string } = {
 };
 
 export const WINDOW_ACTION_BUTTON_WIDTH = 23; // arbitrary
+
+const ICON_BUTTON_STYLES: IButtonStyles = {
+    icon: {
+        color: "black",
+        fontSize: "12px",
+    },
+    label: {
+        width: "100%",
+    },
+    root: {
+        background: "none",
+        height: 24,
+        width: "100%",
+        ":hover, :hover *": {
+            backgroundColor: "#878787",
+            color: "white",
+        },
+    },
+    iconHovered: {
+        backgroundColor: "#878787",
+        color: "white",
+    },
+    splitButtonMenuButton: {
+        border: "None",
+        borderLeft: "black 1px solid",
+        borderBottomRightRadius: "10px",
+        borderTopRightRadius: "10px",
+        paddingLeft: "2px",
+        ":hover, :hover *": {
+            backgroundColor: "#878787",
+            color: "white",
+            cursor: "pointer",
+        },
+    },
+    splitButtonMenuIcon: {
+        color: "black",
+        fontSize: "10px",
+    },
+    textContainer: {
+        width: "100%",
+    },
+};
 
 const FILE_DETAILS_PANE_ID = "file-details-pane";
 const FILE_DETAILS_WIDTH_ATTRIBUTE = "--file-details-width";
@@ -186,7 +230,14 @@ export default function FileDetails(props: FileDetails) {
                         >
                             {fileDetails && thumbnail}
                             <div className={styles.fileActions}>
-                                <Download fileDetails={fileDetails} />
+                                <Download
+                                    buttonStyles={ICON_BUTTON_STYLES}
+                                    fileDetails={fileDetails}
+                                />
+                                <OpenFileButton
+                                    buttonStyles={ICON_BUTTON_STYLES}
+                                    fileDetails={fileDetails}
+                                />
                             </div>
                             <FileAnnotationList
                                 className={styles.annotationList}

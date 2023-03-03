@@ -83,11 +83,29 @@
 }
 
 .file-actions {
-    padding: var(--padding);
+    padding: 0 var(--padding) 0 var(--padding);
 
     /* flex parent */
     display: flex;
-    justify-content: flex-end;
+}
+
+.file-actions button {
+    background-color: darkgrey;
+    font-size: 12px;
+}
+
+.file-actions > * {
+    margin: 0 5px 0 5px;
+}
+
+.file-actions > *:first-child {
+    border-radius: 10px 0 0 10px;
+    margin-left: 0;
+}
+
+.file-actions > *:last-child {
+    margin-right: 0;
+    width: 100%;
 }
 
 .annotation-list {

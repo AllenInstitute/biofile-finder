@@ -1,5 +1,5 @@
 import * as path from "path";
-import { isEmpty, throttle, uniq, uniqueId } from "lodash";
+import { isEmpty, sumBy, throttle, uniq, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 import { batch } from "react-redux";
 
@@ -27,12 +27,13 @@ import {
     openWith,
     OpenWithAction,
     OPEN_WITH_DEFAULT,
-    DOWNLOAD_FILE,
-    DownloadFileAction,
     processProgress,
     GENERATE_SHAREABLE_FILE_SELECTION_LINK,
     succeedShareableFileSelectionLinkGeneration,
     UPDATE_COLLECTION,
+    DOWNLOAD_FILES,
+    DownloadFilesAction,
+    OpenWithDefaultAction,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService, { CsvManifestRequest } from "../../services/CsvService";
@@ -203,169 +204,91 @@ const cancelFileDownloadLogic = createLogic({
 });
 
 /**
- * Interceptor responsible for responding to a DOWNLOAD_FILE action and
- * initiating the download of the correct file, showing notifications of process status along the way.
+ * Interceptor responsible for responding to a DOWNLOAD_FILES action and
+ * initiating the downloads of the files, showing notifications of process status along the way.
  */
-const downloadFile = createLogic({
-    type: DOWNLOAD_FILE,
+const downloadFiles = createLogic({
+    type: DOWNLOAD_FILES,
     warnTimeout: 0, // no way to know how long this will take--don't print console warning if it takes a while
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { payload: fileInfo } = deps.action as DownloadFileAction;
-        const downloadRequestId = uniqueId();
-        const state = deps.getState();
-        const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(state);
+        const fileSelection = selection.selectors.getFileSelection(deps.getState());
+        const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(
+            deps.getState()
+        );
 
         const numberFormatter = annotationFormatterFactory(AnnotationType.NUMBER);
-        const msg = `Downloading ${fileInfo.name}, ${numberFormatter.displayValue(
-            fileInfo.size,
-            "bytes"
-        )} in total`;
+        const { payload: files } = deps.action as DownloadFilesAction;
 
-        const onCancel = () => {
-            dispatch(cancelFileDownload(downloadRequestId));
-        };
-
-        let totalBytesDownloaded = 0;
-        // A function that dispatches progress events, throttled
-        // to only be invokable at most once/second
-        const throttledProgressDispatcher = throttle(() => {
-            dispatch(
-                processProgress(
-                    downloadRequestId,
-                    totalBytesDownloaded / fileInfo.size,
-                    msg,
-                    onCancel,
-                    [fileInfo.id]
-                )
-            );
-        }, 1000);
-        const onProgress = (transferredBytes: number) => {
-            totalBytesDownloaded += transferredBytes;
-            throttledProgressDispatcher();
-        };
-
-        try {
-            dispatch(processStart(downloadRequestId, msg, onCancel, [fileInfo.id]));
-
-            const result = await fileDownloadService.downloadFile(
-                fileInfo,
-                downloadRequestId,
-                onProgress
-            );
-
-            if (result.resolution === DownloadResolution.CANCELLED) {
-                // Clear status if request was cancelled
-                dispatch(removeStatus(downloadRequestId));
-            } else {
-                dispatch(processSuccess(downloadRequestId, result.msg || ""));
-            }
-        } catch (err) {
-            const errorMsg = `File download failed. Details:<br/>${
-                err instanceof Error ? err.message : err
-            }`;
-            dispatch(processFailure(downloadRequestId, errorMsg));
-        } finally {
-            done();
+        let filesToDownload: FmsFile[];
+        if (files !== undefined) {
+            filesToDownload = files;
+        } else {
+            filesToDownload = await fileSelection.fetchAllDetails();
         }
+
+        const totalBytesToDownload = sumBy(filesToDownload, "file_size");
+        const totalBytesDisplay = numberFormatter.displayValue(totalBytesToDownload, "bytes");
+        await Promise.all(
+            filesToDownload.map(async (file) => {
+                const downloadRequestId = uniqueId();
+                const fileByteDisplay = numberFormatter.displayValue(file.file_size, "bytes");
+                const msg = `Downloading ${file.file_name}, ${fileByteDisplay} out of the total of ${totalBytesDisplay} set to download`;
+
+                const onCancel = () => {
+                    dispatch(cancelFileDownload(downloadRequestId));
+                };
+
+                let totalBytesDownloaded = 0;
+                // A function that dispatches progress events, throttled
+                // to only be invokable at most once/second
+                const throttledProgressDispatcher = throttle(() => {
+                    dispatch(
+                        processProgress(
+                            downloadRequestId,
+                            totalBytesDownloaded / file.file_size,
+                            msg,
+                            onCancel,
+                            [file.file_id]
+                        )
+                    );
+                }, 1000);
+                const onProgress = (transferredBytes: number) => {
+                    totalBytesDownloaded += transferredBytes;
+                    throttledProgressDispatcher();
+                };
+
+                try {
+                    dispatch(processStart(downloadRequestId, msg, onCancel, [file.file_id]));
+
+                    const result = await fileDownloadService.downloadFile(
+                        {
+                            id: file.file_id,
+                            name: file.file_name,
+                            path: file.file_path,
+                            size: file.file_size,
+                        },
+                        downloadRequestId,
+                        onProgress
+                    );
+
+                    if (result.resolution === DownloadResolution.CANCELLED) {
+                        // Clear status if request was cancelled
+                        dispatch(removeStatus(downloadRequestId));
+                    } else {
+                        dispatch(processSuccess(downloadRequestId, result.msg || ""));
+                    }
+                } catch (err) {
+                    const errorMsg = `File download failed for file ${
+                        file.file_name
+                    }. Details:<br/>${err instanceof Error ? err.message : err}`;
+                    dispatch(processFailure(downloadRequestId, errorMsg));
+                }
+            })
+        );
+
+        done();
     },
 });
-
-/**
- * Interceptor responsible for responding to a DOWNLOAD_FILES action and
- * initiating the downloads of the selected files, showing notifications of process status along the way.
- */
-// const downloadSelectedFiles = createLogic({
-//     type: DOWNLOAD_SELECTED_FILES,
-//     warnTimeout: 0, // no way to know how long this will take--don't print console warning if it takes a while
-//     async process(deps: ReduxLogicDeps, dispatch, done) {
-//         // TODO: Consider this applying to DOWNLOAD_FILE too like how OPEN_WITH works
-//         const fileService = interactionSelectors.getFileService(deps.getState());
-//         const fileSelection = selection.selectors.getFileSelection(deps.getState());
-//         const {
-//             fileDownloadService,
-//             executionEnvService,
-//         } = interactionSelectors.getPlatformDependentServices(deps.getState());
-//         const sortColumn = selection.selectors.getSortColumn(deps.getState());
-
-//         const numberFormatter = annotationFormatterFactory(AnnotationType.NUMBER);
-
-//         let filesToOpen;
-//         if (files) {
-//             filesToOpen = files;
-//         } else if (filters) {
-//             const fileSet = new FileSet({
-//                 filters,
-//                 fileService,
-//                 sort: sortColumn,
-//             });
-//             const totalFileCount = await fileSet.fetchTotalCount();
-//             filesToOpen = await fileSet.fetchFileRange(0, totalFileCount);
-//         } else {
-//             filesToOpen = await fileSelection.fetchAllDetails();
-//         }
-//         const filePaths = await Promise.all(
-//             // TODO: Need this function out of the executation env???
-//             filesToOpen.map(
-//                 async (file) => await executionEnvService.formatPathForHost(file.file_path)
-//             )
-//         );
-
-//         filePaths.forEach(filePath => {
-//             const downloadRequestId = uniqueId();
-//             const msg = `Downloading ${fileInfo.name}, ${numberFormatter.displayValue(
-//                 fileInfo.size,
-//                 "bytes"
-//             )} in total`;
-
-//             const onCancel = () => {
-//                 dispatch(cancelFileDownload(downloadRequestId));
-//             };
-
-//             let totalBytesDownloaded = 0;
-//             // A function that dispatches progress events, throttled
-//             // to only be invokable at most once/second
-//             const throttledProgressDispatcher = throttle(() => {
-//                 dispatch(
-//                     processProgress(
-//                         downloadRequestId,
-//                         totalBytesDownloaded / fileInfo.size,
-//                         msg,
-//                         onCancel,
-//                         [fileInfo.id]
-//                     )
-//                 );
-//             }, 1000);
-//             const onProgress = (transferredBytes: number) => {
-//                 totalBytesDownloaded += transferredBytes;
-//                 throttledProgressDispatcher();
-//             };
-
-//             try {
-//                 dispatch(processStart(downloadRequestId, msg, onCancel, [fileInfo.id]));
-
-//                 const result = await fileDownloadService.downloadFile(
-//                     fileInfo,
-//                     downloadRequestId,
-//                     onProgress
-//                 );
-
-//                 if (result.resolution === DownloadResolution.CANCELLED) {
-//                     // Clear status if request was cancelled
-//                     dispatch(removeStatus(downloadRequestId));
-//                 } else {
-//                     dispatch(processSuccess(downloadRequestId, result.msg || ""));
-//                 }
-//             } catch (err) {
-//                 const errorMsg = `File download failed. Details:<br/>${
-//                     err instanceof Error ? err.message : err
-//                 }`;
-//                 dispatch(processFailure(downloadRequestId, errorMsg));
-//             }
-//         })
-
-//         done();
-//     }
-// });
 
 const promptForNewExecutable = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
@@ -431,7 +354,9 @@ const SYSTEM_DEFAULT_APP: UserSelectedApplication = Object.freeze({
 
 const openWithDefault = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const filters = deps.action.payload;
+        const {
+            payload: { files, filters },
+        } = deps.action as OpenWithDefaultAction;
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
         const sortColumn = selection.selectors.getSortColumn(deps.getState());
@@ -439,17 +364,19 @@ const openWithDefault = createLogic({
             interactionSelectors.getUserSelectedApplications(deps.getState()) || [];
 
         // Collect file information from either the folder filter or the file selection
-        let files;
-        if (!filters) {
-            files = await fileSelection.fetchAllDetails();
-        } else {
+        let filesToOpen;
+        if (files) {
+            filesToOpen = files;
+        } else if (filters) {
             const fileSet = new FileSet({
                 filters,
                 fileService,
                 sort: sortColumn,
             });
             const totalFileCount = await fileSet.fetchTotalCount();
-            files = await fileSet.fetchFileRange(0, totalFileCount);
+            filesToOpen = await fileSet.fetchFileRange(0, totalFileCount);
+        } else {
+            filesToOpen = await fileSelection.fetchAllDetails();
         }
 
         // Map file kinds to their default applications
@@ -466,7 +393,7 @@ const openWithDefault = createLogic({
         );
 
         // Map apps to the files they are meant to open
-        const appToFiles = files.reduce((appToFilesMap, file) => {
+        const appToFiles = filesToOpen.reduce((appToFilesMap, file) => {
             const kinds =
                 (file.annotations.find((a) => a.name === AnnotationName.KIND)
                     ?.values as string[]) || [];
@@ -751,8 +678,7 @@ export default [
     openWithDefault,
     openWithLogic,
     promptForNewExecutable,
-    downloadFile,
-    // downloadSelectedFiles,
+    downloadFiles,
     showContextMenu,
     updateCollection,
     generateShareableFileSelectionLink,
