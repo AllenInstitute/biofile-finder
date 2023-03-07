@@ -7,7 +7,7 @@ import ApplicationInfoService from "../../services/ApplicationInfoService";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { Dataset, PythonicDataAccessSnippet } from "../../services/DatasetService";
 import ExecutionEnvService from "../../services/ExecutionEnvService";
-import FileDownloadService, { FileInfo } from "../../services/FileDownloadService";
+import FileDownloadService from "../../services/FileDownloadService";
 import FileFilter from "../../entity/FileFilter";
 import FileViewerService from "../../services/FileViewerService";
 import { ModalType } from "../../components/Modal";
@@ -64,21 +64,21 @@ export function cancelFileDownload(id: string): CancelFileDownloadAction {
 }
 
 /**
- * DOWNLOAD_FILE
+ * DOWNLOAD_FILES
  *
- * Intention to download a file to local disk.
+ * Intention to download files to local disk.
  */
-export const DOWNLOAD_FILE = makeConstant(STATE_BRANCH_NAME, "download-file");
+export const DOWNLOAD_FILES = makeConstant(STATE_BRANCH_NAME, "download-files");
 
-export interface DownloadFileAction {
-    payload: FileInfo;
+export interface DownloadFilesAction {
+    payload?: FmsFile[];
     type: string;
 }
 
-export function downloadFile(fileInfo: FileInfo): DownloadFileAction {
+export function downloadFiles(files?: FmsFile[]): DownloadFilesAction {
     return {
-        payload: fileInfo,
-        type: DOWNLOAD_FILE,
+        payload: files,
+        type: DOWNLOAD_FILES,
     };
 }
 
@@ -674,13 +674,16 @@ export function setUserSelectedApplication(
 export const OPEN_WITH_DEFAULT = makeConstant(STATE_BRANCH_NAME, "open-with-default");
 
 export interface OpenWithDefaultAction {
-    payload?: FileFilter[];
+    payload: {
+        files?: FmsFile[];
+        filters?: FileFilter[];
+    };
     type: string;
 }
 
-export function openWithDefault(filters?: FileFilter[]): OpenWithDefaultAction {
+export function openWithDefault(filters?: FileFilter[], files?: FmsFile[]): OpenWithDefaultAction {
     return {
-        payload: filters,
+        payload: { files, filters },
         type: OPEN_WITH_DEFAULT,
     };
 }

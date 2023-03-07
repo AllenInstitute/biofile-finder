@@ -24,7 +24,7 @@ import {
     SET_USER_SELECTED_APPLICATIONS,
     promptForNewExecutable,
     openWithDefault,
-    downloadFile,
+    downloadFiles,
     generateShareableFileSelectionLink,
     SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
 } from "../actions";
@@ -283,7 +283,7 @@ describe("Interaction logics", () => {
         });
     });
 
-    describe("downloadFile", () => {
+    describe("downloadFiles", () => {
         const sandbox = createSandbox();
 
         afterEach(() => {
@@ -303,16 +303,17 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
+            const file: FmsFile = {
+                file_id: "678142",
+                file_name: "test_file_1",
+                file_size: 18,
+                file_path: "/some/path/test_file_1",
+                uploaded: "whenever",
+                annotations: [],
+            };
 
             // Act
-            store.dispatch(
-                downloadFile({
-                    id: "abc123",
-                    name: "foo.ext",
-                    path: "/some/path/foo.ext",
-                    size: 5,
-                })
-            );
+            store.dispatch(downloadFiles([file]));
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -328,6 +329,65 @@ describe("Interaction logics", () => {
             ).to.equal(true);
         });
 
+        it("downloads multiple files", async () => {
+            // Arrange
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: new FileDownloadServiceNoop(),
+                    },
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+            const file1: FmsFile = {
+                file_id: "930213",
+                file_name: "test_file_1",
+                file_size: 18,
+                file_path: "/some/path/test_file_1",
+                uploaded: "whenever",
+                annotations: [],
+            };
+            const file2: FmsFile = {
+                file_id: "8932432",
+                file_name: "test_file_2",
+                file_size: 2349014,
+                file_path: "/some/path/test_file_2",
+                uploaded: "whenever",
+                annotations: [],
+            };
+
+            // Act
+            store.dispatch(downloadFiles([file1, file2]));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.STARTED,
+                            fileId: [file1.file_id],
+                        },
+                    },
+                })
+            ).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.STARTED,
+                            fileId: [file2.file_id],
+                        },
+                    },
+                })
+            ).to.be.true;
+        });
+
         it("marks the success of a file download with a status update", async () => {
             // Arrange
             const state = mergeState(initialState, {
@@ -341,16 +401,17 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
+            const file: FmsFile = {
+                file_id: "32490241",
+                file_name: "test_file_1",
+                file_size: 18,
+                file_path: "/some/path/test_file_1",
+                uploaded: "whenever",
+                annotations: [],
+            };
 
             // Act
-            store.dispatch(
-                downloadFile({
-                    id: "abc123",
-                    name: "foo.ext",
-                    path: "/some/path/foo.ext",
-                    size: 5,
-                })
-            );
+            store.dispatch(downloadFiles([file]));
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -399,16 +460,17 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
+            const file: FmsFile = {
+                file_id: "5483295",
+                file_name: "test_file_1",
+                file_size: 18,
+                file_path: "/some/path/test_file_1",
+                uploaded: "whenever",
+                annotations: [],
+            };
 
             // Act
-            store.dispatch(
-                downloadFile({
-                    id: "abc123",
-                    name: "foo.ext",
-                    path: "/some/path/foo.ext",
-                    size: 5,
-                })
-            );
+            store.dispatch(downloadFiles([file]));
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -448,16 +510,17 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
+            const file: FmsFile = {
+                file_id: "872342",
+                file_name: "test_file_1",
+                file_size: 18,
+                file_path: "/some/path/test_file_1",
+                uploaded: "whenever",
+                annotations: [],
+            };
 
             // Act
-            store.dispatch(
-                downloadFile({
-                    id: "abc123",
-                    name: "foo.ext",
-                    path: "/some/path/foo.ext",
-                    size: 5,
-                })
-            );
+            store.dispatch(downloadFiles([file]));
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -512,16 +575,17 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
+            const file: FmsFile = {
+                file_id: "930213",
+                file_name: "test_file_1",
+                file_size: 18,
+                file_path: "/some/path/test_file_1",
+                uploaded: "whenever",
+                annotations: [],
+            };
 
             // Act
-            store.dispatch(
-                downloadFile({
-                    id: "abc123",
-                    name: "foo.ext",
-                    path: "/some/path/foo.ext",
-                    size: 5,
-                })
-            );
+            store.dispatch(downloadFiles([file]));
             await logicMiddleware.whenComplete();
 
             // Assert

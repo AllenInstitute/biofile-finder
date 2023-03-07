@@ -37,7 +37,7 @@ describe("<Download />", () => {
         expect(actions.list.length).to.equal(1);
         expect(
             actions.includesMatch({
-                type: interaction.actions.DOWNLOAD_FILE,
+                type: interaction.actions.DOWNLOAD_FILES,
             })
         ).to.equal(true);
     });
@@ -72,7 +72,7 @@ describe("<Download />", () => {
         expect(actions.list.length).to.equal(1);
         expect(
             actions.includesMatch({
-                type: interaction.actions.DOWNLOAD_FILE,
+                type: interaction.actions.DOWNLOAD_FILES,
             })
         ).to.equal(true);
     });
