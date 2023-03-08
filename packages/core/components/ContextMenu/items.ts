@@ -14,6 +14,7 @@ export enum ContextMenuActions {
     OPEN_WITH_OTHER = "open-with-other",
     PASTE = "paste",
     SHARE = "share",
+    OPEN_PLATE_UI = "open-plate-ui",
 }
 
 const MENU_HEADER_STYLES = {
@@ -29,6 +30,9 @@ const MENU_HEADER_STYLES = {
  * so this "factory" of sorts is parameterized by `dispatch`, and thereby available to `onClick` handlers through closure.
  */
 export default function getContextMenuItems(dispatch: Dispatch) {
+    console.log("hello2");
+    console.log(dispatch);
+    console.log(window);
     return {
         ACCESS: [
             {

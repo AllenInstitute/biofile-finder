@@ -19,6 +19,20 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
+    let openPlateUIOption: any;
+    fileSelection.fetchAllDetails().then((response) => {
+        const fileDetails = response[0].annotations;
+        const platebarcode = fileDetails.find((x) => x.name === "Plate Barcode");
+        if (platebarcode != undefined && platebarcode.values != undefined) {
+            openPlateUIOption = {
+                key: ContextMenuActions.OPEN_PLATE_UI,
+                text: "Open Plate UI",
+                title: "Open this plate in the Plate UI",
+                href: "www.google.com",
+            };
+        }
+    });
+
     return React.useCallback(
         (evt: React.MouseEvent) => {
             const savedApps = userSelectedApplications || [];
@@ -52,6 +66,7 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                         dispatch(interaction.actions.promptForNewExecutable(filters));
                     },
                 },
+                openPlateUIOption,
             ];
 
             const items = getContextMenuItems(dispatch).ACCESS.map((item: IContextualMenuItem) => {

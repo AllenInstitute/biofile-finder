@@ -24,6 +24,8 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
     const onContextMenuHandlerFactory = (clipboardText: string) => {
         return (evt: React.MouseEvent) => {
             const availableItems = getContextMenuItems(dispatch);
+            console.log(dispatch);
+            console.log(availableItems);
             const items = [
                 {
                     ...availableItems.COPY,
