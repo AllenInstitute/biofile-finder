@@ -108,6 +108,42 @@
     width: 100%;
 }
 
+.font-size-button-container {
+    display: flex;
+    height: min-content;
+}
+
+.font-size-button {
+    background-color: darkgrey;
+    border-radius: 0;
+    font-size: 10px;
+    font-weight: normal;
+    height: min-content;
+    padding: 0.25em;
+    width: min-content;
+}
+
+.font-size-button:hover:not(.disabled) {
+    background-color: #878787;
+    color: white;
+}
+
+.disabled {
+    cursor: default;
+}
+
+.font-size-button:first-child {
+    border-right: 1px solid black;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    margin-left: auto;
+}
+
+.font-size-button:last-child {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
 .annotation-list {
     padding: var(--padding);
 }

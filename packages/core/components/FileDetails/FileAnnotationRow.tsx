@@ -1,10 +1,10 @@
 import classNames from "classnames";
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import getContextMenuItems from "../ContextMenu/items";
 import Cell from "../../components/FileRow/Cell";
-import { interaction } from "../../state";
+import { interaction, selection } from "../../state";
 
 import styles from "./FileAnnotationRow.module.css";
 
@@ -20,6 +20,7 @@ interface FileAnnotationRowProps {
  */
 export default function FileAnnotationRow(props: FileAnnotationRowProps) {
     const dispatch = useDispatch();
+    const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
 
     const onContextMenuHandlerFactory = (clipboardText: string) => {
         return (evt: React.MouseEvent) => {
@@ -39,7 +40,13 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
 
     return (
         <div className={classNames(props.className, styles.row)}>
-            <Cell className={classNames(styles.cell, styles.key)} columnKey="key" width={1}>
+            <Cell
+                className={classNames(styles.cell, styles.key, {
+                    [styles.smallFont]: shouldDisplaySmallFont,
+                })}
+                columnKey="key"
+                width={1}
+            >
                 <span
                     style={{ userSelect: "text" }}
                     onContextMenu={onContextMenuHandlerFactory(props.name)}
@@ -47,7 +54,13 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                     {props.name}
                 </span>
             </Cell>
-            <Cell className={classNames(styles.cell, styles.value)} columnKey="value" width={1}>
+            <Cell
+                className={classNames(styles.cell, styles.value, {
+                    [styles.smallFont]: shouldDisplaySmallFont,
+                })}
+                columnKey="value"
+                width={1}
+            >
                 <span
                     style={{ userSelect: "text" }}
                     onContextMenu={onContextMenuHandlerFactory(props.value.trim())}

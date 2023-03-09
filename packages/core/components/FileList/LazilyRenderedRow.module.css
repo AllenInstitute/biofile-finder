@@ -12,3 +12,7 @@
     margin: 0;
     border: var(--margin) solid #669bf4;
 }
+
+.small-font {
+    font-size: var(--smaller-font-size);
+}

@@ -21,6 +21,10 @@
     font-weight: 500;
 }
 
+.small-font {
+    font-size: var(--smaller-font-size);
+}
+
 .value {
     /* flex child */
     flex: 1 1 60%;
