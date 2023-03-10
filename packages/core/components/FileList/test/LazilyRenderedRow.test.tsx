@@ -10,6 +10,8 @@ import LazilyRenderedRow from "../LazilyRenderedRow";
 import { initialState } from "../../../state";
 import FileSet from "../../../entity/FileSet";
 
+import styles from "../LazilyRenderedRow.module.css";
+
 describe("<LazilyRenderedRow />", () => {
     const fileNameAnnotation = new Annotation({
         annotationDisplayName: "Name",
@@ -87,5 +89,34 @@ describe("<LazilyRenderedRow />", () => {
         // Assert
         expect(queryByText("my_image.czi")).to.equal(null);
         expect(queryByText("Loading...")).to.not.equal(null);
+    });
+
+    describe("Dynamic styling", () => {
+        [true, false].forEach((shouldDisplaySmallFont) => {
+            it(`Has${
+                shouldDisplaySmallFont ? "" : " no"
+            } small font style when shouldDisplaySmallFont is ${shouldDisplaySmallFont}`, () => {
+                // Arrange
+                const { store } = configureMockStore({
+                    state: mergeState(initialState, {
+                        selection: {
+                            shouldDisplaySmallFont,
+                        },
+                    }),
+                });
+
+                // Act
+                const { getByText } = render(
+                    <Provider store={store}>
+                        <LazilyRenderedRow data={makeItemData()} index={23} style={{}} />
+                    </Provider>
+                );
+
+                // Assert
+                expect(getByText("Loading...").classList.contains(styles.smallFont)).to.equal(
+                    shouldDisplaySmallFont
+                );
+            });
+        });
     });
 });

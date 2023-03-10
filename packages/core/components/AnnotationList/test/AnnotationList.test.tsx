@@ -10,6 +10,9 @@ import Annotation from "../../../entity/Annotation";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import FileFilter from "../../../entity/FileFilter";
 import { initialState, reducer, reduxLogics, selection } from "../../../state";
+import { DND_LIST_CONTAINER_ID } from "../../DnDList/DnDList";
+
+import styles from "../AnnotationList.module.css";
 
 describe("<AnnotationList />", () => {
     before(() => {
@@ -207,6 +210,41 @@ describe("<AnnotationList />", () => {
 
             // Assert
             expect(() => getByText("Filtered")).to.throw();
+        });
+    });
+
+    describe("Dynamic styling", () => {
+        [true, false].forEach((shouldDisplaySmallFont) => {
+            it(`Has ${
+                shouldDisplaySmallFont ? "" : "no"
+            } small font style when shouldDisplaySmallFont is ${shouldDisplaySmallFont}`, () => {
+                // Arrange
+                const { store } = configureMockStore({
+                    state: mergeState(initialState, {
+                        selection: {
+                            shouldDisplaySmallFont,
+                        },
+                    }),
+                });
+
+                // Act
+                const { getByTestId } = render(
+                    <Provider store={store}>
+                        <DragDropContext
+                            onDragEnd={() => {
+                                /* noop */
+                            }}
+                        >
+                            <AnnotationList />
+                        </DragDropContext>
+                    </Provider>
+                );
+
+                // Assert
+                expect(
+                    getByTestId(DND_LIST_CONTAINER_ID).classList.contains(styles.smallFont)
+                ).to.equal(shouldDisplaySmallFont);
+            });
         });
     });
 });
