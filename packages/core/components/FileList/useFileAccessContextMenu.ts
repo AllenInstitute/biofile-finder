@@ -5,6 +5,8 @@ import FileFilter from "../../entity/FileFilter";
 import { interaction, selection } from "../../state";
 import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems, { ContextMenuActions } from "../ContextMenu/items";
+import { getCollection } from "../../state/selection/selectors";
+import { FileExplorerServiceBaseUrl } from "../../constants";
 
 /**
  * Custom React hook for creating the file access context menu.
@@ -19,19 +21,49 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
-    let openPlateUIOption: any;
-    fileSelection.fetchAllDetails().then((response) => {
-        const fileDetails = response[0].annotations;
-        const platebarcode = fileDetails.find((x) => x.name === "Plate Barcode");
+    const [hasPlateBarCode, setHasPlateBarCode] = React.useState(false);
+    const [plateBarCodeLink, setPlateBarCodeLink] = React.useState("");
+
+    fileSelection.fetchAllDetails().then((fileDetails) => {
+        console.log(fileDetails);
+        const annotations = fileDetails[0].annotations;
+        const platebarcode = annotations.find((x) => x.name === "Plate Barcode");
         if (platebarcode != undefined && platebarcode.values != undefined) {
-            openPlateUIOption = {
-                key: ContextMenuActions.OPEN_PLATE_UI,
-                text: "Open Plate UI",
-                title: "Open this plate in the Plate UI",
-                href: "www.google.com",
-            };
+            console.log("has barcode");
+            console.log(getCollection);
+            setHasPlateBarCode(true);
+            const barcode = platebarcode.values[0];
+            console.log(global.fileExplorerServiceBaseUrl);
+            if (global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.STAGING) {
+                setPlateBarCodeLink(
+                    `http://stg-aics.corp.alleninstitute.org/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}`
+                );
+            } else if (
+                global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.PRODUCTION
+            ) {
+                setPlateBarCodeLink(
+                    `https://aics.corp.alleninstitute.org/labkey/aics_assays/AICS/Assays/plateDetail.view?Barcode=${barcode}`
+                );
+            }
         }
+        return;
     });
+    // const onDetailsLoad = async () => {
+    //     console.log(fileDetails)
+    //     const annotations = fileDetails[0].annotations;
+    //     const platebarcode = annotations.find((x) => x.name === "Plate Barcode");
+    //     if (platebarcode != undefined && platebarcode.values != undefined) {
+    //         console.log("this has a barcode")
+    //         openPlateUIOption = {
+    //             key: ContextMenuActions.OPEN_PLATE_UI,
+    //             text: "Open Plate UI",
+    //             title: "Open this plate in the Plate UI",
+    //             href: "www.google.com",
+    //         };
+    //         openWithOptions.push(openPlateUIOption)
+    //     }
+    //     return await fileSelection.fetchAllDetails();
+    // }
 
     return React.useCallback(
         (evt: React.MouseEvent) => {
@@ -66,7 +98,13 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                         dispatch(interaction.actions.promptForNewExecutable(filters));
                     },
                 },
-                openPlateUIOption,
+                {
+                    key: ContextMenuActions.OPEN_PLATE_UI,
+                    text: "Open Plate UI",
+                    title: "Open this plate in the Plate UI",
+                    href: plateBarCodeLink,
+                    disabled: !hasPlateBarCode,
+                },
             ];
 
             const items = getContextMenuItems(dispatch).ACCESS.map((item: IContextualMenuItem) => {
@@ -116,6 +154,14 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
 
             dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent, onDismiss));
         },
-        [dispatch, fileSelection, executionEnvService, userSelectedApplications, filters, onDismiss]
+        [
+            dispatch,
+            fileSelection,
+            executionEnvService,
+            userSelectedApplications,
+            filters,
+            onDismiss,
+            hasPlateBarCode,
+        ]
     );
 }
