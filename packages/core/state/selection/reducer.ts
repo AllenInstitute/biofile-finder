@@ -23,6 +23,7 @@ import {
     CHANGE_COLLECTION,
     CHANGE_VIEW,
     SELECT_TUTORIAL,
+    ADJUST_GLOBAL_FONT_SIZE,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
@@ -40,6 +41,7 @@ export interface SelectionStateBranch {
     fileSelection: FileSelection;
     filters: FileFilter[];
     openFileFolders: FileFolder[];
+    shouldDisplaySmallFont: boolean;
     sortColumn?: FileSort;
     tutorial?: Tutorial;
 }
@@ -58,6 +60,7 @@ export const initialState = {
     fileSelection: new FileSelection(),
     filters: [],
     openFileFolders: [],
+    shouldDisplaySmallFont: false,
     sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
 };
 
@@ -66,6 +69,10 @@ export default makeReducer<SelectionStateBranch>(
         [SELECT_TUTORIAL]: (state, action) => ({
             ...state,
             tutorial: action.payload,
+        }),
+        [ADJUST_GLOBAL_FONT_SIZE]: (state, action) => ({
+            ...state,
+            shouldDisplaySmallFont: action.payload,
         }),
         [SET_FILE_FILTERS]: (state, action) => ({
             ...state,

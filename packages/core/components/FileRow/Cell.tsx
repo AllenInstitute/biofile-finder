@@ -6,6 +6,8 @@ import * as React from "react";
 
 import styles from "./Cell.module.css";
 
+export const NON_RESIZEABLE_CELL_TEST_ID = "non-resizeable-cell-test-id";
+
 export interface CellProps {
     className?: string;
     columnKey: string;
@@ -118,6 +120,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                 className={classNames(styles.cell, this.props.className)}
                 onContextMenu={this.props.onContextMenu}
                 style={{ width: `${this.props.width * 100}%` }}
+                data-testid={NON_RESIZEABLE_CELL_TEST_ID}
             >
                 {this.props.children}
             </div>

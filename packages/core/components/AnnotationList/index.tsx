@@ -49,6 +49,7 @@ export default function AnnotationList(props: AnnotationListProps) {
     const annotationsLoading = useSelector(
         selection.selectors.getAvailableAnnotationsForHierarchyLoading
     );
+    const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const annotationListItems = useSelector(annotationSelectors.getAnnotationListItems);
     const [searchValue, setSearchValue] = React.useState("");
 
@@ -114,7 +115,9 @@ export default function AnnotationList(props: AnnotationListProps) {
                     />
                 </div>
                 <DnDList
-                    className={styles.list}
+                    className={classNames(styles.list, {
+                        [styles.smallFont]: shouldDisplaySmallFont,
+                    })}
                     items={filteredListItems}
                     id={DROPPABLE_ID}
                     isDropDisabled={true}

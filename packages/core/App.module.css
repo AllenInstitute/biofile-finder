@@ -15,6 +15,7 @@
     --file-details-width: 20%;
     --margin: 12px;
     --transition-duration: 0.5s;
+    --smaller-font-size: small;
     /* AICS brand colors pulled from AICS style guide */
     --primary-brand-dark-blue: #003057;
     --primary-brand-purple: #827aa3;

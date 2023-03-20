@@ -6,6 +6,8 @@ import DnDListItem from "./DnDListItem";
 
 import styles from "./DnDList.module.css";
 
+export const DND_LIST_CONTAINER_ID = "dnd-list-container-id";
+
 export interface DnDItem {
     description: string;
     disabled?: boolean;
@@ -52,6 +54,7 @@ export default function DnDList(props: DnDListProps) {
                         },
                         props.className
                     )}
+                    data-testid={DND_LIST_CONTAINER_ID}
                 >
                     {items.reduce((accum, item, index) => {
                         const disabled = loading || item.disabled;

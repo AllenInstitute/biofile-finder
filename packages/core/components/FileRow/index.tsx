@@ -16,6 +16,7 @@ export interface CellConfig {
 interface FileRowProps {
     cells: CellConfig[];
     className?: string;
+    cellClassName?: string;
     rowIdentifier?: any;
     onContextMenu?: (evt: React.MouseEvent) => void;
     onResize?: (columnKey: string, nextWidth?: number) => void;
@@ -46,6 +47,7 @@ export default function FileRow(props: FileRowProps) {
         <div className={classNames(styles.row, className)} onClick={onClick}>
             {map(cells, (cell) => (
                 <Cell
+                    className={props.cellClassName}
                     key={cell.columnKey}
                     columnKey={cell.columnKey}
                     onContextMenu={onContextMenu}

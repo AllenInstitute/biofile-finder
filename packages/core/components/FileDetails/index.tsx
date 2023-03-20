@@ -1,6 +1,7 @@
-import { IButtonStyles } from "@fluentui/react";
+import { ActionButton, IButtonStyles } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import FileThumbnail from "../../components/FileThumbnail";
 import WindowActionButton from "../../components/WindowActionButton";
@@ -11,6 +12,7 @@ import FileAnnotationList from "./FileAnnotationList";
 import OpenFileButton from "./OpenFileButton";
 import Pagination from "./Pagination";
 import { ROOT_ELEMENT_ID } from "../../App";
+import { selection } from "../../state";
 import SvgIcon from "../../components/SvgIcon";
 import { NO_IMAGE_ICON_PATH_DATA } from "../../icons";
 
@@ -121,8 +123,10 @@ function resizeHandleDoubleClick() {
  * Right-hand sidebar of application. Displays details of selected file(s).
  */
 export default function FileDetails(props: FileDetails) {
-    const [windowState, dispatch] = React.useReducer(windowStateReducer, INITIAL_STATE);
+    const globalDispatch = useDispatch();
+    const [windowState, windowDispatch] = React.useReducer(windowStateReducer, INITIAL_STATE);
     const [fileDetails, isLoading] = useFileDetails();
+    const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
 
     // If FileDetails pane is minimized, set its width to the width of the WindowActionButtons. Else, let it be
     // defined by whatever the CSS determines (setting an inline style to undefined will prompt ReactDOM to not apply
@@ -211,7 +215,7 @@ export default function FileDetails(props: FileDetails) {
                                 <WindowActionButton
                                     key={action}
                                     action={action}
-                                    onClick={() => dispatch({ type: action })}
+                                    onClick={() => windowDispatch({ type: action })}
                                     width={WINDOW_ACTION_BUTTON_WIDTH}
                                 />
                             ))}
@@ -222,6 +226,32 @@ export default function FileDetails(props: FileDetails) {
                             [styles.hidden]: windowState.state === WindowState.MINIMIZED,
                         })}
                     />
+                    <div className={styles.fontSizeButtonContainer}>
+                        <ActionButton
+                            className={classNames(styles.fontSizeButton, {
+                                [styles.disabled]: shouldDisplaySmallFont,
+                            })}
+                            disabled={shouldDisplaySmallFont}
+                            onClick={() =>
+                                globalDispatch(
+                                    selection.actions.adjustGlobalFontSize(!shouldDisplaySmallFont)
+                                )
+                            }
+                            text="a"
+                        />
+                        <ActionButton
+                            className={classNames(styles.fontSizeButton, {
+                                [styles.disabled]: !shouldDisplaySmallFont,
+                            })}
+                            disabled={!shouldDisplaySmallFont}
+                            onClick={() =>
+                                globalDispatch(
+                                    selection.actions.adjustGlobalFontSize(!shouldDisplaySmallFont)
+                                )
+                            }
+                            text="A"
+                        />
+                    </div>
                     <div className={styles.contentContainer}>
                         <div
                             className={classNames(styles.overflowContainer, {

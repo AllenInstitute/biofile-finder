@@ -523,3 +523,22 @@ export function selectTutorial(tutorial?: Tutorial): SelectTutorial {
         type: SELECT_TUTORIAL,
     };
 }
+
+/**
+ * ADJUST_GLOBAL_FONT_SIZE
+ *
+ * Intention to set whether the current font size should be small or the default
+ */
+export const ADJUST_GLOBAL_FONT_SIZE = makeConstant(STATE_BRANCH_NAME, "adjust-global-font-size");
+
+export interface AdjustGlobalFontSize {
+    payload: boolean;
+    type: string;
+}
+
+export function adjustGlobalFontSize(shouldDisplaySmallFont: boolean): AdjustGlobalFontSize {
+    return {
+        payload: shouldDisplaySmallFont,
+        type: ADJUST_GLOBAL_FONT_SIZE,
+    };
+}

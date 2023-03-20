@@ -33,7 +33,6 @@ interface FileListProps {
 
 const DEFAULTS = {
     totalCount: DEFAULT_TOTAL_COUNT,
-    rowHeight: 22,
 };
 
 const MAX_NON_ROOT_HEIGHT = 300;
@@ -43,12 +42,14 @@ const MAX_NON_ROOT_HEIGHT = 300;
  * itself out to be 100% the height and width of its parent.
  */
 export default function FileList(props: FileListProps) {
-    const { className, fileSet, isRoot, rowHeight, sortOrder } = defaults({}, props, DEFAULTS);
-
     const [totalCount, setTotalCount] = React.useState<number | null>(null);
+    const fileSelection = useSelector(selection.selectors.getFileSelection);
+    const isDisplayingSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
+    const { className, fileSet, isRoot, rowHeight, sortOrder } = defaults({}, props, DEFAULTS, {
+        rowHeight: isDisplayingSmallFont ? 18 : 22,
+    });
 
     const onSelect = useFileSelector(fileSet, sortOrder);
-    const fileSelection = useSelector(selection.selectors.getFileSelection);
 
     // Callback provided to individual LazilyRenderedRows to be called on `contextmenu`
     const onFileRowContextMenu = useFileAccessContextMenu();

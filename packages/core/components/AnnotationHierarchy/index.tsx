@@ -8,6 +8,7 @@ import HierarchyListItem from "./HierarchyListItem";
 import * as annotationSelectors from "../AnnotationSidebar/selectors";
 
 import styles from "./AnnotationHierarchy.module.css";
+import { selection } from "../../state";
 
 export const DROPPABLE_ID = "HIERARCHY_LIST";
 
@@ -23,6 +24,7 @@ interface AnnotationHierarchyProps {
 export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
     const { className, highlightDropZone } = props;
     const annotationHierarchyListItems = useSelector(annotationSelectors.getHierarchyListItems);
+    const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
 
     return (
         <div className={classNames(styles.root, className)} id={Tutorial.ANNOTATION_HIERARCHY_ID}>
@@ -31,7 +33,9 @@ export default function AnnotationHierarchy(props: AnnotationHierarchyProps) {
                 Files will be grouped by the following annotations
             </h6>
             <DnDList
-                className={styles.hierarchy}
+                className={classNames(styles.hierarchy, {
+                    [styles.smallFont]: shouldDisplaySmallFont,
+                })}
                 highlight={highlightDropZone}
                 id={DROPPABLE_ID}
                 items={annotationHierarchyListItems}
