@@ -80,6 +80,10 @@ describe("<CsvManifest />", () => {
                 return Promise.reject();
             }
 
+            promptForDownloadDirectory() {
+                return Promise.reject();
+            }
+
             cancelActiveRequest() {
                 return Promise.reject();
             }

@@ -14,6 +14,7 @@ import { DownloadFailure } from "../../../../core/errors";
 import { DownloadResolution } from "../../../../core/services";
 import { FileDownloadServiceBaseUrl, RUN_IN_RENDERER } from "../../util/constants";
 import FileDownloadServiceElectron from "../FileDownloadServiceElectron";
+import NotificationServiceElectron from "../NotificationServiceElectron";
 
 function parseRangeHeader(rangeHeader: string): { start: number; end: number } {
     const [, range] = rangeHeader.split("=");
@@ -83,7 +84,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     filePath: tempfile,
                 });
 
-            const service = new FileDownloadServiceElectron();
+            const service = new FileDownloadServiceElectron(new NotificationServiceElectron());
 
             // Act
             await service.downloadCsvManifest(
@@ -105,7 +106,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     canceled: true,
                 });
 
-            const service = new FileDownloadServiceElectron();
+            const service = new FileDownloadServiceElectron(new NotificationServiceElectron());
             const downloadRequestId = "beepbop";
 
             // Act
@@ -136,7 +137,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     filePath: tempfile,
                 });
 
-            const service = new FileDownloadServiceElectron();
+            const service = new FileDownloadServiceElectron(new NotificationServiceElectron());
             const downloadRequestId = "beepbop";
 
             // Write a partial CSV manifest to enable testing that it is cleaned up on error
@@ -171,6 +172,18 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     expect(typedErr.code).to.equal("ENOENT", typedErr.message);
                 }
             }
+        });
+    });
+
+    describe("getDefaultDownloadDirectory", () => {
+        it("blah", () => {
+            expect(false).to.be.true;
+        });
+    });
+
+    describe("promptForDownloadDirectory", () => {
+        it("fdsaf", () => {
+            expect(false).to.be.true;
         });
     });
 
@@ -223,6 +236,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                 .resolves(tempdir);
 
             const service = new FileDownloadServiceElectron(
+                new NotificationServiceElectron(),
                 downloadHost as FileDownloadServiceBaseUrl
             );
             const downloadRequestId = "beepbop";
@@ -240,7 +254,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             };
 
             // Act
-            const result = await service.downloadFile(fileInfo, downloadRequestId);
+            const result = await service.downloadFile(fileInfo, destination, downloadRequestId);
 
             // Assert
             expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
@@ -274,6 +288,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                 .resolves(tempdir);
 
             const service = new FileDownloadServiceElectron(
+                new NotificationServiceElectron(),
                 downloadHost as FileDownloadServiceBaseUrl
             );
             const downloadRequestId = "beepbop";
@@ -286,7 +301,12 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             };
 
             // Act
-            const result = await service.downloadFile(fileInfo, downloadRequestId, onProgressSpy);
+            const result = await service.downloadFile(
+                fileInfo,
+                undefined,
+                downloadRequestId,
+                onProgressSpy
+            );
 
             // Assert
             expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
@@ -316,6 +336,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                 .resolves(tempdir);
 
             const service = new FileDownloadServiceElectron(
+                new NotificationServiceElectron(),
                 downloadHost as FileDownloadServiceBaseUrl
             );
             const downloadRequestId = "beepbop";
@@ -331,7 +352,12 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             };
 
             // Act
-            const result = await service.downloadFile(fileInfo, downloadRequestId, onProgress);
+            const result = await service.downloadFile(
+                fileInfo,
+                undefined,
+                downloadRequestId,
+                onProgress
+            );
 
             // Assert
             expect(result.resolution).to.equal(DownloadResolution.CANCELLED);
@@ -370,6 +396,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                 .resolves(tempdir);
 
             const service = new FileDownloadServiceElectron(
+                new NotificationServiceElectron(),
                 downloadHost as FileDownloadServiceBaseUrl
             );
             const downloadRequestId = "beepbop";
@@ -383,7 +410,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
 
             try {
                 // Act
-                await service.downloadFile(fileInfo, downloadRequestId);
+                await service.downloadFile(fileInfo, undefined, downloadRequestId);
 
                 // Shouldn't hit, but here to ensure test isn't evergreen
                 throw new assert.AssertionError({ message: `Expected exception to be thrown` });

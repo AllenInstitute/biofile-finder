@@ -52,7 +52,10 @@ const collectPlatformDependentServices = memoize(
     (downloadServiceBaseUrl: FileDownloadServiceBaseUrl) => ({
         applicationInfoService,
         executionEnvService,
-        fileDownloadService: new FileDownloadServiceElectron(downloadServiceBaseUrl),
+        fileDownloadService: new FileDownloadServiceElectron(
+            notificationService,
+            downloadServiceBaseUrl
+        ),
         fileViewerService: new FileViewerServiceElectron(notificationService),
         frontendInsights,
         persistentConfigService,

@@ -96,9 +96,33 @@ export default function getContextMenuItems(dispatch: Dispatch) {
             {
                 key: ContextMenuActions.DOWNLOAD,
                 text: "Download",
-                title: "Download selected files",
+                title: "Download selected files to downloads folder",
                 onClick() {
                     dispatch(interaction.actions.downloadFiles());
+                },
+                subMenuProps: {
+                    items: [
+                        {
+                            key: "downloads",
+                            text: "Downloads",
+                            title: "Download selected files to downloads folder",
+                            onClick() {
+                                dispatch(interaction.actions.downloadFiles());
+                            },
+                        },
+                        {
+                            key: "downloads-border",
+                            itemType: ContextualMenuItemType.Divider,
+                        },
+                        {
+                            key: "download-to",
+                            text: "Other...",
+                            title: "Download to a selected folder",
+                            onClick() {
+                                dispatch(interaction.actions.promptForDownloadLocation());
+                            },
+                        },
+                    ],
                 },
             },
         ],
