@@ -11,11 +11,7 @@ import nock from "nock";
 import sinon from "sinon";
 
 import { DownloadFailure } from "../../../../core/errors";
-import {
-    DownloadResolution,
-    FileDownloadCancellationToken,
-    NotificationService,
-} from "../../../../core/services";
+import { DownloadResolution, FileDownloadCancellationToken } from "../../../../core/services";
 import { FileDownloadServiceBaseUrl, RUN_IN_RENDERER } from "../../util/constants";
 import FileDownloadServiceElectron from "../FileDownloadServiceElectron";
 import NotificationServiceElectron from "../NotificationServiceElectron";
@@ -213,18 +209,6 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
 
         it("returns user selected directory", async () => {
             // Arrange
-            class UselessNotificationServiceElectron implements NotificationService {
-                public showMessage() {
-                    return Promise.resolve(true);
-                }
-                public showError() {
-                    return Promise.reject();
-                }
-                public showQuestion() {
-                    return Promise.reject();
-                }
-            }
-
             const expectedDirectory = os.tmpdir();
             class DialogResult {
                 public readonly canceled = false;
@@ -237,7 +221,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             invokeStub.onSecondCall().resolves(new DialogResult());
 
             const service = new FileDownloadServiceElectron(
-                new UselessNotificationServiceElectron(),
+                new NotificationServiceElectron(),
                 downloadHost as FileDownloadServiceBaseUrl
             );
 
@@ -250,18 +234,6 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
 
         it("complains about non-writeable directory when given", async () => {
             // Arrange
-            class UselessNotificationServiceElectron implements NotificationService {
-                public showMessage() {
-                    return Promise.resolve(true);
-                }
-                public showError() {
-                    return Promise.resolve();
-                }
-                public showQuestion() {
-                    return Promise.reject();
-                }
-            }
-
             const expectedDirectory = "somewhere/over/here";
             class DialogResult {
                 public readonly canceled: boolean;
@@ -280,7 +252,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             invokeStub.onSecondCall().resolves(new DialogResult(true));
 
             const service = new FileDownloadServiceElectron(
-                new UselessNotificationServiceElectron(),
+                new NotificationServiceElectron(),
                 downloadHost as FileDownloadServiceBaseUrl
             );
 

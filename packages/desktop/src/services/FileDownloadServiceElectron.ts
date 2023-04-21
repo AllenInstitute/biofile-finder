@@ -52,7 +52,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
     // IPC events registered both within the main and renderer processes
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
     public static GET_DOWNLOADS_DIR = "get-downloads-dir";
-    public static SHOW_OPEN_DIALOG = "show-open-dialog";
+    public static SHOW_OPEN_DIALOG = "show-open-dialog-for-download";
 
     private activeRequestMap: ActiveRequestMap = {};
     private cancellationRequests: Set<string> = new Set();
@@ -244,13 +244,6 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
 
     public async promptForDownloadDirectory(): Promise<string> {
         const title = "Select download directory";
-        const result = await this.notificationService.showMessage(
-            title,
-            "Select directory to download files to"
-        );
-        if (!result) {
-            return FileDownloadCancellationToken;
-        }
 
         // Continuously try to set a valid directory location until the user cancels
         while (true) {
