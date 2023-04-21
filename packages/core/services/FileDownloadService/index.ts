@@ -41,7 +41,7 @@ export default interface FileDownloadService {
     downloadFile(
         fileInfo: FileInfo,
         downloadRequestId: string,
-        destination?: string,
+        destination: string,
         onProgress?: (bytesDownloaded: number) => void
     ): Promise<DownloadResult>;
 
