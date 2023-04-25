@@ -55,7 +55,7 @@
     "eslint-plugin-react-hooks": "4.x",
     "husky": "3.1.0",
     "jsdom": "19.x",
-    "lint-staged": "10.4.x",
+    "lint-staged": "13.2.x",
     "mocha": "9.x",
     "mock-raf": "1.0.x",
     "npm-run-all": "4.1.x",
