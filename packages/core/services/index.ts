@@ -9,7 +9,7 @@ export type {
     DownloadResult,
     FileInfo,
 } from "./FileDownloadService";
-export { DownloadResolution } from "./FileDownloadService";
+export { DownloadResolution, FileDownloadCancellationToken } from "./FileDownloadService";
 export { default as FileService } from "./FileService";
 export type { default as FileViewerService } from "./FileViewerService";
 export { FileViewerCancellationToken } from "./FileViewerService";

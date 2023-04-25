@@ -140,10 +140,16 @@ describe("Interaction logics", () => {
         it("marks the failure of a manifest download with a status update", async () => {
             // arrange
             class FailingDownloadSerivce implements FileDownloadService {
+                getDefaultDownloadDirectory() {
+                    return Promise.reject();
+                }
                 downloadCsvManifest() {
                     return Promise.reject();
                 }
                 downloadFile() {
+                    return Promise.reject();
+                }
+                promptForDownloadDirectory() {
                     return Promise.reject();
                 }
                 cancelActiveRequest() {
@@ -430,20 +436,27 @@ describe("Interaction logics", () => {
         it("dispatches progress events", async () => {
             // Arrange
             class TestDownloadSerivce implements FileDownloadService {
+                getDefaultDownloadDirectory() {
+                    return Promise.resolve("wherever");
+                }
                 downloadCsvManifest() {
                     return Promise.reject();
                 }
                 downloadFile(
                     _fileInfo: FileInfo,
                     downloadRequestId: string,
-                    onProgress: (bytesDownloaded: number) => void
+                    _?: string,
+                    onProgress?: (bytesDownloaded: number) => void
                 ) {
-                    onProgress(1);
+                    onProgress?.(1);
                     return Promise.resolve({
                         downloadRequestId,
                         msg: "Success",
                         resolution: DownloadResolution.SUCCESS,
                     });
+                }
+                promptForDownloadDirectory() {
+                    return Promise.reject();
                 }
                 cancelActiveRequest() {
                     /** noop */
@@ -489,10 +502,16 @@ describe("Interaction logics", () => {
         it("marks the failure of a file download with a status update", async () => {
             // Arrange
             class TestDownloadSerivce implements FileDownloadService {
+                getDefaultDownloadDirectory() {
+                    return Promise.resolve("wherever");
+                }
                 downloadCsvManifest() {
                     return Promise.reject();
                 }
                 downloadFile() {
+                    return Promise.reject();
+                }
+                promptForDownloadDirectory() {
                     return Promise.reject();
                 }
                 cancelActiveRequest() {
@@ -551,14 +570,21 @@ describe("Interaction logics", () => {
         it("clears status for download request if request was cancelled", async () => {
             // Arrange
             class TestDownloadSerivce implements FileDownloadService {
+                getDefaultDownloadDirectory() {
+                    return Promise.resolve("wherever");
+                }
                 downloadCsvManifest() {
                     return Promise.reject();
                 }
-                downloadFile(_fileInfo: FileInfo, downloadRequestId: string) {
+                downloadFile(_fileInfo: FileInfo, destination: string, downloadRequestId: string) {
                     return Promise.resolve({
+                        destination,
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,
                     });
+                }
+                promptForDownloadDirectory() {
+                    return Promise.reject();
                 }
                 cancelActiveRequest() {
                     return Promise.reject();
@@ -595,23 +621,82 @@ describe("Interaction logics", () => {
                 })
             ).to.equal(true);
         });
+
+        it("downloads files to prompted location", async () => {
+            // Arrange
+            let actualDestination = "never got set";
+            const expectedDestination = "yay real destination";
+            class UselessFileDownloadService extends FileDownloadServiceNoop {
+                public downloadFile(
+                    _: FileInfo,
+                    destination: string,
+                    downloadRequestId: string,
+                    onProgress?: (bytesDownloaded: number) => void
+                ) {
+                    actualDestination = destination;
+                    return Promise.resolve({
+                        downloadRequestId,
+                        destination,
+                        onProgress,
+                        msg: "",
+                        resolution: DownloadResolution.SUCCESS,
+                    });
+                }
+                public promptForDownloadDirectory(): Promise<string> {
+                    return Promise.resolve(expectedDestination);
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: new UselessFileDownloadService(),
+                    },
+                },
+            });
+            const { store, logicMiddleware } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+            const file: FmsFile = {
+                file_id: "32490241",
+                file_name: "test_file_1",
+                file_size: 18,
+                file_path: "/some/path/test_file_1",
+                uploaded: "whenever",
+                annotations: [],
+            };
+
+            // Act
+            store.dispatch(downloadFiles([file], true));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actualDestination).to.equal(expectedDestination);
+        });
     });
 
     describe("cancelFileDownloadLogic", () => {
         it("marks the failure of a download cancellation (on error)", async () => {
             // arrange
             class TestDownloadService implements FileDownloadService {
+                getDefaultDownloadDirectory() {
+                    return Promise.reject();
+                }
                 downloadCsvManifest(_url: string, _data: string, downloadRequestId: string) {
                     return Promise.resolve({
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,
                     });
                 }
-                downloadFile(_fileInfo: FileInfo, downloadRequestId: string) {
+                downloadFile(_fileInfo: FileInfo, destination: string, downloadRequestId: string) {
                     return Promise.resolve({
+                        destination,
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,
                     });
+                }
+                promptForDownloadDirectory() {
+                    return Promise.reject();
                 }
                 cancelActiveRequest() {
                     throw new Error("KABOOM");
@@ -654,6 +739,9 @@ describe("Interaction logics", () => {
             // arrange
             const downloadRequestId = "beepbop";
             class TestDownloadService implements FileDownloadService {
+                getDefaultDownloadDirectory() {
+                    return Promise.reject();
+                }
                 downloadCsvManifest() {
                     return Promise.resolve({
                         downloadRequestId,
@@ -665,6 +753,9 @@ describe("Interaction logics", () => {
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,
                     });
+                }
+                promptForDownloadDirectory() {
+                    return Promise.reject();
                 }
                 cancelActiveRequest() {
                     /** noop */

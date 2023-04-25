@@ -9,6 +9,7 @@ export enum ContextMenuActions {
     CUSTOM_COLLECTION = "custom-collection",
     DEFAULT_COLLECTION = "default-collection",
     DOWNLOAD = "download",
+    DOWNLOAD_TO = "download-to",
     MODIFY_COLUMNS = "modify-columns",
     OPEN = "open",
     OPEN_WITH = "open-with",
@@ -96,9 +97,17 @@ export default function getContextMenuItems(dispatch: Dispatch) {
             {
                 key: ContextMenuActions.DOWNLOAD,
                 text: "Download",
-                title: "Download selected files",
+                title: "Download selected files to downloads directory",
                 onClick() {
                     dispatch(interaction.actions.downloadFiles());
+                },
+            },
+            {
+                key: ContextMenuActions.DOWNLOAD_TO,
+                text: "Download to...",
+                title: "Download selected files to a specific directory",
+                onClick() {
+                    dispatch(interaction.actions.downloadFiles(undefined, true));
                 },
             },
         ],

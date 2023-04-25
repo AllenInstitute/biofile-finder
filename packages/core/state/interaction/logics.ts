@@ -37,7 +37,10 @@ import {
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService, { CsvManifestRequest } from "../../services/CsvService";
-import { DownloadResolution } from "../../services/FileDownloadService";
+import {
+    DownloadResolution,
+    FileDownloadCancellationToken,
+} from "../../services/FileDownloadService";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
@@ -217,74 +220,82 @@ const downloadFiles = createLogic({
         );
 
         const numberFormatter = annotationFormatterFactory(AnnotationType.NUMBER);
-        const { payload: files } = deps.action as DownloadFilesAction;
+        const {
+            payload: { files, shouldPromptForDownloadDirectory },
+        } = deps.action as DownloadFilesAction;
+        const destination = shouldPromptForDownloadDirectory
+            ? await fileDownloadService.promptForDownloadDirectory()
+            : await fileDownloadService.getDefaultDownloadDirectory();
 
-        let filesToDownload: FmsFile[];
-        if (files !== undefined) {
-            filesToDownload = files;
-        } else {
-            filesToDownload = await fileSelection.fetchAllDetails();
-        }
+        if (destination !== FileDownloadCancellationToken) {
+            let filesToDownload: FmsFile[];
+            if (files !== undefined) {
+                filesToDownload = files;
+            } else {
+                filesToDownload = await fileSelection.fetchAllDetails();
+            }
 
-        const totalBytesToDownload = sumBy(filesToDownload, "file_size");
-        const totalBytesDisplay = numberFormatter.displayValue(totalBytesToDownload, "bytes");
-        await Promise.all(
-            filesToDownload.map(async (file) => {
-                const downloadRequestId = uniqueId();
-                const fileByteDisplay = numberFormatter.displayValue(file.file_size, "bytes");
-                const msg = `Downloading ${file.file_name}, ${fileByteDisplay} out of the total of ${totalBytesDisplay} set to download`;
+            const totalBytesToDownload = sumBy(filesToDownload, "file_size");
+            const totalBytesDisplay = numberFormatter.displayValue(totalBytesToDownload, "bytes");
+            await Promise.all(
+                filesToDownload.map(async (file) => {
+                    const downloadRequestId = uniqueId();
+                    const fileByteDisplay = numberFormatter.displayValue(file.file_size, "bytes");
+                    const msg = `Downloading ${file.file_name}, ${fileByteDisplay} out of the total of ${totalBytesDisplay} set to download`;
 
-                const onCancel = () => {
-                    dispatch(cancelFileDownload(downloadRequestId));
-                };
+                    const onCancel = () => {
+                        dispatch(cancelFileDownload(downloadRequestId));
+                    };
 
-                let totalBytesDownloaded = 0;
-                // A function that dispatches progress events, throttled
-                // to only be invokable at most once/second
-                const throttledProgressDispatcher = throttle(() => {
-                    dispatch(
-                        processProgress(
+                    let totalBytesDownloaded = 0;
+                    // A function that dispatches progress events, throttled
+                    // to only be invokable at most once/second
+                    const throttledProgressDispatcher = throttle(() => {
+                        dispatch(
+                            processProgress(
+                                downloadRequestId,
+                                totalBytesDownloaded / file.file_size,
+                                msg,
+                                onCancel,
+                                [file.file_id]
+                            )
+                        );
+                    }, 1000);
+                    const onProgress = (transferredBytes: number) => {
+                        totalBytesDownloaded += transferredBytes;
+                        throttledProgressDispatcher();
+                    };
+
+                    try {
+                        dispatch(processStart(downloadRequestId, msg, onCancel, [file.file_id]));
+
+                        const result = await fileDownloadService.downloadFile(
+                            {
+                                id: file.file_id,
+                                name: file.file_name,
+                                path: file.file_path,
+                                size: file.file_size,
+                            },
+                            destination,
                             downloadRequestId,
-                            totalBytesDownloaded / file.file_size,
-                            msg,
-                            onCancel,
-                            [file.file_id]
-                        )
-                    );
-                }, 1000);
-                const onProgress = (transferredBytes: number) => {
-                    totalBytesDownloaded += transferredBytes;
-                    throttledProgressDispatcher();
-                };
+                            onProgress
+                        );
 
-                try {
-                    dispatch(processStart(downloadRequestId, msg, onCancel, [file.file_id]));
-
-                    const result = await fileDownloadService.downloadFile(
-                        {
-                            id: file.file_id,
-                            name: file.file_name,
-                            path: file.file_path,
-                            size: file.file_size,
-                        },
-                        downloadRequestId,
-                        onProgress
-                    );
-
-                    if (result.resolution === DownloadResolution.CANCELLED) {
-                        // Clear status if request was cancelled
-                        dispatch(removeStatus(downloadRequestId));
-                    } else {
-                        dispatch(processSuccess(downloadRequestId, result.msg || ""));
+                        if (result.resolution === DownloadResolution.CANCELLED) {
+                            // Clear status if request was cancelled
+                            dispatch(removeStatus(downloadRequestId));
+                        } else {
+                            dispatch(processSuccess(downloadRequestId, result.msg || ""));
+                        }
+                    } catch (err) {
+                        const errorMsg = `File download failed for file ${
+                            file.file_name
+                        }. Details:<br/>${err instanceof Error ? err.message : err}`;
+                        dispatch(processFailure(downloadRequestId, errorMsg));
                     }
-                } catch (err) {
-                    const errorMsg = `File download failed for file ${
-                        file.file_name
-                    }. Details:<br/>${err instanceof Error ? err.message : err}`;
-                    dispatch(processFailure(downloadRequestId, errorMsg));
-                }
-            })
-        );
+                })
+            );
+        }
 
         done();
     },

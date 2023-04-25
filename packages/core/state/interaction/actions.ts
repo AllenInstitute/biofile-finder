@@ -71,13 +71,22 @@ export function cancelFileDownload(id: string): CancelFileDownloadAction {
 export const DOWNLOAD_FILES = makeConstant(STATE_BRANCH_NAME, "download-files");
 
 export interface DownloadFilesAction {
-    payload?: FmsFile[];
+    payload: {
+        files?: FmsFile[];
+        shouldPromptForDownloadDirectory: boolean;
+    };
     type: string;
 }
 
-export function downloadFiles(files?: FmsFile[]): DownloadFilesAction {
+export function downloadFiles(
+    files?: FmsFile[],
+    shouldPromptForDownloadDirectory = false
+): DownloadFilesAction {
     return {
-        payload: files,
+        payload: {
+            files,
+            shouldPromptForDownloadDirectory,
+        },
         type: DOWNLOAD_FILES,
     };
 }

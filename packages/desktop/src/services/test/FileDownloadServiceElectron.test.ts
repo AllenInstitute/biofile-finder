@@ -11,9 +11,10 @@ import nock from "nock";
 import sinon from "sinon";
 
 import { DownloadFailure } from "../../../../core/errors";
-import { DownloadResolution } from "../../../../core/services";
+import { DownloadResolution, FileDownloadCancellationToken } from "../../../../core/services";
 import { FileDownloadServiceBaseUrl, RUN_IN_RENDERER } from "../../util/constants";
 import FileDownloadServiceElectron from "../FileDownloadServiceElectron";
+import NotificationServiceElectron from "../NotificationServiceElectron";
 
 function parseRangeHeader(rangeHeader: string): { start: number; end: number } {
     const [, range] = rangeHeader.split("=");
@@ -83,7 +84,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     filePath: tempfile,
                 });
 
-            const service = new FileDownloadServiceElectron();
+            const service = new FileDownloadServiceElectron(new NotificationServiceElectron());
 
             // Act
             await service.downloadCsvManifest(
@@ -105,7 +106,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     canceled: true,
                 });
 
-            const service = new FileDownloadServiceElectron();
+            const service = new FileDownloadServiceElectron(new NotificationServiceElectron());
             const downloadRequestId = "beepbop";
 
             // Act
@@ -136,7 +137,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     filePath: tempfile,
                 });
 
-            const service = new FileDownloadServiceElectron();
+            const service = new FileDownloadServiceElectron(new NotificationServiceElectron());
             const downloadRequestId = "beepbop";
 
             // Write a partial CSV manifest to enable testing that it is cleaned up on error
@@ -171,6 +172,95 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     expect(typedErr.code).to.equal("ENOENT", typedErr.message);
                 }
             }
+        });
+    });
+
+    describe("getDefaultDownloadDirectory", () => {
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("returns default directory", async () => {
+            // Arrange
+            const downloadHost = "https://aics-test.corp.alleninstitute.org/labkey/fmsfiles/image";
+            const expectedDirectory = "somewhere/that/is/a/dir";
+            sinon
+                .stub(ipcRenderer, "invoke")
+                .withArgs(FileDownloadServiceElectron.GET_DOWNLOADS_DIR)
+                .resolves(expectedDirectory);
+
+            const service = new FileDownloadServiceElectron(
+                new NotificationServiceElectron(),
+                downloadHost as FileDownloadServiceBaseUrl
+            );
+
+            // Act
+            const actualDirectory = await service.getDefaultDownloadDirectory();
+
+            // Assert
+            expect(actualDirectory).to.equal(expectedDirectory);
+        });
+    });
+
+    describe("promptForDownloadDirectory", () => {
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("returns user selected directory", async () => {
+            // Arrange
+            const expectedDirectory = os.tmpdir();
+            class DialogResult {
+                public readonly canceled = false;
+                public readonly filePaths = [expectedDirectory];
+            }
+
+            const downloadHost = "https://aics-test.corp.alleninstitute.org/labkey/fmsfiles/image";
+            const invokeStub = sinon.stub(ipcRenderer, "invoke");
+            invokeStub.onFirstCall().resolves("anything");
+            invokeStub.onSecondCall().resolves(new DialogResult());
+
+            const service = new FileDownloadServiceElectron(
+                new NotificationServiceElectron(),
+                downloadHost as FileDownloadServiceBaseUrl
+            );
+
+            // Act
+            const actualDirectory = await service.promptForDownloadDirectory();
+
+            // Assert
+            expect(actualDirectory).to.equal(expectedDirectory);
+        });
+
+        it("complains about non-writeable directory when given", async () => {
+            // Arrange
+            const expectedDirectory = "somewhere/over/here";
+            class DialogResult {
+                public readonly canceled: boolean;
+                public readonly filePaths = [expectedDirectory];
+
+                constructor(canceled: boolean) {
+                    this.canceled = canceled;
+                }
+            }
+
+            const downloadHost = "https://aics-test.corp.alleninstitute.org/labkey/fmsfiles/image";
+            const invokeStub = sinon.stub(ipcRenderer, "invoke");
+            invokeStub.onFirstCall().resolves("anything");
+            invokeStub.onSecondCall().resolves(new DialogResult(false));
+            invokeStub.onSecondCall().resolves("anything");
+            invokeStub.onSecondCall().resolves(new DialogResult(true));
+
+            const service = new FileDownloadServiceElectron(
+                new NotificationServiceElectron(),
+                downloadHost as FileDownloadServiceBaseUrl
+            );
+
+            // Act
+            const actualDirectory = await service.promptForDownloadDirectory();
+
+            // Assert
+            expect(actualDirectory).to.equal(FileDownloadCancellationToken);
         });
     });
 
@@ -217,12 +307,8 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     return fs.createReadStream(sourceFile, { start, end });
                 });
 
-            sinon
-                .stub(ipcRenderer, "invoke")
-                .withArgs(FileDownloadServiceElectron.GET_DOWNLOADS_DIR)
-                .resolves(tempdir);
-
             const service = new FileDownloadServiceElectron(
+                new NotificationServiceElectron(),
                 downloadHost as FileDownloadServiceBaseUrl
             );
             const downloadRequestId = "beepbop";
@@ -240,7 +326,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             };
 
             // Act
-            const result = await service.downloadFile(fileInfo, downloadRequestId);
+            const result = await service.downloadFile(fileInfo, tempdir, downloadRequestId);
 
             // Assert
             expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
@@ -268,12 +354,8 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     return fs.createReadStream(sourceFile, { start, end });
                 });
 
-            sinon
-                .stub(ipcRenderer, "invoke")
-                .withArgs(FileDownloadServiceElectron.GET_DOWNLOADS_DIR)
-                .resolves(tempdir);
-
             const service = new FileDownloadServiceElectron(
+                new NotificationServiceElectron(),
                 downloadHost as FileDownloadServiceBaseUrl
             );
             const downloadRequestId = "beepbop";
@@ -286,7 +368,12 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             };
 
             // Act
-            const result = await service.downloadFile(fileInfo, downloadRequestId, onProgressSpy);
+            const result = await service.downloadFile(
+                fileInfo,
+                tempdir,
+                downloadRequestId,
+                onProgressSpy
+            );
 
             // Assert
             expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
@@ -310,12 +397,8 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     return fs.createReadStream(sourceFile, { start, end });
                 });
 
-            sinon
-                .stub(ipcRenderer, "invoke")
-                .withArgs(FileDownloadServiceElectron.GET_DOWNLOADS_DIR)
-                .resolves(tempdir);
-
             const service = new FileDownloadServiceElectron(
+                new NotificationServiceElectron(),
                 downloadHost as FileDownloadServiceBaseUrl
             );
             const downloadRequestId = "beepbop";
@@ -331,7 +414,12 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             };
 
             // Act
-            const result = await service.downloadFile(fileInfo, downloadRequestId, onProgress);
+            const result = await service.downloadFile(
+                fileInfo,
+                tempdir,
+                downloadRequestId,
+                onProgress
+            );
 
             // Assert
             expect(result.resolution).to.equal(DownloadResolution.CANCELLED);
@@ -364,12 +452,8 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     return fs.createReadStream(sourceFile, { start, end });
                 });
 
-            sinon
-                .stub(ipcRenderer, "invoke")
-                .withArgs(FileDownloadServiceElectron.GET_DOWNLOADS_DIR)
-                .resolves(tempdir);
-
             const service = new FileDownloadServiceElectron(
+                new NotificationServiceElectron(),
                 downloadHost as FileDownloadServiceBaseUrl
             );
             const downloadRequestId = "beepbop";
@@ -383,7 +467,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
 
             try {
                 // Act
-                await service.downloadFile(fileInfo, downloadRequestId);
+                await service.downloadFile(fileInfo, tempdir, downloadRequestId);
 
                 // Shouldn't hit, but here to ensure test isn't evergreen
                 throw new assert.AssertionError({ message: `Expected exception to be thrown` });

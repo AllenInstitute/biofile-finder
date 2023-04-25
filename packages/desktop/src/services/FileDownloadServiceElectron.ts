@@ -9,11 +9,13 @@ import { app, dialog, FileFilter, ipcMain, IpcMainInvokeEvent, ipcRenderer } fro
 import { DownloadFailure } from "../../../core/errors";
 import {
     FileDownloadService,
+    FileDownloadCancellationToken,
     DownloadResolution,
     DownloadResult,
     FileInfo,
 } from "../../../core/services";
 import { FileDownloadServiceBaseUrl } from "../util/constants";
+import NotificationServiceElectron from "./NotificationServiceElectron";
 
 // Maps active request ids (uuids) to request download info
 interface ActiveRequestMap {
@@ -50,11 +52,12 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
     // IPC events registered both within the main and renderer processes
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
     public static GET_DOWNLOADS_DIR = "get-downloads-dir";
+    public static SHOW_OPEN_DIALOG = "show-open-dialog-for-download";
 
-    private CANCELLATION_TOKEN = "CANCEL";
     private activeRequestMap: ActiveRequestMap = {};
     private cancellationRequests: Set<string> = new Set();
     private fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl;
+    private notificationService: NotificationServiceElectron;
 
     public static registerIpcHandlers() {
         // Handler for displaying "Save as" prompt
@@ -68,6 +71,19 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         }
         ipcMain.handle(FileDownloadServiceElectron.GET_FILE_SAVE_PATH, getSavePathHandler);
 
+        // Handler for opening a native file browser dialog
+        async function getOpenDialogHandler(
+            _: IpcMainInvokeEvent,
+            dialogOptions: Electron.OpenDialogOptions
+        ) {
+            return dialog.showOpenDialog({
+                defaultPath: path.resolve("/"),
+                buttonLabel: "Select",
+                ...dialogOptions,
+            });
+        }
+        ipcMain.handle(FileDownloadServiceElectron.SHOW_OPEN_DIALOG, getOpenDialogHandler);
+
         // Handler for returning where the downloads directory lives on this computer
         async function getDownloadsDirHandler() {
             return app.getPath("downloads");
@@ -75,23 +91,43 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         ipcMain.handle(FileDownloadServiceElectron.GET_DOWNLOADS_DIR, getDownloadsDirHandler);
     }
 
+    private static async isDirectory(directoryPath: string): Promise<boolean> {
+        try {
+            // Check if path actually leads to a directory
+            const pathStat = await fs.promises.stat(directoryPath);
+            return pathStat.isDirectory();
+        } catch (_) {
+            return false;
+        }
+    }
+
+    private static async isWriteable(path: string): Promise<boolean> {
+        try {
+            // Ensure folder is writeable by this user
+            await fs.promises.access(path, fs.constants.W_OK);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
     constructor(
+        notificationService: NotificationServiceElectron,
         fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl = FileDownloadServiceBaseUrl.PRODUCTION
     ) {
+        this.notificationService = notificationService;
         this.fileDownloadServiceBaseUrl = fileDownloadServiceBaseUrl;
     }
 
     public async downloadFile(
         fileInfo: FileInfo,
+        destination: string,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void
     ): Promise<DownloadResult> {
         const url = `${this.fileDownloadServiceBaseUrl}${fileInfo.path}`;
 
-        const downloadsDir = await ipcRenderer.invoke(
-            FileDownloadServiceElectron.GET_DOWNLOADS_DIR
-        );
-        const outFilePath = path.join(downloadsDir, fileInfo.name);
+        const outFilePath = path.join(destination, fileInfo.name);
         const chunkSize = 1024 * 1024 * 5; // 5MB; arbitrary
 
         // retry policy: 3 times no matter the exception, with randomized exponential backoff between attempts
@@ -204,6 +240,45 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             url,
             writeStreamOptions: { flags: "w" }, // The file is created (if it does not exist) or truncated (if it exists).
         });
+    }
+
+    public async promptForDownloadDirectory(): Promise<string> {
+        const title = "Select download directory";
+
+        // Continuously try to set a valid directory location until the user cancels
+        while (true) {
+            const defaultDownloadDirectory = await this.getDefaultDownloadDirectory();
+            const directoryPath = await this.promptUserWithDialog({
+                title,
+                properties: ["openDirectory"],
+                defaultPath: defaultDownloadDirectory,
+            });
+
+            if (directoryPath === FileDownloadCancellationToken) {
+                return FileDownloadCancellationToken;
+            }
+
+            const isDirectory = await FileDownloadServiceElectron.isDirectory(directoryPath);
+            const isWriteable =
+                isDirectory && (await FileDownloadServiceElectron.isWriteable(directoryPath));
+
+            // If the directory has passed validation, return
+            if (isDirectory && isWriteable) {
+                return directoryPath;
+            }
+
+            // Otherwise if the directory failed validation, alert
+            // user to error with executable location
+            let errorMessage = `Whoops! ${directoryPath} is not verifiably a directory on your computer.`;
+            if (isDirectory && !isWriteable) {
+                errorMessage += ` Directory does not appear to be writeable by the current user.`;
+            }
+            await this.notificationService.showError(title, errorMessage);
+        }
+    }
+
+    public getDefaultDownloadDirectory(): Promise<string> {
+        return ipcRenderer.invoke(FileDownloadServiceElectron.GET_DOWNLOADS_DIR);
     }
 
     public cancelActiveRequest(downloadRequestId: string) {
@@ -321,7 +396,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
             req.on("error", async (err) => {
                 delete this.activeRequestMap[downloadRequestId];
                 // This first branch applies when the download has been explicitly cancelled
-                if (err.message === this.CANCELLATION_TOKEN) {
+                if (err.message === FileDownloadCancellationToken) {
                     resolve({
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,
@@ -345,7 +420,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                     if (this.cancellationRequests.has(downloadRequestId)) {
                         this.cancellationRequests.delete(downloadRequestId);
                     }
-                    req.destroy(new Error(this.CANCELLATION_TOKEN));
+                    req.destroy(new Error(FileDownloadCancellationToken));
                 },
                 filePath: outFilePath,
             };
@@ -370,5 +445,17 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                 }
             });
         });
+    }
+
+    // Prompts user using native file browser for a file path
+    private async promptUserWithDialog(dialogOptions: Electron.OpenDialogOptions): Promise<string> {
+        const result = await ipcRenderer.invoke(
+            FileDownloadServiceElectron.SHOW_OPEN_DIALOG,
+            dialogOptions
+        );
+        if (result.canceled || !result.filePaths.length) {
+            return FileDownloadCancellationToken;
+        }
+        return result.filePaths[0];
     }
 }
