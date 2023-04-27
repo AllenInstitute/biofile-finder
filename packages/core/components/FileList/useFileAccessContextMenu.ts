@@ -22,7 +22,7 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
     const [hasPlateBarCode, setHasPlateBarCode] = React.useState(false);
-    const [plateBarCodeLink, setPlateBarCodeLink] = React.useState("");
+    let plateUILink: string | undefined = undefined;
 
     fileSelection.fetchAllDetails().then((fileDetails) => {
         console.log(fileDetails);
@@ -35,15 +35,11 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
             const barcode = platebarcode.values[0];
             console.log(global.fileExplorerServiceBaseUrl);
             if (global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.STAGING) {
-                setPlateBarCodeLink(
-                    `http://stg-aics.corp.alleninstitute.org/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}`
-                );
+                plateUILink = `http://stg-aics.corp.alleninstitute.org/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}`;
             } else if (
                 global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.PRODUCTION
             ) {
-                setPlateBarCodeLink(
-                    `https://aics.corp.alleninstitute.org/labkey/aics_assays/AICS/Assays/plateDetail.view?Barcode=${barcode}`
-                );
+                plateUILink = `https://aics.corp.alleninstitute.org/labkey/aics_assays/AICS/Assays/plateDetail.view?Barcode=${barcode}`;
             }
         }
         return;
@@ -102,7 +98,8 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                     key: ContextMenuActions.OPEN_PLATE_UI,
                     text: "Open Plate UI",
                     title: "Open this plate in the Plate UI",
-                    href: plateBarCodeLink,
+                    href: plateUILink,
+                    target: "_blank",
                     disabled: !hasPlateBarCode,
                 },
             ];

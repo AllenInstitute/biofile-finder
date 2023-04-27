@@ -30,9 +30,6 @@ const MENU_HEADER_STYLES = {
  * so this "factory" of sorts is parameterized by `dispatch`, and thereby available to `onClick` handlers through closure.
  */
 export default function getContextMenuItems(dispatch: Dispatch) {
-    console.log("hello2");
-    console.log(dispatch);
-    console.log(window);
     return {
         ACCESS: [
             {
