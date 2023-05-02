@@ -27,7 +27,7 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
         const platebarcode = fileDetails[0].annotations.find((x) => x.name === "Plate Barcode");
 
         //If theres a barcode make plateUI option available
-        if (platebarcode != undefined && platebarcode.values != undefined) {
+        if (!platebarcode?.values) {
             setHasPlateBarCode(true);
             const barcode = platebarcode.values[0];
             if (global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.STAGING) {
