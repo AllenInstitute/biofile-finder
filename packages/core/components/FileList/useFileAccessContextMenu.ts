@@ -5,7 +5,8 @@ import FileFilter from "../../entity/FileFilter";
 import { interaction, selection } from "../../state";
 import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems, { ContextMenuActions } from "../ContextMenu/items";
-import { FileExplorerServiceBaseUrl } from "../../constants";
+import { FmsFile } from "../../services/FileService";
+import { AnnotationName, FileExplorerServiceBaseUrl } from "../../constants";
 
 /**
  * Custom React hook for creating the file access context menu.
@@ -21,15 +22,17 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
     const [plateLink, setPlateLink] = React.useState("");
 
-    fileSelection.fetchAllDetails().then((fileDetails) => {
+    fileSelection.fetchFocusedItemDetails().then((fileDetails: FmsFile | undefined) => {
+        if (!fileDetails) return;
         // Grabbing plate barcode
-        const platebarcode = fileDetails[0].annotations.find((x) => x.name === "Plate Barcode");
-        //If theres a barcode make plateUI option available
+        const platebarcode = fileDetails.annotations.find(
+            (x) => x.name === AnnotationName.PLATE_BARCODE
+        );
+        // If there's a barcode, make plateUI option available
         if (platebarcode?.values) {
             const barcode: string = platebarcode.values[0].toString();
-            setPlateLink(createPlateLink(global.fileExplorerServiceBaseUrl, barcode));
+            setPlateLink(createPlateLink(barcode));
         }
-        return;
     });
 
     return React.useCallback(
@@ -134,10 +137,9 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
     );
 }
 
-function createPlateLink(env: string, barcode: string): string {
-    if (env === FileExplorerServiceBaseUrl.STAGING) {
-        return `http://stg-aics.corp.alleninstitute.org/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}`;
-    } else {
-        return `http://aics.corp.alleninstitute.org/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}`;
-    }
+function createPlateLink(barcode: string): string {
+    // fileExplorerServiceBaseUrl may not be defined: default is Production LabKey
+    const baseURL = global.fileExplorerServiceBaseUrl || FileExplorerServiceBaseUrl.PRODUCTION;
+    const baseURLHttp = baseURL.replace("https", "http"); // LabKey does not support HTTPS yet
+    return `${baseURLHttp}/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}}`;
 }
