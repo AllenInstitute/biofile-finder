@@ -19,23 +19,21 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
-    const [plateLink, setPlateLink] = React.useState<string | undefined>(undefined);
+    const [plateLink, setPlateLink] = React.useState("");
 
     fileSelection.fetchAllDetails().then((fileDetails) => {
         // Grabbing plate barcode
         const platebarcode = fileDetails[0].annotations.find((x) => x.name === "Plate Barcode");
         //If theres a barcode make plateUI option available
-        if (!platebarcode?.values) {
+        if (platebarcode?.values) {
             const barcode = platebarcode?.values[0];
             if (global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.STAGING) {
                 setPlateLink(
                     `http://stg-aics.corp.alleninstitute.org/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}`
                 );
-            } else if (
-                global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.PRODUCTION
-            ) {
+            } else {
                 setPlateLink(
-                    `https://aics.corp.alleninstitute.org/labkey/aics_assays/AICS/Assays/plateDetail.view?Barcode=${barcode}`
+                    `http://aics.corp.alleninstitute.org/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}`
                 );
             }
         }
