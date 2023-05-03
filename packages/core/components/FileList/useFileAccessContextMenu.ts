@@ -26,16 +26,8 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
         const platebarcode = fileDetails[0].annotations.find((x) => x.name === "Plate Barcode");
         //If theres a barcode make plateUI option available
         if (platebarcode?.values) {
-            const barcode = platebarcode?.values[0];
-            if (global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.STAGING) {
-                setPlateLink(
-                    `http://stg-aics.corp.alleninstitute.org/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}`
-                );
-            } else {
-                setPlateLink(
-                    `http://aics.corp.alleninstitute.org/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}`
-                );
-            }
+            const barcode: string = platebarcode.values[0].toString();
+            setPlateLink(createPlateLink(global.fileExplorerServiceBaseUrl, barcode));
         }
         return;
     });
@@ -140,4 +132,12 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
             plateLink,
         ]
     );
+}
+
+function createPlateLink(env: string, barcode: string): string {
+    if (env === FileExplorerServiceBaseUrl.STAGING) {
+        return `http://stg-aics.corp.alleninstitute.org/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}`;
+    } else {
+        return `http://aics.corp.alleninstitute.org/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}`;
+    }
 }
