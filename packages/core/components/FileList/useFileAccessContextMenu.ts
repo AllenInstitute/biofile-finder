@@ -19,23 +19,24 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
-    const [hasPlateBarCode, setHasPlateBarCode] = React.useState(false);
-    let plateUILink: string | undefined = undefined;
+    const [plateLink, setPlateLink] = React.useState<string | undefined>(undefined);
 
     fileSelection.fetchAllDetails().then((fileDetails) => {
-        // Grabbing plat barcode
+        // Grabbing plate barcode
         const platebarcode = fileDetails[0].annotations.find((x) => x.name === "Plate Barcode");
-
         //If theres a barcode make plateUI option available
         if (!platebarcode?.values) {
-            setHasPlateBarCode(true);
-            const barcode = platebarcode.values[0];
+            const barcode = platebarcode?.values[0];
             if (global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.STAGING) {
-                plateUILink = `http://stg-aics.corp.alleninstitute.org/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}`;
+                setPlateLink(
+                    `http://stg-aics.corp.alleninstitute.org/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}`
+                );
             } else if (
                 global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.PRODUCTION
             ) {
-                plateUILink = `https://aics.corp.alleninstitute.org/labkey/aics_assays/AICS/Assays/plateDetail.view?Barcode=${barcode}`;
+                setPlateLink(
+                    `https://aics.corp.alleninstitute.org/labkey/aics_assays/AICS/Assays/plateDetail.view?Barcode=${barcode}`
+                );
             }
         }
         return;
@@ -78,9 +79,9 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                     key: ContextMenuActions.OPEN_PLATE_UI,
                     text: "Open Plate UI",
                     title: "Open this plate in the Plate UI",
-                    href: plateUILink,
+                    href: plateLink,
                     target: "_blank",
-                    disabled: !hasPlateBarCode,
+                    disabled: !plateLink,
                 },
             ];
 
@@ -138,7 +139,7 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
             userSelectedApplications,
             filters,
             onDismiss,
-            hasPlateBarCode,
+            plateLink,
         ]
     );
 }
