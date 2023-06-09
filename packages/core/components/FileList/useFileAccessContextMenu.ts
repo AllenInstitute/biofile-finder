@@ -5,6 +5,8 @@ import FileFilter from "../../entity/FileFilter";
 import { interaction, selection } from "../../state";
 import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems, { ContextMenuActions } from "../ContextMenu/items";
+import { FmsFile } from "../../services/FileService";
+import { AnnotationName, FileExplorerServiceBaseUrl } from "../../constants";
 
 /**
  * Custom React hook for creating the file access context menu.
@@ -18,6 +20,20 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
+    const [plateLink, setPlateLink] = React.useState("");
+
+    fileSelection.fetchFocusedItemDetails().then((fileDetails: FmsFile | undefined) => {
+        if (!fileDetails) return;
+        // Grabbing plate barcode
+        const platebarcode = fileDetails.annotations.find(
+            (x) => x.name === AnnotationName.PLATE_BARCODE
+        );
+        // If there's a barcode, make plateUI option available
+        if (platebarcode?.values) {
+            const barcode: string = platebarcode.values[0].toString();
+            setPlateLink(createPlateLink(barcode));
+        }
+    });
 
     return React.useCallback(
         (evt: React.MouseEvent) => {
@@ -51,6 +67,14 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                     onClick() {
                         dispatch(interaction.actions.promptForNewExecutable(filters));
                     },
+                },
+                {
+                    key: ContextMenuActions.OPEN_PLATE_UI,
+                    text: "Open Plate UI",
+                    title: "Open this plate in the Plate UI",
+                    href: plateLink,
+                    target: "_blank",
+                    disabled: !plateLink,
                 },
             ];
 
@@ -101,6 +125,21 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
 
             dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent, onDismiss));
         },
-        [dispatch, fileSelection, executionEnvService, userSelectedApplications, filters, onDismiss]
+        [
+            dispatch,
+            fileSelection,
+            executionEnvService,
+            userSelectedApplications,
+            filters,
+            onDismiss,
+            plateLink,
+        ]
     );
+}
+
+function createPlateLink(barcode: string): string {
+    // fileExplorerServiceBaseUrl may not be defined: default is Production LabKey
+    const baseURL = global.fileExplorerServiceBaseUrl || FileExplorerServiceBaseUrl.PRODUCTION;
+    const baseURLHttp = baseURL.replace("https", "http"); // LabKey does not support HTTPS yet
+    return `${baseURLHttp}/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}}`;
 }

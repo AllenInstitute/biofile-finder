@@ -16,6 +16,7 @@ export enum ContextMenuActions {
     OPEN_WITH_OTHER = "open-with-other",
     PASTE = "paste",
     SHARE = "share",
+    OPEN_PLATE_UI = "open-plate-ui",
 }
 
 const MENU_HEADER_STYLES = {
