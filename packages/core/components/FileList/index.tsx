@@ -1,4 +1,3 @@
-import { Icon } from "@fluentui/react";
 import classNames from "classnames";
 import debouncePromise from "debounce-promise";
 import { defaults, isFunction } from "lodash";
@@ -14,6 +13,7 @@ import { selection } from "../../state";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileSelector from "./useFileSelector";
 import useFileAccessContextMenu from "./useFileAccessContextMenu";
+import EmptyFileListMessage from "../EmptyFileListMessage";
 
 import styles from "./FileList.module.css";
 
@@ -160,18 +160,7 @@ export default function FileList(props: FileListProps) {
             );
         }
     } else {
-        content = (
-            <div className={styles.emptyFileListContainer}>
-                <div className={styles.emptyFileListMessage}>
-                    <Icon className={styles.emptySearchIcon} iconName="SearchIssue" />
-                    <h2>Sorry! No files found :(</h2>
-                    <h3>
-                        Double check your filters for any issues and then contact the Software team
-                        if you still expect there to be matches present.
-                    </h3>
-                </div>
-            </div>
-        );
+        content = <EmptyFileListMessage />;
     }
 
     return (
