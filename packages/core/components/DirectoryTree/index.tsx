@@ -10,6 +10,7 @@ import Tutorial from "../../entity/Tutorial";
 import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
 import FileMetadataSearchBar from "../FileMetadataSearchBar";
+import EmptyFileListMessage from "../EmptyFileListMessage";
 
 import styles from "./DirectoryTree.module.css";
 
@@ -84,6 +85,9 @@ export default function DirectoryTree(props: FileListProps) {
                 aria-multiselectable="true"
                 id={Tutorial.FILE_LIST_ID}
             >
+                {!error && (!content || (Array.isArray(content) && !content.length)) && (
+                    <EmptyFileListMessage />
+                )}
                 {!error && content}
                 {error && (
                     <aside className={styles.errorMessage}>
