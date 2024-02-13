@@ -29,6 +29,11 @@ export default interface ExecutionEnvService {
     promptForExecutable(promptTitle: string, reasonForPrompt?: string): Promise<string>;
 
     /**
+     * TODO
+     */
+    promptForFile(extension?: string, reasonForPrompt?: string): Promise<string>;
+
+    /**
      * Verifies that the given path leads to a valid executable for the current OS.
      *
      * @param executablePath Path to the executable

@@ -26,6 +26,7 @@ interface Props {
 }
 
 const ALL_FILES_KEY = "All of FMS";
+const OPEN_FROM_CSV_KEY = "Open from CSV";
 
 const SECONDARY_BUTTON_STYLES: IButtonStyles = {
     label: {
@@ -109,6 +110,15 @@ const LIVE_COLLECTION_HEADER: IContextualMenuItem = {
     itemProps: DEFAULT_OPTION_PROPS,
 };
 
+const CSV_COLLECTION_HEADER: IContextualMenuItem = {
+    key: "csv-collections",
+    text: "CSV Collections",
+    title:
+        "Collections generated from a CSV that are only present on your machine and exist outside of FMS",
+    itemType: ContextualMenuItemType.Header,
+    itemProps: DEFAULT_OPTION_PROPS,
+};
+
 const IS_FIXED_TOOLTIP =
     'If frozen, the collection is an immutable, point-in-time snapshot of the metadata for the files you’ve selected (a "dataset"). No files have been added to or removed from the collection, nor has the files\' metadata been modified since creation of the collection.';
 const IS_PRIVATE_TOOLTIP =
@@ -157,6 +167,16 @@ export default function CollectionControl(props: Props) {
             itemProps: selectedCollection ? DEFAULT_OPTION_PROPS : SELECTED_OPTION_PROPS,
         };
 
+        const OPEN_FROM_CSV_OPTION: IContextualMenuItem = {
+            text: OPEN_FROM_CSV_KEY,
+            key: OPEN_FROM_CSV_KEY,
+            onClick: () => {
+                dispatch(interaction.actions.openCsvCollection());
+            },
+            // todo
+            itemProps: DEFAULT_OPTION_PROPS,
+        };
+
         const nameToCollectionMap = collections
             .filter((collection) => collection.name.toLowerCase().includes(searchValue))
             .reduce(
@@ -173,6 +193,7 @@ export default function CollectionControl(props: Props) {
 
         const frozenCollections: IContextualMenuItem[] = [];
         const liveCollections: IContextualMenuItem[] = [];
+        const localCollections: IContextualMenuItem[] = [];
         Object.values(nameToCollectionMap).forEach((collectionsWithSameName) => {
             const option = {
                 ...convertCollectionToOption(
@@ -200,7 +221,9 @@ export default function CollectionControl(props: Props) {
                         : undefined,
             };
 
-            if (collectionsWithSameName[0].fixed) {
+            if (collectionsWithSameName[0].local) {
+                localCollections.push(option);
+            } else if (collectionsWithSameName[0].fixed) {
                 frozenCollections.push(option);
             } else {
                 liveCollections.push(option);
@@ -213,6 +236,9 @@ export default function CollectionControl(props: Props) {
             ...liveCollections,
             ...(frozenCollections.length ? [FROZEN_COLLECTION_HEADER] : []),
             ...frozenCollections,
+            CSV_COLLECTION_HEADER,
+            ...localCollections,
+            OPEN_FROM_CSV_OPTION,
         ];
     }, [collections, selectedCollection, searchValue, dispatch]);
 
@@ -241,24 +267,30 @@ export default function CollectionControl(props: Props) {
                     onSearch={setSearchValue}
                     searchValue={searchValue}
                 />
-                <div className={styles.controlGroupDisplayGroup}>
-                    <TooltipHost content={IS_PRIVATE_TOOLTIP} onMouseLeave={props.onCollapse}>
-                        <h6 className={styles.controlGroupDisplay}>
-                            {selectedCollection?.private ? "Private" : "Internal"}
-                        </h6>
-                    </TooltipHost>
-                    <TooltipHost content={IS_FIXED_TOOLTIP} onMouseLeave={props.onCollapse}>
-                        <h6 className={styles.controlGroupDisplay}>
-                            {selectedCollection?.fixed ? "Frozen" : "Not Frozen"}
-                        </h6>
-                    </TooltipHost>
-                </div>
+                {!selectedCollection?.local ? (
+                    <div className={styles.controlGroupDisplayGroup}>
+                        <TooltipHost content={IS_PRIVATE_TOOLTIP} onMouseLeave={props.onCollapse}>
+                            <h6 className={styles.controlGroupDisplay}>
+                                {selectedCollection?.private ? "Private" : "Internal"}
+                            </h6>
+                        </TooltipHost>
+                        <TooltipHost content={IS_FIXED_TOOLTIP} onMouseLeave={props.onCollapse}>
+                            <h6 className={styles.controlGroupDisplay}>
+                                {selectedCollection?.fixed ? "Frozen" : "Not Frozen"}
+                            </h6>
+                        </TooltipHost>
+                    </div>
+                ) : (
+                    <div className={styles.controlGroupDisplayGroup}>
+                        <h6 className={styles.controlGroupDisplay}>Local Only</h6>
+                    </div>
+                )}
             </div>
             <div className={styles.controlGroupButtons}>
                 <IconButton
                     className={styles.controlGroupButton}
                     data-testid="edit-button"
-                    disabled={!selectedCollection}
+                    disabled={!selectedCollection || selectedCollection.local}
                     iconProps={{ iconName: "edit" }}
                     styles={SECONDARY_BUTTON_STYLES}
                     onClick={() => dispatch(interaction.actions.showEditCollectionDialog())}
@@ -269,7 +301,7 @@ export default function CollectionControl(props: Props) {
                     iconProps={{ iconName: "export" }}
                     title="Export"
                     menuProps={{ items: collectionExportMenuOptions }}
-                    disabled={!selectedCollection}
+                    disabled={!selectedCollection || selectedCollection.local}
                     styles={SECONDARY_BUTTON_STYLES}
                 />
             </div>

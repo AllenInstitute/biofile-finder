@@ -11,6 +11,7 @@ export interface Dataset {
     query: string;
     client: string;
     fixed: boolean;
+    local?: boolean;
     private: boolean;
     created: Date;
     createdBy: string;

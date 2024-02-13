@@ -14,7 +14,7 @@ import { ModalType } from "../../components/Modal";
 import PersistentConfigService, {
     UserSelectedApplication,
 } from "../../services/PersistentConfigService";
-import { NotificationService } from "../../services";
+import { CsvDatabaseService, NotificationService } from "../../services";
 import { FmsFile } from "../../services/FileService";
 
 const STATE_BRANCH_NAME = "interaction";
@@ -228,6 +228,7 @@ export const SET_PLATFORM_DEPENDENT_SERVICES = makeConstant(
 
 export interface PlatformDependentServices {
     applicationInfoService: ApplicationInfoService;
+    csvDatabaseService: CsvDatabaseService;
     fileDownloadService: FileDownloadService;
     fileViewerService: FileViewerService;
     frontendInsights: FrontendInsights;
@@ -725,6 +726,21 @@ export function openWith(
             files,
         },
         type: OPEN_WITH,
+    };
+}
+
+/**
+ * TODO
+ */
+export const OPEN_CSV_COLLECTION = makeConstant(STATE_BRANCH_NAME, "open-csv-collection");
+
+export interface OpenCsvCollectionAction {
+    type: string;
+}
+
+export function openCsvCollection(): OpenCsvCollectionAction {
+    return {
+        type: OPEN_CSV_COLLECTION,
     };
 }
 

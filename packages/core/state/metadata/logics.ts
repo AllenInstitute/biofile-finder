@@ -9,7 +9,6 @@ import {
     REQUEST_COLLECTIONS,
 } from "./actions";
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
-import AnnotationService from "../../services/AnnotationService";
 
 /**
  * Interceptor responsible for turning REQUEST_ANNOTATIONS action into a network call for available annotations. Outputs
@@ -17,14 +16,8 @@ import AnnotationService from "../../services/AnnotationService";
  */
 const requestAnnotations = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { getState, httpClient } = deps;
-        const applicationVersion = interaction.selectors.getApplicationVersion(getState());
-        const baseUrl = interaction.selectors.getFileExplorerServiceBaseUrl(getState());
-        const annotationService = new AnnotationService({
-            applicationVersion,
-            baseUrl,
-            httpClient,
-        });
+        const { getState } = deps;
+        const annotationService = interaction.selectors.getAnnotationService(getState());
 
         try {
             const annotations = await annotationService.fetchAnnotations();

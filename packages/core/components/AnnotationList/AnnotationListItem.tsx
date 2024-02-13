@@ -49,7 +49,7 @@ export default React.memo(function AnnotationListItem(props: AnnotationListItemP
                 data-testid="annotation-list-item"
                 className={classNames(
                     {
-                        [styles.disabled]: disabled || loading,
+                        [styles.disabled]: disabled,
                     },
                     styles.title
                 )}

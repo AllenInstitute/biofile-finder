@@ -15,6 +15,7 @@ export interface UserSelectedApplication {
 }
 
 export interface PersistedConfig {
+    [PersistedConfigKeys.AllenMountPoint]?: string;
     [PersistedConfigKeys.CsvColumns]?: string[];
     [PersistedConfigKeys.ImageJExecutable]?: string; // Deprecated
     [PersistedConfigKeys.HasUsedApplicationBefore]?: boolean;

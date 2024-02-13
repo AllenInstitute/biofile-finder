@@ -1,11 +1,13 @@
 import { createSelector } from "reselect";
 
 import { State } from "../";
+import { getCollection } from "../selection/selectors";
 import { HttpServiceBase } from "../../services";
 import AnnotationService from "../../services/AnnotationService";
 import DatasetService from "../../services/DatasetService";
 import FileService from "../../services/FileService";
-import { getCollection } from "../selection/selectors";
+import CsvAnnotationService from "../../services/AnnotationService/CsvAnnotationService";
+import CsvFileService from "../../services/FileService/CsvFileService";
 
 // BASIC SELECTORS
 export const getApplicationVersion = (state: State) => state.interaction.applicationVersion;
@@ -47,9 +49,15 @@ export const getFileService = createSelector(
         getUserName,
         getFileExplorerServiceBaseUrl,
         getCollection,
+        getPlatformDependentServices,
         getRefreshKey,
     ],
-    (applicationVersion, userName, fileExplorerBaseUrl, collection) => {
+    (applicationVersion, userName, fileExplorerBaseUrl, collection, platformDependentServices) => {
+        if (collection?.local) {
+            return new CsvFileService({
+                database: platformDependentServices.csvDatabaseService,
+            });
+        }
         const pathSuffix = collection
             ? `/within/${HttpServiceBase.encodeURI(collection.name)}/${collection.version}`
             : undefined;
@@ -68,9 +76,15 @@ export const getAnnotationService = createSelector(
         getUserName,
         getFileExplorerServiceBaseUrl,
         getCollection,
+        getPlatformDependentServices,
         getRefreshKey,
     ],
-    (applicationVersion, userName, fileExplorerBaseUrl, collection) => {
+    (applicationVersion, userName, fileExplorerBaseUrl, collection, platformDependentServices) => {
+        if (collection?.local) {
+            return new CsvAnnotationService({
+                database: platformDependentServices.csvDatabaseService,
+            });
+        }
         const pathSuffix = collection
             ? `/within/${HttpServiceBase.encodeURI(collection.name)}/${collection.version}`
             : undefined;

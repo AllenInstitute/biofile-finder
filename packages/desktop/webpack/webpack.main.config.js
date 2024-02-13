@@ -1,4 +1,5 @@
 const path = require("path");
+const nodeExternals = require("webpack-node-externals");
 
 const { stats } = require("./constants");
 
@@ -49,4 +50,5 @@ module.exports = ({ production } = {}) => ({
     },
     stats,
     target: "electron-main",
+    externals: [nodeExternals()],
 });

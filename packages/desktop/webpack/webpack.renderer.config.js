@@ -1,4 +1,5 @@
 const path = require("path");
+const nodeExternals = require("webpack-node-externals");
 
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
@@ -101,4 +102,5 @@ module.exports = ({ analyze, production } = {}) => ({
     },
     stats: analyze ? "none" : stats,
     target: "electron-renderer",
+    externals: [nodeExternals()],
 });

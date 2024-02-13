@@ -34,6 +34,7 @@ import {
     DOWNLOAD_FILES,
     DownloadFilesAction,
     OpenWithDefaultAction,
+    OPEN_CSV_COLLECTION,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService, { CsvManifestRequest } from "../../services/CsvService";
@@ -474,6 +475,41 @@ const openWithLogic = createLogic({
     type: OPEN_WITH,
 });
 
+const openCsvCollection = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const {
+            csvDatabaseService,
+            executionEnvService,
+        } = interactionSelectors.getPlatformDependentServices(deps.getState());
+
+        const filePath = await executionEnvService.promptForFile("csv");
+        csvDatabaseService.setDataSource(filePath);
+        const fileName = filePath.replace(/^.*[\\/]/, "");
+        const csvAsCollection = {
+            id: filePath,
+            name: fileName,
+            version: 1,
+            query: "",
+            client: "",
+            fixed: true,
+            local: true,
+            private: true,
+            created: new Date(),
+            createdBy: interactionSelectors.getUserName(deps.getState()),
+        } as Dataset;
+        dispatch(
+            metadata.actions.receiveCollections([
+                ...metadata.selectors.getCollections(deps.getState()),
+                csvAsCollection,
+            ])
+        );
+        dispatch(selection.actions.changeCollection(csvAsCollection));
+
+        done();
+    },
+    type: OPEN_CSV_COLLECTION,
+});
+
 /**
  * Interceptor responsible for responding to a SHOW_CONTEXT_MENU action and ensuring the previous
  * context menu is dismissed gracefully.
@@ -686,6 +722,7 @@ export default [
     checkForUpdates,
     downloadManifest,
     cancelFileDownloadLogic,
+    openCsvCollection,
     openWithDefault,
     openWithLogic,
     promptForNewExecutable,

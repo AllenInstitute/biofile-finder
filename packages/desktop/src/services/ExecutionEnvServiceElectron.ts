@@ -128,6 +128,42 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         }
     }
 
+    public async promptForFile(extension?: string, reasonForPrompt?: string): Promise<string> {
+        const promptTitle = `Select a ${extension ? extension : "file"}`;
+        if (reasonForPrompt) {
+            const result = await this.notificationService.showMessage(promptTitle, reasonForPrompt);
+            if (!result) {
+                return ExecutableEnvCancellationToken;
+            }
+        }
+
+        // Continuously try to set a valid executable location until the user cancels
+        const platform = os.platform();
+        while (true) {
+            const filePath = await this.selectPath({
+                ...ExecutionEnvServiceElectron.getDefaultOpenDialogOptions(platform),
+                properties: ["openFile"],
+                filters: extension ? [{ name: extension, extensions: [extension] }] : undefined,
+                title: promptTitle,
+            });
+
+            if (filePath === ExecutableEnvCancellationToken) {
+                return ExecutableEnvCancellationToken;
+            }
+
+            const isReadableFile = await this.isReadableFile(filePath);
+            if (isReadableFile) {
+                return filePath;
+            } else {
+                // Alert user to error with file path
+                await this.notificationService.showError(
+                    promptTitle,
+                    `Whoops! ${filePath} is not verifiably readable by you on your computer.`
+                );
+            }
+        }
+    }
+
     public async isValidExecutable(executablePath: string): Promise<boolean> {
         if (executablePath === SystemDefaultAppLocation) {
             return true;
@@ -144,6 +180,16 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
                 return false;
             }
             await fs.promises.access(executablePath, fs.constants.X_OK);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    public async isReadableFile(filePath: string): Promise<boolean> {
+        try {
+            // On macOS, applications are bundled as packages. `executablePath` is expected to be a package.
+            await fs.promises.access(filePath, fs.constants.R_OK);
             return true;
         } catch (_) {
             return false;

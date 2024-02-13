@@ -16,6 +16,8 @@ export enum ContextMenuActions {
     OPEN_WITH_OTHER = "open-with-other",
     PASTE = "paste",
     SHARE = "share",
+    OPEN_3D_VIEWER = "open-3d-viewer",
+    OPEN_AS_URL = "open-as-url",
     OPEN_PLATE_UI = "open-plate-ui",
 }
 
