@@ -13,7 +13,7 @@ import { PersistedConfigKeys } from "../../../core/services";
 import { createReduxStore, interaction } from "../../../core/state";
 
 import ApplicationInfoServiceElectron from "../services/ApplicationInfoServiceElectron";
-import CsvDatabaseServiceElectron from "../services/CsvDatabaseServiceElectron";
+import DatabaseServiceElectron from "../services/DatabaseServiceElectron";
 import ExecutionEnvServiceElectron from "../services/ExecutionEnvServiceElectron";
 import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron";
 import FileViewerServiceElectron from "../services/FileViewerServiceElectron";
@@ -26,7 +26,7 @@ const APP_ID = "fms-file-explorer";
 const notificationService = new NotificationServiceElectron();
 const persistentConfigService = new PersistentConfigServiceElectron();
 const applicationInfoService = new ApplicationInfoServiceElectron();
-const csvDatabaseService = new CsvDatabaseServiceElectron();
+const DatabaseService = new DatabaseServiceElectron();
 const executionEnvService = new ExecutionEnvServiceElectron(notificationService);
 // application analytics/metrics
 const frontendInsights = new FrontendInsights(
@@ -53,7 +53,7 @@ frontendInsights.dispatchUserEvent({ type: "SESSION_START" });
 const collectPlatformDependentServices = memoize(
     (downloadServiceBaseUrl: FileDownloadServiceBaseUrl) => ({
         applicationInfoService,
-        csvDatabaseService,
+        DatabaseService,
         executionEnvService,
         fileDownloadService: new FileDownloadServiceElectron(
             notificationService,

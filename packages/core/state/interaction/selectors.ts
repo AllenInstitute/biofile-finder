@@ -2,12 +2,12 @@ import { createSelector } from "reselect";
 
 import { State } from "../";
 import { getCollection } from "../selection/selectors";
-import { HttpServiceBase } from "../../services";
-import AnnotationService from "../../services/AnnotationService";
+import { AnnotationService, FileService, HttpServiceBase } from "../../services";
 import DatasetService from "../../services/DatasetService";
-import FileService from "../../services/FileService";
-import CsvAnnotationService from "../../services/AnnotationService/CsvAnnotationService";
-import CsvFileService from "../../services/FileService/CsvFileService";
+import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
+import DatabaseFileService from "../../services/FileService/DatabaseFileService";
+import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
+import HttpFileService from "../../services/FileService/HttpFileService";
 
 // BASIC SELECTORS
 export const getApplicationVersion = (state: State) => state.interaction.applicationVersion;
@@ -52,16 +52,22 @@ export const getFileService = createSelector(
         getPlatformDependentServices,
         getRefreshKey,
     ],
-    (applicationVersion, userName, fileExplorerBaseUrl, collection, platformDependentServices) => {
+    (
+        applicationVersion,
+        userName,
+        fileExplorerBaseUrl,
+        collection,
+        platformDependentServices
+    ): FileService => {
         if (collection?.uri) {
-            return new CsvFileService({
-                database: platformDependentServices.csvDatabaseService,
+            return new DatabaseFileService({
+                database: platformDependentServices.databaseService,
             });
         }
         const pathSuffix = collection
             ? `/within/${HttpServiceBase.encodeURI(collection.name)}/${collection.version}`
             : undefined;
-        return new FileService({
+        return new HttpFileService({
             applicationVersion,
             userName,
             baseUrl: fileExplorerBaseUrl,
@@ -79,16 +85,22 @@ export const getAnnotationService = createSelector(
         getPlatformDependentServices,
         getRefreshKey,
     ],
-    (applicationVersion, userName, fileExplorerBaseUrl, collection, platformDependentServices) => {
+    (
+        applicationVersion,
+        userName,
+        fileExplorerBaseUrl,
+        collection,
+        platformDependentServices
+    ): AnnotationService => {
         if (collection?.uri) {
-            return new CsvAnnotationService({
-                database: platformDependentServices.csvDatabaseService,
+            return new DatabaseAnnotationService({
+                database: platformDependentServices.databaseService,
             });
         }
         const pathSuffix = collection
             ? `/within/${HttpServiceBase.encodeURI(collection.name)}/${collection.version}`
             : undefined;
-        return new AnnotationService({
+        return new HttpAnnotationService({
             applicationVersion,
             userName,
             baseUrl: fileExplorerBaseUrl,
@@ -106,12 +118,13 @@ export const getDatasetService = createSelector(
         getRefreshKey,
     ],
     (applicationVersion, userName, fileExplorerBaseUrl, platformDependentServices) => {
-        const { csvDatabaseService } = platformDependentServices;
+        const { databaseService } = platformDependentServices;
+        // TODO: Probably want a separate service for CSV mode
         return new DatasetService({
             applicationVersion,
             userName,
             baseUrl: fileExplorerBaseUrl,
-            localDatabaseService: csvDatabaseService,
+            database: databaseService,
         });
     }
 );

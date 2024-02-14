@@ -4,6 +4,7 @@ import LRUCache from "lru-cache";
 import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
 import FileService, { FmsFile } from "../../services/FileService";
+import HttpFileService from "../../services/FileService/HttpFileService";
 
 interface Opts {
     fileService: FileService;
@@ -13,7 +14,7 @@ interface Opts {
 }
 
 const DEFAULT_OPTS: Opts = {
-    fileService: new FileService(),
+    fileService: new HttpFileService(),
     filters: [],
     maxCacheSize: 1000,
 };
@@ -77,9 +78,7 @@ export default class FileSet {
 
     public async fetchTotalCount() {
         if (this.totalFileCount === undefined) {
-            this.totalFileCount = await this.fileService.getCountOfMatchingFiles(
-                this.toQueryString()
-            );
+            this.totalFileCount = await this.fileService.getCountOfMatchingFiles(this);
         }
 
         return this.totalFileCount;
@@ -108,17 +107,17 @@ export default class FileSet {
             const response = await this.fileService.getFiles({
                 from: offset,
                 limit,
-                queryString: this.toQueryString(),
+                fileSet: this,
             });
 
             // Update cache for files fetched, due to overfetching the indexes updated
             // in the cache will be inclusive of the range requested but may not necessarily start
             // at the requested index, therefore here startIndexOfPage is used instead of startIndex
-            for (let i = 0; i < response.data.length; i++) {
-                this.cache.set(startIndexOfPage + i, response.data[i]);
+            for (let i = 0; i < response.length; i++) {
+                this.cache.set(startIndexOfPage + i, response[i]);
             }
 
-            return response.data;
+            return response;
         } finally {
             // Clear the previously saved indexes as they are no longer loading
             for (let i = startIndexOfPage; i < startIndexOfPage + limit; i++) {
@@ -169,6 +168,26 @@ export default class FileSet {
         }
 
         return join(query, "&");
+    }
+
+    /**
+     *
+     * TODO
+     */
+    public toQuerySQL(options: { ignoreSort?: boolean } = {}): string {
+        // filters must be sorted in order to ensure requests can be effectively cached
+        const whereFilters = this.filters
+            .map((filter) => filter.toQuerySQL())
+            .sort((a, b) => a.localeCompare(b));
+
+        const sqlParts = [];
+        if (whereFilters.length) {
+            sqlParts.push(`WHERE ${whereFilters.join(" AND ")}`);
+        }
+        if (this.sort && !options?.ignoreSort) {
+            sqlParts.push(this.sort.toQuerySQL());
+        }
+        return sqlParts.join("\n");
     }
 
     public toJSON() {

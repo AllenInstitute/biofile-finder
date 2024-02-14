@@ -14,7 +14,7 @@ import { ModalType } from "../../components/Modal";
 import PersistentConfigService, {
     UserSelectedApplication,
 } from "../../services/PersistentConfigService";
-import { CsvDatabaseService, NotificationService } from "../../services";
+import { DatabaseService, NotificationService } from "../../services";
 import { FmsFile } from "../../services/FileService";
 
 const STATE_BRANCH_NAME = "interaction";
@@ -228,7 +228,7 @@ export const SET_PLATFORM_DEPENDENT_SERVICES = makeConstant(
 
 export interface PlatformDependentServices {
     applicationInfoService: ApplicationInfoService;
-    csvDatabaseService: CsvDatabaseService;
+    databaseService: DatabaseService;
     fileDownloadService: FileDownloadService;
     fileViewerService: FileViewerService;
     frontendInsights: FrontendInsights;

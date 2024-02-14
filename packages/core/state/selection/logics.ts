@@ -183,14 +183,9 @@ const modifyAnnotationHierarchy = createLogic({
 
 const setAvailableAnnotationsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { action, httpClient, getState } = deps;
+        const { action, getState } = deps;
         const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
         const annotationService = interaction.selectors.getAnnotationService(getState());
-        const applicationVersion = interaction.selectors.getApplicationVersion(getState());
-        if (applicationVersion) {
-            annotationService.setApplicationVersion(applicationVersion);
-        }
-        annotationService.setHttpClient(httpClient);
 
         try {
             dispatch(
@@ -446,12 +441,12 @@ const changeCollectionLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const action: ChangeCollectionAction = deps.action;
         const collection = action.payload;
-        const { csvDatabaseService } = interaction.selectors.getPlatformDependentServices(
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
         const collections = metadata.selectors.getActiveCollections(deps.getState());
         if (collection?.uri) {
-            await csvDatabaseService.setDataSource(collection.uri);
+            await databaseService.setDataSource(collection.uri);
         }
         if (collection && collections.find((collection) => collection.id === collection.id)) {
             dispatch(metadata.actions.receiveCollections([...collections, collection]));
@@ -463,11 +458,11 @@ const changeCollectionLogic = createLogic({
     type: CHANGE_COLLECTION,
     async transform(deps: ReduxLogicDeps, next) {
         const action: ChangeCollectionAction = deps.action;
-        const { csvDatabaseService } = interaction.selectors.getPlatformDependentServices(
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
         if (action.payload?.uri) {
-            const dataSource = await csvDatabaseService.getDataSource(action.payload?.uri);
+            const dataSource = await databaseService.getDataSource(action.payload?.uri);
             action.payload = {
                 ...action.payload,
                 id: dataSource.name,

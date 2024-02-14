@@ -7,7 +7,9 @@ export interface DataSource {
 }
 
 // TODO: Rename to LocalDatabaseService
-export default interface CsvDatabaseService {
+export default interface DatabaseService {
+    table: string;
+
     setDataSource(csvUri: string): Promise<void>;
 
     getDataSource(csvUri: string): Promise<DataSource>;

@@ -37,7 +37,7 @@ import FileFilter from "../../entity/FileFilter";
 import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
-import CsvDatabaseServiceNoop from "../../services/CsvDatabaseService/CsvDatabaseServiceNoop";
+import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
 
 export interface InteractionStateBranch {
     applicationVersion?: string;
@@ -70,7 +70,7 @@ export const initialState = {
     hasUsedApplicationBefore: false,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
-        csvDatabaseService: new CsvDatabaseServiceNoop(),
+        databaseService: new DatabaseServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
         fileViewerService: new FileViewerServiceNoop(),
         frontendInsights: new FrontendInsights({

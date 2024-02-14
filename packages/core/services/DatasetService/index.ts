@@ -1,7 +1,7 @@
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 import { Selection } from "../FileService";
-import CsvDatabaseService from "../CsvDatabaseService";
-import CsvDatabaseServiceNoop from "../CsvDatabaseService/CsvDatabaseServiceNoop";
+import DatabaseService from "../DatabaseService";
+import DatabaseServiceNoop from "../DatabaseService/DatabaseServiceNoop";
 
 export interface Dataset {
     id: string;
@@ -39,7 +39,7 @@ export interface PythonicDataAccessSnippet {
 }
 
 interface DatasetConnectionConfig extends ConnectionConfig {
-    localDatabaseService: CsvDatabaseService;
+    database: DatabaseService;
 }
 
 /**
@@ -48,13 +48,11 @@ interface DatasetConnectionConfig extends ConnectionConfig {
 export default class DatasetService extends HttpServiceBase {
     private static readonly ENDPOINT_VERSION = "2.0";
     public static readonly BASE_DATASET_URL = `file-explorer-service/${DatasetService.ENDPOINT_VERSION}/dataset`;
-    private readonly localDatabaseService: CsvDatabaseService;
+    private readonly database: DatabaseService;
 
-    constructor(
-        config: DatasetConnectionConfig = { localDatabaseService: new CsvDatabaseServiceNoop() }
-    ) {
+    constructor(config: DatasetConnectionConfig = { database: new DatabaseServiceNoop() }) {
         super(config);
-        this.localDatabaseService = config.localDatabaseService;
+        this.database = config.database;
     }
 
     /**
@@ -130,7 +128,7 @@ export default class DatasetService extends HttpServiceBase {
         uri?: string;
     }): Promise<Dataset> {
         if (collection.uri) {
-            const info = await this.localDatabaseService.getDataSource(collection.uri);
+            const info = await this.database.getDataSource(collection.uri);
             return {
                 id: info.name,
                 name: info.name,

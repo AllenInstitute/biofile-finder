@@ -6,9 +6,10 @@ import axios from "axios";
 const httpAdapter = require("axios/lib/adapters/http"); // exported from lib, but not typed (can't be fixed through typing augmentation)
 import duckdb from "duckdb";
 
-import { CsvDatabaseService, DataSource } from "../../../core/services";
+import { DatabaseService, DataSource } from "../../../core/services";
 
-export default class CsvDatabaseServiceElectron implements CsvDatabaseService {
+export default class DatabaseServiceElectron implements DatabaseService {
+    public readonly table: string = "default_table";
     private database: duckdb.Database;
 
     constructor() {
@@ -21,14 +22,14 @@ export default class CsvDatabaseServiceElectron implements CsvDatabaseService {
         let sql;
         switch (extension) {
             case "json":
-                sql = `CREATE TABLE new_tbl AS FROM read_json_auto('${fileURI}')`;
+                sql = `CREATE TABLE ${this.table} AS FROM read_json_auto('${fileURI}')`;
                 break;
             case "parquet":
-                sql = `CREATE TABLE new_tbl AS FROM read_parquet('${fileURI}')`;
+                sql = `CREATE TABLE ${this.table} AS FROM read_parquet('${fileURI}')`;
                 break;
             default:
                 // csv
-                sql = `CREATE TABLE new_tbl AS FROM read_csv_auto('${fileURI}')`;
+                sql = `CREATE TABLE ${this.table} AS FROM read_csv_auto('${fileURI}')`;
         }
         await this.query(sql);
     }

@@ -2,8 +2,19 @@ import { find, get as _get, sortBy } from "lodash";
 
 import annotationFormatterFactory, { AnnotationFormatter } from "../AnnotationFormatter";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
-import { AnnotationResponse, AnnotationValue } from "../../services/AnnotationService";
 import { FmsFile, FmsFileAnnotation } from "../../services/FileService";
+import { AnnotationValue } from "../../services/AnnotationService";
+
+/**
+ * Expected JSON structure of an annotation returned from the query service.
+ */
+export interface AnnotationResponse {
+    annotationDisplayName: string;
+    annotationName: string;
+    description: string;
+    type: string;
+    units?: string;
+}
 
 /**
  * Representation of an annotation available for filtering, grouping, or sorting files from FMS.
