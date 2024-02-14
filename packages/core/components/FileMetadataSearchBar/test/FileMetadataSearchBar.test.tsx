@@ -7,14 +7,20 @@ import { Provider } from "react-redux";
 import FileMetadataSearchBar, { extractDateFromDateString } from "../";
 import FileFilter from "../../../entity/FileFilter";
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
-import { initialState, selection } from "../../../state";
+import { initialState, reducer, reduxLogics, selection } from "../../../state";
 
 describe("<FileMetadataSearchBar />", () => {
     const ENTER_KEY = { keyCode: 13 };
 
-    it("submits default file attribute when input is typed and submitted", async () => {
+    it("submits default file attribute when input is typed and submitted with no filters applied", async () => {
         // Arrange
-        const { actions, logicMiddleware, store } = configureMockStore({ state: initialState });
+        const state = {
+            ...initialState,
+            selection: {
+                filters: [],
+            },
+        };
+        const { actions, logicMiddleware, store } = configureMockStore({ state });
         const { getByRole } = render(
             <Provider store={store}>
                 <FileMetadataSearchBar />
@@ -37,9 +43,34 @@ describe("<FileMetadataSearchBar />", () => {
         ).to.be.true;
     });
 
+    it("renders with past year date filter by default", async () => {
+        const { store } = configureMockStore({ state: initialState });
+        const dateUpper = new Date();
+        const dateLower = new Date();
+        const upperYear = dateUpper.getFullYear();
+        dateLower.setFullYear(upperYear - 1);
+        const upperDateString = dateUpper.toDateString();
+        const lowerDateString = dateLower.toDateString();
+        const { getByText } = render(
+            <Provider store={store}>
+                <FileMetadataSearchBar />
+            </Provider>
+        );
+        const uploadedDisplayName =
+            TOP_LEVEL_FILE_ANNOTATIONS.find((a) => a.name === AnnotationName.UPLOADED)
+                ?.displayName || "";
+        expect(getByText(uploadedDisplayName)).to.not.be.empty;
+        expect(getByText(upperDateString)).to.not.be.empty;
+        expect(getByText(lowerDateString)).to.not.be.empty;
+    });
+
     it("submits newly chosen file attribute when input is typed and submitted", async () => {
         // Arrange
-        const { actions, logicMiddleware, store } = configureMockStore({ state: initialState });
+        const { actions, logicMiddleware, store } = configureMockStore({
+            state: initialState,
+            reducer,
+            logics: reduxLogics,
+        });
         const { getByRole, getByText } = render(
             <Provider store={store}>
                 <FileMetadataSearchBar />
@@ -48,7 +79,7 @@ describe("<FileMetadataSearchBar />", () => {
         const searchQuery = "21304404.czi";
 
         // Act
-        fireEvent.click(getByText("File name"));
+        fireEvent.click(getByText("Uploaded"));
         fireEvent.click(getByText("File ID"));
         fireEvent.change(getByRole("searchbox"), { target: { value: searchQuery } });
         fireEvent.keyDown(getByRole("searchbox"), ENTER_KEY);
@@ -57,7 +88,9 @@ describe("<FileMetadataSearchBar />", () => {
         // Assert
         expect(
             actions.includesMatch(
-                selection.actions.addFileFilter(new FileFilter(AnnotationName.FILE_ID, searchQuery))
+                selection.actions.setFileFilters([
+                    new FileFilter(AnnotationName.FILE_ID, searchQuery),
+                ])
             )
         ).to.be.true;
     });
@@ -129,8 +162,12 @@ describe("<FileMetadataSearchBar />", () => {
 
     it("creates RANGE() file filter of RANGE(day,day+1) when only start date is selected", async () => {
         // Arrange
-        const { actions, logicMiddleware, store } = configureMockStore({ state: initialState });
-        const { getByText } = render(
+        const { actions, logicMiddleware, store } = configureMockStore({
+            state: initialState,
+            reducer,
+            logics: reduxLogics,
+        });
+        const { getByText, getAllByRole, getByRole } = render(
             <Provider store={store}>
                 <FileMetadataSearchBar />
             </Provider>
@@ -147,8 +184,9 @@ describe("<FileMetadataSearchBar />", () => {
         const expectedRange = `RANGE(${startDate.toISOString()},${endDate.toISOString()})`;
 
         // Act
-        fireEvent.click(getByText("File name"));
-        fireEvent.click(getByText("Uploaded"));
+        const dropdownComponent = getAllByRole("combobox").at(0) as HTMLElement;
+        fireEvent.click(dropdownComponent);
+        fireEvent.click(getByRole("option", { name: "Uploaded" }));
         fireEvent.click(getByText("Start of date range"));
         fireEvent.click(getByText(day));
         await logicMiddleware.whenComplete();
@@ -156,9 +194,9 @@ describe("<FileMetadataSearchBar />", () => {
         // Assert
         expect(
             actions.includesMatch(
-                selection.actions.addFileFilter(
-                    new FileFilter(AnnotationName.UPLOADED, expectedRange)
-                )
+                selection.actions.setFileFilters([
+                    new FileFilter(AnnotationName.UPLOADED, expectedRange),
+                ])
             )
         ).to.be.true;
     });
