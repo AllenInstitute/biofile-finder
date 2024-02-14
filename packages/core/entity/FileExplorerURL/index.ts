@@ -12,6 +12,7 @@ import DatasetService from "../../services/DatasetService";
 interface Collection {
     name: string;
     version: number;
+    uri?: string;
 }
 
 // Components of the application state this captures
@@ -54,8 +55,7 @@ export default class FileExplorerURL {
 
             if (url.collection) {
                 try {
-                    // Request the given collection from the server to check its validity
-                    await datasetService.getDataset(url.collection.name, url.collection.version);
+                    await datasetService.getDataset(url.collection);
                 } catch (error) {
                     return `Unable to decode FileExplorerURL, collection could not be found ${
                         (error as Error).message
@@ -96,6 +96,7 @@ export default class FileExplorerURL {
                 ? {
                       name: urlComponents.collection.name,
                       version: urlComponents.collection.version,
+                      uri: urlComponents.collection.uri,
                   }
                 : undefined,
         };

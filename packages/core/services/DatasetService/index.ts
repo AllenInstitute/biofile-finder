@@ -1,5 +1,7 @@
-import HttpServiceBase from "../HttpServiceBase";
+import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 import { Selection } from "../FileService";
+import CsvDatabaseService from "../CsvDatabaseService";
+import CsvDatabaseServiceNoop from "../CsvDatabaseService/CsvDatabaseServiceNoop";
 
 export interface Dataset {
     id: string;
@@ -11,7 +13,7 @@ export interface Dataset {
     query: string;
     client: string;
     fixed: boolean;
-    local?: boolean;
+    uri?: string; // TODO
     private: boolean;
     created: Date;
     createdBy: string;
@@ -36,12 +38,24 @@ export interface PythonicDataAccessSnippet {
     setup: string;
 }
 
+interface DatasetConnectionConfig extends ConnectionConfig {
+    localDatabaseService: CsvDatabaseService;
+}
+
 /**
  * Service responsible for fetching dataset related metadata.
  */
 export default class DatasetService extends HttpServiceBase {
     private static readonly ENDPOINT_VERSION = "2.0";
     public static readonly BASE_DATASET_URL = `file-explorer-service/${DatasetService.ENDPOINT_VERSION}/dataset`;
+    private readonly localDatabaseService: CsvDatabaseService;
+
+    constructor(
+        config: DatasetConnectionConfig = { localDatabaseService: new CsvDatabaseServiceNoop() }
+    ) {
+        super(config);
+        this.localDatabaseService = config.localDatabaseService;
+    }
 
     /**
      * Requests to create a dataset matching given specification including index-based file selection.
@@ -110,8 +124,29 @@ export default class DatasetService extends HttpServiceBase {
     /**
      * Request for a specific dataset.
      */
-    public async getDataset(name: string, version: number): Promise<Dataset> {
-        const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}/${name}/${version}`;
+    public async getDataset(collection: {
+        name: string;
+        version: number;
+        uri?: string;
+    }): Promise<Dataset> {
+        if (collection.uri) {
+            const info = await this.localDatabaseService.getDataSource(collection.uri);
+            return {
+                id: info.name,
+                name: info.name,
+                version: 1,
+                query: "",
+                client: "explorer",
+                fixed: true,
+                private: true,
+                uri: collection.uri,
+                created: info.created,
+                createdBy: "Unknown",
+            };
+        }
+
+        // Find dataset on server
+        const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}/${collection.name}/${collection.version}`;
         console.log(`Requesting dataset from the following url: ${requestUrl}`);
 
         // This data should never be stale, so, avoid using a response cache

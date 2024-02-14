@@ -53,7 +53,7 @@ export const getFileService = createSelector(
         getRefreshKey,
     ],
     (applicationVersion, userName, fileExplorerBaseUrl, collection, platformDependentServices) => {
-        if (collection?.local) {
+        if (collection?.uri) {
             return new CsvFileService({
                 database: platformDependentServices.csvDatabaseService,
             });
@@ -80,7 +80,7 @@ export const getAnnotationService = createSelector(
         getRefreshKey,
     ],
     (applicationVersion, userName, fileExplorerBaseUrl, collection, platformDependentServices) => {
-        if (collection?.local) {
+        if (collection?.uri) {
             return new CsvAnnotationService({
                 database: platformDependentServices.csvDatabaseService,
             });
@@ -98,9 +98,21 @@ export const getAnnotationService = createSelector(
 );
 
 export const getDatasetService = createSelector(
-    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl, getRefreshKey],
-    (applicationVersion, userName, fileExplorerBaseUrl) => {
-        return new DatasetService({ applicationVersion, userName, baseUrl: fileExplorerBaseUrl });
+    [
+        getApplicationVersion,
+        getUserName,
+        getFileExplorerServiceBaseUrl,
+        getPlatformDependentServices,
+        getRefreshKey,
+    ],
+    (applicationVersion, userName, fileExplorerBaseUrl, platformDependentServices) => {
+        const { csvDatabaseService } = platformDependentServices;
+        return new DatasetService({
+            applicationVersion,
+            userName,
+            baseUrl: fileExplorerBaseUrl,
+            localDatabaseService: csvDatabaseService,
+        });
     }
 );
 

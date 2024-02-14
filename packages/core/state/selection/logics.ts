@@ -23,6 +23,7 @@ import {
     changeCollection,
     CHANGE_COLLECTION,
     CHANGE_VIEW,
+    ChangeCollectionAction,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -301,10 +302,7 @@ const decodeFileExplorerURL = createLogic({
         // in the state's collection set yet & should be loaded in.
         if (collection && !selectedCollection) {
             const datasetService = interaction.selectors.getDatasetService(deps.getState());
-            const newCollection = await datasetService.getDataset(
-                collection.name,
-                collection.version
-            );
+            const newCollection = await datasetService.getDataset(collection);
             dispatch(metadata.actions.receiveCollections([...collections, newCollection]));
             selectedCollection = newCollection;
         }
@@ -445,11 +443,40 @@ const selectNearbyFile = createLogic({
  * a refresh action so that the resources pertain to the current collection
  */
 const changeCollectionLogic = createLogic({
-    async process(_: ReduxLogicDeps, dispatch, done) {
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const action: ChangeCollectionAction = deps.action;
+        const collection = action.payload;
+        const { csvDatabaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
+        const collections = metadata.selectors.getActiveCollections(deps.getState());
+        if (collection?.uri) {
+            await csvDatabaseService.setDataSource(collection.uri);
+        }
+        if (collection && collections.find((collection) => collection.id === collection.id)) {
+            dispatch(metadata.actions.receiveCollections([...collections, collection]));
+        }
+
         dispatch(interaction.actions.refresh() as AnyAction);
         done();
     },
     type: CHANGE_COLLECTION,
+    async transform(deps: ReduxLogicDeps, next) {
+        const action: ChangeCollectionAction = deps.action;
+        const { csvDatabaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
+        if (action.payload?.uri) {
+            const dataSource = await csvDatabaseService.getDataSource(action.payload?.uri);
+            action.payload = {
+                ...action.payload,
+                id: dataSource.name,
+                name: dataSource.name,
+                created: dataSource.created,
+            };
+        }
+        next(action);
+    },
 });
 
 /**

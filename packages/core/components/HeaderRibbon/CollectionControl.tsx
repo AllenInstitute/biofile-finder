@@ -25,7 +25,7 @@ interface Props {
     selectedCollection?: Dataset;
 }
 
-const ALL_FILES_KEY = "All of FMS";
+const AICS_FILES_KEY = "AICS FMS";
 const OPEN_FROM_CSV_KEY = "Open from CSV";
 
 const SECONDARY_BUTTON_STYLES: IButtonStyles = {
@@ -156,11 +156,11 @@ export default function CollectionControl(props: Props) {
     const [searchValue, setSearchValue] = React.useState("");
 
     const collectionOptions = React.useMemo(() => {
-        // Make "All Files" a data source option to represent
+        // Make "AICS Files" a data source option to represent
         // having no data source filter
-        const ALL_FILES_OPTION: IContextualMenuItem = {
-            text: ALL_FILES_KEY,
-            key: ALL_FILES_KEY,
+        const AICS_FILES_OPTION: IContextualMenuItem = {
+            text: AICS_FILES_KEY,
+            key: AICS_FILES_KEY,
             onClick: () => {
                 dispatch(selection.actions.changeCollection(undefined));
             },
@@ -221,7 +221,7 @@ export default function CollectionControl(props: Props) {
                         : undefined,
             };
 
-            if (collectionsWithSameName[0].local) {
+            if (collectionsWithSameName[0].uri) {
                 localCollections.push(option);
             } else if (collectionsWithSameName[0].fixed) {
                 frozenCollections.push(option);
@@ -231,7 +231,7 @@ export default function CollectionControl(props: Props) {
         });
 
         return [
-            ALL_FILES_OPTION,
+            AICS_FILES_OPTION,
             ...(liveCollections.length ? [LIVE_COLLECTION_HEADER] : []),
             ...liveCollections,
             ...(frozenCollections.length ? [FROZEN_COLLECTION_HEADER] : []),
@@ -263,11 +263,11 @@ export default function CollectionControl(props: Props) {
                     className={styles.controlGroupDropdown}
                     isHidden={props.isCollapsed}
                     options={collectionOptions}
-                    selectedOption={selectedCollection?.name || ALL_FILES_KEY}
+                    selectedOption={selectedCollection?.name || AICS_FILES_KEY}
                     onSearch={setSearchValue}
                     searchValue={searchValue}
                 />
-                {!selectedCollection?.local ? (
+                {!selectedCollection?.uri ? (
                     <div className={styles.controlGroupDisplayGroup}>
                         <TooltipHost content={IS_PRIVATE_TOOLTIP} onMouseLeave={props.onCollapse}>
                             <h6 className={styles.controlGroupDisplay}>
@@ -282,7 +282,7 @@ export default function CollectionControl(props: Props) {
                     </div>
                 ) : (
                     <div className={styles.controlGroupDisplayGroup}>
-                        <h6 className={styles.controlGroupDisplay}>Local Only</h6>
+                        <h6 className={styles.controlGroupDisplay}>CSV</h6>
                     </div>
                 )}
             </div>
@@ -290,7 +290,7 @@ export default function CollectionControl(props: Props) {
                 <IconButton
                     className={styles.controlGroupButton}
                     data-testid="edit-button"
-                    disabled={!selectedCollection || selectedCollection.local}
+                    disabled={!selectedCollection || !!selectedCollection.uri}
                     iconProps={{ iconName: "edit" }}
                     styles={SECONDARY_BUTTON_STYLES}
                     onClick={() => dispatch(interaction.actions.showEditCollectionDialog())}
@@ -301,7 +301,7 @@ export default function CollectionControl(props: Props) {
                     iconProps={{ iconName: "export" }}
                     title="Export"
                     menuProps={{ items: collectionExportMenuOptions }}
-                    disabled={!selectedCollection || selectedCollection.local}
+                    disabled={!selectedCollection || !!selectedCollection.uri}
                     styles={SECONDARY_BUTTON_STYLES}
                 />
             </div>

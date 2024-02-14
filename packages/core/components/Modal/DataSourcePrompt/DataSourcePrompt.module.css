@@ -1,0 +1,18 @@
+.ai-employee-prompt {
+    color: blue;
+}
+
+.actions-container {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.actions-container > *{
+    width: 100%;
+}
+
+.browse-button {
+    width: 100%;
+}

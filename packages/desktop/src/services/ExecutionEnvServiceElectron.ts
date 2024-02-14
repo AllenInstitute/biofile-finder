@@ -188,7 +188,6 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
 
     public async isReadableFile(filePath: string): Promise<boolean> {
         try {
-            // On macOS, applications are bundled as packages. `executablePath` is expected to be a package.
             await fs.promises.access(filePath, fs.constants.R_OK);
             return true;
         } catch (_) {

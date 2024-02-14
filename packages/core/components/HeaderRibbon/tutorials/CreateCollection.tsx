@@ -29,5 +29,5 @@ export const CREATE_COLLECTION_TUTORIAL = new Tutorial("Creating collections")
     .addStep({
         targetId: Tutorial.FILE_LIST_ID,
         message:
-            'The files available to search against are now limited to just those selected to be a part of your collection. To return back to the default of "All of FMS" (i.e. all files) navigate to the Collection header again and select that option from the dropdown.',
+            'The files available to search against are now limited to just those selected to be a part of your collection. To return back to the default of "AICS FMS" (i.e. all files) navigate to the Collection header again and select that option from the dropdown.',
     });

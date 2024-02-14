@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { interaction } from "../../state";
 import CsvManifest from "./CsvManifest";
 import CollectionForm from "./CollectionForm";
+import DataSourcePrompt from "./DataSourcePrompt";
 import PythonSnippet from "./PythonSnippet";
 import TipsAndTricks from "./TipsAndTricks";
 
@@ -14,9 +15,10 @@ export interface ModalProps {
 export enum ModalType {
     CreateCollectionForm = 1,
     CsvManifest = 2,
-    EditCollectionForm = 3,
-    PythonSnippet = 4,
-    TipsAndTricks = 5,
+    DataSourcePrompt = 3,
+    EditCollectionForm = 4,
+    PythonSnippet = 5,
+    TipsAndTricks = 6,
 }
 
 /**
@@ -35,6 +37,8 @@ export default function Modal() {
             return <CollectionForm onDismiss={onDismiss} />;
         case ModalType.CsvManifest:
             return <CsvManifest onDismiss={onDismiss} />;
+        case ModalType.DataSourcePrompt:
+            return <DataSourcePrompt onDismiss={onDismiss} />;
         case ModalType.EditCollectionForm:
             return <CollectionForm isEditing onDismiss={onDismiss} />;
         case ModalType.PythonSnippet:

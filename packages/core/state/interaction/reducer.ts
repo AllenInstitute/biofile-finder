@@ -84,6 +84,7 @@ export const initialState = {
         persistentConfigService: new PersistentConfigServiceNoop(),
     },
     status: [],
+    visibleModal: ModalType.DataSourcePrompt,
 };
 
 export default makeReducer<InteractionStateBranch>(

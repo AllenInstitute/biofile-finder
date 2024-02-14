@@ -477,34 +477,25 @@ const openWithLogic = createLogic({
 
 const openCsvCollection = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const {
-            csvDatabaseService,
-            executionEnvService,
-        } = interactionSelectors.getPlatformDependentServices(deps.getState());
+        const { executionEnvService } = interactionSelectors.getPlatformDependentServices(
+            deps.getState()
+        );
 
         const filePath = await executionEnvService.promptForFile("csv");
-        csvDatabaseService.setDataSource(filePath);
-        const fileName = filePath.replace(/^.*[\\/]/, "");
         const csvAsCollection = {
             id: filePath,
-            name: fileName,
+            name: filePath,
             version: 1,
             query: "",
             client: "",
             fixed: true,
-            local: true,
+            uri: filePath,
             private: true,
             created: new Date(),
             createdBy: interactionSelectors.getUserName(deps.getState()),
         } as Dataset;
-        dispatch(
-            metadata.actions.receiveCollections([
-                ...metadata.selectors.getCollections(deps.getState()),
-                csvAsCollection,
-            ])
-        );
-        dispatch(selection.actions.changeCollection(csvAsCollection));
 
+        dispatch(selection.actions.changeCollection(csvAsCollection));
         done();
     },
     type: OPEN_CSV_COLLECTION,
