@@ -159,7 +159,11 @@ export default function FileDetails(props: FileDetails) {
                 })}
             >
                 <FileThumbnail
-                    uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${fileDetails.thumbnail}`}
+                    uri={
+                        fileDetails.thumbnail?.includes("http")
+                            ? fileDetails.thumbnail
+                            : `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${fileDetails.thumbnail}`
+                    }
                 />
             </div>
         );

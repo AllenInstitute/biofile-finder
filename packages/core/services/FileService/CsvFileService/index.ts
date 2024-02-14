@@ -23,7 +23,11 @@ const SORT_SENTINAL_VALUE = "sort";
 export default class CsvFileService extends FileService {
     private database: CsvDatabaseService;
 
-    private static translateQueryStringToSQLClause(queryString: string): string {
+    private static translateQueryStringToSQLClause(
+        queryString: string,
+        from?: number,
+        limit?: number
+    ): string {
         // const queryCell Line=blah&sort=Uploaded(ASC)
         // ex. "Cell Line=blah&sort=Uploaded(ASC)"
         const queryParts = queryString.split("&");
@@ -33,18 +37,22 @@ export default class CsvFileService extends FileService {
             const [annotationName, annotationValue] = queryPart.split("=");
             if (annotationName === SORT_SENTINAL_VALUE) {
                 const [annotationName, sortDirection] = annotationValue.slice(0, -1).split("(");
-                orderByClause = `ORDER BY "${annotationName}" ${sortDirection}`;
+                orderByClause = ` ORDER BY "${annotationName}" ${sortDirection}`;
             } else {
                 whereClauseParts.push(`"${annotationName}" = '${annotationValue}'`);
             }
         });
-        if (!whereClauseParts.length) {
-            return orderByClause;
+        let sql = "";
+        if (whereClauseParts.length) {
+            sql += ` WHERE ${whereClauseParts.join(" AND ")} `;
         }
-        return `\
-            WHERE ${whereClauseParts.join(" AND ")} \
-            ${orderByClause}
-        `;
+        if (orderByClause) {
+            sql += orderByClause;
+        }
+        if (from !== undefined && limit !== undefined) {
+            sql += ` LIMIT ${limit} OFFSET ${from * limit}`;
+        }
+        return sql;
     }
 
     constructor(config: CsvAnnotationServiceConfig = { database: new CsvDatabaseServiceNoop() }) {
@@ -89,14 +97,18 @@ export default class CsvFileService extends FileService {
         const sql = `\
             SELECT * \
             FROM new_tbl    \
-            ${CsvFileService.translateQueryStringToSQLClause(request.queryString)}
+            ${CsvFileService.translateQueryStringToSQLClause(
+                request.queryString,
+                request.from,
+                request.limit
+            )}
         `;
         const rows = await this.database.query(sql);
         const files = rows.map((row) => ({
             ...pick(row, fileProperties),
             annotations: Object.entries(omit(row, fileProperties)).map(([name, values]: any) => ({
                 name,
-                values: values.split(",").map((value: string) => value.trim()),
+                values: `${values}`.split(",").map((value: string) => value.trim()),
             })),
         })) as FmsFile[];
         return new RestServiceResponse<FmsFile>({
