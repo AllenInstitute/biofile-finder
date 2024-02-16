@@ -1,18 +1,67 @@
 .ai-employee-prompt {
-    color: blue;
+    color: rgb(119, 119, 119);
+    font-size: small;
 }
 
 .actions-container {
     align-items: center;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     margin-top: 20px;
 }
 
-.actions-container > *{
+.actions-container > * {
+    margin: 0 auto 0 auto;
+}
+
+.browse-button, .browse-button:hover {
+    background-color: #bab5c9;
+    border: none;
+    color: #3b3b3b;
+}
+
+.browse-button:hover {
+    color: white;
+}
+
+.or-divider {
+    display: flex;
+    margin: 10px 0 10px 0;
+    width: 75%;
+}
+
+.or-divider > hr {
+    width: 25%;
+}
+
+.or-divider > hr:first-child {
+    margin-right: 10px;
+}
+
+.or-divider > hr:last-child {
+    margin-left: 10px;
+}
+
+.subtitle-button {
+    border: none;
+    font-size: small;
+    margin-left: auto;
+}
+
+.subtitle-button-container {
+    display: flex;
+}
+
+.text {
+    font-size: smaller;
+}
+
+.url-form {
     width: 100%;
 }
 
-.browse-button {
-    width: 100%;
+.url-form > * {
+    margin: 0 auto 0 auto;
+    width: 80%;
 }

@@ -34,7 +34,8 @@ import {
     DOWNLOAD_FILES,
     DownloadFilesAction,
     OpenWithDefaultAction,
-    OPEN_CSV_COLLECTION,
+    hideVisibleModal,
+    BROWSE_FOR_COLLECTION_SOURCE,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import CsvService, { CsvManifestRequest } from "../../services/CsvService";
@@ -475,30 +476,36 @@ const openWithLogic = createLogic({
     type: OPEN_WITH,
 });
 
-const openCsvCollection = createLogic({
+const browseForCollectionSource = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { executionEnvService } = interactionSelectors.getPlatformDependentServices(
             deps.getState()
         );
 
-        const filePath = await executionEnvService.promptForFile("csv");
-        const csvAsCollection = {
-            id: filePath,
-            name: filePath,
-            version: 1,
-            query: "",
-            client: "",
-            fixed: true,
-            uri: filePath,
-            private: true,
-            created: new Date(),
-            createdBy: interactionSelectors.getUserName(deps.getState()),
-        } as Dataset;
+        const filePath = await executionEnvService.promptForFile(["csv", "parquet", "json"]);
+        if (filePath !== ExecutableEnvCancellationToken) {
+            const csvAsCollection = {
+                id: filePath,
+                name: filePath,
+                version: 1,
+                query: "",
+                client: "",
+                fixed: true,
+                uri: filePath,
+                private: true,
+                created: new Date(),
+                createdBy: interactionSelectors.getUserName(deps.getState()),
+            } as Dataset;
 
-        dispatch(selection.actions.changeCollection(csvAsCollection));
+            batch(() => {
+                dispatch(selection.actions.changeCollection(csvAsCollection));
+                dispatch(hideVisibleModal());
+            });
+        }
+
         done();
     },
-    type: OPEN_CSV_COLLECTION,
+    type: BROWSE_FOR_COLLECTION_SOURCE,
 });
 
 /**
@@ -713,7 +720,7 @@ export default [
     checkForUpdates,
     downloadManifest,
     cancelFileDownloadLogic,
-    openCsvCollection,
+    browseForCollectionSource,
     openWithDefault,
     openWithLogic,
     promptForNewExecutable,

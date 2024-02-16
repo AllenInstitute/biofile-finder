@@ -1,5 +1,5 @@
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
-import { Selection } from "../FileService";
+import { Selection } from "../FileService/HttpFileService";
 import DatabaseService from "../DatabaseService";
 import DatabaseServiceNoop from "../DatabaseService/DatabaseServiceNoop";
 

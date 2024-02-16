@@ -7,6 +7,7 @@ import styles from "./BaseModal.module.css";
 interface BaseModalProps {
     body: React.ReactNode;
     footer?: React.ReactNode;
+    isBlocking?: boolean;
     onDismiss?: () => void;
     title?: string;
 }
@@ -28,7 +29,7 @@ const ICON_STYLES = {
  * for plugging content into.
  */
 export default function BaseModal(props: BaseModalProps) {
-    const { body, footer, title, onDismiss } = props;
+    const { body, footer, isBlocking, title, onDismiss } = props;
 
     const titleId = "base-modal-title";
     return (
@@ -38,6 +39,7 @@ export default function BaseModal(props: BaseModalProps) {
             isOpen={true}
             scrollableContentClassName={styles.scrollableContainer}
             titleAriaId={titleId}
+            isBlocking={isBlocking}
         >
             <div className={styles.header}>
                 {title ? (
@@ -45,13 +47,15 @@ export default function BaseModal(props: BaseModalProps) {
                         {title}
                     </h3>
                 ) : null}
-                <IconButton
-                    ariaLabel="Close"
-                    className={styles.closeButton}
-                    iconProps={CANCEL_ICON}
-                    onClick={onDismiss}
-                    styles={ICON_STYLES}
-                />
+                {!isBlocking ? (
+                    <IconButton
+                        ariaLabel="Close"
+                        className={styles.closeButton}
+                        iconProps={CANCEL_ICON}
+                        onClick={onDismiss}
+                        styles={ICON_STYLES}
+                    />
+                ) : null}
             </div>
             {body}
             <div className={styles.footer}>{footer}</div>

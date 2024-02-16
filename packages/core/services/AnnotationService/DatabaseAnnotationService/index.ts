@@ -36,12 +36,11 @@ export default class CsvAnnotationService implements AnnotationService {
         switch (columnType) {
             // TODO: use column_type to get real type...?
             case "INTEGER":
+            case "BIGINT":
                 return AnnotationType.NUMBER;
             case "VARCHAR":
             case "TEXT":
             default:
-                console.log("columnTypeToAnnotationType: default case");
-                console.log(columnType);
                 return AnnotationType.STRING;
         }
     }
@@ -67,10 +66,15 @@ export default class CsvAnnotationService implements AnnotationService {
      * Fetch the unique values for a specific annotation.
      */
     public async fetchValues(annotation: string): Promise<AnnotationValue[]> {
-        const select_key = "count_key";
-        const sql = `COUNT(DISTINCT ${annotation}) AS ${select_key} FROM ${this.database.table}`;
+        const select_key = "select_key";
+        const sql = `SELECT DISTINCT "${annotation}" AS ${select_key} FROM ${this.database.table}`;
         const rows = await this.database.query(sql);
-        return rows[0][select_key].split(",").map((value) => value.trim());
+        return [
+            ...rows.reduce((valueSet, row) => {
+                row[select_key].split(",").forEach((value) => valueSet.add(value.trim()));
+                return valueSet;
+            }, new Set<string>()),
+        ];
     }
 
     public async fetchRootHierarchyValues(
@@ -101,12 +105,12 @@ export default class CsvAnnotationService implements AnnotationService {
             filter.toQuerySQL()
         );
         const sql = `                                       
-            SELECT DISTINCT "${hierarchy[path.length - 1]}"
+            SELECT DISTINCT "${hierarchy[path.length]}"
             FROM ${this.database.table}                                    
             WHERE ${whereConditions.join(" AND ")}
         `;
         const rows = await this.database.query(sql);
-        return rows.map((row) => row[hierarchy[path.length - 1]]);
+        return rows.map((row) => row[hierarchy[path.length]]);
     }
 
     /**
@@ -114,19 +118,23 @@ export default class CsvAnnotationService implements AnnotationService {
      * file set
      */
     public async fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]> {
+        const whereConditions = annotations
+            .map((annotation) => `"${annotation}" IS NOT NULL`)
+            .join(" AND ");
         const sql = `
             SUMMARIZE SELECT * 
             FROM ${this.database.table}
-            WHERE ${annotations.map((annotation) => `${annotation} IS NOT NULL`).join(" AND ")}
+            ${whereConditions ? `WHERE ${whereConditions}` : ""}
         `;
         const rows = (await this.database.query(sql)) as SummarizeQueryResult[];
-        console.log(`fetchAvailableAnnotationsForHierarchy: ${rows}`);
-        return rows.reduce((annotations, row) => {
-            const annotation = row["column_name"];
-            if (row["null_percentage"] !== "100.0%") {
-                annotations.push(annotation);
-            }
-            return annotations;
-        }, [] as string[]);
+        const annotationSet = new Set(annotations);
+        return rows
+            .reduce((annotations, row) => {
+                if (row["null_percentage"] !== "100.0%") {
+                    annotations.push(row["column_name"]);
+                }
+                return annotations;
+            }, [] as string[])
+            .filter((annotation) => !annotationSet.has(annotation));
     }
 }

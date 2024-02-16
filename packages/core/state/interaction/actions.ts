@@ -732,15 +732,18 @@ export function openWith(
 /**
  * TODO
  */
-export const OPEN_CSV_COLLECTION = makeConstant(STATE_BRANCH_NAME, "open-csv-collection");
+export const BROWSE_FOR_COLLECTION_SOURCE = makeConstant(
+    STATE_BRANCH_NAME,
+    "browse-for-collection-source"
+);
 
-export interface OpenCsvCollectionAction {
+export interface BrowseForCollectionSourceAction {
     type: string;
 }
 
-export function openCsvCollection(): OpenCsvCollectionAction {
+export function browseForCollectionSource(): BrowseForCollectionSourceAction {
     return {
-        type: OPEN_CSV_COLLECTION,
+        type: BROWSE_FOR_COLLECTION_SOURCE,
     };
 }
 

@@ -9,6 +9,7 @@ import { selection } from "../../state";
 import { OnSelect } from "./useFileSelector";
 
 import styles from "./LazilyRenderedRow.module.css";
+import { Shimmer } from "@fluentui/react";
 
 /**
  * Contextual data passed to LazilyRenderedRows by react-window. Basically a light-weight React context. The same data
@@ -39,7 +40,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     } = props;
 
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
-    const annotations = useSelector(selection.selectors.getOrderedDisplayAnnotations);
+    const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
     const columnWidths = useSelector(selection.selectors.getColumnWidths);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
 
@@ -53,14 +54,15 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         return fileSelection.isFocused(fileSet, index);
     }, [fileSelection, fileSet, index]);
 
-    let content;
-    if (file) {
-        const cells = map(annotations, (annotation) => ({
-            columnKey: annotation.name,
-            displayValue: annotation.extractFromFile(file),
-            width: columnWidths[annotation.name] || 1 / annotations.length,
-        }));
-        content = (
+    const cells = !file
+        ? []
+        : map(annotations, (annotation) => ({
+              columnKey: annotation.name,
+              displayValue: annotation.extractFromFile(file),
+              width: columnWidths[annotation.name] || 1 / annotations.length,
+          }));
+    const content = (
+        <Shimmer className={styles.shimmer} isDataLoaded={!!file}>
             <FileRow
                 cells={cells}
                 cellClassName={classNames({
@@ -70,13 +72,11 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
                     [styles.selected]: isSelected,
                     [styles.focused]: isFocused,
                 })}
-                rowIdentifier={{ index, id: file.file_id }}
+                rowIdentifier={{ index, id: file?.file_id }}
                 onSelect={onSelect}
             />
-        );
-    } else {
-        content = "Loading...";
-    }
+        </Shimmer>
+    );
 
     return (
         <div

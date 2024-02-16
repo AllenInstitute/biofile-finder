@@ -1,7 +1,8 @@
 import { find, isArray, reject } from "lodash";
 
 import { IndexError, ValueError } from "../../errors";
-import { FmsFile, Selection } from "../../services/FileService";
+import { FmsFile } from "../../services/FileService";
+import { Selection } from "../../services/FileService/HttpFileService";
 import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
 import { SortOrder } from "../FileSort";

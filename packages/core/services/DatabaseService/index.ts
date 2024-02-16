@@ -10,9 +10,9 @@ export interface DataSource {
 export default interface DatabaseService {
     table: string;
 
-    setDataSource(csvUri: string): Promise<void>;
+    setDataSource(uri: string): Promise<void>;
 
-    getDataSource(csvUri: string): Promise<DataSource>;
+    getDataSource(uri: string): Promise<DataSource>;
 
     query(sql: string): Promise<{ [key: string]: string }[]>;
 }

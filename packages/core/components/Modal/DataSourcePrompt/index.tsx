@@ -1,14 +1,21 @@
+import {
+    ActionButton,
+    DefaultButton,
+    Icon,
+    Spinner,
+    SpinnerSize,
+    TextField,
+} from "@fluentui/react";
 import axios from "axios";
-import { ActionButton, DefaultButton, Icon, TextField } from "@fluentui/react";
+import { debounce } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { ModalProps, ModalType } from "..";
+import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
+import { interaction, metadata, selection } from "../../../state";
 
 import styles from "./DataSourcePrompt.module.css";
-import { interaction } from "../../../state";
-import { debounce } from "lodash";
 
 interface Props extends ModalProps {
     isEditing?: boolean;
@@ -25,24 +32,81 @@ const DATA_SOURCE_DETAILS = [
  */
 export default function DataSourcePrompt({ onDismiss }: Props) {
     const dispatch = useDispatch();
-
-    const [dataSourceUri, setDataSourceUri] = React.useState("");
-    const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
     const fileExplorerServiceBaseUrl = useSelector(
         interaction.selectors.getFileExplorerServiceBaseUrl
     );
+    const { databaseService } = useSelector(interaction.selectors.getPlatformDependentServices);
+    const lastUsedCollection = useSelector(interaction.selectors.getLastUsedCollection);
+    const collections = useSelector(metadata.selectors.getCollections);
+    const [isCheckingForDataSource, setIsCheckingForDataSource] = React.useState(true);
 
+    const [dataSourceURL, setDataSourceURL] = React.useState("");
     const [isAICSEmployee, setIsAICSEmployee] = React.useState(false);
-    React.useEffect(() => {
-        try {
-            axios.create().get(fileExplorerServiceBaseUrl);
-            onDismiss();
-        } catch (err) {
-            console.log("Unable to connect to AICS network");
-            dispatch(interaction.actions.setVisibleModal(ModalType.DataSourcePrompt));
-        }
-    }, [dispatch, onDismiss, fileExplorerServiceBaseUrl]);
+    const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
 
+    const loadDataFromURI = React.useCallback(
+        async (uri: string) => {
+            const response = await databaseService.getDataSource(uri);
+            dispatch(
+                selection.actions.changeCollection({
+                    uri,
+                    id: response.name,
+                    name: response.name,
+                    version: 1,
+                    query: "",
+                    client: "",
+                    fixed: true,
+                    private: true,
+                    created: response.created,
+                    createdBy: "Unknown",
+                })
+            );
+            onDismiss();
+        },
+        [databaseService, dispatch, onDismiss]
+    );
+    React.useEffect(() => {
+        async function checkConnection() {
+            try {
+                const response = await axios.create().get(fileExplorerServiceBaseUrl);
+                if (response.status === 200) {
+                    onDismiss();
+                }
+            } catch (err) {}
+        }
+        checkConnection();
+
+        if (lastUsedCollection) {
+            const matchingCollection = collections.find((c) => c.id === lastUsedCollection.id);
+            if (matchingCollection) {
+                dispatch(selection.actions.changeCollection(matchingCollection));
+                onDismiss();
+            } else if (lastUsedCollection.uri) {
+                loadDataFromURI(lastUsedCollection.uri);
+            }
+        }
+        setIsCheckingForDataSource(false);
+    }, [
+        lastUsedCollection,
+        loadDataFromURI,
+        collections,
+        databaseService,
+        dispatch,
+        onDismiss,
+        fileExplorerServiceBaseUrl,
+    ]);
+
+    const onChooseFile = () => {
+        dispatch(interaction.actions.browseForCollectionSource());
+    };
+    const onEnterURL = debounce(
+        (evt: React.FormEvent) => {
+            evt.preventDefault();
+            loadDataFromURI(dataSourceURL);
+        },
+        1000,
+        { leading: true, trailing: false }
+    );
     const onIsAllenEmployee = debounce(
         () => {
             setIsAICSEmployee(!isAICSEmployee);
@@ -52,18 +116,31 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
         { leading: true, trailing: false }
     );
 
+    if (isCheckingForDataSource) {
+        const modalBody = <Spinner size={SpinnerSize.large} />;
+        return (
+            <BaseModal
+                isBlocking
+                body={modalBody}
+                title="Checking for data source..."
+                onDismiss={undefined}
+            />
+        );
+    }
+
     const body = (
         <>
-            <h3>Choose a data source</h3>
-            <p>
+            <p className={styles.text}>
                 Please provide a &quot;.csv&quot;, &quot;.parquet&quot;, or &quot;.json&quot; file
-                containing metadata about some files. See more details for information about what
+                containing metadata about some files. See more details for information about what a
                 data source file should look like...
             </p>
             {isDataSourceDetailExpanded ? (
                 <div>
                     {DATA_SOURCE_DETAILS.map((text) => (
-                        <p key={text}>{text}</p>
+                        <p key={text} className={styles.text}>
+                            {text}
+                        </p>
                     ))}
                     <div className={styles.subtitleButtonContainer}>
                         <DefaultButton
@@ -91,41 +168,47 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
                     className={styles.browseButton}
                     ariaLabel="Browse for a data source file on your machine"
                     iconProps={{ iconName: "DocumentSearch" }}
-                    onClick={() => dispatch(interaction.actions.openCsvCollection())}
+                    onClick={onChooseFile}
                     text="Choose File"
                     title="Browse for a data source file on your machine"
                 />
-                <p>---- or ----</p>
-                <TextField
-                    className={styles.urlInput}
-                    label="Paste URL (ex. S3, Azure)"
-                    onChange={(_, newValue) => setDataSourceUri(newValue || "")}
-                    placeholder="https://example.com/path/to/data.csv"
-                    value={dataSourceUri}
-                />
+                <div className={styles.orDivider}>
+                    <hr />
+                    or
+                    <hr />
+                </div>
+                <form className={styles.urlForm} onSubmit={onEnterURL}>
+                    <TextField
+                        onChange={(_, newValue) => setDataSourceURL(newValue || "")}
+                        placeholder="Paste URL (ex. S3, Azure)"
+                        value={dataSourceURL}
+                    />
+                </form>
             </div>
-            <ActionButton
-                allowDisabledFocus
-                className={styles.aiEmployeePrompt}
-                onClick={onIsAllenEmployee}
-            >
-                Allen Institute employee?
-            </ActionButton>
-            {isAICSEmployee && (
-                <p>
-                    Unable to connect to necessary server in the Allen Institute network. Check WiFi
-                    or VPN connection.
-                </p>
-            )}
         </>
+    );
+    const footer = isAICSEmployee ? (
+        <p>
+            Unable to connect to necessary server in the Allen Institute network. Check WiFi or VPN
+            connection.
+        </p>
+    ) : (
+        <ActionButton
+            allowDisabledFocus
+            className={styles.aiEmployeePrompt}
+            onClick={onIsAllenEmployee}
+        >
+            Allen Institute employee?
+        </ActionButton>
     );
 
     return (
         <BaseModal
+            isBlocking
             body={body}
-            // footer={}
-            onDismiss={onDismiss}
-            title={"Select a data source"}
+            footer={footer}
+            title="Choose a data source"
+            onDismiss={undefined}
         />
     );
 }

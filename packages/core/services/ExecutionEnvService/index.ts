@@ -31,7 +31,7 @@ export default interface ExecutionEnvService {
     /**
      * TODO
      */
-    promptForFile(extension?: string, reasonForPrompt?: string): Promise<string>;
+    promptForFile(extensions?: string[], reasonForPrompt?: string): Promise<string>;
 
     /**
      * Verifies that the given path leads to a valid executable for the current OS.

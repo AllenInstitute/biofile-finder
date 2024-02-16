@@ -1,6 +1,6 @@
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 import FileDownloadService, { DownloadResult } from "../FileDownloadService";
-import { Selection } from "../FileService";
+import { Selection } from "../FileService/HttpFileService";
 
 interface CsvServiceConfig extends ConnectionConfig {
     downloadService: FileDownloadService;

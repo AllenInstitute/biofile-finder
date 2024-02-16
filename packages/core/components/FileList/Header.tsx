@@ -1,4 +1,4 @@
-import { Icon, TooltipHost } from "@fluentui/react";
+import { Icon } from "@fluentui/react";
 import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
@@ -11,11 +11,8 @@ import { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
 import { interaction, selection } from "../../state";
 import FileListColumnPicker from "./FileListColumnPicker";
-import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 
 import styles from "./Header.module.css";
-
-const SORTABLE_ANNOTATIONS = TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.displayName).join(",");
 
 /**
  * The FileList table header. Its cells are determined by the annotations the user has selected to display. It is rendered directly into the virtualized list within the FileList component
@@ -29,7 +26,7 @@ function Header(
     ref: React.Ref<HTMLDivElement>
 ) {
     const dispatch = useDispatch();
-    const columnAnnotations = useSelector(selection.selectors.getOrderedDisplayAnnotations);
+    const columnAnnotations = useSelector(selection.selectors.getAnnotationsToDisplay);
     const columnWidths = useSelector(selection.selectors.getColumnWidths);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
 
@@ -40,38 +37,26 @@ function Header(
             dispatch(selection.actions.resetColumnWidth(columnKey));
         }
     };
-
     const headerCells: CellConfig[] = map(columnAnnotations, (annotation) => {
         const isSortedColumn = sortColumn?.annotationName === annotation.name;
-        const isFileAttribute = TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name);
         return {
             columnKey: annotation.name, // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
             displayValue: (
                 <span
                     className={classNames(styles.headerCell, {
-                        [styles.clickable]: isFileAttribute,
+                        // TODO: Can anything be sorted..? should it...?
+                        [styles.clickable]: true,
                         [styles.bold]: isSortedColumn,
                     })}
-                    onClick={() =>
-                        isFileAttribute && dispatch(selection.actions.sortColumn(annotation.name))
-                    }
+                    onClick={() => dispatch(selection.actions.sortColumn(annotation.name))}
                 >
-                    <TooltipHost
-                        hostClassName={styles.headerCellTooltip}
-                        content={
-                            isFileAttribute
-                                ? undefined
-                                : `${annotation.displayName} is not sortable. Try one of ${SORTABLE_ANNOTATIONS}.`
-                        }
-                    >
-                        <span className={styles.headerTitle}>{annotation.displayName}</span>
-                        {isSortedColumn &&
-                            (sortColumn?.order === SortOrder.DESC ? (
-                                <Icon className={styles.sortIcon} iconName="ChevronDown" />
-                            ) : (
-                                <Icon className={styles.sortIcon} iconName="ChevronUp" />
-                            ))}
-                    </TooltipHost>
+                    <span className={styles.headerTitle}>{annotation.displayName}</span>
+                    {isSortedColumn &&
+                        (sortColumn?.order === SortOrder.DESC ? (
+                            <Icon className={styles.sortIcon} iconName="ChevronDown" />
+                        ) : (
+                            <Icon className={styles.sortIcon} iconName="ChevronUp" />
+                        ))}
                 </span>
             ),
             width: columnWidths[annotation.name] || 1 / columnAnnotations.length,

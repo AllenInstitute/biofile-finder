@@ -25,8 +25,8 @@ interface Props {
     selectedCollection?: Dataset;
 }
 
-const AICS_FILES_KEY = "AICS FMS";
-const OPEN_FROM_CSV_KEY = "Open from CSV";
+const AI_FILES_KEY = "Allen Institute FMS";
+const CREATE_FROM_FILE = "Create from file";
 
 const SECONDARY_BUTTON_STYLES: IButtonStyles = {
     label: {
@@ -110,11 +110,10 @@ const LIVE_COLLECTION_HEADER: IContextualMenuItem = {
     itemProps: DEFAULT_OPTION_PROPS,
 };
 
-const CSV_COLLECTION_HEADER: IContextualMenuItem = {
-    key: "csv-collections",
-    text: "CSV Collections",
-    title:
-        "Collections generated from a CSV that are only present on your machine and exist outside of FMS",
+const UNPUBLISHED_COLLECTION_HEADER: IContextualMenuItem = {
+    key: "unpublished-collections",
+    text: "Unpublished Collections",
+    title: "Collections generated from a CSV, Parquet, or JSON file and exist outside of FMS",
     itemType: ContextualMenuItemType.Header,
     itemProps: DEFAULT_OPTION_PROPS,
 };
@@ -156,24 +155,24 @@ export default function CollectionControl(props: Props) {
     const [searchValue, setSearchValue] = React.useState("");
 
     const collectionOptions = React.useMemo(() => {
-        // Make "AICS Files" a data source option to represent
+        // Make "Allen Institute FMS" a data source option to represent
         // having no data source filter
-        const AICS_FILES_OPTION: IContextualMenuItem = {
-            text: AICS_FILES_KEY,
-            key: AICS_FILES_KEY,
+        const AI_FILES_OPTION: IContextualMenuItem = {
+            text: AI_FILES_KEY,
+            key: AI_FILES_KEY,
             onClick: () => {
                 dispatch(selection.actions.changeCollection(undefined));
             },
             itemProps: selectedCollection ? DEFAULT_OPTION_PROPS : SELECTED_OPTION_PROPS,
         };
 
-        const OPEN_FROM_CSV_OPTION: IContextualMenuItem = {
-            text: OPEN_FROM_CSV_KEY,
-            key: OPEN_FROM_CSV_KEY,
+        const CREATE_FROM_FILE_OPTION: IContextualMenuItem = {
+            text: CREATE_FROM_FILE,
+            key: CREATE_FROM_FILE,
             onClick: () => {
-                dispatch(interaction.actions.openCsvCollection());
+                dispatch(interaction.actions.browseForCollectionSource());
             },
-            // todo
+            title: "Create a collection from a CSV, Parquet, or JSON file on your machine",
             itemProps: DEFAULT_OPTION_PROPS,
         };
 
@@ -193,7 +192,7 @@ export default function CollectionControl(props: Props) {
 
         const frozenCollections: IContextualMenuItem[] = [];
         const liveCollections: IContextualMenuItem[] = [];
-        const localCollections: IContextualMenuItem[] = [];
+        const unpublishedCollections: IContextualMenuItem[] = [];
         Object.values(nameToCollectionMap).forEach((collectionsWithSameName) => {
             const option = {
                 ...convertCollectionToOption(
@@ -222,7 +221,7 @@ export default function CollectionControl(props: Props) {
             };
 
             if (collectionsWithSameName[0].uri) {
-                localCollections.push(option);
+                unpublishedCollections.push(option);
             } else if (collectionsWithSameName[0].fixed) {
                 frozenCollections.push(option);
             } else {
@@ -231,14 +230,14 @@ export default function CollectionControl(props: Props) {
         });
 
         return [
-            AICS_FILES_OPTION,
+            AI_FILES_OPTION,
             ...(liveCollections.length ? [LIVE_COLLECTION_HEADER] : []),
             ...liveCollections,
             ...(frozenCollections.length ? [FROZEN_COLLECTION_HEADER] : []),
             ...frozenCollections,
-            CSV_COLLECTION_HEADER,
-            ...localCollections,
-            OPEN_FROM_CSV_OPTION,
+            UNPUBLISHED_COLLECTION_HEADER,
+            ...unpublishedCollections,
+            CREATE_FROM_FILE_OPTION,
         ];
     }, [collections, selectedCollection, searchValue, dispatch]);
 
@@ -263,7 +262,7 @@ export default function CollectionControl(props: Props) {
                     className={styles.controlGroupDropdown}
                     isHidden={props.isCollapsed}
                     options={collectionOptions}
-                    selectedOption={selectedCollection?.name || AICS_FILES_KEY}
+                    selectedOption={selectedCollection?.name || AI_FILES_KEY}
                     onSearch={setSearchValue}
                     searchValue={searchValue}
                 />
@@ -282,7 +281,7 @@ export default function CollectionControl(props: Props) {
                     </div>
                 ) : (
                     <div className={styles.controlGroupDisplayGroup}>
-                        <h6 className={styles.controlGroupDisplay}>CSV</h6>
+                        <h6 className={styles.controlGroupDisplay}>Not Published</h6>
                     </div>
                 )}
             </div>

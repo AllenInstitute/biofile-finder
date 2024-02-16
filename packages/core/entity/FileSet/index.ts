@@ -4,7 +4,7 @@ import LRUCache from "lru-cache";
 import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
 import FileService, { FmsFile } from "../../services/FileService";
-import HttpFileService from "../../services/FileService/HttpFileService";
+import FileServiceNoop from "../../services/FileService/FileServiceNoop";
 
 interface Opts {
     fileService: FileService;
@@ -14,7 +14,7 @@ interface Opts {
 }
 
 const DEFAULT_OPTS: Opts = {
-    fileService: new HttpFileService(),
+    fileService: new FileServiceNoop(),
     filters: [],
     maxCacheSize: 1000,
 };

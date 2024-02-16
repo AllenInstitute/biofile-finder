@@ -128,8 +128,10 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         }
     }
 
-    public async promptForFile(extension?: string, reasonForPrompt?: string): Promise<string> {
-        const promptTitle = `Select a ${extension ? extension : "file"}`;
+    public async promptForFile(extensions?: string[], reasonForPrompt?: string): Promise<string> {
+        const promptTitle = `Select a file ${
+            extensions ? `with extension ${extensions.join(", ")}` : ""
+        }`;
         if (reasonForPrompt) {
             const result = await this.notificationService.showMessage(promptTitle, reasonForPrompt);
             if (!result) {
@@ -143,7 +145,7 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
             const filePath = await this.selectPath({
                 ...ExecutionEnvServiceElectron.getDefaultOpenDialogOptions(platform),
                 properties: ["openFile"],
-                filters: extension ? [{ name: extension, extensions: [extension] }] : undefined,
+                filters: extensions ? [{ extensions, name: extensions.join(", ") }] : undefined,
                 title: promptTitle,
             });
 

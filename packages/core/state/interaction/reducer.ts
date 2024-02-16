@@ -48,6 +48,7 @@ export interface InteractionStateBranch {
     csvColumns?: string[];
     fileExplorerServiceBaseUrl: string;
     fileFiltersForVisibleModal: FileFilter[];
+    lastUsedCollection?: { id: string; uri?: string };
     hasUsedApplicationBefore: boolean;
     platformDependentServices: PlatformDependentServices;
     pythonSnippet?: PythonicDataAccessSnippet;

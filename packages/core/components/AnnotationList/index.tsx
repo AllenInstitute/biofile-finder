@@ -1,3 +1,4 @@
+import { Shimmer } from "@fluentui/react";
 import classNames from "classnames";
 import Fuse from "fuse.js";
 import * as React from "react";
@@ -114,17 +115,21 @@ export default function AnnotationList(props: AnnotationListProps) {
                         type="search"
                     />
                 </div>
-                <DnDList
-                    className={classNames(styles.list, {
-                        [styles.smallFont]: shouldDisplaySmallFont,
-                    })}
-                    items={filteredListItems}
-                    id={DROPPABLE_ID}
-                    isDropDisabled={true}
-                    itemRenderer={AnnotationListItem}
-                    dividers={dividers}
-                    loading={annotationsLoading}
-                />
+                {annotationsLoading ? (
+                    Array(10).map((_, idx) => <Shimmer key={idx} />)
+                ) : (
+                    <DnDList
+                        className={classNames(styles.list, {
+                            [styles.smallFont]: shouldDisplaySmallFont,
+                        })}
+                        items={filteredListItems}
+                        id={DROPPABLE_ID}
+                        isDropDisabled={true}
+                        itemRenderer={AnnotationListItem}
+                        dividers={dividers}
+                        loading={annotationsLoading}
+                    />
+                )}
             </div>
         </div>
     );

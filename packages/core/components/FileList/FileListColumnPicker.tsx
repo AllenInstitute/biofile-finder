@@ -15,7 +15,7 @@ export default function FileListColumnPicker() {
         metadata.selectors.getCustomAnnotationsCombinedWithFileAttributes
     );
 
-    const columnAnnotations = useSelector(selection.selectors.getOrderedDisplayAnnotations);
+    const columnAnnotations = useSelector(selection.selectors.getAnnotationsToDisplay);
     const selections = new Set(columnAnnotations.map((annot) => annot.name));
 
     const items: ListItem[] = allAnnotations.map((annotation) => ({

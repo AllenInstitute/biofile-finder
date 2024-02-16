@@ -26,13 +26,6 @@ export const getSortColumn = (state: State) => state.selection.sortColumn;
 export const getTutorial = (state: State) => state.selection.tutorial;
 
 // COMPOSED SELECTORS
-export const getOrderedDisplayAnnotations = createSelector(
-    getAnnotationsToDisplay,
-    (annotations: Annotation[]) => {
-        return Annotation.sort(annotations);
-    }
-);
-
 export const getEncodedFileExplorerUrl = createSelector(
     [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn, getCollection],
     (

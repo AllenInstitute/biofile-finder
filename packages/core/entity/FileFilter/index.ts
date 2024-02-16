@@ -33,7 +33,7 @@ export default class FileFilter {
     }
 
     public toQuerySQL(): string {
-        if (typeof this.annotationValue === null) {
+        if (this.annotationValue === null) {
             return `"${this.annotationName}" IS NOT NULL`;
         }
         return `"${this.annotationName}" = '${this.annotationValue}'`;

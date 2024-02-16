@@ -13,6 +13,10 @@
     border: var(--margin) solid #669bf4;
 }
 
+.shimmer {
+    height: 22px;
+}
+
 .small-font {
     font-size: var(--smaller-font-size);
 }
