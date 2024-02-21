@@ -5,16 +5,10 @@ import * as React from "react";
 import { useDispatch } from "react-redux";
 
 import { selection } from "../../state";
-import FileFilter from "../../entity/FileFilter";
+import FileFilter, { Filter } from "../../entity/FileFilter";
 import AnnotationFilter from "../AnnotationSidebar/AnnotationFilter";
 
 import styles from "./FilterMedallion.module.css";
-
-export interface Filter {
-    name: string;
-    value: any;
-    displayValue: string;
-}
 
 interface Props {
     name: string;

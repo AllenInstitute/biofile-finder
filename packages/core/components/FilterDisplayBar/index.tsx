@@ -1,11 +1,10 @@
 import classNames from "classnames";
-import { groupBy, keyBy, map } from "lodash";
+import { map } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
-import FileFilter from "../../entity/FileFilter";
 
-import { metadata, selection } from "../../state";
-import FilterMedallion, { Filter } from "./FilterMedallion";
+import { selection } from "../../state";
+import FilterMedallion from "./FilterMedallion";
 
 import styles from "./FilterDisplayBar.module.css";
 
@@ -23,19 +22,7 @@ export default function FilterDisplayBar(props: Props) {
     const { className, classNameHidden } = props;
 
     const globalFilters = useSelector(selection.selectors.getAnnotationFilters);
-    const annotations = useSelector(metadata.selectors.getAnnotations);
-    const groupedByFilterName = React.useMemo(() => {
-        const annotationNameToInstanceMap = keyBy(annotations, "name");
-        const filters: Filter[] = map(globalFilters, (filter: FileFilter) => {
-            const annotation = annotationNameToInstanceMap[filter.name];
-            return {
-                name: filter.name,
-                value: filter.value,
-                displayValue: annotation?.getDisplayValue(filter.value),
-            };
-        }).filter((filter) => filter.displayValue !== undefined);
-        return groupBy(filters, (filter) => filter.name);
-    }, [globalFilters, annotations]);
+    const groupedByFilterName = useSelector(selection.selectors.getGroupedByFilterName);
 
     return (
         <div
