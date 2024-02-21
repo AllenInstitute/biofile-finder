@@ -2,7 +2,7 @@ import { makeReducer } from "@aics/redux-utils";
 import { castArray, difference, omit, without } from "lodash";
 
 import interaction from "../interaction";
-import { AnnotationName, RELATIVE_DATE_RANGES } from "../../constants";
+import { AnnotationName, INITIAL_DATE_FILTER } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
@@ -46,10 +46,6 @@ export interface SelectionStateBranch {
     tutorial?: Tutorial;
 }
 
-const initialDateFilter = RELATIVE_DATE_RANGES.filter((relativeDateRange) =>
-    relativeDateRange.name.toLowerCase().includes("last year")
-)[0].filters;
-
 export const initialState = {
     annotationHierarchy: [],
     availableAnnotationsForHierarchy: [],
@@ -62,7 +58,7 @@ export const initialState = {
     },
     displayAnnotations: [],
     fileSelection: new FileSelection(),
-    filters: [...initialDateFilter],
+    filters: [...INITIAL_DATE_FILTER],
     openFileFolders: [],
     shouldDisplaySmallFont: false,
     sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),

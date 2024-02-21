@@ -106,6 +106,12 @@ export const RELATIVE_DATE_RANGES = [
         sort: undefined,
     },
 ];
+export const INITIAL_DATE_FILTER = [
+    new FileFilter(
+        AnnotationName.UPLOADED,
+        `RANGE(${DATE_LAST_YEAR.toISOString()},${END_OF_TODAY.toISOString()})`
+    ),
+];
 
 export const TOP_LEVEL_FILE_ANNOTATIONS = [
     new Annotation({
