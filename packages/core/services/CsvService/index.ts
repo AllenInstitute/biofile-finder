@@ -1,9 +1,11 @@
-import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
-import FileDownloadService, { DownloadResult } from "../FileDownloadService";
+import { DownloadResolution, DownloadResult } from "../FileDownloadService";
 import { Selection } from "../FileService/HttpFileService";
+import DatabaseService from "../DatabaseService";
+import ExecutionEnvService, { ExecutableEnvCancellationToken } from "../ExecutionEnvService";
 
-interface CsvServiceConfig extends ConnectionConfig {
-    downloadService: FileDownloadService;
+interface CsvServiceConfig {
+    database: DatabaseService;
+    executionEnvService: ExecutionEnvService;
 }
 
 export interface CsvManifestRequest {
@@ -15,28 +17,77 @@ export interface CsvManifestRequest {
  * Service responsible for requesting a CSV manifest of metadata for selected files. Delegates
  * heavy-lifting of the downloading to a platform-dependent implementation of the FileDownloadService.
  */
-export default class CsvService extends HttpServiceBase {
-    private static readonly ENDPOINT_VERSION = "2.0";
-    public static readonly BASE_CSV_DOWNLOAD_URL = `file-explorer-service/${CsvService.ENDPOINT_VERSION}/files/selection/manifest`;
-
-    private downloadService: FileDownloadService;
+export default class CsvService {
+    private readonly database: DatabaseService;
+    private readonly executionEnvSerivce: ExecutionEnvService;
 
     public constructor(config: CsvServiceConfig) {
-        super(config);
-        this.downloadService = config.downloadService;
+        this.database = config.database;
+        this.executionEnvSerivce = config.executionEnvService;
     }
 
-    public downloadCsv(
+    public async downloadCsv(
         selectionRequest: CsvManifestRequest,
         manifestDownloadId: string
     ): Promise<DownloadResult> {
-        const stringifiedPostBody = JSON.stringify(selectionRequest);
-        const url = `${this.baseUrl}/${CsvService.BASE_CSV_DOWNLOAD_URL}${this.pathSuffix}`;
+        const { saveLocation, fileName } = await this.executionEnvSerivce.promptForSaveLocation();
+        if (saveLocation === ExecutableEnvCancellationToken) {
+            return {
+                downloadRequestId: manifestDownloadId,
+                msg: `Cancelled download`,
+                resolution: DownloadResolution.CANCELLED,
+            };
+        }
+        const annotationsAsSelect = selectionRequest.annotations
+            .map((annotation) => `"${annotation}"`)
+            .join(", ");
+        const subQueries = selectionRequest.selections.map((selection) => {
+            const numberRangeAsWhereConditions = selection.indexRanges.map(
+                (indexRange) => `"Number" BETWEEN ${indexRange.start} AND ${indexRange.end}`
+            );
 
-        return this.downloadService.downloadCsvManifest(
-            url,
-            stringifiedPostBody,
-            manifestDownloadId
-        );
+            const filterKeys = Object.keys(selection.filters);
+            const filtersAsWhereConditions = filterKeys.map((filterKey) =>
+                selection.filters[filterKey]
+                    .map((filterValue) => `"${filterKey}" = '${filterValue}'`)
+                    .join(" OR ")
+            );
+
+            const orderByCondition =
+                selection.sort &&
+                `"${selection.sort.annotationName}" ${selection.sort.ascending ? "ASC" : "DESC"}`;
+            const orderByClause = orderByCondition ? `ORDER BY ${orderByCondition}` : "";
+            return `
+                SELECT "file_path"
+                FROM (
+                    SELECT ROW_NUMBER() OVER (${orderByClause}) AS "Number", "file_path"
+                    FROM ${this.database.table}
+                    ${
+                        filtersAsWhereConditions.length
+                            ? `WHERE (${filtersAsWhereConditions.join(") AND (")})`
+                            : ""
+                    }
+                ) AS Row
+                WHERE (${numberRangeAsWhereConditions.join(") OR (")})
+                ${orderByClause}
+            `;
+        }, [] as string[]);
+        const sql = `
+            COPY (
+                SELECT ${annotationsAsSelect}
+                FROM ${this.database.table} 
+                WHERE "file_path" IN (
+                    ${subQueries.join(") OR (")}
+                )
+            )
+            TO '${saveLocation}' (HEADER, DELIMITER ',');
+        `;
+        console.log(`sql: ${sql}`);
+        await this.database.query(sql);
+        return {
+            downloadRequestId: manifestDownloadId,
+            msg: `${fileName} downloaded to ${saveLocation}`,
+            resolution: DownloadResolution.SUCCESS,
+        };
     }
 }

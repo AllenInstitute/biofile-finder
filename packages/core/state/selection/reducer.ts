@@ -61,7 +61,7 @@ export const initialState = {
     filters: [],
     openFileFolders: [],
     shouldDisplaySmallFont: false,
-    sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
+    // TODO: Sort by default on uploaded if using FMS????
 };
 
 export default makeReducer<SelectionStateBranch>(

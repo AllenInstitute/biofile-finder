@@ -11,6 +11,7 @@ import {
 } from "./actions";
 import { AnnotationName } from "../../constants";
 import Annotation from "../../entity/Annotation";
+import FileSort, { SortOrder } from "../../entity/FileSort";
 
 /**
  * Interceptor responsible for turning REQUEST_ANNOTATIONS action into a network call for available annotations. Outputs
@@ -24,6 +25,10 @@ const requestAnnotations = createLogic({
         try {
             const annotations = await annotationService.fetchAnnotations();
             dispatch(receiveAnnotations(annotations));
+            if (annotations.find((annotation) => annotation.name === AnnotationName.UPLOADED)) {
+                const sortByUploaded = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
+                dispatch(selection.actions.setSortColumn(sortByUploaded));
+            }
         } catch (err) {
             console.error("Failed to fetch annotations", err);
         } finally {

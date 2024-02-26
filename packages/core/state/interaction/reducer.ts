@@ -58,7 +58,7 @@ export interface InteractionStateBranch {
     visibleModal?: ModalType;
 }
 
-export const initialState = {
+export const initialState: InteractionStateBranch = {
     contextMenuIsVisible: false,
     contextMenuItems: [],
     // Passed to `ContextualMenu` as `target`. From the "@fluentui/react" docs:

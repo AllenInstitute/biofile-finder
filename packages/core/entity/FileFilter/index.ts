@@ -32,13 +32,6 @@ export default class FileFilter {
         return `${this.annotationName}=${this.annotationValue}`;
     }
 
-    public toQuerySQL(): string {
-        if (this.annotationValue === null) {
-            return `"${this.annotationName}" IS NOT NULL`;
-        }
-        return `"${this.annotationName}" = '${this.annotationValue}'`;
-    }
-
     public toJSON(): FileFilterJson {
         return {
             name: this.annotationName,

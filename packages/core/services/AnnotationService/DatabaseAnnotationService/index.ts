@@ -71,7 +71,7 @@ export default class CsvAnnotationService implements AnnotationService {
         const rows = await this.database.query(sql);
         return [
             ...rows.reduce((valueSet, row) => {
-                row[select_key].split(",").forEach((value) => valueSet.add(value.trim()));
+                `${row[select_key]}`.split(",").forEach((value) => valueSet.add(value.trim()));
                 return valueSet;
             }, new Set<string>()),
         ];
@@ -89,25 +89,29 @@ export default class CsvAnnotationService implements AnnotationService {
         path: string[],
         filters: FileFilter[]
     ): Promise<string[]> {
-        const annotationsInFilters = filters.reduce(
-            (annotations, filter) => annotations.add(filter.name),
-            new Set<string>()
-        );
-        const hierarchyAsFilters = hierarchy
+        const filtersByAnnotation = filters.reduce((map, filter) => {
+            const annotationValues = map[filter.name] ? map[filter.name] : [];
+            annotationValues.push(filter.value);
+            return { ...map, [filter.name]: annotationValues };
+        }, {} as { [name: string]: (string | null)[] });
+        hierarchy
             // Map before filter because index is important to map to the path
-            .map(
-                (annotation, index) =>
-                    new FileFilter(annotation, index < path.length ? path[index] : null)
-            )
-            // Filters are more specific than hierarchy, so we don't need to include them again
-            .filter((filter) => !annotationsInFilters.has(filter.name));
-        const whereConditions = [...filters, ...hierarchyAsFilters].map((filter) =>
-            filter.toQuerySQL()
-        );
+            .forEach((annotation, index) => {
+                if (!filtersByAnnotation[annotation]) {
+                    filtersByAnnotation[annotation] = [index < path.length ? path[index] : null];
+                }
+            });
+        const whereFilters = Object.keys(filtersByAnnotation).map((annotation) => {
+            const annotationValues = filtersByAnnotation[annotation];
+            if (annotationValues[0] === null) {
+                return `"${annotation}" IS NOT NULL`;
+            }
+            return annotationValues.map((value) => `"${annotation}" = '${value}'`).join(") OR (");
+        });
         const sql = `                                       
             SELECT DISTINCT "${hierarchy[path.length]}"
             FROM ${this.database.table}                                    
-            WHERE ${whereConditions.join(" AND ")}
+            WHERE (${whereFilters.join(") AND (")})
         `;
         const rows = await this.database.query(sql);
         return rows.map((row) => row[hierarchy[path.length]]);

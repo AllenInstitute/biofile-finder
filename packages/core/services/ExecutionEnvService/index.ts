@@ -1,3 +1,8 @@
+export interface SaveLocationResolution {
+    fileName: string;
+    saveLocation: string;
+}
+
 /**
  * Interface that defines a platform-dependent service for prompting users about executables.
  */
@@ -27,6 +32,8 @@ export default interface ExecutionEnvService {
      * the reason for the prompt before actually prompting them for the executable path using their native file browser.
      */
     promptForExecutable(promptTitle: string, reasonForPrompt?: string): Promise<string>;
+
+    promptForSaveLocation(promptTitle?: string): Promise<SaveLocationResolution>;
 
     /**
      * TODO

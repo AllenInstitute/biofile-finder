@@ -58,7 +58,6 @@ import FileSelection from "../../entity/FileSelection";
 import FileFilter from "../../entity/FileFilter";
 import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileSort, { SortOrder } from "../../entity/FileSort";
-import { HttpServiceBase } from "../../services";
 
 /**
  * Interceptor responsible for responding to a SET_PLATFORM_DEPENDENT_SERVICES action and
@@ -99,24 +98,17 @@ const downloadManifest = createLogic({
 
         try {
             const state = deps.getState();
-            const applicationVersion = interactionSelectors.getApplicationVersion(state);
-            const collection = selection.selectors.getCollection(state);
-            const baseUrl = interactionSelectors.getFileExplorerServiceBaseUrl(state);
-            const platformDependentServices = interactionSelectors.getPlatformDependentServices(
-                state
-            );
+            const {
+                databaseService,
+                executionEnvService,
+            } = interactionSelectors.getPlatformDependentServices(state);
             let fileSelection = selection.selectors.getFileSelection(state);
             const filters = interactionSelectors.getFileFiltersForVisibleModal(state);
             const fileService = interactionSelectors.getFileService(state);
             const sortColumn = selection.selectors.getSortColumn(state);
-            const pathSuffix = collection
-                ? `/within/${HttpServiceBase.encodeURI(collection.name)}/${collection.version}`
-                : undefined;
             const csvService = new CsvService({
-                applicationVersion,
-                baseUrl,
-                pathSuffix,
-                downloadService: platformDependentServices.fileDownloadService,
+                database: databaseService,
+                executionEnvService,
             });
 
             // If we have a specific path to get files from ignore selected files

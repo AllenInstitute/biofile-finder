@@ -7,6 +7,7 @@ import { dialog, ipcMain, ipcRenderer } from "electron";
 import {
     ExecutionEnvService,
     ExecutableEnvCancellationToken,
+    SaveLocationResolution,
     SystemDefaultAppLocation,
 } from "../../../core/services";
 import FmsFilePath from "../domain/FmsFilePath";
@@ -164,6 +165,28 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
                 );
             }
         }
+    }
+
+    public async promptForSaveLocation(promptTitle?: string): Promise<SaveLocationResolution> {
+        // Continuously try to set a valid executable location until the user cancels
+        const platform = os.platform();
+        const saveLocation = await this.selectPath({
+            ...ExecutionEnvServiceElectron.getDefaultOpenDialogOptions(platform),
+            properties: ["openFile"],
+            title: promptTitle,
+        });
+
+        let fileName;
+        if (saveLocation === ExecutableEnvCancellationToken) {
+            fileName = ExecutableEnvCancellationToken;
+        } else {
+            fileName = path.basename(saveLocation);
+        }
+
+        return {
+            fileName,
+            saveLocation,
+        };
     }
 
     public async isValidExecutable(executablePath: string): Promise<boolean> {

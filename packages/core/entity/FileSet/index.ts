@@ -175,14 +175,22 @@ export default class FileSet {
      * TODO
      */
     public toQuerySQL(options: { ignoreSort?: boolean } = {}): string {
-        // filters must be sorted in order to ensure requests can be effectively cached
-        const whereFilters = this.filters
-            .map((filter) => filter.toQuerySQL())
-            .sort((a, b) => a.localeCompare(b));
+        const filtersByAnnotation = this.filters.reduce((map, filter) => {
+            const annotationValues = map[filter.name] ? map[filter.name] : [];
+            annotationValues.push(filter.value);
+            return { ...map, [filter.name]: annotationValues };
+        }, {} as { [name: string]: string[] });
+        const whereFilters = Object.keys(filtersByAnnotation).map((annotation) => {
+            const annotationValues = filtersByAnnotation[annotation];
+            if (annotationValues[0] === null) {
+                return `) "${annotation}" IS NOT NULL (`;
+            }
+            return annotationValues.map((value) => `"${annotation}" = '${value}'`).join(") OR (");
+        });
 
         const sqlParts = [];
         if (whereFilters.length) {
-            sqlParts.push(`WHERE ${whereFilters.join(" AND ")}`);
+            sqlParts.push(`WHERE (${whereFilters.join(") AND (")})`);
         }
         if (this.sort && !options?.ignoreSort) {
             sqlParts.push(this.sort.toQuerySQL());

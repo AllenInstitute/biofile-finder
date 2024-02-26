@@ -1,4 +1,4 @@
-import ExecutionEnvService from ".";
+import ExecutionEnvService, { SaveLocationResolution } from ".";
 
 export default class ExecutionEnvServiceNoop implements ExecutionEnvService {
     public async formatPathForHost(posixPath: string): Promise<string> {
@@ -11,6 +11,10 @@ export default class ExecutionEnvServiceNoop implements ExecutionEnvService {
 
     public getOS(): string {
         return "ExecutionEnvServiceNoop::getOS";
+    }
+
+    public promptForSaveLocation(): Promise<SaveLocationResolution> {
+        return Promise.reject("ExecutionEnvServiceNoop:promptForSaveLocation");
     }
 
     public promptForExecutable(): Promise<string> {

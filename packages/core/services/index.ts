@@ -6,6 +6,7 @@ export { DataSource } from "./DatabaseService";
 export { default as DatasetService } from "./DatasetService";
 export type { default as ExecutionEnvService } from "./ExecutionEnvService";
 export { ExecutableEnvCancellationToken, SystemDefaultAppLocation } from "./ExecutionEnvService";
+export type { SaveLocationResolution } from "./ExecutionEnvService";
 export type {
     default as FileDownloadService,
     DownloadResult,
