@@ -474,4 +474,30 @@ describe("<DirectoryTree />", () => {
         header = await findByTestId(directoryTreeNodes[0], "treeitemheader"); // refresh node
         expect(header.classList.contains(styles.focused)).to.be.true;
     });
+
+    it("displays 'No files found' when no files found", async () => {
+        sandbox.restore();
+        const emptyFileService = new FileService();
+        sandbox.stub(interaction.selectors, "getFileService").returns(emptyFileService);
+
+        const { store } = configureMockStore({
+            state,
+            responseStubs,
+            reducer,
+            logics: reduxLogics,
+        });
+
+        const { queryAllByRole, findByText } = render(
+            <Provider store={store}>
+                <DirectoryTree />
+            </Provider>
+        );
+
+        // No tree items should load
+        const directoryTreeNodes = queryAllByRole("treeitem");
+        expect(directoryTreeNodes.length).to.equal(0);
+
+        // Wait for the fileService call to return, then check for empty list message
+        await findByText("Sorry! No files found");
+    });
 });

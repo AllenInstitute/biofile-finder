@@ -1,0 +1,13 @@
+.empty-file-list-container {
+    display: flex;
+    height: 100%;
+}
+
+.empty-file-list-message {
+    margin: auto;
+    text-align: center;
+}
+
+.empty-search-icon {
+    font-size: 7em;
+}
