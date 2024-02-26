@@ -794,6 +794,7 @@ describe("Selection logics", () => {
                 logics: selectionLogics,
                 state: initialState,
             });
+            const currentFilters = initialState.selection.filters;
 
             // act
             const filter = new FileFilter("foo", 2);
@@ -804,7 +805,7 @@ describe("Selection logics", () => {
             expect(
                 actions.includes({
                     type: SET_FILE_FILTERS,
-                    payload: [filter],
+                    payload: [filter, ...currentFilters],
                 })
             ).to.equal(true);
         });
