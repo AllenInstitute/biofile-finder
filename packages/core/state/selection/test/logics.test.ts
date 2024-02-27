@@ -41,6 +41,7 @@ import { AnnotationName } from "../../../constants";
 import { DatasetService } from "../../../services";
 import { Dataset } from "../../../services/DatasetService";
 import { receiveCollections } from "../../metadata/actions";
+import HttpFileService from "../../../services/FileService/HttpFileService";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -322,7 +323,7 @@ describe("Selection logics", () => {
         const totalFileSize = 50;
         const responseStubs: ResponseStub[] = [
             {
-                when: (config) => (config.url || "").includes(FileService.BASE_FILE_COUNT_URL),
+                when: (config) => (config.url || "").includes(HttpFileService.BASE_FILE_COUNT_URL),
                 respondWith: {
                     data: { data: [totalFileSize] },
                 },
@@ -330,7 +331,7 @@ describe("Selection logics", () => {
         ];
         const baseUrl = "test";
         const mockHttpClient = createMockHttpClient(responseStubs);
-        const fileService = new FileService({ baseUrl, httpClient: mockHttpClient });
+        const fileService = new HttpFileService({ baseUrl, httpClient: mockHttpClient });
         const fileSet = new FileSet({ fileService: fileService });
 
         before(() => {

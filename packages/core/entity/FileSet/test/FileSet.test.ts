@@ -3,11 +3,10 @@ import { expect } from "chai";
 import { createSandbox } from "sinon";
 
 import FileFilter from "../../FileFilter";
-import FileService from "../../../services/FileService";
 import FileSet from "../";
 import FileSort, { SortOrder } from "../../FileSort";
-import RestServiceResponse from "../../RestServiceResponse";
 import { makeFileDetailMock } from "../../FileDetail/mocks";
+import HttpFileService from "../../../services/FileService/HttpFileService";
 
 describe("FileSet", () => {
     const scientistEqualsJane = new FileFilter("scientist", "jane");
@@ -51,14 +50,10 @@ describe("FileSet", () => {
         });
 
         it("returns slices of the file list represented by the FileSet, specified by index position", async () => {
-            const fileService = new FileService();
+            const fileService = new HttpFileService();
             sandbox.replace(fileService, "getFiles", () =>
                 Promise.resolve(
-                    new RestServiceResponse({
-                        data: files.slice(1, 4),
-                        offset: 0,
-                        responseType: "SUCCESS",
-                    })
+                    files.slice(1, 4)
                 )
             );
             const fileSet = new FileSet({ fileService });
@@ -69,37 +64,37 @@ describe("FileSet", () => {
             const baseUrl = "test";
             const spec = [
                 {
-                    expectedUrl: `${baseUrl}/${FileService.BASE_FILES_URL}?from=1&limit=28`,
+                    expectedUrl: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=1&limit=28`,
                     start: 35,
                     end: 55,
                 },
                 {
-                    expectedUrl: `${baseUrl}/${FileService.BASE_FILES_URL}?from=11&limit=23`,
+                    expectedUrl: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=11&limit=23`,
                     start: 256,
                     end: 274,
                 },
                 {
-                    expectedUrl: `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=6`,
+                    expectedUrl: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=6`,
                     start: 0,
                     end: 5,
                 },
                 {
-                    expectedUrl: `${baseUrl}/${FileService.BASE_FILES_URL}?from=1&limit=11`,
+                    expectedUrl: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=1&limit=11`,
                     start: 14,
                     end: 21,
                 },
                 {
-                    expectedUrl: `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=6`,
+                    expectedUrl: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=6`,
                     start: 2,
                     end: 5,
                 },
                 {
-                    expectedUrl: `${baseUrl}/${FileService.BASE_FILES_URL}?from=3&limit=4`,
+                    expectedUrl: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=3&limit=4`,
                     start: 12,
                     end: 15,
                 },
                 {
-                    expectedUrl: `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=301`,
+                    expectedUrl: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=301`,
                     start: 2,
                     end: 300,
                 },
@@ -119,7 +114,7 @@ describe("FileSet", () => {
 
                 const getSpy = sandbox.spy(httpClient, "get");
                 const fileSet = new FileSet({
-                    fileService: new FileService({ httpClient, baseUrl }),
+                    fileService: new HttpFileService({ httpClient, baseUrl }),
                 });
 
                 await fileSet.fetchFileRange(testCase.start, testCase.end);
@@ -140,15 +135,11 @@ describe("FileSet", () => {
         const fileIds: string[] = ["abc123", "def456", "ghi789", "jkl012", "mno345"];
         const files = fileIds.map((id) => makeFileDetailMock(id));
 
-        const fileService = new FileService();
+        const fileService = new HttpFileService();
         const fileSet = new FileSet({ fileService });
         sandbox.replace(fileService, "getFiles", () =>
             Promise.resolve(
-                new RestServiceResponse({
-                    data: files.slice(),
-                    offset: 0,
-                    responseType: "SUCCESS",
-                })
+                files.slice()
             )
         );
 

@@ -8,7 +8,7 @@ import NumericRange from "../../NumericRange";
 import FileSelection, { FocusDirective } from "..";
 import FileFilter from "../../FileFilter";
 import { IndexError, ValueError } from "../../../errors";
-import FileService from "../../../services/FileService";
+import HttpFileService from "../../../services/FileService/HttpFileService";
 
 describe("FileSelection", () => {
     describe("select", () => {
@@ -347,12 +347,12 @@ describe("FileSelection", () => {
             // Due to overfetching the result set we desire is a subsection of query results
             const expectedDetails = queryResult.slice(1, 31);
             const httpClient = createMockHttpClient({
-                when: `${baseUrl}/${FileService.BASE_FILES_URL}?from=${0}&limit=${31}`,
+                when: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=${0}&limit=${31}`,
                 respondWith: {
                     data: { data: queryResult },
                 },
             });
-            const fileService = new FileService({ baseUrl, httpClient });
+            const fileService = new HttpFileService({ baseUrl, httpClient });
             const selection = new FileSelection().select({
                 fileSet: new FileSet({ fileService }),
                 index: new NumericRange(1, 30),

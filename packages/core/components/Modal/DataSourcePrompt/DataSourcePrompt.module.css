@@ -15,14 +15,31 @@
     margin: 0 auto 0 auto;
 }
 
-.browse-button, .browse-button:hover {
+.file-input-form {
+    align-items: center;
+    display: flex;
+}
+
+.file-input {
+    opacity: 0;
+    width: 0;
+}
+
+.file-input-label, .file-input-label:hover {
     background-color: #bab5c9;
     border: none;
     color: #3b3b3b;
+    display: flex;
+    font-weight: bold;
+    padding: 1em 2em;
 }
 
-.browse-button:hover {
+.file-input-label:hover {
     color: white;
+}
+
+.file-input-label > p {
+    margin: 0 0 0 4px;
 }
 
 .or-divider {

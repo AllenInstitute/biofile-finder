@@ -99,7 +99,7 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                     key: ContextMenuActions.OPEN_3D_VIEWER,
                     text: "Open 3D Viewer",
                     title: "Open this file in the AICS 3D Viewer",
-                    href: `https://dev-aics-dtp-001.int.allencell.org/website-3d-cell-viewer/imageviewer/?url=${filePath}/`,
+                    href: `https://allen-cell-animated.github.io/website-3d-cell-viewer/?url=${filePath}/`,
                     target: "_blank",
                     disabled: !filePath,
                 },
@@ -113,11 +113,11 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                     item.onClick = () => {
                         dispatch(interaction.actions.openWithDefault(filters));
                     };
-                } else if (item.key === ContextMenuActions.CSV_MANIFEST) {
+                } else if (item.key === ContextMenuActions.CSV) {
                     item.onClick = () => {
                         dispatch(interaction.actions.showManifestDownloadDialog(filters));
                     };
-                } else if (item.key === ContextMenuActions.SHARE) {
+                } else if (item.key === ContextMenuActions.SAVE_AS) {
                     item.subMenuProps = {
                         items: item.subMenuProps?.items.map((subItem) => {
                             if (subItem.key === ContextMenuActions.CUSTOM_COLLECTION) {

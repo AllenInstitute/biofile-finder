@@ -14,7 +14,7 @@ import { createSandbox } from "sinon";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
-import FileService from "../../../services/FileService";
+import HttpFileService from "../../../services/FileService/HttpFileService";
 import { initialState, interaction } from "../../../state";
 
 import AggregateInfoBox from "..";
@@ -25,14 +25,14 @@ describe("<AggregateInfoBox />", () => {
     const uniqueFileCount = 3413;
     const responseStubs: ResponseStub[] = [
         {
-            when: (config) => _get(config, "url", "").includes(FileService.SELECTION_AGGREGATE_URL),
+            when: (config) => _get(config, "url", "").includes(HttpFileService.SELECTION_AGGREGATE_URL),
             respondWith: {
                 data: { data: [{ count: uniqueFileCount, size: 3 }] },
             },
         },
     ];
     const mockHttpClient = createMockHttpClient(responseStubs);
-    const fileService = new FileService({ baseUrl, httpClient: mockHttpClient });
+    const fileService = new HttpFileService({ baseUrl, httpClient: mockHttpClient });
 
     before(() => {
         sandbox.stub(interaction.selectors, "getFileService").returns(fileService);

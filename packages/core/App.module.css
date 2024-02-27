@@ -85,7 +85,7 @@
 .annotation-hierarchy-and-file-list {
     display: flex;
     width: 100%;
-    height: calc(100% - var(--url-bar-height) - var(--margin));
+    height: calc(100% - var(--margin));
 }
 
 .annotation-hierarchy {

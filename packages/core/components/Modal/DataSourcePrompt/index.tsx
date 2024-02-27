@@ -16,6 +16,7 @@ import BaseModal from "../BaseModal";
 import { interaction, metadata, selection } from "../../../state";
 
 import styles from "./DataSourcePrompt.module.css";
+import { Dataset } from "../../../services/DatasetService";
 
 interface Props extends ModalProps {
     isEditing?: boolean;
@@ -35,9 +36,10 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
     const fileExplorerServiceBaseUrl = useSelector(
         interaction.selectors.getFileExplorerServiceBaseUrl
     );
-    const { databaseService } = useSelector(interaction.selectors.getPlatformDependentServices);
+    const { databaseService, notificationService } = useSelector(interaction.selectors.getPlatformDependentServices);
     const lastUsedCollection = useSelector(interaction.selectors.getLastUsedCollection);
     const collections = useSelector(metadata.selectors.getCollections);
+    const userName = useSelector(interaction.selectors.getUserName);
     const [isCheckingForDataSource, setIsCheckingForDataSource] = React.useState(true);
 
     const [dataSourceURL, setDataSourceURL] = React.useState("");
@@ -96,8 +98,45 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
         fileExplorerServiceBaseUrl,
     ]);
 
-    const onChooseFile = () => {
-        dispatch(interaction.actions.browseForCollectionSource());
+    const onChooseFile = (fileSelectionEvent: React.ChangeEvent<HTMLInputElement> ) => {
+        fileSelectionEvent.preventDefault();
+        const fileList = fileSelectionEvent.target.files;
+        if (fileList) {
+            if (fileList.length > 1) {
+                notificationService.showError("File Selection", "Too many files selected");
+            } else if (fileList.length) {
+                const file = fileList[0];
+                console.log(file.name);
+                const path = ""; // TODO
+                const uri = file.arrayBuffer as any;
+                console.log("uri");
+                console.log(uri)
+        
+                const reader = new FileReader();
+                reader.readAsArrayBuffer(file);
+                reader.onload = function (evt) {
+                    console.log(evt.target?.result);
+
+                    const csvAsCollection = {
+                        id: path,
+                        name: file.name,
+                        version: 1,
+                        query: "",
+                        client: "",
+                        fixed: true,
+                        uri: file as any,
+                        private: true,
+                        created: new Date(),
+                        createdBy: userName,
+                    } as Dataset;
+                    dispatch(selection.actions.changeCollection(csvAsCollection));
+                    dispatch(interaction.actions.hideVisibleModal());
+                }
+                reader.onerror = function (evt) {
+                    console.log("error reading file");
+                }
+            }
+        }
     };
     const onEnterURL = debounce(
         (evt: React.FormEvent) => {
@@ -164,14 +203,25 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
                 </div>
             )}
             <div className={styles.actionsContainer}>
-                <DefaultButton
-                    className={styles.browseButton}
-                    ariaLabel="Browse for a data source file on your machine"
-                    iconProps={{ iconName: "DocumentSearch" }}
-                    onClick={onChooseFile}
-                    text="Choose File"
-                    title="Browse for a data source file on your machine"
-                />
+                <form className={styles.fileInputForm}>
+                    <label
+                        className={styles.fileInputLabel}
+                        aria-label="Browse for a data source file on your machine"
+                        title="Browse for a data source file on your machine"
+                        htmlFor="data-source-selector"
+                    >
+                        <Icon iconName="DocumentSearch"/>
+                        <p>Choose File</p>
+                    </label>
+                    <input
+                        className={styles.fileInput}
+                        accept=".csv,.json,.parquet"
+                        type="file"
+                        id="data-source-selector"
+                        name="data-source-selector"
+                        onChange={onChooseFile}
+                    />
+                </form>
                 <div className={styles.orDivider}>
                     <hr />
                     or

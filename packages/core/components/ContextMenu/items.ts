@@ -1,21 +1,22 @@
-import { ContextualMenuItemType } from "@fluentui/react";
+import { ContextualMenuItemType, IContextualMenuItem } from "@fluentui/react";
 import { Dispatch } from "redux";
 
 import { interaction } from "../../state";
 
 export enum ContextMenuActions {
     COPY = "copy",
-    CSV_MANIFEST = "csv-manifest",
+    COLLECTION = "collection",
     CUSTOM_COLLECTION = "custom-collection",
     DEFAULT_COLLECTION = "default-collection",
     DOWNLOAD = "download",
-    DOWNLOAD_TO = "download-to",
     MODIFY_COLUMNS = "modify-columns",
+    CSV = "csv",
+    COMPRESSED_DATA_SOURCE = "compressed-data-source",
     OPEN = "open",
     OPEN_WITH = "open-with",
     OPEN_WITH_OTHER = "open-with-other",
     PASTE = "paste",
-    SHARE = "share",
+    SAVE_AS = "save-as",
     OPEN_3D_VIEWER = "open-3d-viewer",
     OPEN_AS_URL = "open-as-url",
     OPEN_PLATE_UI = "open-plate-ui",
@@ -28,21 +29,29 @@ const MENU_HEADER_STYLES = {
     },
 };
 
+interface ContextMenuItems {
+    ACCESS: IContextualMenuItem[],
+    COPY: IContextualMenuItem,
+    MODIFY_COLUMNS: IContextualMenuItem,
+    PASTE: IContextualMenuItem,
+}
+
 /**
  * This is intended to be a catalogue of context menu items and that can be reused as various context menus are built up
  * throughout the app. Many of the `onClick` methods of the items/subitems will require access to the Redux store's `dispatch`,
  * so this "factory" of sorts is parameterized by `dispatch`, and thereby available to `onClick` handlers through closure.
  */
-export default function getContextMenuItems(dispatch: Dispatch) {
+export default function getContextMenuItems(dispatch: Dispatch): ContextMenuItems {
     return {
         ACCESS: [
-            {
-                key: ContextMenuActions.OPEN,
-                text: "Open",
-                onClick() {
-                    dispatch(interaction.actions.openWithDefault());
-                },
-            },
+            // TODO: This would still be cool on desktop
+            // {
+            //     key: ContextMenuActions.OPEN,
+            //     text: "Open",
+            //     onClick() {
+            //         dispatch(interaction.actions.openWithDefault());
+            //     },
+            // },
             {
                 key: ContextMenuActions.OPEN_WITH,
                 text: "Open with",
@@ -50,67 +59,35 @@ export default function getContextMenuItems(dispatch: Dispatch) {
                 // inserted here
             },
             {
-                key: ContextMenuActions.SHARE,
-                text: "Share Collection",
+                key: ContextMenuActions.SAVE_AS,
+                text: "Save as",
                 subMenuProps: {
                     items: [
                         {
-                            key: "default-configuration-header",
-                            text: "Default Configuration",
-                            itemType: ContextualMenuItemType.Header,
-                            itemProps: {
-                                styles: MENU_HEADER_STYLES,
-                            },
-                        },
-                        {
-                            key: ContextMenuActions.DEFAULT_COLLECTION,
-                            text: "Not-frozen, expires tomorrow",
-                            title: "Shareable FMS File Explorer URL to file selection",
+                            key: ContextMenuActions.CSV,
+                            text: "CSV",
+                            title: "CSV manifest containing the selected files",
                             onClick() {
-                                dispatch(interaction.actions.generateShareableFileSelectionLink());
+                                dispatch(interaction.actions.showManifestDownloadDialog());
                             },
                         },
                         {
-                            key: "custom-configuration-header",
-                            text: "Custom Configuration",
-                            itemType: ContextualMenuItemType.Header,
-                            itemProps: {
-                                styles: MENU_HEADER_STYLES,
-                            },
-                        },
-                        {
-                            key: ContextMenuActions.CUSTOM_COLLECTION,
-                            text: "Configure...",
-                            title: "Shareable custom collection",
+                            key: ContextMenuActions.COMPRESSED_DATA_SOURCE,
+                            text: "Compressed Data Source",
+                            title: "New data source file containing the selected files",
                             onClick() {
-                                dispatch(interaction.actions.showCreateCollectionDialog());
+                                dispatch(interaction.actions.showManifestDownloadDialog());
                             },
                         },
-                    ],
-                },
-            },
-            {
-                key: ContextMenuActions.CSV_MANIFEST,
-                text: "Generate CSV manifest",
-                title: "CSV file of metadata of selected files",
-                onClick() {
-                    dispatch(interaction.actions.showManifestDownloadDialog());
+                    ]
                 },
             },
             {
                 key: ContextMenuActions.DOWNLOAD,
                 text: "Download",
-                title: "Download selected files to downloads directory",
+                title: "Download selected files",
                 onClick() {
                     dispatch(interaction.actions.downloadFiles());
-                },
-            },
-            {
-                key: ContextMenuActions.DOWNLOAD_TO,
-                text: "Download to...",
-                title: "Download selected files to a specific directory",
-                onClick() {
-                    dispatch(interaction.actions.downloadFiles(undefined, true));
                 },
             },
         ],

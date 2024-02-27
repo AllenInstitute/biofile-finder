@@ -80,7 +80,7 @@ export interface DownloadFilesAction {
 
 export function downloadFiles(
     files?: FmsFile[],
-    shouldPromptForDownloadDirectory = false
+    shouldPromptForDownloadDirectory = true // TODO: Remove
 ): DownloadFilesAction {
     return {
         payload: {

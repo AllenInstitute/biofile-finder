@@ -1,4 +1,3 @@
-import * as path from "path";
 import { isEmpty, sumBy, throttle, uniq, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 import { batch } from "react-redux";
@@ -295,62 +294,62 @@ const downloadFiles = createLogic({
     },
 });
 
-const promptForNewExecutable = createLogic({
-    async process(deps: ReduxLogicDeps, dispatch, done) {
-        const {
-            executionEnvService,
-            notificationService,
-        } = interactionSelectors.getPlatformDependentServices(deps.getState());
-        const fileSelection = selection.selectors.getFileSelection(deps.getState());
-        const userSelectedApplications = interactionSelectors.getUserSelectedApplications(
-            deps.getState()
-        );
+// const promptForNewExecutable = createLogic({
+//     async process(deps: ReduxLogicDeps, dispatch, done) {
+//         const {
+//             executionEnvService,
+//             notificationService,
+//         } = interactionSelectors.getPlatformDependentServices(deps.getState());
+//         const fileSelection = selection.selectors.getFileSelection(deps.getState());
+//         const userSelectedApplications = interactionSelectors.getUserSelectedApplications(
+//             deps.getState()
+//         );
 
-        const executableLocation = await executionEnvService.promptForExecutable(
-            "Select Application to Open Selected Files With"
-        );
+//         const executableLocation = await executionEnvService.promptForExecutable(
+//             "Select Application to Open Selected Files With"
+//         );
 
-        // Continue unless the user cancelled the prompt
-        if (executableLocation !== ExecutableEnvCancellationToken) {
-            // Determine the kinds of files currently selected
-            const selectedFilesDetails = await fileSelection.fetchAllDetails();
-            const fileKinds = uniq(
-                selectedFilesDetails.flatMap(
-                    (file) =>
-                        file.annotations.find((a) => a.name === AnnotationName.KIND)
-                            ?.values as string[]
-                )
-            );
+//         // Continue unless the user cancelled the prompt
+//         if (executableLocation !== ExecutableEnvCancellationToken) {
+//             // Determine the kinds of files currently selected
+//             const selectedFilesDetails = await fileSelection.fetchAllDetails();
+//             const fileKinds = uniq(
+//                 selectedFilesDetails.flatMap(
+//                     (file) =>
+//                         file.annotations.find((a) => a.name === AnnotationName.KIND)
+//                             ?.values as string[]
+//                 )
+//             );
 
-            // Ask whether this app should be the default for
-            // the file kinds selected
-            const filename = path.basename(executableLocation);
-            const shouldSetAsDefault = await notificationService.showQuestion(
-                `${filename}`,
-                `Set ${filename} as the default for ${fileKinds} files?`
-            );
-            const defaultFileKinds = shouldSetAsDefault ? fileKinds : [];
+            // // Ask whether this app should be the default for
+            // // the file kinds selected
+            // const filename = path.basename(executableLocation);
+            // const shouldSetAsDefault = await notificationService.showQuestion(
+            //     `${filename}`,
+            //     `Set ${filename} as the default for ${fileKinds} files?`
+            // );
+            // const defaultFileKinds = shouldSetAsDefault ? fileKinds : [];
 
-            // Update previously saved apps if necessary & add this one
-            const newApp = { filePath: executableLocation, defaultFileKinds };
-            const existingApps = (userSelectedApplications || [])
-                .filter((app) => path.basename(app.filePath) !== filename)
-                .map((app) => ({
-                    ...app,
-                    defaultFileKinds: app.defaultFileKinds.filter(
-                        (kind: string) => !defaultFileKinds.includes(kind)
-                    ),
-                }));
-            const apps = [...existingApps, newApp];
+            // // Update previously saved apps if necessary & add this one
+            // const newApp = { filePath: executableLocation, defaultFileKinds };
+            // const existingApps = (userSelectedApplications || [])
+            //     .filter((app) => path.basename(app.filePath) !== filename)
+            //     .map((app) => ({
+            //         ...app,
+            //         defaultFileKinds: app.defaultFileKinds.filter(
+            //             (kind: string) => !defaultFileKinds.includes(kind)
+            //         ),
+            //     }));
+            // const apps = [...existingApps, newApp];
 
             // Save app configuration & open files in new app
-            dispatch(setUserSelectedApplication(apps));
-            dispatch(openWith(newApp, deps.action.payload));
-        }
-        done();
-    },
-    type: PROMPT_FOR_NEW_EXECUTABLE,
-});
+            // dispatch(setUserSelectedApplication(apps));
+            // dispatch(openWith(newApp, deps.action.payload));
+//         }
+//         done();
+//     },
+//     type: PROMPT_FOR_NEW_EXECUTABLE,
+// });
 
 const SYSTEM_DEFAULT_APP: UserSelectedApplication = Object.freeze({
     defaultFileKinds: [],
@@ -715,7 +714,7 @@ export default [
     browseForCollectionSource,
     openWithDefault,
     openWithLogic,
-    promptForNewExecutable,
+    // promptForNewExecutable,
     downloadFiles,
     showContextMenu,
     updateCollection,

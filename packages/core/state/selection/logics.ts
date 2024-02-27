@@ -446,6 +446,8 @@ const changeCollectionLogic = createLogic({
         );
         const collections = metadata.selectors.getActiveCollections(deps.getState());
         if (collection?.uri) {
+            console.log("Found URI!!!");
+            console.log(collection.uri)
             await databaseService.setDataSource(collection.uri);
         }
         if (collection && collections.find((collection) => collection.id === collection.id)) {
@@ -461,15 +463,16 @@ const changeCollectionLogic = createLogic({
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
-        if (action.payload?.uri) {
-            const dataSource = await databaseService.getDataSource(action.payload?.uri);
-            action.payload = {
-                ...action.payload,
-                id: dataSource.name,
-                name: dataSource.name,
-                created: dataSource.created,
-            };
-        }
+        // TODO: BROOOOOO
+        // if (action.payload?.uri) {
+        //     const dataSource = await databaseService.getDataSource(action.payload?.uri);
+        //     action.payload = {
+        //         ...action.payload,
+        //         id: dataSource.name,
+        //         name: dataSource.name,
+        //         created: dataSource.created,
+        //     };
+        // }
         next(action);
     },
 });

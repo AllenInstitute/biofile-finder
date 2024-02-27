@@ -6,8 +6,8 @@ import { expect } from "chai";
 import { Provider } from "react-redux";
 import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { initialState } from "../../../state";
-import FileService from "../../../services/FileService";
 import { createSandbox } from "sinon";
+import HttpFileService from "../../../services/FileService/HttpFileService";
 
 describe("<FileList />", () => {
     it("Calls getCountOfMatchingFiles() on mount and properly updates state afterwards", async () => {
@@ -15,7 +15,7 @@ describe("<FileList />", () => {
         const { store } = configureMockStore({ state });
 
         const sandbox = createSandbox();
-        const fileService = new FileService();
+        const fileService = new HttpFileService();
         sandbox.replace(fileService, "getCountOfMatchingFiles", () => Promise.resolve(999));
         const fileSet = new FileSet({ fileService });
 
@@ -38,7 +38,7 @@ describe("<FileList />", () => {
         const { store } = configureMockStore({ state: initialState });
 
         const sandbox = createSandbox();
-        const fileService = new FileService();
+        const fileService = new HttpFileService();
         sandbox.replace(fileService, "getCountOfMatchingFiles", () => Promise.resolve(0));
         const fileSet = new FileSet({ fileService });
 

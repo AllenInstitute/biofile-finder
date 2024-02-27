@@ -49,18 +49,18 @@ export default function HeaderRibbon(props: HeaderRibbonProps) {
             <div className={styles.headerBar}>
                 <h5 className={styles.controlGroup}>
                     <div id={Tutorial.COLLECTIONS_TITLE_ID}>
-                        Collection {selectedCollection && `(${selectedCollection?.name})`}
+                        Data Source {selectedCollection && `(${selectedCollection?.name})`}
                     </div>
                     <TooltipHost content={COLLECTION_TOOLTIP}>
                         <Icon className={styles.infoIcon} iconName="Info" />
                     </TooltipHost>
                 </h5>
-                <h5 className={styles.controlGroup}>
+                {/* <h5 className={styles.controlGroup}>
                     <div id={Tutorial.VIEWS_TITLE_ID}>View</div>
                     <TooltipHost content={VIEW_TOOLTIP}>
                         <Icon className={styles.infoIcon} iconName="Info" />
                     </TooltipHost>
-                </h5>
+                </h5> */}
                 <div className={classNames(styles.controlGroup, styles.filler)} />
                 <h5 className={classNames(styles.controlGroup, styles.smallerControlGroup)}>
                     <div id={HELP_TITLE_ID}>Help</div>
@@ -76,7 +76,7 @@ export default function HeaderRibbon(props: HeaderRibbonProps) {
                     selectedCollection={selectedCollection}
                     onCollapse={() => setCollapsed(true)}
                 />
-                <ViewControl className={styles.controlGroup} isCollapsed={isCollapsed} />
+                {/* <ViewControl className={styles.controlGroup} isCollapsed={isCollapsed} /> */}
                 <div className={classNames(styles.controlGroup, styles.filler)} />
                 <HelpControl
                     className={classNames(styles.controlGroup, styles.smallerControlGroup)}
@@ -85,7 +85,8 @@ export default function HeaderRibbon(props: HeaderRibbonProps) {
                     onCollapse={() => setCollapsed(true)}
                 />
             </div>
-            {!hasUsedApplicationBefore && (
+            {/* TODO: This is annoying because it is opt-out not opt-in implemented */}
+            {/* {!hasUsedApplicationBefore && (
                 <TeachingBubble
                     hasCloseButton
                     hasSmallHeadline
@@ -114,7 +115,7 @@ export default function HeaderRibbon(props: HeaderRibbonProps) {
                     tutorials. The tutorial list might help uncover features you might not know
                     about!
                 </TeachingBubble>
-            )}
+            )} */}
         </div>
     );
 }

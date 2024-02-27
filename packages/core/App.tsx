@@ -71,7 +71,7 @@ export default function App(props: AppProps) {
                 <HeaderRibbon className={styles.headerRibbon} />
                 <div className={styles.everythingExceptHeaderRibbon}>
                     <div className={styles.core}>
-                        <FileExplorerURLBar className={styles.urlBar} />
+                        {/* <FileExplorerURLBar className={styles.urlBar} /> */}
                         <div className={styles.annotationHierarchyAndFileList}>
                             <AnnotationSidebar className={styles.annotationHierarchy} />
                             <DirectoryTree className={styles.fileList} />

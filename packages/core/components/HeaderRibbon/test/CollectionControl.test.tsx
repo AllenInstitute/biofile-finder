@@ -25,7 +25,7 @@ describe("<CollectionControl />", () => {
         createdBy: "test",
     };
 
-    it("displays 'All of FMS' as default collection", () => {
+    it("displays 'AICS of FMS' as default collection", () => {
         // Arrange
         const { store } = configureMockStore({
             state: initialState,
@@ -37,7 +37,7 @@ describe("<CollectionControl />", () => {
         );
 
         // Act / Assert
-        expect(getByText("All of FMS")).to.exist;
+        expect(getByText("AICS FMS")).to.exist;
     });
 
     it("disables edit and export options when no collection selected", () => {
@@ -115,7 +115,7 @@ describe("<CollectionControl />", () => {
         );
 
         // Act
-        fireEvent.click(getByText("All of FMS"));
+        fireEvent.click(getByText("AICS FMS"));
         fireEvent.click(getByText(mockCollection.name));
 
         // Assert

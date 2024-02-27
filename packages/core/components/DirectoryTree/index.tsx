@@ -77,7 +77,7 @@ export default function DirectoryTree(props: FileListProps) {
         <div className={classNames(props.className, styles.container)}>
             <RootLoadingIndicator visible={isLoading} />
             <FilterDisplayBar className={styles.filterDisplayBar} classNameHidden={styles.hidden} />
-            <FileMetadataSearchBar />
+            {/* <FileMetadataSearchBar /> */}
             <ul
                 className={styles.scrollContainer}
                 role="tree"
