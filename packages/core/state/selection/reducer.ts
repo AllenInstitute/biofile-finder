@@ -2,7 +2,7 @@ import { makeReducer } from "@aics/redux-utils";
 import { castArray, difference, omit, without } from "lodash";
 
 import interaction from "../interaction";
-import { AnnotationName } from "../../constants";
+import { AnnotationName, PAST_YEAR_FILTER } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
@@ -58,7 +58,7 @@ export const initialState = {
     },
     displayAnnotations: [],
     fileSelection: new FileSelection(),
-    filters: [],
+    filters: [PAST_YEAR_FILTER],
     openFileFolders: [],
     shouldDisplaySmallFont: false,
     // TODO: Sort by default on uploaded if using FMS????

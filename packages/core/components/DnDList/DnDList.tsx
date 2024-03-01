@@ -57,7 +57,7 @@ export default function DnDList(props: DnDListProps) {
                     data-testid={DND_LIST_CONTAINER_ID}
                 >
                     {items.reduce((accum, item, index) => {
-                        const disabled = loading || item.disabled;
+                        const disabled = item.disabled;
                         return [
                             ...accum,
                             ...(dividers && dividers[index] ? [dividers[index]] : []),

@@ -4,10 +4,12 @@ import { State } from "../";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileExplorerURL from "../../entity/FileExplorerURL";
-import FileFilter from "../../entity/FileFilter";
+import FileFilter, { Filter } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSort from "../../entity/FileSort";
 import { Dataset } from "../../services/DatasetService";
+import { groupBy, keyBy, map } from "lodash";
+import { getAnnotations } from "../metadata/selectors";
 
 // BASIC SELECTORS
 export const getAnnotationHierarchy = (state: State) => state.selection.annotationHierarchy;
@@ -52,3 +54,19 @@ export const getAnnotationFilters = createSelector([getFileFilters], (fileFilter
 export const getFileAttributeFilter = createSelector([getFileFilters], (fileFilters):
     | FileFilter
     | undefined => fileFilters.find((f) => TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(f.name)));
+
+export const getGroupedByFilterName = createSelector(
+    [getAnnotationFilters, getAnnotations],
+    (globalFilters: FileFilter[], annotations: Annotation[]) => {
+        const annotationNameToInstanceMap = keyBy(annotations, "name");
+        const filters: Filter[] = map(globalFilters, (filter: FileFilter) => {
+            const annotation = annotationNameToInstanceMap[filter.name];
+            return {
+                name: filter.name,
+                value: filter.value,
+                displayValue: annotation?.getDisplayValue(filter.value),
+            };
+        }).filter((filter) => filter.displayValue !== undefined);
+        return groupBy(filters, (filter) => filter.name);
+    }
+);

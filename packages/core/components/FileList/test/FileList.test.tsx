@@ -53,7 +53,7 @@ describe("<FileList />", () => {
         expect(queryByText("Counting files...")).to.exist;
 
         // Wait for the fileService call to return, then check for updated list length display
-        await findByText("Sorry! No files found :(");
+        await findByText("Sorry! No files found");
 
         // Assert
         expect(queryByText("Counting files...")).to.not.exist;

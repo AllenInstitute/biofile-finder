@@ -38,17 +38,16 @@ const DATE_LAST_MONTH = new Date(BEGINNING_OF_TODAY);
 DATE_LAST_MONTH.setMonth(BEGINNING_OF_TODAY.getMonth() - 1);
 const DATE_LAST_WEEK = new Date(BEGINNING_OF_TODAY);
 DATE_LAST_WEEK.setDate(BEGINNING_OF_TODAY.getDate() - 7);
+export const PAST_YEAR_FILTER = new FileFilter(
+    AnnotationName.UPLOADED,
+    `RANGE(${DATE_LAST_YEAR.toISOString()},${END_OF_TODAY.toISOString()})`
+);
 export const RELATIVE_DATE_RANGES = [
     {
         name: "Uploaded in last year",
         description:
             "This will automatically filter files down to those uploaded within the last year",
-        filters: [
-            new FileFilter(
-                AnnotationName.UPLOADED,
-                `RANGE(${DATE_LAST_YEAR.toISOString()},${END_OF_TODAY.toISOString()})`
-            ),
-        ],
+        filters: [PAST_YEAR_FILTER],
         hierarchy: undefined,
         sort: undefined,
     },

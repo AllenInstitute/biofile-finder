@@ -1,0 +1,33 @@
+.filter {
+    margin: 4px 4px 4px 8px;
+    /* flex parent */
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+}
+
+.filter-text {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: center;
+    max-width: 500px;
+}
+
+.expandable {
+    cursor: pointer;
+}
+
+.filter-text[title] {
+    text-decoration: none;
+}
+
+.filter:not(:last-child):after {
+    content: "; "
+}
+
+.expanded {
+    max-width: 100%;
+    white-space: normal;
+}
