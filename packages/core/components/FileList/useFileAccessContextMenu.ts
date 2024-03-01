@@ -78,28 +78,23 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                         dispatch(interaction.actions.promptForNewExecutable(filters));
                     },
                 },
+                ...(plateLink
+                    ? [
+                          {
+                              key: ContextMenuActions.OPEN_PLATE_UI,
+                              text: "Open Plate UI",
+                              title: "Open this plate in the Plate UI",
+                              href: plateLink,
+                              target: "_blank",
+                              disabled: !plateLink,
+                          },
+                      ]
+                    : []),
                 {
-                    key: ContextMenuActions.OPEN_AS_URL,
-                    text: "Open as URL",
-                    title: "Open this file in the app's browser",
-                    href: filePath,
-                    target: "_blank",
-                    disabled: !filePath,
-                },
-                {
-                    key: ContextMenuActions.OPEN_PLATE_UI,
-                    text: "Open Plate UI",
-                    title: "Open this plate in the Plate UI",
-                    href: plateLink,
-                    target: "_blank",
-                    disabled: !plateLink,
-                },
-
-                {
-                    key: ContextMenuActions.OPEN_3D_VIEWER,
-                    text: "Open 3D Viewer",
-                    title: "Open this file in the AICS 3D Viewer",
-                    href: `https://dev-aics-dtp-001.int.allencell.org/website-3d-cell-viewer/imageviewer/?url=${filePath}/`,
+                    key: ContextMenuActions.OPEN_3D_WEB_VIEWER,
+                    text: "Open 3D Web Viewer",
+                    title: "Open this file in the AICS 3D Web Viewer",
+                    href: `https://allen-cell-animated.github.io/website-3d-cell-viewer/?url=${filePath}/`,
                     target: "_blank",
                     disabled: !filePath,
                 },
