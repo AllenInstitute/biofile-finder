@@ -44,8 +44,6 @@ function Header(
             displayValue: (
                 <span
                     className={classNames(styles.headerCell, {
-                        // TODO: Can anything be sorted..? should it...?
-                        [styles.clickable]: true,
                         [styles.bold]: isSortedColumn,
                     })}
                     onClick={() => dispatch(selection.actions.sortColumn(annotation.name))}

@@ -1,3 +1,4 @@
+import { Shimmer } from "@fluentui/react";
 import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
@@ -9,7 +10,6 @@ import { selection } from "../../state";
 import { OnSelect } from "./useFileSelector";
 
 import styles from "./LazilyRenderedRow.module.css";
-import { Shimmer } from "@fluentui/react";
 
 /**
  * Contextual data passed to LazilyRenderedRows by react-window. Basically a light-weight React context. The same data

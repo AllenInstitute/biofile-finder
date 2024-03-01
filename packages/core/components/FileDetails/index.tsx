@@ -160,9 +160,9 @@ export default function FileDetails(props: FileDetails) {
             >
                 <FileThumbnail
                     uri={
-                        fileDetails.thumbnail?.includes("http")
-                            ? fileDetails.thumbnail
-                            : `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${fileDetails.thumbnail}`
+                        fileDetails.thumbnail?.startsWith("/allen")
+                            ? `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${fileDetails.thumbnail}`
+                            : fileDetails.thumbnail
                     }
                 />
             </div>

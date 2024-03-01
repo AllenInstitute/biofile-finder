@@ -1,3 +1,4 @@
+import { Shimmer } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { Droppable, Draggable } from "react-beautiful-dnd";
@@ -5,7 +6,6 @@ import { Droppable, Draggable } from "react-beautiful-dnd";
 import DnDListItem from "./DnDListItem";
 
 import styles from "./DnDList.module.css";
-import { Shimmer } from "@fluentui/react";
 
 export const DND_LIST_CONTAINER_ID = "dnd-list-container-id";
 
