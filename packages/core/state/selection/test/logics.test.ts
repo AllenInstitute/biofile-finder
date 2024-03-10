@@ -35,12 +35,12 @@ import FileExplorerURL from "../../../entity/FileExplorerURL";
 import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
-import FileService from "../../../services/FileService";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
 import { AnnotationName } from "../../../constants";
 import { DatasetService } from "../../../services";
 import { Dataset } from "../../../services/DatasetService";
 import { receiveCollections } from "../../metadata/actions";
+import HttpFileService from "../../../services/FileService/HttpFileService";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -322,7 +322,7 @@ describe("Selection logics", () => {
         const totalFileSize = 50;
         const responseStubs: ResponseStub[] = [
             {
-                when: (config) => (config.url || "").includes(FileService.BASE_FILE_COUNT_URL),
+                when: (config) => (config.url || "").includes(HttpFileService.BASE_FILE_COUNT_URL),
                 respondWith: {
                     data: { data: [totalFileSize] },
                 },
@@ -330,7 +330,7 @@ describe("Selection logics", () => {
         ];
         const baseUrl = "test";
         const mockHttpClient = createMockHttpClient(responseStubs);
-        const fileService = new FileService({ baseUrl, httpClient: mockHttpClient });
+        const fileService = new HttpFileService({ baseUrl, httpClient: mockHttpClient });
         const fileSet = new FileSet({ fileService: fileService });
 
         before(() => {
@@ -482,7 +482,7 @@ describe("Selection logics", () => {
                     type: SET_ANNOTATION_HIERARCHY,
                     payload: [...annotations.slice(0, 2), annotations[2]],
                 })
-            ).to.equal(true);
+            ).to.be.true;
         });
 
         it("moves an annotation within the hierarchy to a new position", async () => {
@@ -719,8 +719,7 @@ describe("Selection logics", () => {
                 },
             };
             const responseStub = {
-                when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=cell_line&hierarchy=date_created",
+                when: () => true,
                 respondWith: {
                     status: 200,
                     data: {
@@ -938,17 +937,13 @@ describe("Selection logics", () => {
             createdBy: "test",
         };
 
-        before(() => {
+        beforeEach(() => {
             const datasetService = new DatasetService();
             sinon.stub(interaction.selectors, "getDatasetService").returns(datasetService);
             sinon.stub(datasetService, "getDataset").resolves(mockCollection);
         });
 
         afterEach(() => {
-            sinon.resetHistory();
-        });
-
-        after(() => {
             sinon.restore();
         });
 

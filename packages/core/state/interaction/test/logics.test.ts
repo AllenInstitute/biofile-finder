@@ -44,16 +44,18 @@ import FileSelection from "../../../entity/FileSelection";
 import NumericRange from "../../../entity/NumericRange";
 import { RECEIVE_ANNOTATIONS } from "../../metadata/actions";
 import { SET_AVAILABLE_ANNOTATIONS } from "../../selection/actions";
-import AnnotationService from "../../../services/AnnotationService";
 import FileDownloadService, {
     DownloadResolution,
     FileInfo,
 } from "../../../services/FileDownloadService";
-import FileService, { FmsFile } from "../../../services/FileService";
+import { FmsFile } from "../../../services/FileService";
 import FileViewerService from "../../../services/FileViewerService";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import NotificationServiceNoop from "../../../services/NotificationService/NotificationServiceNoop";
+import HttpFileService from "../../../services/FileService/HttpFileService";
+import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
+import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({
@@ -222,13 +224,13 @@ describe("Interaction logics", () => {
                 },
             });
             const responseStub = {
-                when: `${baseUrl}/${FileService.BASE_FILE_COUNT_URL}?Cell%20Line=AICS-12&Notes=Hello&sort=uploaded(DESC)`,
+                when: () => true,
                 respondWith: {
                     data: { data: [42] },
                 },
             };
             const mockHttpClient = createMockHttpClient(responseStub);
-            const fileService = new FileService({
+            const fileService = new HttpFileService({
                 baseUrl,
                 httpClient: mockHttpClient,
             });
@@ -877,13 +879,13 @@ describe("Interaction logics", () => {
                 },
             });
             const responseStub = {
-                when: `${baseUrl}/${FileService.BASE_FILE_COUNT_URL}?Cell%20Line=AICS-12&Notes=Hello&sort=uploaded(DESC)`,
+                when: () => true,
                 respondWith: {
                     data: { data: [42] },
                 },
             };
             const mockHttpClient = createMockHttpClient(responseStub);
-            const fileService = new FileService({
+            const fileService = new HttpFileService({
                 baseUrl,
                 httpClient: mockHttpClient,
             });
@@ -991,6 +993,7 @@ describe("Interaction logics", () => {
         const datasetService = new DatasetService({
             baseUrl,
             httpClient: mockHttpClient,
+            database: new DatabaseServiceNoop(),
         });
 
         const sandbox = createSandbox();
@@ -1042,7 +1045,7 @@ describe("Interaction logics", () => {
         const availableAnnotations = [annotations[1].displayName];
         const responseStubs = [
             {
-                when: `${baseUrl}/${AnnotationService.BASE_ANNOTATION_URL}`,
+                when: `${baseUrl}/${HttpAnnotationService.BASE_ANNOTATION_URL}`,
                 respondWith: {
                     data: { data: annotations },
                 },
@@ -1050,7 +1053,7 @@ describe("Interaction logics", () => {
             {
                 when: (config: any) =>
                     _get(config, "url", "").includes(
-                        AnnotationService.BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY
+                        HttpAnnotationService.BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY
                     ),
                 respondWith: {
                     data: { data: availableAnnotations },
@@ -1058,7 +1061,7 @@ describe("Interaction logics", () => {
             },
         ];
         const mockHttpClient = createMockHttpClient(responseStubs);
-        const annotationService = new AnnotationService({
+        const annotationService = new HttpAnnotationService({
             baseUrl,
             httpClient: mockHttpClient,
         });
@@ -1145,13 +1148,13 @@ describe("Interaction logics", () => {
         }
         const baseUrl = "test";
         const responseStub = {
-            when: () => true, // `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=101`,
+            when: () => true,
             respondWith: {
                 data: { data: files },
             },
         };
         const mockHttpClient = createMockHttpClient(responseStub);
-        const fileService = new FileService({
+        const fileService = new HttpFileService({
             baseUrl,
             httpClient: mockHttpClient,
         });
@@ -1352,13 +1355,13 @@ describe("Interaction logics", () => {
         const files = [...csvFiles, ...pngFiles];
         const baseUrl = "test";
         const responseStub = {
-            when: `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=101`,
+            when: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=101`,
             respondWith: {
                 data: { data: files },
             },
         };
         const mockHttpClient = createMockHttpClient(responseStub);
-        const fileService = new FileService({
+        const fileService = new HttpFileService({
             baseUrl,
             httpClient: mockHttpClient,
         });
@@ -1459,13 +1462,13 @@ describe("Interaction logics", () => {
         }
         const baseUrl = "test";
         const responseStub = {
-            when: `${baseUrl}/${FileService.BASE_FILES_URL}?from=0&limit=101`,
+            when: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=101`,
             respondWith: {
                 data: { data: files },
             },
         };
         const mockHttpClient = createMockHttpClient(responseStub);
-        const fileService = new FileService({
+        const fileService = new HttpFileService({
             baseUrl,
             httpClient: mockHttpClient,
         });

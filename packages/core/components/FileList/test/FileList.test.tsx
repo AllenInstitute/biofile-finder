@@ -1,13 +1,15 @@
-import FileList from "../index";
-import { render } from "@testing-library/react";
-import * as React from "react";
-import FileSet from "../../../entity/FileSet";
-import { expect } from "chai";
-import { Provider } from "react-redux";
 import { configureMockStore, mergeState } from "@aics/redux-utils";
-import { initialState } from "../../../state";
-import FileService from "../../../services/FileService";
+import { render } from "@testing-library/react";
+import { expect } from "chai";
+import * as React from "react";
+import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
+
+import FileSet from "../../../entity/FileSet";
+import { initialState } from "../../../state";
+import HttpFileService from "../../../services/FileService/HttpFileService";
+
+import FileList from "..";
 
 describe("<FileList />", () => {
     it("Calls getCountOfMatchingFiles() on mount and properly updates state afterwards", async () => {
@@ -15,7 +17,7 @@ describe("<FileList />", () => {
         const { store } = configureMockStore({ state });
 
         const sandbox = createSandbox();
-        const fileService = new FileService();
+        const fileService = new HttpFileService();
         sandbox.replace(fileService, "getCountOfMatchingFiles", () => Promise.resolve(999));
         const fileSet = new FileSet({ fileService });
 
@@ -38,7 +40,7 @@ describe("<FileList />", () => {
         const { store } = configureMockStore({ state: initialState });
 
         const sandbox = createSandbox();
-        const fileService = new FileService();
+        const fileService = new HttpFileService();
         sandbox.replace(fileService, "getCountOfMatchingFiles", () => Promise.resolve(0));
         const fileSet = new FileSet({ fileService });
 

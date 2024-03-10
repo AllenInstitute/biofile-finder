@@ -71,26 +71,6 @@ describe("<LazilyRenderedRow />", () => {
         expect(getByText("my_image.czi")).to.not.equal(null);
     });
 
-    it("renders a loading indicator when data is not available", () => {
-        // Arrange
-        const state = mergeState(initialState, {});
-        state.metadata.annotations = [fileNameAnnotation];
-        state.selection.displayAnnotations = [fileNameAnnotation];
-
-        const { store } = configureMockStore({ state });
-
-        // Act
-        const { queryByText } = render(
-            <Provider store={store}>
-                <LazilyRenderedRow data={makeItemData()} index={23} style={{}} />
-            </Provider>
-        );
-
-        // Assert
-        expect(queryByText("my_image.czi")).to.equal(null);
-        expect(queryByText("Loading...")).to.not.equal(null);
-    });
-
     describe("Dynamic styling", () => {
         [true, false].forEach((shouldDisplaySmallFont) => {
             it(`Has${
@@ -99,23 +79,27 @@ describe("<LazilyRenderedRow />", () => {
                 // Arrange
                 const { store } = configureMockStore({
                     state: mergeState(initialState, {
+                        metadata: {
+                            annotations: [fileNameAnnotation],
+                        },
                         selection: {
+                            displayAnnotations: [fileNameAnnotation],
                             shouldDisplaySmallFont,
                         },
                     }),
                 });
 
                 // Act
-                const { getByText } = render(
+                const { getByTestId } = render(
                     <Provider store={store}>
-                        <LazilyRenderedRow data={makeItemData()} index={23} style={{}} />
+                        <LazilyRenderedRow data={makeItemData()} index={3} style={{}} />
                     </Provider>
                 );
 
                 // Assert
-                expect(getByText("Loading...").classList.contains(styles.smallFont)).to.equal(
-                    shouldDisplaySmallFont
-                );
+                expect(
+                    getByTestId("non-resizeable-cell-test-id").classList.contains(styles.smallFont)
+                ).to.equal(shouldDisplaySmallFont);
             });
         });
     });

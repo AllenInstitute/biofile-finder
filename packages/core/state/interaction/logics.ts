@@ -100,14 +100,17 @@ const downloadManifest = createLogic({
             const state = deps.getState();
             const {
                 databaseService,
+                fileDownloadService,
                 executionEnvService,
             } = interactionSelectors.getPlatformDependentServices(state);
             let fileSelection = selection.selectors.getFileSelection(state);
             const filters = interactionSelectors.getFileFiltersForVisibleModal(state);
             const fileService = interactionSelectors.getFileService(state);
             const sortColumn = selection.selectors.getSortColumn(state);
+            const selectedCollection = selection.selectors.getCollection(state);
             const csvService = new CsvService({
-                database: databaseService,
+                databaseService,
+                downloadService: fileDownloadService,
                 executionEnvService,
             });
 
@@ -149,7 +152,16 @@ const downloadManifest = createLogic({
                 annotations: annotations.map((annotation) => annotation.name),
                 selections,
             };
-            const result = await csvService.downloadCsv(request, manifestDownloadProcessId);
+            const shouldDownloadFromDatabase = !!selectedCollection?.uri;
+            let result;
+            if (shouldDownloadFromDatabase) {
+                result = await csvService.downloadCsvFromDatabase(
+                    request,
+                    manifestDownloadProcessId
+                );
+            } else {
+                result = await csvService.downloadCsvFromServer(request, manifestDownloadProcessId);
+            }
 
             if (result.resolution === DownloadResolution.CANCELLED) {
                 dispatch(removeStatus(manifestDownloadProcessId));

@@ -54,15 +54,14 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         return fileSelection.isFocused(fileSet, index);
     }, [fileSelection, fileSet, index]);
 
-    const cells = !file
-        ? []
-        : map(annotations, (annotation) => ({
-              columnKey: annotation.name,
-              displayValue: annotation.extractFromFile(file),
-              width: columnWidths[annotation.name] || 1 / annotations.length,
-          }));
-    const content = (
-        <Shimmer className={styles.shimmer} isDataLoaded={!!file}>
+    let content = null;
+    if (file) {
+        const cells = map(annotations, (annotation) => ({
+            columnKey: annotation.name,
+            displayValue: annotation.extractFromFile(file),
+            width: columnWidths[annotation.name] || 1 / annotations.length,
+        }));
+        content = (
             <FileRow
                 cells={cells}
                 cellClassName={classNames({
@@ -72,11 +71,13 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
                     [styles.selected]: isSelected,
                     [styles.focused]: isFocused,
                 })}
+                // TODO: Is this okay in CSV land?
                 rowIdentifier={{ index, id: file?.file_id }}
                 onSelect={onSelect}
+                data-testid="asdsadasdsadsad"
             />
-        </Shimmer>
-    );
+        );
+    }
 
     return (
         <div
@@ -89,7 +90,9 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
             }}
             onContextMenu={onContextMenu}
         >
-            {content}
+            <Shimmer className={styles.shimmer} isDataLoaded={!!file}>
+                {content}
+            </Shimmer>
         </div>
     );
 }

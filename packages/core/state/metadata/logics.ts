@@ -12,6 +12,7 @@ import {
 import { AnnotationName } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileSort, { SortOrder } from "../../entity/FileSort";
+import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 
 /**
  * Interceptor responsible for turning REQUEST_ANNOTATIONS action into a network call for available annotations. Outputs
@@ -19,8 +20,15 @@ import FileSort, { SortOrder } from "../../entity/FileSort";
  */
 const requestAnnotations = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { getState } = deps;
+        const { getState, httpClient } = deps;
         const annotationService = interaction.selectors.getAnnotationService(getState());
+        const applicationVersion = interaction.selectors.getApplicationVersion(getState());
+        if (annotationService instanceof HttpAnnotationService) {
+            if (applicationVersion) {
+                annotationService.setApplicationVersion(applicationVersion);
+            }
+            annotationService.setHttpClient(httpClient);
+        }
 
         try {
             const annotations = await annotationService.fetchAnnotations();
@@ -55,9 +63,16 @@ const receiveAnnotationsLogic = createLogic({
             (map, annotation) => ({ ...map, [annotation.name]: annotation }),
             {} as Record<string, Annotation>
         );
-        const displayAnnotations = currentDisplayAnnotations.filter(
-            (annotation) => !!annotationNameToAnnotationMap[annotation.name]
+        // Filter out any annotations that were selected for display that no longer
+        // exist as annotations in the state
+        const displayAnnotationsThatStillExist = currentDisplayAnnotations.filter(
+            (annotation) => annotation.name in annotationNameToAnnotationMap
         );
+
+        // These are the default annotations we want to display so this will
+        // iterate over each of the default annotations and add them as display
+        // annotations IF the annotations exist in the data source and we have room
+        // to display them
         [
             AnnotationName.FILE_NAME,
             AnnotationName.KIND,
@@ -65,22 +80,35 @@ const receiveAnnotationsLogic = createLogic({
             AnnotationName.FILE_SIZE,
         ].forEach((annotationName) => {
             if (
-                !displayAnnotations.find((annotation) => annotation.name === annotationName) &&
-                annotationNameToAnnotationMap[annotationName]
+                !displayAnnotationsThatStillExist.find(
+                    (annotation) => annotation.name === annotationName
+                ) &&
+                annotationName in annotationNameToAnnotationMap &&
+                displayAnnotationsThatStillExist.length < 4
             ) {
-                displayAnnotations.push(annotationNameToAnnotationMap[annotationName]);
+                displayAnnotationsThatStillExist.push(
+                    annotationNameToAnnotationMap[annotationName]
+                );
             }
         });
 
         // In the event we can't find the above annotations, just grab some random ones
         // until we have 4 to display
-        for (let i = 0; displayAnnotations.length < 4 && i < annotations.length; i++) {
-            if (!displayAnnotations.find((annotation) => annotation.name === annotations[i].name)) {
-                displayAnnotations.push(annotations[i]);
+        for (
+            let i = 0;
+            displayAnnotationsThatStillExist.length < 4 && i < annotations.length;
+            i++
+        ) {
+            if (
+                !displayAnnotationsThatStillExist.find(
+                    (annotation) => annotation.name === annotations[i].name
+                )
+            ) {
+                displayAnnotationsThatStillExist.push(annotations[i]);
             }
         }
 
-        dispatch(selection.actions.selectDisplayAnnotation(displayAnnotations, true));
+        dispatch(selection.actions.selectDisplayAnnotation(displayAnnotationsThatStillExist, true));
         done();
     },
     type: RECEIVE_ANNOTATIONS,

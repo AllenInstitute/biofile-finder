@@ -62,7 +62,7 @@ export const getFileService = createSelector(
     ): FileService => {
         if (collection?.uri) {
             return new DatabaseFileService({
-                database: platformDependentServices.databaseService,
+                databaseService: platformDependentServices.databaseService,
             });
         }
         const pathSuffix = collection
@@ -95,7 +95,7 @@ export const getAnnotationService = createSelector(
     ): AnnotationService => {
         if (collection?.uri) {
             return new DatabaseAnnotationService({
-                database: platformDependentServices.databaseService,
+                databaseService: platformDependentServices.databaseService,
             });
         }
         const pathSuffix = collection

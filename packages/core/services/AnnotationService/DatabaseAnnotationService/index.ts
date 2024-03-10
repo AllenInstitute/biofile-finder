@@ -6,7 +6,7 @@ import FileFilter from "../../../entity/FileFilter";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 
 interface Config {
-    database: DatabaseService;
+    databaseService: DatabaseService;
 }
 
 // TODO: move into database?
@@ -25,11 +25,11 @@ interface SummarizeQueryResult {
 /**
  * todo
  */
-export default class CsvAnnotationService implements AnnotationService {
-    private readonly database: DatabaseService;
+export default class DatabaseAnnotationService implements AnnotationService {
+    private readonly databaseService: DatabaseService;
 
-    constructor(config: Config = { database: new DatabaseServiceNoop() }) {
-        this.database = config.database;
+    constructor(config: Config = { databaseService: new DatabaseServiceNoop() }) {
+        this.databaseService = config.databaseService;
     }
 
     private static columnTypeToAnnotationType(columnType: string): string {
@@ -49,15 +49,16 @@ export default class CsvAnnotationService implements AnnotationService {
      * Fetch all annotations.
      */
     public async fetchAnnotations(): Promise<Annotation[]> {
-        const sql = `DESCRIBE ${this.database.table}`;
-        const rows = (await this.database.query(sql)) as DescribeQueryResult[];
+        const sql = `DESCRIBE ${this.databaseService.table}`;
+        const rows = (await this.databaseService.query(sql)) as DescribeQueryResult[];
         return rows.map(
             (row) =>
                 new Annotation({
                     annotationDisplayName: row["column_name"],
                     annotationName: row["column_name"],
+                    // TODO: Enable via separate file? alt: exclude tooltip when not present
                     description: "",
-                    type: CsvAnnotationService.columnTypeToAnnotationType(row["column_type"]),
+                    type: DatabaseAnnotationService.columnTypeToAnnotationType(row["column_type"]),
                 })
         );
     }
@@ -67,8 +68,8 @@ export default class CsvAnnotationService implements AnnotationService {
      */
     public async fetchValues(annotation: string): Promise<AnnotationValue[]> {
         const select_key = "select_key";
-        const sql = `SELECT DISTINCT "${annotation}" AS ${select_key} FROM ${this.database.table}`;
-        const rows = await this.database.query(sql);
+        const sql = `SELECT DISTINCT "${annotation}" AS ${select_key} FROM ${this.databaseService.table}`;
+        const rows = await this.databaseService.query(sql);
         return [
             ...rows.reduce((valueSet, row) => {
                 `${row[select_key]}`.split(",").forEach((value) => valueSet.add(value.trim()));
@@ -110,10 +111,10 @@ export default class CsvAnnotationService implements AnnotationService {
         });
         const sql = `                                       
             SELECT DISTINCT "${hierarchy[path.length]}"
-            FROM ${this.database.table}                                    
+            FROM ${this.databaseService.table}                                    
             WHERE (${whereFilters.join(") AND (")})
         `;
-        const rows = await this.database.query(sql);
+        const rows = await this.databaseService.query(sql);
         return rows.map((row) => row[hierarchy[path.length]]);
     }
 
@@ -127,10 +128,10 @@ export default class CsvAnnotationService implements AnnotationService {
             .join(" AND ");
         const sql = `
             SUMMARIZE SELECT * 
-            FROM ${this.database.table}
+            FROM ${this.databaseService.table}
             ${whereConditions ? `WHERE ${whereConditions}` : ""}
         `;
-        const rows = (await this.database.query(sql)) as SummarizeQueryResult[];
+        const rows = (await this.databaseService.query(sql)) as SummarizeQueryResult[];
         const annotationSet = new Set(annotations);
         return rows
             .reduce((annotations, row) => {

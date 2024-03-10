@@ -2,6 +2,8 @@ import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 import sinon from "sinon";
 
+import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
+
 import DatasetService, { PythonicDataAccessSnippet } from "..";
 
 describe("DatasetService", () => {
@@ -27,7 +29,11 @@ describe("DatasetService", () => {
 
         it("issues request to create dataset matching given parameters", async () => {
             // Arrange
-            const service = new DatasetService({ baseUrl, httpClient });
+            const service = new DatasetService({
+                baseUrl,
+                httpClient,
+                database: new DatabaseServiceNoop(),
+            });
 
             // Act
             const dataset = await service.createDataset({
@@ -53,7 +59,12 @@ describe("DatasetService", () => {
 
         it("issues request for datasets", async () => {
             // Arrange
-            const service = new DatasetService({ baseUrl, httpClient, userName: "test" });
+            const service = new DatasetService({
+                baseUrl,
+                httpClient,
+                userName: "test",
+                database: new DatabaseServiceNoop(),
+            });
 
             // Act
             const datasets = await service.getDatasets();
@@ -82,7 +93,11 @@ describe("DatasetService", () => {
                     },
                 },
             });
-            const service = new DatasetService({ baseUrl, httpClient });
+            const service = new DatasetService({
+                baseUrl,
+                httpClient,
+                database: new DatabaseServiceNoop(),
+            });
 
             // Act
             const snippet = await service.getPythonicDataAccessSnippet(datasetName, datasetVersion);
@@ -106,7 +121,11 @@ describe("DatasetService", () => {
                 status: 200,
                 statusText: "OK",
             });
-            const service = new DatasetService({ baseUrl, httpClient });
+            const service = new DatasetService({
+                baseUrl,
+                httpClient,
+                database: new DatabaseServiceNoop(),
+            });
 
             // Act
             await service.getPythonicDataAccessSnippet(datasetName, datasetVersion);

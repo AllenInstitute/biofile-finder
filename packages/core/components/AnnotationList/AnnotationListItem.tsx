@@ -36,15 +36,17 @@ export default React.memo(function AnnotationListItem(props: AnnotationListItemP
 
     return (
         <div className={styles.container}>
-            <Tippy content={description}>
-                <SvgIcon
-                    className={styles.info}
-                    height={12}
-                    pathData={INFO_ICON_PATH_DATA}
-                    viewBox="0 0 20 20"
-                    width={12}
-                />
-            </Tippy>
+            {description && (
+                <Tippy content={description}>
+                    <SvgIcon
+                        className={styles.info}
+                        height={12}
+                        pathData={INFO_ICON_PATH_DATA}
+                        viewBox="0 0 20 20"
+                        width={12}
+                    />
+                </Tippy>
+            )}
             <abbr
                 data-testid="annotation-list-item"
                 className={classNames(

@@ -9,7 +9,7 @@ import AnnotationFilterForm from "..";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import { initialState, reducer, reduxLogics, interaction } from "../../../state";
-import AnnotationService from "../../../services/AnnotationService";
+import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 
 describe("<AnnotationFilterForm />", () => {
     describe("Text annotations", () => {
@@ -37,7 +37,7 @@ describe("<AnnotationFilterForm />", () => {
                 },
             };
             const mockHttpClient = createMockHttpClient(responseStub);
-            const annotationService = new AnnotationService({
+            const annotationService = new HttpAnnotationService({
                 baseUrl: "test",
                 httpClient: mockHttpClient,
             });
@@ -77,7 +77,7 @@ describe("<AnnotationFilterForm />", () => {
                 },
             };
             const mockHttpClient = createMockHttpClient(responseStub);
-            const annotationService = new AnnotationService({
+            const annotationService = new HttpAnnotationService({
                 baseUrl: "test",
                 httpClient: mockHttpClient,
             });
@@ -136,7 +136,7 @@ describe("<AnnotationFilterForm />", () => {
                 },
             };
             const mockHttpClient = createMockHttpClient(responseStub);
-            const annotationService = new AnnotationService({
+            const annotationService = new HttpAnnotationService({
                 baseUrl: "test",
                 httpClient: mockHttpClient,
             });
@@ -187,7 +187,7 @@ describe("<AnnotationFilterForm />", () => {
             },
         };
         const mockHttpClient = createMockHttpClient(responseStub);
-        const annotationService = new AnnotationService({
+        const annotationService = new HttpAnnotationService({
             baseUrl: "test",
             httpClient: mockHttpClient,
         });
@@ -299,7 +299,7 @@ describe("<AnnotationFilterForm />", () => {
                 },
             };
             const mockHttpClient = createMockHttpClient(responseStub);
-            const annotationService = new AnnotationService({
+            const annotationService = new HttpAnnotationService({
                 baseUrl: "test",
                 httpClient: mockHttpClient,
             });
@@ -357,7 +357,7 @@ describe("<AnnotationFilterForm />", () => {
                 },
             };
             const mockHttpClient = createMockHttpClient(responseStub);
-            const annotationService = new AnnotationService({
+            const annotationService = new HttpAnnotationService({
                 baseUrl: "test",
                 httpClient: mockHttpClient,
             });

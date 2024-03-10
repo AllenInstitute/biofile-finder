@@ -1,12 +1,6 @@
-import {
-    configureMockStore,
-    createMockHttpClient,
-    mergeState,
-    ResponseStub,
-} from "@aics/redux-utils";
+import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { render } from "@testing-library/react";
 import { expect } from "chai";
-import { get as _get } from "lodash";
 import React from "react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
@@ -14,35 +8,17 @@ import { createSandbox } from "sinon";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
-import FileService from "../../../services/FileService";
+import { SelectionAggregationResult } from "../../../services/FileService";
+import FileServiceNoop from "../../../services/FileService/FileServiceNoop";
 import { initialState, interaction } from "../../../state";
 
 import AggregateInfoBox from "..";
 
 describe("<AggregateInfoBox />", () => {
     const sandbox = createSandbox();
-    const baseUrl = "test";
     const uniqueFileCount = 3413;
-    const responseStubs: ResponseStub[] = [
-        {
-            when: (config) => _get(config, "url", "").includes(FileService.SELECTION_AGGREGATE_URL),
-            respondWith: {
-                data: { data: [{ count: uniqueFileCount, size: 3 }] },
-            },
-        },
-    ];
-    const mockHttpClient = createMockHttpClient(responseStubs);
-    const fileService = new FileService({ baseUrl, httpClient: mockHttpClient });
-
-    before(() => {
-        sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
-    });
 
     afterEach(() => {
-        sandbox.resetHistory();
-    });
-
-    after(() => {
         sandbox.restore();
     });
 
@@ -62,6 +38,9 @@ describe("<AggregateInfoBox />", () => {
             state: initialState,
         });
 
+        const mockFileService = new FileServiceNoop();
+        sandbox.stub(interaction.selectors, "getFileService").returns(mockFileService);
+
         const { getByText, getAllByTestId } = render(
             <Provider store={store}>
                 <AggregateInfoBox />
@@ -79,6 +58,9 @@ describe("<AggregateInfoBox />", () => {
             state,
         });
 
+        const mockFileService = new FileServiceNoop();
+        sandbox.stub(interaction.selectors, "getFileService").returns(mockFileService);
+
         const { getAllByTestId } = render(
             <Provider store={store}>
                 <AggregateInfoBox />
@@ -94,6 +76,14 @@ describe("<AggregateInfoBox />", () => {
         const { store } = configureMockStore({
             state,
         });
+
+        class MockFileService extends FileServiceNoop {
+            public async getAggregateInformation(): Promise<SelectionAggregationResult> {
+                return { size: 3, count: uniqueFileCount };
+            }
+        }
+        const mockFileService = new MockFileService();
+        sandbox.stub(interaction.selectors, "getFileService").returns(mockFileService);
 
         const { findByText } = render(
             <Provider store={store}>
@@ -112,6 +102,14 @@ describe("<AggregateInfoBox />", () => {
             state,
         });
 
+        class MockFileService extends FileServiceNoop {
+            public async getAggregateInformation(): Promise<SelectionAggregationResult> {
+                return { size: 1, count: uniqueFileCount };
+            }
+        }
+        const mockFileService = new MockFileService();
+        sandbox.stub(interaction.selectors, "getFileService").returns(mockFileService);
+
         const { findByText, findAllByText } = render(
             <Provider store={store}>
                 <AggregateInfoBox />
@@ -128,6 +126,14 @@ describe("<AggregateInfoBox />", () => {
         const { store } = configureMockStore({
             state,
         });
+
+        class MockFileService extends FileServiceNoop {
+            public async getAggregateInformation(): Promise<SelectionAggregationResult> {
+                return { size: 4, count: uniqueFileCount };
+            }
+        }
+        const mockFileService = new MockFileService();
+        sandbox.stub(interaction.selectors, "getFileService").returns(mockFileService);
 
         const { findByText } = render(
             <Provider store={store}>

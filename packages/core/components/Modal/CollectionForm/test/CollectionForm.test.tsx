@@ -14,6 +14,7 @@ import Modal, { ModalType } from "../..";
 import Annotation from "../../../../entity/Annotation";
 import DatasetService, { Dataset } from "../../../../services/DatasetService";
 import { initialState, interaction } from "../../../../state";
+import DatabaseServiceNoop from "../../../../services/DatabaseService/DatabaseServiceNoop";
 
 describe("<CollectionForm />", () => {
     // All of the test setup related to stubbing an HTTP request is because the PythonSnippetForm,
@@ -29,7 +30,12 @@ describe("<CollectionForm />", () => {
         },
     ];
     const mockHttpClient = createMockHttpClient(responseStubs);
-    const datasetService = new DatasetService({ baseUrl, httpClient: mockHttpClient });
+    const mockDatabase = new DatabaseServiceNoop();
+    const datasetService = new DatasetService({
+        baseUrl,
+        httpClient: mockHttpClient,
+        database: mockDatabase,
+    });
 
     before(() => {
         sinon.stub(interaction.selectors, "getDatasetService").returns(datasetService);

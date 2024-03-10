@@ -10,6 +10,7 @@ import { DND_LIST_CONTAINER_ID } from "../../DnDList/DnDList";
 import AnnotationHierarchy from "..";
 
 import styles from "../AnnotationHierarchy.module.css";
+import Annotation from "../../../entity/Annotation";
 
 describe("<AnnotationHierarchy />", () => {
     describe("Dynamic styling", () => {
@@ -21,6 +22,14 @@ describe("<AnnotationHierarchy />", () => {
                 const { store } = configureMockStore({
                     state: mergeState(initialState, {
                         selection: {
+                            annotationHierarchy: [
+                                new Annotation({
+                                    annotationDisplayName: "any",
+                                    annotationName: "any",
+                                    description: "",
+                                    type: "",
+                                }),
+                            ],
                             shouldDisplaySmallFont,
                         },
                     }),

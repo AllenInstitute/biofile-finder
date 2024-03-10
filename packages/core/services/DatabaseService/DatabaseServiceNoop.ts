@@ -11,7 +11,7 @@ export default class DatabaseServiceNoop implements DatabaseService {
         return Promise.reject("DatabaseServiceNoop:getDataSource");
     }
 
-    public query() {
+    public query(): Promise<{ [key: string]: string }[]> {
         return Promise.reject("DatabaseServiceNoop:query");
     }
 }

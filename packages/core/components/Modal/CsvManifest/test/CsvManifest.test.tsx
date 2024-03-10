@@ -16,8 +16,8 @@ import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import FileFilter from "../../../../entity/FileFilter";
 import FileDownloadService, { DownloadResolution } from "../../../../services/FileDownloadService";
-import FileService from "../../../../services/FileService";
 import { initialState, interaction, reduxLogics } from "../../../../state";
+import HttpFileService from "../../../../services/FileService/HttpFileService";
 
 describe("<CsvManifest />", () => {
     const baseUrl = "test";
@@ -29,13 +29,13 @@ describe("<CsvManifest />", () => {
     });
 
     const responseStub: ResponseStub = {
-        when: (config) => _get(config, "url", "").includes(FileService.BASE_FILE_COUNT_URL),
+        when: (config) => _get(config, "url", "").includes(HttpFileService.BASE_FILE_COUNT_URL),
         respondWith: {
             data: { data: [42] },
         },
     };
     const mockHttpClient = createMockHttpClient(responseStub);
-    const fileService = new FileService({ baseUrl, httpClient: mockHttpClient });
+    const fileService = new HttpFileService({ baseUrl, httpClient: mockHttpClient });
 
     const sandbox = createSandbox();
 

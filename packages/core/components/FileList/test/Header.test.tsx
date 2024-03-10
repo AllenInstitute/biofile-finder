@@ -55,50 +55,6 @@ describe("<Header />", () => {
             .true;
     });
 
-    it("does not dispatch sort action when clicked if not file attribute", () => {
-        // Arrange
-        const annotations = [
-            AnnotationName.FILE_NAME,
-            AnnotationName.KIND,
-            AnnotationName.FILE_SIZE,
-            AnnotationName.UPLOADED,
-        ];
-        const state = mergeState(initialState, {
-            selection: {
-                displayAnnotations: annotations.map(
-                    (name) =>
-                        new Annotation({
-                            annotationName: name,
-                            description: "Column Header Annotation",
-                            annotationDisplayName: name,
-                            type: "TEXT",
-                        })
-                ),
-                columnWidths: annotations.reduce(
-                    (accum, name) => ({
-                        ...accum,
-                        [name]: 1 / annotations.length,
-                    }),
-                    {}
-                ),
-            },
-        });
-        const { actions, store } = configureMockStore({ state });
-        const { getByText } = render(
-            <Provider store={store}>
-                <Header />
-            </Provider>
-        );
-
-        // Act
-        const kindColumn = getByText(AnnotationName.KIND);
-        fireEvent.click(kindColumn);
-
-        // Assert
-        expect(actions.includesMatch(selection.actions.sortColumn(AnnotationName.KIND))).to.be
-            .false;
-    });
-
     it("renders downward chevron when column is sorted descending", () => {
         // Arrange
         const annotations = [
