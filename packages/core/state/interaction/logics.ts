@@ -246,7 +246,11 @@ const downloadFiles = createLogic({
             await Promise.all(
                 filesToDownload.map(async (file) => {
                     const downloadRequestId = uniqueId();
-                    const fileByteDisplay = numberFormatter.displayValue(file.file_size, "bytes");
+                    // TODO: INCLUDE IN TICKET The byte display should be fixed automatically when moving to downloading using browser
+                    const fileByteDisplay = numberFormatter.displayValue(
+                        file.file_size || 0,
+                        "bytes"
+                    );
                     const msg = `Downloading ${file.file_name}, ${fileByteDisplay} out of the total of ${totalBytesDisplay} set to download`;
 
                     const onCancel = () => {
@@ -260,7 +264,7 @@ const downloadFiles = createLogic({
                         dispatch(
                             processProgress(
                                 downloadRequestId,
-                                totalBytesDownloaded / file.file_size,
+                                file.file_size ? totalBytesDownloaded / file.file_size : 0,
                                 msg,
                                 onCancel,
                                 [file.file_id]

@@ -133,6 +133,10 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         // retry policy: 3 times no matter the exception, with randomized exponential backoff between attempts
         const retry = Policy.handleAll().retry().attempts(3).exponential();
         let bytesDownloaded = -1;
+        if (!fileInfo.size) {
+            // TODO: INCLUDE IN TICKET - seems like this could just be handled by browser
+            throw new Error("Unable to handle download without knowing file size");
+        }
         while (bytesDownloaded < fileInfo.size) {
             const startByte = bytesDownloaded + 1;
             const endByte = Math.min(startByte + chunkSize - 1, fileInfo.size);

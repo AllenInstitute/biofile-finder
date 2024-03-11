@@ -23,8 +23,8 @@ export interface FmsFile {
     file_id: string;
     file_name: string;
     file_path: string;
-    file_size: number;
-    uploaded: string;
+    file_size?: number;
+    uploaded?: string;
     thumbnail?: string;
 }
 
@@ -36,7 +36,7 @@ export interface GetFilesRequest {
 
 export interface SelectionAggregationResult {
     count: number;
-    size: number;
+    size?: number;
 }
 
 export default interface FileService {

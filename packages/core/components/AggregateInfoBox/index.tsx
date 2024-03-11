@@ -10,7 +10,7 @@ import styles from "./AggregateInfoBox.module.css";
 
 interface AggregateData {
     count: number;
-    size: string;
+    size?: string;
 }
 
 /**
@@ -42,7 +42,7 @@ export default function AggregateInfoBox() {
                         fileSelection
                     );
                     if (!ignoreResponse) {
-                        setAggregateData({ count, size: filesize(size) });
+                        setAggregateData({ count, size: size ? filesize(size) : undefined });
                         setLoading(false);
                         setError(undefined);
                     }
@@ -96,19 +96,23 @@ export default function AggregateInfoBox() {
                     </h6>
                 </div>
                 <div className={styles.column}>
-                    <div className={styles.columnData}>
-                        {!isLoading && aggregateData ? (
-                            aggregateData.size
-                        ) : (
-                            <Spinner
-                                size={SpinnerSize.small}
-                                data-testid="aggregate-info-box-spinner"
-                            />
-                        )}
-                    </div>
-                    <h6 className={styles.label}>
-                        Total File <br /> Size
-                    </h6>
+                    {aggregateData?.size && (
+                        <>
+                            <div className={styles.columnData}>
+                                {!isLoading && aggregateData ? (
+                                    aggregateData.size
+                                ) : (
+                                    <Spinner
+                                        size={SpinnerSize.small}
+                                        data-testid="aggregate-info-box-spinner"
+                                    />
+                                )}
+                            </div>
+                            <h6 className={styles.label}>
+                                Total File <br /> Size
+                            </h6>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

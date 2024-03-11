@@ -13,7 +13,7 @@ export interface FileInfo {
     id: string;
     name: string;
     path: string;
-    size: number;
+    size?: number;
 }
 
 /**
