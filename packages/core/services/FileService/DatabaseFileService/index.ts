@@ -1,4 +1,4 @@
-import { omit, pick } from "lodash";
+import { omit } from "lodash";
 
 import FileService, { FmsFile, GetFilesRequest, SelectionAggregationResult } from "..";
 import DatabaseService from "../../DatabaseService";
@@ -12,36 +12,36 @@ interface Config {
 }
 
 /**
- * Service responsible for fetching file related metadata.
+ * Service responsible for fetching file related metadata directly from a database.
  */
 export default class DatabaseFileService implements FileService {
     private readonly databaseService: DatabaseService;
 
-    private static convertFilePropertyTyping(
-        fileProperty: string,
-        value: string
-    ): Partial<FmsFile> {
-        // TODO: Support other casings and such
-        switch (fileProperty) {
-            case "file_size":
-                return { file_size: parseInt(value, 10) };
-            // TODO: Dates should be cleaner and more consistent between this and FES
-            // TODO: Could we get this cleaner from DuckDB??
-            // case "uploaded":
-            //     return { "uploaded": new Date().toDateString() }
-            default:
-                return { [fileProperty]: value };
+    private static convertDatabaseRowToFmsFile(
+        row: { [key: string]: string },
+        rowNumber: number
+    ): FmsFile {
+        if (!("file_path" in row)) {
+            throw new Error('"file_path" is a required column for data sources');
         }
-    }
-
-    private static convertDatabaseRowToFmsFile(row: { [key: string]: string }): FmsFile {
-        return Object.entries(row).reduce(
-            (fmsFile: Partial<FmsFile>, [fileProperty, value]) => ({
-                ...fmsFile,
-                ...DatabaseFileService.convertFilePropertyTyping(fileProperty, value),
-            }),
-            {} as Partial<FmsFile>
-        ) as FmsFile;
+        return {
+            file_id: row["file_id"] || `${rowNumber}`,
+            file_name:
+                row["file_name"] ||
+                row["file_path"].split("\\").pop()?.split("/").pop() ||
+                row["file_path"],
+            file_path: row["file_path"],
+            file_size: "file_size" in row ? parseInt(row["file_size"], 10) : 0, // TODO: Loosen FMSFile to let this be undefined
+            uploaded: row["uploaded"], // TODO: Loosen FMSFile to let this be undefined
+            thumbnail: row["thumbnail"], // TODO: Support adding thumbnails via another file prompt
+            annotations: Object.entries(omit(row, TOP_LEVEL_FILE_ANNOTATION_NAMES)).map(
+                ([name, values]: any) => ({
+                    name,
+                    // TODO: INCLUDE IN TICKET Smarter types?
+                    values: `${values}`.split(",").map((value: string) => value.trim()),
+                })
+            ),
+        };
     }
 
     constructor(config: Config = { databaseService: new DatabaseServiceNoop() }) {
@@ -62,7 +62,6 @@ export default class DatabaseFileService implements FileService {
     public async getAggregateInformation(
         fileSelection: FileSelection
     ): Promise<SelectionAggregationResult> {
-        // TODO: This should probably be optimized
         const allFiles = await fileSelection.fetchAllDetails();
         const size = allFiles.reduce((acc, file) => acc + file.file_size, 0);
         return { count: fileSelection.count(), size };
@@ -81,18 +80,11 @@ export default class DatabaseFileService implements FileService {
             LIMIT ${request.limit}
         `;
         const rows = await this.databaseService.query(sql);
-        // TODO: ideally stop doing this mapping
-        return rows.map((row) => ({
-            ...DatabaseFileService.convertDatabaseRowToFmsFile(
-                pick(row, TOP_LEVEL_FILE_ANNOTATION_NAMES)
-            ),
-            annotations: Object.entries(omit(row, TOP_LEVEL_FILE_ANNOTATION_NAMES)).map(
-                ([name, values]: any) => ({
-                    name,
-                    // TODO: Smarter types?
-                    values: `${values}`.split(",").map((value: string) => value.trim()),
-                })
-            ),
-        })) as FmsFile[];
+        return rows.map((row, index) =>
+            DatabaseFileService.convertDatabaseRowToFmsFile(
+                row,
+                index + request.from * request.limit
+            )
+        ) as FmsFile[];
     }
 }

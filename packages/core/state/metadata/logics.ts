@@ -33,10 +33,6 @@ const requestAnnotations = createLogic({
         try {
             const annotations = await annotationService.fetchAnnotations();
             dispatch(receiveAnnotations(annotations));
-            if (annotations.find((annotation) => annotation.name === AnnotationName.UPLOADED)) {
-                const sortByUploaded = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
-                dispatch(selection.actions.setSortColumn(sortByUploaded));
-            }
         } catch (err) {
             console.error("Failed to fetch annotations", err);
         } finally {
@@ -54,11 +50,12 @@ const receiveAnnotationsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const actions = deps.action as ReceiveAnnotationAction;
         const annotations = actions.payload;
+        const currentSortColumn = selection.selectors.getSortColumn(deps.getState());
         const currentDisplayAnnotations = selection.selectors.getAnnotationsToDisplay(
             deps.getState()
         );
 
-        // TODO: Load in some from persistent config storage
+        // TODO: WRITE TICKET - Load in some from persistent config storage
         const annotationNameToAnnotationMap = annotations.reduce(
             (map, annotation) => ({ ...map, [annotation.name]: annotation }),
             {} as Record<string, Annotation>
@@ -108,6 +105,17 @@ const receiveAnnotationsLogic = createLogic({
             }
         }
 
+        // If the current sort column is not valid and we can default the using the "Uploaded" column try to do so
+        const isCurrentSortColumnValid =
+            currentSortColumn &&
+            annotations.some((annotation) => annotation.name === currentSortColumn.annotationName);
+        if (
+            !isCurrentSortColumnValid &&
+            annotations.some((annotation) => annotation.name === AnnotationName.UPLOADED)
+        ) {
+            const sortByUploaded = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
+            dispatch(selection.actions.setSortColumn(sortByUploaded));
+        }
         dispatch(selection.actions.selectDisplayAnnotation(displayAnnotationsThatStillExist, true));
         done();
     },
@@ -126,7 +134,7 @@ const requestCollections = createLogic({
             const collections = await datasetService.getDatasets();
             dispatch(receiveCollections(collections));
         } catch (err) {
-            // TODO: Grab collections from S3 manifest
+            // TODO: WRITE TICKET Grab collections from S3 manifest
             console.error("Failed to fetch datasets", err);
         } finally {
             done();

@@ -71,8 +71,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
                     [styles.selected]: isSelected,
                     [styles.focused]: isFocused,
                 })}
-                // TODO: Is this okay in CSV land?
-                rowIdentifier={{ index, id: file?.file_id }}
+                rowIdentifier={{ index, id: file.file_id }}
                 onSelect={onSelect}
                 data-testid="asdsadasdsadsad"
             />

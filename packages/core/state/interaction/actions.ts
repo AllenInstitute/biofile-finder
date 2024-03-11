@@ -730,7 +730,9 @@ export function openWith(
 }
 
 /**
- * TODO
+ * BROWSE_FOR_COLLECTION_SOURCE
+ *
+ * Intention to prompt the user to browse for a collection source.
  */
 export const BROWSE_FOR_COLLECTION_SOURCE = makeConstant(
     STATE_BRANCH_NAME,

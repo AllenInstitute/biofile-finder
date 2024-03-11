@@ -33,7 +33,7 @@ export default class CsvService extends HttpServiceBase {
         this.executionEnvSerivce = config.executionEnvService;
     }
 
-    // TODO: This division between "server" and "database" is yucky,
+    // TODO: INCLUDE IN TICKET - This division between "server" and "database" is yucky,
     // Instead, this should be driven by the Browser/Electron division and likely
     // removed entirely from this service
     public async downloadCsvFromServer(
@@ -66,7 +66,10 @@ export default class CsvService extends HttpServiceBase {
             .map((annotation) => `"${annotation}"`)
             .join(", ");
 
-        // TODO: Clean this up, perhaps modularize clause builders
+        // TODO: WRITE TICKET - At a minimum this needs to support filtering on various types
+        // at the moment it seems like everything will get cast as a string (maybe fine/not though?)
+        // could also benefit potentially from a sql builder of some sort to try to make this more
+        // readable
         const rowNumberKey = "row_number";
         const subQueries = selectionRequest.selections.map((selection) => {
             const numberRangeAsWhereConditions = selection.indexRanges.map(
@@ -74,35 +77,39 @@ export default class CsvService extends HttpServiceBase {
                     `"${rowNumberKey}" BETWEEN ${indexRange.start} AND ${indexRange.end}`
             );
 
+            let filtersAsWhereClause = "";
             const columnNames = Object.keys(selection.filters);
-            const filtersAsWhereConditions = columnNames.map((columnName) =>
-                selection.filters[columnName]
-                    .map((columnValue) => `"${columnName}" = '${columnValue}'`)
-                    .join(" OR ")
-            );
+            if (!!columnNames.length) {
+                const filtersAsWhereConditions = columnNames.map((columnName) =>
+                    selection.filters[columnName]
+                        .map((columnValue) => `"${columnName}" = '${columnValue}'`)
+                        .join(" OR ")
+                );
+                filtersAsWhereClause = `WHERE (${filtersAsWhereConditions.join(") AND (")})`;
+            }
 
-            const orderByCondition =
-                selection.sort &&
-                `"${selection.sort.annotationName}" ${selection.sort.ascending ? "ASC" : "DESC"}`;
-            const orderByClause = orderByCondition ? `ORDER BY ${orderByCondition}` : "";
+            let orderByClause = "";
+            if (selection.sort) {
+                orderByClause = `ORDER BY "${selection.sort.annotationName}" ${
+                    selection.sort.ascending ? "ASC" : "DESC"
+                }`;
+            }
+
             return `
                 SELECT "file_path"
                 FROM (
                     SELECT ROW_NUMBER() OVER (${orderByClause}) AS "${rowNumberKey}", "file_path"
                     FROM ${this.databaseService.table}
-                    ${
-                        filtersAsWhereConditions.length
-                            ? `WHERE (${filtersAsWhereConditions.join(") AND (")})`
-                            : ""
-                    }
+                    ${filtersAsWhereClause}
                 ) AS Row
                 WHERE (${numberRangeAsWhereConditions.join(") OR (")})
                 ${orderByClause}
             `;
         }, [] as string[]);
 
-        // TODO: Make this more flexible to allow outputting as various types (at least parquet, json
-        // TODO: See if possible to make cancellable
+        // TODO: WRITE TICKET - Make this more flexible to allow outputting as various types (at least parquet, json
+        // TODO: INCLUDE IN TICKET - this should be cancellable, but moving this to be
+        // web compatible would by default make that true
         const sql = `
             COPY (
                 SELECT ${annotationsAsSelect}

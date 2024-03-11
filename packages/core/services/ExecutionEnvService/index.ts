@@ -36,7 +36,10 @@ export default interface ExecutionEnvService {
     promptForSaveLocation(promptTitle?: string): Promise<SaveLocationResolution>;
 
     /**
-     * TODO
+     * Prompts the user for a file.
+     *
+     * @param extensions File extensions permitted for selection
+     * @param reasonForPrompt (Optional) If present, will first display a message to the user notifying them of
      */
     promptForFile(extensions?: string[], reasonForPrompt?: string): Promise<string>;
 

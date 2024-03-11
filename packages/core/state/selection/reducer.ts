@@ -61,7 +61,6 @@ export const initialState = {
     filters: [PAST_YEAR_FILTER],
     openFileFolders: [],
     shouldDisplaySmallFont: false,
-    // TODO: Sort by default on uploaded if using FMS????
 };
 
 export default makeReducer<SelectionStateBranch>(

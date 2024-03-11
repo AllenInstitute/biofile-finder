@@ -1,12 +1,11 @@
-/**
- * TODO
- */
 export interface DataSource {
     name: string;
     created: Date;
 }
 
-// TODO: Rename to LocalDatabaseService
+/**
+ * Service reponsible for querying against a database
+ */
 export default interface DatabaseService {
     table: string;
 

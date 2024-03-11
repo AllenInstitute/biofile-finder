@@ -9,7 +9,6 @@ interface Config {
     databaseService: DatabaseService;
 }
 
-// TODO: move into database?
 interface DescribeQueryResult {
     [key: string]: string;
     column_name: string;
@@ -23,7 +22,7 @@ interface SummarizeQueryResult {
 }
 
 /**
- * todo
+ * Service responsible for fetching annotation related metadata directly from a database
  */
 export default class DatabaseAnnotationService implements AnnotationService {
     private readonly databaseService: DatabaseService;
@@ -34,7 +33,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
     private static columnTypeToAnnotationType(columnType: string): string {
         switch (columnType) {
-            // TODO: use column_type to get real type...?
+            // TODO: WRITE TICKET - I assume we need to do more here, like for dates at least? or durations?
             case "INTEGER":
             case "BIGINT":
                 return AnnotationType.NUMBER;
@@ -56,7 +55,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 new Annotation({
                     annotationDisplayName: row["column_name"],
                     annotationName: row["column_name"],
-                    // TODO: Enable via separate file? alt: exclude tooltip when not present
+                    // TODO: WRITE TICKET - Enable via separate file
                     description: "",
                     type: DatabaseAnnotationService.columnTypeToAnnotationType(row["column_type"]),
                 })

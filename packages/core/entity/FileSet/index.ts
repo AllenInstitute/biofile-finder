@@ -171,22 +171,29 @@ export default class FileSet {
     }
 
     /**
-     *
-     * TODO
+     * Combine filters and sort into standard SQL "WHERE", "AND", "OR", and "ORDER BY" clauses
      */
     public toQuerySQL(options: { ignoreSort?: boolean } = {}): string {
-        const filtersByAnnotation = this.filters.reduce((map, filter) => {
-            const annotationValues = map[filter.name] ? map[filter.name] : [];
-            annotationValues.push(filter.value);
-            return { ...map, [filter.name]: annotationValues };
-        }, {} as { [name: string]: string[] });
-        const whereFilters = Object.keys(filtersByAnnotation).map((annotation) => {
-            const annotationValues = filtersByAnnotation[annotation];
-            if (annotationValues[0] === null) {
-                return `) "${annotation}" IS NOT NULL (`;
-            }
-            return annotationValues.map((value) => `"${annotation}" = '${value}'`).join(") OR (");
-        });
+        // Map the filter values to the annotation names they filter
+        const filterValuesByAnnotation = this.filters.reduce(
+            (map, filter) => ({
+                ...map,
+                [filter.name]:
+                    filter.name in map ? [...map[filter.name], filter.value] : [filter.value],
+            }),
+            {} as { [name: string]: string[] }
+        );
+
+        // Transform the map above into an array of SQL comparison clauses
+        // if a filter value is `null` then we need to modify the way we approach filtering
+        // it in SQL
+        const whereFilters = Object.entries(
+            filterValuesByAnnotation
+        ).map(([annotation, filterValues]) =>
+            filterValues[0] === null
+                ? `) "${annotation}" IS NOT NULL (`
+                : filterValues.map((fv) => `"${annotation}" = '${fv}'`).join(") OR (")
+        );
 
         const sqlParts = [];
         if (whereFilters.length) {

@@ -28,7 +28,7 @@ const DATA_SOURCE_DETAILS = [
 ];
 
 /**
- * TODO
+ * Dialog meant to prompt user to select a data source option
  */
 export default function DataSourcePrompt({ onDismiss }: Props) {
     const dispatch = useDispatch();
