@@ -33,7 +33,6 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
     private static columnTypeToAnnotationType(columnType: string): string {
         switch (columnType) {
-            // TODO: WRITE TICKET - I assume we need to do more here, like for dates at least? or durations?
             case "INTEGER":
             case "BIGINT":
                 return AnnotationType.NUMBER;
@@ -55,7 +54,6 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 new Annotation({
                     annotationDisplayName: row["column_name"],
                     annotationName: row["column_name"],
-                    // TODO: WRITE TICKET - Enable via separate file
                     description: "",
                     type: DatabaseAnnotationService.columnTypeToAnnotationType(row["column_type"]),
                 })

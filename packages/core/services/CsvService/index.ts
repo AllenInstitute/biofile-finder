@@ -33,9 +33,6 @@ export default class CsvService extends HttpServiceBase {
         this.executionEnvSerivce = config.executionEnvService;
     }
 
-    // TODO: INCLUDE IN TICKET - This division between "server" and "database" is yucky,
-    // Instead, this should be driven by the Browser/Electron division and likely
-    // removed entirely from this service
     public async downloadCsvFromServer(
         selectionRequest: CsvManifestRequest,
         manifestDownloadId: string
@@ -66,10 +63,6 @@ export default class CsvService extends HttpServiceBase {
             .map((annotation) => `"${annotation}"`)
             .join(", ");
 
-        // TODO: WRITE TICKET - At a minimum this needs to support filtering on various types
-        // at the moment it seems like everything will get cast as a string (maybe fine/not though?)
-        // could also benefit potentially from a sql builder of some sort to try to make this more
-        // readable
         const rowNumberKey = "row_number";
         const subQueries = selectionRequest.selections.map((selection) => {
             const numberRangeAsWhereConditions = selection.indexRanges.map(
@@ -107,9 +100,9 @@ export default class CsvService extends HttpServiceBase {
             `;
         }, [] as string[]);
 
-        // TODO: WRITE TICKET - Make this more flexible to allow outputting as various types (at least parquet, json
-        // TODO: INCLUDE IN TICKET - this should be cancellable, but moving this to be
+        // TODO: This should be cancellable, but moving this to be
         // web compatible would by default make that true
+        // https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues/62
         const sql = `
             COPY (
                 SELECT ${annotationsAsSelect}

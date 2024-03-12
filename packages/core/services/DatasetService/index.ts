@@ -13,7 +13,7 @@ export interface Dataset {
     query: string;
     client: string;
     fixed: boolean;
-    uri?: string; // TODO: INCLUDE IN TICKET - refactor properties for datasets/collections
+    uri?: string;
     private: boolean;
     created: Date;
     createdBy: string;
@@ -41,8 +41,6 @@ export interface PythonicDataAccessSnippet {
 interface DatasetConnectionConfig extends ConnectionConfig {
     database: DatabaseService;
 }
-
-// TODO: WRITE TICKET - Re-evaluate collection concept now that CSVs are present as an option, consider separating out "data sources" and "views"
 
 /**
  * Service responsible for fetching dataset related metadata.

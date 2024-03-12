@@ -32,12 +32,11 @@ export default class DatabaseFileService implements FileService {
                 row["file_path"],
             file_path: row["file_path"],
             file_size: "file_size" in row ? parseInt(row["file_size"], 10) : undefined,
-            uploaded: row["uploaded"], // TODO: WRITE TICKET explain what format this (and other dates) should be in user guide & for file_size
-            thumbnail: row["thumbnail"], // TODO: INCLUDE IN TICKET explain what this should look like to users and what does
+            uploaded: row["uploaded"],
+            thumbnail: row["thumbnail"],
             annotations: Object.entries(omit(row, TOP_LEVEL_FILE_ANNOTATION_NAMES)).map(
                 ([name, values]: any) => ({
                     name,
-                    // TODO: INCLUDE IN TICKET Smarter types?
                     values: `${values}`.split(",").map((value: string) => value.trim()),
                 })
             ),

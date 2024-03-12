@@ -55,7 +55,6 @@ const receiveAnnotationsLogic = createLogic({
             deps.getState()
         );
 
-        // TODO: WRITE TICKET - Load in some from persistent config storage
         const annotationNameToAnnotationMap = annotations.reduce(
             (map, annotation) => ({ ...map, [annotation.name]: annotation }),
             {} as Record<string, Annotation>
@@ -134,7 +133,6 @@ const requestCollections = createLogic({
             const collections = await datasetService.getDatasets();
             dispatch(receiveCollections(collections));
         } catch (err) {
-            // TODO: WRITE TICKET Grab collections from S3 manifest
             console.error("Failed to fetch datasets", err);
         } finally {
             done();

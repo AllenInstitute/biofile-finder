@@ -246,7 +246,8 @@ const downloadFiles = createLogic({
             await Promise.all(
                 filesToDownload.map(async (file) => {
                     const downloadRequestId = uniqueId();
-                    // TODO: INCLUDE IN TICKET The byte display should be fixed automatically when moving to downloading using browser
+                    // TODO: The byte display should be fixed automatically when moving to downloading using browser
+                    // https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues/62
                     const fileByteDisplay = numberFormatter.displayValue(
                         file.file_size || 0,
                         "bytes"

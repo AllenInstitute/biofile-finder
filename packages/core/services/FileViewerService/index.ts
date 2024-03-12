@@ -1,7 +1,6 @@
 /**
  * Interface that defines a platform-dependent service for showing files using other applications.
  */
-// TODO: INCLUDE IN TICKET Rename this to FileSystemService and combine with ExecutionEnvService (maybe download too?)
 export default interface FileViewerService {
     /**
      * Opens the given files in the executable.
