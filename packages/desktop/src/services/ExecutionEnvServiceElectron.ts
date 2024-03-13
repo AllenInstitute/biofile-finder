@@ -172,7 +172,7 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
         const platform = os.platform();
         const saveLocation = await this.selectPath({
             ...ExecutionEnvServiceElectron.getDefaultOpenDialogOptions(platform),
-            properties: ["openFile"],
+            properties: ["openDirectory"],
             title: promptTitle,
         });
 
