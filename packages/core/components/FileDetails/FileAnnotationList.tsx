@@ -9,6 +9,7 @@ import { interaction, metadata } from "../../state";
 import FileAnnotationRow from "./FileAnnotationRow";
 
 import styles from "./FileAnnotationList.module.css";
+import { uniqBy } from "lodash";
 
 interface FileAnnotationListProps {
     className?: string;
@@ -60,7 +61,10 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
             return null;
         }
 
-        const sorted = Annotation.sort([...TOP_LEVEL_FILE_ANNOTATIONS, ...annotations]);
+        const sorted = uniqBy(
+            Annotation.sort([...TOP_LEVEL_FILE_ANNOTATIONS, ...annotations]),
+            (annotation) => annotation.name
+        );
         return sorted.reduce((accum, annotation) => {
             const annotationValue = annotation.extractFromFile(fileDetails.details);
             if (annotationValue === Annotation.MISSING_VALUE) {
