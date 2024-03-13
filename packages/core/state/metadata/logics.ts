@@ -9,7 +9,7 @@ import {
     REQUEST_ANNOTATIONS,
     REQUEST_COLLECTIONS,
 } from "./actions";
-import { AnnotationName } from "../../constants";
+import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
@@ -55,7 +55,10 @@ const receiveAnnotationsLogic = createLogic({
             deps.getState()
         );
 
-        const annotationNameToAnnotationMap = annotations.reduce(
+        const annotationNameToAnnotationMap = [
+            ...TOP_LEVEL_FILE_ANNOTATIONS,
+            ...annotations,
+        ].reduce(
             (map, annotation) => ({ ...map, [annotation.name]: annotation }),
             {} as Record<string, Annotation>
         );
@@ -75,13 +78,12 @@ const receiveAnnotationsLogic = createLogic({
             AnnotationName.TYPE,
             AnnotationName.FILE_SIZE,
         ].forEach((annotationName) => {
-            if (
-                !displayAnnotationsThatStillExist.find(
-                    (annotation) => annotation.name === annotationName
-                ) &&
-                annotationName in annotationNameToAnnotationMap &&
-                displayAnnotationsThatStillExist.length < 4
-            ) {
+            const isAlreadyDisplayed = !displayAnnotationsThatStillExist.find(
+                (annotation) => annotation.name === annotationName
+            );
+            const existsInDataSource = annotationName in annotationNameToAnnotationMap;
+            const canFitInList = displayAnnotationsThatStillExist.length < 4;
+            if (isAlreadyDisplayed && existsInDataSource && canFitInList) {
                 displayAnnotationsThatStillExist.push(
                     annotationNameToAnnotationMap[annotationName]
                 );

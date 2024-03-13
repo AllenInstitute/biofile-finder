@@ -6,7 +6,6 @@ import {
     SpinnerSize,
     TextField,
 } from "@fluentui/react";
-import axios from "axios";
 import { debounce } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -38,6 +37,7 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
     const { databaseService } = useSelector(interaction.selectors.getPlatformDependentServices);
     const lastUsedCollection = useSelector(interaction.selectors.getLastUsedCollection);
     const collections = useSelector(metadata.selectors.getCollections);
+    const annotations = useSelector(metadata.selectors.getAnnotations);
     const [isCheckingForDataSource, setIsCheckingForDataSource] = React.useState(true);
 
     const [dataSourceURL, setDataSourceURL] = React.useState("");
@@ -66,16 +66,6 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
         [databaseService, dispatch, onDismiss]
     );
     React.useEffect(() => {
-        async function checkConnection() {
-            try {
-                const response = await axios.create().get(fileExplorerServiceBaseUrl);
-                if (response.status === 200) {
-                    onDismiss();
-                }
-            } catch (err) {}
-        }
-        checkConnection();
-
         if (lastUsedCollection) {
             const matchingCollection = collections.find((c) => c.id === lastUsedCollection.id);
             if (matchingCollection) {
@@ -85,10 +75,16 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
                 loadDataFromURI(lastUsedCollection.uri);
             }
         }
+
+        // If we found annotations at a data source we are good to go
+        if (annotations.length) {
+            onDismiss();
+        }
         setIsCheckingForDataSource(false);
     }, [
         lastUsedCollection,
         loadDataFromURI,
+        annotations,
         collections,
         databaseService,
         dispatch,
