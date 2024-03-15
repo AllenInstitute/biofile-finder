@@ -19,7 +19,7 @@ export default function EmptyFileListMessage() {
                 <div>
                     We couldn&apos;t find any files
                     {isEmpty(groupedByFilterName) && annotationHierarchyListItems.length === 0 ? (
-                        <>matching your request.</>
+                        <>&nbsp;matching your request.</>
                     ) : (
                         <span>
                             {!isEmpty(groupedByFilterName) && (
