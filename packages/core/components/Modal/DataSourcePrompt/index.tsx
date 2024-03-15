@@ -42,6 +42,7 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
     const annotations = useSelector(metadata.selectors.getAnnotations);
     const [isCheckingForDataSource, setIsCheckingForDataSource] = React.useState(true);
 
+    const [isLoading, setIsLoading] = React.useState(true);
     const [dataSourceURL, setDataSourceURL] = React.useState("");
     const [isAICSEmployee, setIsAICSEmployee] = React.useState(false);
     const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
@@ -63,6 +64,7 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
                     createdBy: "Unknown",
                 })
             );
+            setIsLoading(false);
             onDismiss();
         },
         [databaseService, dispatch, onDismiss]
@@ -72,9 +74,12 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
             const matchingCollection = collections.find((c) => c.id === lastUsedCollection.id);
             if (matchingCollection) {
                 dispatch(selection.actions.changeCollection(matchingCollection));
+                setIsLoading(false);
                 onDismiss();
             } else if (lastUsedCollection.uri) {
                 loadDataFromURI(lastUsedCollection.uri);
+            } else {
+                setIsLoading(false);
             }
         }
 
@@ -126,79 +131,85 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
         );
     }
 
-    const body = (
-        <>
-            <p className={styles.text}>
-                Please provide a &quot;.csv&quot;, &quot;.parquet&quot;, or &quot;.json&quot; file
-                containing metadata about some files. See more details for information about what a
-                data source file should look like...
-            </p>
-            {isDataSourceDetailExpanded ? (
-                <div>
-                    {DATA_SOURCE_DETAILS.map((text) => (
-                        <p key={text} className={styles.text}>
-                            {text}
-                        </p>
-                    ))}
+    let body;
+    let footer = null;
+    if (isLoading) {
+        body = <Spinner size={SpinnerSize.large} />;
+    } else {
+        body = (
+            <>
+                <p className={styles.text}>
+                    Please provide a &quot;.csv&quot;, &quot;.parquet&quot;, or &quot;.json&quot;
+                    file containing metadata about some files. See more details for information
+                    about what a data source file should look like...
+                </p>
+                {isDataSourceDetailExpanded ? (
+                    <div>
+                        {DATA_SOURCE_DETAILS.map((text) => (
+                            <p key={text} className={styles.text}>
+                                {text}
+                            </p>
+                        ))}
+                        <div className={styles.subtitleButtonContainer}>
+                            <DefaultButton
+                                className={styles.subtitleButton}
+                                onClick={() => setIsDataSourceDetailExpanded(false)}
+                            >
+                                LESS&nbsp;
+                                <Icon iconName="CaretSolidUp" />
+                            </DefaultButton>
+                        </div>
+                    </div>
+                ) : (
                     <div className={styles.subtitleButtonContainer}>
                         <DefaultButton
                             className={styles.subtitleButton}
-                            onClick={() => setIsDataSourceDetailExpanded(false)}
+                            onClick={() => setIsDataSourceDetailExpanded(true)}
                         >
-                            LESS&nbsp;
-                            <Icon iconName="CaretSolidUp" />
+                            MORE&nbsp;
+                            <Icon iconName="CaretSolidDown" />
                         </DefaultButton>
                     </div>
-                </div>
-            ) : (
-                <div className={styles.subtitleButtonContainer}>
+                )}
+                <div className={styles.actionsContainer}>
                     <DefaultButton
-                        className={styles.subtitleButton}
-                        onClick={() => setIsDataSourceDetailExpanded(true)}
-                    >
-                        MORE&nbsp;
-                        <Icon iconName="CaretSolidDown" />
-                    </DefaultButton>
-                </div>
-            )}
-            <div className={styles.actionsContainer}>
-                <DefaultButton
-                    className={styles.browseButton}
-                    ariaLabel="Browse for a data source file on your machine"
-                    iconProps={{ iconName: "DocumentSearch" }}
-                    onClick={onChooseFile}
-                    text="Choose File"
-                    title="Browse for a data source file on your machine"
-                />
-                <div className={styles.orDivider}>
-                    <hr />
-                    or
-                    <hr />
-                </div>
-                <form className={styles.urlForm} onSubmit={onEnterURL}>
-                    <TextField
-                        onChange={(_, newValue) => setDataSourceURL(newValue || "")}
-                        placeholder="Paste URL (ex. S3, Azure)"
-                        value={dataSourceURL}
+                        className={styles.browseButton}
+                        ariaLabel="Browse for a data source file on your machine"
+                        iconProps={{ iconName: "DocumentSearch" }}
+                        onClick={onChooseFile}
+                        text="Choose File"
+                        title="Browse for a data source file on your machine"
                     />
-                </form>
-            </div>
-        </>
-    );
-    const footer = isAICSEmployee ? (
-        <p>
-            Unable to connect to necessary server in the Allen Institute network. Check WiFi or VPN
-            connection.
-        </p>
-    ) : (
-        <ActionButton
-            allowDisabledFocus
-            className={styles.aiEmployeePrompt}
-            onClick={onIsAllenEmployee}
-        >
-            Allen Institute employee?
-        </ActionButton>
-    );
+                    <div className={styles.orDivider}>
+                        <hr />
+                        or
+                        <hr />
+                    </div>
+                    <form className={styles.urlForm} onSubmit={onEnterURL}>
+                        <TextField
+                            onChange={(_, newValue) => setDataSourceURL(newValue || "")}
+                            placeholder="Paste URL (ex. S3, Azure)"
+                            value={dataSourceURL}
+                        />
+                    </form>
+                </div>
+            </>
+        );
+        footer = isAICSEmployee ? (
+            <p>
+                Unable to connect to necessary server in the Allen Institute network. Check WiFi or
+                VPN connection.
+            </p>
+        ) : (
+            <ActionButton
+                allowDisabledFocus
+                className={styles.aiEmployeePrompt}
+                onClick={onIsAllenEmployee}
+            >
+                Allen Institute employee?
+            </ActionButton>
+        );
+    }
 
     return (
         <BaseModal
