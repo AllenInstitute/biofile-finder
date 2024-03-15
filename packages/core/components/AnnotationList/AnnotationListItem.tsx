@@ -52,6 +52,7 @@ export default React.memo(function AnnotationListItem(props: AnnotationListItemP
                 className={classNames(
                     {
                         [styles.disabled]: disabled,
+                        [styles.missingDescription]: !description,
                     },
                     styles.title
                 )}

@@ -13,6 +13,10 @@
     fill: var(--blue); /* defined in App.module.css */
 }
 
+.missing-description {
+    margin-left: 12px;
+}
+
 .title {
     flex: 1 1 auto;
     text-overflow: ellipsis;

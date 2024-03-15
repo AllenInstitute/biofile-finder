@@ -5,7 +5,7 @@ import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
-import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES_WITH_MULTIPLE_CASINGS } from "../../constants";
 
 interface Config {
     databaseService: DatabaseService;
@@ -21,20 +21,24 @@ export default class DatabaseFileService implements FileService {
         row: { [key: string]: string },
         rowNumber: number
     ): FmsFile {
-        if (!("file_path" in row)) {
-            throw new Error('"file_path" is a required column for data sources');
+        const filePath = row["File Path"] || row["file_path"];
+        if (!filePath) {
+            throw new Error('"File Path" (or "file_path") is a required column for data sources');
         }
+
+        const fileSize = row["File Size"] || row["file_size"];
         return {
-            file_id: row["file_id"] || `${rowNumber}`,
-            file_name:
+            file_id: row["File ID"] || row["File Id"] || row["file_id"] || `${rowNumber}`,
+            file_name: 
+                row["File Name"] ||
                 row["file_name"] ||
-                row["file_path"].split("\\").pop()?.split("/").pop() ||
-                row["file_path"],
-            file_path: row["file_path"],
-            file_size: "file_size" in row ? parseInt(row["file_size"], 10) : undefined,
-            uploaded: row["uploaded"],
-            thumbnail: row["thumbnail"],
-            annotations: Object.entries(omit(row, TOP_LEVEL_FILE_ANNOTATION_NAMES)).map(
+                filePath.split("\\").pop()?.split("/").pop() ||
+                filePath,
+            file_path: filePath,
+            file_size: (fileSize !== undefined && fileSize !== null) ? parseInt(fileSize, 10) : undefined,
+            uploaded: row["Uploaded"] || row["uploaded"],
+            thumbnail: row["Thumbnail"] || row["thumbnail"],
+            annotations: Object.entries(omit(row, ...TOP_LEVEL_FILE_ANNOTATION_NAMES_WITH_MULTIPLE_CASINGS)).map(
                 ([name, values]: any) => ({
                     name,
                     values: `${values}`.split(",").map((value: string) => value.trim()),
