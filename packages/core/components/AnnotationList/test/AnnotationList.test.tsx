@@ -11,6 +11,7 @@ import { annotationsJson } from "../../../entity/Annotation/mocks";
 import FileFilter from "../../../entity/FileFilter";
 import { initialState, reducer, reduxLogics, selection } from "../../../state";
 import { DND_LIST_CONTAINER_ID } from "../../DnDList/DnDList";
+import { SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 
 import styles from "../AnnotationList.module.css";
 
@@ -55,7 +56,9 @@ describe("<AnnotationList />", () => {
             const allAnnotationDisplayNames = annotationsJson.map(
                 (annotation) => annotation.annotationDisplayName
             );
-            expect(queryNumberListItems()).to.equal(allAnnotationDisplayNames.length);
+            expect(queryNumberListItems()).to.equal(
+                allAnnotationDisplayNames.length + SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS.length
+            );
             allAnnotationDisplayNames.forEach((annotation) => {
                 expect(getByText(annotation)).to.exist;
             });
@@ -187,8 +190,15 @@ describe("<AnnotationList />", () => {
 
         it("does not exist when no annotations are filtered", () => {
             // Arrange
+            const state = {
+                ...initialState,
+                selection: {
+                    ...initialState.selection,
+                    filters: [],
+                },
+            };
             const { store } = configureMockStore({
-                state: mergeState(initialState, {
+                state: mergeState(state, {
                     metadata: {
                         annotations: annotationsJson.map(
                             (annotation) => new Annotation(annotation)

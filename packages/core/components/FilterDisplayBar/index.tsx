@@ -21,7 +21,7 @@ interface Props {
 export default function FilterDisplayBar(props: Props) {
     const { className, classNameHidden } = props;
 
-    const globalFilters = useSelector(selection.selectors.getAnnotationFilters);
+    const globalFilters = useSelector(selection.selectors.getFileFilters);
     const groupedByFilterName = useSelector(selection.selectors.getGroupedByFilterName);
 
     return (

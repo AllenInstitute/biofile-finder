@@ -63,7 +63,9 @@ export default function FilterMedallion(props: Props) {
         }
     }, [textRef, filters]);
 
-    const operator = filters.length > 1 ? "ONE OF" : "EQUALS";
+    const firstFilterValue = filters[0].value.toString();
+    const operator =
+        filters.length > 1 ? "ONE OF" : firstFilterValue.includes("RANGE") ? "BETWEEN" : "EQUALS";
     const valueDisplay = map(filters, (filter) => filter.displayValue).join(", ");
     const display = `${name} ${operator} ${valueDisplay}`;
 

@@ -9,7 +9,11 @@ import {
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
+import {
+    AnnotationName,
+    TOP_LEVEL_FILE_ANNOTATIONS,
+    SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS,
+} from "../../constants";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import Tutorial from "../../entity/Tutorial";
@@ -18,9 +22,7 @@ import { getFileAttributeFilter } from "../../state/selection/selectors";
 
 import styles from "./FileMetadataSearchBar.module.css";
 
-const FILE_ATTRIBUTE_OPTIONS = TOP_LEVEL_FILE_ANNOTATIONS.filter(
-    (a) => a.name !== AnnotationName.FILE_SIZE
-).map((a) => ({
+const FILE_ATTRIBUTE_OPTIONS = SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS.map((a) => ({
     key: a.name,
     text: a.displayName,
 }));
