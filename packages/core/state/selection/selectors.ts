@@ -9,7 +9,7 @@ import FileFolder from "../../entity/FileFolder";
 import FileSort from "../../entity/FileSort";
 import { Dataset } from "../../services/DatasetService";
 import { groupBy, keyBy, map } from "lodash";
-import { getAnnotations } from "../metadata/selectors";
+import { getSupportedAnnotations } from "../metadata/selectors";
 
 // BASIC SELECTORS
 export const getAnnotationHierarchy = (state: State) => state.selection.annotationHierarchy;
@@ -56,7 +56,7 @@ export const getFileAttributeFilter = createSelector([getFileFilters], (fileFilt
     | undefined => fileFilters.find((f) => TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(f.name)));
 
 export const getGroupedByFilterName = createSelector(
-    [getAnnotationFilters, getAnnotations],
+    [getFileFilters, getSupportedAnnotations],
     (globalFilters: FileFilter[], annotations: Annotation[]) => {
         const annotationNameToInstanceMap = keyBy(annotations, "name");
         const filters: Filter[] = map(globalFilters, (filter: FileFilter) => {

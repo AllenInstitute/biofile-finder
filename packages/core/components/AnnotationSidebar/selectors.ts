@@ -6,13 +6,14 @@ import { DnDItem } from "../../components/DnDList/DnDList";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import { metadata, selection } from "../../state";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 
 export const getAnnotationListItems = createSelector(
     [
-        metadata.selectors.getSortedAnnotations,
+        metadata.selectors.getSupportedAnnotations,
         selection.selectors.getAvailableAnnotationsForHierarchy,
         selection.selectors.getAnnotationHierarchy,
-        selection.selectors.getAnnotationFilters,
+        selection.selectors.getFileFilters,
     ],
     (
         annotations: Annotation[],
@@ -37,6 +38,8 @@ export const getAnnotationListItems = createSelector(
                     filtered: filteredAnnotationNames.has(annotation.name),
                     id: annotation.name,
                     title: annotation.displayName,
+                    type: annotation.type,
+                    isFileProperty: TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name),
                 }))
                 // Sort the filtered annotations to the top
                 .sort((a, b) => (a.filtered && !b.filtered ? -1 : 1))
