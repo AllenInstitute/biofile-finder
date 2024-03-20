@@ -28,7 +28,7 @@ export const AnnotationName = {
 // Date range options where the date range is a computed value based on the relative date to today
 const BEGINNING_OF_TODAY = new Date();
 BEGINNING_OF_TODAY.setHours(0, 0, 0, 0);
-const END_OF_TODAY = new Date();
+export const END_OF_TODAY = new Date();
 END_OF_TODAY.setHours(23, 59, 59);
 const DATE_LAST_YEAR = new Date(BEGINNING_OF_TODAY);
 DATE_LAST_YEAR.setMonth(BEGINNING_OF_TODAY.getMonth() - 12);
@@ -38,6 +38,8 @@ const DATE_LAST_MONTH = new Date(BEGINNING_OF_TODAY);
 DATE_LAST_MONTH.setMonth(BEGINNING_OF_TODAY.getMonth() - 1);
 const DATE_LAST_WEEK = new Date(BEGINNING_OF_TODAY);
 DATE_LAST_WEEK.setDate(BEGINNING_OF_TODAY.getDate() - 7);
+export const DATE_ABSOLUTE_MIN = new Date(BEGINNING_OF_TODAY);
+DATE_ABSOLUTE_MIN.setFullYear(2000);
 export const PAST_YEAR_FILTER = new FileFilter(
     AnnotationName.UPLOADED,
     `RANGE(${DATE_LAST_YEAR.toISOString()},${END_OF_TODAY.toISOString()})`
@@ -145,5 +147,9 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         type: AnnotationType.DATETIME,
     }),
 ];
+
+export const SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS = TOP_LEVEL_FILE_ANNOTATIONS.filter(
+    (a) => a.name !== AnnotationName.FILE_SIZE
+);
 
 export const TOP_LEVEL_FILE_ANNOTATION_NAMES = TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.name);
