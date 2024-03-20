@@ -13,6 +13,8 @@ export interface DnDItem {
     disabled?: boolean;
     id: string; // a unique identifier for the annotation, e.g., annotation.name
     title: string; // the value to display, e.g., annotation.displayName
+    type?: string;
+    isFileProperty?: boolean;
 }
 
 export interface DnDListDividers {
@@ -57,7 +59,7 @@ export default function DnDList(props: DnDListProps) {
                     data-testid={DND_LIST_CONTAINER_ID}
                 >
                     {items.reduce((accum, item, index) => {
-                        const disabled = item.disabled;
+                        const isDragDisabled = item.disabled || item?.isFileProperty;
                         return [
                             ...accum,
                             ...(dividers && dividers[index] ? [dividers[index]] : []),
@@ -65,7 +67,7 @@ export default function DnDList(props: DnDListProps) {
                                 key={item.id}
                                 draggableId={JSON.stringify({ sourceId: id, itemId: item.id })}
                                 index={index}
-                                isDragDisabled={disabled}
+                                isDragDisabled={isDragDisabled}
                             >
                                 {(draggableProps, draggableState) => (
                                     <>

@@ -45,7 +45,7 @@ const SEARCH_ICON_PATH_DATA =
  */
 export default function AnnotationList(props: AnnotationListProps) {
     const dispatch = useDispatch();
-    const filters = useSelector(selection.selectors.getAnnotationFilters);
+    const filters = useSelector(selection.selectors.getFileFilters);
     const annotationsLoading = useSelector(
         selection.selectors.getAvailableAnnotationsForHierarchyLoading
     );
@@ -94,7 +94,7 @@ export default function AnnotationList(props: AnnotationListProps) {
     return (
         <div className={classNames(styles.root, props.className)}>
             <h3 className={styles.title}>Available Annotations</h3>
-            <h6 className={styles.description}>Drag any annotation to the box above</h6>
+            <h6 className={styles.description}>Drag annotations to the box above</h6>
             <div className={styles.listContainer} id={Tutorial.ANNOTATION_LIST_ID}>
                 <div className={styles.searchBox}>
                     <SvgIcon
