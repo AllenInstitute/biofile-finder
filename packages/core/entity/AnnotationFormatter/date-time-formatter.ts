@@ -4,12 +4,37 @@
  */
 export default {
     displayValue(value: string): string {
-        const date = new Date(value);
+        const splitDates = extractDatesFromRangeOperatorFilterString(value);
         const options = { timeZone: "America/Los_Angeles" };
-        return date.toLocaleString(undefined, options);
+        if (splitDates) {
+            const startDate = splitDates?.startDate.toLocaleString(undefined, options);
+            const endDate = splitDates?.endDate.toLocaleString(undefined, options);
+            return `${startDate}; ${endDate}`;
+        } else {
+            const date = new Date(value);
+            return date.toLocaleString(undefined, options);
+        }
     },
 
     valueOf(value: any) {
         return value;
     },
 };
+
+export function extractDatesFromRangeOperatorFilterString(
+    filterString: string
+): { startDate: Date; endDate: Date } | null {
+    // Regex with capture groups for identifying ISO datestrings in the RANGE() filter operator
+    // e.g. RANGE(2022-01-01T00:00:00.000Z,2022-01-31T00:00:00.000Z)
+    // Captures "2022-01-01T00:00:00.000Z" and "2022-01-31T00:00:00.000Z"
+    const RANGE_OPERATOR_REGEX = /RANGE\(([\d\-\+:TZ.]+),([\d\-\+:TZ.]+)\)/g;
+    const exec = RANGE_OPERATOR_REGEX.exec(filterString);
+    if (exec && exec.length === 3) {
+        // Length of 3 because we use two capture groups
+        const startDate = new Date(exec[1]);
+        const endDate = new Date(exec[2]);
+
+        return { startDate, endDate };
+    }
+    return null;
+}
