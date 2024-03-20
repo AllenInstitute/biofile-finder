@@ -1,0 +1,21 @@
+.search-box-input {
+    border: none;
+    flex: auto;
+}
+
+.container {
+    --spacing: 0.5rem;
+
+    overflow: auto;
+    max-height: 300px;
+    padding: 0 var(--spacing) 0 var(--spacing);
+    margin-top: var(--spacing);
+}
+
+.header {
+    position: sticky;
+    top: 0;
+    padding-bottom: var(--spacing);
+    width: 100%;
+    background: rgba(255, 255, 255, 0.85);
+}
