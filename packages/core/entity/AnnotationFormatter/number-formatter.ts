@@ -28,7 +28,7 @@ export function extractValuesFromRangeOperatorFilterString(
     // Regex with capture groups for identifying values in the RANGE() filter operator
     // e.g. RANGE(-.1, 10) captures "-.1" and "10"
     // Does not check for valid values, just captures existing floats
-    const RANGE_OPERATOR_REGEX = /RANGE\(([\d\-.]+),([\d\-.]+)\)/g;
+    const RANGE_OPERATOR_REGEX = /RANGE\(([\d\-.]+),\s?([\d\-.]+)\)/g;
     const exec = RANGE_OPERATOR_REGEX.exec(filterString);
     if (exec && exec.length === 3) {
         const minValue = exec[1];

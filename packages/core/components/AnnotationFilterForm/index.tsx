@@ -22,7 +22,7 @@ interface AnnotationFilterFormProps {
  * of annotation: if the annotation is of type string, it will render a list for the user to choose
  * amongst its items; if the annotation is of type date, it will render a date input; etc.
  */
-export default function AnnotationFilterFormWrapper(props: AnnotationFilterFormProps) {
+export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const { annotationName } = props;
     const dispatch = useDispatch();
     const annotations = useSelector(metadata.selectors.getSupportedAnnotations);
