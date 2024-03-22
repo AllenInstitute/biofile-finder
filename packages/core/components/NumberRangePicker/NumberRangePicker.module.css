@@ -16,6 +16,7 @@
 }
 
 .buttons {
+    clear: both;
     display: flex;
 }
 
@@ -46,6 +47,15 @@
 .action-button.disabled {
     color: grey;
     cursor: not-allowed;
+}
+
+.input-field {
+    float: left;
+    margin-left: 10px;
+}
+
+label,input{
+    display: block;
 }
 
 input::-webkit-outer-spin-button,

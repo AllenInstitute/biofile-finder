@@ -1,16 +1,16 @@
+import { Spinner, SpinnerSize } from "@fluentui/react";
 import { find, isNil } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
-import ListPicker, { ListItem } from "../../components/ListPicker";
-import RangePicker from "../../components/RangePicker";
+import ListPicker, { ListItem } from "../ListPicker";
+import NumberRangePicker from "../NumberRangePicker";
 import SearchBoxForm from "../SearchBoxForm";
 import DateRangePicker from "../DateRangePicker";
 import { interaction, metadata, selection } from "../../state";
 import useAnnotationValues from "./useAnnotationValues";
-import { Spinner, SpinnerSize } from "@fluentui/react";
 
 interface AnnotationFilterFormProps {
     annotationName: string;
@@ -102,6 +102,9 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         if (filterValue && filterValue.trim()) {
             const fileFilter = new FileFilter(annotationName, filterValue);
             if (currentValues) {
+                console.info("currentValues", currentValues);
+                console.info("fileFilter", fileFilter);
+
                 dispatch(selection.actions.removeFileFilter(currentValues));
             }
             dispatch(selection.actions.addFileFilter(fileFilter));
@@ -149,7 +152,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                 );
             case AnnotationType.NUMBER:
                 return (
-                    <RangePicker
+                    <NumberRangePicker
                         items={items}
                         loading={isLoading}
                         errorMessage={errorMessage}
