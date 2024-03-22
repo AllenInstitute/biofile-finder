@@ -17,16 +17,14 @@ export default {
             timeZone: "UTC",
         } as Intl.DateTimeFormatOptions;
 
-        const splitDates = extractDatesFromRangeOperatorFilterString(value);
+        const { startDate, endDate } = extractDatesFromRangeOperatorFilterString(value);
         const formatDate = (date: Date) => {
             const formatted = new Intl.DateTimeFormat("en-US", options).format(date);
             const [month, day, year] = formatted.split("/");
             return `${year}-${month}-${day}`;
         };
-        if (splitDates) {
-            const startDate = formatDate(splitDates?.startDate);
-            const endDate = formatDate(splitDates?.endDate);
-            return `${startDate}, ${endDate}`;
+        if (startDate && endDate) {
+            return `${formatDate(startDate)}, ${formatDate(endDate)}`;
         } else {
             const date = new Date(value);
             return formatDate(date);
