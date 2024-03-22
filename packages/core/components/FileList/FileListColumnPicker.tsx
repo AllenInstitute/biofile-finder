@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
-import ListPicker, { ListItem } from "../../components/ListPicker";
+import ListPicker, { ListItem } from "../ListPicker";
 import { metadata, selection } from "../../state";
 
 /**

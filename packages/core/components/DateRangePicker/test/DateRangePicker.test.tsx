@@ -7,7 +7,7 @@ import sinon from "sinon";
 import DateRangePicker from "..";
 import FileFilter from "../../../entity/FileFilter";
 
-describe("<RangePicker />", () => {
+describe("<DateRangePicker />", () => {
     it("renders inputs for start and end dates with selectable date pickers", () => {
         // Arrange
         const onSearch = sinon.spy();

@@ -5,14 +5,14 @@ import FileFilter from "../../entity/FileFilter";
 import { extractValuesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/number-formatter";
 import { AnnotationValue } from "../../services/AnnotationService";
 
-import styles from "./RangePicker.module.css";
+import styles from "./NumberRangePicker.module.css";
 
 export interface ListItem {
     displayValue: AnnotationValue;
     value: AnnotationValue;
 }
 
-interface RangePickerProps {
+interface NumberRangePickerProps {
     disabled?: boolean;
     errorMessage?: string;
     items: ListItem[];
@@ -24,13 +24,13 @@ interface RangePickerProps {
 }
 
 /**
- * A RangePicker is a simple form that renders input fields for the minimum and maximum values
+ * A NumberRangePicker is a simple form that renders input fields for the minimum and maximum values
  * desired by the user and buttons to submit and reset the range. It also displays the
  * overall min and max for that annotation, if available, and allows a user to select that full range.
  *
  * It is best suited for selecting items that are numbers.
  */
-export default function RangePicker(props: RangePickerProps) {
+export default function NumberRangePicker(props: NumberRangePickerProps) {
     const { errorMessage, items, loading, onSearch, onReset, currentRange, units } = props;
 
     const overallMin = React.useMemo(() => {
@@ -41,10 +41,10 @@ export default function RangePicker(props: RangePickerProps) {
     }, [items]);
 
     const [searchMinValue, setSearchMinValue] = React.useState(
-        extractValuesFromRangeOperatorFilterString(currentRange?.value)?.minValue ?? overallMin
+        extractValuesFromRangeOperatorFilterString(currentRange?.value).minValue ?? overallMin
     );
     const [searchMaxValue, setSearchMaxValue] = React.useState(
-        extractValuesFromRangeOperatorFilterString(currentRange?.value)?.maxValue ?? overallMax
+        extractValuesFromRangeOperatorFilterString(currentRange?.value).maxValue ?? overallMax
     );
 
     function onResetSearch() {
@@ -56,25 +56,18 @@ export default function RangePicker(props: RangePickerProps) {
     function onSelectFullRange() {
         setSearchMinValue(overallMin);
         setSearchMaxValue(overallMax);
-        onSubmitRange();
+        // Plus 1 here to ensure that actual max is not excluded for full range
+        onSearch(`RANGE(${overallMin},${(Number(overallMax) + 1).toString()})`);
     }
 
     const onSubmitRange = () => {
-        let oldMinValue;
-        let oldMaxValue;
-        const splitFileAttributeFilter = extractValuesFromRangeOperatorFilterString(
-            currentRange?.value
-        );
-        if (splitFileAttributeFilter !== null) {
-            oldMinValue = splitFileAttributeFilter.minValue;
-            oldMaxValue = splitFileAttributeFilter.maxValue;
-        }
+        const {
+            minValue: oldMinValue,
+            maxValue: oldMaxValue,
+        } = extractValuesFromRangeOperatorFilterString(currentRange?.value);
         const newMinValue = searchMinValue || oldMinValue || overallMin;
-        const newMaxValue = searchMaxValue || oldMaxValue || overallMax + 1;
+        const newMaxValue = searchMaxValue || oldMaxValue || (Number(overallMax) + 1).toString(); // Ensure that actual max is not excluded
         if (newMinValue && newMaxValue) {
-            // // Increment by small amount to max to account for RANGE() filter upper bound exclusivity
-            // const incrementSize = calculateIncrementSize(newMaxValue)
-            // const newMaxValuePlusFloat = (Number(newMaxValue) + Number(incrementSize)).toString()
             onSearch(`RANGE(${newMinValue},${newMaxValue})`);
         }
     };
@@ -105,28 +98,34 @@ export default function RangePicker(props: RangePickerProps) {
     return (
         <div className={styles.container} data-is-scrollable="true" data-is-focusable="true">
             <div className={styles.header}>
-                <input
-                    placeholder="Min (inclusive)"
-                    type="number"
-                    value={searchMinValue}
-                    step="any"
-                    onChange={onMinChange}
-                    min={Number(overallMin)}
-                    max={Number(overallMax)}
-                    title="Min (inclusive)"
-                />
-                {units}
-                <input
-                    placeholder="Max (exclusive)"
-                    title="Max (exclusive)"
-                    type="number"
-                    value={searchMaxValue}
-                    step="any"
-                    onChange={onMaxChange}
-                    min={Number(overallMin)}
-                    max={Number(overallMax)}
-                />
-                {units}
+                <div className={styles.inputField}>
+                    <label htmlFor="rangemin">Min (inclusive)</label>
+                    <input
+                        id="rangemin"
+                        title="Min (inclusive)"
+                        type="number"
+                        value={searchMinValue}
+                        step="any"
+                        onChange={onMinChange}
+                        min={Number(overallMin)}
+                        max={Number(overallMax)}
+                    />
+                    {units}
+                </div>
+                <div className={styles.inputField}>
+                    <label htmlFor="rangemax">Max (exclusive)</label>
+                    <input
+                        id="rangemax"
+                        title="Max (exclusive)"
+                        type="number"
+                        value={searchMaxValue}
+                        step="any"
+                        onChange={onMaxChange}
+                        min={Number(overallMin)}
+                        max={Number(overallMax)}
+                    />
+                    {units}
+                </div>
                 <div className={styles.buttons}>
                     <ActionButton
                         ariaLabel="Submit"
