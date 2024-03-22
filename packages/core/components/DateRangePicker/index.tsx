@@ -36,14 +36,11 @@ export default function DateRangePicker(props: DateRangePickerProps) {
 
     function onDateRangeSelection(startDate: Date | null, endDate: Date | null) {
         // Derive previous startDate/endDate from current filter state, if possible
-        let oldStartDate;
-        let oldEndDate;
-        const splitFileAttributeFilter = extractDatesFromRangeOperatorFilterString(
-            currentRange?.value
-        );
-        if (splitFileAttributeFilter !== null) {
-            oldStartDate = splitFileAttributeFilter.startDate;
-            oldEndDate = splitFileAttributeFilter.endDate;
+        const {
+            startDate: oldStartDate,
+            endDate: oldEndDate,
+        } = extractDatesFromRangeOperatorFilterString(currentRange?.value);
+        if (oldEndDate) {
             // The RANGE() filter uses an exclusive upper bound.
             // However, we want to present dates in the UI as if the upper bound was inclusive.
             // To handle that, we subtract a day from the upper bound used by the filter, then present the result
@@ -58,13 +55,8 @@ export default function DateRangePicker(props: DateRangePickerProps) {
             onSearch(`RANGE(${newStartDate.toISOString()},${newEndDatePlusOne.toISOString()})`);
         }
     }
-
-    let startDate;
-    let endDate;
-    const splitDates = extractDatesFromRangeOperatorFilterString(currentRange?.value);
-    if (splitDates !== null) {
-        startDate = splitDates.startDate;
-        endDate = splitDates.endDate;
+    const { startDate, endDate } = extractDatesFromRangeOperatorFilterString(currentRange?.value);
+    if (endDate) {
         // Subtract 1 day to endDate to account for RANGE() filter upper bound exclusivity
         endDate.setDate(endDate.getDate() - 1);
     }
