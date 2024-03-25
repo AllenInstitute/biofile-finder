@@ -4,10 +4,10 @@ import { noop } from "lodash";
 import * as React from "react";
 import sinon from "sinon";
 
-import RangePicker, { ListItem } from "..";
+import NumberRangePicker, { ListItem } from "..";
 import FileFilter from "../../../entity/FileFilter";
 
-describe("<RangePicker />", () => {
+describe("<NumberRangePicker />", () => {
     it("renders input fields for min and max values initialized to overall min/max", () => {
         // Arrange
         const items: ListItem[] = ["0", "20"].map((val) => ({
@@ -15,8 +15,14 @@ describe("<RangePicker />", () => {
             value: val,
         }));
 
+        // Act / Assert
         const { getAllByTitle } = render(
-            <RangePicker items={items} onSearch={noop} onReset={noop} currentRange={undefined} />
+            <NumberRangePicker
+                items={items}
+                onSearch={noop}
+                onReset={noop}
+                currentRange={undefined}
+            />
         );
 
         // Should render both input fields
@@ -37,7 +43,12 @@ describe("<RangePicker />", () => {
         }));
 
         render(
-            <RangePicker items={items} onSearch={noop} onReset={noop} currentRange={currentRange} />
+            <NumberRangePicker
+                items={items}
+                onSearch={noop}
+                onReset={noop}
+                currentRange={currentRange}
+            />
         );
 
         // Should initialize to min and max item provided, respectively
@@ -56,7 +67,7 @@ describe("<RangePicker />", () => {
 
         // Act / Assert
         const { getByText } = render(
-            <RangePicker
+            <NumberRangePicker
                 items={items}
                 onSearch={onSearch}
                 onReset={onReset}
@@ -86,7 +97,12 @@ describe("<RangePicker />", () => {
             value: val,
         }));
         const { getByTitle, getByText } = render(
-            <RangePicker items={items} onReset={noop} onSearch={noop} currentRange={undefined} />
+            <NumberRangePicker
+                items={items}
+                onReset={noop}
+                onSearch={noop}
+                currentRange={undefined}
+            />
         );
 
         // Enter values
@@ -120,7 +136,12 @@ describe("<RangePicker />", () => {
             value: val,
         }));
         const { getByText } = render(
-            <RangePicker items={items} onReset={noop} onSearch={noop} currentRange={undefined} />
+            <NumberRangePicker
+                items={items}
+                onReset={noop}
+                onSearch={noop}
+                currentRange={undefined}
+            />
         );
 
         // Act / Assert
