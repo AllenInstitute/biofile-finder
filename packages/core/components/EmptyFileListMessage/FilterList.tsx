@@ -38,12 +38,9 @@ export default function FilterList(props: Props) {
     }, [textRef, filters]);
 
     const firstFilterValue = filters[0].value.toString();
-    const operator =
-        filters.length > 1
-            ? "for values of"
-            : firstFilterValue.includes("RANGE")
-            ? "between"
-            : "equal to";
+    let operator = "equal to";
+    if (filters.length > 1) operator = "for values of";
+    else if (firstFilterValue.includes("RANGE")) operator = "between";
     const valueDisplay = map(filters, (filter) => filter.displayValue).join(", ");
     const display = ` ${operator} ${valueDisplay}`;
 
