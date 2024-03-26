@@ -102,9 +102,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         if (filterValue && filterValue.trim()) {
             const fileFilter = new FileFilter(annotationName, filterValue);
             if (currentValues) {
-                console.info("currentValues", currentValues);
-                console.info("fileFilter", fileFilter);
-
                 dispatch(selection.actions.removeFileFilter(currentValues));
             }
             dispatch(selection.actions.addFileFilter(fileFilter));

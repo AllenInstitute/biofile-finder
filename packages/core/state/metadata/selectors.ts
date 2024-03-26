@@ -15,10 +15,8 @@ export const getSortedAnnotations = createSelector(getAnnotations, (annotations:
     Annotation.sort(annotations)
 );
 
-export const getSupportedAnnotations = createSelector(
-    getSortedAnnotations,
-    // TODO: Modify selector to be less case by case
-    (annotations) => Annotation.sort([...SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS, ...annotations])
+export const getSupportedAnnotations = createSelector(getSortedAnnotations, (annotations) =>
+    Annotation.sort([...SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS, ...annotations])
 );
 
 export const getCustomAnnotationsCombinedWithFileAttributes = createSelector(
