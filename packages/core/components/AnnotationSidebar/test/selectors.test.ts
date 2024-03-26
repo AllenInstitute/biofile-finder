@@ -7,6 +7,7 @@ import { annotationsJson } from "../../../entity/Annotation/mocks";
 import * as annotationSelectors from "../selectors";
 import { initialState } from "../../../state";
 import FileFilter from "../../../entity/FileFilter";
+import { SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 
 describe("<AnnotationSidebar /> selectors", () => {
     describe("getAnnotationListItems", () => {
@@ -18,9 +19,12 @@ describe("<AnnotationSidebar /> selectors", () => {
             });
 
             const listItems = annotationSelectors.getAnnotationListItems(state);
-            expect(listItems.length).to.equal(annotationsJson.length);
+            expect(listItems.length).to.equal(
+                annotationsJson.length + SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS.length
+            );
 
-            const first = listItems[0]; // items are sorted according to Annotation::sort
+            // items are sorted according to Annotation::sort but file properties go first
+            const first = listItems[SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS.length];
             expect(first).to.have.property("id");
             expect(first).to.have.property("description", "AICS cell line");
             expect(first).to.have.property("title", "Cell line");
@@ -31,17 +35,23 @@ describe("<AnnotationSidebar /> selectors", () => {
                 new FileFilter("Cell Line", "AICS-0"),
                 new FileFilter("Date Created", "01/10/15"),
             ];
-            const state = mergeState(initialState, {
+            const filteredState = {
+                ...initialState,
+                selection: {
+                    ...initialState.selection,
+                    filters,
+                },
+            };
+            const state = mergeState(filteredState, {
                 metadata: {
                     annotations: map(annotationsJson, (annotation) => new Annotation(annotation)),
-                },
-                selection: {
-                    filters,
                 },
             });
 
             const listItems = annotationSelectors.getAnnotationListItems(state);
-            expect(listItems.length).to.equal(annotationsJson.length);
+            expect(listItems.length).to.equal(
+                annotationsJson.length + SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS.length
+            );
 
             listItems.forEach((item) => {
                 const filtered = filters.findIndex((f) => f.name === item.id) !== -1;
@@ -64,7 +74,9 @@ describe("<AnnotationSidebar /> selectors", () => {
             });
 
             const listItems = annotationSelectors.getAnnotationListItems(state);
-            expect(listItems.length).to.equal(annotationsJson.length);
+            expect(listItems.length).to.equal(
+                annotationsJson.length + SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS.length
+            );
 
             listItems.forEach((item) => {
                 const disabled = !availableAnnotationsForHierarchySet.has(item.id);
@@ -85,7 +97,9 @@ describe("<AnnotationSidebar /> selectors", () => {
             });
 
             const listItems = annotationSelectors.getAnnotationListItems(state);
-            expect(listItems.length).to.equal(annotationsJson.length);
+            expect(listItems.length).to.equal(
+                annotationsJson.length + SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS.length
+            );
 
             listItems.forEach((item) => {
                 expect(item).to.have.property("disabled", false);

@@ -135,7 +135,11 @@ describe("<FilterDisplayBar />", () => {
         expect(await findByText(/^Cell Line/)).to.exist;
 
         // now you don't
-        const clearButton = await findByRole("button", { exact: false, name: "Clear" });
+        const clearButton = await findByRole("button", {
+            exact: false,
+            name: "Clear",
+            description: /Cell Line/,
+        });
         fireEvent.click(clearButton);
         expect(() => getByText(/^Cell Line/)).to.throw();
     });

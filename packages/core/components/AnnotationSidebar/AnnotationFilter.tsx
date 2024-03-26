@@ -24,8 +24,7 @@ const FILTERS_APPLIED_COLOR_INDICATOR = "#0b9aab"; // style guide torquise
  */
 export default function AnnotationFilter(props: FilterProps) {
     const { annotationName, iconColor, styleOverrides } = props;
-
-    const fileFilters = useSelector(selection.selectors.getAnnotationFilters);
+    const fileFilters = useSelector(selection.selectors.getFileFilters);
 
     const annotationIsFiltered = React.useMemo(
         () => fileFilters.some((filter) => filter.name === annotationName),
@@ -38,7 +37,7 @@ export default function AnnotationFilter(props: FilterProps) {
                 return <AnnotationFilterForm annotationName={annotationName} />;
             },
             directionalHint: DirectionalHint.rightTopEdge,
-            title: "Exclusively Include",
+            title: `Filter by ${annotationName}`,
             shouldFocusOnMount: true,
             items: [{ key: "placeholder" }], // necessary to have a non-empty items list to have `onRenderMenuList` called
         };

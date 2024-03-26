@@ -3,7 +3,7 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 
 import Annotation from "../../../entity/Annotation";
-import ListPicker, { ListItem } from "../../../components/ListPicker";
+import ListPicker, { ListItem } from "../../ListPicker";
 import { metadata } from "../../../state";
 
 import styles from "./AnnotationSelector.module.css";

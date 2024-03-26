@@ -37,7 +37,10 @@ export default function FilterList(props: Props) {
         }
     }, [textRef, filters]);
 
-    const operator = filters.length > 1 ? "for values of" : "equal to";
+    const firstFilterValue = filters[0].value.toString();
+    let operator = "equal to";
+    if (filters.length > 1) operator = "for values of";
+    else if (firstFilterValue.includes("RANGE")) operator = "between";
     const valueDisplay = map(filters, (filter) => filter.displayValue).join(", ");
     const display = ` ${operator} ${valueDisplay}`;
 

@@ -3,7 +3,7 @@ import { createSelector } from "reselect";
 
 import { State } from "../";
 import Annotation from "../../entity/Annotation";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
+import { SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import { Dataset } from "../../services/DatasetService";
 
 // BASIC SELECTORS
@@ -13,6 +13,10 @@ export const getCollections = (state: State) => state.metadata.collections;
 // COMPOSED SELECTORS
 export const getSortedAnnotations = createSelector(getAnnotations, (annotations: Annotation[]) =>
     Annotation.sort(annotations)
+);
+
+export const getSupportedAnnotations = createSelector(getSortedAnnotations, (annotations) =>
+    Annotation.sort([...SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS, ...annotations])
 );
 
 export const getCustomAnnotationsCombinedWithFileAttributes = createSelector(
