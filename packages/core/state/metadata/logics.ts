@@ -23,15 +23,35 @@ const requestAnnotations = createLogic({
         const { getState, httpClient } = deps;
         const annotationService = interaction.selectors.getAnnotationService(getState());
         const applicationVersion = interaction.selectors.getApplicationVersion(getState());
-        if (annotationService instanceof HttpAnnotationService) {
-            if (applicationVersion) {
-                annotationService.setApplicationVersion(applicationVersion);
-            }
-            annotationService.setHttpClient(httpClient);
-        }
+        const baseUrl = interaction.selectors.getFileExplorerServiceBaseUrl(getState());
+        const displayAnnotations = selection.selectors.getAnnotationsToDisplay(getState());
+        const annotationService = new AnnotationService({
+            applicationVersion,
+            baseUrl,
+            httpClient,
+        });
 
         try {
             const annotations = await annotationService.fetchAnnotations();
+
+            if (!displayAnnotations.length) {
+                const defaultDisplayAnnotations = compact([
+                    find(
+                        TOP_LEVEL_FILE_ANNOTATIONS,
+                        (annotation) => annotation.name === AnnotationName.FILE_NAME
+                    ),
+                    find(annotations, (annotation) => annotation.name === AnnotationName.KIND),
+                    find(annotations, (annotation) => annotation.name === AnnotationName.TYPE),
+                    find(
+                        TOP_LEVEL_FILE_ANNOTATIONS,
+                        (annotation) => annotation.name === AnnotationName.FILE_SIZE
+                    ),
+                ]);
+                dispatch(
+                    selection.actions.selectDisplayAnnotation(defaultDisplayAnnotations, true)
+                );
+            }
+
             dispatch(receiveAnnotations(annotations));
         } catch (err) {
             console.error("Failed to fetch annotations", err);
