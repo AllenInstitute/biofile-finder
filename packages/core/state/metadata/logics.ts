@@ -20,6 +20,7 @@ const requestAnnotations = createLogic({
         const { getState, httpClient } = deps;
         const applicationVersion = interaction.selectors.getApplicationVersion(getState());
         const baseUrl = interaction.selectors.getFileExplorerServiceBaseUrl(getState());
+        const displayAnnotations = selection.selectors.getAnnotationsToDisplay(getState());
         const annotationService = new AnnotationService({
             applicationVersion,
             baseUrl,
@@ -28,21 +29,26 @@ const requestAnnotations = createLogic({
 
         try {
             const annotations = await annotationService.fetchAnnotations();
-            const defaultDisplayAnnotations = compact([
-                find(
-                    TOP_LEVEL_FILE_ANNOTATIONS,
-                    (annotation) => annotation.name === AnnotationName.FILE_NAME
-                ),
-                find(annotations, (annotation) => annotation.name === AnnotationName.KIND),
-                find(annotations, (annotation) => annotation.name === AnnotationName.TYPE),
-                find(
-                    TOP_LEVEL_FILE_ANNOTATIONS,
-                    (annotation) => annotation.name === AnnotationName.FILE_SIZE
-                ),
-            ]);
+
+            if (!displayAnnotations.length) {
+                const defaultDisplayAnnotations = compact([
+                    find(
+                        TOP_LEVEL_FILE_ANNOTATIONS,
+                        (annotation) => annotation.name === AnnotationName.FILE_NAME
+                    ),
+                    find(annotations, (annotation) => annotation.name === AnnotationName.KIND),
+                    find(annotations, (annotation) => annotation.name === AnnotationName.TYPE),
+                    find(
+                        TOP_LEVEL_FILE_ANNOTATIONS,
+                        (annotation) => annotation.name === AnnotationName.FILE_SIZE
+                    ),
+                ]);
+                dispatch(
+                    selection.actions.selectDisplayAnnotation(defaultDisplayAnnotations, true)
+                );
+            }
 
             dispatch(receiveAnnotations(annotations));
-            dispatch(selection.actions.selectDisplayAnnotation(defaultDisplayAnnotations, true));
         } catch (err) {
             console.error("Failed to fetch annotations", err);
         } finally {

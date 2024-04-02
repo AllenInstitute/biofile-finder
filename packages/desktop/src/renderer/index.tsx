@@ -10,7 +10,7 @@ import { Provider } from "react-redux";
 
 import FmsFileExplorer from "../../../core/App";
 import { PersistedConfigKeys } from "../../../core/services";
-import { createReduxStore, interaction } from "../../../core/state";
+import { createReduxStore, interaction, selection } from "../../../core/state";
 
 import ApplicationInfoServiceElectron from "../services/ApplicationInfoServiceElectron";
 import ExecutionEnvServiceElectron from "../services/ExecutionEnvServiceElectron";
@@ -73,16 +73,22 @@ const store = createReduxStore({
 store.subscribe(() => {
     const state = store.getState();
     const csvColumns = interaction.selectors.getCsvColumns(state);
+    const displayAnnotations = selection.selectors.getAnnotationsToDisplay(state);
     const userSelectedApplications = interaction.selectors.getUserSelectedApplications(state);
     const hasUsedApplicationBefore = interaction.selectors.hasUsedApplicationBefore(state);
     const appState = {
         [PersistedConfigKeys.CsvColumns]: csvColumns,
+        [PersistedConfigKeys.DisplayAnnotations]: displayAnnotations.map((annotation) => ({
+            annotationDisplayName: annotation.displayName,
+            annotationName: annotation.name,
+            description: annotation.description,
+            type: annotation.type,
+        })),
         [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
     };
     if (JSON.stringify(appState) !== JSON.stringify(persistentConfigService.getAll())) {
         persistentConfigService.persist({
-            [PersistedConfigKeys.CsvColumns]: csvColumns,
-            [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
+            ...appState,
             [PersistedConfigKeys.HasUsedApplicationBefore]: hasUsedApplicationBefore,
         });
     }

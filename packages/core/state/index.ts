@@ -8,6 +8,7 @@ import { PersistedConfig, PersistedConfigKeys } from "../services/PersistentConf
 import interaction, { InteractionStateBranch } from "./interaction";
 import metadata, { MetadataStateBranch } from "./metadata";
 import selection, { SelectionStateBranch } from "./selection";
+import Annotation from "../entity/Annotation";
 
 export { interaction, metadata, selection };
 
@@ -62,6 +63,13 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
             csvColumns: persistedConfig && persistedConfig[PersistedConfigKeys.CsvColumns],
             userSelectedApplications:
                 persistedConfig && persistedConfig[PersistedConfigKeys.UserSelectedApplications],
+        },
+        selection: {
+            displayAnnotations:
+                persistedConfig &&
+                persistedConfig[PersistedConfigKeys.DisplayAnnotations]?.map(
+                    (annotation) => new Annotation(annotation)
+                ),
         },
     });
     return configureStore<State>({
