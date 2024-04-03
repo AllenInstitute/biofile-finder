@@ -157,7 +157,9 @@ export const DESELECT_DISPLAY_ANNOTATION = makeConstant(
 );
 
 export interface DeselectDisplayAnnotationAction {
-    payload: Annotation | Annotation[];
+    payload: {
+        annotation: Annotation | Annotation[];
+    };
     type: string;
 }
 
@@ -165,7 +167,9 @@ export function deselectDisplayAnnotation(
     annotation: Annotation | Annotation[]
 ): DeselectDisplayAnnotationAction {
     return {
-        payload: annotation,
+        payload: {
+            annotation,
+        },
         type: DESELECT_DISPLAY_ANNOTATION,
     };
 }
