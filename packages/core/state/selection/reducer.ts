@@ -1,5 +1,5 @@
 import { makeReducer } from "@aics/redux-utils";
-import { castArray, difference, omit, without } from "lodash";
+import { castArray, difference, omit } from "lodash";
 
 import interaction from "../interaction";
 import { AnnotationName, PAST_YEAR_FILTER } from "../../constants";
@@ -122,9 +122,9 @@ export default makeReducer<SelectionStateBranch>(
             sortColumn: action.payload,
         }),
         [DESELECT_DISPLAY_ANNOTATION]: (state, action) => {
-            const displayAnnotations = without(
-                state.displayAnnotations,
-                ...castArray(action.payload)
+            // remove deselected annotation from state.displayAnnotations
+            const displayAnnotations = state.displayAnnotations.filter(
+                (annotation) => annotation.name !== action.payload.annotation.name
             );
 
             const columnWidthsToPrune = difference(
