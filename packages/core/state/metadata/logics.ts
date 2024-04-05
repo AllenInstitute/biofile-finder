@@ -10,9 +10,8 @@ import {
     REQUEST_COLLECTIONS,
 } from "./actions";
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
+import AnnotationService from "../../services/AnnotationService";
 import Annotation from "../../entity/Annotation";
-import FileSort, { SortOrder } from "../../entity/FileSort";
-import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 
 /**
  * Interceptor responsible for turning REQUEST_ANNOTATIONS action into a network call for available annotations. Outputs
@@ -31,33 +30,32 @@ const requestAnnotations = createLogic({
             httpClient,
         });
 
+        let annotations: Annotation[] = [];
+
         try {
-            const annotations = await annotationService.fetchAnnotations();
-
-            if (!displayAnnotations.length) {
-                const defaultDisplayAnnotations = compact([
-                    find(
-                        TOP_LEVEL_FILE_ANNOTATIONS,
-                        (annotation) => annotation.name === AnnotationName.FILE_NAME
-                    ),
-                    find(annotations, (annotation) => annotation.name === AnnotationName.KIND),
-                    find(annotations, (annotation) => annotation.name === AnnotationName.TYPE),
-                    find(
-                        TOP_LEVEL_FILE_ANNOTATIONS,
-                        (annotation) => annotation.name === AnnotationName.FILE_SIZE
-                    ),
-                ]);
-                dispatch(
-                    selection.actions.selectDisplayAnnotation(defaultDisplayAnnotations, true)
-                );
-            }
-
-            dispatch(receiveAnnotations(annotations));
+            annotations = await annotationService.fetchAnnotations();
         } catch (err) {
             console.error("Failed to fetch annotations", err);
-        } finally {
-            done();
         }
+
+        dispatch(receiveAnnotations(annotations));
+
+        if (!displayAnnotations.length) {
+            const defaultDisplayAnnotations = compact([
+                find(
+                    TOP_LEVEL_FILE_ANNOTATIONS,
+                    (annotation) => annotation.name === AnnotationName.FILE_NAME
+                ),
+                find(annotations, (annotation) => annotation.name === AnnotationName.KIND),
+                find(annotations, (annotation) => annotation.name === AnnotationName.TYPE),
+                find(
+                    TOP_LEVEL_FILE_ANNOTATIONS,
+                    (annotation) => annotation.name === AnnotationName.FILE_SIZE
+                ),
+            ]);
+            dispatch(selection.actions.selectDisplayAnnotation(defaultDisplayAnnotations, true));
+        }
+        done();
     },
     type: REQUEST_ANNOTATIONS,
 });
