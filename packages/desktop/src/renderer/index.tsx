@@ -75,7 +75,6 @@ store.subscribe(() => {
     const csvColumns = interaction.selectors.getCsvColumns(state);
     const displayAnnotations = selection.selectors.getAnnotationsToDisplay(state);
     const userSelectedApplications = interaction.selectors.getUserSelectedApplications(state);
-    const hasUsedApplicationBefore = interaction.selectors.hasUsedApplicationBefore(state);
     const appState = {
         [PersistedConfigKeys.CsvColumns]: csvColumns,
         [PersistedConfigKeys.DisplayAnnotations]: displayAnnotations.map((annotation) => ({
@@ -85,13 +84,9 @@ store.subscribe(() => {
             type: annotation.type,
         })),
         [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
+        [PersistedConfigKeys.HasUsedApplicationBefore]: true,
     };
-    if (JSON.stringify(appState) !== JSON.stringify(persistentConfigService.getAll())) {
-        persistentConfigService.persist({
-            ...appState,
-            [PersistedConfigKeys.HasUsedApplicationBefore]: hasUsedApplicationBefore,
-        });
-    }
+    persistentConfigService.persist(appState);
 });
 
 function renderFmsFileExplorer() {
