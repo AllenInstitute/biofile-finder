@@ -34,11 +34,12 @@ const requestAnnotations = createLogic({
 
         try {
             annotations = await annotationService.fetchAnnotations();
+            dispatch(receiveAnnotations(annotations));
         } catch (err) {
             console.error("Failed to fetch annotations", err);
+            done();
+            return;
         }
-
-        dispatch(receiveAnnotations(annotations));
 
         if (!displayAnnotations.length) {
             const defaultDisplayAnnotations = compact([
