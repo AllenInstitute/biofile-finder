@@ -10,6 +10,7 @@ import {
 } from "./actions";
 import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import AnnotationService from "../../services/AnnotationService";
+import Annotation from "../../entity/Annotation";
 
 /**
  * Interceptor responsible for turning REQUEST_ANNOTATIONS action into a network call for available annotations. Outputs
@@ -20,14 +21,25 @@ const requestAnnotations = createLogic({
         const { getState, httpClient } = deps;
         const applicationVersion = interaction.selectors.getApplicationVersion(getState());
         const baseUrl = interaction.selectors.getFileExplorerServiceBaseUrl(getState());
+        const displayAnnotations = selection.selectors.getAnnotationsToDisplay(getState());
         const annotationService = new AnnotationService({
             applicationVersion,
             baseUrl,
             httpClient,
         });
 
+        let annotations: Annotation[] = [];
+
         try {
-            const annotations = await annotationService.fetchAnnotations();
+            annotations = await annotationService.fetchAnnotations();
+            dispatch(receiveAnnotations(annotations));
+        } catch (err) {
+            console.error("Failed to fetch annotations", err);
+            done();
+            return;
+        }
+
+        if (!displayAnnotations.length) {
             const defaultDisplayAnnotations = compact([
                 find(
                     TOP_LEVEL_FILE_ANNOTATIONS,
@@ -40,14 +52,9 @@ const requestAnnotations = createLogic({
                     (annotation) => annotation.name === AnnotationName.FILE_SIZE
                 ),
             ]);
-
-            dispatch(receiveAnnotations(annotations));
             dispatch(selection.actions.selectDisplayAnnotation(defaultDisplayAnnotations, true));
-        } catch (err) {
-            console.error("Failed to fetch annotations", err);
-        } finally {
-            done();
         }
+        done();
     },
     type: REQUEST_ANNOTATIONS,
 });

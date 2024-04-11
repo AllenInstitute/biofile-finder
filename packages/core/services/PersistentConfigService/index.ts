@@ -1,9 +1,12 @@
+import { AnnotationResponse } from "../AnnotationService";
+
 /**
  * Keys for the data saved by this service
  */
 export enum PersistedConfigKeys {
     AllenMountPoint = "ALLEN_MOUNT_POINT",
     CsvColumns = "CSV_COLUMNS",
+    DisplayAnnotations = "DISPLAY_ANNOTATIONS",
     ImageJExecutable = "IMAGE_J_EXECUTABLE", // Deprecated
     HasUsedApplicationBefore = "HAS_USED_APPLICATION_BEFORE",
     UserSelectedApplications = "USER_SELECTED_APPLICATIONS",
@@ -16,6 +19,7 @@ export interface UserSelectedApplication {
 
 export interface PersistedConfig {
     [PersistedConfigKeys.CsvColumns]?: string[];
+    [PersistedConfigKeys.DisplayAnnotations]?: AnnotationResponse[];
     [PersistedConfigKeys.ImageJExecutable]?: string; // Deprecated
     [PersistedConfigKeys.HasUsedApplicationBefore]?: boolean;
     [PersistedConfigKeys.UserSelectedApplications]?: UserSelectedApplication[];
