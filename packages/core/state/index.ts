@@ -73,8 +73,14 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
                 persistedConfig[PersistedConfigKeys.DisplayAnnotations]?.map(
                     (annotation) => new Annotation(annotation)
                 ),
+            recentHierarchyAnnotations:
+                persistedConfig &&
+                persistedConfig[PersistedConfigKeys.RecentHierarchyAnnotations]?.map(
+                    (annotation) => new Annotation(annotation)
+                ),
         },
     });
+
     return configureStore<State>({
         middleware: [...(options.middleware || []), ...(middleware || [])],
         preloadedState,

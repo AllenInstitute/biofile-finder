@@ -9,14 +9,29 @@ import { Dataset } from "../../services/DatasetService";
 // BASIC SELECTORS
 export const getAnnotations = (state: State) => state.metadata.annotations;
 export const getCollections = (state: State) => state.metadata.collections;
+export const getRecentHierarcyAnnotations = (state: State) =>
+    state.selection.recentHierarchyAnnotations;
 
 // COMPOSED SELECTORS
 export const getSortedAnnotations = createSelector(getAnnotations, (annotations: Annotation[]) =>
     Annotation.sort(annotations)
 );
 
-export const getSupportedAnnotations = createSelector(getSortedAnnotations, (annotations) =>
-    Annotation.sort([...SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS, ...annotations])
+export const getSupportedAnnotations = createSelector(
+    [getRecentHierarcyAnnotations, getSortedAnnotations],
+    (recentAnnotations, annotations) => {
+        const unfilteredSupportedAnnotations = [
+            ...SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS,
+            ...recentAnnotations,
+            ...annotations,
+        ];
+
+        return [
+            ...new Map(
+                unfilteredSupportedAnnotations.map((annotation) => [annotation.name, annotation])
+            ).values(),
+        ];
+    }
 );
 
 export const getCustomAnnotationsCombinedWithFileAttributes = createSelector(

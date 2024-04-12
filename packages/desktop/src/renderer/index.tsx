@@ -79,6 +79,7 @@ store.subscribe(() => {
     const csvColumns = interaction.selectors.getCsvColumns(state);
     const displayAnnotations = selection.selectors.getAnnotationsToDisplay(state);
     const userSelectedApplications = interaction.selectors.getUserSelectedApplications(state);
+    const recentHierarchyAnnotations = selection.selectors.getRecentHierarcyAnnotations(state);
     const appState = {
         [PersistedConfigKeys.CsvColumns]: csvColumns,
         [PersistedConfigKeys.DisplayAnnotations]: displayAnnotations.map((annotation) => ({
@@ -87,8 +88,16 @@ store.subscribe(() => {
             description: annotation.description,
             type: annotation.type,
         })),
-        [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
         [PersistedConfigKeys.HasUsedApplicationBefore]: true,
+        [PersistedConfigKeys.RecentHierarchyAnnotations]: recentHierarchyAnnotations.map(
+            (annotation) => ({
+                annotationDisplayName: annotation.displayName,
+                annotationName: annotation.name,
+                description: annotation.description,
+                type: annotation.type,
+            })
+        ),
+        [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
     };
     persistentConfigService.persist(appState);
 });

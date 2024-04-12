@@ -42,12 +42,31 @@ const OPTIONS: Options<Record<string, unknown>> = {
                 },
             },
         },
+
+        [PersistedConfigKeys.HasUsedApplicationBefore]: {
+            type: "boolean",
+        },
         // ImageJExecutable is Deprecated
         [PersistedConfigKeys.ImageJExecutable]: {
             type: "string",
         },
-        [PersistedConfigKeys.HasUsedApplicationBefore]: {
-            type: "boolean",
+        // ImageJExecutable is Deprecated
+        [PersistedConfigKeys.RecentHierarchyAnnotations]: {
+            type: "array",
+            items: {
+                type: "object",
+                properties: {
+                    defaultFileKinds: {
+                        type: "array",
+                        items: {
+                            type: "string",
+                        },
+                    },
+                    filePath: {
+                        type: "string",
+                    },
+                },
+            },
         },
         [PersistedConfigKeys.UserSelectedApplications]: {
             type: "array",

@@ -22,6 +22,8 @@ export const getColumnWidths = (state: State) => state.selection.columnWidths;
 export const getFileFilters = (state: State) => state.selection.filters;
 export const getCollection = (state: State) => state.selection.collection;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
+export const getRecentHierarcyAnnotations = (state: State) =>
+    state.selection.recentHierarchyAnnotations;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
 export const getSortColumn = (state: State) => state.selection.sortColumn;

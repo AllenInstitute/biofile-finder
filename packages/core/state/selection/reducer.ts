@@ -41,6 +41,7 @@ export interface SelectionStateBranch {
     fileSelection: FileSelection;
     filters: FileFilter[];
     openFileFolders: FileFolder[];
+    recentHierarchyAnnotations: Annotation[];
     shouldDisplaySmallFont: boolean;
     sortColumn?: FileSort;
     tutorial?: Tutorial;
@@ -60,6 +61,7 @@ export const initialState = {
     fileSelection: new FileSelection(),
     filters: [PAST_YEAR_FILTER],
     openFileFolders: [],
+    recentHierarchyAnnotations: [],
     shouldDisplaySmallFont: false,
 };
 
@@ -168,14 +170,33 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             fileSelection: action.payload,
         }),
-        [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
-            ...state,
-            annotationHierarchy: action.payload,
-            availableAnnotationsForHierarchyLoading: true,
+        [SET_ANNOTATION_HIERARCHY]: (state, action) => {
+            // combine recent hierarchy annotations with payload
+            const recentHierarchyAnnotationsUnfiltered = [
+                ...castArray(action.payload),
+                ...state.recentHierarchyAnnotations,
+            ];
 
-            // Reset file selections when annotation hierarchy changes
-            fileSelection: new FileSelection(),
-        }),
+            // remove duplicates and limit to 7 most recent
+            const recentHierarchyAnnotations = [
+                ...new Map(
+                    recentHierarchyAnnotationsUnfiltered.map((annotation) => [
+                        annotation.name,
+                        annotation,
+                    ])
+                ).values(),
+            ].slice(0, 7);
+
+            return {
+                ...state,
+                annotationHierarchy: action.payload,
+                availableAnnotationsForHierarchyLoading: true,
+                recentHierarchyAnnotations,
+
+                // Reset file selections when annotation hierarchy changes
+                fileSelection: new FileSelection(),
+            };
+        },
         [SET_AVAILABLE_ANNOTATIONS]: (state, action) => ({
             ...state,
             availableAnnotationsForHierarchy: action.payload,
