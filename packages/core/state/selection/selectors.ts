@@ -19,11 +19,14 @@ export const getAvailableAnnotationsForHierarchy = (state: State) =>
 export const getAvailableAnnotationsForHierarchyLoading = (state: State) =>
     state.selection.availableAnnotationsForHierarchyLoading;
 export const getColumnWidths = (state: State) => state.selection.columnWidths;
+export const getFileGridColumnCount = (state: State) => state.selection.fileGridColumnCount;
 export const getFileFilters = (state: State) => state.selection.filters;
 export const getCollection = (state: State) => state.selection.collection;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
+export const getShouldDisplayThumbnailView = (state: State) =>
+    state.selection.shouldDisplayThumbnailView;
 export const getSortColumn = (state: State) => state.selection.sortColumn;
 export const getTutorial = (state: State) => state.selection.tutorial;
 

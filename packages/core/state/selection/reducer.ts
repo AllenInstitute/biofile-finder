@@ -2,7 +2,7 @@ import { makeReducer } from "@aics/redux-utils";
 import { castArray, difference, omit, without } from "lodash";
 
 import interaction from "../interaction";
-import { AnnotationName, PAST_YEAR_FILTER } from "../../constants";
+import { AnnotationName, PAST_YEAR_FILTER, THUMBNAIL_SIZE_TO_NUM_COLUMNS } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
@@ -24,6 +24,8 @@ import {
     CHANGE_VIEW,
     SELECT_TUTORIAL,
     ADJUST_GLOBAL_FONT_SIZE,
+    SET_FILE_THUMBNAIL_VIEW,
+    SET_FILE_GRID_COLUMN_COUNT,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
@@ -38,10 +40,12 @@ export interface SelectionStateBranch {
         [index: string]: number; // columnName to widthPercent mapping
     };
     displayAnnotations: Annotation[];
+    fileGridColumnCount: number;
     fileSelection: FileSelection;
     filters: FileFilter[];
     openFileFolders: FileFolder[];
     shouldDisplaySmallFont: boolean;
+    shouldDisplayThumbnailView: boolean;
     sortColumn?: FileSort;
     tutorial?: Tutorial;
 }
@@ -57,10 +61,12 @@ export const initialState = {
         [AnnotationName.FILE_SIZE]: 0.15,
     },
     displayAnnotations: [],
+    fileGridColumnCount: THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE,
     fileSelection: new FileSelection(),
     filters: [PAST_YEAR_FILTER],
     openFileFolders: [],
     shouldDisplaySmallFont: false,
+    shouldDisplayThumbnailView: false,
     sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
 };
 
@@ -73,6 +79,14 @@ export default makeReducer<SelectionStateBranch>(
         [ADJUST_GLOBAL_FONT_SIZE]: (state, action) => ({
             ...state,
             shouldDisplaySmallFont: action.payload,
+        }),
+        [SET_FILE_THUMBNAIL_VIEW]: (state, action) => ({
+            ...state,
+            shouldDisplayThumbnailView: action.payload,
+        }),
+        [SET_FILE_GRID_COLUMN_COUNT]: (state, action) => ({
+            ...state,
+            fileGridColumnCount: action.payload,
         }),
         [SET_FILE_FILTERS]: (state, action) => ({
             ...state,
