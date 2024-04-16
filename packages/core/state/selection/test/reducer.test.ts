@@ -13,38 +13,62 @@ import Annotation from "../../../entity/Annotation";
 import FileFolder from "../../../entity/FileFolder";
 
 describe("Selection reducer", () => {
-    [
-        selection.actions.SET_ANNOTATION_HIERARCHY,
-        interaction.actions.SET_FILE_EXPLORER_SERVICE_BASE_URL,
-    ].forEach((actionConstant) =>
-        it(`clears selected file state when ${actionConstant} is fired`, () => {
-            // arrange
-            const prevSelection = new FileSelection().select({
-                fileSet: new FileSet(),
-                index: new NumericRange(1, 3),
-                sortOrder: 0,
-            });
-            const initialSelectionState = {
-                ...selection.initialState,
-                fileSelection: prevSelection,
-            };
+    it(`clears selected file state when SET_FILE_EXPLORER_SERVICE_BASE_URL is fired`, () => {
+        // arrange
+        const prevSelection = new FileSelection().select({
+            fileSet: new FileSet(),
+            index: new NumericRange(1, 3),
+            sortOrder: 0,
+        });
+        const initialSelectionState = {
+            ...selection.initialState,
+            fileSelection: prevSelection,
+        };
 
-            const action = {
-                type: actionConstant,
-            };
+        // act
+        const nextSelectionState = selection.reducer(
+            initialSelectionState,
+            interaction.actions.setFileExplorerServiceBaseUrl("base")
+        );
 
-            // act
-            const nextSelectionState = selection.reducer(initialSelectionState, action);
-            const nextSelection = selection.selectors.getFileSelection({
-                ...initialState,
-                selection: nextSelectionState,
-            });
+        const nextSelection = selection.selectors.getFileSelection({
+            ...initialState,
+            selection: nextSelectionState,
+        });
 
-            // assert
-            expect(prevSelection.count()).to.equal(3); // sanity-check
-            expect(nextSelection.count()).to.equal(0);
-        })
-    );
+        // assert
+        expect(prevSelection.count()).to.equal(3); // sanity-check
+        expect(nextSelection.count()).to.equal(0);
+    });
+});
+
+describe("Selection reducer", () => {
+    it(`clears selected file state when SET_ANNOTATION_HIERARCHY is fired`, () => {
+        // arrange
+        const prevSelection = new FileSelection().select({
+            fileSet: new FileSet(),
+            index: new NumericRange(1, 3),
+            sortOrder: 0,
+        });
+        const initialSelectionState = {
+            ...selection.initialState,
+            fileSelection: prevSelection,
+        };
+
+        // act
+        const nextSelectionState = selection.reducer(
+            initialSelectionState,
+            selection.actions.setAnnotationHierarchy([])
+        );
+        const nextSelection = selection.selectors.getFileSelection({
+            ...initialState,
+            selection: nextSelectionState,
+        });
+
+        // assert
+        expect(prevSelection.count()).to.equal(3); // sanity-check
+        expect(nextSelection.count()).to.equal(0);
+    });
 
     describe(selection.actions.CHANGE_COLLECTION, () => {
         it("clears hierarchy, filters, file selection, and open folders", () => {
