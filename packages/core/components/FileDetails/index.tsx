@@ -252,7 +252,6 @@ export default function FileDetails(props: FileDetails) {
                     >
                         <Icon iconName="GridViewMedium"></Icon>
                     </ActionButton>
-
                     <ActionButton
                         className={classNames(styles.fontSizeButton, {
                             [styles.disabled]:
