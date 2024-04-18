@@ -1,4 +1,4 @@
-import { ActionButton, IButtonStyles } from "@fluentui/react";
+import { ActionButton, IButtonStyles, Icon } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,6 +15,7 @@ import { ROOT_ELEMENT_ID } from "../../App";
 import { selection } from "../../state";
 import SvgIcon from "../../components/SvgIcon";
 import { NO_IMAGE_ICON_PATH_DATA } from "../../icons";
+import { RENDERABLE_IMAGE_FORMATS, THUMBNAIL_SIZE_TO_NUM_COLUMNS } from "../../constants";
 
 import styles from "./FileDetails.module.css";
 
@@ -126,7 +127,11 @@ export default function FileDetails(props: FileDetails) {
     const globalDispatch = useDispatch();
     const [windowState, windowDispatch] = React.useReducer(windowStateReducer, INITIAL_STATE);
     const [fileDetails, isLoading] = useFileDetails();
+    const fileGridColumnCount = useSelector(selection.selectors.getFileGridColumnCount);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
+    const shouldDisplayThumbnailView = useSelector(
+        selection.selectors.getShouldDisplayThumbnailView
+    );
 
     // If FileDetails pane is minimized, set its width to the width of the WindowActionButtons. Else, let it be
     // defined by whatever the CSS determines (setting an inline style to undefined will prompt ReactDOM to not apply
@@ -164,8 +169,7 @@ export default function FileDetails(props: FileDetails) {
             </div>
         );
     } else if (fileDetails) {
-        const renderableImageFormats = [".jpg", ".jpeg", ".png", ".gif"];
-        const isFileRenderableImage = renderableImageFormats.some((format) =>
+        const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
             fileDetails?.name.toLowerCase().endsWith(format)
         );
         if (isFileRenderableImage) {
@@ -226,6 +230,64 @@ export default function FileDetails(props: FileDetails) {
                             [styles.hidden]: windowState.state === WindowState.MINIMIZED,
                         })}
                     />
+                    <ActionButton
+                        className={classNames(styles.fontSizeButton, {
+                            [styles.disabled]:
+                                shouldDisplayThumbnailView &&
+                                fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE,
+                        })}
+                        disabled={
+                            shouldDisplayThumbnailView &&
+                            fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE
+                        }
+                        onClick={() => {
+                            globalDispatch(selection.actions.setFileThumbnailView(true));
+                            globalDispatch(
+                                selection.actions.setFileGridColumnCount(
+                                    THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE
+                                )
+                            );
+                        }}
+                        title="Large thumbnail view"
+                    >
+                        <Icon iconName="GridViewMedium"></Icon>
+                    </ActionButton>
+                    <ActionButton
+                        className={classNames(styles.fontSizeButton, {
+                            [styles.disabled]:
+                                shouldDisplayThumbnailView &&
+                                fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL,
+                        })}
+                        disabled={
+                            shouldDisplayThumbnailView &&
+                            fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL
+                        }
+                        onClick={() => {
+                            globalDispatch(selection.actions.setFileThumbnailView(true));
+                            globalDispatch(
+                                selection.actions.setFileGridColumnCount(
+                                    THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL
+                                )
+                            );
+                        }}
+                        title="Small thumbnail view"
+                    >
+                        <Icon iconName="GridViewSmall"></Icon>
+                    </ActionButton>
+                    <ActionButton
+                        className={classNames(styles.fontSizeButton, {
+                            [styles.disabled]: !shouldDisplayThumbnailView,
+                        })}
+                        disabled={!shouldDisplayThumbnailView}
+                        onClick={() =>
+                            globalDispatch(
+                                selection.actions.setFileThumbnailView(!shouldDisplayThumbnailView)
+                            )
+                        }
+                        title="List view"
+                    >
+                        <Icon iconName="BulletedList"></Icon>
+                    </ActionButton>
                     <div className={styles.fontSizeButtonContainer}>
                         <ActionButton
                             className={classNames(styles.fontSizeButton, {

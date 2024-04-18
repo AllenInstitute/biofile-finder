@@ -153,3 +153,10 @@ export const SEARCHABLE_TOP_LEVEL_FILE_ANNOTATIONS = TOP_LEVEL_FILE_ANNOTATIONS.
 );
 
 export const TOP_LEVEL_FILE_ANNOTATION_NAMES = TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.name);
+
+export const THUMBNAIL_SIZE_TO_NUM_COLUMNS = {
+    LARGE: 5,
+    SMALL: 10,
+};
+
+export const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];

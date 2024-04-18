@@ -546,3 +546,42 @@ export function adjustGlobalFontSize(shouldDisplaySmallFont: boolean): AdjustGlo
         type: ADJUST_GLOBAL_FONT_SIZE,
     };
 }
+
+/**
+ * SET_FILE_VIEW_TYPE
+ *
+ * Intention to set the file view type to thumbnail or list
+ */
+export const SET_FILE_THUMBNAIL_VIEW = makeConstant(STATE_BRANCH_NAME, "set-file-thumbnail-view");
+
+export interface SetFileThumbnailView {
+    payload: boolean;
+    type: string;
+}
+
+export function setFileThumbnailView(shouldDisplayThumbnailView: boolean): SetFileThumbnailView {
+    return {
+        payload: shouldDisplayThumbnailView,
+        type: SET_FILE_THUMBNAIL_VIEW,
+    };
+}
+
+/**
+ * SET_FILE_GRID_COLUMN_COUNT
+ */
+export const SET_FILE_GRID_COLUMN_COUNT = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-file-grid-column-count"
+);
+
+export interface SetFileGridColumnCount {
+    payload: number;
+    type: string;
+}
+
+export function setFileGridColumnCount(fileGridColumnCount: number): SetFileGridColumnCount {
+    return {
+        payload: fileGridColumnCount,
+        type: SET_FILE_GRID_COLUMN_COUNT,
+    };
+}
