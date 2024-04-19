@@ -1,0 +1,23 @@
+.filter-input, .date-range-box {
+    border: none;
+    flex: auto;
+}
+
+.date-range-box {
+    display: flex;
+}
+
+.date-range-box {
+    max-height: 32px;
+    overflow: hidden;
+}
+
+.date-range-separator {
+    display: flex;
+    font-size: small;
+    padding: 0 2px;
+}
+
+.date-range-separator i {
+    margin: auto;
+}

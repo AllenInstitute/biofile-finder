@@ -13,6 +13,8 @@ export interface DnDItem {
     disabled?: boolean;
     id: string; // a unique identifier for the annotation, e.g., annotation.name
     title: string; // the value to display, e.g., annotation.displayName
+    type?: string;
+    isFileProperty?: boolean;
 }
 
 export interface DnDListDividers {

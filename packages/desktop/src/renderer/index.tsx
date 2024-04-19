@@ -75,25 +75,34 @@ const store = createReduxStore({
 // https://redux.js.org/api/store#subscribelistener
 store.subscribe(() => {
     const state = store.getState();
+    const queries = selection.selectors.getQueries(state);
     const csvColumns = interaction.selectors.getCsvColumns(state);
-    const lastUsedView = selection.selectors.getEncodedFileExplorerUrl(state);
+    const displayAnnotations = selection.selectors.getAnnotationsToDisplay(state);
     const hasUsedApplicationBefore = interaction.selectors.hasUsedApplicationBefore(state);
     const userSelectedApplications = interaction.selectors.getUserSelectedApplications(state);
+
     const appState = {
         [PersistedConfigKeys.CsvColumns]: csvColumns,
+        [PersistedConfigKeys.DisplayAnnotations]: displayAnnotations.map((annotation) => ({
+            annotationDisplayName: annotation.displayName,
+            annotationName: annotation.name,
+            description: annotation.description,
+            type: annotation.type,
+        })),
         [PersistedConfigKeys.HasUsedApplicationBefore]: hasUsedApplicationBefore,
-        [PersistedConfigKeys.LastUsedView]: lastUsedView,
+        [PersistedConfigKeys.Queries]: queries,
         [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
-        [PersistedConfigKeys.Queries]: [],
     };
-    if (JSON.stringify(appState) !== JSON.stringify(persistentConfigService.getAll())) {
-        persistentConfigService.persist({
-            [PersistedConfigKeys.CsvColumns]: csvColumns,
-            [PersistedConfigKeys.LastUsedView]: lastUsedView,
-            [PersistedConfigKeys.HasUsedApplicationBefore]: hasUsedApplicationBefore,
-            [PersistedConfigKeys.Queries]: [],
-            [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
-        });
+
+    const oldAppState = Object.keys(appState).reduce(
+        (acc, configKey) => ({
+            ...acc,
+            [configKey]: persistentConfigService.get(configKey as PersistedConfigKeys),
+        }),
+        {}
+    );
+    if (JSON.stringify(appState) !== JSON.stringify(oldAppState)) {
+        persistentConfigService.persist(appState);
     }
 });
 

@@ -1,3 +1,4 @@
+import { AnnotationResponse } from "../../entity/Annotation";
 import { Query } from "../../state/selection/actions";
 
 /**
@@ -6,9 +7,9 @@ import { Query } from "../../state/selection/actions";
 export enum PersistedConfigKeys {
     AllenMountPoint = "ALLEN_MOUNT_POINT",
     CsvColumns = "CSV_COLUMNS",
+    DisplayAnnotations = "DISPLAY_ANNOTATIONS",
     ImageJExecutable = "IMAGE_J_EXECUTABLE", // Deprecated
     HasUsedApplicationBefore = "HAS_USED_APPLICATION_BEFORE",
-    LastUsedView = "LAST_USED_VIEW",
     UserSelectedApplications = "USER_SELECTED_APPLICATIONS",
     Queries = "QUERIES",
 }
@@ -21,9 +22,9 @@ export interface UserSelectedApplication {
 export interface PersistedConfig {
     [PersistedConfigKeys.AllenMountPoint]?: string;
     [PersistedConfigKeys.CsvColumns]?: string[];
+    [PersistedConfigKeys.DisplayAnnotations]?: AnnotationResponse[];
     [PersistedConfigKeys.ImageJExecutable]?: string; // Deprecated
     [PersistedConfigKeys.HasUsedApplicationBefore]?: boolean;
-    [PersistedConfigKeys.LastUsedView]?: string;
     [PersistedConfigKeys.Queries]?: Query[];
     [PersistedConfigKeys.UserSelectedApplications]?: UserSelectedApplication[];
 }

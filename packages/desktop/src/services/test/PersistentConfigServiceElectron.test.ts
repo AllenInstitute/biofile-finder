@@ -45,6 +45,17 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                     name: "ZEN",
                 },
             ];
+
+            const expectedDisplayAnnotations = [
+                {
+                    annotationDisplayName: "Foo",
+                    annotationName: "foo",
+                    description: "foo-long",
+                    type: "string",
+                    units: "string",
+                },
+            ];
+
             service.persist(PersistedConfigKeys.AllenMountPoint, expectedAllenMountPoint);
             service.persist(PersistedConfigKeys.CsvColumns, expectedCsvColumns);
             service.persist(PersistedConfigKeys.ImageJExecutable, expectedImageJExecutable);
@@ -53,12 +64,15 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                 expectedHasUsedApplicationBefore
             );
             service.persist(PersistedConfigKeys.UserSelectedApplications, expectedUserSelectedApps);
+            service.persist(PersistedConfigKeys.DisplayAnnotations, expectedDisplayAnnotations);
+
             const expectedConfig = {
                 [PersistedConfigKeys.AllenMountPoint]: expectedAllenMountPoint,
                 [PersistedConfigKeys.CsvColumns]: expectedCsvColumns,
                 [PersistedConfigKeys.ImageJExecutable]: expectedImageJExecutable,
                 [PersistedConfigKeys.HasUsedApplicationBefore]: expectedHasUsedApplicationBefore,
                 [PersistedConfigKeys.UserSelectedApplications]: expectedUserSelectedApps,
+                [PersistedConfigKeys.DisplayAnnotations]: expectedDisplayAnnotations,
             };
 
             // Act
@@ -83,6 +97,15 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                         filePath: "/some/path/to/ImageJ",
                         defaultFileKinds: ["OMETIFF"],
                         name: "ImageJ/Fiji",
+                    },
+                ],
+                [PersistedConfigKeys.DisplayAnnotations]: [
+                    {
+                        annotationDisplayName: "Foo",
+                        annotationName: "foo",
+                        description: "foo-long",
+                        type: "string",
+                        units: "string",
                     },
                 ],
             };

@@ -1,0 +1,25 @@
+.small-font {
+  font-size: var(--smaller-font-size);
+}
+
+.file-label {
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.thumbnail-wrapper {
+  padding: 10px
+}
+
+.no-thumbnail {
+  fill: var(--grey);
+}
+
+.selected {
+  background-color: #d4e3fc;
+}
+
+.focused {
+  margin: 0;
+  border: 2px solid #669bf4;
+}

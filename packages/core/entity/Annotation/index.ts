@@ -74,6 +74,10 @@ export default class Annotation {
         return this.annotation.type;
     }
 
+    public get units(): string | undefined {
+        return this.annotation.units;
+    }
+
     /**
      * Get the annotation this instance represents from a given FmsFile. An annotation on an FmsFile
      * can either be at the "top-level" of the document or it can be within it's "annotations" list.

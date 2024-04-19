@@ -37,6 +37,7 @@ const requestAnnotations = createLogic({
         } finally {
             done();
         }
+        done();
     },
     type: REQUEST_ANNOTATIONS,
 });

@@ -44,7 +44,6 @@ export interface InteractionStateBranch {
     fileTypeForVisibleModal?: "csv" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
     hasUsedApplicationBefore: boolean;
-    lastUsedView?: string;
     platformDependentServices: PlatformDependentServices;
     refreshKey?: string;
     status: StatusUpdate[];

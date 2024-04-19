@@ -1,0 +1,65 @@
+.container {
+    --spacing: 0.5rem;
+
+    overflow: auto;
+    max-height: 300px;
+    padding: 0 var(--spacing) 0 var(--spacing);
+    margin-top: var(--spacing);
+}
+
+.header {
+    position: sticky;
+    top: 0;
+    padding-bottom: var(--spacing);
+    width: 100%;
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.buttons {
+    clear: both;
+    display: flex;
+}
+
+.footer {
+    bottom: 0;
+    padding-bottom: var(--spacing);
+    position: sticky;
+    width: 100%;
+}
+
+.footer > h6 {
+    background-color: white;
+    border-radius: 5px;
+    color: grey;
+    font-size: 12px;
+    font-weight: normal;
+    margin: 0 0 0 auto;
+    width: fit-content;
+}
+
+.action-button {
+    color: steelblue;
+    cursor: pointer;
+    display: flex;
+    margin: 0.5rem auto 0;
+}
+
+.action-button.disabled {
+    color: grey;
+    cursor: not-allowed;
+}
+
+.input-field {
+    float: left;
+    margin-left: 10px;
+}
+
+label,input{
+    display: block;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}

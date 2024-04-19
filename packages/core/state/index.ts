@@ -8,6 +8,7 @@ import metadata, { MetadataStateBranch } from "./metadata";
 import selection, { SelectionStateBranch } from "./selection";
 import FileExplorerURL from "../entity/FileExplorerURL";
 import { PersistedConfig, PersistedConfigKeys } from "../services/PersistentConfigService";
+import Annotation from "../entity/Annotation";
 
 export { interaction, metadata, selection };
 
@@ -60,16 +61,21 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
     const queries = persistedConfig?.[PersistedConfigKeys.Queries]?.length
         ? persistedConfig?.[PersistedConfigKeys.Queries]
         : [{ url: FileExplorerURL.DEFAULT_FMS_URL, name: "New AICS Query" }];
+    const rawDisplayAnnotations =
+        persistedConfig && persistedConfig[PersistedConfigKeys.DisplayAnnotations];
+    const displayAnnotations = rawDisplayAnnotations
+        ? rawDisplayAnnotations.map((annotation) => new Annotation(annotation))
+        : [];
     const preloadedState: State = mergeState(initialState, {
         interaction: {
             csvColumns: persistedConfig?.[PersistedConfigKeys.CsvColumns],
             hasUsedApplicationBefore:
                 persistedConfig?.[PersistedConfigKeys.HasUsedApplicationBefore],
-            lastUsedView: persistedConfig?.[PersistedConfigKeys.LastUsedView],
             userSelectedApplications:
                 persistedConfig?.[PersistedConfigKeys.UserSelectedApplications],
         },
         selection: {
+            displayAnnotations,
             selectedQuery: queries?.[0],
             queries,
         },

@@ -1,11 +1,15 @@
+import { Spinner, SpinnerSize } from "@fluentui/react";
 import { find, isNil } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useAnnotationValues from "./useAnnotationValues";
-import ListPicker, { ListItem } from "../ListPicker";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
+import ListPicker, { ListItem } from "../ListPicker";
+import NumberRangePicker from "../NumberRangePicker";
+import SearchBoxForm from "../SearchBoxForm";
+import DateRangePicker from "../DateRangePicker";
 import { interaction, metadata, selection } from "../../state";
 
 interface AnnotationFilterFormProps {
@@ -20,9 +24,10 @@ interface AnnotationFilterFormProps {
  */
 export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const dispatch = useDispatch();
-    const annotations = useSelector(metadata.selectors.getAnnotations);
+    const annotations = useSelector(metadata.selectors.getSortedAnnotations);
     const fileFilters = useSelector(selection.selectors.getFileFilters);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
+    // TODO: annotationService throws an error for annotations that aren't in the API
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
         props.name,
         annotationService
@@ -31,6 +36,11 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const annotation = React.useMemo(
         () => find(annotations, (annotation) => annotation.name === props.name),
         [annotations, props.name]
+    );
+
+    const currentValues = React.useMemo(
+        () => find(fileFilters, (annotation) => annotation.name === props.name),
+        [props.name, fileFilters]
     );
 
     const items = React.useMemo<ListItem[]>(() => {
@@ -87,22 +97,91 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         dispatch(selection.actions.addFileFilter(filters));
     };
 
-    // TODO, return different pickers based on annotation type
-    // e.g., a date picker, a range (numeric) picker, etc.
-    switch (annotation?.type) {
-        case AnnotationType.STRING:
-        // prettier-ignore
-        default: // FALL-THROUGH
-            return (
-                <ListPicker
-                    items={items}
-                    loading={isLoading}
-                    errorMessage={errorMessage}
-                    onDeselect={onDeselect}
-                    onDeselectAll={onDeselectAll}
-                    onSelect={onSelect}
-                    onSelectAll={items.length <= 100 ? onSelectAll : undefined}
-                />
-            );
+    function onSearch(filterValue: string) {
+        if (filterValue && filterValue.trim()) {
+            const fileFilter = new FileFilter(props.name, filterValue);
+            if (currentValues) {
+                dispatch(selection.actions.removeFileFilter(currentValues));
+            }
+            dispatch(selection.actions.addFileFilter(fileFilter));
+        }
     }
+
+    function onReset() {
+        if (currentValues) {
+            dispatch(selection.actions.removeFileFilter(currentValues));
+        }
+    }
+
+    const listPicker = () => {
+        return (
+            <ListPicker
+                items={items}
+                loading={isLoading}
+                errorMessage={errorMessage}
+                onDeselect={onDeselect}
+                onDeselectAll={onDeselectAll}
+                onSelect={onSelect}
+                onSelectAll={onSelectAll}
+            />
+        );
+    };
+
+    if (isLoading) {
+        return (
+            <div>
+                <Spinner size={SpinnerSize.small} />
+            </div>
+        );
+    }
+
+    const customInput = () => {
+        switch (annotation?.type) {
+            case AnnotationType.DATE:
+            case AnnotationType.DATETIME:
+                return (
+                    <DateRangePicker
+                        onSearch={onSearch}
+                        onReset={onReset}
+                        currentRange={currentValues}
+                    />
+                );
+            case AnnotationType.NUMBER:
+                return (
+                    <NumberRangePicker
+                        items={items}
+                        loading={isLoading}
+                        errorMessage={errorMessage}
+                        onSearch={onSearch}
+                        onReset={onReset}
+                        currentRange={currentValues}
+                        units={annotation?.units}
+                    />
+                );
+            case AnnotationType.DURATION:
+            case AnnotationType.STRING:
+            // prettier-ignore
+            default: // FALL-THROUGH
+                return (
+                    <> {listPicker()} </>
+                );
+        }
+    };
+    // Use the checkboxes if values exist and are few enough to reasonably scroll through
+    if (items.length > 0 && items.length <= 100) {
+        return <> {listPicker()} </>;
+    }
+    // Use a search box if the API does not return values to select
+    // (e.g., it's not an AICS annotation)
+    else if (items.length === 0 && annotation?.type === AnnotationType.STRING) {
+        return (
+            <SearchBoxForm
+                onSearch={onSearch}
+                onReset={onReset}
+                fieldName={annotation.name}
+                currentValue={currentValues}
+            />
+        );
+    }
+    return <> {customInput()} </>;
 }

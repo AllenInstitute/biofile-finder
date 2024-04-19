@@ -2,6 +2,7 @@ import { makeReducer } from "@aics/redux-utils";
 import { omit } from "lodash";
 
 import interaction from "../interaction";
+import { THUMBNAIL_SIZE_TO_NUM_COLUMNS } from "../../constants";
 import Annotation, { AnnotationName } from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
@@ -27,6 +28,8 @@ import {
     SET_QUERIES,
     SetQueries,
     ChangeQuery,
+    SET_FILE_THUMBNAIL_VIEW,
+    SET_FILE_GRID_COLUMN_COUNT,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
@@ -41,12 +44,14 @@ export interface SelectionStateBranch {
         [index: string]: number; // columnName to widthPercent mapping
     };
     displayAnnotations: Annotation[];
+    fileGridColumnCount: number;
     fileSelection: FileSelection;
     filters: FileFilter[];
     isDarkTheme: boolean;
     openFileFolders: FileFolder[];
     selectedQuery?: Query;
     shouldDisplaySmallFont: boolean;
+    shouldDisplayThumbnailView: boolean;
     sortColumn?: FileSort;
     queries: Query[];
     tutorial?: Tutorial;
@@ -64,11 +69,13 @@ export const initialState = {
     },
     displayAnnotations: [],
     isDarkTheme: true,
+    fileGridColumnCount: THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE,
     fileSelection: new FileSelection(),
     filters: [],
     openFileFolders: [],
     shouldDisplaySmallFont: false,
     queries: [],
+    shouldDisplayThumbnailView: false,
 };
 
 export default makeReducer<SelectionStateBranch>(
@@ -80,6 +87,14 @@ export default makeReducer<SelectionStateBranch>(
         [ADJUST_GLOBAL_FONT_SIZE]: (state, action) => ({
             ...state,
             shouldDisplaySmallFont: action.payload,
+        }),
+        [SET_FILE_THUMBNAIL_VIEW]: (state, action) => ({
+            ...state,
+            shouldDisplayThumbnailView: action.payload,
+        }),
+        [SET_FILE_GRID_COLUMN_COUNT]: (state, action) => ({
+            ...state,
+            fileGridColumnCount: action.payload,
         }),
         [SET_FILE_FILTERS]: (state, action) => ({
             ...state,
