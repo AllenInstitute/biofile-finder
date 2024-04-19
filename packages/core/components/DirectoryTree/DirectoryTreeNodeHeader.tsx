@@ -93,7 +93,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
             onContextMenu={onContextMenu}
         >
             <SvgIcon
-                className={classNames({
+                className={classNames(styles.icon, {
                     [styles.chevronClosed]: collapsed,
                 })}
                 height={ICON_SIZE}

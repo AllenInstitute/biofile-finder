@@ -6,6 +6,8 @@ import Cell from "./Cell";
 import { OnSelect } from "../FileList/useFileSelector";
 
 import styles from "./FileRow.module.css";
+import { useSelector } from "react-redux";
+import { selection } from "../../state";
 
 export interface CellConfig {
     columnKey: string;
@@ -16,7 +18,6 @@ export interface CellConfig {
 interface FileRowProps {
     cells: CellConfig[];
     className?: string;
-    cellClassName?: string;
     rowIdentifier?: any;
     onContextMenu?: (evt: React.MouseEvent) => void;
     onResize?: (columnKey: string, nextWidth?: number) => void;
@@ -28,6 +29,8 @@ interface FileRowProps {
  */
 export default function FileRow(props: FileRowProps) {
     const { cells, className, rowIdentifier, onContextMenu, onResize, onSelect } = props;
+
+    const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
 
     const onClick = (evt: React.MouseEvent) => {
         evt.preventDefault();
@@ -47,7 +50,7 @@ export default function FileRow(props: FileRowProps) {
         <div className={classNames(styles.row, className)} onClick={onClick}>
             {map(cells, (cell) => (
                 <Cell
-                    className={props.cellClassName}
+                    className={classNames({ [styles.smallFont]: shouldDisplaySmallFont })}
                     key={cell.columnKey}
                     columnKey={cell.columnKey}
                     onContextMenu={onContextMenu}

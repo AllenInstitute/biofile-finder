@@ -1,4 +1,4 @@
-import { ContextualMenu, IconButton, IIconProps, IDragOptions, Modal } from "@fluentui/react";
+import { ContextualMenu, IconButton, IDragOptions, Modal } from "@fluentui/react";
 import { noop } from "lodash";
 import * as React from "react";
 
@@ -7,7 +7,6 @@ import styles from "./BaseModal.module.css";
 interface BaseModalProps {
     body: React.ReactNode;
     footer?: React.ReactNode;
-    isBlocking?: boolean;
     onDismiss?: () => void;
     title?: string;
 }
@@ -17,29 +16,22 @@ const DRAG_OPTIONS: IDragOptions = {
     closeMenuItemText: "Close",
     menu: ContextualMenu,
 };
-const CANCEL_ICON: IIconProps = { iconName: "Cancel" };
-const ICON_STYLES = {
-    root: {
-        color: "black",
-    },
-};
 
 /**
  * Wrapper around @fluent-ui/react Modal with consistent defaults applied and some layout scaffolding
  * for plugging content into.
  */
 export default function BaseModal(props: BaseModalProps) {
-    const { body, footer, isBlocking, title, onDismiss } = props;
+    const { body, footer, title, onDismiss } = props;
 
     const titleId = "base-modal-title";
     return (
         <Modal
+            isOpen
             containerClassName={styles.container}
             dragOptions={DRAG_OPTIONS}
-            isOpen={true}
             scrollableContentClassName={styles.scrollableContainer}
             titleAriaId={titleId}
-            isBlocking={isBlocking}
         >
             <div className={styles.header}>
                 {title ? (
@@ -47,15 +39,12 @@ export default function BaseModal(props: BaseModalProps) {
                         {title}
                     </h3>
                 ) : null}
-                {!isBlocking ? (
-                    <IconButton
-                        ariaLabel="Close"
-                        className={styles.closeButton}
-                        iconProps={CANCEL_ICON}
-                        onClick={onDismiss}
-                        styles={ICON_STYLES}
-                    />
-                ) : null}
+                <IconButton
+                    ariaLabel="Close"
+                    className={styles.closeButton}
+                    iconProps={{ iconName: "Cancel" }}
+                    onClick={onDismiss}
+                />
             </div>
             {body}
             <div className={styles.footer}>{footer}</div>

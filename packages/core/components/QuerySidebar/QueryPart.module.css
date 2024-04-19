@@ -1,0 +1,33 @@
+.add-button {
+    color: var(--primary-sidebar-text-color);
+    background-color: var(--primary-sidebar-color);
+    border: none;
+    padding: 0 4px;
+    width: 100px;
+}
+
+.add-button:hover, .add-button:hover button  {
+    color: var(--highlight-text-color);
+    background-color: var(--highlight-background-color);
+    border: none;
+}
+
+.add-button-container > * {
+    margin: 5px 0;
+    width: 125px
+}
+
+.container {
+    margin: 8px 2px;
+}
+
+.header {
+    display: flex;
+    height: 32px;
+    margin: 4px 0;
+}
+
+.header > h5 {
+    margin: 0;
+    padding-top: 8px
+}

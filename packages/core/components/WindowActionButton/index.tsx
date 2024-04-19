@@ -12,7 +12,6 @@ export enum WindowAction {
 
 interface WindowActionButtonProps {
     action: WindowAction;
-    fillColor?: string;
     height?: number; // px
     onClick?: () => void;
     width?: number; // px
@@ -48,7 +47,7 @@ const actionToAriaLabelMap: { [index: string]: string } = {
  * Component for rendering minimize, maximize, and restore button used to control the state of a "window."
  */
 export default function WindowActionButton(props: WindowActionButtonProps) {
-    const { action, fillColor, height, onClick, width } = props;
+    const { action, height, onClick, width } = props;
 
     return (
         <button
@@ -64,7 +63,6 @@ export default function WindowActionButton(props: WindowActionButtonProps) {
                     strokeWidth: 0,
                     stroke: "none",
                     strokeDasharray: "none",
-                    fill: fillColor,
                     fillRule: "evenodd",
                 }}
                 pathData={actionToPathDataMap[action]}
@@ -76,7 +74,6 @@ export default function WindowActionButton(props: WindowActionButtonProps) {
 }
 
 WindowActionButton.defaultProps = {
-    fillColor: "rgb(170, 170, 170)", // arbitrary; gray
     height: 23, // arbitrary
     onClick: () => {
         /* noop */

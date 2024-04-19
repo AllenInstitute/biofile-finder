@@ -1,17 +1,15 @@
 import { isObject } from "lodash";
 
-import Annotation from "../Annotation";
+import Annotation, { AnnotationName } from "../Annotation";
 import FileFilter, { FileFilterJson } from "../FileFilter";
 import FileFolder from "../FileFolder";
 import { AnnotationValue } from "../../services/AnnotationService";
 import { ValueError } from "../../errors";
 import FileSort, { SortOrder } from "../FileSort";
-import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
-import DatasetService from "../../services/DatasetService";
 
 interface Collection {
     name: string;
-    version: number;
+    version?: number;
     uri?: string;
 }
 
@@ -36,38 +34,37 @@ interface FileExplorerURLJson {
     };
 }
 
+const BEGINNING_OF_TODAY = new Date();
+BEGINNING_OF_TODAY.setHours(0, 0, 0, 0);
+const END_OF_TODAY = new Date();
+END_OF_TODAY.setHours(23, 59, 59);
+const DATE_LAST_YEAR = new Date(BEGINNING_OF_TODAY);
+DATE_LAST_YEAR.setMonth(BEGINNING_OF_TODAY.getMonth() - 12);
+const DATE_LAST_6_MONTHS = new Date(BEGINNING_OF_TODAY);
+DATE_LAST_6_MONTHS.setMonth(BEGINNING_OF_TODAY.getMonth() - 6);
+const DATE_LAST_MONTH = new Date(BEGINNING_OF_TODAY);
+DATE_LAST_MONTH.setMonth(BEGINNING_OF_TODAY.getMonth() - 1);
+const DATE_LAST_WEEK = new Date(BEGINNING_OF_TODAY);
+DATE_LAST_WEEK.setDate(BEGINNING_OF_TODAY.getDate() - 7);
+export const PAST_YEAR_FILTER = new FileFilter(
+    AnnotationName.UPLOADED,
+    `RANGE(${DATE_LAST_YEAR.toISOString()},${END_OF_TODAY.toISOString()})`
+);
+const DEFAULT_FMS_URL_COMPONENTS = {
+    hierarchy: [],
+    openFolders: [],
+    filters: [PAST_YEAR_FILTER],
+    sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
+};
+
 /**
  * This represents a system for encoding application state information in a way
  * that allows users to copy, share, and paste the result back into the app and have the
  * URL decoded & rehydrated back in.
  */
 export default class FileExplorerURL {
-    public static PROTOCOL = "fms-file-explorer://";
-
-    // Returns an error message if the URL is invalid, returns undefined otherwise
-    public static async validateEncodedFileExplorerURL(
-        encodedURL: string,
-        annotations: Annotation[],
-        datasetService: DatasetService
-    ): Promise<string | undefined> {
-        try {
-            const url = FileExplorerURL.decode(encodedURL, annotations);
-
-            if (url.collection) {
-                try {
-                    await datasetService.getDataset(url.collection);
-                } catch (error) {
-                    return `Unable to decode FileExplorerURL, collection could not be found ${
-                        (error as Error).message
-                    }`;
-                }
-            }
-
-            return undefined;
-        } catch (error) {
-            return (error as Error).message;
-        }
-    }
+    public static readonly PROTOCOL = "fms-file-explorer://";
+    public static readonly DEFAULT_FMS_URL = FileExplorerURL.encode(DEFAULT_FMS_URL_COMPONENTS);
 
     /**
      * Encode this FileExplorerURL into a format easily transferable between users
@@ -76,10 +73,10 @@ export default class FileExplorerURL {
      * of our application state. As in, the names / system we track data in can change
      * without breaking an existing FileExplorerURL.
      * */
-    public static encode(urlComponents: FileExplorerURLComponents) {
-        const groupBy = urlComponents.hierarchy.map((annotation) => annotation.name);
-        const filters = urlComponents.filters.map((filter) => filter.toJSON());
-        const openFolders = urlComponents.openFolders.map((folder) => folder.fileFolder);
+    public static encode(urlComponents: Partial<FileExplorerURLComponents>) {
+        const groupBy = urlComponents.hierarchy?.map((annotation) => annotation.name) || [];
+        const filters = urlComponents.filters?.map((filter) => filter.toJSON()) || [];
+        const openFolders = urlComponents.openFolders?.map((folder) => folder.fileFolder) || [];
         const sort = urlComponents.sortColumn
             ? {
                   annotationName: urlComponents.sortColumn.annotationName,
@@ -121,11 +118,6 @@ export default class FileExplorerURL {
 
         let sortColumn = undefined;
         if (parsedURL.sort) {
-            if (!TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(parsedURL.sort.annotationName)) {
-                throw new ValueError(
-                    `Unable to decode FileExplorerURL, sort column must be one of ${TOP_LEVEL_FILE_ANNOTATION_NAMES}`
-                );
-            }
             if (!Object.values(SortOrder).includes(parsedURL.sort.order)) {
                 throw new Error(
                     `Unable to decode FileExplorerURL, sort order must be one of ${Object.values(
@@ -148,10 +140,7 @@ export default class FileExplorerURL {
         }
 
         const hierarchyDepth = parsedURL.groupBy.length;
-        const annotationNameSet = new Set([
-            ...annotations.map((annotation) => annotation.name),
-            ...TOP_LEVEL_FILE_ANNOTATION_NAMES,
-        ]);
+        const annotationNameSet = new Set(annotations.map((annotation) => annotation.name));
         return {
             hierarchy: parsedURL.groupBy.map((annotationName) => {
                 if (!annotationNameSet.has(annotationName)) {
@@ -164,11 +153,6 @@ export default class FileExplorerURL {
             }),
             collection: parsedURL.collection,
             filters: parsedURL.filters.map((filter) => {
-                if (!annotationNameSet.has(filter.name)) {
-                    throw new ValueError(
-                        `Unable to decode FileExplorerURL, couldn't find Annotation(${filter.name})`
-                    );
-                }
                 return new FileFilter(filter.name, filter.value);
             }),
             openFolders: parsedURL.openFolders.map((folder) => {

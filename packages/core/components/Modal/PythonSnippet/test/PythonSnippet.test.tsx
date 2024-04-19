@@ -32,15 +32,7 @@ describe("<PythonSnippet />", () => {
         // Arrange
         const setup = "pip install aicsfiles";
         const code = "my_files = querier.query()";
-        const state = mergeState(visibleDialogState, {
-            interaction: {
-                pythonSnippet: {
-                    setup,
-                    code,
-                },
-            },
-        });
-        const { store } = configureMockStore({ state });
+        const { store } = configureMockStore({ state: visibleDialogState });
         const { findByText } = render(
             <Provider store={store}>
                 <Modal />

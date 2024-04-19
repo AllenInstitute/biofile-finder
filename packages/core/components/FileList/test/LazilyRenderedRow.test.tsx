@@ -5,10 +5,11 @@ import * as React from "react";
 import { Provider } from "react-redux";
 import * as sinon from "sinon";
 
-import Annotation from "../../../entity/Annotation";
 import LazilyRenderedRow from "../LazilyRenderedRow";
-import { initialState } from "../../../state";
+import Annotation from "../../../entity/Annotation";
+import FileDetail from "../../../entity/FileDetail";
 import FileSet from "../../../entity/FileSet";
+import { initialState } from "../../../state";
 
 import styles from "../LazilyRenderedRow.module.css";
 
@@ -24,24 +25,20 @@ describe("<LazilyRenderedRow />", () => {
         const fileSet = new FileSet();
         sinon.stub(fileSet, "getFileByIndex").callsFake((index) => {
             if (index === 3) {
-                return {
+                return new FileDetail({
                     annotations: [
                         {
                             name: "someDateAnnotation",
                             values: ["2019-05-17T07:43:55.205Z"],
                         },
                     ],
-                    channels: [],
                     file_id: "abc123",
                     file_name: "my_image.czi",
                     file_path: "some/path/to/my_image.czi",
                     file_size: 1,
-                    positions: [],
-                    someDateAnnotation: "2019-05-17T07:43:55.205Z",
-                    times: [],
                     thumbnail: "",
                     uploaded: new Date().toISOString(),
-                };
+                });
             }
         });
 

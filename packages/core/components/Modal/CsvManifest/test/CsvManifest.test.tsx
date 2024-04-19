@@ -84,6 +84,10 @@ describe("<CsvManifest />", () => {
                 return Promise.reject();
             }
 
+            promptForSaveLocation() {
+                return Promise.reject();
+            }
+
             promptForDownloadDirectory() {
                 return Promise.reject();
             }

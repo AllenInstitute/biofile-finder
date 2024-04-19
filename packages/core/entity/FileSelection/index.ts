@@ -1,12 +1,12 @@
 import { find, isArray, reject } from "lodash";
 
 import { IndexError, ValueError } from "../../errors";
-import { FmsFile } from "../../services/FileService";
 import { Selection } from "../../services/FileService/HttpFileService";
 import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
 import { SortOrder } from "../FileSort";
 import NumericRange from "../NumericRange";
+import FileDetail from "../FileDetail";
 
 /**
  * Enumeration of directives that can be used to change the focus of the FileSelection.
@@ -193,7 +193,7 @@ export default class FileSelection {
     /**
      * Fetch metadata for currently focused item.
      */
-    public async fetchFocusedItemDetails(): Promise<FmsFile | undefined> {
+    public async fetchFocusedItemDetails(): Promise<FileDetail | undefined> {
         if (!this.focusedItem) {
             return Promise.resolve(undefined);
         }
@@ -209,11 +209,11 @@ export default class FileSelection {
     /**
      * Fetch metadata for all items selected.
      */
-    public async fetchAllDetails(): Promise<FmsFile[]> {
+    public async fetchAllDetails(): Promise<FileDetail[]> {
         const fileRangesByFileSets = this.groupByFileSet();
         // Load file metadata for every file selected (however do to some performance enhancements
         // the fetch will overshoot)
-        const fileRangePromises: Promise<FmsFile[]>[] = [];
+        const fileRangePromises: Promise<FileDetail[]>[] = [];
         fileRangesByFileSets.forEach((ranges, fileSet) => {
             ranges.forEach((range) => {
                 fileRangePromises.push(fileSet.fetchFileRange(range.from, range.to));
@@ -222,11 +222,11 @@ export default class FileSelection {
         await Promise.all(fileRangePromises);
 
         // Collect the desired files from the fetched files
-        const files: FmsFile[] = [];
+        const files: FileDetail[] = [];
         fileRangesByFileSets.forEach((ranges, fileSet) => {
             ranges.forEach((range) => {
                 for (let i = range.from; i <= range.to; i++) {
-                    files.push(fileSet.getFileByIndex(i) as FmsFile);
+                    files.push(fileSet.getFileByIndex(i) as FileDetail);
                 }
             });
         });

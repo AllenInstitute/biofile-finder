@@ -1,4 +1,13 @@
-import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "@fluentui/react";
+import {
+    ActionButton,
+    DefaultButton,
+    DirectionalHint,
+    Icon,
+    List,
+    SearchBox,
+    Spinner,
+    SpinnerSize,
+} from "@fluentui/react";
 import classNames from "classnames";
 import Fuse from "fuse.js";
 import * as React from "react";
@@ -8,21 +17,26 @@ import { AnnotationValue } from "../../services/AnnotationService";
 import styles from "./ListPicker.module.css";
 
 export interface ListItem<T = any> {
+    disabled?: boolean;
+    loading?: boolean;
     selected: boolean;
     displayValue: AnnotationValue;
     value: AnnotationValue;
+    description?: string;
     data?: T; // optional "user data" to stash on a list item to retrieve later
 }
 
 interface ListPickerProps {
-    disabled?: boolean;
+    className?: string;
     errorMessage?: string;
     items: ListItem[];
     loading?: boolean;
     onDeselect: (item: ListItem) => void;
-    onDeselectAll?: () => void;
+    onDeselectAll: () => void;
     onSelect: (item: ListItem) => void;
     onSelectAll?: () => void;
+    onRenderSubMenuList?: (item: ListItem) => React.ReactNode;
+    subMenuRenderer?: (item: ListItem) => React.ReactElement<ListItem>;
 }
 
 const FUZZY_SEARCH_OPTIONS = {
@@ -36,12 +50,6 @@ const FUZZY_SEARCH_OPTIONS = {
     threshold: 0.3,
 };
 
-const SEARCH_BOX_STYLE_OVERRIDES = {
-    icon: {
-        color: "steelblue",
-    },
-};
-
 /**
  * A ListPicker is a simple form that renders a list of items and allows a user to select and
  * deselect those items. It also provides rudimentary fuzzy search capabilities for searching through
@@ -51,6 +59,7 @@ const SEARCH_BOX_STYLE_OVERRIDES = {
  */
 export default function ListPicker(props: ListPickerProps) {
     const {
+        className,
         errorMessage,
         items,
         loading,
@@ -69,16 +78,31 @@ export default function ListPicker(props: ListPickerProps) {
         }
     };
 
+    const fuse = React.useMemo(() => new Fuse(items, FUZZY_SEARCH_OPTIONS), [items]);
     const filteredItems = React.useMemo(() => {
-        if (!searchValue) {
-            return items;
-        }
+        const filteredRows = searchValue ? fuse.search(searchValue) : items;
+        return filteredRows.sort((a, b) => {
+            // If selected, sort to the top
+            if (a.selected !== b.selected) {
+                return a.selected ? -1 : 1;
+            }
 
-        const fuse = new Fuse(items, FUZZY_SEARCH_OPTIONS);
-        return fuse.search(searchValue);
-    }, [items, searchValue]);
+            // If disabled, sort to the bottom
+            return a.disabled === b.disabled ? 0 : a.disabled ? 1 : -1;
+        });
+    }, [items, searchValue, fuse]);
 
-    const hasSelectedItem = React.useMemo(() => items.find((item) => item.selected), [items]);
+    const { hasSelectedItem, hasUnselectedItem } = React.useMemo(
+        () =>
+            items.reduce(
+                (acc, item) => ({
+                    hasSelectedItem: acc.hasSelectedItem || item.selected,
+                    hasUnselectedItem: acc.hasUnselectedItem || !item.selected,
+                }),
+                { hasSelectedItem: false, hasUnselectedItem: false }
+            ),
+        [items]
+    );
 
     if (errorMessage) {
         return <div className={styles.container}>Whoops! Encountered an error: {errorMessage}</div>;
@@ -93,14 +117,16 @@ export default function ListPicker(props: ListPickerProps) {
     }
 
     return (
-        <div className={styles.container} data-is-scrollable="true" data-is-focusable="true">
+        <div
+            className={classNames(styles.container, className)}
+            data-is-scrollable="true"
+            data-is-focusable="true"
+        >
             <div className={styles.header}>
                 <SearchBox
                     className={styles.searchBox}
-                    disabled={props.disabled}
                     onChange={onSearchBoxChange}
                     onClear={() => setSearchValue("")}
-                    styles={SEARCH_BOX_STYLE_OVERRIDES}
                 />
                 <div className={styles.buttons}>
                     {onSelectAll && (
@@ -108,16 +134,13 @@ export default function ListPicker(props: ListPickerProps) {
                             ariaLabel="Select All"
                             className={classNames(
                                 {
-                                    [styles.disabled]: filteredItems.length > 100,
+                                    [styles.disabled]: !hasUnselectedItem,
                                 },
                                 styles.actionButton
                             )}
-                            disabled={filteredItems.length > 100}
-                            title={
-                                filteredItems.length > 100
-                                    ? "Too many options to select at once"
-                                    : undefined
-                            }
+                            disabled={!hasUnselectedItem}
+                            iconProps={{ iconName: "MultiSelect" }}
+                            title={hasUnselectedItem ? undefined : "All options selected"}
                             onClick={onSelectAll}
                         >
                             Select All
@@ -132,6 +155,7 @@ export default function ListPicker(props: ListPickerProps) {
                             styles.actionButton
                         )}
                         disabled={!hasSelectedItem}
+                        iconProps={{ iconName: "Delete" }}
                         title={hasSelectedItem ? undefined : "No options selected"}
                         onClick={onDeselectAll}
                     >
@@ -139,36 +163,50 @@ export default function ListPicker(props: ListPickerProps) {
                     </ActionButton>
                 </div>
             </div>
-            <List
-                getKey={(item) => String(item.value)}
-                ignoreScrollingState={true}
-                items={filteredItems}
-                onShouldVirtualize={() => filteredItems.length > 100}
-                onRenderCell={(item) =>
-                    item && (
-                        <label className={styles.item}>
-                            <input
-                                className={styles.checkbox}
-                                disabled={props.disabled}
-                                type="checkbox"
-                                role="checkbox"
-                                name={String(item.value)}
-                                value={String(item.value)}
-                                checked={item.selected}
-                                aria-checked={item.selected}
-                                onChange={(event) => {
-                                    if (event.target.checked) {
-                                        onSelect(item);
-                                    } else {
-                                        onDeselect(item);
-                                    }
+            <div className={styles.mainContent}>
+                <List
+                    getKey={(item) => String(item.value)}
+                    ignoreScrollingState={true}
+                    items={filteredItems}
+                    onShouldVirtualize={() => filteredItems.length > 100}
+                    onRenderCell={(item) =>
+                        item && (
+                            <DefaultButton
+                                className={classNames(styles.itemContainer, {
+                                    [styles.selected]: item.selected,
+                                    [styles.disabled]: item.disabled,
+                                })}
+                                menuIconProps={{
+                                    iconName: props.subMenuRenderer ? "ChevronRight" : undefined,
                                 }}
-                            />
-                            {item.displayValue}
-                        </label>
-                    )
-                }
-            />
+                                menuProps={
+                                    props.subMenuRenderer
+                                        ? {
+                                              directionalHint: DirectionalHint.rightTopEdge,
+                                              shouldFocusOnMount: true,
+                                              items: [{ key: "placeholder" }], // necessary to have a non-empty items list to have `onRenderMenuList` called
+                                              onRenderMenuList: () =>
+                                                  props.subMenuRenderer?.(
+                                                      item
+                                                  ) as React.ReactElement,
+                                          }
+                                        : undefined
+                                }
+                                disabled={item.disabled}
+                                onClick={() => (item.selected ? onDeselect(item) : onSelect(item))}
+                            >
+                                <label className={styles.item} title={item.description}>
+                                    <div>{item.selected && <Icon iconName="CheckMark" />}</div>
+                                    {item.displayValue}
+                                </label>
+                                {item.loading && (
+                                    <Spinner className={styles.spinner} size={SpinnerSize.small} />
+                                )}
+                            </DefaultButton>
+                        )
+                    }
+                />
+            </div>
             <div className={styles.footer}>
                 <h6>
                     Displaying {filteredItems.length} of {items.length} Options

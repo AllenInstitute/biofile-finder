@@ -26,7 +26,7 @@ import {
     changeCollection,
 } from "../actions";
 import { initialState, interaction } from "../../";
-import Annotation from "../../../entity/Annotation";
+import Annotation, { AnnotationName } from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
@@ -36,7 +36,6 @@ import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
-import { AnnotationName } from "../../../constants";
 import { DatasetService } from "../../../services";
 import { Dataset } from "../../../services/DatasetService";
 import { receiveCollections } from "../../metadata/actions";

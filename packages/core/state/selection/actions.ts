@@ -110,63 +110,24 @@ export function setSortColumn(fileSort?: FileSort): SetSortColumnAction {
 }
 
 /**
- * SELECT_DISPLAY_ANNOTATION
+ * SET_DISPLAY_ANNOTATIONS
  *
- * Intention to select one or many annotations for a file to display in the file list (i.e., as a column).
+ * Intention to select annotations for a file to display in the file list (i.e., as a column).
  *
  * For example, by default, we may only see "File name | File size | Date created" as the columns in the file list. This
- * is the mechanism for a user to then add a column to view. If `replace` is `true`, the intention of the action
- * should be interpreted as a setter instead of a updated.
+ * is the mechanism for a user to then add/remove a column to view.
  */
-export const SELECT_DISPLAY_ANNOTATION = makeConstant(
-    STATE_BRANCH_NAME,
-    "select-display-annotation"
-);
+export const SET_DISPLAY_ANNOTATIONS = makeConstant(STATE_BRANCH_NAME, "set-display-annotations");
 
-export interface SelectDisplayAnnotationAction {
-    payload: {
-        annotation: Annotation | Annotation[];
-        replace: boolean;
-    };
+export interface SetDisplayAnnotationsAction {
+    payload: Annotation[];
     type: string;
 }
 
-export function selectDisplayAnnotation(
-    annotation: Annotation | Annotation[],
-    replace = false
-): SelectDisplayAnnotationAction {
+export function setDisplayAnnotations(annotations: Annotation[]): SetDisplayAnnotationsAction {
     return {
-        payload: {
-            annotation,
-            replace,
-        },
-        type: SELECT_DISPLAY_ANNOTATION,
-    };
-}
-
-/**
- * DESELECT_DISPLAY_ANNOTATION
- *
- * Intention to deselect one or many annotations from the columns of the file list. See comment for
- * SELECT_DISPLAY_ANNOTATION for further explanation.
- */
-
-export const DESELECT_DISPLAY_ANNOTATION = makeConstant(
-    STATE_BRANCH_NAME,
-    "deselect-display-annotation"
-);
-
-export interface DeselectDisplayAnnotationAction {
-    payload: Annotation | Annotation[];
-    type: string;
-}
-
-export function deselectDisplayAnnotation(
-    annotation: Annotation | Annotation[]
-): DeselectDisplayAnnotationAction {
-    return {
-        payload: annotation,
-        type: DESELECT_DISPLAY_ANNOTATION,
+        payload: annotations,
+        type: SET_DISPLAY_ANNOTATIONS,
     };
 }
 
@@ -289,21 +250,69 @@ export function selectNearbyFile(
 }
 
 /**
- * CHANGE_VIEW
+ * SET_QUERIES
  *
- * Intention is to select a pre-saved view to switch to (a view includes things like filters and sorts).
+ * Intention is to set the queries available to switch to in the file explorer.
  */
-export const CHANGE_VIEW = makeConstant(STATE_BRANCH_NAME, "change-view");
+export const SET_QUERIES = makeConstant(STATE_BRANCH_NAME, "set-queries");
 
-export interface ChangeView {
-    payload: string;
+export interface SetQueries {
+    payload: Query[];
     type: string;
 }
 
-export function changeView(view: string): ChangeView {
+export function setQueries(queries: Query[]): SetQueries {
+    return {
+        payload: queries,
+        type: SET_QUERIES,
+    };
+}
+
+/**
+ * ADD_QUERY
+ *
+ * Intention is to add a new query to the list of queries available to switch to in the file explorer.
+ */
+export const ADD_QUERY = makeConstant(STATE_BRANCH_NAME, "add-query");
+
+export interface Query {
+    name: string;
+    url: string;
+}
+
+export interface AddQuery {
+    payload: Query;
+    type: string;
+}
+
+export function addQuery(view: Query): AddQuery {
     return {
         payload: view,
-        type: CHANGE_VIEW,
+        type: ADD_QUERY,
+    };
+}
+
+/**
+ * CHANGE_QUERY
+ *
+ * Intention is to select a pre-saved view to switch to (a view includes things like filters and sorts).
+ */
+export const CHANGE_QUERY = makeConstant(STATE_BRANCH_NAME, "change-query");
+
+export interface Query {
+    name: string;
+    url: string;
+}
+
+export interface ChangeQuery {
+    payload: Query;
+    type: string;
+}
+
+export function changeQuery(view: Query): ChangeQuery {
+    return {
+        payload: view,
+        type: CHANGE_QUERY,
     };
 }
 

@@ -1,3 +1,18 @@
+.disabled {
+    opacity: 0.5;
+}
+
+.icon-button {
+    background: none;
+    color: var(--secondary-text-color);
+}
+
+.icon-button:hover:not(.disabled) {
+    background-color: var(--highlight-background-color);
+    color: var(--highlight-text-color);
+    cursor: pointer;
+}
+
 .root {
     max-width: 300px;
     margin: 0 auto; /* horizontally center */

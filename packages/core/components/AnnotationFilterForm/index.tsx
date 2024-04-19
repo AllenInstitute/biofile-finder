@@ -2,14 +2,14 @@ import { find, isNil } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import useAnnotationValues from "./useAnnotationValues";
+import ListPicker, { ListItem } from "../ListPicker";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
-import ListPicker, { ListItem } from "../../components/ListPicker";
 import { interaction, metadata, selection } from "../../state";
-import useAnnotationValues from "./useAnnotationValues";
 
 interface AnnotationFilterFormProps {
-    annotationName: string;
+    name: string;
 }
 
 /**
@@ -19,20 +19,18 @@ interface AnnotationFilterFormProps {
  * amongst its items; if the annotation is of type date, it will render a date input; etc.
  */
 export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
-    const { annotationName } = props;
-
     const dispatch = useDispatch();
     const annotations = useSelector(metadata.selectors.getAnnotations);
-    const fileFilters = useSelector(selection.selectors.getAnnotationFilters);
+    const fileFilters = useSelector(selection.selectors.getFileFilters);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
-        annotationName,
+        props.name,
         annotationService
     );
 
     const annotation = React.useMemo(
-        () => find(annotations, (annotation) => annotation.name === annotationName),
-        [annotations, annotationName]
+        () => find(annotations, (annotation) => annotation.name === props.name),
+        [annotations, props.name]
     );
 
     const items = React.useMemo<ListItem[]>(() => {
@@ -51,7 +49,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         const filters = items.map(
             (item) =>
                 new FileFilter(
-                    annotationName,
+                    props.name,
                     isNil(annotation?.valueOf(item.value))
                         ? item.value
                         : annotation?.valueOf(item.value)
@@ -62,7 +60,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const onDeselect = (item: ListItem) => {
         const fileFilter = new FileFilter(
-            annotationName,
+            props.name,
             isNil(annotation?.valueOf(item.value)) ? item.value : annotation?.valueOf(item.value)
         );
         dispatch(selection.actions.removeFileFilter(fileFilter));
@@ -70,7 +68,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const onSelect = (item: ListItem) => {
         const fileFilter = new FileFilter(
-            annotationName,
+            props.name,
             isNil(annotation?.valueOf(item.value)) ? item.value : annotation?.valueOf(item.value)
         );
         dispatch(selection.actions.addFileFilter(fileFilter));
@@ -80,7 +78,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         const filters = items.map(
             (item) =>
                 new FileFilter(
-                    annotationName,
+                    props.name,
                     isNil(annotation?.valueOf(item.value))
                         ? item.value
                         : annotation?.valueOf(item.value)
@@ -103,7 +101,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     onDeselect={onDeselect}
                     onDeselectAll={onDeselectAll}
                     onSelect={onSelect}
-                    onSelectAll={onSelectAll}
+                    onSelectAll={items.length <= 100 ? onSelectAll : undefined}
                 />
             );
     }

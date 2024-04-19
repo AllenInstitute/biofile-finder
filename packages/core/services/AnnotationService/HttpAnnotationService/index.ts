@@ -4,6 +4,7 @@ import AnnotationService, { AnnotationValue } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
 import Annotation, { AnnotationResponse } from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
+import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
 
 enum QueryParam {
     FILTER = "filter",
@@ -30,7 +31,10 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         console.log(`Requesting annotation values from ${requestUrl}`);
 
         const response = await this.get<AnnotationResponse>(requestUrl);
-        return map(response.data, (annotationResponse) => new Annotation(annotationResponse));
+        return [
+            ...TOP_LEVEL_FILE_ANNOTATIONS,
+            ...map(response.data, (annotationResponse) => new Annotation(annotationResponse)),
+        ];
     }
 
     /**
@@ -104,7 +108,11 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         console.log(`Requesting available annotations with current hierarchy: ${requestUrl}`);
 
         const response = await this.get<string>(requestUrl);
-        return response.data;
+        if (!response.data) {
+            return annotations;
+        }
+
+        return [...TOP_LEVEL_FILE_ANNOTATION_NAMES, ...response.data, ...annotations];
     }
 
     private buildQueryParams(param: QueryParam, values: string[]): string {

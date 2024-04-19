@@ -1,5 +1,4 @@
 import { makeReducer } from "@aics/redux-utils";
-import { interaction } from "..";
 
 import Annotation from "../../entity/Annotation";
 import { Dataset } from "../../services/DatasetService";
@@ -18,13 +17,6 @@ export const initialState = {
 
 export default makeReducer<MetadataStateBranch>(
     {
-        [interaction.actions.SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION]: (
-            state,
-            action
-        ) => ({
-            ...state,
-            collections: [...state.collections, action.payload],
-        }),
         [RECEIVE_ANNOTATIONS]: (state, action) => ({
             ...state,
             annotations: action.payload,

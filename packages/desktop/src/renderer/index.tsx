@@ -76,20 +76,23 @@ const store = createReduxStore({
 store.subscribe(() => {
     const state = store.getState();
     const csvColumns = interaction.selectors.getCsvColumns(state);
-    const collection = selection.selectors.getCollection(state);
-    const lastUsedCollection = collection ? { id: collection.id, uri: collection.uri } : undefined;
-    const userSelectedApplications = interaction.selectors.getUserSelectedApplications(state);
+    const lastUsedView = selection.selectors.getEncodedFileExplorerUrl(state);
     const hasUsedApplicationBefore = interaction.selectors.hasUsedApplicationBefore(state);
+    const userSelectedApplications = interaction.selectors.getUserSelectedApplications(state);
     const appState = {
         [PersistedConfigKeys.CsvColumns]: csvColumns,
+        [PersistedConfigKeys.HasUsedApplicationBefore]: hasUsedApplicationBefore,
+        [PersistedConfigKeys.LastUsedView]: lastUsedView,
         [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
+        [PersistedConfigKeys.Queries]: [],
     };
     if (JSON.stringify(appState) !== JSON.stringify(persistentConfigService.getAll())) {
         persistentConfigService.persist({
             [PersistedConfigKeys.CsvColumns]: csvColumns,
-            [PersistedConfigKeys.LastUsedCollection]: lastUsedCollection,
-            [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
+            [PersistedConfigKeys.LastUsedView]: lastUsedView,
             [PersistedConfigKeys.HasUsedApplicationBefore]: hasUsedApplicationBefore,
+            [PersistedConfigKeys.Queries]: [],
+            [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
         });
     }
 });

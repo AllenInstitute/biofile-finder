@@ -1,7 +1,6 @@
 .container {
-    background: var(--secondary-brand-purple);
+    background: var(--primary-background-color);
     opacity: 0.90;
-    border-radius: 3px;
     /* Allow the element to be fixed to the bottom of the file list */
     position: fixed;
     bottom: 10px;

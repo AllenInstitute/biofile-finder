@@ -1,9 +1,18 @@
 .row {
-    border: 1px solid #ebebeb;
+    border-top: 1px solid var(--primary-background-color);
+    border-bottom: 1px solid var(--primary-background-color);
 
     /* flex parent */
     display: flex;
     flex-direction: row;
+}
+
+.row:first-child {
+    border-top: none;
+}
+
+.row:last-child {
+    border-bottom: none;
 }
 
 .cell {
@@ -17,20 +26,17 @@
     /* flex child */
     flex: 1 1 40%;
 
-    border-right: 1px solid #ebebeb;
     font-weight: 500;
 }
 
 .small-font {
-    font-size: var(--smaller-font-size);
+    font-size: unset;
 }
 
 .value {
     /* flex child */
     flex: 1 1 60%;
 
-    border-left: 1px solid #ebebeb;
-    margin-left: -1px;
     /* Allow whitespace to be rendered (including carriage returns & new lines) */
     white-space: pre-wrap; 
 }

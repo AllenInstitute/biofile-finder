@@ -1,16 +1,14 @@
 import { makeReducer } from "@aics/redux-utils";
-import { castArray, difference, omit, without } from "lodash";
+import { omit } from "lodash";
 
 import interaction from "../interaction";
-import { AnnotationName, PAST_YEAR_FILTER } from "../../constants";
-import Annotation from "../../entity/Annotation";
+import Annotation, { AnnotationName } from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 
 import {
-    DESELECT_DISPLAY_ANNOTATION,
-    SELECT_DISPLAY_ANNOTATION,
+    SET_DISPLAY_ANNOTATIONS,
     SET_ANNOTATION_HIERARCHY,
     SET_AVAILABLE_ANNOTATIONS,
     SET_FILE_FILTERS,
@@ -21,9 +19,14 @@ import {
     SORT_COLUMN,
     SET_SORT_COLUMN,
     CHANGE_COLLECTION,
-    CHANGE_VIEW,
     SELECT_TUTORIAL,
     ADJUST_GLOBAL_FONT_SIZE,
+    Query,
+    ADD_QUERY,
+    CHANGE_QUERY,
+    SET_QUERIES,
+    SetQueries,
+    ChangeQuery,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
@@ -40,9 +43,12 @@ export interface SelectionStateBranch {
     displayAnnotations: Annotation[];
     fileSelection: FileSelection;
     filters: FileFilter[];
+    isDarkTheme: boolean;
     openFileFolders: FileFolder[];
+    selectedQuery?: Query;
     shouldDisplaySmallFont: boolean;
     sortColumn?: FileSort;
+    queries: Query[];
     tutorial?: Tutorial;
 }
 
@@ -57,10 +63,12 @@ export const initialState = {
         [AnnotationName.FILE_SIZE]: 0.15,
     },
     displayAnnotations: [],
+    isDarkTheme: true,
     fileSelection: new FileSelection(),
-    filters: [PAST_YEAR_FILTER],
+    filters: [],
     openFileFolders: [],
     shouldDisplaySmallFont: false,
+    queries: [],
 };
 
 export default makeReducer<SelectionStateBranch>(
@@ -112,32 +120,22 @@ export default makeReducer<SelectionStateBranch>(
             fileSelection: new FileSelection(),
             openFileFolders: [],
         }),
-        [CHANGE_VIEW]: (state) => ({
+        [ADD_QUERY]: (state, action) => ({
             ...state,
-            fileSelection: new FileSelection(),
-            openFileFolders: [],
+            queries: [action.payload, ...state.queries],
+        }),
+        [CHANGE_QUERY]: (state, action: ChangeQuery) => ({
+            ...state,
+            selectedQuery: action.payload,
+        }),
+        [SET_QUERIES]: (state, action: SetQueries) => ({
+            ...state,
+            queries: action.payload,
         }),
         [SET_SORT_COLUMN]: (state, action) => ({
             ...state,
             sortColumn: action.payload,
         }),
-        [DESELECT_DISPLAY_ANNOTATION]: (state, action) => {
-            const displayAnnotations = without(
-                state.displayAnnotations,
-                ...castArray(action.payload)
-            );
-
-            const columnWidthsToPrune = difference(
-                Object.keys(state.columnWidths),
-                displayAnnotations.map((annotation) => annotation.name)
-            );
-
-            return {
-                ...state,
-                displayAnnotations,
-                columnWidths: omit(state.columnWidths, columnWidthsToPrune),
-            };
-        },
         [interaction.actions.REFRESH]: (state) => ({
             ...state,
             availableAnnotationsForHierarchyLoading: true,
@@ -154,16 +152,10 @@ export default makeReducer<SelectionStateBranch>(
                 [action.payload.columnHeader]: action.payload.widthPercent,
             },
         }),
-        [SELECT_DISPLAY_ANNOTATION]: (state, action) => {
-            const displayAnnotations = action.payload.replace
-                ? castArray(action.payload.annotation)
-                : [...state.displayAnnotations, ...castArray(action.payload.annotation)];
-
-            return {
-                ...state,
-                displayAnnotations,
-            };
-        },
+        [SET_DISPLAY_ANNOTATIONS]: (state, action) => ({
+            ...state,
+            displayAnnotations: action.payload,
+        }),
         [SET_FILE_SELECTION]: (state, action) => ({
             ...state,
             fileSelection: action.payload,

@@ -12,18 +12,6 @@ interface PaginationProps {
     className?: string;
 }
 
-const ICON_BUTTON_STYLES = {
-    icon: {
-        color: "black",
-        fontSize: "13px",
-    },
-    root: {
-        background: "none",
-        height: 18,
-        width: 24,
-    },
-};
-
 /**
  * UI for paging through selected files within the FileDetails pane.
  */
@@ -36,6 +24,9 @@ export default function Pagination(props: PaginationProps) {
             <div>
                 <IconButton
                     ariaLabel="Jump to first selected file"
+                    className={classNames(styles.iconButton, {
+                        [styles.disabled]: !fileSelection.hasPreviousFocusableItem(),
+                    })}
                     disabled={!fileSelection.hasPreviousFocusableItem()}
                     iconProps={{ iconName: "ChevronLeftEnd6" }}
                     onClick={() =>
@@ -45,11 +36,13 @@ export default function Pagination(props: PaginationProps) {
                             )
                         )
                     }
-                    styles={ICON_BUTTON_STYLES}
                     title="Jump to first selected file"
                 />
                 <IconButton
                     ariaLabel="View previous selected file"
+                    className={classNames(styles.iconButton, {
+                        [styles.disabled]: !fileSelection.hasPreviousFocusableItem(),
+                    })}
                     disabled={!fileSelection.hasPreviousFocusableItem()}
                     iconProps={{ iconName: "ChevronLeftSmall" }}
                     onClick={() =>
@@ -59,13 +52,15 @@ export default function Pagination(props: PaginationProps) {
                             )
                         )
                     }
-                    styles={ICON_BUTTON_STYLES}
                     title="View previous selected file"
                 />
             </div>
             <div>
                 <IconButton
                     ariaLabel="View next selected file"
+                    className={classNames(styles.iconButton, {
+                        [styles.disabled]: !fileSelection.hasNextFocusableItem(),
+                    })}
                     disabled={!fileSelection.hasNextFocusableItem()}
                     iconProps={{ iconName: "ChevronRightSmall" }}
                     onClick={() =>
@@ -75,11 +70,13 @@ export default function Pagination(props: PaginationProps) {
                             )
                         )
                     }
-                    styles={ICON_BUTTON_STYLES}
                     title="View next selected file"
                 />
                 <IconButton
                     ariaLabel="Jump to last selected file"
+                    className={classNames(styles.iconButton, {
+                        [styles.disabled]: !fileSelection.hasNextFocusableItem(),
+                    })}
                     disabled={!fileSelection.hasNextFocusableItem()}
                     iconProps={{ iconName: "ChevronRightEnd6" }}
                     onClick={() =>
@@ -89,7 +86,6 @@ export default function Pagination(props: PaginationProps) {
                             )
                         )
                     }
-                    styles={ICON_BUTTON_STYLES}
                     title="Jump to last selected file"
                 />
             </div>

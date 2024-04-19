@@ -54,7 +54,7 @@ describe("<AnnotationFilterForm />", () => {
             // act
             const { findAllByRole } = render(
                 <Provider store={store}>
-                    <AnnotationFilterForm annotationName="foo" />
+                    <AnnotationFilterForm name="foo" />
                 </Provider>
             );
 
@@ -102,7 +102,7 @@ describe("<AnnotationFilterForm />", () => {
             // act
             const { getByLabelText } = render(
                 <Provider store={store}>
-                    <AnnotationFilterForm annotationName={fooAnnotation.name} />
+                    <AnnotationFilterForm name={fooAnnotation.name} />
                 </Provider>
             );
 
@@ -152,7 +152,7 @@ describe("<AnnotationFilterForm />", () => {
 
             const { findAllByRole } = render(
                 <Provider store={store}>
-                    <AnnotationFilterForm annotationName="foo" />
+                    <AnnotationFilterForm name="foo" />
                 </Provider>
             );
 
@@ -217,7 +217,7 @@ describe("<AnnotationFilterForm />", () => {
             // Act
             const { findAllByRole } = render(
                 <Provider store={store}>
-                    <AnnotationFilterForm annotationName="foo" />
+                    <AnnotationFilterForm name="foo" />
                 </Provider>
             );
 
@@ -250,7 +250,7 @@ describe("<AnnotationFilterForm />", () => {
             // Act
             const { getByLabelText } = render(
                 <Provider store={store}>
-                    <AnnotationFilterForm annotationName={fooAnnotation.name} />
+                    <AnnotationFilterForm name={fooAnnotation.name} />
                 </Provider>
             );
             // Wait a couple render cycles for the async react hook to retrieve the annotation values
@@ -315,7 +315,7 @@ describe("<AnnotationFilterForm />", () => {
 
             const { findAllByRole } = render(
                 <Provider store={store}>
-                    <AnnotationFilterForm annotationName="foo" />
+                    <AnnotationFilterForm name="foo" />
                 </Provider>
             );
 
@@ -373,7 +373,7 @@ describe("<AnnotationFilterForm />", () => {
 
             const { findAllByRole } = render(
                 <Provider store={store}>
-                    <AnnotationFilterForm annotationName="foo" />
+                    <AnnotationFilterForm name="foo" />
                 </Provider>
             );
 

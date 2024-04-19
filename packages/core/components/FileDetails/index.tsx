@@ -1,4 +1,4 @@
-import { ActionButton, IButtonStyles } from "@fluentui/react";
+import { ActionButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -29,48 +29,6 @@ const windowStateToClassnameMap: { [index: string]: string } = {
 };
 
 export const WINDOW_ACTION_BUTTON_WIDTH = 23; // arbitrary
-
-const ICON_BUTTON_STYLES: IButtonStyles = {
-    icon: {
-        color: "black",
-        fontSize: "12px",
-    },
-    label: {
-        width: "100%",
-    },
-    root: {
-        background: "none",
-        height: 24,
-        width: "100%",
-        ":hover, :hover *": {
-            backgroundColor: "#878787",
-            color: "white",
-        },
-    },
-    iconHovered: {
-        backgroundColor: "#878787",
-        color: "white",
-    },
-    splitButtonMenuButton: {
-        border: "None",
-        borderLeft: "black 1px solid",
-        borderBottomRightRadius: "10px",
-        borderTopRightRadius: "10px",
-        paddingLeft: "2px",
-        ":hover, :hover *": {
-            backgroundColor: "#878787",
-            color: "white",
-            cursor: "pointer",
-        },
-    },
-    splitButtonMenuIcon: {
-        color: "black",
-        fontSize: "10px",
-    },
-    textContainer: {
-        width: "100%",
-    },
-};
 
 const FILE_DETAILS_PANE_ID = "file-details-pane";
 const FILE_DETAILS_WIDTH_ATTRIBUTE = "--file-details-width";
@@ -170,7 +128,7 @@ export default function FileDetails(props: FileDetails) {
     } else if (fileDetails) {
         const renderableImageFormats = [".jpg", ".jpeg", ".png", ".gif"];
         const isFileRenderableImage = renderableImageFormats.some((format) =>
-            fileDetails?.name.toLowerCase().endsWith(format)
+            fileDetails.name.toLowerCase().endsWith(format)
         );
         if (isFileRenderableImage) {
             // render the image as the thumbnail
@@ -264,12 +222,9 @@ export default function FileDetails(props: FileDetails) {
                         >
                             {fileDetails && thumbnail}
                             <div className={styles.fileActions}>
-                                <Download
-                                    buttonStyles={ICON_BUTTON_STYLES}
-                                    fileDetails={fileDetails}
-                                />
+                                <Download className={styles.iconButton} fileDetails={fileDetails} />
                                 <OpenFileButton
-                                    buttonStyles={ICON_BUTTON_STYLES}
+                                    className={styles.iconButton}
                                     fileDetails={fileDetails}
                                 />
                             </div>
@@ -278,8 +233,6 @@ export default function FileDetails(props: FileDetails) {
                                 fileDetails={fileDetails}
                                 isLoading={isLoading}
                             />
-                            <div className={styles.spacer} />
-                            <div className={styles.gradientTeaser} />
                         </div>
                     </div>
                 </div>

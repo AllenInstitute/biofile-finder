@@ -1,0 +1,97 @@
+.collapse-button {
+    color: var(--primary-sidebar-text-color);
+    background-color: var(--primary-sidebar-color);
+}
+
+.collapse-button:hover {
+    color: var(--highlight-text-color);
+    background-color: var(--highlight-background-color);
+}
+
+.display-row, .collapse-button i {
+    font-size: smaller;
+}
+
+.container {
+    margin: 4px 0 4px 0;
+    overflow: hidden;
+    padding: 0.4em;
+    text-overflow: ellipsis;
+}
+
+.container:hover:not(.selected) {
+    background-color: var(--highlight-background-color);
+    color: var(--highlight-text-color);
+    cursor: pointer;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.title-container {
+    display: flex;
+}
+
+.divider, .small-divider {
+    border-color: var(--secondary-text-color);
+    margin: 0 auto;
+    opacity: 0.5;
+}
+
+.small-divider {
+    width: 35%;
+}
+
+.data-source-container {
+    margin: 8px 0 8px 10px;
+}
+
+.data-source-header {
+    display: flex;
+    margin-bottom: 6px;
+}
+
+.data-source-header > h5 {
+    margin: 0 0 0 10px;
+    padding-top: 2px;
+}
+
+.data-source-container > p {
+    font-size: smaller;
+    margin-top: 4px;
+}
+
+.title {
+    background-color: var(--primary-sidebar-color);
+    color: var(--primary-sidebar-text-color);
+    font-size: 16px;
+    font-weight: bold;
+    padding-left: 0;
+}
+
+
+.selected {
+    background-color: var(--primary-sidebar-color);
+}
+
+.row-title {
+    display: flex;
+}
+
+.row-title > p {
+    font-size: smaller;
+    margin: 0;
+    padding-top: 9px;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    white-space: nowrap;
+}
+
+
+.container p, h4 {
+    margin: 0;
+    padding-top: 8px;
+}

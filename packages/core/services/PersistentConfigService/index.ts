@@ -1,3 +1,5 @@
+import { Query } from "../../state/selection/actions";
+
 /**
  * Keys for the data saved by this service
  */
@@ -6,8 +8,9 @@ export enum PersistedConfigKeys {
     CsvColumns = "CSV_COLUMNS",
     ImageJExecutable = "IMAGE_J_EXECUTABLE", // Deprecated
     HasUsedApplicationBefore = "HAS_USED_APPLICATION_BEFORE",
-    LastUsedCollection = "LAST_USED_COLLECTION",
+    LastUsedView = "LAST_USED_VIEW",
     UserSelectedApplications = "USER_SELECTED_APPLICATIONS",
+    Queries = "QUERIES",
 }
 
 export interface UserSelectedApplication {
@@ -20,7 +23,8 @@ export interface PersistedConfig {
     [PersistedConfigKeys.CsvColumns]?: string[];
     [PersistedConfigKeys.ImageJExecutable]?: string; // Deprecated
     [PersistedConfigKeys.HasUsedApplicationBefore]?: boolean;
-    [PersistedConfigKeys.LastUsedCollection]?: { id: string; uri?: string };
+    [PersistedConfigKeys.LastUsedView]?: string;
+    [PersistedConfigKeys.Queries]?: Query[];
     [PersistedConfigKeys.UserSelectedApplications]?: UserSelectedApplication[];
 }
 

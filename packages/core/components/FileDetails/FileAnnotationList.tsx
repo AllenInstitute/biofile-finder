@@ -2,14 +2,12 @@ import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
-import Annotation from "../../entity/Annotation";
+import FileAnnotationRow from "./FileAnnotationRow";
+import Annotation, { AnnotationName } from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
 import { interaction, metadata } from "../../state";
-import FileAnnotationRow from "./FileAnnotationRow";
 
 import styles from "./FileAnnotationList.module.css";
-import { uniqBy } from "lodash";
 
 interface FileAnnotationListProps {
     className?: string;
@@ -61,12 +59,8 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
             return null;
         }
 
-        const sorted = uniqBy(
-            Annotation.sort([...TOP_LEVEL_FILE_ANNOTATIONS, ...annotations]),
-            (annotation) => annotation.name
-        );
-        return sorted.reduce((accum, annotation) => {
-            const annotationValue = annotation.extractFromFile(fileDetails.details);
+        return annotations.reduce((accum, annotation) => {
+            const annotationValue = annotation.extractFromFile(fileDetails);
             if (annotationValue === Annotation.MISSING_VALUE) {
                 // Nothing to show for this annotation -- skip
                 return accum;

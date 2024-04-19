@@ -19,8 +19,8 @@ import {
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
-import { TOP_LEVEL_FILE_ANNOTATIONS, AnnotationName } from "../../../constants";
-import Annotation from "../../../entity/Annotation";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
+import Annotation, { AnnotationName } from "../../../entity/Annotation";
 import { FmsFileAnnotation } from "../../../services/FileService";
 import FileFilter from "../../../entity/FileFilter";
 import HttpFileService from "../../../services/FileService/HttpFileService";

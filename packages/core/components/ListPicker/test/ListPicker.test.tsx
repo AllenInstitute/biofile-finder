@@ -19,7 +19,12 @@ describe("<ListPicker />", () => {
 
         // Act / Assert
         const { getByRole, getAllByRole } = render(
-            <ListPicker items={items} onDeselect={onDeselect} onSelect={onSelect} />
+            <ListPicker
+                items={items}
+                onDeselect={onDeselect}
+                onDeselectAll={noop}
+                onSelect={onSelect}
+            />
         );
 
         // Should render both list items
@@ -55,7 +60,12 @@ describe("<ListPicker />", () => {
 
         // Act / Assert
         const { getAllByRole, getByRole } = render(
-            <ListPicker items={items} onDeselect={onDeselect} onSelect={onSelect} />
+            <ListPicker
+                items={items}
+                onDeselect={onDeselect}
+                onDeselectAll={noop}
+                onSelect={onSelect}
+            />
         );
 
         // Should render both list items
@@ -70,7 +80,7 @@ describe("<ListPicker />", () => {
         expect(getAllByRole("checkbox").length).to.equal(1);
     });
 
-    it("Renders a 'Reset' button if given a callback for deselecting all items", () => {
+    it("Renders a 'Reset' button that deselects entire selection", () => {
         // Arrange
         const onSelect = noop;
         const onDeselect = noop;
@@ -109,7 +119,13 @@ describe("<ListPicker />", () => {
             value: val,
         }));
         const { getAllByRole, getByText } = render(
-            <ListPicker items={items} onDeselect={noop} onSelectAll={onSelectAll} onSelect={noop} />
+            <ListPicker
+                items={items}
+                onDeselect={noop}
+                onDeselectAll={noop}
+                onSelectAll={onSelectAll}
+                onSelect={noop}
+            />
         );
 
         // (sanity-check)
@@ -131,7 +147,7 @@ describe("<ListPicker />", () => {
             value: val,
         }));
         const { getByText } = render(
-            <ListPicker items={items} onDeselect={noop} onSelect={noop} />
+            <ListPicker items={items} onDeselect={noop} onDeselectAll={noop} onSelect={noop} />
         );
 
         // Act / Assert

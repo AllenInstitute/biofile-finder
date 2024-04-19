@@ -1,13 +1,15 @@
 import DatabaseService from "../DatabaseService";
-import FileDownloadService, { DownloadResolution, DownloadResult } from "../FileDownloadService";
+import FileDownloadService, {
+    DownloadResolution,
+    DownloadResult,
+    FileDownloadCancellationToken,
+} from "../FileDownloadService";
 import { Selection } from "../FileService/HttpFileService";
-import ExecutionEnvService, { ExecutableEnvCancellationToken } from "../ExecutionEnvService";
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 
 interface CsvServiceConfig extends ConnectionConfig {
     databaseService: DatabaseService;
     downloadService: FileDownloadService;
-    executionEnvService: ExecutionEnvService;
 }
 
 export interface CsvManifestRequest {
@@ -24,13 +26,11 @@ export default class CsvService extends HttpServiceBase {
     public static readonly BASE_CSV_DOWNLOAD_URL = `file-explorer-service/${CsvService.ENDPOINT_VERSION}/files/selection/manifest`;
     private readonly databaseService: DatabaseService;
     private readonly downloadService: FileDownloadService;
-    private readonly executionEnvSerivce: ExecutionEnvService;
 
     public constructor(config: CsvServiceConfig) {
         super(config);
         this.databaseService = config.databaseService;
         this.downloadService = config.downloadService;
-        this.executionEnvSerivce = config.executionEnvService;
     }
 
     public async downloadCsvFromServer(
@@ -50,8 +50,13 @@ export default class CsvService extends HttpServiceBase {
         selectionRequest: CsvManifestRequest,
         manifestDownloadId: string
     ): Promise<DownloadResult> {
-        const { saveLocation, fileName } = await this.executionEnvSerivce.promptForSaveLocation();
-        if (saveLocation === ExecutableEnvCancellationToken) {
+        const saveLocation = await this.downloadService.promptForSaveLocation(
+            "Save CSV",
+            "fms-explorer-selections.csv",
+            "Save CSV",
+            [{ name: "CSV files", extensions: ["csv"] }]
+        );
+        if (saveLocation === FileDownloadCancellationToken) {
             return {
                 downloadRequestId: manifestDownloadId,
                 msg: `Cancelled download`,
@@ -89,9 +94,9 @@ export default class CsvService extends HttpServiceBase {
             }
 
             return `
-                SELECT "file_path"
+                SELECT "File Path"
                 FROM (
-                    SELECT ROW_NUMBER() OVER (${orderByClause}) AS "${rowNumberKey}", "file_path"
+                    SELECT ROW_NUMBER() OVER (${orderByClause}) AS "${rowNumberKey}", "File Path"
                     FROM ${this.databaseService.table}
                     ${filtersAsWhereClause}
                 ) AS Row
@@ -107,7 +112,7 @@ export default class CsvService extends HttpServiceBase {
             COPY (
                 SELECT ${annotationsAsSelect}
                 FROM ${this.databaseService.table} 
-                WHERE "file_path" IN (
+                WHERE "File Path" IN (
                     ${subQueries.join(") OR (")}
                 )
             )
@@ -117,7 +122,7 @@ export default class CsvService extends HttpServiceBase {
         await this.databaseService.query(sql);
         return {
             downloadRequestId: manifestDownloadId,
-            msg: `${fileName} downloaded to ${saveLocation}`,
+            msg: `CSV downloaded to ${saveLocation}`,
             resolution: DownloadResolution.SUCCESS,
         };
     }

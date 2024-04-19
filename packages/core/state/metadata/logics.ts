@@ -9,8 +9,7 @@ import {
     REQUEST_ANNOTATIONS,
     REQUEST_COLLECTIONS,
 } from "./actions";
-import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
-import Annotation from "../../entity/Annotation";
+import Annotation, { AnnotationName } from "../../entity/Annotation";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 
@@ -55,10 +54,7 @@ const receiveAnnotationsLogic = createLogic({
             deps.getState()
         );
 
-        const annotationNameToAnnotationMap = [
-            ...TOP_LEVEL_FILE_ANNOTATIONS,
-            ...annotations,
-        ].reduce(
+        const annotationNameToAnnotationMap = annotations.reduce(
             (map, annotation) => ({ ...map, [annotation.name]: annotation }),
             {} as Record<string, Annotation>
         );
@@ -73,17 +69,18 @@ const receiveAnnotationsLogic = createLogic({
         // annotations IF the annotations exist in the data source and we have room
         // to display them
         [
+            "File Name",
             AnnotationName.FILE_NAME,
             AnnotationName.KIND,
             AnnotationName.TYPE,
             AnnotationName.FILE_SIZE,
         ].forEach((annotationName) => {
-            const isAlreadyDisplayed = !displayAnnotationsThatStillExist.find(
+            const isAlreadyDisplayed = displayAnnotationsThatStillExist.some(
                 (annotation) => annotation.name === annotationName
             );
             const existsInDataSource = annotationName in annotationNameToAnnotationMap;
             const canFitInList = displayAnnotationsThatStillExist.length < 4;
-            if (isAlreadyDisplayed && existsInDataSource && canFitInList) {
+            if (!isAlreadyDisplayed && existsInDataSource && canFitInList) {
                 displayAnnotationsThatStillExist.push(
                     annotationNameToAnnotationMap[annotationName]
                 );
@@ -117,7 +114,7 @@ const receiveAnnotationsLogic = createLogic({
             const sortByUploaded = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
             dispatch(selection.actions.setSortColumn(sortByUploaded));
         }
-        dispatch(selection.actions.selectDisplayAnnotation(displayAnnotationsThatStillExist, true));
+        dispatch(selection.actions.setDisplayAnnotations(displayAnnotationsThatStillExist));
         done();
     },
     type: RECEIVE_ANNOTATIONS,

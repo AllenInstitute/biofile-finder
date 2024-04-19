@@ -1,10 +1,11 @@
 import { compact, join } from "lodash";
 
-import FileService, { FmsFile, GetFilesRequest, SelectionAggregationResult } from "..";
+import FileService, { GetFilesRequest, SelectionAggregationResult } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
 import FileSelection from "../../../entity/FileSelection";
 import { JSONReadyRange } from "../../../entity/NumericRange";
 import FileSet from "../../../entity/FileSet";
+import FileDetail, { FmsFile } from "../../../entity/FileDetail";
 
 export interface Selection {
     filters: {
@@ -74,7 +75,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
      * Get list of file documents that match a given filter, potentially according to a particular sort order,
      * and potentially starting from a particular file_id and limited to a set number of files.
      */
-    public async getFiles(request: GetFilesRequest): Promise<FmsFile[]> {
+    public async getFiles(request: GetFilesRequest): Promise<FileDetail[]> {
         const { from, limit, fileSet } = request;
 
         const base = `${this.baseUrl}/${HttpFileService.BASE_FILES_URL}${this.pathSuffix}?from=${from}&limit=${limit}`;
@@ -82,6 +83,6 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         console.log(`Requesting files from ${requestUrl}`);
 
         const response = await this.get<FmsFile>(requestUrl);
-        return response.data;
+        return response.data.map((file) => new FileDetail(file));
     }
 }

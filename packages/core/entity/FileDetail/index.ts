@@ -1,4 +1,4 @@
-import { FmsFile } from "../../services/FileService";
+import { FmsFileAnnotation } from "../../services/FileService";
 
 /**
  * Expected JSON response of a file detail returned from the query service. Example:
@@ -48,6 +48,23 @@ import { FmsFile } from "../../services/FileService";
  */
 
 /**
+ * Represents a document in the FMS MongoDb `files` collection (as returned by FES). It is extremely permissively typed to allow
+ * for rapid iteration in the initial stages of this project.
+ *
+ * See https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/mongo-schema-management/browse/mongo_schema_management/schema/file_explorer_v1/file.json for
+ * the most up-to-date interface for this data structure.
+ */
+export interface FmsFile {
+    annotations: FmsFileAnnotation[];
+    file_id?: string;
+    file_name?: string;
+    file_path?: string;
+    file_size?: number;
+    uploaded?: string;
+    thumbnail?: string;
+}
+
+/**
  * Facade for a FileDetailResponse.
  */
 export default class FileDetail {
@@ -61,27 +78,54 @@ export default class FileDetail {
         return this.fileDetail;
     }
 
-    public get id() {
-        return this.fileDetail.file_id;
+    public get id(): string {
+        const id = this.fileDetail.file_id || this.getFirstAnnotationValue("File ID");
+        if (id === undefined) {
+            throw new Error("File ID is not defined");
+        }
+        return id as string;
     }
 
-    public get name() {
-        return this.fileDetail.file_name;
+    public get name(): string {
+        const name = this.fileDetail.file_name || this.getFirstAnnotationValue("File Name");
+        if (name === undefined) {
+            throw new Error("File Name is not defined");
+        }
+        return name as string;
     }
 
-    public get path() {
-        return this.fileDetail.file_path;
+    public get path(): string {
+        const path = this.fileDetail.file_path || this.getFirstAnnotationValue("File Path");
+        if (path === undefined) {
+            throw new Error("File Path is not defined");
+        }
+        return path as string;
     }
 
-    public get size() {
-        return this.fileDetail.file_size;
+    public get size(): number {
+        const size = this.fileDetail.file_size || this.getFirstAnnotationValue("File Size");
+        if (size === undefined) {
+            throw new Error("File Size is not defined");
+        }
+        return size as number;
     }
 
-    public get thumbnail() {
-        return this.fileDetail.thumbnail;
+    public get thumbnail(): string | undefined {
+        return (
+            this.fileDetail.thumbnail ||
+            (this.getFirstAnnotationValue("Thumbnail") as string | undefined)
+        );
     }
 
     public get annotations() {
         return this.fileDetail.annotations;
+    }
+
+    public getFirstAnnotationValue(annotationName: string): string | number | boolean | undefined {
+        return this.getAnnotation(annotationName)?.values[0];
+    }
+
+    public getAnnotation(annotationName: string): FmsFileAnnotation | undefined {
+        return this.fileDetail.annotations.find((annotation) => annotation.name === annotationName);
     }
 }
