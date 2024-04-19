@@ -1,3 +1,4 @@
+import { RENDERABLE_IMAGE_FORMATS } from "../../constants";
 import { FmsFileAnnotation } from "../../services/FileService";
 
 /**
@@ -127,5 +128,27 @@ export default class FileDetail {
 
     public getAnnotation(annotationName: string): FmsFileAnnotation | undefined {
         return this.fileDetail.annotations.find((annotation) => annotation.name === annotationName);
+    }
+
+    public getPathToThumbnail(): string | undefined {
+        let thumbnailPath = this.thumbnail;
+
+        // If no thumbnail present try to render the file itself as the thumbnail
+        if (!thumbnailPath) {
+            const fileExtension = this.name.toLowerCase();
+            const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
+                fileExtension.endsWith(format)
+            );
+            if (isFileRenderableImage) {
+                thumbnailPath = this.path;
+            }
+        }
+
+        // If the thumbnail is a relative path on the allen drive then preprend it to
+        // the AICS FMS NGINX server path
+        if (thumbnailPath?.startsWith("/allen")) {
+            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${thumbnailPath}`;
+        }
+        return this.thumbnail;
     }
 }

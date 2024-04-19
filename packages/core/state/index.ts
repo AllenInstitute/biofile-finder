@@ -77,7 +77,8 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
         selection: {
             displayAnnotations,
             selectedQuery: queries?.[0],
-            queries,
+            // TODO: Enable
+            queries: [],
         },
     });
     return configureStore<State>({

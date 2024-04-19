@@ -18,13 +18,13 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         type: AnnotationType.STRING,
     }),
     new Annotation({
-        annotationDisplayName: "File name",
+        annotationDisplayName: "File Name",
         annotationName: AnnotationName.FILE_NAME,
         description: "Name of file",
         type: AnnotationType.STRING,
     }),
     new Annotation({
-        annotationDisplayName: "File path (Canonical)",
+        annotationDisplayName: "File Path (Canonical)",
         annotationName: AnnotationName.FILE_PATH,
         description: "Path to file in storage.",
         type: AnnotationType.STRING,
@@ -37,7 +37,7 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         units: "bytes",
     }),
     new Annotation({
-        annotationDisplayName: "Thumbnail path",
+        annotationDisplayName: "Thumbnail Path",
         annotationName: AnnotationName.THUMBNAIL_PATH,
         description: "Path to thumbnail file in storage.",
         type: AnnotationType.STRING,

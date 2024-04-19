@@ -17,6 +17,7 @@ import { PlatformDependentServices } from "./state/interaction/actions";
 
 import "./styles/global.css";
 import styles from "./App.module.css";
+import GlobalActionButtonRow from "./components/GlobalActionButtonRow";
 
 // Used for mousemove listeners when resizing elements via click and drag (eg. File Details pane)
 export const ROOT_ELEMENT_ID = "root";
@@ -75,9 +76,12 @@ export default function App(props: AppProps) {
             })}
         >
             <div className={styles.coreAndFileDetails}>
-                <div className={styles.querySidebarAndFileList}>
+                <div className={styles.querySidebarAndCenter}>
                     <QuerySidebar className={styles.querySidebar} />
-                    <DirectoryTree className={styles.fileList} />
+                    <div className={styles.center}>
+                        <GlobalActionButtonRow className={styles.globalButtonRow} />
+                        <DirectoryTree className={styles.fileList} />
+                    </div>
                 </div>
                 <FileDetails className={styles.fileDetails} />
             </div>

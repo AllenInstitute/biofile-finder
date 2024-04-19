@@ -11,6 +11,8 @@
 }
 
 .root {
+    --global-button-row-height: 40px;
+
     background-color: var(--secondary-background-color);
     color: var(--secondary-text-color);
     composes: relative;
@@ -41,7 +43,7 @@
     width: calc(100% - (2 * var(--margin)));
 }
 
-.query-sidebar-and-file-list {
+.query-sidebar-and-center {
     margin-right: var(--margin);
     width: calc(80% - var(--margin));
     height: 100%;
@@ -61,13 +63,21 @@
     max-width: var(--query-sidebar-max-width);
 }
 
+.center {
+    height: 100%;
+    margin: var(--margin) 0 var(--margin) var(--margin);
+    width: calc(70% - var(--margin));
+}
+
+.global-button-row {
+    height: var(--global-button-row-height);
+}
+
 .file-list {
     display: flex;
     flex-direction: column;
     flex: auto;
-    height: 100%;
-    width: calc(70% - var(--margin));
-    margin: var(--margin) 0 var(--margin) var(--margin);
+    height: calc(100% - var(--global-button-row-height));
 }
 
 .file-details {

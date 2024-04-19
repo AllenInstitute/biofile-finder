@@ -4,11 +4,9 @@ import { useSelector } from "react-redux";
 
 import FileSet from "../../entity/FileSet";
 import FileThumbnail from "../../components/FileThumbnail";
-import SvgIcon from "../../components/SvgIcon";
 import { selection } from "../../state";
 import { OnSelect } from "./useFileSelector";
-import { RENDERABLE_IMAGE_FORMATS, THUMBNAIL_SIZE_TO_NUM_COLUMNS } from "../../constants";
-import { NO_IMAGE_ICON_PATH_DATA } from "../../icons";
+import { THUMBNAIL_SIZE_TO_NUM_COLUMNS } from "../../constants";
 
 import styles from "./LazilyRenderedThumbnail.module.css";
 
@@ -88,52 +86,9 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
         return filename;
     };
 
-    // If the file has a thumbnail image specified, we want to display the specified thumbnail.
-    // Otherwise, we want to display the file itself as the thumbnail if possible.
-    // If there is no thumbnail and the file cannot be displayed as the thumbnail, show a no image icon
-    // TODO: Add custom icons per file type
-    let thumbnail = (
-        <SvgIcon
-            height={thumbnailSize}
-            pathData={NO_IMAGE_ICON_PATH_DATA}
-            viewBox="0,1,22,22"
-            width={thumbnailSize}
-            className={classNames(styles.noThumbnail)}
-        />
-    );
-    if (file?.thumbnail) {
-        // thumbnail exists
-        thumbnail = (
-            <div
-                className={classNames(styles.thumbnail)}
-                style={{ height: thumbnailSize, maxWidth: thumbnailSize }}
-            >
-                <FileThumbnail
-                    uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${file.thumbnail}`}
-                />
-            </div>
-        );
-    } else if (file) {
-        const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
-            file?.name.toLowerCase().endsWith(format)
-        );
-        if (isFileRenderableImage) {
-            // render the image as the thumbnail
-            thumbnail = (
-                <div
-                    className={classNames(styles.fileThumbnailContainer, styles.thumbnail)}
-                    style={{ height: thumbnailSize, maxWidth: thumbnailSize }}
-                >
-                    <FileThumbnail
-                        uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${file.path}`}
-                    />
-                </div>
-            );
-        }
-    }
-
     let content;
     if (file) {
+        const thumbnailPath = file.getPathToThumbnail();
         const filenameForRender = clipFileName(file?.name);
         content = (
             <div
@@ -144,7 +99,12 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
                 })}
                 title={file?.name}
             >
-                {thumbnail}
+                <FileThumbnail
+                    className={styles.thumbnail}
+                    height={thumbnailSize}
+                    width={thumbnailSize}
+                    uri={thumbnailPath}
+                />
                 <div
                     className={classNames(styles.fileLabel, {
                         [styles.smallFont]:

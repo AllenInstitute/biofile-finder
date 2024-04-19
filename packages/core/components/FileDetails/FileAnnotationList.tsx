@@ -60,6 +60,10 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
         }
 
         return annotations.reduce((accum, annotation) => {
+            if (annotation.displayName === "File Name") {
+                return accum;
+            }
+
             const annotationValue = annotation.extractFromFile(fileDetails);
             if (annotationValue === Annotation.MISSING_VALUE) {
                 // Nothing to show for this annotation -- skip

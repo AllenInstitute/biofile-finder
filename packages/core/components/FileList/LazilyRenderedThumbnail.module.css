@@ -11,10 +11,6 @@
   padding: 10px
 }
 
-.no-thumbnail {
-  fill: var(--grey);
-}
-
 .selected {
   background-color: #d4e3fc;
 }
