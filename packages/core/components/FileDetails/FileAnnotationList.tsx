@@ -92,7 +92,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                         <FileAnnotationRow
                             key="file-path-local"
                             className={styles.row}
-                            name="File path (Local)"
+                            name="File Path (Local)"
                             value={localPath}
                         />
                     );

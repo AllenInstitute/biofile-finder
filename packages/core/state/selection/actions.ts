@@ -405,13 +405,13 @@ export function removeFromAnnotationHierarchy(
 export const SET_ANNOTATION_HIERARCHY = makeConstant(STATE_BRANCH_NAME, "set-annotation-hierarchy");
 
 export interface SetAnnotationHierarchyAction {
-    payload: Annotation[];
+    payload: string[];
     type: string;
 }
 
-export function setAnnotationHierarchy(annotations: Annotation[]): SetAnnotationHierarchyAction {
+export function setAnnotationHierarchy(annotationNames: string[]): SetAnnotationHierarchyAction {
     return {
-        payload: annotations,
+        payload: annotationNames,
         type: SET_ANNOTATION_HIERARCHY,
     };
 }

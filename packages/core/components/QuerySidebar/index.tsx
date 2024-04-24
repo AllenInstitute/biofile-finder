@@ -33,9 +33,18 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     const collections = useSelector(metadata.selectors.getCollections);
     const selectedQuery = useSelector(selection.selectors.getSelectedQuery);
 
-    const isAICSEmployee = true; // TODO: Add trigger somewhere on app startup
+    // TODO: Add trigger somewhere on app startup before releasing to public
+    const isAICSEmployee = true;
 
     const [isExpanded, setIsExpanded] = React.useState(true);
+
+    // Default to first query in array if none selected yet some available
+    // this is primarily useful for when loading queries from persisted state
+    React.useEffect(() => {
+        if (queries.length && !selectedQuery) {
+            dispatch(selection.actions.changeQuery(queries[0]));
+        }
+    }, [queries, selectedQuery, dispatch]);
 
     const helpMenuOptions = React.useMemo(() => HELP_OPTIONS(dispatch), [dispatch]);
     const addQueryOptions = React.useMemo(() => {

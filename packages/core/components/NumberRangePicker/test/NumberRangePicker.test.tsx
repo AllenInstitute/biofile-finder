@@ -66,7 +66,7 @@ describe("<NumberRangePicker />", () => {
         }));
 
         // Act / Assert
-        const { getByText } = render(
+        const { getByTitle } = render(
             <NumberRangePicker
                 items={items}
                 onSearch={onSearch}
@@ -81,52 +81,12 @@ describe("<NumberRangePicker />", () => {
 
         // Hit reset
         expect(onReset.called).to.equal(false);
-        fireEvent.click(getByText("Reset"));
+        fireEvent.click(getByTitle("Reset filter"));
         expect(onReset.called).to.equal(true);
 
         // Should clear min and max values
         expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("");
         expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("");
-    });
-
-    it("renders a 'Select Full Range' button that updates min and max values", () => {
-        // Arrange
-        const items: ListItem[] = ["0", "20"].map((val) => ({
-            selected: true, // start with all items selected
-            displayValue: val,
-            value: val,
-        }));
-        const { getByTitle, getByText } = render(
-            <NumberRangePicker
-                items={items}
-                onReset={noop}
-                onSearch={noop}
-                currentRange={undefined}
-            />
-        );
-
-        // Enter values
-        fireEvent.change(getByTitle(/^Min/), {
-            target: {
-                value: 5,
-            },
-        });
-        fireEvent.change(getByTitle(/^Max/), {
-            target: {
-                value: 10,
-            },
-        });
-
-        // Sanity check
-        expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("5");
-        expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("10");
-
-        // Act
-        fireEvent.click(getByText("Select Full Range"));
-
-        // Assert
-        expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("0");
-        expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("20");
     });
 
     it("displays available min and max of items", () => {

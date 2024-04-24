@@ -1,5 +1,6 @@
-import { RENDERABLE_IMAGE_FORMATS } from "../../constants";
 import { FmsFileAnnotation } from "../../services/FileService";
+
+const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
 
 /**
  * Expected JSON response of a file detail returned from the query service. Example:
@@ -135,9 +136,8 @@ export default class FileDetail {
 
         // If no thumbnail present try to render the file itself as the thumbnail
         if (!thumbnailPath) {
-            const fileExtension = this.name.toLowerCase();
             const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
-                fileExtension.endsWith(format)
+                this.name.toLowerCase().endsWith(format)
             );
             if (isFileRenderableImage) {
                 thumbnailPath = this.path;
@@ -149,6 +149,6 @@ export default class FileDetail {
         if (thumbnailPath?.startsWith("/allen")) {
             return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${thumbnailPath}`;
         }
-        return this.thumbnail;
+        return thumbnailPath;
     }
 }

@@ -9,7 +9,7 @@ import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
-import Annotation, { AnnotationName } from "../../../entity/Annotation";
+import { AnnotationName } from "../../../entity/Annotation";
 import FileFolder from "../../../entity/FileFolder";
 
 describe("Selection reducer", () => {
@@ -51,14 +51,7 @@ describe("Selection reducer", () => {
             // Arrange
             const state = {
                 ...selection.initialState,
-                annotationHierarchy: [
-                    new Annotation({
-                        annotationName: "Cell Line",
-                        annotationDisplayName: "Cell Line",
-                        description: "Line of cells",
-                        type: "lookup",
-                    }),
-                ],
+                annotationHierarchy: ["Cell Line"],
                 fileSelection: new FileSelection().select({
                     fileSet: new FileSet(),
                     index: 4,
@@ -110,7 +103,7 @@ describe("Selection reducer", () => {
                     ...initialState,
                     selection: nextSelectionState,
                 })
-            ).to.deep.equal([TOP_LEVEL_FILE_ANNOTATIONS]);
+            ).to.deep.equal(TOP_LEVEL_FILE_ANNOTATIONS);
         });
     });
 

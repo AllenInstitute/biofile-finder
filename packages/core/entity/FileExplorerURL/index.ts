@@ -1,13 +1,13 @@
 import { isObject } from "lodash";
 
-import Annotation, { AnnotationName } from "../Annotation";
+import { AnnotationName } from "../Annotation";
 import FileFilter, { FileFilterJson } from "../FileFilter";
 import FileFolder from "../FileFolder";
 import { AnnotationValue } from "../../services/AnnotationService";
 import { ValueError } from "../../errors";
 import FileSort, { SortOrder } from "../FileSort";
 
-interface Collection {
+export interface Collection {
     name: string;
     version?: number;
     uri?: string;
@@ -15,7 +15,7 @@ interface Collection {
 
 // Components of the application state this captures
 export interface FileExplorerURLComponents {
-    hierarchy: Annotation[];
+    hierarchy: string[];
     collection?: Collection;
     filters: FileFilter[];
     openFolders: FileFolder[];
@@ -74,7 +74,7 @@ export default class FileExplorerURL {
      * without breaking an existing FileExplorerURL.
      * */
     public static encode(urlComponents: Partial<FileExplorerURLComponents>) {
-        const groupBy = urlComponents.hierarchy?.map((annotation) => annotation.name) || [];
+        const groupBy = urlComponents.hierarchy?.map((annotation) => annotation) || [];
         const filters = urlComponents.filters?.map((filter) => filter.toJSON()) || [];
         const openFolders = urlComponents.openFolders?.map((folder) => folder.fileFolder) || [];
         const sort = urlComponents.sortColumn
@@ -104,7 +104,7 @@ export default class FileExplorerURL {
      * Decode a previously encoded FileExplorerURL into components that can be rehydrated into the
      * application state
      */
-    public static decode(encodedURL: string, annotations: Annotation[]): FileExplorerURLComponents {
+    public static decode(encodedURL: string): FileExplorerURLComponents {
         const trimmedEncodedURL = encodedURL.trim();
         if (!trimmedEncodedURL.startsWith(FileExplorerURL.PROTOCOL)) {
             throw new ValueError(
@@ -140,17 +140,8 @@ export default class FileExplorerURL {
         }
 
         const hierarchyDepth = parsedURL.groupBy.length;
-        const annotationNameSet = new Set(annotations.map((annotation) => annotation.name));
         return {
-            hierarchy: parsedURL.groupBy.map((annotationName) => {
-                if (!annotationNameSet.has(annotationName)) {
-                    throw new ValueError(
-                        `Unable to decode FileExplorerURL, couldn't find Annotation(${annotationName})`
-                    );
-                }
-                const matchingAnnotation = annotations.filter((a) => a.name === annotationName)[0];
-                return matchingAnnotation;
-            }),
+            hierarchy: parsedURL.groupBy,
             collection: parsedURL.collection,
             filters: parsedURL.filters.map((filter) => {
                 return new FileFilter(filter.name, filter.value);

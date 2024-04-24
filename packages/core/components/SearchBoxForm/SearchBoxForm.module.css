@@ -1,21 +1,18 @@
-.search-box-input {
-    border: none;
-    flex: auto;
+.search-box-input, .search-box-input > :is(div, input), .search-box-input :is(button, i) {
+    background-color: var(--primary-background-color) !important;
+    color: var(--primary-text-color) !important;
 }
 
-.container {
-    --spacing: 0.5rem;
-
-    overflow: auto;
-    max-height: 300px;
-    padding: 0 var(--spacing) 0 var(--spacing);
-    margin-top: var(--spacing);
+.search-box-input > div:hover > button, .search-box-input > div:hover i {
+    background-color: var(--primary-background-color) !important;
+    color: var(--primary-text-color) !important;
 }
 
-.header {
-    position: sticky;
-    top: 0;
-    padding-bottom: var(--spacing);
-    width: 100%;
-    background: rgba(255, 255, 255, 0.85);
+.search-box-input::after {
+    display: none;
+}
+
+.title {
+    margin: 0;
+    padding-bottom: var(--margin);
 }

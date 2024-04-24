@@ -162,7 +162,7 @@ export default function FileDetails(props: Props) {
                                         />
                                     </div>
                                     <p className={styles.fileName}>{fileDetails?.name}</p>
-                                    <hr className={styles.fileNameDivider} />
+                                    <h4 className={styles.title}>Information</h4>
                                     <FileAnnotationList
                                         className={styles.annotationList}
                                         fileDetails={fileDetails}

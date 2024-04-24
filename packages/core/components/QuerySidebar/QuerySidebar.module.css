@@ -94,7 +94,7 @@
     max-width: var(--query-sidebar-max-width);
     position: absolute;
     width: calc(0.3 * 80% - var(--margin));
-    z-index: 1111;
+    z-index: 2;
 }
 
 .minimize-bar {

@@ -14,7 +14,7 @@
     overflow: auto;
     display: flex;
     justify-content: center;
-    z-index: 1111111111;
+    z-index: 1001;
 }
 
 .expandable::after {
@@ -85,7 +85,7 @@
 
     position: relative;
     width: 100%;
-    height: calc(100% - var(--window-buttons-height) - var(--pagination-height) - 28px);
+    height: calc(100% - var(--window-buttons-height) - var(--pagination-height));
 }
 
 .overflow-container {
@@ -165,12 +165,13 @@
 .file-name {
     padding: var(--margin);
     text-align: center;
+    user-select: text;
     word-break: break-all;
 }
 
-.file-name-divider {
-    border-color: var(--secondary-text-color);
-    width: 25%;
+.title {
+    font-size: large;
+    margin: 0 0 0 var(--margin);
 }
 
 .icon-button span {
@@ -183,5 +184,5 @@
 }
 
 .icon-button i, .icon-button:hover i {
-    color: var(--primary-text-color);
+    color: var(--primary-text-color) !important;
 }

@@ -34,33 +34,10 @@
     display: flex;
 }
 
-.divider, .small-divider {
+.divider {
     border-color: var(--secondary-text-color);
     margin: 0 auto;
     opacity: 0.5;
-}
-
-.small-divider {
-    width: 35%;
-}
-
-.data-source-container {
-    margin: 8px 0 8px 10px;
-}
-
-.data-source-header {
-    display: flex;
-    margin-bottom: 6px;
-}
-
-.data-source-header > h5 {
-    margin: 0 0 0 10px;
-    padding-top: 2px;
-}
-
-.data-source-container > p {
-    font-size: smaller;
-    margin-top: 4px;
 }
 
 .title {

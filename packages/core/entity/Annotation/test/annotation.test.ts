@@ -3,13 +3,14 @@ import { compact, find } from "lodash";
 
 import Annotation, { AnnotationName } from "../";
 import { AnnotationType } from "../../AnnotationFormatter";
+import dateTimeFormatter from "../../AnnotationFormatter/date-time-formatter";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import FileDetail from "../../FileDetail";
 
 describe("Annotation", () => {
     const annotationResponse = Object.freeze({
         annotationDisplayName: "Date uploaded",
-        annotationName: "someDateAnnotation",
+        annotationName: AnnotationName.UPLOADED,
         description: "Date the file was uploaded",
         type: AnnotationType.DATETIME,
     });
@@ -63,6 +64,7 @@ describe("Annotation", () => {
 
     describe("extractFromFile", () => {
         it("gets the display value for a top-level annotation it represents from a given FmsFile", () => {
+            const uploaded = new Date().toISOString();
             const fmsFile = new FileDetail({
                 annotations: [
                     {
@@ -76,14 +78,23 @@ describe("Annotation", () => {
                 file_size: 1,
                 thumbnail:
                     "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
-                uploaded: new Date().toISOString(),
+                uploaded,
             });
 
             const annotation = new Annotation(annotationResponse);
-            expect(annotation.extractFromFile(fmsFile)).to.equal("5/17/2019, 12:43:55 AM");
+            expect(annotation.extractFromFile(fmsFile)).to.equal(
+                dateTimeFormatter.displayValue(uploaded)
+            );
         });
 
         it("gets the display value for a non-top-level annotation it represents from a given FmsFile", () => {
+            const someDateAnnotation = {
+                annotationDisplayName: "Some Date",
+                annotationName: "someDateAnnotation",
+                description: "Some date",
+                type: AnnotationType.DATETIME,
+            };
+
             const fmsFile = new FileDetail({
                 annotations: [
                     {
@@ -100,11 +111,18 @@ describe("Annotation", () => {
                 uploaded: new Date().toISOString(),
             });
 
-            const annotation = new Annotation(annotationResponse);
+            const annotation = new Annotation(someDateAnnotation);
             expect(annotation.extractFromFile(fmsFile)).to.equal("5/17/2019, 12:43:55 AM");
         });
 
         it("returns a MISSING_VALUE sentinel if the given FmsFile does not have the annotation", () => {
+            const missingAnnotation = {
+                annotationDisplayName: "Nothing Here",
+                annotationName: "Nothing Here",
+                description: "Nothing Here",
+                type: AnnotationType.STRING,
+            };
+
             const fmsFile = new FileDetail({
                 annotations: [
                     {
@@ -129,7 +147,7 @@ describe("Annotation", () => {
                 uploaded: new Date().toISOString(),
             });
 
-            const annotation = new Annotation(annotationResponse);
+            const annotation = new Annotation(missingAnnotation);
             expect(annotation.extractFromFile(fmsFile)).to.equal(Annotation.MISSING_VALUE);
         });
     });

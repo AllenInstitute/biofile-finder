@@ -7,10 +7,10 @@ import { Provider } from "react-redux";
 import Modal, { ModalType } from "../..";
 import { initialState } from "../../../../state";
 
-describe("<PythonSnippet />", () => {
+describe("<CodeSnippet />", () => {
     const visibleDialogState = mergeState(initialState, {
         interaction: {
-            visibleModal: ModalType.PythonSnippet,
+            visibleModal: ModalType.CodeSnippet,
         },
     });
 
@@ -30,8 +30,8 @@ describe("<PythonSnippet />", () => {
 
     it("displays snippet when present in state", async () => {
         // Arrange
-        const setup = "pip install aicsfiles";
-        const code = "my_files = querier.query()";
+        const setup = "pip install pandas";
+        const code = "TODO";
         const { store } = configureMockStore({ state: visibleDialogState });
         const { findByText } = render(
             <Provider store={store}>

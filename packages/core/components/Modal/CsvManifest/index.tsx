@@ -1,17 +1,15 @@
 import { PrimaryButton } from "@fluentui/react";
-import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import AnnotationPicker from "../../AnnotationPicker";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
-import Annotation from "../../../entity/Annotation";
 import * as modalSelectors from "../selectors";
 import { interaction } from "../../../state";
 
 import styles from "./CsvManifest.module.css";
+import classNames from "classnames";
 
 /**
  * Modal overlay for selecting columns to be included in a CSV manifest download of
@@ -23,10 +21,8 @@ export default function CsvManifest({ onDismiss }: ModalProps) {
     const annotationsPreviouslySelected = useSelector(
         modalSelectors.getAnnotationsPreviouslySelected
     );
-    const [selectedAnnotations, setSelectedAnnotations] = React.useState<Annotation[]>(() =>
-        isEmpty(annotationsPreviouslySelected)
-            ? [...TOP_LEVEL_FILE_ANNOTATIONS]
-            : annotationsPreviouslySelected
+    const [selectedAnnotations, setSelectedAnnotations] = React.useState(
+        annotationsPreviouslySelected
     );
 
     const onDownload = () => {
@@ -51,7 +47,9 @@ export default function CsvManifest({ onDismiss }: ModalProps) {
             body={body}
             footer={
                 <PrimaryButton
-                    className={styles.downloadButton}
+                    className={classNames(styles.downloadButton, {
+                        [styles.disabled]: !selectedAnnotations.length,
+                    })}
                     iconProps={{ iconName: "Download" }}
                     disabled={!selectedAnnotations.length}
                     onClick={onDownload}

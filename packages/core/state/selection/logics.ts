@@ -103,7 +103,7 @@ const modifyAnnotationHierarchy = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { action, getState, ctx } = deps;
         const { payload: currentHierarchy } = action as SetAnnotationHierarchyAction;
-        const existingHierarchy = ctx.existingHierarchy;
+        const existingHierarchy = ctx.existingHierarchy as string[];
         const originalPayload = ctx.originalAction.payload;
 
         const existingOpenFileFolders = selectionSelectors.getOpenFileFolders(getState());
@@ -111,9 +111,7 @@ const modifyAnnotationHierarchy = createLogic({
         let openFileFolders: FileFolder[];
         if (existingHierarchy.length > currentHierarchy.length) {
             // Determine which index the remove occurred
-            const indexOfRemoval = existingHierarchy.findIndex(
-                (a: Annotation) => a.name === originalPayload.id
-            );
+            const indexOfRemoval = existingHierarchy.findIndex((a) => a === originalPayload.id);
 
             // Determine the new folders now that an annotation has been removed
             // removing any that can't be used anymore
@@ -131,9 +129,7 @@ const modifyAnnotationHierarchy = createLogic({
             const annotationIndexMap = currentHierarchy.reduce(
                 (map, currentAnnotation, newIndex) => ({
                     ...map,
-                    [newIndex]: existingHierarchy.findIndex(
-                        (a: Annotation) => a.name === currentAnnotation.name
-                    ),
+                    [newIndex]: existingHierarchy.findIndex((a) => a === currentAnnotation),
                 }),
                 {}
             );
@@ -151,42 +147,34 @@ const modifyAnnotationHierarchy = createLogic({
 
         done();
     },
-    transform(deps: ReduxLogicDeps, next, reject) {
+    transform(deps: ReduxLogicDeps, next) {
         const { action, getState, ctx } = deps;
+        const {
+            payload: { id: modifiedAnnotationName },
+        } = action as ReorderAnnotationHierarchyAction | RemoveFromAnnotationHierarchyAction;
 
-        const allAnnotations = metadata.selectors.getAnnotations(getState());
         const existingHierarchy = selectionSelectors.getAnnotationHierarchy(getState());
         ctx.existingHierarchy = existingHierarchy;
         ctx.originalAction = action as
             | RemoveFromAnnotationHierarchyAction
             | ReorderAnnotationHierarchyAction;
-        const annotation = find(
-            allAnnotations,
-            (annotation) => annotation.name === action.payload.id
-        );
 
-        // Reject the action is the annotation modified is unknown to the state
-        if (annotation === undefined) {
-            reject && reject(action); // reject is for some reason typed in react-logic as optional
-            return;
-        }
-
-        let nextHierarchy: Annotation[];
-        if (find(existingHierarchy, (a) => a.name === annotation.name)) {
-            const removed = existingHierarchy.filter((a) => a.name !== annotation.name);
+        let nextHierarchy: string[];
+        if (find(existingHierarchy, (a) => a === modifiedAnnotationName)) {
+            const removed = existingHierarchy.filter((a) => a !== modifiedAnnotationName);
 
             // if moveTo is defined, change the order
             // otherwise, remove it from the hierarchy
             if (action.payload.moveTo !== undefined) {
                 // change order
-                removed.splice(action.payload.moveTo, 0, annotation);
+                removed.splice(action.payload.moveTo, 0, modifiedAnnotationName);
             }
 
             nextHierarchy = removed;
         } else {
             // add to list
             nextHierarchy = Array.from(existingHierarchy);
-            nextHierarchy.splice(action.payload.moveTo, 0, annotation);
+            nextHierarchy.splice(action.payload.moveTo, 0, modifiedAnnotationName);
         }
 
         next(setAnnotationHierarchy(nextHierarchy));
@@ -197,7 +185,7 @@ const modifyAnnotationHierarchy = createLogic({
 const setAvailableAnnotationsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { action, httpClient, getState } = deps;
-        const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
+        const { payload: annotationHierarchy } = action as SetAnnotationHierarchyAction;
         const annotationService = interaction.selectors.getAnnotationService(getState());
         const applicationVersion = interaction.selectors.getApplicationVersion(getState());
         if (annotationService instanceof HttpAnnotationService) {
@@ -211,7 +199,7 @@ const setAvailableAnnotationsLogic = createLogic({
             dispatch(
                 setAvailableAnnotations(
                     await annotationService.fetchAvailableAnnotationsForHierarchy(
-                        annotationNamesInHierachy
+                        annotationHierarchy
                     )
                 )
             );
@@ -303,11 +291,9 @@ const toggleFileFolderCollapse = createLogic({
 const decodeFileExplorerURLLogics = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
-        const annotations = metadata.selectors.getAnnotations(deps.getState());
         const collections = metadata.selectors.getCollections(deps.getState());
         const { hierarchy, filters, openFolders, sortColumn, collection } = FileExplorerURL.decode(
-            encodedURL,
-            annotations
+            encodedURL
         );
 
         let selectedCollection = collections.find(
@@ -394,8 +380,7 @@ const selectNearbyFile = createLogic({
                     filters: sortedOpenFileListPaths[
                         fileListIndexAboveCurrentFileList
                     ].fileFolder.map(
-                        (filterValue, index) =>
-                            new FileFilter(hierarchy[index].displayName, filterValue)
+                        (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
                     ),
                     sort: sortColumn,
                 });
@@ -432,8 +417,7 @@ const selectNearbyFile = createLogic({
                     filters: sortedOpenFileListPaths[
                         fileListIndexBelowCurrentFileList
                     ].fileFolder.map(
-                        (filterValue, index) =>
-                            new FileFilter(hierarchy[index].displayName, filterValue)
+                        (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
                     ),
                     sort: sortColumn,
                 });

@@ -229,7 +229,7 @@ const downloadFiles = createLogic({
                 filesToDownload = await fileSelection.fetchAllDetails();
             }
 
-            const totalBytesToDownload = sumBy(filesToDownload, "file_size");
+            const totalBytesToDownload = sumBy(filesToDownload, "size");
             const totalBytesDisplay = numberFormatter.displayValue(totalBytesToDownload, "bytes");
             await Promise.all(
                 filesToDownload.map(async (file) => {
@@ -457,7 +457,7 @@ const openWithLogic = createLogic({
             filesToOpen = await fileSelection.fetchAllDetails();
         }
         const filePaths = await Promise.all(
-            filesToOpen.map(async (file) => await executionEnvService.formatPathForHost(file.path))
+            filesToOpen.map((file) => executionEnvService.formatPathForHost(file.path))
         );
 
         // Open the files in the specified executable
@@ -522,10 +522,9 @@ const refresh = createLogic({
 
             // Refresh list of annotations & which annotations are available
             const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
-            const annotationNamesInHierachy = hierarchy.map((a) => a.name);
             const [annotations, availableAnnotations] = await Promise.all([
                 annotationService.fetchAnnotations(),
-                annotationService.fetchAvailableAnnotationsForHierarchy(annotationNamesInHierachy),
+                annotationService.fetchAvailableAnnotationsForHierarchy(hierarchy),
             ]);
             dispatch(metadata.actions.receiveAnnotations(annotations));
             dispatch(selection.actions.setAvailableAnnotations(availableAnnotations));

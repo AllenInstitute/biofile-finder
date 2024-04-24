@@ -84,6 +84,9 @@ export default function OpenFileButton(props: Props) {
                 className: styles.buttonMenu,
                 items: openMenuItems,
             }}
+            iconProps={{
+                iconName: "OpenInNewWindow",
+            }}
             text="Open"
         />
     );

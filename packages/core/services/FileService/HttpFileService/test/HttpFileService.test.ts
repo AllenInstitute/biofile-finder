@@ -9,9 +9,9 @@ import NumericRange from "../../../../entity/NumericRange";
 describe("HttpFileService", () => {
     const baseUrl = "test";
     const fileIds = ["abc123", "def456", "ghi789", "jkl012"];
-    const files = fileIds.map((file_id) => {
-        file_id;
-    });
+    const files = fileIds.map((file_id) => ({
+        file_id,
+    }));
 
     describe("getFiles", () => {
         const httpClient = createMockHttpClient([
@@ -35,7 +35,7 @@ describe("HttpFileService", () => {
             });
             const data = response;
             expect(data.length).to.equal(1);
-            expect(data[0]).to.equal(files[0]);
+            expect(data[0].id).to.equal(files[0]["file_id"]);
         });
     });
 

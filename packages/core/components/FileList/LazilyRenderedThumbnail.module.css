@@ -7,15 +7,27 @@
   text-align: center;
 }
 
+.selected {
+  background-color: var(--highlight-background-color);
+}
+
+.focused {
+  border: 1px solid var(--highlight-text-color);
+}
+
 .thumbnail-wrapper {
   padding: 10px
 }
 
-.selected {
-  background-color: #d4e3fc;
+.thumbnail-wrapper > div {
+  display: flex;
+  flex-direction: column;
 }
 
-.focused {
-  margin: 0;
-  border: 2px solid #669bf4;
+.thumbnail-wrapper > div:not(.focused) {
+  margin: 1px;
+}
+
+.thumbnail-wrapper > div > img {
+  margin: 0 auto;
 }

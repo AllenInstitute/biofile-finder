@@ -47,7 +47,6 @@ export default class FileSet {
     constructor(opts: Partial<Opts> = {}) {
         const { fileService, filters, maxCacheSize, sort } = defaults({}, opts, DEFAULT_OPTS);
 
-        // TODO: Can entity be cached...?
         this.cache = new LRUCache<number, FileDetail>({ max: maxCacheSize });
         this._filters = filters;
         this.sort = sort;

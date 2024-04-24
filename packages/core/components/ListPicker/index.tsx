@@ -31,6 +31,7 @@ interface ListPickerProps {
     errorMessage?: string;
     items: ListItem[];
     loading?: boolean;
+    title?: string;
     onDeselect: (item: ListItem) => void;
     onDeselectAll: () => void;
     onSelect: (item: ListItem) => void;
@@ -123,6 +124,7 @@ export default function ListPicker(props: ListPickerProps) {
             data-is-focusable="true"
         >
             <div className={styles.header}>
+                {props.title && <h3>{props.title}</h3>}
                 <SearchBox
                     className={styles.searchBox}
                     onChange={onSearchBoxChange}

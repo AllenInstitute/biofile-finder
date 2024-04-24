@@ -5,7 +5,7 @@ import AnnotationPicker from "../AnnotationPicker";
 import { selection } from "../../state";
 
 /**
- * TODO
+ * Picker for selecting which columns to display in the file list.
  */
 export default function ColumnPicker() {
     const dispatch = useDispatch();

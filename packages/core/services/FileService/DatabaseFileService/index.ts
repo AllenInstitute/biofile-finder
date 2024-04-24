@@ -1,4 +1,4 @@
-import { omit } from "lodash";
+import { isNil, omit } from "lodash";
 
 import FileService, { GetFilesRequest, SelectionAggregationResult } from "..";
 import DatabaseService from "../../DatabaseService";
@@ -32,10 +32,9 @@ export default class DatabaseFileService implements FileService {
             row["File Name"] || filePath.split("\\").pop()?.split("/").pop() || filePath;
         annotations.push({ name: "File Name", values: [fileName] });
         annotations.push({ name: "File ID", values: [row["File ID"] || `${rowNumber}`] });
-        if (row["File Size"] !== undefined && row["File Size"] !== null) {
+        if (!isNil(row["File Size"])) {
             annotations.push({ name: "File Size", values: [row["File Size"]] });
         }
-        annotations.push({ name: "File Size", values: [row["File ID"] || `${rowNumber}`] });
         if (row["Thumbnail"]) {
             annotations.push({ name: "Thumbnail", values: [row["Thumbnail"]] });
         }
@@ -78,7 +77,11 @@ export default class DatabaseFileService implements FileService {
         if (allFiles.length && allFiles[0].size === undefined) {
             return { count };
         }
-        const size = allFiles.reduce((acc, file) => acc + (file.size || 0), 0);
+        // TODO: Should have file size return as number not a string
+        const size = allFiles.reduce(
+            (acc, file) => acc + parseInt((file.size as any) || "0", 10),
+            0
+        );
         return { count, size };
     }
 

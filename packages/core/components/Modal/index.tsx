@@ -2,9 +2,9 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
+import CodeSnippet from "./CodeSnippet";
 import CsvManifest from "./CsvManifest";
 import DataSourcePrompt from "./DataSourcePrompt";
-import PythonSnippet from "./PythonSnippet";
 
 export interface ModalProps {
     onDismiss: () => void;
@@ -13,7 +13,7 @@ export interface ModalProps {
 export enum ModalType {
     CsvManifest = 1,
     DataSourcePrompt = 2,
-    PythonSnippet = 3,
+    CodeSnippet = 3,
 }
 
 /**
@@ -32,8 +32,8 @@ export default function Modal() {
             return <CsvManifest onDismiss={onDismiss} />;
         case ModalType.DataSourcePrompt:
             return <DataSourcePrompt onDismiss={onDismiss} />;
-        case ModalType.PythonSnippet:
-            return <PythonSnippet onDismiss={onDismiss} />;
+        case ModalType.CodeSnippet:
+            return <CodeSnippet onDismiss={onDismiss} />;
         default:
             return null;
     }

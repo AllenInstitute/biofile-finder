@@ -32,7 +32,6 @@ describe("<LazilyRenderedThumbnail />", () => {
                     file_name: "my_image9.jpg",
                     file_path: "some/path/to/my_image9.jpg",
                     file_size: 1,
-                    thumbnail: "",
                     uploaded: new Date().toISOString(),
                 });
             }
@@ -43,7 +42,6 @@ describe("<LazilyRenderedThumbnail />", () => {
                     file_name: "my_image25.czi",
                     file_path: "some/path/to/my_image25.czi",
                     file_size: 1,
-                    thumbnail: "",
                     uploaded: new Date().toISOString(),
                 });
             }

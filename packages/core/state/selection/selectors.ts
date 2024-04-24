@@ -4,7 +4,7 @@ import { createSelector } from "reselect";
 import { State } from "../";
 import Annotation from "../../entity/Annotation";
 import FileExplorerURL from "../../entity/FileExplorerURL";
-import FileFilter, { Filter } from "../../entity/FileFilter";
+import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSort from "../../entity/FileSort";
 import { Dataset } from "../../services/DatasetService";
@@ -36,7 +36,7 @@ export const getQueries = (state: State) => state.selection.queries;
 export const getEncodedFileExplorerUrl = createSelector(
     [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn, getCollection],
     (
-        hierarchy: Annotation[],
+        hierarchy: string[],
         filters: FileFilter[],
         openFolders: FileFolder[],
         sortColumn?: FileSort,
@@ -56,15 +56,16 @@ export const getGroupedByFilterName = createSelector(
     [getFileFilters, getAnnotations],
     (globalFilters: FileFilter[], annotations: Annotation[]) => {
         const annotationNameToInstanceMap = keyBy(annotations, "name");
-        const filters: Filter[] = map(globalFilters, (filter: FileFilter) => {
+        const filters = map(globalFilters, (filter: FileFilter) => {
             const annotation = annotationNameToInstanceMap[filter.name];
             return {
+                displayName: annotation?.displayName,
                 name: filter.name,
                 value: filter.value,
                 displayValue: annotation?.getDisplayValue(filter.value),
             };
         }).filter((filter) => filter.displayValue !== undefined);
-        return groupBy(filters, (filter) => filter.name);
+        return groupBy(filters, (filter) => filter.displayName);
     }
 );
 

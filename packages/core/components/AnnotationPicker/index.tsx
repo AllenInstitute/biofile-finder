@@ -2,10 +2,12 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 
 import ListPicker, { ListItem } from "../ListPicker";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { metadata, selection } from "../../state";
 
 interface Props {
+    disabledTopLevelAnnotations?: boolean;
     hasSelectAllCapability?: boolean;
     disableUnavailableAnnotations?: boolean;
     className?: string;
@@ -29,15 +31,21 @@ export default function AnnotationPicker(props: Props) {
         selection.selectors.getAvailableAnnotationsForHierarchyLoading
     );
 
-    const items = annotations.map((annotation) => ({
-        selected: props.selections.includes(annotation),
-        disabled: unavailableAnnotations.includes(annotation),
-        loading: areAvailableAnnotationLoading,
-        description: annotation.description,
-        data: annotation,
-        value: annotation.name,
-        displayValue: annotation.displayName,
-    }));
+    const items = annotations
+        .filter(
+            (annotation) =>
+                !props.disabledTopLevelAnnotations ||
+                !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name)
+        )
+        .map((annotation) => ({
+            selected: props.selections.includes(annotation),
+            disabled: unavailableAnnotations.includes(annotation),
+            loading: areAvailableAnnotationLoading,
+            description: annotation.description,
+            data: annotation,
+            value: annotation.name,
+            displayValue: annotation.displayName,
+        }));
 
     const removeSelection = (item: ListItem<Annotation>) => {
         props.setSelections(props.selections.filter((annotation) => annotation !== item.data));

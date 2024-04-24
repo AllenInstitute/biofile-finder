@@ -4,11 +4,12 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 
 import FilterList from "./FilterList";
-import { selection } from "../../state";
+import { metadata, selection } from "../../state";
 
 import styles from "./EmptyFileListMessage.module.css";
 
 export default function EmptyFileListMessage() {
+    const annotations = useSelector(metadata.selectors.getAnnotations);
     const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
     const groupedByFilterName = useSelector(selection.selectors.getGroupedByFilterName);
 
@@ -41,16 +42,24 @@ export default function EmptyFileListMessage() {
                                     {" "}
                                     with annotation
                                     {annotationHierarchy.length === 1 ? "" : "s "}
-                                    {map(annotationHierarchy, (annotation, index) => (
-                                        <span key={annotation.name} title={annotation.description}>
-                                            {index > 0
-                                                ? index === annotationHierarchy.length - 1
-                                                    ? " and "
-                                                    : ", "
-                                                : " "}
-                                            <b>{annotation.displayName}</b>
-                                        </span>
-                                    ))}
+                                    {map(annotationHierarchy, (annotationName, index) => {
+                                        const annotation = annotations.find(
+                                            (a) => a.name === annotationName
+                                        );
+                                        return (
+                                            <span
+                                                key={annotation?.name}
+                                                title={annotation?.description}
+                                            >
+                                                {index > 0
+                                                    ? index === annotationHierarchy.length - 1
+                                                        ? " and "
+                                                        : ", "
+                                                    : " "}
+                                                <b>{annotation?.displayName}</b>
+                                            </span>
+                                        );
+                                    })}
                                 </span>
                             )}{" "}
                         </span>

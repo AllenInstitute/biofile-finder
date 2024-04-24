@@ -8,6 +8,7 @@ import ContextMenu from "./components/ContextMenu";
 import Modal from "./components/Modal";
 import DirectoryTree from "./components/DirectoryTree";
 import FileDetails from "./components/FileDetails";
+import GlobalActionButtonRow from "./components/GlobalActionButtonRow";
 import StatusMessage from "./components/StatusMessage";
 import TutorialTooltip from "./components/TutorialTooltip";
 import QuerySidebar from "./components/QuerySidebar";
@@ -17,7 +18,6 @@ import { PlatformDependentServices } from "./state/interaction/actions";
 
 import "./styles/global.css";
 import styles from "./App.module.css";
-import GlobalActionButtonRow from "./components/GlobalActionButtonRow";
 
 // Used for mousemove listeners when resizing elements via click and drag (eg. File Details pane)
 export const ROOT_ELEMENT_ID = "root";

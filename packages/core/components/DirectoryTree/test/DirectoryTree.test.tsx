@@ -50,7 +50,6 @@ describe("<DirectoryTree />", () => {
         description: "",
         type: "Text",
     });
-    const annotations = [fooAnnotation, barAnnotation];
 
     const baseUrl = "http://test-aics.corp.alleninstitute.org";
     const baseDisplayAnnotations = TOP_LEVEL_FILE_ANNOTATIONS.filter(
@@ -61,7 +60,7 @@ describe("<DirectoryTree />", () => {
             fileExplorerServiceBaseUrl: baseUrl,
         },
         selection: {
-            annotationHierarchy: annotations,
+            annotationHierarchy: [fooAnnotation.name, barAnnotation.name],
             displayAnnotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
         },
     });
@@ -352,7 +351,7 @@ describe("<DirectoryTree />", () => {
                 fileExplorerServiceBaseUrl: baseUrl,
             },
             selection: {
-                annotationHierarchy: [fooAnnotation],
+                annotationHierarchy: [fooAnnotation.name],
                 displayAnnotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
             },
         });

@@ -69,7 +69,6 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
                 })}
                 rowIdentifier={{ index, id: file.id }}
                 onSelect={onSelect}
-                data-testid="asdsadasdsadsad"
             />
         );
     }

@@ -52,6 +52,12 @@ describe("Interaction logics", () => {
         sortOrder: 0,
     });
 
+    class FakeFileViewerService implements FileViewerService {
+        open() {
+            return Promise.resolve();
+        }
+    }
+
     describe("downloadManifest", () => {
         const sandbox = createSandbox();
 
@@ -909,6 +915,7 @@ describe("Interaction logics", () => {
         const fileKinds = ["PNG", "TIFF"];
         for (let i = 0; i <= 100; i++) {
             files.push({
+                file_path: `/allen/file_${i}.ext`,
                 annotations: [
                     {
                         name: AnnotationName.KIND,
@@ -963,6 +970,7 @@ describe("Interaction logics", () => {
                 interaction: {
                     platformDependentServices: {
                         executionEnvService: new UselessExecutionEnvService(),
+                        fileViewerService: new FakeFileViewerService(),
                         notificationService: new UselessNotificationService(),
                     },
                 },
@@ -1078,6 +1086,7 @@ describe("Interaction logics", () => {
                     platformDependentServices: {
                         ...initialState.interaction.platformDependentServices,
                         executionEnvService: new UselessExecutionEnvService(),
+                        fileViewerService: new FakeFileViewerService(),
                         notificationService: new UselessNotificationService(),
                     },
                 },
@@ -1120,12 +1129,18 @@ describe("Interaction logics", () => {
         const csvKind = "CSV";
         const csvFiles: Partial<FmsFile>[] = [];
         for (let i = 0; i <= 50; i++) {
-            csvFiles.push({ annotations: [{ name: AnnotationName.KIND, values: [csvKind] }] });
+            csvFiles.push({
+                file_path: `/csv${i}.txt`,
+                annotations: [{ name: AnnotationName.KIND, values: [csvKind] }],
+            });
         }
         const pngKind = "PNG";
         const pngFiles: Partial<FmsFile>[] = [];
         for (let i = 0; i <= 50; i++) {
-            pngFiles.push({ annotations: [{ name: AnnotationName.KIND, values: [pngKind] }] });
+            pngFiles.push({
+                file_path: `/png${i}.txt`,
+                annotations: [{ name: AnnotationName.KIND, values: [pngKind] }],
+            });
         }
         const files = [...csvFiles, ...pngFiles];
         const baseUrl = "test";
@@ -1146,6 +1161,12 @@ describe("Interaction logics", () => {
             sortOrder: 0,
         });
 
+        class FakeExecutionEnvService extends ExecutionEnvServiceNoop {
+            public formatPathForHost(posixPath: string): Promise<string> {
+                return Promise.resolve(posixPath);
+            }
+        }
+
         it("attempts to open selected files with default apps", async () => {
             const app1 = {
                 defaultFileKinds: [csvKind],
@@ -1158,7 +1179,8 @@ describe("Interaction logics", () => {
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        executionEnvService: new ExecutionEnvServiceNoop(),
+                        executionEnvService: new FakeExecutionEnvService(),
+                        fileViewerService: new FakeFileViewerService(),
                     },
                     userSelectedApplications: [app1, app2],
                 },
@@ -1181,7 +1203,6 @@ describe("Interaction logics", () => {
                     type: OPEN_WITH,
                     payload: {
                         app: app1,
-                        files: csvFiles,
                     },
                 })
             ).to.be.true;
@@ -1199,7 +1220,8 @@ describe("Interaction logics", () => {
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        executionEnvService: new ExecutionEnvServiceNoop(),
+                        executionEnvService: new FakeExecutionEnvService(),
+                        fileViewerService: new FakeFileViewerService(),
                     },
                 },
                 selection: {

@@ -8,7 +8,7 @@ import { createSandbox } from "sinon";
 import AnnotationFilterForm from "..";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
-import { initialState, reducer, reduxLogics, interaction } from "../../../state";
+import { initialState, reducer, reduxLogics, interaction, selection } from "../../../state";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 
 describe("<AnnotationFilterForm />", () => {
@@ -20,7 +20,6 @@ describe("<AnnotationFilterForm />", () => {
             description: "",
             type: "Text",
         });
-        const annotations = [fooAnnotation];
 
         const sandbox = createSandbox();
 
@@ -43,18 +42,15 @@ describe("<AnnotationFilterForm />", () => {
             });
             sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
 
-            const state = mergeState(initialState, {
-                metadata: {
-                    annotations,
-                },
+            const { store } = configureMockStore({
+                state: initialState,
+                responseStubs: responseStub,
             });
-
-            const { store } = configureMockStore({ state, responseStubs: responseStub });
 
             // act
             const { findAllByRole } = render(
                 <Provider store={store}>
-                    <AnnotationFilterForm name="foo" />
+                    <AnnotationFilterForm annotation={fooAnnotation} />
                 </Provider>
             );
 
@@ -85,9 +81,6 @@ describe("<AnnotationFilterForm />", () => {
 
             // start with the input selected
             const state = mergeState(initialState, {
-                metadata: {
-                    annotations,
-                },
                 selection: {
                     filters: [new FileFilter(fooAnnotation.name, "b")],
                 },
@@ -100,31 +93,29 @@ describe("<AnnotationFilterForm />", () => {
             });
 
             // act
-            const { getByLabelText } = render(
+            const { getByText } = render(
                 <Provider store={store}>
-                    <AnnotationFilterForm name={fooAnnotation.name} />
+                    <AnnotationFilterForm annotation={fooAnnotation} />
                 </Provider>
             );
+            await waitFor(() => expect(getByText("b")).to.not.be.undefined);
 
-            // wait a couple render cycles for the async react hook to retrieve the annotation values
-            await waitFor(() =>
-                // assert that the input is selected
-                expect(getByLabelText("b").getAttribute("aria-checked")).to.equal("true")
-            );
+            // (sanity-check): Check that the "b" input is selected
+            expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(1);
 
-            // deselect the input
-            fireEvent.click(getByLabelText("b"));
+            // Act: Deselect the "False" input
+            fireEvent.click(getByText("b"));
             await logicMiddleware.whenComplete();
 
-            // assert that the input is deselected
-            expect(getByLabelText("b").getAttribute("aria-checked")).to.equal("false");
+            // Assert: Check that the "b" input is deselected
+            expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(0);
 
-            // select the input again
-            fireEvent.click(getByLabelText("b"));
+            // Act: Reselect the "b" input
+            fireEvent.click(getByText("b"));
             await logicMiddleware.whenComplete();
 
-            // assert that the input is selected again
-            expect(getByLabelText("b").getAttribute("aria-checked")).to.equal("true");
+            // Assert: Check that the "False" input is selected again
+            expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(1);
         });
 
         it("naturally sorts values", async () => {
@@ -142,17 +133,14 @@ describe("<AnnotationFilterForm />", () => {
             });
             sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
 
-            const state = mergeState(initialState, {
-                metadata: {
-                    annotations,
-                },
+            const { store } = configureMockStore({
+                state: initialState,
+                responseStubs: responseStub,
             });
-
-            const { store } = configureMockStore({ state, responseStubs: responseStub });
 
             const { findAllByRole } = render(
                 <Provider store={store}>
-                    <AnnotationFilterForm name="foo" />
+                    <AnnotationFilterForm annotation={fooAnnotation} />
                 </Provider>
             );
 
@@ -162,10 +150,10 @@ describe("<AnnotationFilterForm />", () => {
             expect(annotationValueListItems.length).to.equal(4);
             const expectedOrder = ["AICS-0", "aICs-2", "AICS-24", "aics-32"];
             annotationValueListItems.forEach((listItem, index) => {
-                const { getByLabelText } = within(listItem);
+                const { getByText } = within(listItem);
 
                 // getByLabelText will throw if it can't find a matching node
-                expect(getByLabelText(expectedOrder[index])).to.not.be.undefined;
+                expect(getByText(expectedOrder[index])).to.not.be.undefined;
             });
         });
     });
@@ -178,7 +166,6 @@ describe("<AnnotationFilterForm />", () => {
             description: "",
             type: "YesNo",
         });
-        const annotations = [fooAnnotation];
 
         const responseStub = {
             when: `test/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
@@ -208,16 +195,14 @@ describe("<AnnotationFilterForm />", () => {
 
         it("shows all values as unchecked at first", async () => {
             // Arrange
-            const state = mergeState(initialState, {
-                metadata: {
-                    annotations,
-                },
+            const { store } = configureMockStore({
+                state: initialState,
+                responseStubs: responseStub,
             });
-            const { store } = configureMockStore({ state, responseStubs: responseStub });
             // Act
             const { findAllByRole } = render(
                 <Provider store={store}>
-                    <AnnotationFilterForm name="foo" />
+                    <AnnotationFilterForm annotation={fooAnnotation} />
                 </Provider>
             );
 
@@ -234,9 +219,6 @@ describe("<AnnotationFilterForm />", () => {
         it("deselects and selects a value", async () => {
             // Arrange: Start with the "False" input selected
             const state = mergeState(initialState, {
-                metadata: {
-                    annotations,
-                },
                 selection: {
                     filters: [new FileFilter(fooAnnotation.name, false)],
                 },
@@ -248,30 +230,29 @@ describe("<AnnotationFilterForm />", () => {
                 responseStubs: responseStub,
             });
             // Act
-            const { getByLabelText } = render(
+            const { getByText } = render(
                 <Provider store={store}>
-                    <AnnotationFilterForm name={fooAnnotation.name} />
+                    <AnnotationFilterForm annotation={fooAnnotation} />
                 </Provider>
             );
-            // Wait a couple render cycles for the async react hook to retrieve the annotation values
-            await waitFor(() =>
-                // Assert: Check that the "False" input is selected
-                expect(getByLabelText("False").getAttribute("aria-checked")).to.equal("true")
-            );
+            await waitFor(() => expect(getByText("False")).to.not.be.undefined);
+
+            // (sanity-check): Check that the "False" input is selected
+            expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(1);
 
             // Act: Deselect the "False" input
-            fireEvent.click(getByLabelText("False"));
+            fireEvent.click(getByText("False"));
             await logicMiddleware.whenComplete();
 
             // Assert: Check that the "False" input is deselected
-            expect(getByLabelText("False").getAttribute("aria-checked")).to.equal("false");
+            expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(0);
 
             // Act: Reselect the "False" input
-            fireEvent.click(getByLabelText("False"));
+            fireEvent.click(getByText("False"));
             await logicMiddleware.whenComplete();
 
             // Assert: Check that the "False" input is selected again
-            expect(getByLabelText("False").getAttribute("aria-checked")).to.equal("true");
+            expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(1);
         });
     });
 
@@ -282,7 +263,6 @@ describe("<AnnotationFilterForm />", () => {
             description: "",
             type: "Number",
         });
-        const annotations = [fooAnnotation];
 
         const sandbox = createSandbox();
 
@@ -305,17 +285,14 @@ describe("<AnnotationFilterForm />", () => {
             });
             sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
 
-            const state = mergeState(initialState, {
-                metadata: {
-                    annotations,
-                },
+            const { store } = configureMockStore({
+                state: initialState,
+                responseStubs: responseStub,
             });
-
-            const { store } = configureMockStore({ state, responseStubs: responseStub });
 
             const { findAllByRole } = render(
                 <Provider store={store}>
-                    <AnnotationFilterForm name="foo" />
+                    <AnnotationFilterForm annotation={fooAnnotation} />
                 </Provider>
             );
 
@@ -325,10 +302,10 @@ describe("<AnnotationFilterForm />", () => {
             expect(annotationValueListItems.length).to.equal(6);
             const expectedOrder = [-12, 0, 5, 6.3, 8, 10000000000];
             annotationValueListItems.forEach((listItem, index) => {
-                const { getByLabelText } = within(listItem);
+                const { getByText } = within(listItem);
 
                 // getByLabelText will throw if it can't find a matching node
-                expect(getByLabelText(String(expectedOrder[index]))).to.not.be.undefined;
+                expect(getByText(String(expectedOrder[index]))).to.not.be.undefined;
             });
         });
     });
@@ -340,7 +317,6 @@ describe("<AnnotationFilterForm />", () => {
             description: "",
             type: "Duration",
         });
-        const annotations = [fooAnnotation];
 
         const sandbox = createSandbox();
 
@@ -363,17 +339,14 @@ describe("<AnnotationFilterForm />", () => {
             });
             sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
 
-            const state = mergeState(initialState, {
-                metadata: {
-                    annotations,
-                },
+            const { store } = configureMockStore({
+                state: initialState,
+                responseStubs: responseStub,
             });
-
-            const { store } = configureMockStore({ state, responseStubs: responseStub });
 
             const { findAllByRole } = render(
                 <Provider store={store}>
-                    <AnnotationFilterForm name="foo" />
+                    <AnnotationFilterForm annotation={fooAnnotation} />
                 </Provider>
             );
 

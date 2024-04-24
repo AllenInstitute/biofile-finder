@@ -56,5 +56,3 @@ export const THUMBNAIL_SIZE_TO_NUM_COLUMNS = {
     LARGE: 5,
     SMALL: 10,
 };
-
-export const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];

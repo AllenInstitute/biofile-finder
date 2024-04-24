@@ -17,9 +17,13 @@
 
 .cell {
     height: auto;
-    padding: 3px;
+    padding: 3px 3px 3px 0;
     overflow-wrap: anywhere;
     white-space: normal;
+}
+
+.cell:first-of-type {
+    padding-left: 0;
 }
 
 .key {

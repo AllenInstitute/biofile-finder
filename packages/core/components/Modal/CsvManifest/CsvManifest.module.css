@@ -4,7 +4,11 @@
     color: var(--primary-text-color);
 }
 
-.download-button:hover, .download-button:active {
+.disabled {
+    opacity: 0.5;
+}
+
+.download-button:hover:not(.disabled), .download-button:active:not(.disabled) {
     border: none;
     background-color: var(--highlight-background-color);
     color: var(--highlight-text-color);

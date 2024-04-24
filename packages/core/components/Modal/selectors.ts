@@ -9,9 +9,6 @@ import * as metadataSelectors from "../../state/metadata/selectors";
  */
 export const getAnnotationsPreviouslySelected = createSelector(
     [interactionSelectors.getCsvColumns, metadataSelectors.getAnnotations],
-    (annotationDisplayNames, annotations) => {
-        return annotations.filter((annotation) =>
-            annotationDisplayNames?.includes(annotation.displayName)
-        );
-    }
+    (annotationDisplayNames, annotations) =>
+        annotations.filter((annotation) => annotationDisplayNames?.includes(annotation.displayName))
 );

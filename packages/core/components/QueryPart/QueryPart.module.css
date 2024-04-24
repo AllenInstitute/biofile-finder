@@ -3,13 +3,17 @@
     background-color: var(--primary-sidebar-color);
     border: none;
     padding: 0 4px;
-    width: 100px;
+    width: 100%;
 }
 
 .add-button:hover, .add-button:hover button  {
     color: var(--highlight-text-color);
     background-color: var(--highlight-background-color);
     border: none;
+}
+
+.add-button > span > span {
+    text-align: left;
 }
 
 .add-button-container > * {

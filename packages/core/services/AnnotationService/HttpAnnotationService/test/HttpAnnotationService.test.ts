@@ -2,6 +2,7 @@ import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 import { spy } from "sinon";
 
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import { annotationsJson } from "../../../../entity/Annotation/mocks";
 import FileFilter from "../../../../entity/FileFilter";
@@ -22,7 +23,9 @@ describe("HttpAnnotationService", () => {
         it("issues request for all available Annotations", async () => {
             const annotationService = new HttpAnnotationService({ baseUrl: "test", httpClient });
             const annotations = await annotationService.fetchAnnotations();
-            expect(annotations.length).to.equal(annotationsJson.length);
+            expect(annotations.length).to.equal(
+                annotationsJson.length + TOP_LEVEL_FILE_ANNOTATION_NAMES.length
+            );
             expect(annotations[0]).to.be.instanceOf(Annotation);
         });
     });
@@ -162,22 +165,25 @@ describe("HttpAnnotationService", () => {
 
     describe("fetchAvailableAnnotationsForHierarchy", () => {
         it("issues request for annotations that can be combined with current hierarchy", async () => {
-            const expectedValues = ["cell_dead", "date_created"];
+            const annotationsFromServer = ["cell_dead", "date_created"];
             const httpClient = createMockHttpClient({
                 when: `test/${HttpAnnotationService.BASE_ANNOTATION_URL}/hierarchy/available?hierarchy=cas9&hierarchy=cell_line`,
                 respondWith: {
                     data: {
-                        data: expectedValues,
+                        data: annotationsFromServer,
                     },
                 },
             });
 
+            const hierarchy = ["cell_line", "cas9"];
+            const expectedValues = [
+                ...TOP_LEVEL_FILE_ANNOTATION_NAMES,
+                ...annotationsFromServer,
+                ...hierarchy,
+            ];
             const annotationService = new HttpAnnotationService({ baseUrl: "test", httpClient });
-            const values = await annotationService.fetchAvailableAnnotationsForHierarchy([
-                "cell_line",
-                "cas9",
-            ]);
-            expect(values).to.equal(expectedValues);
+            const values = await annotationService.fetchAvailableAnnotationsForHierarchy(hierarchy);
+            expect(values.sort()).to.deep.equal(expectedValues.sort());
         });
     });
 });

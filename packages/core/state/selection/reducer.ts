@@ -36,7 +36,7 @@ import Tutorial from "../../entity/Tutorial";
 import { Dataset } from "../../services/DatasetService";
 
 export interface SelectionStateBranch {
-    annotationHierarchy: Annotation[];
+    annotationHierarchy: string[];
     availableAnnotationsForHierarchy: string[];
     availableAnnotationsForHierarchyLoading: boolean;
     collection?: Dataset;

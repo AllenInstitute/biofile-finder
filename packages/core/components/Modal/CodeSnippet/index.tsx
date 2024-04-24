@@ -7,17 +7,17 @@ import { ModalProps } from "..";
 import { interaction } from "../../../state";
 import BaseModal from "../BaseModal";
 
-import styles from "./PythonSnippet.module.css";
+import styles from "./CodeSnippet.module.css";
 
 const COPY_ICON = { iconName: "copy" };
 
 /**
- * Dialog meant to show the user a Python snippet
+ * Dialog meant to show the user a Code snippet
  */
-export default function PythonSnippet({ onDismiss }: ModalProps) {
+export default function CodeSnippet({ onDismiss }: ModalProps) {
     const pythonSnippet = useSelector(interaction.selectors.getPythonSnippet);
-    const code = pythonSnippet && pythonSnippet.code;
-    const setup = pythonSnippet && pythonSnippet.setup;
+    const code = pythonSnippet?.code;
+    const setup = pythonSnippet?.setup;
 
     const [isSetupCopied, setSetupCopied] = React.useState(false);
     const [isCodeCopied, setCodeCopied] = React.useState(false);
@@ -85,5 +85,5 @@ export default function PythonSnippet({ onDismiss }: ModalProps) {
         </>
     );
 
-    return <BaseModal body={body} onDismiss={onDismiss} title="Python snippet" />;
+    return <BaseModal body={body} onDismiss={onDismiss} title="Code Snippet" />;
 }

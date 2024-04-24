@@ -35,11 +35,11 @@ export default function QueryFooter(props: Props) {
     };
     const shareQueryOptions: IContextualMenuItem[] = [
         {
-            key: "Python Snippet",
-            text: "Python Snippet",
+            key: "Code Snippet",
+            text: "Code Snippet",
             iconProps: { iconName: "Code" },
             onClick: () => {
-                dispatch(interaction.actions.setVisibleModal(ModalType.PythonSnippet));
+                dispatch(interaction.actions.setVisibleModal(ModalType.CodeSnippet));
             },
         },
         {
