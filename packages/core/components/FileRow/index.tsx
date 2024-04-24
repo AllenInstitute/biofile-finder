@@ -1,13 +1,13 @@
 import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
+import { useSelector } from "react-redux";
 
 import Cell from "./Cell";
 import { OnSelect } from "../FileList/useFileSelector";
+import { selection } from "../../state";
 
 import styles from "./FileRow.module.css";
-import { useSelector } from "react-redux";
-import { selection } from "../../state";
 
 export interface CellConfig {
     columnKey: string;
