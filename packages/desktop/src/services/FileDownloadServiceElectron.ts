@@ -133,6 +133,10 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         // retry policy: 3 times no matter the exception, with randomized exponential backoff between attempts
         const retry = Policy.handleAll().retry().attempts(3).exponential();
         let bytesDownloaded = -1;
+        if (!fileInfo.size) {
+            // TODO: INCLUDE IN TICKET - seems like this could just be handled by browser
+            throw new Error("Unable to handle download without knowing file size");
+        }
         while (bytesDownloaded < fileInfo.size) {
             const startByte = bytesDownloaded + 1;
             const endByte = Math.min(startByte + chunkSize - 1, fileInfo.size);
@@ -193,23 +197,39 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         };
     }
 
+    public async promptForSaveLocation(
+        title: string,
+        defaultFileName: string,
+        buttonLabel: string,
+        filters?: Record<string, any>[]
+    ): Promise<string> {
+        const result = await ipcRenderer.invoke(FileDownloadServiceElectron.GET_FILE_SAVE_PATH, {
+            title,
+            defaultFileName,
+            buttonLabel,
+            filters,
+        });
+
+        if (result.canceled) {
+            return FileDownloadCancellationToken;
+        }
+
+        return result.filePath;
+    }
+
     public async downloadCsvManifest(
         url: string,
         postData: string,
         downloadRequestId: string
     ): Promise<DownloadResult> {
-        const saveDialogParams = {
-            title: "Save CSV manifest",
-            defaultFileName: "fms-explorer-selections.csv",
-            buttonLabel: "Save manifest",
-            filters: [{ name: "CSV files", extensions: ["csv"] }],
-        };
-        const result = await ipcRenderer.invoke(
-            FileDownloadServiceElectron.GET_FILE_SAVE_PATH,
-            saveDialogParams
+        const result = await this.promptForSaveLocation(
+            "Save CSV manifest",
+            "fms-explorer-selections.csv",
+            "Save manifest",
+            [{ name: "CSV files", extensions: ["csv"] }]
         );
 
-        if (result.canceled) {
+        if (result === FileDownloadCancellationToken) {
             return Promise.resolve({
                 downloadRequestId,
                 resolution: DownloadResolution.CANCELLED,
@@ -227,9 +247,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         // On Windows (at least) you have to self-append the file extension when overwriting the name
         // I imagine this is not something a lot of people think to do (and is kind of inconvenient)
         // - Sean M 08/20/20
-        const outFilePath = result.filePath.endsWith(".csv")
-            ? result.filePath
-            : result.filePath + ".csv";
+        const outFilePath = result.endsWith(".csv") ? result : result + ".csv";
 
         return this.download({
             downloadRequestId,

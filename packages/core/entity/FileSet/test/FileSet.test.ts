@@ -2,8 +2,8 @@ import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 import { createSandbox } from "sinon";
 
-import FileFilter from "../../FileFilter";
 import FileSet from "../";
+import FileFilter from "../../FileFilter";
 import FileSort, { SortOrder } from "../../FileSort";
 import { makeFileDetailMock } from "../../FileDetail/mocks";
 import HttpFileService from "../../../services/FileService/HttpFileService";
@@ -51,11 +51,7 @@ describe("FileSet", () => {
 
         it("returns slices of the file list represented by the FileSet, specified by index position", async () => {
             const fileService = new HttpFileService();
-            sandbox.replace(fileService, "getFiles", () =>
-                Promise.resolve(
-                    files.slice(1, 4)
-                )
-            );
+            sandbox.replace(fileService, "getFiles", () => Promise.resolve(files.slice(1, 4)));
             const fileSet = new FileSet({ fileService });
             expect(await fileSet.fetchFileRange(1, 3)).to.deep.equal(files.slice(1, 4)); // Array.prototype.slice is exclusive of end bound
         });
@@ -137,11 +133,7 @@ describe("FileSet", () => {
 
         const fileService = new HttpFileService();
         const fileSet = new FileSet({ fileService });
-        sandbox.replace(fileService, "getFiles", () =>
-            Promise.resolve(
-                files.slice()
-            )
-        );
+        sandbox.replace(fileService, "getFiles", () => Promise.resolve(files.slice()));
 
         beforeEach(async () => {
             // side-effect of loading file ids for the file set

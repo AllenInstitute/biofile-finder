@@ -1,17 +1,17 @@
 import "normalize.css";
 import { initializeIcons, loadTheme } from "@fluentui/react";
+import classNames from "classnames";
 import * as React from "react";
 import { batch, useDispatch, useSelector } from "react-redux";
 
-import AnnotationSidebar from "./components/AnnotationSidebar";
 import ContextMenu from "./components/ContextMenu";
 import Modal from "./components/Modal";
 import DirectoryTree from "./components/DirectoryTree";
 import FileDetails from "./components/FileDetails";
-import FileExplorerURLBar from "./components/FileExplorerURLBar";
-import HeaderRibbon from "./components/HeaderRibbon";
+import GlobalActionButtonRow from "./components/GlobalActionButtonRow";
 import StatusMessage from "./components/StatusMessage";
 import TutorialTooltip from "./components/TutorialTooltip";
+import QuerySidebar from "./components/QuerySidebar";
 import { FileExplorerServiceBaseUrl } from "./constants";
 import { interaction, metadata, selection } from "./state";
 import { PlatformDependentServices } from "./state/interaction/actions";
@@ -48,6 +48,8 @@ export default function App(props: AppProps) {
     } = props;
 
     const dispatch = useDispatch();
+    const isDarkTheme = useSelector(selection.selectors.getIsDarkTheme);
+    const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
 
     // Set platform-dependent services in state
     React.useEffect(() => {
@@ -66,19 +68,22 @@ export default function App(props: AppProps) {
     }, [dispatch, fileExplorerServiceBaseUrl]);
 
     return (
-        <div id={ROOT_ELEMENT_ID} className={styles.root}>
-            <div className={styles.content}>
-                <HeaderRibbon className={styles.headerRibbon} />
-                <div className={styles.everythingExceptHeaderRibbon}>
-                    <div className={styles.core}>
-                        {/* <FileExplorerURLBar className={styles.urlBar} /> */}
-                        <div className={styles.annotationHierarchyAndFileList}>
-                            <AnnotationSidebar className={styles.annotationHierarchy} />
-                            <DirectoryTree className={styles.fileList} />
-                        </div>
+        <div
+            id={ROOT_ELEMENT_ID}
+            className={classNames(styles.root, {
+                [styles.lightTheme]: !isDarkTheme,
+                [styles.smallFont]: shouldDisplaySmallFont,
+            })}
+        >
+            <div className={styles.coreAndFileDetails}>
+                <div className={styles.querySidebarAndCenter}>
+                    <QuerySidebar className={styles.querySidebar} />
+                    <div className={styles.center}>
+                        <GlobalActionButtonRow className={styles.globalButtonRow} />
+                        <DirectoryTree className={styles.fileList} />
                     </div>
-                    <FileDetails className={styles.fileDetails} />
                 </div>
+                <FileDetails className={styles.fileDetails} />
             </div>
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
             <StatusMessage />

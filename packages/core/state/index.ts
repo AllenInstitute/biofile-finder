@@ -3,11 +3,12 @@ import axios, { AxiosInstance } from "axios";
 import { combineReducers, AnyAction, Middleware } from "redux";
 import { createLogicMiddleware } from "redux-logic";
 
-import { PersistedConfig, PersistedConfigKeys } from "../services/PersistentConfigService";
-
 import interaction, { InteractionStateBranch } from "./interaction";
 import metadata, { MetadataStateBranch } from "./metadata";
 import selection, { SelectionStateBranch } from "./selection";
+import FileExplorerURL from "../entity/FileExplorerURL";
+import { PersistedConfig, PersistedConfigKeys } from "../services/PersistentConfigService";
+import Annotation from "../entity/Annotation";
 
 export { interaction, metadata, selection };
 
@@ -57,14 +58,25 @@ interface CreateStoreOptions {
 }
 export function createReduxStore(options: CreateStoreOptions = {}) {
     const { persistedConfig } = options;
+    const queries = persistedConfig?.[PersistedConfigKeys.Queries]?.length
+        ? persistedConfig?.[PersistedConfigKeys.Queries]
+        : [{ url: FileExplorerURL.DEFAULT_FMS_URL, name: "New AICS Query" }];
+    const rawDisplayAnnotations =
+        persistedConfig && persistedConfig[PersistedConfigKeys.DisplayAnnotations];
+    const displayAnnotations = rawDisplayAnnotations
+        ? rawDisplayAnnotations.map((annotation) => new Annotation(annotation))
+        : [];
     const preloadedState: State = mergeState(initialState, {
         interaction: {
             csvColumns: persistedConfig?.[PersistedConfigKeys.CsvColumns],
             hasUsedApplicationBefore:
                 persistedConfig?.[PersistedConfigKeys.HasUsedApplicationBefore],
-            lastUsedCollection: persistedConfig?.[PersistedConfigKeys.LastUsedCollection],
             userSelectedApplications:
                 persistedConfig?.[PersistedConfigKeys.UserSelectedApplications],
+        },
+        selection: {
+            displayAnnotations,
+            queries,
         },
     });
     return configureStore<State>({

@@ -1,4 +1,4 @@
-import { ActionButton, IButtonStyles } from "@fluentui/react";
+import { DefaultButton } from "@fluentui/react";
 import { throttle } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,7 +7,7 @@ import { interaction } from "../../state";
 import FileDetail from "../../entity/FileDetail";
 
 interface DownloadProps {
-    buttonStyles?: IButtonStyles;
+    className?: string;
     fileDetails: FileDetail | null;
 }
 
@@ -29,7 +29,7 @@ export default function Download(props: DownloadProps) {
         }
 
         return throttle(() => {
-            dispatch(interaction.actions.downloadFiles([fileDetails.details]));
+            dispatch(interaction.actions.downloadFiles([fileDetails]));
         }, 1000); // 1s, in ms (arbitrary)
     }, [dispatch, fileDetails]);
 
@@ -38,14 +38,14 @@ export default function Download(props: DownloadProps) {
     }
 
     return (
-        <ActionButton
+        <DefaultButton
             ariaLabel="Download file"
+            className={props.className}
             iconProps={{ iconName: "Download" }}
             disabled={processStatuses.some((status) =>
                 status.data.fileId?.includes(fileDetails.id)
             )}
             onClick={onDownload}
-            styles={props.buttonStyles}
             title="Download"
             text="Download"
         />

@@ -4,13 +4,13 @@ import { map } from "lodash";
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
+import ColumnPicker from "./ColumnPicker";
 import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems from "../ContextMenu/items";
 import FileRow, { CellConfig } from "../../components/FileRow";
 import { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
 import { interaction, selection } from "../../state";
-import FileListColumnPicker from "./FileListColumnPicker";
 
 import styles from "./Header.module.css";
 
@@ -44,8 +44,6 @@ function Header(
             displayValue: (
                 <span
                     className={classNames(styles.headerCell, {
-                        // TODO: Can anything be sorted..? should it...?
-                        [styles.clickable]: true,
                         [styles.bold]: isSortedColumn,
                     })}
                     onClick={() => dispatch(selection.actions.sortColumn(annotation.name))}
@@ -75,7 +73,7 @@ function Header(
                             key: "available-annotations",
                             text: "Available annotations",
                             onRender() {
-                                return <FileListColumnPicker />;
+                                return <ColumnPicker />;
                             },
                         },
                     ],

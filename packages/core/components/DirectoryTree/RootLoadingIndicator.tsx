@@ -8,6 +8,7 @@ interface LoadingIndicatorProps {
     visible: boolean;
 }
 
+// TODO: unused?
 export default function RootLoadingIndicator({ visible }: LoadingIndicatorProps) {
     return (
         <div className={classNames(styles.loadingIndicator, { [styles.hidden]: !visible })}>

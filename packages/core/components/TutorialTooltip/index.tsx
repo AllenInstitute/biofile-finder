@@ -38,11 +38,6 @@ export default function TutorialTooltip() {
             styles={{
                 root: {
                     className: styles.tutorialContainer,
-                    " div": {
-                        // Equivalent to --primary-brand-purple defined in App.module.css
-                        backgroundColor: "#827aa3",
-                        color: "white",
-                    },
                 },
             }}
         >

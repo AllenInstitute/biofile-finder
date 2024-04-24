@@ -1,8 +1,7 @@
-import { find, get as _get, sortBy } from "lodash";
+import { get as _get, sortBy } from "lodash";
 
 import annotationFormatterFactory, { AnnotationFormatter } from "../AnnotationFormatter";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
-import { FmsFile, FmsFileAnnotation } from "../../services/FileService";
+import FileDetail from "../FileDetail";
 import { AnnotationValue } from "../../services/AnnotationService";
 
 /**
@@ -15,6 +14,20 @@ export interface AnnotationResponse {
     type: string;
     units?: string;
 }
+
+// TypeScript (3.9) raises a bizarre error if this is an enum
+// Reference issue without clear resolution: https://github.com/microsoft/TypeScript/issues/6307
+export const AnnotationName = {
+    KIND: "Kind", // matches an annotation in filemetadata.annotation
+    FILE_ID: "file_id", // a file attribute (top-level prop on file documents in MongoDb)
+    FILE_NAME: "file_name", // a file attribute (top-level prop on file documents in MongoDb)
+    FILE_SIZE: "file_size", // a file attribute (top-level prop on file documents in MongoDb)
+    FILE_PATH: "file_path", // a file attribute (top-level prop on file documents in MongoDb)
+    PLATE_BARCODE: "Plate Barcode",
+    THUMBNAIL_PATH: "thumbnail", // (optional) file attribute (top-level prop on the file documents in MongoDb)
+    TYPE: "Type", // matches an annotation in filemetadata.annotation
+    UPLOADED: "uploaded", // matches an annotation in filemetadata.annotation
+};
 
 /**
  * Representation of an annotation available for filtering, grouping, or sorting files from FMS.
@@ -34,14 +47,9 @@ export default class Annotation {
         );
 
         // put an annotation from "TOP_LEVEL_ANNOTATIONS" ahead of the others
-        return sortBy(sortedByDisplayName, (annotation) => {
-            const indexWithinTopLevelAnnotations = TOP_LEVEL_FILE_ANNOTATIONS.indexOf(annotation);
-            if (indexWithinTopLevelAnnotations > -1) {
-                return indexWithinTopLevelAnnotations;
-            }
-
-            return Number.POSITIVE_INFINITY;
-        });
+        return sortBy(sortedByDisplayName, (annotation) =>
+            annotation.name === AnnotationName.FILE_NAME ? 0 : Number.POSITIVE_INFINITY
+        );
     }
 
     constructor(annotation: AnnotationResponse) {
@@ -66,6 +74,10 @@ export default class Annotation {
         return this.annotation.type;
     }
 
+    public get units(): string | undefined {
+        return this.annotation.units;
+    }
+
     /**
      * Get the annotation this instance represents from a given FmsFile. An annotation on an FmsFile
      * can either be at the "top-level" of the document or it can be within it's "annotations" list.
@@ -79,18 +91,15 @@ export default class Annotation {
      *  const fileSizeAnnotation = new Annotation({ annotation_name: "file_size", ... }, numberFormatter);
      *  const displayValue = fileSizeAnnotation.extractFromFile(fmsFile); // ~= "50B"
      */
-    public extractFromFile(file: FmsFile): string {
+    public extractFromFile(file: FileDetail): string {
         let value: string | undefined | any[];
 
-        if (file.hasOwnProperty(this.name)) {
+        if (file.details.hasOwnProperty(this.name)) {
             // "top-level" annotation
-            value = _get(file, this.name, Annotation.MISSING_VALUE);
+            value = _get(file.details, this.name, Annotation.MISSING_VALUE);
         } else {
             // part of the "annotations" list
-            const correspondingAnnotation = find<FmsFileAnnotation>(
-                file.annotations,
-                (annotation) => annotation.name === this.name
-            );
+            const correspondingAnnotation = file.getAnnotation(this.name);
             if (!correspondingAnnotation) {
                 value = Annotation.MISSING_VALUE;
             } else {

@@ -41,6 +41,12 @@ rendered application, like `desktop` or `web`.
 To make that happen:
 1. Navigate to either `packages/desktop` or `packages/web` and run `npm run start`.
 
+### Testing
+Most components in the project have associated unit tests; to run the full suite, run `npm run test`.
+The unit tests for each of the packages can also be run independently, using `npm run test:core`, `npm run test:desktop`, 
+or `npm run test:web`, respectively.
+
+To run the linter, use `npm run lint`, and for typechecking, use `npm run typeCheck`.
 
 ### Adding a dependency to to either the `desktop` or `web` subpackages
 In the case that you need to add either a dependency or devDependency to either the `desktop` or `web` subpackages within this

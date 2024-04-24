@@ -9,12 +9,12 @@ import {
     requestCollections,
 } from "../actions";
 import metadataLogics from "../logics";
-import { initialState, interaction, selection } from "../../";
+import { initialState, interaction } from "../../";
 import DatasetService, { Dataset } from "../../../services/DatasetService";
 
 describe("Metadata logics", () => {
     describe("requestAnnotations", () => {
-        it("Fires RECEIVE_ANNOTATIONS and SELECT_DISPLAY_ANNOTATION actions after processing REQUEST_ANNOTATIONS action", async () => {
+        it("Fires RECEIVE_ANNOTATIONS action after processing REQUEST_ANNOTATIONS action", async () => {
             // arrange
             const state = mergeState(initialState, {
                 interaction: {
@@ -23,7 +23,7 @@ describe("Metadata logics", () => {
             });
 
             const responseStub = {
-                when: "test/file-explorer-service/1.0/annotations",
+                when: () => true,
                 respondWith: {
                     data: {
                         data: [
@@ -49,12 +49,7 @@ describe("Metadata logics", () => {
             await logicMiddleware.whenComplete();
 
             // assert
-            expect(
-                actions.includesMatchesInOrder([
-                    { type: RECEIVE_ANNOTATIONS },
-                    { type: selection.actions.SELECT_DISPLAY_ANNOTATION },
-                ])
-            ).to.equal(true);
+            expect(actions.includesMatch({ type: RECEIVE_ANNOTATIONS })).to.be.true;
         });
     });
 

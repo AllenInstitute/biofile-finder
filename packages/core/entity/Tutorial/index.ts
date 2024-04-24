@@ -11,15 +11,14 @@ interface TutorialStep {
  * find and display the corresponding "message".
  */
 export default class Tutorial {
-    public static readonly ANNOTATION_HIERARCHY_ID = "annotation-hierarchy";
-    public static readonly ANNOTATION_LIST_ID = "annotation-list";
-    public static readonly COLLECTIONS_TITLE_ID = "collections-title";
+    public static readonly ADD_QUERY_BUTTON_ID = "add-query-button";
     public static readonly COLUMN_HEADERS_ID = "column-headers";
-    public static readonly COPY_URL_BUTTON_ID = "copy-url-button";
     public static readonly FILE_ATTRIBUTE_FILTER_ID = "file-attribute-filter";
     public static readonly FILE_LIST_ID = "file-list";
-    public static readonly URL_BOX_ID = "url-box";
-    public static readonly VIEWS_TITLE_ID = "views-title";
+    public static readonly FILTER_HEADER_ID = "filter-header-id";
+    public static readonly GROUPING_HEADER_ID = "grouping-header";
+    public static readonly SHARE_BUTTON_ID = "share-button";
+    public static readonly SORT_HEADER_ID = "sort-header";
 
     public readonly title: string;
     private steps: TutorialStep[];

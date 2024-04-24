@@ -5,7 +5,6 @@ import { uniqueId } from "lodash";
 import Annotation from "../../entity/Annotation";
 import ApplicationInfoService from "../../services/ApplicationInfoService";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
-import { Dataset, PythonicDataAccessSnippet } from "../../services/DatasetService";
 import ExecutionEnvService from "../../services/ExecutionEnvService";
 import FileDownloadService from "../../services/FileDownloadService";
 import FileFilter from "../../entity/FileFilter";
@@ -15,7 +14,7 @@ import PersistentConfigService, {
     UserSelectedApplication,
 } from "../../services/PersistentConfigService";
 import { DatabaseService, NotificationService } from "../../services";
-import { FmsFile } from "../../services/FileService";
+import FileDetail from "../../entity/FileDetail";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -72,15 +71,15 @@ export const DOWNLOAD_FILES = makeConstant(STATE_BRANCH_NAME, "download-files");
 
 export interface DownloadFilesAction {
     payload: {
-        files?: FmsFile[];
+        files?: FileDetail[];
         shouldPromptForDownloadDirectory: boolean;
     };
     type: string;
 }
 
 export function downloadFiles(
-    files?: FmsFile[],
-    shouldPromptForDownloadDirectory = true // TODO: Remove
+    files?: FileDetail[],
+    shouldPromptForDownloadDirectory = false
 ): DownloadFilesAction {
     return {
         payload: {
@@ -424,168 +423,6 @@ export function processFailure(processId: string, msg: string): ProcessFailureAc
 }
 
 /**
- * UPDATE_COLLECTION
- *
- * Intention to update the metadata of an existing collection.
- */
-export const UPDATE_COLLECTION = makeConstant(STATE_BRANCH_NAME, "update-collection");
-
-export interface UpdateCollectionAction {
-    payload?: {
-        expiration?: Date;
-        private: boolean;
-    };
-    type: string;
-}
-
-export function updateCollection(config?: {
-    expiration?: Date;
-    private: boolean;
-}): UpdateCollectionAction {
-    return {
-        payload: config,
-        type: UPDATE_COLLECTION,
-    };
-}
-
-/**
- * GENERATE_SHAREABLE_FILE_SELECTION_LINK
- *
- * Intention to generate a shareable link to the selected files.
- */
-export const GENERATE_SHAREABLE_FILE_SELECTION_LINK = makeConstant(
-    STATE_BRANCH_NAME,
-    "generate-shareable-file-selection-link"
-);
-
-export interface GenerateShareableFileSelectionLinkAction {
-    payload: {
-        annotations?: string[];
-        expiration?: Date;
-        filters?: FileFilter[];
-        fixed?: boolean;
-        private?: boolean;
-        name?: string;
-    };
-    type: string;
-}
-
-export function generateShareableFileSelectionLink(
-    config: {
-        annotations?: string[];
-        expiration?: Date;
-        filters?: FileFilter[];
-        fixed?: boolean;
-        private?: boolean;
-        name?: string;
-    } = {}
-): GenerateShareableFileSelectionLinkAction {
-    return {
-        payload: config,
-        type: GENERATE_SHAREABLE_FILE_SELECTION_LINK,
-    };
-}
-
-/**
- * SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION
- *
- * Intention to inform user of successful generation of shareable link to selected files.
- */
-export const SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION = makeConstant(
-    STATE_BRANCH_NAME,
-    "succeed-shareable-file-selection-link-generation"
-);
-
-export interface SucceedShareableFileSelectionLinkGenerationAction {
-    payload: Dataset;
-    type: string;
-}
-
-export function succeedShareableFileSelectionLinkGeneration(
-    collection: Dataset
-): SucceedShareableFileSelectionLinkGenerationAction {
-    return {
-        payload: collection,
-        type: SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
-    };
-}
-
-/**
- * SUCCEED_PYTHON_SNIPPET_GENERATION
- *
- * Intention to inform the user of the success of a python snippet generation.
- */
-export const SUCCEED_PYTHON_SNIPPET_GENERATION = makeConstant(
-    STATE_BRANCH_NAME,
-    "succeed-python-snippet-generation"
-);
-
-export interface SucceedPythonSnippetGeneration {
-    type: string;
-    payload: {
-        processId: string;
-        pythonSnippet: PythonicDataAccessSnippet;
-    };
-}
-
-export function succeedPythonSnippetGeneration(
-    processId: string,
-    pythonSnippet: PythonicDataAccessSnippet
-): SucceedPythonSnippetGeneration {
-    return {
-        type: SUCCEED_PYTHON_SNIPPET_GENERATION,
-        payload: {
-            processId,
-            pythonSnippet,
-        },
-    };
-}
-
-/**
- * SHOW_CREATE_COLLECTION_DIALOG
- *
- * Intention to show the dialog for generating a custom collection.
- */
-export const SHOW_CREATE_COLLECTION_DIALOG = makeConstant(
-    STATE_BRANCH_NAME,
-    "show-create-collection-dialog"
-);
-
-export interface ShowCreateCollectionDialogAction {
-    type: string;
-    payload: FileFilter[];
-}
-
-export function showCreateCollectionDialog(
-    fileFilters: FileFilter[] = []
-): ShowCreateCollectionDialogAction {
-    return {
-        type: SHOW_CREATE_COLLECTION_DIALOG,
-        payload: fileFilters,
-    };
-}
-
-/**
- * SHOW_EDIT_COLLECTION_DIALOG
- *
- * Intention to show the dialog for editing an existing collection.
- */
-export const SHOW_EDIT_COLLECTION_DIALOG = makeConstant(
-    STATE_BRANCH_NAME,
-    "show-edit-collection-dialog"
-);
-
-export interface ShowEditCollectionDialogAction {
-    type: string;
-}
-
-export function showEditCollectionDialog(): ShowEditCollectionDialogAction {
-    return {
-        type: SHOW_EDIT_COLLECTION_DIALOG,
-    };
-}
-
-/**
  * SHOW_MANIFEST_DOWNLOAD_DIALOG
  *
  * Intention to show the manifest download dialog.
@@ -597,35 +434,22 @@ export const SHOW_MANIFEST_DOWNLOAD_DIALOG = makeConstant(
 
 export interface ShowManifestDownloadDialogAction {
     type: string;
-    payload: FileFilter[];
+    payload: {
+        fileFilters: FileFilter[];
+        fileType: "csv" | "parquet";
+    };
 }
 
 export function showManifestDownloadDialog(
+    fileType: "csv" | "parquet",
     fileFilters: FileFilter[] = []
 ): ShowManifestDownloadDialogAction {
     return {
         type: SHOW_MANIFEST_DOWNLOAD_DIALOG,
-        payload: fileFilters,
-    };
-}
-
-/**
- * SHOW_TIPS_AND_TRICKS_DIALOG
- *
- * Intention to show the tips and tricks dialog.
- */
-export const SHOW_TIPS_AND_TRICKS_DIALOG = makeConstant(
-    STATE_BRANCH_NAME,
-    "show-tips-and-tricks-dialog"
-);
-
-export interface ShowTipsAndTricksDialogAction {
-    type: string;
-}
-
-export function showTipsAndTricksDialog(): ShowTipsAndTricksDialogAction {
-    return {
-        type: SHOW_TIPS_AND_TRICKS_DIALOG,
+        payload: {
+            fileFilters,
+            fileType,
+        },
     };
 }
 
@@ -685,13 +509,16 @@ export const OPEN_WITH_DEFAULT = makeConstant(STATE_BRANCH_NAME, "open-with-defa
 
 export interface OpenWithDefaultAction {
     payload: {
-        files?: FmsFile[];
+        files?: FileDetail[];
         filters?: FileFilter[];
     };
     type: string;
 }
 
-export function openWithDefault(filters?: FileFilter[], files?: FmsFile[]): OpenWithDefaultAction {
+export function openWithDefault(
+    filters?: FileFilter[],
+    files?: FileDetail[]
+): OpenWithDefaultAction {
     return {
         payload: { files, filters },
         type: OPEN_WITH_DEFAULT,
@@ -709,7 +536,7 @@ export interface OpenWithAction {
     payload: {
         app: UserSelectedApplication;
         filters?: FileFilter[];
-        files?: FmsFile[];
+        files?: FileDetail[];
     };
     type: string;
 }
@@ -717,7 +544,7 @@ export interface OpenWithAction {
 export function openWith(
     app: UserSelectedApplication,
     filters?: FileFilter[],
-    files?: FmsFile[]
+    files?: FileDetail[]
 ): OpenWithAction {
     return {
         payload: {
@@ -730,20 +557,22 @@ export function openWith(
 }
 
 /**
- * TODO
+ * BROWSE_FOR_NEW_DATA_SOURCE
+ *
+ * Intention to prompt the user to browse for a new data source.
  */
-export const BROWSE_FOR_COLLECTION_SOURCE = makeConstant(
+export const BROWSE_FOR_NEW_DATA_SOURCE = makeConstant(
     STATE_BRANCH_NAME,
-    "browse-for-collection-source"
+    "browse-for-new-data-source"
 );
 
-export interface BrowseForCollectionSourceAction {
+export interface BrowseForNewDataSourceAction {
     type: string;
 }
 
-export function browseForCollectionSource(): BrowseForCollectionSourceAction {
+export function browseForNewDataSource(): BrowseForNewDataSourceAction {
     return {
-        type: BROWSE_FOR_COLLECTION_SOURCE,
+        type: BROWSE_FOR_NEW_DATA_SOURCE,
     };
 }
 
@@ -765,25 +594,6 @@ export function setVisibleModal(visibleModal: ModalType): SetVisibleModalAction 
     return {
         type: SET_VISIBLE_MODAL,
         payload: { visibleModal },
-    };
-}
-
-/**
- * GENERATE_PYTHON_SNIPPET
- *
- * Intention to generate a python snippet for a collection.
- */
-export const GENERATE_PYTHON_SNIPPET = makeConstant(STATE_BRANCH_NAME, "generate-python-snippet");
-
-export interface GeneratePythonSnippetAction {
-    payload: Dataset;
-    type: string;
-}
-
-export function generatePythonSnippet(collection: Dataset): GeneratePythonSnippetAction {
-    return {
-        payload: collection,
-        type: GENERATE_PYTHON_SNIPPET,
     };
 }
 

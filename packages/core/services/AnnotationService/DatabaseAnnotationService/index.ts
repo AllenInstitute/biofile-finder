@@ -4,12 +4,12 @@ import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
+import SQLBuilder from "../../../entity/SQLBuilder";
 
 interface Config {
-    database: DatabaseService;
+    databaseService: DatabaseService;
 }
 
-// TODO: move into database?
 interface DescribeQueryResult {
     [key: string]: string;
     column_name: string;
@@ -23,21 +23,21 @@ interface SummarizeQueryResult {
 }
 
 /**
- * todo
+ * Service responsible for fetching annotation related metadata directly from a database
  */
-export default class CsvAnnotationService implements AnnotationService {
-    private readonly database: DatabaseService;
+export default class DatabaseAnnotationService implements AnnotationService {
+    private readonly databaseService: DatabaseService;
 
-    constructor(config: Config = { database: new DatabaseServiceNoop() }) {
-        this.database = config.database;
+    constructor(config: Config = { databaseService: new DatabaseServiceNoop() }) {
+        this.databaseService = config.databaseService;
     }
 
     private static columnTypeToAnnotationType(columnType: string): string {
         switch (columnType) {
-            // TODO: use column_type to get real type...?
             case "INTEGER":
             case "BIGINT":
-                return AnnotationType.NUMBER;
+            // TODO: Add support for column types
+            // return AnnotationType.NUMBER;
             case "VARCHAR":
             case "TEXT":
             default:
@@ -49,15 +49,15 @@ export default class CsvAnnotationService implements AnnotationService {
      * Fetch all annotations.
      */
     public async fetchAnnotations(): Promise<Annotation[]> {
-        const sql = `DESCRIBE ${this.database.table}`;
-        const rows = (await this.database.query(sql)) as DescribeQueryResult[];
+        const sql = `DESCRIBE ${this.databaseService.table}`;
+        const rows = (await this.databaseService.query(sql)) as DescribeQueryResult[];
         return rows.map(
             (row) =>
                 new Annotation({
                     annotationDisplayName: row["column_name"],
                     annotationName: row["column_name"],
                     description: "",
-                    type: CsvAnnotationService.columnTypeToAnnotationType(row["column_type"]),
+                    type: DatabaseAnnotationService.columnTypeToAnnotationType(row["column_type"]),
                 })
         );
     }
@@ -67,8 +67,11 @@ export default class CsvAnnotationService implements AnnotationService {
      */
     public async fetchValues(annotation: string): Promise<AnnotationValue[]> {
         const select_key = "select_key";
-        const sql = `SELECT DISTINCT "${annotation}" AS ${select_key} FROM ${this.database.table}`;
-        const rows = await this.database.query(sql);
+        const sql = new SQLBuilder()
+            .select(`DISTINCT "${annotation}" AS ${select_key}`)
+            .from(this.databaseService.table)
+            .toSQL();
+        const rows = await this.databaseService.query(sql);
         return [
             ...rows.reduce((valueSet, row) => {
                 `${row[select_key]}`.split(",").forEach((value) => valueSet.add(value.trim()));
@@ -94,6 +97,7 @@ export default class CsvAnnotationService implements AnnotationService {
             annotationValues.push(filter.value);
             return { ...map, [filter.name]: annotationValues };
         }, {} as { [name: string]: (string | null)[] });
+
         hierarchy
             // Map before filter because index is important to map to the path
             .forEach((annotation, index) => {
@@ -101,19 +105,21 @@ export default class CsvAnnotationService implements AnnotationService {
                     filtersByAnnotation[annotation] = [index < path.length ? path[index] : null];
                 }
             });
-        const whereFilters = Object.keys(filtersByAnnotation).map((annotation) => {
+
+        const sqlBuilder = new SQLBuilder()
+            .select(`DISTINCT "${hierarchy[path.length]}"`)
+            .from(this.databaseService.table);
+        Object.keys(filtersByAnnotation).forEach((annotation) => {
             const annotationValues = filtersByAnnotation[annotation];
             if (annotationValues[0] === null) {
-                return `"${annotation}" IS NOT NULL`;
+                sqlBuilder.where(`"${annotation}" IS NOT NULL`);
+            } else {
+                sqlBuilder.where(
+                    annotationValues.map((value) => `"${annotation}" = '${value}'`).join(") OR (")
+                );
             }
-            return annotationValues.map((value) => `"${annotation}" = '${value}'`).join(") OR (");
         });
-        const sql = `                                       
-            SELECT DISTINCT "${hierarchy[path.length]}"
-            FROM ${this.database.table}                                    
-            WHERE (${whereFilters.join(") AND (")})
-        `;
-        const rows = await this.database.query(sql);
+        const rows = await this.databaseService.query(sqlBuilder.toSQL());
         return rows.map((row) => row[hierarchy[path.length]]);
     }
 
@@ -122,15 +128,12 @@ export default class CsvAnnotationService implements AnnotationService {
      * file set
      */
     public async fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]> {
-        const whereConditions = annotations
-            .map((annotation) => `"${annotation}" IS NOT NULL`)
-            .join(" AND ");
-        const sql = `
-            SUMMARIZE SELECT * 
-            FROM ${this.database.table}
-            ${whereConditions ? `WHERE ${whereConditions}` : ""}
-        `;
-        const rows = (await this.database.query(sql)) as SummarizeQueryResult[];
+        const sql = new SQLBuilder()
+            .summarize()
+            .from(this.databaseService.table)
+            .where(annotations.map((annotation) => `"${annotation}" IS NOT NULL`))
+            .toSQL();
+        const rows = (await this.databaseService.query(sql)) as SummarizeQueryResult[];
         const annotationSet = new Set(annotations);
         return rows
             .reduce((annotations, row) => {

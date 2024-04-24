@@ -1,0 +1,32 @@
+.clear-button, .clear-button i {
+    background-color: var(--primary-background-color);
+    color: var(--primary-text-color);
+}
+
+.clear-button:hover, .clear-button:hover i {
+    background-color: var(--highlight-background-color);
+    color: var(--highlight-text-color);
+}
+
+.date-range-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.date-range-separator {
+    align-items: center;
+    display: flex;
+    font-size: small;
+    margin: 0 2px;
+}
+
+.filter-input div {
+    background-color: var(--primary-background-color);
+    border: none;
+    color: var(--primary-text-color);
+}
+
+.title {
+    margin: 0;
+    padding-bottom: var(--margin);
+}

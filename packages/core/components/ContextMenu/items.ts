@@ -1,13 +1,11 @@
-import { ContextualMenuItemType, IContextualMenuItem } from "@fluentui/react";
 import { Dispatch } from "redux";
 
 import { interaction } from "../../state";
+import { IContextualMenuItem } from "@fluentui/react";
 
 export enum ContextMenuActions {
     COPY = "copy",
-    COLLECTION = "collection",
-    CUSTOM_COLLECTION = "custom-collection",
-    DEFAULT_COLLECTION = "default-collection",
+    CSV = "csv",
     DOWNLOAD = "download",
     MODIFY_COLUMNS = "modify-columns",
     CSV = "csv",
@@ -15,19 +13,19 @@ export enum ContextMenuActions {
     OPEN = "open",
     OPEN_WITH = "open-with",
     OPEN_WITH_OTHER = "open-with-other",
+    PARQUET = "parquet",
     PASTE = "paste",
     SAVE_AS = "save-as",
-    OPEN_3D_VIEWER = "open-3d-viewer",
+    OPEN_3D_WEB_VIEWER = "open-3d-web-viewer",
     OPEN_AS_URL = "open-as-url",
     OPEN_PLATE_UI = "open-plate-ui",
 }
 
-const MENU_HEADER_STYLES = {
-    label: {
-        // Color pulled from App.module.css "primary-brand-purple"
-        color: "#827aa3",
-    },
-};
+interface ContextMenuItems {
+    ACCESS: IContextualMenuItem[];
+    COPY: IContextualMenuItem;
+    MODIFY_COLUMNS: IContextualMenuItem;
+}
 
 interface ContextMenuItems {
     ACCESS: IContextualMenuItem[],
@@ -44,65 +42,89 @@ interface ContextMenuItems {
 export default function getContextMenuItems(dispatch: Dispatch): ContextMenuItems {
     return {
         ACCESS: [
-            // TODO: This would still be cool on desktop
-            // {
-            //     key: ContextMenuActions.OPEN,
-            //     text: "Open",
-            //     onClick() {
-            //         dispatch(interaction.actions.openWithDefault());
-            //     },
-            // },
+            // TODO: Unavailable on web (can't guess)
+            {
+                key: ContextMenuActions.OPEN,
+                text: "Open",
+                iconProps: {
+                    iconName: "OpenInNewWindow",
+                },
+                onClick() {
+                    dispatch(interaction.actions.openWithDefault());
+                },
+            },
             {
                 key: ContextMenuActions.OPEN_WITH,
-                text: "Open with",
+                text: "Open With",
+                iconProps: {
+                    iconName: "OpenInNewWindow",
+                },
                 // Dynamically generated application options will/should be
                 // inserted here
             },
             {
                 key: ContextMenuActions.SAVE_AS,
-                text: "Save as",
+                text: "Save Metadata As",
+                iconProps: {
+                    iconName: "Saveas",
+                },
                 subMenuProps: {
                     items: [
                         {
                             key: ContextMenuActions.CSV,
                             text: "CSV",
-                            title: "CSV manifest containing the selected files",
+                            secondaryText: "Data Source",
+                            iconProps: {
+                                iconName: "Folder",
+                            },
+                            title: "Download a CSV of the metadata of the selected files",
                             onClick() {
-                                dispatch(interaction.actions.showManifestDownloadDialog());
+                                dispatch(interaction.actions.showManifestDownloadDialog("csv"));
                             },
                         },
-                        {
-                            key: ContextMenuActions.COMPRESSED_DATA_SOURCE,
-                            text: "Compressed Data Source",
-                            title: "New data source file containing the selected files",
-                            onClick() {
-                                dispatch(interaction.actions.showManifestDownloadDialog());
-                            },
-                        },
-                    ]
+                        // TODO: Enable downloading as parquet file
+                        // {
+                        //     key: ContextMenuActions.PARQUET,
+                        //     text: "Parquet",
+                        // secondaryText: "Data Source",
+                        // iconProps: {
+                        //     iconName: "Folder",
+                        // },
+                        //     title: "Download a Parquet file of the metadata of the selected files",
+                        //     onClick() {
+                        //         dispatch(interaction.actions.showManifestDownloadDialog("parquet"));
+                        //     },
+                        // }
+                    ],
                 },
             },
             {
                 key: ContextMenuActions.DOWNLOAD,
                 text: "Download",
-                title: "Download selected files",
+                title: "Download selected files to a specific directory",
+                iconProps: {
+                    iconName: "Download",
+                },
                 onClick() {
-                    dispatch(interaction.actions.downloadFiles());
+                    dispatch(interaction.actions.downloadFiles(undefined, true));
                 },
             },
         ],
         COPY: {
             key: ContextMenuActions.COPY,
             text: "Copy",
+            title: "Copy to clipboard",
+            iconProps: {
+                iconName: "Copy",
+            },
         },
         MODIFY_COLUMNS: {
             key: ContextMenuActions.MODIFY_COLUMNS,
             text: "Modify columns",
             title: "Modify columns displayed in the file list",
-        },
-        PASTE: {
-            key: ContextMenuActions.PASTE,
-            text: "Paste",
+            iconProps: {
+                iconName: "TripleColumnEdit",
+            },
         },
     };
 }

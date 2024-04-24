@@ -1,25 +1,11 @@
 .container {
-    --row-count-margin-top: 0.75em;
-    --row-count-margin-bottom: 0.1em;
+    --row-count-margin-top: 0.05em;
+    --row-count-margin-bottom: 1em;
     --row-count-intrisic-height: 12px; /* margin values are relative to this because it is used in font-size declaration */
     --row-count-height: calc(var(--row-count-margin-top) + var(--row-count-margin-bottom) + var(--row-count-intrisic-height));
 
     width: 100%;
-    height: 100%;
-}
-
-.empty-file-list-container {
-    display: flex;
-    height: 100%;
-}
-
-.empty-file-list-message {
-    margin: auto;
-    text-align: center;
-}
-
-.empty-search-icon {
-    font-size: 7em;
+    height: calc(100% - var(--margin));
 }
 
 .list {

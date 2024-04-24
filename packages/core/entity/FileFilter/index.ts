@@ -3,6 +3,13 @@ export interface FileFilterJson {
     value: any;
 }
 
+// Filter with formatted value
+export interface Filter {
+    name: string;
+    value: any;
+    displayValue: string;
+}
+
 /**
  * Stub for a filter used to constrain a listing of files to those that match a particular condition. Should be
  * serializable to a URL query string-friendly format.

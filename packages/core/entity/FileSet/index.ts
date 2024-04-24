@@ -3,8 +3,10 @@ import LRUCache from "lru-cache";
 
 import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
-import FileService, { FmsFile } from "../../services/FileService";
+import FileService from "../../services/FileService";
 import FileServiceNoop from "../../services/FileService/FileServiceNoop";
+import SQLBuilder from "../SQLBuilder";
+import FileDetail from "../FileDetail";
 
 interface Opts {
     fileService: FileService;
@@ -31,7 +33,7 @@ export default class FileSet {
     // passed to FileList changes. InfiniteLoader will not otherwise refetch data without being scrolled.
     public instanceId = uniqueId("FileSet");
 
-    private cache: LRUCache<number, FmsFile>;
+    private cache: LRUCache<number, FileDetail>;
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
     public readonly sort?: FileSort;
@@ -45,7 +47,7 @@ export default class FileSet {
     constructor(opts: Partial<Opts> = {}) {
         const { fileService, filters, maxCacheSize, sort } = defaults({}, opts, DEFAULT_OPTS);
 
-        this.cache = new LRUCache<number, FmsFile>({ max: maxCacheSize });
+        this.cache = new LRUCache<number, FileDetail>({ max: maxCacheSize });
         this._filters = filters;
         this.sort = sort;
         this.fileService = fileService;
@@ -171,31 +173,35 @@ export default class FileSet {
     }
 
     /**
-     *
-     * TODO
+     * Combine filters and sort into standard SQL "WHERE", "AND", "OR", and "ORDER BY" clauses
      */
-    public toQuerySQL(options: { ignoreSort?: boolean } = {}): string {
-        const filtersByAnnotation = this.filters.reduce((map, filter) => {
-            const annotationValues = map[filter.name] ? map[filter.name] : [];
-            annotationValues.push(filter.value);
-            return { ...map, [filter.name]: annotationValues };
-        }, {} as { [name: string]: string[] });
-        const whereFilters = Object.keys(filtersByAnnotation).map((annotation) => {
-            const annotationValues = filtersByAnnotation[annotation];
-            if (annotationValues[0] === null) {
-                return `) "${annotation}" IS NOT NULL (`;
+    public toQuerySQLBuilder(): SQLBuilder {
+        // Map the filter values to the annotation names they filter
+        const filterValuesByAnnotation = this.filters.reduce(
+            (map, filter) => ({
+                ...map,
+                [filter.name]:
+                    filter.name in map ? [...map[filter.name], filter.value] : [filter.value],
+            }),
+            {} as { [name: string]: string[] }
+        );
+
+        // Transform the map above into SQL comparison clauses
+        const sqlBuilder = this.sort ? this.sort.toQuerySQLBuilder() : new SQLBuilder();
+
+        Object.entries(filterValuesByAnnotation).forEach(([annotation, filterValues]) => {
+            // If a filter value is `null` then we need to modify the way we approach filtering
+            // it in SQL
+            if (filterValues.length === 0) {
+                sqlBuilder.where(`"${annotation}" IS NOT NULL`);
+            } else {
+                sqlBuilder.where(
+                    filterValues.map((fv) => `"${annotation}" = '${fv}'`).join(") OR (")
+                );
             }
-            return annotationValues.map((value) => `"${annotation}" = '${value}'`).join(") OR (");
         });
 
-        const sqlParts = [];
-        if (whereFilters.length) {
-            sqlParts.push(`WHERE (${whereFilters.join(") AND (")})`);
-        }
-        if (this.sort && !options?.ignoreSort) {
-            sqlParts.push(this.sort.toQuerySQL());
-        }
-        return sqlParts.join("\n");
+        return sqlBuilder;
     }
 
     public toJSON() {

@@ -1,3 +1,4 @@
+import { Shimmer } from "@fluentui/react";
 import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
@@ -9,7 +10,6 @@ import { selection } from "../../state";
 import { OnSelect } from "./useFileSelector";
 
 import styles from "./LazilyRenderedRow.module.css";
-import { Shimmer } from "@fluentui/react";
 
 /**
  * Contextual data passed to LazilyRenderedRows by react-window. Basically a light-weight React context. The same data
@@ -39,7 +39,6 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         style,
     } = props;
 
-    const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
     const columnWidths = useSelector(selection.selectors.getColumnWidths);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
@@ -54,42 +53,37 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         return fileSelection.isFocused(fileSet, index);
     }, [fileSelection, fileSet, index]);
 
-    const cells = !file
-        ? []
-        : map(annotations, (annotation) => ({
-              columnKey: annotation.name,
-              displayValue: annotation.extractFromFile(file),
-              width: columnWidths[annotation.name] || 1 / annotations.length,
-          }));
-    const content = (
-        <Shimmer className={styles.shimmer} isDataLoaded={!!file}>
+    let content = null;
+    if (file) {
+        const cells = map(annotations, (annotation) => ({
+            columnKey: annotation.name,
+            displayValue: annotation.extractFromFile(file),
+            width: columnWidths[annotation.name] || 1 / annotations.length,
+        }));
+        content = (
             <FileRow
                 cells={cells}
-                cellClassName={classNames({
-                    [styles.smallFont]: shouldDisplaySmallFont,
-                })}
                 className={classNames(styles.row, {
                     [styles.selected]: isSelected,
                     [styles.focused]: isFocused,
                 })}
-                rowIdentifier={{ index, id: file?.file_id }}
+                rowIdentifier={{ index, id: file.id }}
                 onSelect={onSelect}
             />
-        </Shimmer>
-    );
+        );
+    }
 
     return (
         <div
-            className={classNames({
-                [styles.smallFont]: shouldDisplaySmallFont,
-            })}
             style={{
                 ...style,
                 width: `calc(100% - ${2 * MARGIN}px)`,
             }}
             onContextMenu={onContextMenu}
         >
-            {content}
+            <Shimmer className={classNames({ [styles.shimmer]: !file })} isDataLoaded={!!file}>
+                {content}
+            </Shimmer>
         </div>
     );
 }

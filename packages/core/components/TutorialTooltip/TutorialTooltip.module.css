@@ -16,12 +16,12 @@
 }
 
 .tutorial-container {
-    background-color: var(--primary-brand-purple);
+    background-color: var(--primary-background-color);
 }
 
 .tutorial-step-button {
     border: none;
-    background-color: var(--secondary-brand-purple);
+    background-color: var(--secondary-background-color);
 }
 
 .tutorial-step-button.disabled:hover {
@@ -42,7 +42,7 @@
 }
 
 .tutorial-step-button:hover i {
-    color: var(--primary-brand-purple);
+    color: var(--highlight-background-color);
 }
 
 .tutorial-step-button.disabled i {

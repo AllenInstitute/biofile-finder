@@ -28,7 +28,6 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
             const items = [
                 {
                     ...availableItems.COPY,
-                    title: "Copy to clipboard",
                     onClick: () => {
                         navigator.clipboard.writeText(clipboardText);
                     },

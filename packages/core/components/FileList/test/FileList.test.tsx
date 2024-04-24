@@ -1,13 +1,16 @@
-import FileList from "../index";
-import { render } from "@testing-library/react";
-import * as React from "react";
-import FileSet from "../../../entity/FileSet";
-import { expect } from "chai";
-import { Provider } from "react-redux";
 import { configureMockStore, mergeState } from "@aics/redux-utils";
-import { initialState } from "../../../state";
+import { render } from "@testing-library/react";
+import { expect } from "chai";
+import * as React from "react";
+import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 import HttpFileService from "../../../services/FileService/HttpFileService";
+
+import FileSet from "../../../entity/FileSet";
+import { initialState } from "../../../state";
+import HttpFileService from "../../../services/FileService/HttpFileService";
+
+import FileList from "..";
 
 describe("<FileList />", () => {
     it("Calls getCountOfMatchingFiles() on mount and properly updates state afterwards", async () => {
@@ -53,7 +56,7 @@ describe("<FileList />", () => {
         expect(queryByText("Counting files...")).to.exist;
 
         // Wait for the fileService call to return, then check for updated list length display
-        await findByText("Sorry! No files found :(");
+        await findByText("Sorry! No files found");
 
         // Assert
         expect(queryByText("Counting files...")).to.not.exist;

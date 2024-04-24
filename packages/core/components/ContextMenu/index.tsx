@@ -9,6 +9,8 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
 
+import styles from "./ContextMenu.module.css";
+
 export type ContextMenuItem = IContextualMenuItem;
 export type PositionReference = Target;
 export const ContextualMenuItemType = _ContextualMenuItemType;
@@ -30,6 +32,7 @@ export default function ContextMenu() {
 
     return (
         <ContextualMenu
+            className={styles.container}
             items={items}
             hidden={!visible}
             target={positionReference}

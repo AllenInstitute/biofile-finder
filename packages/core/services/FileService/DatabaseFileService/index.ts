@@ -1,34 +1,71 @@
-import { omit, pick } from "lodash";
+import { isNil, omit } from "lodash";
 
-import FileService, { FmsFile, GetFilesRequest, SelectionAggregationResult } from "..";
+import FileService, { GetFilesRequest, SelectionAggregationResult } from "..";
 import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
-import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
+import FileDetail from "../../../entity/FileDetail";
 
 interface Config {
-    database: DatabaseService;
+    databaseService: DatabaseService;
 }
 
 /**
- * Service responsible for fetching file related metadata.
+ * Service responsible for fetching file related metadata directly from a database.
  */
 export default class DatabaseFileService implements FileService {
-    private readonly database: DatabaseService;
+    private readonly databaseService: DatabaseService;
 
-    constructor(config: Config = { database: new DatabaseServiceNoop() }) {
-        this.database = config.database;
+    private static convertDatabaseRowToFileDetail(
+        row: { [key: string]: string },
+        rowNumber: number
+    ): FileDetail {
+        const filePath = row["File Path"];
+        if (!filePath) {
+            throw new Error('"File Path" (case-sensitive) is a required column for data sources');
+        }
+
+        const annotations = [];
+        annotations.push({ name: "File Path", values: [filePath] });
+        const fileName =
+            row["File Name"] || filePath.split("\\").pop()?.split("/").pop() || filePath;
+        annotations.push({ name: "File Name", values: [fileName] });
+        annotations.push({ name: "File ID", values: [row["File ID"] || `${rowNumber}`] });
+        if (!isNil(row["File Size"])) {
+            annotations.push({ name: "File Size", values: [row["File Size"]] });
+        }
+        if (row["Thumbnail"]) {
+            annotations.push({ name: "Thumbnail", values: [row["Thumbnail"]] });
+        }
+        if (row["Uploaded"]) {
+            annotations.push({ name: "Uploaded", values: [row["Uploaded"]] });
+        }
+        return new FileDetail({
+            annotations: [
+                ...annotations,
+                ...Object.entries(omit(row, ...annotations.keys())).map(([name, values]: any) => ({
+                    name,
+                    values: `${values}`.split(",").map((value: string) => value.trim()),
+                })),
+            ],
+        });
+    }
+
+    constructor(config: Config = { databaseService: new DatabaseServiceNoop() }) {
+        this.databaseService = config.databaseService;
     }
 
     public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
         const select_key = "num_files";
-        const sql = `\
-            SELECT COUNT(*) AS ${select_key}     \
-            FROM ${this.database.table}          \
-            ${fileSet.toQuerySQL({ ignoreSort: true })}
-        `;
-        const rows = await this.database.query(sql);
+        const sql = fileSet
+            .toQuerySQLBuilder()
+            .select(`COUNT(*) AS ${select_key}`)
+            .from(this.databaseService.table)
+            // Remove sort if present
+            .orderBy()
+            .toSQL();
+        const rows = await this.databaseService.query(sql);
         return parseInt(rows[0][select_key], 10);
     }
 
@@ -36,32 +73,35 @@ export default class DatabaseFileService implements FileService {
         fileSelection: FileSelection
     ): Promise<SelectionAggregationResult> {
         const allFiles = await fileSelection.fetchAllDetails();
-        const size = allFiles.reduce((acc, file) => acc + file.file_size, 0);
-        return { count: fileSelection.count(), size };
+        const count = fileSelection.count();
+        if (allFiles.length && allFiles[0].size === undefined) {
+            return { count };
+        }
+        // TODO: Should have file size return as number not a string
+        const size = allFiles.reduce(
+            (acc, file) => acc + parseInt((file.size as any) || "0", 10),
+            0
+        );
+        return { count, size };
     }
 
     /**
      * Get list of file documents that match a given filter, potentially according to a particular sort order,
      * and potentially starting from a particular file_id and limited to a set number of files.
      */
-    public async getFiles(request: GetFilesRequest): Promise<FmsFile[]> {
-        const sql = `                               \
-            SELECT *                                \
-            FROM ${this.database.table}             \
-            ${request.fileSet.toQuerySQL()}         \
-            OFFSET ${request.from * request.limit}  \
-            LIMIT ${request.limit}
-        `;
-        const rows = await this.database.query(sql);
-        // TODO: ideally stop doing this mapping
-        return rows.map((row) => ({
-            ...pick(row, TOP_LEVEL_FILE_ANNOTATION_NAMES),
-            annotations: Object.entries(omit(row, TOP_LEVEL_FILE_ANNOTATION_NAMES)).map(
-                ([name, values]: any) => ({
-                    name,
-                    values: `${values}`.split(",").map((value: string) => value.trim()),
-                })
-            ),
-        })) as FmsFile[];
+    public async getFiles(request: GetFilesRequest): Promise<FileDetail[]> {
+        const sql = request.fileSet
+            .toQuerySQLBuilder()
+            .from(this.databaseService.table)
+            .offset(request.from * request.limit)
+            .limit(request.limit)
+            .toSQL();
+        const rows = await this.databaseService.query(sql);
+        return rows.map((row, index) =>
+            DatabaseFileService.convertDatabaseRowToFileDetail(
+                row,
+                index + request.from * request.limit
+            )
+        );
     }
 }

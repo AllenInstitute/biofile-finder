@@ -1,19 +1,20 @@
-import { Icon } from "@fluentui/react";
 import classNames from "classnames";
 import debouncePromise from "debounce-promise";
 import { defaults, isFunction } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
-import { FixedSizeList } from "react-window";
+import { FixedSizeGrid, FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 
 import FileSet from "../../entity/FileSet";
 import Header from "./Header";
 import LazilyRenderedRow from "./LazilyRenderedRow";
+import LazilyRenderedThumbnail from "./LazilyRenderedThumbnail";
 import { selection } from "../../state";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileSelector from "./useFileSelector";
 import useFileAccessContextMenu from "./useFileAccessContextMenu";
+import EmptyFileListMessage from "../EmptyFileListMessage";
 
 import styles from "./FileList.module.css";
 
@@ -36,6 +37,8 @@ const DEFAULTS = {
 };
 
 const MAX_NON_ROOT_HEIGHT = 300;
+const SMALL_ROW_HEIGHT = 18;
+const TALL_ROW_HEIGHT = 22;
 
 /**
  * Wrapper for react-window-infinite-loader and react-window that knows how to lazily fetch its own data. It will lay
@@ -45,8 +48,17 @@ export default function FileList(props: FileListProps) {
     const [totalCount, setTotalCount] = React.useState<number | null>(null);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const isDisplayingSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
+    const shouldDisplayThumbnailView = useSelector(
+        selection.selectors.getShouldDisplayThumbnailView
+    );
+    const fileGridColumnCount = useSelector(selection.selectors.getFileGridColumnCount);
+    const [measuredNodeRef, measuredHeight, measuredWidth] = useLayoutMeasurements<
+        HTMLDivElement
+    >();
+    let defaultRowHeight = isDisplayingSmallFont ? SMALL_ROW_HEIGHT : TALL_ROW_HEIGHT;
+    if (shouldDisplayThumbnailView) defaultRowHeight = measuredWidth / fileGridColumnCount;
     const { className, fileSet, isRoot, rowHeight, sortOrder } = defaults({}, props, DEFAULTS, {
-        rowHeight: isDisplayingSmallFont ? 18 : 22,
+        rowHeight: defaultRowHeight,
     });
 
     const onSelect = useFileSelector(fileSet, sortOrder);
@@ -58,24 +70,29 @@ export default function FileList(props: FileListProps) {
     // 100% of the height of its container.
     // Otherwise, the height of the list should reflect the number of items it has to render, up to
     // a certain maximum.
-    const [measuredNodeRef, measuredHeight, measuredWidth] = useLayoutMeasurements<
-        HTMLDivElement
-    >();
     const dataDrivenHeight = rowHeight * (totalCount || DEFAULT_TOTAL_COUNT) + 3 * rowHeight; // adding three additional rowHeights leaves room for the header + horz. scroll bar
     const calculatedHeight = Math.min(MAX_NON_ROOT_HEIGHT, dataDrivenHeight);
     const height = isRoot ? measuredHeight : calculatedHeight;
 
     const listRef = React.useRef<FixedSizeList | null>(null);
+    const gridRef = React.useRef<FixedSizeGrid | null>(null);
     const outerRef = React.useRef<HTMLDivElement | null>(null);
 
     // This hook is responsible for ensuring that if the details pane is currently showing a file row
     // within this FileList the file row shown in the details pane is scrolled into view.
     React.useEffect(() => {
-        if (listRef.current && outerRef.current && fileSelection.isFocused(fileSet)) {
+        if (
+            (listRef.current || gridRef.current) &&
+            outerRef.current &&
+            fileSelection.isFocused(fileSet)
+        ) {
             const { indexWithinFileSet } = fileSelection.getFocusedItemIndices();
             if (indexWithinFileSet !== undefined) {
                 const listScrollTop = outerRef.current.scrollTop;
-                const focusedItemTop = indexWithinFileSet * rowHeight;
+                let focusedItemTop = indexWithinFileSet * rowHeight;
+                if (gridRef.current) {
+                    focusedItemTop = (indexWithinFileSet / fileGridColumnCount) * rowHeight;
+                }
                 const focusedItemBottom = focusedItemTop + rowHeight;
                 const headerHeight = 40; // px; defined in Header.module.css; stickily sits on top of the list
                 const visibleArea = height - headerHeight;
@@ -88,11 +105,17 @@ export default function FileList(props: FileListProps) {
                     const centeredWithinVisibleArea = Math.floor(
                         centerOfFocusedItem - visibleArea / 2
                     );
-                    listRef.current.scrollTo(Math.max(0, centeredWithinVisibleArea));
+                    if (listRef.current) {
+                        listRef.current.scrollTo(Math.max(0, centeredWithinVisibleArea));
+                    } else if (gridRef.current) {
+                        gridRef.current.scrollTo({
+                            scrollTop: Math.max(0, centeredWithinVisibleArea),
+                        });
+                    }
                 }
             }
         }
-    }, [fileSelection, fileSet, height, rowHeight]);
+    }, [fileSelection, fileSet, height, fileGridColumnCount, rowHeight]);
 
     // Get a count of all files in the FileList, but don't wait on it
     React.useEffect(() => {
@@ -126,7 +149,7 @@ export default function FileList(props: FileListProps) {
                     itemCount={totalCount || DEFAULT_TOTAL_COUNT}
                 >
                     {({ onItemsRendered, ref: innerRef }) => {
-                        const callbackRef = (instance: FixedSizeList | null) => {
+                        const callbackRefList = (instance: FixedSizeList | null) => {
                             listRef.current = instance;
 
                             // react-window-infinite-loader takes a reference to the List component instance:
@@ -135,8 +158,69 @@ export default function FileList(props: FileListProps) {
                                 innerRef(instance);
                             }
                         };
+                        const callbackRefGrid = (instance: FixedSizeGrid | null) => {
+                            gridRef.current = instance;
+                            if (isFunction(innerRef)) {
+                                innerRef(instance);
+                            }
+                        };
+                        // Custom onItemsRendered for grids
+                        // The built-in onItemsRendered from InfiniteLoader only supports lists
+                        const onGridItemsRendered = (gridData: any) => {
+                            const {
+                                visibleRowStartIndex,
+                                visibleRowStopIndex,
+                                visibleColumnStopIndex,
+                                overscanRowStartIndex,
+                                overscanRowStopIndex,
+                                overscanColumnStopIndex,
+                            } = gridData;
 
-                        return (
+                            // Convert injected grid props to InfiniteLoader list props
+                            const visibleStartIndex =
+                                visibleRowStartIndex * (visibleColumnStopIndex + 1);
+                            const visibleStopIndex =
+                                visibleRowStopIndex * (visibleColumnStopIndex + 1);
+                            const overscanStartIndex =
+                                overscanRowStartIndex * (overscanColumnStopIndex + 1);
+                            const overscanStopIndex =
+                                overscanRowStopIndex * (overscanColumnStopIndex + 1);
+
+                            onItemsRendered({
+                                // call onItemsRendered from InfiniteLoader
+                                visibleStartIndex,
+                                visibleStopIndex,
+                                overscanStartIndex,
+                                overscanStopIndex,
+                            });
+                        };
+
+                        const fixedSizeGrid = (
+                            <FixedSizeGrid
+                                itemData={{
+                                    fileSet: fileSet,
+                                    onSelect,
+                                    onContextMenu: onFileRowContextMenu,
+                                    measuredWidth: measuredWidth,
+                                    itemCount: totalCount || DEFAULT_TOTAL_COUNT,
+                                }}
+                                columnCount={fileGridColumnCount}
+                                rowCount={Math.ceil(
+                                    (totalCount || DEFAULT_TOTAL_COUNT) / fileGridColumnCount
+                                )}
+                                height={height} // height of the list itself; affects number of rows rendered at any given time
+                                width={measuredWidth}
+                                rowHeight={rowHeight}
+                                columnWidth={rowHeight}
+                                outerRef={outerRef}
+                                ref={callbackRefGrid}
+                                onItemsRendered={onGridItemsRendered}
+                            >
+                                {LazilyRenderedThumbnail}
+                            </FixedSizeGrid>
+                        );
+
+                        const fixedSizeList = (
                             <FixedSizeList
                                 itemData={{
                                     fileSet: fileSet,
@@ -149,29 +233,20 @@ export default function FileList(props: FileListProps) {
                                 onItemsRendered={onItemsRendered}
                                 outerElementType={Header}
                                 outerRef={outerRef}
-                                ref={callbackRef}
+                                ref={callbackRefList}
                                 width={measuredWidth}
                             >
                                 {LazilyRenderedRow}
                             </FixedSizeList>
                         );
+
+                        return shouldDisplayThumbnailView ? fixedSizeGrid : fixedSizeList;
                     }}
                 </InfiniteLoader>
             );
         }
     } else {
-        content = (
-            <div className={styles.emptyFileListContainer}>
-                <div className={styles.emptyFileListMessage}>
-                    <Icon className={styles.emptySearchIcon} iconName="SearchIssue" />
-                    <h2>Sorry! No files found :(</h2>
-                    <h3>
-                        Double check your filters for any issues and then contact the Software team
-                        if you still expect there to be matches present.
-                    </h3>
-                </div>
-            </div>
-        );
+        content = <EmptyFileListMessage />;
     }
 
     return (

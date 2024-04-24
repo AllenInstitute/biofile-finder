@@ -1,3 +1,5 @@
+import SQLBuilder from "../SQLBuilder";
+
 export enum SortOrder {
     ASC = "ASC",
     DESC = "DESC",
@@ -20,8 +22,8 @@ export default class FileSort {
         return `sort=${this.annotationName}(${this.order})`;
     }
 
-    public toQuerySQL(): string {
-        return `ORDER BY "${this.annotationName}" ${this.order}`;
+    public toQuerySQLBuilder(): SQLBuilder {
+        return new SQLBuilder().orderBy(`"${this.annotationName}" ${this.order}`);
     }
 
     public equals(other?: FileSort): boolean {

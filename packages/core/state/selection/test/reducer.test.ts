@@ -3,13 +3,13 @@ import { expect } from "chai";
 import selection from "..";
 import { initialState } from "../..";
 import interaction from "../../interaction";
-import { AnnotationName, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import FileFilter from "../../../entity/FileFilter";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
-import Annotation from "../../../entity/Annotation";
+import { AnnotationName } from "../../../entity/Annotation";
 import FileFolder from "../../../entity/FileFolder";
 
 describe("Selection reducer", () => {
@@ -51,14 +51,7 @@ describe("Selection reducer", () => {
             // Arrange
             const state = {
                 ...selection.initialState,
-                annotationHierarchy: [
-                    new Annotation({
-                        annotationName: "Cell Line",
-                        annotationDisplayName: "Cell Line",
-                        description: "Line of cells",
-                        type: "lookup",
-                    }),
-                ],
+                annotationHierarchy: ["Cell Line"],
                 fileSelection: new FileSelection().select({
                     fileSet: new FileSet(),
                     index: 4,
@@ -91,55 +84,15 @@ describe("Selection reducer", () => {
         });
     });
 
-    describe("DESELECT_DISPLAY_ANNOTATION", () => {
-        it("removes any column widths configured for a display annotation if a user has removed it from the list of annotations to display", () => {
-            // arrange
-            const initialSelectionState = {
-                ...selection.initialState,
-                columnWidths: {
-                    [TOP_LEVEL_FILE_ANNOTATIONS[0].name]: 0.5,
-                    [TOP_LEVEL_FILE_ANNOTATIONS[1].name]: 0.3,
-                },
-                displayAnnotations: [TOP_LEVEL_FILE_ANNOTATIONS[0], TOP_LEVEL_FILE_ANNOTATIONS[1]],
-            };
-
-            const action = selection.actions.deselectDisplayAnnotation(
-                TOP_LEVEL_FILE_ANNOTATIONS[0]
-            );
-
-            // act
-            const nextSelectionState = selection.reducer(initialSelectionState, action);
-
-            // assert
-            expect(
-                selection.selectors.getAnnotationsToDisplay({
-                    ...initialState,
-                    selection: nextSelectionState,
-                })
-            ).to.deep.equal([TOP_LEVEL_FILE_ANNOTATIONS[1]]);
-
-            expect(
-                selection.selectors.getColumnWidths({
-                    ...initialState,
-                    selection: nextSelectionState,
-                })
-            ).to.deep.equal({
-                [TOP_LEVEL_FILE_ANNOTATIONS[1].name]: 0.3,
-            });
-        });
-    });
-
-    describe("SELECT_DISPLAY_ANNOTATION", () => {
-        it("performs an update when replace=false", () => {
+    describe("SET_DISPLAY_ANNOTATIONS", () => {
+        it("performs a set", () => {
             // arrange
             const initialSelectionState = {
                 ...selection.initialState,
                 displayAnnotations: [TOP_LEVEL_FILE_ANNOTATIONS[0]],
             };
 
-            const action = selection.actions.selectDisplayAnnotation(
-                TOP_LEVEL_FILE_ANNOTATIONS[1] // replace=false is the default
-            );
+            const action = selection.actions.setDisplayAnnotations(TOP_LEVEL_FILE_ANNOTATIONS);
 
             // act
             const nextSelectionState = selection.reducer(initialSelectionState, action);
@@ -150,31 +103,7 @@ describe("Selection reducer", () => {
                     ...initialState,
                     selection: nextSelectionState,
                 })
-            ).to.deep.equal([TOP_LEVEL_FILE_ANNOTATIONS[0], TOP_LEVEL_FILE_ANNOTATIONS[1]]);
-        });
-
-        it("performs a set when replace=true", () => {
-            // arrange
-            const initialSelectionState = {
-                ...selection.initialState,
-                displayAnnotations: [TOP_LEVEL_FILE_ANNOTATIONS[0]],
-            };
-
-            const action = selection.actions.selectDisplayAnnotation(
-                TOP_LEVEL_FILE_ANNOTATIONS[1],
-                true
-            );
-
-            // act
-            const nextSelectionState = selection.reducer(initialSelectionState, action);
-
-            // assert
-            expect(
-                selection.selectors.getAnnotationsToDisplay({
-                    ...initialState,
-                    selection: nextSelectionState,
-                })
-            ).to.deep.equal([TOP_LEVEL_FILE_ANNOTATIONS[1]]);
+            ).to.deep.equal(TOP_LEVEL_FILE_ANNOTATIONS);
         });
     });
 

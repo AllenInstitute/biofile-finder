@@ -13,7 +13,7 @@ export interface FileInfo {
     id: string;
     name: string;
     path: string;
-    size: number;
+    size?: number;
 }
 
 /**
@@ -50,6 +50,16 @@ export default interface FileDownloadService {
      * Will first notify the user of this request.
      */
     promptForDownloadDirectory(): Promise<string>;
+
+    /**
+     * Prompts the user for a save location.
+     */
+    promptForSaveLocation(
+        title: string,
+        defaultFileName: string,
+        buttonLabel: string,
+        filters?: Record<string, any>[]
+    ): Promise<string>;
 
     /**
      * Attempt to cancel an active download request, deleting the downloaded artifact if present.
