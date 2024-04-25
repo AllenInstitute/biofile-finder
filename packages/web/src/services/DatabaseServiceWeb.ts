@@ -1,4 +1,4 @@
-import * as duckdb from '@duckdb/duckdb-wasm';
+import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
 const httpAdapter = require("axios/lib/adapters/http"); // exported from lib, but not typed (can't be fixed through typing augmentation)
 
@@ -11,14 +11,14 @@ export default class DatabaseServiceWeb implements DatabaseService {
     private async initializeDatabaseWorker() {
         // this.database = new duckdb.Database(":memory:");
         const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
-        
+
         // Select a bundle based on browser checks
         const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
-        
+
         const worker_url = URL.createObjectURL(
-            new Blob([`importScripts("${bundle.mainWorker!}");`], {type: 'text/javascript'})
+            new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" })
         );
-        
+
         // Instantiate the asynchronus version of DuckDB-wasm
         const worker = new Worker(worker_url);
         const logger = new duckdb.ConsoleLogger();
@@ -36,23 +36,28 @@ export default class DatabaseServiceWeb implements DatabaseService {
         if (!this.database) {
             throw new Error("Database has not yet been initialized");
         }
-        await this.database.registerFileHandle(this.table, pickedFile, duckdb.DuckDBDataProtocol.BROWSER_FILEREADER, true);
+        await this.database.registerFileHandle(
+            this.table,
+            pickedFile,
+            duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
+            true
+        );
         // await this.database.registerFileBuffer(this.table, pickedFile as any);
         // } else {
-            // throw new Error("yo yo yoooooooooooooooooooooooooo")
-            // await this.database.registerFileURL(this.table, pickedFile, duckdb.DuckDBDataProtocol.HTTP, false);
+        // throw new Error("yo yo yoooooooooooooooooooooooooo")
+        // await this.database.registerFileURL(this.table, pickedFile, duckdb.DuckDBDataProtocol.HTTP, false);
         // }
         const connection = await this.database.connect();
         try {
             // TODO: Other file types...
             await connection.insertCSVFromPath("default_table", {
-                schema: 'main',
+                schema: "main",
                 name: "default_table",
                 detect: true,
                 header: true,
                 // detect: false,
                 // header: false,
-                delimiter: ',',
+                delimiter: ",",
                 // columns: {
                 //     col1: new arrow.Int32(),
                 //     col2: new arrow.Utf8(),
@@ -61,7 +66,6 @@ export default class DatabaseServiceWeb implements DatabaseService {
         } finally {
             await connection.close();
         }
-    
     }
 
     public async getDataSource(csvUri: string): Promise<DataSource> {
@@ -103,10 +107,9 @@ export default class DatabaseServiceWeb implements DatabaseService {
         try {
             const result = await connection.query(sql);
             const resultAsArray = result.toArray();
-            const resultAsJSONString = JSON.stringify(resultAsArray, (_, value) =>
-                typeof value === 'bigint'
-                ? value.toString()
-                : value // return everything else unchanged
+            const resultAsJSONString = JSON.stringify(
+                resultAsArray,
+                (_, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
             );
             return JSON.parse(resultAsJSONString);
         } finally {

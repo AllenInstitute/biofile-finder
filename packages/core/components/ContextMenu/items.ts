@@ -8,8 +8,6 @@ export enum ContextMenuActions {
     CSV = "csv",
     DOWNLOAD = "download",
     MODIFY_COLUMNS = "modify-columns",
-    CSV = "csv",
-    COMPRESSED_DATA_SOURCE = "compressed-data-source",
     OPEN = "open",
     OPEN_WITH = "open-with",
     OPEN_WITH_OTHER = "open-with-other",
@@ -28,10 +26,9 @@ interface ContextMenuItems {
 }
 
 interface ContextMenuItems {
-    ACCESS: IContextualMenuItem[],
-    COPY: IContextualMenuItem,
-    MODIFY_COLUMNS: IContextualMenuItem,
-    PASTE: IContextualMenuItem,
+    ACCESS: IContextualMenuItem[];
+    COPY: IContextualMenuItem;
+    MODIFY_COLUMNS: IContextualMenuItem;
 }
 
 /**

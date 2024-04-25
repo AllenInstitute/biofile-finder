@@ -69,11 +69,12 @@ export default function DirectoryTree(props: FileListProps) {
     }, [dispatch]);
 
     const {
-        state: { content, error },
+        state: { content, error, isLoading },
     } = useDirectoryHierarchy({ collapsed: false, fileSet, sortOrder: 0 });
 
     return (
         <div className={classNames(props.className, styles.container)}>
+            <RootLoadingIndicator visible={isLoading} />
             <ul
                 className={styles.scrollContainer}
                 role="tree"

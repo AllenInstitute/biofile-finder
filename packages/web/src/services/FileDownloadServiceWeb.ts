@@ -1,10 +1,6 @@
-import { Policy } from "cockatiel";
-
-import { DownloadFailure } from "../../../core/errors";
 import {
     FileDownloadService,
     FileDownloadCancellationToken,
-    DownloadResolution,
     DownloadResult,
     FileInfo,
 } from "../../../core/services";
@@ -17,13 +13,6 @@ interface ActiveRequestMap {
         cancel: () => void;
         onProgress?: (bytes: number) => void;
     };
-}
-
-interface ShowSaveDialogParams {
-    title: string;
-    defaultFileName: string;
-    buttonLabel: string;
-    // filters?: FileFilter[];
 }
 
 interface WriteStreamOptions {
@@ -41,7 +30,7 @@ interface DownloadOptions {
     writeStreamOptions: WriteStreamOptions;
 }
 
-export default class FileDownloadServiceElectron implements FileDownloadService {
+export default class FileDownloadServiceWeb implements FileDownloadService {
     // IPC events registered both within the main and renderer processes
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
     public static GET_DOWNLOADS_DIR = "get-downloads-dir";
@@ -49,7 +38,8 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
 
     private activeRequestMap: ActiveRequestMap = {};
     private cancellationRequests: Set<string> = new Set();
-    private readonly fileDownloadServiceBaseUrl = "http://aics.corp.alleninstitute.org/labkey/fmsfiles/image";
+    private readonly fileDownloadServiceBaseUrl =
+        "http://aics.corp.alleninstitute.org/labkey/fmsfiles/image";
     private notificationService: NotificationServiceWeb;
 
     public static registerIpcHandlers() {
@@ -62,8 +52,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         //         filters: params.filters || [],
         //     });
         // }
-        // ipcMain.handle(FileDownloadServiceElectron.GET_FILE_SAVE_PATH, getSavePathHandler);
-
+        // ipcMain.handle(FileDownloadServiceWeb.GET_FILE_SAVE_PATH, getSavePathHandler);
         // // Handler for opening a native file browser dialog
         // async function getOpenDialogHandler(
         //     _: IpcMainInvokeEvent,
@@ -75,17 +64,17 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         //         ...dialogOptions,
         //     });
         // }
-        // ipcMain.handle(FileDownloadServiceElectron.SHOW_OPEN_DIALOG, getOpenDialogHandler);
-
+        // ipcMain.handle(FileDownloadServiceWeb.SHOW_OPEN_DIALOG, getOpenDialogHandler);
         // // Handler for returning where the downloads directory lives on this computer
         // async function getDownloadsDirHandler() {
         //     return app.getPath("downloads");
         // }
-        // ipcMain.handle(FileDownloadServiceElectron.GET_DOWNLOADS_DIR, getDownloadsDirHandler);
+        // ipcMain.handle(FileDownloadServiceWeb.GET_DOWNLOADS_DIR, getDownloadsDirHandler);
     }
 
     private static async isDirectory(directoryPath: string): Promise<boolean> {
-        throw Error("blah")
+        console.log(directoryPath);
+        throw Error("blah");
         // try {
         //     // Check if path actually leads to a directory
         //     const pathStat = await fs.promises.stat(directoryPath);
@@ -96,7 +85,8 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
     }
 
     private static async isWriteable(path: string): Promise<boolean> {
-        throw Error("blah")
+        console.log(path);
+        throw Error("blah");
         // try {
         //     // Ensure folder is writeable by this user
         //     await fs.promises.access(path, fs.constants.W_OK);
@@ -106,9 +96,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         // }
     }
 
-    constructor(
-        notificationService: NotificationServiceWeb,
-    ) {
+    constructor(notificationService: NotificationServiceWeb) {
         this.notificationService = notificationService;
     }
 
@@ -118,6 +106,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void
     ): Promise<DownloadResult> {
+        console.log(fileInfo, destination, downloadRequestId, onProgress);
         throw new Error("blah");
         // const url = `${this.fileDownloadServiceBaseUrl}${fileInfo.path}`;
 
@@ -187,11 +176,16 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         // };
     }
 
+    public async promptForSaveLocation(): Promise<string> {
+        return Promise.resolve("blah");
+    }
+
     public async downloadCsvManifest(
         url: string,
         postData: string,
         downloadRequestId: string
     ): Promise<DownloadResult> {
+        console.log(url, postData, downloadRequestId);
         throw new Error("blah");
         // const saveDialogParams = {
         //     title: "Save CSV manifest",
@@ -200,7 +194,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         //     filters: [{ name: "CSV files", extensions: ["csv"] }],
         // };
         // const result = await ipcRenderer.invoke(
-        //     FileDownloadServiceElectron.GET_FILE_SAVE_PATH,
+        //     FileDownloadServiceWeb.GET_FILE_SAVE_PATH,
         //     saveDialogParams
         // );
 
@@ -253,9 +247,9 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                 return FileDownloadCancellationToken;
             }
 
-            const isDirectory = await FileDownloadServiceElectron.isDirectory(directoryPath);
+            const isDirectory = await FileDownloadServiceWeb.isDirectory(directoryPath);
             const isWriteable =
-                isDirectory && (await FileDownloadServiceElectron.isWriteable(directoryPath));
+                isDirectory && (await FileDownloadServiceWeb.isWriteable(directoryPath));
 
             // If the directory has passed validation, return
             if (isDirectory && isWriteable) {
@@ -273,8 +267,8 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
     }
 
     public getDefaultDownloadDirectory(): Promise<string> {
-        throw new Error("blah")
-        // return ipcRenderer.invoke(FileDownloadServiceElectron.GET_DOWNLOADS_DIR);
+        throw new Error("blah");
+        // return ipcRenderer.invoke(FileDownloadServiceWeb.GET_DOWNLOADS_DIR);
     }
 
     public cancelActiveRequest(downloadRequestId: string) {
@@ -289,7 +283,8 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
     }
 
     private download(options: DownloadOptions): Promise<DownloadResult> {
-        throw new Error("blah")
+        console.log(options);
+        throw new Error("blah");
         // const {
         //     downloadRequestId,
         //     encoding,
@@ -428,28 +423,12 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         // });
     }
 
-    /**
-     * If a downloaded artifact (partial or otherwise) exists, delete it
-     */
-    private deleteArtifact(filePath: string): Promise<void> {
-        throw new Error("blah")
-        // return new Promise((resolve, reject) => {
-        //     fs.unlink(filePath, (err) => {
-        //         // No error or file doesn't exist (e.g., already cleaned up)
-        //         if (!err || err.code === "ENOENT") {
-        //             resolve();
-        //         } else {
-        //             reject(err);
-        //         }
-        //     });
-        // });
-    }
-
     // Prompts user using native file browser for a file path
     private async promptUserWithDialog(dialogOptions: Electron.OpenDialogOptions): Promise<string> {
-        throw new Error("blah")
+        console.log(dialogOptions);
+        throw new Error("blah");
         // const result = await ipcRenderer.invoke(
-        //     FileDownloadServiceElectron.SHOW_OPEN_DIALOG,
+        //     FileDownloadServiceWeb.SHOW_OPEN_DIALOG,
         //     dialogOptions
         // );
         // if (result.canceled || !result.filePaths.length) {

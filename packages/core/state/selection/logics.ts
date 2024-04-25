@@ -450,8 +450,6 @@ const changeCollectionLogic = createLogic({
         );
         const collections = metadata.selectors.getCollections(deps.getState());
         if (collection?.uri) {
-            console.log("Found URI!!!");
-            console.log(collection.uri)
             await databaseService.setDataSource(collection.uri);
         }
         if (collection && !collections.find((collection) => collection.id === collection.id)) {
@@ -464,9 +462,9 @@ const changeCollectionLogic = createLogic({
     type: CHANGE_COLLECTION,
     async transform(deps: ReduxLogicDeps, next) {
         const action: ChangeCollectionAction = deps.action;
-        const { databaseService } = interaction.selectors.getPlatformDependentServices(
-            deps.getState()
-        );
+        // const { databaseService } = interaction.selectors.getPlatformDependentServices(
+        //     deps.getState()
+        // );
         // TODO: BROOOOOO
         // if (action.payload?.uri) {
         //     const dataSource = await databaseService.getDataSource(action.payload?.uri);

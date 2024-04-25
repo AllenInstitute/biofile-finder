@@ -165,7 +165,8 @@
 .file-name {
     padding: var(--margin);
     text-align: center;
-    user-select: text;
+    /* TODO: Add context menu from annotation rows onto file name too for copying */
+    user-select: text !important;
     word-break: break-all;
 }
 

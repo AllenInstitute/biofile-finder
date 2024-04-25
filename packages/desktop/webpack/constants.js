@@ -1,6 +1,6 @@
 const devServer = {
     host: "0.0.0.0",
-    port: 9002,
+    port: 9001,
 };
 
 const Env = {

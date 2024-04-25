@@ -1,31 +1,22 @@
-import {
-    ExecutionEnvService,
-    ExecutableEnvCancellationToken,
-    SaveLocationResolution,
-} from "../../../core/services";
-import NotificationServiceWeb from "./NotificationServiceWeb";
+import { ExecutionEnvService, SaveLocationResolution } from "../../../core/services";
 
 export default class ExecutionEnvServiceWeb implements ExecutionEnvService {
-    private notificationService: NotificationServiceWeb;
-
-    public constructor(notificationService: NotificationServiceWeb) {
-        this.notificationService = notificationService;
-    }
-
     public async formatPathForHost(posixPath: string): Promise<string> {
+        console.log("formatPathForHost", posixPath);
         return "";
     }
 
     public getFilename(filePath: string): string {
+        console.log("getFilename", filePath);
         return "";
     }
 
     public getOS(): string {
         const lowerCaseUserAgent = navigator.userAgent.toLowerCase();
         if (lowerCaseUserAgent.includes("Darwin")) {
-            return "Darwin"
+            return "Darwin";
         } else if (lowerCaseUserAgent.includes("Windows")) {
-            return 'Windows_NT'
+            return "Windows_NT";
         } else if (lowerCaseUserAgent.includes("Linux")) {
             return "Linux";
         }
@@ -36,14 +27,17 @@ export default class ExecutionEnvServiceWeb implements ExecutionEnvService {
         promptTitle: string,
         reasonForPrompt?: string
     ): Promise<string> {
+        console.log(promptTitle, reasonForPrompt);
         throw Error("blah");
     }
 
     public async promptForFile(extensions?: string[], reasonForPrompt?: string): Promise<string> {
+        console.log(extensions, reasonForPrompt);
         throw Error("blah");
     }
 
     public async promptForSaveLocation(promptTitle?: string): Promise<SaveLocationResolution> {
+        console.log(promptTitle);
         throw Error("blah");
     }
 }

@@ -21,7 +21,7 @@ const applicationInfoService = new ApplicationInfoServiceWeb();
 const databaseService = new DatabaseServiceWeb();
 const notificationService = new NotificationServiceWeb();
 const persistentConfigService = new PersistentConfigServiceWeb();
-const executionEnvService = new ExecutionEnvServiceWeb(notificationService);
+const executionEnvService = new ExecutionEnvServiceWeb();
 // application analytics/metrics
 // const frontendInsights = new FrontendInsights(
 //     {
@@ -44,19 +44,15 @@ const executionEnvService = new ExecutionEnvServiceWeb(notificationService);
 
 // Memoized to make sure the object that collects these services doesn't
 // unnecessarily change with regard to referential equality between re-renders of the application
-const collectPlatformDependentServices = memoize(
-    () => ({
-        applicationInfoService,
-        databaseService,
-        executionEnvService,
-        fileDownloadService: new FileDownloadServiceWeb(
-            notificationService,
-        ),
-        fileViewerService: new FileViewerServiceWeb(notificationService),
-        // frontendInsights,
-        persistentConfigService,
-    })
-);
+const collectPlatformDependentServices = memoize(() => ({
+    applicationInfoService,
+    databaseService,
+    executionEnvService,
+    fileDownloadService: new FileDownloadServiceWeb(notificationService),
+    fileViewerService: new FileViewerServiceWeb(notificationService),
+    // frontendInsights,
+    persistentConfigService,
+}));
 
 render(
     <Provider store={createReduxStore()}>

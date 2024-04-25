@@ -4,7 +4,6 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
-import HttpFileService from "../../../services/FileService/HttpFileService";
 
 import FileSet from "../../../entity/FileSet";
 import { initialState } from "../../../state";

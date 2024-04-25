@@ -44,6 +44,7 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
 
     return React.useCallback(
         (evt: React.MouseEvent) => {
+            evt.preventDefault();
             const savedApps: IContextualMenuItem[] = (userSelectedApplications || []).map((app) => {
                 const name = executionEnvService.getFilename(app.filePath);
                 return {

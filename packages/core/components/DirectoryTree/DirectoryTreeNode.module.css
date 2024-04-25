@@ -17,7 +17,7 @@
 }
 
 .focused {
-    border: 2px solid #d4e3fc;
+    border: 1px solid var(--highlight-text-color);
     margin: 0;
 }
 

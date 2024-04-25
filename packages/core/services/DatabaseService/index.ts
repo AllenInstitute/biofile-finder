@@ -9,7 +9,7 @@ export interface DataSource {
 export default interface DatabaseService {
     table: string;
 
-    setDataSource(fileURI: string): Promise<void>;
+    setDataSource(uri: string): Promise<void>;
 
     getDataSource(uri: string): Promise<DataSource>;
 
