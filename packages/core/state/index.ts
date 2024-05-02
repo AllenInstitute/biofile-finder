@@ -66,6 +66,8 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
     const displayAnnotations = rawDisplayAnnotations
         ? rawDisplayAnnotations.map((annotation) => new Annotation(annotation))
         : [];
+    const recentAnnotations =
+        persistedConfig && persistedConfig[PersistedConfigKeys.RecentAnnotations];
     const preloadedState: State = mergeState(initialState, {
         interaction: {
             csvColumns: persistedConfig?.[PersistedConfigKeys.CsvColumns],
@@ -77,6 +79,7 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
         selection: {
             displayAnnotations,
             queries,
+            recentAnnotations,
         },
     });
     return configureStore<State>({

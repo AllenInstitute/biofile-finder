@@ -60,6 +60,13 @@ const OPTIONS: Options<Record<string, unknown>> = {
                 },
             },
         },
+        [PersistedConfigKeys.RecentAnnotations]: {
+            type: "array",
+            items: {
+                type: "string",
+            },
+        },
+
         [PersistedConfigKeys.HasUsedApplicationBefore]: {
             type: "boolean",
         },

@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import ListPicker, { ListItem } from "../ListPicker";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
-import { metadata, selection } from "../../state";
+import { selection } from "../../state";
 
 interface Props {
     disabledTopLevelAnnotations?: boolean;
@@ -23,7 +23,7 @@ interface Props {
  * downloading a manifest.
  */
 export default function AnnotationPicker(props: Props) {
-    const annotations = useSelector(metadata.selectors.getSortedAnnotations);
+    const annotations = useSelector(selection.selectors.getSortedAnnotations);
     const unavailableAnnotations = useSelector(
         selection.selectors.getUnavailableAnnotationsForHierarchy
     );
