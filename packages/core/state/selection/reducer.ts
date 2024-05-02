@@ -1,5 +1,5 @@
 import { makeReducer } from "@aics/redux-utils";
-import { omit } from "lodash";
+import { castArray, omit } from "lodash";
 
 import interaction from "../interaction";
 import { THUMBNAIL_SIZE_TO_NUM_COLUMNS } from "../../constants";
@@ -49,6 +49,7 @@ export interface SelectionStateBranch {
     filters: FileFilter[];
     isDarkTheme: boolean;
     openFileFolders: FileFolder[];
+    recentAnnotations: string[];
     selectedQuery?: Query;
     shouldDisplaySmallFont: boolean;
     shouldDisplayThumbnailView: boolean;
@@ -73,6 +74,7 @@ export const initialState = {
     fileSelection: new FileSelection(),
     filters: [],
     openFileFolders: [],
+    recentAnnotations: [],
     shouldDisplaySmallFont: false,
     queries: [],
     shouldDisplayThumbnailView: false,
@@ -96,13 +98,26 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             fileGridColumnCount: action.payload,
         }),
-        [SET_FILE_FILTERS]: (state, action) => ({
-            ...state,
-            filters: action.payload,
+        [SET_FILE_FILTERS]: (state, action) => {
+            console.log("Filter: ", action.payload);
 
-            // Reset file selections when file filters change
-            fileSelection: new FileSelection(),
-        }),
+            const recentAnnotations = Array.from(
+                new Set([
+                    // get annotaionName from each filter and add to recents
+                    ...castArray(action.payload.map((filter: any) => filter.annotationName)),
+                    ...state.recentAnnotations,
+                ])
+            );
+            //let recentAnnotations: string[] = [];
+
+            return {
+                ...state,
+                filters: action.payload,
+                recentAnnotations,
+                // Reset file selections when file filters change
+                fileSelection: new FileSelection(),
+            };
+        },
         [SORT_COLUMN]: (state, action) => {
             if (state.sortColumn?.annotationName === action.payload) {
                 // If already sorting by this column descending
@@ -147,10 +162,16 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             queries: action.payload,
         }),
-        [SET_SORT_COLUMN]: (state, action) => ({
-            ...state,
-            sortColumn: action.payload,
-        }),
+        [SET_SORT_COLUMN]: (state, action) => {
+            const recentAnnotations = Array.from(
+                new Set([...castArray(action.payload.annotationName), ...state.recentAnnotations])
+            );
+            return {
+                ...state,
+                recentAnnotations,
+                sortColumn: action.payload,
+            };
+        },
         [interaction.actions.REFRESH]: (state) => ({
             ...state,
             availableAnnotationsForHierarchyLoading: true,
@@ -175,14 +196,22 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             fileSelection: action.payload,
         }),
-        [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
-            ...state,
-            annotationHierarchy: action.payload,
-            availableAnnotationsForHierarchyLoading: true,
+        [SET_ANNOTATION_HIERARCHY]: (state, action) => {
+            // combine recent hierarchy annotations with payload
+            const recentAnnotations = Array.from(
+                new Set([...castArray(action.payload), ...state.recentAnnotations])
+            );
 
-            // Reset file selections when annotation hierarchy changes
-            fileSelection: new FileSelection(),
-        }),
+            return {
+                ...state,
+                annotationHierarchy: action.payload,
+                availableAnnotationsForHierarchyLoading: true,
+                recentAnnotations,
+
+                // Reset file selections when annotation hierarchy changes
+                fileSelection: new FileSelection(),
+            };
+        },
         [SET_AVAILABLE_ANNOTATIONS]: (state, action) => ({
             ...state,
             availableAnnotationsForHierarchy: action.payload,

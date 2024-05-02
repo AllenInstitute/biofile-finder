@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import QueryPart from ".";
 import AnnotationPicker from "../AnnotationPicker";
-import { metadata, selection } from "../../state";
+import { selection } from "../../state";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
 
@@ -17,7 +17,7 @@ interface Props {
 export default function QuerySort(props: Props) {
     const dispatch = useDispatch();
 
-    const annotations = useSelector(metadata.selectors.getSortedAnnotations);
+    const annotations = useSelector(selection.selectors.getSortedAnnotations);
 
     return (
         <QueryPart

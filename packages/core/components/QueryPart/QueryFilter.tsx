@@ -7,7 +7,7 @@ import AnnotationPicker from "../AnnotationPicker";
 import AnnotationFilterForm from "../AnnotationFilterForm";
 import Tutorial from "../../entity/Tutorial";
 import FileFilter from "../../entity/FileFilter";
-import { metadata, selection } from "../../state";
+import { selection } from "../../state";
 import Annotation from "../../entity/Annotation";
 
 interface Props {
@@ -20,7 +20,7 @@ interface Props {
 export default function QueryFilter(props: Props) {
     const dispatch = useDispatch();
 
-    const annotations = useSelector(metadata.selectors.getSortedAnnotations);
+    const annotations = useSelector(selection.selectors.getSortedAnnotations);
     const filtersGroupedByName = useSelector(selection.selectors.getGroupedByFilterName);
 
     return (
