@@ -34,6 +34,20 @@ export default class SQLBuilder {
         return this;
     }
 
+    public whereAnd(clause: string | string[]): SQLBuilder {
+        return this.where(clause);
+    }
+
+    // TODO: :( not implemented really
+    public whereOr(clause: string | string[]): SQLBuilder {
+        if (Array.isArray(clause)) {
+            clause.forEach((c) => this.whereClauses.push(c));
+        } else {
+            this.whereClauses.push(clause);
+        }
+        return this;
+    }
+
     public orderBy(clause?: string): SQLBuilder {
         this.orderByClause = clause;
         return this;

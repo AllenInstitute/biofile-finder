@@ -64,9 +64,10 @@ export default function QueryFooter(props: Props) {
 
     return (
         <div className={styles.container}>
-            <IconButton
+           <IconButton
                 ariaDescription="Share query"
                 ariaLabel="Share"
+                title="Share"
                 className={styles.button}
                 menuProps={{ className: styles.buttonMenu, items: shareQueryOptions }}
                 iconProps={{ iconName: "Share" }}
@@ -75,6 +76,7 @@ export default function QueryFooter(props: Props) {
             <IconButton
                 ariaDescription="Refresh query"
                 ariaLabel="Refresh"
+                title="Refresh"
                 className={styles.button}
                 onClick={onRefresh}
                 iconProps={{ iconName: "Refresh" }}
@@ -82,6 +84,7 @@ export default function QueryFooter(props: Props) {
             <IconButton
                 ariaDescription="Copy query"
                 ariaLabel="Copy"
+                title="Duplicate"
                 className={styles.button}
                 onClick={() => dispatch(selection.actions.addQuery(props.query))}
                 iconProps={{ iconName: "Copy" }}
@@ -89,6 +92,7 @@ export default function QueryFooter(props: Props) {
             <IconButton
                 ariaDescription="Delete query"
                 ariaLabel="Delete"
+                title="Delete"
                 className={classNames(styles.button, { [styles.disabled]: !props.isDeletable })}
                 disabled={!props.isDeletable}
                 onClick={props.onQueryDelete}

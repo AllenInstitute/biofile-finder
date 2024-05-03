@@ -68,6 +68,31 @@ export default class DatabaseServiceWeb implements DatabaseService {
         }
     }
 
+    public async saveQueryAsBuffer(sql: string): Promise<Uint8Array> {
+        if (!this.database) {
+            throw new Error("Database has not yet been initialized");
+        }
+
+        const connection = await this.database.connect();
+        try {
+            await connection.send(`COPY (${sql}) TO 'result-example.parquet' (FORMAT 'parquet');`);
+            return await this.database.copyFileToBuffer('result-snappy.parquet');
+            // const link = URL.createObjectURL(new Blob([parquet_buffer]));
+        } finally {
+            await connection.close();
+        }
+
+        // this.database?.copyFileToBuffer()
+        // conn.send(`COPY (SELECT * FROM tbl) TO 'result-snappy.parquet' (FORMAT 'parquet');`);
+        // const parquet_buffer = await this._db.copyFileToBuffer('result-snappy.parquet');
+        
+        // // Generate a download link
+        // const link = URL.createObjectURL(new Blob([parquet_buffer]));
+        
+        // // Close the connection to release memory
+        // await conn.close();
+    }
+
     public async getDataSource(csvUri: string): Promise<DataSource> {
         if (csvUri.startsWith("http")) {
             const response = await axios.get(csvUri, {

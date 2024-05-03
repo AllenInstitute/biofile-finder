@@ -36,6 +36,10 @@ export default class DatabaseServiceElectron implements DatabaseService {
         await this.query(sql);
     }
 
+    public async saveQueryAsBuffer(sql: string): Promise<Uint8Array> {
+        throw new Error("Not yet implemented (saveQueryAsBuffer)")
+    }
+
     public async getDataSource(csvUri: string): Promise<DataSource> {
         if (csvUri.startsWith("http")) {
             const response = await axios.get(csvUri, {

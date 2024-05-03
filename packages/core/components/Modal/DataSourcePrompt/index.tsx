@@ -35,8 +35,30 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
     const [dataSourceURL, setDataSourceURL] = React.useState("");
     const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
 
-    const onChooseFile = () => {
-        dispatch(interaction.actions.browseForNewDataSource());
+    const onChooseFile = (evt: React.FormEvent<HTMLInputElement>) => {
+        const selectedFile = (evt.target as HTMLInputElement).files?.[0];
+        console.log(selectedFile);
+        if (selectedFile) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const uri = reader.result as string;
+                console.log(uri);
+                dispatch(
+                    selection.actions.addQuery({
+                        name: "New Query",
+                        url: FileExplorerURL.encode({
+                            collection: {
+                                uri,
+                                name: selectedFile.name,
+                                version: 1,
+                            },
+                        }),
+                    })
+                );
+                onDismiss();
+            };
+            reader.readAsDataURL(selectedFile);
+        }
         onDismiss();
     };
     const onEnterURL = throttle(

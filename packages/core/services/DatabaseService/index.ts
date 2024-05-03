@@ -13,5 +13,7 @@ export default interface DatabaseService {
 
     getDataSource(uri: string): Promise<DataSource>;
 
+    saveQueryAsBuffer(sql: string): Promise<Uint8Array>;
+
     query(sql: string): Promise<{ [key: string]: string }[]>;
 }

@@ -94,7 +94,6 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
             </div>
         );
     }
-    console.log(overallMin, overallMax);
 
     return (
         <div

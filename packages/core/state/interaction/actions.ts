@@ -436,12 +436,12 @@ export interface ShowManifestDownloadDialogAction {
     type: string;
     payload: {
         fileFilters: FileFilter[];
-        fileType: "csv" | "parquet";
+        fileType: "csv" | "parquet" | "json";
     };
 }
 
 export function showManifestDownloadDialog(
-    fileType: "csv" | "parquet",
+    fileType: "csv" | "parquet" | "json",
     fileFilters: FileFilter[] = []
 ): ShowManifestDownloadDialogAction {
     return {

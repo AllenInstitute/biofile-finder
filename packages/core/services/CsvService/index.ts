@@ -1,3 +1,4 @@
+import SQLBuilder from "../../entity/SQLBuilder";
 import DatabaseService from "../DatabaseService";
 import FileDownloadService, {
     DownloadResolution,
@@ -43,6 +44,43 @@ export default class CsvService extends HttpServiceBase {
             url,
             stringifiedPostBody,
             manifestDownloadId
+        );
+    }
+
+    public async getSelectionAsBuffer(annotations: string[], selections: Selection[]): Promise<Uint8Array> {
+        // TODO: use file id
+        // TODO: Automatically generate file id on startup of db if not present in source
+        const sqlBuilder = new SQLBuilder()
+            .select(annotations.map((annotation) => `'${annotation}'`).join(', '))
+            .from(this.databaseService.table)
+
+        selections.forEach((selection) => {
+            selection.indexRanges.forEach((indexRange) => {
+                const subQuery = new SQLBuilder()
+                    .select("'File Path'")
+                    .from(this.databaseService.table)
+                    .whereOr(Object.entries(selection.filters).map(([column, values]) => {
+                        const commaSeperatedValues = values.map(v => `'${v}'`).join(", ");
+                        return `'${column}' IN (${commaSeperatedValues}}`;
+                    }))
+                    .offset(indexRange.start)
+                    .limit(indexRange.end - indexRange.start);
+
+                if (selection.sort) {
+                    subQuery.orderBy(`'${selection.sort.annotationName}' (${selection.sort.ascending ? "ASC" : "DESC"})`);
+                }
+
+                sqlBuilder.whereOr(`'File Path' IN (${subQuery})`)
+            });
+        });
+        // const sql = request.fileSet
+        //     .toQuerySQLBuilder()
+        //     .from(this.databaseService.table)
+        //     .offset(request.from * request.limit)
+        //     .limit(request.limit)
+        //     .toSQL();
+        return this.databaseService.saveQueryAsBuffer(
+            sqlBuilder.toSQL()
         );
     }
 

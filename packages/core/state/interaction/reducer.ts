@@ -41,7 +41,7 @@ export interface InteractionStateBranch {
     contextMenuOnDismiss?: () => void;
     csvColumns?: string[];
     fileExplorerServiceBaseUrl: string;
-    fileTypeForVisibleModal?: "csv" | "parquet";
+    fileTypeForVisibleModal?: "csv" | "json" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
     hasUsedApplicationBefore: boolean;
     platformDependentServices: PlatformDependentServices;
