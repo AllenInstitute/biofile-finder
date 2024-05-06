@@ -9,7 +9,7 @@ import { initialState } from "../../../state";
 import FileThumbnail from "..";
 
 describe("<FileThumbnail />", () => {
-    it("renders thumbnail one is specified", () => {
+    it("renders thumbnail one if one specified", () => {
         // Arrange
         const state = mergeState(initialState, {});
         const { store } = configureMockStore({ state });
@@ -22,7 +22,6 @@ describe("<FileThumbnail />", () => {
         );
 
         // Assert
-        // Also checking for proper row/col indexing
         const thumbnail = getByRole("img");
         expect(thumbnail.getAttribute("src")).to.include("some/path/to/my_image0.jpg");
     });
@@ -39,7 +38,6 @@ describe("<FileThumbnail />", () => {
         );
 
         // Assert
-        // Also confirms proper row/col indexing
         expect(".no-thumbnail").to.exist;
         expect(".svg").to.exist;
         expect(queryByRole("img")).not.to.exist;

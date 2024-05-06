@@ -142,7 +142,7 @@ describe("<CsvManifest />", () => {
     });
 
     describe("column list", () => {
-        it("has pre-saved columns when some were previousuly saved", async () => {
+        it("has pre-saved columns when some were previously saved", async () => {
             // Arrange
             const preSavedColumns = ["Cas9", "Cell Line", "Donor Plasmid"];
             const state = mergeState(visibleDialogState, {
