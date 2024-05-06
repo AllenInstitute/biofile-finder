@@ -32,7 +32,7 @@ export default function ContextMenu() {
 
     return (
         <ContextualMenu
-            calloutProps={{ className: styles.container }}
+            className={styles.container}
             items={items}
             hidden={!visible}
             target={positionReference}
