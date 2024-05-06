@@ -83,8 +83,8 @@ export const getSortedAnnotations = createSelector(
     [getAnnotations, getRecentAnnotations],
     (annotations: Annotation[], recentAnnotationNames: string[]) => {
         // Create Array of annotations from recentAnnotationNames
-        const recentAnnotations = annotations.filter((annotation) =>
-            recentAnnotationNames.includes(annotation.name)
+        const recentAnnotations = recentAnnotationNames.flatMap((name) =>
+            annotations.filter((annotation) => annotation.name === name)
         );
 
         // get the File name annotaion in a list (if Present)
