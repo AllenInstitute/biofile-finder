@@ -99,8 +99,6 @@ export default makeReducer<SelectionStateBranch>(
             fileGridColumnCount: action.payload,
         }),
         [SET_FILE_FILTERS]: (state, action) => {
-            console.log("Filter: ", action.payload);
-
             const recentAnnotations = Array.from(
                 new Set([
                     // get annotaionName from each filter and add to recents
