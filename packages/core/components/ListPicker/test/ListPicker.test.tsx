@@ -4,7 +4,8 @@ import { noop } from "lodash";
 import * as React from "react";
 import sinon from "sinon";
 
-import ListPicker, { ListItem } from "..";
+import ListPicker from "..";
+import { ListItem } from "../ListRow";
 
 describe("<ListPicker />", () => {
     it("renders a list of items that are selectable and deselectable", () => {

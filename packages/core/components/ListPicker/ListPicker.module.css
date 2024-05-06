@@ -76,20 +76,6 @@
     opacity: 0.5;
 }
 
-.item {
-    display: flex;
-    flex-direction: row;
-    align-content: center;
-    font-size: 16px;
-    margin: calc(var(--spacing) / 2) 0;
-    width: 100%;
-}
-
-.item > div {
-    font-size: smaller;
-    width: 1.5em;
-}
-
 .search-box, .search-box > :is(div, input), .search-box :is(button, i) {
     background-color: var(--primary-background-color) !important;
     color: var(--primary-text-color) !important;
@@ -102,47 +88,4 @@
 
 .search-box::after {
     display: none;
-}
-
-.item-container {
-    background-color: var(--secondary-background-color);
-    border: none;
-    color: var(--secondary-text-color);
-    display: flex;
-    justify-content: space-between;
-    padding-left: 6px;
-    width: 100%;
-}
-
-.item-container:hover:not(.disabled) {
-    background-color: var(--highlight-background-color);
-    border: none;
-    color: var(--highlight-text-color);
-}
-
-.selected {
-    background-color: var(--primary-background-color);
-    color: var(--primary-text-color);
-}
-
-.item-container, .item-container label {
-    cursor: pointer;
-}
-
-.disabled label {
-    cursor: not-allowed;
-    opacity: 0.75;
-}
-
-.item-container > span {
-    width: 100%;
-}
-
-.item-container i:not(:first-child) {
-    margin-left: auto;
-    padding-left: 6px;
-}
-
-.spinner > div {
-   border-color: var(--secondary-text-color) var(--secondary-background-color) var(--secondary-background-color);
 }

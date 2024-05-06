@@ -1,7 +1,8 @@
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import ListPicker, { ListItem } from "../ListPicker";
+import ListPicker from "../ListPicker";
+import { ListItem } from "../ListPicker/ListRow";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { metadata, selection } from "../../state";

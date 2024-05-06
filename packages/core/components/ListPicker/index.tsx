@@ -1,30 +1,11 @@
-import {
-    ActionButton,
-    DefaultButton,
-    DirectionalHint,
-    Icon,
-    List,
-    SearchBox,
-    Spinner,
-    SpinnerSize,
-} from "@fluentui/react";
+import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "@fluentui/react";
 import classNames from "classnames";
 import Fuse from "fuse.js";
 import * as React from "react";
 
-import { AnnotationValue } from "../../services/AnnotationService";
+import ListRow, { ListItem } from "./ListRow";
 
 import styles from "./ListPicker.module.css";
-
-export interface ListItem<T = any> {
-    disabled?: boolean;
-    loading?: boolean;
-    selected: boolean;
-    displayValue: AnnotationValue;
-    value: AnnotationValue;
-    description?: string;
-    data?: T; // optional "user data" to stash on a list item to retrieve later
-}
 
 interface ListPickerProps {
     className?: string;
@@ -118,11 +99,7 @@ export default function ListPicker(props: ListPickerProps) {
     }
 
     return (
-        <div
-            className={classNames(styles.container, className)}
-            data-is-scrollable="true"
-            data-is-focusable="true"
-        >
+        <div className={classNames(styles.container, className)} data-is-focusable="true">
             <div className={styles.header}>
                 {props.title && <h3>{props.title}</h3>}
                 <SearchBox
@@ -165,48 +142,20 @@ export default function ListPicker(props: ListPickerProps) {
                     </ActionButton>
                 </div>
             </div>
-            <div className={styles.mainContent}>
+            <div className={styles.mainContent} data-is-scrollable="true">
                 <List
+                    ignoreScrollingState
                     getKey={(item) => String(item.value)}
-                    ignoreScrollingState={true}
                     items={filteredItems}
                     onShouldVirtualize={() => filteredItems.length > 100}
-                    onRenderCell={(item) =>
-                        item && (
-                            <DefaultButton
-                                className={classNames(styles.itemContainer, {
-                                    [styles.selected]: item.selected,
-                                    [styles.disabled]: item.disabled,
-                                })}
-                                menuIconProps={{
-                                    iconName: props.subMenuRenderer ? "ChevronRight" : undefined,
-                                }}
-                                menuProps={
-                                    props.subMenuRenderer
-                                        ? {
-                                              directionalHint: DirectionalHint.rightTopEdge,
-                                              shouldFocusOnMount: true,
-                                              items: [{ key: "placeholder" }], // necessary to have a non-empty items list to have `onRenderMenuList` called
-                                              onRenderMenuList: () =>
-                                                  props.subMenuRenderer?.(
-                                                      item
-                                                  ) as React.ReactElement,
-                                          }
-                                        : undefined
-                                }
-                                disabled={item.disabled}
-                                onClick={() => (item.selected ? onDeselect(item) : onSelect(item))}
-                            >
-                                <label className={styles.item} title={item.description}>
-                                    <div>{item.selected && <Icon iconName="CheckMark" />}</div>
-                                    {item.displayValue}
-                                </label>
-                                {item.loading && (
-                                    <Spinner className={styles.spinner} size={SpinnerSize.small} />
-                                )}
-                            </DefaultButton>
-                        )
-                    }
+                    onRenderCell={(item) => (
+                        <ListRow
+                            item={item}
+                            onDeselect={onDeselect}
+                            onSelect={onSelect}
+                            subMenuRenderer={props.subMenuRenderer}
+                        />
+                    )}
                 />
             </div>
             <div className={styles.footer}>
