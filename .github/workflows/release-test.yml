@@ -1,0 +1,56 @@
+name: release-test
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: choice
+        description: New version to assign to the package
+        required: true
+
+jobs:
+  release-fms-file-explorer-desktop:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@main
+        with:
+          ref: ${{ github.event.client_payload.ref }}
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@main
+        with:
+          node-version: 16
+      
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test, Lint, and Type Check
+        run: |
+          npm run test
+          npm run lint
+          npm run type-check
+      
+      - name: Change version
+        uses: reedyuk/npm-version@1.1.1
+        with:
+          version: "${{ github.event.inputs.version }}"
+          package: 'packages/desktop/'
+          git-tag-version: 'true'
+
+      - name: Build/release Electron app
+        uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
+        env:
+          AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
+        with:
+          # GitHub token, automatically provided to the action
+          # (No need to define this secret in the repo settings)
+          github_token: ${{ secrets.github_token }}
+          package_root: "packages/desktop"
+          release: true
+          windows_certs: ${{ secrets.CSC_LINK }}
+          windows_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}
