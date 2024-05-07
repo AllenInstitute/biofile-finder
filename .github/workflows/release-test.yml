@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        type: choice
         description: New version to assign to the package
         required: true
 
