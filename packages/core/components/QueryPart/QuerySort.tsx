@@ -38,6 +38,7 @@ export default function QuerySort(props: Props) {
             onRenderAddMenuList={() => (
                 <AnnotationPicker
                     disableUnavailableAnnotations
+                    title="Select metadata to sort by"
                     selections={annotations.filter(
                         (annotation) => annotation.name === props.sort?.annotationName
                     )}

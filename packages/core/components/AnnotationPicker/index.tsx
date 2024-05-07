@@ -12,6 +12,7 @@ interface Props {
     hasSelectAllCapability?: boolean;
     disableUnavailableAnnotations?: boolean;
     className?: string;
+    title?: string;
     selections: Annotation[];
     annotationSubMenuRenderer?: (
         item: ListItem<Annotation>
@@ -67,6 +68,7 @@ export default function AnnotationPicker(props: Props) {
         <ListPicker
             className={props.className}
             items={items}
+            title={props.title}
             onDeselect={removeSelection}
             onSelect={addSelection}
             onSelectAll={

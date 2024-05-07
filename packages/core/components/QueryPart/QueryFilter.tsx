@@ -38,6 +38,7 @@ export default function QueryFilter(props: Props) {
             onRenderAddMenuList={() => (
                 <AnnotationPicker
                     disableUnavailableAnnotations
+                    title="Select metadata to filter by"
                     annotationSubMenuRenderer={(annotationItem) => (
                         <AnnotationFilterForm annotation={annotationItem.data as Annotation} />
                     )}
