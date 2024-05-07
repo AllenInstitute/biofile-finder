@@ -16,7 +16,7 @@ function gitBranchName() {
 
 const gitBranch = gitBranchName();
 const archiveVersion = (exports.archiveVersion =
-    gitBranch !== "master" ? gitBranch.split("/").join("-") : packageJson.version);
+    gitBranch !== "main" ? gitBranch.split("/").join("-") : packageJson.version);
 const archiveName = (exports.archiveName = `${packageJson.name}-${archiveVersion}.tgz`);
 
 // get list of files in dist/, then package in a tar bundle
