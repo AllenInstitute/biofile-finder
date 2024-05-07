@@ -18,6 +18,9 @@ jobs:
         with:
           node-version: 16
 
+      - name: duckdb
+        uses: opt-nc/setup-duckdb-action@v1.0.7
+
       - name: Build/release Electron app
         uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
         with:
