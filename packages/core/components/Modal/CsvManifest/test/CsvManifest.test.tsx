@@ -12,7 +12,6 @@ import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
 import Modal, { ModalType } from "../..";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import FileFilter from "../../../../entity/FileFilter";
 import FileDownloadService, { DownloadResolution } from "../../../../services/FileDownloadService";
@@ -84,6 +83,10 @@ describe("<CsvManifest />", () => {
                 return Promise.reject();
             }
 
+            promptForSaveLocation() {
+                return Promise.reject();
+            }
+
             promptForDownloadDirectory() {
                 return Promise.reject();
             }
@@ -95,10 +98,21 @@ describe("<CsvManifest />", () => {
 
         const state = mergeState(visibleDialogState, {
             interaction: {
+                csvColumns: ["Cell Line"],
                 fileFiltersForVisibleModal: [new FileFilter("Cell Line", "AICS-11")],
                 platformDependentServices: {
                     fileDownloadService: new TestDownloadService(),
                 },
+            },
+            metadata: {
+                annotations: [
+                    new Annotation({
+                        annotationDisplayName: "Cell Line",
+                        annotationName: "Cell Line",
+                        description: "test",
+                        type: "text",
+                    }),
+                ],
             },
         });
 
@@ -128,22 +142,7 @@ describe("<CsvManifest />", () => {
     });
 
     describe("column list", () => {
-        it("has default columns when none were previousuly saved", async () => {
-            // Arrange
-            const { store } = configureMockStore({ state: visibleDialogState });
-            const { getByText } = render(
-                <Provider store={store}>
-                    <Modal />
-                </Provider>
-            );
-
-            // Assert
-            TOP_LEVEL_FILE_ANNOTATIONS.forEach((annotation) => {
-                expect(getByText(annotation.displayName)).to.exist;
-            });
-        });
-
-        it("has pre-saved columns when some were previousuly saved", async () => {
+        it("has pre-saved columns when some were previously saved", async () => {
             // Arrange
             const preSavedColumns = ["Cas9", "Cell Line", "Donor Plasmid"];
             const state = mergeState(visibleDialogState, {

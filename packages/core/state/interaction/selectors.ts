@@ -3,7 +3,7 @@ import { createSelector } from "reselect";
 import { State } from "../";
 import { getCollection } from "../selection/selectors";
 import { AnnotationService, FileService, HttpServiceBase } from "../../services";
-import DatasetService from "../../services/DatasetService";
+import DatasetService, { PythonicDataAccessSnippet } from "../../services/DatasetService";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
@@ -21,19 +21,28 @@ export const getFileExplorerServiceBaseUrl = (state: State) =>
     state.interaction.fileExplorerServiceBaseUrl;
 export const getFileFiltersForVisibleModal = (state: State) =>
     state.interaction.fileFiltersForVisibleModal;
-export const getLastUsedCollection = (state: State) => state.interaction.lastUsedCollection;
 export const hasUsedApplicationBefore = (state: State) =>
     state.interaction.hasUsedApplicationBefore;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;
-export const getPythonSnippet = (state: State) => state.interaction.pythonSnippet;
 export const getRefreshKey = (state: State) => state.interaction.refreshKey;
 export const getUserSelectedApplications = (state: State) =>
     state.interaction.userSelectedApplications;
 export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 
 // COMPOSED SELECTORS
+// TODO: Implement PythonicDataAccessSnippet
+export const getPythonSnippet = createSelector(
+    [],
+    (): PythonicDataAccessSnippet => {
+        const setup = "pip install pandas";
+        const code = "TODO";
+
+        return { setup, code };
+    }
+);
+
 export const getUserName = createSelector(
     [getPlatformDependentServices],
     (platformDependentServices) => {

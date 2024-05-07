@@ -1,7 +1,5 @@
-import { ActionButton, IButtonStyles } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
 
 import FileThumbnail from "../../components/FileThumbnail";
 import WindowActionButton from "../../components/WindowActionButton";
@@ -12,13 +10,10 @@ import FileAnnotationList from "./FileAnnotationList";
 import OpenFileButton from "./OpenFileButton";
 import Pagination from "./Pagination";
 import { ROOT_ELEMENT_ID } from "../../App";
-import { selection } from "../../state";
-import SvgIcon from "../../components/SvgIcon";
-import { NO_IMAGE_ICON_PATH_DATA } from "../../icons";
 
 import styles from "./FileDetails.module.css";
 
-interface FileDetails {
+interface Props {
     className?: string;
 }
 
@@ -29,48 +24,6 @@ const windowStateToClassnameMap: { [index: string]: string } = {
 };
 
 export const WINDOW_ACTION_BUTTON_WIDTH = 23; // arbitrary
-
-const ICON_BUTTON_STYLES: IButtonStyles = {
-    icon: {
-        color: "black",
-        fontSize: "12px",
-    },
-    label: {
-        width: "100%",
-    },
-    root: {
-        background: "none",
-        height: 24,
-        width: "100%",
-        ":hover, :hover *": {
-            backgroundColor: "#878787",
-            color: "white",
-        },
-    },
-    iconHovered: {
-        backgroundColor: "#878787",
-        color: "white",
-    },
-    splitButtonMenuButton: {
-        border: "None",
-        borderLeft: "black 1px solid",
-        borderBottomRightRadius: "10px",
-        borderTopRightRadius: "10px",
-        paddingLeft: "2px",
-        ":hover, :hover *": {
-            backgroundColor: "#878787",
-            color: "white",
-            cursor: "pointer",
-        },
-    },
-    splitButtonMenuIcon: {
-        color: "black",
-        fontSize: "10px",
-    },
-    textContainer: {
-        width: "100%",
-    },
-};
 
 const FILE_DETAILS_PANE_ID = "file-details-pane";
 const FILE_DETAILS_WIDTH_ATTRIBUTE = "--file-details-width";
@@ -122,11 +75,9 @@ function resizeHandleDoubleClick() {
 /**
  * Right-hand sidebar of application. Displays details of selected file(s).
  */
-export default function FileDetails(props: FileDetails) {
-    const globalDispatch = useDispatch();
+export default function FileDetails(props: Props) {
     const [windowState, windowDispatch] = React.useReducer(windowStateReducer, INITIAL_STATE);
     const [fileDetails, isLoading] = useFileDetails();
-    const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
 
     // If FileDetails pane is minimized, set its width to the width of the WindowActionButtons. Else, let it be
     // defined by whatever the CSS determines (setting an inline style to undefined will prompt ReactDOM to not apply
@@ -134,61 +85,15 @@ export default function FileDetails(props: FileDetails) {
     const minimizedWidth =
         windowState.state === WindowState.MINIMIZED ? WINDOW_ACTION_BUTTON_WIDTH : undefined;
 
-    // If the file has a thumbnail image specified, we want to display the specified thumbnail. Otherwise, we want
-    // to display the file itself as the thumbnail if possible.
-    // If there is no thumbnail and the file cannot be displayed as the thumbnail- show a no image icon
-    let thumbnail = (
-        <SvgIcon
-            height={100}
-            pathData={NO_IMAGE_ICON_PATH_DATA}
-            viewBox="0,0,20,20"
-            width={100}
-            className={classNames(styles.fileThumbnailContainer, styles.noThumbnail, {
-                [styles.thumbnailDefault]: windowState.state === WindowState.DEFAULT,
-                [styles.thumbnailMaximized]: windowState.state === WindowState.MAXIMIZED,
-            })}
-        />
-    ); // placeholder if no thumbnail exists
-    if (fileDetails?.thumbnail) {
-        // thumbnail exists
-        thumbnail = (
-            <div
-                className={classNames(styles.fileThumbnailContainer, {
-                    [styles.thumbnailDefault]: windowState.state === WindowState.DEFAULT,
-                    [styles.thumbnailMaximized]: windowState.state === WindowState.MAXIMIZED,
-                })}
-            >
-                <FileThumbnail
-                    uri={
-                        fileDetails.thumbnail?.startsWith("/allen")
-                            ? `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${fileDetails.thumbnail}`
-                            : fileDetails.thumbnail
-                    }
-                />
-            </div>
-        );
-    } else if (fileDetails) {
-        const renderableImageFormats = [".jpg", ".jpeg", ".png", ".gif"];
-        const isFileRenderableImage = renderableImageFormats.some((format) =>
-            fileDetails?.name.toLowerCase().endsWith(format)
-        );
-        if (isFileRenderableImage) {
-            // render the image as the thumbnail
-            thumbnail = (
-                <div
-                    className={classNames(styles.fileThumbnailContainer, {
-                        [styles.thumbnailDefault]: windowState.state === WindowState.DEFAULT,
-                        [styles.thumbnailMaximized]: windowState.state === WindowState.MAXIMIZED,
-                    })}
-                >
-                    <FileThumbnail
-                        uri={`http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${fileDetails.path}`}
-                    />
-                </div>
-            );
-        }
+    const thumbnailPath = fileDetails?.getPathToThumbnail();
+    let thumbnailHeight = undefined;
+    let thumbnailWidth = undefined;
+    if (windowState.state === WindowState.DEFAULT) {
+        thumbnailWidth = "100%";
+    } else if (windowState.state === WindowState.MAXIMIZED) {
+        thumbnailWidth = "40%";
+        thumbnailHeight = "40%";
     }
-
     return (
         <div
             className={classNames(styles.root, props.className)}
@@ -230,56 +135,41 @@ export default function FileDetails(props: FileDetails) {
                             [styles.hidden]: windowState.state === WindowState.MINIMIZED,
                         })}
                     />
-                    <div className={styles.fontSizeButtonContainer}>
-                        <ActionButton
-                            className={classNames(styles.fontSizeButton, {
-                                [styles.disabled]: shouldDisplaySmallFont,
-                            })}
-                            disabled={shouldDisplaySmallFont}
-                            onClick={() =>
-                                globalDispatch(
-                                    selection.actions.adjustGlobalFontSize(!shouldDisplaySmallFont)
-                                )
-                            }
-                            text="a"
-                        />
-                        <ActionButton
-                            className={classNames(styles.fontSizeButton, {
-                                [styles.disabled]: !shouldDisplaySmallFont,
-                            })}
-                            disabled={!shouldDisplaySmallFont}
-                            onClick={() =>
-                                globalDispatch(
-                                    selection.actions.adjustGlobalFontSize(!shouldDisplaySmallFont)
-                                )
-                            }
-                            text="A"
-                        />
-                    </div>
                     <div className={styles.contentContainer}>
                         <div
                             className={classNames(styles.overflowContainer, {
                                 [styles.hidden]: windowState.state === WindowState.MINIMIZED,
                             })}
                         >
-                            {fileDetails && thumbnail}
-                            <div className={styles.fileActions}>
-                                <Download
-                                    buttonStyles={ICON_BUTTON_STYLES}
-                                    fileDetails={fileDetails}
-                                />
-                                <OpenFileButton
-                                    buttonStyles={ICON_BUTTON_STYLES}
-                                    fileDetails={fileDetails}
-                                />
-                            </div>
-                            <FileAnnotationList
-                                className={styles.annotationList}
-                                fileDetails={fileDetails}
-                                isLoading={isLoading}
-                            />
-                            <div className={styles.spacer} />
-                            <div className={styles.gradientTeaser} />
+                            {fileDetails && (
+                                <>
+                                    <div className={styles.thumbnailContainer}>
+                                        <FileThumbnail
+                                            className={styles.thumbnail}
+                                            width={thumbnailWidth}
+                                            height={thumbnailHeight}
+                                            uri={thumbnailPath}
+                                        />
+                                    </div>
+                                    <div className={styles.fileActions}>
+                                        <Download
+                                            className={styles.iconButton}
+                                            fileDetails={fileDetails}
+                                        />
+                                        <OpenFileButton
+                                            className={styles.iconButton}
+                                            fileDetails={fileDetails}
+                                        />
+                                    </div>
+                                    <p className={styles.fileName}>{fileDetails?.name}</p>
+                                    <h4 className={styles.title}>Information</h4>
+                                    <FileAnnotationList
+                                        className={styles.annotationList}
+                                        fileDetails={fileDetails}
+                                        isLoading={isLoading}
+                                    />
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

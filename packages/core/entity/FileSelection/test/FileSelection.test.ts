@@ -9,6 +9,7 @@ import FileSelection, { FocusDirective } from "..";
 import FileFilter from "../../FileFilter";
 import { IndexError, ValueError } from "../../../errors";
 import HttpFileService from "../../../services/FileService/HttpFileService";
+import FileDetail from "../../FileDetail";
 
 describe("FileSelection", () => {
     describe("select", () => {
@@ -345,7 +346,9 @@ describe("FileSelection", () => {
                 queryResult.push(i);
             }
             // Due to overfetching the result set we desire is a subsection of query results
-            const expectedDetails = queryResult.slice(1, 31);
+            const expectedDetails = queryResult
+                .slice(1, 31)
+                .map((detail) => new FileDetail(detail as any));
             const httpClient = createMockHttpClient({
                 when: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=${0}&limit=${31}`,
                 respondWith: {

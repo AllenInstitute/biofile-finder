@@ -52,6 +52,16 @@ export default interface FileDownloadService {
     promptForDownloadDirectory(): Promise<string>;
 
     /**
+     * Prompts the user for a save location.
+     */
+    promptForSaveLocation(
+        title: string,
+        defaultFileName: string,
+        buttonLabel: string,
+        filters?: Record<string, any>[]
+    ): Promise<string>;
+
+    /**
      * Attempt to cancel an active download request, deleting the downloaded artifact if present.
      */
     cancelActiveRequest(downloadRequestId: string): void;

@@ -9,6 +9,7 @@
   },
   "build": {
     "appId": "org.aics.alleninstitute.fileexplorer",
+    "npmRebuild": false,
     "directories": {
       "buildResources": "assets",
       "output": "build"

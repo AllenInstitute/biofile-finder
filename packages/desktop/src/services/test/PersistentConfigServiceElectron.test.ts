@@ -45,20 +45,41 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                     name: "ZEN",
                 },
             ];
+            const expectedQueries = [
+                {
+                    name: "foo",
+                    url: "bar",
+                },
+            ];
+            const expectedDisplayAnnotations = [
+                {
+                    annotationDisplayName: "Foo",
+                    annotationName: "foo",
+                    description: "foo-long",
+                    type: "string",
+                    units: "string",
+                },
+            ];
+
             service.persist(PersistedConfigKeys.AllenMountPoint, expectedAllenMountPoint);
             service.persist(PersistedConfigKeys.CsvColumns, expectedCsvColumns);
             service.persist(PersistedConfigKeys.ImageJExecutable, expectedImageJExecutable);
+            service.persist(PersistedConfigKeys.Queries, expectedQueries);
             service.persist(
                 PersistedConfigKeys.HasUsedApplicationBefore,
                 expectedHasUsedApplicationBefore
             );
             service.persist(PersistedConfigKeys.UserSelectedApplications, expectedUserSelectedApps);
+            service.persist(PersistedConfigKeys.DisplayAnnotations, expectedDisplayAnnotations);
+
             const expectedConfig = {
                 [PersistedConfigKeys.AllenMountPoint]: expectedAllenMountPoint,
                 [PersistedConfigKeys.CsvColumns]: expectedCsvColumns,
                 [PersistedConfigKeys.ImageJExecutable]: expectedImageJExecutable,
+                [PersistedConfigKeys.Queries]: expectedQueries,
                 [PersistedConfigKeys.HasUsedApplicationBefore]: expectedHasUsedApplicationBefore,
                 [PersistedConfigKeys.UserSelectedApplications]: expectedUserSelectedApps,
+                [PersistedConfigKeys.DisplayAnnotations]: expectedDisplayAnnotations,
             };
 
             // Act
@@ -77,12 +98,22 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                 [PersistedConfigKeys.AllenMountPoint]: "/some/path/to/allen",
                 [PersistedConfigKeys.CsvColumns]: ["a", "b"],
                 [PersistedConfigKeys.ImageJExecutable]: "/my/imagej",
+                [PersistedConfigKeys.Queries]: [],
                 [PersistedConfigKeys.HasUsedApplicationBefore]: undefined,
                 [PersistedConfigKeys.UserSelectedApplications]: [
                     {
                         filePath: "/some/path/to/ImageJ",
                         defaultFileKinds: ["OMETIFF"],
                         name: "ImageJ/Fiji",
+                    },
+                ],
+                [PersistedConfigKeys.DisplayAnnotations]: [
+                    {
+                        annotationDisplayName: "Foo",
+                        annotationName: "foo",
+                        description: "foo-long",
+                        type: "string",
+                        units: "string",
                     },
                 ],
             };

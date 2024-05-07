@@ -22,9 +22,43 @@ const OPTIONS: Options<Record<string, unknown>> = {
                 type: "string",
             },
         },
+        [PersistedConfigKeys.DisplayAnnotations]: {
+            type: "array",
+            items: {
+                type: "object",
+                properties: {
+                    annotationDisplayName: {
+                        type: "string",
+                    },
+                    annotationName: {
+                        type: "string",
+                    },
+                    description: {
+                        type: "string",
+                    },
+                    type: {
+                        type: "string",
+                    },
+                },
+            },
+        },
         // ImageJExecutable is Deprecated
         [PersistedConfigKeys.ImageJExecutable]: {
             type: "string",
+        },
+        [PersistedConfigKeys.Queries]: {
+            type: "array",
+            items: {
+                type: "object",
+                properties: {
+                    name: {
+                        type: "string",
+                    },
+                    url: {
+                        type: "string",
+                    },
+                },
+            },
         },
         [PersistedConfigKeys.HasUsedApplicationBefore]: {
             type: "boolean",

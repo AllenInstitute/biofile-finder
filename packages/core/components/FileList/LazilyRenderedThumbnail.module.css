@@ -1,0 +1,33 @@
+.small-font {
+  font-size: var(--smaller-font-size);
+}
+
+.file-label {
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.selected {
+  background-color: var(--highlight-background-color);
+}
+
+.focused {
+  border: 1px solid var(--highlight-text-color);
+}
+
+.thumbnail-wrapper {
+  padding: 10px
+}
+
+.thumbnail-wrapper > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.thumbnail-wrapper > div:not(.focused) {
+  margin: 1px;
+}
+
+.thumbnail-wrapper > div > img {
+  margin: 0 auto;
+}

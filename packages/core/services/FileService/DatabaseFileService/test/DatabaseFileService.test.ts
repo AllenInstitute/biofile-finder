@@ -11,8 +11,9 @@ describe("DatabaseFileService", () => {
     const totalFileSize = 864452;
     const fileIds = ["abc123", "def456"];
     const files = fileIds.map((file_id) => ({
-        file_id,
-        file_size: `${totalFileSize / 2}`,
+        "File ID": file_id,
+        "File Size": `${totalFileSize / 2}`,
+        "File Path": "path/to/file",
         num_files: "6",
     }));
 
@@ -34,10 +35,36 @@ describe("DatabaseFileService", () => {
             });
             const data = response;
             expect(data.length).to.equal(2);
-            expect(data[0]).to.deep.equal({
-                file_id: files[0].file_id,
-                file_size: totalFileSize / 2,
+            expect(data[0].details).to.deep.equal({
                 annotations: [
+                    {
+                        name: "File Path",
+                        values: ["path/to/file"],
+                    },
+                    {
+                        name: "File Name",
+                        values: ["file"],
+                    },
+                    {
+                        name: "File ID",
+                        values: ["abc123"],
+                    },
+                    {
+                        name: "File Size",
+                        values: ["432226"],
+                    },
+                    {
+                        name: "File ID",
+                        values: ["abc123"],
+                    },
+                    {
+                        name: "File Size",
+                        values: ["432226"],
+                    },
+                    {
+                        name: "File Path",
+                        values: ["path/to/file"],
+                    },
                     {
                         name: "num_files",
                         values: ["6"],

@@ -5,7 +5,7 @@
     height: 100%;
     width: 100%;
     z-index: 1000;
-    background-color: white;
+    background-color: var(--secondary-background-color);
     opacity: 0.7;
 
     display: flex;

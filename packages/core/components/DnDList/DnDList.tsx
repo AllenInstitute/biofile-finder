@@ -10,10 +10,11 @@ import styles from "./DnDList.module.css";
 export const DND_LIST_CONTAINER_ID = "dnd-list-container-id";
 
 export interface DnDItem {
-    description: string;
     disabled?: boolean;
     id: string; // a unique identifier for the annotation, e.g., annotation.name
     title: string; // the value to display, e.g., annotation.displayName
+    type?: string;
+    isFileProperty?: boolean;
 }
 
 export interface DnDListDividers {

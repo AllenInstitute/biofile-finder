@@ -1,12 +1,12 @@
 import { ContextualMenuItemType, IContextualMenuItem } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import FileFilter from "../../entity/FileFilter";
-import { interaction, selection } from "../../state";
+
 import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems, { ContextMenuActions } from "../ContextMenu/items";
-import { FmsFile } from "../../services/FileService";
-import { AnnotationName } from "../../constants";
+import FileFilter from "../../entity/FileFilter";
+import { interaction, selection } from "../../state";
+import { AnnotationName } from "../../entity/Annotation";
 
 /**
  * Custom React hook for creating the file access context menu.
@@ -26,48 +26,60 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
     const [plateLink, setPlateLink] = React.useState<string>();
     const [filePath, setFilePath] = React.useState<string>();
 
-    fileSelection.fetchFocusedItemDetails().then((fileDetails: FmsFile | undefined) => {
+    fileSelection.fetchFocusedItemDetails().then((fileDetails) => {
         if (!fileDetails) return;
-        setFilePath(fileDetails.file_path);
+        setFilePath(fileDetails.path);
 
         // Grabbing plate barcode
-        const platebarcode = fileDetails.annotations.find(
-            (x) => x.name === AnnotationName.PLATE_BARCODE
-        );
+        const platebarcode = fileDetails.getFirstAnnotationValue(AnnotationName.PLATE_BARCODE);
         // If there's a barcode, make plateUI option available
-        if (platebarcode?.values) {
-            const barcode: string = platebarcode.values[0].toString();
+        if (platebarcode) {
             // LabKey does not support HTTPS yet
             const baseURLHttp = fileExplorerServiceBaseUrl.replace("https", "http");
             setPlateLink(
-                `${baseURLHttp}/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${barcode}}`
+                `${baseURLHttp}/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${platebarcode}}`
             );
         }
     });
 
     return React.useCallback(
         (evt: React.MouseEvent) => {
-            const savedApps = userSelectedApplications || [];
+            const savedApps: IContextualMenuItem[] = (userSelectedApplications || []).map((app) => {
+                const name = executionEnvService.getFilename(app.filePath);
+                return {
+                    key: `open-with-${name}`,
+                    text: name,
+                    title: `Open files with ${name}`,
+                    onClick() {
+                        dispatch(interaction.actions.openWith(app, filters));
+                    },
+                };
+            });
+
+            savedApps.push({
+                key: ContextMenuActions.OPEN_3D_WEB_VIEWER,
+                text: "3D Web Viewer",
+                title: `Open files with 3D Web Viewer`,
+                href: `https://allen-cell-animated.github.io/website-3d-cell-viewer/?url=${filePath}/`,
+                disabled: !filePath,
+                target: "_blank",
+            });
+            if (plateLink) {
+                savedApps.push({
+                    key: ContextMenuActions.OPEN_PLATE_UI,
+                    text: "LabKey Plate UI",
+                    title: "Open this plate in the Plate UI",
+                    href: plateLink,
+                    target: "_blank",
+                });
+            }
+
             const openWithOptions = [
-                ...savedApps
-                    .map((app) => ({ ...app, name: executionEnvService.getFilename(app.filePath) }))
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .map((app) => ({
-                        key: `open-with-${app.name}`,
-                        text: app.name,
-                        title: `Open files with ${app.name}`,
-                        onClick() {
-                            dispatch(interaction.actions.openWith(app, filters));
-                        },
-                    })),
-                ...(savedApps.length > 0
-                    ? [
-                          {
-                              key: "default-apps-border",
-                              itemType: ContextualMenuItemType.Divider,
-                          },
-                      ]
-                    : []),
+                ...savedApps.sort((a, b) => (a.text || "").localeCompare(b.text || "")),
+                {
+                    key: "default-apps-border",
+                    itemType: ContextualMenuItemType.Divider,
+                },
                 // Other is a permanent option that allows the user
                 // to add another app for file access
                 {
@@ -77,26 +89,6 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                     onClick() {
                         dispatch(interaction.actions.promptForNewExecutable(filters));
                     },
-                },
-                ...(plateLink
-                    ? [
-                          {
-                              key: ContextMenuActions.OPEN_PLATE_UI,
-                              text: "Open Plate UI",
-                              title: "Open this plate in the Plate UI",
-                              href: plateLink,
-                              target: "_blank",
-                              disabled: !plateLink,
-                          },
-                      ]
-                    : []),
-                {
-                    key: ContextMenuActions.OPEN_3D_WEB_VIEWER,
-                    text: "Open 3D Web Viewer",
-                    title: "Open this file in the AICS 3D Web Viewer",
-                    href: `https://allen-cell-animated.github.io/website-3d-cell-viewer/?url=${filePath}/`,
-                    target: "_blank",
-                    disabled: !filePath,
                 },
             ];
 
@@ -108,33 +100,30 @@ export default function useFileAccessContextMenu(filters?: FileFilter[], onDismi
                     item.onClick = () => {
                         dispatch(interaction.actions.openWithDefault(filters));
                     };
-                } else if (item.key === ContextMenuActions.CSV_MANIFEST) {
-                    item.onClick = () => {
-                        dispatch(interaction.actions.showManifestDownloadDialog(filters));
-                    };
-                } else if (item.key === ContextMenuActions.SHARE) {
+                } else if (item.key === ContextMenuActions.SAVE_AS) {
                     item.subMenuProps = {
                         items: item.subMenuProps?.items.map((subItem) => {
-                            if (subItem.key === ContextMenuActions.CUSTOM_COLLECTION) {
+                            if (subItem.key === ContextMenuActions.CSV) {
                                 subItem.onClick = () => {
                                     dispatch(
-                                        interaction.actions.showCreateCollectionDialog(filters)
+                                        interaction.actions.showManifestDownloadDialog(
+                                            "csv",
+                                            filters
+                                        )
                                     );
                                 };
-                            } else if (subItem.key === ContextMenuActions.DEFAULT_COLLECTION) {
+                            } else if (subItem.key === ContextMenuActions.PARQUET) {
                                 subItem.onClick = () => {
                                     dispatch(
-                                        interaction.actions.generateShareableFileSelectionLink({
-                                            filters,
-                                        })
+                                        interaction.actions.showManifestDownloadDialog(
+                                            "parquet",
+                                            filters
+                                        )
                                     );
                                 };
                             }
 
-                            return {
-                                ...subItem,
-                                disabled,
-                            };
+                            return subItem;
                         }) as ContextMenuItem[],
                     };
                 }

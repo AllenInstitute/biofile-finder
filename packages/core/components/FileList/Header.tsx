@@ -4,13 +4,13 @@ import { map } from "lodash";
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
+import ColumnPicker from "./ColumnPicker";
 import { ContextMenuItem } from "../ContextMenu";
 import getContextMenuItems from "../ContextMenu/items";
 import FileRow, { CellConfig } from "../../components/FileRow";
 import { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
 import { interaction, selection } from "../../state";
-import FileListColumnPicker from "./FileListColumnPicker";
 
 import styles from "./Header.module.css";
 
@@ -73,7 +73,7 @@ function Header(
                             key: "available-annotations",
                             text: "Available annotations",
                             onRender() {
-                                return <FileListColumnPicker />;
+                                return <ColumnPicker />;
                             },
                         },
                     ],

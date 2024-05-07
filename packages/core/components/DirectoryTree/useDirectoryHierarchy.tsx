@@ -15,7 +15,6 @@ import FileList from "../FileList";
 import FileFilter from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import { ValueError } from "../../errors";
-import * as directoryTreeSelectors from "./selectors";
 import { interaction, metadata, selection } from "../../state";
 import { naturalComparator } from "../../util/strings";
 
@@ -102,7 +101,7 @@ const useDirectoryHierarchy = (
         DEFAULTS
     );
     const annotations = useSelector(metadata.selectors.getAnnotations);
-    const hierarchy = useSelector(directoryTreeSelectors.getHierarchy);
+    const hierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const fileService = useSelector(interaction.selectors.getFileService);
     const selectedFileFilters = useSelector(selection.selectors.getFileFilters);

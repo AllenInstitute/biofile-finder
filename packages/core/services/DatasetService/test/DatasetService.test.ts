@@ -15,38 +15,6 @@ describe("DatasetService", () => {
         version: 1,
     }));
 
-    describe("createDataset", () => {
-        const httpClient = createMockHttpClient([
-            {
-                when: `${baseUrl}/${DatasetService.BASE_DATASET_URL}`,
-                respondWith: {
-                    data: {
-                        data: [{ id: expectedDatasetId }],
-                    },
-                },
-            },
-        ]);
-
-        it("issues request to create dataset matching given parameters", async () => {
-            // Arrange
-            const service = new DatasetService({
-                baseUrl,
-                httpClient,
-                database: new DatabaseServiceNoop(),
-            });
-
-            // Act
-            const dataset = await service.createDataset({
-                name: "anyName",
-                annotations: [],
-                selections: [],
-                fixed: false,
-                private: false,
-            });
-            expect(dataset.id).to.equal(expectedDatasetId);
-        });
-    });
-
     describe("getDatasets", () => {
         const httpClient = createMockHttpClient({
             when: `${baseUrl}/${DatasetService.BASE_DATASET_URL}`,

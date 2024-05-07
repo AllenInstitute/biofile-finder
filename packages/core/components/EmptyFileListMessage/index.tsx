@@ -1,14 +1,16 @@
-import * as React from "react";
-import styles from "./EmptyFileListMessage.module.css";
 import { Icon } from "@fluentui/react";
-import { useSelector } from "react-redux";
 import { map, isEmpty } from "lodash";
-import { selection } from "../../state";
-import * as annotationSelectors from "../AnnotationSidebar/selectors";
+import * as React from "react";
+import { useSelector } from "react-redux";
+
 import FilterList from "./FilterList";
+import { metadata, selection } from "../../state";
+
+import styles from "./EmptyFileListMessage.module.css";
 
 export default function EmptyFileListMessage() {
-    const annotationHierarchyListItems = useSelector(annotationSelectors.getHierarchyListItems);
+    const annotations = useSelector(metadata.selectors.getAnnotations);
+    const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
     const groupedByFilterName = useSelector(selection.selectors.getGroupedByFilterName);
 
     return (
@@ -18,7 +20,7 @@ export default function EmptyFileListMessage() {
                 <h2>Sorry! No files found</h2>
                 <div>
                     We couldn&apos;t find any files
-                    {isEmpty(groupedByFilterName) && annotationHierarchyListItems.length === 0 ? (
+                    {isEmpty(groupedByFilterName) && annotationHierarchy.length === 0 ? (
                         <>&nbsp;matching your request.</>
                     ) : (
                         <span>
@@ -35,21 +37,29 @@ export default function EmptyFileListMessage() {
                                     ))}
                                 </span>
                             )}
-                            {annotationHierarchyListItems.length > 0 && (
+                            {annotationHierarchy.length > 0 && (
                                 <span>
                                     {" "}
                                     with annotation
-                                    {annotationHierarchyListItems.length === 1 ? "" : "s "}
-                                    {map(annotationHierarchyListItems, (annotation, index) => (
-                                        <span key={annotation.id} title={annotation.description}>
-                                            {index > 0
-                                                ? index === annotationHierarchyListItems.length - 1
-                                                    ? " and "
-                                                    : ", "
-                                                : " "}
-                                            <b>{annotation.title}</b>
-                                        </span>
-                                    ))}
+                                    {annotationHierarchy.length === 1 ? "" : "s "}
+                                    {map(annotationHierarchy, (annotationName, index) => {
+                                        const annotation = annotations.find(
+                                            (a) => a.name === annotationName
+                                        );
+                                        return (
+                                            <span
+                                                key={annotation?.name}
+                                                title={annotation?.description}
+                                            >
+                                                {index > 0
+                                                    ? index === annotationHierarchy.length - 1
+                                                        ? " and "
+                                                        : ", "
+                                                    : " "}
+                                                <b>{annotation?.displayName}</b>
+                                            </span>
+                                        );
+                                    })}
                                 </span>
                             )}{" "}
                         </span>

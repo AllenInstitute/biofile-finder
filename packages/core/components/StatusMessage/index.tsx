@@ -1,4 +1,3 @@
-import { map } from "lodash";
 import {
     MessageBar,
     MessageBarType,
@@ -8,6 +7,8 @@ import {
     Stack,
     DefaultButton,
 } from "@fluentui/react";
+import classNames from "classnames";
+import { map } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -22,14 +23,6 @@ const statusToTypeMap = {
     [ProcessStatus.SUCCEEDED]: MessageBarType.success,
     [ProcessStatus.FAILED]: MessageBarType.error,
     [ProcessStatus.NOT_SET]: MessageBarType.info,
-};
-
-const statusToBackgroundColorMap = {
-    [ProcessStatus.STARTED]: "rgb(210, 207, 212)", // gray
-    [ProcessStatus.PROGRESS]: "rgb(210, 207, 212)", // gray
-    [ProcessStatus.SUCCEEDED]: "rgb(95, 210, 85)", // green
-    [ProcessStatus.FAILED]: "rgb(245, 135, 145)", // red
-    [ProcessStatus.NOT_SET]: "rgb(210, 207, 212)", // gray
 };
 
 const SPACING = 5; // px
@@ -67,17 +60,16 @@ export default function StatusMessage() {
 
                     return (
                         <MessageBar
+                            className={classNames(styles.messageBar, {
+                                [styles.success]: status === ProcessStatus.SUCCEEDED,
+                                [styles.error]: status === ProcessStatus.FAILED,
+                            })}
                             actions={cancelButton}
                             key={statusUpdate.processId}
                             messageBarType={statusToTypeMap[status]}
                             onDismiss={() =>
                                 dispatch(interaction.actions.removeStatus(statusUpdate.processId))
                             }
-                            styles={{
-                                root: {
-                                    backgroundColor: statusToBackgroundColorMap[status],
-                                },
-                            }}
                             isMultiline={msg !== undefined}
                         >
                             <div className={styles.centeringParent}>
@@ -91,12 +83,8 @@ export default function StatusMessage() {
                             </div>
                             {progress !== undefined && (
                                 <ProgressIndicator
+                                    className={styles.progressIndicator}
                                     percentComplete={progress}
-                                    styles={{
-                                        progressBar: {
-                                            backgroundColor: "rgb(0, 48, 87)", // brand dark blue
-                                        },
-                                    }}
                                 />
                             )}
                         </MessageBar>

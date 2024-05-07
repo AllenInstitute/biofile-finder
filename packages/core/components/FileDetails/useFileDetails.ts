@@ -3,7 +3,6 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 
 import FileDetail from "../../entity/FileDetail";
-import { FmsFile } from "../../services/FileService";
 import { selection } from "../../state";
 
 /**
@@ -26,15 +25,14 @@ export default function useFileDetails(): [FileDetail | null, boolean] {
         setIsLoading(true);
         fileSelection
             .fetchFocusedItemDetails()
-            .then((fmsfile: FmsFile | undefined) => {
+            .then((detail) => {
                 if (ignoreResponse) {
                     return;
                 }
 
-                if (isUndefined(fmsfile)) {
+                if (isUndefined(detail)) {
                     setFileDetails(null);
                 } else {
-                    const detail = new FileDetail(fmsfile);
                     setFileDetails(detail);
                 }
             })

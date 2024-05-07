@@ -33,8 +33,6 @@ export default interface ExecutionEnvService {
      */
     promptForExecutable(promptTitle: string, reasonForPrompt?: string): Promise<string>;
 
-    promptForSaveLocation(promptTitle?: string): Promise<SaveLocationResolution>;
-
     /**
      * Prompts the user for a file.
      *

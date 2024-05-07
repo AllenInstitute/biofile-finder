@@ -21,15 +21,17 @@ export default class DatabaseServiceElectron implements DatabaseService {
         const extension = path.extname(fileURI);
         let sql;
         switch (extension) {
-            case "json":
+            case ".json":
                 sql = `CREATE TABLE ${this.table} AS FROM read_json_auto('${fileURI}')`;
                 break;
-            case "parquet":
+            case ".parquet":
                 sql = `CREATE TABLE ${this.table} AS FROM read_parquet('${fileURI}')`;
                 break;
-            default:
-                // csv
+            case ".csv":
                 sql = `CREATE TABLE ${this.table} AS FROM read_csv_auto('${fileURI}')`;
+                break;
+            default:
+                throw new Error(`Unsupport data source type ${extension} of ${fileURI}`);
         }
         await this.query(sql);
     }

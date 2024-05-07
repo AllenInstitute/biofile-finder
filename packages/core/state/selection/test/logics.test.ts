@@ -26,7 +26,7 @@ import {
     changeCollection,
 } from "../actions";
 import { initialState, interaction } from "../../";
-import Annotation from "../../../entity/Annotation";
+import Annotation, { AnnotationName } from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
@@ -36,7 +36,6 @@ import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
-import { AnnotationName } from "../../../constants";
 import { DatasetService } from "../../../services";
 import { Dataset } from "../../../services/DatasetService";
 import { receiveCollections } from "../../metadata/actions";
@@ -463,7 +462,7 @@ describe("Selection logics", () => {
                     annotations: [...annotations],
                 },
                 selection: {
-                    annotationHierarchy: annotations.slice(0, 2),
+                    annotationHierarchy: annotations.slice(0, 2).map((a) => a.name),
                     openFileFolders: [],
                 },
             };
@@ -480,7 +479,7 @@ describe("Selection logics", () => {
             expect(
                 actions.includes({
                     type: SET_ANNOTATION_HIERARCHY,
-                    payload: [...annotations.slice(0, 2), annotations[2]],
+                    payload: [...annotations.slice(0, 2), annotations[2]].map((a) => a.name),
                 })
             ).to.be.true;
         });
@@ -496,10 +495,10 @@ describe("Selection logics", () => {
                 },
                 selection: {
                     annotationHierarchy: [
-                        annotations[0],
-                        annotations[1],
-                        annotations[2],
-                        annotations[3],
+                        annotations[0].name,
+                        annotations[1].name,
+                        annotations[2].name,
+                        annotations[3].name,
                     ],
                     openFileFolders: [],
                 },
@@ -517,7 +516,12 @@ describe("Selection logics", () => {
             expect(
                 actions.includes({
                     type: SET_ANNOTATION_HIERARCHY,
-                    payload: [annotations[2], annotations[0], annotations[1], annotations[3]],
+                    payload: [
+                        annotations[2].name,
+                        annotations[0].name,
+                        annotations[1].name,
+                        annotations[3].name,
+                    ],
                 })
             ).to.equal(true);
         });
@@ -527,15 +531,7 @@ describe("Selection logics", () => {
 
             // Create new Annotation entities rather than re-use existing
             // ones to test proper comparison using annotationName
-            const annotationHierarchy = annotations.slice(0, 4).map(
-                (a) =>
-                    new Annotation({
-                        annotationDisplayName: a.displayName,
-                        annotationName: a.name,
-                        description: a.description,
-                        type: a.displayName,
-                    })
-            );
+            const annotationHierarchy = annotations.slice(0, 4).map((a) => a.name);
             const state = {
                 interaction: {
                     fileExplorerServiceBaseUrl: "test",
@@ -616,7 +612,7 @@ describe("Selection logics", () => {
                     annotations: [...annotations],
                 },
                 selection: {
-                    annotationHierarchy: annotations.slice(0, 2),
+                    annotationHierarchy: annotations.slice(0, 2).map((a) => a.name),
                     openFileFolders: [
                         new FileFolder(["AICS-0"]),
                         new FileFolder(["AICS-0", "false"]),
@@ -651,7 +647,7 @@ describe("Selection logics", () => {
                     annotations: [...annotations],
                 },
                 selection: {
-                    annotationHierarchy: annotations.slice(0, 3),
+                    annotationHierarchy: annotations.slice(0, 3).map((a) => a.name),
                     openFileFolders: [
                         new FileFolder(["AICS-0"]),
                         new FileFolder(["AICS-0", "false"]),
@@ -734,7 +730,7 @@ describe("Selection logics", () => {
             });
 
             // Act
-            store.dispatch(setAnnotationHierarchy(annotations.slice(0, 2)));
+            store.dispatch(setAnnotationHierarchy(annotations.slice(0, 2).map((a) => a.name)));
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -773,7 +769,7 @@ describe("Selection logics", () => {
             });
 
             // Act
-            store.dispatch(setAnnotationHierarchy(annotations.slice(0, 2)));
+            store.dispatch(setAnnotationHierarchy(annotations.slice(0, 2).map((a) => a.name)));
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -960,7 +956,7 @@ describe("Selection logics", () => {
                 logics: selectionLogics,
                 state,
             });
-            const hierarchy = annotations.slice(0, 2);
+            const hierarchy = annotations.slice(0, 2).map((a) => a.name);
             const filters = [new FileFilter(annotations[3].name, "20x")];
             const openFolders = [["a"], ["a", false]].map((folder) => new FileFolder(folder));
             const sortColumn = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);

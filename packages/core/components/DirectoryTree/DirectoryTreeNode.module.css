@@ -25,16 +25,21 @@
     transform: rotate(-90deg);
 }
 
+.icon, .folder-icon {
+    fill: var(--secondary-text-color);
+}
+
 .folder-icon {
     margin-left: 8px; /* if this is updated, need to update padding applied to FileLists in DirectoryTreeNode.tsx */
 }
 
 .error-icon {
-    fill: var(--brand-error); /* defined in App.module.css */;
+    fill: var(--error-color); /* defined in App.module.css */;
 }
 
 .directory-name {
     margin: 0 0.5rem;
+    padding-top: 2px;
     display: inline-block;
     font-weight: normal;
 }
@@ -42,8 +47,7 @@
 .selection-count-badge {
     display: inline-block;
     height: var(--height);
-    border-radius: 2px;
-    background-color: var(--primary-brand-purple); /* defined in App.module.css */
+    background-color: var(--highlight-background-color); /* defined in App.module.css */
     color: white; /* reverse type */
     padding: 2px 6px;
     font-size: smaller;

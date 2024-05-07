@@ -1,22 +1,15 @@
-import {
-    configureMockStore,
-    mergeState,
-    createMockHttpClient,
-    ResponseStub,
-} from "@aics/redux-utils";
+import { configureMockStore, mergeState, createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 import { get as _get } from "lodash";
 import { createSandbox } from "sinon";
 
-import { initialState, interaction, State } from "../..";
+import { initialState, interaction } from "../..";
 import {
     downloadManifest,
     ProcessStatus,
     REMOVE_STATUS,
     SET_STATUS,
     cancelFileDownload,
-    generatePythonSnippet,
-    SUCCEED_PYTHON_SNIPPET_GENERATION,
     SET_CSV_COLUMNS,
     refresh,
     OPEN_WITH,
@@ -25,18 +18,14 @@ import {
     promptForNewExecutable,
     openWithDefault,
     downloadFiles,
-    generateShareableFileSelectionLink,
-    SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
 } from "../actions";
-import { AnnotationName } from "../../../constants";
-import DatasetService, { Dataset } from "../../../services/DatasetService";
 import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
 } from "../../../services/ExecutionEnvService";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import interactionLogics from "../logics";
-import Annotation from "../../../entity/Annotation";
+import Annotation, { AnnotationName } from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
 import FileSet from "../../../entity/FileSet";
@@ -48,14 +37,13 @@ import FileDownloadService, {
     DownloadResolution,
     FileInfo,
 } from "../../../services/FileDownloadService";
-import { FmsFile } from "../../../services/FileService";
 import FileViewerService from "../../../services/FileViewerService";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import NotificationServiceNoop from "../../../services/NotificationService/NotificationServiceNoop";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
-import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
+import FileDetail, { FmsFile } from "../../../entity/FileDetail";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({
@@ -63,6 +51,12 @@ describe("Interaction logics", () => {
         index: new NumericRange(0, 100),
         sortOrder: 0,
     });
+
+    class FakeFileViewerService implements FileViewerService {
+        open() {
+            return Promise.resolve();
+        }
+    }
 
     describe("downloadManifest", () => {
         const sandbox = createSandbox();
@@ -149,6 +143,9 @@ describe("Interaction logics", () => {
                     return Promise.reject();
                 }
                 downloadFile() {
+                    return Promise.reject();
+                }
+                promptForSaveLocation() {
                     return Promise.reject();
                 }
                 promptForDownloadDirectory() {
@@ -311,14 +308,14 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const file: FmsFile = {
+            const file = new FileDetail({
                 file_id: "678142",
                 file_name: "test_file_1",
                 file_size: 18,
                 file_path: "/some/path/test_file_1",
                 uploaded: "whenever",
                 annotations: [],
-            };
+            });
 
             // Act
             store.dispatch(downloadFiles([file]));
@@ -350,22 +347,22 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const file1: FmsFile = {
+            const file1 = new FileDetail({
                 file_id: "930213",
                 file_name: "test_file_1",
                 file_size: 18,
                 file_path: "/some/path/test_file_1",
                 uploaded: "whenever",
                 annotations: [],
-            };
-            const file2: FmsFile = {
+            });
+            const file2 = new FileDetail({
                 file_id: "8932432",
                 file_name: "test_file_2",
                 file_size: 2349014,
                 file_path: "/some/path/test_file_2",
                 uploaded: "whenever",
                 annotations: [],
-            };
+            });
 
             // Act
             store.dispatch(downloadFiles([file1, file2]));
@@ -378,7 +375,7 @@ describe("Interaction logics", () => {
                     payload: {
                         data: {
                             status: ProcessStatus.STARTED,
-                            fileId: [file1.file_id],
+                            fileId: [file1.id],
                         },
                     },
                 })
@@ -389,7 +386,7 @@ describe("Interaction logics", () => {
                     payload: {
                         data: {
                             status: ProcessStatus.STARTED,
-                            fileId: [file2.file_id],
+                            fileId: [file2.id],
                         },
                     },
                 })
@@ -409,14 +406,14 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const file: FmsFile = {
+            const file = new FileDetail({
                 file_id: "32490241",
                 file_name: "test_file_1",
                 file_size: 18,
                 file_path: "/some/path/test_file_1",
                 uploaded: "whenever",
                 annotations: [],
-            };
+            });
 
             // Act
             store.dispatch(downloadFiles([file]));
@@ -457,6 +454,9 @@ describe("Interaction logics", () => {
                         resolution: DownloadResolution.SUCCESS,
                     });
                 }
+                promptForSaveLocation() {
+                    return Promise.reject();
+                }
                 promptForDownloadDirectory() {
                     return Promise.reject();
                 }
@@ -475,14 +475,14 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const file: FmsFile = {
+            const file = new FileDetail({
                 file_id: "5483295",
                 file_name: "test_file_1",
                 file_size: 18,
                 file_path: "/some/path/test_file_1",
                 uploaded: "whenever",
                 annotations: [],
-            };
+            });
 
             // Act
             store.dispatch(downloadFiles([file]));
@@ -513,6 +513,9 @@ describe("Interaction logics", () => {
                 downloadFile() {
                     return Promise.reject();
                 }
+                promptForSaveLocation() {
+                    return Promise.reject();
+                }
                 promptForDownloadDirectory() {
                     return Promise.reject();
                 }
@@ -531,14 +534,14 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const file: FmsFile = {
+            const file = new FileDetail({
                 file_id: "872342",
                 file_name: "test_file_1",
                 file_size: 18,
                 file_path: "/some/path/test_file_1",
                 uploaded: "whenever",
                 annotations: [],
-            };
+            });
 
             // Act
             store.dispatch(downloadFiles([file]));
@@ -585,6 +588,9 @@ describe("Interaction logics", () => {
                         resolution: DownloadResolution.CANCELLED,
                     });
                 }
+                promptForSaveLocation() {
+                    return Promise.reject();
+                }
                 promptForDownloadDirectory() {
                     return Promise.reject();
                 }
@@ -603,14 +609,14 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const file: FmsFile = {
+            const file = new FileDetail({
                 file_id: "930213",
                 file_name: "test_file_1",
                 file_size: 18,
                 file_path: "/some/path/test_file_1",
                 uploaded: "whenever",
                 annotations: [],
-            };
+            });
 
             // Act
             store.dispatch(downloadFiles([file]));
@@ -644,6 +650,9 @@ describe("Interaction logics", () => {
                         resolution: DownloadResolution.SUCCESS,
                     });
                 }
+                public promptForSaveLocation() {
+                    return Promise.reject();
+                }
                 public promptForDownloadDirectory(): Promise<string> {
                     return Promise.resolve(expectedDestination);
                 }
@@ -659,14 +668,14 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const file: FmsFile = {
+            const file = new FileDetail({
                 file_id: "32490241",
                 file_name: "test_file_1",
                 file_size: 18,
                 file_path: "/some/path/test_file_1",
                 uploaded: "whenever",
                 annotations: [],
-            };
+            });
 
             // Act
             store.dispatch(downloadFiles([file], true));
@@ -696,6 +705,9 @@ describe("Interaction logics", () => {
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,
                     });
+                }
+                promptForSaveLocation() {
+                    return Promise.reject();
                 }
                 promptForDownloadDirectory() {
                     return Promise.reject();
@@ -756,6 +768,9 @@ describe("Interaction logics", () => {
                         resolution: DownloadResolution.CANCELLED,
                     });
                 }
+                promptForSaveLocation() {
+                    return Promise.reject();
+                }
                 promptForDownloadDirectory() {
                     return Promise.reject();
                 }
@@ -801,240 +816,6 @@ describe("Interaction logics", () => {
                     },
                 })
             ).to.equal(true);
-        });
-    });
-
-    describe("generateShareableFileSelectionLink", () => {
-        const sandbox = createSandbox();
-        let isCopiedToClipboard = false;
-        class ClipboardMock {
-            public writeText(): void {
-                isCopiedToClipboard = true;
-            }
-        }
-        class NavigatorMock {
-            public clipboard = new ClipboardMock();
-        }
-        const collection: Dataset = {
-            id: "89j1d321a",
-            name: "test",
-            version: 1,
-            query: "",
-            client: "",
-            private: false,
-            fixed: false,
-            created: new Date(),
-            createdBy: "test",
-        };
-
-        before(() => {
-            const datasetService = new DatasetService();
-            const navigatorStub = new NavigatorMock();
-            sandbox.stub(global, "navigator").value(navigatorStub);
-            sandbox.stub(datasetService, "createDataset").resolves(collection);
-            sandbox.stub(interaction.selectors, "getDatasetService").returns(datasetService);
-        });
-
-        afterEach(() => {
-            isCopiedToClipboard = false;
-            sandbox.resetHistory();
-        });
-
-        after(() => {
-            sandbox.restore();
-        });
-
-        it("creates collection and url from file selection & copies to clipboard", async () => {
-            // Arrange
-            const { store, logicMiddleware, actions } = configureMockStore({
-                state: initialState,
-                logics: interactionLogics,
-            });
-
-            // Act
-            store.dispatch(generateShareableFileSelectionLink());
-            await logicMiddleware.whenComplete();
-
-            // Assert
-            expect(isCopiedToClipboard).to.be.true;
-            expect(
-                actions.includesMatch({
-                    payload: collection,
-                    type: SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
-                })
-            ).to.be.true;
-        });
-
-        it("utilizes filters instead of explicit file selection when given", async () => {
-            // Arrange
-            const baseUrl = "test";
-            const fileSelection = new FileSelection();
-            sandbox.stub(fileSelection, "toCompactSelectionList").throws("Test failed");
-            const state: State = mergeState(initialState, {
-                interaction: {
-                    fileExplorerServiceBaseUrl: baseUrl,
-                },
-                selection: {
-                    fileSelection,
-                },
-            });
-            const responseStub = {
-                when: () => true,
-                respondWith: {
-                    data: { data: [42] },
-                },
-            };
-            const mockHttpClient = createMockHttpClient(responseStub);
-            const fileService = new HttpFileService({
-                baseUrl,
-                httpClient: mockHttpClient,
-            });
-
-            sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
-            const { store, logicMiddleware, actions } = configureMockStore({
-                state,
-                logics: interactionLogics,
-                responseStubs: responseStub,
-            });
-            const filters = [
-                new FileFilter("Cell Line", "AICS-12"),
-                new FileFilter("Notes", "Hello"),
-            ];
-
-            // Act
-            store.dispatch(generateShareableFileSelectionLink({ filters }));
-            await logicMiddleware.whenComplete();
-
-            // Assert
-            expect(isCopiedToClipboard).to.be.true;
-            expect(
-                actions.includesMatch({
-                    payload: collection,
-                    type: SUCCEED_SHAREABLE_FILE_SELECTION_LINK_GENERATION,
-                })
-            ).to.be.true;
-        });
-
-        it("dispatches process failure action on error", async () => {
-            // Arrange
-            const baseUrl = "test";
-            const fileSelection = new FileSelection();
-            const errorMsg = "Test failed";
-            sandbox.stub(fileSelection, "toCompactSelectionList").throws(errorMsg);
-            const state: State = mergeState(initialState, {
-                interaction: {
-                    fileExplorerServiceBaseUrl: baseUrl,
-                },
-                selection: {
-                    fileSelection,
-                },
-            });
-            const { store, logicMiddleware, actions } = configureMockStore({
-                state,
-                logics: interactionLogics,
-            });
-
-            // Act
-            store.dispatch(generateShareableFileSelectionLink());
-            await logicMiddleware.whenComplete();
-
-            // Assert
-            expect(
-                actions.includesMatch({
-                    payload: {
-                        data: {
-                            msg: `Failed to generate shareable file selection link: ${errorMsg}`,
-                        },
-                    },
-                    type: SET_STATUS,
-                })
-            ).to.be.true;
-        });
-    });
-
-    describe("generatePythonSnippet", () => {
-        const baseUrl = "test";
-        const mockCollection: Dataset = {
-            id: "89j1d321a",
-            name: "test",
-            version: 1,
-            query: "",
-            client: "",
-            private: false,
-            fixed: false,
-            created: new Date(),
-            createdBy: "test",
-        };
-        const pythonSnippet = {
-            setup: "pip install aicsfiles",
-            code: `
-            from aicsfiles import FileManagementSystem
-
-            fms = FileManagementSystem()
-            df = fms.datasets.get_metadata_for_files_within("test")
-            `,
-        };
-        const responseStubs: ResponseStub[] = [
-            // python snippet generation
-            {
-                when: (requestConfig) => {
-                    if (!requestConfig.url) {
-                        return false;
-                    }
-                    return requestConfig.url.endsWith("/pythonSnippet");
-                },
-                respondWith: {
-                    data: { data: [pythonSnippet] },
-                },
-            },
-        ];
-
-        const mockHttpClient = createMockHttpClient(responseStubs);
-        const datasetService = new DatasetService({
-            baseUrl,
-            httpClient: mockHttpClient,
-            database: new DatabaseServiceNoop(),
-        });
-
-        const sandbox = createSandbox();
-
-        before(() => {
-            sandbox.stub(interaction.selectors, "getDatasetService").returns(datasetService);
-        });
-
-        afterEach(() => {
-            sandbox.resetHistory();
-        });
-
-        after(() => {
-            sandbox.restore();
-        });
-
-        it("it creates expected snippet", async () => {
-            const state = mergeState(initialState, {
-                selection: {
-                    fileSelection,
-                },
-            });
-            const { actions, store, logicMiddleware } = configureMockStore({
-                state,
-                logics: interactionLogics,
-            });
-
-            // Act
-            const action = generatePythonSnippet(mockCollection);
-            store.dispatch(action);
-            await logicMiddleware.whenComplete();
-
-            // Assert
-            expect(
-                actions.includesMatch({
-                    type: SUCCEED_PYTHON_SNIPPET_GENERATION,
-                    payload: {
-                        pythonSnippet,
-                    },
-                })
-            ).to.be.true;
         });
     });
 
@@ -1134,6 +915,7 @@ describe("Interaction logics", () => {
         const fileKinds = ["PNG", "TIFF"];
         for (let i = 0; i <= 100; i++) {
             files.push({
+                file_path: `/allen/file_${i}.ext`,
                 annotations: [
                     {
                         name: AnnotationName.KIND,
@@ -1188,6 +970,7 @@ describe("Interaction logics", () => {
                 interaction: {
                     platformDependentServices: {
                         executionEnvService: new UselessExecutionEnvService(),
+                        fileViewerService: new FakeFileViewerService(),
                         notificationService: new UselessNotificationService(),
                     },
                 },
@@ -1303,6 +1086,7 @@ describe("Interaction logics", () => {
                     platformDependentServices: {
                         ...initialState.interaction.platformDependentServices,
                         executionEnvService: new UselessExecutionEnvService(),
+                        fileViewerService: new FakeFileViewerService(),
                         notificationService: new UselessNotificationService(),
                     },
                 },
@@ -1345,12 +1129,18 @@ describe("Interaction logics", () => {
         const csvKind = "CSV";
         const csvFiles: Partial<FmsFile>[] = [];
         for (let i = 0; i <= 50; i++) {
-            csvFiles.push({ annotations: [{ name: AnnotationName.KIND, values: [csvKind] }] });
+            csvFiles.push({
+                file_path: `/csv${i}.txt`,
+                annotations: [{ name: AnnotationName.KIND, values: [csvKind] }],
+            });
         }
         const pngKind = "PNG";
         const pngFiles: Partial<FmsFile>[] = [];
         for (let i = 0; i <= 50; i++) {
-            pngFiles.push({ annotations: [{ name: AnnotationName.KIND, values: [pngKind] }] });
+            pngFiles.push({
+                file_path: `/png${i}.txt`,
+                annotations: [{ name: AnnotationName.KIND, values: [pngKind] }],
+            });
         }
         const files = [...csvFiles, ...pngFiles];
         const baseUrl = "test";
@@ -1371,6 +1161,12 @@ describe("Interaction logics", () => {
             sortOrder: 0,
         });
 
+        class FakeExecutionEnvService extends ExecutionEnvServiceNoop {
+            public formatPathForHost(posixPath: string): Promise<string> {
+                return Promise.resolve(posixPath);
+            }
+        }
+
         it("attempts to open selected files with default apps", async () => {
             const app1 = {
                 defaultFileKinds: [csvKind],
@@ -1383,7 +1179,8 @@ describe("Interaction logics", () => {
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        executionEnvService: new ExecutionEnvServiceNoop(),
+                        executionEnvService: new FakeExecutionEnvService(),
+                        fileViewerService: new FakeFileViewerService(),
                     },
                     userSelectedApplications: [app1, app2],
                 },
@@ -1406,7 +1203,6 @@ describe("Interaction logics", () => {
                     type: OPEN_WITH,
                     payload: {
                         app: app1,
-                        files: csvFiles,
                     },
                 })
             ).to.be.true;
@@ -1424,7 +1220,8 @@ describe("Interaction logics", () => {
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
-                        executionEnvService: new ExecutionEnvServiceNoop(),
+                        executionEnvService: new FakeExecutionEnvService(),
+                        fileViewerService: new FakeFileViewerService(),
                     },
                 },
                 selection: {

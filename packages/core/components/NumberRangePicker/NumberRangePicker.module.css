@@ -1,0 +1,70 @@
+.buttons {
+    clear: both;
+    display: flex;
+    justify-content: center;
+    padding-top: var(--margin);
+}
+
+.footer {
+    width: 100%;
+}
+
+.footer > h6 {
+    font-weight: normal;
+    margin: var(--margin) 0 0 0;
+}
+
+.action-button, .action-button i {
+    background-color: var(--primary-background-color) !important;
+    color: var(--primary-text-color) !important;
+}
+
+.action-button:hover:not(.disabled), .action-button:hover:not(.disabled) i {
+    background-color: var(--highlight-background-color) !important;
+    color: var(--highlight-text-color) !important;
+    cursor: pointer;
+}
+
+.action-button.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.reset-button-container {
+    margin-top: 2px;
+}
+
+.inputs {
+    display: flex;
+    justify-content: space-between;
+
+}
+
+.input-field > input {
+    background-color: var(--primary-background-color);
+    border: none;
+    color: var(--primary-text-color);
+    outline: none;
+}
+
+.range-seperator {
+    align-items: center;
+    display: flex;
+    font-size: small;
+    margin: 0 2px;
+}
+
+.title {
+    margin: 0;
+    padding-bottom: var(--margin);
+}
+
+label,input{
+    display: block;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}

@@ -1,0 +1,50 @@
+.icon-button {
+    color: var(--primary-sidebar-text-color);
+    background-color: var(--primary-sidebar-color);
+}
+
+.icon-button:hover {
+    color: var(--highlight-text-color);
+    background-color: var(--highlight-background-color);
+}
+
+.icon-button i {
+    font-size: smaller;
+}
+
+.hidden-inner-icon i:last-of-type {
+    display: none;
+}
+
+.row {
+    border: 1px solid var(--secondary-sidebar-color);
+    display: flex;
+    justify-content: space-between;
+    height: 38px;
+    padding: 2px;
+    margin: 2px 0;
+    width: 100%;
+}
+
+.grabbable:hover {
+    cursor: grab;
+}
+
+.row-title {
+    display: flex;
+    width: calc(100% - 33px);
+}
+
+.row-title > p {
+    font-size: smaller;
+    margin: 0;
+    padding: 9px 0 0 5px;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    white-space: nowrap;
+}
+
+.shortened-row-title {
+    width: calc(100% - 55px);
+}

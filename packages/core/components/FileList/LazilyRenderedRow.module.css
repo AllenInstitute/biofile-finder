@@ -5,18 +5,19 @@
 }
 
 .row.selected {
-    background-color: #d4e3fc;
+    background-color: var(--highlight-background-color);
+    color: var(--highlight-text-color);
 }
 
 .row.focused {
     margin: 0;
-    border: var(--margin) solid #669bf4;
+    border: var(--margin) solid var(--highlight-background-color);
 }
 
 .shimmer {
     height: 22px;
 }
 
-.small-font {
-    font-size: var(--smaller-font-size);
+.shimmer > div {
+    background-color: var(--primary-background-color);
 }
