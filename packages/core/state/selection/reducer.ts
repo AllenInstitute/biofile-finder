@@ -104,7 +104,7 @@ export default makeReducer<SelectionStateBranch>(
             recentAnnotations: uniq([
                 ...action.payload.map((filter: any) => filter.annotationName),
                 ...state.recentAnnotations,
-            ]),
+            ]).slice(0, 5),
             // Reset file selections when file filters change
             fileSelection: new FileSelection(),
         }),
@@ -157,7 +157,7 @@ export default makeReducer<SelectionStateBranch>(
             recentAnnotations: uniq([
                 ...castArray(action.payload?.annotationName),
                 ...state.recentAnnotations,
-            ]),
+            ]).slice(0, 5),
             sortColumn: action.payload,
         }),
         [interaction.actions.REFRESH]: (state) => ({
@@ -188,7 +188,7 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             annotationHierarchy: action.payload,
             availableAnnotationsForHierarchyLoading: true,
-            recentAnnotations: uniq([...action.payload, ...state.recentAnnotations]),
+            recentAnnotations: uniq([...action.payload, ...state.recentAnnotations]).slice(0, 5),
             // Reset file selections when annotation hierarchy changes
             fileSelection: new FileSelection(),
         }),
