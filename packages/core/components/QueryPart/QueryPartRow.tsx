@@ -45,6 +45,7 @@ export default function QueryGroupRow(props: Props) {
                     className={classNames(styles.iconButton, styles.hiddenInnerIcon)}
                     iconProps={{ iconName: "Edit" }}
                     menuProps={{
+                        isSubMenu: true,
                         directionalHint: DirectionalHint.rightTopEdge,
                         shouldFocusOnMount: true,
                         items: [{ key: "placeholder" }], // necessary to have a non-empty items list to have `onRenderMenuList` called

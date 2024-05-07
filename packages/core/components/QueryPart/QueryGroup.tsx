@@ -44,6 +44,7 @@ export default function QueryGroup(props: Props) {
                 <AnnotationPicker
                     disabledTopLevelAnnotations
                     disableUnavailableAnnotations
+                    title="Select metadata to group by"
                     selections={selectedAnnotations}
                     setSelections={(annotations) => {
                         dispatch(

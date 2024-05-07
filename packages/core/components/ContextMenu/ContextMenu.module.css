@@ -1,13 +1,13 @@
-.container, .container button {
+.container, .container ul > li > :is(a, button) {
     background-color: var(--primary-background-color);
     color: var(--primary-text-color);
 }
 
-.container i, .container li > div {
+.container button i, .container li > div {
     color: var(--primary-text-color);
 }
 
-.container :is(a, button):hover, .container button:hover i {
+.container a:hover, .container ul > li > :is(a, button):hover, .container ul > li > :is(a, button):hover i {
     background-color: var(--highlight-background-color);
     color: var(--highlight-text-color) !important;
 }

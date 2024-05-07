@@ -1,7 +1,8 @@
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import ListPicker, { ListItem } from "../ListPicker";
+import ListPicker from "../ListPicker";
+import { ListItem } from "../ListPicker/ListRow";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { metadata, selection } from "../../state";
@@ -11,6 +12,7 @@ interface Props {
     hasSelectAllCapability?: boolean;
     disableUnavailableAnnotations?: boolean;
     className?: string;
+    title?: string;
     selections: Annotation[];
     annotationSubMenuRenderer?: (
         item: ListItem<Annotation>
@@ -38,8 +40,10 @@ export default function AnnotationPicker(props: Props) {
                 !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name)
         )
         .map((annotation) => ({
-            selected: props.selections.includes(annotation),
-            disabled: unavailableAnnotations.includes(annotation),
+            selected: props.selections.some((selected) => selected.name === annotation.name),
+            disabled: unavailableAnnotations.some(
+                (unavailable) => unavailable.name === annotation.name
+            ),
             loading: areAvailableAnnotationLoading,
             description: annotation.description,
             data: annotation,
@@ -48,7 +52,9 @@ export default function AnnotationPicker(props: Props) {
         }));
 
     const removeSelection = (item: ListItem<Annotation>) => {
-        props.setSelections(props.selections.filter((annotation) => annotation !== item.data));
+        props.setSelections(
+            props.selections.filter((annotation) => annotation.name !== item.data?.name)
+        );
     };
 
     const addSelection = (item: ListItem<Annotation>) => {
@@ -62,6 +68,7 @@ export default function AnnotationPicker(props: Props) {
         <ListPicker
             className={props.className}
             items={items}
+            title={props.title}
             onDeselect={removeSelection}
             onSelect={addSelection}
             onSelectAll={

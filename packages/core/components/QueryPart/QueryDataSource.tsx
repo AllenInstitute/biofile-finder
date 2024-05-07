@@ -8,7 +8,7 @@ interface Props {
 }
 
 /**
- * Component responsible for rendering the "Filter" part of the query
+ * Component responsible for rendering the "Data Source" part of the query
  */
 export default function QueryDataSource(props: Props) {
     return (

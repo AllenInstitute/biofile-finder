@@ -68,7 +68,6 @@ describe("<SearchBoxForm />", () => {
         fireEvent.click(getByLabelText("Clear text"));
         expect(onReset.called).to.equal(true);
 
-        // Should clear min and max values
         expect(screen.getByRole<HTMLInputElement>("searchbox").value).to.equal("");
     });
 });
