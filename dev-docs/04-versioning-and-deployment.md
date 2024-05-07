@@ -8,11 +8,24 @@ behind a web server).
 
 The following captures the steps of a release of this project:
 
-1. Trigger a project-wide version tag:
-https://jenkins.corp.alleninstitute.org/job/desktop-apps/job/fms-file-explorer/job/master/build (select "Create version tag" for "JOB_TYPE" and whichever semver bump for "VERSION_BUMP_TYPE" makes sense). Under the hood, `npm version` is used to bump the version, create an associated git tag, and push it.
-2. Once a new version tag is pushed in Step 1, a Github action is automatically triggered which will create new platform-specific
+1) Make sure all your changes are committed and merged into main.
+2) Make sure branch is clean:
+    ```bash
+    git checkout main
+    git stash
+    git pull
+    ```
+3) Determine version bump type, choose one of `patch`, `minor`, or `major`, depending on the scale of the changes including in this version bump. This will create a version like `v<version>`. See [below for a guideline to which version to increment to](#versioning-information).
+    ```bash
+    # You need to choose one of 'patch', 'minor', or 'major'
+    export VERSION_BUMP_TYPE=<one of patch, minor, or major>
+    ```
+4) Create tag and push new version to GitHub like so:
+    ```bash
+    npm --no-commit-hooks version --workspace packages/desktop $VERSION_BUMP_TYPE -m "v%s"
+    ```
+5) Wait for a [GitHub Action](https://github.com/AllenInstitute/aics-fms-file-explorer-app/actions) to automatically create new platform-specific
 builds of `packages/desktop`, prepare a draft Github release, and upload the builds as release artifacts to that release.
-3. Once the Github action in Step 2 is finished, manually edit the Github release which was drafted as part of Step 2.
-Format its release name with the date (consistent with other release names), add a description of the changes, and optionally
+6) [Update the GitHub release](https://github.com/AllenInstitute/aics-fms-file-explorer-app/releases) once the Github action in Step 4 is finished, manually edit the Github release which was drafted as part of Step 4. Format its release name with the date (consistent with other release names), add a description of the changes, and optionally
 mark whether the release is "pre-release." If it is marked as "pre-release," it will not be accessible for download through the
 Github pages site.
