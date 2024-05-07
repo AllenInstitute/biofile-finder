@@ -6,7 +6,7 @@
 }
 
 /**
- * Used by HierarchyListItem and AnnotationListItem
+ * Used by HierarchyListItem
  */
 .item {
     /* flex parent */
@@ -23,9 +23,11 @@
 }
 
 .item:hover {
-    background-color: rgba(211, 211, 211, 0.3); /* lightgray */
+    background-color: var(--hightlight-background-color);
+    color: var(--highlight-color);
 }
 
 .item:active {
-    background-color: rgba(211, 211, 211, 1); /* lightgray */
+    background-color: var(--hightlight-background-color);
+    color: var(--highlight-color);
 }

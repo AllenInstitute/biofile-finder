@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { naturalComparator } from "../../util/strings";
 import AnnotationService, { AnnotationValue } from "../../services/AnnotationService";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 
 /**
  * Custom React hook to accomplish requesting the unique values for annotations. This hook will request values for the given
@@ -10,7 +11,7 @@ import AnnotationService, { AnnotationValue } from "../../services/AnnotationSer
  * If there was an error the third element will contain the message from the error.
  */
 export default function useAnnotationValues(
-    annotation: string,
+    annotationName: string,
     annotationService: AnnotationService
 ): [AnnotationValue[] | undefined, boolean, string | undefined] {
     const [annotationValues, setAnnotationValues] = React.useState<AnnotationValue[]>();
@@ -23,33 +24,36 @@ export default function useAnnotationValues(
         // annotation to filter on quickly
         let ignoreResponse = false;
 
-        setIsLoading(true);
-        annotationService
-            .fetchValues(annotation)
-            .then((response: AnnotationValue[]) => {
-                if (!ignoreResponse) {
-                    if (response && response.length > 1) {
-                        setAnnotationValues([...response].sort(naturalComparator));
-                        return;
+        // Only fetch values for annotations that are not top level file annotations
+        if (!TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotationName)) {
+            setIsLoading(true);
+            annotationService
+                .fetchValues(annotationName)
+                .then((response: AnnotationValue[]) => {
+                    if (!ignoreResponse) {
+                        if (response && response.length > 1) {
+                            setAnnotationValues([...response].sort(naturalComparator));
+                            return;
+                        }
+                        setAnnotationValues(response);
                     }
-                    setAnnotationValues(response);
-                }
-            })
-            .catch((error) => {
-                if (!ignoreResponse) {
-                    setErrorMessage(error.message);
-                }
-            })
-            .finally(() => {
-                if (!ignoreResponse) {
-                    setIsLoading(false);
-                }
-            });
+                })
+                .catch((error) => {
+                    if (!ignoreResponse) {
+                        setErrorMessage(error.message);
+                    }
+                })
+                .finally(() => {
+                    if (!ignoreResponse) {
+                        setIsLoading(false);
+                    }
+                });
+        }
 
         return function cleanup() {
             ignoreResponse = true;
         };
-    }, [annotation, annotationService]);
+    }, [annotationName, annotationService]);
 
     React.useDebugValue(annotationValues); // display annotationValues in React DevTools when this hook is inspected
     return [annotationValues, isLoading, errorMessage];

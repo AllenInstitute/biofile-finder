@@ -13,6 +13,7 @@ import { PersistedConfigKeys } from "../../../core/services";
 import { createReduxStore, interaction, selection } from "../../../core/state";
 
 import ApplicationInfoServiceElectron from "../services/ApplicationInfoServiceElectron";
+import DatabaseServiceElectron from "../services/DatabaseServiceElectron";
 import ExecutionEnvServiceElectron from "../services/ExecutionEnvServiceElectron";
 import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron";
 import FileViewerServiceElectron from "../services/FileViewerServiceElectron";
@@ -25,6 +26,7 @@ const APP_ID = "fms-file-explorer";
 const notificationService = new NotificationServiceElectron();
 const persistentConfigService = new PersistentConfigServiceElectron();
 const applicationInfoService = new ApplicationInfoServiceElectron();
+const databaseService = new DatabaseServiceElectron();
 const executionEnvService = new ExecutionEnvServiceElectron(notificationService);
 // application analytics/metrics
 const frontendInsights = new FrontendInsights(
@@ -51,6 +53,7 @@ frontendInsights.dispatchUserEvent({ type: "SESSION_START" });
 const collectPlatformDependentServices = memoize(
     (downloadServiceBaseUrl: FileDownloadServiceBaseUrl) => ({
         applicationInfoService,
+        databaseService,
         executionEnvService,
         fileDownloadService: new FileDownloadServiceElectron(
             notificationService,
@@ -72,9 +75,12 @@ const store = createReduxStore({
 // https://redux.js.org/api/store#subscribelistener
 store.subscribe(() => {
     const state = store.getState();
+    const queries = selection.selectors.getQueries(state);
     const csvColumns = interaction.selectors.getCsvColumns(state);
     const displayAnnotations = selection.selectors.getAnnotationsToDisplay(state);
+    const hasUsedApplicationBefore = interaction.selectors.hasUsedApplicationBefore(state);
     const userSelectedApplications = interaction.selectors.getUserSelectedApplications(state);
+
     const appState = {
         [PersistedConfigKeys.CsvColumns]: csvColumns,
         [PersistedConfigKeys.DisplayAnnotations]: displayAnnotations.map((annotation) => ({
@@ -83,10 +89,21 @@ store.subscribe(() => {
             description: annotation.description,
             type: annotation.type,
         })),
+        [PersistedConfigKeys.HasUsedApplicationBefore]: hasUsedApplicationBefore,
+        [PersistedConfigKeys.Queries]: queries,
         [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
-        [PersistedConfigKeys.HasUsedApplicationBefore]: true,
     };
-    persistentConfigService.persist(appState);
+
+    const oldAppState = Object.keys(appState).reduce(
+        (acc, configKey) => ({
+            ...acc,
+            [configKey]: persistentConfigService.get(configKey as PersistedConfigKeys),
+        }),
+        {}
+    );
+    if (JSON.stringify(appState) !== JSON.stringify(oldAppState)) {
+        persistentConfigService.persist(appState);
+    }
 });
 
 function renderFmsFileExplorer() {

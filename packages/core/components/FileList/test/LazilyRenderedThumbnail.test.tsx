@@ -8,13 +8,14 @@ import * as sinon from "sinon";
 import LazilyRenderedThumbnail from "../LazilyRenderedThumbnail";
 import { initialState } from "../../../state";
 import FileSet from "../../../entity/FileSet";
+import FileDetail from "../../../entity/FileDetail";
 
 describe("<LazilyRenderedThumbnail />", () => {
     function makeItemData() {
         const fileSet = new FileSet();
         sinon.stub(fileSet, "getFileByIndex").callsFake((index) => {
             if (index === 0) {
-                return {
+                return new FileDetail({
                     annotations: [],
                     file_id: "abc1230",
                     file_name: "my_image0.czi",
@@ -22,29 +23,27 @@ describe("<LazilyRenderedThumbnail />", () => {
                     file_size: 1,
                     thumbnail: "some/path/to/my_image0.jpg",
                     uploaded: new Date().toISOString(),
-                };
+                });
             }
             if (index === 9) {
-                return {
+                return new FileDetail({
                     annotations: [],
                     file_id: "abc1239",
                     file_name: "my_image9.jpg",
                     file_path: "some/path/to/my_image9.jpg",
                     file_size: 1,
-                    thumbnail: "",
                     uploaded: new Date().toISOString(),
-                };
+                });
             }
             if (index === 25) {
-                return {
+                return new FileDetail({
                     annotations: [],
                     file_id: "abc12325",
                     file_name: "my_image25.czi",
                     file_path: "some/path/to/my_image25.czi",
                     file_size: 1,
-                    thumbnail: "",
                     uploaded: new Date().toISOString(),
-                };
+                });
             }
         });
 

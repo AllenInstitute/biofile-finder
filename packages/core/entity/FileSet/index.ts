@@ -3,7 +3,10 @@ import LRUCache from "lru-cache";
 
 import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
-import FileService, { FmsFile } from "../../services/FileService";
+import FileService from "../../services/FileService";
+import FileServiceNoop from "../../services/FileService/FileServiceNoop";
+import SQLBuilder from "../SQLBuilder";
+import FileDetail from "../FileDetail";
 
 interface Opts {
     fileService: FileService;
@@ -13,7 +16,7 @@ interface Opts {
 }
 
 const DEFAULT_OPTS: Opts = {
-    fileService: new FileService(),
+    fileService: new FileServiceNoop(),
     filters: [],
     maxCacheSize: 1000,
 };
@@ -30,7 +33,7 @@ export default class FileSet {
     // passed to FileList changes. InfiniteLoader will not otherwise refetch data without being scrolled.
     public instanceId = uniqueId("FileSet");
 
-    private cache: LRUCache<number, FmsFile>;
+    private cache: LRUCache<number, FileDetail>;
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
     public readonly sort?: FileSort;
@@ -44,7 +47,7 @@ export default class FileSet {
     constructor(opts: Partial<Opts> = {}) {
         const { fileService, filters, maxCacheSize, sort } = defaults({}, opts, DEFAULT_OPTS);
 
-        this.cache = new LRUCache<number, FmsFile>({ max: maxCacheSize });
+        this.cache = new LRUCache<number, FileDetail>({ max: maxCacheSize });
         this._filters = filters;
         this.sort = sort;
         this.fileService = fileService;
@@ -77,9 +80,7 @@ export default class FileSet {
 
     public async fetchTotalCount() {
         if (this.totalFileCount === undefined) {
-            this.totalFileCount = await this.fileService.getCountOfMatchingFiles(
-                this.toQueryString()
-            );
+            this.totalFileCount = await this.fileService.getCountOfMatchingFiles(this);
         }
 
         return this.totalFileCount;
@@ -108,17 +109,17 @@ export default class FileSet {
             const response = await this.fileService.getFiles({
                 from: offset,
                 limit,
-                queryString: this.toQueryString(),
+                fileSet: this,
             });
 
             // Update cache for files fetched, due to overfetching the indexes updated
             // in the cache will be inclusive of the range requested but may not necessarily start
             // at the requested index, therefore here startIndexOfPage is used instead of startIndex
-            for (let i = 0; i < response.data.length; i++) {
-                this.cache.set(startIndexOfPage + i, response.data[i]);
+            for (let i = 0; i < response.length; i++) {
+                this.cache.set(startIndexOfPage + i, response[i]);
             }
 
-            return response.data;
+            return response;
         } finally {
             // Clear the previously saved indexes as they are no longer loading
             for (let i = startIndexOfPage; i < startIndexOfPage + limit; i++) {
@@ -169,6 +170,38 @@ export default class FileSet {
         }
 
         return join(query, "&");
+    }
+
+    /**
+     * Combine filters and sort into standard SQL "WHERE", "AND", "OR", and "ORDER BY" clauses
+     */
+    public toQuerySQLBuilder(): SQLBuilder {
+        // Map the filter values to the annotation names they filter
+        const filterValuesByAnnotation = this.filters.reduce(
+            (map, filter) => ({
+                ...map,
+                [filter.name]:
+                    filter.name in map ? [...map[filter.name], filter.value] : [filter.value],
+            }),
+            {} as { [name: string]: string[] }
+        );
+
+        // Transform the map above into SQL comparison clauses
+        const sqlBuilder = this.sort ? this.sort.toQuerySQLBuilder() : new SQLBuilder();
+
+        Object.entries(filterValuesByAnnotation).forEach(([annotation, filterValues]) => {
+            // If a filter value is `null` then we need to modify the way we approach filtering
+            // it in SQL
+            if (filterValues.length === 0) {
+                sqlBuilder.where(`"${annotation}" IS NOT NULL`);
+            } else {
+                sqlBuilder.where(
+                    filterValues.map((fv) => `"${annotation}" = '${fv}'`).join(") OR (")
+                );
+            }
+        });
+
+        return sqlBuilder;
     }
 
     public toJSON() {

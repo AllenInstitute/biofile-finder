@@ -17,6 +17,10 @@ export default class ExecutionEnvServiceNoop implements ExecutionEnvService {
         return Promise.resolve("Prompt triggered within ExecutionEnvServiceNoop.");
     }
 
+    public promptForFile(): Promise<string> {
+        return Promise.resolve("ExecutionEnvServiceNoop::promptForFile");
+    }
+
     public isValidExecutable(): Promise<boolean> {
         return Promise.resolve(false);
     }

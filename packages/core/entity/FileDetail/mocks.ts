@@ -1,6 +1,7 @@
 import { sampleSize } from "lodash";
 
-import { FmsFile, FmsFileAnnotation } from "../../services/FileService";
+import FileDetail from ".";
+import { FmsFileAnnotation } from "../../services/FileService";
 
 const userAnnotations: FmsFileAnnotation[] = [
     {
@@ -21,7 +22,7 @@ const userAnnotations: FmsFileAnnotation[] = [
     },
 ];
 
-export function makeFileDetailMock(id: string): FmsFile {
+export function makeFileDetailMock(id: string): FileDetail {
     const detail = {
         annotations: sampleSize(
             userAnnotations,
@@ -38,5 +39,5 @@ export function makeFileDetailMock(id: string): FmsFile {
             "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
         uploaded: new Date().toISOString(),
     };
-    return detail;
+    return new FileDetail(detail);
 }

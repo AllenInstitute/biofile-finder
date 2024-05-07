@@ -1,4 +1,4 @@
-import { ContextualMenu, IconButton, IIconProps, IDragOptions, Modal } from "@fluentui/react";
+import { ContextualMenu, IconButton, IDragOptions, Modal } from "@fluentui/react";
 import { noop } from "lodash";
 import * as React from "react";
 
@@ -16,12 +16,6 @@ const DRAG_OPTIONS: IDragOptions = {
     closeMenuItemText: "Close",
     menu: ContextualMenu,
 };
-const CANCEL_ICON: IIconProps = { iconName: "Cancel" };
-const ICON_STYLES = {
-    root: {
-        color: "black",
-    },
-};
 
 /**
  * Wrapper around @fluent-ui/react Modal with consistent defaults applied and some layout scaffolding
@@ -33,9 +27,9 @@ export default function BaseModal(props: BaseModalProps) {
     const titleId = "base-modal-title";
     return (
         <Modal
+            isOpen
             containerClassName={styles.container}
             dragOptions={DRAG_OPTIONS}
-            isOpen={true}
             scrollableContentClassName={styles.scrollableContainer}
             titleAriaId={titleId}
         >
@@ -48,9 +42,8 @@ export default function BaseModal(props: BaseModalProps) {
                 <IconButton
                     ariaLabel="Close"
                     className={styles.closeButton}
-                    iconProps={CANCEL_ICON}
+                    iconProps={{ iconName: "Cancel" }}
                     onClick={onDismiss}
-                    styles={ICON_STYLES}
                 />
             </div>
             {body}

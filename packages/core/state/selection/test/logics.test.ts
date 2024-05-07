@@ -26,7 +26,7 @@ import {
     changeCollection,
 } from "../actions";
 import { initialState, interaction } from "../../";
-import Annotation from "../../../entity/Annotation";
+import Annotation, { AnnotationName } from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
@@ -35,12 +35,11 @@ import FileExplorerURL from "../../../entity/FileExplorerURL";
 import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
-import FileService from "../../../services/FileService";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
-import { AnnotationName } from "../../../constants";
 import { DatasetService } from "../../../services";
 import { Dataset } from "../../../services/DatasetService";
 import { receiveCollections } from "../../metadata/actions";
+import HttpFileService from "../../../services/FileService/HttpFileService";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -322,7 +321,7 @@ describe("Selection logics", () => {
         const totalFileSize = 50;
         const responseStubs: ResponseStub[] = [
             {
-                when: (config) => (config.url || "").includes(FileService.BASE_FILE_COUNT_URL),
+                when: (config) => (config.url || "").includes(HttpFileService.BASE_FILE_COUNT_URL),
                 respondWith: {
                     data: { data: [totalFileSize] },
                 },
@@ -330,7 +329,7 @@ describe("Selection logics", () => {
         ];
         const baseUrl = "test";
         const mockHttpClient = createMockHttpClient(responseStubs);
-        const fileService = new FileService({ baseUrl, httpClient: mockHttpClient });
+        const fileService = new HttpFileService({ baseUrl, httpClient: mockHttpClient });
         const fileSet = new FileSet({ fileService: fileService });
 
         before(() => {
@@ -463,7 +462,7 @@ describe("Selection logics", () => {
                     annotations: [...annotations],
                 },
                 selection: {
-                    annotationHierarchy: annotations.slice(0, 2),
+                    annotationHierarchy: annotations.slice(0, 2).map((a) => a.name),
                     openFileFolders: [],
                 },
             };
@@ -480,9 +479,9 @@ describe("Selection logics", () => {
             expect(
                 actions.includes({
                     type: SET_ANNOTATION_HIERARCHY,
-                    payload: [...annotations.slice(0, 2), annotations[2]],
+                    payload: [...annotations.slice(0, 2), annotations[2]].map((a) => a.name),
                 })
-            ).to.equal(true);
+            ).to.be.true;
         });
 
         it("moves an annotation within the hierarchy to a new position", async () => {
@@ -496,10 +495,10 @@ describe("Selection logics", () => {
                 },
                 selection: {
                     annotationHierarchy: [
-                        annotations[0],
-                        annotations[1],
-                        annotations[2],
-                        annotations[3],
+                        annotations[0].name,
+                        annotations[1].name,
+                        annotations[2].name,
+                        annotations[3].name,
                     ],
                     openFileFolders: [],
                 },
@@ -517,7 +516,12 @@ describe("Selection logics", () => {
             expect(
                 actions.includes({
                     type: SET_ANNOTATION_HIERARCHY,
-                    payload: [annotations[2], annotations[0], annotations[1], annotations[3]],
+                    payload: [
+                        annotations[2].name,
+                        annotations[0].name,
+                        annotations[1].name,
+                        annotations[3].name,
+                    ],
                 })
             ).to.equal(true);
         });
@@ -527,15 +531,7 @@ describe("Selection logics", () => {
 
             // Create new Annotation entities rather than re-use existing
             // ones to test proper comparison using annotationName
-            const annotationHierarchy = annotations.slice(0, 4).map(
-                (a) =>
-                    new Annotation({
-                        annotationDisplayName: a.displayName,
-                        annotationName: a.name,
-                        description: a.description,
-                        type: a.displayName,
-                    })
-            );
+            const annotationHierarchy = annotations.slice(0, 4).map((a) => a.name);
             const state = {
                 interaction: {
                     fileExplorerServiceBaseUrl: "test",
@@ -616,7 +612,7 @@ describe("Selection logics", () => {
                     annotations: [...annotations],
                 },
                 selection: {
-                    annotationHierarchy: annotations.slice(0, 2),
+                    annotationHierarchy: annotations.slice(0, 2).map((a) => a.name),
                     openFileFolders: [
                         new FileFolder(["AICS-0"]),
                         new FileFolder(["AICS-0", "false"]),
@@ -651,7 +647,7 @@ describe("Selection logics", () => {
                     annotations: [...annotations],
                 },
                 selection: {
-                    annotationHierarchy: annotations.slice(0, 3),
+                    annotationHierarchy: annotations.slice(0, 3).map((a) => a.name),
                     openFileFolders: [
                         new FileFolder(["AICS-0"]),
                         new FileFolder(["AICS-0", "false"]),
@@ -719,8 +715,7 @@ describe("Selection logics", () => {
                 },
             };
             const responseStub = {
-                when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=cell_line&hierarchy=date_created",
+                when: () => true,
                 respondWith: {
                     status: 200,
                     data: {
@@ -735,7 +730,7 @@ describe("Selection logics", () => {
             });
 
             // Act
-            store.dispatch(setAnnotationHierarchy(annotations.slice(0, 2)));
+            store.dispatch(setAnnotationHierarchy(annotations.slice(0, 2).map((a) => a.name)));
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -774,7 +769,7 @@ describe("Selection logics", () => {
             });
 
             // Act
-            store.dispatch(setAnnotationHierarchy(annotations.slice(0, 2)));
+            store.dispatch(setAnnotationHierarchy(annotations.slice(0, 2).map((a) => a.name)));
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -938,17 +933,13 @@ describe("Selection logics", () => {
             createdBy: "test",
         };
 
-        before(() => {
+        beforeEach(() => {
             const datasetService = new DatasetService();
             sinon.stub(interaction.selectors, "getDatasetService").returns(datasetService);
             sinon.stub(datasetService, "getDataset").resolves(mockCollection);
         });
 
         afterEach(() => {
-            sinon.resetHistory();
-        });
-
-        after(() => {
             sinon.restore();
         });
 
@@ -965,7 +956,7 @@ describe("Selection logics", () => {
                 logics: selectionLogics,
                 state,
             });
-            const hierarchy = annotations.slice(0, 2);
+            const hierarchy = annotations.slice(0, 2).map((a) => a.name);
             const filters = [new FileFilter(annotations[3].name, "20x")];
             const openFolders = [["a"], ["a", false]].map((folder) => new FileFolder(folder));
             const sortColumn = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);

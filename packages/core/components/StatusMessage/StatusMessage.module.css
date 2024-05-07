@@ -15,3 +15,42 @@
 .spinner {
     margin-right: 0.5em;
 }
+
+.spinner > div {
+    border-color: var(--secondary-text-color) var(--secondary-background-color) var(--secondary-background-color);
+ }
+
+.message-bar {
+    background-color: var(--secondary-background-color);
+    color: var(--secondary-text-color);
+}
+
+.message-bar button i {
+    color: var(--secondary-text-color) !important;
+}
+
+.success {
+    background-color: green;
+    color: white;
+ }
+
+.success button i {
+    color: white !important;
+}
+
+.error {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.error button i {
+    color: white !important;
+}
+
+.progress-indicator > div > div:first-child {
+    background-color: var(--secondary-text-color);
+}
+
+.progress-indicator > div > div:last-child {
+    background-color: var(--highlight-background-color);
+}

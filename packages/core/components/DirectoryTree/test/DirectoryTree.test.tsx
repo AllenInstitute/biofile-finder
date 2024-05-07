@@ -19,11 +19,12 @@ import {
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
-import { TOP_LEVEL_FILE_ANNOTATIONS, AnnotationName } from "../../../constants";
-import Annotation from "../../../entity/Annotation";
-import AnnotationService from "../../../services/AnnotationService";
-import FileService, { FmsFileAnnotation } from "../../../services/FileService";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
+import Annotation, { AnnotationName } from "../../../entity/Annotation";
+import { FmsFileAnnotation } from "../../../services/FileService";
 import FileFilter from "../../../entity/FileFilter";
+import HttpFileService from "../../../services/FileService/HttpFileService";
+import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import { initialState, interaction, reducer, reduxLogics, selection } from "../../../state";
 
 import DirectoryTree from "../";
@@ -49,7 +50,6 @@ describe("<DirectoryTree />", () => {
         description: "",
         type: "Text",
     });
-    const annotations = [fooAnnotation, barAnnotation];
 
     const baseUrl = "http://test-aics.corp.alleninstitute.org";
     const baseDisplayAnnotations = TOP_LEVEL_FILE_ANNOTATIONS.filter(
@@ -60,7 +60,7 @@ describe("<DirectoryTree />", () => {
             fileExplorerServiceBaseUrl: baseUrl,
         },
         selection: {
-            annotationHierarchy: annotations,
+            annotationHierarchy: [fooAnnotation.name, barAnnotation.name],
             displayAnnotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
         },
     });
@@ -118,7 +118,7 @@ describe("<DirectoryTree />", () => {
         {
             when: (config) =>
                 _get(config, "url", "").includes(
-                    AnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL
+                    HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL
                 ),
             respondWith: {
                 data: { data: topLevelHierarchyValues },
@@ -127,14 +127,14 @@ describe("<DirectoryTree />", () => {
         {
             when: (config) =>
                 _get(config, "url", "").includes(
-                    AnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL
+                    HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL
                 ),
             respondWith: {
                 data: { data: secondLevelHierarchyValues },
             },
         },
         {
-            when: (config) => _get(config, "url", "").includes(FileService.BASE_FILE_COUNT_URL),
+            when: (config) => _get(config, "url", "").includes(HttpFileService.BASE_FILE_COUNT_URL),
             respondWith: {
                 data: { data: [totalFilesCount] },
             },
@@ -143,7 +143,7 @@ describe("<DirectoryTree />", () => {
             when: (config) => {
                 const url = new URL(_get(config, "url", ""));
                 return (
-                    url.pathname.includes(FileService.BASE_FILES_URL) &&
+                    url.pathname.includes(HttpFileService.BASE_FILES_URL) &&
                     url.searchParams.get(fooAnnotation.name) === "first" &&
                     url.searchParams.get(barAnnotation.name) === "b"
                 );
@@ -158,7 +158,7 @@ describe("<DirectoryTree />", () => {
             when: (config) => {
                 const url = new URL(_get(config, "url", ""));
                 return (
-                    url.pathname.includes(FileService.BASE_FILES_URL) &&
+                    url.pathname.includes(HttpFileService.BASE_FILES_URL) &&
                     url.searchParams.get(fooAnnotation.name) === "first" &&
                     url.searchParams.get(barAnnotation.name) === "c"
                 );
@@ -173,7 +173,7 @@ describe("<DirectoryTree />", () => {
             when: (config) => {
                 const url = new URL(_get(config, "url", ""));
                 return (
-                    url.pathname.includes(FileService.BASE_FILES_URL) &&
+                    url.pathname.includes(HttpFileService.BASE_FILES_URL) &&
                     url.searchParams.get(fooAnnotation.name) === "first" &&
                     !url.searchParams.has(barAnnotation.name)
                 );
@@ -186,8 +186,8 @@ describe("<DirectoryTree />", () => {
         },
     ];
     const mockHttpClient = createMockHttpClient(responseStubs);
-    const annotationService = new AnnotationService({ baseUrl, httpClient: mockHttpClient });
-    const fileService = new FileService({ baseUrl, httpClient: mockHttpClient });
+    const annotationService = new HttpAnnotationService({ baseUrl, httpClient: mockHttpClient });
+    const fileService = new HttpFileService({ baseUrl, httpClient: mockHttpClient });
 
     before(() => {
         sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
@@ -351,7 +351,7 @@ describe("<DirectoryTree />", () => {
                 fileExplorerServiceBaseUrl: baseUrl,
             },
             selection: {
-                annotationHierarchy: [fooAnnotation],
+                annotationHierarchy: [fooAnnotation.name],
                 displayAnnotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
             },
         });
@@ -477,7 +477,7 @@ describe("<DirectoryTree />", () => {
 
     it("displays 'No files found' when no files found", async () => {
         sandbox.restore();
-        const emptyFileService = new FileService();
+        const emptyFileService = new HttpFileService();
         sandbox.stub(interaction.selectors, "getFileService").returns(emptyFileService);
 
         const { store } = configureMockStore({

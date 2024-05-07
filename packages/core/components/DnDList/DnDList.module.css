@@ -1,11 +1,12 @@
 .list {
     list-style: none;
-    padding: 0;
+    margin: 0;
     overflow-y: auto;
+    padding: 0;
 }
 
 .drop-indicator {
-    background-color: rgba(70, 130, 180, 0.2); /* steelblue */
+    background-color: var(--highlight-background-color);
 }
 
 /**
@@ -17,5 +18,5 @@
 }
 
 .disabled {
-    color: var(--grey);
+    color: var(--light-grey);
 }

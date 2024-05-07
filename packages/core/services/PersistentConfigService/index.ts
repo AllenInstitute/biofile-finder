@@ -1,4 +1,5 @@
-import { AnnotationResponse } from "../AnnotationService";
+import { AnnotationResponse } from "../../entity/Annotation";
+import { Query } from "../../state/selection/actions";
 
 /**
  * Keys for the data saved by this service
@@ -10,6 +11,7 @@ export enum PersistedConfigKeys {
     ImageJExecutable = "IMAGE_J_EXECUTABLE", // Deprecated
     HasUsedApplicationBefore = "HAS_USED_APPLICATION_BEFORE",
     UserSelectedApplications = "USER_SELECTED_APPLICATIONS",
+    Queries = "QUERIES",
 }
 
 export interface UserSelectedApplication {
@@ -18,10 +20,12 @@ export interface UserSelectedApplication {
 }
 
 export interface PersistedConfig {
+    [PersistedConfigKeys.AllenMountPoint]?: string;
     [PersistedConfigKeys.CsvColumns]?: string[];
     [PersistedConfigKeys.DisplayAnnotations]?: AnnotationResponse[];
     [PersistedConfigKeys.ImageJExecutable]?: string; // Deprecated
     [PersistedConfigKeys.HasUsedApplicationBefore]?: boolean;
+    [PersistedConfigKeys.Queries]?: Query[];
     [PersistedConfigKeys.UserSelectedApplications]?: UserSelectedApplication[];
 }
 

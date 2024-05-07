@@ -2,21 +2,18 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
+import CodeSnippet from "./CodeSnippet";
 import CsvManifest from "./CsvManifest";
-import CollectionForm from "./CollectionForm";
-import PythonSnippet from "./PythonSnippet";
-import TipsAndTricks from "./TipsAndTricks";
+import DataSourcePrompt from "./DataSourcePrompt";
 
 export interface ModalProps {
     onDismiss: () => void;
 }
 
 export enum ModalType {
-    CreateCollectionForm = 1,
-    CsvManifest = 2,
-    EditCollectionForm = 3,
-    PythonSnippet = 4,
-    TipsAndTricks = 5,
+    CsvManifest = 1,
+    DataSourcePrompt = 2,
+    CodeSnippet = 3,
 }
 
 /**
@@ -31,16 +28,12 @@ export default function Modal() {
     };
 
     switch (visibleModal) {
-        case ModalType.CreateCollectionForm:
-            return <CollectionForm onDismiss={onDismiss} />;
         case ModalType.CsvManifest:
             return <CsvManifest onDismiss={onDismiss} />;
-        case ModalType.EditCollectionForm:
-            return <CollectionForm isEditing onDismiss={onDismiss} />;
-        case ModalType.PythonSnippet:
-            return <PythonSnippet onDismiss={onDismiss} />;
-        case ModalType.TipsAndTricks:
-            return <TipsAndTricks onDismiss={onDismiss} />;
+        case ModalType.DataSourcePrompt:
+            return <DataSourcePrompt onDismiss={onDismiss} />;
+        case ModalType.CodeSnippet:
+            return <CodeSnippet onDismiss={onDismiss} />;
         default:
             return null;
     }

@@ -1,19 +1,17 @@
 import { DatePicker, Icon, IconButton } from "@fluentui/react";
 import * as React from "react";
 import FileFilter from "../../entity/FileFilter";
-import { DATE_ABSOLUTE_MIN, END_OF_TODAY } from "../../constants";
 import { extractDatesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/date-time-formatter";
 
 import styles from "./DateRangePicker.module.css";
 
 interface DateRangePickerProps {
+    className?: string;
+    title?: string;
     onSearch: (filterValue: string) => void;
     onReset: () => void;
     currentRange: FileFilter | undefined;
 }
-
-// Color chosen from App.module.css
-const PURPLE_ICON_STYLE = { icon: { color: "#827aa3" } };
 
 // Because the datestring comes in as an ISO formatted date like 2021-01-02
 // creating a new date from that would result in a date displayed as the
@@ -27,6 +25,9 @@ export function extractDateFromDateString(dateString?: string): Date | undefined
     date.setMinutes(date.getTimezoneOffset());
     return date;
 }
+
+const DATE_ABSOLUTE_MIN = new Date();
+DATE_ABSOLUTE_MIN.setFullYear(2000);
 
 /**
  * This component renders a simple form for selecting a minimum and maximum date range
@@ -46,8 +47,10 @@ export default function DateRangePicker(props: DateRangePickerProps) {
             // To handle that, we subtract a day from the upper bound used by the filter, then present the result
             oldEndDate.setDate(oldEndDate.getDate() - 1);
         }
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59);
         const newStartDate = startDate || oldStartDate || DATE_ABSOLUTE_MIN;
-        const newEndDate = endDate || oldEndDate || END_OF_TODAY;
+        const newEndDate = endDate || oldEndDate || endOfToday;
         if (newStartDate && newEndDate) {
             // Add 1 day to endDate to account for RANGE() filter upper bound exclusivity
             const newEndDatePlusOne = new Date(newEndDate);
@@ -61,35 +64,36 @@ export default function DateRangePicker(props: DateRangePickerProps) {
         endDate.setDate(endDate.getDate() - 1);
     }
     return (
-        <span className={styles.dateRangeBox}>
-            <DatePicker
-                borderless
-                className={styles.filterInput}
-                ariaLabel="Select a start date"
-                placeholder={`Start of date range`}
-                onSelectDate={(v) => (v ? onDateRangeSelection(v, null) : onReset())}
-                styles={PURPLE_ICON_STYLE}
-                value={extractDateFromDateString(startDate?.toISOString())}
-            />
-            <div className={styles.dateRangeSeparator}>
-                <Icon iconName="Forward" />
+        <div className={props.className}>
+            <h3 className={styles.title}>{props.title}</h3>
+            <div className={styles.dateRangeContainer}>
+                <DatePicker
+                    borderless
+                    textField={{ className: styles.filterInput }}
+                    ariaLabel="Select a start date"
+                    placeholder={`Start of date range`}
+                    onSelectDate={(v) => (v ? onDateRangeSelection(v, null) : onReset())}
+                    value={extractDateFromDateString(startDate?.toISOString())}
+                />
+                <div className={styles.dateRangeSeparator}>
+                    <Icon iconName="Forward" />
+                </div>
+                <DatePicker
+                    borderless
+                    className={styles.filterInput}
+                    ariaLabel="Select an end date"
+                    placeholder={`End of date range`}
+                    onSelectDate={(v) => (v ? onDateRangeSelection(null, v) : onReset())}
+                    value={extractDateFromDateString(endDate?.toISOString())}
+                />
+                <IconButton
+                    className={styles.clearButton}
+                    ariaLabel="Clear filter date"
+                    iconProps={{ iconName: "Delete" }}
+                    onClick={onReset}
+                    title="Reset"
+                />
             </div>
-            <DatePicker
-                borderless
-                className={styles.filterInput}
-                ariaLabel="Select an end date"
-                placeholder={`End of date range`}
-                onSelectDate={(v) => (v ? onDateRangeSelection(null, v) : onReset())}
-                styles={PURPLE_ICON_STYLE}
-                value={extractDateFromDateString(endDate?.toISOString())}
-            />
-            <IconButton
-                ariaLabel="Clear filter date"
-                iconProps={{ iconName: "Cancel" }}
-                onClick={onReset}
-                styles={PURPLE_ICON_STYLE}
-                title="Clear"
-            />
-        </span>
+        </div>
     );
 }

@@ -1,63 +1,91 @@
 .container {
     --spacing: 0.5rem;
+    --footer-height: 15px;
+    --header-height: 110px;
 
-    overflow: auto;
-    max-height: 300px;
-    padding: 0 var(--spacing) 0 var(--spacing);
-    margin-top: var(--spacing);
+    background-color: var(--secondary-background-color);
+    color: var(--secondary-text-color);
+    height: 75vh;
+    padding: var(--spacing);
+    width: 35vw;
 }
 
 .header {
-    position: sticky;
-    top: 0;
+    height: var(--header-height);
     padding-bottom: var(--spacing);
     width: 100%;
-    background: rgba(255, 255, 255, 0.85);
+}
+
+.header > h3 {
+    margin: 0 0 var(--spacing) 0;
 }
 
 .buttons {
+    backdrop-filter: blur(1px);
     display: flex;
 }
 
+.main-content {
+    height: calc(100% - var(--header-height) - var(--footer-height));
+    overflow: auto;
+    padding-bottom: 40px;
+}
+
+.main-content::after {
+    background-image: linear-gradient(transparent, var(--secondary-background-color));
+    bottom: calc(var(--spacing) + var(--footer-height));
+    content: " ";
+    height: 50px;
+    right: 0;
+    max-width: 100%;
+    position: absolute;
+    width: 100%;
+    z-index: 10
+}
+
 .footer {
-    bottom: 0;
-    padding-bottom: var(--spacing);
-    position: sticky;
+    display: flex;
+    height: var(--footer-height);
+    justify-content: right;;
     width: 100%;
 }
 
 .footer > h6 {
-    background-color: white;
-    border-radius: 5px;
-    color: grey;
-    font-size: 12px;
+    font-size: smaller;
     font-weight: normal;
-    margin: 0 0 0 auto;
-    width: fit-content;
+    margin: 0;
 }
 
 .action-button {
-    color: steelblue;
-    cursor: pointer;
     display: flex;
     margin: 0.5rem auto 0;
 }
 
+.action-button, .action-button i {
+    background-color: var(--primary-background-color) !important;
+    color: var(--primary-text-color) !important;
+}
+
+.action-button:hover:not(.disabled), .action-button:hover:not(.disabled) i {
+    background-color: var(--highlight-background-color) !important;
+    color: var(--highlight-text-color) !important;
+    cursor: pointer;
+}
+
 .action-button.disabled {
-    color: grey;
-    cursor: not-allowed;
+    opacity: 0.5;
 }
 
-.item {
-    display: flex;
-    flex-direction: row;
-    align-content: center;
-    font-size: 16px;
-    margin-bottom: var(--spacing);
-    cursor: pointer;
+.search-box, .search-box > :is(div, input), .search-box :is(button, i) {
+    background-color: var(--primary-background-color) !important;
+    color: var(--primary-text-color) !important;
 }
 
-.checkbox {
-    margin-right: var(--spacing);
-    cursor: pointer;
+.search-box > div:hover > button, .search-box > div:hover i {
+    background-color: var(--primary-background-color) !important;
+    color: var(--primary-text-color) !important;
+}
+
+.search-box::after {
+    display: none;
 }

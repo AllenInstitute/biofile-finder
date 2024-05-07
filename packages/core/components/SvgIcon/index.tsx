@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { defaults } from "lodash";
+import { castArray, defaults } from "lodash";
 import * as React from "react";
 
 import styles from "./SvgIcon.module.css";
@@ -9,7 +9,7 @@ interface SvgIconProps {
     height?: number | string;
     onClick?: () => void;
     pathAttrs?: React.SVGProps<SVGPathElement>;
-    pathData: string;
+    pathData: string | string[];
     width?: number | string;
     viewBox: string;
 }
@@ -40,7 +40,9 @@ function SvgIcon(props: SvgIconProps, ref?: React.Ref<SVGSVGElement>) {
             width={width}
             style={{ minWidth: width }}
         >
-            <path {...pathAttrs} d={pathData}></path>
+            {castArray(pathData).map((pathSegment, index) => (
+                <path {...pathAttrs} d={pathSegment} key={index}></path>
+            ))}
         </svg>
     );
 }

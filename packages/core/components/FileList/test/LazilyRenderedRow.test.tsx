@@ -6,11 +6,11 @@ import { Provider } from "react-redux";
 import * as sinon from "sinon";
 
 import Annotation from "../../../entity/Annotation";
-import LazilyRenderedRow from "../LazilyRenderedRow";
-import { initialState } from "../../../state";
+import FileDetail from "../../../entity/FileDetail";
 import FileSet from "../../../entity/FileSet";
+import { initialState } from "../../../state";
 
-import styles from "../LazilyRenderedRow.module.css";
+import LazilyRenderedRow from "../LazilyRenderedRow";
 
 describe("<LazilyRenderedRow />", () => {
     const fileNameAnnotation = new Annotation({
@@ -24,24 +24,20 @@ describe("<LazilyRenderedRow />", () => {
         const fileSet = new FileSet();
         sinon.stub(fileSet, "getFileByIndex").callsFake((index) => {
             if (index === 3) {
-                return {
+                return new FileDetail({
                     annotations: [
                         {
                             name: "someDateAnnotation",
                             values: ["2019-05-17T07:43:55.205Z"],
                         },
                     ],
-                    channels: [],
                     file_id: "abc123",
                     file_name: "my_image.czi",
                     file_path: "some/path/to/my_image.czi",
                     file_size: 1,
-                    positions: [],
-                    someDateAnnotation: "2019-05-17T07:43:55.205Z",
-                    times: [],
                     thumbnail: "",
                     uploaded: new Date().toISOString(),
-                };
+                });
             }
         });
 
@@ -69,54 +65,5 @@ describe("<LazilyRenderedRow />", () => {
 
         // Assert
         expect(getByText("my_image.czi")).to.not.equal(null);
-    });
-
-    it("renders a loading indicator when data is not available", () => {
-        // Arrange
-        const state = mergeState(initialState, {});
-        state.metadata.annotations = [fileNameAnnotation];
-        state.selection.displayAnnotations = [fileNameAnnotation];
-
-        const { store } = configureMockStore({ state });
-
-        // Act
-        const { queryByText } = render(
-            <Provider store={store}>
-                <LazilyRenderedRow data={makeItemData()} index={23} style={{}} />
-            </Provider>
-        );
-
-        // Assert
-        expect(queryByText("my_image.czi")).to.equal(null);
-        expect(queryByText("Loading...")).to.not.equal(null);
-    });
-
-    describe("Dynamic styling", () => {
-        [true, false].forEach((shouldDisplaySmallFont) => {
-            it(`Has${
-                shouldDisplaySmallFont ? "" : " no"
-            } small font style when shouldDisplaySmallFont is ${shouldDisplaySmallFont}`, () => {
-                // Arrange
-                const { store } = configureMockStore({
-                    state: mergeState(initialState, {
-                        selection: {
-                            shouldDisplaySmallFont,
-                        },
-                    }),
-                });
-
-                // Act
-                const { getByText } = render(
-                    <Provider store={store}>
-                        <LazilyRenderedRow data={makeItemData()} index={23} style={{}} />
-                    </Provider>
-                );
-
-                // Assert
-                expect(getByText("Loading...").classList.contains(styles.smallFont)).to.equal(
-                    shouldDisplaySmallFont
-                );
-            });
-        });
     });
 });

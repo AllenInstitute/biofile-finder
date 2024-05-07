@@ -8,6 +8,7 @@ import FileAnnotationList from "../FileAnnotationList";
 import FileDetail from "../../../entity/FileDetail";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { initialState } from "../../../state";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 
 describe("<FileAnnotationList />", () => {
     describe("file path representation", () => {
@@ -54,9 +55,9 @@ describe("<FileAnnotationList />", () => {
 
             // Assert
             [
-                "File path (Canonical)",
+                "File Path (Canonical)",
                 canonicalFilePath,
-                "File path (Local)",
+                "File Path (Local)",
                 expectedLocalPath,
             ].forEach(async (cellText) => {
                 expect(await findByText(cellText)).to.not.be.undefined;
@@ -73,6 +74,9 @@ describe("<FileAnnotationList />", () => {
 
             const { store } = configureMockStore({
                 state: mergeState(initialState, {
+                    metadata: {
+                        annotations: TOP_LEVEL_FILE_ANNOTATIONS,
+                    },
                     interaction: {
                         platformDependentServices: {
                             executionEnvService: new FakeExecutionEnvService(),
@@ -100,8 +104,8 @@ describe("<FileAnnotationList />", () => {
             );
 
             // Assert
-            expect(() => getByText("File path (Local)")).to.throw();
-            ["File path (Canonical)", filePath].forEach((cellText) => {
+            expect(() => getByText("File Path (Local)")).to.throw();
+            ["File Path (Canonical)", filePath].forEach((cellText) => {
                 expect(getByText(cellText)).to.not.be.undefined;
             });
         });

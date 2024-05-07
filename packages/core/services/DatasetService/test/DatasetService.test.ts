@@ -2,6 +2,8 @@ import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 import sinon from "sinon";
 
+import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
+
 import DatasetService, { PythonicDataAccessSnippet } from "..";
 
 describe("DatasetService", () => {
@@ -12,34 +14,6 @@ describe("DatasetService", () => {
         name: "Something" + id,
         version: 1,
     }));
-
-    describe("createDataset", () => {
-        const httpClient = createMockHttpClient([
-            {
-                when: `${baseUrl}/${DatasetService.BASE_DATASET_URL}`,
-                respondWith: {
-                    data: {
-                        data: [{ id: expectedDatasetId }],
-                    },
-                },
-            },
-        ]);
-
-        it("issues request to create dataset matching given parameters", async () => {
-            // Arrange
-            const service = new DatasetService({ baseUrl, httpClient });
-
-            // Act
-            const dataset = await service.createDataset({
-                name: "anyName",
-                annotations: [],
-                selections: [],
-                fixed: false,
-                private: false,
-            });
-            expect(dataset.id).to.equal(expectedDatasetId);
-        });
-    });
 
     describe("getDatasets", () => {
         const httpClient = createMockHttpClient({
@@ -53,7 +27,12 @@ describe("DatasetService", () => {
 
         it("issues request for datasets", async () => {
             // Arrange
-            const service = new DatasetService({ baseUrl, httpClient, userName: "test" });
+            const service = new DatasetService({
+                baseUrl,
+                httpClient,
+                userName: "test",
+                database: new DatabaseServiceNoop(),
+            });
 
             // Act
             const datasets = await service.getDatasets();
@@ -82,7 +61,11 @@ describe("DatasetService", () => {
                     },
                 },
             });
-            const service = new DatasetService({ baseUrl, httpClient });
+            const service = new DatasetService({
+                baseUrl,
+                httpClient,
+                database: new DatabaseServiceNoop(),
+            });
 
             // Act
             const snippet = await service.getPythonicDataAccessSnippet(datasetName, datasetVersion);
@@ -106,7 +89,11 @@ describe("DatasetService", () => {
                 status: 200,
                 statusText: "OK",
             });
-            const service = new DatasetService({ baseUrl, httpClient });
+            const service = new DatasetService({
+                baseUrl,
+                httpClient,
+                database: new DatabaseServiceNoop(),
+            });
 
             // Act
             await service.getPythonicDataAccessSnippet(datasetName, datasetVersion);

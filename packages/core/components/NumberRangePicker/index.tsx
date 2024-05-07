@@ -1,6 +1,7 @@
-import { ActionButton, Spinner, SpinnerSize } from "@fluentui/react";
+import { ActionButton, Icon, IconButton, Spinner, SpinnerSize } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
+
 import FileFilter from "../../entity/FileFilter";
 import { extractValuesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/number-formatter";
 import { AnnotationValue } from "../../services/AnnotationService";
@@ -13,8 +14,10 @@ export interface ListItem {
 }
 
 interface NumberRangePickerProps {
+    className?: string;
     disabled?: boolean;
     errorMessage?: string;
+    title?: string;
     items: ListItem[];
     loading?: boolean;
     onSearch: (filterValue: string) => void;
@@ -53,13 +56,6 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
         setSearchMaxValue("");
     }
 
-    function onSelectFullRange() {
-        setSearchMinValue(overallMin);
-        setSearchMaxValue(overallMax);
-        // Plus 1 here to ensure that actual max is not excluded for full range
-        onSearch(`RANGE(${overallMin},${(Number(overallMax) + 1).toString()})`);
-    }
-
     const onSubmitRange = () => {
         const {
             minValue: oldMinValue,
@@ -84,47 +80,68 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
     };
 
     if (errorMessage) {
-        return <div className={styles.container}>Whoops! Encountered an error: {errorMessage}</div>;
+        return (
+            <div className={classNames(styles.container, props.className)}>
+                Whoops! Encountered an error: {errorMessage}
+            </div>
+        );
     }
 
     if (loading) {
         return (
-            <div className={styles.container}>
+            <div className={classNames(styles.container, props.className)}>
                 <Spinner size={SpinnerSize.small} />
             </div>
         );
     }
 
     return (
-        <div className={styles.container} data-is-scrollable="true" data-is-focusable="true">
+        <div
+            className={classNames(styles.container, props.className)}
+            data-is-scrollable="true"
+            data-is-focusable="true"
+        >
+            <h3 className={styles.title}>{units ? `${props.title} (in ${units})` : props.title}</h3>
             <div className={styles.header}>
-                <div className={styles.inputField}>
-                    <label htmlFor="rangemin">Min (inclusive)</label>
-                    <input
-                        id="rangemin"
-                        title="Min (inclusive)"
-                        type="number"
-                        value={searchMinValue}
-                        step="any"
-                        onChange={onMinChange}
-                        min={Number(overallMin)}
-                        max={Number(overallMax)}
-                    />
-                    {units}
-                </div>
-                <div className={styles.inputField}>
-                    <label htmlFor="rangemax">Max (exclusive)</label>
-                    <input
-                        id="rangemax"
-                        title="Max (exclusive)"
-                        type="number"
-                        value={searchMaxValue}
-                        step="any"
-                        onChange={onMaxChange}
-                        min={Number(overallMin)}
-                        max={Number(overallMax)}
-                    />
-                    {units}
+                <div className={styles.inputs}>
+                    <div className={styles.inputField}>
+                        <label htmlFor="rangemin">Min (inclusive)</label>
+                        <input
+                            id="rangemin"
+                            title="Min (inclusive)"
+                            type="number"
+                            value={searchMinValue}
+                            step="any"
+                            onChange={onMinChange}
+                            min={Number(overallMin)}
+                            max={Number(overallMax)}
+                        />
+                    </div>
+                    <div className={styles.rangeSeperator}>
+                        <Icon iconName="Forward" />
+                    </div>
+                    <div className={styles.inputField}>
+                        <label htmlFor="rangemax">Max (exclusive)</label>
+                        <input
+                            id="rangemax"
+                            title="Max (exclusive)"
+                            type="number"
+                            value={searchMaxValue}
+                            step="any"
+                            onChange={onMaxChange}
+                            min={Number(overallMin)}
+                            max={Number(overallMax)}
+                        />
+                    </div>
+                    <div className={styles.resetButtonContainer}>
+                        <IconButton
+                            ariaLabel="Reset"
+                            className={classNames(styles.actionButton)}
+                            title={"Reset filter"}
+                            onClick={onResetSearch}
+                            iconProps={{ iconName: "Delete" }}
+                        />
+                    </div>
                 </div>
                 <div className={styles.buttons}>
                     <ActionButton
@@ -136,34 +153,20 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                             styles.actionButton
                         )}
                         disabled={!searchMinValue && !searchMaxValue}
+                        iconProps={{ iconName: "ReturnKey" }}
                         title={searchMinValue || searchMaxValue ? undefined : "No options selected"}
                         onClick={onSubmitRange}
                     >
-                        Submit range
-                    </ActionButton>
-                    {onSelectFullRange && (
-                        <ActionButton
-                            ariaLabel="Select Full Range"
-                            className={classNames(styles.actionButton)}
-                            onClick={onSelectFullRange}
-                        >
-                            Select Full Range
-                        </ActionButton>
-                    )}
-                    <ActionButton
-                        ariaLabel="Reset"
-                        className={classNames(styles.actionButton)}
-                        title={"Clear filter"}
-                        onClick={onResetSearch}
-                    >
-                        Reset
+                        Submit Range
                     </ActionButton>
                 </div>
             </div>
             <div className={styles.footer}>
-                <h6>
-                    Full range available: {overallMin}, {overallMax}
-                </h6>
+                {overallMin && overallMax && (
+                    <h6>
+                        Full range available: {overallMin}, {overallMax}
+                    </h6>
+                )}
             </div>
         </div>
     );

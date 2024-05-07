@@ -1,9 +1,13 @@
-import * as React from "react";
 import { SearchBox } from "@fluentui/react";
+import * as React from "react";
+
 import FileFilter from "../../entity/FileFilter";
+
 import styles from "./SearchBoxForm.module.css";
 
 interface SearchBoxFormProps {
+    className?: string;
+    title?: string;
     onSearch: (filterValue: string) => void;
     onReset: () => void;
     fieldName: string;
@@ -36,18 +40,17 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
     }
 
     return (
-        <div className={styles.container} data-is-focusable="true">
-            <div className={styles.header}>
-                <SearchBox
-                    onClear={onClear}
-                    className={styles.searchBoxInput}
-                    placeholder={`Search by ${fieldName}`}
-                    styles={SEARCH_BOX_STYLE_OVERRIDES}
-                    onSearch={onSearch}
-                    onChange={onSearchBoxChange}
-                    value={searchValue}
-                />
-            </div>
+        <div className={props.className} data-is-focusable="true">
+            <h3 className={styles.title}>{props.title}</h3>
+            <SearchBox
+                onClear={onClear}
+                className={styles.searchBoxInput}
+                placeholder={`Search by ${fieldName}`}
+                styles={SEARCH_BOX_STYLE_OVERRIDES}
+                onSearch={onSearch}
+                onChange={onSearchBoxChange}
+                value={searchValue}
+            />
         </div>
     );
 }

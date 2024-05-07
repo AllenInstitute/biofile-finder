@@ -9,6 +9,7 @@
   },
   "build": {
     "appId": "org.aics.alleninstitute.fileexplorer",
+    "npmRebuild": false,
     "directories": {
       "buildResources": "assets",
       "output": "build"
@@ -79,9 +80,11 @@
   "dependencies": {
     "@aics/frontend-insights": "0.2.x",
     "@aics/frontend-insights-plugin-amplitude-node": "0.2.x",
+    "duckdb": "0.8.x",
     "electron-devtools-installer": "3.1.x",
     "electron-store": "8.0.x",
     "regenerator-runtime": "0.13.x",
-    "semver": "7.3.x"
+    "semver": "7.3.x",
+    "webpack-node-externals": "^3.0.0"
   }
 }

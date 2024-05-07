@@ -3,3 +3,7 @@
     display: inline;
     white-space: nowrap;
 }
+
+.small-font {
+    font-size: unset;
+}

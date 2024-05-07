@@ -1,0 +1,84 @@
+.actions-container {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.actions-container > * {
+    margin: 0 auto 0 auto;
+}
+
+.browse-button {
+    background-color: var(--primary-background-color);
+    color: var(--primary-text-color);
+    border: none;
+    padding: 1.25em 1.5em;
+}
+
+.browse-button:hover {
+    background-color: var(--highlight-background-color);
+    color: var(--highlight-text-color);
+}
+
+.or-divider {
+    cursor: default;
+    display: flex;
+    justify-content: center;
+    margin: 10px 0 10px 0;
+    width: 75%;
+}
+
+.or-divider > hr {
+    margin-top: 6px;
+    width: 25%;
+}
+
+.or-divider > hr:first-child {
+    margin-right: 10px;
+}
+
+.or-divider > hr:last-child {
+    margin-left: 10px;
+}
+
+.subtitle-button {
+    background: none;
+    color: var(--secondary-text-color);
+    border: none;
+    font-size: small;
+    margin-left: auto;
+}
+
+.subtitle-button:hover {
+    background-color: var(--highlight-background-color);
+    color: var(--highlight-text-color);
+}
+
+.subtitle-button-container {
+    display: flex;
+}
+
+.text {
+    font-size: smaller;
+}
+
+.url-form {
+    width: 100%;
+}
+
+.url-form > * {
+    margin: 0 auto 0 auto;
+    width: 80%;
+}
+
+.url-form :is(input, input::placeholder) {
+    background-color: var(--primary-background-color);
+    border: none;
+    color: var(--primary-text-color);
+}
+
+.url-form input::after {
+    display: none;
+}

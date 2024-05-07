@@ -46,6 +46,20 @@ const OPTIONS: Options<Record<string, unknown>> = {
         [PersistedConfigKeys.ImageJExecutable]: {
             type: "string",
         },
+        [PersistedConfigKeys.Queries]: {
+            type: "array",
+            items: {
+                type: "object",
+                properties: {
+                    name: {
+                        type: "string",
+                    },
+                    url: {
+                        type: "string",
+                    },
+                },
+            },
+        },
         [PersistedConfigKeys.HasUsedApplicationBefore]: {
             type: "boolean",
         },

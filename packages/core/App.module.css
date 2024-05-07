@@ -1,3 +1,8 @@
+.light-theme {
+    /* placeholder for until / if we do a light theme for the app */
+    color: orange;
+}
+
 .absolute {
     position: absolute;
 }
@@ -7,22 +12,10 @@
 }
 
 .root {
-    --annotation-hierarchy-max-width: 350px;
-    --blue: steelblue;
-    --grey: #c8c8c8;
-    --white: #ffffff;
-    --url-bar-height: 40px;
-    --file-details-width: 20%;
-    --margin: 12px;
-    --transition-duration: 0.5s;
-    --smaller-font-size: small;
-    /* AICS brand colors pulled from AICS style guide */
-    --primary-brand-dark-blue: #003057;
-    --primary-brand-purple: #827aa3;
-    --primary-brand-grey: #7c7d7f;
-    --secondary-brand-purple: #bab5c9;
-    --brand-error: #c23030;
+    --global-button-row-height: 40px;
 
+    background-color: var(--secondary-background-color);
+    color: var(--secondary-text-color);
     composes: relative;
     margin: 0;
     border: 0;
@@ -32,35 +25,30 @@
     overflow: hidden; /* TODO; should be unnecessary */
 }
 
+.small-font {
+    font-size: smaller;
+}
+
 /* Globally remove the ability to select text. Individual elements that need this should opt-in. */
 .root * {
     user-select: none;
 }
 
-.content {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.header-ribbon {
-    display: block;
-    width: 100%;
-}
-
-.everything-except-header-ribbon {
+.core-and-file-details {
     composes: relative;
     display: flex;
     flex: auto;
-    margin: var(--margin);
+    height: 100%;
+    /* margin: var(--margin); */
     overflow: hidden;
     width: calc(100% - (2 * var(--margin)));
 }
 
-.core {
+.query-sidebar-and-center {
     margin-right: var(--margin);
     width: calc(80% - var(--margin));
     height: 100%;
+    display: flex;
 
     /* flex child */
     flex: 1 0 auto;
@@ -68,45 +56,38 @@
 
     /* flex parent */
     display: flex;
-    flex-direction: column;
 }
 
-.everything-except-header-ribbon .core .file-details{
-    margin-right: 0;
-    width: 100%;
-}
-
-.url-bar {
-    width: 100%;
-    height: var(--url-bar-height);
-    margin-bottom: var(--margin);
-}
-
-.annotation-hierarchy-and-file-list {
-    display: flex;
-    width: 100%;
-    height: calc(100% - var(--url-bar-height) - var(--margin));
-}
-
-.annotation-hierarchy {
+.query-sidebar {
     height: 100%;
     width: 30%;
-    max-width: var(--annotation-hierarchy-max-width);
+    max-width: var(--query-sidebar-max-width);
+}
+
+.center {
+    flex: auto;
+    height: 100%;
+    margin: var(--margin) 0 var(--margin) var(--margin);
+    width: calc(70% - var(--margin));
+}
+
+.global-button-row {
+    height: var(--global-button-row-height);
 }
 
 .file-list {
     display: flex;
     flex-direction: column;
     flex: auto;
-    height: 100%;
-    width: calc(70% - var(--margin));
-    margin-left: var(--margin);
+    height: calc(100% - var(--global-button-row-height));
 }
 
 .file-details {
     height: 100%;
     transition: flex var(--transition-duration);
+    width: 100%;
 
     /* flex child */
     flex: 0 0 var(--file-details-width);
+    margin: var(--margin) 0 var(--margin) 0;
 }

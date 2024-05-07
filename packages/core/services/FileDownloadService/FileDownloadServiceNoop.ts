@@ -37,6 +37,10 @@ export default class FileDownloadServiceNoop implements FileDownloadService {
         );
     }
 
+    promptForSaveLocation(): Promise<string> {
+        return Promise.resolve("Prompt for save location triggered on FileDownloadServiceNoop");
+    }
+
     cancelActiveRequest() {
         /** noop */
     }

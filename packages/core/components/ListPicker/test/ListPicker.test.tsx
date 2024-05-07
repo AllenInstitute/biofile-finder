@@ -4,43 +4,45 @@ import { noop } from "lodash";
 import * as React from "react";
 import sinon from "sinon";
 
-import ListPicker, { ListItem } from "..";
+import ListPicker from "..";
+import { ListItem } from "../ListRow";
 
 describe("<ListPicker />", () => {
     it("renders a list of items that are selectable and deselectable", () => {
         // Arrange
         const onSelect = sinon.spy();
         const onDeselect = sinon.spy();
-        const items: ListItem[] = ["foo", "bar"].map((val, idx) => ({
-            selected: idx % 2 === 0,
+        const items: ListItem[] = ["foo", "bar"].map((val) => ({
+            selected: val === "bar",
             displayValue: val,
             value: val,
         }));
 
         // Act / Assert
-        const { getByRole, getAllByRole } = render(
-            <ListPicker items={items} onDeselect={onDeselect} onSelect={onSelect} />
+        const { getAllByRole, getByText } = render(
+            <ListPicker
+                items={items}
+                onDeselect={onDeselect}
+                onDeselectAll={noop}
+                onSelect={onSelect}
+            />
         );
 
-        // Should render both list items
-        expect(getAllByRole("checkbox").length).to.equal(2);
-
-        // One should be checked, the other shouldn't be
-        expect(getAllByRole("checkbox", { checked: false }).length).to.equal(1);
-        expect(getAllByRole("checkbox", { checked: true }).length).to.equal(1);
+        // Should render both list items + a reset button
+        expect(getAllByRole("button")).to.be.lengthOf(3);
 
         // Trigger selection for the item that isn't selected
-        fireEvent.click(getByRole("checkbox", { checked: false }));
-        expect(onDeselect.called).to.equal(false);
-        expect(onSelect.called).to.equal(true);
+        fireEvent.click(getByText("foo"));
+        expect(onDeselect.called).to.be.false;
+        expect(onSelect.called).to.be.true;
 
         // Trigger deselect for the item that is selected
         // (reset spies first to isolate assertions)
         onDeselect.resetHistory();
         onSelect.resetHistory();
-        fireEvent.click(getByRole("checkbox", { checked: true }));
-        expect(onDeselect.called).to.equal(true);
-        expect(onSelect.called).to.equal(false);
+        fireEvent.click(getByText("bar"));
+        expect(onDeselect.called).to.be.true;
+        expect(onSelect.called).to.be.false;
     });
 
     it("renders a search box that filters the rendered list items", () => {
@@ -54,12 +56,18 @@ describe("<ListPicker />", () => {
         }));
 
         // Act / Assert
-        const { getAllByRole, getByRole } = render(
-            <ListPicker items={items} onDeselect={onDeselect} onSelect={onSelect} />
+        const { getByText, getByRole } = render(
+            <ListPicker
+                items={items}
+                onDeselect={onDeselect}
+                onDeselectAll={noop}
+                onSelect={onSelect}
+            />
         );
 
         // Should render both list items
-        expect(getAllByRole("checkbox").length).to.equal(2);
+        expect(getByText("foo")).to.not.be.undefined;
+        expect(getByText("bar")).to.not.be.undefined;
 
         // Trigger a search
         fireEvent.change(getByRole("searchbox"), {
@@ -67,10 +75,11 @@ describe("<ListPicker />", () => {
                 value: "foo",
             },
         });
-        expect(getAllByRole("checkbox").length).to.equal(1);
+        expect(getByText("foo")).to.not.be.undefined;
+        expect(() => getByText("bar")).to.throw();
     });
 
-    it("Renders a 'Reset' button if given a callback for deselecting all items", () => {
+    it("Renders a 'Reset' button that deselects entire selection", () => {
         // Arrange
         const onSelect = noop;
         const onDeselect = noop;
@@ -82,7 +91,7 @@ describe("<ListPicker />", () => {
         }));
 
         // Act / Assert
-        const { getAllByRole, getByText } = render(
+        const { getByText } = render(
             <ListPicker
                 items={items}
                 onDeselect={onDeselect}
@@ -91,29 +100,58 @@ describe("<ListPicker />", () => {
             />
         );
 
-        // Should render both list items as initially selected
-        expect(getAllByRole("checkbox", { checked: true }).length).to.equal(2);
-
         // Hit reset
         expect(onDeselectAll.called).to.equal(false);
         fireEvent.click(getByText("Reset"));
         expect(onDeselectAll.called).to.equal(true);
     });
 
+    it("Unable to select 'Reset' button if no items selected", () => {
+        // Arrange
+        const onSelect = noop;
+        const onDeselect = noop;
+        const onDeselectAll = sinon.spy();
+        const items: ListItem[] = ["foo", "bar"].map((val) => ({
+            selected: false, // start with all items unselected
+            displayValue: val,
+            value: val,
+        }));
+
+        // Act / Assert
+        const { getByText } = render(
+            <ListPicker
+                items={items}
+                onDeselect={onDeselect}
+                onDeselectAll={onDeselectAll}
+                onSelect={onSelect}
+            />
+        );
+
+        // Hit reset
+        expect(onDeselectAll.called).to.be.false;
+        fireEvent.click(getByText("Reset"));
+        expect(onDeselectAll.called).to.be.false;
+    });
+
     it("Renders a 'Select All' button if given a callback for selecting all items", () => {
         // Arrange
         const onSelectAll = sinon.spy();
         const items: ListItem[] = ["foo", "bar"].map((val) => ({
-            selected: true, // start with all items selected
+            selected: false, // start with all items unselected
             displayValue: val,
             value: val,
         }));
-        const { getAllByRole, getByText } = render(
-            <ListPicker items={items} onDeselect={noop} onSelectAll={onSelectAll} onSelect={noop} />
+        const { getByText } = render(
+            <ListPicker
+                items={items}
+                onDeselect={noop}
+                onDeselectAll={noop}
+                onSelectAll={onSelectAll}
+                onSelect={noop}
+            />
         );
 
         // (sanity-check)
-        expect(getAllByRole("checkbox", { checked: true }).length).to.equal(2);
         expect(onSelectAll.called).to.be.false;
 
         // Act
@@ -121,6 +159,34 @@ describe("<ListPicker />", () => {
 
         // Assert
         expect(onSelectAll.called).to.be.true;
+    });
+
+    it("Unable to select 'Select All' button if all items selected", () => {
+        // Arrange
+        const onSelectAll = sinon.spy();
+        const items: ListItem[] = ["foo", "bar"].map((val) => ({
+            selected: true, // start with all items selected
+            displayValue: val,
+            value: val,
+        }));
+        const { getByText } = render(
+            <ListPicker
+                items={items}
+                onDeselect={noop}
+                onDeselectAll={noop}
+                onSelectAll={onSelectAll}
+                onSelect={noop}
+            />
+        );
+
+        // (sanity-check)
+        expect(onSelectAll.called).to.be.false;
+
+        // Act
+        fireEvent.click(getByText("Select All"));
+
+        // Assert
+        expect(onSelectAll.called).to.be.false;
     });
 
     it("Displays count of items", () => {
@@ -131,7 +197,7 @@ describe("<ListPicker />", () => {
             value: val,
         }));
         const { getByText } = render(
-            <ListPicker items={items} onDeselect={noop} onSelect={noop} />
+            <ListPicker items={items} onDeselect={noop} onDeselectAll={noop} onSelect={noop} />
         );
 
         // Act / Assert

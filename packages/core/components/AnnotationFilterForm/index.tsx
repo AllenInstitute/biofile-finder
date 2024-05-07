@@ -1,19 +1,23 @@
 import { Spinner, SpinnerSize } from "@fluentui/react";
-import { find, isNil } from "lodash";
+import { isNil } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import useAnnotationValues from "./useAnnotationValues";
+import Annotation, { AnnotationName } from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
-import ListPicker, { ListItem } from "../ListPicker";
+import ListPicker from "../ListPicker";
+import { ListItem } from "../ListPicker/ListRow";
 import NumberRangePicker from "../NumberRangePicker";
 import SearchBoxForm from "../SearchBoxForm";
 import DateRangePicker from "../DateRangePicker";
-import { interaction, metadata, selection } from "../../state";
-import useAnnotationValues from "./useAnnotationValues";
+import { interaction, selection } from "../../state";
+
+import styles from "./AnnotationFilterForm.module.css";
 
 interface AnnotationFilterFormProps {
-    annotationName: string;
+    annotation: Annotation;
 }
 
 /**
@@ -23,64 +27,49 @@ interface AnnotationFilterFormProps {
  * amongst its items; if the annotation is of type date, it will render a date input; etc.
  */
 export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
-    const { annotationName } = props;
     const dispatch = useDispatch();
-    const annotations = useSelector(metadata.selectors.getSupportedAnnotations);
-    const fileFilters = useSelector(selection.selectors.getFileFilters);
+    const allFilters = useSelector(selection.selectors.getFileFilters);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
-    // TODO: annotationService throws an error for annotations that aren't in the API
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
-        annotationName,
+        props.annotation.name,
         annotationService
     );
 
-    const annotation = React.useMemo(
-        () => find(annotations, (annotation) => annotation.name === annotationName),
-        [annotations, annotationName]
-    );
-
-    const currentValues = React.useMemo(
-        () => find(fileFilters, (annotation) => annotation.name === annotationName),
-        [annotationName, fileFilters]
+    const filtersForAnnotation = React.useMemo(
+        () => allFilters.filter((filter) => filter.name === props.annotation.name),
+        [allFilters, props.annotation]
     );
 
     const items = React.useMemo<ListItem[]>(() => {
-        const appliedFilters = fileFilters
-            .filter((filter) => filter.name === annotation?.name)
-            .map((filter) => filter.value);
+        const appliedFilters = new Set(filtersForAnnotation.map((filter) => filter.value));
 
         return (annotationValues || []).map((value) => ({
-            selected: appliedFilters.includes(value),
-            displayValue: annotation?.getDisplayValue(value) || value,
+            selected: appliedFilters.has(value),
+            displayValue: props.annotation.getDisplayValue(value) || value,
             value,
         }));
-    }, [annotation, annotationValues, fileFilters]);
+    }, [props.annotation, annotationValues, filtersForAnnotation]);
 
     const onDeselectAll = () => {
-        const filters = items.map(
-            (item) =>
-                new FileFilter(
-                    annotationName,
-                    isNil(annotation?.valueOf(item.value))
-                        ? item.value
-                        : annotation?.valueOf(item.value)
-                )
-        );
-        dispatch(selection.actions.removeFileFilter(filters));
+        dispatch(selection.actions.removeFileFilter(filtersForAnnotation));
     };
 
     const onDeselect = (item: ListItem) => {
         const fileFilter = new FileFilter(
-            annotationName,
-            isNil(annotation?.valueOf(item.value)) ? item.value : annotation?.valueOf(item.value)
+            props.annotation.name,
+            isNil(props.annotation.valueOf(item.value))
+                ? item.value
+                : props.annotation.valueOf(item.value)
         );
         dispatch(selection.actions.removeFileFilter(fileFilter));
     };
 
     const onSelect = (item: ListItem) => {
         const fileFilter = new FileFilter(
-            annotationName,
-            isNil(annotation?.valueOf(item.value)) ? item.value : annotation?.valueOf(item.value)
+            props.annotation.name,
+            isNil(props.annotation.valueOf(item.value))
+                ? item.value
+                : props.annotation.valueOf(item.value)
         );
         dispatch(selection.actions.addFileFilter(fileFilter));
     };
@@ -89,10 +78,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         const filters = items.map(
             (item) =>
                 new FileFilter(
-                    annotationName,
-                    isNil(annotation?.valueOf(item.value))
+                    props.annotation.name,
+                    isNil(props.annotation.valueOf(item.value))
                         ? item.value
-                        : annotation?.valueOf(item.value)
+                        : props.annotation.valueOf(item.value)
                 )
         );
         dispatch(selection.actions.addFileFilter(filters));
@@ -100,25 +89,30 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     function onSearch(filterValue: string) {
         if (filterValue && filterValue.trim()) {
-            const fileFilter = new FileFilter(annotationName, filterValue);
-            if (currentValues) {
-                dispatch(selection.actions.removeFileFilter(currentValues));
-            }
-            dispatch(selection.actions.addFileFilter(fileFilter));
+            dispatch(
+                selection.actions.setFileFilters([
+                    ...allFilters.filter((filter) => filter.name !== props.annotation.name),
+                    new FileFilter(props.annotation.name, filterValue),
+                ])
+            );
         }
     }
 
-    function onReset() {
-        if (currentValues) {
-            dispatch(selection.actions.removeFileFilter(currentValues));
-        }
+    if (isLoading) {
+        return (
+            <div className={styles.loadingContainer}>
+                <Spinner size={SpinnerSize.small} />
+            </div>
+        );
     }
 
-    const listPicker = () => {
+    // Use the checkboxes if values exist and are few enough to reasonably scroll through
+    if (items.length > 0 && items.length <= 100) {
         return (
             <ListPicker
                 items={items}
                 loading={isLoading}
+                title={`Filter by ${props.annotation.displayName}`}
                 errorMessage={errorMessage}
                 onDeselect={onDeselect}
                 onDeselectAll={onDeselectAll}
@@ -126,63 +120,64 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                 onSelectAll={onSelectAll}
             />
         );
-    };
-
-    if (isLoading) {
-        return (
-            <div>
-                <Spinner size={SpinnerSize.small} />
-            </div>
-        );
     }
 
-    const customInput = () => {
-        switch (annotation?.type) {
-            case AnnotationType.DATE:
-            case AnnotationType.DATETIME:
-                return (
-                    <DateRangePicker
-                        onSearch={onSearch}
-                        onReset={onReset}
-                        currentRange={currentValues}
-                    />
-                );
-            case AnnotationType.NUMBER:
+    switch (props.annotation.type) {
+        case AnnotationType.DATE:
+        case AnnotationType.DATETIME:
+            return (
+                <DateRangePicker
+                    className={styles.picker}
+                    onSearch={onSearch}
+                    title={`Filter by ${props.annotation.displayName}`}
+                    onReset={onDeselectAll}
+                    currentRange={filtersForAnnotation?.[0]}
+                />
+            );
+        case AnnotationType.NUMBER:
+            // File size is a special case where we don't have
+            // the ability to filter by range in the backend yet
+            // so we'll just let that case fall through to the string below
+            if (props.annotation.name !== AnnotationName.FILE_SIZE) {
                 return (
                     <NumberRangePicker
+                        className={styles.picker}
                         items={items}
                         loading={isLoading}
+                        title={`Filter by ${props.annotation.displayName}`}
                         errorMessage={errorMessage}
                         onSearch={onSearch}
-                        onReset={onReset}
-                        currentRange={currentValues}
-                        units={annotation?.units}
+                        onReset={onDeselectAll}
+                        currentRange={filtersForAnnotation?.[0]}
+                        units={props.annotation.units}
                     />
                 );
-            case AnnotationType.DURATION:
-            case AnnotationType.STRING:
-            // prettier-ignore
-            default: // FALL-THROUGH
-                return (
-                    <> {listPicker()} </>
-                );
-        }
-    };
-    // Use the checkboxes if values exist and are few enough to reasonably scroll through
-    if (items.length > 0 && items.length <= 100) {
-        return <> {listPicker()} </>;
+            }
+        case AnnotationType.STRING:
+            return (
+                <SearchBoxForm
+                    className={styles.picker}
+                    onSearch={onSearch}
+                    onReset={onDeselectAll}
+                    fieldName={props.annotation.displayName}
+                    title={`Filter by ${props.annotation.displayName}`}
+                    currentValue={filtersForAnnotation?.[0]}
+                />
+            );
+        case AnnotationType.DURATION:
+        // prettier-ignore
+        default: // FALL-THROUGH
+            return (
+                <ListPicker
+                    items={items}
+                    loading={isLoading}
+                    title={`Filter by ${props.annotation.displayName}`}
+                    errorMessage={errorMessage}
+                    onDeselect={onDeselect}
+                    onDeselectAll={onDeselectAll}
+                    onSelect={onSelect}
+                    onSelectAll={onSelectAll}
+                />
+            );
     }
-    // Use a search box if the API does not return values to select
-    // (e.g., it's not an AICS annotation)
-    else if (items.length === 0 && annotation?.type === AnnotationType.STRING) {
-        return (
-            <SearchBoxForm
-                onSearch={onSearch}
-                onReset={onReset}
-                fieldName={annotation.name}
-                currentValue={currentValues}
-            />
-        );
-    }
-    return <> {customInput()} </>;
 }

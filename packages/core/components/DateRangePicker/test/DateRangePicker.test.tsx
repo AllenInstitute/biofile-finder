@@ -51,7 +51,7 @@ describe("<DateRangePicker />", () => {
         expect(getByText("Wed Mar 20 2024")).to.exist;
     });
 
-    it("renders a 'Clear' button if given a callback", () => {
+    it("renders a 'Reset' button if given a callback", () => {
         // Arrange
         const onSearch = noop;
         const onReset = sinon.spy();
@@ -63,7 +63,7 @@ describe("<DateRangePicker />", () => {
 
         // Hit reset
         expect(onReset.called).to.equal(false);
-        fireEvent.click(getByTitle("Clear"));
+        fireEvent.click(getByTitle("Reset"));
         expect(onReset.called).to.equal(true);
     });
 });

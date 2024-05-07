@@ -22,7 +22,17 @@ import {
     setSortColumn,
     changeCollection,
     CHANGE_COLLECTION,
-    CHANGE_VIEW,
+    CHANGE_QUERY,
+    ChangeCollectionAction,
+    SetAnnotationHierarchyAction,
+    RemoveFromAnnotationHierarchyAction,
+    ReorderAnnotationHierarchyAction,
+    decodeFileExplorerURL,
+    ADD_QUERY,
+    AddQuery,
+    changeQuery,
+    ChangeQuery,
+    setQueries,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -32,7 +42,7 @@ import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
-import { RELATIVE_DATE_RANGES } from "../../constants";
+import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -92,17 +102,16 @@ const selectFile = createLogic({
 const modifyAnnotationHierarchy = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { action, getState, ctx } = deps;
-        const { existingHierarchy, originalPayload } = ctx;
-        const currentHierarchy: Annotation[] = action.payload;
+        const { payload: currentHierarchy } = action as SetAnnotationHierarchyAction;
+        const existingHierarchy = ctx.existingHierarchy as string[];
+        const originalPayload = ctx.originalAction.payload;
 
         const existingOpenFileFolders = selectionSelectors.getOpenFileFolders(getState());
 
         let openFileFolders: FileFolder[];
         if (existingHierarchy.length > currentHierarchy.length) {
             // Determine which index the remove occurred
-            const indexOfRemoval = existingHierarchy.findIndex(
-                (a: Annotation) => a.name === originalPayload.id
-            );
+            const indexOfRemoval = existingHierarchy.findIndex((a) => a === originalPayload.id);
 
             // Determine the new folders now that an annotation has been removed
             // removing any that can't be used anymore
@@ -120,9 +129,7 @@ const modifyAnnotationHierarchy = createLogic({
             const annotationIndexMap = currentHierarchy.reduce(
                 (map, currentAnnotation, newIndex) => ({
                     ...map,
-                    [newIndex]: existingHierarchy.findIndex(
-                        (a: Annotation) => a.name === currentAnnotation.name
-                    ),
+                    [newIndex]: existingHierarchy.findIndex((a) => a === currentAnnotation),
                 }),
                 {}
             );
@@ -140,39 +147,34 @@ const modifyAnnotationHierarchy = createLogic({
 
         done();
     },
-    transform(deps: ReduxLogicDeps, next, reject) {
+    transform(deps: ReduxLogicDeps, next) {
         const { action, getState, ctx } = deps;
+        const {
+            payload: { id: modifiedAnnotationName },
+        } = action as ReorderAnnotationHierarchyAction | RemoveFromAnnotationHierarchyAction;
 
         const existingHierarchy = selectionSelectors.getAnnotationHierarchy(getState());
         ctx.existingHierarchy = existingHierarchy;
-        ctx.originalPayload = action.payload;
-        const allAnnotations = metadata.selectors.getAnnotations(getState());
-        const annotation = find(
-            allAnnotations,
-            (annotation) => annotation.name === action.payload.id
-        );
+        ctx.originalAction = action as
+            | RemoveFromAnnotationHierarchyAction
+            | ReorderAnnotationHierarchyAction;
 
-        if (annotation === undefined) {
-            reject && reject(action); // reject is for some reason typed in react-logic as optional
-            return;
-        }
-
-        let nextHierarchy: Annotation[];
-        if (find(existingHierarchy, (a) => a.name === annotation.name)) {
-            const removed = existingHierarchy.filter((a) => a.name !== annotation.name);
+        let nextHierarchy: string[];
+        if (find(existingHierarchy, (a) => a === modifiedAnnotationName)) {
+            const removed = existingHierarchy.filter((a) => a !== modifiedAnnotationName);
 
             // if moveTo is defined, change the order
             // otherwise, remove it from the hierarchy
             if (action.payload.moveTo !== undefined) {
                 // change order
-                removed.splice(action.payload.moveTo, 0, annotation);
+                removed.splice(action.payload.moveTo, 0, modifiedAnnotationName);
             }
 
             nextHierarchy = removed;
         } else {
             // add to list
             nextHierarchy = Array.from(existingHierarchy);
-            nextHierarchy.splice(action.payload.moveTo, 0, annotation);
+            nextHierarchy.splice(action.payload.moveTo, 0, modifiedAnnotationName);
         }
 
         next(setAnnotationHierarchy(nextHierarchy));
@@ -183,19 +185,21 @@ const modifyAnnotationHierarchy = createLogic({
 const setAvailableAnnotationsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { action, httpClient, getState } = deps;
-        const annotationNamesInHierachy = action.payload.map((a: Annotation) => a.name);
+        const { payload: annotationHierarchy } = action as SetAnnotationHierarchyAction;
         const annotationService = interaction.selectors.getAnnotationService(getState());
         const applicationVersion = interaction.selectors.getApplicationVersion(getState());
-        if (applicationVersion) {
-            annotationService.setApplicationVersion(applicationVersion);
+        if (annotationService instanceof HttpAnnotationService) {
+            if (applicationVersion) {
+                annotationService.setApplicationVersion(applicationVersion);
+            }
+            annotationService.setHttpClient(httpClient);
         }
-        annotationService.setHttpClient(httpClient);
 
         try {
             dispatch(
                 setAvailableAnnotations(
                     await annotationService.fetchAvailableAnnotationsForHierarchy(
-                        annotationNamesInHierachy
+                        annotationHierarchy
                     )
                 )
             );
@@ -284,14 +288,12 @@ const toggleFileFolderCollapse = createLogic({
  * Interceptor responsible for processing DECODE_FILE_EXPLORER_URL actions into various
  * other actions responsible for rehydrating the FileExplorerURL into application state.
  */
-const decodeFileExplorerURL = createLogic({
+const decodeFileExplorerURLLogics = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
-        const annotations = metadata.selectors.getAnnotations(deps.getState());
-        const collections = metadata.selectors.getActiveCollections(deps.getState());
+        const collections = metadata.selectors.getCollections(deps.getState());
         const { hierarchy, filters, openFolders, sortColumn, collection } = FileExplorerURL.decode(
-            encodedURL,
-            annotations
+            encodedURL
         );
 
         let selectedCollection = collections.find(
@@ -301,10 +303,7 @@ const decodeFileExplorerURL = createLogic({
         // in the state's collection set yet & should be loaded in.
         if (collection && !selectedCollection) {
             const datasetService = interaction.selectors.getDatasetService(deps.getState());
-            const newCollection = await datasetService.getDataset(
-                collection.name,
-                collection.version
-            );
+            const newCollection = await datasetService.getDataset(collection);
             dispatch(metadata.actions.receiveCollections([...collections, newCollection]));
             selectedCollection = newCollection;
         }
@@ -381,8 +380,7 @@ const selectNearbyFile = createLogic({
                     filters: sortedOpenFileListPaths[
                         fileListIndexAboveCurrentFileList
                     ].fileFolder.map(
-                        (filterValue, index) =>
-                            new FileFilter(hierarchy[index].displayName, filterValue)
+                        (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
                     ),
                     sort: sortColumn,
                 });
@@ -419,8 +417,7 @@ const selectNearbyFile = createLogic({
                     filters: sortedOpenFileListPaths[
                         fileListIndexBelowCurrentFileList
                     ].fileFolder.map(
-                        (filterValue, index) =>
-                            new FileFilter(hierarchy[index].displayName, filterValue)
+                        (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
                     ),
                     sort: sortColumn,
                 });
@@ -441,42 +438,100 @@ const selectNearbyFile = createLogic({
 });
 
 /**
- * Interceptor responsible for processing the changed collection into
+ * Interceptor responsible for processing a new collection into
  * a refresh action so that the resources pertain to the current collection
  */
 const changeCollectionLogic = createLogic({
-    async process(_: ReduxLogicDeps, dispatch, done) {
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const action: ChangeCollectionAction = deps.action;
+        const collection = action.payload;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
+        const collections = metadata.selectors.getCollections(deps.getState());
+        if (collection?.uri) {
+            await databaseService.setDataSource(collection.uri);
+        }
+        if (collection && !collections.find((collection) => collection.id === collection.id)) {
+            dispatch(metadata.actions.receiveCollections([...collections, collection]));
+        }
+
         dispatch(interaction.actions.refresh() as AnyAction);
         done();
     },
     type: CHANGE_COLLECTION,
+    async transform(deps: ReduxLogicDeps, next) {
+        const action: ChangeCollectionAction = deps.action;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
+        if (action.payload?.uri) {
+            const dataSource = await databaseService.getDataSource(action.payload?.uri);
+            action.payload = {
+                ...action.payload,
+                id: dataSource.name,
+                name: dataSource.name,
+                created: dataSource.created,
+            };
+        }
+        next(action);
+    },
 });
 
 /**
- * Interceptor responsible for processing the changed view into
- * various filters and sorts.
+ * Interceptor responsible for processing the added query to accurate/unique names
  */
-const changeViewLogic = createLogic({
+const addQueryLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const selectedView = deps.action.payload;
-        const views = RELATIVE_DATE_RANGES;
-
-        const filtersFromView = views.find((v) => v.name === selectedView)?.filters;
-
-        if (filtersFromView) {
-            const annotationsInFilters = new Set(
-                filtersFromView.map((fileFilter) => fileFilter.name)
-            );
-            const fileFilters = selectionSelectors
-                .getFileFilters(deps.getState())
-                .filter((fileFilter) => !annotationsInFilters.has(fileFilter.name));
-            dispatch(setFileFilters([...fileFilters, ...filtersFromView]));
-        }
-
-        // Could eventually set hierarchy and sort column too based on view
+        dispatch(changeQuery(deps.action.payload));
         done();
     },
-    type: CHANGE_VIEW,
+    async transform(deps: ReduxLogicDeps, next) {
+        const queries = selectionSelectors.getQueries(deps.getState());
+        const { payload: newQuery } = deps.action as AddQuery;
+        const queryNameToOccurrence = queries.reduce((acc, query) => {
+            const nameWithoutOccurence = query.name.replace(/ \(\d+\)$/, "");
+            return { ...acc, [nameWithoutOccurence]: (acc[nameWithoutOccurence] || 0) + 1 };
+        }, {} as Record<string, number>);
+
+        const newQueryName = newQuery.name.replace(/ \(\d+\)$/, "");
+        next({
+            ...deps.action,
+            payload: {
+                ...newQuery,
+                name: queryNameToOccurrence[newQueryName]
+                    ? `${newQueryName} (${queryNameToOccurrence[newQueryName]})`
+                    : newQueryName,
+            },
+        });
+    },
+    type: ADD_QUERY,
+});
+
+/**
+ * Interceptor responsible for processing the changed query into
+ * a decoded URL
+ */
+const changeQueryLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: newlySelectedQuery } = deps.action as ChangeQuery;
+        const currentQueries = selectionSelectors.getQueries(deps.getState());
+        const currentURL = selectionSelectors.getEncodedFileExplorerUrl(deps.getState());
+        const updatedQueries = currentQueries.map((query) => ({
+            ...query,
+            url: query.name === deps.ctx.previouslySelectedQuerywName ? currentURL : query.url,
+        }));
+        dispatch(decodeFileExplorerURL(newlySelectedQuery.url) as AnyAction);
+        dispatch(setQueries(updatedQueries));
+        done();
+    },
+    async transform(deps: ReduxLogicDeps, next) {
+        deps.ctx.previouslySelectedQuerywName = selectionSelectors.getSelectedQuery(
+            deps.getState()
+        )?.name;
+        next(deps.action);
+    },
+    type: CHANGE_QUERY,
 });
 
 export default [
@@ -484,9 +539,10 @@ export default [
     modifyAnnotationHierarchy,
     modifyFileFilters,
     toggleFileFolderCollapse,
-    decodeFileExplorerURL,
+    decodeFileExplorerURLLogics,
     selectNearbyFile,
     setAvailableAnnotationsLogic,
     changeCollectionLogic,
-    changeViewLogic,
+    addQueryLogic,
+    changeQueryLogic,
 ];

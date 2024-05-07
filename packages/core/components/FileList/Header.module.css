@@ -4,9 +4,10 @@
 
 .header-wrapper {
   --inner-header-size: 30px;
+  --inner-header-padding: 6px;
 
   position: sticky;
-  top: 0;
+  top: var(--inner-header-padding);
 
   /* NOTE! If this changes, you must also update a corresponding constant regarding the
   height of the header used to determine whether the currectly focused item is visible
@@ -16,12 +17,12 @@
 }
 
 .header {
-  background-color: var(--primary-brand-dark-blue); /* defined in App.module.css */
+  background-color: var(--primary-background-color); /* defined in App.module.css */
   /* positionX postionY blur spread */
   box-shadow: 0 1px 2px -1px rgba(0, 0, 0, 0.2),
     0 2px 2.5px 0 rgba(0, 0, 0, 0.14), 0 0.5px 5px 0 rgba(0, 0, 0, 0.12);
-  color: var(--white); /* defined in App.module.css */
-  font-size: var(--inner-header-size); /* our only hook for increasing the height of the header, but need to re-adjust font-size for header cells */
+  color: var(--primary-text-color); /* defined in App.module.css */
+  padding: var(--inner-header-padding) 0;
 }
 
 .header-title {
@@ -31,14 +32,6 @@
 }
 
 .header-cell {
-  cursor: not-allowed;
-}
-
-.header-cell-tooltip {
-  display: flex;
-}
-
-.clickable {
   cursor: pointer;
 }
 

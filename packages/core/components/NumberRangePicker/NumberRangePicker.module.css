@@ -1,57 +1,62 @@
-.container {
-    --spacing: 0.5rem;
-
-    overflow: auto;
-    max-height: 300px;
-    padding: 0 var(--spacing) 0 var(--spacing);
-    margin-top: var(--spacing);
-}
-
-.header {
-    position: sticky;
-    top: 0;
-    padding-bottom: var(--spacing);
-    width: 100%;
-    background: rgba(255, 255, 255, 0.85);
-}
-
 .buttons {
     clear: both;
     display: flex;
+    justify-content: center;
+    padding-top: var(--margin);
 }
 
 .footer {
-    bottom: 0;
-    padding-bottom: var(--spacing);
-    position: sticky;
     width: 100%;
 }
 
 .footer > h6 {
-    background-color: white;
-    border-radius: 5px;
-    color: grey;
-    font-size: 12px;
     font-weight: normal;
-    margin: 0 0 0 auto;
-    width: fit-content;
+    margin: var(--margin) 0 0 0;
 }
 
-.action-button {
-    color: steelblue;
+.action-button, .action-button i {
+    background-color: var(--primary-background-color) !important;
+    color: var(--primary-text-color) !important;
+}
+
+.action-button:hover:not(.disabled), .action-button:hover:not(.disabled) i {
+    background-color: var(--highlight-background-color) !important;
+    color: var(--highlight-text-color) !important;
     cursor: pointer;
-    display: flex;
-    margin: 0.5rem auto 0;
 }
 
 .action-button.disabled {
-    color: grey;
     cursor: not-allowed;
+    opacity: 0.5;
 }
 
-.input-field {
-    float: left;
-    margin-left: 10px;
+.reset-button-container {
+    margin-top: 2px;
+}
+
+.inputs {
+    display: flex;
+    justify-content: space-between;
+
+}
+
+.input-field > input {
+    background-color: var(--primary-background-color);
+    border: none;
+    color: var(--primary-text-color);
+    outline: none;
+}
+
+.range-seperator {
+    align-items: center;
+    display: flex;
+    font-size: small;
+    margin: 0 2px;
+}
+
+.title {
+    margin: 0;
+    padding-bottom: var(--margin);
 }
 
 label,input{

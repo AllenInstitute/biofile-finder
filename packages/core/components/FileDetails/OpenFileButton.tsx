@@ -1,12 +1,9 @@
-import {
-    CommandButton,
-    ContextualMenuItemType,
-    IButtonStyles,
-    IContextualMenuProps,
-} from "@fluentui/react";
+import { ActionButton, ContextualMenuItemType, IContextualMenuItem } from "@fluentui/react";
+import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { ContextMenuActions } from "../ContextMenu/items";
 import { interaction } from "../../state";
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
@@ -14,7 +11,7 @@ import FileFilter from "../../entity/FileFilter";
 import styles from "./OpenFileButton.module.css";
 
 interface Props {
-    buttonStyles?: IButtonStyles;
+    className?: string;
     fileDetails: FileDetail | null;
 }
 
@@ -25,54 +22,55 @@ export default function OpenFileButton(props: Props) {
     const { fileDetails } = props;
 
     const dispatch = useDispatch();
-    const userSelectedApplications =
-        useSelector(interaction.selectors.getUserSelectedApplications) || [];
+    const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
-    const openMenuProps: IContextualMenuProps = React.useMemo(() => {
+    const openMenuItems: IContextualMenuItem[] = React.useMemo(() => {
         if (!fileDetails) {
-            return { items: [] };
+            return [];
         }
 
-        return {
-            items: [
-                ...userSelectedApplications
-                    .map((app) => ({ ...app, name: executionEnvService.getFilename(app.filePath) }))
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .map((app) => ({
-                        key: `open-with-${app.name}`,
-                        text: app.name,
-                        title: `Open files with ${app.name}`,
-                        onClick() {
-                            dispatch(
-                                interaction.actions.openWith(app, undefined, [fileDetails.details])
-                            );
-                        },
-                    })),
-                ...(userSelectedApplications.length > 0
-                    ? [
-                          {
-                              key: "default-apps-border",
-                              itemType: ContextualMenuItemType.Divider,
-                          },
-                      ]
-                    : []),
-                // Other is a permanent option that allows the user
-                // to add another app for file access
-                {
-                    key: "Other...",
-                    text: "Other...",
-                    title: "Select an application to open the selection with",
-                    onClick() {
-                        dispatch(
-                            interaction.actions.promptForNewExecutable([
-                                new FileFilter("file_id", fileDetails.id),
-                            ])
-                        );
-                    },
+        const savedApps: IContextualMenuItem[] = (userSelectedApplications || []).map((app) => {
+            const name = executionEnvService.getFilename(app.filePath);
+            return {
+                key: `open-with-${name}`,
+                text: name,
+                title: `Open files with ${name}`,
+                onClick() {
+                    dispatch(interaction.actions.openWith(app, undefined, [fileDetails]));
                 },
-            ],
-        };
+            };
+        });
+
+        savedApps.push({
+            key: ContextMenuActions.OPEN_3D_WEB_VIEWER,
+            text: "3D Web Viewer",
+            title: `Open files with 3D Web Viewer`,
+            href: `https://allen-cell-animated.github.io/website-3d-cell-viewer/?url=${fileDetails.path}/`,
+            target: "_blank",
+        });
+
+        return [
+            ...savedApps.sort((a, b) => (a.text || "").localeCompare(b.text || "")),
+            {
+                key: "default-apps-border",
+                itemType: ContextualMenuItemType.Divider,
+            },
+            // Other is a permanent option that allows the user
+            // to add another app for file access
+            {
+                key: ContextMenuActions.OPEN_WITH_OTHER,
+                text: "Other...",
+                title: "Select an application to open the selection with",
+                onClick() {
+                    dispatch(
+                        interaction.actions.promptForNewExecutable([
+                            new FileFilter("file_id", fileDetails.id),
+                        ])
+                    );
+                },
+            },
+        ];
     }, [dispatch, fileDetails, userSelectedApplications, executionEnvService]);
 
     if (!fileDetails) {
@@ -80,16 +78,16 @@ export default function OpenFileButton(props: Props) {
     }
 
     return (
-        <CommandButton
-            split
-            className={styles.commandButton}
-            menuProps={openMenuProps}
-            onClick={() =>
-                dispatch(interaction.actions.openWithDefault(undefined, [fileDetails.details]))
-            }
+        <ActionButton
+            className={classNames(styles.commandButton, props.className)}
+            menuProps={{
+                className: styles.buttonMenu,
+                items: openMenuItems,
+            }}
+            iconProps={{
+                iconName: "OpenInNewWindow",
+            }}
             text="Open"
-            title="Open with default"
-            styles={props.buttonStyles}
         />
     );
 }

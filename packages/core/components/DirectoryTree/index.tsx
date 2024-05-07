@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { interaction, selection } from "../../state";
 import AggregateInfoBox from "../AggregateInfoBox";
-import FilterDisplayBar from "../FilterDisplayBar";
 import FileSet from "../../entity/FileSet";
 import Tutorial from "../../entity/Tutorial";
 import RootLoadingIndicator from "./RootLoadingIndicator";
@@ -76,7 +75,6 @@ export default function DirectoryTree(props: FileListProps) {
     return (
         <div className={classNames(props.className, styles.container)}>
             <RootLoadingIndicator visible={isLoading} />
-            <FilterDisplayBar className={styles.filterDisplayBar} classNameHidden={styles.hidden} />
             <ul
                 className={styles.scrollContainer}
                 role="tree"

@@ -15,20 +15,14 @@ import {
     SET_STATUS,
     SET_VISIBLE_MODAL,
     SHOW_CONTEXT_MENU,
-    SHOW_CREATE_COLLECTION_DIALOG,
     SHOW_MANIFEST_DOWNLOAD_DIALOG,
     StatusUpdate,
-    SUCCEED_PYTHON_SNIPPET_GENERATION,
-    SHOW_EDIT_COLLECTION_DIALOG,
-    GENERATE_SHAREABLE_FILE_SELECTION_LINK,
-    UPDATE_COLLECTION,
     MARK_AS_USED_APPLICATION_BEFORE,
-    SHOW_TIPS_AND_TRICKS_DIALOG,
+    ShowManifestDownloadDialogAction,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
-import { PythonicDataAccessSnippet } from "../../services/DatasetService";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
 import FileViewerServiceNoop from "../../services/FileViewerService/FileViewerServiceNoop";
 import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
@@ -37,6 +31,7 @@ import FileFilter from "../../entity/FileFilter";
 import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
+import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
 
 export interface InteractionStateBranch {
     applicationVersion?: string;
@@ -46,17 +41,17 @@ export interface InteractionStateBranch {
     contextMenuOnDismiss?: () => void;
     csvColumns?: string[];
     fileExplorerServiceBaseUrl: string;
+    fileTypeForVisibleModal?: "csv" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
     hasUsedApplicationBefore: boolean;
     platformDependentServices: PlatformDependentServices;
-    pythonSnippet?: PythonicDataAccessSnippet;
     refreshKey?: string;
     status: StatusUpdate[];
     userSelectedApplications?: UserSelectedApplication[];
     visibleModal?: ModalType;
 }
 
-export const initialState = {
+export const initialState: InteractionStateBranch = {
     contextMenuIsVisible: false,
     contextMenuItems: [],
     // Passed to `ContextualMenu` as `target`. From the "@fluentui/react" docs:
@@ -69,6 +64,7 @@ export const initialState = {
     hasUsedApplicationBefore: false,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
+        databaseService: new DatabaseServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
         fileViewerService: new FileViewerServiceNoop(),
         frontendInsights: new FrontendInsights({
@@ -161,42 +157,11 @@ export default makeReducer<InteractionStateBranch>(
             ...action.payload,
             fileFiltersForVisibleModal: [],
         }),
-        [SHOW_CREATE_COLLECTION_DIALOG]: (state, action) => ({
-            ...state,
-            visibleModal: ModalType.CreateCollectionForm,
-            fileFiltersForVisibleModal: action.payload,
-        }),
-        [SHOW_EDIT_COLLECTION_DIALOG]: (state) => ({
-            ...state,
-            visibleModal: ModalType.EditCollectionForm,
-        }),
-        [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action) => ({
+        [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action: ShowManifestDownloadDialogAction) => ({
             ...state,
             visibleModal: ModalType.CsvManifest,
-            fileFiltersForVisibleModal: action.payload,
-        }),
-        [SHOW_TIPS_AND_TRICKS_DIALOG]: (state) => ({
-            ...state,
-            visibleModal: ModalType.TipsAndTricks,
-        }),
-        [UPDATE_COLLECTION]: (state) => ({
-            ...state,
-            visibleModal: undefined,
-            fileFiltersForVisibleModal: undefined,
-        }),
-        [GENERATE_SHAREABLE_FILE_SELECTION_LINK]: (state) => ({
-            ...state,
-            visibleModal: undefined,
-            fileFiltersForVisibleModal: undefined,
-        }),
-        [SUCCEED_PYTHON_SNIPPET_GENERATION]: (state, action) => ({
-            ...state,
-            pythonSnippet: action.payload.pythonSnippet,
-            status: filter(
-                state.status,
-                (status: StatusUpdate) => status.processId !== action.payload.processId
-            ),
-            visibleModal: ModalType.PythonSnippet,
+            fileTypeForVisibleModal: action.payload.fileType,
+            fileFiltersForVisibleModal: action.payload.fileFilters,
         }),
     },
     initialState
