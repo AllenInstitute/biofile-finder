@@ -6,14 +6,14 @@ on:
       version:
         description: New version to assign to the package
         required: true
+      skip_versioning:
+        type: boolean
+        description: Optional to skip versioning (used only for retries)
+        default: false
 
 jobs:
-  release-fms-file-explorer-desktop:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-
+  prepare-release:
+    runs-on: ubuntu-latest
     steps:
       - name: Check out Git repository
         uses: actions/checkout@main
@@ -35,11 +35,31 @@ jobs:
           npm run type-check
       
       - name: Change version
+        if: github.event.inputs.skip_versioning == 'false'
         uses: reedyuk/npm-version@1.1.1
         with:
           version: "${{ github.event.inputs.version }}"
           package: 'packages/desktop/'
           git-tag-version: 'true'
+
+  release-fms-file-explorer-desktop:
+    if: "success()"
+    needs: [prepare-release]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@main
+        with:
+          ref: ${{ github.event.client_payload.ref }}
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@main
+        with:
+          node-version: 16
 
       - name: Build/release Electron app
         uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
