@@ -55,7 +55,7 @@ export const getEncodedFileExplorerUrl = createSelector(
 
 export const getGroupedByFilterName = createSelector(
     [getFileFilters, getAnnotations],
-    (globalFilters: FileFilter[], annotations: Annotation[]) => {
+    (globalFilters, annotations) => {
         const annotationNameToInstanceMap = keyBy(annotations, "name");
         const filters = map(globalFilters, (filter: FileFilter) => {
             const annotation = annotationNameToInstanceMap[filter.name];
@@ -81,7 +81,7 @@ export const getUnavailableAnnotationsForHierarchy = createSelector(
 // COMPOSED SELECTORS
 export const getSortedAnnotations = createSelector(
     [getAnnotations, getRecentAnnotations],
-    (annotations: Annotation[], recentAnnotationNames: string[]) => {
+    (annotations, recentAnnotationNames) => {
         // Create Array of annotations from recentAnnotationNames
         const recentAnnotations = recentAnnotationNames.flatMap((name) =>
             annotations.filter((annotation) => annotation.name === name)
