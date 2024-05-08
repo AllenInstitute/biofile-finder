@@ -100,12 +100,10 @@ export const getSortedAnnotations = createSelector(
         );
 
         // create map for filtering duplicate annotations.
-        const combinedAnnotationsMap = new Map();
-
-        // Iterate through the combined list and store annotations by their name in the Map.
-        combinedAnnotations.forEach((annotation) => {
-            combinedAnnotationsMap.set(annotation.name, annotation);
-        });
+        const combinedAnnotationsMap = combinedAnnotations.reduce((map, annotation) => {
+            map.set(annotation.name, annotation);
+            return map;
+        }, new Map());
 
         // Convert the Map values (unique annotations) back to an array.
         return Array.from(combinedAnnotationsMap.values());
