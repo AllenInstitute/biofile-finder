@@ -104,10 +104,6 @@ store.subscribe(() => {
         {}
     );
     if (JSON.stringify(appState) !== JSON.stringify(oldAppState)) {
-        if (appState.RECENT_ANNOTATIONS[0] == undefined) {
-            appState.RECENT_ANNOTATIONS = [];
-        }
-
         persistentConfigService.persist(appState);
     }
 });
