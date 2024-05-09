@@ -160,7 +160,8 @@ export default function ListPicker(props: ListPickerProps) {
             </div>
             <div className={styles.footer}>
                 <h6>
-                    Displaying {filteredItems.length} of {items.length} Options
+                    {/* (item.lenght -1) to account for buffer in item list. */}
+                    Displaying {filteredItems.length - 1} of {items.length - 1} Options
                 </h6>
             </div>
         </div>

@@ -79,33 +79,20 @@ export const getUnavailableAnnotationsForHierarchy = createSelector(
 );
 
 // COMPOSED SELECTORS
-export const getSortedAnnotations = createSelector(
-    [getAnnotations, getRecentAnnotations],
-    (annotations, recentAnnotationNames) => {
-        // Create Array of annotations from recentAnnotationNames
-        const recentAnnotations = recentAnnotationNames.flatMap((name) =>
-            annotations.filter((annotation) => annotation.name === name)
-        );
-
-        // get the File name annotaion in a list (if Present)
-        const fileNameAnnotation = annotations.filter(
-            (annotation) =>
-                annotation.name === AnnotationName.FILE_NAME || annotation.name === "File Name"
-        );
-
-        // combine all annotation lists
-        const combinedAnnotations = fileNameAnnotation.concat(
-            recentAnnotations,
-            ...Annotation.sort(annotations)
-        );
-
-        // create map for filtering duplicate annotations.
-        const combinedAnnotationsMap = combinedAnnotations.reduce((map, annotation) => {
-            map.set(annotation.name, annotation);
-            return map;
-        }, new Map());
-
-        // Convert the Map values (unique annotations) back to an array.
-        return Array.from(combinedAnnotationsMap.values());
+export const getSortedAnnotations = createSelector(getAnnotations, (annotations: Annotation[]) => {
+    // Sort annotations by file name first then everything else alphabetically
+    const fileNameAnnotationIndex = annotations.findIndex(
+        (annotation) =>
+            annotation.name === AnnotationName.FILE_NAME || annotation.name === "File Name"
+    );
+    if (fileNameAnnotationIndex === -1) {
+        return Annotation.sort(annotations);
     }
-);
+    return [
+        annotations[fileNameAnnotationIndex],
+        ...Annotation.sort([
+            ...annotations.slice(0, fileNameAnnotationIndex),
+            ...annotations.slice(fileNameAnnotationIndex + 1),
+        ]),
+    ];
+});
