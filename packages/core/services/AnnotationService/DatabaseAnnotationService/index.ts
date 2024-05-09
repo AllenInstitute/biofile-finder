@@ -8,6 +8,7 @@ import SQLBuilder from "../../../entity/SQLBuilder";
 
 interface Config {
     databaseService: DatabaseService;
+    dataSourceName: string;
 }
 
 interface DescribeQueryResult {
@@ -27,8 +28,10 @@ interface SummarizeQueryResult {
  */
 export default class DatabaseAnnotationService implements AnnotationService {
     private readonly databaseService: DatabaseService;
+    private readonly dataSourceName: string;
 
-    constructor(config: Config = { databaseService: new DatabaseServiceNoop() }) {
+    constructor(config: Config = { dataSourceName: "Unknown", databaseService: new DatabaseServiceNoop() }) {
+        this.dataSourceName = config.dataSourceName;
         this.databaseService = config.databaseService;
     }
 
@@ -49,7 +52,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
      * Fetch all annotations.
      */
     public async fetchAnnotations(): Promise<Annotation[]> {
-        const sql = `DESCRIBE ${this.databaseService.table}`;
+        const sql = `DESCRIBE "${this.dataSourceName}"`;
         const rows = (await this.databaseService.query(sql)) as DescribeQueryResult[];
         return rows.map(
             (row) =>
@@ -69,7 +72,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
         const select_key = "select_key";
         const sql = new SQLBuilder()
             .select(`DISTINCT "${annotation}" AS ${select_key}`)
-            .from(this.databaseService.table)
+            .from(this.dataSourceName)
             .toSQL();
         const rows = await this.databaseService.query(sql);
         return [
@@ -108,7 +111,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
         const sqlBuilder = new SQLBuilder()
             .select(`DISTINCT "${hierarchy[path.length]}"`)
-            .from(this.databaseService.table);
+            .from(this.dataSourceName);
         Object.keys(filtersByAnnotation).forEach((annotation) => {
             const annotationValues = filtersByAnnotation[annotation];
             if (annotationValues[0] === null) {
@@ -130,7 +133,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
     public async fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]> {
         const sql = new SQLBuilder()
             .summarize()
-            .from(this.databaseService.table)
+            .from(this.dataSourceName)
             .where(annotations.map((annotation) => `"${annotation}" IS NOT NULL`))
             .toSQL();
         const rows = (await this.databaseService.query(sql)) as SummarizeQueryResult[];

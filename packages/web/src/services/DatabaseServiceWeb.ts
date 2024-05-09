@@ -5,7 +5,6 @@ const httpAdapter = require("axios/lib/adapters/http"); // exported from lib, bu
 import { DatabaseService, DataSource } from "../../../core/services";
 
 export default class DatabaseServiceWeb implements DatabaseService {
-    public readonly table: string = "default_table";
     private database: duckdb.AsyncDuckDB | undefined;
 
     private async initializeDatabaseWorker() {
@@ -32,13 +31,13 @@ export default class DatabaseServiceWeb implements DatabaseService {
         this.initializeDatabaseWorker();
     }
 
-    public async setDataSource(pickedFile: File | string): Promise<void> {
+    public async addDataSource(name: string, uri: File): Promise<void> {
         if (!this.database) {
             throw new Error("Database has not yet been initialized");
         }
         await this.database.registerFileHandle(
-            this.table,
-            pickedFile,
+            name,
+            uri,
             duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
             true
         );
@@ -50,9 +49,9 @@ export default class DatabaseServiceWeb implements DatabaseService {
         const connection = await this.database.connect();
         try {
             // TODO: Other file types...
-            await connection.insertCSVFromPath("default_table", {
+            await connection.insertCSVFromPath(name, {
+                name,
                 schema: "main",
-                name: "default_table",
                 detect: true,
                 header: true,
                 // detect: false,

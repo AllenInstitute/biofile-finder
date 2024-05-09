@@ -1,9 +1,7 @@
 import {
-    ContextualMenuItemType,
     DirectionalHint,
     Icon,
     IconButton,
-    TextField,
 } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
@@ -14,11 +12,11 @@ import { HELP_OPTIONS } from "./tutorials";
 import { ModalType } from "../Modal";
 import SvgIcon from "../SvgIcon";
 import FileExplorerURL from "../../entity/FileExplorerURL";
+import Tutorial from "../../entity/Tutorial";
 import { interaction, metadata, selection } from "../../state";
 import { AICS_LOGO } from "../../icons";
 
 import styles from "./QuerySidebar.module.css";
-import Tutorial from "../../entity/Tutorial";
 
 interface QuerySidebarProps {
     className?: string;
@@ -47,90 +45,54 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     }, [queries, selectedQuery, dispatch]);
 
     const helpMenuOptions = React.useMemo(() => HELP_OPTIONS(dispatch), [dispatch]);
-    const addQueryOptions = React.useMemo(() => {
-        const onEnterURL = (evt: React.FormEvent) => {
-            evt.preventDefault();
-            // Form submission typing on the TextField is yucky, so we'll just cast the event target
-            const fileExplorerUrl = (evt.currentTarget as any)[0].value;
-            dispatch(selection.actions.addQuery({ name: "New query", url: fileExplorerUrl }));
-        };
-
-        return [
-            {
-                key: "new-queries-section",
-                itemType: ContextualMenuItemType.Section,
-                sectionProps: {
-                    bottomDivider: true,
-                    title: "New Query",
-                    items: [
-                        ...(isAICSEmployee
-                            ? [
-                                  {
-                                      key: "AICS FMS",
-                                      text: "AICS FMS",
-                                      iconProps: { iconName: "Database" },
-                                      onClick: () => {
-                                          dispatch(
-                                              selection.actions.addQuery({
-                                                  name: "New AICS Query",
-                                                  url: FileExplorerURL.DEFAULT_FMS_URL,
-                                              })
-                                          );
-                                      },
-                                      secondaryText: "Data Source",
-                                  },
-                              ]
-                            : []),
-                        ...collections
-                            .filter((collection) => !!collection.uri)
-                            .map((collection) => ({
-                                key: collection.id,
-                                text: `${
-                                    collection.name
-                                } (${collection.created.toLocaleDateString()})`,
-                                iconProps: { iconName: "Folder" },
-                                onClick: () => {
-                                    dispatch(
-                                        selection.actions.addQuery({
-                                            name: `New ${collection.name} query`,
-                                            url: collection.uri as string,
-                                        })
-                                    );
-                                },
-                                secondaryText: "Data Source",
-                            })),
-                        {
-                            key: "New Data Source...",
-                            text: "New Data Source...",
-                            iconProps: { iconName: "NewFolder" },
-                            onClick: () => {
-                                dispatch(
-                                    interaction.actions.setVisibleModal(ModalType.DataSourcePrompt)
-                                );
-                            },
+    const addQueryOptions = React.useMemo(() => ([
+        ...(isAICSEmployee
+            ? [
+                    {
+                        key: "AICS FMS",
+                        text: "AICS FMS",
+                        iconProps: { iconName: "Database" },
+                        onClick: () => {
+                            dispatch(
+                                selection.actions.addQuery({
+                                    name: "New AICS Query",
+                                    url: FileExplorerURL.DEFAULT_FMS_URL,
+                                })
+                            );
                         },
-                    ],
+                        secondaryText: "Data Source",
+                    },
+                ]
+            : []),
+        ...collections
+            .filter((collection) => !!collection.uri)
+            .map((collection) => ({
+                key: collection.id,
+                text: `${
+                    collection.name
+                } (${collection.created.toLocaleDateString()})`,
+                iconProps: { iconName: "Folder" },
+                onClick: () => {
+                    dispatch(
+                        selection.actions.addQuery({
+                            name: `New ${collection.name} query`,
+                            url: collection.uri as string,
+                        })
+                    );
                 },
+                secondaryText: "Data Source",
+            })),
+        {
+            key: "New Data Source...",
+            text: "New Data Source...",
+            iconProps: { iconName: "NewFolder" },
+            onClick: () => {
+                dispatch(
+                    interaction.actions.setVisibleModal(ModalType.DataSourcePrompt)
+                );
             },
-            {
-                key: "Import from URL",
-                text: "Import from URL",
-                iconProps: { iconName: "Import" },
-                subMenuProps: {
-                    className: styles.buttonMenu,
-                    items: [{ key: "placeholder" }],
-                    onRenderMenuList: () => (
-                        <form className={styles.importForm} onSubmit={onEnterURL}>
-                            <TextField
-                                placeholder="Paste URL here..."
-                                iconProps={{ iconName: "ReturnKey" }}
-                            />
-                        </form>
-                    ),
-                },
-            },
-        ];
-    }, [dispatch, collections, isAICSEmployee]);
+        },
+    ]), [dispatch, collections, isAICSEmployee]);
 
     if (!isExpanded) {
         return (

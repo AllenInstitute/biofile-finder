@@ -303,6 +303,7 @@ const decodeFileExplorerURLLogics = createLogic({
         // in the state's collection set yet & should be loaded in.
         if (collection && !selectedCollection) {
             const datasetService = interaction.selectors.getDatasetService(deps.getState());
+            // TODO: Good spot to verify dataset...?
             const newCollection = await datasetService.getDataset(collection);
             dispatch(metadata.actions.receiveCollections([...collections, newCollection]));
             selectedCollection = newCollection;
@@ -445,13 +446,7 @@ const changeCollectionLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const action: ChangeCollectionAction = deps.action;
         const collection = action.payload;
-        const { databaseService } = interaction.selectors.getPlatformDependentServices(
-            deps.getState()
-        );
         const collections = metadata.selectors.getCollections(deps.getState());
-        if (collection?.uri) {
-            await databaseService.setDataSource(collection.uri);
-        }
         if (collection && !collections.find((collection) => collection.id === collection.id)) {
             dispatch(metadata.actions.receiveCollections([...collections, collection]));
         }
@@ -460,23 +455,6 @@ const changeCollectionLogic = createLogic({
         done();
     },
     type: CHANGE_COLLECTION,
-    async transform(deps: ReduxLogicDeps, next) {
-        const action: ChangeCollectionAction = deps.action;
-        // const { databaseService } = interaction.selectors.getPlatformDependentServices(
-        //     deps.getState()
-        // );
-        // TODO: BROOOOOO
-        // if (action.payload?.uri) {
-        //     const dataSource = await databaseService.getDataSource(action.payload?.uri);
-        //     action.payload = {
-        //         ...action.payload,
-        //         id: dataSource.name,
-        //         name: dataSource.name,
-        //         created: dataSource.created,
-        //     };
-        // }
-        next(action);
-    },
 });
 
 /**

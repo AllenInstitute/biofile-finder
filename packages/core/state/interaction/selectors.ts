@@ -2,12 +2,14 @@ import { createSelector } from "reselect";
 
 import { State } from "../";
 import { getCollection } from "../selection/selectors";
-import { AnnotationService, FileService, HttpServiceBase } from "../../services";
+import { AnnotationService, CsvService, FileService } from "../../services";
 import DatasetService, { PythonicDataAccessSnippet } from "../../services/DatasetService";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
+import HttpCsvService from "../../services/CsvService/HttpCsvService";
+import DatabaseCsvService from "../../services/CsvService/DatabaseCsvService";
 
 // BASIC SELECTORS
 export const getApplicationVersion = (state: State) => state.interaction.applicationVersion;
@@ -69,19 +71,16 @@ export const getFileService = createSelector(
         collection,
         platformDependentServices
     ): FileService => {
-        if (collection?.uri) {
+        if (collection) {
             return new DatabaseFileService({
                 databaseService: platformDependentServices.databaseService,
+                dataSourceName: collection.name,
             });
         }
-        const pathSuffix = collection
-            ? `/within/${HttpServiceBase.encodeURI(collection.name)}/${collection.version}`
-            : undefined;
         return new HttpFileService({
             applicationVersion,
             userName,
             baseUrl: fileExplorerBaseUrl,
-            pathSuffix,
         });
     }
 );
@@ -102,22 +101,38 @@ export const getAnnotationService = createSelector(
         collection,
         platformDependentServices
     ): AnnotationService => {
-        if (collection?.uri) {
+        if (collection) {
             return new DatabaseAnnotationService({
                 databaseService: platformDependentServices.databaseService,
+                dataSourceName: collection.name,
             });
         }
-        const pathSuffix = collection
-            ? `/within/${HttpServiceBase.encodeURI(collection.name)}/${collection.version}`
-            : undefined;
         return new HttpAnnotationService({
             applicationVersion,
             userName,
             baseUrl: fileExplorerBaseUrl,
-            pathSuffix,
         });
     }
 );
+
+export const getCsvService = createSelector(
+    [
+        getCollection,
+        getPlatformDependentServices
+    ],
+    (collection, platformDependentServices): CsvService => {
+        if (collection) {
+            return new DatabaseCsvService({
+                dataSourceName: collection?.name,
+                databaseService: platformDependentServices.databaseService,
+            })
+        }
+
+        return new HttpCsvService({
+            downloadService: platformDependentServices.fileDownloadService,
+        })
+    }
+)
 
 export const getDatasetService = createSelector(
     [

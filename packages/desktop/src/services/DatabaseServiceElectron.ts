@@ -9,31 +9,30 @@ import duckdb from "duckdb";
 import { DatabaseService, DataSource } from "../../../core/services";
 
 export default class DatabaseServiceElectron implements DatabaseService {
-    public readonly table: string = "default_table";
     private database: duckdb.Database;
 
     constructor() {
         this.database = new duckdb.Database(":memory:");
     }
 
-    public async setDataSource(fileURI: string): Promise<void> {
+    public async addDataSource(name: string, fileURI: File): Promise<void> {
         this.database = new duckdb.Database(":memory:");
-        const extension = path.extname(fileURI);
-        let sql;
-        switch (extension) {
-            case ".json":
-                sql = `CREATE TABLE ${this.table} AS FROM read_json_auto('${fileURI}')`;
-                break;
-            case ".parquet":
-                sql = `CREATE TABLE ${this.table} AS FROM read_parquet('${fileURI}')`;
-                break;
-            case ".csv":
-                sql = `CREATE TABLE ${this.table} AS FROM read_csv_auto('${fileURI}')`;
-                break;
-            default:
-                throw new Error(`Unsupport data source type ${extension} of ${fileURI}`);
-        }
-        await this.query(sql);
+        // const extension = path.extname(fileURI);
+        // let sql;
+        // switch (extension) {
+        //     case ".json":
+        //         sql = `CREATE TABLE ${name} AS FROM read_json_auto('${fileURI}')`;
+        //         break;
+        //     case ".parquet":
+        //         sql = `CREATE TABLE ${name} AS FROM read_parquet('${fileURI}')`;
+        //         break;
+        //     case ".csv":
+        //         sql = `CREATE TABLE ${name} AS FROM read_csv_auto('${fileURI}')`;
+        //         break;
+        //     default:
+        //         throw new Error(`Unsupport data source type ${extension} of ${fileURI}`);
+        // }
+        // await this.query(sql);
     }
 
     public async saveQueryAsBuffer(sql: string): Promise<Uint8Array> {

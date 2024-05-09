@@ -70,7 +70,7 @@ export default class SQLBuilder {
         return `
             ${this.isSummarizing ? "SUMMARIZE" : ""}
             SELECT ${this.selectStatement}
-            FROM ${this.fromStatement}
+            FROM "${this.fromStatement}"
             ${this.whereClauses.length ? `WHERE (${this.whereClauses.join(") AND (")})` : ""}
             ${this.orderByClause ? `ORDER BY ${this.orderByClause}` : ""}
             ${this.offsetNum !== undefined ? `OFFSET ${this.offsetNum}` : ""}

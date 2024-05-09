@@ -9,6 +9,7 @@ import FileDetail from "../../../entity/FileDetail";
 
 interface Config {
     databaseService: DatabaseService;
+    dataSourceName: string;
 }
 
 /**
@@ -16,6 +17,7 @@ interface Config {
  */
 export default class DatabaseFileService implements FileService {
     private readonly databaseService: DatabaseService;
+    private readonly dataSourceName: string;
 
     private static convertDatabaseRowToFileDetail(
         row: { [key: string]: string },
@@ -52,8 +54,9 @@ export default class DatabaseFileService implements FileService {
         });
     }
 
-    constructor(config: Config = { databaseService: new DatabaseServiceNoop() }) {
+    constructor(config: Config = { dataSourceName: "Unknown", databaseService: new DatabaseServiceNoop() }) {
         this.databaseService = config.databaseService;
+        this.dataSourceName = config.dataSourceName;
     }
 
     public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
@@ -61,7 +64,7 @@ export default class DatabaseFileService implements FileService {
         const sql = fileSet
             .toQuerySQLBuilder()
             .select(`COUNT(*) AS ${select_key}`)
-            .from(this.databaseService.table)
+            .from(this.dataSourceName)
             // Remove sort if present
             .orderBy()
             .toSQL();
@@ -92,7 +95,7 @@ export default class DatabaseFileService implements FileService {
     public async getFiles(request: GetFilesRequest): Promise<FileDetail[]> {
         const sql = request.fileSet
             .toQuerySQLBuilder()
-            .from(this.databaseService.table)
+            .from(this.dataSourceName)
             .offset(request.from * request.limit)
             .limit(request.limit)
             .toSQL();

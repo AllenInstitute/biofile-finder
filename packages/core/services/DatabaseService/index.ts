@@ -7,9 +7,7 @@ export interface DataSource {
  * Service reponsible for querying against a database
  */
 export default interface DatabaseService {
-    table: string;
-
-    setDataSource(uri: string): Promise<void>;
+    addDataSource(name: string, uri: File): Promise<void>;
 
     getDataSource(uri: string): Promise<DataSource>;
 

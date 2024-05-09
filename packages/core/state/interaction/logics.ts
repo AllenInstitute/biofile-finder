@@ -85,19 +85,12 @@ const downloadManifest = createLogic({
 
         try {
             const state = deps.getState();
-            const {
-                databaseService,
-                fileDownloadService,
-            } = interactionSelectors.getPlatformDependentServices(state);
             let fileSelection = selection.selectors.getFileSelection(state);
             const filters = interactionSelectors.getFileFiltersForVisibleModal(state);
+            const csvService = interactionSelectors.getCsvService(state);
             const fileService = interactionSelectors.getFileService(state);
             const sortColumn = selection.selectors.getSortColumn(state);
             const selectedCollection = selection.selectors.getCollection(state);
-            const csvService = new CsvService({
-                databaseService,
-                downloadService: fileDownloadService,
-            });
 
             // If we have a specific path to get files from ignore selected files
             if (filters.length) {
@@ -139,23 +132,23 @@ const downloadManifest = createLogic({
             };
             const shouldDownloadFromDatabase = !!selectedCollection?.uri;
             let result;
-            if (shouldDownloadFromDatabase) {
-                result = await csvService.downloadCsvFromDatabase(
-                    request,
-                    manifestDownloadProcessId
-                );
-            } else {
-                result = await csvService.downloadCsvFromServer(request, manifestDownloadProcessId);
-            }
+            // if (shouldDownloadFromDatabase) {
+            //     result = await csvService.downloadCsvFromDatabase(
+            //         request,
+            //         manifestDownloadProcessId
+            //     );
+            // } else {
+            //     result = await csvService.downloadCsvFromServer(request, manifestDownloadProcessId);
+            // }
 
-            if (result.resolution === DownloadResolution.CANCELLED) {
-                dispatch(removeStatus(manifestDownloadProcessId));
-                return;
-            } else {
-                const successMsg = `Download of CSV manifest successfully finished.<br/>${result.msg}`;
-                dispatch(processSuccess(manifestDownloadProcessId, successMsg));
-                return;
-            }
+            // if (result.resolution === DownloadResolution.CANCELLED) {
+            //     dispatch(removeStatus(manifestDownloadProcessId));
+            //     return;
+            // } else {
+            //     const successMsg = `Download of CSV manifest successfully finished.<br/>${result.msg}`;
+            //     dispatch(processSuccess(manifestDownloadProcessId, successMsg));
+            //     return;
+            // }
         } catch (err) {
             const errorMsg = `Download of CSV manifest failed. Details: ${
                 err instanceof Error ? err.message : err

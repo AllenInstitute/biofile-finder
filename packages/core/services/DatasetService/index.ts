@@ -74,14 +74,13 @@ export default class DatasetService extends HttpServiceBase {
             };
         }
 
-        // Find dataset on server
-        const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}/${collection.name}/${collection.version}`;
-        console.log(`Requesting dataset from the following url: ${requestUrl}`);
-
-        // This data should never be stale, so, avoid using a response cache
-        const response = await this.getWithoutCaching<Dataset>(requestUrl);
-
-        return response.data[0];
+        return {
+            id: collection.name,
+            name: collection.name,
+            version: collection.version,
+            created: new Date(),
+            createdBy: "Unknown",
+        };
     }
 
     public async getPythonicDataAccessSnippet(

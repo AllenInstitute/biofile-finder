@@ -1,14 +1,14 @@
 import { DefaultButton, Icon, TextField } from "@fluentui/react";
 import { throttle } from "lodash";
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
+import FileExplorerURL from "../../../entity/FileExplorerURL";
 import { interaction, selection } from "../../../state";
 
 import styles from "./DataSourcePrompt.module.css";
-import FileExplorerURL from "../../../entity/FileExplorerURL";
 
 interface Props extends ModalProps {
     isEditing?: boolean;
@@ -34,42 +34,41 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
 
     const [dataSourceURL, setDataSourceURL] = React.useState("");
     const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
+    const { databaseService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
     const onChooseFile = (evt: React.FormEvent<HTMLInputElement>) => {
         const selectedFile = (evt.target as HTMLInputElement).files?.[0];
-        console.log(selectedFile);
         if (selectedFile) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const uri = reader.result as string;
-                console.log(uri);
+            // Grab name minus extension
+            const name = selectedFile.name.split(".").slice(0, -1).join("");
+            const addDataSource = async () => {
+                await databaseService.addDataSource(name, selectedFile);
                 dispatch(
                     selection.actions.addQuery({
-                        name: "New Query",
+                        name: `New ${name} Query`,
                         url: FileExplorerURL.encode({
                             collection: {
-                                uri,
-                                name: selectedFile.name,
+                                name,
                                 version: 1,
                             },
                         }),
                     })
                 );
-                onDismiss();
-            };
-            reader.readAsDataURL(selectedFile);
+            }
+            addDataSource();
+            onDismiss();
         }
-        onDismiss();
     };
     const onEnterURL = throttle(
         (evt: React.FormEvent) => {
             evt.preventDefault();
+            const name = dataSourceURL.substring(dataSourceURL.lastIndexOf("/") + 1);
             dispatch(
                 selection.actions.addQuery({
-                    name: "New Query",
+                    name: `New ${name} Query`,
                     url: FileExplorerURL.encode({
                         collection: {
-                            name: dataSourceURL.substring(dataSourceURL.lastIndexOf("/") + 1),
+                            name,
                             uri: dataSourceURL,
                             version: 1,
                         },
