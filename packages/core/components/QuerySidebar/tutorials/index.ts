@@ -40,7 +40,7 @@ export const HELP_OPTIONS = (dispatch: Dispatch): IContextualMenuItem[] => {
                 iconName: "AccountActivity",
             },
             title: "Opens image.sc forums",
-            href: "https://forum.image.sc/",
+            href: "https://forum.image.sc/tag/biofile-finder",
             target: "_blank",
         },
         {
