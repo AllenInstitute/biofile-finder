@@ -24,6 +24,26 @@ export const HELP_OPTIONS = (dispatch: Dispatch): IContextualMenuItem[] => {
             target: "_blank",
         },
         {
+            key: "gh-issues-page",
+            text: "Submit Issue",
+            iconProps: {
+                iconName: "Bug",
+            },
+            title: "Opens the FMS File Explorer GH issues page",
+            href: "https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues",
+            target: "_blank",
+        },
+        {
+            key: "image-sc",
+            text: "Access Forums",
+            iconProps: {
+                iconName: "AccountActivity",
+            },
+            title: "Opens image.sc forums",
+            href: "https://forum.image.sc/",
+            target: "_blank",
+        },
+        {
             key: "tutorials",
             text: "Tutorials",
             iconProps: {
