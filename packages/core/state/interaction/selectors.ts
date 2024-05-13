@@ -1,7 +1,7 @@
 import { createSelector } from "reselect";
 
 import { State } from "../";
-import { getCollection } from "../selection/selectors";
+import { getCollection, getPythonConversion } from "../selection/selectors";
 import { AnnotationService, FileService, HttpServiceBase } from "../../services";
 import DatasetService, { PythonicDataAccessSnippet } from "../../services/DatasetService";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
@@ -32,12 +32,11 @@ export const getUserSelectedApplications = (state: State) =>
 export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 
 // COMPOSED SELECTORS
-// TODO: Implement PythonicDataAccessSnippet
 export const getPythonSnippet = createSelector(
-    [],
-    (): PythonicDataAccessSnippet => {
+    [getPythonConversion],
+    (pythonQuery): PythonicDataAccessSnippet => {
         const setup = "pip install pandas";
-        const code = "TODO";
+        const code = `${pythonQuery}`;
 
         return { setup, code };
     }

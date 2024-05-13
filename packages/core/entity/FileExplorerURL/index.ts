@@ -157,4 +157,79 @@ export default class FileExplorerURL {
             sortColumn,
         };
     }
+
+    public static convertToPython(urlComponents: Partial<FileExplorerURLComponents>) {
+        const collectionString = this.convertCollectionToPython(urlComponents?.collection);
+
+        const groupByQueryString =
+            urlComponents.hierarchy
+                ?.map((annotation) => this.convertGroupByToPython(annotation))
+                .join("") || "";
+
+        // Group filters by name and use OR to concatenate same filter values
+        const filterGroups = new Map();
+        urlComponents.filters?.forEach((filter) => {
+            const pythonQueryString = filterGroups.get(filter.name);
+            if (!pythonQueryString) {
+                filterGroups.set(filter.name, this.convertFilterToPython(filter));
+            } else {
+                filterGroups.set(
+                    filter.name,
+                    pythonQueryString.concat(` | ${this.convertFilterToPython(filter)}`)
+                );
+            }
+        });
+
+        // Chain the filters together
+        let filterQueryString = "";
+        filterGroups.forEach((value) => {
+            filterQueryString = filterQueryString.concat(`.query('${value}')`);
+        });
+
+        const sortQueryString = urlComponents.sortColumn
+            ? this.convertSortToPython(urlComponents.sortColumn)
+            : "";
+        // const fuzzy = [] // TO DO: support fuzzy filtering
+
+        const hasQueryElements = groupByQueryString || filterQueryString || sortQueryString;
+        const imports = "import pandas\n";
+        const comment = hasQueryElements ? "#Query on dataframe df" : "#No options selected";
+        const fullQueryString = `${comment}${
+            hasQueryElements && `\ndf${groupByQueryString}${filterQueryString}${sortQueryString}`
+        }`;
+        return `${imports}${collectionString}${fullQueryString}`;
+    }
+
+    private static convertSortToPython(sortColumn: FileSort) {
+        return `.sort_values(by='${sortColumn.annotationName}', ascending=${
+            sortColumn.order == "ASC" ? "True" : "False"
+        })`;
+    }
+
+    private static convertGroupByToPython(annotation: string) {
+        return `.groupby('${annotation}', group_keys=True).apply(lambda x: x)`;
+    }
+
+    private static convertFilterToPython(filter: FileFilter) {
+        // TO DO: Support querying non-string types
+        if (filter.value.includes("RANGE")) {
+            return;
+            //     let begin, end;
+            //     return `\`${filter.name}\`>="${begin}"&\`${filter.name}\`<"${end}"`
+        }
+        return `\`${filter.name}\`=="${filter.value}"`;
+    }
+
+    private static convertCollectionToPython(collection: Collection | undefined) {
+        if (collection?.uri) {
+            const comment = "#Convert current datasource file to a pandas dataframe";
+            const extension = collection.uri.substring(collection.uri.lastIndexOf(".") + 1);
+            // Currently suggest setting all fields to strings; otherwise pandas assumes type conversions
+            // TO DO: Address different non-string type conversions
+            const code = `df = pandas.read_${extension}('${collection.uri}').astype('str')`;
+            // This only works if we assume that the file types will only be csv, parquet or json
+            return `${comment}\n${code}\n\n`;
+        }
+        return "";
+    }
 }

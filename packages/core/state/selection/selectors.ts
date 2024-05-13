@@ -52,6 +52,25 @@ export const getEncodedFileExplorerUrl = createSelector(
     }
 );
 
+export const getPythonConversion = createSelector(
+    [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn, getCollection],
+    (
+        hierarchy: string[],
+        filters: FileFilter[],
+        openFolders: FileFolder[],
+        sortColumn?: FileSort,
+        collection?: Dataset
+    ) => {
+        return FileExplorerURL.convertToPython({
+            hierarchy,
+            filters,
+            openFolders,
+            sortColumn,
+            collection,
+        });
+    }
+);
+
 export const getGroupedByFilterName = createSelector(
     [getFileFilters, getAnnotations],
     (globalFilters: FileFilter[], annotations: Annotation[]) => {
