@@ -22,9 +22,9 @@ export default function CodeSnippet({ onDismiss }: ModalProps) {
     const languageOptions: IContextualMenuItem[] = [
         {
             key: "python",
-            text: "Python (pandas)",
+            text: "Python 3.8+ (pandas)",
             onClick() {
-                setLanguage("Python (pandas)");
+                setLanguage("Python 3.8+ (pandas)");
             },
         },
     ];

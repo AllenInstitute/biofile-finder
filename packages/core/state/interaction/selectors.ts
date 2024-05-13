@@ -35,7 +35,7 @@ export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 export const getPythonSnippet = createSelector(
     [getPythonConversion],
     (pythonQuery): PythonicDataAccessSnippet => {
-        const setup = "pip install pandas";
+        const setup = `pip install \"pandas>=1.5\"`;
         const code = `${pythonQuery}`;
 
         return { setup, code };

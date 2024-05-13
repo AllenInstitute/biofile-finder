@@ -54,8 +54,7 @@
     border: none;
     border-radius: 0;
     color: var(--primary-text-color);
-    /* height: 30px;*/
-    width: 150px;
+    width: 200px;
 }
 
 .action-button i, .action-button:hover i {
