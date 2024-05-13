@@ -31,7 +31,7 @@ describe("<CodeSnippet />", () => {
     it("displays snippet when present in state", async () => {
         // Arrange
         const setup = "pip install pandas";
-        const code = "TODO";
+        const code = "#No options selected";
         const { store } = configureMockStore({ state: visibleDialogState });
         const { findByText } = render(
             <Provider store={store}>
