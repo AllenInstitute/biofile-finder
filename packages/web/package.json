@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "1.28.1-dev106.0",
+    "react-router-dom": "^6.23.1",
     "regenerator-runtime": "0.13.x",
     "semver": "7.3.x"
   }

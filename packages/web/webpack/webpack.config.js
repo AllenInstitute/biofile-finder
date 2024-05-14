@@ -10,6 +10,7 @@ module.exports = ({ analyze, production } = {}) => ({
     devServer: {
         host: devServer.host,
         port: devServer.port,
+        historyApiFallback: true,
     },
     entry: {
         app: "./src/index.tsx",

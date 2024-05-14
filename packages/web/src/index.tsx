@@ -4,6 +4,7 @@ import { memoize } from "lodash";
 import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import NotificationServiceWeb from "./services/NotificationServiceWeb";
 import PersistentConfigServiceWeb from "./services/PersistentConfigServiceWeb";
@@ -14,6 +15,7 @@ import FmsFileExplorer from "../../core/App";
 import { createReduxStore } from "../../core/state";
 import FileViewerServiceWeb from "./services/FileViewerServiceWeb";
 import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
+import Root from "./routes/Root";
 
 const APP_ID = "fms-file-explorer-web";
 
@@ -54,9 +56,20 @@ const collectPlatformDependentServices = memoize(() => ({
     persistentConfigService,
 }));
 
+const router = createBrowserRouter([
+    {
+        path: "/",
+        element: <Root />, // Splash page placeholder
+    },
+    {
+        path: "app",
+        element: <FmsFileExplorer platformDependentServices={collectPlatformDependentServices()} />,
+    },
+]);
+
 render(
     <Provider store={createReduxStore()}>
-        <FmsFileExplorer platformDependentServices={collectPlatformDependentServices()} />
+        <RouterProvider router={router} />
     </Provider>,
     document.getElementById(APP_ID)
 );
