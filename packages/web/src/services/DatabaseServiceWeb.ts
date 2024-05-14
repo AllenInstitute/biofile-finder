@@ -1,8 +1,6 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
-import axios from "axios";
-const httpAdapter = require("axios/lib/adapters/http"); // exported from lib, but not typed (can't be fixed through typing augmentation)
 
-import { DatabaseService, DataSource } from "../../../core/services";
+import { DatabaseService } from "../../../core/services";
 
 export default class DatabaseServiceWeb implements DatabaseService {
     private database: duckdb.AsyncDuckDB | undefined;
@@ -31,16 +29,20 @@ export default class DatabaseServiceWeb implements DatabaseService {
         this.initializeDatabaseWorker();
     }
 
-    public async addDataSource(name: string, uri: File): Promise<void> {
+    public async addDataSource(name: string, uri: File | string): Promise<void> {
         if (!this.database) {
             throw new Error("Database has not yet been initialized");
         }
-        await this.database.registerFileHandle(
-            name,
-            uri,
-            duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
-            true
-        );
+        if (uri instanceof File) {
+            await this.database.registerFileHandle(
+                name,
+                uri,
+                duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
+                true
+            );
+        } else {
+            await this.database.registerFileURL(name, uri, duckdb.DuckDBDataProtocol.HTTP, false);
+        }
         // await this.database.registerFileBuffer(this.table, pickedFile as any);
         // } else {
         // throw new Error("yo yo yoooooooooooooooooooooooooo")
@@ -75,7 +77,7 @@ export default class DatabaseServiceWeb implements DatabaseService {
         const connection = await this.database.connect();
         try {
             await connection.send(`COPY (${sql}) TO 'result-example.parquet' (FORMAT 'parquet');`);
-            return await this.database.copyFileToBuffer('result-snappy.parquet');
+            return await this.database.copyFileToBuffer("result-snappy.parquet");
             // const link = URL.createObjectURL(new Blob([parquet_buffer]));
         } finally {
             await connection.close();
@@ -84,42 +86,12 @@ export default class DatabaseServiceWeb implements DatabaseService {
         // this.database?.copyFileToBuffer()
         // conn.send(`COPY (SELECT * FROM tbl) TO 'result-snappy.parquet' (FORMAT 'parquet');`);
         // const parquet_buffer = await this._db.copyFileToBuffer('result-snappy.parquet');
-        
+
         // // Generate a download link
         // const link = URL.createObjectURL(new Blob([parquet_buffer]));
-        
+
         // // Close the connection to release memory
         // await conn.close();
-    }
-
-    public async getDataSource(csvUri: string): Promise<DataSource> {
-        if (csvUri.startsWith("http")) {
-            const response = await axios.get(csvUri, {
-                // Ensure this runs with the NodeJS http/https client so that testing across code that makes use of Electron/NodeJS APIs
-                // can be done with consistent patterns.
-                // Requires the Electron renderer process to be run with `nodeIntegration: true`.
-                adapter: httpAdapter,
-            });
-
-            // TODO: Can we make sure this doesn't just request 30GB suddenly for example?
-            if (response.status >= 400 || response.data === undefined) {
-                throw new Error(
-                    `Failed to fetch CSV from ${csvUri}. Response status text: ${response.statusText}`
-                );
-            }
-            const urlObj = new URL(csvUri);
-
-            return {
-                name: urlObj.pathname.split("/").pop() || "Unknown",
-                created: new Date(),
-            };
-        }
-
-        // TODO: Hmmmm....
-        return {
-            name: csvUri,
-            created: new Date(),
-        };
     }
 
     public async query(sql: string): Promise<any> {

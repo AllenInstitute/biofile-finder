@@ -54,7 +54,7 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
                         }),
                     })
                 );
-            }
+            };
             addDataSource();
             onDismiss();
         }
@@ -62,19 +62,26 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
     const onEnterURL = throttle(
         (evt: React.FormEvent) => {
             evt.preventDefault();
-            const name = dataSourceURL.substring(dataSourceURL.lastIndexOf("/") + 1);
-            dispatch(
-                selection.actions.addQuery({
-                    name: `New ${name} Query`,
-                    url: FileExplorerURL.encode({
-                        collection: {
-                            name,
-                            uri: dataSourceURL,
-                            version: 1,
-                        },
-                    }),
-                })
-            );
+            const uriResource = dataSourceURL
+                .substring(dataSourceURL.lastIndexOf("/") + 1)
+                .split("?")[0];
+            const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
+            const addDataSource = async () => {
+                await databaseService.addDataSource(name, dataSourceURL);
+                dispatch(
+                    selection.actions.addQuery({
+                        name: `New ${name} Query`,
+                        url: FileExplorerURL.encode({
+                            collection: {
+                                name,
+                                uri: dataSourceURL,
+                                version: 1,
+                            },
+                        }),
+                    })
+                );
+            };
+            addDataSource();
             onDismiss();
         },
         10000,
@@ -124,7 +131,7 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
                         title="Browse for a data source file on your machine"
                         htmlFor="data-source-selector"
                     >
-                        <Icon iconName="DocumentSearch"/>
+                        <Icon iconName="DocumentSearch" />
                         <p>Choose File</p>
                     </label>
                     <input
@@ -153,5 +160,5 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
         </>
     );
 
-    return <BaseModal body={body} title="Choose a new data source" onDismiss={onDismiss} />;
+    return <BaseModal body={body} title="Choose a data source" onDismiss={onDismiss} />;
 }

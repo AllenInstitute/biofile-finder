@@ -46,41 +46,11 @@ export default class DatasetService extends HttpServiceBase {
      */
     public async getDatasets(): Promise<Dataset[]> {
         const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}`;
-        console.log(`Requesting all datasets from the following url: ${requestUrl}`);
 
         // This data should never be stale, so, avoid using a response cache
         const response = await this.getWithoutCaching<Dataset>(requestUrl);
 
         return response.data;
-    }
-
-    /**
-     * Request for a specific dataset.
-     */
-    public async getDataset(collection: {
-        name: string;
-        version?: number;
-        uri?: string;
-    }): Promise<Dataset> {
-        if (collection.uri) {
-            const info = await this.database.getDataSource(collection.uri);
-            return {
-                id: info.name,
-                name: info.name,
-                version: 1,
-                uri: collection.uri,
-                created: info.created,
-                createdBy: "Unknown",
-            };
-        }
-
-        return {
-            id: collection.name,
-            name: collection.name,
-            version: collection.version,
-            created: new Date(),
-            createdBy: "Unknown",
-        };
     }
 
     public async getPythonicDataAccessSnippet(
@@ -90,7 +60,6 @@ export default class DatasetService extends HttpServiceBase {
         const requestUrl = `${this.baseUrl}/${DatasetService.BASE_DATASET_URL}/${encodeURIComponent(
             datasetName
         )}/${datasetVersion}/pythonSnippet`;
-        console.log(`Requesting Python snippet for accessing dataset at: ${requestUrl}`);
 
         const response = await this.get<PythonicDataAccessSnippet>(requestUrl);
 
