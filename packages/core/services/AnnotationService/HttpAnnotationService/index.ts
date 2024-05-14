@@ -28,7 +28,6 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
      */
     public async fetchAnnotations(): Promise<Annotation[]> {
         const requestUrl = `${this.baseUrl}/${HttpAnnotationService.BASE_ANNOTATION_URL}${this.pathSuffix}`;
-        console.log(`Requesting annotation values from ${requestUrl}`);
 
         const response = await this.get<AnnotationResponse>(requestUrl);
         return [
@@ -44,7 +43,6 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         // Encode any special characters in the annotation as necessary
         const encodedAnnotation = HttpServiceBase.encodeURISection(annotation);
         const requestUrl = `${this.baseUrl}/${HttpAnnotationService.BASE_ANNOTATION_URL}/${encodedAnnotation}/values${this.pathSuffix}`;
-        console.log(`Requesting annotation values from ${requestUrl}`);
 
         const response = await this.get<AnnotationValue>(requestUrl);
         return response.data;
@@ -70,7 +68,6 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
             .join("&");
 
         const requestUrl = `${this.baseUrl}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}${this.pathSuffix}?${queryParams}`;
-        console.log(`Requesting root hierarchy values: ${requestUrl}`);
 
         const response = await this.get<string>(requestUrl);
         return response.data;
@@ -92,7 +89,6 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
             .filter((param) => !!param)
             .join("&");
         const requestUrl = `${this.baseUrl}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}${this.pathSuffix}?${queryParams}`;
-        console.log(`Requesting hierarchy values under path: ${requestUrl}`);
 
         const response = await this.get<string>(requestUrl);
         return response.data;
@@ -105,7 +101,6 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
     public async fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]> {
         const queryParams = this.buildQueryParams(QueryParam.HIERARCHY, [...annotations].sort());
         const requestUrl = `${this.baseUrl}/${HttpAnnotationService.BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY}${this.pathSuffix}?${queryParams}`;
-        console.log(`Requesting available annotations with current hierarchy: ${requestUrl}`);
 
         const response = await this.get<string>(requestUrl);
         if (!response.data) {

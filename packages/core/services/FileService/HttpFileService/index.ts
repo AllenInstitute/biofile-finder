@@ -39,7 +39,6 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
             ]),
             "?"
         );
-        console.log(`Requesting count of matching files from ${requestUrl}`);
 
         const response = await this.get<number>(requestUrl);
 
@@ -57,7 +56,6 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         const selections = fileSelection.toCompactSelectionList();
         const postBody: SelectionAggregationRequest = { selections };
         const requestUrl = `${this.baseUrl}/${HttpFileService.SELECTION_AGGREGATE_URL}${this.pathSuffix}`;
-        console.log(`Requesting aggregate results of matching files ${postBody}`);
 
         const response = await this.post<SelectionAggregationResult>(
             requestUrl,
@@ -80,7 +78,6 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
 
         const base = `${this.baseUrl}/${HttpFileService.BASE_FILES_URL}${this.pathSuffix}?from=${from}&limit=${limit}`;
         const requestUrl = join(compact([base, fileSet.toQueryString()]), "&");
-        console.log(`Requesting files from ${requestUrl}`);
 
         const response = await this.get<FmsFile>(requestUrl);
         return response.data.map((file) => new FileDetail(file));

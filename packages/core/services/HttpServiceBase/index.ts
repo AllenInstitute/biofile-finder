@@ -129,7 +129,6 @@ export default class HttpServiceBase {
 
     public async get<T>(url: string): Promise<RestServiceResponse<T>> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
-        console.log(`Sanitized ${url} to ${encodedUrl}`);
 
         if (!this.urlToResponseDataCache.has(encodedUrl)) {
             // if this fails, bubble up exception
@@ -158,7 +157,6 @@ export default class HttpServiceBase {
      */
     public async getWithoutCaching<T>(url: string): Promise<RestServiceResponse<T>> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
-        console.log(`Sanitized ${url} to ${encodedUrl}`);
 
         const response = await retry.execute(() => this.httpClient.get(encodedUrl));
         return new RestServiceResponse(response.data);
@@ -166,7 +164,6 @@ export default class HttpServiceBase {
 
     public async post<T>(url: string, body: string): Promise<RestServiceResponse<T>> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
-        console.log(`Sanitized ${url} to ${encodedUrl}`);
         const config = { headers: { "Content-Type": "application/json" } };
 
         let response;
@@ -191,7 +188,6 @@ export default class HttpServiceBase {
 
     public async patch<T>(url: string, body: string): Promise<RestServiceResponse<T>> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
-        console.log(`Sanitized ${url} to ${encodedUrl}`);
         const config = { headers: { "Content-Type": "application/json" } };
 
         let response;
