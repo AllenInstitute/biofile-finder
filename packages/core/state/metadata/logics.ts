@@ -6,9 +6,9 @@ import {
     RECEIVE_ANNOTATIONS,
     ReceiveAnnotationAction,
     receiveAnnotations,
-    receiveCollections,
+    receiveDataSources,
     REQUEST_ANNOTATIONS,
-    REQUEST_COLLECTIONS,
+    REQUEST_DATA_SOURCES,
 } from "./actions";
 import * as metadataSelectors from "./selectors";
 import Annotation, { AnnotationName } from "../../entity/Annotation";
@@ -45,7 +45,7 @@ const requestAnnotations = createLogic({
 });
 
 /**
- * Interceptor responsible for turning REQUEST_COLLECTIONS action into selecting default
+ * Interceptor responsible for turning REQUEST_DATA_SOURCES action into selecting default
  * display annotations
  */
 const receiveAnnotationsLogic = createLogic({
@@ -124,24 +124,24 @@ const receiveAnnotationsLogic = createLogic({
 });
 
 /**
- * Interceptor responsible for turning REQUEST_COLLECTIONS action into a network call for collections. Outputs
- * RECEIVE_COLLECTIONS action.
+ * Interceptor responsible for turning REQUEST_DATA_SOURCES action into a network call for data source. Outputs
+ * RECEIVE_DATA_SOURCES action.
  */
-const requestCollections = createLogic({
+const requestDataSources = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const datasetService = interaction.selectors.getDatasetService(deps.getState());
-        const existingCollections = metadataSelectors.getCollections(deps.getState());
+        const existingDataSources = metadataSelectors.getDataSources(deps.getState());
 
         try {
-            const collections = await datasetService.getDatasets();
-            dispatch(receiveCollections(uniqBy([...existingCollections, ...collections], "id")));
+            const dataSources = await datasetService.getAll();
+            dispatch(receiveDataSources(uniqBy([...existingDataSources, ...dataSources], "id")));
         } catch (err) {
             console.error("Failed to fetch datasets", err);
         } finally {
             done();
         }
     },
-    type: [REQUEST_COLLECTIONS, interaction.actions.REFRESH],
+    type: [REQUEST_DATA_SOURCES, interaction.actions.REFRESH],
 });
 
-export default [requestAnnotations, receiveAnnotationsLogic, requestCollections];
+export default [requestAnnotations, receiveAnnotationsLogic, requestDataSources];

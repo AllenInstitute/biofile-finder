@@ -18,12 +18,12 @@ import FileDownloadService, { DownloadResolution } from "../../../../services/Fi
 import { initialState, interaction, reduxLogics } from "../../../../state";
 import HttpFileService from "../../../../services/FileService/HttpFileService";
 
-describe("<CsvManifest />", () => {
+describe("<MetadataManifest />", () => {
     const baseUrl = "test";
     const visibleDialogState = mergeState(initialState, {
         interaction: {
             fileExplorerServiceBaseUrl: baseUrl,
-            visibleModal: ModalType.CsvManifest,
+            visibleModal: ModalType.MetadataManifest,
         },
     });
 

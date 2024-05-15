@@ -19,7 +19,7 @@ import {
     RESET_COLUMN_WIDTH,
     SORT_COLUMN,
     SET_SORT_COLUMN,
-    CHANGE_COLLECTION,
+    CHANGE_DATA_SOURCE,
     SELECT_TUTORIAL,
     ADJUST_GLOBAL_FONT_SIZE,
     Query,
@@ -33,16 +33,16 @@ import {
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
-import { Dataset } from "../../services/DatasetService";
+import { DataSource } from "../../services/DataSourceService";
 
 export interface SelectionStateBranch {
     annotationHierarchy: string[];
     availableAnnotationsForHierarchy: string[];
     availableAnnotationsForHierarchyLoading: boolean;
-    collection?: Dataset;
     columnWidths: {
         [index: string]: number; // columnName to widthPercent mapping
     };
+    dataSource?: DataSource;
     displayAnnotations: Annotation[];
     fileGridColumnCount: number;
     fileSelection: FileSelection;
@@ -127,10 +127,10 @@ export default makeReducer<SelectionStateBranch>(
                 sortColumn: new FileSort(action.payload, SortOrder.DESC),
             };
         },
-        [CHANGE_COLLECTION]: (state, action) => ({
+        [CHANGE_DATA_SOURCE]: (state, action) => ({
             ...state,
             annotationHierarchy: [],
-            collection: action.payload,
+            dataSource: action.payload,
             filters: [],
             fileSelection: new FileSelection(),
             openFileFolders: [],

@@ -20,10 +20,10 @@ import {
     SET_ANNOTATION_HIERARCHY,
     SELECT_NEARBY_FILE,
     setSortColumn,
-    changeCollection,
-    CHANGE_COLLECTION,
+    changeDataSource,
+    CHANGE_DATA_SOURCE,
     CHANGE_QUERY,
-    ChangeCollectionAction,
+    ChangeDataSourceAction,
     SetAnnotationHierarchyAction,
     RemoveFromAnnotationHierarchyAction,
     ReorderAnnotationHierarchyAction,
@@ -291,33 +291,31 @@ const toggleFileFolderCollapse = createLogic({
 const decodeFileExplorerURLLogics = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
-        const collections = metadata.selectors.getCollections(deps.getState());
-        const { hierarchy, filters, openFolders, sortColumn, collection } = FileExplorerURL.decode(
+        const dataSources = interaction.selectors.getAllDataSources(deps.getState());
+        const { hierarchy, filters, openFolders, sortColumn, source } = FileExplorerURL.decode(
             encodedURL
         );
 
-        let selectedCollection = collections.find(
-            (c) => c.name === collection?.name && c.version === collection?.version
+        let selectedDataSource = dataSources.find(
+            (c) => c.name === source?.name
         );
-        // It is possible the user was sent a private collection, in that event the collection is likely not stored
-        // in the state's collection set yet & should be loaded in.
-        if (collection && !selectedCollection) {
-            // TODO: Good spot to verify dataset...?
-            const newCollection = {
-                id: `${collection.name}:${collection.version}`,
-                name: collection.name,
-                version: collection.version,
-                uri: collection.uri,
+        // It is possible the user was sent a novel data source in the URL
+        if (source && !selectedDataSource) {
+            const newDataSource = {
+                id: source.name,
+                name: source.name,
+                version: 1,
+                uri: source.uri,
                 // TODO: unused things
                 created: new Date(),
                 createdBy: "Unknown",
             };
-            dispatch(metadata.actions.receiveCollections([...collections, newCollection]));
-            selectedCollection = newCollection;
+            dispatch(metadata.actions.receiveDataSources([...dataSources, newDataSource]));
+            selectedDataSource = newDataSource;
         }
 
         batch(() => {
-            dispatch(changeCollection(selectedCollection));
+            dispatch(changeDataSource(selectedDataSource));
             dispatch(setAnnotationHierarchy(hierarchy));
             dispatch(setFileFilters(filters));
             dispatch(setOpenFileFolders(openFolders));
@@ -446,22 +444,22 @@ const selectNearbyFile = createLogic({
 });
 
 /**
- * Interceptor responsible for processing a new collection into
- * a refresh action so that the resources pertain to the current collection
+ * Interceptor responsible for processing a new data source into
+ * a refresh action so that the resources pertain to the current data source
  */
-const changeCollectionLogic = createLogic({
+const changeDataSourceLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const action: ChangeCollectionAction = deps.action;
-        const collection = action.payload;
-        const collections = metadata.selectors.getCollections(deps.getState());
-        if (collection && !collections.some((collection) => collection.id === collection.id)) {
-            dispatch(metadata.actions.receiveCollections([...collections, collection]));
+        const action: ChangeDataSourceAction = deps.action;
+        const dataSource = action.payload;
+        const dataSources = interaction.selectors.getAllDataSources(deps.getState());
+        if (dataSource && !dataSources.some((dataSource) => dataSource.id === dataSource.id)) {
+            dispatch(metadata.actions.receiveDataSources([...dataSources, dataSource]));
         }
 
         dispatch(interaction.actions.refresh() as AnyAction);
         done();
     },
-    type: CHANGE_COLLECTION,
+    type: CHANGE_DATA_SOURCE,
 });
 
 /**
@@ -475,6 +473,8 @@ const addQueryLogic = createLogic({
     async transform(deps: ReduxLogicDeps, next) {
         const queries = selectionSelectors.getQueries(deps.getState());
         const { payload: newQuery } = deps.action as AddQuery;
+        // Map the query names to their occurrences so that queries with the same name
+        // have their occurences appended to their name to make them unique
         const queryNameToOccurrence = queries.reduce((acc, query) => {
             const nameWithoutOccurence = query.name.replace(/ \(\d+\)$/, "");
             return { ...acc, [nameWithoutOccurence]: (acc[nameWithoutOccurence] || 0) + 1 };
@@ -505,26 +505,28 @@ const changeQueryLogic = createLogic({
             deps.getState()
         );
         const currentQueries = selectionSelectors.getQueries(deps.getState());
-        const currentURL = selectionSelectors.getEncodedFileExplorerUrl(deps.getState());
+        const currentQueryParts = selectionSelectors.getCurrentQueryParts(deps.getState());
         const updatedQueries = currentQueries.map((query) => ({
             ...query,
-            url: query.name === deps.ctx.previouslySelectedQuerywName ? currentURL : query.url,
+            parts: query.name === deps.ctx.previouslySelectedQuerywName
+                ? currentQueryParts
+                : query.parts
         }));
 
-        const decodedURL = FileExplorerURL.decode(newlySelectedQuery.url);
-        if (decodedURL.collection?.uri) {
+        if (newlySelectedQuery.parts.source?.uri) {
             try {
+                console.log("uri in change query", newlySelectedQuery.parts.source.uri)
                 await databaseService.addDataSource(
-                    decodedURL.collection.name,
-                    decodedURL.collection.uri
+                    newlySelectedQuery.parts.source.name,
+                    newlySelectedQuery.parts.source.uri
                 );
             } catch (error) {
                 console.error("Failed to add data source, prompting for replacement", error);
-                dispatch(interaction.actions.promptForDataSource(decodedURL.collection));
+                dispatch(interaction.actions.promptForDataSource(newlySelectedQuery.parts.source));
             }
         }
 
-        dispatch(decodeFileExplorerURL(newlySelectedQuery.url) as AnyAction);
+        dispatch(decodeFileExplorerURL(FileExplorerURL.encode(newlySelectedQuery.parts)) as AnyAction);
         dispatch(setQueries(updatedQueries));
         done();
     },
@@ -545,7 +547,7 @@ export default [
     decodeFileExplorerURLLogics,
     selectNearbyFile,
     setAvailableAnnotationsLogic,
-    changeCollectionLogic,
+    changeDataSourceLogic,
     addQueryLogic,
     changeQueryLogic,
 ];

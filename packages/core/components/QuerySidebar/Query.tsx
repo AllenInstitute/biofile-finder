@@ -27,7 +27,7 @@ export default function Query(props: QueryProps) {
     const dispatch = useDispatch();
     const queries = useSelector(selection.selectors.getQueries);
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
-    const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
+    const currentQueryParts = useSelector(selection.selectors.getCurrentQueryParts);
 
     const [isExpanded, setIsExpanded] = React.useState(false);
     React.useEffect(() => {
@@ -37,9 +37,9 @@ export default function Query(props: QueryProps) {
     const decodedURL = React.useMemo(
         () =>
             props.isSelected
-                ? FileExplorerURL.decode(currentGlobalURL)
-                : FileExplorerURL.decode(props.query.url),
-        [props.query.url, currentGlobalURL, props.isSelected]
+                ? currentQueryParts
+                : props.query.parts,
+        [props.query.parts, currentQueryParts, props.isSelected]
     );
 
     const onQueryUpdate = (updatedQuery: QueryType) => {
@@ -56,7 +56,6 @@ export default function Query(props: QueryProps) {
         dispatch(selection.actions.setQueries(filteredQueries));
     };
 
-    const dataSourceName = decodedURL.collection?.name || "AICS FMS";
     if (!isExpanded) {
         return (
             <div>
@@ -83,7 +82,7 @@ export default function Query(props: QueryProps) {
                     </div>
                     {props.isSelected && <hr />}
                     <p className={styles.displayRow}>
-                        <strong>Data Source:</strong> {dataSourceName}
+                        <strong>Data Source:</strong> {decodedURL.source?.name}
                     </p>
                     {!!decodedURL.hierarchy.length && (
                         <p className={styles.displayRow}>
@@ -141,7 +140,7 @@ export default function Query(props: QueryProps) {
                     />
                 </div>
                 <hr className={styles.divider} />
-                <QueryDataSource dataSources={[decodedURL.collection]} />
+                <QueryDataSource dataSources={[decodedURL.source]} />
                 <QueryGroup groups={decodedURL.hierarchy} />
                 <QueryFilter filters={decodedURL.filters} />
                 <QuerySort sort={decodedURL.sortColumn} />

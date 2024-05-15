@@ -2,13 +2,11 @@ import { ExecutionEnvService, SaveLocationResolution } from "../../../core/servi
 
 export default class ExecutionEnvServiceWeb implements ExecutionEnvService {
     public async formatPathForHost(posixPath: string): Promise<string> {
-        console.log("formatPathForHost", posixPath);
-        return "";
+        return posixPath;
     }
 
     public getFilename(filePath: string): string {
-        console.log("getFilename", filePath);
-        return "";
+        return filePath.replace(/^.*[\\/]/, '');
     }
 
     public getOS(): string {

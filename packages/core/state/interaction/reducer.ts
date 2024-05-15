@@ -22,7 +22,7 @@ import {
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
-import { Collection } from "../../entity/FileExplorerURL";
+import { Source } from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
 import { PlatformDependentServices } from "../../services";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
@@ -37,7 +37,7 @@ import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceN
 
 export interface InteractionStateBranch {
     applicationVersion?: string;
-    collectionForVisibleModal?: Collection;
+    dataSourceForVisibleModal?: Source;
     contextMenuIsVisible: boolean;
     contextMenuItems: ContextMenuItem[];
     contextMenuPositionReference: PositionReference;
@@ -114,7 +114,7 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [HIDE_VISIBLE_MODAL]: (state) => ({
             ...state,
-            collectionForVisibleModal: undefined,
+            dataSourceForVisibleModal: undefined,
             visibleModal: undefined,
         }),
         [REFRESH]: (state, action) => ({
@@ -164,7 +164,7 @@ export default makeReducer<InteractionStateBranch>(
         [PROMPT_FOR_DATA_SOURCE]: (state, action) => ({
             ...state,
             visibleModal: ModalType.DataSourcePrompt,
-            collectionForVisibleModal: action.payload,
+            dataSourceForVisibleModal: action.payload,
         }),
     },
     initialState

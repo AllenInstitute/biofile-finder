@@ -1,22 +1,10 @@
 import { compact, join } from "lodash";
 
-import FileService, { GetFilesRequest, SelectionAggregationResult } from "..";
+import FileService, { GetFilesRequest, SelectionAggregationResult, Selection } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
 import FileSelection from "../../../entity/FileSelection";
-import { JSONReadyRange } from "../../../entity/NumericRange";
 import FileSet from "../../../entity/FileSet";
 import FileDetail, { FmsFile } from "../../../entity/FileDetail";
-
-export interface Selection {
-    filters: {
-        [index: string]: (string | number | boolean)[];
-    };
-    indexRanges: JSONReadyRange[];
-    sort?: {
-        annotationName: string;
-        ascending: boolean;
-    };
-}
 
 interface SelectionAggregationRequest {
     selections: Selection[];
@@ -81,5 +69,12 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
 
         const response = await this.get<FmsFile>(requestUrl);
         return response.data.map((file) => new FileDetail(file));
+    }
+
+    /**
+     * Fetch files and return them as a buffer in the specified format.
+     */
+    public async getFilesAsBuffer(annotations: string[], selections: Selection[], format: "csv" | "json" | "parquet"): Promise<Uint8Array> {
+        throw new Error("Method not implemented.");
     }
 }

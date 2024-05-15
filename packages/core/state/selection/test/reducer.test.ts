@@ -46,7 +46,7 @@ describe("Selection reducer", () => {
         })
     );
 
-    describe(selection.actions.CHANGE_COLLECTION, () => {
+    describe(selection.actions.CHANGE_DATA_SOURCE, () => {
         it("clears hierarchy, filters, file selection, and open folders", () => {
             // Arrange
             const state = {
@@ -60,24 +60,21 @@ describe("Selection reducer", () => {
                 filters: [new FileFilter("file_id", "1238401234")],
                 openFileFolders: [new FileFolder(["AICS-11"])],
             };
-            const collection = {
+            const dataSource = {
                 name: "My Tiffs",
                 version: 2,
                 id: "13123019",
-                query: "",
-                fixed: false,
-                private: true,
-                client: "explorer",
+                uri: "",
                 created: new Date(),
                 createdBy: "test",
             };
 
             // Act
-            const actual = selection.reducer(state, selection.actions.changeCollection(collection));
+            const actual = selection.reducer(state, selection.actions.changeDataSource(dataSource));
 
             // Assert
             expect(actual.annotationHierarchy).to.be.empty;
-            expect(actual.collection).to.deep.equal(collection);
+            expect(actual.dataSource).to.deep.equal(dataSource);
             expect(actual.fileSelection.count()).to.equal(0);
             expect(actual.filters).to.be.empty;
             expect(actual.openFileFolders).to.be.empty;

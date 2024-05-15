@@ -1,23 +1,26 @@
+import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
-import { getCollection } from "../selection/selectors";
+import { getDataSource } from "../selection/selectors";
 import { AnnotationService, FileService } from "../../services";
-import DatasetService, { PythonicDataAccessSnippet } from "../../services/DatasetService";
+import DatasetService, { DataSource, PythonicDataAccessSnippet } from "../../services/DataSourceService";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
+import { getDataSources } from "../metadata/selectors";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 // BASIC SELECTORS
-export const getCollectionForVisibleModal = (state: State) =>
-    state.interaction.collectionForVisibleModal;
 export const getContextMenuVisibility = (state: State) => state.interaction.contextMenuIsVisible;
 export const getContextMenuItems = (state: State) => state.interaction.contextMenuItems;
 export const getContextMenuPositionReference = (state: State) =>
     state.interaction.contextMenuPositionReference;
 export const getContextMenuOnDismiss = (state: State) => state.interaction.contextMenuOnDismiss;
 export const getCsvColumns = (state: State) => state.interaction.csvColumns;
+export const getDataSourceForVisibleModal = (state: State) =>
+    state.interaction.dataSourceForVisibleModal;
 export const getFileExplorerServiceBaseUrl = (state: State) =>
     state.interaction.fileExplorerServiceBaseUrl;
 export const getFileFiltersForVisibleModal = (state: State) =>
@@ -39,6 +42,19 @@ export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee
 export const getApplicationVersion = createSelector(
     [getPlatformDependentServices],
     ({ applicationInfoService }): string => applicationInfoService.getApplicationVersion()
+);
+
+export const getAllDataSources = createSelector(
+    [getDataSources, isAicsEmployee],
+    (dataSources, isAicsEmployee): DataSource[] => (
+        isAicsEmployee ? uniqBy([...dataSources, {
+            id: AICS_FMS_DATA_SOURCE_NAME,
+            name: AICS_FMS_DATA_SOURCE_NAME,
+            version: 1,
+            created: new Date(),
+            createdBy: "AICS",
+        }], "id") : dataSources
+    )
 );
 
 // TODO: Implement PythonicDataAccessSnippet
@@ -67,7 +83,7 @@ export const getFileService = createSelector(
         getApplicationVersion,
         getUserName,
         getFileExplorerServiceBaseUrl,
-        getCollection,
+        getDataSource,
         getPlatformDependentServices,
         getRefreshKey,
     ],
@@ -75,13 +91,13 @@ export const getFileService = createSelector(
         applicationVersion,
         userName,
         fileExplorerBaseUrl,
-        collection,
+        dataSource,
         platformDependentServices
     ): FileService => {
-        if (collection) {
+        if (dataSource && dataSource?.name !== AICS_FMS_DATA_SOURCE_NAME) {
             return new DatabaseFileService({
                 databaseService: platformDependentServices.databaseService,
-                dataSourceName: collection.name,
+                dataSourceName: dataSource.name,
             });
         }
         return new HttpFileService({
@@ -97,7 +113,7 @@ export const getAnnotationService = createSelector(
         getApplicationVersion,
         getUserName,
         getFileExplorerServiceBaseUrl,
-        getCollection,
+        getDataSource,
         getPlatformDependentServices,
         getRefreshKey,
     ],
@@ -105,13 +121,13 @@ export const getAnnotationService = createSelector(
         applicationVersion,
         userName,
         fileExplorerBaseUrl,
-        collection,
+        dataSource,
         platformDependentServices
     ): AnnotationService => {
-        if (collection) {
+        if (dataSource && dataSource?.name !== AICS_FMS_DATA_SOURCE_NAME) {
             return new DatabaseAnnotationService({
                 databaseService: platformDependentServices.databaseService,
-                dataSourceName: collection.name,
+                dataSourceName: dataSource.name,
             });
         }
         return new HttpAnnotationService({

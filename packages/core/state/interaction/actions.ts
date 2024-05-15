@@ -7,7 +7,7 @@ import FileFilter from "../../entity/FileFilter";
 import { ModalType } from "../../components/Modal";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import FileDetail from "../../entity/FileDetail";
-import { Collection } from "../../entity/FileExplorerURL";
+import { Source } from "../../entity/FileExplorerURL";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -21,13 +21,13 @@ export const PROMPT_FOR_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "prompt-fo
 
 export interface PromptForDataSource {
     type: string;
-    payload: Collection;
+    payload: Source;
 }
 
-export function promptForDataSource(collection: Collection): PromptForDataSource {
+export function promptForDataSource(dataSource: Source): PromptForDataSource {
     return {
         type: PROMPT_FOR_DATA_SOURCE,
-        payload: collection,
+        payload: dataSource,
     };
 }
 

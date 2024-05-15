@@ -26,7 +26,6 @@ import {
     BROWSE_FOR_NEW_DATA_SOURCE,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
-import { CsvManifestRequest } from "../../services/CsvService";
 import {
     DownloadResolution,
     FileDownloadCancellationToken,
@@ -60,10 +59,9 @@ const downloadManifest = createLogic({
             const state = deps.getState();
             let fileSelection = selection.selectors.getFileSelection(state);
             const filters = interactionSelectors.getFileFiltersForVisibleModal(state);
-            const csvService = interactionSelectors.getCsvService(state);
             const fileService = interactionSelectors.getFileService(state);
             const sortColumn = selection.selectors.getSortColumn(state);
-            const selectedCollection = selection.selectors.getCollection(state);
+            // const selectedDataSource = selection.selectors.getDataSource(state);
 
             // If we have a specific path to get files from ignore selected files
             if (filters.length) {
@@ -99,11 +97,11 @@ const downloadManifest = createLogic({
                 )
             );
 
-            const request: CsvManifestRequest = {
-                annotations: annotations.map((annotation) => annotation.name),
-                selections,
-            };
-            const shouldDownloadFromDatabase = !!selectedCollection?.uri;
+            // const request: CsvManifestRequest = {
+            //     annotations: annotations.map((annotation) => annotation.name),
+            //     selections,
+            // };
+            // const shouldDownloadFromDatabase = !!selectedDataSource?.uri;
             let result;
             // if (shouldDownloadFromDatabase) {
             //     result = await csvService.downloadCsvFromDatabase(
@@ -374,6 +372,7 @@ const openWithLogic = createLogic({
     type: OPEN_WITH,
 });
 
+// TODO: REMOVE?????
 const browseForNewDataSource = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { executionEnvService } = interactionSelectors.getPlatformDependentServices(
@@ -386,9 +385,9 @@ const browseForNewDataSource = createLogic({
             dispatch(
                 selection.actions.addQuery({
                     name: `New ${dataSourceName} Query`,
-                    url: FileExplorerURL.encode({
-                        collection: { name: dataSourceName, uri: filePath, version: 1 },
-                    }),
+                    parts: {
+                        source: { name: dataSourceName, uri: filePath },
+                    },
                 })
             );
         }

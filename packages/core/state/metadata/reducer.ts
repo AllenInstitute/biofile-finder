@@ -1,18 +1,18 @@
 import { makeReducer } from "@aics/redux-utils";
 
 import Annotation from "../../entity/Annotation";
-import { Dataset } from "../../services/DatasetService";
+import { DataSource } from "../../services/DataSourceService";
 
-import { RECEIVE_ANNOTATIONS, RECEIVE_COLLECTIONS } from "./actions";
+import { RECEIVE_ANNOTATIONS, RECEIVE_DATA_SOURCES } from "./actions";
 
 export interface MetadataStateBranch {
     annotations: Annotation[];
-    collections: Dataset[];
+    dataSources: DataSource[];
 }
 
 export const initialState = {
     annotations: [],
-    collections: [],
+    dataSources: [],
 };
 
 export default makeReducer<MetadataStateBranch>(
@@ -21,9 +21,9 @@ export default makeReducer<MetadataStateBranch>(
             ...state,
             annotations: action.payload,
         }),
-        [RECEIVE_COLLECTIONS]: (state, action) => ({
+        [RECEIVE_DATA_SOURCES]: (state, action) => ({
             ...state,
-            collections: action.payload,
+            dataSources: action.payload,
         }),
     },
     initialState

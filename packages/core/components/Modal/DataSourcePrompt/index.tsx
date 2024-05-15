@@ -32,26 +32,25 @@ const DATA_SOURCE_DETAILS = [
 export default function DataSourcePrompt({ onDismiss }: Props) {
     const dispatch = useDispatch();
 
-    const collectionToReplace = useSelector(interaction.selectors.getCollectionForVisibleModal);
+    const dataSourceToReplace = useSelector(interaction.selectors.getDataSourceForVisibleModal);
 
     const [dataSourceURL, setDataSourceURL] = React.useState("");
     const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
 
     const addOrReplaceQuery = (name: string, uri: File | string) => {
         const query = {
-            name: collectionToReplace ? collectionToReplace.name : `New ${name} Query`,
-            url: FileExplorerURL.encode({
-                collection: {
-                    name: collectionToReplace ? collectionToReplace.name : name,
+            name: dataSourceToReplace ? dataSourceToReplace.name : `New ${name} Query`,
+            parts: {
+                source: {
+                    name: dataSourceToReplace ? dataSourceToReplace.name : name,
                     uri,
-                    version: 1,
                 },
-            }),
+            },
         };
-        if (collectionToReplace) {
-            dispatch(selection.actions.addQuery(query));
-        } else {
+        if (dataSourceToReplace) {
             dispatch(selection.actions.changeQuery(query));
+        } else {
+            dispatch(selection.actions.addQuery(query));
         }
     };
 
@@ -80,19 +79,18 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
 
     const body = (
         <>
-            {collectionToReplace && (
+            {dataSourceToReplace && (
                 <div className={styles.warning}>
                     <h4>Notice</h4>
                     <p>
                         There was an error loading the data source file &quot;
-                        {collectionToReplace.name}&quot;. Please re-select the data source file or a
+                        {dataSourceToReplace.name}&quot;. Please re-select the data source file or a
                         replacement.
                     </p>
                     <p>
-                        This may have been due to this being a local file that the browser&apos;s
-                        permissions to access has expired since last time. If so, consider putting
-                        the file in a cloud storage and providing the URL to avoid this issue in the
-                        future.
+                        If this is a local file, the browser&apos;s permissions to access the file
+                        may have expired since last time. If so, consider putting the file in a cloud storage
+                        and providing the URL to avoid this issue in the future.
                     </p>
                 </div>
             )}

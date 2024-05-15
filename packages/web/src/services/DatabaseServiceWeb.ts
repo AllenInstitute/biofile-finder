@@ -63,15 +63,17 @@ export default class DatabaseServiceWeb implements DatabaseService {
         }
     }
 
-    public async saveQueryAsBuffer(sql: string): Promise<Uint8Array> {
+    public async saveQueryAsBuffer(sql: string, format: "parquet" | "csv" | "json"): Promise<Uint8Array> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
 
         const connection = await this.database.connect();
         try {
-            await connection.send(`COPY (${sql}) TO 'result-example.parquet' (FORMAT 'parquet');`);
-            return await this.database.copyFileToBuffer("result-snappy.parquet");
+            const now = new Date().toISOString().replace(/:/g, "-");
+            const resultName = `${now}.${format}`
+            await connection.send(`COPY (${sql}) TO '${resultName}' (FORMAT '${format}');`);
+            return await this.database.copyFileToBuffer(`${resultName}.${format}`);
             // const link = URL.createObjectURL(new Blob([parquet_buffer]));
         } finally {
             await connection.close();

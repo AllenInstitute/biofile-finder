@@ -9,36 +9,48 @@ import AnnotationPicker from "../../AnnotationPicker";
 import * as modalSelectors from "../selectors";
 import { interaction, selection } from "../../../state";
 
-import styles from "./CsvManifest.module.css";
+import styles from "./MetadataManifest.module.css";
+
+
+const downloadOnBrowser = (name: string, data: Uint8Array) => {
+    const downloadUrl = URL.createObjectURL(new Blob([data]));
+    try {
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = name;
+        a.click();
+    } catch (err) {
+        console.error(`Failed to download file: ${err}`);
+        URL.revokeObjectURL(downloadUrl);
+        throw err;
+    }
+}
+
+const downloadOnDesktop = (name: string, data: Uint8Array) => {
+
+};
 
 /**
- * Modal overlay for selecting columns to be included in a CSV manifest download of
+ * Modal overlay for selecting columns to be included in a metadata manifest download of
  * files previously selected.
  */
-export default function CsvManifest({ onDismiss }: ModalProps) {
+export default function MetadataManifest({ onDismiss }: ModalProps) {
     const annotationsPreviouslySelected = useSelector(
         modalSelectors.getAnnotationsPreviouslySelected
     );
     const [selectedAnnotations, setSelectedAnnotations] = React.useState(
         annotationsPreviouslySelected
     );
-    const csvService = useSelector(interaction.selectors.getCsvService);
+    const fileService = useSelector(interaction.selectors.getFileService);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
+    const fileTypeForVisibleModal = useSelector(interaction.selectors.getFileTypeForVisibleModal);
 
     const onDownload = () => {
         const downloadSelection = async () => {
             const selections = fileSelection.toCompactSelectionList();
             const selectedAnnotationNames = selectedAnnotations.map((annotation) => annotation.name);
-            const buffer = await csvService.getCsvAsBytes({ annotations: selectedAnnotationNames, selections }, "");
-
-            // Generate a download link (ensure to revoke the object URL after the download).
-            // We could use window.showSaveFilePicker() but it is only supported in Chrome.
-            const downloadUrl = URL.createObjectURL(new Blob([buffer]));
-            const a = document.createElement("a");
-            a.href = downloadUrl;
-            a.download = `file-selection-${new Date()}.parquet`;
-            a.click();
-            URL.revokeObjectURL(downloadUrl);
+            const buffer = await fileService.getFilesAsBuffer(selectedAnnotationNames, selections, fileTypeForVisibleModal);
+            downloadOnBrowser(`file-selection-${new Date()}.${fileTypeForVisibleModal}`, buffer);
         }
 
         downloadSelection();
@@ -47,7 +59,7 @@ export default function CsvManifest({ onDismiss }: ModalProps) {
 
     const body = (
         <>
-            <p>Select which annotations you would like included as columns in the downloaded CSV</p>
+            <p>Select which annotations you would like included as columns in the downloaded file</p>
             <AnnotationPicker
                 hasSelectAllCapability
                 className={styles.annotationSelector}
@@ -72,7 +84,7 @@ export default function CsvManifest({ onDismiss }: ModalProps) {
                 />
             }
             onDismiss={onDismiss}
-            title="Download CSV Manifest"
+            title="Download Metadata Manifest"
         />
     );
 }

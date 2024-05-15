@@ -11,9 +11,9 @@ import Query from "./Query";
 import { HELP_OPTIONS } from "./tutorials";
 import { ModalType } from "../Modal";
 import SvgIcon from "../SvgIcon";
-import FileExplorerURL from "../../entity/FileExplorerURL";
+import FileExplorerURL, { DEFAULT_AICS_FMS_QUERY } from "../../entity/FileExplorerURL";
 import Tutorial from "../../entity/Tutorial";
-import { interaction, metadata, selection } from "../../state";
+import { interaction, selection } from "../../state";
 import { AICS_LOGO } from "../../icons";
 
 import styles from "./QuerySidebar.module.css";
@@ -28,34 +28,33 @@ interface QuerySidebarProps {
 export default function QuerySidebar(props: QuerySidebarProps) {
     const dispatch = useDispatch();
     const queries = useSelector(selection.selectors.getQueries);
-    const collections = useSelector(metadata.selectors.getCollections);
     const selectedQuery = useSelector(selection.selectors.getSelectedQuery);
     const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
+    const dataSources = useSelector(interaction.selectors.getAllDataSources);
     const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
     // Determine a default query to render or prompt the user for a data source
     // if no default is accessible
     React.useEffect(() => {
-        if (isAicsEmployee === undefined || window.location.search) {
-            // TODO: This boolean logic has to be able to be simpler...
-            if (isAicsEmployee === undefined && window.location.search) {
-                dispatch(selection.actions.addQuery({
-                    name: "New Query",
-                    url: window.location.search
-                }));
-            }
-        } else if (isAicsEmployee === true) {
+        if (!window.location.search) {
+            if (isAicsEmployee === true) {
                 // If the user is an AICS employee and there is no query in the URL, add a default query
                 dispatch(
                     selection.actions.addQuery({
-                        name: "New Query",
-                        url: FileExplorerURL.DEFAULT_FMS_URL,
+                        name: "New AICS Query",
+                        parts: DEFAULT_AICS_FMS_QUERY,
                     })
                 );
-        } else if (isAicsEmployee === false) {
-            console.log(window.location.search, "idk why this is adding teh default");
-            // If no query is selected and there is no query in the URL, prompt the user to select a data source
-            dispatch(interaction.actions.setVisibleModal(ModalType.DataSourcePrompt));
+            } else if (isAicsEmployee === false) {
+                // If no query is selected and there is no query in the URL, prompt the user to select a data source
+                dispatch(interaction.actions.setVisibleModal(ModalType.DataSourcePrompt));
+            }
+        } else if (isAicsEmployee === undefined) {
+            console.log(window.location.search, FileExplorerURL.decode(window.location.search), "idk why this is adding teh default");
+            dispatch(selection.actions.addQuery({
+                name: "New Query",
+                parts: FileExplorerURL.decode(window.location.search)
+            }));
         }
     }, [isAicsEmployee, dispatch])
 
@@ -73,34 +72,16 @@ export default function QuerySidebar(props: QuerySidebarProps) {
 
     const helpMenuOptions = React.useMemo(() => HELP_OPTIONS(dispatch), [dispatch]);
     const addQueryOptions = React.useMemo(() => ([
-        ...(isAicsEmployee
-            ? [
-                    {
-                        key: "AICS FMS",
-                        text: "AICS FMS",
-                        iconProps: { iconName: "Database" },
-                        onClick: () => {
-                            dispatch(
-                                selection.actions.addQuery({
-                                    name: "New AICS Query",
-                                    url: FileExplorerURL.DEFAULT_FMS_URL,
-                                })
-                            );
-                        },
-                        secondaryText: "Data Source",
-                    },
-                ]
-            : []),
-        ...collections
-            .map((collection) => ({
-                key: collection.id,
-                text: collection.name,
+        ...dataSources
+            .map((source) => ({
+                key: source.id,
+                text: source.name,
                 iconProps: { iconName: "Folder" },
                 onClick: () => {
                     dispatch(
                         selection.actions.addQuery({
-                            name: `New ${collection.name} query`,
-                            url: FileExplorerURL.encode({ collection }),
+                            name: `New ${source.name} query`,
+                            parts: { source },
                         })
                     );
                 },
@@ -116,7 +97,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                 );
             },
         },
-    ]), [dispatch, collections, isAicsEmployee]);
+    ]), [dispatch, dataSources]);
 
     if (!isExpanded) {
         return (

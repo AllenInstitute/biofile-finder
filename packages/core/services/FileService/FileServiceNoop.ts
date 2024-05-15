@@ -1,4 +1,4 @@
-import FileService, { SelectionAggregationResult } from ".";
+import FileService, { Selection, SelectionAggregationResult } from ".";
 import FileDetail from "../../entity/FileDetail";
 
 export default class FileServiceNoop implements FileService {
@@ -12,5 +12,9 @@ export default class FileServiceNoop implements FileService {
 
     public async getFiles(): Promise<FileDetail[]> {
         return [];
+    }
+    
+    public async getFilesAsBuffer(): Promise<Uint8Array> {
+        return Promise.resolve(new Uint8Array());
     }
 }

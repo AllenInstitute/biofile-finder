@@ -9,10 +9,8 @@ import PersistentConfigService from "./PersistentConfigService";
 
 export { default as AnnotationService } from "./AnnotationService";
 export type { default as ApplicationInfoService } from "./ApplicationInfoService";
-export { default as CsvService } from "./CsvService";
 export { default as DatabaseService } from "./DatabaseService";
-export { DataSource } from "./DatabaseService";
-export { default as DatasetService } from "./DatasetService";
+export { default as DatasetService } from "./DataSourceService";
 export type { default as ExecutionEnvService } from "./ExecutionEnvService";
 export { ExecutableEnvCancellationToken, SystemDefaultAppLocation } from "./ExecutionEnvService";
 export type { SaveLocationResolution } from "./ExecutionEnvService";

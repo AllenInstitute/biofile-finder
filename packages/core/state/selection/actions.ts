@@ -8,7 +8,8 @@ import FileSet from "../../entity/FileSet";
 import FileSort from "../../entity/FileSort";
 import NumericRange from "../../entity/NumericRange";
 import Tutorial from "../../entity/Tutorial";
-import { Dataset } from "../../services/DatasetService";
+import { DataSource } from "../../services/DataSourceService";
+import { EMPTY_QUERY_COMPONENTS, FileExplorerURLComponents } from "../../entity/FileExplorerURL";
 
 const STATE_BRANCH_NAME = "selection";
 
@@ -277,7 +278,12 @@ export const ADD_QUERY = makeConstant(STATE_BRANCH_NAME, "add-query");
 
 export interface Query {
     name: string;
-    url: string;
+    parts: FileExplorerURLComponents;
+}
+
+interface PartialQuery {
+    name: string;
+    parts: Partial<FileExplorerURLComponents>;
 }
 
 export interface AddQuery {
@@ -285,9 +291,15 @@ export interface AddQuery {
     type: string;
 }
 
-export function addQuery(view: Query): AddQuery {
+export function addQuery(query: PartialQuery): AddQuery {
     return {
-        payload: view,
+        payload: {
+            ...query,
+            parts: {
+                ...query.parts,
+                ...EMPTY_QUERY_COMPONENTS
+            }
+        },
         type: ADD_QUERY,
     };
 }
@@ -299,19 +311,20 @@ export function addQuery(view: Query): AddQuery {
  */
 export const CHANGE_QUERY = makeConstant(STATE_BRANCH_NAME, "change-query");
 
-export interface Query {
-    name: string;
-    url: string;
-}
-
 export interface ChangeQuery {
     payload: Query;
     type: string;
 }
 
-export function changeQuery(view: Query): ChangeQuery {
+export function changeQuery(query: PartialQuery): ChangeQuery {
     return {
-        payload: view,
+        payload: {
+            ...query,
+            parts: {
+                ...query.parts,
+                ...EMPTY_QUERY_COMPONENTS
+            }
+        },
         type: CHANGE_QUERY,
     };
 }
@@ -496,21 +509,21 @@ export function decodeFileExplorerURL(decodedFileExplorerURL: string): DecodeFil
 }
 
 /**
- * CHANGE_COLLECTION
+ * CHANGE_DATA_SOURCE
  *
- * Intention to update the collection queries are run against.
+ * Intention to update the data source queries are run against.
  */
-export const CHANGE_COLLECTION = makeConstant(STATE_BRANCH_NAME, "change-collection");
+export const CHANGE_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "change-data-source");
 
-export interface ChangeCollectionAction {
-    payload?: Dataset;
+export interface ChangeDataSourceAction {
+    payload?: DataSource;
     type: string;
 }
 
-export function changeCollection(collection?: Dataset): ChangeCollectionAction {
+export function changeDataSource(dataSource?: DataSource): ChangeDataSourceAction {
     return {
-        payload: collection,
-        type: CHANGE_COLLECTION,
+        payload: dataSource,
+        type: CHANGE_DATA_SOURCE,
     };
 }
 

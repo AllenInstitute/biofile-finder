@@ -1,34 +1,26 @@
 import { AnnotationName } from "../Annotation";
-import FileFilter, { FileFilterJson } from "../FileFilter";
+import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
-import { AnnotationValue } from "../../services/AnnotationService";
 import FileSort, { SortOrder } from "../FileSort";
 
-export interface Collection {
+export interface Source {
     name: string;
-    version?: number;
     uri?: string | File;
 }
 
 // Components of the application state this captures
 export interface FileExplorerURLComponents {
     hierarchy: string[];
-    collection?: Collection;
+    source?: Source;
     filters: FileFilter[];
     openFolders: FileFolder[];
     sortColumn?: FileSort;
 }
 
-// JSON format this outputs & expects to receive back from the user
-interface FileExplorerURLJson {
-    groupBy: string[];
-    collection?: Collection;
-    filters: FileFilterJson[];
-    openFolders: AnnotationValue[][];
-    sort?: {
-        annotationName: string;
-        order: SortOrder;
-    };
+export const EMPTY_QUERY_COMPONENTS: FileExplorerURLComponents = {
+    hierarchy: [],
+    filters: [],
+    openFolders: [],
 }
 
 const BEGINNING_OF_TODAY = new Date();
@@ -47,7 +39,7 @@ export const PAST_YEAR_FILTER = new FileFilter(
     AnnotationName.UPLOADED,
     `RANGE(${DATE_LAST_YEAR.toISOString()},${END_OF_TODAY.toISOString()})`
 );
-const DEFAULT_FMS_URL_COMPONENTS = {
+export const DEFAULT_AICS_FMS_QUERY = {
     hierarchy: [],
     openFolders: [],
     filters: [PAST_YEAR_FILTER],
@@ -60,8 +52,6 @@ const DEFAULT_FMS_URL_COMPONENTS = {
  * URL decoded & rehydrated back in.
  */
 export default class FileExplorerURL {
-    public static readonly DEFAULT_FMS_URL = FileExplorerURL.encode(DEFAULT_FMS_URL_COMPONENTS);
-
     /**
      * Encode this FileExplorerURL into a format easily transferable between users
      * that can be decoded back into the data used to create this FileExplorerURL.
@@ -84,8 +74,8 @@ export default class FileExplorerURL {
         if (urlComponents.sortColumn) {
             params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
         }
-        if (urlComponents.collection) {
-            params.append("collection", JSON.stringify(urlComponents.collection));
+        if (urlComponents.source) {
+            params.append("source", JSON.stringify(urlComponents.source));
         }
 
         return params.toString();
@@ -99,8 +89,8 @@ export default class FileExplorerURL {
         const params = new URLSearchParams(encodedURL);
 
         const unparsedOpenFolders = params.getAll("openFolder");
-        const unparsedCollection = params.get("collection");
         const unparsedFilters = params.getAll("filter");
+        const unparsedSource = params.get("source");
         const hierarchy = params.getAll("group");
         const unparsedSort = params.get("sort");
         const hierarchyDepth = hierarchy.length;
@@ -114,8 +104,8 @@ export default class FileExplorerURL {
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
                 .map(parsedFilter => new FileFilter(parsedFilter.name, parsedFilter.value)),
-            collection: unparsedCollection
-                ? JSON.parse(unparsedCollection)
+            source: unparsedSource
+                ? JSON.parse(unparsedSource)
                 : undefined,
             openFolders: unparsedOpenFolders
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))

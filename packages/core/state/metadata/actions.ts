@@ -1,7 +1,7 @@
 import { makeConstant } from "@aics/redux-utils";
 
 import Annotation from "../../entity/Annotation";
-import { Dataset } from "../../services/DatasetService";
+import { DataSource } from "../../services/DataSourceService";
 
 const STATE_BRANCH_NAME = "metadata";
 
@@ -43,38 +43,38 @@ export function requestAnnotations(): RequestAnnotationAction {
 }
 
 /**
- * RECEIVE_DATASETS
+ * RECEIVE_DATA_SOURCES
  *
- * Intention to store listing of collections returned from data service. These are sets of file metadata
+ * Intention to store listing of data sources returned from data service. These are sets of file metadata
  * that can be used to narrow the set of explorable files down.
  */
-export const RECEIVE_COLLECTIONS = makeConstant(STATE_BRANCH_NAME, "receive-collections");
+export const RECEIVE_DATA_SOURCES = makeConstant(STATE_BRANCH_NAME, "receive-data-sources");
 
-export interface ReceiveCollectionsAction {
-    payload: Dataset[];
+export interface ReceiveDataSourcesAction {
+    payload: DataSource[];
     type: string;
 }
 
-export function receiveCollections(payload: Dataset[]): ReceiveCollectionsAction {
+export function receiveDataSources(payload: DataSource[]): ReceiveDataSourcesAction {
     return {
         payload,
-        type: RECEIVE_COLLECTIONS,
+        type: RECEIVE_DATA_SOURCES,
     };
 }
 
 /**
- * REQUEST_COLLECTIONS
+ * REQUEST_DATA_SOURCES
  *
- * Intention to request listing of available collections usable as a data source for files.
+ * Intention to request listing of available data sources usable as a data source for files.
  */
-export const REQUEST_COLLECTIONS = makeConstant(STATE_BRANCH_NAME, "request-collections");
+export const REQUEST_DATA_SOURCES = makeConstant(STATE_BRANCH_NAME, "request-data-sources");
 
-export interface RequestCollectionsAction {
+export interface RequestDataSourcesAction {
     type: string;
 }
 
-export function requestCollections(): RequestCollectionsAction {
+export function requestDataSources(): RequestDataSourcesAction {
     return {
-        type: REQUEST_COLLECTIONS,
+        type: REQUEST_DATA_SOURCES,
     };
 }

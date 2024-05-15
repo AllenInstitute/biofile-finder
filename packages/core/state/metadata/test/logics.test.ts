@@ -3,14 +3,14 @@ import { expect } from "chai";
 import { createSandbox } from "sinon";
 
 import {
-    receiveCollections,
+    receiveDataSources,
     RECEIVE_ANNOTATIONS,
     requestAnnotations,
-    requestCollections,
+    requestDataSources,
 } from "../actions";
 import metadataLogics from "../logics";
 import { initialState, interaction } from "../../";
-import DatasetService, { Dataset } from "../../../services/DatasetService";
+import DatasetService, { DataSource } from "../../../services/DataSourceService";
 
 describe("Metadata logics", () => {
     describe("requestAnnotations", () => {
@@ -53,17 +53,14 @@ describe("Metadata logics", () => {
         });
     });
 
-    describe("requestCollections", () => {
+    describe("requestDataSources", () => {
         const sandbox = createSandbox();
-        const collections: Dataset[] = [
+        const dataSources: DataSource[] = [
             {
                 id: "123414",
                 name: "Microscopy Set",
                 version: 1,
-                query: "",
-                client: "",
-                fixed: false,
-                private: false,
+                uri: "",
                 created: new Date(),
                 createdBy: "test",
             },
@@ -72,7 +69,7 @@ describe("Metadata logics", () => {
         before(() => {
             const datasetService = new DatasetService();
             sandbox.stub(interaction.selectors, "getDatasetService").returns(datasetService);
-            sandbox.stub(datasetService, "getDatasets").resolves(collections);
+            sandbox.stub(datasetService, "getAll").resolves(dataSources);
         });
 
         afterEach(() => {
@@ -83,8 +80,8 @@ describe("Metadata logics", () => {
             sandbox.restore();
         });
 
-        [requestCollections, interaction.actions.refresh].forEach((action) => {
-            it(`Processes ${action().type} into RECEIVE_COLLECTIONS action`, async () => {
+        [requestDataSources, interaction.actions.refresh].forEach((action) => {
+            it(`Processes ${action().type} into RECEIVE_DATA_SOURCES action`, async () => {
                 // Arrange
                 const { actions, logicMiddleware, store } = configureMockStore({
                     state: initialState,
@@ -96,7 +93,7 @@ describe("Metadata logics", () => {
                 await logicMiddleware.whenComplete();
 
                 // Assert
-                expect(actions.includesMatch(receiveCollections(collections))).to.be.true;
+                expect(actions.includesMatch(receiveDataSources(dataSources))).to.be.true;
             });
         });
     });
