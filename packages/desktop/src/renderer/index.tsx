@@ -71,6 +71,9 @@ const frontendInsightsMiddleware = reduxMiddleware(frontendInsights, {
 const store = createReduxStore({
     middleware: [frontendInsightsMiddleware],
     persistedConfig: persistentConfigService.getAll(),
+    platformDependentServices: collectPlatformDependentServices(
+        global.fileDownloadServiceBaseUrl as FileDownloadServiceBaseUrl
+    )
 });
 // https://redux.js.org/api/store#subscribelistener
 store.subscribe(() => {
@@ -111,9 +114,6 @@ function renderFmsFileExplorer() {
         <Provider store={store}>
             <FmsFileExplorer
                 fileExplorerServiceBaseUrl={global.fileExplorerServiceBaseUrl}
-                platformDependentServices={collectPlatformDependentServices(
-                    global.fileDownloadServiceBaseUrl as FileDownloadServiceBaseUrl
-                )}
             />
         </Provider>,
         document.getElementById(APP_ID)

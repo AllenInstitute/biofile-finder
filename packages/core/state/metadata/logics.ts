@@ -1,3 +1,4 @@
+import { uniqBy } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { interaction, ReduxLogicDeps, selection } from "..";
@@ -9,6 +10,7 @@ import {
     REQUEST_ANNOTATIONS,
     REQUEST_COLLECTIONS,
 } from "./actions";
+import * as metadataSelectors from "./selectors";
 import Annotation, { AnnotationName } from "../../entity/Annotation";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
@@ -128,10 +130,11 @@ const receiveAnnotationsLogic = createLogic({
 const requestCollections = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const datasetService = interaction.selectors.getDatasetService(deps.getState());
+        const existingCollections = metadataSelectors.getCollections(deps.getState());
 
         try {
             const collections = await datasetService.getDatasets();
-            dispatch(receiveCollections(collections));
+            dispatch(receiveCollections(uniqBy([...existingCollections, ...collections], "id")));
         } catch (err) {
             console.error("Failed to fetch datasets", err);
         } finally {

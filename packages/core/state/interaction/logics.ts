@@ -15,8 +15,6 @@ import {
     CancelFileDownloadAction,
     setCsvColumns,
     REFRESH,
-    SET_PLATFORM_DEPENDENT_SERVICES,
-    promptUserToUpdateApp,
     OPEN_WITH,
     openWith,
     OpenWithAction,
@@ -28,7 +26,7 @@ import {
     BROWSE_FOR_NEW_DATA_SOURCE,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
-import CsvService, { CsvManifestRequest } from "../../services/CsvService";
+import { CsvManifestRequest } from "../../services/CsvService";
 import {
     DownloadResolution,
     FileDownloadCancellationToken,
@@ -45,31 +43,6 @@ import FileSelection from "../../entity/FileSelection";
 import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileDetail from "../../entity/FileDetail";
 import { AnnotationName } from "../../entity/Annotation";
-
-/**
- * Interceptor responsible for responding to a SET_PLATFORM_DEPENDENT_SERVICES action and
- * determining if an application update is available.
- */
-const checkForUpdates = createLogic({
-    type: SET_PLATFORM_DEPENDENT_SERVICES,
-    async process(deps: ReduxLogicDeps, dispatch, done) {
-        const platformDependentServices = interactionSelectors.getPlatformDependentServices(
-            deps.getState()
-        );
-        try {
-            if (await platformDependentServices.applicationInfoService.updateAvailable()) {
-                const homepage = "https://alleninstitute.github.io/aics-fms-file-explorer-app/";
-                const msg = `A new version of the application is available!<br/>
-                Visit the <a href="${homepage}" target="_blank" title="FMS File Explorer homepage">FMS File Explorer homepage</a> to download.`;
-                dispatch(promptUserToUpdateApp(uniqueId(), msg));
-            }
-        } catch (e) {
-            console.error("Failed while checking if a newer application version is available", e);
-        } finally {
-            done();
-        }
-    },
-});
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -473,7 +446,6 @@ const refresh = createLogic({
 });
 
 export default [
-    checkForUpdates,
     downloadManifest,
     cancelFileDownloadLogic,
     browseForNewDataSource,

@@ -31,7 +31,6 @@ describe("DatasetService", () => {
                 baseUrl,
                 httpClient,
                 userName: "test",
-                database: new DatabaseServiceNoop(),
             });
 
             // Act
@@ -64,7 +63,6 @@ describe("DatasetService", () => {
             const service = new DatasetService({
                 baseUrl,
                 httpClient,
-                database: new DatabaseServiceNoop(),
             });
 
             // Act
@@ -92,7 +90,6 @@ describe("DatasetService", () => {
             const service = new DatasetService({
                 baseUrl,
                 httpClient,
-                database: new DatabaseServiceNoop(),
             });
 
             // Act

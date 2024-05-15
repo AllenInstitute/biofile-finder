@@ -936,7 +936,6 @@ describe("Selection logics", () => {
         beforeEach(() => {
             const datasetService = new DatasetService();
             sinon.stub(interaction.selectors, "getDatasetService").returns(datasetService);
-            sinon.stub(datasetService, "getDataset").resolves(mockCollection);
         });
 
         afterEach(() => {

@@ -1,3 +1,12 @@
+import FrontendInsights from "@aics/frontend-insights";
+import ApplicationInfoService from "./ApplicationInfoService";
+import DatabaseService from "./DatabaseService";
+import ExecutionEnvService from "./ExecutionEnvService";
+import FileDownloadService from "./FileDownloadService";
+import FileViewerService from "./FileViewerService";
+import NotificationService from "./NotificationService";
+import PersistentConfigService from "./PersistentConfigService";
+
 export { default as AnnotationService } from "./AnnotationService";
 export type { default as ApplicationInfoService } from "./ApplicationInfoService";
 export { default as CsvService } from "./CsvService";
@@ -24,3 +33,14 @@ export type {
     UserSelectedApplication,
 } from "./PersistentConfigService";
 export { PersistedConfigKeys } from "./PersistentConfigService";
+
+export interface PlatformDependentServices {
+    applicationInfoService: ApplicationInfoService;
+    databaseService: DatabaseService;
+    fileDownloadService: FileDownloadService;
+    fileViewerService: FileViewerService;
+    frontendInsights: FrontendInsights;
+    executionEnvService: ExecutionEnvService;
+    notificationService: NotificationService;
+    persistentConfigService: PersistentConfigService;
+}

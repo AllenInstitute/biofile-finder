@@ -302,9 +302,16 @@ const decodeFileExplorerURLLogics = createLogic({
         // It is possible the user was sent a private collection, in that event the collection is likely not stored
         // in the state's collection set yet & should be loaded in.
         if (collection && !selectedCollection) {
-            const datasetService = interaction.selectors.getDatasetService(deps.getState());
             // TODO: Good spot to verify dataset...?
-            const newCollection = await datasetService.getDataset(collection);
+            const newCollection = {
+                id: `${collection.name}:${collection.version}`,
+                name: collection.name,
+                version: collection.version,
+                uri: collection.uri,
+                // TODO: unused things
+                created: new Date(),
+                createdBy: "Unknown",
+            };
             dispatch(metadata.actions.receiveCollections([...collections, newCollection]));
             selectedCollection = newCollection;
         }
@@ -447,7 +454,7 @@ const changeCollectionLogic = createLogic({
         const action: ChangeCollectionAction = deps.action;
         const collection = action.payload;
         const collections = metadata.selectors.getCollections(deps.getState());
-        if (collection && !collections.find((collection) => collection.id === collection.id)) {
+        if (collection && !collections.some((collection) => collection.id === collection.id)) {
             dispatch(metadata.actions.receiveCollections([...collections, collection]));
         }
 
@@ -462,6 +469,15 @@ const changeCollectionLogic = createLogic({
  */
 const addQueryLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: newQuery } = deps.action as AddQuery;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(deps.getState());
+
+        const decodedURL = FileExplorerURL.decode(newQuery.url);
+        if (decodedURL.collection?.uri) {
+            console.log(databaseService)
+            await databaseService.addDataSource(decodedURL.collection.name, decodedURL.collection.uri);
+        }
+
         dispatch(changeQuery(deps.action.payload));
         done();
     },

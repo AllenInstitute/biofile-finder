@@ -1,6 +1,4 @@
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
-import DatabaseService from "../DatabaseService";
-import DatabaseServiceNoop from "../DatabaseService/DatabaseServiceNoop";
 
 export interface Dataset {
     id: string;
@@ -13,7 +11,7 @@ export interface Dataset {
     query?: string;
     client?: string;
     fixed?: boolean;
-    uri?: string;
+    uri?: string | File;
     private?: boolean;
     created: Date;
     createdBy: string;
@@ -24,21 +22,15 @@ export interface PythonicDataAccessSnippet {
     setup: string;
 }
 
-interface DatasetConnectionConfig extends ConnectionConfig {
-    database: DatabaseService;
-}
-
 /**
  * Service responsible for fetching dataset related metadata.
  */
 export default class DatasetService extends HttpServiceBase {
     private static readonly ENDPOINT_VERSION = "2.0";
     public static readonly BASE_DATASET_URL = `file-explorer-service/${DatasetService.ENDPOINT_VERSION}/dataset`;
-    private readonly database: DatabaseService;
 
-    constructor(config: DatasetConnectionConfig = { database: new DatabaseServiceNoop() }) {
+    constructor(config: ConnectionConfig = {}) {
         super(config);
-        this.database = config.database;
     }
 
     /**

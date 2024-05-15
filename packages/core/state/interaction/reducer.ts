@@ -5,13 +5,11 @@ import { filter, sortBy } from "lodash";
 import {
     HIDE_CONTEXT_MENU,
     HIDE_VISIBLE_MODAL,
-    PlatformDependentServices,
     REFRESH,
     REMOVE_STATUS,
     SET_USER_SELECTED_APPLICATIONS,
     SET_CSV_COLUMNS,
     SET_FILE_EXPLORER_SERVICE_BASE_URL,
-    SET_PLATFORM_DEPENDENT_SERVICES,
     SET_STATUS,
     SET_VISIBLE_MODAL,
     SHOW_CONTEXT_MENU,
@@ -19,15 +17,17 @@ import {
     StatusUpdate,
     MARK_AS_USED_APPLICATION_BEFORE,
     ShowManifestDownloadDialogAction,
+    SET_IS_AICS_EMPLOYEE,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
+import FileFilter from "../../entity/FileFilter";
+import { PlatformDependentServices } from "../../services";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
 import FileViewerServiceNoop from "../../services/FileViewerService/FileViewerServiceNoop";
 import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
-import FileFilter from "../../entity/FileFilter";
 import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
@@ -44,6 +44,7 @@ export interface InteractionStateBranch {
     fileTypeForVisibleModal?: "csv" | "json" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
     hasUsedApplicationBefore: boolean;
+    isAicsEmployee?: boolean;
     platformDependentServices: PlatformDependentServices;
     refreshKey?: string;
     status: StatusUpdate[];
@@ -119,6 +120,10 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             userSelectedApplications: action.payload,
         }),
+        [SET_IS_AICS_EMPLOYEE]: (state, action) => ({
+            ...state,
+            isAicsEmployee: action.payload,
+        }),
         [SET_STATUS]: (state, action) => ({
             ...state,
             status: sortBy(
@@ -140,18 +145,6 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             fileExplorerServiceBaseUrl: action.payload,
         }),
-        [SET_PLATFORM_DEPENDENT_SERVICES]: (state, action) => {
-            const platformDependentServices: PlatformDependentServices = {
-                ...state.platformDependentServices,
-                ...action.payload,
-            };
-
-            return {
-                ...state,
-                applicationVersion: platformDependentServices.applicationInfoService.getApplicationVersion(),
-                platformDependentServices,
-            };
-        },
         [SET_VISIBLE_MODAL]: (state, action) => ({
             ...state,
             ...action.payload,

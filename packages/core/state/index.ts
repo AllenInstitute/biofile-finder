@@ -6,7 +6,7 @@ import { createLogicMiddleware } from "redux-logic";
 import interaction, { InteractionStateBranch } from "./interaction";
 import metadata, { MetadataStateBranch } from "./metadata";
 import selection, { SelectionStateBranch } from "./selection";
-import FileExplorerURL from "../entity/FileExplorerURL";
+import { PlatformDependentServices } from "../services";
 import { PersistedConfig, PersistedConfigKeys } from "../services/PersistentConfigService";
 import Annotation from "../entity/Annotation";
 
@@ -55,12 +55,13 @@ export const middleware = [logicMiddleware];
 interface CreateStoreOptions {
     middleware?: Middleware[];
     persistedConfig?: PersistedConfig;
+    platformDependentServices?: Partial<PlatformDependentServices>;
 }
 export function createReduxStore(options: CreateStoreOptions = {}) {
     const { persistedConfig } = options;
     const queries = persistedConfig?.[PersistedConfigKeys.Queries]?.length
         ? persistedConfig?.[PersistedConfigKeys.Queries]
-        : [{ url: FileExplorerURL.DEFAULT_FMS_URL, name: "New AICS Query" }];
+        : [];
     const rawDisplayAnnotations =
         persistedConfig && persistedConfig[PersistedConfigKeys.DisplayAnnotations];
     const displayAnnotations = rawDisplayAnnotations
@@ -68,6 +69,10 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
         : [];
     const preloadedState: State = mergeState(initialState, {
         interaction: {
+            platformDependentServices: {
+                ...initialState.interaction.platformDependentServices,
+                ...options.platformDependentServices
+            },
             csvColumns: persistedConfig?.[PersistedConfigKeys.CsvColumns],
             hasUsedApplicationBefore:
                 persistedConfig?.[PersistedConfigKeys.HasUsedApplicationBefore],

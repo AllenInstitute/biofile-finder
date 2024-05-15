@@ -12,7 +12,6 @@ import HttpCsvService from "../../services/CsvService/HttpCsvService";
 import DatabaseCsvService from "../../services/CsvService/DatabaseCsvService";
 
 // BASIC SELECTORS
-export const getApplicationVersion = (state: State) => state.interaction.applicationVersion;
 export const getContextMenuVisibility = (state: State) => state.interaction.contextMenuIsVisible;
 export const getContextMenuItems = (state: State) => state.interaction.contextMenuItems;
 export const getContextMenuPositionReference = (state: State) =>
@@ -32,8 +31,15 @@ export const getRefreshKey = (state: State) => state.interaction.refreshKey;
 export const getUserSelectedApplications = (state: State) =>
     state.interaction.userSelectedApplications;
 export const getVisibleModal = (state: State) => state.interaction.visibleModal;
+export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee;
 
 // COMPOSED SELECTORS
+export const getApplicationVersion = createSelector(
+    [getPlatformDependentServices],
+    ({ applicationInfoService }): string => (
+        applicationInfoService.getApplicationVersion()
+));
+
 // TODO: Implement PythonicDataAccessSnippet
 export const getPythonSnippet = createSelector(
     [],
@@ -139,18 +145,15 @@ export const getDatasetService = createSelector(
         getApplicationVersion,
         getUserName,
         getFileExplorerServiceBaseUrl,
-        getPlatformDependentServices,
         getRefreshKey,
     ],
-    (applicationVersion, userName, fileExplorerBaseUrl, platformDependentServices) => {
-        const { databaseService } = platformDependentServices;
-        return new DatasetService({
+    (applicationVersion, userName, fileExplorerBaseUrl) => (
+        new DatasetService({
             applicationVersion,
             userName,
             baseUrl: fileExplorerBaseUrl,
-            database: databaseService,
-        });
-    }
+        })
+    )
 );
 
 /**

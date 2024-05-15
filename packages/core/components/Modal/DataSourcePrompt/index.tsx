@@ -41,21 +41,18 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
         if (selectedFile) {
             // Grab name minus extension
             const name = selectedFile.name.split(".").slice(0, -1).join("");
-            const addDataSource = async () => {
-                await databaseService.addDataSource(name, selectedFile);
-                dispatch(
-                    selection.actions.addQuery({
-                        name: `New ${name} Query`,
-                        url: FileExplorerURL.encode({
-                            collection: {
-                                name,
-                                version: 1,
-                            },
-                        }),
-                    })
-                );
-            };
-            addDataSource();
+            dispatch(
+                selection.actions.addQuery({
+                    name: `New ${name} Query`,
+                    url: FileExplorerURL.encode({
+                        collection: {
+                            name,
+                            uri: selectedFile,
+                            version: 1,
+                        },
+                    }),
+                })
+            );
             onDismiss();
         }
     };
@@ -66,22 +63,18 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
                 .substring(dataSourceURL.lastIndexOf("/") + 1)
                 .split("?")[0];
             const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
-            const addDataSource = async () => {
-                await databaseService.addDataSource(name, dataSourceURL);
-                dispatch(
-                    selection.actions.addQuery({
-                        name: `New ${name} Query`,
-                        url: FileExplorerURL.encode({
-                            collection: {
-                                name,
-                                uri: dataSourceURL,
-                                version: 1,
-                            },
-                        }),
-                    })
-                );
-            };
-            addDataSource();
+            dispatch(
+                selection.actions.addQuery({
+                    name: `New ${name} Query`,
+                    url: FileExplorerURL.encode({
+                        collection: {
+                            name,
+                            uri: dataSourceURL,
+                            version: 1,
+                        },
+                    }),
+                })
+            );
             onDismiss();
         },
         10000,

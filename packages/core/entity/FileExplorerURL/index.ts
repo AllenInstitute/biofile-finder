@@ -1,16 +1,13 @@
-import { isObject } from "lodash";
-
 import { AnnotationName } from "../Annotation";
 import FileFilter, { FileFilterJson } from "../FileFilter";
 import FileFolder from "../FileFolder";
 import { AnnotationValue } from "../../services/AnnotationService";
-import { ValueError } from "../../errors";
 import FileSort, { SortOrder } from "../FileSort";
 
 export interface Collection {
     name: string;
     version?: number;
-    uri?: string;
+    uri?: string | File;
 }
 
 // Components of the application state this captures
@@ -63,7 +60,6 @@ const DEFAULT_FMS_URL_COMPONENTS = {
  * URL decoded & rehydrated back in.
  */
 export default class FileExplorerURL {
-    public static readonly PROTOCOL = "fms-file-explorer://";
     public static readonly DEFAULT_FMS_URL = FileExplorerURL.encode(DEFAULT_FMS_URL_COMPONENTS);
 
     /**
@@ -73,31 +69,26 @@ export default class FileExplorerURL {
      * of our application state. As in, the names / system we track data in can change
      * without breaking an existing FileExplorerURL.
      * */
-    public static encode(urlComponents: Partial<FileExplorerURLComponents>) {
-        const groupBy = urlComponents.hierarchy?.map((annotation) => annotation) || [];
-        const filters = urlComponents.filters?.map((filter) => filter.toJSON()) || [];
-        const openFolders = urlComponents.openFolders?.map((folder) => folder.fileFolder) || [];
-        const sort = urlComponents.sortColumn
-            ? {
-                  annotationName: urlComponents.sortColumn.annotationName,
-                  order: urlComponents.sortColumn.order,
-              }
-            : undefined;
+    public static encode(urlComponents: Partial<FileExplorerURLComponents>): string {
+        const params = new URLSearchParams();
 
-        const dataToEncode: FileExplorerURLJson = {
-            groupBy,
-            filters,
-            openFolders,
-            sort,
-            collection: urlComponents.collection
-                ? {
-                      name: urlComponents.collection.name,
-                      version: urlComponents.collection.version,
-                      uri: urlComponents.collection.uri,
-                  }
-                : undefined,
-        };
-        return `${FileExplorerURL.PROTOCOL}${JSON.stringify(dataToEncode)}`;
+        urlComponents.hierarchy?.forEach((annotation) => {
+            params.append("group", annotation);
+        });
+        urlComponents.filters?.forEach((filter) => {
+            params.append("filter", JSON.stringify(filter.toJSON()));
+        });
+        urlComponents.openFolders?.map((folder) => {
+            params.append("openFolder", JSON.stringify(folder.fileFolder))
+        });
+        if (urlComponents.sortColumn) {
+            params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
+        }
+        if (urlComponents.collection) {
+            params.append("collection", JSON.stringify(urlComponents.collection));
+        }
+
+        return params.toString();
     }
 
     /**
@@ -105,56 +96,31 @@ export default class FileExplorerURL {
      * application state
      */
     public static decode(encodedURL: string): FileExplorerURLComponents {
-        const trimmedEncodedURL = encodedURL.trim();
-        if (!trimmedEncodedURL.startsWith(FileExplorerURL.PROTOCOL)) {
-            throw new ValueError(
-                "This does not look like an FMS File Explorer URL, invalid protocol."
-            );
-        }
+        const params = new URLSearchParams(encodedURL);
 
-        const parsedURL: FileExplorerURLJson = JSON.parse(
-            trimmedEncodedURL.substring(FileExplorerURL.PROTOCOL.length)
-        );
+        const unparsedOpenFolders = params.getAll("openFolder");
+        const unparsedCollection = params.get("collection");
+        const unparsedFilters = params.getAll("filter");
+        const hierarchy = params.getAll("group");
+        const unparsedSort = params.get("sort");
+        const hierarchyDepth = hierarchy.length;
 
-        let sortColumn = undefined;
-        if (parsedURL.sort) {
-            if (!Object.values(SortOrder).includes(parsedURL.sort.order)) {
-                throw new Error(
-                    `Unable to decode FileExplorerURL, sort order must be one of ${Object.values(
-                        SortOrder
-                    )}`
-                );
-            }
-            sortColumn = new FileSort(parsedURL.sort.annotationName, parsedURL.sort.order);
-        }
-
-        if (
-            parsedURL.collection &&
-            (!isObject(parsedURL.collection) ||
-                !parsedURL.collection.name ||
-                !parsedURL.collection.version)
-        ) {
-            throw new ValueError(
-                `Unable to decode FileExplorerURL, unexpected format (${parsedURL.collection})`
-            );
-        }
-
-        const hierarchyDepth = parsedURL.groupBy.length;
+        const parsedSort = unparsedSort ? JSON.parse(unparsedSort) : undefined;
         return {
-            hierarchy: parsedURL.groupBy,
-            collection: parsedURL.collection,
-            filters: parsedURL.filters.map((filter) => {
-                return new FileFilter(filter.name, filter.value);
-            }),
-            openFolders: parsedURL.openFolders.map((folder) => {
-                if (folder.length > hierarchyDepth) {
-                    throw new Error(
-                        "Unable to decode FileExplorerURL, opened folder depth is greater than hierarchy depth"
-                    );
-                }
-                return new FileFolder(folder);
-            }),
-            sortColumn,
+            hierarchy,
+            sortColumn: parsedSort
+                ? new FileSort(parsedSort.annotationName, parsedSort.order)
+                : undefined,
+            filters: unparsedFilters
+                .map((unparsedFilter) => JSON.parse(unparsedFilter))
+                .map(parsedFilter => new FileFilter(parsedFilter.name, parsedFilter.value)),
+            collection: unparsedCollection
+                ? JSON.parse(unparsedCollection)
+                : undefined,
+            openFolders: unparsedOpenFolders
+                .map((unparsedFolder) => JSON.parse(unparsedFolder))
+                .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
+                .map((parsedFolder) => new FileFolder(parsedFolder)),
         };
     }
 }

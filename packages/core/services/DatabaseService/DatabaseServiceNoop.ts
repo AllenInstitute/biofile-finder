@@ -1,8 +1,6 @@
 import DatabaseService from ".";
 
 export default class DatabaseServiceNoop implements DatabaseService {
-    public table = "noop";
-
     public addDataSource() {
         return Promise.reject("DatabaseServiceNoop:addDataSource");
     }

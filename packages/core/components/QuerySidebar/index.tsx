@@ -30,23 +30,53 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     const queries = useSelector(selection.selectors.getQueries);
     const collections = useSelector(metadata.selectors.getCollections);
     const selectedQuery = useSelector(selection.selectors.getSelectedQuery);
+    const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
+    const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
-    // TODO: Add trigger somewhere on app startup before releasing to public
-    const isAICSEmployee = true;
+    const [isInitialRender, setIsInitialRender] = React.useState(true);
+
+    // Determine a default query to render or prompt the user for a data source
+    // if no default is accessible
+    React.useEffect(() => {
+        if (window.location.search) {
+            if (isInitialRender) {
+                dispatch(selection.actions.addQuery({
+                    name: "New Query",
+                    url: window.location.search
+                }));
+            }
+        } else {
+            if (isAicsEmployee === true) {
+                // If the user is an AICS employee and there is no query in the URL, add a default query
+                dispatch(
+                    selection.actions.addQuery({
+                        name: "New Query",
+                        url: FileExplorerURL.DEFAULT_FMS_URL,
+                    })
+                );
+            } else if (isAicsEmployee === false) {
+                // If no query is selected and there is no query in the URL, prompt the user to select a data source
+                dispatch(interaction.actions.setVisibleModal(ModalType.DataSourcePrompt));
+            }
+        }
+        setIsInitialRender(false);
+    }, [isAicsEmployee, isInitialRender, dispatch])
+
+    React.useEffect(() => {
+        if (!isInitialRender) {
+            // @ts-ignore: For REALLY old browser support
+            if (history.pushState) {
+                const newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' + currentGlobalURL;
+                window.history.pushState({ path: newurl }, '', newurl);
+            }
+        }
+    }, [currentGlobalURL, isInitialRender]);
 
     const [isExpanded, setIsExpanded] = React.useState(true);
 
-    // Default to first query in array if none selected yet some available
-    // this is primarily useful for when loading queries from persisted state
-    React.useEffect(() => {
-        if (queries.length && !selectedQuery) {
-            dispatch(selection.actions.changeQuery(queries[0]));
-        }
-    }, [queries, selectedQuery, dispatch]);
-
     const helpMenuOptions = React.useMemo(() => HELP_OPTIONS(dispatch), [dispatch]);
     const addQueryOptions = React.useMemo(() => ([
-        ...(isAICSEmployee
+        ...(isAicsEmployee
             ? [
                     {
                         key: "AICS FMS",
@@ -65,18 +95,15 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                 ]
             : []),
         ...collections
-            .filter((collection) => !!collection.uri)
             .map((collection) => ({
                 key: collection.id,
-                text: `${
-                    collection.name
-                } (${collection.created.toLocaleDateString()})`,
+                text: collection.name,
                 iconProps: { iconName: "Folder" },
                 onClick: () => {
                     dispatch(
                         selection.actions.addQuery({
                             name: `New ${collection.name} query`,
-                            url: collection.uri as string,
+                            url: FileExplorerURL.encode({ collection }),
                         })
                     );
                 },
@@ -92,7 +119,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                 );
             },
         },
-    ]), [dispatch, collections, isAICSEmployee]);
+    ]), [dispatch, collections, isAicsEmployee]);
 
     if (!isExpanded) {
         return (

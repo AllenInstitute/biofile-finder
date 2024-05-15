@@ -196,6 +196,26 @@ export function hideVisibleModal(): HideVisibleModalAction {
 }
 
 /**
+ * Intention is to set whether the current user is an AICS employee
+ */
+export const SET_IS_AICS_EMPLOYEE = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-is-aics-employee"
+);
+
+export interface SetIsAicsEmployee {
+    type: string;
+    payload: boolean;
+}
+
+export function setIsAicsEmployee(isAicsEmployee: boolean): SetIsAicsEmployee {
+    return {
+        type: SET_IS_AICS_EMPLOYEE,
+        payload: isAicsEmployee,
+    };
+}
+
+/**
  * SET CONNECTION CONFIGURATION FOR THE FILE EXPLORER SERVICE
  */
 export const SET_FILE_EXPLORER_SERVICE_BASE_URL = makeConstant(
@@ -212,41 +232,6 @@ export function setFileExplorerServiceBaseUrl(baseUrl: string): SetFileExplorerS
     return {
         type: SET_FILE_EXPLORER_SERVICE_BASE_URL,
         payload: baseUrl,
-    };
-}
-
-/**
- * SET PLATFORM-DEPENDENT SERVICES
- *
- * These services provide platform-dependent functionality and are expected to be injected once on application load.
- */
-export const SET_PLATFORM_DEPENDENT_SERVICES = makeConstant(
-    STATE_BRANCH_NAME,
-    "set-platform-dependent-services"
-);
-
-export interface PlatformDependentServices {
-    applicationInfoService: ApplicationInfoService;
-    databaseService: DatabaseService;
-    fileDownloadService: FileDownloadService;
-    fileViewerService: FileViewerService;
-    frontendInsights: FrontendInsights;
-    executionEnvService: ExecutionEnvService;
-    notificationService: NotificationService;
-    persistentConfigService: PersistentConfigService;
-}
-
-export interface SetPlatformDependentServices {
-    type: string;
-    payload: Partial<PlatformDependentServices>;
-}
-
-export function setPlatformDependentServices(
-    services: Partial<PlatformDependentServices>
-): SetPlatformDependentServices {
-    return {
-        type: SET_PLATFORM_DEPENDENT_SERVICES,
-        payload: services,
     };
 }
 

@@ -4,8 +4,9 @@ import { DatabaseService } from "../../../core/services";
 
 export default class DatabaseServiceWeb implements DatabaseService {
     private database: duckdb.AsyncDuckDB | undefined;
+    private readonly existingDataSources = new Set<string>();
 
-    private async initializeDatabaseWorker() {
+    public async initialize() {
         // this.database = new duckdb.Database(":memory:");
         const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
 
@@ -25,53 +26,46 @@ export default class DatabaseServiceWeb implements DatabaseService {
         URL.revokeObjectURL(worker_url);
     }
 
-    constructor() {
-        this.initializeDatabaseWorker();
-    }
-
     public async addDataSource(name: string, uri: File | string): Promise<void> {
         if (!this.database) {
-            throw new Error("Database has not yet been initialized");
+            throw new Error("Database failed to initialize");
         }
-        if (uri instanceof File) {
-            await this.database.registerFileHandle(
-                name,
-                uri,
-                duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
-                true
-            );
-        } else {
-            await this.database.registerFileURL(name, uri, duckdb.DuckDBDataProtocol.HTTP, false);
-        }
-        // await this.database.registerFileBuffer(this.table, pickedFile as any);
-        // } else {
-        // throw new Error("yo yo yoooooooooooooooooooooooooo")
-        // await this.database.registerFileURL(this.table, pickedFile, duckdb.DuckDBDataProtocol.HTTP, false);
-        // }
-        const connection = await this.database.connect();
-        try {
-            // TODO: Other file types...
-            await connection.insertCSVFromPath(name, {
-                name,
-                schema: "main",
-                detect: true,
-                header: true,
-                // detect: false,
-                // header: false,
-                delimiter: ",",
-                // columns: {
-                //     col1: new arrow.Int32(),
-                //     col2: new arrow.Utf8(),
-                // },
-            });
-        } finally {
-            await connection.close();
+        if (!this.existingDataSources.has(name)) {
+            if (uri instanceof File) {
+                await this.database.registerFileHandle(
+                    name,
+                    uri,
+                    duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
+                    true
+                );
+            } else {
+                await this.database.registerFileURL(name, uri, duckdb.DuckDBDataProtocol.HTTP, false);
+            }
+            // await this.database.registerFileBuffer(this.table, pickedFile as any);
+            // } else {
+            // throw new Error("yo yo yoooooooooooooooooooooooooo")
+            // await this.database.registerFileURL(this.table, pickedFile, duckdb.DuckDBDataProtocol.HTTP, false);
+            // }
+            const connection = await this.database.connect();
+            try {
+                // TODO: Other file types...
+                await connection.insertCSVFromPath(name, {
+                    name,
+                    schema: "main",
+                    detect: true,
+                    header: true,
+                    delimiter: ",",
+                });
+                this.existingDataSources.add(name);
+            } finally {
+                await connection.close();
+            }
         }
     }
 
     public async saveQueryAsBuffer(sql: string): Promise<Uint8Array> {
         if (!this.database) {
-            throw new Error("Database has not yet been initialized");
+            throw new Error("Database failed to initialize");
         }
 
         const connection = await this.database.connect();
@@ -96,7 +90,7 @@ export default class DatabaseServiceWeb implements DatabaseService {
 
     public async query(sql: string): Promise<any> {
         if (!this.database) {
-            throw new Error("Database has not yet been initialized");
+            throw new Error("Database failed to initialize");
         }
 
         const connection = await this.database.connect();
