@@ -1,4 +1,4 @@
-import FileService, { Selection, SelectionAggregationResult } from ".";
+import FileService, { SelectionAggregationResult } from ".";
 import FileDetail from "../../entity/FileDetail";
 
 export default class FileServiceNoop implements FileService {

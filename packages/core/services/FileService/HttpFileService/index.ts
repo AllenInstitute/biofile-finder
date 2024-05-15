@@ -74,7 +74,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     /**
      * Fetch files and return them as a buffer in the specified format.
      */
-    public async getFilesAsBuffer(annotations: string[], selections: Selection[], format: "csv" | "json" | "parquet"): Promise<Uint8Array> {
+    public async getFilesAsBuffer(): Promise<Uint8Array> {
         throw new Error("Method not implemented.");
     }
 }
