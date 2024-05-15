@@ -1,12 +1,12 @@
 import { find, isArray, reject } from "lodash";
 
-import { IndexError, ValueError } from "../../errors";
-import { Selection } from "../../services/FileService/HttpFileService";
 import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
 import { SortOrder } from "../FileSort";
 import NumericRange from "../NumericRange";
 import FileDetail from "../FileDetail";
+import { IndexError, ValueError } from "../../errors";
+import { Selection } from "../../services/FileService";
 
 /**
  * Enumeration of directives that can be used to change the focus of the FileSelection.

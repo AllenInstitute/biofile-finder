@@ -2,16 +2,16 @@ import { createSelector } from "reselect";
 
 import { State } from "../";
 import { getCollection } from "../selection/selectors";
-import { AnnotationService, CsvService, FileService } from "../../services";
+import { AnnotationService, FileService } from "../../services";
 import DatasetService, { PythonicDataAccessSnippet } from "../../services/DatasetService";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
-import HttpCsvService from "../../services/CsvService/HttpCsvService";
-import DatabaseCsvService from "../../services/CsvService/DatabaseCsvService";
 
 // BASIC SELECTORS
+export const getCollectionForVisibleModal = (state: State) =>
+    state.interaction.collectionForVisibleModal;
 export const getContextMenuVisibility = (state: State) => state.interaction.contextMenuIsVisible;
 export const getContextMenuItems = (state: State) => state.interaction.contextMenuItems;
 export const getContextMenuPositionReference = (state: State) =>
@@ -22,6 +22,8 @@ export const getFileExplorerServiceBaseUrl = (state: State) =>
     state.interaction.fileExplorerServiceBaseUrl;
 export const getFileFiltersForVisibleModal = (state: State) =>
     state.interaction.fileFiltersForVisibleModal;
+export const getFileTypeForVisibleModal = (state: State) =>
+    state.interaction.fileTypeForVisibleModal;
 export const hasUsedApplicationBefore = (state: State) =>
     state.interaction.hasUsedApplicationBefore;
 export const getPlatformDependentServices = (state: State) =>
@@ -36,9 +38,8 @@ export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee
 // COMPOSED SELECTORS
 export const getApplicationVersion = createSelector(
     [getPlatformDependentServices],
-    ({ applicationInfoService }): string => (
-        applicationInfoService.getApplicationVersion()
-));
+    ({ applicationInfoService }): string => applicationInfoService.getApplicationVersion()
+);
 
 // TODO: Implement PythonicDataAccessSnippet
 export const getPythonSnippet = createSelector(
@@ -121,39 +122,14 @@ export const getAnnotationService = createSelector(
     }
 );
 
-export const getCsvService = createSelector(
-    [
-        getCollection,
-        getPlatformDependentServices
-    ],
-    (collection, platformDependentServices): CsvService => {
-        if (collection) {
-            return new DatabaseCsvService({
-                dataSourceName: collection?.name,
-                databaseService: platformDependentServices.databaseService,
-            })
-        }
-
-        return new HttpCsvService({
-            downloadService: platformDependentServices.fileDownloadService,
-        })
-    }
-)
-
 export const getDatasetService = createSelector(
-    [
-        getApplicationVersion,
-        getUserName,
-        getFileExplorerServiceBaseUrl,
-        getRefreshKey,
-    ],
-    (applicationVersion, userName, fileExplorerBaseUrl) => (
+    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl, getRefreshKey],
+    (applicationVersion, userName, fileExplorerBaseUrl) =>
         new DatasetService({
             applicationVersion,
             userName,
             baseUrl: fileExplorerBaseUrl,
         })
-    )
 );
 
 /**

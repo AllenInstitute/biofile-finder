@@ -1,22 +1,35 @@
-import FrontendInsights from "@aics/frontend-insights";
 import { makeConstant } from "@aics/redux-utils";
 import { uniqueId } from "lodash";
 
 import Annotation from "../../entity/Annotation";
-import ApplicationInfoService from "../../services/ApplicationInfoService";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
-import ExecutionEnvService from "../../services/ExecutionEnvService";
-import FileDownloadService from "../../services/FileDownloadService";
 import FileFilter from "../../entity/FileFilter";
-import FileViewerService from "../../services/FileViewerService";
 import { ModalType } from "../../components/Modal";
-import PersistentConfigService, {
-    UserSelectedApplication,
-} from "../../services/PersistentConfigService";
-import { DatabaseService, NotificationService } from "../../services";
+import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import FileDetail from "../../entity/FileDetail";
+import { Collection } from "../../entity/FileExplorerURL";
 
 const STATE_BRANCH_NAME = "interaction";
+
+/**
+ * PROMPT_FOR_DATA_SOURCE
+ *
+ * Intention to prompt the user for a data source; this is largely necessarily for replacing a data source
+ * that has expired or is otherwise no longer available.
+ */
+export const PROMPT_FOR_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "prompt-for-data-source");
+
+export interface PromptForDataSource {
+    type: string;
+    payload: Collection;
+}
+
+export function promptForDataSource(collection: Collection): PromptForDataSource {
+    return {
+        type: PROMPT_FOR_DATA_SOURCE,
+        payload: collection,
+    };
+}
 
 /**
  * DOWNLOAD_MANIFEST
@@ -198,10 +211,7 @@ export function hideVisibleModal(): HideVisibleModalAction {
 /**
  * Intention is to set whether the current user is an AICS employee
  */
-export const SET_IS_AICS_EMPLOYEE = makeConstant(
-    STATE_BRANCH_NAME,
-    "set-is-aics-employee"
-);
+export const SET_IS_AICS_EMPLOYEE = makeConstant(STATE_BRANCH_NAME, "set-is-aics-employee");
 
 export interface SetIsAicsEmployee {
     type: string;

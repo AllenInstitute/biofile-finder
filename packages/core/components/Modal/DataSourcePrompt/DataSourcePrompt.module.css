@@ -71,8 +71,25 @@
     display: flex;
 }
 
-.text {
+.text, .warning {
     font-size: smaller;
+}
+
+.warning {
+    background-color: var(--error-background-color);
+    border-radius: 4px;
+    color: var(--error-text-color);
+    margin-bottom: 8px;
+    padding: 4px;
+}
+
+.warning > h4 {
+    margin: 0 0 4px 0;
+    padding: 0;
+}
+
+.warning > p {
+    padding: 2px 0;
 }
 
 .url-form {

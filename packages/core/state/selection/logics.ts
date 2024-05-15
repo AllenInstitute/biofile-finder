@@ -469,19 +469,6 @@ const changeCollectionLogic = createLogic({
  */
 const addQueryLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { payload: newQuery } = deps.action as AddQuery;
-        const { databaseService } = interaction.selectors.getPlatformDependentServices(
-            deps.getState()
-        );
-
-        const decodedURL = FileExplorerURL.decode(newQuery.url);
-        if (decodedURL.collection?.uri) {
-            await databaseService.addDataSource(
-                decodedURL.collection.name,
-                decodedURL.collection.uri
-            );
-        }
-
         dispatch(changeQuery(deps.action.payload));
         done();
     },
@@ -514,12 +501,29 @@ const addQueryLogic = createLogic({
 const changeQueryLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: newlySelectedQuery } = deps.action as ChangeQuery;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
         const currentQueries = selectionSelectors.getQueries(deps.getState());
         const currentURL = selectionSelectors.getEncodedFileExplorerUrl(deps.getState());
         const updatedQueries = currentQueries.map((query) => ({
             ...query,
             url: query.name === deps.ctx.previouslySelectedQuerywName ? currentURL : query.url,
         }));
+
+        const decodedURL = FileExplorerURL.decode(newlySelectedQuery.url);
+        if (decodedURL.collection?.uri) {
+            try {
+                await databaseService.addDataSource(
+                    decodedURL.collection.name,
+                    decodedURL.collection.uri
+                );
+            } catch (error) {
+                console.error("Failed to add data source, prompting for replacement", error);
+                dispatch(interaction.actions.promptForDataSource(decodedURL.collection));
+            }
+        }
+
         dispatch(decodeFileExplorerURL(newlySelectedQuery.url) as AnyAction);
         dispatch(setQueries(updatedQueries));
         done();

@@ -32,27 +32,35 @@ const DATA_SOURCE_DETAILS = [
 export default function DataSourcePrompt({ onDismiss }: Props) {
     const dispatch = useDispatch();
 
+    const collectionToReplace = useSelector(interaction.selectors.getCollectionForVisibleModal);
+
     const [dataSourceURL, setDataSourceURL] = React.useState("");
     const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
-    const { databaseService } = useSelector(interaction.selectors.getPlatformDependentServices);
+
+    const addOrReplaceQuery = (name: string, uri: File | string) => {
+        const query = {
+            name: collectionToReplace ? collectionToReplace.name : `New ${name} Query`,
+            url: FileExplorerURL.encode({
+                collection: {
+                    name: collectionToReplace ? collectionToReplace.name : name,
+                    uri,
+                    version: 1,
+                },
+            }),
+        };
+        if (collectionToReplace) {
+            dispatch(selection.actions.addQuery(query));
+        } else {
+            dispatch(selection.actions.changeQuery(query));
+        }
+    };
 
     const onChooseFile = (evt: React.FormEvent<HTMLInputElement>) => {
         const selectedFile = (evt.target as HTMLInputElement).files?.[0];
         if (selectedFile) {
             // Grab name minus extension
             const name = selectedFile.name.split(".").slice(0, -1).join("");
-            dispatch(
-                selection.actions.addQuery({
-                    name: `New ${name} Query`,
-                    url: FileExplorerURL.encode({
-                        collection: {
-                            name,
-                            uri: selectedFile,
-                            version: 1,
-                        },
-                    }),
-                })
-            );
+            addOrReplaceQuery(name, selectedFile);
             onDismiss();
         }
     };
@@ -63,18 +71,7 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
                 .substring(dataSourceURL.lastIndexOf("/") + 1)
                 .split("?")[0];
             const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
-            dispatch(
-                selection.actions.addQuery({
-                    name: `New ${name} Query`,
-                    url: FileExplorerURL.encode({
-                        collection: {
-                            name,
-                            uri: dataSourceURL,
-                            version: 1,
-                        },
-                    }),
-                })
-            );
+            addOrReplaceQuery(name, dataSourceURL);
             onDismiss();
         },
         10000,
@@ -83,6 +80,22 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
 
     const body = (
         <>
+            {collectionToReplace && (
+                <div className={styles.warning}>
+                    <h4>Notice</h4>
+                    <p>
+                        There was an error loading the data source file &quot;
+                        {collectionToReplace.name}&quot;. Please re-select the data source file or a
+                        replacement.
+                    </p>
+                    <p>
+                        This may have been due to this being a local file that the browser&apos;s
+                        permissions to access has expired since last time. If so, consider putting
+                        the file in a cloud storage and providing the URL to avoid this issue in the
+                        future.
+                    </p>
+                </div>
+            )}
             <p className={styles.text}>
                 Please provide a &quot;.csv&quot;, &quot;.parquet&quot;, or &quot;.json&quot; file
                 containing metadata about some files. See more details for information about what a

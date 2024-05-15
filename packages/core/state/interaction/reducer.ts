@@ -18,9 +18,11 @@ import {
     MARK_AS_USED_APPLICATION_BEFORE,
     ShowManifestDownloadDialogAction,
     SET_IS_AICS_EMPLOYEE,
+    PROMPT_FOR_DATA_SOURCE,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
+import { Collection } from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
 import { PlatformDependentServices } from "../../services";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
@@ -35,13 +37,14 @@ import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceN
 
 export interface InteractionStateBranch {
     applicationVersion?: string;
+    collectionForVisibleModal?: Collection;
     contextMenuIsVisible: boolean;
     contextMenuItems: ContextMenuItem[];
     contextMenuPositionReference: PositionReference;
     contextMenuOnDismiss?: () => void;
     csvColumns?: string[];
     fileExplorerServiceBaseUrl: string;
-    fileTypeForVisibleModal?: "csv" | "json" | "parquet";
+    fileTypeForVisibleModal: "csv" | "json" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
     hasUsedApplicationBefore: boolean;
     isAicsEmployee?: boolean;
@@ -62,6 +65,7 @@ export const initialState: InteractionStateBranch = {
     contextMenuPositionReference: null,
     fileExplorerServiceBaseUrl: DEFAULT_CONNECTION_CONFIG.baseUrl,
     fileFiltersForVisibleModal: [],
+    fileTypeForVisibleModal: "csv",
     hasUsedApplicationBefore: false,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
@@ -110,6 +114,7 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [HIDE_VISIBLE_MODAL]: (state) => ({
             ...state,
+            collectionForVisibleModal: undefined,
             visibleModal: undefined,
         }),
         [REFRESH]: (state, action) => ({
@@ -152,9 +157,14 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action: ShowManifestDownloadDialogAction) => ({
             ...state,
-            visibleModal: ModalType.CsvManifest,
+            visibleModal: ModalType.MetadataManifest,
             fileTypeForVisibleModal: action.payload.fileType,
             fileFiltersForVisibleModal: action.payload.fileFilters,
+        }),
+        [PROMPT_FOR_DATA_SOURCE]: (state, action) => ({
+            ...state,
+            visibleModal: ModalType.DataSourcePrompt,
+            collectionForVisibleModal: action.payload,
         }),
     },
     initialState
