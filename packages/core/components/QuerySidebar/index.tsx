@@ -33,20 +33,18 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
     const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
-    const [isInitialRender, setIsInitialRender] = React.useState(true);
-
     // Determine a default query to render or prompt the user for a data source
     // if no default is accessible
     React.useEffect(() => {
-        if (window.location.search) {
-            if (isInitialRender) {
+        if (isAicsEmployee === undefined || window.location.search) {
+            // TODO: This boolean logic has to be able to be simpler...
+            if (isAicsEmployee === undefined && window.location.search) {
                 dispatch(selection.actions.addQuery({
                     name: "New Query",
                     url: window.location.search
                 }));
             }
-        } else {
-            if (isAicsEmployee === true) {
+        } else if (isAicsEmployee === true) {
                 // If the user is an AICS employee and there is no query in the URL, add a default query
                 dispatch(
                     selection.actions.addQuery({
@@ -54,23 +52,22 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                         url: FileExplorerURL.DEFAULT_FMS_URL,
                     })
                 );
-            } else if (isAicsEmployee === false) {
-                // If no query is selected and there is no query in the URL, prompt the user to select a data source
-                dispatch(interaction.actions.setVisibleModal(ModalType.DataSourcePrompt));
-            }
+        } else if (isAicsEmployee === false) {
+            console.log(window.location.search, "idk why this is adding teh default");
+            // If no query is selected and there is no query in the URL, prompt the user to select a data source
+            dispatch(interaction.actions.setVisibleModal(ModalType.DataSourcePrompt));
         }
-        setIsInitialRender(false);
-    }, [isAicsEmployee, isInitialRender, dispatch])
+    }, [isAicsEmployee, dispatch])
 
     React.useEffect(() => {
-        if (!isInitialRender) {
+        if (selectedQuery) {
             // @ts-ignore: For REALLY old browser support
             if (history.pushState) {
                 const newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' + currentGlobalURL;
                 window.history.pushState({ path: newurl }, '', newurl);
             }
         }
-    }, [currentGlobalURL, isInitialRender]);
+    }, [currentGlobalURL, selectedQuery]);
 
     const [isExpanded, setIsExpanded] = React.useState(true);
 
