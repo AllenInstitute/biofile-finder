@@ -39,7 +39,6 @@ import {
 } from "../../services/ExecutionEnvService";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import FileSelection from "../../entity/FileSelection";
-import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileDetail from "../../entity/FileDetail";
 import { AnnotationName } from "../../entity/Annotation";
 
@@ -102,7 +101,7 @@ const downloadManifest = createLogic({
             //     selections,
             // };
             // const shouldDownloadFromDatabase = !!selectedDataSource?.uri;
-            let result;
+            // let result;
             // if (shouldDownloadFromDatabase) {
             //     result = await csvService.downloadCsvFromDatabase(
             //         request,

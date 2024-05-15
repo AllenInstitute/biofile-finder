@@ -296,8 +296,8 @@ export function addQuery(query: PartialQuery): AddQuery {
         payload: {
             ...query,
             parts: {
+                ...EMPTY_QUERY_COMPONENTS,
                 ...query.parts,
-                ...EMPTY_QUERY_COMPONENTS
             }
         },
         type: ADD_QUERY,
@@ -321,11 +321,36 @@ export function changeQuery(query: PartialQuery): ChangeQuery {
         payload: {
             ...query,
             parts: {
+                ...EMPTY_QUERY_COMPONENTS,
                 ...query.parts,
-                ...EMPTY_QUERY_COMPONENTS
             }
         },
         type: CHANGE_QUERY,
+    };
+}
+
+/**
+ * REPLACE_DATA_SOURCE
+ * 
+ * Intention to replace the current data source with a new one.
+ */
+export const REPLACE_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "replace-data-source");
+
+export interface ReplaceDataSource {
+    payload: {
+        nameToReplace: string;
+        uri: string | File;
+    };
+    type: string
+}
+
+export function replaceDataSource(nameToReplace: string, uri: string | File): ReplaceDataSource {
+    return {
+        payload: {
+            nameToReplace,
+            uri
+        },
+        type: REPLACE_DATA_SOURCE
     };
 }
 

@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
-import FileExplorerURL from "../../../entity/FileExplorerURL";
 import { interaction, selection } from "../../../state";
 
 import styles from "./DataSourcePrompt.module.css";
@@ -38,19 +37,15 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
     const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
 
     const addOrReplaceQuery = (name: string, uri: File | string) => {
-        const query = {
-            name: dataSourceToReplace ? dataSourceToReplace.name : `New ${name} Query`,
-            parts: {
-                source: {
-                    name: dataSourceToReplace ? dataSourceToReplace.name : name,
-                    uri,
-                },
-            },
-        };
         if (dataSourceToReplace) {
-            dispatch(selection.actions.changeQuery(query));
+            dispatch(selection.actions.replaceDataSource(dataSourceToReplace.name, uri));
         } else {
-            dispatch(selection.actions.addQuery(query));
+            dispatch(selection.actions.addQuery({
+                name: `New ${name} Query`,
+                parts: {
+                    source: { name, uri, },
+                },
+            }));
         }
     };
 

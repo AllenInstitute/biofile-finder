@@ -38,7 +38,6 @@ import FileSelection from "../../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
 import { DatasetService } from "../../../services";
 import { DataSource } from "../../../services/DataSourceService";
-import { receiveDataSources } from "../../metadata/actions";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 
 describe("Selection logics", () => {

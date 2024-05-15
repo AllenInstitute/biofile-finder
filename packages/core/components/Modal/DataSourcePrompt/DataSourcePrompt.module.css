@@ -71,6 +71,10 @@
     display: flex;
 }
 
+.text, .warning > p {
+    padding: 2px 0;
+}
+
 .text, .warning {
     font-size: smaller;
 }
@@ -86,10 +90,6 @@
 .warning > h4 {
     margin: 0 0 4px 0;
     padding: 0;
-}
-
-.warning > p {
-    padding: 2px 0;
 }
 
 .url-form {

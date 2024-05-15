@@ -49,7 +49,7 @@ export interface SelectionStateBranch {
     filters: FileFilter[];
     isDarkTheme: boolean;
     openFileFolders: FileFolder[];
-    selectedQuery?: Query;
+    selectedQuery?: string;
     shouldDisplaySmallFont: boolean;
     shouldDisplayThumbnailView: boolean;
     sortColumn?: FileSort;
@@ -141,7 +141,7 @@ export default makeReducer<SelectionStateBranch>(
         }),
         [CHANGE_QUERY]: (state, action: ChangeQuery) => ({
             ...state,
-            selectedQuery: action.payload,
+            selectedQuery: action.payload.name,
         }),
         [SET_QUERIES]: (state, action: SetQueries) => ({
             ...state,

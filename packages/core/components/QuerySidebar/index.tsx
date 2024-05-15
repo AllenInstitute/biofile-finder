@@ -36,30 +36,32 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     // Determine a default query to render or prompt the user for a data source
     // if no default is accessible
     React.useEffect(() => {
-        if (!window.location.search) {
-            if (isAicsEmployee === true) {
-                // If the user is an AICS employee and there is no query in the URL, add a default query
-                dispatch(
-                    selection.actions.addQuery({
-                        name: "New AICS Query",
-                        parts: DEFAULT_AICS_FMS_QUERY,
-                    })
-                );
-            } else if (isAicsEmployee === false) {
-                // If no query is selected and there is no query in the URL, prompt the user to select a data source
-                dispatch(interaction.actions.setVisibleModal(ModalType.DataSourcePrompt));
+        if (!queries.length) {
+            if (!window.location.search) {
+                if (isAicsEmployee === true) {
+                    // If the user is an AICS employee and there is no query in the URL, add a default query
+                    dispatch(
+                        selection.actions.addQuery({
+                            name: "New AICS Query",
+                            parts: DEFAULT_AICS_FMS_QUERY,
+                        })
+                    );
+                } else if (isAicsEmployee === false) {
+                    // If no query is selected and there is no query in the URL, prompt the user to select a data source
+                    dispatch(interaction.actions.setVisibleModal(ModalType.DataSourcePrompt));
+                }
+            } else if (isAicsEmployee === undefined) {
+                dispatch(selection.actions.addQuery({
+                    name: "New Query",
+                    parts: FileExplorerURL.decode(window.location.search)
+                }));
             }
-        } else if (isAicsEmployee === undefined) {
-            console.log(window.location.search, FileExplorerURL.decode(window.location.search), "idk why this is adding teh default");
-            dispatch(selection.actions.addQuery({
-                name: "New Query",
-                parts: FileExplorerURL.decode(window.location.search)
-            }));
         }
-    }, [isAicsEmployee, dispatch])
+    }, [isAicsEmployee, queries, dispatch])
 
     React.useEffect(() => {
         if (selectedQuery) {
+            // @typescript-eslint/ban-ts-comment
             // @ts-ignore: For REALLY old browser support
             if (history.pushState) {
                 const newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' + currentGlobalURL;
@@ -112,7 +114,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                     />
                 </div>
                 <p>
-                    <strong>{selectedQuery?.name}</strong>
+                    <strong>{selectedQuery}</strong>
                 </p>
             </div>
         );
@@ -150,7 +152,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                 {queries.map((query) => (
                     <Query
                         key={query.name}
-                        isSelected={query.name === selectedQuery?.name}
+                        isSelected={query.name === selectedQuery}
                         query={query}
                     />
                 ))}

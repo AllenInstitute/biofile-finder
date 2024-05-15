@@ -33,6 +33,8 @@ import {
     changeQuery,
     ChangeQuery,
     setQueries,
+    REPLACE_DATA_SOURCE,
+    ReplaceDataSource,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -508,14 +510,13 @@ const changeQueryLogic = createLogic({
         const currentQueryParts = selectionSelectors.getCurrentQueryParts(deps.getState());
         const updatedQueries = currentQueries.map((query) => ({
             ...query,
-            parts: query.name === deps.ctx.previouslySelectedQuerywName
+            parts: query.name === deps.ctx.previouslySelectedQueryName
                 ? currentQueryParts
                 : query.parts
         }));
 
         if (newlySelectedQuery.parts.source?.uri) {
             try {
-                console.log("uri in change query", newlySelectedQuery.parts.source.uri)
                 await databaseService.addDataSource(
                     newlySelectedQuery.parts.source.name,
                     newlySelectedQuery.parts.source.uri
@@ -530,14 +531,57 @@ const changeQueryLogic = createLogic({
         dispatch(setQueries(updatedQueries));
         done();
     },
-    async transform(deps: ReduxLogicDeps, next) {
-        deps.ctx.previouslySelectedQuerywName = selectionSelectors.getSelectedQuery(
+    transform(deps: ReduxLogicDeps, next) {
+        deps.ctx.previouslySelectedQueryName = selectionSelectors.getSelectedQuery(
             deps.getState()
-        )?.name;
+        );
         next(deps.action);
     },
     type: CHANGE_QUERY,
 });
+
+const replaceDataSourceLogic = createLogic({
+    type: REPLACE_DATA_SOURCE,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: { nameToReplace, uri  } } = deps.ctx.replaceDataSourceAction as ReplaceDataSource;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(deps.getState());
+
+        try {
+            await databaseService.addDataSource(nameToReplace, uri);
+        } catch (error) {
+            console.error("Failed to add data source, prompting for replacement", error);
+            dispatch(interaction.actions.promptForDataSource({
+                name: nameToReplace,
+                uri
+            }));
+        }
+
+        dispatch(interaction.actions.refresh() as AnyAction);
+        done();
+    },
+    transform(deps: ReduxLogicDeps, next) {
+        const { payload: { nameToReplace, uri  } } = deps.action as ReplaceDataSource;
+        deps.ctx.replaceDataSourceAction = deps.action;
+        const queries = selectionSelectors.getQueries(deps.getState());
+        const updatedQueries = queries.map(query => {
+            if (query.parts.source?.name !== nameToReplace) {
+                return query;
+            }
+
+            return {
+                ...query,
+                parts: {
+                    ...query.parts,
+                    source: {
+                        ...query.parts.source,
+                        uri
+                    }
+                }
+            }
+        })
+        next(selection.actions.setQueries(updatedQueries))
+    },
+})
 
 export default [
     selectFile,
@@ -549,5 +593,6 @@ export default [
     setAvailableAnnotationsLogic,
     changeDataSourceLogic,
     addQueryLogic,
+    replaceDataSourceLogic,
     changeQueryLogic,
 ];
