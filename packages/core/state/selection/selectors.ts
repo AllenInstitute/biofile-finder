@@ -5,6 +5,7 @@ import { State } from "../";
 import Annotation from "../../entity/Annotation";
 import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
+import FileFuzzyFilter from "../../entity/FileFuzzyFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSort from "../../entity/FileSort";
 import { Dataset } from "../../services/DatasetService";
@@ -20,6 +21,7 @@ export const getAvailableAnnotationsForHierarchyLoading = (state: State) =>
 export const getColumnWidths = (state: State) => state.selection.columnWidths;
 export const getFileGridColumnCount = (state: State) => state.selection.fileGridColumnCount;
 export const getFileFilters = (state: State) => state.selection.filters;
+export const getFileFuzzyFilters = (state: State) => state.selection.fuzzyFilters;
 export const getCollection = (state: State) => state.selection.collection;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getIsDarkTheme = (state: State) => state.selection.isDarkTheme;
@@ -34,10 +36,18 @@ export const getQueries = (state: State) => state.selection.queries;
 
 // COMPOSED SELECTORS
 export const getEncodedFileExplorerUrl = createSelector(
-    [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn, getCollection],
+    [
+        getAnnotationHierarchy,
+        getFileFilters,
+        getFileFuzzyFilters,
+        getOpenFileFolders,
+        getSortColumn,
+        getCollection,
+    ],
     (
         hierarchy: string[],
         filters: FileFilter[],
+        fuzzyFilters: FileFuzzyFilter[],
         openFolders: FileFolder[],
         sortColumn?: FileSort,
         collection?: Dataset
@@ -45,6 +55,7 @@ export const getEncodedFileExplorerUrl = createSelector(
         return FileExplorerURL.encode({
             hierarchy,
             filters,
+            fuzzyFilters,
             openFolders,
             sortColumn,
             collection,

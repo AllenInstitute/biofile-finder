@@ -2,6 +2,7 @@ import { isObject } from "lodash";
 
 import { AnnotationName } from "../Annotation";
 import FileFilter, { FileFilterJson } from "../FileFilter";
+import FileFuzzyFilter from "../FileFuzzyFilter";
 import FileFolder from "../FileFolder";
 import { AnnotationValue } from "../../services/AnnotationService";
 import { ValueError } from "../../errors";
@@ -18,6 +19,7 @@ export interface FileExplorerURLComponents {
     hierarchy: string[];
     collection?: Collection;
     filters: FileFilter[];
+    fuzzyFilters?: FileFuzzyFilter[];
     openFolders: FileFolder[];
     sortColumn?: FileSort;
 }
@@ -27,6 +29,7 @@ interface FileExplorerURLJson {
     groupBy: string[];
     collection?: Collection;
     filters: FileFilterJson[];
+    fuzzyFilters?: FileFuzzyFilter[];
     openFolders: AnnotationValue[][];
     sort?: {
         annotationName: string;
@@ -76,6 +79,7 @@ export default class FileExplorerURL {
     public static encode(urlComponents: Partial<FileExplorerURLComponents>) {
         const groupBy = urlComponents.hierarchy?.map((annotation) => annotation) || [];
         const filters = urlComponents.filters?.map((filter) => filter.toJSON()) || [];
+        const fuzzyFilters = urlComponents.fuzzyFilters?.map((fuzzyFilter) => fuzzyFilter) || [];
         const openFolders = urlComponents.openFolders?.map((folder) => folder.fileFolder) || [];
         const sort = urlComponents.sortColumn
             ? {
@@ -87,6 +91,7 @@ export default class FileExplorerURL {
         const dataToEncode: FileExplorerURLJson = {
             groupBy,
             filters,
+            fuzzyFilters,
             openFolders,
             sort,
             collection: urlComponents.collection
@@ -140,12 +145,21 @@ export default class FileExplorerURL {
         }
 
         const hierarchyDepth = parsedURL.groupBy.length;
+
+        let fuzzyFilters: FileFuzzyFilter[] = [];
+        if (parsedURL.fuzzyFilters) {
+            fuzzyFilters = parsedURL.fuzzyFilters.map((fuzzyFilter) => {
+                return new FileFuzzyFilter(fuzzyFilter.annotationName);
+            });
+        }
+
         return {
             hierarchy: parsedURL.groupBy,
             collection: parsedURL.collection,
             filters: parsedURL.filters.map((filter) => {
                 return new FileFilter(filter.name, filter.value);
             }),
+            fuzzyFilters,
             openFolders: parsedURL.openFolders.map((folder) => {
                 if (folder.length > hierarchyDepth) {
                     throw new Error(

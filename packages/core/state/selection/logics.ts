@@ -5,14 +5,17 @@ import { batch } from "react-redux";
 
 import {
     ADD_FILE_FILTER,
+    ADD_FILE_FUZZY_FILTER,
     SELECT_FILE,
     REORDER_ANNOTATION_HIERARCHY,
     REMOVE_FILE_FILTER,
+    REMOVE_FILE_FUZZY_FILTER,
     REMOVE_FROM_ANNOTATION_HIERARCHY,
     SelectFileAction,
     setAnnotationHierarchy,
     setAvailableAnnotations,
     setFileFilters,
+    setFileFuzzyFilters,
     setFileSelection,
     TOGGLE_FILE_FOLDER_COLLAPSE,
     setOpenFileFolders,
@@ -39,6 +42,7 @@ import * as selectionSelectors from "./selectors";
 import Annotation from "../../entity/Annotation";
 import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
+import FileFuzzyFilter from "../../entity/FileFuzzyFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
@@ -262,6 +266,50 @@ const modifyFileFilters = createLogic({
 });
 
 /**
+ * Interceptor responsible for transforming ADD_FILE_FUZZY_FILTER and REMOVE_FILE_FUZZY_FILTER
+ * actions into a concrete list of ordered FileFuzzyFilters that can be stored directly in
+ * application state under `selections.fuzzyFilters`.
+ */
+const modifyFileFuzzyFilters = createLogic({
+    transform(deps: ReduxLogicDeps, next, reject) {
+        const { action, getState } = deps;
+
+        const previousFuzzyFilters = selectionSelectors.getFileFuzzyFilters(getState());
+        let nextFuzzyFilters: FileFuzzyFilter[];
+
+        const incomingFilters = castArray(action.payload);
+        if (action.type === ADD_FILE_FUZZY_FILTER) {
+            nextFuzzyFilters = uniqWith(
+                [...previousFuzzyFilters, ...incomingFilters],
+                (existing, incoming) => {
+                    return existing.equals(incoming);
+                }
+            );
+        } else {
+            nextFuzzyFilters = previousFuzzyFilters.filter((existing) => {
+                return !incomingFilters.some((incoming) => incoming.equals(existing));
+            });
+        }
+
+        const sortedNextFuzzyFilters = sortBy(nextFuzzyFilters, ["annotationName"]);
+
+        const filtersAreUnchanged =
+            previousFuzzyFilters.length === sortedNextFuzzyFilters.length &&
+            previousFuzzyFilters.every((existing) =>
+                sortedNextFuzzyFilters.some((incoming) => incoming.equals(existing))
+            );
+
+        if (filtersAreUnchanged) {
+            reject && reject(action);
+            return;
+        }
+
+        next(setFileFuzzyFilters(sortedNextFuzzyFilters));
+    },
+    type: [ADD_FILE_FUZZY_FILTER, REMOVE_FILE_FUZZY_FILTER],
+});
+
+/**
  * Interceptor responsible for transforming TOGGLE_FILE_FOLDER_COLLAPSE actions into
  * SET_OPEN_FILE_FOLDERS actions by determining whether the file folder is to be considered
  * open or collapsed.
@@ -292,9 +340,14 @@ const decodeFileExplorerURLLogics = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
         const collections = metadata.selectors.getCollections(deps.getState());
-        const { hierarchy, filters, openFolders, sortColumn, collection } = FileExplorerURL.decode(
-            encodedURL
-        );
+        const {
+            hierarchy,
+            filters,
+            fuzzyFilters,
+            openFolders,
+            sortColumn,
+            collection,
+        } = FileExplorerURL.decode(encodedURL);
 
         let selectedCollection = collections.find(
             (c) => c.name === collection?.name && c.version === collection?.version
@@ -312,6 +365,7 @@ const decodeFileExplorerURLLogics = createLogic({
             dispatch(changeCollection(selectedCollection));
             dispatch(setAnnotationHierarchy(hierarchy));
             dispatch(setFileFilters(filters));
+            dispatch(setFileFuzzyFilters(fuzzyFilters));
             dispatch(setOpenFileFolders(openFolders));
             dispatch(setSortColumn(sortColumn));
         });
@@ -538,6 +592,7 @@ export default [
     selectFile,
     modifyAnnotationHierarchy,
     modifyFileFilters,
+    modifyFileFuzzyFilters,
     toggleFileFolderCollapse,
     decodeFileExplorerURLLogics,
     selectNearbyFile,

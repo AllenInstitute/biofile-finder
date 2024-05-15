@@ -9,6 +9,7 @@ import FileSort from "../../entity/FileSort";
 import NumericRange from "../../entity/NumericRange";
 import Tutorial from "../../entity/Tutorial";
 import { Dataset } from "../../services/DatasetService";
+import FileFuzzyFilter from "../../entity/FileFuzzyFilter";
 
 const STATE_BRANCH_NAME = "selection";
 
@@ -68,6 +69,69 @@ export function removeFileFilter(filter: FileFilter | FileFilter[]): RemoveFileF
     return {
         payload: filter,
         type: REMOVE_FILE_FILTER,
+    };
+}
+
+/**
+ * SET_FILE_FUZZY_FILTERS
+ *
+ * Intention to set, wholesale, a list of FileFuzzyFilters into application state. This should not be dispatched
+ * by UI components; dispatch either an ADD_FILE_FUZZY_FILTER or REMOVE_FILE_FUZZY_FILTER action. Those actions will
+ * trigger the `modifyFileFuzzyFilters` logic, which will then dispatch this action.
+ */
+export const SET_FILE_FUZZY_FILTERS = makeConstant(STATE_BRANCH_NAME, "set-file-fuzzy-filters");
+
+export interface SetFileFuzzyFiltersAction {
+    payload?: FileFuzzyFilter[];
+    type: string;
+}
+
+export function setFileFuzzyFilters(fuzzyFilters?: FileFuzzyFilter[]): SetFileFuzzyFiltersAction {
+    return {
+        payload: fuzzyFilters,
+        type: SET_FILE_FUZZY_FILTERS,
+    };
+}
+
+/**
+ * ADD_FILE_FUZZY_FILTER
+ *
+ * Intention to apply a FileFuzzyFilter.
+ */
+export const ADD_FILE_FUZZY_FILTER = makeConstant(STATE_BRANCH_NAME, "add-file-fuzzy-filter");
+
+export interface AddFileFuzzyFilterAction {
+    payload: FileFuzzyFilter | FileFuzzyFilter[];
+    type: string;
+}
+
+export function addFileFuzzyFilter(
+    filter: FileFuzzyFilter | FileFuzzyFilter[]
+): AddFileFuzzyFilterAction {
+    return {
+        payload: filter,
+        type: ADD_FILE_FUZZY_FILTER,
+    };
+}
+
+/**
+ * REMOVE_FILE_FUZZY_FILTER
+ *
+ * Intention to remove a currently applied FileFuzzyFilter.
+ */
+export const REMOVE_FILE_FUZZY_FILTER = makeConstant(STATE_BRANCH_NAME, "remove-file-fuzzy-filter");
+
+export interface RemoveFileFuzzyFilterAction {
+    payload: FileFuzzyFilter | FileFuzzyFilter[];
+    type: string;
+}
+
+export function removeFileFuzzyFilter(
+    filter: FileFuzzyFilter | FileFuzzyFilter[]
+): RemoveFileFuzzyFilterAction {
+    return {
+        payload: filter,
+        type: REMOVE_FILE_FUZZY_FILTER,
     };
 }
 

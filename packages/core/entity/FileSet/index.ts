@@ -2,6 +2,7 @@ import { defaults, find, join, map, uniqueId } from "lodash";
 import LRUCache from "lru-cache";
 
 import FileFilter from "../FileFilter";
+import FileFuzzyFilter from "../FileFuzzyFilter";
 import FileSort from "../FileSort";
 import FileService from "../../services/FileService";
 import FileServiceNoop from "../../services/FileService/FileServiceNoop";
@@ -11,6 +12,7 @@ import FileDetail from "../FileDetail";
 interface Opts {
     fileService: FileService;
     filters: FileFilter[];
+    fuzzyFilters?: FileFuzzyFilter[];
     maxCacheSize: number;
     sort?: FileSort;
 }
@@ -36,6 +38,7 @@ export default class FileSet {
     private cache: LRUCache<number, FileDetail>;
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
+    public readonly fuzzyFilters?: FileFuzzyFilter[];
     public readonly sort?: FileSort;
     private totalFileCount: number | undefined;
     private indexesForFilesCurrentlyLoading: Set<number> = new Set();
@@ -45,10 +48,15 @@ export default class FileSet {
     }
 
     constructor(opts: Partial<Opts> = {}) {
-        const { fileService, filters, maxCacheSize, sort } = defaults({}, opts, DEFAULT_OPTS);
+        const { fileService, filters, fuzzyFilters, maxCacheSize, sort } = defaults(
+            {},
+            opts,
+            DEFAULT_OPTS
+        );
 
         this.cache = new LRUCache<number, FileDetail>({ max: maxCacheSize });
         this._filters = filters;
+        this.fuzzyFilters = fuzzyFilters;
         this.sort = sort;
         this.fileService = fileService;
 
@@ -167,6 +175,15 @@ export default class FileSet {
 
         if (this.sort) {
             query.push(this.sort.toQueryString());
+        }
+
+        if (this.fuzzyFilters) {
+            const sortedFuzzyFilters = [...this.fuzzyFilters].sort((a, b) =>
+                a.toQueryString().localeCompare(b.toQueryString())
+            );
+            query.push(
+                map(sortedFuzzyFilters, (filterName) => filterName.toQueryString()).join("&")
+            );
         }
 
         return join(query, "&");
