@@ -15,6 +15,10 @@ interface FileAnnotationListProps {
     isLoading: boolean;
 }
 
+// Should probably record this somewhere we can dynamically adjust to, or perhaps just in the file
+// document itself, alas for now this will do.
+const HARD_CODED_AICS_S3_BUCKET_PATH = "http://production.files.allencell.org.s3.amazonaws.com";
+
 /**
  * Component responsible for rendering the metadata pertaining to a file inside the file
  * details pane on right hand side of the application.
@@ -84,6 +88,19 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
             // (i.e. POSIX path held in the database; what we have an annotation for)
             // as well as the path at which the file is *actually* accessible on _this_ computer ("local" file path)
             if (annotation.name === AnnotationName.FILE_PATH) {
+                if (localPath?.startsWith("/allen")) {
+                    ret.push(
+                        <FileAnnotationRow
+                            key="file-path-cloud"
+                            className={styles.row}
+                            name="File Path (Cloud)"
+                            value={`${HARD_CODED_AICS_S3_BUCKET_PATH}${localPath.replace(
+                                "/allen/programs/allencell/data/proj0",
+                                ""
+                            )}`}
+                        />
+                    );
+                }
                 // In certain circumstances (i.e., linux), the path at which a file is accessible is === the canonical path
                 if (localPath && localPath !== annotationValue && !localPath.startsWith("http")) {
                     ret.splice(
