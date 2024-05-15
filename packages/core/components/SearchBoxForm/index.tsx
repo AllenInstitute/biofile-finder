@@ -8,9 +8,12 @@ import styles from "./SearchBoxForm.module.css";
 interface SearchBoxFormProps {
     className?: string;
     title?: string;
+    onDisableFuzzySearch: () => void;
+    onEnableFuzzySearch: () => void;
     onSearch: (filterValue: string) => void;
     onReset: () => void;
     fieldName: string;
+    fuzzySearchEnabled: boolean;
     currentValue: FileFilter | undefined;
 }
 
@@ -24,7 +27,15 @@ const SEARCH_BOX_STYLE_OVERRIDES = {
  * This component renders a simple form for searching on text values
  */
 export default function SearchBoxForm(props: SearchBoxFormProps) {
-    const { onSearch, onReset, fieldName, currentValue } = props;
+    const {
+        onDisableFuzzySearch,
+        onEnableFuzzySearch,
+        onSearch,
+        onReset,
+        fieldName,
+        fuzzySearchEnabled,
+        currentValue,
+    } = props;
 
     const [searchValue, setSearchValue] = React.useState(currentValue?.value ?? "");
 
@@ -51,6 +62,26 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
                 onChange={onSearchBoxChange}
                 value={searchValue}
             />
+            {/* TODO: Improve UI */}
+            <label className={styles.checkboxWrapper}>
+                <input
+                    className={styles.checkbox}
+                    type="checkbox"
+                    role="checkbox"
+                    name="Enable fuzzy search"
+                    value={fieldName}
+                    checked={fuzzySearchEnabled}
+                    aria-checked={fuzzySearchEnabled}
+                    onChange={(event) => {
+                        if (event.target.checked) {
+                            onEnableFuzzySearch();
+                        } else {
+                            onDisableFuzzySearch();
+                        }
+                    }}
+                />
+                Enable fuzzy search
+            </label>
         </div>
     );
 }

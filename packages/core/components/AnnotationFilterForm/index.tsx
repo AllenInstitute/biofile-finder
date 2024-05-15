@@ -7,6 +7,7 @@ import useAnnotationValues from "./useAnnotationValues";
 import Annotation, { AnnotationName } from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
+import FileFuzzyFilter from "../../entity/FileFuzzyFilter";
 import ListPicker from "../ListPicker";
 import { ListItem } from "../ListPicker/ListRow";
 import NumberRangePicker from "../NumberRangePicker";
@@ -29,6 +30,7 @@ interface AnnotationFilterFormProps {
 export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const dispatch = useDispatch();
     const allFilters = useSelector(selection.selectors.getFileFilters);
+    const fuzzyFilters = useSelector(selection.selectors.getFileFuzzyFilters);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
         props.annotation.name,
@@ -49,6 +51,20 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             value,
         }));
     }, [props.annotation, annotationValues, filtersForAnnotation]);
+
+    const fuzzySearchEnabled = React.useMemo(() => {
+        return fuzzyFilters.some((filter) => filter.annotationName === props.annotation.name);
+    }, [fuzzyFilters, props.annotation]);
+
+    const onEnableFuzzySearch = () => {
+        const fuzzyFilter = new FileFuzzyFilter(props.annotation.name);
+        dispatch(selection.actions.addFileFuzzyFilter(fuzzyFilter));
+    };
+
+    const onDisableFuzzySearch = () => {
+        const fuzzyFilter = new FileFuzzyFilter(props.annotation.name);
+        dispatch(selection.actions.removeFileFuzzyFilter(fuzzyFilter));
+    };
 
     const onDeselectAll = () => {
         dispatch(selection.actions.removeFileFilter(filtersForAnnotation));
@@ -157,9 +173,12 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             return (
                 <SearchBoxForm
                     className={styles.picker}
+                    onDisableFuzzySearch={onDisableFuzzySearch}
+                    onEnableFuzzySearch={onEnableFuzzySearch}
                     onSearch={onSearch}
                     onReset={onDeselectAll}
                     fieldName={props.annotation.displayName}
+                    fuzzySearchEnabled={fuzzySearchEnabled}
                     title={`Filter by ${props.annotation.displayName}`}
                     currentValue={filtersForAnnotation?.[0]}
                 />
