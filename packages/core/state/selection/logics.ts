@@ -470,12 +470,16 @@ const changeCollectionLogic = createLogic({
 const addQueryLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: newQuery } = deps.action as AddQuery;
-        const { databaseService } = interaction.selectors.getPlatformDependentServices(deps.getState());
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
 
         const decodedURL = FileExplorerURL.decode(newQuery.url);
         if (decodedURL.collection?.uri) {
-            console.log(databaseService)
-            await databaseService.addDataSource(decodedURL.collection.name, decodedURL.collection.uri);
+            await databaseService.addDataSource(
+                decodedURL.collection.name,
+                decodedURL.collection.uri
+            );
         }
 
         dispatch(changeQuery(deps.action.payload));
