@@ -21,12 +21,16 @@
     display: flex;
     flex-direction: row;
     align-content: center;
-    font-size: 16px;
-    margin-bottom: var(--spacing);
+    font-size: 14px;
+    margin-top: var(--margin);
     cursor: pointer;
 }
 
 .checkbox {
-    margin-right: var(--spacing);
+    margin: 2px 4px 1px 0;
     cursor: pointer;
+}
+
+input[type=checkbox] {
+    accent-color: var(--dark-purple);
 }

@@ -49,7 +49,7 @@ export interface SelectionStateBranch {
     fileGridColumnCount: number;
     fileSelection: FileSelection;
     filters: FileFilter[];
-    fuzzyFilters: FileFuzzyFilter[];
+    fuzzyFilters?: FileFuzzyFilter[];
     isDarkTheme: boolean;
     openFileFolders: FileFolder[];
     selectedQuery?: Query;

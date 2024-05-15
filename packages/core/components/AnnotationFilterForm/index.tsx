@@ -53,7 +53,9 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     }, [props.annotation, annotationValues, filtersForAnnotation]);
 
     const fuzzySearchEnabled = React.useMemo(() => {
-        return fuzzyFilters.some((filter) => filter.annotationName === props.annotation.name);
+        return (
+            fuzzyFilters?.some((filter) => filter.annotationName === props.annotation.name) || false
+        );
     }, [fuzzyFilters, props.annotation]);
 
     const onEnableFuzzySearch = () => {

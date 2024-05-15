@@ -4,6 +4,7 @@ import FileExplorerURL, { FileExplorerURLComponents } from "..";
 import { Dataset } from "../../../services/DatasetService";
 import { AnnotationName } from "../../Annotation";
 import FileFilter from "../../FileFilter";
+import FileFuzzyFilter from "../../FileFuzzyFilter";
 import FileFolder from "../../FileFolder";
 import FileSort, { SortOrder } from "../../FileSort";
 
@@ -28,6 +29,10 @@ describe("FileExplorerURL", () => {
                 { name: "Cas9", value: "spCas9" },
                 { name: "Donor Plasmid", value: "ACTB-mEGFP" },
             ];
+            const expectedFuzzyFilters = [
+                { annotationName: AnnotationName.FILE_NAME },
+                { annotationName: AnnotationName.FILE_PATH },
+            ];
             const expectedOpenFolders = [
                 ["AICS-0"],
                 ["AICS-0", "ACTB-mEGFP"],
@@ -41,6 +46,9 @@ describe("FileExplorerURL", () => {
             const components: FileExplorerURLComponents = {
                 hierarchy: expectedAnnotationNames,
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                fuzzyFilters: expectedFuzzyFilters.map(
+                    (fuzzyFilter) => new FileFuzzyFilter(fuzzyFilter.annotationName)
+                ),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC),
                 collection: {
@@ -53,6 +61,7 @@ describe("FileExplorerURL", () => {
                 JSON.stringify({
                     groupBy: expectedAnnotationNames,
                     filters: expectedFilters,
+                    fuzzyFilters: expectedFuzzyFilters,
                     openFolders: expectedOpenFolders,
                     sort: expectedSort,
                     collection: {
@@ -99,6 +108,10 @@ describe("FileExplorerURL", () => {
                 { name: "Cas9", value: "spCas9" },
                 { name: "Donor Plasmid", value: "ACTB-mEGFP" },
             ];
+            const expectedFuzzyFilters = [
+                { annotationName: AnnotationName.FILE_NAME },
+                { annotationName: AnnotationName.FILE_PATH },
+            ];
             const expectedOpenFolders = [
                 ["3500000654"],
                 ["3500000654", "ACTB-mEGFP"],
@@ -108,6 +121,9 @@ describe("FileExplorerURL", () => {
             const components: FileExplorerURLComponents = {
                 hierarchy: expectedAnnotationNames,
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                fuzzyFilters: expectedFuzzyFilters.map(
+                    (fuzzyFilter) => new FileFuzzyFilter(fuzzyFilter.annotationName)
+                ),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
                 collection: {
@@ -131,6 +147,7 @@ describe("FileExplorerURL", () => {
                 hierarchy: [],
                 filters: [],
                 openFolders: [],
+                fuzzyFilters: undefined,
                 sortColumn: undefined,
                 collection: undefined,
             };

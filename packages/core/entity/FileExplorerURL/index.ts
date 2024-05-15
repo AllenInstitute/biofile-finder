@@ -79,7 +79,8 @@ export default class FileExplorerURL {
     public static encode(urlComponents: Partial<FileExplorerURLComponents>) {
         const groupBy = urlComponents.hierarchy?.map((annotation) => annotation) || [];
         const filters = urlComponents.filters?.map((filter) => filter.toJSON()) || [];
-        const fuzzyFilters = urlComponents.fuzzyFilters?.map((fuzzyFilter) => fuzzyFilter) || [];
+        const fuzzyFilters =
+            urlComponents.fuzzyFilters?.map((fuzzyFilter) => fuzzyFilter) || undefined;
         const openFolders = urlComponents.openFolders?.map((folder) => folder.fileFolder) || [];
         const sort = urlComponents.sortColumn
             ? {
@@ -146,7 +147,7 @@ export default class FileExplorerURL {
 
         const hierarchyDepth = parsedURL.groupBy.length;
 
-        let fuzzyFilters: FileFuzzyFilter[] = [];
+        let fuzzyFilters: FileFuzzyFilter[] | undefined = undefined;
         if (parsedURL.fuzzyFilters) {
             fuzzyFilters = parsedURL.fuzzyFilters.map((fuzzyFilter) => {
                 return new FileFuzzyFilter(fuzzyFilter.annotationName);

@@ -39,16 +39,16 @@ export const getEncodedFileExplorerUrl = createSelector(
     [
         getAnnotationHierarchy,
         getFileFilters,
-        getFileFuzzyFilters,
         getOpenFileFolders,
+        getFileFuzzyFilters,
         getSortColumn,
         getCollection,
     ],
     (
         hierarchy: string[],
         filters: FileFilter[],
-        fuzzyFilters: FileFuzzyFilter[],
         openFolders: FileFolder[],
+        fuzzyFilters?: FileFuzzyFilter[],
         sortColumn?: FileSort,
         collection?: Dataset
     ) => {

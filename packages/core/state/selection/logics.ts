@@ -274,7 +274,7 @@ const modifyFileFuzzyFilters = createLogic({
     transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState } = deps;
 
-        const previousFuzzyFilters = selectionSelectors.getFileFuzzyFilters(getState());
+        const previousFuzzyFilters = selectionSelectors.getFileFuzzyFilters(getState()) || [];
         let nextFuzzyFilters: FileFuzzyFilter[];
 
         const incomingFilters = castArray(action.payload);
