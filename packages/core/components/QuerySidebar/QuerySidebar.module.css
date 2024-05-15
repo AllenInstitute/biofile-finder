@@ -52,7 +52,7 @@
 
     background-color: var(--secondary-sidebar-color);
     color: var(--primary-sidebar-text-color);
-    padding: 0.5em;
+    padding: 1em;
 }
 
 .minimized-container {
@@ -64,7 +64,7 @@
 }
 
 .minimized-container:hover {
-    box-shadow: 5px 0 5px -2px var(--secondary-sidebar-color)
+    box-shadow: 5px 0 5px -2px var(--highlight-background-color)
 }
 
 .minimized-container > p {
@@ -101,15 +101,15 @@
     align-items: center;
     background-color: var(--secondary-sidebar-color);
     bottom: -5px;
-    color: var(--primary-sidebar-color);
+    color: var(--highlight-background-color);
     cursor: pointer;
     display: flex;
     flex-direction: column;
     height: 100%;
     justify-content: space-around;
-    left: min(calc(0.3 * 80% - 6px), var(--query-sidebar-max-width));
+    left: min(calc(0.3 * 80% - 1em), calc(var(--query-sidebar-max-width ) - 1em));
     position: absolute;
-    width: 9px;
+    width: 1em;
 }
 
 .minimize-bar:hover {
