@@ -63,6 +63,10 @@ export default class SQLBuilder {
         return this;
     }
 
+    public toString(): string {
+        return this.toSQL();
+    }
+
     public toSQL(): string {
         if (!this.fromStatement) {
             throw new Error("Unable to build SLQ without a FROM statement");

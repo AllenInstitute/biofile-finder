@@ -113,35 +113,27 @@ export default class DatabaseFileService implements FileService {
      * Fetch files and return them as a buffer in the specified format.
      */
     public async getFilesAsBuffer(annotations: string[], selections: Selection[], format: "csv" | "json" | "parquet"): Promise<Uint8Array> {
-        if (!this.dataSourceName) {
-            throw new Error("blah")
-        }
-        // TODO: use file id
-        // TODO: Automatically generate file id on startup of db if not present in source
         const sqlBuilder = new SQLBuilder()
-            .select(annotations.map((annotation) => `'${annotation}'`).join(', '))
-            .from(this.dataSourceName)
+            .select(annotations.map((annotation) => `"${annotation}"`).join(', '))
+            .from(this.dataSourceName);
 
-        if (!this.dataSourceName) {
-            throw new Error("blah")
-        }
         selections.forEach((selection) => {
             selection.indexRanges.forEach((indexRange) => {
                 const subQuery = new SQLBuilder()
-                    .select("'File Path'")
+                    .select('"File Path"')
                     .from(this.dataSourceName as string)
                     .whereOr(Object.entries(selection.filters).map(([column, values]) => {
                         const commaSeperatedValues = values.map(v => `'${v}'`).join(", ");
-                        return `'${column}' IN (${commaSeperatedValues}}`;
+                        return `"${column}" IN (${commaSeperatedValues}}`;
                     }))
                     .offset(indexRange.start)
-                    .limit(indexRange.end - indexRange.start);
+                    .limit(indexRange.end - indexRange.start + 1);
 
                 if (selection.sort) {
-                    subQuery.orderBy(`'${selection.sort.annotationName}' (${selection.sort.ascending ? "ASC" : "DESC"})`);
+                    subQuery.orderBy(`"${selection.sort.annotationName}" ${selection.sort.ascending ? "ASC" : "DESC"}`);
                 }
 
-                sqlBuilder.whereOr(`'File Path' IN (${subQuery})`)
+                sqlBuilder.whereOr(`"File Path" IN (${subQuery})`)
             });
         });
         return this.databaseService.saveQueryAsBuffer(

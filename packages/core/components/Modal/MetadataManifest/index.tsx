@@ -19,10 +19,12 @@ const downloadOnBrowser = (name: string, data: Uint8Array) => {
         a.href = downloadUrl;
         a.download = name;
         a.click();
+        a.remove();
     } catch (err) {
         console.error(`Failed to download file: ${err}`);
-        URL.revokeObjectURL(downloadUrl);
         throw err;
+    } finally {
+        URL.revokeObjectURL(downloadUrl);
     }
 }
 
@@ -50,6 +52,7 @@ export default function MetadataManifest({ onDismiss }: ModalProps) {
             const selections = fileSelection.toCompactSelectionList();
             const selectedAnnotationNames = selectedAnnotations.map((annotation) => annotation.name);
             const buffer = await fileService.getFilesAsBuffer(selectedAnnotationNames, selections, fileTypeForVisibleModal);
+            console.log("buffer is", buffer);
             downloadOnBrowser(`file-selection-${new Date()}.${fileTypeForVisibleModal}`, buffer);
         }
 

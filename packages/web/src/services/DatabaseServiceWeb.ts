@@ -1,4 +1,5 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
+import { uniqueId } from "lodash";
 
 import { DatabaseService } from "../../../core/services";
 
@@ -7,7 +8,6 @@ export default class DatabaseServiceWeb implements DatabaseService {
     private readonly existingDataSources = new Set<string>();
 
     public async initialize() {
-        // this.database = new duckdb.Database(":memory:");
         const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
 
         // Select a bundle based on browser checks
@@ -41,11 +41,6 @@ export default class DatabaseServiceWeb implements DatabaseService {
             } else {
                 await this.database.registerFileURL(name, uri, duckdb.DuckDBDataProtocol.HTTP, false);
             }
-            // await this.database.registerFileBuffer(this.table, pickedFile as any);
-            // } else {
-            // throw new Error("yo yo yoooooooooooooooooooooooooo")
-            // await this.database.registerFileURL(this.table, pickedFile, duckdb.DuckDBDataProtocol.HTTP, false);
-            // }
             const connection = await this.database.connect();
             try {
                 // TODO: Other file types...
@@ -68,26 +63,15 @@ export default class DatabaseServiceWeb implements DatabaseService {
             throw new Error("Database failed to initialize");
         }
 
+        const resultName = `${uniqueId()}.${format}`
+        const finalSQL = `COPY (${sql}) TO '${resultName}' (FORMAT '${format}');`;
         const connection = await this.database.connect();
         try {
-            const now = new Date().toISOString().replace(/:/g, "-");
-            const resultName = `${now}.${format}`
-            await connection.send(`COPY (${sql}) TO '${resultName}' (FORMAT '${format}');`);
-            return await this.database.copyFileToBuffer(`${resultName}.${format}`);
-            // const link = URL.createObjectURL(new Blob([parquet_buffer]));
+            await connection.send(finalSQL);
+            return await this.database.copyFileToBuffer(resultName);
         } finally {
             await connection.close();
         }
-
-        // this.database?.copyFileToBuffer()
-        // conn.send(`COPY (SELECT * FROM tbl) TO 'result-snappy.parquet' (FORMAT 'parquet');`);
-        // const parquet_buffer = await this._db.copyFileToBuffer('result-snappy.parquet');
-
-        // // Generate a download link
-        // const link = URL.createObjectURL(new Blob([parquet_buffer]));
-
-        // // Close the connection to release memory
-        // await conn.close();
     }
 
     public async query(sql: string): Promise<any> {
