@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
+import { Source } from "../../../entity/FileExplorerURL";
 import { interaction, selection } from "../../../state";
 
 import styles from "./DataSourcePrompt.module.css";
@@ -36,16 +37,16 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
     const [dataSourceURL, setDataSourceURL] = React.useState("");
     const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
 
-    const addOrReplaceQuery = (name: string, uri: File | string) => {
+    const addOrReplaceQuery = (source: Source) => {
         if (dataSourceToReplace) {
-            dispatch(selection.actions.replaceDataSource(dataSourceToReplace.name, uri));
+            dispatch(selection.actions.replaceDataSource(source));
         } else {
-            dispatch(selection.actions.addQuery({
-                name: `New ${name} Query`,
-                parts: {
-                    source: { name, uri, },
-                },
-            }));
+            dispatch(
+                selection.actions.addQuery({
+                    name: `New ${source.name} Query`,
+                    parts: { source },
+                })
+            );
         }
     };
 
@@ -53,8 +54,14 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
         const selectedFile = (evt.target as HTMLInputElement).files?.[0];
         if (selectedFile) {
             // Grab name minus extension
-            const name = selectedFile.name.split(".").slice(0, -1).join("");
-            addOrReplaceQuery(name, selectedFile);
+            const nameAndExtension = selectedFile.name.split(".");
+            const name = nameAndExtension.slice(0, -1).join("");
+            const extension = nameAndExtension.pop();
+            if (!(extension === "csv" || extension === "json" || extension === "parquet")) {
+                alert("Invalid file type. Please select a .csv, .json, or .parquet file.");
+                return;
+            }
+            addOrReplaceQuery({ name, type: extension, uri: selectedFile });
             onDismiss();
         }
     };
@@ -65,7 +72,22 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
                 .substring(dataSourceURL.lastIndexOf("/") + 1)
                 .split("?")[0];
             const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
-            addOrReplaceQuery(name, dataSourceURL);
+            let extensionGuess = uriResource.split(".").pop();
+            if (
+                !(
+                    extensionGuess === "csv" ||
+                    extensionGuess === "json" ||
+                    extensionGuess === "parquet"
+                )
+            ) {
+                console.warn("Guess that the source is a CSV file since no extension easily found");
+                extensionGuess = "csv";
+            }
+            addOrReplaceQuery({
+                name,
+                type: extensionGuess as "csv" | "json" | "parquet",
+                uri: dataSourceURL,
+            });
             onDismiss();
         },
         10000,
@@ -84,8 +106,8 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
                     </p>
                     <p>
                         If this is a local file, the browser&apos;s permissions to access the file
-                        may have expired since last time. If so, consider putting the file in a cloud storage
-                        and providing the URL to avoid this issue in the future.
+                        may have expired since last time. If so, consider putting the file in a
+                        cloud storage and providing the URL to avoid this issue in the future.
                     </p>
                 </div>
             )}

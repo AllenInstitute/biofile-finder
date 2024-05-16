@@ -7,11 +7,11 @@ export default class DatabaseServiceWeb implements DatabaseService {
     private database: duckdb.AsyncDuckDB | undefined;
     private readonly existingDataSources = new Set<string>();
 
-    public async initialize() {
-        const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+    public async initialize(logLevel: duckdb.LogLevel = duckdb.LogLevel.INFO) {
+        const allBundles = duckdb.getJsDelivrBundles();
 
-        // Select a bundle based on browser checks
-        const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+        // Selects the best bundle based on browser checks
+        const bundle = await duckdb.selectBundle(allBundles);
 
         const worker_url = URL.createObjectURL(
             new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" })
@@ -19,14 +19,18 @@ export default class DatabaseServiceWeb implements DatabaseService {
 
         // Instantiate the asynchronus version of DuckDB-wasm
         const worker = new Worker(worker_url);
-        const logger = new duckdb.ConsoleLogger();
+        const logger = new duckdb.ConsoleLogger(logLevel);
         this.database = new duckdb.AsyncDuckDB(logger, worker);
 
         await this.database.instantiate(bundle.mainModule, bundle.pthreadWorker);
         URL.revokeObjectURL(worker_url);
     }
 
-    public async addDataSource(name: string, uri: File | string): Promise<void> {
+    public async addDataSource(
+        name: string,
+        type: "csv" | "json" | "parquet",
+        uri: File | string
+    ): Promise<void> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
@@ -39,18 +43,29 @@ export default class DatabaseServiceWeb implements DatabaseService {
                     true
                 );
             } else {
-                await this.database.registerFileURL(name, uri, duckdb.DuckDBDataProtocol.HTTP, false);
+                const protocol = uri.startsWith("s3")
+                    ? duckdb.DuckDBDataProtocol.S3
+                    : duckdb.DuckDBDataProtocol.HTTP;
+
+                await this.database.registerFileURL(name, uri, protocol, false);
             }
+
             const connection = await this.database.connect();
             try {
-                // TODO: Other file types...
-                await connection.insertCSVFromPath(name, {
-                    name,
-                    schema: "main",
-                    detect: true,
-                    header: true,
-                    delimiter: ",",
-                });
+                if (type === "parquet") {
+                    await connection.query(
+                        `CREATE TABLE "${name}" AS FROM parquet_scan('${name}');`
+                    );
+                } else if (type === "json") {
+                    await connection.query(
+                        `CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`
+                    );
+                } else {
+                    // Default to CSV
+                    await connection.query(
+                        `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true);`
+                    );
+                }
                 this.existingDataSources.add(name);
             } finally {
                 await connection.close();
@@ -58,12 +73,15 @@ export default class DatabaseServiceWeb implements DatabaseService {
         }
     }
 
-    public async saveQueryAsBuffer(sql: string, format: "parquet" | "csv" | "json"): Promise<Uint8Array> {
+    public async saveQueryAsBuffer(
+        sql: string,
+        format: "parquet" | "csv" | "json"
+    ): Promise<Uint8Array> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
 
-        const resultName = `${uniqueId()}.${format}`
+        const resultName = `${uniqueId()}.${format}`;
         const finalSQL = `COPY (${sql}) TO '${resultName}' (FORMAT '${format}');`;
         const connection = await this.database.connect();
         try {

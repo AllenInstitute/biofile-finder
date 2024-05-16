@@ -11,6 +11,7 @@ import NumericRange from "../../../entity/NumericRange";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
 import { AnnotationName } from "../../../entity/Annotation";
 import FileFolder from "../../../entity/FileFolder";
+import { DataSource } from "../../../services/DataSourceService";
 
 describe("Selection reducer", () => {
     [
@@ -60,9 +61,10 @@ describe("Selection reducer", () => {
                 filters: [new FileFilter("file_id", "1238401234")],
                 openFileFolders: [new FileFolder(["AICS-11"])],
             };
-            const dataSource = {
+            const dataSource: DataSource = {
                 name: "My Tiffs",
                 version: 2,
+                type: "csv",
                 id: "13123019",
                 uri: "",
                 created: new Date(),

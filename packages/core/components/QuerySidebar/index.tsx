@@ -1,8 +1,4 @@
-import {
-    DirectionalHint,
-    Icon,
-    IconButton,
-} from "@fluentui/react";
+import { DirectionalHint, Icon, IconButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -51,31 +47,35 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                     dispatch(interaction.actions.setVisibleModal(ModalType.DataSourcePrompt));
                 }
             } else if (isAicsEmployee === undefined) {
-                dispatch(selection.actions.addQuery({
-                    name: "New Query",
-                    parts: FileExplorerURL.decode(window.location.search)
-                }));
+                dispatch(
+                    selection.actions.addQuery({
+                        name: "New Query",
+                        parts: FileExplorerURL.decode(window.location.search),
+                    })
+                );
             }
         }
-    }, [isAicsEmployee, queries, dispatch])
+    }, [isAicsEmployee, queries, dispatch]);
 
     React.useEffect(() => {
         if (selectedQuery) {
-            // @typescript-eslint/ban-ts-comment
-            // @ts-ignore: For REALLY old browser support
-            if (history.pushState) {
-                const newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' + currentGlobalURL;
-                window.history.pushState({ path: newurl }, '', newurl);
-            }
+            const newurl =
+                window.location.protocol +
+                "//" +
+                window.location.host +
+                window.location.pathname +
+                "?" +
+                currentGlobalURL;
+            window.history.pushState({ path: newurl }, "", newurl);
         }
     }, [currentGlobalURL, selectedQuery]);
 
     const [isExpanded, setIsExpanded] = React.useState(true);
 
     const helpMenuOptions = React.useMemo(() => HELP_OPTIONS(dispatch), [dispatch]);
-    const addQueryOptions = React.useMemo(() => ([
-        ...dataSources
-            .map((source) => ({
+    const addQueryOptions = React.useMemo(
+        () => [
+            ...dataSources.map((source) => ({
                 key: source.id,
                 text: source.name,
                 iconProps: { iconName: "Folder" },
@@ -89,17 +89,17 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                 },
                 secondaryText: "Data Source",
             })),
-        {
-            key: "New Data Source...",
-            text: "New Data Source...",
-            iconProps: { iconName: "NewFolder" },
-            onClick: () => {
-                dispatch(
-                    interaction.actions.setVisibleModal(ModalType.DataSourcePrompt)
-                );
+            {
+                key: "New Data Source...",
+                text: "New Data Source...",
+                iconProps: { iconName: "NewFolder" },
+                onClick: () => {
+                    dispatch(interaction.actions.setVisibleModal(ModalType.DataSourcePrompt));
+                },
             },
-        },
-    ]), [dispatch, dataSources]);
+        ],
+        [dispatch, dataSources]
+    );
 
     if (!isExpanded) {
         return (

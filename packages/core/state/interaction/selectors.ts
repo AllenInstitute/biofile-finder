@@ -4,7 +4,10 @@ import { createSelector } from "reselect";
 import { State } from "../";
 import { getDataSource } from "../selection/selectors";
 import { AnnotationService, FileService } from "../../services";
-import DatasetService, { DataSource, PythonicDataAccessSnippet } from "../../services/DataSourceService";
+import DatasetService, {
+    DataSource,
+    PythonicDataAccessSnippet,
+} from "../../services/DataSourceService";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
@@ -46,15 +49,23 @@ export const getApplicationVersion = createSelector(
 
 export const getAllDataSources = createSelector(
     [getDataSources, isAicsEmployee],
-    (dataSources, isAicsEmployee): DataSource[] => (
-        isAicsEmployee ? uniqBy([...dataSources, {
-            id: AICS_FMS_DATA_SOURCE_NAME,
-            name: AICS_FMS_DATA_SOURCE_NAME,
-            version: 1,
-            created: new Date(),
-            createdBy: "AICS",
-        }], "id") : dataSources
-    )
+    (dataSources, isAicsEmployee): DataSource[] =>
+        isAicsEmployee
+            ? uniqBy(
+                  [
+                      ...dataSources,
+                      {
+                          id: AICS_FMS_DATA_SOURCE_NAME,
+                          name: AICS_FMS_DATA_SOURCE_NAME,
+                          type: "csv",
+                          version: 1,
+                          created: new Date(),
+                          createdBy: "AICS",
+                      },
+                  ],
+                  "id"
+              )
+            : dataSources
 );
 
 // TODO: Implement PythonicDataAccessSnippet

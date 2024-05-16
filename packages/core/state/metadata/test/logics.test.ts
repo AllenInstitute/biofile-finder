@@ -59,6 +59,7 @@ describe("Metadata logics", () => {
             {
                 id: "123414",
                 name: "Microscopy Set",
+                type: "csv",
                 version: 1,
                 uri: "",
                 created: new Date(),

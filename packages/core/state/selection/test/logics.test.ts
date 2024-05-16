@@ -31,7 +31,7 @@ import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import NumericRange from "../../../entity/NumericRange";
-import FileExplorerURL from "../../../entity/FileExplorerURL";
+import FileExplorerURL, { Source } from "../../../entity/FileExplorerURL";
 import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
@@ -924,6 +924,7 @@ describe("Selection logics", () => {
             id: "1234148",
             name: "Test Data Source",
             version: 1,
+            type: "csv",
             uri: "",
             created: new Date(),
             createdBy: "test",
@@ -955,9 +956,10 @@ describe("Selection logics", () => {
             const filters = [new FileFilter(annotations[3].name, "20x")];
             const openFolders = [["a"], ["a", false]].map((folder) => new FileFolder(folder));
             const sortColumn = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
-            const source = {
+            const source: Source = {
                 name: mockDataSource.name,
                 uri: "",
+                type: "csv",
             };
             const encodedURL = FileExplorerURL.encode({
                 hierarchy,

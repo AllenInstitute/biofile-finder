@@ -298,16 +298,13 @@ const decodeFileExplorerURLLogics = createLogic({
             encodedURL
         );
 
-        let selectedDataSource = dataSources.find(
-            (c) => c.name === source?.name
-        );
+        let selectedDataSource = dataSources.find((c) => c.name === source?.name);
         // It is possible the user was sent a novel data source in the URL
         if (source && !selectedDataSource) {
             const newDataSource = {
+                ...source,
                 id: source.name,
-                name: source.name,
                 version: 1,
-                uri: source.uri,
                 // TODO: unused things
                 created: new Date(),
                 createdBy: "Unknown",
@@ -510,15 +507,17 @@ const changeQueryLogic = createLogic({
         const currentQueryParts = selectionSelectors.getCurrentQueryParts(deps.getState());
         const updatedQueries = currentQueries.map((query) => ({
             ...query,
-            parts: query.name === deps.ctx.previouslySelectedQueryName
-                ? currentQueryParts
-                : query.parts
+            parts:
+                query.name === deps.ctx.previouslySelectedQueryName
+                    ? currentQueryParts
+                    : query.parts,
         }));
 
         if (newlySelectedQuery.parts.source?.uri) {
             try {
                 await databaseService.addDataSource(
                     newlySelectedQuery.parts.source.name,
+                    newlySelectedQuery.parts.source.type,
                     newlySelectedQuery.parts.source.uri
                 );
             } catch (error) {
@@ -527,14 +526,14 @@ const changeQueryLogic = createLogic({
             }
         }
 
-        dispatch(decodeFileExplorerURL(FileExplorerURL.encode(newlySelectedQuery.parts)) as AnyAction);
+        dispatch(
+            decodeFileExplorerURL(FileExplorerURL.encode(newlySelectedQuery.parts)) as AnyAction
+        );
         dispatch(setQueries(updatedQueries));
         done();
     },
     transform(deps: ReduxLogicDeps, next) {
-        deps.ctx.previouslySelectedQueryName = selectionSelectors.getSelectedQuery(
-            deps.getState()
-        );
+        deps.ctx.previouslySelectedQueryName = selectionSelectors.getSelectedQuery(deps.getState());
         next(deps.action);
     },
     type: CHANGE_QUERY,
@@ -543,28 +542,36 @@ const changeQueryLogic = createLogic({
 const replaceDataSourceLogic = createLogic({
     type: REPLACE_DATA_SOURCE,
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { payload: { nameToReplace, uri  } } = deps.ctx.replaceDataSourceAction as ReplaceDataSource;
-        const { databaseService } = interaction.selectors.getPlatformDependentServices(deps.getState());
+        const {
+            payload: { name, type, uri },
+        } = deps.ctx.replaceDataSourceAction as ReplaceDataSource;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
 
         try {
-            await databaseService.addDataSource(nameToReplace, uri);
+            if (uri) {
+                await databaseService.addDataSource(name, type, uri);
+            }
         } catch (error) {
             console.error("Failed to add data source, prompting for replacement", error);
-            dispatch(interaction.actions.promptForDataSource({
-                name: nameToReplace,
-                uri
-            }));
+            dispatch(
+                interaction.actions.promptForDataSource({
+                    name,
+                    uri,
+                })
+            );
         }
 
         dispatch(interaction.actions.refresh() as AnyAction);
         done();
     },
     transform(deps: ReduxLogicDeps, next) {
-        const { payload: { nameToReplace, uri  } } = deps.action as ReplaceDataSource;
+        const { payload: replacementDataSource } = deps.action as ReplaceDataSource;
         deps.ctx.replaceDataSourceAction = deps.action;
         const queries = selectionSelectors.getQueries(deps.getState());
-        const updatedQueries = queries.map(query => {
-            if (query.parts.source?.name !== nameToReplace) {
+        const updatedQueries = queries.map((query) => {
+            if (query.parts.source?.name !== replacementDataSource.name) {
                 return query;
             }
 
@@ -572,16 +579,13 @@ const replaceDataSourceLogic = createLogic({
                 ...query,
                 parts: {
                     ...query.parts,
-                    source: {
-                        ...query.parts.source,
-                        uri
-                    }
-                }
-            }
-        })
-        next(selection.actions.setQueries(updatedQueries))
+                    source: replacementDataSource,
+                },
+            };
+        });
+        next(selection.actions.setQueries(updatedQueries));
     },
-})
+});
 
 export default [
     selectFile,

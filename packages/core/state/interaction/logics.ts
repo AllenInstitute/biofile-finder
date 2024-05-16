@@ -385,7 +385,8 @@ const browseForNewDataSource = createLogic({
                 selection.actions.addQuery({
                     name: `New ${dataSourceName} Query`,
                     parts: {
-                        source: { name: dataSourceName, uri: filePath },
+                        // TODO: type...
+                        source: { name: dataSourceName, type: "csv", uri: filePath },
                     },
                 })
             );

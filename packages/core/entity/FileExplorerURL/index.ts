@@ -5,6 +5,7 @@ import FileSort, { SortOrder } from "../FileSort";
 
 export interface Source {
     name: string;
+    type: "csv" | "json" | "parquet";
     uri?: string | File;
 }
 
@@ -21,7 +22,7 @@ export const EMPTY_QUERY_COMPONENTS: FileExplorerURLComponents = {
     hierarchy: [],
     filters: [],
     openFolders: [],
-}
+};
 
 const BEGINNING_OF_TODAY = new Date();
 BEGINNING_OF_TODAY.setHours(0, 0, 0, 0);
@@ -69,7 +70,7 @@ export default class FileExplorerURL {
             params.append("filter", JSON.stringify(filter.toJSON()));
         });
         urlComponents.openFolders?.map((folder) => {
-            params.append("openFolder", JSON.stringify(folder.fileFolder))
+            params.append("openFolder", JSON.stringify(folder.fileFolder));
         });
         if (urlComponents.sortColumn) {
             params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
@@ -103,10 +104,8 @@ export default class FileExplorerURL {
                 : undefined,
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
-                .map(parsedFilter => new FileFilter(parsedFilter.name, parsedFilter.value)),
-            source: unparsedSource
-                ? JSON.parse(unparsedSource)
-                : undefined,
+                .map((parsedFilter) => new FileFilter(parsedFilter.name, parsedFilter.value)),
+            source: unparsedSource ? JSON.parse(unparsedSource) : undefined,
             openFolders: unparsedOpenFolders
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)

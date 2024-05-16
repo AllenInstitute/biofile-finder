@@ -9,7 +9,11 @@ import FileSort from "../../entity/FileSort";
 import NumericRange from "../../entity/NumericRange";
 import Tutorial from "../../entity/Tutorial";
 import { DataSource } from "../../services/DataSourceService";
-import { EMPTY_QUERY_COMPONENTS, FileExplorerURLComponents } from "../../entity/FileExplorerURL";
+import {
+    EMPTY_QUERY_COMPONENTS,
+    FileExplorerURLComponents,
+    Source,
+} from "../../entity/FileExplorerURL";
 
 const STATE_BRANCH_NAME = "selection";
 
@@ -298,7 +302,7 @@ export function addQuery(query: PartialQuery): AddQuery {
             parts: {
                 ...EMPTY_QUERY_COMPONENTS,
                 ...query.parts,
-            }
+            },
         },
         type: ADD_QUERY,
     };
@@ -323,7 +327,7 @@ export function changeQuery(query: PartialQuery): ChangeQuery {
             parts: {
                 ...EMPTY_QUERY_COMPONENTS,
                 ...query.parts,
-            }
+            },
         },
         type: CHANGE_QUERY,
     };
@@ -331,26 +335,20 @@ export function changeQuery(query: PartialQuery): ChangeQuery {
 
 /**
  * REPLACE_DATA_SOURCE
- * 
+ *
  * Intention to replace the current data source with a new one.
  */
 export const REPLACE_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "replace-data-source");
 
 export interface ReplaceDataSource {
-    payload: {
-        nameToReplace: string;
-        uri: string | File;
-    };
-    type: string
+    payload: Source;
+    type: string;
 }
 
-export function replaceDataSource(nameToReplace: string, uri: string | File): ReplaceDataSource {
+export function replaceDataSource(dataSource: Source): ReplaceDataSource {
     return {
-        payload: {
-            nameToReplace,
-            uri
-        },
-        type: REPLACE_DATA_SOURCE
+        payload: dataSource,
+        type: REPLACE_DATA_SOURCE,
     };
 }
 

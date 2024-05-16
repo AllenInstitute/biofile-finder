@@ -19,12 +19,14 @@ const STATE_BRANCH_NAME = "interaction";
  */
 export const PROMPT_FOR_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "prompt-for-data-source");
 
+type PartialSource = Omit<Source, "type">;
+
 export interface PromptForDataSource {
     type: string;
-    payload: Source;
+    payload: PartialSource;
 }
 
-export function promptForDataSource(dataSource: Source): PromptForDataSource {
+export function promptForDataSource(dataSource: PartialSource): PromptForDataSource {
     return {
         type: PROMPT_FOR_DATA_SOURCE,
         payload: dataSource,
