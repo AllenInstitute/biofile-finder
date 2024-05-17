@@ -38,9 +38,10 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
      */
     public async isNetworkAccessible(): Promise<boolean> {
         try {
-            await this.get(`${this.baseUrl}/`);
+            await this.get(`${this.baseUrl}/${HttpFileService.BASE_FILE_COUNT_URL}`);
             return true;
-        } catch {
+        } catch (error) {
+            console.error(`Unable to access AICS network ${error}`);
             return false;
         }
     }

@@ -101,7 +101,7 @@ const downloadManifest = createLogic({
         dispatch(
             processStart(
                 manifestDownloadProcessId,
-                "Download of CSV manifest in progress.",
+                "Download of metadata manifest in progress.",
                 onManifestDownloadCancel
             )
         );
@@ -112,11 +112,13 @@ const downloadManifest = createLogic({
             if (result.resolution === DownloadResolution.CANCELLED) {
                 dispatch(removeStatus(manifestDownloadProcessId));
             } else {
-                const successMsg = `Download of CSV manifest finished.<br/>${result.msg}`;
+                const successMsg = `Download of metadata manifest finished.<br/>${
+                    result.msg || ""
+                }`;
                 dispatch(processSuccess(manifestDownloadProcessId, successMsg));
             }
         } catch (err) {
-            const errorMsg = `Download of CSV manifest failed. Details: ${
+            const errorMsg = `Download of metadata manifest failed. Details: ${
                 err instanceof Error ? err.message : err
             }`;
             dispatch(processFailure(manifestDownloadProcessId, errorMsg));

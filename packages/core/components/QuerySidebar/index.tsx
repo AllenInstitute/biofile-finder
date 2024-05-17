@@ -29,6 +29,13 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     const dataSources = useSelector(interaction.selectors.getAllDataSources);
     const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
+    // Select query by default if none is selected
+    React.useEffect(() => {
+        if (!selectedQuery && queries.length) {
+            dispatch(selection.actions.changeQuery(queries[0]));
+        }
+    }, [selectedQuery, queries, dispatch]);
+
     // Determine a default query to render or prompt the user for a data source
     // if no default is accessible
     React.useEffect(() => {

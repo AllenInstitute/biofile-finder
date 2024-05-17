@@ -8,4 +8,8 @@ export default class NotificationServiceWeb implements NotificationService {
     public async showError(): Promise<void> {
         throw new Error("NotificationServiceWeb::showError is not yet implemented");
     }
+
+    public async showQuestion(): Promise<boolean> {
+        throw new Error("NotificationServiceWeb::showQuestion is not yet implemented");
+    }
 }

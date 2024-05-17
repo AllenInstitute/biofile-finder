@@ -132,7 +132,10 @@ export default class FileDetail {
 
     public get size(): number | undefined {
         const size = this.fileDetail.file_size || this.getFirstAnnotationValue("File Size");
-        if (size === undefined || typeof size === "number") {
+        if (size === undefined) {
+            return 0; // Default to 0 if size is not defined for now, need better system
+        }
+        if (typeof size === "number") {
             return size;
         }
         return parseInt(size as string, 10);

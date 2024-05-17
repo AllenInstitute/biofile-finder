@@ -157,11 +157,16 @@ export default class DatabaseFileService implements FileService {
         // If the file system is accessible we can just have DuckDB write the
         // output query directly to the system rather than to a buffer then the file
         if (this.downloadService.isFileSystemAccessible) {
-            const downloadDir = this.downloadService.getDefaultDownloadDirectory();
-            const destination = `${downloadDir}file-selection-${new Date()}`;
+            const downloadDir = await this.downloadService.getDefaultDownloadDirectory();
+            const lowerCaseUserAgent = navigator.userAgent.toLowerCase();
+            const separator = lowerCaseUserAgent.includes("Windows") ? "\\" : "/";
+            const destination = `${downloadDir}${separator}file-selection-${Date.now().toLocaleString(
+                "en-us"
+            )}`;
             await this.databaseService.saveQuery(destination, sqlBuilder.toSQL(), format);
             return {
                 downloadRequestId: uniqueId(),
+                msg: `File downloaded to ${destination}.${format}`,
                 resolution: DownloadResolution.SUCCESS,
             };
         }
