@@ -1,439 +1,65 @@
 import {
     FileDownloadService,
-    FileDownloadCancellationToken,
     DownloadResult,
     FileInfo,
+    DownloadResolution,
 } from "../../../core/services";
-import NotificationServiceWeb from "./NotificationServiceWeb";
-
-// Maps active request ids (uuids) to request download info
-interface ActiveRequestMap {
-    [id: string]: {
-        filePath: string;
-        cancel: () => void;
-        onProgress?: (bytes: number) => void;
-    };
-}
-
-interface WriteStreamOptions {
-    flags: string;
-    start?: number;
-}
-
-interface DownloadOptions {
-    downloadRequestId: string;
-    encoding?: BufferEncoding;
-    outFilePath: string;
-    postData?: string;
-    // requestOptions: http.RequestOptions | https.RequestOptions;
-    url: string;
-    writeStreamOptions: WriteStreamOptions;
-}
 
 export default class FileDownloadServiceWeb implements FileDownloadService {
-    // IPC events registered both within the main and renderer processes
-    public static GET_FILE_SAVE_PATH = "get-file-save-path";
-    public static GET_DOWNLOADS_DIR = "get-downloads-dir";
-    public static SHOW_OPEN_DIALOG = "show-open-dialog-for-download";
+    isFileSystemAccessible = false;
 
-    private activeRequestMap: ActiveRequestMap = {};
-    private cancellationRequests: Set<string> = new Set();
-    private readonly fileDownloadServiceBaseUrl =
-        "http://aics.corp.alleninstitute.org/labkey/fmsfiles/image";
-    private notificationService: NotificationServiceWeb;
+    // public async downloadFiles(urls: string[]): Promise<void> {
+    // throw new Error("blah")
+    // const zip = JsZip();
+    // await Promise.all(urls.map(async (url) => {
+    //     const fileName = url.replace(/^.*[\\/]/, '');
+    //     const response = await fetch(url, { "mode": "no-cors" }) // TODO: Cors...
+    //     console.log("response", response)
+    //     const blob = await response.blob();
+    //     zip.file(fileName, blob);
+    // }));
+    // zip.generateAsync({type: 'blob'}).then(zipFile => {
+    //     const currentDate = new Date().getTime();
+    //     const fileName = `combined-${currentDate}.zip`;
+    //     return this.download(fileName, zipFile);
+    // });
 
-    public static registerIpcHandlers() {
-        // Handler for displaying "Save as" prompt
-        // async function getSavePathHandler(_: IpcMainInvokeEvent, params: ShowSaveDialogParams) {
-        //     return await dialog.showSaveDialog({
-        //         title: params.title,
-        //         defaultPath: path.resolve(app.getPath("downloads"), params.defaultFileName),
-        //         buttonLabel: params.buttonLabel,
-        //         filters: params.filters || [],
-        //     });
-        // }
-        // ipcMain.handle(FileDownloadServiceWeb.GET_FILE_SAVE_PATH, getSavePathHandler);
-        // // Handler for opening a native file browser dialog
-        // async function getOpenDialogHandler(
-        //     _: IpcMainInvokeEvent,
-        //     dialogOptions: Electron.OpenDialogOptions
-        // ) {
-        //     return dialog.showOpenDialog({
-        //         defaultPath: path.resolve("/"),
-        //         buttonLabel: "Select",
-        //         ...dialogOptions,
-        //     });
-        // }
-        // ipcMain.handle(FileDownloadServiceWeb.SHOW_OPEN_DIALOG, getOpenDialogHandler);
-        // // Handler for returning where the downloads directory lives on this computer
-        // async function getDownloadsDirHandler() {
-        //     return app.getPath("downloads");
-        // }
-        // ipcMain.handle(FileDownloadServiceWeb.GET_DOWNLOADS_DIR, getDownloadsDirHandler);
-    }
+    //   const downloadAndZip = urls => {
+    //     return downloadByGroup(urls, 5).then(exportZip);
+    //   }
+    // }
 
-    private static async isDirectory(directoryPath: string): Promise<boolean> {
-        console.log(directoryPath);
-        throw Error("blah");
-        // try {
-        //     // Check if path actually leads to a directory
-        //     const pathStat = await fs.promises.stat(directoryPath);
-        //     return pathStat.isDirectory();
-        // } catch (_) {
-        //     return false;
-        // }
-    }
+    public async download(fileInfo: FileInfo): Promise<DownloadResult> {
+        const data = fileInfo.data || fileInfo.path;
+        let downloadUrl;
+        if (data instanceof Uint8Array) {
+            downloadUrl = URL.createObjectURL(new Blob([data]));
+        } else if (data instanceof Blob) {
+            downloadUrl = URL.createObjectURL(data);
+        } else {
+            downloadUrl = data;
+        }
 
-    private static async isWriteable(path: string): Promise<boolean> {
-        console.log(path);
-        throw Error("blah");
-        // try {
-        //     // Ensure folder is writeable by this user
-        //     await fs.promises.access(path, fs.constants.W_OK);
-        //     return true;
-        // } catch (_) {
-        //     return false;
-        // }
-    }
-
-    constructor(notificationService: NotificationServiceWeb) {
-        this.notificationService = notificationService;
-    }
-
-    public async downloadFile(
-        fileInfo: FileInfo,
-        destination: string,
-        downloadRequestId: string,
-        onProgress?: (transferredBytes: number) => void
-    ): Promise<DownloadResult> {
-        console.log(fileInfo, destination, downloadRequestId, onProgress);
-        throw new Error("blah");
-        // const url = `${this.fileDownloadServiceBaseUrl}${fileInfo.path}`;
-
-        // const outFilePath = path.join(destination, fileInfo.name);
-        // const chunkSize = 1024 * 1024 * 5; // 5MB; arbitrary
-
-        // // retry policy: 3 times no matter the exception, with randomized exponential backoff between attempts
-        // const retry = Policy.handleAll().retry().attempts(3).exponential();
-        // let bytesDownloaded = -1;
-        // while (bytesDownloaded < fileInfo.size) {
-        //     const startByte = bytesDownloaded + 1;
-        //     const endByte = Math.min(startByte + chunkSize - 1, fileInfo.size);
-
-        //     let writeStreamOptions: WriteStreamOptions;
-        //     if (startByte === 0) {
-        //         // First request: ensure outfile is created if doesn't exist or truncated if it does
-        //         writeStreamOptions = {
-        //             flags: "w",
-        //         };
-        //     } else {
-        //         // Handle edge-case in which cancellation requested in-between range requests
-        //         if (this.cancellationRequests.has(downloadRequestId)) {
-        //             this.cancellationRequests.delete(downloadRequestId);
-        //             await this.deleteArtifact(outFilePath);
-        //             return {
-        //                 downloadRequestId,
-        //                 resolution: DownloadResolution.CANCELLED,
-        //             };
-        //         }
-
-        //         writeStreamOptions = {
-        //             // Open file for reading and writing. Required with use of `start` param.
-        //             flags: "r+",
-
-        //             // Start writing at this offset. Enables retrying chunks that may have failed
-        //             // part of the way through.
-        //             start: startByte,
-        //         };
-        //     }
-        //     const result = await retry.execute(() =>
-        //         this.download({
-        //             downloadRequestId,
-        //             outFilePath,
-        //             requestOptions: {
-        //                 method: "GET",
-        //                 headers: {
-        //                     Range: `bytes=${startByte}-${endByte}`,
-        //                 },
-        //             },
-        //             url,
-        //             writeStreamOptions,
-        //         })
-        //     );
-        //     if (result.resolution !== DownloadResolution.SUCCESS) {
-        //         return result;
-        //     }
-        //     if (onProgress) {
-        //         onProgress(endByte - startByte + 1);
-        //     }
-        //     bytesDownloaded = endByte;
-        // }
-
-        // return {
-        //     downloadRequestId,
-        //     msg: `Successfully downloaded ${outFilePath}`,
-        //     resolution: DownloadResolution.SUCCESS,
-        // };
-    }
-
-    public async promptForSaveLocation(): Promise<string> {
-        return Promise.resolve("blah");
-    }
-
-    public async downloadCsvManifest(
-        url: string,
-        postData: string,
-        downloadRequestId: string
-    ): Promise<DownloadResult> {
-        console.log(url, postData, downloadRequestId);
-        throw new Error("blah");
-        // const saveDialogParams = {
-        //     title: "Save CSV manifest",
-        //     defaultFileName: "fms-explorer-selections.csv",
-        //     buttonLabel: "Save manifest",
-        //     filters: [{ name: "CSV files", extensions: ["csv"] }],
-        // };
-        // const result = await ipcRenderer.invoke(
-        //     FileDownloadServiceWeb.GET_FILE_SAVE_PATH,
-        //     saveDialogParams
-        // );
-
-        // if (result.canceled) {
-        //     return Promise.resolve({
-        //         downloadRequestId,
-        //         resolution: DownloadResolution.CANCELLED,
-        //     });
-        // }
-
-        // const requestOptions = {
-        //     method: "POST",
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //         "Content-Length": Buffer.byteLength(postData),
-        //     },
-        // };
-
-        // // On Windows (at least) you have to self-append the file extension when overwriting the name
-        // // I imagine this is not something a lot of people think to do (and is kind of inconvenient)
-        // // - Sean M 08/20/20
-        // const outFilePath = result.filePath.endsWith(".csv")
-        //     ? result.filePath
-        //     : result.filePath + ".csv";
-
-        // return this.download({
-        //     downloadRequestId,
-        //     encoding: "utf-8",
-        //     outFilePath,
-        //     postData,
-        //     requestOptions,
-        //     url,
-        //     writeStreamOptions: { flags: "w" }, // The file is created (if it does not exist) or truncated (if it exists).
-        // });
-    }
-
-    public async promptForDownloadDirectory(): Promise<string> {
-        const title = "Select download directory";
-
-        // Continuously try to set a valid directory location until the user cancels
-        while (true) {
-            const defaultDownloadDirectory = await this.getDefaultDownloadDirectory();
-            const directoryPath = await this.promptUserWithDialog({
-                title,
-                properties: ["openDirectory"],
-                defaultPath: defaultDownloadDirectory,
-            });
-
-            if (directoryPath === FileDownloadCancellationToken) {
-                return FileDownloadCancellationToken;
-            }
-
-            const isDirectory = await FileDownloadServiceWeb.isDirectory(directoryPath);
-            const isWriteable =
-                isDirectory && (await FileDownloadServiceWeb.isWriteable(directoryPath));
-
-            // If the directory has passed validation, return
-            if (isDirectory && isWriteable) {
-                return directoryPath;
-            }
-
-            // Otherwise if the directory failed validation, alert
-            // user to error with executable location
-            let errorMessage = `Whoops! ${directoryPath} is not verifiably a directory on your computer.`;
-            if (isDirectory && !isWriteable) {
-                errorMessage += ` Directory does not appear to be writeable by the current user.`;
-            }
-            await this.notificationService.showError(title, errorMessage);
+        try {
+            const a = document.createElement("a");
+            a.href = downloadUrl;
+            a.download = fileInfo.name;
+            a.target = "_blank";
+            a.click();
+            a.remove();
+            return {
+                downloadRequestId: fileInfo.id,
+                resolution: DownloadResolution.SUCCESS,
+            };
+        } catch (err) {
+            console.error(`Failed to download file: ${err}`);
+            throw err;
+        } finally {
+            URL.revokeObjectURL(downloadUrl);
         }
     }
 
-    public getDefaultDownloadDirectory(): Promise<string> {
-        throw new Error("blah");
-        // return ipcRenderer.invoke(FileDownloadServiceWeb.GET_DOWNLOADS_DIR);
-    }
-
-    public cancelActiveRequest(downloadRequestId: string) {
-        this.cancellationRequests.add(downloadRequestId);
-        if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
-            return;
-        }
-
-        const { cancel } = this.activeRequestMap[downloadRequestId];
-        cancel();
-        delete this.activeRequestMap[downloadRequestId];
-    }
-
-    private download(options: DownloadOptions): Promise<DownloadResult> {
-        console.log(options);
-        throw new Error("blah");
-        // const {
-        //     downloadRequestId,
-        //     encoding,
-        //     outFilePath,
-        //     postData,
-        //     requestOptions,
-        //     url,
-        //     writeStreamOptions,
-        // } = options;
-        // return new Promise((resolve, reject) => {
-        //     // HTTP requests are made when pointed at localhost, HTTPS otherwise. If that ever changes,
-        //     // this logic can be safely removed.
-        //     const requestor = new URL(url).protocol === "http:" ? http : https;
-
-        //     const req = requestor.request(url, requestOptions, (incomingMsg) => {
-        //         if (encoding) {
-        //             incomingMsg.setEncoding(encoding);
-        //         }
-
-        //         const outFileStream = fs.createWriteStream(outFilePath, writeStreamOptions);
-
-        //         if (incomingMsg.statusCode !== undefined && incomingMsg.statusCode >= 400) {
-        //             const errorChunks: string[] = [];
-        //             incomingMsg.on("data", (chunk: string) => {
-        //                 errorChunks.push(chunk);
-        //             });
-        //             incomingMsg.on("end", async () => {
-        //                 try {
-        //                     delete this.activeRequestMap[downloadRequestId];
-        //                     await this.deleteArtifact(outFilePath);
-        //                 } finally {
-        //                     const error = errorChunks.join("");
-        //                     const msg = `Failed to download ${outFilePath}. Error details: ${error}`;
-        //                     reject(new DownloadFailure(msg, downloadRequestId));
-        //                 }
-        //             });
-        //         } else {
-        //             incomingMsg.on("end", async () => {
-        //                 delete this.activeRequestMap[downloadRequestId];
-        //                 if (incomingMsg.aborted) {
-        //                     try {
-        //                         await this.deleteArtifact(outFilePath);
-        //                     } finally {
-        //                         resolve({
-        //                             downloadRequestId,
-        //                             resolution: DownloadResolution.CANCELLED,
-        //                         });
-        //                     }
-        //                 } else {
-        //                     resolve({
-        //                         downloadRequestId,
-        //                         msg: `Successfully downloaded ${outFilePath}`,
-        //                         resolution: DownloadResolution.SUCCESS,
-        //                     });
-        //                 }
-        //             });
-
-        //             incomingMsg.pipe(outFileStream);
-        //         }
-
-        //         const cleanUp = async (sourceErrorMessage: string) => {
-        //             const errors = [sourceErrorMessage];
-        //             try {
-        //                 delete this.activeRequestMap[downloadRequestId];
-
-        //                 // Need to manually close outFileStream if attached read stream
-        //                 // (i.e., `incomingMsg`) ends with error
-        //                 await new Promise<void>((resolve, reject) =>
-        //                     outFileStream.end((err: Error) => {
-        //                         if (err) {
-        //                             reject(err);
-        //                         } else {
-        //                             resolve();
-        //                         }
-        //                     })
-        //                 );
-        //                 await this.deleteArtifact(outFilePath);
-        //             } catch (err) {
-        //                 if (err instanceof Error) {
-        //                     const formatted = `${err.name}: ${err.message}`;
-        //                     errors.push(formatted);
-        //                 }
-        //             } finally {
-        //                 reject(new DownloadFailure(errors.join("<br />"), downloadRequestId));
-        //             }
-        //         };
-
-        //         incomingMsg.on("error", (err) => {
-        //             cleanUp(err.message);
-        //         });
-
-        //         incomingMsg.on("aborted", () => {
-        //             cleanUp(`Download of ${outFilePath} aborted.`);
-        //         });
-
-        //         incomingMsg.on("timeout", () => {
-        //             cleanUp(`Download of ${outFilePath} timed out.`);
-        //         });
-        //     });
-
-        //     req.on("error", async (err) => {
-        //         delete this.activeRequestMap[downloadRequestId];
-        //         // This first branch applies when the download has been explicitly cancelled
-        //         if (err.message === FileDownloadCancellationToken) {
-        //             resolve({
-        //                 downloadRequestId,
-        //                 resolution: DownloadResolution.CANCELLED,
-        //             });
-        //         } else {
-        //             try {
-        //                 await this.deleteArtifact(outFilePath);
-        //             } finally {
-        //                 reject(
-        //                     new DownloadFailure(
-        //                         `Failed to download file: ${err.message}`,
-        //                         downloadRequestId
-        //                     )
-        //                 );
-        //             }
-        //         }
-        //     });
-
-        //     this.activeRequestMap[downloadRequestId] = {
-        //         cancel: () => {
-        //             if (this.cancellationRequests.has(downloadRequestId)) {
-        //                 this.cancellationRequests.delete(downloadRequestId);
-        //             }
-        //             req.destroy(new Error(FileDownloadCancellationToken));
-        //         },
-        //         filePath: outFilePath,
-        //     };
-        //     if (postData) {
-        //         req.write(postData);
-        //     }
-        //     req.end();
-        // });
-    }
-
-    // Prompts user using native file browser for a file path
-    private async promptUserWithDialog(dialogOptions: Electron.OpenDialogOptions): Promise<string> {
-        console.log(dialogOptions);
-        throw new Error("blah");
-        // const result = await ipcRenderer.invoke(
-        //     FileDownloadServiceWeb.SHOW_OPEN_DIALOG,
-        //     dialogOptions
-        // );
-        // if (result.canceled || !result.filePaths.length) {
-        //     return FileDownloadCancellationToken;
-        // }
-        // return result.filePaths[0];
+    public cancelActiveRequest() {
+        /** noop: Browser will handle cancellation */
     }
 }
