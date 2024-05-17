@@ -62,8 +62,6 @@ describe("Metadata logics", () => {
                 type: "csv",
                 version: 1,
                 uri: "",
-                created: new Date(),
-                createdBy: "test",
             },
         ];
 

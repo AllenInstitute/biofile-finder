@@ -6,7 +6,7 @@ export default class ExecutionEnvServiceWeb implements ExecutionEnvService {
     }
 
     public getFilename(filePath: string): string {
-        return filePath.replace(/^.*[\\/]/, '');
+        return filePath.replace(/^.*[\\/]/, "");
     }
 
     public getOS(): string {
@@ -21,21 +21,15 @@ export default class ExecutionEnvServiceWeb implements ExecutionEnvService {
         return navigator.userAgent;
     }
 
-    public async promptForExecutable(
-        promptTitle: string,
-        reasonForPrompt?: string
-    ): Promise<string> {
-        console.log(promptTitle, reasonForPrompt);
-        throw Error("blah");
+    public async promptForExecutable(): Promise<string> {
+        throw Error("ExecutionEnvServiceWeb::promptForExecutable not yet implemented");
     }
 
-    public async promptForFile(extensions?: string[], reasonForPrompt?: string): Promise<string> {
-        console.log(extensions, reasonForPrompt);
-        throw Error("blah");
+    public async promptForFile(): Promise<string> {
+        throw Error("ExecutionEnvServiceWeb::promptForFile not yet implemented");
     }
 
-    public async promptForSaveLocation(promptTitle?: string): Promise<SaveLocationResolution> {
-        console.log(promptTitle);
-        throw Error("blah");
+    public async promptForSaveLocation(): Promise<SaveLocationResolution> {
+        throw Error("ExecutionEnvServiceWeb::promptForSaveLocation not yet implemented");
     }
 }

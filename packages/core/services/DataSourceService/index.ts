@@ -4,8 +4,6 @@ import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 export interface DataSource extends Source {
     id: string;
     version?: number;
-    created: Date;
-    createdBy: string;
 }
 
 export interface PythonicDataAccessSnippet {
@@ -26,6 +24,7 @@ export default class DataSourceService extends HttpServiceBase {
      */
     public async getAll(): Promise<DataSource[]> {
         // TODO: Placeholder until infra S3 bucket is ready
+        // https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues/66
         return [];
     }
 }

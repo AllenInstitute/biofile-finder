@@ -931,8 +931,6 @@ describe("Selection logics", () => {
             version: 1,
             type: "csv",
             uri: "",
-            created: new Date(),
-            createdBy: "test",
         };
 
         beforeEach(() => {

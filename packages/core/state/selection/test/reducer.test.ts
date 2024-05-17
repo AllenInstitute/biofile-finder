@@ -67,8 +67,6 @@ describe("Selection reducer", () => {
                 type: "csv",
                 id: "13123019",
                 uri: "",
-                created: new Date(),
-                createdBy: "test",
             };
 
             // Act

@@ -39,14 +39,14 @@ interface AppProps {
 }
 
 export default function App(props: AppProps) {
-    const {
-        fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION,
-    } = props;
+    const { fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION } = props;
 
     const dispatch = useDispatch();
     const isDarkTheme = useSelector(selection.selectors.getIsDarkTheme);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
-    const platformDependentServices = useSelector(interaction.selectors.getPlatformDependentServices);
+    const platformDependentServices = useSelector(
+        interaction.selectors.getPlatformDependentServices
+    );
 
     // Check for updates to the application on startup
     React.useEffect(() => {
@@ -60,7 +60,10 @@ export default function App(props: AppProps) {
                     dispatch(interaction.actions.promptUserToUpdateApp(uniqueId(), msg));
                 }
             } catch (e) {
-                console.error("Failed while checking if a newer application version is available", e);
+                console.error(
+                    "Failed while checking if a newer application version is available",
+                    e
+                );
             }
         };
         checkForUpdates();
@@ -69,15 +72,6 @@ export default function App(props: AppProps) {
     // Set data source base urls
     // And kick off the process of requesting metadata needed by the application.
     React.useEffect(() => {
-        // Check if the user is an AICS employee if we haven't yet
-        fetch(fileExplorerServiceBaseUrl, { mode: window.location.origin.includes("localhost") ? 'no-cors' : undefined })
-            .then(() => {
-                dispatch(interaction.actions.setIsAicsEmployee(true));
-            })
-            .catch(() => {
-                dispatch(interaction.actions.setIsAicsEmployee(false));
-            });
-
         batch(() => {
             dispatch(interaction.actions.setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl));
             dispatch(metadata.actions.requestAnnotations());

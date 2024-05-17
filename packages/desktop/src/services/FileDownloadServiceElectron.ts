@@ -66,14 +66,13 @@ export default class FileDownloadServiceElectron
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        const data = fileInfo.data || fileInfo.path;
         let downloadUrl;
-        if (data instanceof Uint8Array) {
-            downloadUrl = URL.createObjectURL(new Blob([data]));
-        } else if (data instanceof Blob) {
-            downloadUrl = URL.createObjectURL(data);
-        } else if (typeof data === "string") {
-            const dataAsBlob = new Blob([data], { type: "application/json" });
+        if (fileInfo.data instanceof Uint8Array) {
+            downloadUrl = URL.createObjectURL(new Blob([fileInfo.data]));
+        } else if (fileInfo.data instanceof Blob) {
+            downloadUrl = URL.createObjectURL(fileInfo.data);
+        } else if (typeof fileInfo.data === "string") {
+            const dataAsBlob = new Blob([fileInfo.data], { type: "application/json" });
             downloadUrl = URL.createObjectURL(dataAsBlob);
         } else {
             return this.downloadHttpFile(fileInfo, downloadRequestId, onProgress, destination);

@@ -21,11 +21,12 @@ export default function QueryDataSource(props: Props) {
                 // TODO: This should change when we move towards
                 // having a blank data source only possible
                 // on an empty load
+                // https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues/105
                 if (!dataSource) {
                     return {
                         id: AICS_FMS_DATA_SOURCE_NAME,
-                        title: AICS_FMS_DATA_SOURCE_NAME
-                    }
+                        title: AICS_FMS_DATA_SOURCE_NAME,
+                    };
                 }
 
                 return {

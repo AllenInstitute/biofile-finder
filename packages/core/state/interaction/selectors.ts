@@ -60,8 +60,6 @@ export const getAllDataSources = createSelector(
                           name: AICS_FMS_DATA_SOURCE_NAME,
                           type: "csv",
                           version: 1,
-                          created: new Date(),
-                          createdBy: "AICS",
                       },
                   ],
                   "id"
@@ -90,22 +88,26 @@ export const getUserName = createSelector(
     }
 );
 
-export const getFileService = createSelector(
+export const getHttpFileService = createSelector(
     [
         getApplicationVersion,
         getUserName,
         getFileExplorerServiceBaseUrl,
-        getDataSource,
         getPlatformDependentServices,
         getRefreshKey,
     ],
-    (
-        applicationVersion,
-        userName,
-        fileExplorerBaseUrl,
-        dataSource,
-        platformDependentServices
-    ): FileService => {
+    (applicationVersion, userName, fileExplorerBaseUrl, platformDependentServices) =>
+        new HttpFileService({
+            applicationVersion,
+            userName,
+            baseUrl: fileExplorerBaseUrl,
+            downloadService: platformDependentServices.fileDownloadService,
+        })
+);
+
+export const getFileService = createSelector(
+    [getHttpFileService, getDataSource, getPlatformDependentServices, getRefreshKey],
+    (httpFileService, dataSource, platformDependentServices): FileService => {
         if (dataSource && dataSource?.name !== AICS_FMS_DATA_SOURCE_NAME) {
             return new DatabaseFileService({
                 databaseService: platformDependentServices.databaseService,
@@ -113,12 +115,8 @@ export const getFileService = createSelector(
                 downloadService: platformDependentServices.fileDownloadService,
             });
         }
-        return new HttpFileService({
-            applicationVersion,
-            userName,
-            baseUrl: fileExplorerBaseUrl,
-            downloadService: platformDependentServices.fileDownloadService,
-        });
+
+        return httpFileService;
     }
 );
 

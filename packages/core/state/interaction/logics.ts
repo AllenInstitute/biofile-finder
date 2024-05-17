@@ -1,4 +1,5 @@
 import { isEmpty, sumBy, throttle, uniq, uniqueId } from "lodash";
+import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { metadata, ReduxLogicDeps, selection } from "../";
@@ -22,9 +23,10 @@ import {
     DOWNLOAD_FILES,
     DownloadFilesAction,
     OpenWithDefaultAction,
-    BROWSE_FOR_NEW_DATA_SOURCE,
     PROMPT_FOR_NEW_EXECUTABLE,
     setUserSelectedApplication,
+    SET_FILE_EXPLORER_SERVICE_BASE_URL,
+    setIsAicsEmployee,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
@@ -39,6 +41,19 @@ import FileDetail from "../../entity/FileDetail";
 import { AnnotationName } from "../../entity/Annotation";
 import FileSelection from "../../entity/FileSelection";
 import NumericRange from "../../entity/NumericRange";
+
+/**
+ * Interceptor responsible for checking if the user is able to access the AICS network
+ */
+const checkAicsEmployee = createLogic({
+    type: SET_FILE_EXPLORER_SERVICE_BASE_URL,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const fileService = interactionSelectors.getHttpFileService(deps.getState());
+        const isAicsEmployee = await fileService.isNetworkAccessible();
+        dispatch(setIsAicsEmployee(isAicsEmployee) as AnyAction);
+        done();
+    },
+});
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -405,34 +420,6 @@ const openWithLogic = createLogic({
     type: OPEN_WITH,
 });
 
-// TODO: WHere am i checking for updates now...?
-
-// TODO: REMOVE?????
-const browseForNewDataSource = createLogic({
-    async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { executionEnvService } = interactionSelectors.getPlatformDependentServices(
-            deps.getState()
-        );
-
-        const filePath = await executionEnvService.promptForFile(["csv", "parquet", "json"]);
-        if (filePath !== ExecutableEnvCancellationToken) {
-            const dataSourceName = await executionEnvService.getFilename(filePath);
-            dispatch(
-                selection.actions.addQuery({
-                    name: `New ${dataSourceName} Query`,
-                    parts: {
-                        // TODO: type...
-                        source: { name: dataSourceName, type: "csv", uri: filePath },
-                    },
-                })
-            );
-        }
-
-        done();
-    },
-    type: BROWSE_FOR_NEW_DATA_SOURCE,
-});
-
 /**
  * Interceptor responsible for responding to a SHOW_CONTEXT_MENU action and ensuring the previous
  * context menu is dismissed gracefully.
@@ -481,9 +468,9 @@ const refresh = createLogic({
 });
 
 export default [
+    checkAicsEmployee,
     downloadManifest,
     cancelFileDownloadLogic,
-    browseForNewDataSource,
     promptForNewExecutable,
     openWithDefault,
     openWithLogic,

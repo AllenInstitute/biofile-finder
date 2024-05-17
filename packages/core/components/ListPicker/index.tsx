@@ -8,6 +8,7 @@ import ListRow, { ListItem } from "./ListRow";
 import styles from "./ListPicker.module.css";
 
 interface ListPickerProps {
+    id?: string;
     className?: string;
     errorMessage?: string;
     items: ListItem[];
@@ -103,6 +104,7 @@ export default function ListPicker(props: ListPickerProps) {
             <div className={styles.header}>
                 {props.title && <h3>{props.title}</h3>}
                 <SearchBox
+                    id={props.id}
                     className={styles.searchBox}
                     onChange={onSearchBoxChange}
                     onClear={() => setSearchValue("")}

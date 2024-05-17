@@ -40,7 +40,7 @@ export const PAST_YEAR_FILTER = new FileFilter(
     AnnotationName.UPLOADED,
     `RANGE(${DATE_LAST_YEAR.toISOString()},${END_OF_TODAY.toISOString()})`
 );
-export const DEFAULT_AICS_FMS_QUERY = {
+export const DEFAULT_AICS_FMS_QUERY: FileExplorerURLComponents = {
     hierarchy: [],
     openFolders: [],
     filters: [PAST_YEAR_FILTER],
@@ -62,7 +62,6 @@ export default class FileExplorerURL {
      * */
     public static encode(urlComponents: Partial<FileExplorerURLComponents>): string {
         const params = new URLSearchParams();
-
         urlComponents.hierarchy?.forEach((annotation) => {
             params.append("group", annotation);
         });
@@ -87,7 +86,7 @@ export default class FileExplorerURL {
      * application state
      */
     public static decode(encodedURL: string): FileExplorerURLComponents {
-        const params = new URLSearchParams(encodedURL);
+        const params = new URLSearchParams(encodedURL.trim());
 
         const unparsedOpenFolders = params.getAll("openFolder");
         const unparsedFilters = params.getAll("filter");
@@ -97,10 +96,17 @@ export default class FileExplorerURL {
         const hierarchyDepth = hierarchy.length;
 
         const parsedSort = unparsedSort ? JSON.parse(unparsedSort) : undefined;
+        if (
+            parsedSort &&
+            parsedSort?.order !== SortOrder.ASC &&
+            parsedSort?.order !== SortOrder.DESC
+        ) {
+            throw new Error("Sort order must be ASC or DESC");
+        }
         return {
             hierarchy,
             sortColumn: parsedSort
-                ? new FileSort(parsedSort.annotationName, parsedSort.order)
+                ? new FileSort(parsedSort.annotationName, parsedSort.order || SortOrder.ASC)
                 : undefined,
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))

@@ -531,26 +531,6 @@ export function openWith(
 }
 
 /**
- * BROWSE_FOR_NEW_DATA_SOURCE
- *
- * Intention to prompt the user to browse for a new data source.
- */
-export const BROWSE_FOR_NEW_DATA_SOURCE = makeConstant(
-    STATE_BRANCH_NAME,
-    "browse-for-new-data-source"
-);
-
-export interface BrowseForNewDataSourceAction {
-    type: string;
-}
-
-export function browseForNewDataSource(): BrowseForNewDataSourceAction {
-    return {
-        type: BROWSE_FOR_NEW_DATA_SOURCE,
-    };
-}
-
-/**
  * SET_VISIBLE_MODAL
  *
  * Intention to set the current visible modal.

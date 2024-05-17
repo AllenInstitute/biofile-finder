@@ -33,6 +33,18 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         this.downloadService = config.downloadService;
     }
 
+    /**
+     * Basic check to see if the network is accessible by attempting to fetch the file explorer service base url
+     */
+    public async isNetworkAccessible(): Promise<boolean> {
+        try {
+            await this.get(`${this.baseUrl}/`);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
     public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
         const requestUrl = join(
             compact([

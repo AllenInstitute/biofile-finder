@@ -158,16 +158,15 @@ export default class DatabaseFileService implements FileService {
         // output query directly to the system rather than to a buffer then the file
         if (this.downloadService.isFileSystemAccessible) {
             const downloadDir = this.downloadService.getDefaultDownloadDirectory();
-            const destination = `${downloadDir}file-selection-${new Date()}.${format}`;
-            console.log("destination", destination);
-            await this.databaseService.saveQueryAsFile(destination, sqlBuilder.toSQL(), format);
+            const destination = `${downloadDir}file-selection-${new Date()}`;
+            await this.databaseService.saveQuery(destination, sqlBuilder.toSQL(), format);
             return {
                 downloadRequestId: uniqueId(),
                 resolution: DownloadResolution.SUCCESS,
             };
         }
 
-        const buffer = await this.databaseService.saveQueryAsBuffer(sqlBuilder.toSQL(), format);
+        const buffer = await this.databaseService.saveQuery(uniqueId(), sqlBuilder.toSQL(), format);
         const name = `file-selection-${new Date()}.${format}`;
         return this.downloadService.download(
             {

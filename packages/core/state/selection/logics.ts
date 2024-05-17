@@ -306,9 +306,6 @@ const decodeFileExplorerURLLogics = createLogic({
                 ...source,
                 id: source.name,
                 version: 1,
-                // TODO: unused things
-                created: new Date(),
-                createdBy: "Unknown",
             };
             dispatch(metadata.actions.receiveDataSources([...dataSources, newDataSource]));
             selectedDataSource = newDataSource;

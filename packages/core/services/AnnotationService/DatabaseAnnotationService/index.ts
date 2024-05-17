@@ -30,7 +30,9 @@ export default class DatabaseAnnotationService implements AnnotationService {
     private readonly databaseService: DatabaseService;
     private readonly dataSourceName: string;
 
-    constructor(config: Config = { dataSourceName: "Unknown", databaseService: new DatabaseServiceNoop() }) {
+    constructor(
+        config: Config = { dataSourceName: "Unknown", databaseService: new DatabaseServiceNoop() }
+    ) {
         this.dataSourceName = config.dataSourceName;
         this.databaseService = config.databaseService;
     }
@@ -40,6 +42,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
             case "INTEGER":
             case "BIGINT":
             // TODO: Add support for column types
+            // https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues/60
             // return AnnotationType.NUMBER;
             case "VARCHAR":
             case "TEXT":

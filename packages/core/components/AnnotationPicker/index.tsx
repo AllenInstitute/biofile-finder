@@ -8,6 +8,7 @@ import Annotation from "../../entity/Annotation";
 import { metadata, selection } from "../../state";
 
 interface Props {
+    id?: string;
     enableAllAnnotations?: boolean;
     disabledTopLevelAnnotations?: boolean;
     hasSelectAllCapability?: boolean;
@@ -68,6 +69,7 @@ export default function AnnotationPicker(props: Props) {
     return (
         <ListPicker
             className={props.className}
+            id={props.id}
             items={items}
             title={props.title}
             onDeselect={removeSelection}

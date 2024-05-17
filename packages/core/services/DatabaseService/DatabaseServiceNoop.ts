@@ -5,12 +5,8 @@ export default class DatabaseServiceNoop implements DatabaseService {
         return Promise.reject("DatabaseServiceNoop:addDataSource");
     }
 
-    public saveQueryAsBuffer(): Promise<Uint8Array> {
-        return Promise.reject("DatabaseServiceNoop:saveQueryAsBuffer");
-    }
-
-    public saveQueryAsFile(): Promise<void> {
-        return Promise.reject("DatabaseServiceNoop:saveQueryAsFile");
+    public saveQuery(): Promise<Uint8Array> {
+        return Promise.reject("DatabaseServiceNoop:saveQuery");
     }
 
     public query(): Promise<{ [key: string]: string }[]> {

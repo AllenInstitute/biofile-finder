@@ -1,5 +1,4 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
-import { uniqueId } from "lodash";
 
 import { DatabaseService } from "../../../core/services";
 
@@ -73,11 +72,12 @@ export default class DatabaseServiceWeb implements DatabaseService {
         }
     }
 
-    public async saveQueryAsFile(): Promise<void> {
-        throw new Error("DatabaseServiceWeb::saveQueryAsFile not implemented for web usage");
-    }
-
-    public async saveQueryAsBuffer(
+    /**
+     * Saves the result of the query to the designated location.
+     * Returns an array representating the data from the query in the format designated
+     */
+    public async saveQuery(
+        destination: string,
         sql: string,
         format: "parquet" | "csv" | "json"
     ): Promise<Uint8Array> {
@@ -85,7 +85,7 @@ export default class DatabaseServiceWeb implements DatabaseService {
             throw new Error("Database failed to initialize");
         }
 
-        const resultName = `${uniqueId()}.${format}`;
+        const resultName = `${destination}.${format}`;
         const finalSQL = `COPY (${sql}) TO '${resultName}' (FORMAT '${format}');`;
         const connection = await this.database.connect();
         try {
@@ -113,5 +113,9 @@ export default class DatabaseServiceWeb implements DatabaseService {
         } finally {
             await connection.close();
         }
+    }
+
+    public async close(): Promise<void> {
+        this.database?.detach();
     }
 }

@@ -3,7 +3,6 @@ import * as os from "os";
 import * as path from "path";
 
 import duckdb from "duckdb";
-import { uniqueId } from "lodash";
 
 import { DatabaseService } from "../../../core/services";
 
@@ -27,7 +26,9 @@ export default class DatabaseServiceElectron implements DatabaseService {
         let source: string;
         let tempLocation;
         try {
-            if (uri instanceof File) {
+            if (typeof uri === "string") {
+                source = uri;
+            } else {
                 source = path.resolve(os.tmpdir(), name);
                 const arrayBuffer = await uri.arrayBuffer();
                 const writeStream = fs.createWriteStream(source);
@@ -41,8 +42,6 @@ export default class DatabaseServiceElectron implements DatabaseService {
                     });
                 });
                 tempLocation = source;
-            } else {
-                source = uri;
             }
 
             await new Promise<void>((resolve, reject) => {
@@ -81,23 +80,12 @@ export default class DatabaseServiceElectron implements DatabaseService {
         }
     }
 
-    public saveQueryAsBuffer(sql: string, format: string): Promise<Uint8Array> {
-        const resultName = `${uniqueId()}.${format}`;
-        return new Promise((resolve, reject) => {
-            this.database.run(
-                `COPY (${sql}) TO '${resultName}' (FORMAT '${format}');`,
-                (err: any, result: any) => {
-                    if (err) {
-                        reject(err.message);
-                    } else {
-                        resolve(result);
-                    }
-                }
-            );
-        });
-    }
-
-    public saveQueryAsFile(destination: string, sql: string, format: string): Promise<void> {
+    /**
+     * Saves the result of the query to the designated location.
+     * May return a value if the location is not a physical location but rather
+     * a temporary database location (buffer)
+     */
+    public saveQuery(destination: string, sql: string, format: string): Promise<Uint8Array> {
         return new Promise((resolve, reject) => {
             this.database.run(
                 `COPY (${sql}) TO '${destination}.${format}' (FORMAT '${format}');`,
@@ -125,6 +113,23 @@ export default class DatabaseServiceElectron implements DatabaseService {
             } catch (error) {
                 return Promise.reject(`${error}`);
             }
+        });
+    }
+
+    public async reset(): Promise<void> {
+        await this.close();
+        this.database = new duckdb.Database(":memory:");
+    }
+
+    public close(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.database.close((err) => {
+                if (err) {
+                    reject(err.message);
+                } else {
+                    resolve();
+                }
+            });
         });
     }
 }

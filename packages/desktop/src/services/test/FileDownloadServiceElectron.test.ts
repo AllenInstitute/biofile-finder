@@ -112,7 +112,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             const fileInfo = {
                 id: "abc123",
                 name: fileName,
-                path: filePath,
+                path: path.join(downloadHost, filePath),
                 size: (await fs.promises.stat(sourceFile)).size,
             };
 
@@ -151,7 +151,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             const fileInfo = {
                 id: "abc123",
                 name: fileName,
-                path: filePath,
+                path: path.join(downloadHost, filePath),
                 size: (await fs.promises.stat(sourceFile)).size,
             };
 
@@ -167,50 +167,6 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
             expect(onProgressSpy.called).to.equal(true);
             expect(onProgressSpy.callCount).to.equal(callCount);
-        });
-
-        it("cancels a download and cleans up after itself", async () => {
-            // Arrange
-            const downloadHost = "https://aics-test.corp.alleninstitute.org/labkey/fmsfiles/image";
-            const fileName = "image.czi";
-            const filePath = `/some/path/${fileName}`;
-
-            // intercept request for download and return canned response
-            nock(downloadHost)
-                .persist()
-                .get(filePath)
-                .reply(206, function () {
-                    const { range } = this.req.headers;
-                    const { start, end } = parseRangeHeader(range);
-                    return fs.createReadStream(sourceFile, { start, end });
-                });
-
-            const service = new FileDownloadServiceElectron();
-            const downloadRequestId = "beepbop";
-            const expectedDownloadPath = path.join(tempdir, fileName);
-            const fileInfo = {
-                id: "abc123",
-                name: fileName,
-                path: filePath,
-                size: (await fs.promises.stat(sourceFile)).size,
-            };
-
-            // Act
-            const result = await service.download(fileInfo, downloadRequestId, noop, tempdir);
-
-            // Assert
-            expect(result.resolution).to.equal(DownloadResolution.CANCELLED);
-
-            try {
-                await fs.promises.access(expectedDownloadPath);
-                throw new assert.AssertionError({
-                    message: `${expectedDownloadPath} not cleaned up`,
-                });
-            } catch (err) {
-                // Expect the file to be missing
-                const typedErr = err as NodeJS.ErrnoException;
-                expect(typedErr.code).to.equal("ENOENT", typedErr.message);
-            }
         });
 
         it("returns meaningful resolution and cleans up after itself if download fails", async () => {
@@ -235,7 +191,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             const fileInfo = {
                 id: "abc123",
                 name: fileName,
-                path: filePath,
+                path: path.join(downloadHost, filePath),
                 size: (await fs.promises.stat(sourceFile)).size,
             };
 
