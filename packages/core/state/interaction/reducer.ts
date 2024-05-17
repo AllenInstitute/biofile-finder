@@ -8,7 +8,6 @@ import {
     REFRESH,
     REMOVE_STATUS,
     SET_USER_SELECTED_APPLICATIONS,
-    SET_CSV_COLUMNS,
     SET_FILE_EXPLORER_SERVICE_BASE_URL,
     SET_STATUS,
     SET_VISIBLE_MODAL,
@@ -19,6 +18,8 @@ import {
     ShowManifestDownloadDialogAction,
     SET_IS_AICS_EMPLOYEE,
     PROMPT_FOR_DATA_SOURCE,
+    DownloadManifestAction,
+    DOWNLOAD_MANIFEST,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -28,7 +29,6 @@ import { PlatformDependentServices } from "../../services";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
 import FileViewerServiceNoop from "../../services/FileViewerService/FileViewerServiceNoop";
-import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
 import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
@@ -48,6 +48,7 @@ export interface InteractionStateBranch {
     fileFiltersForVisibleModal: FileFilter[];
     hasUsedApplicationBefore: boolean;
     isAicsEmployee?: boolean;
+    isOnWeb: boolean;
     platformDependentServices: PlatformDependentServices;
     refreshKey?: string;
     status: StatusUpdate[];
@@ -67,6 +68,7 @@ export const initialState: InteractionStateBranch = {
     fileFiltersForVisibleModal: [],
     fileTypeForVisibleModal: "csv",
     hasUsedApplicationBefore: false,
+    isOnWeb: false,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         databaseService: new DatabaseServiceNoop(),
@@ -80,7 +82,6 @@ export const initialState: InteractionStateBranch = {
         }),
         executionEnvService: new ExecutionEnvServiceNoop(),
         notificationService: new NotificationServiceNoop(),
-        persistentConfigService: new PersistentConfigServiceNoop(),
     },
     status: [],
 };
@@ -142,9 +143,9 @@ export default makeReducer<InteractionStateBranch>(
                 "processId"
             ),
         }),
-        [SET_CSV_COLUMNS]: (state, action) => ({
+        [DOWNLOAD_MANIFEST]: (state, action: DownloadManifestAction) => ({
             ...state,
-            csvColumns: action.payload,
+            csvColumns: action.payload.annotations,
         }),
         [SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state, action) => ({
             ...state,

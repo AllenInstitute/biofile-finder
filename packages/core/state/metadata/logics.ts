@@ -63,8 +63,10 @@ const receiveAnnotationsLogic = createLogic({
         );
         // Filter out any annotations that were selected for display that no longer
         // exist as annotations in the state
-        const displayAnnotationsThatStillExist = currentDisplayAnnotations.filter(
-            (annotation) => annotation.name in annotationNameToAnnotationMap
+        const displayAnnotationsThatStillExist = currentDisplayAnnotations.flatMap((annotation) =>
+            annotation.name in annotationNameToAnnotationMap
+                ? [annotationNameToAnnotationMap[annotation.name]]
+                : []
         );
 
         // These are the default annotations we want to display so this will

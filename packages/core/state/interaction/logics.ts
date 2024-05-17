@@ -1,4 +1,4 @@
-import { isEmpty, sumBy, throttle, uniqueId } from "lodash";
+import { isEmpty, sumBy, throttle, uniq, uniqueId } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { metadata, ReduxLogicDeps, selection } from "../";
@@ -13,7 +13,6 @@ import {
     CANCEL_FILE_DOWNLOAD,
     cancelFileDownload,
     CancelFileDownloadAction,
-    setCsvColumns,
     REFRESH,
     OPEN_WITH,
     openWith,
@@ -24,23 +23,22 @@ import {
     DownloadFilesAction,
     OpenWithDefaultAction,
     BROWSE_FOR_NEW_DATA_SOURCE,
+    PROMPT_FOR_NEW_EXECUTABLE,
+    setUserSelectedApplication,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
-import {
-    DownloadResolution,
-    FileDownloadCancellationToken,
-} from "../../services/FileDownloadService";
+import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileSet from "../../entity/FileSet";
-import NumericRange from "../../entity/NumericRange";
 import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
 } from "../../services/ExecutionEnvService";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
-import FileSelection from "../../entity/FileSelection";
 import FileDetail from "../../entity/FileDetail";
 import { AnnotationName } from "../../entity/Annotation";
+import FileSelection from "../../entity/FileSelection";
+import NumericRange from "../../entity/NumericRange";
 
 /**
  * Interceptor responsible for responding to a DOWNLOAD_MANIFEST action and triggering a manifest download.
@@ -50,84 +48,66 @@ const downloadManifest = createLogic({
     warnTimeout: 0, // no way to know how long this will take--don't print console warning if it takes a while
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const {
-            payload: { annotations },
+            payload: { annotations, type },
         } = deps.action as DownloadManifestAction;
         const manifestDownloadProcessId = uniqueId();
+        const sortColumn = selection.selectors.getSortColumn(deps.getState());
+        const fileService = interactionSelectors.getFileService(deps.getState());
+        let fileSelection = selection.selectors.getFileSelection(deps.getState());
+        const filters = interactionSelectors.getFileFiltersForVisibleModal(deps.getState());
+
+        // If we have a specific path to get files from ignore selected files
+        if (filters.length) {
+            const fileSet = new FileSet({
+                filters,
+                fileService,
+                sort: sortColumn,
+            });
+            const count = await fileSet.fetchTotalCount();
+            fileSelection = new FileSelection([
+                {
+                    selection: new NumericRange(0, count - 1),
+                    fileSet,
+                    sortOrder: 0,
+                },
+            ]);
+        }
+
+        const selections = fileSelection.toCompactSelectionList();
+
+        if (isEmpty(selections)) {
+            done();
+            return;
+        }
+
+        const onManifestDownloadCancel = () => {
+            dispatch(cancelFileDownload(manifestDownloadProcessId));
+        };
+        dispatch(
+            processStart(
+                manifestDownloadProcessId,
+                "Download of CSV manifest in progress.",
+                onManifestDownloadCancel
+            )
+        );
 
         try {
-            const state = deps.getState();
-            let fileSelection = selection.selectors.getFileSelection(state);
-            const filters = interactionSelectors.getFileFiltersForVisibleModal(state);
-            const fileService = interactionSelectors.getFileService(state);
-            const sortColumn = selection.selectors.getSortColumn(state);
-            // const selectedDataSource = selection.selectors.getDataSource(state);
+            const result = await fileService.download(annotations, selections, type);
 
-            // If we have a specific path to get files from ignore selected files
-            if (filters.length) {
-                const fileSet = new FileSet({
-                    filters,
-                    fileService,
-                    sort: sortColumn,
-                });
-                const count = await fileSet.fetchTotalCount();
-                fileSelection = new FileSelection([
-                    {
-                        selection: new NumericRange(0, count - 1),
-                        fileSet,
-                        sortOrder: 0,
-                    },
-                ]);
+            if (result.resolution === DownloadResolution.CANCELLED) {
+                dispatch(removeStatus(manifestDownloadProcessId));
+            } else {
+                const successMsg = `Download of CSV manifest finished.<br/>${result.msg}`;
+                dispatch(processSuccess(manifestDownloadProcessId, successMsg));
             }
-
-            const selections = fileSelection.toCompactSelectionList();
-
-            if (isEmpty(selections)) {
-                return;
-            }
-
-            const onManifestDownloadCancel = () => {
-                dispatch(cancelFileDownload(manifestDownloadProcessId));
-            };
-            dispatch(
-                processStart(
-                    manifestDownloadProcessId,
-                    "Download of CSV manifest in progress.",
-                    onManifestDownloadCancel
-                )
-            );
-
-            // const request: CsvManifestRequest = {
-            //     annotations: annotations.map((annotation) => annotation.name),
-            //     selections,
-            // };
-            // const shouldDownloadFromDatabase = !!selectedDataSource?.uri;
-            // let result;
-            // if (shouldDownloadFromDatabase) {
-            //     result = await csvService.downloadCsvFromDatabase(
-            //         request,
-            //         manifestDownloadProcessId
-            //     );
-            // } else {
-            //     result = await csvService.downloadCsvFromServer(request, manifestDownloadProcessId);
-            // }
-
-            // if (result.resolution === DownloadResolution.CANCELLED) {
-            //     dispatch(removeStatus(manifestDownloadProcessId));
-            //     return;
-            // } else {
-            //     const successMsg = `Download of CSV manifest successfully finished.<br/>${result.msg}`;
-            //     dispatch(processSuccess(manifestDownloadProcessId, successMsg));
-            //     return;
-            // }
         } catch (err) {
             const errorMsg = `Download of CSV manifest failed. Details: ${
                 err instanceof Error ? err.message : err
             }`;
             dispatch(processFailure(manifestDownloadProcessId, errorMsg));
-        } finally {
-            dispatch(setCsvColumns(annotations.map((annotation) => annotation.displayName)));
-            done();
         }
+
+        done();
     },
 });
 
@@ -164,7 +144,7 @@ const cancelFileDownloadLogic = createLogic({
  * Interceptor responsible for responding to a DOWNLOAD_FILES action and
  * initiating the downloads of the files, showing notifications of process status along the way.
  */
-const downloadFiles = createLogic({
+const downloadFilesLogic = createLogic({
     type: DOWNLOAD_FILES,
     warnTimeout: 0, // no way to know how long this will take--don't print console warning if it takes a while
     async process(deps: ReduxLogicDeps, dispatch, done) {
@@ -174,87 +154,141 @@ const downloadFiles = createLogic({
         );
 
         const numberFormatter = annotationFormatterFactory(AnnotationType.NUMBER);
-        const {
-            payload: { files, shouldPromptForDownloadDirectory },
-        } = deps.action as DownloadFilesAction;
-        const destination = shouldPromptForDownloadDirectory
-            ? await fileDownloadService.promptForDownloadDirectory()
-            : await fileDownloadService.getDefaultDownloadDirectory();
+        const { payload: files } = deps.action as DownloadFilesAction;
 
-        if (destination !== FileDownloadCancellationToken) {
-            let filesToDownload: FileDetail[];
-            if (files !== undefined) {
-                filesToDownload = files;
-            } else {
-                filesToDownload = await fileSelection.fetchAllDetails();
-            }
+        let filesToDownload: FileInfo[];
+        if (files !== undefined) {
+            filesToDownload = files;
+        } else {
+            const selectedFilesDetails = await fileSelection.fetchAllDetails();
+            filesToDownload = selectedFilesDetails.map((file) => ({
+                id: file.id,
+                name: file.name,
+                size: file.size,
+                path: file.downloadPath,
+            }));
+        }
 
-            const totalBytesToDownload = sumBy(filesToDownload, "size");
-            const totalBytesDisplay = numberFormatter.displayValue(totalBytesToDownload, "bytes");
-            await Promise.all(
-                filesToDownload.map(async (file) => {
-                    const downloadRequestId = uniqueId();
-                    // TODO: The byte display should be fixed automatically when moving to downloading using browser
-                    // https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues/62
-                    const fileByteDisplay = numberFormatter.displayValue(file.size || 0, "bytes");
-                    const msg = `Downloading ${file.name}, ${fileByteDisplay} out of the total of ${totalBytesDisplay} set to download`;
+        const totalBytesToDownload = sumBy(filesToDownload, "size");
+        const totalBytesDisplay = numberFormatter.displayValue(totalBytesToDownload, "bytes");
+        await Promise.all(
+            filesToDownload.map(async (file) => {
+                const downloadRequestId = uniqueId();
+                // TODO: The byte display should be fixed automatically when moving to downloading using browser
+                // https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues/62
+                const fileByteDisplay = numberFormatter.displayValue(file.size || 0, "bytes");
+                const msg = `Downloading ${file.name}, ${fileByteDisplay} out of the total of ${totalBytesDisplay} set to download`;
 
-                    const onCancel = () => {
-                        dispatch(cancelFileDownload(downloadRequestId));
-                    };
+                const onCancel = () => {
+                    dispatch(cancelFileDownload(downloadRequestId));
+                };
 
-                    let totalBytesDownloaded = 0;
-                    // A function that dispatches progress events, throttled
-                    // to only be invokable at most once/second
-                    const throttledProgressDispatcher = throttle(() => {
-                        dispatch(
-                            processProgress(
-                                downloadRequestId,
-                                file.size ? totalBytesDownloaded / file.size : 0,
-                                msg,
-                                onCancel,
-                                [file.id]
-                            )
-                        );
-                    }, 1000);
-                    const onProgress = (transferredBytes: number) => {
-                        totalBytesDownloaded += transferredBytes;
-                        throttledProgressDispatcher();
-                    };
-
-                    try {
-                        dispatch(processStart(downloadRequestId, msg, onCancel, [file.id]));
-
-                        const result = await fileDownloadService.downloadFile(
-                            {
-                                id: file.id,
-                                name: file.name,
-                                path: file.path,
-                                size: file.size,
-                            },
-                            destination,
+                let totalBytesDownloaded = 0;
+                // A function that dispatches progress events, throttled
+                // to only be invokable at most once/second
+                const throttledProgressDispatcher = throttle(() => {
+                    dispatch(
+                        processProgress(
                             downloadRequestId,
-                            onProgress
-                        );
+                            file.size ? totalBytesDownloaded / file.size : 0,
+                            msg,
+                            onCancel,
+                            [file.id]
+                        )
+                    );
+                }, 1000);
+                const onProgress = (transferredBytes: number) => {
+                    totalBytesDownloaded += transferredBytes;
+                    throttledProgressDispatcher();
+                };
 
+                try {
+                    if (totalBytesToDownload) {
+                        dispatch(processStart(downloadRequestId, msg, onCancel, [file.id]));
+                    }
+
+                    const result = await fileDownloadService.download(
+                        file,
+                        downloadRequestId,
+                        onProgress
+                    );
+
+                    if (totalBytesToDownload) {
                         if (result.resolution === DownloadResolution.CANCELLED) {
                             // Clear status if request was cancelled
                             dispatch(removeStatus(downloadRequestId));
                         } else {
                             dispatch(processSuccess(downloadRequestId, result.msg || ""));
                         }
-                    } catch (err) {
-                        const errorMsg = `File download failed for file ${
-                            file.name
-                        }. Details:<br/>${err instanceof Error ? err.message : err}`;
-                        dispatch(processFailure(downloadRequestId, errorMsg));
                     }
-                })
-            );
-        }
+                } catch (err) {
+                    const errorMsg = `File download failed for file ${file.name}. Details:<br/>${
+                        err instanceof Error ? err.message : err
+                    }`;
+                    dispatch(processFailure(downloadRequestId, errorMsg));
+                }
+            })
+        );
 
         done();
     },
+});
+
+const promptForNewExecutable = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const {
+            executionEnvService,
+            notificationService,
+        } = interactionSelectors.getPlatformDependentServices(deps.getState());
+        const fileSelection = selection.selectors.getFileSelection(deps.getState());
+        const userSelectedApplications = interactionSelectors.getUserSelectedApplications(
+            deps.getState()
+        );
+
+        const executableLocation = await executionEnvService.promptForExecutable(
+            "Select Application to Open Selected Files With"
+        );
+
+        // Continue unless the user cancelled the prompt
+        if (executableLocation !== ExecutableEnvCancellationToken) {
+            // Determine the kinds of files currently selected
+            const selectedFilesDetails = await fileSelection.fetchAllDetails();
+            const fileKinds = uniq(
+                selectedFilesDetails.flatMap(
+                    (file) =>
+                        file.annotations.find((a) => a.name === AnnotationName.KIND)
+                            ?.values as string[]
+                )
+            );
+
+            // Ask whether this app should be the default for
+            // the file kinds selected
+            const filename = await executionEnvService.getFilename(executableLocation);
+            const shouldSetAsDefault = await notificationService.showQuestion(
+                `${filename}`,
+                `Set ${filename} as the default for ${fileKinds} files?`
+            );
+            const defaultFileKinds = shouldSetAsDefault ? fileKinds : [];
+
+            // Update previously saved apps if necessary & add this one
+            const newApp = { filePath: executableLocation, defaultFileKinds };
+            const existingApps = (userSelectedApplications || [])
+                .filter((app) => app.filePath !== executableLocation)
+                .map((app) => ({
+                    ...app,
+                    defaultFileKinds: app.defaultFileKinds.filter(
+                        (kind: string) => !defaultFileKinds.includes(kind)
+                    ),
+                }));
+            const apps = [...existingApps, newApp];
+
+            // Save app configuration & open files in new app
+            dispatch(setUserSelectedApplication(apps));
+            dispatch(openWith(newApp, deps.action.payload));
+        }
+        done();
+    },
+    type: PROMPT_FOR_NEW_EXECUTABLE,
 });
 
 const SYSTEM_DEFAULT_APP: UserSelectedApplication = Object.freeze({
@@ -371,6 +405,8 @@ const openWithLogic = createLogic({
     type: OPEN_WITH,
 });
 
+// TODO: WHere am i checking for updates now...?
+
 // TODO: REMOVE?????
 const browseForNewDataSource = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
@@ -448,9 +484,10 @@ export default [
     downloadManifest,
     cancelFileDownloadLogic,
     browseForNewDataSource,
+    promptForNewExecutable,
     openWithDefault,
     openWithLogic,
-    downloadFiles,
+    downloadFilesLogic,
     showContextMenu,
     refresh,
 ];

@@ -130,12 +130,12 @@ export default class FileDetail {
         return `${AICS_FMS_FILES_NGINX_SERVER}${this.path}`;
     }
 
-    public get size(): number {
+    public get size(): number | undefined {
         const size = this.fileDetail.file_size || this.getFirstAnnotationValue("File Size");
-        if (size === undefined) {
-            throw new Error("File Size is not defined");
+        if (size === undefined || typeof size === "number") {
+            return size;
         }
-        return size as number;
+        return parseInt(size as string, 10);
     }
 
     public get thumbnail(): string | undefined {

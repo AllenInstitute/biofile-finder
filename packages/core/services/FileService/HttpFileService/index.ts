@@ -1,13 +1,19 @@
-import { compact, join } from "lodash";
+import { compact, join, uniqueId } from "lodash";
 
 import FileService, { GetFilesRequest, SelectionAggregationResult, Selection } from "..";
-import HttpServiceBase from "../../HttpServiceBase";
+import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
+import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
+import HttpServiceBase, { ConnectionConfig } from "../../HttpServiceBase";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail, { FmsFile } from "../../../entity/FileDetail";
 
 interface SelectionAggregationRequest {
     selections: Selection[];
+}
+
+interface Config extends ConnectionConfig {
+    downloadService: FileDownloadService;
 }
 
 /**
@@ -18,6 +24,14 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     public static readonly BASE_FILES_URL = `file-explorer-service/${HttpFileService.ENDPOINT_VERSION}/files`;
     public static readonly BASE_FILE_COUNT_URL = `${HttpFileService.BASE_FILES_URL}/count`;
     public static readonly SELECTION_AGGREGATE_URL = `${HttpFileService.BASE_FILES_URL}/selection/aggregate`;
+    private static readonly CSV_ENDPOINT_VERSION = "2.0";
+    public static readonly BASE_CSV_DOWNLOAD_URL = `file-explorer-service/${HttpFileService.CSV_ENDPOINT_VERSION}/files/selection/manifest`;
+    private readonly downloadService: FileDownloadService;
+
+    constructor(config: Config = { downloadService: new FileDownloadServiceNoop() }) {
+        super(config);
+        this.downloadService = config.downloadService;
+    }
 
     public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
         const requestUrl = join(
@@ -72,9 +86,35 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     }
 
     /**
-     * Fetch files and return them as a buffer in the specified format.
+     * Download the given file selection query to local storage in the given format
      */
-    public async getFilesAsBuffer(): Promise<Uint8Array> {
-        throw new Error("Method not implemented.");
+    public async download(
+        annotations: string[],
+        selections: Selection[],
+        format: "csv" | "json" | "parquet"
+    ): Promise<DownloadResult> {
+        if (format !== "csv") {
+            throw new Error(
+                "Only CSV download is supported at this time for downloading from AICS FMS"
+            );
+        }
+
+        const postData = JSON.stringify({ annotations, selections });
+        const url = `${this.baseUrl}/${HttpFileService.BASE_CSV_DOWNLOAD_URL}${this.pathSuffix}`;
+
+        const manifestAsString = await this.downloadService.prepareHttpResourceForDownload(
+            url,
+            postData
+        );
+        const name = `file-manifest-${new Date()}.csv`;
+        return this.downloadService.download(
+            {
+                name,
+                id: name,
+                path: url,
+                data: manifestAsString,
+            },
+            uniqueId()
+        );
     }
 }

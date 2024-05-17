@@ -334,6 +334,25 @@ export function changeQuery(query: PartialQuery): ChangeQuery {
 }
 
 /**
+ * REMOVE_QUERY
+ *
+ * Intention is to remove a query from the list of queries available to switch to in the file explorer.
+ */
+export const REMOVE_QUERY = makeConstant(STATE_BRANCH_NAME, "remove-query");
+
+export interface RemoveQuery {
+    payload: string;
+    type: string;
+}
+
+export function removeQuery(queryName: string): RemoveQuery {
+    return {
+        payload: queryName,
+        type: REMOVE_QUERY,
+    };
+}
+
+/**
  * REPLACE_DATA_SOURCE
  *
  * Intention to replace the current data source with a new one.

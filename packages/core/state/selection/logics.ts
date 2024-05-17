@@ -35,6 +35,7 @@ import {
     setQueries,
     REPLACE_DATA_SOURCE,
     ReplaceDataSource,
+    REMOVE_QUERY,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -539,6 +540,15 @@ const changeQueryLogic = createLogic({
     type: CHANGE_QUERY,
 });
 
+const removeQueryLogic = createLogic({
+    type: REMOVE_QUERY,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const queries = selectionSelectors.getQueries(deps.getState());
+        dispatch(changeQuery(queries[0]));
+        done();
+    },
+});
+
 const replaceDataSourceLogic = createLogic({
     type: REPLACE_DATA_SOURCE,
     async process(deps: ReduxLogicDeps, dispatch, done) {
@@ -599,4 +609,5 @@ export default [
     addQueryLogic,
     replaceDataSourceLogic,
     changeQueryLogic,
+    removeQueryLogic,
 ];

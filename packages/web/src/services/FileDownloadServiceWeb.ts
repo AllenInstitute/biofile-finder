@@ -3,35 +3,15 @@ import {
     DownloadResult,
     FileInfo,
     DownloadResolution,
+    HttpServiceBase,
 } from "../../../core/services";
 
-export default class FileDownloadServiceWeb implements FileDownloadService {
+export default class FileDownloadServiceWeb extends HttpServiceBase implements FileDownloadService {
     isFileSystemAccessible = false;
-
-    // public async downloadFiles(urls: string[]): Promise<void> {
-    // throw new Error("blah")
-    // const zip = JsZip();
-    // await Promise.all(urls.map(async (url) => {
-    //     const fileName = url.replace(/^.*[\\/]/, '');
-    //     const response = await fetch(url, { "mode": "no-cors" }) // TODO: Cors...
-    //     console.log("response", response)
-    //     const blob = await response.blob();
-    //     zip.file(fileName, blob);
-    // }));
-    // zip.generateAsync({type: 'blob'}).then(zipFile => {
-    //     const currentDate = new Date().getTime();
-    //     const fileName = `combined-${currentDate}.zip`;
-    //     return this.download(fileName, zipFile);
-    // });
-
-    //   const downloadAndZip = urls => {
-    //     return downloadByGroup(urls, 5).then(exportZip);
-    //   }
-    // }
 
     public async download(fileInfo: FileInfo): Promise<DownloadResult> {
         const data = fileInfo.data || fileInfo.path;
-        let downloadUrl;
+        let downloadUrl: string;
         if (data instanceof Uint8Array) {
             downloadUrl = URL.createObjectURL(new Blob([data]));
         } else if (data instanceof Blob) {
@@ -57,6 +37,17 @@ export default class FileDownloadServiceWeb implements FileDownloadService {
         } finally {
             URL.revokeObjectURL(downloadUrl);
         }
+    }
+
+    public async prepareHttpResourceForDownload(url: string, postBody: string): Promise<string> {
+        const responseAsJSON = await this.rawPost(url, postBody);
+        return JSON.stringify(responseAsJSON);
+    }
+
+    public getDefaultDownloadDirectory(): Promise<string> {
+        throw new Error(
+            "FileDownloadServiceWeb:getDefaultDownloadDirectory not implemented for web"
+        );
     }
 
     public cancelActiveRequest() {

@@ -10,5 +10,11 @@ export default interface DatabaseService {
 
     saveQueryAsBuffer(sql: string, format: "csv" | "parquet" | "json"): Promise<Uint8Array>;
 
+    saveQueryAsFile(
+        destination: string,
+        sql: string,
+        format: "csv" | "parquet" | "json"
+    ): Promise<void>;
+
     query(sql: string): Promise<{ [key: string]: string }[]>;
 }

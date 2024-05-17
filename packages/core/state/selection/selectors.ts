@@ -9,6 +9,7 @@ import FileFolder from "../../entity/FileFolder";
 import FileSort from "../../entity/FileSort";
 import { DataSource } from "../../services/DataSourceService";
 import { getAnnotations } from "../metadata/selectors";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 // BASIC SELECTORS
 export const getAnnotationHierarchy = (state: State) => state.selection.annotationHierarchy;
@@ -33,6 +34,11 @@ export const getTutorial = (state: State) => state.selection.tutorial;
 export const getQueries = (state: State) => state.selection.queries;
 
 // COMPOSED SELECTORS
+export const isQueryingAicsFms = createSelector(
+    [getDataSource],
+    (dataSource): boolean => !dataSource || dataSource.name === AICS_FMS_DATA_SOURCE_NAME
+);
+
 export const getCurrentQueryParts = createSelector(
     [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn, getDataSource],
     (
@@ -41,23 +47,19 @@ export const getCurrentQueryParts = createSelector(
         openFolders: FileFolder[],
         sortColumn?: FileSort,
         source?: DataSource
-    ): FileExplorerURLComponents => (
-        {
-            hierarchy,
-            filters,
-            openFolders,
-            sortColumn,
-            source,
-        }
-));
+    ): FileExplorerURLComponents => ({
+        hierarchy,
+        filters,
+        openFolders,
+        sortColumn,
+        source,
+    })
+);
 
 export const getEncodedFileExplorerUrl = createSelector(
     [getCurrentQueryParts],
-    (
-        queryParts
-    ): string => (
-        FileExplorerURL.encode(queryParts)
-));
+    (queryParts): string => FileExplorerURL.encode(queryParts)
+);
 
 export const getGroupedByFilterName = createSelector(
     [getFileFilters, getAnnotations],

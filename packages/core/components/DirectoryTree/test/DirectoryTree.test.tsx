@@ -30,6 +30,7 @@ import { initialState, interaction, reducer, reduxLogics, selection } from "../.
 import DirectoryTree from "../";
 
 import styles from "../DirectoryTreeNode.module.css";
+import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("<DirectoryTree />", () => {
     const sandbox = createSandbox();
@@ -187,7 +188,11 @@ describe("<DirectoryTree />", () => {
     ];
     const mockHttpClient = createMockHttpClient(responseStubs);
     const annotationService = new HttpAnnotationService({ baseUrl, httpClient: mockHttpClient });
-    const fileService = new HttpFileService({ baseUrl, httpClient: mockHttpClient });
+    const fileService = new HttpFileService({
+        baseUrl,
+        httpClient: mockHttpClient,
+        downloadService: new FileDownloadServiceNoop(),
+    });
 
     before(() => {
         sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);

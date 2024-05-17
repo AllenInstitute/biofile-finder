@@ -1,13 +1,13 @@
 import { makeConstant } from "@aics/redux-utils";
 import { uniqueId } from "lodash";
 
-import Annotation from "../../entity/Annotation";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import FileFilter from "../../entity/FileFilter";
 import { ModalType } from "../../components/Modal";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import FileDetail from "../../entity/FileDetail";
 import { Source } from "../../entity/FileExplorerURL";
+import { FileInfo } from "../../services";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -40,15 +40,20 @@ export const DOWNLOAD_MANIFEST = makeConstant(STATE_BRANCH_NAME, "download-manif
 
 export interface DownloadManifestAction {
     payload: {
-        annotations: Annotation[];
+        annotations: string[];
+        type: "csv" | "parquet" | "json";
     };
     type: string;
 }
 
-export function downloadManifest(annotations: Annotation[]): DownloadManifestAction {
+export function downloadManifest(
+    annotations: string[],
+    type: "csv" | "json" | "parquet"
+): DownloadManifestAction {
     return {
         payload: {
             annotations,
+            type,
         },
         type: DOWNLOAD_MANIFEST,
     };
@@ -85,22 +90,13 @@ export function cancelFileDownload(id: string): CancelFileDownloadAction {
 export const DOWNLOAD_FILES = makeConstant(STATE_BRANCH_NAME, "download-files");
 
 export interface DownloadFilesAction {
-    payload: {
-        files?: FileDetail[];
-        shouldPromptForDownloadDirectory: boolean;
-    };
+    payload?: FileInfo[];
     type: string;
 }
 
-export function downloadFiles(
-    files?: FileDetail[],
-    shouldPromptForDownloadDirectory = false
-): DownloadFilesAction {
+export function downloadFiles(files?: FileInfo[]): DownloadFilesAction {
     return {
-        payload: {
-            files,
-            shouldPromptForDownloadDirectory,
-        },
+        payload: files,
         type: DOWNLOAD_FILES,
     };
 }
@@ -123,25 +119,6 @@ export interface MarkAsUsedApplicationBefore {
 export function markAsUsedApplicationBefore(): MarkAsUsedApplicationBefore {
     return {
         type: MARK_AS_USED_APPLICATION_BEFORE,
-    };
-}
-
-/**
- * SET_CSV_COLUMNS
- *
- * Intention to set the csv columns
- */
-export const SET_CSV_COLUMNS = makeConstant(STATE_BRANCH_NAME, "set-csv-columns");
-
-export interface SetCsvColumnsAction {
-    payload: string[];
-    type: string;
-}
-
-export function setCsvColumns(csvColumns: string[]): SetCsvColumnsAction {
-    return {
-        payload: csvColumns,
-        type: SET_CSV_COLUMNS,
     };
 }
 

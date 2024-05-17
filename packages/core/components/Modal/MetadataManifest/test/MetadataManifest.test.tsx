@@ -14,9 +14,9 @@ import { createSandbox } from "sinon";
 import Modal, { ModalType } from "../..";
 import Annotation from "../../../../entity/Annotation";
 import FileFilter from "../../../../entity/FileFilter";
-import FileDownloadService, { DownloadResolution } from "../../../../services/FileDownloadService";
 import { initialState, interaction, reduxLogics } from "../../../../state";
 import HttpFileService from "../../../../services/FileService/HttpFileService";
+import FileDownloadServiceNoop from "../../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("<MetadataManifest />", () => {
     const baseUrl = "test";
@@ -34,7 +34,11 @@ describe("<MetadataManifest />", () => {
         },
     };
     const mockHttpClient = createMockHttpClient(responseStub);
-    const fileService = new HttpFileService({ baseUrl, httpClient: mockHttpClient });
+    const fileService = new HttpFileService({
+        baseUrl,
+        httpClient: mockHttpClient,
+        downloadService: new FileDownloadServiceNoop(),
+    });
 
     const sandbox = createSandbox();
 
@@ -60,49 +64,15 @@ describe("<MetadataManifest />", () => {
         );
 
         // Assert
-        expect(getByText("Download CSV Manifest")).to.exist;
+        expect(getByText("Download Metadata Manifest")).to.exist;
     });
 
-    it("starts download and saves columns when download button is clicked", async () => {
+    it("starts download when download button is clicked", async () => {
         // Arrange
-        let downloadTriggered = false;
-        class TestDownloadService implements FileDownloadService {
-            downloadCsvManifest(_url: string, _data: string, downloadRequestId: string) {
-                downloadTriggered = true;
-                return Promise.resolve({
-                    downloadRequestId,
-                    resolution: DownloadResolution.SUCCESS,
-                });
-            }
-
-            downloadFile() {
-                return Promise.reject();
-            }
-
-            getDefaultDownloadDirectory(): Promise<string> {
-                return Promise.reject();
-            }
-
-            promptForSaveLocation() {
-                return Promise.reject();
-            }
-
-            promptForDownloadDirectory() {
-                return Promise.reject();
-            }
-
-            cancelActiveRequest() {
-                return Promise.reject();
-            }
-        }
-
         const state = mergeState(visibleDialogState, {
             interaction: {
                 csvColumns: ["Cell Line"],
                 fileFiltersForVisibleModal: [new FileFilter("Cell Line", "AICS-11")],
-                platformDependentServices: {
-                    fileDownloadService: new TestDownloadService(),
-                },
             },
             metadata: {
                 annotations: [
@@ -138,7 +108,6 @@ describe("<MetadataManifest />", () => {
                 type: interaction.actions.DOWNLOAD_MANIFEST,
             })
         ).to.be.true;
-        expect(downloadTriggered).to.be.true;
     });
 
     describe("column list", () => {

@@ -30,6 +30,8 @@ import {
     ChangeQuery,
     SET_FILE_THUMBNAIL_VIEW,
     SET_FILE_GRID_COLUMN_COUNT,
+    REMOVE_QUERY,
+    RemoveQuery,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
@@ -142,6 +144,10 @@ export default makeReducer<SelectionStateBranch>(
         [CHANGE_QUERY]: (state, action: ChangeQuery) => ({
             ...state,
             selectedQuery: action.payload.name,
+        }),
+        [REMOVE_QUERY]: (state, action: RemoveQuery) => ({
+            ...state,
+            queries: state.queries.filter((query) => query.name !== action.payload),
         }),
         [SET_QUERIES]: (state, action: SetQueries) => ({
             ...state,

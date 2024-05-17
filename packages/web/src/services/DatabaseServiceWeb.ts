@@ -73,6 +73,10 @@ export default class DatabaseServiceWeb implements DatabaseService {
         }
     }
 
+    public async saveQueryAsFile(): Promise<void> {
+        throw new Error("DatabaseServiceWeb::saveQueryAsFile not implemented for web usage");
+    }
+
     public async saveQueryAsBuffer(
         sql: string,
         format: "parquet" | "csv" | "json"

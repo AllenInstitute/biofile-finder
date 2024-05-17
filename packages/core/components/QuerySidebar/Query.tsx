@@ -34,10 +34,7 @@ export default function Query(props: QueryProps) {
     }, [props.isSelected]);
 
     const decodedURL = React.useMemo(
-        () =>
-            props.isSelected
-                ? currentQueryParts
-                : props.query.parts,
+        () => (props.isSelected ? currentQueryParts : props.query.parts),
         [props.query.parts, currentQueryParts, props.isSelected]
     );
 
@@ -50,9 +47,7 @@ export default function Query(props: QueryProps) {
     };
 
     const onQueryDelete = () => {
-        const filteredQueries = queries.filter((query) => query.name !== props.query.name);
-        dispatch(selection.actions.changeQuery(filteredQueries[0]));
-        dispatch(selection.actions.setQueries(filteredQueries));
+        dispatch(selection.actions.removeQuery(props.query.name));
     };
 
     if (!isExpanded) {

@@ -6,7 +6,6 @@ import { render } from "react-dom";
 import { Provider } from "react-redux";
 
 import NotificationServiceWeb from "./services/NotificationServiceWeb";
-import PersistentConfigServiceWeb from "./services/PersistentConfigServiceWeb";
 import ApplicationInfoServiceWeb from "./services/ApplicationInfoServiceWeb";
 import ExecutionEnvServiceWeb from "./services/ExecutionEnvServiceWeb";
 import DatabaseServiceWeb from "./services/DatabaseServiceWeb";
@@ -17,27 +16,6 @@ import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
 
 const APP_ID = "fms-file-explorer-web";
 
-const notificationService = new NotificationServiceWeb();
-// application analytics/metrics
-// const frontendInsights = new FrontendInsights(
-//     {
-//         application: {
-//             name: APP_ID,
-//             version: applicationInfoService.getApplicationVersion(),
-//         },
-//         userInfo: {
-//             userId: applicationInfoService.getUserName(),
-//         },
-//         session: {
-//             platform: "Web",
-//             deviceId: `${applicationInfoService.getUserName()}-${executionEnvService.getOS()}`,
-//         },
-//         loglevel: process.env.NODE_ENV === "production" ? LogLevel.Error : LogLevel.Debug,
-//     },
-//     [new AmplitudeNodePlugin({ apiKey: process.env.AMPLITUDE_API_KEY })]
-// );
-// frontendInsights.dispatchUserEvent({ type: "SESSION_START" });
-
 async function asyncRender() {
     const databaseService = new DatabaseServiceWeb();
     await databaseService.initialize();
@@ -46,15 +24,16 @@ async function asyncRender() {
     // unnecessarily change with regard to referential equality between re-renders of the application
     const collectPlatformDependentServices = memoize(() => ({
         databaseService,
-        // frontendInsights,
-        notificationService,
+        notificationService: new NotificationServiceWeb(),
         executionEnvService: new ExecutionEnvServiceWeb(),
         applicationInfoService: new ApplicationInfoServiceWeb(),
-        persistentConfigService: new PersistentConfigServiceWeb(),
-        fileViewerService: new FileViewerServiceWeb(notificationService),
-        fileDownloadService: new FileDownloadServiceWeb(notificationService),
+        fileViewerService: new FileViewerServiceWeb(),
+        fileDownloadService: new FileDownloadServiceWeb(),
     }));
-    const store = createReduxStore({ platformDependentServices: collectPlatformDependentServices() });
+    const store = createReduxStore({
+        isOnWeb: true,
+        platformDependentServices: collectPlatformDependentServices(),
+    });
     render(
         <Provider store={store}>
             <FmsFileExplorer />

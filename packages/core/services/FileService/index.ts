@@ -1,3 +1,4 @@
+import { DownloadResult } from "../FileDownloadService";
 import FileDetail from "../../entity/FileDetail";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
@@ -36,8 +37,12 @@ export interface Selection {
 
 export default interface FileService {
     baseUrl?: string;
+    download(
+        annotations: string[],
+        selections: Selection[],
+        format: "csv" | "json" | "parquet"
+    ): Promise<DownloadResult>;
     getCountOfMatchingFiles(fileSet: FileSet): Promise<number>;
     getAggregateInformation(fileSelection: FileSelection): Promise<SelectionAggregationResult>;
     getFiles(request: GetFilesRequest): Promise<FileDetail[]>;
-    getFilesAsBuffer(annotations: string[], selections: Selection[], format: "json" | "csv" | "parquet"): Promise<Uint8Array>;
 }

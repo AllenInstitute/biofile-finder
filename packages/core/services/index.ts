@@ -5,7 +5,6 @@ import ExecutionEnvService from "./ExecutionEnvService";
 import FileDownloadService from "./FileDownloadService";
 import FileViewerService from "./FileViewerService";
 import NotificationService from "./NotificationService";
-import PersistentConfigService from "./PersistentConfigService";
 
 export { default as AnnotationService } from "./AnnotationService";
 export type { default as ApplicationInfoService } from "./ApplicationInfoService";
@@ -40,5 +39,4 @@ export interface PlatformDependentServices {
     frontendInsights: FrontendInsights;
     executionEnvService: ExecutionEnvService;
     notificationService: NotificationService;
-    persistentConfigService: PersistentConfigService;
 }

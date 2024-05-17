@@ -17,9 +17,6 @@ export interface PythonicDataAccessSnippet {
  * Service responsible for fetching dataset related metadata.
  */
 export default class DataSourceService extends HttpServiceBase {
-    private static readonly ENDPOINT_VERSION = "2.0";
-    public static readonly BASE_DATASET_URL = `file-explorer-service/${DataSourceService.ENDPOINT_VERSION}/dataset`;
-
     constructor(config: ConnectionConfig = {}) {
         super(config);
     }
@@ -28,11 +25,7 @@ export default class DataSourceService extends HttpServiceBase {
      * Requests for all available data sources.
      */
     public async getAll(): Promise<DataSource[]> {
-        const requestUrl = `${this.baseUrl}/${DataSourceService.BASE_DATASET_URL}`;
-
-        // This data should never be stale, so, avoid using a response cache
-        const response = await this.getWithoutCaching<DataSource>(requestUrl);
-
-        return response.data;
+        // TODO: Placeholder until infra S3 bucket is ready
+        return [];
     }
 }

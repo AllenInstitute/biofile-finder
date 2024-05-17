@@ -32,6 +32,7 @@ export const getFileTypeForVisibleModal = (state: State) =>
     state.interaction.fileTypeForVisibleModal;
 export const hasUsedApplicationBefore = (state: State) =>
     state.interaction.hasUsedApplicationBefore;
+export const isOnWeb = (state: State) => state.interaction.isOnWeb;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;
@@ -109,12 +110,14 @@ export const getFileService = createSelector(
             return new DatabaseFileService({
                 databaseService: platformDependentServices.databaseService,
                 dataSourceName: dataSource.name,
+                downloadService: platformDependentServices.fileDownloadService,
             });
         }
         return new HttpFileService({
             applicationVersion,
             userName,
             baseUrl: fileExplorerBaseUrl,
+            downloadService: platformDependentServices.fileDownloadService,
         });
     }
 );

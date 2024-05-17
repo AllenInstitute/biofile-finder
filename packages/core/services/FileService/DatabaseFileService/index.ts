@@ -1,8 +1,10 @@
-import { isNil, omit } from "lodash";
+import { isNil, omit, uniqueId } from "lodash";
 
 import FileService, { GetFilesRequest, SelectionAggregationResult, Selection } from "..";
 import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
+import FileDownloadService, { DownloadResolution, DownloadResult } from "../../FileDownloadService";
+import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
@@ -11,6 +13,7 @@ import SQLBuilder from "../../../entity/SQLBuilder";
 interface Config {
     databaseService: DatabaseService;
     dataSourceName: string;
+    downloadService: FileDownloadService;
 }
 
 /**
@@ -18,6 +21,7 @@ interface Config {
  */
 export default class DatabaseFileService implements FileService {
     private readonly databaseService: DatabaseService;
+    private readonly downloadService: FileDownloadService;
     private readonly dataSourceName: string;
 
     private static convertDatabaseRowToFileDetail(
@@ -55,8 +59,15 @@ export default class DatabaseFileService implements FileService {
         });
     }
 
-    constructor(config: Config = { dataSourceName: "Unknown", databaseService: new DatabaseServiceNoop() }) {
+    constructor(
+        config: Config = {
+            dataSourceName: "Unknown",
+            databaseService: new DatabaseServiceNoop(),
+            downloadService: new FileDownloadServiceNoop(),
+        }
+    ) {
         this.databaseService = config.databaseService;
+        this.downloadService = config.downloadService;
         this.dataSourceName = config.dataSourceName;
     }
 
@@ -81,11 +92,7 @@ export default class DatabaseFileService implements FileService {
         if (allFiles.length && allFiles[0].size === undefined) {
             return { count };
         }
-        // TODO: Should have file size return as number not a string
-        const size = allFiles.reduce(
-            (acc, file) => acc + parseInt((file.size as any) || "0", 10),
-            0
-        );
+        const size = allFiles.reduce((acc, file) => acc + (file.size || 0), 0);
         return { count, size };
     }
 
@@ -110,11 +117,15 @@ export default class DatabaseFileService implements FileService {
     }
 
     /**
-     * Fetch files and return them as a buffer in the specified format.
+     * Download file selection as a file in the specified format.
      */
-    public async getFilesAsBuffer(annotations: string[], selections: Selection[], format: "csv" | "json" | "parquet"): Promise<Uint8Array> {
+    public async download(
+        annotations: string[],
+        selections: Selection[],
+        format: "csv" | "json" | "parquet"
+    ): Promise<DownloadResult> {
         const sqlBuilder = new SQLBuilder()
-            .select(annotations.map((annotation) => `"${annotation}"`).join(', '))
+            .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
             .from(this.dataSourceName);
 
         selections.forEach((selection) => {
@@ -122,22 +133,50 @@ export default class DatabaseFileService implements FileService {
                 const subQuery = new SQLBuilder()
                     .select('"File Path"')
                     .from(this.dataSourceName as string)
-                    .whereOr(Object.entries(selection.filters).map(([column, values]) => {
-                        const commaSeperatedValues = values.map(v => `'${v}'`).join(", ");
-                        return `"${column}" IN (${commaSeperatedValues}}`;
-                    }))
+                    .whereOr(
+                        Object.entries(selection.filters).map(([column, values]) => {
+                            const commaSeperatedValues = values.map((v) => `'${v}'`).join(", ");
+                            return `"${column}" IN (${commaSeperatedValues}}`;
+                        })
+                    )
                     .offset(indexRange.start)
                     .limit(indexRange.end - indexRange.start + 1);
 
                 if (selection.sort) {
-                    subQuery.orderBy(`"${selection.sort.annotationName}" ${selection.sort.ascending ? "ASC" : "DESC"}`);
+                    subQuery.orderBy(
+                        `"${selection.sort.annotationName}" ${
+                            selection.sort.ascending ? "ASC" : "DESC"
+                        }`
+                    );
                 }
 
-                sqlBuilder.whereOr(`"File Path" IN (${subQuery})`)
+                sqlBuilder.whereOr(`"File Path" IN (${subQuery})`);
             });
         });
-        return this.databaseService.saveQueryAsBuffer(
-            sqlBuilder.toSQL(), format
+
+        // If the file system is accessible we can just have DuckDB write the
+        // output query directly to the system rather than to a buffer then the file
+        if (this.downloadService.isFileSystemAccessible) {
+            const downloadDir = this.downloadService.getDefaultDownloadDirectory();
+            const destination = `${downloadDir}file-selection-${new Date()}.${format}`;
+            console.log("destination", destination);
+            await this.databaseService.saveQueryAsFile(destination, sqlBuilder.toSQL(), format);
+            return {
+                downloadRequestId: uniqueId(),
+                resolution: DownloadResolution.SUCCESS,
+            };
+        }
+
+        const buffer = await this.databaseService.saveQueryAsBuffer(sqlBuilder.toSQL(), format);
+        const name = `file-selection-${new Date()}.${format}`;
+        return this.downloadService.download(
+            {
+                id: name,
+                name: name,
+                path: name,
+                data: buffer,
+            },
+            uniqueId()
         );
     }
 }
