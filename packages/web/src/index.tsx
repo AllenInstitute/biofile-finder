@@ -4,6 +4,7 @@ import { memoize } from "lodash";
 import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import NotificationServiceWeb from "./services/NotificationServiceWeb";
 import ApplicationInfoServiceWeb from "./services/ApplicationInfoServiceWeb";
@@ -13,8 +14,34 @@ import FmsFileExplorer from "../../core/App";
 import { createReduxStore } from "../../core/state";
 import FileViewerServiceWeb from "./services/FileViewerServiceWeb";
 import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
+import Layout from "./components/Layout";
+import Home from "./components/Home";
 
 const APP_ID = "fms-file-explorer-web";
+
+const router = createBrowserRouter([
+    {
+        element: <Layout />,
+        children: [
+            {
+                path: "/",
+                element: <Home />, // Splash page
+            },
+            {
+                path: "app",
+                element: <FmsFileExplorer />,
+            },
+            {
+                path: "datasets",
+                element: <></>, // Datasets placeholder
+            },
+            {
+                path: "learn",
+                element: <></>, // Learn page placeholder
+            },
+        ],
+    },
+]);
 
 async function asyncRender() {
     const databaseService = new DatabaseServiceWeb();
@@ -36,7 +63,7 @@ async function asyncRender() {
     });
     render(
         <Provider store={store}>
-            <FmsFileExplorer />
+            <RouterProvider router={router} />
         </Provider>,
         document.getElementById(APP_ID)
     );

@@ -1,0 +1,43 @@
+.header-option-button {
+  margin: 0px 10px;
+}
+
+.help-menu-button {
+  background-color: var(--primary-dark);
+  color: var(--secondary-text-color);
+  border: none;
+  border-radius: 4px;
+}
+
+.help-menu-button:hover, .help-menu-button:focus {
+  background-color: var(--accent-dark);
+  border: none;
+}
+
+.help-menu {
+  padding: 4px 0;
+  filter: drop-shadow(black 10px 14px 18px);
+}
+
+.help-menu .ms-Callout {
+  box-shadow: rgba(0, 0, 0, 10.133) 0px 3.2px 7.2px 0px, rgba(0, 0, 0, 0.11) 0px 0.6px 1.8px 0px
+}
+
+.help-menu, .help-menu ul > li > :is(a, button) {
+  background-color: var(--primary-dark);
+  color: var(--secondary-text-color);
+}
+
+.help-menu button i, .help-menu li > div {
+  color: var(--secondary-text-color);
+}
+
+.help-menu a:hover, .help-menu ul > li > :is(a, button):hover, .help-menu ul > li > :is(a, button):hover i 
+.help-menu a:focus, .help-menu ul > li > :is(a, button):focus, .help-menu ul > li > :is(a, button):focus i 
+.help-menu ul > li > div > :is(a, button):hover, .help-menu ul > li > div > :is(a, button):focus
+{
+  background-color: var(--aqua) !important;
+  color: var(--highlight-text-color) !important;
+  border: none !important;
+}
+
