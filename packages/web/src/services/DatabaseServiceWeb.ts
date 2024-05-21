@@ -33,42 +33,40 @@ export default class DatabaseServiceWeb implements DatabaseService {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
-        if (!this.existingDataSources.has(name)) {
-            if (uri instanceof File) {
-                await this.database.registerFileHandle(
-                    name,
-                    uri,
-                    duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
-                    true
-                );
+        if (this.existingDataSources.has(name)) {
+            return;
+        }
+
+        if (uri instanceof File) {
+            await this.database.registerFileHandle(
+                name,
+                uri,
+                duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
+                true
+            );
+        } else {
+            const protocol = uri.startsWith("s3")
+                ? duckdb.DuckDBDataProtocol.S3
+                : duckdb.DuckDBDataProtocol.HTTP;
+
+            await this.database.registerFileURL(name, uri, protocol, false);
+        }
+
+        const connection = await this.database.connect();
+        try {
+            if (type === "parquet") {
+                await connection.query(`CREATE TABLE "${name}" AS FROM parquet_scan('${name}');`);
+            } else if (type === "json") {
+                await connection.query(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
             } else {
-                const protocol = uri.startsWith("s3")
-                    ? duckdb.DuckDBDataProtocol.S3
-                    : duckdb.DuckDBDataProtocol.HTTP;
-
-                await this.database.registerFileURL(name, uri, protocol, false);
+                // Default to CSV
+                await connection.query(
+                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true);`
+                );
             }
-
-            const connection = await this.database.connect();
-            try {
-                if (type === "parquet") {
-                    await connection.query(
-                        `CREATE TABLE "${name}" AS FROM parquet_scan('${name}');`
-                    );
-                } else if (type === "json") {
-                    await connection.query(
-                        `CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`
-                    );
-                } else {
-                    // Default to CSV
-                    await connection.query(
-                        `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true);`
-                    );
-                }
-                this.existingDataSources.add(name);
-            } finally {
-                await connection.close();
-            }
+            this.existingDataSources.add(name);
+        } finally {
+            await connection.close();
         }
     }
 

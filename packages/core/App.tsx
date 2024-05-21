@@ -43,7 +43,7 @@ export default function App(props: AppProps) {
     const { fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION } = props;
 
     const dispatch = useDispatch();
-    const selectedQuery = useSelector(selection.selectors.hasQuerySelected);
+    const hasQuerySelected = useSelector(selection.selectors.hasQuerySelected);
     const isDarkTheme = useSelector(selection.selectors.getIsDarkTheme);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const platformDependentServices = useSelector(
@@ -88,7 +88,7 @@ export default function App(props: AppProps) {
                 <div className={styles.querySidebarAndCenter}>
                     <QuerySidebar className={styles.querySidebar} />
                     <div className={styles.center}>
-                        {selectedQuery ? (
+                        {hasQuerySelected ? (
                             <>
                                 <GlobalActionButtonRow className={styles.globalButtonRow} />
                                 <DirectoryTree className={styles.fileList} />

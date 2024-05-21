@@ -564,6 +564,7 @@ const addDataSourceLogic = createLogic({
         if (source.uri && source.type) {
             try {
                 await databaseService.addDataSource(source.name, source.type, source.uri);
+                dispatch(interaction.actions.refresh() as AnyAction);
             } catch (error) {
                 console.error("Failed to add data source, prompting for replacement", error);
                 dispatch(interaction.actions.promptForDataSource({ source }));

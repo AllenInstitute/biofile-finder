@@ -488,8 +488,8 @@ const refresh = createLogic({
             ]);
             dispatch(metadata.actions.receiveAnnotations(annotations));
             dispatch(selection.actions.setAvailableAnnotations(availableAnnotations));
-        } catch (e) {
-            console.error("Error encountered while refreshing");
+        } catch (err) {
+            console.error(`Error encountered while refreshing: ${err}`);
             const annotations = metadata.selectors.getAnnotations(deps.getState());
             dispatch(selection.actions.setAvailableAnnotations(annotations.map((a) => a.name)));
         } finally {

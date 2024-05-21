@@ -1,3 +1,5 @@
+import { uniqBy } from "lodash";
+
 import AnnotationService, { AnnotationValue } from "..";
 import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
@@ -9,12 +11,6 @@ import SQLBuilder from "../../../entity/SQLBuilder";
 interface Config {
     databaseService: DatabaseService;
     dataSourceNames: string[];
-}
-
-interface DescribeQueryResult {
-    [key: string]: string;
-    column_name: string;
-    column_type: string;
 }
 
 interface SummarizeQueryResult {
@@ -55,18 +51,18 @@ export default class DatabaseAnnotationService implements AnnotationService {
      * Fetch all annotations.
      */
     public async fetchAnnotations(): Promise<Annotation[]> {
-        let sql = `DESCRIBE "${this.dataSourceNames[0]}" `;
-        this.dataSourceNames.slice(1).forEach((source, i) => {
-            sql += ` JOIN "${source}" ON ${this.dataSourceNames[i]}."File Path" == ${source}."File Path"`;
-        });
-        const rows = (await this.databaseService.query(sql)) as DescribeQueryResult[];
-        return rows.map(
+        const sql = new SQLBuilder()
+            .from('information_schema"."columns')
+            .where(`table_name IN ('${this.dataSourceNames.join("', '")}')`)
+            .toSQL();
+        const rows = await this.databaseService.query(sql);
+        return uniqBy(rows, "column_name").map(
             (row) =>
                 new Annotation({
                     annotationDisplayName: row["column_name"],
                     annotationName: row["column_name"],
                     description: "",
-                    type: DatabaseAnnotationService.columnTypeToAnnotationType(row["column_type"]),
+                    type: DatabaseAnnotationService.columnTypeToAnnotationType(row["data_type"]),
                 })
         );
     }

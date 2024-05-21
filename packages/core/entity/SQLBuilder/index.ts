@@ -33,7 +33,7 @@ export default class SQLBuilder {
             .slice(1)
             .map(
                 (table, idx) =>
-                    `JOIN ${table} ON ${table}."File Path" == ${statementAsArray[idx]}."File Path"`
+                    `FULL JOIN "${table}" ON "${table}"."File Path" = "${statementAsArray[idx]}"."File Path"`
             );
         return this;
     }

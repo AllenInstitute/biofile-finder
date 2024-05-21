@@ -103,6 +103,11 @@ export default class DatabaseFileService implements FileService {
     public async getFiles(request: GetFilesRequest): Promise<FileDetail[]> {
         const sql = request.fileSet
             .toQuerySQLBuilder()
+            .select(
+                `*, COALESCE(${this.dataSourceNames
+                    .map((source) => `"${source}"."File Path"`)
+                    .join(", ")}) AS "File Path"`
+            )
             .from(this.dataSourceNames)
             .offset(request.from * request.limit)
             .limit(request.limit)
@@ -131,7 +136,11 @@ export default class DatabaseFileService implements FileService {
         selections.forEach((selection) => {
             selection.indexRanges.forEach((indexRange) => {
                 const subQuery = new SQLBuilder()
-                    .select('"File Path"')
+                    .select(
+                        `COALESCE(${this.dataSourceNames
+                            .map((source) => `"${source}"."File Path"`)
+                            .join(", ")}) AS "File Path"`
+                    )
                     .from(this.dataSourceNames)
                     .whereOr(
                         Object.entries(selection.filters).map(([column, values]) => {
