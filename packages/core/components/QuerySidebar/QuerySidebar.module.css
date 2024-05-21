@@ -107,7 +107,7 @@
     flex-direction: column;
     height: 100%;
     justify-content: space-around;
-    left: min(calc(0.3 * 80% - 1em), calc(var(--query-sidebar-max-width ) - 1em));
+    right: 0;
     position: absolute;
     width: 1em;
 }
