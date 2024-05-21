@@ -2,7 +2,7 @@ import { groupBy, keyBy, map } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
-import Annotation from "../../entity/Annotation";
+import Annotation, { AnnotationName } from "../../entity/Annotation";
 import FileExplorerURL, { FileExplorerURLComponents } from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
@@ -25,6 +25,7 @@ export const getFileFilters = (state: State) => state.selection.filters;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getIsDarkTheme = (state: State) => state.selection.isDarkTheme;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
+export const getRecentAnnotations = (state: State) => state.selection.recentAnnotations;
 export const getSelectedQuery = (state: State) => state.selection.selectedQuery;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
 export const getShouldDisplayThumbnailView = (state: State) =>
@@ -85,3 +86,21 @@ export const getUnavailableAnnotationsForHierarchy = createSelector(
             allAnnotations.filter((annotation) => !availableAnnotations.includes(annotation.name))
         )
 );
+
+export const getSortedAnnotations = createSelector(getAnnotations, (annotations: Annotation[]) => {
+    // Sort annotations by file name first then everything else alphabetically
+    const fileNameAnnotationIndex = annotations.findIndex(
+        (annotation) =>
+            annotation.name === AnnotationName.FILE_NAME || annotation.name === "File Name"
+    );
+    if (fileNameAnnotationIndex === -1) {
+        return Annotation.sort(annotations);
+    }
+    return [
+        annotations[fileNameAnnotationIndex],
+        ...Annotation.sort([
+            ...annotations.slice(0, fileNameAnnotationIndex),
+            ...annotations.slice(fileNameAnnotationIndex + 1),
+        ]),
+    ];
+});

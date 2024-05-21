@@ -12,6 +12,7 @@ export enum PersistedConfigKeys {
     HasUsedApplicationBefore = "HAS_USED_APPLICATION_BEFORE",
     UserSelectedApplications = "USER_SELECTED_APPLICATIONS",
     Queries = "QUERIES",
+    RecentAnnotations = "RECENT_ANNOTATIONS",
 }
 
 export interface UserSelectedApplication {
@@ -26,6 +27,7 @@ export interface PersistedConfig {
     [PersistedConfigKeys.ImageJExecutable]?: string; // Deprecated
     [PersistedConfigKeys.HasUsedApplicationBefore]?: boolean;
     [PersistedConfigKeys.Queries]?: Query[];
+    [PersistedConfigKeys.RecentAnnotations]?: string[];
     [PersistedConfigKeys.UserSelectedApplications]?: UserSelectedApplication[];
 }
 

@@ -9,6 +9,8 @@ import styles from "./ListRow.module.css";
 export interface ListItem<T = any> {
     disabled?: boolean;
     loading?: boolean;
+    recent?: boolean;
+    isBuffer?: boolean;
     selected: boolean;
     displayValue: AnnotationValue;
     value: AnnotationValue;
@@ -37,6 +39,7 @@ export default function ListRow(props: Props) {
             className={classNames(styles.itemContainer, {
                 [styles.selected]: item.selected,
                 [styles.disabled]: item.disabled,
+                [styles.isBuffer]: item.isBuffer,
             })}
             menuIconProps={{
                 iconName: props.subMenuRenderer ? "ChevronRight" : undefined,
@@ -59,6 +62,7 @@ export default function ListRow(props: Props) {
                 <div>{item.selected && <Icon iconName="CheckMark" />}</div>
                 {item.displayValue}
             </label>
+            {item.recent && <Icon iconName="Redo" />}
             {item.loading && <Spinner className={styles.spinner} size={SpinnerSize.small} />}
         </DefaultButton>
     );

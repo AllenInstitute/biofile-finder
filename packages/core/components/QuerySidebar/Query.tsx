@@ -8,7 +8,7 @@ import QueryDataSource from "../QueryPart/QueryDataSource";
 import QueryFilter from "../QueryPart/QueryFilter";
 import QueryGroup from "../QueryPart/QueryGroup";
 import QuerySort from "../QueryPart/QuerySort";
-import { metadata, selection } from "../../state";
+import { selection } from "../../state";
 import { Query as QueryType } from "../../state/selection/actions";
 
 import styles from "./Query.module.css";
@@ -25,7 +25,7 @@ interface QueryProps {
 export default function Query(props: QueryProps) {
     const dispatch = useDispatch();
     const queries = useSelector(selection.selectors.getQueries);
-    const annotations = useSelector(metadata.selectors.getSortedAnnotations);
+    const annotations = useSelector(selection.selectors.getSortedAnnotations);
     const currentQueryParts = useSelector(selection.selectors.getCurrentQueryParts);
 
     const [isExpanded, setIsExpanded] = React.useState(false);
