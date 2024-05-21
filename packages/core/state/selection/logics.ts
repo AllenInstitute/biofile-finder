@@ -20,10 +20,10 @@ import {
     SET_ANNOTATION_HIERARCHY,
     SELECT_NEARBY_FILE,
     setSortColumn,
-    changeCollection,
-    CHANGE_COLLECTION,
+    changeDataSource,
+    CHANGE_DATA_SOURCE,
     CHANGE_QUERY,
-    ChangeCollectionAction,
+    ChangeDataSourceAction,
     SetAnnotationHierarchyAction,
     RemoveFromAnnotationHierarchyAction,
     ReorderAnnotationHierarchyAction,
@@ -33,6 +33,9 @@ import {
     changeQuery,
     ChangeQuery,
     setQueries,
+    REPLACE_DATA_SOURCE,
+    ReplaceDataSource,
+    REMOVE_QUERY,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -291,25 +294,25 @@ const toggleFileFolderCollapse = createLogic({
 const decodeFileExplorerURLLogics = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
-        const collections = metadata.selectors.getCollections(deps.getState());
-        const { hierarchy, filters, openFolders, sortColumn, collection } = FileExplorerURL.decode(
+        const dataSources = interaction.selectors.getAllDataSources(deps.getState());
+        const { hierarchy, filters, openFolders, sortColumn, source } = FileExplorerURL.decode(
             encodedURL
         );
 
-        let selectedCollection = collections.find(
-            (c) => c.name === collection?.name && c.version === collection?.version
-        );
-        // It is possible the user was sent a private collection, in that event the collection is likely not stored
-        // in the state's collection set yet & should be loaded in.
-        if (collection && !selectedCollection) {
-            const datasetService = interaction.selectors.getDatasetService(deps.getState());
-            const newCollection = await datasetService.getDataset(collection);
-            dispatch(metadata.actions.receiveCollections([...collections, newCollection]));
-            selectedCollection = newCollection;
+        let selectedDataSource = dataSources.find((c) => c.name === source?.name);
+        // It is possible the user was sent a novel data source in the URL
+        if (source && !selectedDataSource) {
+            const newDataSource = {
+                ...source,
+                id: source.name,
+                version: 1,
+            };
+            dispatch(metadata.actions.receiveDataSources([...dataSources, newDataSource]));
+            selectedDataSource = newDataSource;
         }
 
         batch(() => {
-            dispatch(changeCollection(selectedCollection));
+            dispatch(changeDataSource(selectedDataSource));
             dispatch(setAnnotationHierarchy(hierarchy));
             dispatch(setFileFilters(filters));
             dispatch(setOpenFileFolders(openFolders));
@@ -438,44 +441,22 @@ const selectNearbyFile = createLogic({
 });
 
 /**
- * Interceptor responsible for processing a new collection into
- * a refresh action so that the resources pertain to the current collection
+ * Interceptor responsible for processing a new data source into
+ * a refresh action so that the resources pertain to the current data source
  */
-const changeCollectionLogic = createLogic({
+const changeDataSourceLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const action: ChangeCollectionAction = deps.action;
-        const collection = action.payload;
-        const { databaseService } = interaction.selectors.getPlatformDependentServices(
-            deps.getState()
-        );
-        const collections = metadata.selectors.getCollections(deps.getState());
-        if (collection?.uri) {
-            await databaseService.setDataSource(collection.uri);
-        }
-        if (collection && !collections.find((collection) => collection.id === collection.id)) {
-            dispatch(metadata.actions.receiveCollections([...collections, collection]));
+        const action: ChangeDataSourceAction = deps.action;
+        const dataSource = action.payload;
+        const dataSources = interaction.selectors.getAllDataSources(deps.getState());
+        if (dataSource && !dataSources.some((dataSource) => dataSource.id === dataSource.id)) {
+            dispatch(metadata.actions.receiveDataSources([...dataSources, dataSource]));
         }
 
         dispatch(interaction.actions.refresh() as AnyAction);
         done();
     },
-    type: CHANGE_COLLECTION,
-    async transform(deps: ReduxLogicDeps, next) {
-        const action: ChangeCollectionAction = deps.action;
-        const { databaseService } = interaction.selectors.getPlatformDependentServices(
-            deps.getState()
-        );
-        if (action.payload?.uri) {
-            const dataSource = await databaseService.getDataSource(action.payload?.uri);
-            action.payload = {
-                ...action.payload,
-                id: dataSource.name,
-                name: dataSource.name,
-                created: dataSource.created,
-            };
-        }
-        next(action);
-    },
+    type: CHANGE_DATA_SOURCE,
 });
 
 /**
@@ -489,6 +470,8 @@ const addQueryLogic = createLogic({
     async transform(deps: ReduxLogicDeps, next) {
         const queries = selectionSelectors.getQueries(deps.getState());
         const { payload: newQuery } = deps.action as AddQuery;
+        // Map the query names to their occurrences so that queries with the same name
+        // have their occurences appended to their name to make them unique
         const queryNameToOccurrence = queries.reduce((acc, query) => {
             const nameWithoutOccurence = query.name.replace(/ \(\d+\)$/, "");
             return { ...acc, [nameWithoutOccurence]: (acc[nameWithoutOccurence] || 0) + 1 };
@@ -515,23 +498,100 @@ const addQueryLogic = createLogic({
 const changeQueryLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: newlySelectedQuery } = deps.action as ChangeQuery;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
         const currentQueries = selectionSelectors.getQueries(deps.getState());
-        const currentURL = selectionSelectors.getEncodedFileExplorerUrl(deps.getState());
+        const currentQueryParts = selectionSelectors.getCurrentQueryParts(deps.getState());
         const updatedQueries = currentQueries.map((query) => ({
             ...query,
-            url: query.name === deps.ctx.previouslySelectedQuerywName ? currentURL : query.url,
+            parts:
+                query.name === deps.ctx.previouslySelectedQueryName
+                    ? currentQueryParts
+                    : query.parts,
         }));
-        dispatch(decodeFileExplorerURL(newlySelectedQuery.url) as AnyAction);
+
+        if (newlySelectedQuery.parts.source?.uri) {
+            try {
+                await databaseService.addDataSource(
+                    newlySelectedQuery.parts.source.name,
+                    newlySelectedQuery.parts.source.type,
+                    newlySelectedQuery.parts.source.uri
+                );
+            } catch (error) {
+                console.error("Failed to add data source, prompting for replacement", error);
+                dispatch(interaction.actions.promptForDataSource(newlySelectedQuery.parts.source));
+            }
+        }
+
+        dispatch(
+            decodeFileExplorerURL(FileExplorerURL.encode(newlySelectedQuery.parts)) as AnyAction
+        );
         dispatch(setQueries(updatedQueries));
         done();
     },
-    async transform(deps: ReduxLogicDeps, next) {
-        deps.ctx.previouslySelectedQuerywName = selectionSelectors.getSelectedQuery(
-            deps.getState()
-        )?.name;
+    transform(deps: ReduxLogicDeps, next) {
+        deps.ctx.previouslySelectedQueryName = selectionSelectors.getSelectedQuery(deps.getState());
         next(deps.action);
     },
     type: CHANGE_QUERY,
+});
+
+const removeQueryLogic = createLogic({
+    type: REMOVE_QUERY,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const queries = selectionSelectors.getQueries(deps.getState());
+        dispatch(changeQuery(queries[0]));
+        done();
+    },
+});
+
+const replaceDataSourceLogic = createLogic({
+    type: REPLACE_DATA_SOURCE,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const {
+            payload: { name, type, uri },
+        } = deps.ctx.replaceDataSourceAction as ReplaceDataSource;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
+
+        try {
+            if (uri) {
+                await databaseService.addDataSource(name, type, uri);
+            }
+        } catch (error) {
+            console.error("Failed to add data source, prompting for replacement", error);
+            dispatch(
+                interaction.actions.promptForDataSource({
+                    name,
+                    uri,
+                })
+            );
+        }
+
+        dispatch(interaction.actions.refresh() as AnyAction);
+        done();
+    },
+    transform(deps: ReduxLogicDeps, next) {
+        const { payload: replacementDataSource } = deps.action as ReplaceDataSource;
+        deps.ctx.replaceDataSourceAction = deps.action;
+        const queries = selectionSelectors.getQueries(deps.getState());
+        const updatedQueries = queries.map((query) => {
+            if (query.parts.source?.name !== replacementDataSource.name) {
+                return query;
+            }
+
+            return {
+                ...query,
+                parts: {
+                    ...query.parts,
+                    source: replacementDataSource,
+                },
+            };
+        });
+        next(selection.actions.setQueries(updatedQueries));
+    },
 });
 
 export default [
@@ -542,7 +602,9 @@ export default [
     decodeFileExplorerURLLogics,
     selectNearbyFile,
     setAvailableAnnotationsLogic,
-    changeCollectionLogic,
+    changeDataSourceLogic,
     addQueryLogic,
+    replaceDataSourceLogic,
     changeQueryLogic,
+    removeQueryLogic,
 ];

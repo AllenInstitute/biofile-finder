@@ -57,6 +57,10 @@ export default class FileFolder {
         return this.fileFolderPath.length;
     }
 
+    public toJSON(): string {
+        return this.fileFolderPath.join(".");
+    }
+
     /**
      * This returns true if the open file folder given is the same
      * as this open file folder.

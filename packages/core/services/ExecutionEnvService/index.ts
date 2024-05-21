@@ -40,13 +40,6 @@ export default interface ExecutionEnvService {
      * @param reasonForPrompt (Optional) If present, will first display a message to the user notifying them of
      */
     promptForFile(extensions?: string[], reasonForPrompt?: string): Promise<string>;
-
-    /**
-     * Verifies that the given path leads to a valid executable for the current OS.
-     *
-     * @param executablePath Path to the executable
-     */
-    isValidExecutable(executablePath: string): Promise<boolean>;
 }
 
 /**

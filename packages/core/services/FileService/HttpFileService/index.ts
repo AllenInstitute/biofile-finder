@@ -1,25 +1,19 @@
-import { compact, join } from "lodash";
+import { compact, join, uniqueId } from "lodash";
 
-import FileService, { GetFilesRequest, SelectionAggregationResult } from "..";
-import HttpServiceBase from "../../HttpServiceBase";
+import FileService, { GetFilesRequest, SelectionAggregationResult, Selection } from "..";
+import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
+import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
+import HttpServiceBase, { ConnectionConfig } from "../../HttpServiceBase";
 import FileSelection from "../../../entity/FileSelection";
-import { JSONReadyRange } from "../../../entity/NumericRange";
 import FileSet from "../../../entity/FileSet";
 import FileDetail, { FmsFile } from "../../../entity/FileDetail";
 
-export interface Selection {
-    filters: {
-        [index: string]: (string | number | boolean)[];
-    };
-    indexRanges: JSONReadyRange[];
-    sort?: {
-        annotationName: string;
-        ascending: boolean;
-    };
-}
-
 interface SelectionAggregationRequest {
     selections: Selection[];
+}
+
+interface Config extends ConnectionConfig {
+    downloadService: FileDownloadService;
 }
 
 /**
@@ -30,6 +24,27 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     public static readonly BASE_FILES_URL = `file-explorer-service/${HttpFileService.ENDPOINT_VERSION}/files`;
     public static readonly BASE_FILE_COUNT_URL = `${HttpFileService.BASE_FILES_URL}/count`;
     public static readonly SELECTION_AGGREGATE_URL = `${HttpFileService.BASE_FILES_URL}/selection/aggregate`;
+    private static readonly CSV_ENDPOINT_VERSION = "2.0";
+    public static readonly BASE_CSV_DOWNLOAD_URL = `file-explorer-service/${HttpFileService.CSV_ENDPOINT_VERSION}/files/selection/manifest`;
+    private readonly downloadService: FileDownloadService;
+
+    constructor(config: Config = { downloadService: new FileDownloadServiceNoop() }) {
+        super(config);
+        this.downloadService = config.downloadService;
+    }
+
+    /**
+     * Basic check to see if the network is accessible by attempting to fetch the file explorer service base url
+     */
+    public async isNetworkAccessible(): Promise<boolean> {
+        try {
+            await this.get(`${this.baseUrl}/${HttpFileService.BASE_FILE_COUNT_URL}`);
+            return true;
+        } catch (error) {
+            console.error(`Unable to access AICS network ${error}`);
+            return false;
+        }
+    }
 
     public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
         const requestUrl = join(
@@ -39,7 +54,6 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
             ]),
             "?"
         );
-        console.log(`Requesting count of matching files from ${requestUrl}`);
 
         const response = await this.get<number>(requestUrl);
 
@@ -57,7 +71,6 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         const selections = fileSelection.toCompactSelectionList();
         const postBody: SelectionAggregationRequest = { selections };
         const requestUrl = `${this.baseUrl}/${HttpFileService.SELECTION_AGGREGATE_URL}${this.pathSuffix}`;
-        console.log(`Requesting aggregate results of matching files ${postBody}`);
 
         const response = await this.post<SelectionAggregationResult>(
             requestUrl,
@@ -80,9 +93,41 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
 
         const base = `${this.baseUrl}/${HttpFileService.BASE_FILES_URL}${this.pathSuffix}?from=${from}&limit=${limit}`;
         const requestUrl = join(compact([base, fileSet.toQueryString()]), "&");
-        console.log(`Requesting files from ${requestUrl}`);
 
         const response = await this.get<FmsFile>(requestUrl);
         return response.data.map((file) => new FileDetail(file));
+    }
+
+    /**
+     * Download the given file selection query to local storage in the given format
+     */
+    public async download(
+        annotations: string[],
+        selections: Selection[],
+        format: "csv" | "json" | "parquet"
+    ): Promise<DownloadResult> {
+        if (format !== "csv") {
+            throw new Error(
+                "Only CSV download is supported at this time for downloading from AICS FMS"
+            );
+        }
+
+        const postData = JSON.stringify({ annotations, selections });
+        const url = `${this.baseUrl}/${HttpFileService.BASE_CSV_DOWNLOAD_URL}${this.pathSuffix}`;
+
+        const manifestAsString = await this.downloadService.prepareHttpResourceForDownload(
+            url,
+            postData
+        );
+        const name = `file-manifest-${new Date()}.csv`;
+        return this.downloadService.download(
+            {
+                name,
+                id: name,
+                path: url,
+                data: manifestAsString,
+            },
+            uniqueId()
+        );
     }
 }

@@ -1,3 +1,4 @@
+import { uniqBy } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { interaction, ReduxLogicDeps, selection } from "..";
@@ -5,10 +6,11 @@ import {
     RECEIVE_ANNOTATIONS,
     ReceiveAnnotationAction,
     receiveAnnotations,
-    receiveCollections,
+    receiveDataSources,
     REQUEST_ANNOTATIONS,
-    REQUEST_COLLECTIONS,
+    REQUEST_DATA_SOURCES,
 } from "./actions";
+import * as metadataSelectors from "./selectors";
 import Annotation, { AnnotationName } from "../../entity/Annotation";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
@@ -43,7 +45,7 @@ const requestAnnotations = createLogic({
 });
 
 /**
- * Interceptor responsible for turning REQUEST_COLLECTIONS action into selecting default
+ * Interceptor responsible for turning REQUEST_DATA_SOURCES action into selecting default
  * display annotations
  */
 const receiveAnnotationsLogic = createLogic({
@@ -61,8 +63,10 @@ const receiveAnnotationsLogic = createLogic({
         );
         // Filter out any annotations that were selected for display that no longer
         // exist as annotations in the state
-        const displayAnnotationsThatStillExist = currentDisplayAnnotations.filter(
-            (annotation) => annotation.name in annotationNameToAnnotationMap
+        const displayAnnotationsThatStillExist = currentDisplayAnnotations.flatMap((annotation) =>
+            annotation.name in annotationNameToAnnotationMap
+                ? [annotationNameToAnnotationMap[annotation.name]]
+                : []
         );
 
         // These are the default annotations we want to display so this will
@@ -122,23 +126,24 @@ const receiveAnnotationsLogic = createLogic({
 });
 
 /**
- * Interceptor responsible for turning REQUEST_COLLECTIONS action into a network call for collections. Outputs
- * RECEIVE_COLLECTIONS action.
+ * Interceptor responsible for turning REQUEST_DATA_SOURCES action into a network call for data source. Outputs
+ * RECEIVE_DATA_SOURCES action.
  */
-const requestCollections = createLogic({
+const requestDataSources = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const datasetService = interaction.selectors.getDatasetService(deps.getState());
+        const existingDataSources = metadataSelectors.getDataSources(deps.getState());
 
         try {
-            const collections = await datasetService.getDatasets();
-            dispatch(receiveCollections(collections));
+            const dataSources = await datasetService.getAll();
+            dispatch(receiveDataSources(uniqBy([...existingDataSources, ...dataSources], "id")));
         } catch (err) {
             console.error("Failed to fetch datasets", err);
         } finally {
             done();
         }
     },
-    type: [REQUEST_COLLECTIONS, interaction.actions.REFRESH],
+    type: [REQUEST_DATA_SOURCES, interaction.actions.REFRESH],
 });
 
-export default [requestAnnotations, receiveAnnotationsLogic, requestCollections];
+export default [requestAnnotations, receiveAnnotationsLogic, requestDataSources];

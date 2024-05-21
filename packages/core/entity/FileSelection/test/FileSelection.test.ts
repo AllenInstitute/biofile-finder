@@ -6,10 +6,11 @@ import FileSet from "../../FileSet";
 import NumericRange from "../../NumericRange";
 
 import FileSelection, { FocusDirective } from "..";
+import FileDetail from "../../FileDetail";
 import FileFilter from "../../FileFilter";
 import { IndexError, ValueError } from "../../../errors";
 import HttpFileService from "../../../services/FileService/HttpFileService";
-import FileDetail from "../../FileDetail";
+import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("FileSelection", () => {
     describe("select", () => {
@@ -355,7 +356,11 @@ describe("FileSelection", () => {
                     data: { data: queryResult },
                 },
             });
-            const fileService = new HttpFileService({ baseUrl, httpClient });
+            const fileService = new HttpFileService({
+                baseUrl,
+                httpClient,
+                downloadService: new FileDownloadServiceNoop(),
+            });
             const selection = new FileSelection().select({
                 fileSet: new FileSet({ fileService }),
                 index: new NumericRange(1, 30),

@@ -10,7 +10,6 @@ import {
     REMOVE_STATUS,
     SET_STATUS,
     cancelFileDownload,
-    SET_CSV_COLUMNS,
     refresh,
     OPEN_WITH,
     openWith,
@@ -83,7 +82,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(downloadManifest([]));
+            store.dispatch(downloadManifest([], "csv"));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -117,7 +116,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(downloadManifest([]));
+            store.dispatch(downloadManifest([], "csv"));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -136,19 +135,14 @@ describe("Interaction logics", () => {
         it("marks the failure of a manifest download with a status update", async () => {
             // arrange
             class FailingDownloadSerivce implements FileDownloadService {
+                isFileSystemAccessible = false;
                 getDefaultDownloadDirectory() {
                     return Promise.reject();
                 }
-                downloadCsvManifest() {
+                download() {
                     return Promise.reject();
                 }
-                downloadFile() {
-                    return Promise.reject();
-                }
-                promptForSaveLocation() {
-                    return Promise.reject();
-                }
-                promptForDownloadDirectory() {
+                prepareHttpResourceForDownload() {
                     return Promise.reject();
                 }
                 cancelActiveRequest() {
@@ -172,7 +166,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(downloadManifest([]));
+            store.dispatch(downloadManifest([], "csv"));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -230,6 +224,7 @@ describe("Interaction logics", () => {
             const fileService = new HttpFileService({
                 baseUrl,
                 httpClient: mockHttpClient,
+                downloadService: new FileDownloadServiceNoop(),
             });
 
             sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
@@ -241,7 +236,7 @@ describe("Interaction logics", () => {
             });
 
             // act
-            store.dispatch(downloadManifest([]));
+            store.dispatch(downloadManifest([], "csv"));
             await logicMiddleware.whenComplete();
 
             // assert
@@ -256,35 +251,6 @@ describe("Interaction logics", () => {
                     },
                 })
             ).to.be.true;
-        });
-
-        it("updates annotations to persist for the next time a user opens a selection action modal", async () => {
-            // arrange
-            const state = mergeState(initialState, {
-                interaction: {
-                    platformDependentServices: {
-                        fileDownloadService: new FileDownloadServiceNoop(),
-                    },
-                },
-                selection: {
-                    fileSelection,
-                },
-            });
-            const { store, logicMiddleware, actions } = configureMockStore({
-                state,
-                logics: interactionLogics,
-            });
-
-            // act
-            store.dispatch(downloadManifest([]));
-            await logicMiddleware.whenComplete();
-
-            // assert
-            expect(
-                actions.includesMatch({
-                    type: SET_CSV_COLUMNS,
-                })
-            ).to.equal(true);
         });
     });
 
@@ -435,16 +401,16 @@ describe("Interaction logics", () => {
         it("dispatches progress events", async () => {
             // Arrange
             class TestDownloadSerivce implements FileDownloadService {
+                isFileSystemAccessible = true;
                 getDefaultDownloadDirectory() {
                     return Promise.resolve("wherever");
                 }
-                downloadCsvManifest() {
+                prepareHttpResourceForDownload() {
                     return Promise.reject();
                 }
-                downloadFile(
+                download(
                     _fileInfo: FileInfo,
                     downloadRequestId: string,
-                    _?: string,
                     onProgress?: (bytesDownloaded: number) => void
                 ) {
                     onProgress?.(1);
@@ -453,9 +419,6 @@ describe("Interaction logics", () => {
                         msg: "Success",
                         resolution: DownloadResolution.SUCCESS,
                     });
-                }
-                promptForSaveLocation() {
-                    return Promise.reject();
                 }
                 promptForDownloadDirectory() {
                     return Promise.reject();
@@ -504,19 +467,14 @@ describe("Interaction logics", () => {
         it("marks the failure of a file download with a status update", async () => {
             // Arrange
             class TestDownloadSerivce implements FileDownloadService {
+                isFileSystemAccessible = true;
                 getDefaultDownloadDirectory() {
                     return Promise.resolve("wherever");
                 }
-                downloadCsvManifest() {
+                prepareHttpResourceForDownload() {
                     return Promise.reject();
                 }
-                downloadFile() {
-                    return Promise.reject();
-                }
-                promptForSaveLocation() {
-                    return Promise.reject();
-                }
-                promptForDownloadDirectory() {
+                download() {
                     return Promise.reject();
                 }
                 cancelActiveRequest() {
@@ -575,24 +533,18 @@ describe("Interaction logics", () => {
         it("clears status for download request if request was cancelled", async () => {
             // Arrange
             class TestDownloadSerivce implements FileDownloadService {
+                isFileSystemAccessible = true;
                 getDefaultDownloadDirectory() {
                     return Promise.resolve("wherever");
                 }
-                downloadCsvManifest() {
+                prepareHttpResourceForDownload() {
                     return Promise.reject();
                 }
-                downloadFile(_fileInfo: FileInfo, destination: string, downloadRequestId: string) {
+                download(_fileInfo: FileInfo, downloadRequestId: string) {
                     return Promise.resolve({
-                        destination,
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,
                     });
-                }
-                promptForSaveLocation() {
-                    return Promise.reject();
-                }
-                promptForDownloadDirectory() {
-                    return Promise.reject();
                 }
                 cancelActiveRequest() {
                     return Promise.reject();
@@ -630,31 +582,33 @@ describe("Interaction logics", () => {
             ).to.equal(true);
         });
 
-        it("downloads files to prompted location", async () => {
+        it("triggers platform specific download", async () => {
             // Arrange
-            let actualDestination = "never got set";
+            let isDownloading = false;
             const expectedDestination = "yay real destination";
-            class UselessFileDownloadService extends FileDownloadServiceNoop {
-                public downloadFile(
+            class UselessFileDownloadService implements FileDownloadService {
+                isFileSystemAccessible = false;
+                public prepareHttpResourceForDownload() {
+                    return Promise.reject();
+                }
+                public download(
                     _: FileInfo,
-                    destination: string,
                     downloadRequestId: string,
                     onProgress?: (bytesDownloaded: number) => void
                 ) {
-                    actualDestination = destination;
+                    isDownloading = true;
                     return Promise.resolve({
                         downloadRequestId,
-                        destination,
                         onProgress,
                         msg: "",
                         resolution: DownloadResolution.SUCCESS,
                     });
                 }
-                public promptForSaveLocation() {
-                    return Promise.reject();
-                }
-                public promptForDownloadDirectory(): Promise<string> {
+                public getDefaultDownloadDirectory(): Promise<string> {
                     return Promise.resolve(expectedDestination);
+                }
+                public cancelActiveRequest() {
+                    // no-op
                 }
             }
             const state = mergeState(initialState, {
@@ -678,11 +632,11 @@ describe("Interaction logics", () => {
             });
 
             // Act
-            store.dispatch(downloadFiles([file], true));
+            store.dispatch(downloadFiles([file]));
             await logicMiddleware.whenComplete();
 
             // Assert
-            expect(actualDestination).to.equal(expectedDestination);
+            expect(isDownloading).to.be.true;
         });
     });
 
@@ -690,27 +644,23 @@ describe("Interaction logics", () => {
         it("marks the failure of a download cancellation (on error)", async () => {
             // arrange
             class TestDownloadService implements FileDownloadService {
+                isFileSystemAccessible = false;
                 getDefaultDownloadDirectory() {
                     return Promise.reject();
                 }
-                downloadCsvManifest(_url: string, _data: string, downloadRequestId: string) {
-                    return Promise.resolve({
-                        downloadRequestId,
-                        resolution: DownloadResolution.CANCELLED,
-                    });
-                }
-                downloadFile(_fileInfo: FileInfo, destination: string, downloadRequestId: string) {
-                    return Promise.resolve({
-                        destination,
-                        downloadRequestId,
-                        resolution: DownloadResolution.CANCELLED,
-                    });
-                }
-                promptForSaveLocation() {
+                prepareHttpResourceForDownload() {
                     return Promise.reject();
                 }
-                promptForDownloadDirectory() {
-                    return Promise.reject();
+                download(
+                    _fileInfo: FileInfo,
+                    downloadRequestId: string,
+                    onProgress?: (bytesDownloaded: number) => void
+                ) {
+                    return Promise.resolve({
+                        downloadRequestId,
+                        onProgress,
+                        resolution: DownloadResolution.CANCELLED,
+                    });
                 }
                 cancelActiveRequest() {
                     throw new Error("KABOOM");
@@ -753,22 +703,17 @@ describe("Interaction logics", () => {
             // arrange
             const downloadRequestId = "beepbop";
             class TestDownloadService implements FileDownloadService {
+                isFileSystemAccessible = false;
                 getDefaultDownloadDirectory() {
                     return Promise.reject();
                 }
-                downloadCsvManifest() {
+                download() {
                     return Promise.resolve({
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,
                     });
                 }
-                downloadFile() {
-                    return Promise.resolve({
-                        downloadRequestId,
-                        resolution: DownloadResolution.CANCELLED,
-                    });
-                }
-                promptForSaveLocation() {
+                prepareHttpResourceForDownload() {
                     return Promise.reject();
                 }
                 promptForDownloadDirectory() {
@@ -939,6 +884,7 @@ describe("Interaction logics", () => {
         const fileService = new HttpFileService({
             baseUrl,
             httpClient: mockHttpClient,
+            downloadService: new FileDownloadServiceNoop(),
         });
         const fakeSelection = new FileSelection().select({
             fileSet: new FileSet({ fileService }),
@@ -1154,6 +1100,7 @@ describe("Interaction logics", () => {
         const fileService = new HttpFileService({
             baseUrl,
             httpClient: mockHttpClient,
+            downloadService: new FileDownloadServiceNoop(),
         });
         const fakeSelection = new FileSelection().select({
             fileSet: new FileSet({ fileService }),
@@ -1268,6 +1215,7 @@ describe("Interaction logics", () => {
         const fileService = new HttpFileService({
             baseUrl,
             httpClient: mockHttpClient,
+            downloadService: new FileDownloadServiceNoop(),
         });
 
         it("attempts to open selected files", async () => {

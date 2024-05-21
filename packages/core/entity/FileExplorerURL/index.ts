@@ -1,38 +1,28 @@
-import { isObject } from "lodash";
-
 import { AnnotationName } from "../Annotation";
-import FileFilter, { FileFilterJson } from "../FileFilter";
+import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
-import { AnnotationValue } from "../../services/AnnotationService";
-import { ValueError } from "../../errors";
 import FileSort, { SortOrder } from "../FileSort";
 
-export interface Collection {
+export interface Source {
     name: string;
-    version?: number;
-    uri?: string;
+    type: "csv" | "json" | "parquet";
+    uri?: string | File;
 }
 
 // Components of the application state this captures
 export interface FileExplorerURLComponents {
     hierarchy: string[];
-    collection?: Collection;
+    source?: Source;
     filters: FileFilter[];
     openFolders: FileFolder[];
     sortColumn?: FileSort;
 }
 
-// JSON format this outputs & expects to receive back from the user
-interface FileExplorerURLJson {
-    groupBy: string[];
-    collection?: Collection;
-    filters: FileFilterJson[];
-    openFolders: AnnotationValue[][];
-    sort?: {
-        annotationName: string;
-        order: SortOrder;
-    };
-}
+export const EMPTY_QUERY_COMPONENTS: FileExplorerURLComponents = {
+    hierarchy: [],
+    filters: [],
+    openFolders: [],
+};
 
 const BEGINNING_OF_TODAY = new Date();
 BEGINNING_OF_TODAY.setHours(0, 0, 0, 0);
@@ -50,7 +40,7 @@ export const PAST_YEAR_FILTER = new FileFilter(
     AnnotationName.UPLOADED,
     `RANGE(${DATE_LAST_YEAR.toISOString()},${END_OF_TODAY.toISOString()})`
 );
-const DEFAULT_FMS_URL_COMPONENTS = {
+export const DEFAULT_AICS_FMS_QUERY: FileExplorerURLComponents = {
     hierarchy: [],
     openFolders: [],
     filters: [PAST_YEAR_FILTER],
@@ -63,9 +53,6 @@ const DEFAULT_FMS_URL_COMPONENTS = {
  * URL decoded & rehydrated back in.
  */
 export default class FileExplorerURL {
-    public static readonly PROTOCOL = "fms-file-explorer://";
-    public static readonly DEFAULT_FMS_URL = FileExplorerURL.encode(DEFAULT_FMS_URL_COMPONENTS);
-
     /**
      * Encode this FileExplorerURL into a format easily transferable between users
      * that can be decoded back into the data used to create this FileExplorerURL.
@@ -73,31 +60,25 @@ export default class FileExplorerURL {
      * of our application state. As in, the names / system we track data in can change
      * without breaking an existing FileExplorerURL.
      * */
-    public static encode(urlComponents: Partial<FileExplorerURLComponents>) {
-        const groupBy = urlComponents.hierarchy?.map((annotation) => annotation) || [];
-        const filters = urlComponents.filters?.map((filter) => filter.toJSON()) || [];
-        const openFolders = urlComponents.openFolders?.map((folder) => folder.fileFolder) || [];
-        const sort = urlComponents.sortColumn
-            ? {
-                  annotationName: urlComponents.sortColumn.annotationName,
-                  order: urlComponents.sortColumn.order,
-              }
-            : undefined;
+    public static encode(urlComponents: Partial<FileExplorerURLComponents>): string {
+        const params = new URLSearchParams();
+        urlComponents.hierarchy?.forEach((annotation) => {
+            params.append("group", annotation);
+        });
+        urlComponents.filters?.forEach((filter) => {
+            params.append("filter", JSON.stringify(filter.toJSON()));
+        });
+        urlComponents.openFolders?.map((folder) => {
+            params.append("openFolder", JSON.stringify(folder.fileFolder));
+        });
+        if (urlComponents.sortColumn) {
+            params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
+        }
+        if (urlComponents.source) {
+            params.append("source", JSON.stringify(urlComponents.source));
+        }
 
-        const dataToEncode: FileExplorerURLJson = {
-            groupBy,
-            filters,
-            openFolders,
-            sort,
-            collection: urlComponents.collection
-                ? {
-                      name: urlComponents.collection.name,
-                      version: urlComponents.collection.version,
-                      uri: urlComponents.collection.uri,
-                  }
-                : undefined,
-        };
-        return `${FileExplorerURL.PROTOCOL}${JSON.stringify(dataToEncode)}`;
+        return params.toString();
     }
 
     /**
@@ -105,56 +86,36 @@ export default class FileExplorerURL {
      * application state
      */
     public static decode(encodedURL: string): FileExplorerURLComponents {
-        const trimmedEncodedURL = encodedURL.trim();
-        if (!trimmedEncodedURL.startsWith(FileExplorerURL.PROTOCOL)) {
-            throw new ValueError(
-                "This does not look like an FMS File Explorer URL, invalid protocol."
-            );
-        }
+        const params = new URLSearchParams(encodedURL.trim());
 
-        const parsedURL: FileExplorerURLJson = JSON.parse(
-            trimmedEncodedURL.substring(FileExplorerURL.PROTOCOL.length)
-        );
+        const unparsedOpenFolders = params.getAll("openFolder");
+        const unparsedFilters = params.getAll("filter");
+        const unparsedSource = params.get("source");
+        const hierarchy = params.getAll("group");
+        const unparsedSort = params.get("sort");
+        const hierarchyDepth = hierarchy.length;
 
-        let sortColumn = undefined;
-        if (parsedURL.sort) {
-            if (!Object.values(SortOrder).includes(parsedURL.sort.order)) {
-                throw new Error(
-                    `Unable to decode FileExplorerURL, sort order must be one of ${Object.values(
-                        SortOrder
-                    )}`
-                );
-            }
-            sortColumn = new FileSort(parsedURL.sort.annotationName, parsedURL.sort.order);
-        }
-
+        const parsedSort = unparsedSort ? JSON.parse(unparsedSort) : undefined;
         if (
-            parsedURL.collection &&
-            (!isObject(parsedURL.collection) ||
-                !parsedURL.collection.name ||
-                !parsedURL.collection.version)
+            parsedSort &&
+            parsedSort?.order !== SortOrder.ASC &&
+            parsedSort?.order !== SortOrder.DESC
         ) {
-            throw new ValueError(
-                `Unable to decode FileExplorerURL, unexpected format (${parsedURL.collection})`
-            );
+            throw new Error("Sort order must be ASC or DESC");
         }
-
-        const hierarchyDepth = parsedURL.groupBy.length;
         return {
-            hierarchy: parsedURL.groupBy,
-            collection: parsedURL.collection,
-            filters: parsedURL.filters.map((filter) => {
-                return new FileFilter(filter.name, filter.value);
-            }),
-            openFolders: parsedURL.openFolders.map((folder) => {
-                if (folder.length > hierarchyDepth) {
-                    throw new Error(
-                        "Unable to decode FileExplorerURL, opened folder depth is greater than hierarchy depth"
-                    );
-                }
-                return new FileFolder(folder);
-            }),
-            sortColumn,
+            hierarchy,
+            sortColumn: parsedSort
+                ? new FileSort(parsedSort.annotationName, parsedSort.order || SortOrder.ASC)
+                : undefined,
+            filters: unparsedFilters
+                .map((unparsedFilter) => JSON.parse(unparsedFilter))
+                .map((parsedFilter) => new FileFilter(parsedFilter.name, parsedFilter.value)),
+            source: unparsedSource ? JSON.parse(unparsedSource) : undefined,
+            openFolders: unparsedOpenFolders
+                .map((unparsedFolder) => JSON.parse(unparsedFolder))
+                .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
+                .map((parsedFolder) => new FileFolder(parsedFolder)),
         };
     }
 }

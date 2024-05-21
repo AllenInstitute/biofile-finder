@@ -1,8 +1,9 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 
 html {
     box-sizing: border-box;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Open Sans', sans-serif;
 }
 
 *,
@@ -20,6 +21,7 @@ main {
     padding: 0;
     border: 0;
     overflow: hidden;
+    scrollbar-color:  var(--borders-light-grey) var(--accent-dark)
 }
 
 body {
@@ -28,6 +30,14 @@ body {
     --light-purple: #bab5c9;
     --dark-blue: #003057;
     /* Additional colors */
+    /* New theme */
+    --bright-aqua: #0dc4d9;
+    --aqua: #0b9aab;
+    --primary-dark: #2f2f2f;
+    --secondary-dark: #1c1c1c;
+    --accent-dark: #3d3d3d;
+    --borders-light-grey: #575859;
+    /* Old theme */
     --dark-grey: #313131;
     --medium-grey: #4B4B4B;
     --light-grey: #BFBFBF;
@@ -35,13 +45,16 @@ body {
     --red: #c23030;
 
     /* DEFAULT THEME (dark theme) */
+    /* To do: Update greys to new theme, check components for consistency */
     --primary-background-color: var(--medium-grey);
     --secondary-background-color: var(--dark-grey);
     --primary-text-color: var(--white);
     --secondary-text-color: var(--light-grey);
     --highlight-background-color: var(--dark-purple);
     --highlight-text-color: var(--white);
-    --error-color: var(--red);
+    --error-background-color: var(--red);
+    --error-text-color: var(--white);
+    --aqua-secondary-hover: rgba(13, 187, 206, 0.18);
 
     --query-sidebar-max-width: 350px;
     --url-bar-height: 40px;
@@ -57,7 +70,8 @@ body:has(> main:has(.light-theme)) {
     --secondary-text-color: var(--light-grey);
     --highlight-background-color: var(--dark-purple);
     --highlight-text-color: var(--white);
-    --error-color: var(--red);
+    --error-background-color: var(--red);
+    --error-text-color: var(--white);
 }
 
 h3 {

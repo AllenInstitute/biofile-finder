@@ -1,74 +1,103 @@
 import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
-import * as url from "url";
 
-import axios from "axios";
-const httpAdapter = require("axios/lib/adapters/http"); // exported from lib, but not typed (can't be fixed through typing augmentation)
 import duckdb from "duckdb";
 
-import { DatabaseService, DataSource } from "../../../core/services";
+import { DatabaseService } from "../../../core/services";
 
 export default class DatabaseServiceElectron implements DatabaseService {
-    public readonly table: string = "default_table";
     private database: duckdb.Database;
+    private readonly existingDataSources = new Set<string>();
 
     constructor() {
         this.database = new duckdb.Database(":memory:");
     }
 
-    public async setDataSource(fileURI: string): Promise<void> {
-        this.database = new duckdb.Database(":memory:");
-        const extension = path.extname(fileURI);
-        let sql;
-        switch (extension) {
-            case ".json":
-                sql = `CREATE TABLE ${this.table} AS FROM read_json_auto('${fileURI}')`;
-                break;
-            case ".parquet":
-                sql = `CREATE TABLE ${this.table} AS FROM read_parquet('${fileURI}')`;
-                break;
-            case ".csv":
-                sql = `CREATE TABLE ${this.table} AS FROM read_csv_auto('${fileURI}')`;
-                break;
-            default:
-                throw new Error(`Unsupport data source type ${extension} of ${fileURI}`);
+    public async addDataSource(
+        name: string,
+        type: "csv" | "json" | "parquet",
+        uri: File | string
+    ): Promise<void> {
+        if (this.existingDataSources.has(name)) {
+            return; // no-op
         }
-        await this.query(sql);
-    }
 
-    public async getDataSource(csvUri: string): Promise<DataSource> {
-        if (csvUri.startsWith("http")) {
-            const response = await axios.get(csvUri, {
-                // Ensure this runs with the NodeJS http/https client so that testing across code that makes use of Electron/NodeJS APIs
-                // can be done with consistent patterns.
-                // Requires the Electron renderer process to be run with `nodeIntegration: true`.
-                adapter: httpAdapter,
+        let source: string;
+        let tempLocation;
+        try {
+            if (typeof uri === "string") {
+                source = uri;
+            } else {
+                source = path.resolve(os.tmpdir(), name);
+                const arrayBuffer = await uri.arrayBuffer();
+                const writeStream = fs.createWriteStream(source);
+                await new Promise<void>((resolve, reject) => {
+                    writeStream.write(Buffer.from(arrayBuffer), (error) => {
+                        if (error) {
+                            reject(error);
+                        } else {
+                            resolve();
+                        }
+                    });
+                });
+                tempLocation = source;
+            }
+
+            await new Promise<void>((resolve, reject) => {
+                const callback = (err: any) => {
+                    if (err) {
+                        reject(err.message);
+                    } else {
+                        resolve();
+                    }
+                };
+
+                if (type === "parquet") {
+                    this.database.run(
+                        `CREATE TABLE "${name}" AS FROM parquet_scan('${source}');`,
+                        callback
+                    );
+                } else if (type === "json") {
+                    this.database.run(
+                        `CREATE TABLE "${name}" AS FROM read_json_auto('${source}');`,
+                        callback
+                    );
+                } else {
+                    // Default to CSV
+                    this.database.exec(
+                        `CREATE TABLE "${name}" AS FROM read_csv_auto('${source}', header=true);`,
+                        callback
+                    );
+                }
             });
 
-            // TODO: Can we make sure this doesn't just request 30GB suddenly for example?
-            if (response.status >= 400 || response.data === undefined) {
-                throw new Error(
-                    `Failed to fetch CSV from ${csvUri}. Response status text: ${response.statusText}`
-                );
-            }
-            const urlObj = new url.URL(csvUri);
-
-            return {
-                name: urlObj.pathname.split("/").pop() || "Unknown",
-                created: new Date(),
-            };
-        } else {
-            try {
-                await fs.promises.access(csvUri, fs.constants.R_OK);
-                const stats = await fs.promises.stat(csvUri);
-                return {
-                    name: path.parse(csvUri).name,
-                    created: stats.birthtime,
-                };
-            } catch (err) {
-                throw new Error(`Failed to access file at ${csvUri}. Exact error: ${err}`);
+            this.existingDataSources.add(name);
+        } finally {
+            if (tempLocation) {
+                await fs.promises.unlink(tempLocation);
             }
         }
+    }
+
+    /**
+     * Saves the result of the query to the designated location.
+     * May return a value if the location is not a physical location but rather
+     * a temporary database location (buffer)
+     */
+    public saveQuery(destination: string, sql: string, format: string): Promise<Uint8Array> {
+        return new Promise((resolve, reject) => {
+            this.database.run(
+                `COPY (${sql}) TO '${destination}.${format}' (FORMAT '${format}');`,
+                (err: any, result: any) => {
+                    if (err) {
+                        reject(err.message);
+                    } else {
+                        resolve(result);
+                    }
+                }
+            );
+        });
     }
 
     public query(sql: string): Promise<duckdb.TableData> {
@@ -84,6 +113,23 @@ export default class DatabaseServiceElectron implements DatabaseService {
             } catch (error) {
                 return Promise.reject(`${error}`);
             }
+        });
+    }
+
+    public async reset(): Promise<void> {
+        await this.close();
+        this.database = new duckdb.Database(":memory:");
+    }
+
+    public close(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.database.close((err) => {
+                if (err) {
+                    reject(err.message);
+                } else {
+                    resolve();
+                }
+            });
         });
     }
 }

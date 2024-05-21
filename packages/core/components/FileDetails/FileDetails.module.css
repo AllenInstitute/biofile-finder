@@ -168,7 +168,7 @@
 .file-name {
     padding: var(--margin);
     text-align: center;
-    user-select: text;
+    user-select: text !important;
     word-break: break-all;
 }
 
