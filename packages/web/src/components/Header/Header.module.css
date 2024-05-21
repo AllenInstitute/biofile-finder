@@ -57,3 +57,8 @@
   background-color: var(--aqua-secondary-hover);
   color: var(--aqua);
 }
+
+.upload-button-label { 
+  font-weight: 400; 
+  font-size: 14px;
+}

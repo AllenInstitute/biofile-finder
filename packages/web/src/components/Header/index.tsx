@@ -42,7 +42,7 @@ export default function Header() {
                     {currentPath !== "/app" && (
                         <DefaultButton
                             className={classNames(styles.uploadButton, styles.headerOption)}
-                            styles={{ label: { "font-weight": "400", "font-size": "14px" } }}
+                            styles={{ label: styles.uploadButtonLabel }}
                             ariaLabel="Upload file"
                             iconProps={{ iconName: "Upload" }}
                             title="Upload"

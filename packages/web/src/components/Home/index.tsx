@@ -8,7 +8,7 @@ import Features from "./Features";
 
 import styles from "./Home.module.css";
 
-// Placeholder for the splash page
+// Public-facing splash page
 export default function Home() {
     const options = [
         {
@@ -19,8 +19,8 @@ export default function Home() {
                 <DefaultButton
                     className={classNames(styles.button)}
                     styles={{
-                        label: { "font-size": "14px", "font-weight": "400" },
-                        icon: { "font-size": "14px", "font-weight": "500" },
+                        label: styles.buttonLabel,
+                        icon: styles.buttonIcon,
                     }}
                     ariaLabel="Upload file"
                     iconProps={{ iconName: "Upload" }}
@@ -38,8 +38,8 @@ export default function Home() {
                     <DefaultButton
                         className={classNames(styles.button)}
                         styles={{
-                            label: { "font-size": "14px", "font-weight": "400" },
-                            icon: { "font-size": "14px", "font-weight": "500" },
+                            label: styles.buttonLabel,
+                            icon: styles.buttonIcon,
                         }}
                         ariaLabel="View datasets"
                         iconProps={{ iconName: "BulletedList" }}

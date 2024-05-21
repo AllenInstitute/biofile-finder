@@ -41,3 +41,7 @@
   border: none !important;
 }
 
+.help-menu-label {
+  font-weight: 400;
+  font-size: 16px;
+}

@@ -37,6 +37,7 @@
 
 .option-header {
     font-size: 18px;
+    font-weight: 600;
     padding: var(--margin);
     height: 50px;
     line-height: 1.25;
@@ -44,6 +45,7 @@
 
 .option-body {
     font-size: 14px;
+    font-weight: 400;
     padding: var(--margin);
     margin: var(--margin) 0;
 }
@@ -54,7 +56,7 @@
 
 hr {
     border: none;
-    height: 1px;
+    height: 1px !important;
     color: var(--borders-light-grey); /* old IE */
     background-color: var(--borders-light-grey); /* Modern Browsers */
 }
@@ -71,4 +73,14 @@ hr {
 .button:focus {
     background-color: var(--bright-aqua);
     color: var(--white);
+}
+
+.button-label { 
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.button-icon { 
+    font-size: 15px;
+    font-weight: 500;
 }

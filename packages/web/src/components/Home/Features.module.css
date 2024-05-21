@@ -1,5 +1,7 @@
 .flex-container {
     display: flex;
+    font-size: 16px;
+    font-weight: 400;
     flex: auto;
     height: 100%;
     overflow: hidden;
@@ -20,8 +22,6 @@
 
 .features {
     color: var(--aqua);
-    font-size: 16px;
-    font-weight: 300;
     width: 33%;
     flex: auto;
     margin-right: calc(2 * var(--margin));
