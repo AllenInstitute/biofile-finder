@@ -42,13 +42,22 @@ export default function OpenFileButton(props: Props) {
             };
         });
 
-        savedApps.push({
-            key: ContextMenuActions.OPEN_3D_WEB_VIEWER,
-            text: "3D Web Viewer",
-            title: `Open files with 3D Web Viewer`,
-            href: `https://allen-cell-animated.github.io/website-3d-cell-viewer/?url=${fileDetails.path}/`,
-            target: "_blank",
-        });
+        savedApps.push(
+            {
+                key: ContextMenuActions.OPEN_3D_WEB_VIEWER,
+                text: "3D Web Viewer",
+                title: `Open files with 3D Web Viewer`,
+                href: `https://allen-cell-animated.github.io/website-3d-cell-viewer/?url=${fileDetails.path}/`,
+                target: "_blank",
+            },
+            {
+                key: ContextMenuActions.AGAVE,
+                text: "AGAVE",
+                title: `Open files with AGAVE`,
+                href: `agave://${fileDetails.path}`,
+                target: "_blank",
+            }
+        );
 
         return [
             ...savedApps.sort((a, b) => (a.text || "").localeCompare(b.text || "")),

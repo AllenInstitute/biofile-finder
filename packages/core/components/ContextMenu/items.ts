@@ -4,6 +4,7 @@ import { Dispatch } from "redux";
 import { interaction } from "../../state";
 
 export enum ContextMenuActions {
+    AGAVE = "agave",
     COPY = "copy",
     CSV = "csv",
     DOWNLOAD = "download",
