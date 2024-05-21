@@ -38,6 +38,7 @@ import FileDownloadService, {
 } from "../../../services/FileDownloadService";
 import FileViewerService from "../../../services/FileViewerService";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
+import { DatabaseService } from "../../../services";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import NotificationServiceNoop from "../../../services/NotificationService/NotificationServiceNoop";
 import HttpFileService from "../../../services/FileService/HttpFileService";
@@ -54,6 +55,18 @@ describe("Interaction logics", () => {
     class FakeFileViewerService implements FileViewerService {
         open() {
             return Promise.resolve();
+        }
+    }
+
+    class MockDatabaseService implements DatabaseService {
+        saveQuery() {
+            return Promise.resolve(new Uint8Array());
+        }
+        addDataSource() {
+            return Promise.reject("addDataSource mock");
+        }
+        query() {
+            return Promise.reject("query mock");
         }
     }
 
@@ -103,10 +116,12 @@ describe("Interaction logics", () => {
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
+                        databaseService: new MockDatabaseService(),
                         fileDownloadService: new FileDownloadServiceNoop(),
                     },
                 },
                 selection: {
+                    dataSources: [{ name: "mock" }],
                     fileSelection,
                 },
             });

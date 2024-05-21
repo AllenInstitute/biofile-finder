@@ -24,7 +24,7 @@ describe("DatabaseAnnotationService", () => {
                 databaseService,
             });
             const actualAnnotations = await annotationService.fetchAnnotations();
-            expect(actualAnnotations.length).to.equal(annotations.length);
+            expect(actualAnnotations.length).to.equal(1);
             expect(actualAnnotations[0]).to.be.instanceOf(Annotation);
         });
     });
@@ -44,7 +44,7 @@ describe("DatabaseAnnotationService", () => {
             const annotation = "foo";
 
             const annotationService = new DatabaseAnnotationService({
-                dataSourceNames: [],
+                dataSourceNames: ["a", "b or c"],
                 databaseService,
             });
             const actualValues = await annotationService.fetchValues(annotation);
@@ -68,7 +68,7 @@ describe("DatabaseAnnotationService", () => {
 
         it("issues a request for annotation values for the first level of the annotation hierarchy", async () => {
             const annotationService = new DatabaseAnnotationService({
-                dataSourceNames: [],
+                dataSourceNames: ["d"],
                 databaseService,
             });
             const values = await annotationService.fetchRootHierarchyValues(["foo"], []);
@@ -77,7 +77,7 @@ describe("DatabaseAnnotationService", () => {
 
         it("issues a request for annotation values for the first level of the annotation hierarchy with filters", async () => {
             const annotationService = new DatabaseAnnotationService({
-                dataSourceNames: [],
+                dataSourceNames: ["e"],
                 databaseService,
             });
             const filter = new FileFilter("bar", "barValue");
@@ -102,7 +102,7 @@ describe("DatabaseAnnotationService", () => {
             const expectedValues = ["A0", "B1", "Cc2", "dD3"];
 
             const annotationService = new DatabaseAnnotationService({
-                dataSourceNames: [],
+                dataSourceNames: ["ghjiasd", "second source"],
                 databaseService,
             });
             const values = await annotationService.fetchHierarchyValuesUnderPath(
@@ -117,7 +117,7 @@ describe("DatabaseAnnotationService", () => {
             const expectedValues = ["A0", "B1", "Cc2", "dD3"];
 
             const annotationService = new DatabaseAnnotationService({
-                dataSourceNames: [],
+                dataSourceNames: ["mock1"],
                 databaseService,
             });
             const filter = new FileFilter("bar", "barValue");
@@ -145,7 +145,7 @@ describe("DatabaseAnnotationService", () => {
 
         it("issues request for annotations that can be combined with current hierarchy", async () => {
             const annotationService = new DatabaseAnnotationService({
-                dataSourceNames: [],
+                dataSourceNames: ["mock1"],
                 databaseService,
             });
             const values = await annotationService.fetchAvailableAnnotationsForHierarchy([

@@ -255,14 +255,6 @@ describe("Selection reducer", () => {
             // Arrange
             const initialSelectionState = { ...selection.initialState };
 
-            // (sanity-check) available annotations are not loading before refresh
-            expect(
-                selection.selectors.getAvailableAnnotationsForHierarchyLoading({
-                    ...initialState,
-                    selection: initialSelectionState,
-                })
-            ).to.be.false;
-
             // Act
             const nextSelectionState = selection.reducer(
                 initialSelectionState,

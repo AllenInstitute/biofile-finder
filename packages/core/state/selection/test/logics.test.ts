@@ -31,7 +31,7 @@ import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import NumericRange from "../../../entity/NumericRange";
-import FileExplorerURL, { Source } from "../../../entity/FileExplorerURL";
+import FileExplorerURL from "../../../entity/FileExplorerURL";
 import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
@@ -925,13 +925,15 @@ describe("Selection logics", () => {
     });
 
     describe("decodeFileExplorerURL", () => {
-        const mockDataSource: DataSource = {
-            id: "1234148",
-            name: "Test Data Source",
-            version: 1,
-            type: "csv",
-            uri: "",
-        };
+        const mockDataSources: DataSource[] = [
+            {
+                id: "1234148",
+                name: "Test Data Source",
+                version: 1,
+                type: "csv",
+                uri: "",
+            },
+        ];
 
         beforeEach(() => {
             const datasetService = new DatasetService();
@@ -948,7 +950,7 @@ describe("Selection logics", () => {
             const state = mergeState(initialState, {
                 metadata: {
                     annotations,
-                    dataSources: [mockDataSource],
+                    dataSources: mockDataSources,
                 },
             });
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -959,19 +961,12 @@ describe("Selection logics", () => {
             const filters = [new FileFilter(annotations[3].name, "20x")];
             const openFolders = [["a"], ["a", false]].map((folder) => new FileFolder(folder));
             const sortColumn = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
-            const sources: Source[] = [
-                {
-                    name: mockDataSource.name,
-                    uri: "",
-                    type: "csv",
-                },
-            ];
             const encodedURL = FileExplorerURL.encode({
                 hierarchy,
                 filters,
                 openFolders,
                 sortColumn,
-                sources,
+                sources: mockDataSources,
             });
 
             // Act
@@ -1003,7 +998,7 @@ describe("Selection logics", () => {
                     payload: sortColumn,
                 })
             ).to.be.true;
-            expect(actions.includesMatch(changeDataSources([mockDataSource]))).to.be.true;
+            expect(actions.includesMatch(changeDataSources(mockDataSources))).to.be.true;
         });
     });
 });
