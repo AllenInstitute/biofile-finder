@@ -50,27 +50,25 @@ export default function Home() {
     ];
     return (
         <>
-            <div className={styles.root}>
-                <Banner />
-                <div className={styles.content}>
-                    <div className={styles.header}>
-                        Discover features to improve efficiency in dataset curation
-                    </div>
-                    <Features />
-                    <hr></hr>
-                    <div className={styles.optionsContainer}>
-                        <div className={styles.header}>What would you like to access today?</div>
-                        <div className={styles.options}>
-                            {options.map((option, index) => {
-                                return (
-                                    <div className={styles.option} key={`option_${index}`}>
-                                        <div className={styles.optionHeader}>{option.header}</div>
-                                        <div className={styles.optionBody}>{option.body}</div>
-                                        {option.action}
-                                    </div>
-                                );
-                            })}
-                        </div>
+            <Banner />
+            <div className={styles.content}>
+                <div className={styles.header}>
+                    Discover features to improve efficiency in dataset curation
+                </div>
+                <Features />
+                <hr></hr>
+                <div className={styles.optionsContainer}>
+                    <div className={styles.header}>What would you like to access today?</div>
+                    <div className={styles.options}>
+                        {options.map((option, index) => {
+                            return (
+                                <div className={styles.option} key={`option_${index}`}>
+                                    <div className={styles.optionHeader}>{option.header}</div>
+                                    <div className={styles.optionBody}>{option.body}</div>
+                                    {option.action}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
