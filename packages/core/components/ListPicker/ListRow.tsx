@@ -42,7 +42,7 @@ export default function ListRow(props: Props) {
                 [styles.isBuffer]: item.isBuffer,
             })}
             menuIconProps={{
-                iconName: props.subMenuRenderer ? "ChevronRight" : undefined,
+                iconName: props.subMenuRenderer && !item.isBuffer ? "ChevronRight" : undefined,
             }}
             menuProps={
                 props.subMenuRenderer
