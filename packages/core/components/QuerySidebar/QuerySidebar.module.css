@@ -42,6 +42,10 @@
     fill: var(--dark-purple);
 }
 
+.logo-hidden {
+    content-visibility: hidden;
+}
+
 .container, .minimized-container {
     --primary-sidebar-color: var(--secondary-background-color);
     --secondary-sidebar-color: var(--primary-background-color);
