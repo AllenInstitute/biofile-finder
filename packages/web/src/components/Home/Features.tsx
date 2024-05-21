@@ -1,8 +1,9 @@
 import classNames from "classnames";
 import * as React from "react";
-import styles from "./Features.module.css";
 
 import { Feature, features } from "./FeatureOptions";
+
+import styles from "./Features.module.css";
 
 // Placeholder for the splash page
 export default function Features() {

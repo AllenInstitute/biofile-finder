@@ -1,6 +1,8 @@
 import * as React from "react";
-import styles from "./Banner.module.css";
+
 import { APPLICATION_NAME } from "../../constants";
+
+import styles from "./Banner.module.css";
 
 // Banner for the splash page
 export default function Banner() {

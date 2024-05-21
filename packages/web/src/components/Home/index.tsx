@@ -1,9 +1,11 @@
-import classNames from "classnames";
 import { DefaultButton } from "@fluentui/react";
+import classNames from "classnames";
 import * as React from "react";
 import { Link } from "react-router-dom";
+
 import Banner from "./Banner";
 import Features from "./Features";
+
 import styles from "./Home.module.css";
 
 // Placeholder for the splash page

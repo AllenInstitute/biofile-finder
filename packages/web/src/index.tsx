@@ -10,12 +10,12 @@ import NotificationServiceWeb from "./services/NotificationServiceWeb";
 import ApplicationInfoServiceWeb from "./services/ApplicationInfoServiceWeb";
 import ExecutionEnvServiceWeb from "./services/ExecutionEnvServiceWeb";
 import DatabaseServiceWeb from "./services/DatabaseServiceWeb";
-import FmsFileExplorer from "../../core/App";
-import { createReduxStore } from "../../core/state";
 import FileViewerServiceWeb from "./services/FileViewerServiceWeb";
 import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
 import Layout from "./components/Layout";
 import Home from "./components/Home";
+import FmsFileExplorer from "../../core/App";
+import { createReduxStore } from "../../core/state";
 
 const APP_ID = "fms-file-explorer-web";
 
@@ -34,10 +34,6 @@ const router = createBrowserRouter([
             {
                 path: "datasets",
                 element: <></>, // Datasets placeholder
-            },
-            {
-                path: "learn",
-                element: <></>, // Learn page placeholder
             },
         ],
     },

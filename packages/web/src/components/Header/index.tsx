@@ -1,11 +1,13 @@
-import classNames from "classnames";
 import { DefaultButton } from "@fluentui/react";
+import classNames from "classnames";
 import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
-import styles from "./Header.module.css";
+
 import HelpMenu from "./Help";
 import { APPLICATION_NAME } from "../../constants";
 import AICSLogo from "../../../assets/AICS-logo-and-name.svg";
+
+import styles from "./Header.module.css";
 
 export default function Header() {
     const currentPath = useLocation().pathname;
