@@ -26,6 +26,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     const queries = useSelector(selection.selectors.getQueries);
     const selectedQuery = useSelector(selection.selectors.getSelectedQuery);
     const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
+    const isOnWeb = useSelector(interaction.selectors.isOnWeb);
     const dataSources = useSelector(interaction.selectors.getAllDataSources);
     const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
@@ -117,7 +118,9 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                         pathData={AICS_LOGO}
                         viewBox="0,0,512,512"
                         width={25}
-                        className={styles.logo}
+                        className={classNames(styles.logo, {
+                            [styles.logoHidden]: isOnWeb,
+                        })}
                     />
                 </div>
                 <p>
@@ -135,7 +138,9 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                     pathData={AICS_LOGO}
                     viewBox="0,0,512,512"
                     width={40}
-                    className={styles.logo}
+                    className={classNames(styles.logo, {
+                        [styles.logoHidden]: isOnWeb,
+                    })}
                 />
                 <IconButton
                     ariaLabel="Add"

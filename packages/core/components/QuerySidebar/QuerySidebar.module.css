@@ -42,6 +42,10 @@
     fill: var(--dark-purple);
 }
 
+.logo-hidden {
+    content-visibility: hidden;
+}
+
 .container, .minimized-container {
     --primary-sidebar-color: var(--secondary-background-color);
     --secondary-sidebar-color: var(--primary-background-color);
@@ -52,7 +56,7 @@
 
     background-color: var(--secondary-sidebar-color);
     color: var(--primary-sidebar-text-color);
-    padding: 0.5em;
+    padding: 0.0.5em 0 0.5em 0.5em;
 }
 
 .minimized-container {
