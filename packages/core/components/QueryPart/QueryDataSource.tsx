@@ -3,7 +3,6 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import QueryPart from ".";
-import { ModalType } from "../Modal";
 import { Source } from "../../entity/FileExplorerURL";
 import { interaction, metadata, selection } from "../../state";
 import ListRow, { ListItem } from "../ListPicker/ListRow";
@@ -17,34 +16,26 @@ interface Props {
  */
 export default function QueryDataSource(props: Props) {
     const dispatch = useDispatch();
+    const selectedQuery = useSelector(selection.selectors.getSelectedQuery);
     const dataSources = useSelector(metadata.selectors.getDataSources);
     const selectedDataSources = useSelector(selection.selectors.getSelectedDataSources);
 
-    const addDataSourceOptions: ListItem<Source>[] = React.useMemo(
-        () => [
-            ...dataSources.map((source) => ({
-                displayValue: source.name,
-                value: source.name,
-                data: source,
-                selected: selectedDataSources.some((selected) => source.name === selected.name),
-                iconProps: { iconName: "Folder" },
-                onClick: () => {
-                    dispatch(selection.actions.addDataSource(source));
-                },
-                secondaryText: "Data Source",
-            })),
-            {
-                displayValue: "New Data Source...",
-                value: "New Data Source...",
-                selected: false,
-                iconProps: { iconName: "NewFolder" },
-                onClick: () => {
-                    dispatch(interaction.actions.setVisibleModal(ModalType.DataSource));
-                },
-            },
-        ],
-        [dispatch, dataSources, selectedDataSources]
-    );
+    const addDataSourceOptions: ListItem<Source>[] = [
+        ...dataSources.map((source) => ({
+            displayValue: source.name,
+            value: source.name,
+            disabled:
+                selectedDataSources.length <= 1 &&
+                selectedDataSources.some((selected) => source.name === selected.name),
+            data: source,
+            selected: selectedDataSources.some((selected) => source.name === selected.name),
+        })),
+        {
+            displayValue: "New Data Source...",
+            value: "New Data Source...",
+            selected: false,
+        },
+    ];
 
     return (
         <QueryPart
@@ -57,7 +48,6 @@ export default function QueryDataSource(props: Props) {
                         ignoreScrollingState
                         getKey={(item) => String(item.value)}
                         items={addDataSourceOptions}
-                        // onShouldVirtualize={() => filteredItems.length > 100}
                         onRenderCell={(item) =>
                             item && (
                                 <ListRow
@@ -71,13 +61,14 @@ export default function QueryDataSource(props: Props) {
                                                   )
                                               )
                                             : dispatch(
-                                                  interaction.actions.setVisibleModal(
-                                                      ModalType.DataSource
-                                                  )
+                                                  interaction.actions.promptForDataSource({
+                                                      query: selectedQuery,
+                                                  })
                                               )
                                     }
                                     onDeselect={() =>
                                         item.data &&
+                                        selectedDataSources.length > 1 &&
                                         dispatch(selection.actions.removeDataSource(item.data.name))
                                     }
                                 />

@@ -31,14 +31,17 @@ const DATA_SOURCE_DETAILS = [
 export default function DataSourcePrompt(props: Props) {
     const dispatch = useDispatch();
 
-    const dataSourceToReplace = useSelector(interaction.selectors.getDataSourceForVisibleModal);
+    const dataSourceInfo = useSelector(interaction.selectors.getDataSourceInfoForVisibleModal);
+    const { source: sourceToReplace, query } = dataSourceInfo || {};
 
     const [dataSourceURL, setDataSourceURL] = React.useState("");
     const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
 
     const addOrReplaceQuery = (source: Source) => {
-        if (dataSourceToReplace) {
+        if (sourceToReplace) {
             dispatch(selection.actions.replaceDataSource(source));
+        } else if (query) {
+            dispatch(selection.actions.addDataSource(source));
         } else {
             dispatch(
                 selection.actions.addQuery({
@@ -94,12 +97,12 @@ export default function DataSourcePrompt(props: Props) {
 
     return (
         <>
-            {dataSourceToReplace && (
+            {sourceToReplace && (
                 <div className={styles.warning}>
                     <h4>Notice</h4>
                     <p>
                         There was an error loading the data source file &quot;
-                        {dataSourceToReplace.name}&quot;. Please re-select the data source file or a
+                        {sourceToReplace.name}&quot;. Please re-select the data source file or a
                         replacement.
                     </p>
                     <p>

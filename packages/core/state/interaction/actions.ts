@@ -21,15 +21,20 @@ export const PROMPT_FOR_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "prompt-fo
 
 type PartialSource = Omit<Source, "type">;
 
-export interface PromptForDataSource {
-    type: string;
-    payload: PartialSource;
+export interface DataSourcePromptInfo {
+    source?: PartialSource;
+    query?: string;
 }
 
-export function promptForDataSource(dataSource: PartialSource): PromptForDataSource {
+export interface PromptForDataSource {
+    type: string;
+    payload: DataSourcePromptInfo;
+}
+
+export function promptForDataSource(info: DataSourcePromptInfo): PromptForDataSource {
     return {
         type: PROMPT_FOR_DATA_SOURCE,
-        payload: dataSource,
+        payload: info,
     };
 }
 

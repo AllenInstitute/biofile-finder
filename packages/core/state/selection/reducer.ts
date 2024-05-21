@@ -1,5 +1,5 @@
 import { makeReducer } from "@aics/redux-utils";
-import { omit } from "lodash";
+import { omit, uniqBy } from "lodash";
 
 import interaction from "../interaction";
 import { THUMBNAIL_SIZE_TO_NUM_COLUMNS } from "../../constants";
@@ -33,6 +33,10 @@ import {
     REMOVE_QUERY,
     RemoveQuery,
     ChangeDataSourcesAction,
+    ADD_DATA_SOURCE,
+    AddDataSource,
+    RemoveDataSource,
+    REMOVE_DATA_SOURCE,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
@@ -142,6 +146,14 @@ export default makeReducer<SelectionStateBranch>(
         [ADD_QUERY]: (state, action) => ({
             ...state,
             queries: [action.payload, ...state.queries],
+        }),
+        [ADD_DATA_SOURCE]: (state, action: AddDataSource) => ({
+            ...state,
+            dataSources: uniqBy([...state.dataSources, action.payload], "name"),
+        }),
+        [REMOVE_DATA_SOURCE]: (state, action: RemoveDataSource) => ({
+            ...state,
+            dataSources: state.dataSources.filter((source) => source.name === action.payload),
         }),
         [CHANGE_QUERY]: (state, action: ChangeQuery) => ({
             ...state,

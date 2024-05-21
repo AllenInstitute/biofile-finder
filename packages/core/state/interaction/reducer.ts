@@ -20,10 +20,11 @@ import {
     PROMPT_FOR_DATA_SOURCE,
     DownloadManifestAction,
     DOWNLOAD_MANIFEST,
+    DataSourcePromptInfo,
+    PromptForDataSource,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
-import { Source } from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
 import { PlatformDependentServices } from "../../services";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
@@ -37,12 +38,12 @@ import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceN
 
 export interface InteractionStateBranch {
     applicationVersion?: string;
-    dataSourceForVisibleModal?: Source;
     contextMenuIsVisible: boolean;
     contextMenuItems: ContextMenuItem[];
     contextMenuPositionReference: PositionReference;
     contextMenuOnDismiss?: () => void;
     csvColumns?: string[];
+    dataSourceInfoForVisibleModal?: DataSourcePromptInfo;
     fileExplorerServiceBaseUrl: string;
     fileTypeForVisibleModal: "csv" | "json" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
@@ -162,10 +163,10 @@ export default makeReducer<InteractionStateBranch>(
             fileTypeForVisibleModal: action.payload.fileType,
             fileFiltersForVisibleModal: action.payload.fileFilters,
         }),
-        [PROMPT_FOR_DATA_SOURCE]: (state, action) => ({
+        [PROMPT_FOR_DATA_SOURCE]: (state, action: PromptForDataSource) => ({
             ...state,
             visibleModal: ModalType.DataSource,
-            dataSourceForVisibleModal: action.payload,
+            dataSourceInfoForVisibleModal: action.payload,
         }),
     },
     initialState

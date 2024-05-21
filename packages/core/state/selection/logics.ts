@@ -36,6 +36,8 @@ import {
     changeDataSources,
     ChangeDataSourcesAction,
     CHANGE_DATA_SOURCES,
+    ADD_DATA_SOURCE,
+    AddDataSource,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -523,7 +525,7 @@ const changeQueryLogic = createLogic({
                             "Failed to add data source, prompting for replacement",
                             error
                         );
-                        dispatch(interaction.actions.promptForDataSource(source));
+                        dispatch(interaction.actions.promptForDataSource({ source }));
                     }
                 }
             })
@@ -551,6 +553,26 @@ const removeQueryLogic = createLogic({
     },
 });
 
+const addDataSourceLogic = createLogic({
+    type: ADD_DATA_SOURCE,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: source } = deps.action as AddDataSource;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
+
+        if (source.uri && source.type) {
+            try {
+                await databaseService.addDataSource(source.name, source.type, source.uri);
+            } catch (error) {
+                console.error("Failed to add data source, prompting for replacement", error);
+                dispatch(interaction.actions.promptForDataSource({ source }));
+            }
+        }
+        done();
+    },
+});
+
 const replaceDataSourceLogic = createLogic({
     type: REPLACE_DATA_SOURCE,
     async process(deps: ReduxLogicDeps, dispatch, done) {
@@ -569,8 +591,10 @@ const replaceDataSourceLogic = createLogic({
             console.error("Failed to add data source, prompting for replacement", error);
             dispatch(
                 interaction.actions.promptForDataSource({
-                    name,
-                    uri,
+                    source: {
+                        name,
+                        uri,
+                    },
                 })
             );
         }
@@ -601,6 +625,7 @@ const replaceDataSourceLogic = createLogic({
 
 export default [
     selectFile,
+    addDataSourceLogic,
     modifyAnnotationHierarchy,
     modifyFileFilters,
     toggleFileFolderCollapse,

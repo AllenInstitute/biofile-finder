@@ -22,8 +22,8 @@ export const getContextMenuPositionReference = (state: State) =>
     state.interaction.contextMenuPositionReference;
 export const getContextMenuOnDismiss = (state: State) => state.interaction.contextMenuOnDismiss;
 export const getCsvColumns = (state: State) => state.interaction.csvColumns;
-export const getDataSourceForVisibleModal = (state: State) =>
-    state.interaction.dataSourceForVisibleModal;
+export const getDataSourceInfoForVisibleModal = (state: State) =>
+    state.interaction.dataSourceInfoForVisibleModal;
 export const getFileExplorerServiceBaseUrl = (state: State) =>
     state.interaction.fileExplorerServiceBaseUrl;
 export const getFileFiltersForVisibleModal = (state: State) =>
