@@ -51,7 +51,7 @@ export default function Home() {
         },
     ];
     return (
-        <>
+        <div className={styles.root}>
             <Banner />
             <div className={styles.content}>
                 <div className={styles.header}>
@@ -74,6 +74,6 @@ export default function Home() {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 }

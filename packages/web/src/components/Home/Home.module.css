@@ -6,6 +6,15 @@
     position: relative;
 }
 
+.root {
+    margin: 0;
+    border: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    justify-content: center;
+}
+
 .content {
     padding: calc(4*var(--margin));
     max-width: 1200px;
