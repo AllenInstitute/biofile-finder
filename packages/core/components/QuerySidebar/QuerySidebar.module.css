@@ -1,18 +1,19 @@
-.add-view-container {
-    display: flex;
-    justify-content: center;
-}
-
-.add-view-button, .footer > * {
-    color: var(--primary-sidebar-text-color);
-    background-color: var(--primary-sidebar-color);
-    margin-top: 5px;
-    /* font-style: italic; */
-}
-
-.add-view-button:hover, .footer > *:hover {
+.add-view-button {
     color: var(--highlight-text-color);
     background-color: var(--highlight-background-color);
+    border: none;
+    border-radius: var(--large-border-radius);
+    width: 50px;
+}
+
+.add-view-button:hover {
+    color: var(--highlight-text-color);
+    background-color: var(--highlight-background-color);
+}
+
+.add-view-button > span > span > span {
+    font-size: small;
+    font-weight: 100;
 }
 
 .button-menu, .button-menu button {
@@ -43,12 +44,14 @@
     --primary-sidebar-text-color: var(--secondary-text-color);
     --secondary-sidebar-text-color: var(--primary-text-color);
     --header-height: 40px;
-    --footer-height: 45px;
 
     background-color: var(--secondary-sidebar-color);
     color: var(--primary-sidebar-text-color);
     padding: 0.0.5em 0 0.5em 0.5em;
+}
 
+.hidden {
+    display: none;
 }
 
 .minimized-container {
@@ -72,18 +75,14 @@
     white-space: nowrap;
 }
 
-.container > * {
-    margin-bottom: 5px;
-}
-
 .queries-container {
-    height: calc(100% - var(--header-height) - var(--footer-height));
+    height: calc(100% - var(--header-height));
     overflow-y: scroll;
 }
 
 .queries-container::after {
     background-image: linear-gradient(transparent, var(--secondary-sidebar-color));
-    bottom: var(--footer-height);
+    bottom: 0;
     content: " ";
     height: 50px;
     left: 0;

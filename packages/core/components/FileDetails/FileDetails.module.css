@@ -1,5 +1,4 @@
 .root {
-    --window-buttons-height: var(--url-bar-height); /* defined in App.module.css under .root{} */
     --pagination-height: var(--url-bar-height); /* defined in App.module.css under .root{} */
     --padding: 10px;
     --resize-handle-width: 10px;
@@ -32,23 +31,6 @@
 
 .expandable-transition {
     transition: width var(--transition-duration); /* defined in App.module.css under .root{} */
-}
-
-.window-buttons {
-    width: 100%;
-    height: var(--window-buttons-height);
-
-    /* flex parent */
-    display: flex;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    position: absolute;
-    right: 0;
-}
-
-.window-buttons-container {
-    width: 100%;
-    height: var(--window-buttons-height);
 }
 
 .default {
@@ -86,7 +68,7 @@
 
     position: relative;
     width: 100%;
-    height: calc(100% - var(--window-buttons-height) - var(--pagination-height));
+    height: calc(100% - var(--pagination-height));
 }
 
 .overflow-container {
@@ -155,13 +137,13 @@
 }
 
 .icon-button {
-    background-color: var(--primary-background-color);
+    background-color: var(--highlight-background-color);
     border: none;
-    color: var(--primary-text-color);
+    border-radius: var(--large-border-radius);
+    color: var(--highlight-text-color);
     height: 30px;
     max-width: var(--max-detail-button-width);
     width: 100%;
-    border-radius: 4px;
     justify-content: center;
 }
 

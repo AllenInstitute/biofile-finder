@@ -1,10 +1,9 @@
-import { DirectionalHint, Icon, IconButton } from "@fluentui/react";
+import { DefaultButton, DirectionalHint, Icon } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import Query from "./Query";
-import { HELP_OPTIONS } from "./tutorials";
 import { ModalType } from "../Modal";
 import SvgIcon from "../SvgIcon";
 import Tutorial from "../../entity/Tutorial";
@@ -43,7 +42,6 @@ export default function QuerySidebar(props: QuerySidebarProps) {
 
     const [isExpanded, setIsExpanded] = React.useState(true);
 
-    const helpMenuOptions = React.useMemo(() => HELP_OPTIONS(dispatch), [dispatch]);
     const addQueryOptions = React.useMemo(
         () => [
             ...dataSources.map((source) => ({
@@ -105,18 +103,19 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                         [styles.logoHidden]: isOnWeb,
                     })}
                 />
-                <IconButton
+                <DefaultButton
                     ariaLabel="Add"
                     className={styles.addViewButton}
                     iconProps={{ iconName: "Add" }}
                     id={Tutorial.ADD_QUERY_BUTTON_ID}
-                    menuIconProps={{ iconName: "ChevronRight" }}
+                    menuIconProps={{ className: styles.hidden }}
                     menuProps={{
                         className: styles.buttonMenu,
                         directionalHint: DirectionalHint.rightTopEdge,
                         shouldFocusOnMount: true,
                         items: addQueryOptions,
                     }}
+                    text="ADD"
                 />
             </div>
             <div
@@ -141,15 +140,6 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                         }}
                     />
                 )}
-            </div>
-            <div className={styles.footer}>
-                <IconButton
-                    ariaLabel="Help"
-                    iconProps={{ iconName: "Help" }}
-                    title="Help tutorials"
-                    menuIconProps={{ iconName: "ChevronUp" }}
-                    menuProps={{ className: styles.buttonMenu, items: helpMenuOptions }}
-                />
             </div>
             <div className={styles.minimizeBar} onClick={() => setIsExpanded(false)}>
                 <Icon iconName="DoubleChevronLeft" />

@@ -25,6 +25,8 @@ export default function QueryFooter(props: Props) {
 
     const url = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
+    const isEmptyQuery = !props.query.parts.sources.length;
+
     const onCopy = async () => {
         try {
             navigator.clipboard.writeText(`https://biofile-finder.allencell.org/app?${url}`);
@@ -77,7 +79,8 @@ export default function QueryFooter(props: Props) {
                 ariaDescription="Refresh query"
                 ariaLabel="Refresh"
                 title="Refresh"
-                className={styles.button}
+                className={classNames(styles.button, { [styles.disabled]: isEmptyQuery })}
+                disabled={isEmptyQuery}
                 onClick={onRefresh}
                 iconProps={{ iconName: "Refresh" }}
             />
@@ -85,7 +88,8 @@ export default function QueryFooter(props: Props) {
                 ariaDescription="Copy query"
                 ariaLabel="Copy"
                 title="Duplicate"
-                className={styles.button}
+                className={classNames(styles.button, { [styles.disabled]: isEmptyQuery })}
+                disabled={isEmptyQuery}
                 onClick={() => dispatch(selection.actions.addQuery(props.query))}
                 iconProps={{ iconName: "Copy" }}
             />
@@ -93,7 +97,10 @@ export default function QueryFooter(props: Props) {
                 ariaDescription="Share query"
                 ariaLabel="Share"
                 title="Share"
-                className={classNames(styles.button, styles.hiddenInnerIcon)}
+                className={classNames(styles.button, styles.hiddenInnerIcon, {
+                    [styles.disabled]: isEmptyQuery,
+                })}
+                disabled={isEmptyQuery}
                 menuProps={{ className: styles.buttonMenu, items: shareQueryOptions }}
                 iconProps={{ iconName: "Share" }}
                 id={Tutorial.SHARE_BUTTON_ID}

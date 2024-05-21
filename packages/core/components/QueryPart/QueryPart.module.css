@@ -17,7 +17,7 @@
 
 .container {
     background-color: var(--primary-background-color);
-    border-radius: var(--border-radius);
+    border-radius: var(--small-border-radius);
     color: var(--primary-text-color);
     margin: calc(var(--margin) / 2) calc(var(--margin) / 4);
 }
@@ -34,7 +34,7 @@
     color: var(--highlight-text-color);
     background-color: var(--highlight-background-color);
     border: none;
-    border-radius: var(--border-radius);
+    border-radius: var(--small-border-radius);
 }
 
 .disabled {

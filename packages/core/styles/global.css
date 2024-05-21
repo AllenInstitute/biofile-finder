@@ -47,7 +47,8 @@ body {
     --error-background-color: var(--red);
     --error-text-color: var(--white);
     --aqua-secondary-hover: rgba(13, 187, 206, 0.18);
-    --border-radius: 4px;
+    --small-border-radius: 4px;
+    --large-border-radius: 16px;
 
     --query-sidebar-max-width: 350px;
     --url-bar-height: 40px;

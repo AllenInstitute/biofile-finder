@@ -33,7 +33,7 @@
 
 .interactive {
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    border-radius: var(--small-border-radius);
     padding: 2px;
     margin: calc(var(--margin) / 4) 0;
 }
