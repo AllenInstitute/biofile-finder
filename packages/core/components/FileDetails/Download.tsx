@@ -29,7 +29,16 @@ export default function Download(props: DownloadProps) {
         }
 
         return throttle(() => {
-            dispatch(interaction.actions.downloadFiles([fileDetails]));
+            dispatch(
+                interaction.actions.downloadFiles([
+                    {
+                        id: fileDetails.id,
+                        name: fileDetails.name,
+                        size: fileDetails.size,
+                        path: fileDetails.downloadPath,
+                    },
+                ])
+            );
         }, 1000); // 1s, in ms (arbitrary)
     }, [dispatch, fileDetails]);
 

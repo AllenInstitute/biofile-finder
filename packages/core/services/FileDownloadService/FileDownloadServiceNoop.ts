@@ -1,44 +1,29 @@
-import { uniqueId } from "lodash";
-
-import FileDownloadService, { DownloadResolution, FileInfo } from ".";
+import FileDownloadService, { DownloadResolution, DownloadResult, FileInfo } from ".";
 
 export default class FileDownloadServiceNoop implements FileDownloadService {
-    getDefaultDownloadDirectory() {
-        return Promise.resolve("Default directory request from FileDownloadServiceNoop");
-    }
+    isFileSystemAccessible = false;
 
-    downloadCsvManifest() {
-        return Promise.resolve({
-            downloadRequestId: uniqueId(),
-            msg:
-                "Download of CSV manifest triggered on FileDownloadServiceNoop; returning without triggering a download.",
-            resolution: DownloadResolution.SUCCESS,
-        });
-    }
-
-    downloadFile(
+    download(
         fileInfo: FileInfo,
-        _: string,
-        destination: string,
-        onProgress?: (bytesDownloaded: number) => void
-    ) {
+        downloadRequestId: string,
+        onProgress?: (progress: number) => void
+    ): Promise<DownloadResult> {
         return Promise.resolve({
-            downloadRequestId: uniqueId(),
-            destination,
+            downloadRequestId,
             onProgress,
             msg: `Download of ${fileInfo.path} triggered on FileDownloadServiceNoop; returning without triggering a download.`,
             resolution: DownloadResolution.SUCCESS,
         });
     }
 
-    promptForDownloadDirectory() {
+    prepareHttpResourceForDownload(): Promise<string> {
         return Promise.resolve(
-            "Prompt for download directory triggered on FileDownloadServiceNoop"
+            "Triggered prepareHttpResourceForDownload on FileDownloadServiceNoop; returning without triggering a download."
         );
     }
 
-    promptForSaveLocation(): Promise<string> {
-        return Promise.resolve("Prompt for save location triggered on FileDownloadServiceNoop");
+    getDefaultDownloadDirectory(): Promise<string> {
+        return Promise.resolve("Triggered getDefaultDownloadDirectory on FileDownloadServiceNoop");
     }
 
     cancelActiveRequest() {

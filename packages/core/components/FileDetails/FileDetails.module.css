@@ -2,8 +2,9 @@
     --window-buttons-height: var(--url-bar-height); /* defined in App.module.css under .root{} */
     --pagination-height: var(--url-bar-height); /* defined in App.module.css under .root{} */
     --padding: 10px;
-    --resize-handle-width: 5px;
-}
+    --resize-handle-width: 10px;
+    --max-detail-button-width: 250px;
+} 
 
 .expandable {
     position: absolute;
@@ -158,14 +159,16 @@
     border: none;
     color: var(--primary-text-color);
     height: 30px;
-    max-width: 50%;
+    max-width: var(--max-detail-button-width);
     width: 100%;
+    border-radius: 4px;
+    justify-content: center;
 }
 
 .file-name {
     padding: var(--margin);
     text-align: center;
-    user-select: text;
+    user-select: text !important;
     word-break: break-all;
 }
 

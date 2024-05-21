@@ -13,6 +13,7 @@ export default function ColumnPicker() {
 
     return (
         <AnnotationPicker
+            enableAllAnnotations
             selections={columnAnnotations}
             setSelections={(annotations) => {
                 // Prevent de-selecting all columns

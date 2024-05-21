@@ -24,7 +24,7 @@
 
 .code {
     cursor: text;
-    user-select: text;
+    user-select: text !important;
 }
 
 .button-menu, .button-menu button {

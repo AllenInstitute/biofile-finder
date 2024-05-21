@@ -5,13 +5,10 @@ import { filter, sortBy } from "lodash";
 import {
     HIDE_CONTEXT_MENU,
     HIDE_VISIBLE_MODAL,
-    PlatformDependentServices,
     REFRESH,
     REMOVE_STATUS,
     SET_USER_SELECTED_APPLICATIONS,
-    SET_CSV_COLUMNS,
     SET_FILE_EXPLORER_SERVICE_BASE_URL,
-    SET_PLATFORM_DEPENDENT_SERVICES,
     SET_STATUS,
     SET_VISIBLE_MODAL,
     SHOW_CONTEXT_MENU,
@@ -19,15 +16,20 @@ import {
     StatusUpdate,
     MARK_AS_USED_APPLICATION_BEFORE,
     ShowManifestDownloadDialogAction,
+    SET_IS_AICS_EMPLOYEE,
+    PROMPT_FOR_DATA_SOURCE,
+    DownloadManifestAction,
+    DOWNLOAD_MANIFEST,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
+import { Source } from "../../entity/FileExplorerURL";
+import FileFilter from "../../entity/FileFilter";
+import { PlatformDependentServices } from "../../services";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
 import FileViewerServiceNoop from "../../services/FileViewerService/FileViewerServiceNoop";
-import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
-import FileFilter from "../../entity/FileFilter";
 import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
@@ -35,15 +37,18 @@ import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceN
 
 export interface InteractionStateBranch {
     applicationVersion?: string;
+    dataSourceForVisibleModal?: Source;
     contextMenuIsVisible: boolean;
     contextMenuItems: ContextMenuItem[];
     contextMenuPositionReference: PositionReference;
     contextMenuOnDismiss?: () => void;
     csvColumns?: string[];
     fileExplorerServiceBaseUrl: string;
-    fileTypeForVisibleModal?: "csv" | "parquet";
+    fileTypeForVisibleModal: "csv" | "json" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
     hasUsedApplicationBefore: boolean;
+    isAicsEmployee?: boolean;
+    isOnWeb: boolean;
     platformDependentServices: PlatformDependentServices;
     refreshKey?: string;
     status: StatusUpdate[];
@@ -61,7 +66,9 @@ export const initialState: InteractionStateBranch = {
     contextMenuPositionReference: null,
     fileExplorerServiceBaseUrl: DEFAULT_CONNECTION_CONFIG.baseUrl,
     fileFiltersForVisibleModal: [],
+    fileTypeForVisibleModal: "csv",
     hasUsedApplicationBefore: false,
+    isOnWeb: false,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         databaseService: new DatabaseServiceNoop(),
@@ -75,7 +82,6 @@ export const initialState: InteractionStateBranch = {
         }),
         executionEnvService: new ExecutionEnvServiceNoop(),
         notificationService: new NotificationServiceNoop(),
-        persistentConfigService: new PersistentConfigServiceNoop(),
     },
     status: [],
 };
@@ -109,6 +115,7 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [HIDE_VISIBLE_MODAL]: (state) => ({
             ...state,
+            dataSourceForVisibleModal: undefined,
             visibleModal: undefined,
         }),
         [REFRESH]: (state, action) => ({
@@ -118,6 +125,10 @@ export default makeReducer<InteractionStateBranch>(
         [SET_USER_SELECTED_APPLICATIONS]: (state, action) => ({
             ...state,
             userSelectedApplications: action.payload,
+        }),
+        [SET_IS_AICS_EMPLOYEE]: (state, action) => ({
+            ...state,
+            isAicsEmployee: action.payload,
         }),
         [SET_STATUS]: (state, action) => ({
             ...state,
@@ -132,26 +143,14 @@ export default makeReducer<InteractionStateBranch>(
                 "processId"
             ),
         }),
-        [SET_CSV_COLUMNS]: (state, action) => ({
+        [DOWNLOAD_MANIFEST]: (state, action: DownloadManifestAction) => ({
             ...state,
-            csvColumns: action.payload,
+            csvColumns: action.payload.annotations,
         }),
         [SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state, action) => ({
             ...state,
             fileExplorerServiceBaseUrl: action.payload,
         }),
-        [SET_PLATFORM_DEPENDENT_SERVICES]: (state, action) => {
-            const platformDependentServices: PlatformDependentServices = {
-                ...state.platformDependentServices,
-                ...action.payload,
-            };
-
-            return {
-                ...state,
-                applicationVersion: platformDependentServices.applicationInfoService.getApplicationVersion(),
-                platformDependentServices,
-            };
-        },
         [SET_VISIBLE_MODAL]: (state, action) => ({
             ...state,
             ...action.payload,
@@ -159,9 +158,14 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action: ShowManifestDownloadDialogAction) => ({
             ...state,
-            visibleModal: ModalType.CsvManifest,
+            visibleModal: ModalType.MetadataManifest,
             fileTypeForVisibleModal: action.payload.fileType,
             fileFiltersForVisibleModal: action.payload.fileFilters,
+        }),
+        [PROMPT_FOR_DATA_SOURCE]: (state, action) => ({
+            ...state,
+            visibleModal: ModalType.DataSourcePrompt,
+            dataSourceForVisibleModal: action.payload,
         }),
     },
     initialState

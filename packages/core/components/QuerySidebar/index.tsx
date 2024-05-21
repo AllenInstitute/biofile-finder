@@ -1,10 +1,4 @@
-import {
-    ContextualMenuItemType,
-    DirectionalHint,
-    Icon,
-    IconButton,
-    TextField,
-} from "@fluentui/react";
+import { DirectionalHint, Icon, IconButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,12 +7,12 @@ import Query from "./Query";
 import { HELP_OPTIONS } from "./tutorials";
 import { ModalType } from "../Modal";
 import SvgIcon from "../SvgIcon";
-import FileExplorerURL from "../../entity/FileExplorerURL";
-import { interaction, metadata, selection } from "../../state";
+import FileExplorerURL, { DEFAULT_AICS_FMS_QUERY } from "../../entity/FileExplorerURL";
+import Tutorial from "../../entity/Tutorial";
+import { interaction, selection } from "../../state";
 import { AICS_LOGO } from "../../icons";
 
 import styles from "./QuerySidebar.module.css";
-import Tutorial from "../../entity/Tutorial";
 
 interface QuerySidebarProps {
     className?: string;
@@ -30,107 +24,90 @@ interface QuerySidebarProps {
 export default function QuerySidebar(props: QuerySidebarProps) {
     const dispatch = useDispatch();
     const queries = useSelector(selection.selectors.getQueries);
-    const collections = useSelector(metadata.selectors.getCollections);
     const selectedQuery = useSelector(selection.selectors.getSelectedQuery);
+    const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
+    const isOnWeb = useSelector(interaction.selectors.isOnWeb);
+    const dataSources = useSelector(interaction.selectors.getAllDataSources);
+    const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
-    // TODO: Add trigger somewhere on app startup before releasing to public
-    const isAICSEmployee = true;
+    // Select query by default if none is selected
+    React.useEffect(() => {
+        if (!selectedQuery && queries.length) {
+            dispatch(selection.actions.changeQuery(queries[0]));
+        }
+    }, [selectedQuery, queries, dispatch]);
+
+    // Determine a default query to render or prompt the user for a data source
+    // if no default is accessible
+    React.useEffect(() => {
+        if (!queries.length) {
+            if (!window.location.search) {
+                if (isAicsEmployee === true) {
+                    // If the user is an AICS employee and there is no query in the URL, add a default query
+                    dispatch(
+                        selection.actions.addQuery({
+                            name: "New AICS Query",
+                            parts: DEFAULT_AICS_FMS_QUERY,
+                        })
+                    );
+                } else if (isAicsEmployee === false) {
+                    // If no query is selected and there is no query in the URL, prompt the user to select a data source
+                    dispatch(interaction.actions.setVisibleModal(ModalType.DataSourcePrompt));
+                }
+            } else if (isAicsEmployee === undefined) {
+                dispatch(
+                    selection.actions.addQuery({
+                        name: "New Query",
+                        parts: FileExplorerURL.decode(window.location.search),
+                    })
+                );
+            }
+        }
+    }, [isAicsEmployee, queries, dispatch]);
+
+    React.useEffect(() => {
+        if (selectedQuery) {
+            const newurl =
+                window.location.protocol +
+                "//" +
+                window.location.host +
+                window.location.pathname +
+                "?" +
+                currentGlobalURL;
+            window.history.pushState({ path: newurl }, "", newurl);
+        }
+    }, [currentGlobalURL, selectedQuery]);
 
     const [isExpanded, setIsExpanded] = React.useState(true);
 
-    // Default to first query in array if none selected yet some available
-    // this is primarily useful for when loading queries from persisted state
-    React.useEffect(() => {
-        if (queries.length && !selectedQuery) {
-            dispatch(selection.actions.changeQuery(queries[0]));
-        }
-    }, [queries, selectedQuery, dispatch]);
-
     const helpMenuOptions = React.useMemo(() => HELP_OPTIONS(dispatch), [dispatch]);
-    const addQueryOptions = React.useMemo(() => {
-        const onEnterURL = (evt: React.FormEvent) => {
-            evt.preventDefault();
-            // Form submission typing on the TextField is yucky, so we'll just cast the event target
-            const fileExplorerUrl = (evt.currentTarget as any)[0].value;
-            dispatch(selection.actions.addQuery({ name: "New query", url: fileExplorerUrl }));
-        };
-
-        return [
+    const addQueryOptions = React.useMemo(
+        () => [
+            ...dataSources.map((source) => ({
+                key: source.id,
+                text: source.name,
+                iconProps: { iconName: "Folder" },
+                onClick: () => {
+                    dispatch(
+                        selection.actions.addQuery({
+                            name: `New ${source.name} query`,
+                            parts: { source },
+                        })
+                    );
+                },
+                secondaryText: "Data Source",
+            })),
             {
-                key: "new-queries-section",
-                itemType: ContextualMenuItemType.Section,
-                sectionProps: {
-                    bottomDivider: true,
-                    title: "New Query",
-                    items: [
-                        ...(isAICSEmployee
-                            ? [
-                                  {
-                                      key: "AICS FMS",
-                                      text: "AICS FMS",
-                                      iconProps: { iconName: "Database" },
-                                      onClick: () => {
-                                          dispatch(
-                                              selection.actions.addQuery({
-                                                  name: "New AICS Query",
-                                                  url: FileExplorerURL.DEFAULT_FMS_URL,
-                                              })
-                                          );
-                                      },
-                                      secondaryText: "Data Source",
-                                  },
-                              ]
-                            : []),
-                        ...collections
-                            .filter((collection) => !!collection.uri)
-                            .map((collection) => ({
-                                key: collection.id,
-                                text: `${
-                                    collection.name
-                                } (${collection.created.toLocaleDateString()})`,
-                                iconProps: { iconName: "Folder" },
-                                onClick: () => {
-                                    dispatch(
-                                        selection.actions.addQuery({
-                                            name: `New ${collection.name} query`,
-                                            url: collection.uri as string,
-                                        })
-                                    );
-                                },
-                                secondaryText: "Data Source",
-                            })),
-                        {
-                            key: "New Data Source...",
-                            text: "New Data Source...",
-                            iconProps: { iconName: "NewFolder" },
-                            onClick: () => {
-                                dispatch(
-                                    interaction.actions.setVisibleModal(ModalType.DataSourcePrompt)
-                                );
-                            },
-                        },
-                    ],
+                key: "New Data Source...",
+                text: "New Data Source...",
+                iconProps: { iconName: "NewFolder" },
+                onClick: () => {
+                    dispatch(interaction.actions.setVisibleModal(ModalType.DataSourcePrompt));
                 },
             },
-            {
-                key: "Import from URL",
-                text: "Import from URL",
-                iconProps: { iconName: "Import" },
-                subMenuProps: {
-                    className: styles.buttonMenu,
-                    items: [{ key: "placeholder" }],
-                    onRenderMenuList: () => (
-                        <form className={styles.importForm} onSubmit={onEnterURL}>
-                            <TextField
-                                placeholder="Paste URL here..."
-                                iconProps={{ iconName: "ReturnKey" }}
-                            />
-                        </form>
-                    ),
-                },
-            },
-        ];
-    }, [dispatch, collections, isAICSEmployee]);
+        ],
+        [dispatch, dataSources]
+    );
 
     if (!isExpanded) {
         return (
@@ -141,11 +118,13 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                         pathData={AICS_LOGO}
                         viewBox="0,0,512,512"
                         width={25}
-                        className={styles.logo}
+                        className={classNames(styles.logo, {
+                            [styles.logoHidden]: isOnWeb,
+                        })}
                     />
                 </div>
                 <p>
-                    <strong>{selectedQuery?.name}</strong>
+                    <strong>{selectedQuery}</strong>
                 </p>
             </div>
         );
@@ -159,7 +138,9 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                     pathData={AICS_LOGO}
                     viewBox="0,0,512,512"
                     width={40}
-                    className={styles.logo}
+                    className={classNames(styles.logo, {
+                        [styles.logoHidden]: isOnWeb,
+                    })}
                 />
                 <IconButton
                     ariaLabel="Add"
@@ -183,7 +164,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                 {queries.map((query) => (
                     <Query
                         key={query.name}
-                        isSelected={query.name === selectedQuery?.name}
+                        isSelected={query.name === selectedQuery}
                         query={query}
                     />
                 ))}

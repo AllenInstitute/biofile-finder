@@ -26,6 +26,13 @@ export default class FileSort {
         return new SQLBuilder().orderBy(`"${this.annotationName}" ${this.order}`);
     }
 
+    public toJSON(): Record<string, string> {
+        return {
+            annotationName: this.annotationName,
+            order: this.order,
+        };
+    }
+
     public equals(other?: FileSort): boolean {
         return (
             !!other && this.annotationName === other.annotationName && this.order === other.order

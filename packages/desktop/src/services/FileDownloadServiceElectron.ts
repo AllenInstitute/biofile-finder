@@ -4,18 +4,17 @@ import * as https from "https";
 import * as path from "path";
 
 import { Policy } from "cockatiel";
-import { app, dialog, FileFilter, ipcMain, IpcMainInvokeEvent, ipcRenderer } from "electron";
+import { app, ipcMain, ipcRenderer } from "electron";
 
-import { DownloadFailure } from "../../../core/errors";
 import {
     FileDownloadService,
-    FileDownloadCancellationToken,
-    DownloadResolution,
     DownloadResult,
     FileInfo,
+    DownloadResolution,
+    FileDownloadCancellationToken,
+    HttpServiceBase,
 } from "../../../core/services";
-import { FileDownloadServiceBaseUrl } from "../util/constants";
-import NotificationServiceElectron from "./NotificationServiceElectron";
+import { DownloadFailure } from "../../../core/errors";
 
 // Maps active request ids (uuids) to request download info
 interface ActiveRequestMap {
@@ -24,13 +23,6 @@ interface ActiveRequestMap {
         cancel: () => void;
         onProgress?: (bytes: number) => void;
     };
-}
-
-interface ShowSaveDialogParams {
-    title: string;
-    defaultFileName: string;
-    buttonLabel: string;
-    filters?: FileFilter[];
 }
 
 interface WriteStreamOptions {
@@ -48,42 +40,19 @@ interface DownloadOptions {
     writeStreamOptions: WriteStreamOptions;
 }
 
-export default class FileDownloadServiceElectron implements FileDownloadService {
+export default class FileDownloadServiceElectron
+    extends HttpServiceBase
+    implements FileDownloadService {
     // IPC events registered both within the main and renderer processes
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
     public static GET_DOWNLOADS_DIR = "get-downloads-dir";
     public static SHOW_OPEN_DIALOG = "show-open-dialog-for-download";
 
-    private activeRequestMap: ActiveRequestMap = {};
-    private cancellationRequests: Set<string> = new Set();
-    private fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl;
-    private notificationService: NotificationServiceElectron;
+    private readonly activeRequestMap: ActiveRequestMap = {};
+    private readonly cancellationRequests: Set<string> = new Set();
+    public readonly isFileSystemAccessible = true;
 
     public static registerIpcHandlers() {
-        // Handler for displaying "Save as" prompt
-        async function getSavePathHandler(_: IpcMainInvokeEvent, params: ShowSaveDialogParams) {
-            return await dialog.showSaveDialog({
-                title: params.title,
-                defaultPath: path.resolve(app.getPath("downloads"), params.defaultFileName),
-                buttonLabel: params.buttonLabel,
-                filters: params.filters || [],
-            });
-        }
-        ipcMain.handle(FileDownloadServiceElectron.GET_FILE_SAVE_PATH, getSavePathHandler);
-
-        // Handler for opening a native file browser dialog
-        async function getOpenDialogHandler(
-            _: IpcMainInvokeEvent,
-            dialogOptions: Electron.OpenDialogOptions
-        ) {
-            return dialog.showOpenDialog({
-                defaultPath: path.resolve("/"),
-                buttonLabel: "Select",
-                ...dialogOptions,
-            });
-        }
-        ipcMain.handle(FileDownloadServiceElectron.SHOW_OPEN_DIALOG, getOpenDialogHandler);
-
         // Handler for returning where the downloads directory lives on this computer
         async function getDownloadsDirHandler() {
             return app.getPath("downloads");
@@ -91,55 +60,67 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         ipcMain.handle(FileDownloadServiceElectron.GET_DOWNLOADS_DIR, getDownloadsDirHandler);
     }
 
-    private static async isDirectory(directoryPath: string): Promise<boolean> {
-        try {
-            // Check if path actually leads to a directory
-            const pathStat = await fs.promises.stat(directoryPath);
-            return pathStat.isDirectory();
-        } catch (_) {
-            return false;
-        }
-    }
-
-    private static async isWriteable(path: string): Promise<boolean> {
-        try {
-            // Ensure folder is writeable by this user
-            await fs.promises.access(path, fs.constants.W_OK);
-            return true;
-        } catch (_) {
-            return false;
-        }
-    }
-
-    constructor(
-        notificationService: NotificationServiceElectron,
-        fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl = FileDownloadServiceBaseUrl.PRODUCTION
-    ) {
-        this.notificationService = notificationService;
-        this.fileDownloadServiceBaseUrl = fileDownloadServiceBaseUrl;
-    }
-
-    public async downloadFile(
+    public async download(
         fileInfo: FileInfo,
-        destination: string,
         downloadRequestId: string,
-        onProgress?: (transferredBytes: number) => void
+        onProgress?: (transferredBytes: number) => void,
+        destination?: string
     ): Promise<DownloadResult> {
-        const url = `${this.fileDownloadServiceBaseUrl}${fileInfo.path}`;
+        let downloadUrl;
+        if (fileInfo.data instanceof Uint8Array) {
+            downloadUrl = URL.createObjectURL(new Blob([fileInfo.data]));
+        } else if (fileInfo.data instanceof Blob) {
+            downloadUrl = URL.createObjectURL(fileInfo.data);
+        } else if (typeof fileInfo.data === "string") {
+            const dataAsBlob = new Blob([fileInfo.data], { type: "application/json" });
+            downloadUrl = URL.createObjectURL(dataAsBlob);
+        } else {
+            return this.downloadHttpFile(fileInfo, downloadRequestId, onProgress, destination);
+        }
 
+        try {
+            const a = document.createElement("a");
+            a.href = downloadUrl;
+            a.download = fileInfo.name;
+            a.target = "_blank";
+            a.click();
+            a.remove();
+            return {
+                downloadRequestId: fileInfo.id,
+                resolution: DownloadResolution.SUCCESS,
+            };
+        } catch (err) {
+            console.error(`Failed to download file: ${err}`);
+            throw err;
+        } finally {
+            URL.revokeObjectURL(downloadUrl);
+        }
+    }
+
+    private async downloadHttpFile(
+        fileInfo: FileInfo,
+        downloadRequestId: string,
+        onProgress?: (transferredBytes: number) => void,
+        destination?: string
+    ) {
+        const fileSize = fileInfo.size || 0;
+
+        destination = destination || (await this.getDefaultDownloadDirectory());
+        if (destination === FileDownloadCancellationToken) {
+            return {
+                downloadRequestId,
+                resolution: DownloadResolution.CANCELLED,
+            };
+        }
         const outFilePath = path.join(destination, fileInfo.name);
         const chunkSize = 1024 * 1024 * 5; // 5MB; arbitrary
 
         // retry policy: 3 times no matter the exception, with randomized exponential backoff between attempts
         const retry = Policy.handleAll().retry().attempts(3).exponential();
         let bytesDownloaded = -1;
-        if (!fileInfo.size) {
-            // TODO: INCLUDE IN TICKET - seems like this could just be handled by browser
-            throw new Error("Unable to handle download without knowing file size");
-        }
-        while (bytesDownloaded < fileInfo.size) {
+        while (bytesDownloaded < fileSize) {
             const startByte = bytesDownloaded + 1;
-            const endByte = Math.min(startByte + chunkSize - 1, fileInfo.size);
+            const endByte = Math.min(startByte + chunkSize - 1, fileSize);
 
             let writeStreamOptions: WriteStreamOptions;
             if (startByte === 0) {
@@ -168,7 +149,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                 };
             }
             const result = await retry.execute(() =>
-                this.download({
+                this.downloadOverHttp({
                     downloadRequestId,
                     outFilePath,
                     requestOptions: {
@@ -177,7 +158,7 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                             Range: `bytes=${startByte}-${endByte}`,
                         },
                     },
-                    url,
+                    url: fileInfo.path,
                     writeStreamOptions,
                 })
             );
@@ -197,125 +178,12 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         };
     }
 
-    public async promptForSaveLocation(
-        title: string,
-        defaultFileName: string,
-        buttonLabel: string,
-        filters?: Record<string, any>[]
-    ): Promise<string> {
-        const result = await ipcRenderer.invoke(FileDownloadServiceElectron.GET_FILE_SAVE_PATH, {
-            title,
-            defaultFileName,
-            buttonLabel,
-            filters,
-        });
-
-        if (result.canceled) {
-            return FileDownloadCancellationToken;
-        }
-
-        return result.filePath;
-    }
-
-    public async downloadCsvManifest(
-        url: string,
-        postData: string,
-        downloadRequestId: string
-    ): Promise<DownloadResult> {
-        const result = await this.promptForSaveLocation(
-            "Save CSV manifest",
-            "fms-explorer-selections.csv",
-            "Save manifest",
-            [{ name: "CSV files", extensions: ["csv"] }]
-        );
-
-        if (result === FileDownloadCancellationToken) {
-            return Promise.resolve({
-                downloadRequestId,
-                resolution: DownloadResolution.CANCELLED,
-            });
-        }
-
-        const requestOptions = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Content-Length": Buffer.byteLength(postData),
-            },
-        };
-
-        // On Windows (at least) you have to self-append the file extension when overwriting the name
-        // I imagine this is not something a lot of people think to do (and is kind of inconvenient)
-        // - Sean M 08/20/20
-        const outFilePath = result.endsWith(".csv") ? result : result + ".csv";
-
-        return this.download({
-            downloadRequestId,
-            encoding: "utf-8",
-            outFilePath,
-            postData,
-            requestOptions,
-            url,
-            writeStreamOptions: { flags: "w" }, // The file is created (if it does not exist) or truncated (if it exists).
-        });
-    }
-
-    public async promptForDownloadDirectory(): Promise<string> {
-        const title = "Select download directory";
-
-        // Continuously try to set a valid directory location until the user cancels
-        while (true) {
-            const defaultDownloadDirectory = await this.getDefaultDownloadDirectory();
-            const directoryPath = await this.promptUserWithDialog({
-                title,
-                properties: ["openDirectory"],
-                defaultPath: defaultDownloadDirectory,
-            });
-
-            if (directoryPath === FileDownloadCancellationToken) {
-                return FileDownloadCancellationToken;
-            }
-
-            const isDirectory = await FileDownloadServiceElectron.isDirectory(directoryPath);
-            const isWriteable =
-                isDirectory && (await FileDownloadServiceElectron.isWriteable(directoryPath));
-
-            // If the directory has passed validation, return
-            if (isDirectory && isWriteable) {
-                return directoryPath;
-            }
-
-            // Otherwise if the directory failed validation, alert
-            // user to error with executable location
-            let errorMessage = `Whoops! ${directoryPath} is not verifiably a directory on your computer.`;
-            if (isDirectory && !isWriteable) {
-                errorMessage += ` Directory does not appear to be writeable by the current user.`;
-            }
-            await this.notificationService.showError(title, errorMessage);
-        }
-    }
-
-    public getDefaultDownloadDirectory(): Promise<string> {
-        return ipcRenderer.invoke(FileDownloadServiceElectron.GET_DOWNLOADS_DIR);
-    }
-
-    public cancelActiveRequest(downloadRequestId: string) {
-        this.cancellationRequests.add(downloadRequestId);
-        if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
-            return;
-        }
-
-        const { cancel } = this.activeRequestMap[downloadRequestId];
-        cancel();
-        delete this.activeRequestMap[downloadRequestId];
-    }
-
-    private download(options: DownloadOptions): Promise<DownloadResult> {
+    private async downloadOverHttp(options: DownloadOptions): Promise<DownloadResult> {
         const {
             downloadRequestId,
             encoding,
-            outFilePath,
             postData,
+            outFilePath,
             requestOptions,
             url,
             writeStreamOptions,
@@ -449,6 +317,26 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
         });
     }
 
+    public async prepareHttpResourceForDownload(url: string, postBody: string): Promise<string> {
+        const responseAsJSON = await this.rawPost(url, postBody);
+        return JSON.stringify(responseAsJSON);
+    }
+
+    public cancelActiveRequest(downloadRequestId: string) {
+        this.cancellationRequests.add(downloadRequestId);
+        if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
+            return;
+        }
+
+        const { cancel } = this.activeRequestMap[downloadRequestId];
+        cancel();
+        delete this.activeRequestMap[downloadRequestId];
+    }
+
+    public getDefaultDownloadDirectory(): Promise<string> {
+        return ipcRenderer.invoke(FileDownloadServiceElectron.GET_DOWNLOADS_DIR);
+    }
+
     /**
      * If a downloaded artifact (partial or otherwise) exists, delete it
      */
@@ -463,17 +351,5 @@ export default class FileDownloadServiceElectron implements FileDownloadService 
                 }
             });
         });
-    }
-
-    // Prompts user using native file browser for a file path
-    private async promptUserWithDialog(dialogOptions: Electron.OpenDialogOptions): Promise<string> {
-        const result = await ipcRenderer.invoke(
-            FileDownloadServiceElectron.SHOW_OPEN_DIALOG,
-            dialogOptions
-        );
-        if (result.canceled || !result.filePaths.length) {
-            return FileDownloadCancellationToken;
-        }
-        return result.filePaths[0];
     }
 }

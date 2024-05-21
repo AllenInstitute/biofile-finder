@@ -59,6 +59,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
     };
     const onFileHeaderContextMenu = useFileAccessContextMenu(fileSet.filters, onDismiss);
     const onContextMenu = (evt: React.MouseEvent) => {
+        evt.preventDefault();
         onFileHeaderContextMenu(evt);
         setContextMenuActive(true);
     };

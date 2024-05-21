@@ -4,6 +4,7 @@ import FileSelection from "../../../../entity/FileSelection";
 import FileSet from "../../../../entity/FileSet";
 import NumericRange from "../../../../entity/NumericRange";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
+import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadServiceNoop";
 
 import DatabaseFileService from "..";
 
@@ -26,7 +27,11 @@ describe("DatabaseFileService", () => {
 
     describe("getFiles", () => {
         it("issues request for files that match given parameters", async () => {
-            const databaseFileService = new DatabaseFileService({ databaseService });
+            const databaseFileService = new DatabaseFileService({
+                dataSourceName: "Unknown",
+                databaseService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
             const fileSet = new FileSet();
             const response = await databaseFileService.getFiles({
                 from: 0,
@@ -77,7 +82,11 @@ describe("DatabaseFileService", () => {
     describe("getAggregateInformation", () => {
         it("issues request for aggregated information about given files", async () => {
             // Arrange
-            const fileService = new DatabaseFileService({ databaseService });
+            const fileService = new DatabaseFileService({
+                dataSourceName: "Unknown",
+                databaseService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
             const selection = new FileSelection().select({
                 fileSet: new FileSet({ fileService }),
                 index: new NumericRange(0, 1),
@@ -95,7 +104,11 @@ describe("DatabaseFileService", () => {
 
     describe("getCountOfMatchingFiles", () => {
         it("issues request for count of files matching given parameters", async () => {
-            const fileService = new DatabaseFileService({ databaseService });
+            const fileService = new DatabaseFileService({
+                dataSourceName: "Unknown",
+                databaseService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
             const fileSet = new FileSet();
             const count = await fileService.getCountOfMatchingFiles(fileSet);
             expect(count).to.equal(6);

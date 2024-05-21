@@ -129,7 +129,6 @@ export default class HttpServiceBase {
 
     public async get<T>(url: string): Promise<RestServiceResponse<T>> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
-        console.log(`Sanitized ${url} to ${encodedUrl}`);
 
         if (!this.urlToResponseDataCache.has(encodedUrl)) {
             // if this fails, bubble up exception
@@ -158,15 +157,37 @@ export default class HttpServiceBase {
      */
     public async getWithoutCaching<T>(url: string): Promise<RestServiceResponse<T>> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
-        console.log(`Sanitized ${url} to ${encodedUrl}`);
 
         const response = await retry.execute(() => this.httpClient.get(encodedUrl));
         return new RestServiceResponse(response.data);
     }
 
+    public async rawPost<T>(url: string, body: string): Promise<T> {
+        const encodedUrl = HttpServiceBase.encodeURI(url);
+        const config = { headers: { "Content-Type": "application/json" } };
+
+        let response;
+        try {
+            // if this fails, bubble up exception
+            response = await retry.execute(() => this.httpClient.post(encodedUrl, body, config));
+        } catch (err) {
+            // Specific errors about the failure from services will be in this path
+            if (axios.isAxiosError(err) && err?.response?.data?.message) {
+                throw new Error(JSON.stringify(err.response.data.message));
+            }
+            throw err;
+        }
+
+        if (response.status >= 400 || response.data === undefined) {
+            // by default axios will reject if does not satisfy: status >= 200 && status < 300
+            throw new Error(`Request for ${encodedUrl} failed`);
+        }
+
+        return response.data;
+    }
+
     public async post<T>(url: string, body: string): Promise<RestServiceResponse<T>> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
-        console.log(`Sanitized ${url} to ${encodedUrl}`);
         const config = { headers: { "Content-Type": "application/json" } };
 
         let response;
@@ -191,7 +212,6 @@ export default class HttpServiceBase {
 
     public async patch<T>(url: string, body: string): Promise<RestServiceResponse<T>> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
-        console.log(`Sanitized ${url} to ${encodedUrl}`);
         const config = { headers: { "Content-Type": "application/json" } };
 
         let response;

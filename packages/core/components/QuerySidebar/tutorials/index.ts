@@ -12,7 +12,6 @@ import { selection } from "../../../state";
 
 export const HELP_OPTIONS = (dispatch: Dispatch): IContextualMenuItem[] => {
     return [
-        // TODO: Remove if on web
         {
             key: "download-newest-version",
             text: "Download Newest Version",
@@ -21,6 +20,26 @@ export const HELP_OPTIONS = (dispatch: Dispatch): IContextualMenuItem[] => {
             },
             title: "Opens the FMS File Explorer download page",
             href: "https://alleninstitute.github.io/aics-fms-file-explorer-app/",
+            target: "_blank",
+        },
+        {
+            key: "gh-issues-page",
+            text: "Report an Issue",
+            iconProps: {
+                iconName: "Bug",
+            },
+            title: "Opens the FMS File Explorer GitHub issues page",
+            href: "https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues",
+            target: "_blank",
+        },
+        {
+            key: "image-sc",
+            text: "Access Forums",
+            iconProps: {
+                iconName: "AccountActivity",
+            },
+            title: "Opens image.sc forums",
+            href: "https://forum.image.sc/tag/biofile-finder",
             target: "_blank",
         },
         {

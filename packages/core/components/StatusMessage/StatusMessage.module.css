@@ -39,8 +39,8 @@
 }
 
 .error {
-    background-color: var(--error-color);
-    color: white;
+    background-color: var(--error-background-color);
+    color: var(--error-text-color);
 }
 
 .error button i {

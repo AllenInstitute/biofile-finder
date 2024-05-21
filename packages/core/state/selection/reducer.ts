@@ -19,7 +19,7 @@ import {
     RESET_COLUMN_WIDTH,
     SORT_COLUMN,
     SET_SORT_COLUMN,
-    CHANGE_COLLECTION,
+    CHANGE_DATA_SOURCE,
     SELECT_TUTORIAL,
     ADJUST_GLOBAL_FONT_SIZE,
     Query,
@@ -30,26 +30,28 @@ import {
     ChangeQuery,
     SET_FILE_THUMBNAIL_VIEW,
     SET_FILE_GRID_COLUMN_COUNT,
+    REMOVE_QUERY,
+    RemoveQuery,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
-import { Dataset } from "../../services/DatasetService";
+import { DataSource } from "../../services/DataSourceService";
 
 export interface SelectionStateBranch {
     annotationHierarchy: string[];
     availableAnnotationsForHierarchy: string[];
     availableAnnotationsForHierarchyLoading: boolean;
-    collection?: Dataset;
     columnWidths: {
         [index: string]: number; // columnName to widthPercent mapping
     };
+    dataSource?: DataSource;
     displayAnnotations: Annotation[];
     fileGridColumnCount: number;
     fileSelection: FileSelection;
     filters: FileFilter[];
     isDarkTheme: boolean;
     openFileFolders: FileFolder[];
-    selectedQuery?: Query;
+    selectedQuery?: string;
     shouldDisplaySmallFont: boolean;
     shouldDisplayThumbnailView: boolean;
     sortColumn?: FileSort;
@@ -127,10 +129,10 @@ export default makeReducer<SelectionStateBranch>(
                 sortColumn: new FileSort(action.payload, SortOrder.DESC),
             };
         },
-        [CHANGE_COLLECTION]: (state, action) => ({
+        [CHANGE_DATA_SOURCE]: (state, action) => ({
             ...state,
             annotationHierarchy: [],
-            collection: action.payload,
+            dataSource: action.payload,
             filters: [],
             fileSelection: new FileSelection(),
             openFileFolders: [],
@@ -141,7 +143,11 @@ export default makeReducer<SelectionStateBranch>(
         }),
         [CHANGE_QUERY]: (state, action: ChangeQuery) => ({
             ...state,
-            selectedQuery: action.payload,
+            selectedQuery: action.payload.name,
+        }),
+        [REMOVE_QUERY]: (state, action: RemoveQuery) => ({
+            ...state,
+            queries: state.queries.filter((query) => query.name !== action.payload),
         }),
         [SET_QUERIES]: (state, action: SetQueries) => ({
             ...state,

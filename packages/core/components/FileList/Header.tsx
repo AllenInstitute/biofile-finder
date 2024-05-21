@@ -62,6 +62,7 @@ function Header(
     });
 
     const onHeaderColumnContextMenu = (evt: React.MouseEvent) => {
+        evt.preventDefault();
         const availableContextMenuItem = getContextMenuItems(dispatch);
 
         const items: ContextMenuItem[] = [
