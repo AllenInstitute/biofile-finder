@@ -224,47 +224,40 @@ describe("FileExplorerURL", () => {
             expect(result).to.contain(expectedResult);
         });
 
-        // it("provides info on converting external data source to pandas dataframe", () => {
-        //     // Arrange
-        //     const components: Partial<FileExplorerURLComponents> = {
-        //         collection: {
-        //             name: mockCollection.name,
-        //             version: mockCollection.version,
-        //             uri: mockCollection.uri,
-        //         },
-        //     };
-        //     const expectedResult = `df = pandas.read_csv('${mockCollection.uri}').astype('str')`;
+        it("provides info on converting external data source to pandas dataframe", () => {
+            // Arrange
+            const components: Partial<FileExplorerURLComponents> = {
+                source: mockSource,
+            };
+            const expectedResult = `df = pd.read_csv('${mockSource.name}').astype('str')`;
 
-        //     // Act
-        //     const result = FileExplorerURL.convertToPython(components);
+            // Act
+            const result = FileExplorerURL.convertToPython(components);
 
-        //     // Assert
-        //     expect(result).to.contain(expectedResult);
-        // });
+            // Assert
+            expect(result).to.contain(expectedResult);
+        });
 
-        // it("arranges query elements in correct order", () => {
-        //     // Arrange
-        //     const expectedAnnotationNames = ["Plate Barcode"];
-        //     const expectedFilters = [
-        //         { name: "Cas9", value: "spCas9" },
-        //         { name: "Donor Plasmid", value: "ACTB-mEGFP" },
-        //     ];
-        //     const components: Partial<FileExplorerURLComponents> = {
-        //         hierarchy: expectedAnnotationNames,
-        //         filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
-        //         sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
-        //         collection: {
-        //             name: mockCollection.name,
-        //             version: mockCollection.version,
-        //         },
-        //     };
-        //     const expectedResult = /df\.groupby\(.*\)\.query\(.*\)\.query\(.*\)\.sort_values\(.*\)/i;
+        it("arranges query elements in correct order", () => {
+            // Arrange
+            const expectedAnnotationNames = ["Plate Barcode"];
+            const expectedFilters = [
+                { name: "Cas9", value: "spCas9" },
+                { name: "Donor Plasmid", value: "ACTB-mEGFP" },
+            ];
+            const components: Partial<FileExplorerURLComponents> = {
+                hierarchy: expectedAnnotationNames,
+                filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
+                source: mockSource,
+            };
+            const expectedResult = /df\.groupby\(.*\)\.query\(.*\)\.query\(.*\)\.sort_values\(.*\)/i;
 
-        //     // Act
-        //     const result = FileExplorerURL.convertToPython(components);
+            // Act
+            const result = FileExplorerURL.convertToPython(components);
 
-        //     // Assert
-        //     expect(result).to.match(expectedResult);
-        // });
+            // Assert
+            expect(result).to.match(expectedResult);
+        });
     });
 });
