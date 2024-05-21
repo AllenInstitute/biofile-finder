@@ -1,3 +1,5 @@
+import { castArray } from "lodash";
+
 /**
  * A simple SQL query builder.
  */
@@ -5,6 +7,7 @@ export default class SQLBuilder {
     private isSummarizing = false;
     private selectStatement = "*";
     private fromStatement?: string;
+    private joinStatements?: string[];
     private readonly whereClauses: string[] = [];
     private orderByClause?: string;
     private offsetNum?: number;
@@ -20,8 +23,18 @@ export default class SQLBuilder {
         return this;
     }
 
-    public from(statement: string): SQLBuilder {
-        this.fromStatement = statement;
+    public from(statement: string | string[]): SQLBuilder {
+        const statementAsArray = castArray(statement);
+        if (!statementAsArray.length) {
+            throw new Error('"FROM" statement requires at least one argument');
+        }
+        this.fromStatement = statementAsArray[0];
+        this.joinStatements = statementAsArray
+            .slice(1)
+            .map(
+                (table, idx) =>
+                    `JOIN ${table} ON ${table}."File Path" == ${statementAsArray[idx]}."File Path"`
+            );
         return this;
     }
 
@@ -75,6 +88,7 @@ export default class SQLBuilder {
             ${this.isSummarizing ? "SUMMARIZE" : ""}
             SELECT ${this.selectStatement}
             FROM "${this.fromStatement}"
+            ${this.joinStatements?.length ? this.joinStatements : ""}
             ${this.whereClauses.length ? `WHERE (${this.whereClauses.join(") AND (")})` : ""}
             ${this.orderByClause ? `ORDER BY ${this.orderByClause}` : ""}
             ${this.offsetNum !== undefined ? `OFFSET ${this.offsetNum}` : ""}

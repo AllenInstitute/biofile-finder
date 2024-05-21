@@ -14,40 +14,38 @@ import FileFolder from "../../../entity/FileFolder";
 import { DataSource } from "../../../services/DataSourceService";
 
 describe("Selection reducer", () => {
-    [
-        selection.actions.SET_ANNOTATION_HIERARCHY,
-        interaction.actions.SET_FILE_EXPLORER_SERVICE_BASE_URL,
-    ].forEach((actionConstant) =>
-        it(`clears selected file state when ${actionConstant} is fired`, () => {
-            // arrange
-            const prevSelection = new FileSelection().select({
-                fileSet: new FileSet(),
-                index: new NumericRange(1, 3),
-                sortOrder: 0,
-            });
-            const initialSelectionState = {
-                ...selection.initialState,
-                fileSelection: prevSelection,
-            };
+    [selection.actions.SET_ANNOTATION_HIERARCHY, interaction.actions.INITIALIZE_APP].forEach(
+        (actionConstant) =>
+            it(`clears selected file state when ${actionConstant} is fired`, () => {
+                // arrange
+                const prevSelection = new FileSelection().select({
+                    fileSet: new FileSet(),
+                    index: new NumericRange(1, 3),
+                    sortOrder: 0,
+                });
+                const initialSelectionState = {
+                    ...selection.initialState,
+                    fileSelection: prevSelection,
+                };
 
-            const action = {
-                type: actionConstant,
-            };
+                const action = {
+                    type: actionConstant,
+                };
 
-            // act
-            const nextSelectionState = selection.reducer(initialSelectionState, action);
-            const nextSelection = selection.selectors.getFileSelection({
-                ...initialState,
-                selection: nextSelectionState,
-            });
+                // act
+                const nextSelectionState = selection.reducer(initialSelectionState, action);
+                const nextSelection = selection.selectors.getFileSelection({
+                    ...initialState,
+                    selection: nextSelectionState,
+                });
 
-            // assert
-            expect(prevSelection.count()).to.equal(3); // sanity-check
-            expect(nextSelection.count()).to.equal(0);
-        })
+                // assert
+                expect(prevSelection.count()).to.equal(3); // sanity-check
+                expect(nextSelection.count()).to.equal(0);
+            })
     );
 
-    describe(selection.actions.CHANGE_DATA_SOURCE, () => {
+    describe(selection.actions.CHANGE_DATA_SOURCES, () => {
         it("clears hierarchy, filters, file selection, and open folders", () => {
             // Arrange
             const state = {
@@ -61,20 +59,25 @@ describe("Selection reducer", () => {
                 filters: [new FileFilter("file_id", "1238401234")],
                 openFileFolders: [new FileFolder(["AICS-11"])],
             };
-            const dataSource: DataSource = {
-                name: "My Tiffs",
-                version: 2,
-                type: "csv",
-                id: "13123019",
-                uri: "",
-            };
+            const dataSources: DataSource[] = [
+                {
+                    name: "My Tiffs",
+                    version: 2,
+                    type: "csv",
+                    id: "13123019",
+                    uri: "",
+                },
+            ];
 
             // Act
-            const actual = selection.reducer(state, selection.actions.changeDataSource(dataSource));
+            const actual = selection.reducer(
+                state,
+                selection.actions.changeDataSources(dataSources)
+            );
 
             // Assert
             expect(actual.annotationHierarchy).to.be.empty;
-            expect(actual.dataSource).to.deep.equal(dataSource);
+            expect(actual.dataSources).to.deep.equal(dataSources);
             expect(actual.fileSelection.count()).to.equal(0);
             expect(actual.filters).to.be.empty;
             expect(actual.openFileFolders).to.be.empty;

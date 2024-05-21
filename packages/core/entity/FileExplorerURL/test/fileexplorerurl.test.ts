@@ -31,7 +31,7 @@ describe("FileExplorerURL", () => {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC),
-                source: mockSource,
+                sources: [mockSource],
             };
 
             // Act
@@ -49,6 +49,7 @@ describe("FileExplorerURL", () => {
                 hierarchy: [],
                 filters: [],
                 openFolders: [],
+                sources: [],
             };
 
             // Act
@@ -78,7 +79,7 @@ describe("FileExplorerURL", () => {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
-                source: mockSource,
+                sources: [mockSource],
             };
             const encodedUrl = FileExplorerURL.encode(components);
             const encodedUrlWithWhitespace = " " + encodedUrl + " ";
@@ -97,7 +98,7 @@ describe("FileExplorerURL", () => {
                 filters: [],
                 openFolders: [],
                 sortColumn: undefined,
-                source: undefined,
+                sources: [],
             };
             const encodedUrl = FileExplorerURL.encode(components);
 
@@ -114,6 +115,7 @@ describe("FileExplorerURL", () => {
                 hierarchy: ["Cell Line"],
                 filters: [],
                 openFolders: [new FileFolder(["AICS-0"]), new FileFolder(["AICS-0", false])],
+                sources: [],
             };
             const encodedUrl = FileExplorerURL.encode(components);
 
@@ -140,6 +142,7 @@ describe("FileExplorerURL", () => {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.FILE_PATH, "Garbage" as any),
+                sources: [],
             };
             const encodedUrl = FileExplorerURL.encode(components);
 

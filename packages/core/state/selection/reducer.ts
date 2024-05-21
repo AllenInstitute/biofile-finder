@@ -19,7 +19,7 @@ import {
     RESET_COLUMN_WIDTH,
     SORT_COLUMN,
     SET_SORT_COLUMN,
-    CHANGE_DATA_SOURCE,
+    CHANGE_DATA_SOURCES,
     SELECT_TUTORIAL,
     ADJUST_GLOBAL_FONT_SIZE,
     Query,
@@ -32,10 +32,11 @@ import {
     SET_FILE_GRID_COLUMN_COUNT,
     REMOVE_QUERY,
     RemoveQuery,
+    ChangeDataSourcesAction,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
-import { DataSource } from "../../services/DataSourceService";
+import { Source } from "../../entity/FileExplorerURL";
 
 export interface SelectionStateBranch {
     annotationHierarchy: string[];
@@ -44,7 +45,7 @@ export interface SelectionStateBranch {
     columnWidths: {
         [index: string]: number; // columnName to widthPercent mapping
     };
-    dataSource?: DataSource;
+    dataSources: Source[];
     displayAnnotations: Annotation[];
     fileGridColumnCount: number;
     fileSelection: FileSelection;
@@ -62,13 +63,14 @@ export interface SelectionStateBranch {
 export const initialState = {
     annotationHierarchy: [],
     availableAnnotationsForHierarchy: [],
-    availableAnnotationsForHierarchyLoading: false,
+    availableAnnotationsForHierarchyLoading: true,
     columnWidths: {
         [AnnotationName.FILE_NAME]: 0.4,
         [AnnotationName.KIND]: 0.2,
         [AnnotationName.TYPE]: 0.25,
         [AnnotationName.FILE_SIZE]: 0.15,
     },
+    dataSources: [],
     displayAnnotations: [],
     isDarkTheme: true,
     fileGridColumnCount: THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE,
@@ -129,10 +131,10 @@ export default makeReducer<SelectionStateBranch>(
                 sortColumn: new FileSort(action.payload, SortOrder.DESC),
             };
         },
-        [CHANGE_DATA_SOURCE]: (state, action) => ({
+        [CHANGE_DATA_SOURCES]: (state, action: ChangeDataSourcesAction) => ({
             ...state,
             annotationHierarchy: [],
-            dataSource: action.payload,
+            dataSources: action.payload,
             filters: [],
             fileSelection: new FileSelection(),
             openFileFolders: [],
@@ -198,7 +200,7 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             openFileFolders: action.payload,
         }),
-        [interaction.actions.SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state) => ({
+        [interaction.actions.INITIALIZE_APP]: (state) => ({
             ...state,
 
             // Reset file selections when pointed at a new backend

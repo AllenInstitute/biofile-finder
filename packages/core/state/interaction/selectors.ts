@@ -2,7 +2,7 @@ import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
-import { getDataSource } from "../selection/selectors";
+import { getSelectedDataSources } from "../selection/selectors";
 import { AnnotationService, FileService } from "../../services";
 import DatasetService, {
     DataSource,
@@ -106,12 +106,12 @@ export const getHttpFileService = createSelector(
 );
 
 export const getFileService = createSelector(
-    [getHttpFileService, getDataSource, getPlatformDependentServices, getRefreshKey],
-    (httpFileService, dataSource, platformDependentServices): FileService => {
-        if (dataSource && dataSource?.name !== AICS_FMS_DATA_SOURCE_NAME) {
+    [getHttpFileService, getSelectedDataSources, getPlatformDependentServices, getRefreshKey],
+    (httpFileService, dataSourceNames, platformDependentServices): FileService => {
+        if (dataSourceNames[0]?.name !== AICS_FMS_DATA_SOURCE_NAME) {
             return new DatabaseFileService({
                 databaseService: platformDependentServices.databaseService,
-                dataSourceName: dataSource.name,
+                dataSourceNames: dataSourceNames.map((source) => source.name),
                 downloadService: platformDependentServices.fileDownloadService,
             });
         }
@@ -125,7 +125,7 @@ export const getAnnotationService = createSelector(
         getApplicationVersion,
         getUserName,
         getFileExplorerServiceBaseUrl,
-        getDataSource,
+        getSelectedDataSources,
         getPlatformDependentServices,
         getRefreshKey,
     ],
@@ -133,13 +133,13 @@ export const getAnnotationService = createSelector(
         applicationVersion,
         userName,
         fileExplorerBaseUrl,
-        dataSource,
+        dataSources,
         platformDependentServices
     ): AnnotationService => {
-        if (dataSource && dataSource?.name !== AICS_FMS_DATA_SOURCE_NAME) {
+        if (dataSources.length && dataSources[0]?.name !== AICS_FMS_DATA_SOURCE_NAME) {
             return new DatabaseAnnotationService({
                 databaseService: platformDependentServices.databaseService,
-                dataSourceName: dataSource.name,
+                dataSourceNames: dataSources.map((source) => source.name),
             });
         }
         return new HttpAnnotationService({

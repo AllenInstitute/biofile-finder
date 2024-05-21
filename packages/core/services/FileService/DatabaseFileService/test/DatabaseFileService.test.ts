@@ -28,7 +28,7 @@ describe("DatabaseFileService", () => {
     describe("getFiles", () => {
         it("issues request for files that match given parameters", async () => {
             const databaseFileService = new DatabaseFileService({
-                dataSourceName: "Unknown",
+                dataSourceNames: [],
                 databaseService,
                 downloadService: new FileDownloadServiceNoop(),
             });
@@ -83,7 +83,7 @@ describe("DatabaseFileService", () => {
         it("issues request for aggregated information about given files", async () => {
             // Arrange
             const fileService = new DatabaseFileService({
-                dataSourceName: "Unknown",
+                dataSourceNames: [],
                 databaseService,
                 downloadService: new FileDownloadServiceNoop(),
             });
@@ -105,7 +105,7 @@ describe("DatabaseFileService", () => {
     describe("getCountOfMatchingFiles", () => {
         it("issues request for count of files matching given parameters", async () => {
             const fileService = new DatabaseFileService({
-                dataSourceName: "Unknown",
+                dataSourceNames: [],
                 databaseService,
                 downloadService: new FileDownloadServiceNoop(),
             });

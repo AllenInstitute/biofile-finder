@@ -8,6 +8,7 @@ import { metadata, selection } from "../../state";
 import Annotation from "../../entity/Annotation";
 
 interface Props {
+    disabled?: boolean;
     groups: string[];
 }
 
@@ -36,6 +37,7 @@ export default function QueryGroup(props: Props) {
     return (
         <QueryPart
             title="Group"
+            disabled={props.disabled}
             addButtonIconName="FabricFolder"
             tutorialId={Tutorial.GROUPING_HEADER_ID}
             onDelete={onDelete}

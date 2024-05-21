@@ -1,3 +1,4 @@
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { AnnotationName } from "../Annotation";
 import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
@@ -5,14 +6,14 @@ import FileSort, { SortOrder } from "../FileSort";
 
 export interface Source {
     name: string;
-    type: "csv" | "json" | "parquet";
+    type?: "csv" | "json" | "parquet";
     uri?: string | File;
 }
 
 // Components of the application state this captures
 export interface FileExplorerURLComponents {
     hierarchy: string[];
-    source?: Source;
+    sources: Source[];
     filters: FileFilter[];
     openFolders: FileFolder[];
     sortColumn?: FileSort;
@@ -22,6 +23,7 @@ export const EMPTY_QUERY_COMPONENTS: FileExplorerURLComponents = {
     hierarchy: [],
     filters: [],
     openFolders: [],
+    sources: [],
 };
 
 const BEGINNING_OF_TODAY = new Date();
@@ -43,6 +45,7 @@ export const PAST_YEAR_FILTER = new FileFilter(
 export const DEFAULT_AICS_FMS_QUERY: FileExplorerURLComponents = {
     hierarchy: [],
     openFolders: [],
+    sources: [{ name: AICS_FMS_DATA_SOURCE_NAME }],
     filters: [PAST_YEAR_FILTER],
     sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
 };
@@ -71,11 +74,11 @@ export default class FileExplorerURL {
         urlComponents.openFolders?.map((folder) => {
             params.append("openFolder", JSON.stringify(folder.fileFolder));
         });
+        urlComponents.sources?.map((source) => {
+            params.append("source", JSON.stringify(source));
+        });
         if (urlComponents.sortColumn) {
             params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
-        }
-        if (urlComponents.source) {
-            params.append("source", JSON.stringify(urlComponents.source));
         }
 
         return params.toString();
@@ -90,7 +93,7 @@ export default class FileExplorerURL {
 
         const unparsedOpenFolders = params.getAll("openFolder");
         const unparsedFilters = params.getAll("filter");
-        const unparsedSource = params.get("source");
+        const unparsedSources = params.getAll("source");
         const hierarchy = params.getAll("group");
         const unparsedSort = params.get("sort");
         const hierarchyDepth = hierarchy.length;
@@ -111,7 +114,7 @@ export default class FileExplorerURL {
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
                 .map((parsedFilter) => new FileFilter(parsedFilter.name, parsedFilter.value)),
-            source: unparsedSource ? JSON.parse(unparsedSource) : undefined,
+            sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
             openFolders: unparsedOpenFolders
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)

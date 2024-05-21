@@ -28,14 +28,16 @@ export default function Query(props: QueryProps) {
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
     const currentQueryParts = useSelector(selection.selectors.getCurrentQueryParts);
 
+    const hasDataSource = !!props.query.parts.sources.length;
+
     const [isExpanded, setIsExpanded] = React.useState(false);
     React.useEffect(() => {
         setIsExpanded(props.isSelected);
     }, [props.isSelected]);
 
     const decodedURL = React.useMemo(
-        () => (props.isSelected ? currentQueryParts : props.query.parts),
-        [props.query.parts, currentQueryParts, props.isSelected]
+        () => (props.isSelected ? currentQueryParts : props.query?.parts),
+        [props.query?.parts, currentQueryParts, props.isSelected]
     );
 
     const onQueryUpdate = (updatedQuery: QueryType) => {
@@ -76,7 +78,8 @@ export default function Query(props: QueryProps) {
                     </div>
                     {props.isSelected && <hr />}
                     <p className={styles.displayRow}>
-                        <strong>Data Source:</strong> {decodedURL.source?.name}
+                        <strong>Data Source:</strong>{" "}
+                        {decodedURL.sources.map((source) => source.name).join(", ")}
                     </p>
                     {!!decodedURL.hierarchy.length && (
                         <p className={styles.displayRow}>
@@ -134,10 +137,10 @@ export default function Query(props: QueryProps) {
                     />
                 </div>
                 <hr className={styles.divider} />
-                <QueryDataSource dataSources={[decodedURL.source]} />
-                <QueryGroup groups={decodedURL.hierarchy} />
-                <QueryFilter filters={decodedURL.filters} />
-                <QuerySort sort={decodedURL.sortColumn} />
+                <QueryDataSource dataSources={decodedURL.sources} />
+                <QueryGroup disabled={!hasDataSource} groups={decodedURL.hierarchy} />
+                <QueryFilter disabled={!hasDataSource} filters={decodedURL.filters} />
+                <QuerySort disabled={!hasDataSource} sort={decodedURL.sortColumn} />
                 <hr className={styles.divider} />
                 <QueryFooter
                     isDeletable={queries.length > 1}

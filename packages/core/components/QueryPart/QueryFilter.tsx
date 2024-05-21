@@ -11,6 +11,7 @@ import { metadata, selection } from "../../state";
 import Annotation from "../../entity/Annotation";
 
 interface Props {
+    disabled?: boolean;
     filters: FileFilter[];
 }
 
@@ -26,6 +27,7 @@ export default function QueryFilter(props: Props) {
     return (
         <QueryPart
             title="Filter"
+            disabled={props.disabled}
             addButtonIconName="Filter"
             tutorialId={Tutorial.FILTER_HEADER_ID}
             onDelete={(annotation) =>

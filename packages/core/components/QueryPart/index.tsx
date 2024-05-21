@@ -4,6 +4,7 @@ import {
     IRenderFunction,
     PrimaryButton,
 } from "@fluentui/react";
+import classNames from "classnames";
 import * as React from "react";
 import { DragDropContext, OnDragEndResponder } from "react-beautiful-dnd";
 
@@ -14,6 +15,7 @@ import styles from "./QueryPart.module.css";
 
 interface Props {
     title: string;
+    disabled?: boolean;
     tutorialId?: string;
     addButtonIconName: string;
     rows: QueryPartRowItem[];
@@ -41,10 +43,11 @@ export default function QueryPart(props: Props) {
     };
 
     return (
-        <div className={styles.container}>
+        <div className={classNames(styles.container, { [styles.disabled]: props.disabled })}>
             <div className={styles.header}>
                 <PrimaryButton
                     ariaLabel={`Add ${props.title}`}
+                    disabled={props.disabled}
                     className={styles.addButton}
                     id={props.tutorialId}
                     iconProps={{ iconName: props.addButtonIconName }}

@@ -35,3 +35,8 @@
     margin: 0;
     padding-top: 8px
 }
+
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}

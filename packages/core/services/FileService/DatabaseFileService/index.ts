@@ -12,7 +12,7 @@ import SQLBuilder from "../../../entity/SQLBuilder";
 
 interface Config {
     databaseService: DatabaseService;
-    dataSourceName: string;
+    dataSourceNames: string[];
     downloadService: FileDownloadService;
 }
 
@@ -22,7 +22,7 @@ interface Config {
 export default class DatabaseFileService implements FileService {
     private readonly databaseService: DatabaseService;
     private readonly downloadService: FileDownloadService;
-    private readonly dataSourceName: string;
+    private readonly dataSourceNames: string[];
 
     private static convertDatabaseRowToFileDetail(
         row: { [key: string]: string },
@@ -61,14 +61,14 @@ export default class DatabaseFileService implements FileService {
 
     constructor(
         config: Config = {
-            dataSourceName: "Unknown",
+            dataSourceNames: [],
             databaseService: new DatabaseServiceNoop(),
             downloadService: new FileDownloadServiceNoop(),
         }
     ) {
         this.databaseService = config.databaseService;
         this.downloadService = config.downloadService;
-        this.dataSourceName = config.dataSourceName;
+        this.dataSourceNames = config.dataSourceNames;
     }
 
     public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
@@ -76,7 +76,7 @@ export default class DatabaseFileService implements FileService {
         const sql = fileSet
             .toQuerySQLBuilder()
             .select(`COUNT(*) AS ${select_key}`)
-            .from(this.dataSourceName)
+            .from(this.dataSourceNames)
             // Remove sort if present
             .orderBy()
             .toSQL();
@@ -103,7 +103,7 @@ export default class DatabaseFileService implements FileService {
     public async getFiles(request: GetFilesRequest): Promise<FileDetail[]> {
         const sql = request.fileSet
             .toQuerySQLBuilder()
-            .from(this.dataSourceName)
+            .from(this.dataSourceNames)
             .offset(request.from * request.limit)
             .limit(request.limit)
             .toSQL();
@@ -126,13 +126,13 @@ export default class DatabaseFileService implements FileService {
     ): Promise<DownloadResult> {
         const sqlBuilder = new SQLBuilder()
             .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
-            .from(this.dataSourceName);
+            .from(this.dataSourceNames);
 
         selections.forEach((selection) => {
             selection.indexRanges.forEach((indexRange) => {
                 const subQuery = new SQLBuilder()
                     .select('"File Path"')
-                    .from(this.dataSourceName as string)
+                    .from(this.dataSourceNames)
                     .whereOr(
                         Object.entries(selection.filters).map(([column, values]) => {
                             const commaSeperatedValues = values.map((v) => `'${v}'`).join(", ");

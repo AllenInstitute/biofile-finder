@@ -8,6 +8,7 @@ import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
 
 interface Props {
+    disabled?: boolean;
     sort?: FileSort;
 }
 
@@ -22,6 +23,7 @@ export default function QuerySort(props: Props) {
     return (
         <QueryPart
             title="Sort"
+            disabled={props.disabled}
             addButtonIconName="Sort"
             tutorialId={Tutorial.SORT_HEADER_ID}
             onDelete={() => dispatch(selection.actions.setSortColumn())}

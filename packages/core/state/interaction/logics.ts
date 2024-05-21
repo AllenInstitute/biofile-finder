@@ -25,7 +25,7 @@ import {
     OpenWithDefaultAction,
     PROMPT_FOR_NEW_EXECUTABLE,
     setUserSelectedApplication,
-    SET_FILE_EXPLORER_SERVICE_BASE_URL,
+    INITIALIZE_APP,
     setIsAicsEmployee,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
@@ -41,15 +41,45 @@ import FileDetail from "../../entity/FileDetail";
 import { AnnotationName } from "../../entity/Annotation";
 import FileSelection from "../../entity/FileSelection";
 import NumericRange from "../../entity/NumericRange";
+import FileExplorerURL, { DEFAULT_AICS_FMS_QUERY } from "../../entity/FileExplorerURL";
 
 /**
  * Interceptor responsible for checking if the user is able to access the AICS network
  */
 const checkAicsEmployee = createLogic({
-    type: SET_FILE_EXPLORER_SERVICE_BASE_URL,
+    type: INITIALIZE_APP,
     async process(deps: ReduxLogicDeps, dispatch, done) {
+        const queries = selection.selectors.getQueries(deps.getState());
+        const selectedQuery = selection.selectors.getSelectedQuery(deps.getState());
         const fileService = interactionSelectors.getHttpFileService(deps.getState());
+
+        // Redimentary check to see if the user is an AICS Employee by
+        // checking if the AICS network is accessible
         const isAicsEmployee = await fileService.isNetworkAccessible();
+
+        // If no query is currently selected attempt to choose one for the user
+        if (!selectedQuery) {
+            // If there are query args representing a query we can extract that
+            // into the query to render (ex. when refreshing a page)
+            if (window.location.search) {
+                dispatch(
+                    selection.actions.addQuery({
+                        name: "New Query",
+                        parts: FileExplorerURL.decode(window.location.search),
+                    })
+                );
+            } else if (queries.length) {
+                dispatch(selection.actions.changeQuery(queries[0]));
+            } else if (isAicsEmployee) {
+                dispatch(
+                    selection.actions.addQuery({
+                        name: "New AICS FMS Query",
+                        parts: DEFAULT_AICS_FMS_QUERY,
+                    })
+                );
+            }
+        }
+
         dispatch(setIsAicsEmployee(isAicsEmployee) as AnyAction);
         done();
     },

@@ -8,7 +8,7 @@ import {
     REFRESH,
     REMOVE_STATUS,
     SET_USER_SELECTED_APPLICATIONS,
-    SET_FILE_EXPLORER_SERVICE_BASE_URL,
+    INITIALIZE_APP,
     SET_STATUS,
     SET_VISIBLE_MODAL,
     SHOW_CONTEXT_MENU,
@@ -147,7 +147,7 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             csvColumns: action.payload.annotations,
         }),
-        [SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state, action) => ({
+        [INITIALIZE_APP]: (state, action) => ({
             ...state,
             fileExplorerServiceBaseUrl: action.payload,
         }),
@@ -164,7 +164,7 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [PROMPT_FOR_DATA_SOURCE]: (state, action) => ({
             ...state,
-            visibleModal: ModalType.DataSourcePrompt,
+            visibleModal: ModalType.DataSource,
             dataSourceForVisibleModal: action.payload,
         }),
     },

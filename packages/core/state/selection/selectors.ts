@@ -5,9 +5,6 @@ import { State } from "../";
 import Annotation from "../../entity/Annotation";
 import FileExplorerURL, { FileExplorerURLComponents } from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
-import FileFolder from "../../entity/FileFolder";
-import FileSort from "../../entity/FileSort";
-import { DataSource } from "../../services/DataSourceService";
 import { getAnnotations } from "../metadata/selectors";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
@@ -19,12 +16,12 @@ export const getAvailableAnnotationsForHierarchy = (state: State) =>
 export const getAvailableAnnotationsForHierarchyLoading = (state: State) =>
     state.selection.availableAnnotationsForHierarchyLoading;
 export const getColumnWidths = (state: State) => state.selection.columnWidths;
-export const getDataSource = (state: State) => state.selection.dataSource;
 export const getFileGridColumnCount = (state: State) => state.selection.fileGridColumnCount;
 export const getFileFilters = (state: State) => state.selection.filters;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getIsDarkTheme = (state: State) => state.selection.isDarkTheme;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
+export const getSelectedDataSources = (state: State) => state.selection.dataSources;
 export const getSelectedQuery = (state: State) => state.selection.selectedQuery;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
 export const getShouldDisplayThumbnailView = (state: State) =>
@@ -34,25 +31,27 @@ export const getTutorial = (state: State) => state.selection.tutorial;
 export const getQueries = (state: State) => state.selection.queries;
 
 // COMPOSED SELECTORS
+export const hasQuerySelected = createSelector([getSelectedQuery], (query): boolean => !!query);
+
 export const isQueryingAicsFms = createSelector(
-    [getDataSource],
-    (dataSource): boolean => !dataSource || dataSource.name === AICS_FMS_DATA_SOURCE_NAME
+    [getSelectedDataSources],
+    (dataSources): boolean => dataSources[0]?.name === AICS_FMS_DATA_SOURCE_NAME
 );
 
 export const getCurrentQueryParts = createSelector(
-    [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn, getDataSource],
-    (
-        hierarchy: string[],
-        filters: FileFilter[],
-        openFolders: FileFolder[],
-        sortColumn?: FileSort,
-        source?: DataSource
-    ): FileExplorerURLComponents => ({
+    [
+        getAnnotationHierarchy,
+        getFileFilters,
+        getOpenFileFolders,
+        getSortColumn,
+        getSelectedDataSources,
+    ],
+    (hierarchy, filters, openFolders, sortColumn, sources): FileExplorerURLComponents => ({
         hierarchy,
         filters,
         openFolders,
         sortColumn,
-        source,
+        sources,
     })
 );
 

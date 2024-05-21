@@ -19,7 +19,10 @@ describe("DatabaseAnnotationService", () => {
         const databaseService = new MockDatabaseService();
 
         it("issues request for all available Annotations", async () => {
-            const annotationService = new DatabaseAnnotationService({ dataSourceName: "Unknown", databaseService });
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: [],
+                databaseService,
+            });
             const actualAnnotations = await annotationService.fetchAnnotations();
             expect(actualAnnotations.length).to.equal(annotations.length);
             expect(actualAnnotations[0]).to.be.instanceOf(Annotation);
@@ -40,7 +43,10 @@ describe("DatabaseAnnotationService", () => {
         it("issues request for 'foo' values", async () => {
             const annotation = "foo";
 
-            const annotationService = new DatabaseAnnotationService({ dataSourceName: "Unknown", databaseService });
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: [],
+                databaseService,
+            });
             const actualValues = await annotationService.fetchValues(annotation);
             expect(actualValues).to.be.deep.equal(["a0", "b1", "cc2", "dd3"]);
         });
@@ -61,13 +67,19 @@ describe("DatabaseAnnotationService", () => {
         const databaseService = new MockDatabaseService();
 
         it("issues a request for annotation values for the first level of the annotation hierarchy", async () => {
-            const annotationService = new DatabaseAnnotationService({ dataSourceName: "Unknown", databaseService });
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: [],
+                databaseService,
+            });
             const values = await annotationService.fetchRootHierarchyValues(["foo"], []);
             expect(values).to.deep.equal(["Cell Line0", "Is Split Scene1", "Whatever2"]);
         });
 
         it("issues a request for annotation values for the first level of the annotation hierarchy with filters", async () => {
-            const annotationService = new DatabaseAnnotationService({ dataSourceName: "Unknown", databaseService });
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: [],
+                databaseService,
+            });
             const filter = new FileFilter("bar", "barValue");
             const values = await annotationService.fetchRootHierarchyValues(["foo"], [filter]);
             expect(values).to.deep.equal(["Cell Line0", "Is Split Scene1", "Whatever2"]);
@@ -89,7 +101,10 @@ describe("DatabaseAnnotationService", () => {
         it("issues request for hierarchy values under a specific path within the hierarchy", async () => {
             const expectedValues = ["A0", "B1", "Cc2", "dD3"];
 
-            const annotationService = new DatabaseAnnotationService({ dataSourceName: "Unknown", databaseService });
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: [],
+                databaseService,
+            });
             const values = await annotationService.fetchHierarchyValuesUnderPath(
                 ["foo", "bar"],
                 ["baz"],
@@ -101,7 +116,10 @@ describe("DatabaseAnnotationService", () => {
         it("issues request for hierarchy values under a specific path within the hierarchy with filters", async () => {
             const expectedValues = ["A0", "B1", "Cc2", "dD3"];
 
-            const annotationService = new DatabaseAnnotationService({ dataSourceName: "Unknown", databaseService });
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: [],
+                databaseService,
+            });
             const filter = new FileFilter("bar", "barValue");
             const values = await annotationService.fetchHierarchyValuesUnderPath(
                 ["foo", "bar"],
@@ -126,7 +144,10 @@ describe("DatabaseAnnotationService", () => {
         const databaseService = new MockDatabaseService();
 
         it("issues request for annotations that can be combined with current hierarchy", async () => {
-            const annotationService = new DatabaseAnnotationService({ dataSourceName: "Unknown", databaseService });
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: [],
+                databaseService,
+            });
             const values = await annotationService.fetchAvailableAnnotationsForHierarchy([
                 "cell_line",
                 "cas9",

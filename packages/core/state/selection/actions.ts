@@ -8,7 +8,6 @@ import FileSet from "../../entity/FileSet";
 import FileSort from "../../entity/FileSort";
 import NumericRange from "../../entity/NumericRange";
 import Tutorial from "../../entity/Tutorial";
-import { DataSource } from "../../services/DataSourceService";
 import {
     EMPTY_QUERY_COMPONENTS,
     FileExplorerURLComponents,
@@ -16,6 +15,44 @@ import {
 } from "../../entity/FileExplorerURL";
 
 const STATE_BRANCH_NAME = "selection";
+
+/**
+ * ADD_DATA_SOURCE
+ *
+ * Intention is to add a data source to the current query
+ */
+export const ADD_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "add-data-source");
+
+export interface AddDataSource {
+    payload: Source;
+    type: string;
+}
+
+export function addDataSource(source: Source): AddDataSource {
+    return {
+        payload: source,
+        type: ADD_DATA_SOURCE,
+    };
+}
+
+/**
+ * REMOVE_DATA_SOURCE
+ *
+ * Intention is to remove a data source from the current query
+ */
+export const REMOVE_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "remove-data-source");
+
+export interface RemoveDataSource {
+    payload: string;
+    type: string;
+}
+
+export function removeDataSource(sourceName: string): RemoveDataSource {
+    return {
+        payload: sourceName,
+        type: ADD_DATA_SOURCE,
+    };
+}
 
 /**
  * SET_FILE_FILTERS
@@ -551,21 +588,21 @@ export function decodeFileExplorerURL(decodedFileExplorerURL: string): DecodeFil
 }
 
 /**
- * CHANGE_DATA_SOURCE
+ * CHANGE_DATA_SOURCES
  *
- * Intention to update the data source queries are run against.
+ * Intention to update the data sources queries are run against.
  */
-export const CHANGE_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "change-data-source");
+export const CHANGE_DATA_SOURCES = makeConstant(STATE_BRANCH_NAME, "change-data-sources");
 
-export interface ChangeDataSourceAction {
-    payload?: DataSource;
+export interface ChangeDataSourcesAction {
+    payload: Source[];
     type: string;
 }
 
-export function changeDataSource(dataSource?: DataSource): ChangeDataSourceAction {
+export function changeDataSources(dataSources: Source[]): ChangeDataSourcesAction {
     return {
-        payload: dataSource,
-        type: CHANGE_DATA_SOURCE,
+        payload: dataSources,
+        type: CHANGE_DATA_SOURCES,
     };
 }
 

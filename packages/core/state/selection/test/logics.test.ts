@@ -23,7 +23,7 @@ import {
     setAnnotationHierarchy,
     selectNearbyFile,
     SET_SORT_COLUMN,
-    changeDataSource,
+    changeDataSources,
 } from "../actions";
 import { initialState, interaction } from "../../";
 import Annotation, { AnnotationName } from "../../../entity/Annotation";
@@ -686,7 +686,7 @@ describe("Selection logics", () => {
             });
 
             // Act
-            store.dispatch(changeDataSource({} as any));
+            store.dispatch(changeDataSources([{}] as any[]));
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -959,17 +959,19 @@ describe("Selection logics", () => {
             const filters = [new FileFilter(annotations[3].name, "20x")];
             const openFolders = [["a"], ["a", false]].map((folder) => new FileFolder(folder));
             const sortColumn = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
-            const source: Source = {
-                name: mockDataSource.name,
-                uri: "",
-                type: "csv",
-            };
+            const sources: Source[] = [
+                {
+                    name: mockDataSource.name,
+                    uri: "",
+                    type: "csv",
+                },
+            ];
             const encodedURL = FileExplorerURL.encode({
                 hierarchy,
                 filters,
                 openFolders,
                 sortColumn,
-                source,
+                sources,
             });
 
             // Act
@@ -1001,7 +1003,7 @@ describe("Selection logics", () => {
                     payload: sortColumn,
                 })
             ).to.be.true;
-            expect(actions.includesMatch(changeDataSource(mockDataSource))).to.be.true;
+            expect(actions.includesMatch(changeDataSources([mockDataSource]))).to.be.true;
         });
     });
 });

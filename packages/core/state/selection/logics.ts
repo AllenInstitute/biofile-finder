@@ -20,10 +20,7 @@ import {
     SET_ANNOTATION_HIERARCHY,
     SELECT_NEARBY_FILE,
     setSortColumn,
-    changeDataSource,
-    CHANGE_DATA_SOURCE,
     CHANGE_QUERY,
-    ChangeDataSourceAction,
     SetAnnotationHierarchyAction,
     RemoveFromAnnotationHierarchyAction,
     ReorderAnnotationHierarchyAction,
@@ -36,6 +33,9 @@ import {
     REPLACE_DATA_SOURCE,
     ReplaceDataSource,
     REMOVE_QUERY,
+    changeDataSources,
+    ChangeDataSourcesAction,
+    CHANGE_DATA_SOURCES,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -46,6 +46,7 @@ import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
+import { DataSource } from "../../services/DataSourceService";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -294,25 +295,12 @@ const toggleFileFolderCollapse = createLogic({
 const decodeFileExplorerURLLogics = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
-        const dataSources = interaction.selectors.getAllDataSources(deps.getState());
-        const { hierarchy, filters, openFolders, sortColumn, source } = FileExplorerURL.decode(
+        const { hierarchy, filters, openFolders, sortColumn, sources } = FileExplorerURL.decode(
             encodedURL
         );
 
-        let selectedDataSource = dataSources.find((c) => c.name === source?.name);
-        // It is possible the user was sent a novel data source in the URL
-        if (source && !selectedDataSource) {
-            const newDataSource = {
-                ...source,
-                id: source.name,
-                version: 1,
-            };
-            dispatch(metadata.actions.receiveDataSources([...dataSources, newDataSource]));
-            selectedDataSource = newDataSource;
-        }
-
         batch(() => {
-            dispatch(changeDataSource(selectedDataSource));
+            dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
             dispatch(setFileFilters(filters));
             dispatch(setOpenFileFolders(openFolders));
@@ -446,17 +434,31 @@ const selectNearbyFile = createLogic({
  */
 const changeDataSourceLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const action: ChangeDataSourceAction = deps.action;
-        const dataSource = action.payload;
+        const { payload: selectedDataSources } = deps.action as ChangeDataSourcesAction;
         const dataSources = interaction.selectors.getAllDataSources(deps.getState());
-        if (dataSource && !dataSources.some((dataSource) => dataSource.id === dataSource.id)) {
-            dispatch(metadata.actions.receiveDataSources([...dataSources, dataSource]));
+
+        const newSelectedDataSources: DataSource[] = [];
+        const existingSelectedDataSources: DataSource[] = [];
+        selectedDataSources.forEach((source) => {
+            const existingSource = dataSources.find((s) => s.name === source.name);
+            if (existingSource) {
+                existingSelectedDataSources.push(existingSource);
+            } else {
+                newSelectedDataSources.push({ ...source, id: source.name });
+            }
+        });
+
+        // It is possible the user was sent a novel data source in the URL
+        if (selectedDataSources.length > existingSelectedDataSources.length) {
+            dispatch(
+                metadata.actions.receiveDataSources([...dataSources, ...newSelectedDataSources])
+            );
         }
 
         dispatch(interaction.actions.refresh() as AnyAction);
         done();
     },
-    type: CHANGE_DATA_SOURCE,
+    type: CHANGE_DATA_SOURCES,
 });
 
 /**
@@ -511,18 +513,21 @@ const changeQueryLogic = createLogic({
                     : query.parts,
         }));
 
-        if (newlySelectedQuery.parts.source?.uri) {
-            try {
-                await databaseService.addDataSource(
-                    newlySelectedQuery.parts.source.name,
-                    newlySelectedQuery.parts.source.type,
-                    newlySelectedQuery.parts.source.uri
-                );
-            } catch (error) {
-                console.error("Failed to add data source, prompting for replacement", error);
-                dispatch(interaction.actions.promptForDataSource(newlySelectedQuery.parts.source));
-            }
-        }
+        await Promise.all(
+            newlySelectedQuery.parts.sources.map(async (source) => {
+                if (source.uri && source.type) {
+                    try {
+                        await databaseService.addDataSource(source.name, source.type, source.uri);
+                    } catch (error) {
+                        console.error(
+                            "Failed to add data source, prompting for replacement",
+                            error
+                        );
+                        dispatch(interaction.actions.promptForDataSource(source));
+                    }
+                }
+            })
+        );
 
         dispatch(
             decodeFileExplorerURL(FileExplorerURL.encode(newlySelectedQuery.parts)) as AnyAction
@@ -557,7 +562,7 @@ const replaceDataSourceLogic = createLogic({
         );
 
         try {
-            if (uri) {
+            if (uri && type) {
                 await databaseService.addDataSource(name, type, uri);
             }
         } catch (error) {
@@ -578,7 +583,7 @@ const replaceDataSourceLogic = createLogic({
         deps.ctx.replaceDataSourceAction = deps.action;
         const queries = selectionSelectors.getQueries(deps.getState());
         const updatedQueries = queries.map((query) => {
-            if (query.parts.source?.name !== replacementDataSource.name) {
+            if (query.parts.sources[0]?.name !== replacementDataSource.name) {
                 return query;
             }
 
