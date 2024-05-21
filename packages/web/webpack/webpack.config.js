@@ -10,6 +10,7 @@ module.exports = ({ analyze, production } = {}) => ({
     devServer: {
         host: devServer.host,
         port: devServer.port,
+        historyApiFallback: true,
     },
     entry: {
         app: "./src/index.tsx",
@@ -70,6 +71,20 @@ module.exports = ({ analyze, production } = {}) => ({
                 test: (filepath) => filepath.endsWith(".css"),
                 include: /node_modules/,
                 use: [{ loader: MiniCssExtractPlugin.loader }, { loader: "css-loader" }],
+            },
+            {
+                test: /\.svg$/,
+                use: [
+                    {
+                        loader: "babel-loader",
+                    },
+                    {
+                        loader: "react-svg-loader",
+                        options: {
+                            tsx: true, // true outputs tags
+                        },
+                    },
+                ],
             },
         ],
     },

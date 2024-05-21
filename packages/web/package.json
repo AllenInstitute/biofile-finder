@@ -26,6 +26,7 @@
     "mini-css-extract-plugin": "2.x",
     "postcss-loader": "6.x",
     "postcss-preset-env": "7.x",
+    "react-svg-loader": "^3.0.3",
     "webpack": "5.x",
     "webpack-bundle-analyzer": "4.x",
     "webpack-cli": "4.x",
@@ -33,6 +34,7 @@
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "^1.28.1-dev106.0",
+    "react-router-dom": "^6.23.1",
     "regenerator-runtime": "0.13.x"
   }
 }

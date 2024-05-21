@@ -62,6 +62,7 @@
     height: 100%;
     width: 30%;
     max-width: var(--query-sidebar-max-width);
+    position: relative;
 }
 
 .center {

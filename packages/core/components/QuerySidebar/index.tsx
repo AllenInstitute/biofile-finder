@@ -22,6 +22,7 @@ interface QuerySidebarProps {
  */
 export default function QuerySidebar(props: QuerySidebarProps) {
     const dispatch = useDispatch();
+    const isOnWeb = useSelector(interaction.selectors.isOnWeb);
     const queries = useSelector(selection.selectors.getQueries);
     const selectedQuery = useSelector(selection.selectors.getSelectedQuery);
     const dataSources = useSelector(interaction.selectors.getAllDataSources);
@@ -80,7 +81,9 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                         pathData={AICS_LOGO}
                         viewBox="0,0,512,512"
                         width={25}
-                        className={styles.logo}
+                        className={classNames(styles.logo, {
+                            [styles.logoHidden]: isOnWeb,
+                        })}
                     />
                 </div>
                 <p>
@@ -98,7 +101,9 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                     pathData={AICS_LOGO}
                     viewBox="0,0,512,512"
                     width={40}
-                    className={styles.logo}
+                    className={classNames(styles.logo, {
+                        [styles.logoHidden]: isOnWeb,
+                    })}
                 />
                 <IconButton
                     ariaLabel="Add"

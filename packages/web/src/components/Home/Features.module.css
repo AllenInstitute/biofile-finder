@@ -1,0 +1,49 @@
+.flex-container {
+    display: flex;
+    font-size: 16px;
+    font-weight: 400;
+    flex: auto;
+    height: 100%;
+    overflow: hidden;
+    margin: calc(2 * var(--margin)) 0;
+}
+
+.carousel {
+    flex: auto;
+    width: 66%;
+}
+
+.carousel-image {
+    height: 240px;
+    width: 100%;
+    background-color: var(--primary-dark);
+    margin-top: var(--margin);
+}
+
+.features {
+    color: var(--aqua);
+    width: 33%;
+    flex: auto;
+    margin-right: calc(2 * var(--margin));
+    padding-right: calc(2 * var(--margin));
+}
+
+.features button {
+    border: none;
+    background: none;
+    text-align: left;
+    color: var(--aqua);
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    line-height: 20px;
+    cursor: pointer;
+}
+
+.features button:hover,
+.features button:focus,
+.selected-feature {
+    color: var(--bright-aqua) !important;
+    background: var(--aqua-secondary-hover) !important;
+    width: fit-content;
+    border-radius: 4px;
+}

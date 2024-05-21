@@ -86,12 +86,13 @@ export default function GlobalActionButtonRow(props: Props) {
                 <ActionButton
                     className={classNames(styles.iconButton, {
                         [styles.disabled]: shouldDisplaySmallFont,
+                        [styles.smallFont]: true,
                     })}
                     disabled={shouldDisplaySmallFont}
                     onClick={() =>
                         dispatch(selection.actions.adjustGlobalFontSize(!shouldDisplaySmallFont))
                     }
-                    text="a"
+                    text="A"
                 />
                 <ActionButton
                     className={classNames(styles.iconButton, {
