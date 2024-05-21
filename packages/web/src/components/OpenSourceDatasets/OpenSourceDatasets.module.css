@@ -1,0 +1,42 @@
+.banner {
+  color: var(--secondary-text-color);
+  background-color: var(--primary-dark);
+  height: 205px;
+}
+
+.banner-content {
+  padding: 43px 50px;
+  color: var(--secondary-text-color);
+  height: 100%;
+  overflow: hidden;
+  padding: calc(4*var(--margin));
+  max-width: 1200px;
+  margin: auto;
+}
+
+.banner-header {
+  font-weight: 300;
+  font-size: 30px;
+  line-height: 40.85px;
+}
+
+.banner-body {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 28px;
+  margin-top: 10px;
+}
+
+.content {
+  padding: 0 calc(4*var(--margin));
+  max-width: 1200px;
+  margin: auto;
+  line-height: 1.5;
+}
+
+.table-header {
+  font-weight: 300;
+  font-size: 24px;
+  line-height: 1.25;
+  margin-top: calc(2*var(--margin));
+}

@@ -1,0 +1,47 @@
+.table {
+  padding-bottom: calc(2*var(--margin));
+}
+
+.table-header > div {
+  background-color: var(--secondary-dark);
+  background: var(--secondary-dark);
+  border-bottom: 1px solid var(--borders-light-grey);
+}
+
+.table-header span {
+  color: var(--secondary-text-color);
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.table-header > div:hover, .table-header span:hover {
+  background-color: var(--secondary-dark);
+  background: var(--secondary-dark);
+  color: var(--secondary-text-color);
+}
+
+.table-content > div {
+  color: var(--secondary-text-color);
+  background-color: var(--secondary-dark);
+  background: var(--secondary-dark) !important;
+  border-bottom: 1px solid var(--borders-light-grey);
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* .table-content div {
+  display: inline-block;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+  overflow: hidden;
+  max-height: 3.6em;
+  line-height: 1.8em;
+} */
+
+.table-content > div:hover {
+  color: var(--secondary-text-color);
+  background: var(--aqua-secondary-hover) !important;
+  cursor: pointer;
+}

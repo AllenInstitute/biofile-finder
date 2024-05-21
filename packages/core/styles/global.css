@@ -21,7 +21,7 @@ main {
     padding: 0;
     border: 0;
     overflow: hidden;
-    scrollbar-color:  var(--borders-light-grey) var(--accent-dark)
+    scrollbar-color:  var(--borders-light-grey) var(--accent-dark);
 }
 
 body {
@@ -61,6 +61,7 @@ body {
     --file-details-width: 20%;
     --margin: 12px;
     --transition-duration: 0.5s;
+    --font-family: 'Open Sans', sans-serif;
 }
 
 body:has(> main:has(.light-theme)) {
