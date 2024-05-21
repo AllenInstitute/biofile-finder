@@ -2,6 +2,7 @@ import { AnnotationName } from "../Annotation";
 import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 export interface Source {
     name: string;
@@ -120,8 +121,10 @@ export default class FileExplorerURL {
     }
 
     public static convertToPython(urlComponents: Partial<FileExplorerURLComponents>) {
-        const collectionString = this.convertCollectionToPython(urlComponents?.collection);
-
+        if (urlComponents?.source?.name === AICS_FMS_DATA_SOURCE_NAME) {
+            return "#Coming soon";
+        }
+        const sourceString = this.convertDataSourceToPython(urlComponents?.source);
         const groupByQueryString =
             urlComponents.hierarchy
                 ?.map((annotation) => this.convertGroupByToPython(annotation))
@@ -153,12 +156,13 @@ export default class FileExplorerURL {
         // const fuzzy = [] // TO DO: support fuzzy filtering
 
         const hasQueryElements = groupByQueryString || filterQueryString || sortQueryString;
-        const imports = "import pandas\n";
+        const imports = "import pandas as pd\n\n";
         const comment = hasQueryElements ? "#Query on dataframe df" : "#No options selected";
         const fullQueryString = `${comment}${
-            hasQueryElements && `\ndf${groupByQueryString}${filterQueryString}${sortQueryString}`
+            hasQueryElements &&
+            `\ndf_queried = df${groupByQueryString}${filterQueryString}${sortQueryString}`
         }`;
-        return `${imports}${collectionString}${fullQueryString}`;
+        return `${imports}${sourceString}${fullQueryString}`;
     }
 
     private static convertSortToPython(sortColumn: FileSort) {
@@ -181,13 +185,15 @@ export default class FileExplorerURL {
         return `\`${filter.name}\`=="${filter.value}"`;
     }
 
-    private static convertCollectionToPython(collection: Collection | undefined) {
-        if (collection?.uri) {
-            const comment = "#Convert current datasource file to a pandas dataframe";
-            const extension = collection.uri.substring(collection.uri.lastIndexOf(".") + 1);
+    private static convertDataSourceToPython(source: Source | undefined) {
+        if (source) {
+            const comment =
+                "#Convert current datasource file to a pandas dataframe\n" +
+                "#You may need to manually update the path to the file";
+
             // Currently suggest setting all fields to strings; otherwise pandas assumes type conversions
             // TO DO: Address different non-string type conversions
-            const code = `df = pandas.read_${extension}('${collection.uri}').astype('str')`;
+            const code = `df = pd.read_${source.type}('${source.name}').astype('str')`;
             // This only works if we assume that the file types will only be csv, parquet or json
             return `${comment}\n${code}\n\n`;
         }

@@ -25,6 +25,7 @@
 .code {
     cursor: text;
     user-select: text !important;
+    min-width: 300px;
 }
 
 .button-menu, .button-menu button {

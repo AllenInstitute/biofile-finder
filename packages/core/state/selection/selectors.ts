@@ -62,20 +62,20 @@ export const getEncodedFileExplorerUrl = createSelector(
 );
 
 export const getPythonConversion = createSelector(
-    [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn, getCollection],
+    [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn, getDataSource],
     (
         hierarchy: string[],
         filters: FileFilter[],
         openFolders: FileFolder[],
         sortColumn?: FileSort,
-        collection?: Dataset
+        source?: DataSource
     ) => {
         return FileExplorerURL.convertToPython({
             hierarchy,
             filters,
             openFolders,
             sortColumn,
-            collection,
+            source,
         });
     }
 );
