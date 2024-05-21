@@ -10,7 +10,6 @@ import styles from "./DataSourcePrompt.module.css";
 
 interface Props {
     hideTitle?: boolean;
-    onDismiss?: () => void;
 }
 
 const DATA_SOURCE_DETAILS = [
@@ -64,7 +63,7 @@ export default function DataSourcePrompt(props: Props) {
                 return;
             }
             addOrReplaceQuery({ name, type: extension, uri: selectedFile });
-            props.onDismiss?.();
+            dispatch(interaction.actions.hideVisibleModal());
         }
     };
     const onEnterURL = throttle(
@@ -90,6 +89,7 @@ export default function DataSourcePrompt(props: Props) {
                 type: extensionGuess as "csv" | "json" | "parquet",
                 uri: dataSourceURL,
             });
+            dispatch(interaction.actions.hideVisibleModal());
         },
         10000,
         { leading: true, trailing: false }

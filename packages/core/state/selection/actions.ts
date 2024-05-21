@@ -50,7 +50,7 @@ export interface RemoveDataSource {
 export function removeDataSource(sourceName: string): RemoveDataSource {
     return {
         payload: sourceName,
-        type: ADD_DATA_SOURCE,
+        type: REMOVE_DATA_SOURCE,
     };
 }
 

@@ -153,7 +153,7 @@ export default makeReducer<SelectionStateBranch>(
         }),
         [REMOVE_DATA_SOURCE]: (state, action: RemoveDataSource) => ({
             ...state,
-            dataSources: state.dataSources.filter((source) => source.name === action.payload),
+            dataSources: state.dataSources.filter((source) => source.name !== action.payload),
         }),
         [CHANGE_QUERY]: (state, action: ChangeQuery) => ({
             ...state,

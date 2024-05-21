@@ -35,7 +35,7 @@ export default function Query(props: QueryProps) {
         setIsExpanded(props.isSelected);
     }, [props.isSelected]);
 
-    const decodedURL = React.useMemo(
+    const queryComponents = React.useMemo(
         () => (props.isSelected ? currentQueryParts : props.query?.parts),
         [props.query?.parts, currentQueryParts, props.isSelected]
     );
@@ -79,12 +79,12 @@ export default function Query(props: QueryProps) {
                     {props.isSelected && <hr />}
                     <p className={styles.displayRow}>
                         <strong>Data Source:</strong>{" "}
-                        {decodedURL.sources.map((source) => source.name).join(", ")}
+                        {queryComponents.sources.map((source) => source.name).join(", ")}
                     </p>
-                    {!!decodedURL.hierarchy.length && (
+                    {!!queryComponents.hierarchy.length && (
                         <p className={styles.displayRow}>
                             <strong>Groupings:</strong>{" "}
-                            {decodedURL.hierarchy
+                            {queryComponents.hierarchy
                                 .map(
                                     (a) =>
                                         annotations.find((annotation) => annotation.name === a)
@@ -93,18 +93,18 @@ export default function Query(props: QueryProps) {
                                 .join(", ")}
                         </p>
                     )}
-                    {!!decodedURL.filters.length && (
+                    {!!queryComponents.filters.length && (
                         <p className={styles.displayRow}>
                             <strong>Filters:</strong>{" "}
-                            {decodedURL.filters
+                            {queryComponents.filters
                                 .map((filter) => `${filter.name}: ${filter.value}`)
                                 .join(", ")}
                         </p>
                     )}
-                    {!!decodedURL.sortColumn && (
+                    {!!queryComponents.sortColumn && (
                         <p className={styles.displayRow}>
-                            <strong>Sort:</strong> {decodedURL.sortColumn.annotationName} (
-                            {decodedURL.sortColumn.order})
+                            <strong>Sort:</strong> {queryComponents.sortColumn.annotationName} (
+                            {queryComponents.sortColumn.order})
                         </p>
                     )}
                 </div>
@@ -137,10 +137,10 @@ export default function Query(props: QueryProps) {
                     />
                 </div>
                 <hr className={styles.divider} />
-                <QueryDataSource dataSources={decodedURL.sources} />
-                <QueryGroup disabled={!hasDataSource} groups={decodedURL.hierarchy} />
-                <QueryFilter disabled={!hasDataSource} filters={decodedURL.filters} />
-                <QuerySort disabled={!hasDataSource} sort={decodedURL.sortColumn} />
+                <QueryDataSource dataSources={queryComponents.sources} />
+                <QueryGroup disabled={!hasDataSource} groups={queryComponents.hierarchy} />
+                <QueryFilter disabled={!hasDataSource} filters={queryComponents.filters} />
+                <QuerySort disabled={!hasDataSource} sort={queryComponents.sortColumn} />
                 <hr className={styles.divider} />
                 <QueryFooter
                     isDeletable={queries.length > 1}

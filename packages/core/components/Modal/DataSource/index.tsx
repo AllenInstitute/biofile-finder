@@ -10,7 +10,7 @@ import DataSourcePrompt from "../../DataSourcePrompt";
 export default function DataSource(props: ModalProps) {
     return (
         <BaseModal
-            body={<DataSourcePrompt hideTitle onDismiss={props.onDismiss} />}
+            body={<DataSourcePrompt hideTitle />}
             title="Choose a data source"
             onDismiss={props.onDismiss}
         />
