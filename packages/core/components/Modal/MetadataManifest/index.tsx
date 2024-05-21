@@ -1,4 +1,5 @@
 import { PrimaryButton } from "@fluentui/react";
+import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -8,31 +9,35 @@ import AnnotationPicker from "../../AnnotationPicker";
 import * as modalSelectors from "../selectors";
 import { interaction } from "../../../state";
 
-import styles from "./CsvManifest.module.css";
-import classNames from "classnames";
+import styles from "./MetadataManifest.module.css";
 
 /**
- * Modal overlay for selecting columns to be included in a CSV manifest download of
+ * Modal overlay for selecting columns to be included in a metadata manifest download of
  * files previously selected.
  */
-export default function CsvManifest({ onDismiss }: ModalProps) {
+export default function MetadataManifest({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
-
     const annotationsPreviouslySelected = useSelector(
         modalSelectors.getAnnotationsPreviouslySelected
     );
     const [selectedAnnotations, setSelectedAnnotations] = React.useState(
         annotationsPreviouslySelected
     );
+    const fileTypeForVisibleModal = useSelector(interaction.selectors.getFileTypeForVisibleModal);
 
     const onDownload = () => {
+        const selectedAnnotationNames = selectedAnnotations.map((annotation) => annotation.name);
+        dispatch(
+            interaction.actions.downloadManifest(selectedAnnotationNames, fileTypeForVisibleModal)
+        );
         onDismiss();
-        dispatch(interaction.actions.downloadManifest(selectedAnnotations));
     };
 
     const body = (
         <>
-            <p>Select which annotations you would like included as columns in the downloaded CSV</p>
+            <p>
+                Select which annotations you would like included as columns in the downloaded file
+            </p>
             <AnnotationPicker
                 hasSelectAllCapability
                 className={styles.annotationSelector}
@@ -57,7 +62,7 @@ export default function CsvManifest({ onDismiss }: ModalProps) {
                 />
             }
             onDismiss={onDismiss}
-            title="Download CSV Manifest"
+            title="Download Metadata Manifest"
         />
     );
 }

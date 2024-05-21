@@ -23,7 +23,7 @@ import {
     setAnnotationHierarchy,
     selectNearbyFile,
     SET_SORT_COLUMN,
-    changeCollection,
+    changeDataSource,
 } from "../actions";
 import { initialState, interaction } from "../../";
 import Annotation, { AnnotationName } from "../../../entity/Annotation";
@@ -31,15 +31,15 @@ import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import NumericRange from "../../../entity/NumericRange";
-import FileExplorerURL from "../../../entity/FileExplorerURL";
+import FileExplorerURL, { Source } from "../../../entity/FileExplorerURL";
 import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
 import { DatasetService } from "../../../services";
-import { Dataset } from "../../../services/DatasetService";
-import { receiveCollections } from "../../metadata/actions";
+import { DataSource } from "../../../services/DataSourceService";
 import HttpFileService from "../../../services/FileService/HttpFileService";
+import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -329,7 +329,11 @@ describe("Selection logics", () => {
         ];
         const baseUrl = "test";
         const mockHttpClient = createMockHttpClient(responseStubs);
-        const fileService = new HttpFileService({ baseUrl, httpClient: mockHttpClient });
+        const fileService = new HttpFileService({
+            baseUrl,
+            httpClient: mockHttpClient,
+            downloadService: new FileDownloadServiceNoop(),
+        });
         const fileSet = new FileSet({ fileService: fileService });
 
         before(() => {
@@ -454,7 +458,7 @@ describe("Selection logics", () => {
 
         it("adds a new annotation to the end of the hierarchy", async () => {
             // setup
-            const state = {
+            const state = mergeState(initialState, {
                 interaction: {
                     fileExplorerServiceBaseUrl: "test",
                 },
@@ -465,7 +469,7 @@ describe("Selection logics", () => {
                     annotationHierarchy: annotations.slice(0, 2).map((a) => a.name),
                     openFileFolders: [],
                 },
-            };
+            });
             const { store, logicMiddleware, actions } = configureMockStore({
                 logics: selectionLogics,
                 state,
@@ -486,7 +490,7 @@ describe("Selection logics", () => {
 
         it("moves an annotation within the hierarchy to a new position", async () => {
             // setup
-            const state = {
+            const state = mergeState(initialState, {
                 interaction: {
                     fileExplorerServiceBaseUrl: "test",
                 },
@@ -502,7 +506,7 @@ describe("Selection logics", () => {
                     ],
                     openFileFolders: [],
                 },
-            };
+            });
             const { store, logicMiddleware, actions } = configureMockStore({
                 logics: selectionLogics,
                 state,
@@ -532,7 +536,7 @@ describe("Selection logics", () => {
             // Create new Annotation entities rather than re-use existing
             // ones to test proper comparison using annotationName
             const annotationHierarchy = annotations.slice(0, 4).map((a) => a.name);
-            const state = {
+            const state = mergeState(initialState, {
                 interaction: {
                     fileExplorerServiceBaseUrl: "test",
                 },
@@ -543,7 +547,7 @@ describe("Selection logics", () => {
                     annotationHierarchy,
                     openFileFolders: [],
                 },
-            };
+            });
             const { store, logicMiddleware, actions } = configureMockStore({
                 logics: selectionLogics,
                 state,
@@ -572,7 +576,7 @@ describe("Selection logics", () => {
                 new FileFolder(["AICS-0"]),
                 new FileFolder(["AICS-0", "false"]),
             ];
-            const state = {
+            const state = mergeState(initialState, {
                 interaction: {
                     fileExplorerServiceBaseUrl: "test",
                 },
@@ -580,10 +584,10 @@ describe("Selection logics", () => {
                     annotations: [...annotations],
                 },
                 selection: {
-                    annotationHierarchy: annotations.slice(0, 3),
+                    annotationHierarchy: annotations.slice(0, 3).map((a) => a.name),
                     openFileFolders,
                 },
-            };
+            });
             const { store, logicMiddleware, actions } = configureMockStore({
                 logics: selectionLogics,
                 state,
@@ -604,7 +608,7 @@ describe("Selection logics", () => {
 
         it("determines which paths can still be opened after annotation is added", async () => {
             // setup
-            const state = {
+            const state = mergeState(initialState, {
                 interaction: {
                     fileExplorerServiceBaseUrl: "test",
                 },
@@ -618,7 +622,7 @@ describe("Selection logics", () => {
                         new FileFolder(["AICS-0", "false"]),
                     ],
                 },
-            };
+            });
             const { store, logicMiddleware, actions } = configureMockStore({
                 logics: selectionLogics,
                 state,
@@ -639,7 +643,7 @@ describe("Selection logics", () => {
 
         it("determines which paths can still be opened after annotation is removed", async () => {
             // setup
-            const state = {
+            const state = mergeState(initialState, {
                 interaction: {
                     fileExplorerServiceBaseUrl: "test",
                 },
@@ -653,7 +657,7 @@ describe("Selection logics", () => {
                         new FileFolder(["AICS-0", "false"]),
                     ],
                 },
-            };
+            });
             const { store, logicMiddleware, actions } = configureMockStore({
                 logics: selectionLogics,
                 state,
@@ -673,7 +677,7 @@ describe("Selection logics", () => {
         });
     });
 
-    describe("changeCollectionLogic", () => {
+    describe("changeDataSourceLogic", () => {
         it("dispatches refresh action", async () => {
             // Arrange
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -682,7 +686,7 @@ describe("Selection logics", () => {
             });
 
             // Act
-            store.dispatch(changeCollection({} as any));
+            store.dispatch(changeDataSource({} as any));
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -703,7 +707,7 @@ describe("Selection logics", () => {
 
         it("sets available annotations", async () => {
             // Arrange
-            const state = {
+            const state = mergeState(initialState, {
                 interaction: {
                     fileExplorerServiceBaseUrl: "test",
                 },
@@ -711,9 +715,9 @@ describe("Selection logics", () => {
                     annotations: [...annotations],
                 },
                 selection: {
-                    annotationHierarchy: annotations.slice(0, 3),
+                    annotationHierarchy: annotations.slice(0, 3).map((a) => a.name),
                 },
-            };
+            });
             const responseStub = {
                 when: () => true,
                 respondWith: {
@@ -744,7 +748,7 @@ describe("Selection logics", () => {
 
         it("sets all annotations as available when actual cannot be found", async () => {
             // Arrange
-            const state = {
+            const state = mergeState(initialState, {
                 interaction: {
                     fileExplorerServiceBaseUrl: "test",
                 },
@@ -752,9 +756,9 @@ describe("Selection logics", () => {
                     annotations: [...annotations],
                 },
                 selection: {
-                    annotationHierarchy: annotations.slice(0, 3),
+                    annotationHierarchy: annotations.slice(0, 3).map((a) => a.name),
                 },
-            };
+            });
             const responseStub = {
                 when:
                     "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=date_created&hierarchy=cell_line",
@@ -921,35 +925,30 @@ describe("Selection logics", () => {
     });
 
     describe("decodeFileExplorerURL", () => {
-        const mockCollection: Dataset = {
+        const mockDataSource: DataSource = {
             id: "1234148",
-            name: "Test Collection",
+            name: "Test Data Source",
             version: 1,
-            query: "",
-            client: "",
-            fixed: false,
-            private: true,
-            created: new Date(),
-            createdBy: "test",
+            type: "csv",
+            uri: "",
         };
 
         beforeEach(() => {
             const datasetService = new DatasetService();
             sinon.stub(interaction.selectors, "getDatasetService").returns(datasetService);
-            sinon.stub(datasetService, "getDataset").resolves(mockCollection);
         });
 
         afterEach(() => {
             sinon.restore();
         });
 
-        it("dispatches new hierarchy, filters, sort, collection, & opened folders from given URL", async () => {
+        it("dispatches new hierarchy, filters, sort, source, & opened folders from given URL", async () => {
             // Arrange
             const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
             const state = mergeState(initialState, {
                 metadata: {
                     annotations,
-                    collections: [mockCollection],
+                    dataSources: [mockDataSource],
                 },
             });
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -960,16 +959,17 @@ describe("Selection logics", () => {
             const filters = [new FileFilter(annotations[3].name, "20x")];
             const openFolders = [["a"], ["a", false]].map((folder) => new FileFolder(folder));
             const sortColumn = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
-            const collection = {
-                name: mockCollection.name,
-                version: mockCollection.version,
+            const source: Source = {
+                name: mockDataSource.name,
+                uri: "",
+                type: "csv",
             };
             const encodedURL = FileExplorerURL.encode({
                 hierarchy,
                 filters,
                 openFolders,
                 sortColumn,
-                collection,
+                source,
             });
 
             // Act
@@ -1001,34 +1001,7 @@ describe("Selection logics", () => {
                     payload: sortColumn,
                 })
             ).to.be.true;
-            expect(actions.includesMatch(changeCollection(mockCollection))).to.be.true;
-        });
-
-        it("validates unknown collection against dataset service", async () => {
-            // Arrange
-            const { store, logicMiddleware, actions } = configureMockStore({
-                logics: selectionLogics,
-                state: initialState,
-            });
-            const collection = {
-                name: mockCollection.name,
-                version: mockCollection.version,
-            };
-            const encodedURL = FileExplorerURL.encode({
-                hierarchy: [],
-                filters: [],
-                openFolders: [],
-                sortColumn: undefined,
-                collection,
-            });
-
-            // Act
-            store.dispatch(decodeFileExplorerURL(encodedURL));
-            await logicMiddleware.whenComplete();
-
-            // Assert
-            expect(actions.includesMatch(changeCollection(mockCollection))).to.be.true;
-            expect(actions.includesMatch(receiveCollections([mockCollection]))).to.be.true;
+            expect(actions.includesMatch(changeDataSource(mockDataSource))).to.be.true;
         });
     });
 });

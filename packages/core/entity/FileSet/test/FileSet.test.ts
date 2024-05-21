@@ -7,6 +7,7 @@ import FileFilter from "../../FileFilter";
 import FileSort, { SortOrder } from "../../FileSort";
 import { makeFileDetailMock } from "../../FileDetail/mocks";
 import HttpFileService from "../../../services/FileService/HttpFileService";
+import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("FileSet", () => {
     const scientistEqualsJane = new FileFilter("scientist", "jane");
@@ -110,7 +111,11 @@ describe("FileSet", () => {
 
                 const getSpy = sandbox.spy(httpClient, "get");
                 const fileSet = new FileSet({
-                    fileService: new HttpFileService({ httpClient, baseUrl }),
+                    fileService: new HttpFileService({
+                        httpClient,
+                        baseUrl,
+                        downloadService: new FileDownloadServiceNoop(),
+                    }),
                 });
 
                 await fileSet.fetchFileRange(testCase.start, testCase.end);

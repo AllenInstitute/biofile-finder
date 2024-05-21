@@ -10,8 +10,8 @@
 }
 
 .row.focused {
-    margin: 0;
-    border: var(--margin) solid var(--highlight-background-color);
+    border: var(--margin) solid var(--highlight-text-color);
+    margin: calc(var(--margin) - 1px);
 }
 
 .shimmer {

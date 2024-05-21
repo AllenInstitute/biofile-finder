@@ -1,10 +1,11 @@
 import * as React from "react";
 
 import QueryPart from ".";
-import { Collection } from "../../entity/FileExplorerURL";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
+import { Source } from "../../entity/FileExplorerURL";
 
 interface Props {
-    dataSources: (Collection | undefined)[];
+    dataSources: (Source | undefined)[];
 }
 
 /**
@@ -17,17 +18,19 @@ export default function QueryDataSource(props: Props) {
             addButtonIconName="Folder"
             onRenderAddMenuList={() => <div>TODO: To be implemented in another ticket</div>}
             rows={props.dataSources.map((dataSource) => {
-                // Undefined data source must mean we are querying AICS FMS
-                // we should have a more sentinal value for this
+                // TODO: This should change when we move towards
+                // having a blank data source only possible
+                // on an empty load
+                // https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues/105
                 if (!dataSource) {
                     return {
-                        id: "AICS FMS",
-                        title: "AICS FMS",
+                        id: AICS_FMS_DATA_SOURCE_NAME,
+                        title: AICS_FMS_DATA_SOURCE_NAME,
                     };
                 }
 
                 return {
-                    id: `${dataSource.name} ${dataSource.version}`,
+                    id: dataSource.name,
                     title: dataSource.name,
                 };
             })}

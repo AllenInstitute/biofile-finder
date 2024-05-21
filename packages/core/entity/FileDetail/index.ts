@@ -2,6 +2,12 @@ import { FmsFileAnnotation } from "../../services/FileService";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
 
+// Should probably record this somewhere we can dynamically adjust to, or perhaps just in the file
+// document itself, alas for now this will do.
+const HARD_CODED_AICS_S3_BUCKET_PATH = "http://production.files.allencell.org.s3.amazonaws.com";
+
+const AICS_FMS_FILES_NGINX_SERVER = "http://aics.corp.alleninstitute.org/labkey/fmsfiles/image";
+
 /**
  * Expected JSON response of a file detail returned from the query service. Example:
  * {
@@ -104,12 +110,35 @@ export default class FileDetail {
         return path as string;
     }
 
-    public get size(): number {
+    public get cloudPath(): string {
+        // Can retrieve a cloud like path for AICS FMS files
+        if (this.path.startsWith("/allen")) {
+            const pathWithoutDrive = this.path.replace("/allen/programs/allencell/data/proj0", "");
+            return `${HARD_CODED_AICS_S3_BUCKET_PATH}${pathWithoutDrive}`;
+        }
+
+        return this.path;
+    }
+
+    public get downloadPath(): string {
+        if (!this.path.startsWith("/allen")) {
+            return this.path;
+        }
+
+        // For AICS files we don't have permission to the bucket nor do we expect to have the /allen
+        // drive mounted on the client machine. So we use the NGINX server to serve the file.
+        return `${AICS_FMS_FILES_NGINX_SERVER}${this.path}`;
+    }
+
+    public get size(): number | undefined {
         const size = this.fileDetail.file_size || this.getFirstAnnotationValue("File Size");
         if (size === undefined) {
-            throw new Error("File Size is not defined");
+            return 0; // Default to 0 if size is not defined for now, need better system
         }
-        return size as number;
+        if (typeof size === "number") {
+            return size;
+        }
+        return parseInt(size as string, 10);
     }
 
     public get thumbnail(): string | undefined {
@@ -132,23 +161,23 @@ export default class FileDetail {
     }
 
     public getPathToThumbnail(): string | undefined {
-        let thumbnailPath = this.thumbnail;
-
         // If no thumbnail present try to render the file itself as the thumbnail
-        if (!thumbnailPath) {
+        if (!this.thumbnail) {
             const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
                 this.name.toLowerCase().endsWith(format)
             );
-            if (isFileRenderableImage) {
-                thumbnailPath = this.path;
+            if (!isFileRenderableImage) {
+                return undefined;
             }
+
+            return this.downloadPath;
         }
 
         // If the thumbnail is a relative path on the allen drive then preprend it to
         // the AICS FMS NGINX server path
-        if (thumbnailPath?.startsWith("/allen")) {
-            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${thumbnailPath}`;
+        if (this.thumbnail?.startsWith("/allen")) {
+            return `${AICS_FMS_FILES_NGINX_SERVER}${this.thumbnail}`;
         }
-        return thumbnailPath;
+        return this.thumbnail;
     }
 }

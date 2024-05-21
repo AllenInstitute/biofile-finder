@@ -19,7 +19,7 @@ import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron
 import FileViewerServiceElectron from "../services/FileViewerServiceElectron";
 import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
-import { GlobalVariableChannels, FileDownloadServiceBaseUrl } from "../util/constants";
+import { GlobalVariableChannels } from "../util/constants";
 
 const APP_ID = "fms-file-explorer";
 
@@ -50,20 +50,14 @@ frontendInsights.dispatchUserEvent({ type: "SESSION_START" });
 
 // Memoized to make sure the object that collects these services doesn't
 // unnecessarily change with regard to referential equality between re-renders of the application
-const collectPlatformDependentServices = memoize(
-    (downloadServiceBaseUrl: FileDownloadServiceBaseUrl) => ({
-        applicationInfoService,
-        databaseService,
-        executionEnvService,
-        fileDownloadService: new FileDownloadServiceElectron(
-            notificationService,
-            downloadServiceBaseUrl
-        ),
-        fileViewerService: new FileViewerServiceElectron(notificationService),
-        frontendInsights,
-        persistentConfigService,
-    })
-);
+const collectPlatformDependentServices = memoize(() => ({
+    applicationInfoService,
+    databaseService,
+    executionEnvService,
+    fileDownloadService: new FileDownloadServiceElectron(),
+    fileViewerService: new FileViewerServiceElectron(notificationService),
+    frontendInsights,
+}));
 
 const frontendInsightsMiddleware = reduxMiddleware(frontendInsights, {
     useActionAsProperties: true,
@@ -71,6 +65,7 @@ const frontendInsightsMiddleware = reduxMiddleware(frontendInsights, {
 const store = createReduxStore({
     middleware: [frontendInsightsMiddleware],
     persistedConfig: persistentConfigService.getAll(),
+    platformDependentServices: collectPlatformDependentServices(),
 });
 // https://redux.js.org/api/store#subscribelistener
 store.subscribe(() => {
@@ -109,12 +104,7 @@ store.subscribe(() => {
 function renderFmsFileExplorer() {
     render(
         <Provider store={store}>
-            <FmsFileExplorer
-                fileExplorerServiceBaseUrl={global.fileExplorerServiceBaseUrl}
-                platformDependentServices={collectPlatformDependentServices(
-                    global.fileDownloadServiceBaseUrl as FileDownloadServiceBaseUrl
-                )}
-            />
+            <FmsFileExplorer fileExplorerServiceBaseUrl={global.fileExplorerServiceBaseUrl} />
         </Provider>,
         document.getElementById(APP_ID)
     );

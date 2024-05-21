@@ -8,6 +8,8 @@ import Annotation from "../../entity/Annotation";
 import { metadata, selection } from "../../state";
 
 interface Props {
+    id?: string;
+    enableAllAnnotations?: boolean;
     disabledTopLevelAnnotations?: boolean;
     hasSelectAllCapability?: boolean;
     disableUnavailableAnnotations?: boolean;
@@ -41,10 +43,10 @@ export default function AnnotationPicker(props: Props) {
         )
         .map((annotation) => ({
             selected: props.selections.some((selected) => selected.name === annotation.name),
-            disabled: unavailableAnnotations.some(
-                (unavailable) => unavailable.name === annotation.name
-            ),
-            loading: areAvailableAnnotationLoading,
+            disabled:
+                !props.enableAllAnnotations &&
+                unavailableAnnotations.some((unavailable) => unavailable.name === annotation.name),
+            loading: !props.enableAllAnnotations && areAvailableAnnotationLoading,
             description: annotation.description,
             data: annotation,
             value: annotation.name,
@@ -67,6 +69,7 @@ export default function AnnotationPicker(props: Props) {
     return (
         <ListPicker
             className={props.className}
+            id={props.id}
             items={items}
             title={props.title}
             onDeselect={removeSelection}

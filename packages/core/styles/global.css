@@ -41,7 +41,8 @@ body {
     --secondary-text-color: var(--light-grey);
     --highlight-background-color: var(--dark-purple);
     --highlight-text-color: var(--white);
-    --error-color: var(--red);
+    --error-background-color: var(--red);
+    --error-text-color: var(--white);
 
     --query-sidebar-max-width: 350px;
     --url-bar-height: 40px;
@@ -57,7 +58,8 @@ body:has(> main:has(.light-theme)) {
     --secondary-text-color: var(--light-grey);
     --highlight-background-color: var(--dark-purple);
     --highlight-text-color: var(--white);
-    --error-color: var(--red);
+    --error-background-color: var(--red);
+    --error-text-color: var(--white);
 }
 
 h3 {

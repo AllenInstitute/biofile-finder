@@ -6,9 +6,13 @@ import { createLogicMiddleware } from "redux-logic";
 import interaction, { InteractionStateBranch } from "./interaction";
 import metadata, { MetadataStateBranch } from "./metadata";
 import selection, { SelectionStateBranch } from "./selection";
-import FileExplorerURL from "../entity/FileExplorerURL";
+import { PlatformDependentServices } from "../services";
 import { PersistedConfig, PersistedConfigKeys } from "../services/PersistentConfigService";
 import Annotation from "../entity/Annotation";
+import FileSort from "../entity/FileSort";
+import FileFilter from "../entity/FileFilter";
+import FileFolder from "../entity/FileFolder";
+import { Query } from "./selection/actions";
 
 export { interaction, metadata, selection };
 
@@ -53,14 +57,16 @@ logicMiddleware.addDeps(reduxLogicDependencies);
 export const middleware = [logicMiddleware];
 
 interface CreateStoreOptions {
+    isOnWeb?: boolean;
     middleware?: Middleware[];
     persistedConfig?: PersistedConfig;
+    platformDependentServices?: Partial<PlatformDependentServices>;
 }
 export function createReduxStore(options: CreateStoreOptions = {}) {
     const { persistedConfig } = options;
     const queries = persistedConfig?.[PersistedConfigKeys.Queries]?.length
-        ? persistedConfig?.[PersistedConfigKeys.Queries]
-        : [{ url: FileExplorerURL.DEFAULT_FMS_URL, name: "New AICS Query" }];
+        ? (persistedConfig[PersistedConfigKeys.Queries] as Query[])
+        : [];
     const rawDisplayAnnotations =
         persistedConfig && persistedConfig[PersistedConfigKeys.DisplayAnnotations];
     const displayAnnotations = rawDisplayAnnotations
@@ -68,6 +74,11 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
         : [];
     const preloadedState: State = mergeState(initialState, {
         interaction: {
+            isOnWeb: !!options.isOnWeb,
+            platformDependentServices: {
+                ...initialState.interaction.platformDependentServices,
+                ...options.platformDependentServices,
+            },
             csvColumns: persistedConfig?.[PersistedConfigKeys.CsvColumns],
             hasUsedApplicationBefore:
                 persistedConfig?.[PersistedConfigKeys.HasUsedApplicationBefore],
@@ -76,7 +87,26 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
         },
         selection: {
             displayAnnotations,
-            queries,
+            queries: queries.map((query) => ({
+                ...query,
+                parts: {
+                    ...query.parts,
+                    // These are persisted to the store in JSON format so when we rehydrated when creating the
+                    // store we have to convert back into their class instances
+                    sortColumn: query.parts.sortColumn
+                        ? new FileSort(
+                              query.parts.sortColumn.annotationName,
+                              query.parts.sortColumn.order
+                          )
+                        : undefined,
+                    filters: query.parts.filters.map(
+                        (filter) => new FileFilter(filter.name, filter.value)
+                    ),
+                    openFolders: query.parts.openFolders.map(
+                        (folder) => new FileFolder(((folder as unknown) as string).split("."))
+                    ),
+                },
+            })),
         },
     });
     return configureStore<State>({

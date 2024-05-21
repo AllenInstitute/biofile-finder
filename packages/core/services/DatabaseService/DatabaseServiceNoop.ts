@@ -1,14 +1,12 @@
 import DatabaseService from ".";
 
 export default class DatabaseServiceNoop implements DatabaseService {
-    public table = "noop";
-
-    public setDataSource() {
-        return Promise.reject("DatabaseServiceNoop:setDataSource");
+    public addDataSource() {
+        return Promise.reject("DatabaseServiceNoop:addDataSource");
     }
 
-    public getDataSource() {
-        return Promise.reject("DatabaseServiceNoop:getDataSource");
+    public saveQuery(): Promise<Uint8Array> {
+        return Promise.reject("DatabaseServiceNoop:saveQuery");
     }
 
     public query(): Promise<{ [key: string]: string }[]> {

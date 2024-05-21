@@ -12,7 +12,6 @@ import { selection } from "../../../state";
 
 export const HELP_OPTIONS = (dispatch: Dispatch): IContextualMenuItem[] => {
     return [
-        // TODO: Remove if on web
         {
             key: "download-newest-version",
             text: "Download Newest Version",

@@ -10,16 +10,27 @@
     margin: 0 auto 0 auto;
 }
 
-.browse-button {
+.file-input-label {
     background-color: var(--primary-background-color);
     color: var(--primary-text-color);
+    cursor: pointer;
     border: none;
-    padding: 1.25em 1.5em;
+    display: flex;
+    justify-content: center;
+    padding: 1em 2em;
 }
 
-.browse-button:hover {
+.file-input-label:hover {
     background-color: var(--highlight-background-color);
     color: var(--highlight-text-color);
+}
+
+.file-input-label > p {
+    margin: 0 0 0 4px;
+}
+
+.file-input {
+    display: none;
 }
 
 .or-divider {
@@ -60,8 +71,25 @@
     display: flex;
 }
 
-.text {
+.text, .warning > p {
+    padding: 2px 0;
+}
+
+.text, .warning {
     font-size: smaller;
+}
+
+.warning {
+    background-color: var(--error-background-color);
+    border-radius: 4px;
+    color: var(--error-text-color);
+    margin-bottom: 8px;
+    padding: 4px;
+}
+
+.warning > h4 {
+    margin: 0 0 4px 0;
+    padding: 0;
 }
 
 .url-form {

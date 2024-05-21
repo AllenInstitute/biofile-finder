@@ -1,22 +1,37 @@
-import FrontendInsights from "@aics/frontend-insights";
 import { makeConstant } from "@aics/redux-utils";
 import { uniqueId } from "lodash";
 
-import Annotation from "../../entity/Annotation";
-import ApplicationInfoService from "../../services/ApplicationInfoService";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
-import ExecutionEnvService from "../../services/ExecutionEnvService";
-import FileDownloadService from "../../services/FileDownloadService";
 import FileFilter from "../../entity/FileFilter";
-import FileViewerService from "../../services/FileViewerService";
 import { ModalType } from "../../components/Modal";
-import PersistentConfigService, {
-    UserSelectedApplication,
-} from "../../services/PersistentConfigService";
-import { DatabaseService, NotificationService } from "../../services";
+import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import FileDetail from "../../entity/FileDetail";
+import { Source } from "../../entity/FileExplorerURL";
+import { FileInfo } from "../../services";
 
 const STATE_BRANCH_NAME = "interaction";
+
+/**
+ * PROMPT_FOR_DATA_SOURCE
+ *
+ * Intention to prompt the user for a data source; this is largely necessarily for replacing a data source
+ * that has expired or is otherwise no longer available.
+ */
+export const PROMPT_FOR_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "prompt-for-data-source");
+
+type PartialSource = Omit<Source, "type">;
+
+export interface PromptForDataSource {
+    type: string;
+    payload: PartialSource;
+}
+
+export function promptForDataSource(dataSource: PartialSource): PromptForDataSource {
+    return {
+        type: PROMPT_FOR_DATA_SOURCE,
+        payload: dataSource,
+    };
+}
 
 /**
  * DOWNLOAD_MANIFEST
@@ -25,15 +40,20 @@ export const DOWNLOAD_MANIFEST = makeConstant(STATE_BRANCH_NAME, "download-manif
 
 export interface DownloadManifestAction {
     payload: {
-        annotations: Annotation[];
+        annotations: string[];
+        type: "csv" | "parquet" | "json";
     };
     type: string;
 }
 
-export function downloadManifest(annotations: Annotation[]): DownloadManifestAction {
+export function downloadManifest(
+    annotations: string[],
+    type: "csv" | "json" | "parquet"
+): DownloadManifestAction {
     return {
         payload: {
             annotations,
+            type,
         },
         type: DOWNLOAD_MANIFEST,
     };
@@ -70,22 +90,13 @@ export function cancelFileDownload(id: string): CancelFileDownloadAction {
 export const DOWNLOAD_FILES = makeConstant(STATE_BRANCH_NAME, "download-files");
 
 export interface DownloadFilesAction {
-    payload: {
-        files?: FileDetail[];
-        shouldPromptForDownloadDirectory: boolean;
-    };
+    payload?: FileInfo[];
     type: string;
 }
 
-export function downloadFiles(
-    files?: FileDetail[],
-    shouldPromptForDownloadDirectory = false
-): DownloadFilesAction {
+export function downloadFiles(files?: FileInfo[]): DownloadFilesAction {
     return {
-        payload: {
-            files,
-            shouldPromptForDownloadDirectory,
-        },
+        payload: files,
         type: DOWNLOAD_FILES,
     };
 }
@@ -108,25 +119,6 @@ export interface MarkAsUsedApplicationBefore {
 export function markAsUsedApplicationBefore(): MarkAsUsedApplicationBefore {
     return {
         type: MARK_AS_USED_APPLICATION_BEFORE,
-    };
-}
-
-/**
- * SET_CSV_COLUMNS
- *
- * Intention to set the csv columns
- */
-export const SET_CSV_COLUMNS = makeConstant(STATE_BRANCH_NAME, "set-csv-columns");
-
-export interface SetCsvColumnsAction {
-    payload: string[];
-    type: string;
-}
-
-export function setCsvColumns(csvColumns: string[]): SetCsvColumnsAction {
-    return {
-        payload: csvColumns,
-        type: SET_CSV_COLUMNS,
     };
 }
 
@@ -196,6 +188,23 @@ export function hideVisibleModal(): HideVisibleModalAction {
 }
 
 /**
+ * Intention is to set whether the current user is an AICS employee
+ */
+export const SET_IS_AICS_EMPLOYEE = makeConstant(STATE_BRANCH_NAME, "set-is-aics-employee");
+
+export interface SetIsAicsEmployee {
+    type: string;
+    payload: boolean;
+}
+
+export function setIsAicsEmployee(isAicsEmployee: boolean): SetIsAicsEmployee {
+    return {
+        type: SET_IS_AICS_EMPLOYEE,
+        payload: isAicsEmployee,
+    };
+}
+
+/**
  * SET CONNECTION CONFIGURATION FOR THE FILE EXPLORER SERVICE
  */
 export const SET_FILE_EXPLORER_SERVICE_BASE_URL = makeConstant(
@@ -212,41 +221,6 @@ export function setFileExplorerServiceBaseUrl(baseUrl: string): SetFileExplorerS
     return {
         type: SET_FILE_EXPLORER_SERVICE_BASE_URL,
         payload: baseUrl,
-    };
-}
-
-/**
- * SET PLATFORM-DEPENDENT SERVICES
- *
- * These services provide platform-dependent functionality and are expected to be injected once on application load.
- */
-export const SET_PLATFORM_DEPENDENT_SERVICES = makeConstant(
-    STATE_BRANCH_NAME,
-    "set-platform-dependent-services"
-);
-
-export interface PlatformDependentServices {
-    applicationInfoService: ApplicationInfoService;
-    databaseService: DatabaseService;
-    fileDownloadService: FileDownloadService;
-    fileViewerService: FileViewerService;
-    frontendInsights: FrontendInsights;
-    executionEnvService: ExecutionEnvService;
-    notificationService: NotificationService;
-    persistentConfigService: PersistentConfigService;
-}
-
-export interface SetPlatformDependentServices {
-    type: string;
-    payload: Partial<PlatformDependentServices>;
-}
-
-export function setPlatformDependentServices(
-    services: Partial<PlatformDependentServices>
-): SetPlatformDependentServices {
-    return {
-        type: SET_PLATFORM_DEPENDENT_SERVICES,
-        payload: services,
     };
 }
 
@@ -436,12 +410,12 @@ export interface ShowManifestDownloadDialogAction {
     type: string;
     payload: {
         fileFilters: FileFilter[];
-        fileType: "csv" | "parquet";
+        fileType: "csv" | "parquet" | "json";
     };
 }
 
 export function showManifestDownloadDialog(
-    fileType: "csv" | "parquet",
+    fileType: "csv" | "parquet" | "json",
     fileFilters: FileFilter[] = []
 ): ShowManifestDownloadDialogAction {
     return {
@@ -553,26 +527,6 @@ export function openWith(
             files,
         },
         type: OPEN_WITH,
-    };
-}
-
-/**
- * BROWSE_FOR_NEW_DATA_SOURCE
- *
- * Intention to prompt the user to browse for a new data source.
- */
-export const BROWSE_FOR_NEW_DATA_SOURCE = makeConstant(
-    STATE_BRANCH_NAME,
-    "browse-for-new-data-source"
-);
-
-export interface BrowseForNewDataSourceAction {
-    type: string;
-}
-
-export function browseForNewDataSource(): BrowseForNewDataSourceAction {
-    return {
-        type: BROWSE_FOR_NEW_DATA_SOURCE,
     };
 }
 

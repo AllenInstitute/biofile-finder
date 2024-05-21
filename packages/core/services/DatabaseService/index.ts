@@ -1,17 +1,18 @@
-export interface DataSource {
-    name: string;
-    created: Date;
-}
-
 /**
  * Service reponsible for querying against a database
  */
 export default interface DatabaseService {
-    table: string;
+    addDataSource(
+        name: string,
+        type: "csv" | "json" | "parquet",
+        uri: File | string
+    ): Promise<void>;
 
-    setDataSource(uri: string): Promise<void>;
-
-    getDataSource(uri: string): Promise<DataSource>;
+    saveQuery(
+        destination: string,
+        sql: string,
+        format: "csv" | "parquet" | "json"
+    ): Promise<Uint8Array>;
 
     query(sql: string): Promise<{ [key: string]: string }[]>;
 }

@@ -1,28 +1,38 @@
+import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
-import { getCollection } from "../selection/selectors";
-import { AnnotationService, FileService, HttpServiceBase } from "../../services";
-import DatasetService, { PythonicDataAccessSnippet } from "../../services/DatasetService";
+import { getDataSource } from "../selection/selectors";
+import { AnnotationService, FileService } from "../../services";
+import DatasetService, {
+    DataSource,
+    PythonicDataAccessSnippet,
+} from "../../services/DataSourceService";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
+import { getDataSources } from "../metadata/selectors";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 // BASIC SELECTORS
-export const getApplicationVersion = (state: State) => state.interaction.applicationVersion;
 export const getContextMenuVisibility = (state: State) => state.interaction.contextMenuIsVisible;
 export const getContextMenuItems = (state: State) => state.interaction.contextMenuItems;
 export const getContextMenuPositionReference = (state: State) =>
     state.interaction.contextMenuPositionReference;
 export const getContextMenuOnDismiss = (state: State) => state.interaction.contextMenuOnDismiss;
 export const getCsvColumns = (state: State) => state.interaction.csvColumns;
+export const getDataSourceForVisibleModal = (state: State) =>
+    state.interaction.dataSourceForVisibleModal;
 export const getFileExplorerServiceBaseUrl = (state: State) =>
     state.interaction.fileExplorerServiceBaseUrl;
 export const getFileFiltersForVisibleModal = (state: State) =>
     state.interaction.fileFiltersForVisibleModal;
+export const getFileTypeForVisibleModal = (state: State) =>
+    state.interaction.fileTypeForVisibleModal;
 export const hasUsedApplicationBefore = (state: State) =>
     state.interaction.hasUsedApplicationBefore;
+export const isOnWeb = (state: State) => state.interaction.isOnWeb;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;
@@ -30,8 +40,33 @@ export const getRefreshKey = (state: State) => state.interaction.refreshKey;
 export const getUserSelectedApplications = (state: State) =>
     state.interaction.userSelectedApplications;
 export const getVisibleModal = (state: State) => state.interaction.visibleModal;
+export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee;
 
 // COMPOSED SELECTORS
+export const getApplicationVersion = createSelector(
+    [getPlatformDependentServices],
+    ({ applicationInfoService }): string => applicationInfoService.getApplicationVersion()
+);
+
+export const getAllDataSources = createSelector(
+    [getDataSources, isAicsEmployee],
+    (dataSources, isAicsEmployee): DataSource[] =>
+        isAicsEmployee
+            ? uniqBy(
+                  [
+                      ...dataSources,
+                      {
+                          id: AICS_FMS_DATA_SOURCE_NAME,
+                          name: AICS_FMS_DATA_SOURCE_NAME,
+                          type: "csv",
+                          version: 1,
+                      },
+                  ],
+                  "id"
+              )
+            : dataSources
+);
+
 // TODO: Implement PythonicDataAccessSnippet
 export const getPythonSnippet = createSelector(
     [],
@@ -53,36 +88,35 @@ export const getUserName = createSelector(
     }
 );
 
-export const getFileService = createSelector(
+export const getHttpFileService = createSelector(
     [
         getApplicationVersion,
         getUserName,
         getFileExplorerServiceBaseUrl,
-        getCollection,
         getPlatformDependentServices,
         getRefreshKey,
     ],
-    (
-        applicationVersion,
-        userName,
-        fileExplorerBaseUrl,
-        collection,
-        platformDependentServices
-    ): FileService => {
-        if (collection?.uri) {
-            return new DatabaseFileService({
-                databaseService: platformDependentServices.databaseService,
-            });
-        }
-        const pathSuffix = collection
-            ? `/within/${HttpServiceBase.encodeURI(collection.name)}/${collection.version}`
-            : undefined;
-        return new HttpFileService({
+    (applicationVersion, userName, fileExplorerBaseUrl, platformDependentServices) =>
+        new HttpFileService({
             applicationVersion,
             userName,
             baseUrl: fileExplorerBaseUrl,
-            pathSuffix,
-        });
+            downloadService: platformDependentServices.fileDownloadService,
+        })
+);
+
+export const getFileService = createSelector(
+    [getHttpFileService, getDataSource, getPlatformDependentServices, getRefreshKey],
+    (httpFileService, dataSource, platformDependentServices): FileService => {
+        if (dataSource && dataSource?.name !== AICS_FMS_DATA_SOURCE_NAME) {
+            return new DatabaseFileService({
+                databaseService: platformDependentServices.databaseService,
+                dataSourceName: dataSource.name,
+                downloadService: platformDependentServices.fileDownloadService,
+            });
+        }
+
+        return httpFileService;
     }
 );
 
@@ -91,7 +125,7 @@ export const getAnnotationService = createSelector(
         getApplicationVersion,
         getUserName,
         getFileExplorerServiceBaseUrl,
-        getCollection,
+        getDataSource,
         getPlatformDependentServices,
         getRefreshKey,
     ],
@@ -99,43 +133,31 @@ export const getAnnotationService = createSelector(
         applicationVersion,
         userName,
         fileExplorerBaseUrl,
-        collection,
+        dataSource,
         platformDependentServices
     ): AnnotationService => {
-        if (collection?.uri) {
+        if (dataSource && dataSource?.name !== AICS_FMS_DATA_SOURCE_NAME) {
             return new DatabaseAnnotationService({
                 databaseService: platformDependentServices.databaseService,
+                dataSourceName: dataSource.name,
             });
         }
-        const pathSuffix = collection
-            ? `/within/${HttpServiceBase.encodeURI(collection.name)}/${collection.version}`
-            : undefined;
         return new HttpAnnotationService({
             applicationVersion,
             userName,
             baseUrl: fileExplorerBaseUrl,
-            pathSuffix,
         });
     }
 );
 
 export const getDatasetService = createSelector(
-    [
-        getApplicationVersion,
-        getUserName,
-        getFileExplorerServiceBaseUrl,
-        getPlatformDependentServices,
-        getRefreshKey,
-    ],
-    (applicationVersion, userName, fileExplorerBaseUrl, platformDependentServices) => {
-        const { databaseService } = platformDependentServices;
-        return new DatasetService({
+    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl, getRefreshKey],
+    (applicationVersion, userName, fileExplorerBaseUrl) =>
+        new DatasetService({
             applicationVersion,
             userName,
             baseUrl: fileExplorerBaseUrl,
-            database: databaseService,
-        });
-    }
+        })
 );
 
 /**

@@ -84,6 +84,17 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
             // (i.e. POSIX path held in the database; what we have an annotation for)
             // as well as the path at which the file is *actually* accessible on _this_ computer ("local" file path)
             if (annotation.name === AnnotationName.FILE_PATH) {
+                if (fileDetails.path !== fileDetails.cloudPath) {
+                    ret.push(
+                        <FileAnnotationRow
+                            key="file-path-cloud"
+                            className={styles.row}
+                            name="File Path (Cloud)"
+                            value={fileDetails.cloudPath}
+                        />
+                    );
+                }
+
                 // In certain circumstances (i.e., linux), the path at which a file is accessible is === the canonical path
                 if (localPath && localPath !== annotationValue && !localPath.startsWith("http")) {
                     ret.splice(

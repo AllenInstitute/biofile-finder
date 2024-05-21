@@ -11,10 +11,10 @@ import nock from "nock";
 import sinon from "sinon";
 
 import { DownloadFailure } from "../../../../core/errors";
-import { DownloadResolution, FileDownloadCancellationToken } from "../../../../core/services";
-import { FileDownloadServiceBaseUrl, RUN_IN_RENDERER } from "../../util/constants";
+import { DownloadResolution } from "../../../../core/services";
+import { RUN_IN_RENDERER } from "../../util/constants";
 import FileDownloadServiceElectron from "../FileDownloadServiceElectron";
-import NotificationServiceElectron from "../NotificationServiceElectron";
+import { noop } from "lodash";
 
 function parseRangeHeader(rangeHeader: string): { start: number; end: number } {
     const [, range] = rangeHeader.split("=");
@@ -35,146 +35,6 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
         nock.enableNetConnect();
     });
 
-    describe("downloadCsvManifest", () => {
-        const tempfile = `${os.tmpdir()}/manifest.csv`;
-
-        beforeEach(async () => {
-            if (!nock.isActive()) {
-                nock.activate();
-            }
-
-            // ensure tempfile exists
-            const fd = await fs.promises.open(tempfile, "w+");
-            await fd.close();
-        });
-
-        afterEach(async () => {
-            nock.restore();
-
-            try {
-                await fs.promises.unlink(tempfile);
-            } catch (err) {
-                // if the file doesn't exist (e.g., because it was already cleaned up), ignore. else, re-raise.
-                const typedErr = err as NodeJS.ErrnoException;
-                if (typedErr.code !== "ENOENT") {
-                    throw err;
-                }
-            }
-
-            sinon.restore();
-        });
-
-        it("saves CSV to a file", async () => {
-            // Arrange
-            const DOWNLOAD_HOST = "https://aics-test.corp.alleninstitute.org";
-            const DOWNLOAD_PATH = "/file-explorer-service/2.0/files/selection/manifest";
-            const CSV_BODY =
-                "Hello, it's me, I was wondering if after all these years you'd like to meet";
-
-            // intercept request for download and return canned response
-            nock(DOWNLOAD_HOST).post(DOWNLOAD_PATH).reply(200, CSV_BODY, {
-                "Content-Type": "text/csv;charset=UTF-8",
-                "Content-Disposition": "attachment;filename=manifest.csv",
-            });
-
-            sinon
-                .stub(ipcRenderer, "invoke")
-                .withArgs(FileDownloadServiceElectron.GET_FILE_SAVE_PATH)
-                .resolves({
-                    filePath: tempfile,
-                });
-
-            const service = new FileDownloadServiceElectron(new NotificationServiceElectron());
-
-            // Act
-            await service.downloadCsvManifest(
-                `${DOWNLOAD_HOST}${DOWNLOAD_PATH}`,
-                JSON.stringify({ some: "data" }),
-                "beepbop"
-            );
-
-            // Assert
-            expect(await fs.promises.readFile(tempfile, "utf-8")).to.equal(CSV_BODY);
-        });
-
-        it("resolves meaningfully if user cancels download when prompted for save path", async () => {
-            // Arrange
-            sinon
-                .stub(ipcRenderer, "invoke")
-                .withArgs(FileDownloadServiceElectron.GET_FILE_SAVE_PATH)
-                .resolves({
-                    canceled: true,
-                });
-
-            const service = new FileDownloadServiceElectron(new NotificationServiceElectron());
-            const downloadRequestId = "beepbop";
-
-            // Act
-            const result = await service.downloadCsvManifest(
-                "/some/url",
-                JSON.stringify({ some: "data" }),
-                downloadRequestId
-            );
-
-            // Assert
-            expect(result).to.have.property("downloadRequestId", downloadRequestId);
-            expect(result).to.have.property("resolution", DownloadResolution.CANCELLED);
-        });
-
-        it("rejects with error message and clears partial artifact if request for CSV is unsuccessful", async () => {
-            // Arrange
-            const DOWNLOAD_HOST = "https://aics-test.corp.alleninstitute.org";
-            const DOWNLOAD_PATH = "/file-explorer-service/2.0/files/selection/manifest";
-            const ERROR_MSG = "Something went wrong and nobody knows why";
-
-            // intercept request for download and return canned error
-            nock(DOWNLOAD_HOST).post(DOWNLOAD_PATH).reply(500, ERROR_MSG);
-
-            sinon
-                .stub(ipcRenderer, "invoke")
-                .withArgs(FileDownloadServiceElectron.GET_FILE_SAVE_PATH)
-                .resolves({
-                    filePath: tempfile,
-                });
-
-            const service = new FileDownloadServiceElectron(new NotificationServiceElectron());
-            const downloadRequestId = "beepbop";
-
-            // Write a partial CSV manifest to enable testing that it is cleaned up on error
-            await fs.promises.writeFile(tempfile, "This, That, The Other");
-
-            try {
-                // Act
-                await service.downloadCsvManifest(
-                    `${DOWNLOAD_HOST}${DOWNLOAD_PATH}`,
-                    JSON.stringify({ some: "data" }),
-                    downloadRequestId
-                );
-
-                // Evergreen detector
-                throw new assert.AssertionError({
-                    message:
-                        "FileDownloadServiceElectron::downloadCsvManifest expected to throw on failure",
-                });
-            } catch (err) {
-                // Assert
-                expect(err).to.be.instanceOf(DownloadFailure);
-                expect((err as DownloadFailure).message).to.include(ERROR_MSG);
-                expect((err as DownloadFailure).downloadIdentifier).to.equal(downloadRequestId);
-            } finally {
-                // Assert that any partial file is cleaned up
-                try {
-                    await fs.promises.access(tempfile);
-                    throw new assert.AssertionError({ message: `${tempfile} not cleaned up` });
-                } catch (err) {
-                    // Expect the file to be missing
-                    const typedErr = err as NodeJS.ErrnoException;
-                    expect(typedErr.code).to.equal("ENOENT", typedErr.message);
-                }
-            }
-        });
-    });
-
     describe("getDefaultDownloadDirectory", () => {
         afterEach(() => {
             sinon.restore();
@@ -182,17 +42,13 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
 
         it("returns default directory", async () => {
             // Arrange
-            const downloadHost = "https://aics-test.corp.alleninstitute.org/labkey/fmsfiles/image";
             const expectedDirectory = "somewhere/that/is/a/dir";
             sinon
                 .stub(ipcRenderer, "invoke")
                 .withArgs(FileDownloadServiceElectron.GET_DOWNLOADS_DIR)
                 .resolves(expectedDirectory);
 
-            const service = new FileDownloadServiceElectron(
-                new NotificationServiceElectron(),
-                downloadHost as FileDownloadServiceBaseUrl
-            );
+            const service = new FileDownloadServiceElectron();
 
             // Act
             const actualDirectory = await service.getDefaultDownloadDirectory();
@@ -202,69 +58,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
         });
     });
 
-    describe("promptForDownloadDirectory", () => {
-        afterEach(() => {
-            sinon.restore();
-        });
-
-        it("returns user selected directory", async () => {
-            // Arrange
-            const expectedDirectory = os.tmpdir();
-            class DialogResult {
-                public readonly canceled = false;
-                public readonly filePaths = [expectedDirectory];
-            }
-
-            const downloadHost = "https://aics-test.corp.alleninstitute.org/labkey/fmsfiles/image";
-            const invokeStub = sinon.stub(ipcRenderer, "invoke");
-            invokeStub.onFirstCall().resolves("anything");
-            invokeStub.onSecondCall().resolves(new DialogResult());
-
-            const service = new FileDownloadServiceElectron(
-                new NotificationServiceElectron(),
-                downloadHost as FileDownloadServiceBaseUrl
-            );
-
-            // Act
-            const actualDirectory = await service.promptForDownloadDirectory();
-
-            // Assert
-            expect(actualDirectory).to.equal(expectedDirectory);
-        });
-
-        it("complains about non-writeable directory when given", async () => {
-            // Arrange
-            const expectedDirectory = "somewhere/over/here";
-            class DialogResult {
-                public readonly canceled: boolean;
-                public readonly filePaths = [expectedDirectory];
-
-                constructor(canceled: boolean) {
-                    this.canceled = canceled;
-                }
-            }
-
-            const downloadHost = "https://aics-test.corp.alleninstitute.org/labkey/fmsfiles/image";
-            const invokeStub = sinon.stub(ipcRenderer, "invoke");
-            invokeStub.onFirstCall().resolves("anything");
-            invokeStub.onSecondCall().resolves(new DialogResult(false));
-            invokeStub.onSecondCall().resolves("anything");
-            invokeStub.onSecondCall().resolves(new DialogResult(true));
-
-            const service = new FileDownloadServiceElectron(
-                new NotificationServiceElectron(),
-                downloadHost as FileDownloadServiceBaseUrl
-            );
-
-            // Act
-            const actualDirectory = await service.promptForDownloadDirectory();
-
-            // Assert
-            expect(actualDirectory).to.equal(FileDownloadCancellationToken);
-        });
-    });
-
-    describe("downloadFile", () => {
+    describe("download", () => {
         let tempdir: string;
         let sourceFile: string;
 
@@ -307,10 +101,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     return fs.createReadStream(sourceFile, { start, end });
                 });
 
-            const service = new FileDownloadServiceElectron(
-                new NotificationServiceElectron(),
-                downloadHost as FileDownloadServiceBaseUrl
-            );
+            const service = new FileDownloadServiceElectron();
             const downloadRequestId = "beepbop";
             const expectedDownloadPath = path.join(tempdir, fileName);
 
@@ -321,12 +112,12 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             const fileInfo = {
                 id: "abc123",
                 name: fileName,
-                path: filePath,
+                path: path.join(downloadHost, filePath),
                 size: (await fs.promises.stat(sourceFile)).size,
             };
 
             // Act
-            const result = await service.downloadFile(fileInfo, tempdir, downloadRequestId);
+            const result = await service.download(fileInfo, downloadRequestId, noop, tempdir);
 
             // Assert
             expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
@@ -354,86 +145,28 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     return fs.createReadStream(sourceFile, { start, end });
                 });
 
-            const service = new FileDownloadServiceElectron(
-                new NotificationServiceElectron(),
-                downloadHost as FileDownloadServiceBaseUrl
-            );
+            const service = new FileDownloadServiceElectron();
             const downloadRequestId = "beepbop";
             const onProgressSpy = sinon.spy();
             const fileInfo = {
                 id: "abc123",
                 name: fileName,
-                path: filePath,
+                path: path.join(downloadHost, filePath),
                 size: (await fs.promises.stat(sourceFile)).size,
             };
 
             // Act
-            const result = await service.downloadFile(
+            const result = await service.download(
                 fileInfo,
-                tempdir,
                 downloadRequestId,
-                onProgressSpy
+                onProgressSpy,
+                tempdir
             );
 
             // Assert
             expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
             expect(onProgressSpy.called).to.equal(true);
             expect(onProgressSpy.callCount).to.equal(callCount);
-        });
-
-        it("cancels a download and cleans up after itself", async () => {
-            // Arrange
-            const downloadHost = "https://aics-test.corp.alleninstitute.org/labkey/fmsfiles/image";
-            const fileName = "image.czi";
-            const filePath = `/some/path/${fileName}`;
-
-            // intercept request for download and return canned response
-            nock(downloadHost)
-                .persist()
-                .get(filePath)
-                .reply(206, function () {
-                    const { range } = this.req.headers;
-                    const { start, end } = parseRangeHeader(range);
-                    return fs.createReadStream(sourceFile, { start, end });
-                });
-
-            const service = new FileDownloadServiceElectron(
-                new NotificationServiceElectron(),
-                downloadHost as FileDownloadServiceBaseUrl
-            );
-            const downloadRequestId = "beepbop";
-            const onProgress = () => {
-                service.cancelActiveRequest(downloadRequestId);
-            };
-            const expectedDownloadPath = path.join(tempdir, fileName);
-            const fileInfo = {
-                id: "abc123",
-                name: fileName,
-                path: filePath,
-                size: (await fs.promises.stat(sourceFile)).size,
-            };
-
-            // Act
-            const result = await service.downloadFile(
-                fileInfo,
-                tempdir,
-                downloadRequestId,
-                onProgress
-            );
-
-            // Assert
-            expect(result.resolution).to.equal(DownloadResolution.CANCELLED);
-
-            try {
-                await fs.promises.access(expectedDownloadPath);
-                throw new assert.AssertionError({
-                    message: `${expectedDownloadPath} not cleaned up`,
-                });
-            } catch (err) {
-                // Expect the file to be missing
-                const typedErr = err as NodeJS.ErrnoException;
-                expect(typedErr.code).to.equal("ENOENT", typedErr.message);
-            }
         });
 
         it("returns meaningful resolution and cleans up after itself if download fails", async () => {
@@ -452,22 +185,19 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     return fs.createReadStream(sourceFile, { start, end });
                 });
 
-            const service = new FileDownloadServiceElectron(
-                new NotificationServiceElectron(),
-                downloadHost as FileDownloadServiceBaseUrl
-            );
+            const service = new FileDownloadServiceElectron();
             const downloadRequestId = "beepbop";
             const expectedDownloadPath = path.join(tempdir, fileName);
             const fileInfo = {
                 id: "abc123",
                 name: fileName,
-                path: filePath,
+                path: path.join(downloadHost, filePath),
                 size: (await fs.promises.stat(sourceFile)).size,
             };
 
             try {
                 // Act
-                await service.downloadFile(fileInfo, tempdir, downloadRequestId);
+                await service.download(fileInfo, downloadRequestId, noop, tempdir);
 
                 // Shouldn't hit, but here to ensure test isn't evergreen
                 throw new assert.AssertionError({ message: `Expected exception to be thrown` });

@@ -9,5 +9,5 @@ export const SHARE_VIEW_TUTORIAL = new Tutorial("Sharing current view (URL)")
     .addStep({
         targetId: Tutorial.ADD_QUERY_BUTTON_ID,
         message:
-            'Start a new query from a URL by clicking the New Query + button then "Import from URL" then pasting or typing a URL into the textbox. Press Enter to load the query.',
+            'If in a web browser, paste the link into your URL bar in a new tab. Otherwise, start a new query from a URL by clicking the New Query + button then "Import from URL" then pasting or typing a URL into the textbox. Press Enter to load the query.',
     });

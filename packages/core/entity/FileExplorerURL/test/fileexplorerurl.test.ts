@@ -1,23 +1,15 @@
 import { expect } from "chai";
 
-import FileExplorerURL, { FileExplorerURLComponents } from "..";
-import { Dataset } from "../../../services/DatasetService";
+import FileExplorerURL, { FileExplorerURLComponents, Source } from "..";
 import { AnnotationName } from "../../Annotation";
 import FileFilter from "../../FileFilter";
 import FileFolder from "../../FileFolder";
 import FileSort, { SortOrder } from "../../FileSort";
 
 describe("FileExplorerURL", () => {
-    const mockCollection: Dataset = {
-        id: "12341",
+    const mockSource: Source = {
         name: "Fake Collection",
-        version: 1,
-        query: "test",
-        client: "test",
-        fixed: true,
-        private: true,
-        created: new Date(),
-        createdBy: "test",
+        type: "csv",
     };
 
     describe("encode", () => {
@@ -34,38 +26,21 @@ describe("FileExplorerURL", () => {
                 ["AICS-0", "ACTB-mEGFP", false],
                 ["AICS-0", "ACTB-mEGFP", true],
             ];
-            const expectedSort = {
-                annotationName: AnnotationName.FILE_SIZE,
-                order: SortOrder.DESC,
-            };
             const components: FileExplorerURLComponents = {
                 hierarchy: expectedAnnotationNames,
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC),
-                collection: {
-                    name: mockCollection.name,
-                    version: mockCollection.version,
-                },
+                source: mockSource,
             };
-            const expectedResult =
-                FileExplorerURL.PROTOCOL +
-                JSON.stringify({
-                    groupBy: expectedAnnotationNames,
-                    filters: expectedFilters,
-                    openFolders: expectedOpenFolders,
-                    sort: expectedSort,
-                    collection: {
-                        name: mockCollection.name,
-                        version: mockCollection.version,
-                    },
-                });
 
             // Act
             const result = FileExplorerURL.encode(components);
 
             // Assert
-            expect(result).to.be.equal(expectedResult);
+            expect(result).to.be.equal(
+                "group=Cell+Line&group=Donor+Plasmid&group=Lifting%3F&filter=%7B%22name%22%3A%22Cas9%22%2C%22value%22%3A%22spCas9%22%7D&filter=%7B%22name%22%3A%22Donor+Plasmid%22%2C%22value%22%3A%22ACTB-mEGFP%22%7D&openFolder=%5B%22AICS-0%22%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%2Cfalse%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%2Ctrue%5D&sort=%7B%22annotationName%22%3A%22file_size%22%2C%22order%22%3A%22DESC%22%7D&source=%7B%22name%22%3A%22Fake+Collection%22%2C%22type%22%3A%22csv%22%7D"
+            );
         });
 
         it("Encodes empty state", () => {
@@ -75,19 +50,12 @@ describe("FileExplorerURL", () => {
                 filters: [],
                 openFolders: [],
             };
-            const expectedResult =
-                FileExplorerURL.PROTOCOL +
-                JSON.stringify({
-                    groupBy: [],
-                    filters: [],
-                    openFolders: [],
-                });
 
             // Act
             const result = FileExplorerURL.encode(components);
 
             // Assert
-            expect(result).to.be.equal(expectedResult);
+            expect(result).to.be.equal("");
         });
     });
 
@@ -110,10 +78,7 @@ describe("FileExplorerURL", () => {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
-                collection: {
-                    name: mockCollection.name,
-                    version: mockCollection.version,
-                },
+                source: mockSource,
             };
             const encodedUrl = FileExplorerURL.encode(components);
             const encodedUrlWithWhitespace = " " + encodedUrl + " ";
@@ -132,7 +97,7 @@ describe("FileExplorerURL", () => {
                 filters: [],
                 openFolders: [],
                 sortColumn: undefined,
-                collection: undefined,
+                source: undefined,
             };
             const encodedUrl = FileExplorerURL.encode(components);
 
@@ -143,22 +108,7 @@ describe("FileExplorerURL", () => {
             expect(result).to.be.deep.equal(components);
         });
 
-        it("Throws error for urls without protocol at beginning", () => {
-            // Arrange
-            const components: FileExplorerURLComponents = {
-                hierarchy: [],
-                filters: [],
-                openFolders: [],
-            };
-            const encodedUrl = FileExplorerURL.encode(components).substring(
-                FileExplorerURL.PROTOCOL.length
-            );
-
-            // Act / Assert
-            expect(() => FileExplorerURL.decode(encodedUrl)).to.throw();
-        });
-
-        it("Throws error when folder depth is greater than hierarchy depth", () => {
+        it("Removes folders that are too deep for hierachy", () => {
             // Arrange
             const components: FileExplorerURLComponents = {
                 hierarchy: ["Cell Line"],
@@ -168,7 +118,8 @@ describe("FileExplorerURL", () => {
             const encodedUrl = FileExplorerURL.encode(components);
 
             // Act / Assert
-            expect(() => FileExplorerURL.decode(encodedUrl)).to.throw();
+            const { openFolders } = FileExplorerURL.decode(encodedUrl);
+            expect(openFolders).to.be.deep.equal([new FileFolder(["AICS-0"])]);
         });
 
         it("Throws error when sort order is not DESC or ASC", () => {

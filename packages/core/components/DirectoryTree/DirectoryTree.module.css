@@ -38,7 +38,7 @@
     transform: translateY(-50%);
     width: 100%;
 
-    color: var(--error-color); /* defined in App.module.css */
+    color: var(--error-text-color); /* defined in App.module.css */
     font-size: 2rem;
     text-align: center;
 }

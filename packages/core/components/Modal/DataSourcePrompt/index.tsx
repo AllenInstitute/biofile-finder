@@ -1,14 +1,14 @@
 import { DefaultButton, Icon, TextField } from "@fluentui/react";
 import { throttle } from "lodash";
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
+import { Source } from "../../../entity/FileExplorerURL";
 import { interaction, selection } from "../../../state";
 
 import styles from "./DataSourcePrompt.module.css";
-import FileExplorerURL from "../../../entity/FileExplorerURL";
 
 interface Props extends ModalProps {
     isEditing?: boolean;
@@ -32,28 +32,62 @@ const DATA_SOURCE_DETAILS = [
 export default function DataSourcePrompt({ onDismiss }: Props) {
     const dispatch = useDispatch();
 
+    const dataSourceToReplace = useSelector(interaction.selectors.getDataSourceForVisibleModal);
+
     const [dataSourceURL, setDataSourceURL] = React.useState("");
     const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
 
-    const onChooseFile = () => {
-        dispatch(interaction.actions.browseForNewDataSource());
-        onDismiss();
+    const addOrReplaceQuery = (source: Source) => {
+        if (dataSourceToReplace) {
+            dispatch(selection.actions.replaceDataSource(source));
+        } else {
+            dispatch(
+                selection.actions.addQuery({
+                    name: `New ${source.name} Query`,
+                    parts: { source },
+                })
+            );
+        }
+    };
+
+    const onChooseFile = (evt: React.FormEvent<HTMLInputElement>) => {
+        const selectedFile = (evt.target as HTMLInputElement).files?.[0];
+        if (selectedFile) {
+            // Grab name minus extension
+            const nameAndExtension = selectedFile.name.split(".");
+            const name = nameAndExtension.slice(0, -1).join("");
+            const extension = nameAndExtension.pop();
+            if (!(extension === "csv" || extension === "json" || extension === "parquet")) {
+                alert("Invalid file type. Please select a .csv, .json, or .parquet file.");
+                return;
+            }
+            addOrReplaceQuery({ name, type: extension, uri: selectedFile });
+            onDismiss();
+        }
     };
     const onEnterURL = throttle(
         (evt: React.FormEvent) => {
             evt.preventDefault();
-            dispatch(
-                selection.actions.addQuery({
-                    name: "New Query",
-                    url: FileExplorerURL.encode({
-                        collection: {
-                            name: dataSourceURL.substring(dataSourceURL.lastIndexOf("/") + 1),
-                            uri: dataSourceURL,
-                            version: 1,
-                        },
-                    }),
-                })
-            );
+            const uriResource = dataSourceURL
+                .substring(dataSourceURL.lastIndexOf("/") + 1)
+                .split("?")[0];
+            const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
+            let extensionGuess = uriResource.split(".").pop();
+            if (
+                !(
+                    extensionGuess === "csv" ||
+                    extensionGuess === "json" ||
+                    extensionGuess === "parquet"
+                )
+            ) {
+                console.warn("Guess that the source is a CSV file since no extension easily found");
+                extensionGuess = "csv";
+            }
+            addOrReplaceQuery({
+                name,
+                type: extensionGuess as "csv" | "json" | "parquet",
+                uri: dataSourceURL,
+            });
             onDismiss();
         },
         10000,
@@ -62,6 +96,21 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
 
     const body = (
         <>
+            {dataSourceToReplace && (
+                <div className={styles.warning}>
+                    <h4>Notice</h4>
+                    <p>
+                        There was an error loading the data source file &quot;
+                        {dataSourceToReplace.name}&quot;. Please re-select the data source file or a
+                        replacement.
+                    </p>
+                    <p>
+                        If this is a local file, the browser&apos;s permissions to access the file
+                        may have expired since last time. If so, consider putting the file in a
+                        cloud storage and providing the URL to avoid this issue in the future.
+                    </p>
+                </div>
+            )}
             <p className={styles.text}>
                 Please provide a &quot;.csv&quot;, &quot;.parquet&quot;, or &quot;.json&quot; file
                 containing metadata about some files. See more details for information about what a
@@ -96,14 +145,25 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
                 </div>
             )}
             <div className={styles.actionsContainer}>
-                <DefaultButton
-                    className={styles.browseButton}
-                    ariaLabel="Browse for a data source file on your machine"
-                    iconProps={{ iconName: "DocumentSearch" }}
-                    onClick={onChooseFile}
-                    text="Choose File"
-                    title="Browse for a data source file on your machine"
-                />
+                <form className={styles.fileInputForm}>
+                    <label
+                        className={styles.fileInputLabel}
+                        aria-label="Browse for a data source file on your machine"
+                        title="Browse for a data source file on your machine"
+                        htmlFor="data-source-selector"
+                    >
+                        <Icon iconName="DocumentSearch" />
+                        <p>Choose File</p>
+                    </label>
+                    <input
+                        className={styles.fileInput}
+                        accept=".csv,.json,.parquet"
+                        type="file"
+                        id="data-source-selector"
+                        name="data-source-selector"
+                        onChange={onChooseFile}
+                    />
+                </form>
                 <div className={styles.orDivider}>
                     <hr />
                     or
@@ -121,5 +181,5 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
         </>
     );
 
-    return <BaseModal body={body} title="Choose a new data source" onDismiss={onDismiss} />;
+    return <BaseModal body={body} title="Choose a data source" onDismiss={onDismiss} />;
 }

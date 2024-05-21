@@ -1,6 +1,7 @@
 import "normalize.css";
 import { initializeIcons, loadTheme } from "@fluentui/react";
 import classNames from "classnames";
+import { uniqueId } from "lodash";
 import * as React from "react";
 import { batch, useDispatch, useSelector } from "react-redux";
 
@@ -14,7 +15,6 @@ import TutorialTooltip from "./components/TutorialTooltip";
 import QuerySidebar from "./components/QuerySidebar";
 import { FileExplorerServiceBaseUrl } from "./constants";
 import { interaction, metadata, selection } from "./state";
-import { PlatformDependentServices } from "./state/interaction/actions";
 
 import "./styles/global.css";
 import styles from "./App.module.css";
@@ -36,25 +36,38 @@ interface AppProps {
     // Stage: "http://stg-aics-api.corp.alleninstitute.org"
     // From the web (behind load balancer): "/"
     fileExplorerServiceBaseUrl?: string;
-    platformDependentServices?: Partial<PlatformDependentServices>;
 }
 
-const DEFAULT_PLATFORM_DEPENDENT_SERVICES = Object.freeze({});
-
 export default function App(props: AppProps) {
-    const {
-        fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION,
-        platformDependentServices = DEFAULT_PLATFORM_DEPENDENT_SERVICES,
-    } = props;
+    const { fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION } = props;
 
     const dispatch = useDispatch();
     const isDarkTheme = useSelector(selection.selectors.getIsDarkTheme);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
+    const platformDependentServices = useSelector(
+        interaction.selectors.getPlatformDependentServices
+    );
 
-    // Set platform-dependent services in state
+    // Check for updates to the application on startup
     React.useEffect(() => {
-        dispatch(interaction.actions.setPlatformDependentServices(platformDependentServices));
-    }, [dispatch, platformDependentServices]);
+        const checkForUpdates = async () => {
+            try {
+                const isUpdateAvailable = await platformDependentServices.applicationInfoService.updateAvailable();
+                if (isUpdateAvailable) {
+                    const homepage = "https://alleninstitute.github.io/aics-fms-file-explorer-app/";
+                    const msg = `A new version of the application is available!<br/>
+                    Visit the <a href="${homepage}" target="_blank" title="FMS File Explorer homepage">FMS File Explorer homepage</a> to download.`;
+                    dispatch(interaction.actions.promptUserToUpdateApp(uniqueId(), msg));
+                }
+            } catch (e) {
+                console.error(
+                    "Failed while checking if a newer application version is available",
+                    e
+                );
+            }
+        };
+        checkForUpdates();
+    }, [platformDependentServices, dispatch]);
 
     // Set data source base urls
     // And kick off the process of requesting metadata needed by the application.
@@ -62,7 +75,7 @@ export default function App(props: AppProps) {
         batch(() => {
             dispatch(interaction.actions.setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl));
             dispatch(metadata.actions.requestAnnotations());
-            dispatch(metadata.actions.requestCollections());
+            dispatch(metadata.actions.requestDataSources());
             dispatch(selection.actions.setAnnotationHierarchy([]));
         });
     }, [dispatch, fileExplorerServiceBaseUrl]);
