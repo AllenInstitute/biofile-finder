@@ -1,4 +1,4 @@
-import { DirectionalHint, IconButton } from "@fluentui/react";
+import { DirectionalHint, Icon, IconButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
@@ -7,6 +7,8 @@ import { DnDItem, DnDItemRendererParams } from "../DnDList/DnDList";
 import styles from "./QueryPartRow.module.css";
 
 export interface QueryPartRowItem extends DnDItem {
+    titleIconName?: string;
+    onClick?: (itemId: string) => void;
     onDelete?: (itemId: string) => void;
     onRenderEditMenuList?: (item: QueryPartRowItem) => React.ReactElement<QueryPartRowItem>;
 }
@@ -19,23 +21,23 @@ interface Props extends DnDItemRendererParams {
  * Row within a query part that can be reordered and deleted
  */
 export default function QueryGroupRow(props: Props) {
+    const isInteractive = !!props.item.onClick || !props.item.disabled;
     return (
         <div
-            className={classNames(styles.row, { [styles.grabbable]: !props.item.disabled })}
+            className={classNames(styles.row, {
+                [styles.grabbable]: !props.item.disabled,
+                [styles.interactive]: isInteractive,
+            })}
             style={{ marginLeft: props.item.disabled ? 0 : props.index * 10 }}
+            onClick={() => props.item.onClick?.(props.item.id)}
         >
             <div
                 className={classNames(styles.rowTitle, {
                     [styles.shortenedRowTitle]: !!props.item.onRenderEditMenuList,
                 })}
             >
-                {!props.item.disabled && (
-                    <IconButton
-                        ariaDescription="Move up or down in order"
-                        ariaLabel="Move"
-                        className={classNames(styles.iconButton, styles.grabbable)}
-                        iconProps={{ iconName: "NumberedListText" }}
-                    />
+                {props.item.titleIconName && (
+                    <Icon className={styles.icon} iconName={props.item.titleIconName} />
                 )}
                 <p title={props.item.title}>{props.item.title}</p>
             </div>

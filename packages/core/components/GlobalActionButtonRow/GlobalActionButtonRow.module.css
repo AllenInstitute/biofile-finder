@@ -21,12 +21,16 @@
     color: var(--highlight-text-color);
 }
 
-.disabled {
+.disabled, .disabled i {
     cursor: default;
     background-color: var(--highlight-background-color);
     color: var(--highlight-text-color);
 }
 
-.smallFont {
-    font-size: x-small;
+.small-font {
+    font-size: small;
+}
+
+.large-font {
+    font-size: large;
 }

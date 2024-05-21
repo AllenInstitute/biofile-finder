@@ -1,6 +1,6 @@
 .header{
   background-color: var(--primary-dark);
-  border-bottom: 1px solid var(--borders-light-grey);
+  border-bottom: 1px solid var(--medium-grey);
   color: var(--secondary-text-color);
   display: flex;
   overflow: hidden;

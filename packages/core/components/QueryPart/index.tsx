@@ -15,10 +15,11 @@ import styles from "./QueryPart.module.css";
 
 interface Props {
     title: string;
+    titleIconName?: string;
     disabled?: boolean;
     tutorialId?: string;
-    addButtonIconName: string;
     rows: QueryPartRowItem[];
+    onClick?: (itemId: string) => void;
     onDelete?: (itemId: string) => void;
     onReorder?: (itemId: string, destinationIndex: number) => void;
     onRenderAddMenuList?: IRenderFunction<IContextualMenuListProps>;
@@ -50,7 +51,6 @@ export default function QueryPart(props: Props) {
                     disabled={props.disabled}
                     className={styles.addButton}
                     id={props.tutorialId}
-                    iconProps={{ iconName: props.addButtonIconName }}
                     menuIconProps={{ iconName: "ChevronRight" }}
                     text={props.title}
                     menuProps={{
@@ -62,16 +62,20 @@ export default function QueryPart(props: Props) {
                 />
             </div>
             <DragDropContext onDragEnd={onDragEnd}>
-                <DnDList
-                    id={props.title}
-                    items={props.rows.map((row) => ({
-                        ...row,
-                        onDelete: props.onDelete,
-                        disabled: !props.onReorder,
-                        onRenderEditMenuList: props.onRenderEditMenuList,
-                    }))}
-                    itemRenderer={QueryPartRow}
-                />
+                {!!props.rows.length && (
+                    <DnDList
+                        id={props.title}
+                        items={props.rows.map((row) => ({
+                            ...row,
+                            titleIconName: props.titleIconName,
+                            onClick: props.onClick,
+                            onDelete: props.onDelete,
+                            disabled: !props.onReorder,
+                            onRenderEditMenuList: props.onRenderEditMenuList,
+                        }))}
+                        itemRenderer={QueryPartRow}
+                    />
+                )}
             </DragDropContext>
         </div>
     );

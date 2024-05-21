@@ -1,6 +1,7 @@
 .icon-button {
-    color: var(--primary-sidebar-text-color);
-    background-color: var(--primary-sidebar-color);
+    background-color: unset;
+    color: unset;
+    max-height: 28px;
 }
 
 .icon-button:hover {
@@ -12,18 +13,33 @@
     font-size: smaller;
 }
 
+.icon {
+    align-items: center;
+    display: flex;
+    font-size: smaller;
+    padding-left: 4px;
+}
+
 .hidden-inner-icon i:last-of-type {
     display: none;
 }
 
 .row {
-    border: 1px solid var(--secondary-sidebar-color);
     display: flex;
     justify-content: space-between;
-    height: 38px;
-    padding: 2px;
-    margin: 2px 0;
+    height: 34px;
     width: 100%;
+}
+
+.interactive {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 2px;
+    margin: calc(var(--margin) / 4) 0;
+}
+
+.interactive:hover {
+    cursor: pointer;
 }
 
 .grabbable:hover {
@@ -38,7 +54,7 @@
 .row-title > p {
     font-size: smaller;
     margin: 0;
-    padding: 9px 0 0 5px;
+    padding: 0;
     overflow-x: hidden;
     text-overflow: ellipsis;
     width: 100%;

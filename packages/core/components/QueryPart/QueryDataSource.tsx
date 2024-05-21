@@ -40,8 +40,7 @@ export default function QueryDataSource(props: Props) {
 
     return (
         <QueryPart
-            title="Data Source"
-            addButtonIconName="Folder"
+            title="Data source"
             onDelete={
                 selectedDataSources.length > 1
                     ? (dataSource) => dispatch(selection.actions.removeDataSource(dataSource))

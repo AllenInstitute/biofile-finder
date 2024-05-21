@@ -66,8 +66,8 @@
 hr {
     border: none;
     height: 1px !important;
-    color: var(--borders-light-grey); /* old IE */
-    background-color: var(--borders-light-grey); /* Modern Browsers */
+    color: var(--medium-grey); /* old IE */
+    background-color: var(--medium-grey); /* Modern Browsers */
 }
 
 .button {

@@ -25,21 +25,12 @@
 }
 
 .button-menu button span:last-of-type:not(:first-of-type) {
-    color: var(--medium-grey);
+    color: var(--secondary-text-color);
 }
 
 .button-menu :is(a, button):hover, .button-menu :is(a, button):hover i {
     background-color: var(--highlight-background-color);
     color: var(--highlight-text-color) !important;
-}
-
-.logo path:first-child {
-    fill: var(--dark-blue);
-
-}
-
-.logo path:last-child {
-    fill: var(--dark-purple);
 }
 
 .logo-hidden {
@@ -104,7 +95,7 @@
 
 .minimize-bar {
     align-items: center;
-    background-color: var(--secondary-sidebar-color);
+    background: none;
     bottom: -5px;
     color: var(--highlight-background-color);
     cursor: pointer;

@@ -27,3 +27,7 @@
     background-color: var(--highlight-background-color);
     color: var(--highlight-text-color) !important;
 }
+
+.hidden-inner-icon i:last-of-type {
+    display: none;
+}

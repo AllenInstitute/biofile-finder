@@ -28,6 +28,19 @@ export default function GlobalActionButtonRow(props: Props) {
             <div className={styles.buttonGroup}>
                 <IconButton
                     className={classNames(styles.iconButton, {
+                        [styles.disabled]: !shouldDisplayThumbnailView,
+                    })}
+                    disabled={!shouldDisplayThumbnailView}
+                    onClick={() =>
+                        dispatch(
+                            selection.actions.setFileThumbnailView(!shouldDisplayThumbnailView)
+                        )
+                    }
+                    title="List view"
+                    iconProps={{ iconName: "BulletedList" }}
+                />
+                <IconButton
+                    className={classNames(styles.iconButton, {
                         [styles.disabled]:
                             shouldDisplayThumbnailView &&
                             fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE,
@@ -45,7 +58,7 @@ export default function GlobalActionButtonRow(props: Props) {
                         );
                     }}
                     title="Large thumbnail view"
-                    iconProps={{ iconName: "GridViewMedium" }}
+                    iconProps={{ iconName: "Photo2", className: styles.largeFont }}
                 />
                 <IconButton
                     className={classNames(styles.iconButton, {
@@ -66,43 +79,29 @@ export default function GlobalActionButtonRow(props: Props) {
                         );
                     }}
                     title="Small thumbnail view"
-                    iconProps={{ iconName: "GridViewSmall" }}
-                />
-                <IconButton
-                    className={classNames(styles.iconButton, {
-                        [styles.disabled]: !shouldDisplayThumbnailView,
-                    })}
-                    disabled={!shouldDisplayThumbnailView}
-                    onClick={() =>
-                        dispatch(
-                            selection.actions.setFileThumbnailView(!shouldDisplayThumbnailView)
-                        )
-                    }
-                    title="List view"
-                    iconProps={{ iconName: "BulletedList" }}
+                    iconProps={{ iconName: "Photo2", className: styles.smallFont }}
                 />
             </div>
             <div className={styles.buttonGroup}>
                 <ActionButton
-                    className={classNames(styles.iconButton, {
-                        [styles.disabled]: shouldDisplaySmallFont,
-                        [styles.smallFont]: true,
-                    })}
-                    disabled={shouldDisplaySmallFont}
-                    onClick={() =>
-                        dispatch(selection.actions.adjustGlobalFontSize(!shouldDisplaySmallFont))
-                    }
-                    text="A"
-                />
-                <ActionButton
-                    className={classNames(styles.iconButton, {
+                    className={classNames(styles.iconButton, styles.largeFont, {
                         [styles.disabled]: !shouldDisplaySmallFont,
                     })}
                     disabled={!shouldDisplaySmallFont}
                     onClick={() =>
                         dispatch(selection.actions.adjustGlobalFontSize(!shouldDisplaySmallFont))
                     }
-                    text="A"
+                    text="a"
+                />
+                <ActionButton
+                    className={classNames(styles.iconButton, styles.smallFont, {
+                        [styles.disabled]: shouldDisplaySmallFont,
+                    })}
+                    disabled={shouldDisplaySmallFont}
+                    onClick={() =>
+                        dispatch(selection.actions.adjustGlobalFontSize(!shouldDisplaySmallFont))
+                    }
+                    text="a"
                 />
             </div>
         </div>
