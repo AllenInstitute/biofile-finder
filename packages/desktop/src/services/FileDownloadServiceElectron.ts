@@ -188,12 +188,6 @@ export default class FileDownloadServiceElectron
             url,
             writeStreamOptions,
         } = options;
-        // let outFilePath = options.outFilePath;
-        // if (outFilePath === undefined) {
-        //     const defaultDirectory = await this.getDefaultDownloadDirectory();
-        //     outFilePath = path.join(defaultDirectory, path.basename(url));
-        // }
-
         return new Promise((resolve, reject) => {
             // HTTP requests are made when pointed at localhost, HTTPS otherwise. If that ever changes,
             // this logic can be safely removed.
