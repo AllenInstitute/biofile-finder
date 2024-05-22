@@ -115,6 +115,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                         shouldFocusOnMount: true,
                         items: addQueryOptions,
                     }}
+                    title="Add new query"
                     text="ADD"
                 />
             </div>

@@ -13,18 +13,6 @@
     width: var(--file-details-width); /* defined in App.module.css under .root{} */
 }
 
-.root::after {
-    background-image: linear-gradient(transparent, var(--primary-background-color));
-    bottom: 0;
-    content: " ";
-    height: 50px;
-    right: 0;
-    max-width: 100%;
-    position: absolute;
-    width: 100%;
-    z-index: 11;
-}
-
 .expandable-transition {
     transition: width var(--transition-duration); /* defined in App.module.css under .root{} */
 }
@@ -59,6 +47,23 @@
     position: relative;
     width: 100%;
     height: calc(100% - var(--pagination-height));
+}
+
+.pagination-and-content {
+    transform: translateX(calc(-1 * var(--resize-handle-width)));
+    width: 100%
+}
+
+.content-container::after {
+    background-image: linear-gradient(transparent, var(--primary-background-color));
+    bottom: 0;
+    content: " ";
+    height: 50px;
+    right: 0;
+    max-width: 100%;
+    position: absolute;
+    width: 100%;
+    z-index: 11;
 }
 
 .overflow-container {
@@ -110,20 +115,32 @@
 }
 
 .file-details-content {
+    display: flex;
     overflow-y: hidden;
-    width: 96%;
+    width: 100%;
 }
 
 .resize-handle {
-    width: var(--resize-handle-width);
-    height: 100%;
+    align-items: center;
     cursor: col-resize;
-    position: absolute;
+    display: flex;
+    height: 100%;
     left: 0px;
+    padding-left: 1px;
+    position: relative;
+    width: var(--resize-handle-width);
+    z-index: 11;
+}
+
+.resize-handle i {
+    color: var(--highlight-background-color);
+    font-weight: bold;
+    transform: translateX(-4px);
 }
 
 .resize-handle:hover {
-    background-color: var(--highlight-background-color);
+    border-left: 1px solid var(--highlight-background-color);
+    padding-left: 0;
 }
 
 .icon-button {

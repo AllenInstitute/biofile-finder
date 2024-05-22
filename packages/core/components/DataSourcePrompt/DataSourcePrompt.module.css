@@ -27,9 +27,9 @@
     padding: 0.75em 1.25em;
 }
 
-.file-input-label:hover {
-    background-color: var(--highlight-background-color);
-    color: var(--highlight-text-color);
+.file-input-label:hover, .file-input-label:focus {
+    background-color: var(--highlight-hover-background-color);
+    color: var(--highlight-hover-text-color);
 }
 
 .file-input-label > p {
@@ -53,9 +53,9 @@
     font-size: small;
 }
 
-.subtitle-button:hover {
+.subtitle-button:hover, .subtitle-button:focus {
     background-color: unset;
-    color: var(--highlight-text-color);
+    color: var(--highlight-hover-background-color);
 }
 
 .subtitle-button-container {
@@ -133,7 +133,7 @@
     opacity: 0.8;
 }
 
-.submit-icon:hover:not(.disabled) {
+.submit-icon:hover:not(.disabled), .submit-icon:focus:not(.disabled) {
     background-color: var(--highlight-background-color);
     color: var(--highlight-text-color);
 }

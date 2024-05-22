@@ -88,7 +88,7 @@
     left: 0;
     max-width: var(--query-sidebar-max-width);
     position: absolute;
-    width: calc(0.3 * 80% - var(--margin));
+    width: 100%;
     z-index: 2;
 }
 

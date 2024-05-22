@@ -94,13 +94,3 @@
     /* flex child */
     flex: 0 0 var(--file-details-width);
 }
-
-.file-details::after {
-    background-image: linear-gradient(transparent, var(--secondary-background-color));
-    right: 0;
-    content: " ";
-    height: 100%;
-    position: absolute;
-    width: 10px;
-    z-index: 2;
-}

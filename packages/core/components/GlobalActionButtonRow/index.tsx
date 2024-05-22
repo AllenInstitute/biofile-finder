@@ -91,6 +91,7 @@ export default function GlobalActionButtonRow(props: Props) {
                     onClick={() =>
                         dispatch(selection.actions.adjustGlobalFontSize(!shouldDisplaySmallFont))
                     }
+                    title="Large font size"
                     text="a"
                 />
                 <ActionButton
@@ -101,6 +102,7 @@ export default function GlobalActionButtonRow(props: Props) {
                     onClick={() =>
                         dispatch(selection.actions.adjustGlobalFontSize(!shouldDisplaySmallFont))
                     }
+                    title="Small font size"
                     text="a"
                 />
             </div>

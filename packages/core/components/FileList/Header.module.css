@@ -1,7 +1,3 @@
-.bold {
-  font-weight: bold;
-}
-
 .header-wrapper {
   --inner-header-size: 30px;
   --inner-header-padding: 6px;
@@ -23,6 +19,11 @@
     0 2px 2.5px 0 rgba(0, 0, 0, 0.14), 0 0.5px 5px 0 rgba(0, 0, 0, 0.12);
   color: var(--primary-text-color); /* defined in App.module.css */
   padding: var(--inner-header-padding) 0;
+}
+
+.header:hover {
+  background-color: var(--secondary-background-color);
+  color: var(--secondary-text-color); /* defined in App.module.css */
 }
 
 .header-title {

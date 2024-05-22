@@ -1,3 +1,4 @@
+import { Icon } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
@@ -73,45 +74,49 @@ export default function FileDetails(props: Props) {
             className={classNames(styles.root, styles.expandableTransition, props.className)}
             id={FILE_DETAILS_PANE_ID}
         >
-            <div
-                className={styles.resizeHandle}
-                onMouseDown={(e) => resizeHandleOnMouseDown(e)}
-                // TODO:???
-                onDoubleClick={resizeHandleDoubleClick}
-            />
             <div className={styles.fileDetailsContent}>
-                <Pagination className={styles.pagination} />
-                <div className={styles.contentContainer}>
-                    <div className={styles.overflowContainer}>
-                        {fileDetails && (
-                            <>
-                                <div className={styles.thumbnailContainer}>
-                                    <FileThumbnail
-                                        className={styles.thumbnail}
-                                        width="100%"
-                                        // height={thumbnailHeight}
-                                        uri={fileDetails?.getPathToThumbnail()}
-                                    />
-                                </div>
-                                <div className={styles.fileActions}>
-                                    <Download
-                                        className={styles.iconButton}
+                <div
+                    className={styles.resizeHandle}
+                    onMouseDown={(e) => resizeHandleOnMouseDown(e)}
+                    // TODO:???
+                    onDoubleClick={resizeHandleDoubleClick}
+                >
+                    <Icon iconName="MoreVertical" />
+                </div>
+                <div className={styles.paginationAndContent}>
+                    <Pagination className={styles.pagination} />
+                    <div className={styles.contentContainer}>
+                        <div className={styles.overflowContainer}>
+                            {fileDetails && (
+                                <>
+                                    <div className={styles.thumbnailContainer}>
+                                        <FileThumbnail
+                                            className={styles.thumbnail}
+                                            width="100%"
+                                            // height={thumbnailHeight}
+                                            uri={fileDetails?.getPathToThumbnail()}
+                                        />
+                                    </div>
+                                    <div className={styles.fileActions}>
+                                        <Download
+                                            className={styles.iconButton}
+                                            fileDetails={fileDetails}
+                                        />
+                                        <OpenFileButton
+                                            className={styles.iconButton}
+                                            fileDetails={fileDetails}
+                                        />
+                                    </div>
+                                    <p className={styles.fileName}>{fileDetails?.name}</p>
+                                    <h4 className={styles.title}>Information</h4>
+                                    <FileAnnotationList
+                                        className={styles.annotationList}
                                         fileDetails={fileDetails}
+                                        isLoading={isLoading}
                                     />
-                                    <OpenFileButton
-                                        className={styles.iconButton}
-                                        fileDetails={fileDetails}
-                                    />
-                                </div>
-                                <p className={styles.fileName}>{fileDetails?.name}</p>
-                                <h4 className={styles.title}>Information</h4>
-                                <FileAnnotationList
-                                    className={styles.annotationList}
-                                    fileDetails={fileDetails}
-                                    isLoading={isLoading}
-                                />
-                            </>
-                        )}
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
