@@ -192,7 +192,8 @@ export default class FileExplorerURL {
     }
 
     private static convertDataSourceToPython(source: Source | undefined, userOS: string) {
-        const rawFlagForWindows = userOS === "Windows_NT" ? "r" : "";
+        const isUsingWindowsOS = userOS === "Windows_NT" || userOS.includes("Windows NT");
+        const rawFlagForWindows = isUsingWindowsOS ? "r" : "";
 
         if (typeof source?.uri === "string") {
             const comment = "#Convert current datasource file to a pandas dataframe";
