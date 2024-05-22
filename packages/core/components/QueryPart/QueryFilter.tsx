@@ -7,7 +7,7 @@ import AnnotationPicker from "../AnnotationPicker";
 import AnnotationFilterForm from "../AnnotationFilterForm";
 import Tutorial from "../../entity/Tutorial";
 import FileFilter from "../../entity/FileFilter";
-import { selection, metadata } from "../../state";
+import { metadata, selection } from "../../state";
 import Annotation from "../../entity/Annotation";
 
 interface Props {

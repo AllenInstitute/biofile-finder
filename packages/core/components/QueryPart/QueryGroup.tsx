@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import QueryPart from ".";
 import AnnotationPicker from "../AnnotationPicker";
 import Tutorial from "../../entity/Tutorial";
-import { selection, metadata } from "../../state";
+import { metadata, selection } from "../../state";
 import Annotation from "../../entity/Annotation";
 
 interface Props {

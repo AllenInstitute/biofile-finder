@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import QueryPart from ".";
 import AnnotationPicker from "../AnnotationPicker";
-import { selection, metadata } from "../../state";
+import { metadata, selection } from "../../state";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
 
