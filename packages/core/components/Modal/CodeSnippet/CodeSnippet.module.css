@@ -17,7 +17,7 @@
     float: right;
 }
 
-.copy-button:hover {
+.copy-button:hover, .copy-button:focus {
     background-color: var(--highlight-background-color);
     color: var(--highlight-text-color);
 }

@@ -1,4 +1,6 @@
 .container {
+    border-radius: var(--small-border-radius);
+    box-shadow: var(--box-shadow);
     padding: 2em 1em 2em 2em; /* account for padding applied to .scrollable-container */
     min-width: 300px; /* per guidance from fluentui docs: https://developer.microsoft.com/en-us/fluentui#/controls/web/modal */
     min-height: 175px; /* per guidance from fluentui docs: https://developer.microsoft.com/en-us/fluentui#/controls/web/modal */
@@ -6,8 +8,8 @@
     overflow: hidden;
 
     /* flex parent */
-    background-color: var(--secondary-background-color);
-    color: var(--secondary-text-color);
+    background-color: var(--primary-background-color);
+    color: var(--primary-text-color);
     display: flex;
     flex-direction: column;
 }

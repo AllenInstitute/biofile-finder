@@ -45,6 +45,7 @@
 }
 
 .selection-count-badge {
+    border-radius: var(--small-border-radius);
     display: inline-block;
     height: var(--height);
     background-color: var(--highlight-background-color); /* defined in App.module.css */

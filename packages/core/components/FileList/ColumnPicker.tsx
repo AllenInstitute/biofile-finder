@@ -13,6 +13,7 @@ export default function ColumnPicker() {
 
     return (
         <AnnotationPicker
+            title="Select metadata to display as columns"
             enableAllAnnotations
             selections={columnAnnotations}
             setSelections={(annotations) => {

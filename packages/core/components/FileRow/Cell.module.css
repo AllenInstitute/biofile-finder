@@ -37,3 +37,7 @@
     font-weight: bold;
     color: var(--highlight-background-color);
 }
+
+.resize-target:hover {
+    color: var(--highlight-hover-background-color);
+}

@@ -1,4 +1,4 @@
-import Tutorial from "../../../entity/Tutorial";
+import Tutorial from "../../entity/Tutorial";
 
 export const SORT_FILES_TUTORIAL = new Tutorial("Sorting")
     .addStep({

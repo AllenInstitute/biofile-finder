@@ -38,6 +38,8 @@
 }
 
 .interactive:hover {
+    background-color: var(--border-color);
+    color: var(--secondary-text-color);
     cursor: pointer;
 }
 

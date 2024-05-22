@@ -55,9 +55,9 @@ export default function ListRow(props: Props) {
             disabled={item.disabled}
             onClick={() => (item.selected ? props.onDeselect(item) : props.onSelect(item))}
         >
-            <label className={styles.item} title={item.description}>
+            <label className={styles.item} title={`${item.displayValue}: ${item.description}`}>
                 <div>{item.selected && <Icon iconName="CheckMark" />}</div>
-                {item.displayValue}
+                <p>{item.displayValue}</p>
             </label>
             {item.loading && <Spinner className={styles.spinner} size={SpinnerSize.small} />}
         </DefaultButton>

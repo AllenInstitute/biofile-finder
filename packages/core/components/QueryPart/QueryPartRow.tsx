@@ -30,7 +30,6 @@ export default function QueryGroupRow(props: Props) {
                 [styles.interactive]: isInteractive,
             })}
             style={{ marginLeft, maxWidth: `calc(100% - ${marginLeft}px)` }}
-            onClick={() => props.item.onClick?.(props.item.id)}
         >
             <div
                 className={classNames(styles.rowTitle, {
@@ -38,6 +37,7 @@ export default function QueryGroupRow(props: Props) {
                     [styles.dynamicRowTitle]: !isInteractive,
                 })}
                 title={props.item.title}
+                onClick={() => props.item.onClick?.(props.item.id)}
             >
                 {props.item.titleIconName && (
                     <Icon className={styles.icon} iconName={props.item.titleIconName} />

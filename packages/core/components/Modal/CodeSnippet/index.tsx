@@ -51,6 +51,7 @@ export default function CodeSnippet({ onDismiss }: ModalProps) {
                         className={styles.copyButton}
                         iconProps={COPY_ICON}
                         onClick={onCopySetup}
+                        title="Copy to clipboard"
                     />
                 </TooltipHost>
             </div>
@@ -70,6 +71,7 @@ export default function CodeSnippet({ onDismiss }: ModalProps) {
                         className={styles.copyButton}
                         iconProps={COPY_ICON}
                         onClick={onCopyCode}
+                        title="Copy to clipboard"
                     />
                 </TooltipHost>
             </div>
@@ -85,5 +87,5 @@ export default function CodeSnippet({ onDismiss }: ModalProps) {
         </>
     );
 
-    return <BaseModal body={body} onDismiss={onDismiss} title="Code Snippet" />;
+    return <BaseModal body={body} onDismiss={onDismiss} title="Code snippet" />;
 }

@@ -1,4 +1,4 @@
-import { IContextualMenuItem } from "@fluentui/react";
+import { ContextualMenuItemType, IContextualMenuItem } from "@fluentui/react";
 import { Dispatch } from "redux";
 
 import { interaction } from "../../state";
@@ -18,6 +18,7 @@ export enum ContextMenuActions {
     PARQUET = "parquet",
     PASTE = "paste",
     SAVE_AS = "save-as",
+    SAVE_AS_TITLE = "save-as-title",
 }
 
 interface ContextMenuItems {
@@ -45,7 +46,7 @@ export default function getContextMenuItems(
         ACCESS: [
             {
                 key: ContextMenuActions.OPEN_WITH,
-                text: "Open With",
+                text: "Open with",
                 iconProps: {
                     iconName: "OpenInNewWindow",
                 },
@@ -54,16 +55,25 @@ export default function getContextMenuItems(
             },
             {
                 key: ContextMenuActions.SAVE_AS,
-                text: "Save Metadata As",
+                text: "Save metadata as",
                 iconProps: {
                     iconName: "Saveas",
                 },
                 subMenuProps: {
                     items: [
                         {
+                            key: ContextMenuActions.SAVE_AS_TITLE,
+                            text: "DATA SOURCE TYPES",
+                            title: "Types of data sources available for export",
+                            itemType: ContextualMenuItemType.Header,
+                        },
+                        {
+                            key: "data-source-types-divider",
+                            itemType: ContextualMenuItemType.Divider,
+                        },
+                        {
                             key: ContextMenuActions.CSV,
                             text: "CSV",
-                            secondaryText: "Data Source",
                             iconProps: {
                                 iconName: "Folder",
                             },
@@ -78,7 +88,6 @@ export default function getContextMenuItems(
                                   {
                                       key: ContextMenuActions.JSON,
                                       text: "JSON",
-                                      secondaryText: "Data Source",
                                       iconProps: {
                                           iconName: "Folder",
                                       },
@@ -93,7 +102,6 @@ export default function getContextMenuItems(
                                   {
                                       key: ContextMenuActions.PARQUET,
                                       text: "Parquet",
-                                      secondaryText: "Data Source",
                                       iconProps: {
                                           iconName: "Folder",
                                       },

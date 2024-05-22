@@ -9,9 +9,14 @@
     margin-left: 2px;
 }
 
-.button:hover:not(.disabled) {
+.button:hover:not(.disabled), .button:focus:not(.disabled) {
     color: var(--highlight-text-color);
     background-color: var(--highlight-background-color);
+}
+
+.button-menu-container {
+    border-radius: var(--small-border-radius);
+    box-shadow: var(--box-shadow);
 }
 
 .button-menu, .button-menu button {

@@ -22,7 +22,7 @@
 }
 
 .header:hover {
-  background-color: var(--secondary-background-color);
+  background-color: var(--border-color);
   color: var(--secondary-text-color); /* defined in App.module.css */
 }
 

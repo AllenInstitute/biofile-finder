@@ -52,6 +52,7 @@ body {
     --aqua-secondary-hover: rgba(13, 187, 206, 0.18);
     --small-border-radius: 4px;
     --large-border-radius: 16px;
+    --box-shadow: 3px 4px 6px 0.5px black;
 
     --query-sidebar-max-width: 350px;
     --file-details-width: 20%;

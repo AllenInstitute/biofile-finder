@@ -1,4 +1,4 @@
-import Tutorial from "../../../entity/Tutorial";
+import Tutorial from "../../entity/Tutorial";
 
 export const MODIFY_COLUMNS_TUTORIAL = new Tutorial("Modifying file list columns").addStep({
     targetId: Tutorial.COLUMN_HEADERS_ID,

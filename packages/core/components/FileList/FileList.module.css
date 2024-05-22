@@ -13,6 +13,8 @@
 .row-count-display {
     color: var(--secondary-text-color);
     opacity: 0.8;
+    position: relative;
+    z-index: 99;
 
     /* layout */
     float: right;

@@ -1,45 +1,19 @@
-import { DirectionalHint, IContextualMenuItem, PrimaryButton } from "@fluentui/react";
+import { DirectionalHint, PrimaryButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
+import { useDispatch } from "react-redux";
 
 import styles from "./Help.module.css";
+import useHelpOptions from "../../../../core/hooks/useHelpOptions";
 
 interface Props {
     path: string;
 }
 
 export default function HelpMenu(props: Props) {
-    const isAppRoute: boolean = props.path == "/app";
-
-    const helpMenuOptions: IContextualMenuItem[] = [
-        {
-            key: "tutorials",
-            text: "In-app tutorials",
-            style: !isAppRoute ? { display: "none" } : {},
-        },
-        {
-            key: "reportissue",
-            text: `Report issue in GitHub`,
-            href: "https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues",
-            target: "_blank",
-            style: !isAppRoute ? { display: "none" } : {},
-        },
-        {
-            key: "github",
-            text: `Visit GitHub page`,
-            href: "https://github.com/AllenInstitute/aics-fms-file-explorer-app",
-            target: "_blank",
-        },
-        {
-            key: "forum",
-            text: "Allen Cell Discussion Forum",
-        },
-        {
-            key: "version",
-            text: "Version info",
-            style: !isAppRoute ? { display: "none" } : {},
-        },
-    ];
+    const dispatch = useDispatch();
+    const isAppRoute: boolean = props.path === "/app";
+    const helpOptions = useHelpOptions(dispatch, true, isAppRoute);
 
     return (
         <PrimaryButton
@@ -53,7 +27,7 @@ export default function HelpMenu(props: Props) {
                 className: styles.helpMenu,
                 directionalHint: DirectionalHint.bottomAutoEdge,
                 shouldFocusOnMount: true,
-                items: helpMenuOptions,
+                items: helpOptions,
             }}
         />
     );

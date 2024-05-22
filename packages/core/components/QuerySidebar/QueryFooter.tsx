@@ -37,22 +37,29 @@ export default function QueryFooter(props: Props) {
     };
     const shareQueryOptions: IContextualMenuItem[] = [
         {
-            key: "Code Snippet",
-            text: "Code Snippet",
+            key: "Code snippet",
+            text: "Code snippet",
             iconProps: { iconName: "Code" },
             onClick: () => {
                 dispatch(interaction.actions.setVisibleModal(ModalType.CodeSnippet));
             },
         },
         {
-            key: "Shareable Link",
-            text: "Shareable Link",
+            key: "Shareable link",
+            text: "Shareable link",
             iconProps: { iconName: "Link" },
             title:
                 "If you share this link, the recipient will be able to view the current query by importing it as a new query.",
             onClick: () => {
                 onCopy();
             },
+        },
+    ];
+    const deleteQueryOptions: IContextualMenuItem[] = [
+        {
+            key: "Delete",
+            text: "Delete",
+            onClick: props.onQueryDelete,
         },
     ];
 
@@ -70,10 +77,16 @@ export default function QueryFooter(props: Props) {
                 ariaDescription="Delete query"
                 ariaLabel="Delete"
                 title="Delete"
-                className={classNames(styles.button, { [styles.disabled]: !props.isDeletable })}
+                className={classNames(styles.button, styles.hiddenInnerIcon, {
+                    [styles.disabled]: !props.isDeletable,
+                })}
                 disabled={!props.isDeletable}
-                onClick={props.onQueryDelete}
                 iconProps={{ iconName: "Delete" }}
+                menuProps={{
+                    className: styles.buttonMenu,
+                    items: deleteQueryOptions,
+                    calloutProps: { className: styles.buttonMenuContainer },
+                }}
             />
             <IconButton
                 ariaDescription="Refresh query"
@@ -101,7 +114,11 @@ export default function QueryFooter(props: Props) {
                     [styles.disabled]: isEmptyQuery,
                 })}
                 disabled={isEmptyQuery}
-                menuProps={{ className: styles.buttonMenu, items: shareQueryOptions }}
+                menuProps={{
+                    className: styles.buttonMenu,
+                    items: shareQueryOptions,
+                    calloutProps: { className: styles.buttonMenuContainer },
+                }}
                 iconProps={{ iconName: "Share" }}
                 id={Tutorial.SHARE_BUTTON_ID}
             />

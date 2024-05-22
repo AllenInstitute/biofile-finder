@@ -1,4 +1,4 @@
-import Tutorial from "../../../entity/Tutorial";
+import Tutorial from "../../entity/Tutorial";
 
 export const OPEN_FILES_TUTORIAL = new Tutorial("Opening files")
     .addStep({

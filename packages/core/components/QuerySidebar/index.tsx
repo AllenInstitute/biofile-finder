@@ -1,4 +1,11 @@
-import { DefaultButton, DirectionalHint, Icon } from "@fluentui/react";
+import {
+    ContextualMenuItemType,
+    DefaultButton,
+    DirectionalHint,
+    IContextualMenuItem,
+    Icon,
+    IconButton,
+} from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,8 +14,9 @@ import Query from "./Query";
 import { ModalType } from "../Modal";
 import SvgIcon from "../SvgIcon";
 import Tutorial from "../../entity/Tutorial";
-import { interaction, selection } from "../../state";
 import { AICS_LOGO } from "../../icons";
+import useHelpOptions from "../../hooks/useHelpOptions";
+import { interaction, selection } from "../../state";
 
 import styles from "./QuerySidebar.module.css";
 
@@ -27,6 +35,8 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     const dataSources = useSelector(interaction.selectors.getAllDataSources);
     const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
+    const helpMenuOptions = useHelpOptions(dispatch);
+
     React.useEffect(() => {
         if (selectedQuery) {
             const newurl =
@@ -42,8 +52,17 @@ export default function QuerySidebar(props: QuerySidebarProps) {
 
     const [isExpanded, setIsExpanded] = React.useState(true);
 
-    const addQueryOptions = React.useMemo(
+    const addQueryOptions: IContextualMenuItem[] = React.useMemo(
         () => [
+            {
+                key: "ADD NEW QUERY",
+                text: "ADD NEW QUERY",
+                itemType: ContextualMenuItemType.Header,
+            },
+            {
+                key: "add-query-divider",
+                itemType: ContextualMenuItemType.Divider,
+            },
             ...dataSources.map((source) => ({
                 key: source.id,
                 text: source.name,
@@ -56,11 +75,10 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                         })
                     );
                 },
-                secondaryText: "Data Source",
             })),
             {
-                key: "New Data Source...",
-                text: "New Data Source...",
+                key: "New data source",
+                text: "New data source",
                 iconProps: { iconName: "NewFolder" },
                 onClick: () => {
                     dispatch(interaction.actions.setVisibleModal(ModalType.DataSource));
@@ -92,7 +110,12 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     }
 
     return (
-        <div className={classNames(props.className, styles.container)}>
+        // TODO REVERT
+        <div
+            className={classNames(props.className, styles.container, {
+                [styles.emptyFooter]: !isOnWeb,
+            })}
+        >
             <div className={styles.header}>
                 <SvgIcon
                     height={40}
@@ -110,10 +133,11 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                     id={Tutorial.ADD_QUERY_BUTTON_ID}
                     menuIconProps={{ className: styles.hidden }}
                     menuProps={{
-                        className: styles.buttonMenu,
+                        className: classNames(styles.buttonMenu, styles.addViewButtonMenu),
                         directionalHint: DirectionalHint.rightTopEdge,
                         shouldFocusOnMount: true,
                         items: addQueryOptions,
+                        calloutProps: { className: styles.buttonMenuContainer },
                     }}
                     title="Add new query"
                     text="ADD"
@@ -141,6 +165,20 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                         }}
                     />
                 )}
+            </div>
+            <div className={styles.footer}>
+                <IconButton
+                    ariaLabel="Help"
+                    className={styles.helpButton}
+                    iconProps={{ iconName: "Help" }}
+                    title="Help menu"
+                    menuIconProps={{ iconName: "ChevronUp" }}
+                    menuProps={{
+                        className: styles.buttonMenu,
+                        items: helpMenuOptions,
+                        calloutProps: { className: styles.buttonMenuContainer },
+                    }}
+                />
             </div>
             <div className={styles.minimizeBar} onClick={() => setIsExpanded(false)}>
                 <Icon iconName="DoubleChevronLeft" />
