@@ -45,3 +45,7 @@
   /* bizarrely necessary in order to not have the first list item initially render underneath the header */
   transform: translateY(0px);
 }
+
+.list-parent > div > *:nth-child(odd) {
+  background-color: var(--primary-background-color);
+}

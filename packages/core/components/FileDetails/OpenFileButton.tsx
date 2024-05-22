@@ -22,6 +22,7 @@ export default function OpenFileButton(props: Props) {
     const { fileDetails } = props;
 
     const dispatch = useDispatch();
+    const isOnWeb = useSelector(interaction.selectors.isOnWeb);
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
@@ -61,24 +62,28 @@ export default function OpenFileButton(props: Props) {
 
         return [
             ...savedApps.sort((a, b) => (a.text || "").localeCompare(b.text || "")),
-            {
-                key: "default-apps-border",
-                itemType: ContextualMenuItemType.Divider,
-            },
-            // Other is a permanent option that allows the user
-            // to add another app for file access
-            {
-                key: ContextMenuActions.OPEN_WITH_OTHER,
-                text: "Other...",
-                title: "Select an application to open the selection with",
-                onClick() {
-                    dispatch(
-                        interaction.actions.promptForNewExecutable([
-                            new FileFilter("file_id", fileDetails.id),
-                        ])
-                    );
-                },
-            },
+            ...(isOnWeb
+                ? []
+                : [
+                      {
+                          key: "default-apps-border",
+                          itemType: ContextualMenuItemType.Divider,
+                      },
+                      // Other is a permanent option that allows the user
+                      // to add another app for file access
+                      {
+                          key: ContextMenuActions.OPEN_WITH_OTHER,
+                          text: "Other...",
+                          title: "Select an application to open the selection with",
+                          onClick() {
+                              dispatch(
+                                  interaction.actions.promptForNewExecutable([
+                                      new FileFilter("file_id", fileDetails.id),
+                                  ])
+                              );
+                          },
+                      },
+                  ]),
         ];
     }, [dispatch, fileDetails, userSelectedApplications, executionEnvService]);
 
@@ -96,7 +101,8 @@ export default function OpenFileButton(props: Props) {
             iconProps={{
                 iconName: "OpenInNewWindow",
             }}
-            text="Open"
+            title="Open file"
+            text="OPEN FILE"
         />
     );
 }

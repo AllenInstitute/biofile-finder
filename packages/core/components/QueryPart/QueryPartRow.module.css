@@ -26,7 +26,6 @@
 
 .row {
     display: flex;
-    justify-content: space-between;
     height: 34px;
     width: 100%;
 }
@@ -48,7 +47,8 @@
 
 .row-title {
     display: flex;
-    width: calc(100% - 33px);
+    max-width: calc(100% - 33px);
+    width: 100%;
 }
 
 .row-title > p {
@@ -61,6 +61,11 @@
     white-space: nowrap;
 }
 
-.shortened-row-title {
-    width: calc(100% - 55px);
+.dynamic-row-title {
+    max-width: calc(100% - 33px);
+    width: min-content;
+}
+
+.dynamic-row-title.shortened-row-title {
+    max-width: calc(100% - 55px);
 }

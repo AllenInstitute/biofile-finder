@@ -56,7 +56,7 @@ export default function Download(props: DownloadProps) {
             )}
             onClick={onDownload}
             title="Download"
-            text="Download"
+            text="DOWNLOAD"
         />
     );
 }

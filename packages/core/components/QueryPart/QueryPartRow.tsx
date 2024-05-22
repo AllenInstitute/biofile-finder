@@ -22,30 +22,34 @@ interface Props extends DnDItemRendererParams {
  */
 export default function QueryGroupRow(props: Props) {
     const isInteractive = !!props.item.onClick || !props.item.disabled;
+    const marginLeft = props.item.disabled ? 0 : props.index * 10;
     return (
         <div
             className={classNames(styles.row, {
                 [styles.grabbable]: !props.item.disabled,
                 [styles.interactive]: isInteractive,
             })}
-            style={{ marginLeft: props.item.disabled ? 0 : props.index * 10 }}
+            style={{ marginLeft, maxWidth: `calc(100% - ${marginLeft}px)` }}
             onClick={() => props.item.onClick?.(props.item.id)}
         >
             <div
                 className={classNames(styles.rowTitle, {
                     [styles.shortenedRowTitle]: !!props.item.onRenderEditMenuList,
+                    [styles.dynamicRowTitle]: !isInteractive,
                 })}
+                title={props.item.title}
             >
                 {props.item.titleIconName && (
                     <Icon className={styles.icon} iconName={props.item.titleIconName} />
                 )}
-                <p title={props.item.title}>{props.item.title}</p>
+                <p>{props.item.title}</p>
             </div>
             {!!props.item.onRenderEditMenuList && (
                 <IconButton
                     ariaLabel="Edit"
                     className={classNames(styles.iconButton, styles.hiddenInnerIcon)}
                     iconProps={{ iconName: "Edit" }}
+                    title="Edit"
                     menuProps={{
                         isSubMenu: true,
                         directionalHint: DirectionalHint.rightTopEdge,
@@ -62,6 +66,7 @@ export default function QueryGroupRow(props: Props) {
                     ariaLabel="Delete"
                     className={styles.iconButton}
                     iconProps={{ iconName: "Cancel" }}
+                    title="Delete"
                     onClick={() => props.item.onDelete?.(props.item.id)}
                 />
             )}

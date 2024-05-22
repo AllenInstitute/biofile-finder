@@ -2,6 +2,10 @@
     border-radius: 0;
 }
 
+.command-button i:last-of-type {
+    display: none;
+}
+
 .command-button span:not(:last-child) {
     width: 100%;
 }

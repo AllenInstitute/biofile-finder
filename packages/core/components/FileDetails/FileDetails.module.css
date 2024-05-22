@@ -1,24 +1,20 @@
 .root {
-    --pagination-height: var(--url-bar-height); /* defined in App.module.css under .root{} */
+    --pagination-height: 40px;
     --padding: 10px;
     --resize-handle-width: 10px;
-    --max-detail-button-width: 250px;
-} 
 
-.expandable {
-    position: absolute;
-    right: 0;
-    height: calc(100% - var(--margin) * 2);
-    border: 1px solid var(--primary-background-color);
-    background-color: var(--secondary-background-color);
-    overflow: auto;
+    background-color: var(--primary-background-color);
+    color: var(--primary-text-color);
     display: flex;
     justify-content: center;
-    z-index: 1001;
+    min-width: 175px;
+    max-width: 95%;
+    overflow: auto;
+    width: var(--file-details-width); /* defined in App.module.css under .root{} */
 }
 
-.expandable::after {
-    background-image: linear-gradient(transparent, var(--secondary-background-color));
+.root::after {
+    background-image: linear-gradient(transparent, var(--primary-background-color));
     bottom: 0;
     content: " ";
     height: 50px;
@@ -26,17 +22,11 @@
     max-width: 100%;
     position: absolute;
     width: 100%;
-    z-index: 11
+    z-index: 11;
 }
 
 .expandable-transition {
     transition: width var(--transition-duration); /* defined in App.module.css under .root{} */
-}
-
-.default {
-    width: var(--file-details-width); /* defined in App.module.css under .root{} */
-    min-width: 175px;
-    max-width: 95%;
 }
 
 .minimized {
@@ -141,10 +131,16 @@
     border: none;
     border-radius: var(--large-border-radius);
     color: var(--highlight-text-color);
+    font-size: small;
     height: 30px;
-    max-width: var(--max-detail-button-width);
+    max-width: 250px;
+    overflow-x: hidden;
     width: 100%;
     justify-content: center;
+}
+
+.icon-button i {
+    color: var(--highlight-text-color);
 }
 
 .file-name {
@@ -161,13 +157,4 @@
 
 .icon-button span {
     font-weight: normal;
-}
-
-.icon-button:hover, .icon-button:active {
-    background-color: var(--highlight-background-color);
-    color: var(--highlight-text-color);
-}
-
-.icon-button i, .icon-button:hover i {
-    color: var(--primary-text-color) !important;
 }

@@ -39,6 +39,10 @@
     display: flex;
 }
 
+.title-container > div > div > div {
+    background-color: unset;
+}
+
 .title {
     background-color: var(--primary-sidebar-color);
     color: var(--primary-sidebar-text-color);

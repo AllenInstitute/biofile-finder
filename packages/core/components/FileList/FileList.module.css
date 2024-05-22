@@ -1,24 +1,22 @@
 .container {
     --row-count-margin-top: 0.05em;
-    --row-count-margin-bottom: 1em;
     --row-count-intrisic-height: 12px; /* margin values are relative to this because it is used in font-size declaration */
-    --row-count-height: calc(var(--row-count-margin-top) + var(--row-count-margin-bottom) + var(--row-count-intrisic-height));
 
     width: 100%;
     height: calc(100% - var(--margin));
 }
 
 .list {
-    height: calc(100% - var(--row-count-height));
+    height: 100%;
 }
 
 .row-count-display {
-    color: grey;
+    color: var(--secondary-text-color);
+    opacity: 0.8;
 
     /* layout */
     float: right;
     height: var(--row-count-intrisic-height-height);
     font-size: var(--row-count-intrisic-height);
     margin-top: var(--row-count-margin-top);
-    margin-bottom: var(--row-count-margin-bottom);
 }
