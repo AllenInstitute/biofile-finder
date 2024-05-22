@@ -106,7 +106,7 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             filters: action.payload,
             recentAnnotations: uniq([
-                ...action.payload.map((filter: any) => filter.annotationName),
+                ...action.payload.map((filter) => filter.name),
                 ...state.recentAnnotations,
             ]).slice(0, 5),
 
