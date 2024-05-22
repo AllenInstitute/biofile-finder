@@ -74,6 +74,7 @@ store.subscribe(() => {
     const csvColumns = interaction.selectors.getCsvColumns(state);
     const displayAnnotations = selection.selectors.getAnnotationsToDisplay(state);
     const hasUsedApplicationBefore = interaction.selectors.hasUsedApplicationBefore(state);
+    const recentAnnotations = selection.selectors.getRecentAnnotations(state);
     const userSelectedApplications = interaction.selectors.getUserSelectedApplications(state);
 
     const appState = {
@@ -86,6 +87,7 @@ store.subscribe(() => {
         })),
         [PersistedConfigKeys.HasUsedApplicationBefore]: hasUsedApplicationBefore,
         [PersistedConfigKeys.Queries]: queries,
+        [PersistedConfigKeys.RecentAnnotations]: recentAnnotations,
         [PersistedConfigKeys.UserSelectedApplications]: userSelectedApplications,
     };
 

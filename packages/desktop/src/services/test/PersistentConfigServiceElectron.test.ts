@@ -45,6 +45,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                     name: "ZEN",
                 },
             ];
+            const expectedRecentAnnotations = ["column"];
             const expectedQueries = [
                 {
                     name: "foo",
@@ -71,6 +72,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             );
             service.persist(PersistedConfigKeys.UserSelectedApplications, expectedUserSelectedApps);
             service.persist(PersistedConfigKeys.DisplayAnnotations, expectedDisplayAnnotations);
+            service.persist(PersistedConfigKeys.RecentAnnotations, expectedRecentAnnotations);
 
             const expectedConfig = {
                 [PersistedConfigKeys.AllenMountPoint]: expectedAllenMountPoint,
@@ -80,6 +82,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                 [PersistedConfigKeys.HasUsedApplicationBefore]: expectedHasUsedApplicationBefore,
                 [PersistedConfigKeys.UserSelectedApplications]: expectedUserSelectedApps,
                 [PersistedConfigKeys.DisplayAnnotations]: expectedDisplayAnnotations,
+                [PersistedConfigKeys.RecentAnnotations]: expectedRecentAnnotations,
             };
 
             // Act
@@ -100,6 +103,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                 [PersistedConfigKeys.ImageJExecutable]: "/my/imagej",
                 [PersistedConfigKeys.Queries]: [],
                 [PersistedConfigKeys.HasUsedApplicationBefore]: undefined,
+                [PersistedConfigKeys.RecentAnnotations]: ["column"],
                 [PersistedConfigKeys.UserSelectedApplications]: [
                     {
                         filePath: "/some/path/to/ImageJ",

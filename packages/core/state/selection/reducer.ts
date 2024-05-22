@@ -1,5 +1,5 @@
 import { makeReducer } from "@aics/redux-utils";
-import { omit } from "lodash";
+import { castArray, omit, uniq } from "lodash";
 
 import interaction from "../interaction";
 import { THUMBNAIL_SIZE_TO_NUM_COLUMNS } from "../../constants";
@@ -32,6 +32,8 @@ import {
     SET_FILE_GRID_COLUMN_COUNT,
     REMOVE_QUERY,
     RemoveQuery,
+    SetSortColumnAction,
+    SetFileFiltersAction,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
@@ -51,6 +53,7 @@ export interface SelectionStateBranch {
     filters: FileFilter[];
     isDarkTheme: boolean;
     openFileFolders: FileFolder[];
+    recentAnnotations: string[];
     selectedQuery?: string;
     shouldDisplaySmallFont: boolean;
     shouldDisplayThumbnailView: boolean;
@@ -75,6 +78,7 @@ export const initialState = {
     fileSelection: new FileSelection(),
     filters: [],
     openFileFolders: [],
+    recentAnnotations: [],
     shouldDisplaySmallFont: false,
     queries: [],
     shouldDisplayThumbnailView: false,
@@ -98,9 +102,13 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             fileGridColumnCount: action.payload,
         }),
-        [SET_FILE_FILTERS]: (state, action) => ({
+        [SET_FILE_FILTERS]: (state, action: SetFileFiltersAction) => ({
             ...state,
             filters: action.payload,
+            recentAnnotations: uniq([
+                ...action.payload.map((filter) => filter.name),
+                ...state.recentAnnotations,
+            ]).slice(0, 5),
 
             // Reset file selections when file filters change
             fileSelection: new FileSelection(),
@@ -153,8 +161,12 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             queries: action.payload,
         }),
-        [SET_SORT_COLUMN]: (state, action) => ({
+        [SET_SORT_COLUMN]: (state, action: SetSortColumnAction) => ({
             ...state,
+            recentAnnotations: uniq([
+                ...castArray(action.payload?.annotationName ?? []),
+                ...state.recentAnnotations,
+            ]).slice(0, 5),
             sortColumn: action.payload,
         }),
         [interaction.actions.REFRESH]: (state) => ({
@@ -185,6 +197,7 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             annotationHierarchy: action.payload,
             availableAnnotationsForHierarchyLoading: true,
+            recentAnnotations: uniq([...action.payload, ...state.recentAnnotations]).slice(0, 5),
 
             // Reset file selections when annotation hierarchy changes
             fileSelection: new FileSelection(),
