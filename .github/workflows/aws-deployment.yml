@@ -17,7 +17,7 @@
       AWS_ACCOUNT_ID: ${{ vars.AWS_PUBLIC_DATA_RELEASES_ACCOUNT_ID }}
       AWS_REGION: ${{ vars.AWS_DEFAULT_REGION }}
       STAGING_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.STAGING_CLOUDFRONT_DISTRIBUTION_ID }}
-      STAGING_S3_BUCKET: s3://staging.timelapse.allencell.org
+      STAGING_S3_BUCKET: s3://staging.biofile-finder.allencell.org
       PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID }}
       PRODUCTION_S3_BUCKET: s3://biofile-finder.allencell.org
 
