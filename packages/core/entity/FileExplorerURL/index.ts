@@ -120,11 +120,17 @@ export default class FileExplorerURL {
         };
     }
 
-    public static convertToPython(urlComponents: Partial<FileExplorerURLComponents>) {
-        if (urlComponents?.source?.name === AICS_FMS_DATA_SOURCE_NAME) {
-            return "#Coming soon";
+    public static convertToPython(
+        urlComponents: Partial<FileExplorerURLComponents>,
+        userOS: string
+    ) {
+        if (
+            urlComponents?.source?.name === AICS_FMS_DATA_SOURCE_NAME ||
+            !urlComponents?.source?.uri
+        ) {
+            return "# Coming soon";
         }
-        const sourceString = this.convertDataSourceToPython(urlComponents?.source);
+        const sourceString = this.convertDataSourceToPython(urlComponents?.source, userOS);
         const groupByQueryString =
             urlComponents.hierarchy
                 ?.map((annotation) => this.convertGroupByToPython(annotation))
@@ -185,18 +191,32 @@ export default class FileExplorerURL {
         return `\`${filter.name}\`=="${filter.value}"`;
     }
 
-    private static convertDataSourceToPython(source: Source | undefined) {
-        if (source) {
-            const comment =
-                "#Convert current datasource file to a pandas dataframe\n" +
-                "#You may need to manually update the path to the file";
+    private static convertDataSourceToPython(source: Source | undefined, userOS: string) {
+        const rawFlagForWindows = userOS === "Windows_NT" ? "r" : "";
+
+        if (typeof source?.uri === "string") {
+            const comment = "#Convert current datasource file to a pandas dataframe";
 
             // Currently suggest setting all fields to strings; otherwise pandas assumes type conversions
             // TO DO: Address different non-string type conversions
-            const code = `df = pd.read_${source.type}('${source.name}').astype('str')`;
+            const code = `df = pd.read_${source.type}(${rawFlagForWindows}'${source.uri}').astype('str')`;
             // This only works if we assume that the file types will only be csv, parquet or json
+
             return `${comment}\n${code}\n\n`;
-        }
-        return "";
+        } else if (source?.uri) {
+            // Any other type, i.e., File. `instanceof` breaks testing library
+            // Adding strings to avoid including unwanted white space
+            const inputFileLineComment =
+                " # Unable to automatically determine " +
+                "local file location in the browser. Modify this variable to " +
+                "represent the full path to your .csv, .json, or .parquet data sources\n";
+            const inputFileError =
+                "if not input_file:\n" +
+                '\traise Exception("Must supply the data source location for the query")\n';
+            const inputFileCode = 'input_file = ""' + inputFileLineComment + inputFileError;
+
+            const conversionCode = `df = pd.read_${source.type}(input_file).astype('str')`;
+            return `${inputFileCode}\n${conversionCode}\n\n`;
+        } else return ""; // Safeguard. Should not reach else
     }
 }

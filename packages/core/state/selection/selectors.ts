@@ -32,6 +32,7 @@ export const getShouldDisplayThumbnailView = (state: State) =>
 export const getSortColumn = (state: State) => state.selection.sortColumn;
 export const getTutorial = (state: State) => state.selection.tutorial;
 export const getQueries = (state: State) => state.selection.queries;
+const getPlatformDependentServices = (state: State) => state.interaction.platformDependentServices; // Importing normally creates a circular dependency
 
 // COMPOSED SELECTORS
 export const isQueryingAicsFms = createSelector(
@@ -62,21 +63,32 @@ export const getEncodedFileExplorerUrl = createSelector(
 );
 
 export const getPythonConversion = createSelector(
-    [getAnnotationHierarchy, getFileFilters, getOpenFileFolders, getSortColumn, getDataSource],
+    [
+        getPlatformDependentServices,
+        getAnnotationHierarchy,
+        getFileFilters,
+        getOpenFileFolders,
+        getSortColumn,
+        getDataSource,
+    ],
     (
+        platformDependentServices,
         hierarchy: string[],
         filters: FileFilter[],
         openFolders: FileFolder[],
         sortColumn?: FileSort,
         source?: DataSource
     ) => {
-        return FileExplorerURL.convertToPython({
-            hierarchy,
-            filters,
-            openFolders,
-            sortColumn,
-            source,
-        });
+        return FileExplorerURL.convertToPython(
+            {
+                hierarchy,
+                filters,
+                openFolders,
+                sortColumn,
+                source,
+            },
+            platformDependentServices.executionEnvService.getOS()
+        );
     }
 );
 

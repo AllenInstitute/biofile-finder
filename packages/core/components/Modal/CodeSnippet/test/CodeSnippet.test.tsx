@@ -12,6 +12,11 @@ describe("<CodeSnippet />", () => {
         interaction: {
             visibleModal: ModalType.CodeSnippet,
         },
+        selection: {
+            dataSource: {
+                uri: "fake-uri.test",
+            },
+        },
     });
 
     it("is visible when should not be hidden", () => {
@@ -42,6 +47,28 @@ describe("<CodeSnippet />", () => {
         // Assert
         expect(screen.findByText((_, element) => element?.textContent?.match(setup) !== null)).to
             .exist;
+        expect(await findByText(code)).to.exist;
+    });
+
+    it("displays temporary 'coming soon' message for internal data sources", async () => {
+        // Arrange
+        const code = "# Coming soon";
+        const internalDataSourceState = {
+            ...visibleDialogState,
+            selection: {
+                dataSource: {
+                    uri: undefined,
+                },
+            },
+        };
+        const { store } = configureMockStore({ state: internalDataSourceState });
+        const { findByText } = render(
+            <Provider store={store}>
+                <Modal />
+            </Provider>
+        );
+
+        // Assert
         expect(await findByText(code)).to.exist;
     });
 });

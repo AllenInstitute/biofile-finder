@@ -12,6 +12,13 @@ describe("FileExplorerURL", () => {
         type: "csv",
     };
 
+    const mockSourceWithUri: Source = {
+        ...mockSource,
+        uri: "fake-uri.test",
+    };
+
+    const mockOS = "Darwin";
+
     describe("encode", () => {
         it("Encodes hierarchy, filters, open folders, and collection", () => {
             // Arrange
@@ -154,6 +161,7 @@ describe("FileExplorerURL", () => {
             const expectedAnnotationNames = ["Cell Line", "Donor Plasmid", "Lifting?"];
             const components: Partial<FileExplorerURLComponents> = {
                 hierarchy: expectedAnnotationNames,
+                source: mockSourceWithUri,
             };
             const expectedPandasGroups = expectedAnnotationNames.map(
                 (annotation) => `.groupby('${annotation}', group_keys=True).apply(lambda x: x)`
@@ -161,7 +169,7 @@ describe("FileExplorerURL", () => {
             const expectedResult = `df${expectedPandasGroups.join("")}`;
 
             // Act
-            const result = FileExplorerURL.convertToPython(components);
+            const result = FileExplorerURL.convertToPython(components, mockOS);
 
             // Assert
             expect(result).to.contain(expectedResult);
@@ -175,6 +183,7 @@ describe("FileExplorerURL", () => {
             ];
             const components: Partial<FileExplorerURLComponents> = {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                source: mockSourceWithUri,
             };
             const expectedPandasQueries = expectedFilters.map(
                 (filter) => `\`${filter.name}\`=="${filter.value}"`
@@ -182,7 +191,7 @@ describe("FileExplorerURL", () => {
             const expectedResult = `df.query('${expectedPandasQueries[0]}').query('${expectedPandasQueries[1]}')`;
 
             // Act
-            const result = FileExplorerURL.convertToPython(components);
+            const result = FileExplorerURL.convertToPython(components, mockOS);
 
             // Assert
             expect(result).to.contain(expectedResult);
@@ -196,6 +205,7 @@ describe("FileExplorerURL", () => {
             ];
             const components: Partial<FileExplorerURLComponents> = {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                source: mockSourceWithUri,
             };
             const expectedPandasQueries = expectedFilters.map(
                 (filter) => `\`${filter.name}\`=="${filter.value}"`
@@ -203,7 +213,7 @@ describe("FileExplorerURL", () => {
             const expectedResult = `df.query('${expectedPandasQueries[0]} | ${expectedPandasQueries[1]}')`;
 
             // Act
-            const result = FileExplorerURL.convertToPython(components);
+            const result = FileExplorerURL.convertToPython(components, mockOS);
 
             // Assert
             expect(result).to.contain(expectedResult);
@@ -213,12 +223,13 @@ describe("FileExplorerURL", () => {
             // Arrange
             const components: Partial<FileExplorerURLComponents> = {
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
+                source: mockSourceWithUri,
             };
             const expectedPandasSort = `.sort_values(by='${AnnotationName.UPLOADED}', ascending=False`;
             const expectedResult = `df${expectedPandasSort}`;
 
             // Act
-            const result = FileExplorerURL.convertToPython(components);
+            const result = FileExplorerURL.convertToPython(components, mockOS);
 
             // Assert
             expect(result).to.contain(expectedResult);
@@ -227,12 +238,26 @@ describe("FileExplorerURL", () => {
         it("provides info on converting external data source to pandas dataframe", () => {
             // Arrange
             const components: Partial<FileExplorerURLComponents> = {
-                source: mockSource,
+                source: mockSourceWithUri,
             };
-            const expectedResult = `df = pd.read_csv('${mockSource.name}').astype('str')`;
+            const expectedResult = `df = pd.read_csv('${mockSourceWithUri.uri}').astype('str')`;
 
             // Act
-            const result = FileExplorerURL.convertToPython(components);
+            const result = FileExplorerURL.convertToPython(components, mockOS);
+
+            // Assert
+            expect(result).to.contain(expectedResult);
+        });
+
+        it("adds raw flag in pandas conversion code for Windows OS", () => {
+            // Arrange
+            const components: Partial<FileExplorerURLComponents> = {
+                source: mockSourceWithUri,
+            };
+            const expectedResult = `df = pd.read_csv(r'${mockSourceWithUri.uri}').astype('str')`;
+
+            // Act
+            const result = FileExplorerURL.convertToPython(components, "Windows_NT");
 
             // Assert
             expect(result).to.contain(expectedResult);
@@ -249,12 +274,12 @@ describe("FileExplorerURL", () => {
                 hierarchy: expectedAnnotationNames,
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
-                source: mockSource,
+                source: mockSourceWithUri,
             };
             const expectedResult = /df\.groupby\(.*\)\.query\(.*\)\.query\(.*\)\.sort_values\(.*\)/i;
 
             // Act
-            const result = FileExplorerURL.convertToPython(components);
+            const result = FileExplorerURL.convertToPython(components, mockOS);
 
             // Assert
             expect(result).to.match(expectedResult);
