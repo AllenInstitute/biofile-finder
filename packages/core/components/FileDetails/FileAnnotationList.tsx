@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import FileAnnotationRow from "./FileAnnotationRow";
 import Annotation, { AnnotationName } from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
-import { interaction, selection } from "../../state";
+import { interaction, metadata } from "../../state";
 
 import styles from "./FileAnnotationList.module.css";
 
@@ -21,7 +21,7 @@ interface FileAnnotationListProps {
  */
 export default function FileAnnotationList(props: FileAnnotationListProps) {
     const { className, fileDetails, isLoading } = props;
-    const annotations = useSelector(selection.selectors.getSortedAnnotations);
+    const annotations = useSelector(metadata.selectors.getSortedAnnotations);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
     // The path to this file on the host this application is running on

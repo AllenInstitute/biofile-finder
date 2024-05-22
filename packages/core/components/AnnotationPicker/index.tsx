@@ -1,12 +1,13 @@
 import * as React from "react";
+import { uniqBy } from "lodash";
 import { useSelector } from "react-redux";
 
 import ListPicker from "../ListPicker";
 import { ListItem } from "../ListPicker/ListRow";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
-import Annotation, { AnnotationName } from "../../entity/Annotation";
-import { uniqBy } from "lodash";
-import { selection } from "../../state";
+import Annotation from "../../entity/Annotation";
+
+import { selection, metadata } from "../../state";
 
 interface Props {
     id?: string;
@@ -28,7 +29,7 @@ interface Props {
  * downloading a manifest.
  */
 export default function AnnotationPicker(props: Props) {
-    const annotations = useSelector(selection.selectors.getSortedAnnotations).filter(
+    const annotations = useSelector(metadata.selectors.getSortedAnnotations).filter(
         (annotation) =>
             !props.disabledTopLevelAnnotations ||
             !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name)
@@ -45,11 +46,6 @@ export default function AnnotationPicker(props: Props) {
         annotations.filter((annotation) => annotation.name === name)
     );
 
-    const fileNameAnnotation = annotations.filter(
-        (annotation) =>
-            annotation.name === AnnotationName.FILE_NAME || annotation.name === "File Name"
-    );
-
     // Define buffer item
     const bufferBar = {
         selected: false,
@@ -60,7 +56,7 @@ export default function AnnotationPicker(props: Props) {
     };
 
     // combine all annotation lists and buffer item objects
-    const rawItems = [...recentAnnotations, bufferBar, ...fileNameAnnotation, ...annotations];
+    const rawItems = [...recentAnnotations, bufferBar, ...annotations];
 
     const items = uniqBy(
         rawItems.flatMap((annotation) => {

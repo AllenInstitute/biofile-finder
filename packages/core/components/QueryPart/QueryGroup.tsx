@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import QueryPart from ".";
 import AnnotationPicker from "../AnnotationPicker";
 import Tutorial from "../../entity/Tutorial";
-import { selection } from "../../state";
+import { selection, metadata } from "../../state";
 import Annotation from "../../entity/Annotation";
 
 interface Props {
@@ -17,7 +17,7 @@ interface Props {
 export default function QueryGroup(props: Props) {
     const dispatch = useDispatch();
 
-    const annotations = useSelector(selection.selectors.getSortedAnnotations);
+    const annotations = useSelector(metadata.selectors.getSortedAnnotations);
 
     const selectedAnnotations = props.groups
         .map((annotationName) =>

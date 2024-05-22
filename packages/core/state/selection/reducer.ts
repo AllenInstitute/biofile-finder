@@ -32,6 +32,7 @@ import {
     SET_FILE_GRID_COLUMN_COUNT,
     REMOVE_QUERY,
     RemoveQuery,
+    SetSortColumnAction,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
