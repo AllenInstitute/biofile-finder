@@ -159,7 +159,7 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             queries: action.payload,
         }),
-        [SET_SORT_COLUMN]: (state, action) => ({
+        [SET_SORT_COLUMN]: (state, action: SetSortColumnAction) => ({
             ...state,
             recentAnnotations: uniq([
                 ...castArray(action.payload?.annotationName ?? []),
