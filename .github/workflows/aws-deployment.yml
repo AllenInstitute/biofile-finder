@@ -19,7 +19,7 @@
       STAGING_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.STAGING_CLOUDFRONT_DISTRIBUTION_ID }}
       STAGING_S3_BUCKET: s3://staging.timelapse.allencell.org
       PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID }}
-      PRODUCTION_S3_BUCKET: s3://timelapse.allencell.org
+      PRODUCTION_S3_BUCKET: s3://biofile-finder.allencell.org
 
     permissions:
         id-token: write  # Required for requesting the JWT and OIDC
