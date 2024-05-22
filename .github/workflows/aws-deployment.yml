@@ -86,7 +86,7 @@
                   name: aws-deploy-files
                   path: ./dist
 
-              # Note that the command below will copy the files to the root of the S3 bucket e.g., s3://timelapse.allencell.org/
+              # Note that the command below will copy the files to the root of the S3 bucket e.g., s3://biofile-finder.allencell.org/
               # If you want to copy files to a S3 prefix / subdirectory, you would want something like ${{ env.S3_BUCKET }}/your_prefix below
               - name: Copy build files to S3 root
                 run: aws s3 sync ./dist ${{ env.S3_BUCKET }}
