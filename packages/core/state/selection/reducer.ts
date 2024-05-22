@@ -33,6 +33,7 @@ import {
     REMOVE_QUERY,
     RemoveQuery,
     SetSortColumnAction,
+    SetFileFiltersAction,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
@@ -101,7 +102,7 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             fileGridColumnCount: action.payload,
         }),
-        [SET_FILE_FILTERS]: (state, action) => ({
+        [SET_FILE_FILTERS]: (state, action: SetFileFiltersAction) => ({
             ...state,
             filters: action.payload,
             recentAnnotations: uniq([

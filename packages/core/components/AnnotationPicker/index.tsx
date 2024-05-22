@@ -6,7 +6,6 @@ import ListPicker from "../ListPicker";
 import { ListItem } from "../ListPicker/ListRow";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
-
 import { metadata, selection } from "../../state";
 
 interface Props {
