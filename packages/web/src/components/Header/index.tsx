@@ -1,7 +1,7 @@
 import { DefaultButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import HelpMenu from "./Help";
 import { APPLICATION_NAME } from "../../constants";
@@ -10,8 +10,10 @@ import AICSLogo from "../../../assets/AICS-logo-and-name.svg";
 import styles from "./Header.module.css";
 
 export default function Header() {
+    const navigate = useNavigate();
     const currentPath = useLocation().pathname;
     const isApp: boolean = currentPath == "/app";
+
     return (
         <>
             <div className={styles.header}>
@@ -43,10 +45,10 @@ export default function Header() {
                         <DefaultButton
                             className={classNames(styles.uploadButton, styles.headerOption)}
                             styles={{ label: styles.uploadButtonLabel }}
-                            ariaLabel="Upload file"
-                            iconProps={{ iconName: "Upload" }}
-                            title="Upload"
-                            text="UPLOAD"
+                            ariaLabel="Get started"
+                            onClick={() => navigate("/app")}
+                            title="Get started"
+                            text="START"
                         />
                     )}
                 </div>

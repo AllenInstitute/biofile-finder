@@ -1,15 +1,18 @@
 import { DefaultButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import Banner from "./Banner";
 import Features from "./Features";
+import Modal from "../../../../core/components/Modal";
 
 import styles from "./Home.module.css";
 
 // Public-facing splash page
 export default function Home() {
+    const navigate = useNavigate();
+
     const options = [
         {
             header: "YOUR datasets",
@@ -22,10 +25,10 @@ export default function Home() {
                         label: styles.buttonLabel,
                         icon: styles.buttonIcon,
                     }}
-                    ariaLabel="Upload file"
-                    iconProps={{ iconName: "Upload" }}
-                    title="Upload file"
-                    text="UPLOAD FILE"
+                    ariaLabel="Get started"
+                    onClick={() => navigate("/app")}
+                    title="Get started"
+                    text="GET STARTED"
                 />
             ),
         },
@@ -73,6 +76,7 @@ export default function Home() {
                         })}
                     </div>
                 </div>
+                <Modal />
             </div>
         </div>
     );
