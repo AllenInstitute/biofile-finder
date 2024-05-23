@@ -110,10 +110,9 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     }
 
     return (
-        // TODO REVERT
         <div
             className={classNames(props.className, styles.container, {
-                [styles.emptyFooter]: !isOnWeb,
+                [styles.emptyFooter]: isOnWeb,
             })}
         >
             <div className={styles.header}>
@@ -166,7 +165,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                     />
                 )}
             </div>
-            <div className={styles.footer}>
+            <div className={classNames(styles.footer, { [styles.hidden]: isOnWeb })}>
                 <IconButton
                     ariaLabel="Help"
                     className={styles.helpButton}
