@@ -49,50 +49,50 @@ jobs:
           name: aws-deploy-files
           path: ./packages/web/dist
 
-    deploy:
-      needs: build
-      runs-on: ubuntu-latest
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
 
-      # Dynamically set the environment variable based on the input above:
-      environment: ${{ github.event.inputs.environment }}
+    # Dynamically set the environment variable based on the input above:
+    environment: ${{ github.event.inputs.environment }}
 
-      steps:
+    steps:
 
-        # Compute a short sha for use in the OIDC session name, which has a 64 character limit
-        - name: Add SHORT_SHA env property with commit short sha
-          run: echo "SHORT_SHA=`echo ${{ github.sha }} | cut -c1-8`" >> $GITHUB_ENV
+      # Compute a short sha for use in the OIDC session name, which has a 64 character limit
+      - name: Add SHORT_SHA env property with commit short sha
+        run: echo "SHORT_SHA=`echo ${{ github.sha }} | cut -c1-8`" >> $GITHUB_ENV
 
-        - name: Configure AWS credentials with OIDC
-          uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
-          with:
-            role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github_biofile_finder
-            role-session-name: github_biofile_finder-${{ env.SHORT_SHA }}
-            aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github_biofile_finder
+          role-session-name: github_biofile_finder-${{ env.SHORT_SHA }}
+          aws-region: ${{ env.AWS_REGION }}
 
-        # Setup variables based on the staging or production environment
-        - name: Set ECS variables based on environment
-          run: |
-            if [ "${{ github.event.inputs.environment }}" == "production" ]; then
-              echo "S3_BUCKET=${{ env.PRODUCTION_S3_BUCKET }}" >> $GITHUB_ENV
-              echo "CLOUDFRONT_DISTRIBUTION_ID=${{ env.PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
-            elif [ "${{ github.event.inputs.environment }}" == "staging" ]; then
-              echo "S3_BUCKET=${{ env.STAGING_S3_BUCKET }}" >> $GITHUB_ENV
-              echo "CLOUDFRONT_DISTRIBUTION_ID=${{ env.STAGING_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
-            else
-              echo "Invalid environment specified"
-              exit 1
-            fi
+      # Setup variables based on the staging or production environment
+      - name: Set ECS variables based on environment
+        run: |
+          if [ "${{ github.event.inputs.environment }}" == "production" ]; then
+            echo "S3_BUCKET=${{ env.PRODUCTION_S3_BUCKET }}" >> $GITHUB_ENV
+            echo "CLOUDFRONT_DISTRIBUTION_ID=${{ env.PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.environment }}" == "staging" ]; then
+            echo "S3_BUCKET=${{ env.STAGING_S3_BUCKET }}" >> $GITHUB_ENV
+            echo "CLOUDFRONT_DISTRIBUTION_ID=${{ env.STAGING_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+          else
+            echo "Invalid environment specified"
+            exit 1
+          fi
 
-        - name: Download build artifacts
-          uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427
-          with:
-            name: aws-deploy-files
-            path: ./packages/web/dist
+      - name: Download build artifacts
+        uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427
+        with:
+          name: aws-deploy-files
+          path: ./packages/web/dist
 
-        # Note that the command below will copy the files to the root of the S3 bucket e.g., s3://biofile-finder.allencell.org/
-        # If you want to copy files to a S3 prefix / subdirectory, you would want something like ${{ env.S3_BUCKET }}/your_prefix below
-        - name: Copy build files to S3 root
-          run: aws s3 sync ./packages/web/dist ${{ env.S3_BUCKET }}
+      # Note that the command below will copy the files to the root of the S3 bucket e.g., s3://biofile-finder.allencell.org/
+      # If you want to copy files to a S3 prefix / subdirectory, you would want something like ${{ env.S3_BUCKET }}/your_prefix below
+      - name: Copy build files to S3 root
+        run: aws s3 sync ./packages/web/dist ${{ env.S3_BUCKET }}
 
-        - name: Invalidate CloudFront cache
-          run: aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+      - name: Invalidate CloudFront cache
+        run: aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
