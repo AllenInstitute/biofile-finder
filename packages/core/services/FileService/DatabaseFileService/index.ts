@@ -76,10 +76,11 @@ export default class DatabaseFileService implements FileService {
         const sql = fileSet
             .toQuerySQLBuilder()
             .select(`COUNT(*) AS ${select_key}`)
-            .from(this.dataSourceNames)
+            .from(`"${this.dataSourceNames.join(", ")}"`)
             // Remove sort if present
             .orderBy()
             .toSQL();
+
         const rows = await this.databaseService.query(sql);
         return parseInt(rows[0][select_key], 10);
     }
@@ -101,17 +102,16 @@ export default class DatabaseFileService implements FileService {
      * and potentially starting from a particular file_id and limited to a set number of files.
      */
     public async getFiles(request: GetFilesRequest): Promise<FileDetail[]> {
+        // TODO: temp
+        await this.databaseService.createViewOfDataSources(this.dataSourceNames);
+
         const sql = request.fileSet
             .toQuerySQLBuilder()
-            .select(
-                `*, COALESCE(${this.dataSourceNames
-                    .map((source) => `"${source}"."File Path"`)
-                    .join(", ")}) AS "File Path"`
-            )
-            .from(this.dataSourceNames)
+            .from(`"${this.dataSourceNames.join(", ")}"`)
             .offset(request.from * request.limit)
             .limit(request.limit)
             .toSQL();
+
         const rows = await this.databaseService.query(sql);
         return rows.map((row, index) =>
             DatabaseFileService.convertDatabaseRowToFileDetail(
@@ -131,35 +131,39 @@ export default class DatabaseFileService implements FileService {
     ): Promise<DownloadResult> {
         const sqlBuilder = new SQLBuilder()
             .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
-            .from(this.dataSourceNames);
+            .from(`"${this.dataSourceNames[0]}"`);
 
         selections.forEach((selection) => {
             selection.indexRanges.forEach((indexRange) => {
-                const subQuery = new SQLBuilder()
-                    .select(
-                        `COALESCE(${this.dataSourceNames
-                            .map((source) => `"${source}"."File Path"`)
-                            .join(", ")}) AS "File Path"`
-                    )
-                    .from(this.dataSourceNames)
-                    .whereOr(
-                        Object.entries(selection.filters).map(([column, values]) => {
-                            const commaSeperatedValues = values.map((v) => `'${v}'`).join(", ");
-                            return `"${column}" IN (${commaSeperatedValues}}`;
-                        })
-                    )
-                    .offset(indexRange.start)
-                    .limit(indexRange.end - indexRange.start + 1);
+                const subQuerySql = this.dataSourceNames
+                    .map((dataSource) => {
+                        const subQuery = new SQLBuilder()
+                            .select("File Path")
+                            .from(`"${dataSource}"`)
+                            .whereOr(
+                                Object.entries(selection.filters).map(([column, values]) => {
+                                    const commaSeperatedValues = values
+                                        .map((v) => `'${v}'`)
+                                        .join(", ");
+                                    return `"${column}" IN (${commaSeperatedValues}}`;
+                                })
+                            )
+                            .offset(indexRange.start)
+                            .limit(indexRange.end - indexRange.start + 1);
 
-                if (selection.sort) {
-                    subQuery.orderBy(
-                        `"${selection.sort.annotationName}" ${
-                            selection.sort.ascending ? "ASC" : "DESC"
-                        }`
-                    );
-                }
+                        if (selection.sort) {
+                            subQuery.orderBy(
+                                `"${selection.sort.annotationName}" ${
+                                    selection.sort.ascending ? "ASC" : "DESC"
+                                }`
+                            );
+                        }
 
-                sqlBuilder.whereOr(`"File Path" IN (${subQuery})`);
+                        return subQuery.toSQL();
+                    })
+                    .join(" UNION ");
+
+                sqlBuilder.whereOr(`"File Path" IN (${subQuerySql})`);
             });
         });
 
@@ -180,7 +184,11 @@ export default class DatabaseFileService implements FileService {
             };
         }
 
-        const buffer = await this.databaseService.saveQuery(uniqueId(), sqlBuilder.toSQL(), format);
+        const buffer = await this.databaseService.saveQuery(
+            uniqueId(),
+            `SELECT * FROM "${this.dataSourceNames[0]}" LIMIT 2`,
+            format
+        );
         const name = `file-selection-${new Date()}.${format}`;
         return this.downloadService.download(
             {

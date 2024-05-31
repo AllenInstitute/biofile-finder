@@ -65,6 +65,9 @@ describe("Interaction logics", () => {
         addDataSource() {
             return Promise.reject("addDataSource mock");
         }
+        createViewOfDataSources(): Promise<void> {
+            return Promise.reject("createViewOfDataSources mock");
+        }
         query() {
             return Promise.reject("query mock");
         }

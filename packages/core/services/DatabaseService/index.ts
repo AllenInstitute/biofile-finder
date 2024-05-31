@@ -8,6 +8,8 @@ export default interface DatabaseService {
         uri: File | string
     ): Promise<void>;
 
+    createViewOfDataSources(dataSources: string[]): Promise<void>;
+
     saveQuery(
         destination: string,
         sql: string,

@@ -80,6 +80,10 @@ export default class DatabaseServiceElectron implements DatabaseService {
         }
     }
 
+    public createViewOfDataSources() {
+        return Promise.reject("DatabaseServiceNoop::createViewOfDataSources");
+    }
+
     /**
      * Saves the result of the query to the designated location.
      * May return a value if the location is not a physical location but rather

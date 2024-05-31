@@ -52,7 +52,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
      */
     public async fetchAnnotations(): Promise<Annotation[]> {
         const sql = new SQLBuilder()
-            .from('information_schema"."columns')
+            .from("information_schema.columns")
             .where(`table_name IN ('${this.dataSourceNames.join("', '")}')`)
             .toSQL();
         const rows = await this.databaseService.query(sql);
@@ -74,7 +74,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
         const select_key = "select_key";
         const sql = new SQLBuilder()
             .select(`DISTINCT "${annotation}" AS ${select_key}`)
-            .from(this.dataSourceNames)
+            .from(`"${this.dataSourceNames.join(", ")}"`)
             .toSQL();
         const rows = await this.databaseService.query(sql);
         return [
@@ -113,7 +113,8 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
         const sqlBuilder = new SQLBuilder()
             .select(`DISTINCT "${hierarchy[path.length]}"`)
-            .from(this.dataSourceNames);
+            .from(`"${this.dataSourceNames.join(", ")}"`);
+
         Object.keys(filtersByAnnotation).forEach((annotation) => {
             const annotationValues = filtersByAnnotation[annotation];
             if (annotationValues[0] === null) {
@@ -124,6 +125,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 );
             }
         });
+
         const rows = await this.databaseService.query(sqlBuilder.toSQL());
         return rows.map((row) => row[hierarchy[path.length]]);
     }
@@ -135,7 +137,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
     public async fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]> {
         const sql = new SQLBuilder()
             .summarize()
-            .from(this.dataSourceNames)
+            .from(`"${this.dataSourceNames.join(", ")}"`)
             .where(annotations.map((annotation) => `"${annotation}" IS NOT NULL`))
             .toSQL();
         const rows = (await this.databaseService.query(sql)) as SummarizeQueryResult[];

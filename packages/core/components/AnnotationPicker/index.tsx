@@ -9,17 +9,16 @@ import { metadata, selection } from "../../state";
 
 interface Props {
     id?: string;
-    enableAllAnnotations?: boolean;
     disabledTopLevelAnnotations?: boolean;
     hasSelectAllCapability?: boolean;
     disableUnavailableAnnotations?: boolean;
     className?: string;
     title?: string;
-    selections: Annotation[];
+    selections: string[];
     annotationSubMenuRenderer?: (
         item: ListItem<Annotation>
     ) => React.ReactElement<ListItem<Annotation>>;
-    setSelections: (annotations: Annotation[]) => void;
+    setSelections: (annotations: string[]) => void;
 }
 
 /**
@@ -42,11 +41,11 @@ export default function AnnotationPicker(props: Props) {
                 !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name)
         )
         .map((annotation) => ({
-            selected: props.selections.some((selected) => selected.name === annotation.name),
+            selected: props.selections.some((selected) => selected === annotation.name),
             disabled:
-                !props.enableAllAnnotations &&
+                props.disableUnavailableAnnotations &&
                 unavailableAnnotations.some((unavailable) => unavailable.name === annotation.name),
-            loading: !props.enableAllAnnotations && areAvailableAnnotationLoading,
+            loading: props.disableUnavailableAnnotations && areAvailableAnnotationLoading,
             description: annotation.description,
             data: annotation,
             value: annotation.name,
@@ -55,14 +54,14 @@ export default function AnnotationPicker(props: Props) {
 
     const removeSelection = (item: ListItem<Annotation>) => {
         props.setSelections(
-            props.selections.filter((annotation) => annotation.name !== item.data?.name)
+            props.selections.filter((annotation) => annotation !== item.data?.name)
         );
     };
 
     const addSelection = (item: ListItem<Annotation>) => {
         // Should never be undefined, included as guard statement to satisfy compiler
         if (item.data) {
-            props.setSelections([...props.selections, item.data]);
+            props.setSelections([...props.selections, item.data.name]);
         }
     };
 
@@ -75,7 +74,9 @@ export default function AnnotationPicker(props: Props) {
             onDeselect={removeSelection}
             onSelect={addSelection}
             onSelectAll={
-                props.hasSelectAllCapability ? () => props.setSelections?.(annotations) : undefined
+                props.hasSelectAllCapability
+                    ? () => props.setSelections?.(annotations.map((a) => a.name))
+                    : undefined
             }
             onDeselectAll={() => props.setSelections([])}
             subMenuRenderer={props.annotationSubMenuRenderer}

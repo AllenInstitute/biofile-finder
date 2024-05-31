@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import AnnotationPicker from "../../AnnotationPicker";
-import * as modalSelectors from "../selectors";
 import { interaction } from "../../../state";
 
 import styles from "./MetadataManifest.module.css";
@@ -17,18 +16,15 @@ import styles from "./MetadataManifest.module.css";
  */
 export default function MetadataManifest({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
-    const annotationsPreviouslySelected = useSelector(
-        modalSelectors.getAnnotationsPreviouslySelected
-    );
+    const annotationsPreviouslySelected = useSelector(interaction.selectors.getCsvColumns);
     const [selectedAnnotations, setSelectedAnnotations] = React.useState(
-        annotationsPreviouslySelected
+        annotationsPreviouslySelected || []
     );
     const fileTypeForVisibleModal = useSelector(interaction.selectors.getFileTypeForVisibleModal);
 
     const onDownload = () => {
-        const selectedAnnotationNames = selectedAnnotations.map((annotation) => annotation.name);
         dispatch(
-            interaction.actions.downloadManifest(selectedAnnotationNames, fileTypeForVisibleModal)
+            interaction.actions.downloadManifest(selectedAnnotations, fileTypeForVisibleModal)
         );
         onDismiss();
     };
