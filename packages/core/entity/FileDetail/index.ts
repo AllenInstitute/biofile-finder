@@ -162,6 +162,10 @@ export default class FileDetail {
 
     public getPathToThumbnail(): string | undefined {
         // If no thumbnail present try to render the file itself as the thumbnail
+        if (this.path.endsWith(".zarr")) {
+            return "http://production.files.allencell.org.s3.amazonaws.com/ba8/0f7/c92/4ba/664/a78/744/91f/35b/48d/6b/multi-test-12230.zarr";
+        }
+
         if (!this.thumbnail) {
             const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
                 this.name.toLowerCase().endsWith(format)

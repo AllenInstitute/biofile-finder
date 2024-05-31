@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
+import { open, HTTPStore } from "zarrita";
 
 import FileSet from "../../entity/FileSet";
 import FileThumbnail from "../../components/FileThumbnail";
@@ -59,6 +60,23 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
         return fileSelection.isFocused(fileSet, overallIndex);
     }, [fileSelection, fileSet, overallIndex]);
 
+    const [zarrImage, setZarrImage] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        const loadZarrImage = async () => {
+            if (file?.getPathToThumbnail()?.endsWith(".zarr")) {
+                const store = new HTTPStore(file.getPathToThumbnail()!);
+                const z = await open<ArrayBuffer>({ store, path: "" });
+                const data = await z.getRaw();
+                const blob = new Blob([data], { type: "image/png" });
+                const url = URL.createObjectURL(blob);
+                setZarrImage(url);
+            }
+        };
+
+        loadZarrImage();
+    }, [file]);
+
     const onClick = (evt: React.MouseEvent) => {
         evt.preventDefault();
         evt.stopPropagation();
@@ -88,7 +106,9 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
 
     let content;
     if (file) {
-        const thumbnailPath = file.getPathToThumbnail();
+        const thumbnailPath = file.getPathToThumbnail()?.endsWith(".zarr")
+            ? zarrImage
+            : file.getPathToThumbnail();
         const filenameForRender = clipFileName(file?.name);
         content = (
             <div
@@ -103,7 +123,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
                     className={styles.thumbnail}
                     height={thumbnailSize}
                     width={thumbnailSize}
-                    uri={thumbnailPath}
+                    uri={thumbnailPath || ""}
                 />
                 <div
                     className={classNames(styles.fileLabel, {
@@ -119,7 +139,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
     } else if (overallIndex < itemCount) {
         // Grid will attempt to render a cell even if we're past the total index
         content = "Loading...";
-    } // No `else` since if past total index we stil want empty content to fill up the outer grid
+    } // No `else` since if past total index we still want empty content to fill up the outer grid
 
     return (
         <div
