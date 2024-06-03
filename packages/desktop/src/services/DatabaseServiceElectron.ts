@@ -80,6 +80,10 @@ export default class DatabaseServiceElectron implements DatabaseService {
         }
     }
 
+    public addDatasetManifest(): Promise<void> {
+        throw new Error("DatabaseServiceElectron:addDatasetManifest not implemented for desktop");
+    }
+
     /**
      * Saves the result of the query to the designated location.
      * May return a value if the location is not a physical location but rather
