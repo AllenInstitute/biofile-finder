@@ -1,3 +1,17 @@
+.root {
+  position: relative;
+}
+
+.scroll {
+  margin: 0;
+  border: 0;
+  width: 100%;
+  height: calc(100% - 2 * var(--margin));
+  overflow-y: auto;
+  justify-content: center;
+  padding-bottom: calc(2 * var(--margin))
+}
+
 .banner {
   color: var(--secondary-text-color);
   background-color: var(--primary-dark);

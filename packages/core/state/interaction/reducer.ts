@@ -4,6 +4,7 @@ import { filter, sortBy } from "lodash";
 
 import {
     HIDE_CONTEXT_MENU,
+    HIDE_DATASET_DETAILS_PANEL,
     HIDE_VISIBLE_MODAL,
     REFRESH,
     REMOVE_STATUS,
@@ -12,6 +13,7 @@ import {
     SET_STATUS,
     SET_VISIBLE_MODAL,
     SHOW_CONTEXT_MENU,
+    SHOW_DATASET_DETAILS_PANEL,
     SHOW_MANIFEST_DOWNLOAD_DIALOG,
     StatusUpdate,
     MARK_AS_USED_APPLICATION_BEFORE,
@@ -20,6 +22,7 @@ import {
     PROMPT_FOR_DATA_SOURCE,
     DownloadManifestAction,
     DOWNLOAD_MANIFEST,
+    SET_SELECTED_PUBLIC_DATASET,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -34,6 +37,7 @@ import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/Executio
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
 import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
+import PublicDataset from "../../../web/src/entity/PublicDataset";
 
 export interface InteractionStateBranch {
     applicationVersion?: string;
@@ -43,6 +47,7 @@ export interface InteractionStateBranch {
     contextMenuPositionReference: PositionReference;
     contextMenuOnDismiss?: () => void;
     csvColumns?: string[];
+    datasetDetailsPanelIsVisible: boolean;
     fileExplorerServiceBaseUrl: string;
     fileTypeForVisibleModal: "csv" | "json" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
@@ -51,6 +56,7 @@ export interface InteractionStateBranch {
     isOnWeb: boolean;
     platformDependentServices: PlatformDependentServices;
     refreshKey?: string;
+    selectedPublicDataset?: PublicDataset;
     status: StatusUpdate[];
     userSelectedApplications?: UserSelectedApplication[];
     visibleModal?: ModalType;
@@ -64,6 +70,7 @@ export const initialState: InteractionStateBranch = {
     // It can be either an element, a query selector string resolving to a valid element, or a MouseEvent.
     // If a MouseEvent is given, the origin point of the event will be used."
     contextMenuPositionReference: null,
+    datasetDetailsPanelIsVisible: false,
     fileExplorerServiceBaseUrl: DEFAULT_CONNECTION_CONFIG.baseUrl,
     fileFiltersForVisibleModal: [],
     fileTypeForVisibleModal: "csv",
@@ -166,6 +173,18 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             visibleModal: ModalType.DataSourcePrompt,
             dataSourceForVisibleModal: action.payload,
+        }),
+        [SHOW_DATASET_DETAILS_PANEL]: (state) => ({
+            ...state,
+            datasetDetailsPanelIsVisible: true,
+        }),
+        [HIDE_DATASET_DETAILS_PANEL]: (state) => ({
+            ...state,
+            datasetDetailsPanelIsVisible: false,
+        }),
+        [SET_SELECTED_PUBLIC_DATASET]: (state, action) => ({
+            ...state,
+            selectedPublicDataset: action.payload,
         }),
     },
     initialState

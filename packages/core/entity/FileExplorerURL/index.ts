@@ -47,6 +47,17 @@ export const DEFAULT_AICS_FMS_QUERY: FileExplorerURLComponents = {
     sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
 };
 
+export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
+    const uriResource = dataSourceURL.substring(dataSourceURL.lastIndexOf("/") + 1).split("?")[0];
+    const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
+    let extensionGuess = uriResource.split(".").pop();
+    if (!(extensionGuess === "csv" || extensionGuess === "json" || extensionGuess === "parquet")) {
+        console.warn("Guess that the source is a CSV file since no extension easily found");
+        extensionGuess = "csv";
+    }
+    return { name, extensionGuess };
+};
+
 /**
  * This represents a system for encoding application state information in a way
  * that allows users to copy, share, and paste the result back into the app and have the

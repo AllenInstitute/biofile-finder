@@ -6,9 +6,12 @@ import {
     RECEIVE_ANNOTATIONS,
     ReceiveAnnotationAction,
     receiveAnnotations,
+    receiveDatasetManifest,
     receiveDataSources,
     REQUEST_ANNOTATIONS,
     REQUEST_DATA_SOURCES,
+    UPDATE_DATASET_MANIFEST,
+    UpdateDatasetManifest,
 } from "./actions";
 import * as metadataSelectors from "./selectors";
 import Annotation, { AnnotationName } from "../../entity/Annotation";
@@ -146,4 +149,36 @@ const requestDataSources = createLogic({
     type: [REQUEST_DATA_SOURCES, interaction.actions.REFRESH],
 });
 
-export default [requestAnnotations, receiveAnnotationsLogic, requestDataSources];
+/**
+ * Interceptor responsible for passing the UPDATE_DATASET_MANIFEST action to the database service.
+ * Outputs RECEIVE_DATASET_MANIFEST action to update state.
+ */
+const updateDatasetManifest = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const {
+            payload: { name, uri },
+        } = deps.action as UpdateDatasetManifest;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
+
+        try {
+            if (uri) {
+                await databaseService.addDatasetManifest(name, uri);
+                dispatch(receiveDatasetManifest(name, uri));
+            }
+        } catch (err) {
+            console.error("Failed to update dataset manifest", err);
+        } finally {
+            done();
+        }
+    },
+    type: UPDATE_DATASET_MANIFEST,
+});
+
+export default [
+    requestAnnotations,
+    receiveAnnotationsLogic,
+    updateDatasetManifest,
+    requestDataSources,
+];
