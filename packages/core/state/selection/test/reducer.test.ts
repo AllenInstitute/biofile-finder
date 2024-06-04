@@ -15,9 +15,15 @@ import { DataSource } from "../../../services/DataSourceService";
 
 describe("Selection reducer", () => {
     [
-        selection.actions.SET_ANNOTATION_HIERARCHY,
-        interaction.actions.SET_FILE_EXPLORER_SERVICE_BASE_URL,
-    ].forEach((actionConstant) =>
+        {
+            actionConstant: selection.actions.SET_ANNOTATION_HIERARCHY,
+            expectedAction: selection.actions.setAnnotationHierarchy([]),
+        },
+        {
+            actionConstant: interaction.actions.SET_FILE_EXPLORER_SERVICE_BASE_URL,
+            expectedAction: interaction.actions.setFileExplorerServiceBaseUrl("base"),
+        },
+    ].forEach(({ actionConstant, expectedAction }) =>
         it(`clears selected file state when ${actionConstant} is fired`, () => {
             // arrange
             const prevSelection = new FileSelection().select({
@@ -29,20 +35,14 @@ describe("Selection reducer", () => {
                 ...selection.initialState,
                 fileSelection: prevSelection,
             };
-
-            const action = {
-                type: actionConstant,
-            };
-
             // act
-            const nextSelectionState = selection.reducer(initialSelectionState, action);
+            const nextSelectionState = selection.reducer(initialSelectionState, expectedAction);
             const nextSelection = selection.selectors.getFileSelection({
                 ...initialState,
                 selection: nextSelectionState,
             });
-
             // assert
-            expect(prevSelection.count()).to.equal(3); // sanity-check
+            expect(prevSelection.count()).to.equal(3); // consistency check
             expect(nextSelection.count()).to.equal(0);
         })
     );
