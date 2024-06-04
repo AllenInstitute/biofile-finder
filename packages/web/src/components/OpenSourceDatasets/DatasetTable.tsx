@@ -1,44 +1,55 @@
-import { DetailsList, IDetailsRowProps, IRenderFunction, SelectionMode } from "@fluentui/react";
+import { IDetailsRowProps, IListProps, IRenderFunction, SelectionMode } from "@fluentui/react";
+import { ShimmeredDetailsList } from "@fluentui/react/lib/ShimmeredDetailsList";
 import * as React from "react";
 
-import { datasetList } from "./DatasetRows";
 import { columns } from "./DatasetColumns";
+import DatasetRow from "./DatasetRow";
+import useDatasetDetails from "./useDatasetDetails";
 
 import styles from "./DatasetTable.module.css";
 
 export default function DatasetTable() {
-    // const rowHeight = 52
+    const [datasetDetails] = useDatasetDetails();
+    const items = datasetDetails?.map((detail) => detail.details);
 
     const renderRow = (
         rowProps: IDetailsRowProps | undefined,
         defaultRender: IRenderFunction<IDetailsRowProps> | undefined
     ): JSX.Element => {
         if (rowProps && defaultRender) {
-            return <div className={styles.tableContent}>{defaultRender({ ...rowProps })}</div>;
+            return <DatasetRow rowProps={rowProps} defaultRender={defaultRender} />;
         }
         return <></>;
     };
+    const shimmeredDetailsListProps: IListProps = {
+        renderedWindowsAhead: 0,
+        renderedWindowsBehind: 0,
+    };
 
-    /**
-     * TODO: Create modal
-     * On hover, show buttons
-     * On click, show modal
-     * */
     return (
         <>
-            <DetailsList
-                items={datasetList}
+            <ShimmeredDetailsList
+                setKey="items"
+                items={items || []}
                 columns={columns}
                 isHeaderVisible={true}
                 className={styles.table}
                 selectionMode={SelectionMode.none}
-                styles={{
+                enableShimmer={false}
+                ariaLabelForShimmer="Content is being fetched"
+                ariaLabelForGrid="Item details"
+                detailsListStyles={{
                     headerWrapper: styles.tableHeader,
                     root: styles.table,
                     contentWrapper: styles.tableContent,
                 }}
+                listProps={shimmeredDetailsListProps}
                 onRenderRow={(props, defaultRender) => renderRow(props, defaultRender)}
-            ></DetailsList>
+                shimmerLines={5}
+                styles={{
+                    root: styles.shimmer,
+                }}
+            ></ShimmeredDetailsList>
         </>
     );
 }

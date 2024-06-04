@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
-import { Source } from "../../../entity/FileExplorerURL";
+import { getNameAndTypeFromSourceUrl, Source } from "../../../entity/FileExplorerURL";
 import { interaction, selection } from "../../../state";
 
 import styles from "./DataSourcePrompt.module.css";
@@ -68,21 +68,7 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
     const onEnterURL = throttle(
         (evt: React.FormEvent) => {
             evt.preventDefault();
-            const uriResource = dataSourceURL
-                .substring(dataSourceURL.lastIndexOf("/") + 1)
-                .split("?")[0];
-            const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
-            let extensionGuess = uriResource.split(".").pop();
-            if (
-                !(
-                    extensionGuess === "csv" ||
-                    extensionGuess === "json" ||
-                    extensionGuess === "parquet"
-                )
-            ) {
-                console.warn("Guess that the source is a CSV file since no extension easily found");
-                extensionGuess = "csv";
-            }
+            const { name, extensionGuess } = getNameAndTypeFromSourceUrl(dataSourceURL);
             addOrReplaceQuery({
                 name,
                 type: extensionGuess as "csv" | "json" | "parquet",

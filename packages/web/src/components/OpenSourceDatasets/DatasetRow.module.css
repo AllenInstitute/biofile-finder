@@ -1,0 +1,74 @@
+.table-row > div:first-child {
+  color: var(--secondary-text-color);
+  background-color: var(--secondary-dark);
+  background: var(--secondary-dark) !important;
+  border-bottom: 1px solid var(--borders-light-grey);
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.table-row {
+  position: relative;
+}
+
+.table-content div {
+  display: inline-block;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+  overflow: hidden;
+  max-height: 3.6em;
+  line-height: 1.8em;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table-row > div:hover:first-child, .table-row > div:hover {
+  color: var(--secondary-text-color);
+  background: var(--aqua-secondary-hover) !important;
+  cursor: pointer;
+  border-bottom: 1px solid var(--bright-aqua);
+}
+
+.button-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.button-wrapper-hidden {
+  display: none;
+}
+
+.button {
+  background-color: var(--aqua);
+  color: var(--white);
+  border: 1px solid var(--secondary-dark);
+  border-radius: 18px;
+  height: 33px;
+  margin-right: 5px;
+}
+
+.button:hover,
+.button:focus {
+  background-color: var(--bright-aqua);
+  color: var(--white);
+}
+
+.button-label { 
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.button-icon { 
+  font-size: 15px;
+  font-weight: 500;
+}

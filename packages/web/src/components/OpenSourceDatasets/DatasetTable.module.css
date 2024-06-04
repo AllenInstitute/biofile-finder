@@ -31,6 +31,10 @@
   font-weight: 400;
 }
 
+.table-content > div:last-of-type {
+  border-bottom: none;
+}
+
 /* .table-content div {
   display: inline-block;
   text-overflow: ellipsis;
