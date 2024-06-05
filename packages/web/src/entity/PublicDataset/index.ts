@@ -17,6 +17,7 @@ export interface PublicDatasetProps {
     published?: string;
     related_publication?: string;
     version?: string;
+    source?: string; // Indicate whether the dataset comes from internal (AICS) or external (other) source
 }
 
 // Originally noted in core/entity/Annotation: TypeScript (3.9) raises an error if this is an enum
@@ -65,12 +66,17 @@ export const DatasetAnnotations = {
         displayLabel: "Related publication",
         name: "related_publication",
     },
+    SOURCE: {
+        displayLabel: "Source",
+        name: "source",
+    },
     VERSION: {
         displayLabel: "Version",
         name: "version",
     },
 };
 
+// Limited set used for the details panel
 export const DATASET_DISPLAY_FIELDS = [
     DatasetAnnotations.CREATION_DATE,
     DatasetAnnotations.RELATED_PUBLICATON,

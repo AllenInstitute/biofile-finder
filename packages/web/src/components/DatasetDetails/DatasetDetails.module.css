@@ -29,8 +29,8 @@
 }
 
 .close-button:hover, .close-button:focus {
-  background-color: var(--accent-dark);
-  background: var(--accent-dark);
+  background-color: var(--aqua);
+  background: var(--aqua);
   color: var(--white);
   font-weight: 600;
 }

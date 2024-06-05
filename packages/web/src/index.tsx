@@ -34,7 +34,7 @@ const router = createBrowserRouter([
             },
             {
                 path: "datasets",
-                element: <OpenSourceDatasets />, // Datasets placeholder
+                element: <OpenSourceDatasets />,
             },
         ],
     },

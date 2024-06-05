@@ -1,15 +1,28 @@
-import { IDetailsRowProps, IListProps, IRenderFunction, SelectionMode } from "@fluentui/react";
+import {
+    IDetailsRowProps,
+    createTheme,
+    IRenderFunction,
+    SelectionMode,
+    ThemeProvider,
+    PartialTheme,
+} from "@fluentui/react";
 import { ShimmeredDetailsList } from "@fluentui/react/lib/ShimmeredDetailsList";
 import * as React from "react";
 
 import { columns } from "./DatasetColumns";
 import DatasetRow from "./DatasetRow";
 import useDatasetDetails from "./useDatasetDetails";
+import FileFilter from "../../../../core/entity/FileFilter";
 
 import styles from "./DatasetTable.module.css";
 
-export default function DatasetTable() {
-    const [datasetDetails] = useDatasetDetails();
+interface DatasetTableProps {
+    filters?: FileFilter[];
+}
+
+export default function DatasetTable(props: DatasetTableProps) {
+    const [datasetDetails, isLoading, error] = useDatasetDetails(props?.filters || []);
+
     const items = datasetDetails?.map((detail) => detail.details);
 
     const renderRow = (
@@ -21,35 +34,43 @@ export default function DatasetTable() {
         }
         return <></>;
     };
-    const shimmeredDetailsListProps: IListProps = {
-        renderedWindowsAhead: 0,
-        renderedWindowsBehind: 0,
-    };
+
+    // FluentUI does not permit setting ShimmeredDetailsList styles directly, must use themes
+    const globalStyle = getComputedStyle(document.body);
+    const shimmeredDetailsListTheme: PartialTheme = createTheme({
+        semanticColors: {
+            disabledBackground: globalStyle.getPropertyValue("--borders-light-grey"),
+            bodyBackground: globalStyle.getPropertyValue("--secondary-dark"),
+            bodyDivider: globalStyle.getPropertyValue("--primary-dark"),
+        },
+    });
 
     return (
-        <>
-            <ShimmeredDetailsList
-                setKey="items"
-                items={items || []}
-                columns={columns}
-                isHeaderVisible={true}
-                className={styles.table}
-                selectionMode={SelectionMode.none}
-                enableShimmer={false}
-                ariaLabelForShimmer="Content is being fetched"
-                ariaLabelForGrid="Item details"
-                detailsListStyles={{
-                    headerWrapper: styles.tableHeader,
-                    root: styles.table,
-                    contentWrapper: styles.tableContent,
-                }}
-                listProps={shimmeredDetailsListProps}
-                onRenderRow={(props, defaultRender) => renderRow(props, defaultRender)}
-                shimmerLines={5}
-                styles={{
-                    root: styles.shimmer,
-                }}
-            ></ShimmeredDetailsList>
-        </>
+        <div className={styles.table}>
+            <ThemeProvider theme={shimmeredDetailsListTheme}>
+                <ShimmeredDetailsList
+                    setKey="items"
+                    items={items || []}
+                    columns={columns}
+                    isHeaderVisible={true}
+                    selectionMode={SelectionMode.none}
+                    enableShimmer={isLoading}
+                    ariaLabelForShimmer="Content is being fetched"
+                    ariaLabelForGrid="Item details"
+                    detailsListStyles={{
+                        headerWrapper: styles.tableHeader,
+                        root: styles.shimmer,
+                        contentWrapper: styles.tableContent,
+                    }}
+                    onRenderRow={(props, defaultRender) => renderRow(props, defaultRender)}
+                    removeFadingOverlay
+                    shimmerLines={1}
+                    styles={{
+                        root: styles.shimmer,
+                    }}
+                ></ShimmeredDetailsList>
+            </ThemeProvider>
+            {error && <div className={styles.errorMessage}>{error}</div>}
+        </div>
     );
 }

@@ -49,3 +49,9 @@
   background: var(--aqua-secondary-hover) !important;
   cursor: pointer;
 }
+
+.error-message {
+  width: 100%;
+  font-size: 14px;
+  text-align: center;
+}

@@ -179,6 +179,6 @@ const updateDatasetManifest = createLogic({
 export default [
     requestAnnotations,
     receiveAnnotationsLogic,
-    updateDatasetManifest,
     requestDataSources,
+    updateDatasetManifest,
 ];

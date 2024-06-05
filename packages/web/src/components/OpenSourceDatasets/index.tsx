@@ -4,7 +4,9 @@ import { useDispatch } from "react-redux";
 import DatasetTable from "./DatasetTable";
 import DatasetDetails from "../DatasetDetails";
 import { DatasetManifestUrl } from "../../constants";
+import { DatasetAnnotations } from "../../entity/PublicDataset";
 import { metadata } from "../../../../core/state";
+import FileFilter from "../../../../core/entity/FileFilter";
 
 import styles from "./OpenSourceDatasets.module.css";
 
@@ -15,8 +17,22 @@ import styles from "./OpenSourceDatasets.module.css";
 export default function OpenSourceDatasets() {
     const dispatch = useDispatch();
     // Begin update action so dataset manifest is ready for table child component
-    dispatch(
-        metadata.actions.updateDatasetManifest("Dataset Manifest", DatasetManifestUrl.PRODUCTION)
+    React.useEffect(() => {
+        dispatch(
+            metadata.actions.updateDatasetManifest(
+                "Dataset Manifest",
+                DatasetManifestUrl.PRODUCTION
+            )
+        );
+    }, [dispatch]);
+
+    const internalDatasetFilter = new FileFilter(
+        DatasetAnnotations.SOURCE.displayLabel,
+        "internal"
+    );
+    const externalDatasetFilter = new FileFilter(
+        DatasetAnnotations.SOURCE.displayLabel,
+        "external"
     );
 
     return (
@@ -38,12 +54,11 @@ export default function OpenSourceDatasets() {
                 </div>
                 <div className={styles.content}>
                     <div className={styles.tableHeader}>
-                        Datasets from the Allen Institute {/* for Cell Science */}
+                        Datasets from the Allen Institute for Cell Science
                     </div>
-                    <DatasetTable />
-                    {/* TODO: Conditionally render additional datasets */}
-                    {/* <div className={styles.tableHeader}>Additional contributed datasets</div>
-                    <DatasetTable /> */}
+                    <DatasetTable filters={[internalDatasetFilter]} />
+                    <div className={styles.tableHeader}>Additional contributed datasets</div>
+                    <DatasetTable filters={[externalDatasetFilter]} />
                 </div>
             </div>
             <DatasetDetails />
