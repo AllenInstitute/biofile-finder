@@ -44,7 +44,12 @@ export default function QueryDataSource(props: Props) {
             addButtonIconName="Folder"
             onDelete={
                 selectedDataSources.length > 1
-                    ? (dataSource) => dispatch(selection.actions.removeDataSource(dataSource))
+                    ? (dataSource) =>
+                          dispatch(
+                              selection.actions.changeDataSources(
+                                  selectedDataSources.filter((s) => s.name !== dataSource)
+                              )
+                          )
                     : undefined
             }
             onRenderAddMenuList={
@@ -60,13 +65,13 @@ export default function QueryDataSource(props: Props) {
                                       item && (
                                           <ListRow
                                               item={item}
-                                              // TODO: Need modal to add the data source to this current query after not just create a new one...
                                               onSelect={() =>
                                                   item.data
                                                       ? dispatch(
-                                                            selection.actions.addDataSource(
-                                                                item.data as Source
-                                                            )
+                                                            selection.actions.changeDataSources([
+                                                                ...selectedDataSources,
+                                                                item.data as Source,
+                                                            ])
                                                         )
                                                       : dispatch(
                                                             interaction.actions.promptForDataSource(
@@ -80,8 +85,11 @@ export default function QueryDataSource(props: Props) {
                                                   item.data &&
                                                   selectedDataSources.length > 1 &&
                                                   dispatch(
-                                                      selection.actions.removeDataSource(
-                                                          item.data.name
+                                                      selection.actions.changeDataSources(
+                                                          selectedDataSources.filter(
+                                                              (source) =>
+                                                                  source.name !== item.data?.name
+                                                          )
                                                       )
                                                   )
                                               }

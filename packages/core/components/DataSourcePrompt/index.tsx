@@ -30,6 +30,7 @@ const DATA_SOURCE_DETAILS = [
 export default function DataSourcePrompt(props: Props) {
     const dispatch = useDispatch();
 
+    const selectedDataSources = useSelector(selection.selectors.getSelectedDataSources);
     const dataSourceInfo = useSelector(interaction.selectors.getDataSourceInfoForVisibleModal);
     const { source: sourceToReplace, query } = dataSourceInfo || {};
 
@@ -40,7 +41,7 @@ export default function DataSourcePrompt(props: Props) {
         if (sourceToReplace) {
             dispatch(selection.actions.replaceDataSource(source));
         } else if (query) {
-            dispatch(selection.actions.addDataSource(source));
+            dispatch(selection.actions.changeDataSources([...selectedDataSources, source]));
         } else {
             dispatch(
                 selection.actions.addQuery({

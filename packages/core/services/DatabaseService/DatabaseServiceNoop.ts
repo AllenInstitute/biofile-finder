@@ -1,12 +1,12 @@
 import DatabaseService from ".";
 
-export default class DatabaseServiceNoop implements DatabaseService {
-    public addDataSource() {
-        return Promise.reject("DatabaseServiceNoop:addDataSource");
+export default class DatabaseServiceNoop extends DatabaseService {
+    public execute(): Promise<void> {
+        return Promise.reject("DatabaseServiceNoop:execute");
     }
 
-    public createViewOfDataSources() {
-        return Promise.reject("DatabaseServiceNoop::createViewOfDataSources");
+    public prepareDataSources() {
+        return Promise.reject("DatabaseServiceNoop::prepareDataSources");
     }
 
     public saveQuery(): Promise<Uint8Array> {
@@ -15,5 +15,9 @@ export default class DatabaseServiceNoop implements DatabaseService {
 
     public query(): Promise<{ [key: string]: string }[]> {
         return Promise.reject("DatabaseServiceNoop:query");
+    }
+
+    protected addDataSource(): Promise<void> {
+        return Promise.reject("DatabaseServiceNoop:addDataSource");
     }
 }

@@ -33,10 +33,6 @@ import {
     REMOVE_QUERY,
     RemoveQuery,
     ChangeDataSourcesAction,
-    ADD_DATA_SOURCE,
-    AddDataSource,
-    RemoveDataSource,
-    REMOVE_DATA_SOURCE,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
@@ -137,23 +133,13 @@ export default makeReducer<SelectionStateBranch>(
         },
         [CHANGE_DATA_SOURCES]: (state, action: ChangeDataSourcesAction) => ({
             ...state,
-            annotationHierarchy: [],
-            dataSources: action.payload,
-            filters: [],
+            dataSources: uniqBy(action.payload, "name"),
             fileSelection: new FileSelection(),
             openFileFolders: [],
         }),
         [ADD_QUERY]: (state, action) => ({
             ...state,
             queries: [action.payload, ...state.queries],
-        }),
-        [ADD_DATA_SOURCE]: (state, action: AddDataSource) => ({
-            ...state,
-            dataSources: uniqBy([...state.dataSources, action.payload], "name"),
-        }),
-        [REMOVE_DATA_SOURCE]: (state, action: RemoveDataSource) => ({
-            ...state,
-            dataSources: state.dataSources.filter((source) => source.name !== action.payload),
         }),
         [CHANGE_QUERY]: (state, action: ChangeQuery) => ({
             ...state,

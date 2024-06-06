@@ -76,7 +76,7 @@ export default class DatabaseFileService implements FileService {
         const sql = fileSet
             .toQuerySQLBuilder()
             .select(`COUNT(*) AS ${select_key}`)
-            .from(`"${this.dataSourceNames.join(", ")}"`)
+            .from(this.dataSourceNames)
             // Remove sort if present
             .orderBy()
             .toSQL();
@@ -102,12 +102,9 @@ export default class DatabaseFileService implements FileService {
      * and potentially starting from a particular file_id and limited to a set number of files.
      */
     public async getFiles(request: GetFilesRequest): Promise<FileDetail[]> {
-        // TODO: temp
-        await this.databaseService.createViewOfDataSources(this.dataSourceNames);
-
         const sql = request.fileSet
             .toQuerySQLBuilder()
-            .from(`"${this.dataSourceNames.join(", ")}"`)
+            .from(this.dataSourceNames)
             .offset(request.from * request.limit)
             .limit(request.limit)
             .toSQL();
@@ -131,39 +128,31 @@ export default class DatabaseFileService implements FileService {
     ): Promise<DownloadResult> {
         const sqlBuilder = new SQLBuilder()
             .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
-            .from(`"${this.dataSourceNames[0]}"`);
+            .from(this.dataSourceNames);
 
         selections.forEach((selection) => {
             selection.indexRanges.forEach((indexRange) => {
-                const subQuerySql = this.dataSourceNames
-                    .map((dataSource) => {
-                        const subQuery = new SQLBuilder()
-                            .select("File Path")
-                            .from(`"${dataSource}"`)
-                            .whereOr(
-                                Object.entries(selection.filters).map(([column, values]) => {
-                                    const commaSeperatedValues = values
-                                        .map((v) => `'${v}'`)
-                                        .join(", ");
-                                    return `"${column}" IN (${commaSeperatedValues}}`;
-                                })
-                            )
-                            .offset(indexRange.start)
-                            .limit(indexRange.end - indexRange.start + 1);
+                const subQuery = new SQLBuilder()
+                    .select("File Path")
+                    .from(this.dataSourceNames)
+                    .whereOr(
+                        Object.entries(selection.filters).map(([column, values]) => {
+                            const commaSeperatedValues = values.map((v) => `'${v}'`).join(", ");
+                            return `"${column}" IN (${commaSeperatedValues})`;
+                        })
+                    )
+                    .offset(indexRange.start)
+                    .limit(indexRange.end - indexRange.start + 1);
 
-                        if (selection.sort) {
-                            subQuery.orderBy(
-                                `"${selection.sort.annotationName}" ${
-                                    selection.sort.ascending ? "ASC" : "DESC"
-                                }`
-                            );
-                        }
+                if (selection.sort) {
+                    subQuery.orderBy(
+                        `"${selection.sort.annotationName}" ${
+                            selection.sort.ascending ? "ASC" : "DESC"
+                        }`
+                    );
+                }
 
-                        return subQuery.toSQL();
-                    })
-                    .join(" UNION ");
-
-                sqlBuilder.whereOr(`"File Path" IN (${subQuerySql})`);
+                sqlBuilder.whereOr(`"File Path" IN (${subQuery.toSQL()})`);
             });
         });
 
@@ -184,11 +173,7 @@ export default class DatabaseFileService implements FileService {
             };
         }
 
-        const buffer = await this.databaseService.saveQuery(
-            uniqueId(),
-            `SELECT * FROM "${this.dataSourceNames[0]}" LIMIT 2`,
-            format
-        );
+        const buffer = await this.databaseService.saveQuery(uniqueId(), sqlBuilder.toSQL(), format);
         const name = `file-selection-${new Date()}.${format}`;
         return this.downloadService.download(
             {

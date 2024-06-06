@@ -75,7 +75,13 @@ export default class FileExplorerURL {
             params.append("openFolder", JSON.stringify(folder.fileFolder));
         });
         urlComponents.sources?.map((source) => {
-            params.append("source", JSON.stringify(source));
+            params.append(
+                "source",
+                JSON.stringify({
+                    ...source,
+                    uri: source.uri instanceof String ? source.uri : undefined,
+                })
+            );
         });
         if (urlComponents.sortColumn) {
             params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));

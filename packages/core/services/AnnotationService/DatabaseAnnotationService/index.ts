@@ -1,11 +1,8 @@
-import { uniqBy } from "lodash";
-
 import AnnotationService, { AnnotationValue } from "..";
 import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
-import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import SQLBuilder from "../../../entity/SQLBuilder";
 
 interface Config {
@@ -33,38 +30,11 @@ export default class DatabaseAnnotationService implements AnnotationService {
         this.databaseService = config.databaseService;
     }
 
-    private static columnTypeToAnnotationType(columnType: string): string {
-        switch (columnType) {
-            case "INTEGER":
-            case "BIGINT":
-            // TODO: Add support for column types
-            // https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues/60
-            // return AnnotationType.NUMBER;
-            case "VARCHAR":
-            case "TEXT":
-            default:
-                return AnnotationType.STRING;
-        }
-    }
-
     /**
      * Fetch all annotations.
      */
     public async fetchAnnotations(): Promise<Annotation[]> {
-        const sql = new SQLBuilder()
-            .from("information_schema.columns")
-            .where(`table_name IN ('${this.dataSourceNames.join("', '")}')`)
-            .toSQL();
-        const rows = await this.databaseService.query(sql);
-        return uniqBy(rows, "column_name").map(
-            (row) =>
-                new Annotation({
-                    annotationDisplayName: row["column_name"],
-                    annotationName: row["column_name"],
-                    description: "",
-                    type: DatabaseAnnotationService.columnTypeToAnnotationType(row["data_type"]),
-                })
-        );
+        return this.databaseService.fetchAnnotations(this.dataSourceNames);
     }
 
     /**
@@ -74,7 +44,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
         const select_key = "select_key";
         const sql = new SQLBuilder()
             .select(`DISTINCT "${annotation}" AS ${select_key}`)
-            .from(`"${this.dataSourceNames.join(", ")}"`)
+            .from(this.dataSourceNames)
             .toSQL();
         const rows = await this.databaseService.query(sql);
         return [
@@ -113,7 +83,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
         const sqlBuilder = new SQLBuilder()
             .select(`DISTINCT "${hierarchy[path.length]}"`)
-            .from(`"${this.dataSourceNames.join(", ")}"`);
+            .from(this.dataSourceNames);
 
         Object.keys(filtersByAnnotation).forEach((annotation) => {
             const annotationValues = filtersByAnnotation[annotation];
@@ -137,7 +107,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
     public async fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]> {
         const sql = new SQLBuilder()
             .summarize()
-            .from(`"${this.dataSourceNames.join(", ")}"`)
+            .from(this.dataSourceNames)
             .where(annotations.map((annotation) => `"${annotation}" IS NOT NULL`))
             .toSQL();
         const rows = (await this.databaseService.query(sql)) as SummarizeQueryResult[];

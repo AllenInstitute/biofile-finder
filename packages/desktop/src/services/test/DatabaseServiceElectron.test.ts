@@ -23,7 +23,7 @@ describe("DatabaseServiceElectron", () => {
         await service.close();
     });
 
-    describe("addDataSource", () => {
+    describe("prepareDataSources", () => {
         it("creates table from file of type csv", async () => {
             // Arrange
             const tempFileName = "test.csv";
@@ -31,7 +31,7 @@ describe("DatabaseServiceElectron", () => {
             await fs.promises.writeFile(tempFile, "color\nblue\ngreen\norange");
 
             // Act
-            await service.addDataSource(tempFileName, "csv", tempFile);
+            await service.prepareDataSources([{ name: tempFileName, type: "csv", uri: tempFile }]);
 
             // Assert
             const result = await service.query(`SELECT * FROM "${tempFileName}"`);
@@ -48,7 +48,7 @@ describe("DatabaseServiceElectron", () => {
             );
 
             // Act
-            await service.addDataSource(tempFileName, "json", tempFile);
+            await service.prepareDataSources([{ name: tempFileName, type: "json", uri: tempFile }]);
 
             // Assert
             const result = await service.query(`SELECT * FROM "${tempFileName}"`);
