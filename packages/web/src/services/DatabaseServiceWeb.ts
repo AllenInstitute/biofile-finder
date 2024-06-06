@@ -5,7 +5,6 @@ import { DatabaseService } from "../../../core/services";
 export default class DatabaseServiceWeb implements DatabaseService {
     private database: duckdb.AsyncDuckDB | undefined;
     private readonly existingDataSources = new Set<string>();
-    private readonly datasetManifests = new Set<string>();
 
     public async initialize(logLevel: duckdb.LogLevel = duckdb.LogLevel.INFO) {
         const allBundles = duckdb.getJsDelivrBundles();
@@ -67,30 +66,6 @@ export default class DatabaseServiceWeb implements DatabaseService {
                     );
                 }
                 this.existingDataSources.add(name);
-            } finally {
-                await connection.close();
-            }
-        }
-    }
-
-    public async addDatasetManifest(name: string, uri: string): Promise<void> {
-        if (!this.database) {
-            throw new Error("Database failed to initialize");
-        }
-        if (!this.datasetManifests.has(name)) {
-            const protocol = uri.startsWith("s3") // It should be s3, but in case it moves
-                ? duckdb.DuckDBDataProtocol.S3
-                : duckdb.DuckDBDataProtocol.HTTP;
-
-            await this.database.registerFileURL(name, uri, protocol, false);
-
-            const connection = await this.database.connect();
-            try {
-                // Currently assuming the manifest will stay csv
-                await connection.query(
-                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true);`
-                );
-                this.datasetManifests.add(name);
             } finally {
                 await connection.close();
             }

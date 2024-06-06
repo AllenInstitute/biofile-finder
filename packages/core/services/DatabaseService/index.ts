@@ -8,8 +8,6 @@ export default interface DatabaseService {
         uri: File | string
     ): Promise<void>;
 
-    addDatasetManifest(name: string, uri: string): Promise<void>;
-
     saveQuery(
         destination: string,
         sql: string,

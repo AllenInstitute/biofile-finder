@@ -5,10 +5,6 @@ export default class DatabaseServiceNoop implements DatabaseService {
         return Promise.reject("DatabaseServiceNoop:addDataSource");
     }
 
-    public addDatasetManifest() {
-        return Promise.reject("DatabaseServiceNoop:addDatasetManifest");
-    }
-
     public saveQuery(): Promise<Uint8Array> {
         return Promise.reject("DatabaseServiceNoop:saveQuery");
     }
