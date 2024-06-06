@@ -46,7 +46,7 @@ describe("Selection reducer", () => {
     );
 
     describe(selection.actions.CHANGE_DATA_SOURCES, () => {
-        it("clears hierarchy, filters, file selection, and open folders", () => {
+        it("clears file selection and open folders", () => {
             // Arrange
             const state = {
                 ...selection.initialState,
@@ -76,10 +76,8 @@ describe("Selection reducer", () => {
             );
 
             // Assert
-            expect(actual.annotationHierarchy).to.be.empty;
             expect(actual.dataSources).to.deep.equal(dataSources);
             expect(actual.fileSelection.count()).to.equal(0);
-            expect(actual.filters).to.be.empty;
             expect(actual.openFileFolders).to.be.empty;
         });
     });

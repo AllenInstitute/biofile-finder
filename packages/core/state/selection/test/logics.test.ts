@@ -931,7 +931,6 @@ describe("Selection logics", () => {
                 name: "Test Data Source",
                 version: 1,
                 type: "csv",
-                uri: "",
             },
         ];
 
