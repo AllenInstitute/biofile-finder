@@ -30,10 +30,7 @@ export default function DatasetDetails() {
             let datasetFieldValue;
             if (datasetDetails.details.hasOwnProperty(fieldName)) {
                 datasetFieldValue = _get(datasetDetails.details, fieldName);
-            }
-            if (!datasetFieldValue) {
-                return accum;
-            }
+            } else datasetFieldValue = "--"; // Still display field, just indicate no value provided
             const ret = [
                 ...accum,
                 <DatasetDetailsRow

@@ -1,6 +1,7 @@
 import {
     IDetailsRowProps,
     createTheme,
+    IColumn,
     IRenderFunction,
     SelectionMode,
     ThemeProvider,
@@ -13,6 +14,7 @@ import { columns } from "./DatasetColumns";
 import DatasetRow from "./DatasetRow";
 import useDatasetDetails from "./useDatasetDetails";
 import FileFilter from "../../../../core/entity/FileFilter";
+import { PublicDatasetProps } from "../../entity/PublicDataset";
 
 import styles from "./DatasetTable.module.css";
 
@@ -45,6 +47,16 @@ export default function DatasetTable(props: DatasetTableProps) {
         },
     });
 
+    function renderItemColumn(
+        item: PublicDatasetProps,
+        _: number | undefined,
+        column: IColumn | undefined
+    ) {
+        const fieldContent = item[column?.fieldName as keyof PublicDatasetProps] as string;
+        if (!fieldContent) return <>--</>;
+        return fieldContent;
+    }
+
     return (
         <div className={styles.table}>
             <ThemeProvider theme={shimmeredDetailsListTheme}>
@@ -63,6 +75,7 @@ export default function DatasetTable(props: DatasetTableProps) {
                         contentWrapper: styles.tableContent,
                     }}
                     onRenderRow={(props, defaultRender) => renderRow(props, defaultRender)}
+                    onRenderItemColumn={renderItemColumn}
                     removeFadingOverlay
                     shimmerLines={1}
                     styles={{
@@ -70,6 +83,9 @@ export default function DatasetTable(props: DatasetTableProps) {
                     }}
                 ></ShimmeredDetailsList>
             </ThemeProvider>
+            {(!items || items?.length == 0) && (
+                <div className={styles.errorMessage}>No datasets found</div>
+            )}
             {error && <div className={styles.errorMessage}>{error}</div>}
         </div>
     );
