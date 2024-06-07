@@ -12,6 +12,13 @@ describe("FileExplorerURL", () => {
         type: "csv",
     };
 
+    const mockSourceWithUri: Source = {
+        ...mockSource,
+        uri: "fake-uri.test",
+    };
+
+    const mockOS = "Darwin";
+
     describe("encode", () => {
         it("Encodes hierarchy, filters, open folders, and collection", () => {
             // Arrange
@@ -148,6 +155,137 @@ describe("FileExplorerURL", () => {
 
             // Act / Assert
             expect(() => FileExplorerURL.decode(encodedUrl)).to.throw();
+        });
+    });
+
+    describe("convert to python pandas string", () => {
+        it("converts groupings", () => {
+            // Arrange
+            const expectedAnnotationNames = ["Cell Line", "Donor Plasmid", "Lifting?"];
+            const components: Partial<FileExplorerURLComponents> = {
+                hierarchy: expectedAnnotationNames,
+                sources: [mockSourceWithUri],
+            };
+            const expectedPandasGroups = expectedAnnotationNames.map(
+                (annotation) => `.groupby('${annotation}', group_keys=True).apply(lambda x: x)`
+            );
+            const expectedResult = `df${expectedPandasGroups.join("")}`;
+
+            // Act
+            const result = FileExplorerURL.convertToPython(components, mockOS);
+
+            // Assert
+            expect(result).to.contain(expectedResult);
+        });
+
+        it("converts filters", () => {
+            // Arrange
+            const expectedFilters = [
+                { name: "Cas9", value: "spCas9" },
+                { name: "Donor Plasmid", value: "ACTB-mEGFP" },
+            ];
+            const components: Partial<FileExplorerURLComponents> = {
+                filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                sources: [mockSourceWithUri],
+            };
+            const expectedPandasQueries = expectedFilters.map(
+                (filter) => `\`${filter.name}\`=="${filter.value}"`
+            );
+            const expectedResult = `df.query('${expectedPandasQueries[0]}').query('${expectedPandasQueries[1]}')`;
+
+            // Act
+            const result = FileExplorerURL.convertToPython(components, mockOS);
+
+            // Assert
+            expect(result).to.contain(expectedResult);
+        });
+
+        it("converts same filter with multiple values", () => {
+            // Arrange
+            const expectedFilters = [
+                { name: "Gene", value: "AAVS1" },
+                { name: "Gene", value: "ACTB" },
+            ];
+            const components: Partial<FileExplorerURLComponents> = {
+                filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                sources: [mockSourceWithUri],
+            };
+            const expectedPandasQueries = expectedFilters.map(
+                (filter) => `\`${filter.name}\`=="${filter.value}"`
+            );
+            const expectedResult = `df.query('${expectedPandasQueries[0]} | ${expectedPandasQueries[1]}')`;
+
+            // Act
+            const result = FileExplorerURL.convertToPython(components, mockOS);
+
+            // Assert
+            expect(result).to.contain(expectedResult);
+        });
+
+        it("converts sorts", () => {
+            // Arrange
+            const components: Partial<FileExplorerURLComponents> = {
+                sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
+                sources: [mockSourceWithUri],
+            };
+            const expectedPandasSort = `.sort_values(by='${AnnotationName.UPLOADED}', ascending=False`;
+            const expectedResult = `df${expectedPandasSort}`;
+
+            // Act
+            const result = FileExplorerURL.convertToPython(components, mockOS);
+
+            // Assert
+            expect(result).to.contain(expectedResult);
+        });
+
+        it("provides info on converting external data source to pandas dataframe", () => {
+            // Arrange
+            const components: Partial<FileExplorerURLComponents> = {
+                sources: [mockSourceWithUri],
+            };
+            const expectedResult = `df = pd.read_csv('${mockSourceWithUri.uri}').astype('str')`;
+
+            // Act
+            const result = FileExplorerURL.convertToPython(components, mockOS);
+
+            // Assert
+            expect(result).to.contain(expectedResult);
+        });
+
+        it("adds raw flag in pandas conversion code for Windows OS", () => {
+            // Arrange
+            const components: Partial<FileExplorerURLComponents> = {
+                sources: [mockSourceWithUri],
+            };
+            const expectedResult = `df = pd.read_csv(r'${mockSourceWithUri.uri}').astype('str')`;
+
+            // Act
+            const result = FileExplorerURL.convertToPython(components, "Windows_NT");
+
+            // Assert
+            expect(result).to.contain(expectedResult);
+        });
+
+        it("arranges query elements in correct order", () => {
+            // Arrange
+            const expectedAnnotationNames = ["Plate Barcode"];
+            const expectedFilters = [
+                { name: "Cas9", value: "spCas9" },
+                { name: "Donor Plasmid", value: "ACTB-mEGFP" },
+            ];
+            const components: Partial<FileExplorerURLComponents> = {
+                hierarchy: expectedAnnotationNames,
+                filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
+                sources: [mockSourceWithUri],
+            };
+            const expectedResult = /df\.groupby\(.*\)\.query\(.*\)\.query\(.*\)\.sort_values\(.*\)/i;
+
+            // Act
+            const result = FileExplorerURL.convertToPython(components, mockOS);
+
+            // Assert
+            expect(result).to.match(expectedResult);
         });
     });
 });

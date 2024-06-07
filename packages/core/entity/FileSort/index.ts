@@ -30,7 +30,7 @@ export default class FileSort {
         return {
             annotationName: this.annotationName,
             order: this.order,
-        }
+        };
     }
 
     public equals(other?: FileSort): boolean {

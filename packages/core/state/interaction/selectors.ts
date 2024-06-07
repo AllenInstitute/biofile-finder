@@ -2,7 +2,7 @@ import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
-import { getSelectedDataSources } from "../selection/selectors";
+import { getSelectedDataSources, getPythonConversion } from "../selection/selectors";
 import { AnnotationService, FileService } from "../../services";
 import DatasetService, {
     DataSource,
@@ -67,12 +67,11 @@ export const getAllDataSources = createSelector(
             : dataSources
 );
 
-// TODO: Implement PythonicDataAccessSnippet
 export const getPythonSnippet = createSelector(
-    [],
-    (): PythonicDataAccessSnippet => {
-        const setup = "pip install pandas";
-        const code = "TODO";
+    [getPythonConversion],
+    (pythonQuery): PythonicDataAccessSnippet => {
+        const setup = `pip install \"pandas>=1.5\"`;
+        const code = `${pythonQuery}`;
 
         return { setup, code };
     }

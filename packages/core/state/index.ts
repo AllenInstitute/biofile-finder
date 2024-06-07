@@ -72,6 +72,9 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
     const displayAnnotations = rawDisplayAnnotations
         ? rawDisplayAnnotations.map((annotation) => new Annotation(annotation))
         : [];
+    const recentAnnotations = persistedConfig?.[PersistedConfigKeys.RecentAnnotations]?.length
+        ? persistedConfig?.[PersistedConfigKeys.RecentAnnotations]
+        : [];
     const preloadedState: State = mergeState(initialState, {
         interaction: {
             isOnWeb: !!options.isOnWeb,
@@ -107,6 +110,7 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
                     ),
                 },
             })),
+            recentAnnotations,
         },
     });
     return configureStore<State>({
