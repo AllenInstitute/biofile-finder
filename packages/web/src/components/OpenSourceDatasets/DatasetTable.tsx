@@ -10,7 +10,7 @@ import {
 import { ShimmeredDetailsList } from "@fluentui/react/lib/ShimmeredDetailsList";
 import * as React from "react";
 
-import { columns } from "./DatasetColumns";
+import { DatasetColumns } from "./DatasetColumns";
 import DatasetRow from "./DatasetRow";
 import useDatasetDetails from "./useDatasetDetails";
 import FileFilter from "../../../../core/entity/FileFilter";
@@ -63,7 +63,7 @@ export default function DatasetTable(props: DatasetTableProps) {
                 <ShimmeredDetailsList
                     setKey="items"
                     items={items || []}
-                    columns={columns}
+                    columns={DatasetColumns}
                     isHeaderVisible={true}
                     selectionMode={SelectionMode.none}
                     enableShimmer={isLoading}

@@ -2,7 +2,7 @@ import { IColumn } from "@fluentui/react";
 import { DatasetAnnotations } from "../../entity/PublicDataset";
 
 // TO DO: Use better pattern to avoid so many constants
-export const columns: IColumn[] = [
+export const DatasetColumns: IColumn[] = [
     {
         key: "column1",
         name: DatasetAnnotations.DATASET_NAME.displayLabel.toUpperCase(),
@@ -22,7 +22,6 @@ export const columns: IColumn[] = [
         key: "column3",
         name: DatasetAnnotations.RELATED_PUBLICATON.displayLabel.toUpperCase(),
         fieldName: DatasetAnnotations.RELATED_PUBLICATON.name,
-        // onColumnClick: this._onColumnClick,
         minWidth: 178,
         isResizable: true,
     },
