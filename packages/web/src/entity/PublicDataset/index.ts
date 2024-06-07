@@ -103,8 +103,8 @@ export default class PublicDataset {
             };
             Object.values(DatasetAnnotations).forEach((value) => {
                 const equivalentAnnotation = annotations.find((e) => e.name === value.displayLabel);
+                // csv may set empty fields to string of value 'null'
                 if (equivalentAnnotation && equivalentAnnotation.values[0] !== "null") {
-                    // csv may set empty fields to string of value 'null'
                     this.setMetadata(
                         mappedAnnotationsToProps,
                         value.name as keyof PublicDatasetProps,

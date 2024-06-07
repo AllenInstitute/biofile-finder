@@ -80,16 +80,16 @@ export function requestDataSources(): RequestDataSourcesAction {
 }
 
 /**
- * UPDATE_DATASET_MANIFEST
+ * REQUEST_DATASET_MANIFEST
  *
- * Intention to update listing of dataset manifests containing
+ * Intention to request listing of dataset manifests containing
  * metadata about available open-source datasets.
  *
  * Used in web only
  */
-export const UPDATE_DATASET_MANIFEST = makeConstant(STATE_BRANCH_NAME, "update-dataset-manifest");
+export const REQUEST_DATASET_MANIFEST = makeConstant(STATE_BRANCH_NAME, "request-dataset-manifest");
 
-export interface UpdateDatasetManifest {
+export interface RequestDatasetManifest {
     payload: {
         name: string;
         uri: string;
@@ -97,10 +97,10 @@ export interface UpdateDatasetManifest {
     type: string;
 }
 
-export function updateDatasetManifest(name: string, uri: string): UpdateDatasetManifest {
+export function requestDatasetManifest(name: string, uri: string): RequestDatasetManifest {
     return {
         payload: { name, uri },
-        type: UPDATE_DATASET_MANIFEST,
+        type: REQUEST_DATASET_MANIFEST,
     };
 }
 

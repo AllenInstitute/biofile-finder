@@ -7,9 +7,7 @@ export function makePublicDatasetMock(id: string): PublicDataset {
         dataset_name: `${id} Interphase and prophase shape-matched cells`,
         dataset_path: "/fake/path/to/dataset.csv",
         dataset_size: "10000",
-        description: `This is a longer description of this dataset to help users 
-            understand what this dataset is. We may need a “read more” affordance here 
-            and then another way to go to a full readme type description page. ID: ${id}`,
+        description: `This is a test description for dataset ID: ${id}`,
         file_count: "200000",
         created: "Jan-02-2023",
         published: "Jan-04-2023",

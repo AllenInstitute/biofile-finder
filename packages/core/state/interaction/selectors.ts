@@ -124,6 +124,7 @@ export const getFileService = createSelector(
 
 /**
  * Selector specifically for open-source dataset manifest, re-using regular file service interface.
+ * Unlike getFileService, returns undefined if no dataset manifest is present
  * Used in web only
  */
 export const getPublicDatasetManifestService = createSelector(

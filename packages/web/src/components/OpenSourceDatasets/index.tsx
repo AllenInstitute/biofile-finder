@@ -16,10 +16,10 @@ import styles from "./OpenSourceDatasets.module.css";
  */
 export default function OpenSourceDatasets() {
     const dispatch = useDispatch();
-    // Begin update action so dataset manifest is ready for table child component
+    // Begin request action so dataset manifest is ready for table child component
     React.useEffect(() => {
         dispatch(
-            metadata.actions.updateDatasetManifest(
+            metadata.actions.requestDatasetManifest(
                 "Dataset Manifest",
                 DatasetManifestUrl.PRODUCTION
             )

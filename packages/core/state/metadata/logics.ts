@@ -10,8 +10,8 @@ import {
     receiveDataSources,
     REQUEST_ANNOTATIONS,
     REQUEST_DATA_SOURCES,
-    UPDATE_DATASET_MANIFEST,
-    UpdateDatasetManifest,
+    REQUEST_DATASET_MANIFEST,
+    RequestDatasetManifest,
 } from "./actions";
 import * as metadataSelectors from "./selectors";
 import Annotation, { AnnotationName } from "../../entity/Annotation";
@@ -150,14 +150,14 @@ const requestDataSources = createLogic({
 });
 
 /**
- * Interceptor responsible for passing the UPDATE_DATASET_MANIFEST action to the database service.
- * Outputs RECEIVE_DATASET_MANIFEST action to update state.
+ * Interceptor responsible for passing the REQUEST_DATASET_MANIFEST action to the database service.
+ * Outputs RECEIVE_DATASET_MANIFEST action to request state.
  */
-const updateDatasetManifest = createLogic({
+const requestDatasetManifest = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const {
             payload: { name, uri },
-        } = deps.action as UpdateDatasetManifest;
+        } = deps.action as RequestDatasetManifest;
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
@@ -168,17 +168,17 @@ const updateDatasetManifest = createLogic({
                 dispatch(receiveDatasetManifest(name, uri));
             }
         } catch (err) {
-            console.error("Failed to update dataset manifest", err);
+            console.error("Failed to add dataset manifest", err);
         } finally {
             done();
         }
     },
-    type: UPDATE_DATASET_MANIFEST,
+    type: REQUEST_DATASET_MANIFEST,
 });
 
 export default [
     requestAnnotations,
     receiveAnnotationsLogic,
     requestDataSources,
-    updateDatasetManifest,
+    requestDatasetManifest,
 ];
