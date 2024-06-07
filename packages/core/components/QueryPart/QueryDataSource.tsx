@@ -42,6 +42,7 @@ export default function QueryDataSource(props: Props) {
         <QueryPart
             title="Data Source"
             addButtonIconName="Folder"
+            disabled={selectedDataSources[0]?.name === AICS_FMS_DATA_SOURCE_NAME}
             onDelete={
                 selectedDataSources.length > 1
                     ? (dataSource) =>

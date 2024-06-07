@@ -11,6 +11,7 @@ export default abstract class DatabaseService {
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
+    private readonly dataSourceToAnnotationsMap: Map<string, Annotation[]> = new Map();
 
     public abstract saveQuery(
         _destination: string,
@@ -59,11 +60,15 @@ export default abstract class DatabaseService {
 
     protected async deleteDataSource(dataSource: string): Promise<void> {
         this.existingDataSources.delete(dataSource);
+        this.dataSourceToAnnotationsMap.delete(dataSource);
         await this.execute(`DROP TABLE IF EXISTS "${dataSource}"`);
     }
 
     private async aggregateDataSources(dataSources: Source[]): Promise<void> {
-        const viewName = dataSources.sort().join(", ");
+        const viewName = dataSources
+            .map((source) => source.name)
+            .sort()
+            .join(", ");
 
         if (this.currentAggregateSource) {
             // Prevent adding the same data source multiple times by shortcutting out here
@@ -88,15 +93,19 @@ export default abstract class DatabaseService {
             // scratch so we can provide an easy shortcut around the default way of adding
             // data to a table
             if (columnsSoFar.size === 0) {
-                await this.execute(`CREATE TABLE "${viewName}" AS SELECT * FROM "${dataSource}"`);
+                await this.execute(
+                    `CREATE TABLE "${viewName}" AS SELECT *, '${dataSource.name}' AS "Data source" FROM "${dataSource.name}"`
+                );
                 this.currentAggregateSource = viewName;
             } else {
                 // If adding data to an existing table we will need to add any new columns
+                // unsure why but seemingly unable to add multiple columns in one alter table
+                // statement so we will need to loop through and add them one by one
                 if (newColumns.length) {
-                    await this.execute(`
-                        ALTER TABLE "${viewName}"
-                        ADD ${newColumns.map((c) => `"${c}" VARCHAR`).join(", ")}
-                    `);
+                    const alterTableSQL = newColumns
+                        .map((column) => `ALTER TABLE "${viewName}" ADD COLUMN "${column}" VARCHAR`)
+                        .join("; ");
+                    await this.execute(alterTableSQL);
                 }
 
                 // After we have added any new columns to the table schema we just need
@@ -104,13 +113,13 @@ export default abstract class DatabaseService {
                 // columns with an empty value (null)
                 const columnsSoFarArr = [...columnsSoFar, ...newColumns];
                 await this.execute(`
-                    INSERT INTO "${viewName}" ("${columnsSoFarArr.join('", "')}")
+                    INSERT INTO "${viewName}" ("${columnsSoFarArr.join('", "')}", "Data source")
                     SELECT ${columnsSoFarArr
                         .map((column) =>
                             columnsInDataSource.includes(column) ? `"${column}"` : "NULL"
                         )
-                        .join(", ")}
-                    FROM "${dataSource}"
+                        .join(", ")}, '${dataSource.name}' AS "Data source"
+                    FROM "${dataSource.name}"
                 `);
             }
 
@@ -121,19 +130,25 @@ export default abstract class DatabaseService {
     }
 
     public async fetchAnnotations(dataSourceNames: string[]): Promise<Annotation[]> {
-        const sql = new SQLBuilder()
-            .from('information_schema"."columns')
-            .where(`table_name = '${dataSourceNames.sort().join("', '")}'`)
-            .toSQL();
-        const rows = await this.query(sql);
-        return rows.map(
-            (row) =>
-                new Annotation({
-                    annotationDisplayName: row["column_name"],
-                    annotationName: row["column_name"],
-                    description: "",
-                    type: DatabaseService.columnTypeToAnnotationType(row["data_type"]),
-                })
-        );
+        const aggregateDataSourceName = dataSourceNames.sort().join(", ");
+        if (!this.dataSourceToAnnotationsMap.has(aggregateDataSourceName)) {
+            const sql = new SQLBuilder()
+                .from('information_schema"."columns')
+                .where(`table_name = '${aggregateDataSourceName}'`)
+                .toSQL();
+            const rows = await this.query(sql);
+            const annotations = rows.map(
+                (row) =>
+                    new Annotation({
+                        annotationDisplayName: row["column_name"],
+                        annotationName: row["column_name"],
+                        description: "",
+                        type: DatabaseService.columnTypeToAnnotationType(row["data_type"]),
+                    })
+            );
+            this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);
+        }
+
+        return this.dataSourceToAnnotationsMap.get(aggregateDataSourceName) || [];
     }
 }

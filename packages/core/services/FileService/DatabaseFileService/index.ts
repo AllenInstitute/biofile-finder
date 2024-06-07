@@ -51,10 +51,18 @@ export default class DatabaseFileService implements FileService {
         return new FileDetail({
             annotations: [
                 ...annotations,
-                ...Object.entries(omit(row, ...annotations.keys())).map(([name, values]: any) => ({
-                    name,
-                    values: `${values}`.split(",").map((value: string) => value.trim()),
-                })),
+                ...Object.entries(omit(row, ...annotations.keys())).flatMap(([name, values]: any) =>
+                    values !== null
+                        ? [
+                              {
+                                  name,
+                                  values: `${values}`
+                                      .split(",")
+                                      .map((value: string) => value.trim()),
+                              },
+                          ]
+                        : []
+                ),
             ],
         });
     }
@@ -133,7 +141,7 @@ export default class DatabaseFileService implements FileService {
         selections.forEach((selection) => {
             selection.indexRanges.forEach((indexRange) => {
                 const subQuery = new SQLBuilder()
-                    .select("File Path")
+                    .select('"File Path"')
                     .from(this.dataSourceNames)
                     .whereOr(
                         Object.entries(selection.filters).map(([column, values]) => {
