@@ -1,3 +1,7 @@
+.table-row {
+  position: relative;
+}
+
 .table-row > div:first-child {
   color: var(--secondary-text-color);
   background-color: var(--secondary-dark);
@@ -6,24 +10,6 @@
   font-family: var(--font-family);
   font-size: 14px;
   font-weight: 400;
-}
-
-.table-row {
-  position: relative;
-}
-
-.table-content div {
-  display: inline-block;
-  text-overflow: ellipsis;
-  word-wrap: break-word;
-  overflow: hidden;
-  max-height: 3.6em;
-  line-height: 1.8em;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .table-row > div:hover:first-child, .table-row > div:hover {

@@ -21,33 +21,20 @@
   color: var(--secondary-text-color);
 }
 
-.table-content > div {
-  color: var(--secondary-text-color);
-  background-color: var(--secondary-dark);
-  background: var(--secondary-dark) !important;
-  border-bottom: 1px solid var(--borders-light-grey);
-  font-family: var(--font-family);
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.table-content > div:last-of-type {
-  border-bottom: none;
-}
-
-/* .table-content div {
-  display: inline-block;
-  text-overflow: ellipsis;
-  word-wrap: break-word;
+.double-line {
+  outline: transparent;
+  position: relative;
+  min-height: 30px;
+  max-height: 40px;
+  vertical-align: top;
+  white-space: normal;
   overflow: hidden;
-  max-height: 3.6em;
-  line-height: 1.8em;
-} */
-
-.table-content > div:hover {
-  color: var(--secondary-text-color);
-  background: var(--aqua-secondary-hover) !important;
-  cursor: pointer;
+  text-overflow: ellipsis;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important; /* number of lines to show */
+          line-clamp: 2; 
+  -webkit-box-orient: vertical !important;
+  word-wrap: break-word !important;
 }
 
 .error-message {

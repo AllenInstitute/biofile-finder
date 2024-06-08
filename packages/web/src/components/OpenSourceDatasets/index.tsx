@@ -53,11 +53,11 @@ export default function OpenSourceDatasets() {
                     </div>
                 </div>
                 <div className={styles.content}>
-                    <div className={styles.tableHeader}>
+                    <div className={styles.tableTitle}>
                         Datasets from the Allen Institute for Cell Science
                     </div>
                     <DatasetTable filters={[internalDatasetFilter]} />
-                    <div className={styles.tableHeader}>Additional contributed datasets</div>
+                    <div className={styles.tableTitle}>Additional contributed datasets</div>
                     <DatasetTable filters={[externalDatasetFilter]} />
                 </div>
             </div>
