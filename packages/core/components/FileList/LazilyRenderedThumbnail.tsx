@@ -1,7 +1,6 @@
 import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
-import { open, HTTPStore } from "zarrita";
 
 import FileSet from "../../entity/FileSet";
 import FileThumbnail from "../../components/FileThumbnail";
@@ -52,6 +51,14 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
     const file = fileSet.getFileByIndex(overallIndex);
     const thumbnailSize = measuredWidth / fileGridColCount - 2 * MARGIN;
 
+    const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>(undefined);
+
+    React.useEffect(() => {
+        if (file) {
+            file.getPathToThumbnail().then(setThumbnailPath);
+        }
+    }, [file]);
+
     const isSelected = React.useMemo(() => {
         return fileSelection.isSelected(fileSet, overallIndex);
     }, [fileSelection, fileSet, overallIndex]);
@@ -59,23 +66,6 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
     const isFocused = React.useMemo(() => {
         return fileSelection.isFocused(fileSet, overallIndex);
     }, [fileSelection, fileSet, overallIndex]);
-
-    const [zarrImage, setZarrImage] = React.useState<string | null>(null);
-
-    React.useEffect(() => {
-        const loadZarrImage = async () => {
-            if (file?.getPathToThumbnail()?.endsWith(".zarr")) {
-                const store = new HTTPStore(file.getPathToThumbnail()!);
-                const z = await open<ArrayBuffer>({ store, path: "" });
-                const data = await z.getRaw();
-                const blob = new Blob([data], { type: "image/png" });
-                const url = URL.createObjectURL(blob);
-                setZarrImage(url);
-            }
-        };
-
-        loadZarrImage();
-    }, [file]);
 
     const onClick = (evt: React.MouseEvent) => {
         evt.preventDefault();
@@ -106,9 +96,6 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
 
     let content;
     if (file) {
-        const thumbnailPath = file.getPathToThumbnail()?.endsWith(".zarr")
-            ? zarrImage
-            : file.getPathToThumbnail();
         const filenameForRender = clipFileName(file?.name);
         content = (
             <div
@@ -123,7 +110,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
                     className={styles.thumbnail}
                     height={thumbnailSize}
                     width={thumbnailSize}
-                    uri={thumbnailPath || ""}
+                    uri={thumbnailPath}
                 />
                 <div
                     className={classNames(styles.fileLabel, {

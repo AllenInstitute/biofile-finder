@@ -1,11 +1,11 @@
 import { FmsFileAnnotation } from "../../services/FileService";
+import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
 
 // Should probably record this somewhere we can dynamically adjust to, or perhaps just in the file
 // document itself, alas for now this will do.
 const HARD_CODED_AICS_S3_BUCKET_PATH = "http://production.files.allencell.org.s3.amazonaws.com";
-
 const AICS_FMS_FILES_NGINX_SERVER = "http://aics.corp.alleninstitute.org/labkey/fmsfiles/image";
 
 /**
@@ -160,10 +160,18 @@ export default class FileDetail {
         return this.fileDetail.annotations.find((annotation) => annotation.name === annotationName);
     }
 
-    public getPathToThumbnail(): string | undefined {
-        // If no thumbnail present try to render the file itself as the thumbnail
-        if (this.path.endsWith(".zarr")) {
-            return "http://production.files.allencell.org.s3.amazonaws.com/ba8/0f7/c92/4ba/664/a78/744/91f/35b/48d/6b/multi-test-12230.zarr";
+    public async getPathToThumbnail(): Promise<string | undefined> {
+        if (this.cloudPath.endsWith(".zarr")) {
+            try {
+                // const thumbnailURL = await renderZarrThumbnailURL(this.cloudPath);
+                const thumbnailURL = await renderZarrThumbnailURL(
+                    "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/variance/136244.zarr"
+                );
+                return thumbnailURL;
+            } catch (error) {
+                console.error("Error generating Zarr thumbnail:", error);
+                throw new Error("Unable to generate Zarr thumbnail");
+            }
         }
 
         if (!this.thumbnail) {
