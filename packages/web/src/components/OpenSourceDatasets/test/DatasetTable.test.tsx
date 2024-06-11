@@ -44,6 +44,7 @@ describe("<DatasetTable />", () => {
         // Arrange
         const fileService = new DatabaseFileService();
         sandbox.replace(fileService, "getCountOfMatchingFiles", () => Promise.resolve(0));
+        sandbox.stub(useDatasetDetails, "default").callsFake(() => [[], false, undefined]);
 
         const { findByText } = render(
             <Provider store={store}>

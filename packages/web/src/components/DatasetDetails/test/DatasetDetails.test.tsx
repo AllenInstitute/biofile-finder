@@ -113,6 +113,97 @@ describe("<DatasetDetails />", () => {
             expect(getAllByLabelText(/Close/).length).to.equal(2);
         });
     });
+    describe("show/hide full description", () => {
+        const mockRouter = createBrowserRouter([
+            {
+                path: "/",
+                element: <DatasetDetails />,
+            },
+        ]);
+        const mockDescriptionShort = "This is a string that has 40 characters.";
+
+        it("hides the read more/less buttons for short descriptions", () => {
+            // Arrange
+            const mockDataset = new PublicDataset({
+                dataset_name: "Mock Dataset",
+                description: mockDescriptionShort,
+            });
+
+            const { store } = configureMockStore({
+                state: mergeState(initialState, {
+                    interaction: {
+                        selectedPublicDataset: mockDataset,
+                    },
+                }),
+            });
+            const { getByText, queryByText } = render(
+                <Provider store={store}>
+                    <RouterProvider router={mockRouter} />
+                </Provider>
+            );
+
+            // Act/Assert
+            expect(getByText(mockDescriptionShort)).to.exist;
+            expect(queryByText("Read more")).not.to.exist;
+            expect(queryByText("Read less")).not.to.exist;
+        });
+
+        it("renders the read more button for long descriptions", () => {
+            // Arrange
+            const mockDescriptionLong = mockDescriptionShort.repeat(10);
+            const mockDataset = new PublicDataset({
+                dataset_name: "Mock Dataset",
+                description: mockDescriptionLong,
+            });
+
+            const { store } = configureMockStore({
+                state: mergeState(initialState, {
+                    interaction: {
+                        selectedPublicDataset: mockDataset,
+                    },
+                }),
+            });
+            const { getByText, queryByText } = render(
+                <Provider store={store}>
+                    <RouterProvider router={mockRouter} />
+                </Provider>
+            );
+
+            // Act/Assert
+            expect(getByText(new RegExp(mockDescriptionShort, "i"))).to.exist;
+            expect(queryByText("Read more")).to.exist;
+            expect(queryByText("Read less")).not.to.exist;
+        });
+
+        it("renders only the read less button on click", async () => {
+            // Arrange
+            const mockDescriptionLong = mockDescriptionShort.repeat(10);
+            const mockDataset = new PublicDataset({
+                dataset_name: "Mock Dataset",
+                description: mockDescriptionLong,
+            });
+
+            const { store } = configureMockStore({
+                state: mergeState(initialState, {
+                    interaction: {
+                        selectedPublicDataset: mockDataset,
+                    },
+                }),
+            });
+            const { getByText, findByText, queryByText } = render(
+                <Provider store={store}>
+                    <RouterProvider router={mockRouter} />
+                </Provider>
+            );
+
+            // Act
+            fireEvent.click(getByText("Read more"));
+
+            // Assert
+            expect(await findByText("Read less")).to.exist;
+            expect(queryByText("Read more")).not.to.exist;
+        });
+    });
     describe("loadDataset", () => {
         const mockRouter = createBrowserRouter([
             {

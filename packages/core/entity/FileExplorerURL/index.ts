@@ -53,7 +53,7 @@ export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
     const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
     let extensionGuess = uriResource.split(".").pop();
     if (!(extensionGuess === "csv" || extensionGuess === "json" || extensionGuess === "parquet")) {
-        console.warn("Guess that the source is a CSV file since no extension easily found");
+        console.warn("Assuming the source is csv since no extension was recognized");
         extensionGuess = "csv";
     }
     return { name, extensionGuess };

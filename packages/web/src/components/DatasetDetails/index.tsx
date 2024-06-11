@@ -19,6 +19,14 @@ export default function DatasetDetails() {
     const datasetDetails: PublicDataset | undefined = useSelector(
         interaction.selectors.getSelectedPublicDataset
     );
+    const [showLongDescription, setShowLongDescription] = React.useState(false);
+    const isLongDescription: boolean = React.useMemo(() => {
+        if (!datasetDetails) {
+            return false;
+        }
+        // Allow slightly longer than 5 lines
+        return datasetDetails.description.length > 280;
+    }, [datasetDetails]);
 
     const content: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
         if (!datasetDetails) {
@@ -67,6 +75,12 @@ export default function DatasetDetails() {
         });
     };
 
+    const toggleDescriptionButton = (
+        <a className={styles.link} onClick={() => setShowLongDescription(!showLongDescription)}>
+            Read {showLongDescription ? "less" : "more"}
+        </a>
+    );
+
     return (
         <div
             className={classNames(styles.panel, {
@@ -95,10 +109,18 @@ export default function DatasetDetails() {
                 />
                 <hr></hr>
                 <div className={styles.content}>
-                    {datasetDetails?.description}
+                    <div
+                        className={classNames({
+                            [styles.descriptionTruncated]:
+                                !showLongDescription && isLongDescription,
+                        })}
+                    >
+                        {datasetDetails?.description}
+                    </div>
+                    {isLongDescription && toggleDescriptionButton}
                     <div className={styles.list}>{content}</div>
                     <DefaultButton
-                        className={classNames(styles.secondaryCloseButton)}
+                        className={styles.secondaryCloseButton}
                         ariaLabel="Close panel"
                         styles={{ label: styles.secondaryCloseButtonLabel }}
                         title="Close panel"

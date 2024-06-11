@@ -78,7 +78,7 @@ export default function DatasetTable(props: DatasetTableProps) {
                     shimmerLines={1}
                 ></ShimmeredDetailsList>
             </ThemeProvider>
-            {(!items || items?.length == 0) && (
+            {!isLoading && (!items || items?.length == 0) && (
                 <div className={styles.errorMessage}>No datasets found</div>
             )}
             {error && <div className={styles.errorMessage}>{error}</div>}

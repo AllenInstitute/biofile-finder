@@ -58,6 +58,29 @@ hr {
   padding: var(--margin) 0;
 }
 
+.description-truncated {
+  min-height: 30px;
+  max-height: 150px;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 5 !important; /* number of lines to show */
+          line-clamp: 5; 
+  -webkit-box-orient: vertical !important;
+  word-wrap: break-word !important;
+}
+
+.link {
+  color: var(--aqua)
+}
+
+.link:hover, .link:focus {
+  text-decoration: underline;
+  color: var(--bright-aqua);
+  cursor: pointer;
+}
+
 .list {
   /* flex parent */
   display: flex;
