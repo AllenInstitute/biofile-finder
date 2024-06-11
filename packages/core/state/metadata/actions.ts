@@ -78,3 +78,50 @@ export function requestDataSources(): RequestDataSourcesAction {
         type: REQUEST_DATA_SOURCES,
     };
 }
+
+/**
+ * REQUEST_DATASET_MANIFEST
+ *
+ * Intention to request listing of dataset manifests containing
+ * metadata about available open-source datasets.
+ *
+ * Used in web only
+ */
+export const REQUEST_DATASET_MANIFEST = makeConstant(STATE_BRANCH_NAME, "request-dataset-manifest");
+
+export interface RequestDatasetManifest {
+    payload: {
+        name: string;
+        uri: string;
+    };
+    type: string;
+}
+
+export function requestDatasetManifest(name: string, uri: string): RequestDatasetManifest {
+    return {
+        payload: { name, uri },
+        type: REQUEST_DATASET_MANIFEST,
+    };
+}
+
+/**
+ * RECEIVE_DATASET_MANIFEST
+ *
+ * Intention to store dataset manifest containing metadata about available open-source datasets
+ */
+export const RECEIVE_DATASET_MANIFEST = makeConstant(STATE_BRANCH_NAME, "receive-dataset-manifest");
+
+export interface ReceiveDatasetManifestAction {
+    payload: {
+        name: string;
+        uri: string;
+    };
+    type: string;
+}
+
+export function receiveDatasetManifest(name: string, uri: string): ReceiveDatasetManifestAction {
+    return {
+        payload: { name, uri },
+        type: RECEIVE_DATASET_MANIFEST,
+    };
+}
