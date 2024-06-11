@@ -51,10 +51,18 @@ export default class DatabaseFileService implements FileService {
         return new FileDetail({
             annotations: [
                 ...annotations,
-                ...Object.entries(omit(row, ...annotations.keys())).map(([name, values]: any) => ({
-                    name,
-                    values: `${values}`.split(",").map((value: string) => value.trim()),
-                })),
+                ...Object.entries(omit(row, ...annotations.keys())).flatMap(([name, values]: any) =>
+                    values !== null
+                        ? [
+                              {
+                                  name,
+                                  values: `${values}`
+                                      .split(",")
+                                      .map((value: string) => value.trim()),
+                              },
+                          ]
+                        : []
+                ),
             ],
         });
     }
@@ -80,6 +88,7 @@ export default class DatabaseFileService implements FileService {
             // Remove sort if present
             .orderBy()
             .toSQL();
+
         const rows = await this.databaseService.query(sql);
         return parseInt(rows[0][select_key], 10);
     }
@@ -103,15 +112,11 @@ export default class DatabaseFileService implements FileService {
     public async getFiles(request: GetFilesRequest): Promise<FileDetail[]> {
         const sql = request.fileSet
             .toQuerySQLBuilder()
-            .select(
-                `*, COALESCE(${this.dataSourceNames
-                    .map((source) => `"${source}"."File Path"`)
-                    .join(", ")}) AS "File Path"`
-            )
             .from(this.dataSourceNames)
             .offset(request.from * request.limit)
             .limit(request.limit)
             .toSQL();
+
         const rows = await this.databaseService.query(sql);
         return rows.map((row, index) =>
             DatabaseFileService.convertDatabaseRowToFileDetail(
@@ -136,16 +141,12 @@ export default class DatabaseFileService implements FileService {
         selections.forEach((selection) => {
             selection.indexRanges.forEach((indexRange) => {
                 const subQuery = new SQLBuilder()
-                    .select(
-                        `COALESCE(${this.dataSourceNames
-                            .map((source) => `"${source}"."File Path"`)
-                            .join(", ")}) AS "File Path"`
-                    )
+                    .select('"File Path"')
                     .from(this.dataSourceNames)
                     .whereOr(
                         Object.entries(selection.filters).map(([column, values]) => {
                             const commaSeperatedValues = values.map((v) => `'${v}'`).join(", ");
-                            return `"${column}" IN (${commaSeperatedValues}}`;
+                            return `"${column}" IN (${commaSeperatedValues})`;
                         })
                     )
                     .offset(indexRange.start)
@@ -159,7 +160,7 @@ export default class DatabaseFileService implements FileService {
                     );
                 }
 
-                sqlBuilder.whereOr(`"File Path" IN (${subQuery})`);
+                sqlBuilder.whereOr(`"File Path" IN (${subQuery.toSQL()})`);
             });
         });
 

@@ -14,39 +14,35 @@ import FileFolder from "../../../entity/FileFolder";
 import { DataSource } from "../../../services/DataSourceService";
 
 describe("Selection reducer", () => {
-    [selection.actions.SET_ANNOTATION_HIERARCHY, interaction.actions.INITIALIZE_APP].forEach(
-        (actionConstant) =>
-            it(`clears selected file state when ${actionConstant} is fired`, () => {
-                // arrange
-                const prevSelection = new FileSelection().select({
-                    fileSet: new FileSet(),
-                    index: new NumericRange(1, 3),
-                    sortOrder: 0,
-                });
-                const initialSelectionState = {
-                    ...selection.initialState,
-                    fileSelection: prevSelection,
-                };
-
-                const action = {
-                    type: actionConstant,
-                };
-
-                // act
-                const nextSelectionState = selection.reducer(initialSelectionState, action);
-                const nextSelection = selection.selectors.getFileSelection({
-                    ...initialState,
-                    selection: nextSelectionState,
-                });
-
-                // assert
-                expect(prevSelection.count()).to.equal(3); // sanity-check
-                expect(nextSelection.count()).to.equal(0);
-            })
+    [
+        selection.actions.setAnnotationHierarchy([]),
+        interaction.actions.initializeApp("base"),
+    ].forEach((expectedAction) =>
+        it(`clears selected file state when ${expectedAction.type} is fired`, () => {
+            // arrange
+            const prevSelection = new FileSelection().select({
+                fileSet: new FileSet(),
+                index: new NumericRange(1, 3),
+                sortOrder: 0,
+            });
+            const initialSelectionState = {
+                ...selection.initialState,
+                fileSelection: prevSelection,
+            };
+            // act
+            const nextSelectionState = selection.reducer(initialSelectionState, expectedAction);
+            const nextSelection = selection.selectors.getFileSelection({
+                ...initialState,
+                selection: nextSelectionState,
+            });
+            // assert
+            expect(prevSelection.count()).to.equal(3); // consistency check
+            expect(nextSelection.count()).to.equal(0);
+        })
     );
 
     describe(selection.actions.CHANGE_DATA_SOURCES, () => {
-        it("clears hierarchy, filters, file selection, and open folders", () => {
+        it("clears file selection and open folders", () => {
             // Arrange
             const state = {
                 ...selection.initialState,
@@ -76,10 +72,8 @@ describe("Selection reducer", () => {
             );
 
             // Assert
-            expect(actual.annotationHierarchy).to.be.empty;
             expect(actual.dataSources).to.deep.equal(dataSources);
             expect(actual.fileSelection.count()).to.equal(0);
-            expect(actual.filters).to.be.empty;
             expect(actual.openFileFolders).to.be.empty;
         });
     });

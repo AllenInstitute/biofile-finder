@@ -17,44 +17,6 @@ import {
 const STATE_BRANCH_NAME = "selection";
 
 /**
- * ADD_DATA_SOURCE
- *
- * Intention is to add a data source to the current query
- */
-export const ADD_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "add-data-source");
-
-export interface AddDataSource {
-    payload: Source;
-    type: string;
-}
-
-export function addDataSource(source: Source): AddDataSource {
-    return {
-        payload: source,
-        type: ADD_DATA_SOURCE,
-    };
-}
-
-/**
- * REMOVE_DATA_SOURCE
- *
- * Intention is to remove a data source from the current query
- */
-export const REMOVE_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "remove-data-source");
-
-export interface RemoveDataSource {
-    payload: string;
-    type: string;
-}
-
-export function removeDataSource(sourceName: string): RemoveDataSource {
-    return {
-        payload: sourceName,
-        type: REMOVE_DATA_SOURCE,
-    };
-}
-
-/**
  * SET_FILE_FILTERS
  *
  * Intention to set, wholesale, a list of FileFilters into application state. This should not be dispatched

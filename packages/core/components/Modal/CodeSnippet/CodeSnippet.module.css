@@ -25,4 +25,39 @@
 .code {
     cursor: text;
     user-select: text !important;
+    min-width: 300px;
+}
+
+.button-menu, .button-menu button {
+    background-color: var(--secondary-background-color);
+    color: var(--secondary-text-color);
+}
+
+.button-menu i, .button-menu li > div {
+    color: var(--secondary-text-color);
+}
+
+.button-menu :is(a, button):hover, .button-menu button:hover i {
+    background-color: var(--highlight-background-color);
+    color: var(--highlight-text-color) !important;
+}
+
+.code-actions {
+    max-width: 100%;
+    padding: 0 var(--padding) 0 var(--padding);
+
+    /* flex parent */
+    display: flex;
+}
+
+.action-button {
+    background-color: var(--primary-background-color);
+    border: none;
+    border-radius: 0;
+    color: var(--primary-text-color);
+    width: 200px;
+}
+
+.action-button i, .action-button:hover i {
+    color: var(--primary-text-color) !important;
 }

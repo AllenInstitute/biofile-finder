@@ -1,8 +1,8 @@
-import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { AnnotationName } from "../Annotation";
 import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 export interface Source {
     name: string;
@@ -75,7 +75,13 @@ export default class FileExplorerURL {
             params.append("openFolder", JSON.stringify(folder.fileFolder));
         });
         urlComponents.sources?.map((source) => {
-            params.append("source", JSON.stringify(source));
+            params.append(
+                "source",
+                JSON.stringify({
+                    ...source,
+                    uri: source.uri instanceof String ? source.uri : undefined,
+                })
+            );
         });
         if (urlComponents.sortColumn) {
             params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
@@ -120,5 +126,107 @@ export default class FileExplorerURL {
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
                 .map((parsedFolder) => new FileFolder(parsedFolder)),
         };
+    }
+
+    public static convertToPython(
+        urlComponents: Partial<FileExplorerURLComponents>,
+        userOS: string
+    ) {
+        if (
+            (urlComponents?.sources?.length && urlComponents.sources.length > 1) ||
+            urlComponents?.sources?.[0]?.name === AICS_FMS_DATA_SOURCE_NAME ||
+            !urlComponents?.sources?.[0]?.uri
+        ) {
+            return "# Coming soon";
+        }
+        const sourceString = this.convertDataSourceToPython(urlComponents?.sources?.[0], userOS);
+        const groupByQueryString =
+            urlComponents.hierarchy
+                ?.map((annotation) => this.convertGroupByToPython(annotation))
+                .join("") || "";
+
+        // Group filters by name and use OR to concatenate same filter values
+        const filterGroups = new Map();
+        urlComponents.filters?.forEach((filter) => {
+            const pythonQueryString = filterGroups.get(filter.name);
+            if (!pythonQueryString) {
+                filterGroups.set(filter.name, this.convertFilterToPython(filter));
+            } else {
+                filterGroups.set(
+                    filter.name,
+                    pythonQueryString.concat(` | ${this.convertFilterToPython(filter)}`)
+                );
+            }
+        });
+
+        // Chain the filters together
+        let filterQueryString = "";
+        filterGroups.forEach((value) => {
+            filterQueryString = filterQueryString.concat(`.query('${value}')`);
+        });
+
+        const sortQueryString = urlComponents.sortColumn
+            ? this.convertSortToPython(urlComponents.sortColumn)
+            : "";
+        // const fuzzy = [] // TO DO: support fuzzy filtering
+
+        const hasQueryElements = groupByQueryString || filterQueryString || sortQueryString;
+        const imports = "import pandas as pd\n\n";
+        const comment = hasQueryElements ? "#Query on dataframe df" : "#No options selected";
+        const fullQueryString = `${comment}${
+            hasQueryElements &&
+            `\ndf_queried = df${groupByQueryString}${filterQueryString}${sortQueryString}`
+        }`;
+        return `${imports}${sourceString}${fullQueryString}`;
+    }
+
+    private static convertSortToPython(sortColumn: FileSort) {
+        return `.sort_values(by='${sortColumn.annotationName}', ascending=${
+            sortColumn.order == "ASC" ? "True" : "False"
+        })`;
+    }
+
+    private static convertGroupByToPython(annotation: string) {
+        return `.groupby('${annotation}', group_keys=True).apply(lambda x: x)`;
+    }
+
+    private static convertFilterToPython(filter: FileFilter) {
+        // TO DO: Support querying non-string types
+        if (filter.value.includes("RANGE")) {
+            return;
+            //     let begin, end;
+            //     return `\`${filter.name}\`>="${begin}"&\`${filter.name}\`<"${end}"`
+        }
+        return `\`${filter.name}\`=="${filter.value}"`;
+    }
+
+    private static convertDataSourceToPython(source: Source | undefined, userOS: string) {
+        const isUsingWindowsOS = userOS === "Windows_NT" || userOS.includes("Windows NT");
+        const rawFlagForWindows = isUsingWindowsOS ? "r" : "";
+
+        if (typeof source?.uri === "string") {
+            const comment = "#Convert current datasource file to a pandas dataframe";
+
+            // Currently suggest setting all fields to strings; otherwise pandas assumes type conversions
+            // TO DO: Address different non-string type conversions
+            const code = `df = pd.read_${source.type}(${rawFlagForWindows}'${source.uri}').astype('str')`;
+            // This only works if we assume that the file types will only be csv, parquet or json
+
+            return `${comment}\n${code}\n\n`;
+        } else if (source?.uri) {
+            // Any other type, i.e., File. `instanceof` breaks testing library
+            // Adding strings to avoid including unwanted white space
+            const inputFileLineComment =
+                " # Unable to automatically determine " +
+                "local file location in the browser. Modify this variable to " +
+                "represent the full path to your .csv, .json, or .parquet data sources\n";
+            const inputFileError =
+                "if not input_file:\n" +
+                '\traise Exception("Must supply the data source location for the query")\n';
+            const inputFileCode = 'input_file = ""' + inputFileLineComment + inputFileError;
+
+            const conversionCode = `df = pd.read_${source.type}(input_file).astype('str')`;
+            return `${inputFileCode}\n${conversionCode}\n\n`;
+        } else return ""; // Safeguard. Should not reach else
     }
 }

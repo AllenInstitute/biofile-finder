@@ -21,6 +21,7 @@ export const getFileFilters = (state: State) => state.selection.filters;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getIsDarkTheme = (state: State) => state.selection.isDarkTheme;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
+export const getRecentAnnotations = (state: State) => state.selection.recentAnnotations;
 export const getSelectedDataSources = (state: State) => state.selection.dataSources;
 export const getSelectedQuery = (state: State) => state.selection.selectedQuery;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
@@ -29,6 +30,7 @@ export const getShouldDisplayThumbnailView = (state: State) =>
 export const getSortColumn = (state: State) => state.selection.sortColumn;
 export const getTutorial = (state: State) => state.selection.tutorial;
 export const getQueries = (state: State) => state.selection.queries;
+const getPlatformDependentServices = (state: State) => state.interaction.platformDependentServices; // Importing normally creates a circular dependency
 
 // COMPOSED SELECTORS
 export const hasQuerySelected = createSelector([getSelectedQuery], (query): boolean => !!query);
@@ -58,6 +60,29 @@ export const getCurrentQueryParts = createSelector(
 export const getEncodedFileExplorerUrl = createSelector(
     [getCurrentQueryParts],
     (queryParts): string => FileExplorerURL.encode(queryParts)
+);
+
+export const getPythonConversion = createSelector(
+    [
+        getPlatformDependentServices,
+        getAnnotationHierarchy,
+        getFileFilters,
+        getOpenFileFolders,
+        getSortColumn,
+        getSelectedDataSources,
+    ],
+    (platformDependentServices, hierarchy, filters, openFolders, sortColumn, sources) => {
+        return FileExplorerURL.convertToPython(
+            {
+                hierarchy,
+                filters,
+                openFolders,
+                sortColumn,
+                sources,
+            },
+            platformDependentServices.executionEnvService.getOS()
+        );
+    }
 );
 
 export const getGroupedByFilterName = createSelector(

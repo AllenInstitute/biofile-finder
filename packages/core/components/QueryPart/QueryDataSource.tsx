@@ -23,12 +23,17 @@ export default function QueryDataSource(props: Props) {
     return (
         <QueryPart
             title="Data source"
+            disabled={selectedDataSources[0]?.name === AICS_FMS_DATA_SOURCE_NAME}
             onDelete={
                 selectedDataSources.length > 1
-                    ? (dataSource) => dispatch(selection.actions.removeDataSource(dataSource))
+                    ? (dataSource) =>
+                          dispatch(
+                              selection.actions.changeDataSources(
+                                  selectedDataSources.filter((s) => s.name !== dataSource)
+                              )
+                          )
                     : undefined
             }
-            disabled={selectedDataSources[0]?.name === AICS_FMS_DATA_SOURCE_NAME}
             addMenuListItems={[
                 {
                     key: "ADD DATA SOURCE",

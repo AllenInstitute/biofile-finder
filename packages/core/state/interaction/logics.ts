@@ -478,10 +478,10 @@ const refresh = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         try {
             const { getState } = deps;
+            const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
             const annotationService = interactionSelectors.getAnnotationService(getState());
 
             // Refresh list of annotations & which annotations are available
-            const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
             const [annotations, availableAnnotations] = await Promise.all([
                 annotationService.fetchAnnotations(),
                 annotationService.fetchAvailableAnnotationsForHierarchy(hierarchy),

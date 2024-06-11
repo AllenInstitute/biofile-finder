@@ -1,34 +1,11 @@
 import { expect } from "chai";
 
-import Annotation from "../../../../entity/Annotation";
 import FileFilter from "../../../../entity/FileFilter";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
 
 import DatabaseAnnotationService from "..";
 
 describe("DatabaseAnnotationService", () => {
-    describe("fetchAnnotations", () => {
-        const annotations = ["A", "B", "Cc", "dD"].map((name) => ({
-            name,
-        }));
-        class MockDatabaseService extends DatabaseServiceNoop {
-            public query(): Promise<{ [key: string]: string }[]> {
-                return Promise.resolve(annotations);
-            }
-        }
-        const databaseService = new MockDatabaseService();
-
-        it("issues request for all available Annotations", async () => {
-            const annotationService = new DatabaseAnnotationService({
-                dataSourceNames: [],
-                databaseService,
-            });
-            const actualAnnotations = await annotationService.fetchAnnotations();
-            expect(actualAnnotations.length).to.equal(1);
-            expect(actualAnnotations[0]).to.be.instanceOf(Annotation);
-        });
-    });
-
     describe("fetchAnnotationValues", () => {
         const annotations = ["A", "B", "Cc", "dD"].map((name, index) => ({
             select_key: name.toLowerCase() + index,

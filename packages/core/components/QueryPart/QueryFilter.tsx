@@ -39,14 +39,11 @@ export default function QueryFilter(props: Props) {
             onRenderAddMenuList={() => (
                 <AnnotationPicker
                     id={Tutorial.FILE_ATTRIBUTE_FILTER_ID}
-                    disableUnavailableAnnotations
                     title="Select metadata to filter by"
                     annotationSubMenuRenderer={(annotationItem) => (
                         <AnnotationFilterForm annotation={annotationItem.data as Annotation} />
                     )}
-                    selections={annotations.filter((annotation) =>
-                        props.filters.some((f) => f.name === annotation.name)
-                    )}
+                    selections={props.filters.map((filter) => filter.name)}
                     setSelections={() => dispatch(selection.actions.setFileFilters([]))}
                 />
             )}

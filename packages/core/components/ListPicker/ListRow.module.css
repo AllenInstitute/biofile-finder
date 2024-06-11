@@ -37,6 +37,13 @@
 .selected {
     background-color: var(--secondary-background-color);
     color: var(--secondary-text-color);
+    margin:  calc(var(--spacing) / 4) 0
+}
+
+.isBuffer {
+    background-color: var(--secondary-text-color);
+    height: 3px;
+    pointer-events: none; 
 }
 
 .item-container, .item-container label {

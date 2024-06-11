@@ -38,12 +38,12 @@ import FileDownloadService, {
 } from "../../../services/FileDownloadService";
 import FileViewerService from "../../../services/FileViewerService";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
-import { DatabaseService } from "../../../services";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import NotificationServiceNoop from "../../../services/NotificationService/NotificationServiceNoop";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import FileDetail, { FmsFile } from "../../../entity/FileDetail";
+import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({
@@ -58,15 +58,9 @@ describe("Interaction logics", () => {
         }
     }
 
-    class MockDatabaseService implements DatabaseService {
+    class MockDatabaseService extends DatabaseServiceNoop {
         saveQuery() {
             return Promise.resolve(new Uint8Array());
-        }
-        addDataSource() {
-            return Promise.reject("addDataSource mock");
-        }
-        query() {
-            return Promise.reject("query mock");
         }
     }
 

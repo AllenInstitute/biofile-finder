@@ -5,79 +5,15 @@ import * as path from "path";
 import duckdb from "duckdb";
 
 import { DatabaseService } from "../../../core/services";
+import { Source } from "../../../core/entity/FileExplorerURL";
+import DataSourcePreparationError from "../../../core/errors/DataSourcePreparationError";
 
-export default class DatabaseServiceElectron implements DatabaseService {
+export default class DatabaseServiceElectron extends DatabaseService {
     private database: duckdb.Database;
-    private readonly existingDataSources = new Set<string>();
 
     constructor() {
+        super();
         this.database = new duckdb.Database(":memory:");
-    }
-
-    public async addDataSource(
-        name: string,
-        type: "csv" | "json" | "parquet",
-        uri: File | string
-    ): Promise<void> {
-        if (this.existingDataSources.has(name)) {
-            return; // no-op
-        }
-
-        let source: string;
-        let tempLocation;
-        try {
-            if (typeof uri === "string") {
-                source = uri;
-            } else {
-                source = path.resolve(os.tmpdir(), name);
-                const arrayBuffer = await uri.arrayBuffer();
-                const writeStream = fs.createWriteStream(source);
-                await new Promise<void>((resolve, reject) => {
-                    writeStream.write(Buffer.from(arrayBuffer), (error) => {
-                        if (error) {
-                            reject(error);
-                        } else {
-                            resolve();
-                        }
-                    });
-                });
-                tempLocation = source;
-            }
-
-            await new Promise<void>((resolve, reject) => {
-                const callback = (err: any) => {
-                    if (err) {
-                        reject(err.message);
-                    } else {
-                        resolve();
-                    }
-                };
-
-                if (type === "parquet") {
-                    this.database.run(
-                        `CREATE TABLE "${name}" AS FROM parquet_scan('${source}');`,
-                        callback
-                    );
-                } else if (type === "json") {
-                    this.database.run(
-                        `CREATE TABLE "${name}" AS FROM read_json_auto('${source}');`,
-                        callback
-                    );
-                } else {
-                    // Default to CSV
-                    this.database.exec(
-                        `CREATE TABLE "${name}" AS FROM read_csv_auto('${source}', header=true);`,
-                        callback
-                    );
-                }
-            });
-
-            this.existingDataSources.add(name);
-        } finally {
-            if (tempLocation) {
-                await fs.promises.unlink(tempLocation);
-            }
-        }
     }
 
     /**
@@ -130,6 +66,93 @@ export default class DatabaseServiceElectron implements DatabaseService {
                     resolve();
                 }
             });
+        });
+    }
+
+    protected async addDataSource(dataSource: Source): Promise<void> {
+        const { name, type, uri } = dataSource;
+        if (this.existingDataSources.has(name)) {
+            return; // no-op
+        }
+        if (!type || !uri) {
+            throw new DataSourcePreparationError(
+                "Data source type and URI are missing",
+                dataSource.name
+            );
+        }
+
+        let source: string;
+        let tempLocation;
+        this.existingDataSources.add(name);
+        try {
+            if (typeof uri === "string") {
+                source = uri;
+            } else {
+                source = path.resolve(os.tmpdir(), name);
+                const arrayBuffer = await uri.arrayBuffer();
+                const writeStream = fs.createWriteStream(source);
+                await new Promise<void>((resolve, reject) => {
+                    writeStream.write(Buffer.from(arrayBuffer), (error) => {
+                        if (error) {
+                            reject(error);
+                        } else {
+                            resolve();
+                        }
+                    });
+                });
+                tempLocation = source;
+            }
+
+            await new Promise<void>((resolve, reject) => {
+                const callback = (err: any) => {
+                    if (err) {
+                        reject(err.message);
+                    } else {
+                        resolve();
+                    }
+                };
+
+                if (type === "parquet") {
+                    this.database.run(
+                        `CREATE TABLE "${name}" AS FROM parquet_scan('${source}');`,
+                        callback
+                    );
+                } else if (type === "json") {
+                    this.database.run(
+                        `CREATE TABLE "${name}" AS FROM read_json_auto('${source}');`,
+                        callback
+                    );
+                } else {
+                    // Default to CSV
+                    this.database.exec(
+                        `CREATE TABLE "${name}" AS FROM read_csv_auto('${source}', header=true);`,
+                        callback
+                    );
+                }
+            });
+        } catch (err) {
+            await this.deleteDataSource(name);
+            throw new DataSourcePreparationError((err as Error).message, name);
+        } finally {
+            if (tempLocation) {
+                await fs.promises.unlink(tempLocation);
+            }
+        }
+    }
+
+    protected async execute(sql: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            try {
+                this.database.exec(sql, (err: any) => {
+                    if (err) {
+                        reject(err.message);
+                    } else {
+                        resolve();
+                    }
+                });
+            } catch (error) {
+                return Promise.reject(`${error}`);
+            }
         });
     }
 }

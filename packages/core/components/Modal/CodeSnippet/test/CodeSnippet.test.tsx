@@ -1,5 +1,5 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
@@ -11,6 +11,13 @@ describe("<CodeSnippet />", () => {
     const visibleDialogState = mergeState(initialState, {
         interaction: {
             visibleModal: ModalType.CodeSnippet,
+        },
+        selection: {
+            dataSources: [
+                {
+                    uri: "fake-uri.test",
+                },
+            ],
         },
     });
 
@@ -30,8 +37,8 @@ describe("<CodeSnippet />", () => {
 
     it("displays snippet when present in state", async () => {
         // Arrange
-        const setup = "pip install pandas";
-        const code = "TODO";
+        const setup = /pip install (")?pandas/;
+        const code = "#No options selected";
         const { store } = configureMockStore({ state: visibleDialogState });
         const { findByText } = render(
             <Provider store={store}>
@@ -40,7 +47,30 @@ describe("<CodeSnippet />", () => {
         );
 
         // Assert
-        expect(await findByText(setup)).to.exist;
+        expect(screen.findByText((_, element) => element?.textContent?.match(setup) !== null)).to
+            .exist;
+        expect(await findByText(code)).to.exist;
+    });
+
+    it("displays temporary 'coming soon' message for internal data sources", async () => {
+        // Arrange
+        const code = "# Coming soon";
+        const internalDataSourceState = {
+            ...visibleDialogState,
+            selection: {
+                dataSource: {
+                    uri: undefined,
+                },
+            },
+        };
+        const { store } = configureMockStore({ state: internalDataSourceState });
+        const { findByText } = render(
+            <Provider store={store}>
+                <Modal />
+            </Provider>
+        );
+
+        // Assert
         expect(await findByText(code)).to.exist;
     });
 });
