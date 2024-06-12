@@ -10,6 +10,33 @@ function grayscaleToRGB(value: number): [number, number, number] {
     return [r, g, b];
 }
 
+interface AxisData {
+    name: string;
+    type: "time" | "channel" | "space";
+    unit?: string;
+}
+
+// Define the type for the transformed array items
+interface TransformedAxes {
+    name: string;
+    value: number | null;
+}
+
+// Function to transform the array
+function transformAxes(originalArray: AxisData[]): TransformedAxes[] {
+    return originalArray.map((item) => {
+        let value: number | null;
+        if (item.type !== "space") {
+            // set non spatial to first occurence
+            value = 0;
+        } else {
+            value = null;
+        }
+
+        return { name: item.name, value: value };
+    });
+}
+
 export async function renderZarrThumbnailURL(zarrUrl: string): Promise<string> {
     try {
         const store = new FetchStore(zarrUrl);
@@ -21,27 +48,41 @@ export async function renderZarrThumbnailURL(zarrUrl: string): Promise<string> {
             Array.isArray(group.attrs.multiscales) &&
             group.attrs.multiscales.length > 0
         ) {
+            // Resolve file data
             const { multiscales } = group.attrs;
             const datasets = multiscales[0].datasets;
             const lowestResolutionDataset = datasets[datasets.length - 1];
             const lowestResolutionLocation = root.resolve(lowestResolutionDataset.path);
             const lowestResolution = await zarr.open(lowestResolutionLocation, { kind: "array" }); // TODO: check the filesize before slicing
 
-            const lowestResolutionView = await zarrGet(lowestResolution, [0, 0, 20, null, null]); // Adjusted slicing for 2D data
-            console.log("DATA", lowestResolutionView.data);
-            console.log("SHAPE", lowestResolutionView.shape);
-            const u16data = lowestResolutionView.data as Uint16Array;
+            // Determine Slice
+            const axes = transformAxes(multiscales[0].axes);
+            if (axes.some((item) => item.name === "z")) {
+                const zIndex = axes.findIndex((item) => item.name === "z");
+                const zSliceIndex = Math.ceil(lowestResolution.shape[zIndex] / 2);
+                axes[zIndex].value = zSliceIndex;
+            }
 
+            console.log(axes);
+            const lowestResolutionView = await zarrGet(
+                lowestResolution,
+                axes.map((item) => item.value)
+            );
+
+            console.log("SHAPE", lowestResolutionView.shape);
+
+            // Normalize Data
+            const u16data = lowestResolutionView.data as Uint16Array;
             const min = Math.min(...u16data);
             const max = Math.max(...u16data);
-
             const normalizedData = new Uint8Array(u16data.length);
             for (let i = 0; i < u16data.length; i++) {
                 normalizedData[i] = Math.round((255 * (u16data[i] - min)) / (max - min));
             }
 
-            const width = lowestResolutionView.shape[1];
-            const height = lowestResolutionView.shape[0];
+            // Draw Data
+            const width = lowestResolution.shape[axes.findIndex((item) => item.name === "x")];
+            const height = lowestResolution.shape[axes.findIndex((item) => item.name === "y")];
             const canvas = document.createElement("canvas");
             canvas.width = width;
             canvas.height = height;
@@ -67,8 +108,8 @@ export async function renderZarrThumbnailURL(zarrUrl: string): Promise<string> {
 
             context.putImageData(imageData, 0, 0);
 
+            // Convert data to data URL
             const dataUrl = canvas.toDataURL("image/png");
-
             return dataUrl;
         } else {
             throw new Error("Invalid multiscales attribute structure");
