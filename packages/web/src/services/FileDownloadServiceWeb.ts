@@ -39,9 +39,8 @@ export default class FileDownloadServiceWeb extends HttpServiceBase implements F
         }
     }
 
-    public async prepareHttpResourceForDownload(url: string, postBody: string): Promise<string> {
-        const responseAsJSON = await this.rawPost(url, postBody);
-        return JSON.stringify(responseAsJSON);
+    public prepareHttpResourceForDownload(url: string, postBody: string): Promise<object> {
+        return this.rawPost(url, postBody);
     }
 
     public getDefaultDownloadDirectory(): Promise<string> {

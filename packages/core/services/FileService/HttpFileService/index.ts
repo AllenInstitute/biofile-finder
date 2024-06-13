@@ -115,7 +115,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         const postData = JSON.stringify({ annotations, selections });
         const url = `${this.baseUrl}/${HttpFileService.BASE_CSV_DOWNLOAD_URL}${this.pathSuffix}`;
 
-        const manifestAsString = await this.downloadService.prepareHttpResourceForDownload(
+        const manifestAsJSON = await this.downloadService.prepareHttpResourceForDownload(
             url,
             postData
         );
@@ -125,7 +125,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
                 name,
                 id: name,
                 path: url,
-                data: manifestAsString,
+                data: new Blob([manifestAsJSON as BlobPart], { type: "application/json" }),
             },
             uniqueId()
         );
