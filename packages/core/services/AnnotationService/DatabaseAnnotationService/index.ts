@@ -33,7 +33,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
     /**
      * Fetch all annotations.
      */
-    public async fetchAnnotations(): Promise<Annotation[]> {
+    public fetchAnnotations(): Promise<Annotation[]> {
         return this.databaseService.fetchAnnotations(this.dataSourceNames);
     }
 
