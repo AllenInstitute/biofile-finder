@@ -161,19 +161,6 @@ export default class FileDetail {
     }
 
     public async getPathToThumbnail(): Promise<string | undefined> {
-        if (this.cloudPath.endsWith(".zarr")) {
-            try {
-                // const thumbnailURL = await renderZarrThumbnailURL(this.cloudPath);
-                const thumbnailURL = await renderZarrThumbnailURL(
-                    "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/variance/136244.zarr"
-                );
-                return thumbnailURL;
-            } catch (error) {
-                console.error("Error generating Zarr thumbnail:", error);
-                throw new Error("Unable to generate Zarr thumbnail");
-            }
-        }
-
         if (!this.thumbnail) {
             const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
                 this.name.toLowerCase().endsWith(format)
@@ -189,6 +176,17 @@ export default class FileDetail {
         // the AICS FMS NGINX server path
         if (this.thumbnail?.startsWith("/allen")) {
             return `${AICS_FMS_FILES_NGINX_SERVER}${this.thumbnail}`;
+        }
+
+        if (this.cloudPath.endsWith(".zarr")) {
+            try {
+                // const thumbnailURL = await renderZarrThumbnailURL(this.cloudPath);
+                const thumbnailURL = await renderZarrThumbnailURL(this.cloudPath);
+                return thumbnailURL;
+            } catch (error) {
+                console.error("Error generating Zarr thumbnail:", error);
+                throw new Error("Unable to generate Zarr thumbnail");
+            }
         }
         return this.thumbnail;
     }
