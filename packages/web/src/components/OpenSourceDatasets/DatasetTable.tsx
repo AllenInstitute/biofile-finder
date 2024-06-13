@@ -10,10 +10,9 @@ import {
 import { ShimmeredDetailsList } from "@fluentui/react/lib/ShimmeredDetailsList";
 import * as React from "react";
 
-import { DatasetColumns } from "./DatasetColumns";
 import DatasetRow from "./DatasetRow";
 import useDatasetDetails from "./useDatasetDetails";
-import { PublicDatasetProps } from "../../entity/PublicDataset";
+import { PublicDatasetProps, DATASET_TABLE_FIELDS } from "../../entity/PublicDataset";
 import FileFilter from "../../../../core/entity/FileFilter";
 
 import styles from "./DatasetTable.module.css";
@@ -23,8 +22,20 @@ interface DatasetTableProps {
 }
 
 export default function DatasetTable(props: DatasetTableProps) {
+    // const [sortColumn, setSortColumn] = React.useState<FileSort | null>(null);
+    const columns = DATASET_TABLE_FIELDS.map(
+        (value, index): IColumn => {
+            return {
+                key: `column${index}`,
+                name: value.displayLabel.toUpperCase(),
+                fieldName: value.name,
+                isResizable: true,
+                minWidth: value?.minWidth,
+                // onColumnClick: () => onColumnClick(value.displayLabel),
+            };
+        }
+    );
     const [datasetDetails, isLoading, error] = useDatasetDetails(props?.filters || []);
-
     const items = datasetDetails?.map((detail) => detail.details);
 
     const renderRow = (
@@ -63,7 +74,7 @@ export default function DatasetTable(props: DatasetTableProps) {
                 <ShimmeredDetailsList
                     setKey="items"
                     items={items || []}
-                    columns={DatasetColumns}
+                    columns={columns}
                     isHeaderVisible={true}
                     selectionMode={SelectionMode.none}
                     enableShimmer={isLoading}

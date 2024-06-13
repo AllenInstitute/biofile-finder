@@ -26,6 +26,7 @@ export default function useDatasetDetails(
         return new FileSet({
             fileService: publicDatasetListService,
             filters,
+            sort: undefined,
         });
     }, [publicDatasetListService, filters]);
     React.useEffect(() => {

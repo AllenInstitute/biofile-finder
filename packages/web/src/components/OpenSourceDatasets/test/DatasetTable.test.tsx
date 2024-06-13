@@ -6,9 +6,9 @@ import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { createSandbox } from "sinon";
 
-import { DatasetColumns } from "../DatasetColumns";
 import DatasetTable from "../DatasetTable";
 import * as useDatasetDetails from "../useDatasetDetails";
+import { DATASET_TABLE_FIELDS } from "../../../entity/PublicDataset";
 import { makePublicDatasetMock } from "../../../entity/PublicDataset/mocks";
 import { initialState } from "../../../../../core/state";
 import DatabaseFileService from "../../../../../core/services/FileService/DatabaseFileService";
@@ -82,7 +82,7 @@ describe("<DatasetTable />", () => {
         );
 
         // Act / Assert
-        expect(getAllByRole("columnheader").length).to.equal(DatasetColumns.length);
+        expect(getAllByRole("columnheader").length).to.equal(DATASET_TABLE_FIELDS.length);
     });
 
     it("renders rows for each dataset", () => {
