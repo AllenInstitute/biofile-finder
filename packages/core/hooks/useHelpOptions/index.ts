@@ -125,7 +125,7 @@ export default function useHelpOptions(
                           },
                       },
                   ]),
-            ...(!isOnWeb
+            ...(isOnWeb
                 ? []
                 : [
                       {

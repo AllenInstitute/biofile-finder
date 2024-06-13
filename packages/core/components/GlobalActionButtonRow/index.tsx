@@ -37,7 +37,7 @@ export default function GlobalActionButtonRow(props: Props) {
                         )
                     }
                     title="List view"
-                    iconProps={{ iconName: "BulletedList" }}
+                    iconProps={{ iconName: "NumberedListText" }}
                 />
                 <IconButton
                     className={classNames(styles.iconButton, {

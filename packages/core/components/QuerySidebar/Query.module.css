@@ -37,6 +37,11 @@
 
 .title-container {
     display: flex;
+    width: 100%;
+}
+
+.title-container > div {
+    width: 100%;
 }
 
 .title-container > div > div > div {
@@ -74,10 +79,4 @@
     text-overflow: ellipsis;
     width: 100%;
     white-space: nowrap;
-}
-
-
-.container p, h4 {
-    margin: 0 0 0 calc(var(--margin) / 2);
-    padding-top: 6px;
 }

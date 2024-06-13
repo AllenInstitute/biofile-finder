@@ -21,14 +21,13 @@ export default function Header() {
                     <a href="https://www.allencell.org/" target="_blank" rel="noreferrer">
                         <AICSLogo />
                     </a>
-                    <div className={styles.headerOption}>|</div>
                     <Link
                         to={"/"}
                         className={styles.title}
                         target={isApp ? "_blank" : "_self"}
                         rel="noreferrer"
                     >
-                        {APPLICATION_NAME}
+                        <h4>{APPLICATION_NAME}</h4>
                     </Link>
                 </div>
                 <div className={styles.right}>
@@ -48,7 +47,7 @@ export default function Header() {
                             ariaLabel="Get started"
                             onClick={() => navigate("/app")}
                             title="Get started"
-                            text="START"
+                            text="GET STARTED"
                         />
                     )}
                 </div>

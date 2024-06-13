@@ -3,8 +3,8 @@ import classNames from "classnames";
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import Banner from "./Banner";
 import Features from "./Features";
+import { APPLICATION_NAME } from "../../constants";
 import Modal from "../../../../core/components/Modal";
 
 import styles from "./Home.module.css";
@@ -55,26 +55,41 @@ export default function Home() {
     ];
     return (
         <div className={styles.root}>
-            <Banner />
-            <div className={styles.content}>
-                <div className={styles.header}>
-                    Discover features to improve efficiency in dataset curation
-                </div>
-                <Features />
-                <hr></hr>
-                <div className={styles.optionsContainer}>
-                    <div className={styles.header}>What would you like to access today?</div>
-                    <div className={styles.options}>
-                        {options.map((option, index) => {
-                            return (
-                                <div className={styles.option} key={`option_${index}`}>
-                                    <div className={styles.optionHeader}>{option.header}</div>
-                                    <div className={styles.optionBody}>{option.body}</div>
-                                    {option.action}
-                                </div>
-                            );
-                        })}
+            <div className={styles.banner}>
+                <div className={classNames(styles.section, styles.bannerContent)}>
+                    <div className={styles.bannerContentText}>
+                        <h1 className={styles.bannerHeader}> Welcome to {APPLICATION_NAME}</h1>
+                        <div className={styles.bannerBody}>
+                            The {APPLICATION_NAME} is an open-use web application created for easy
+                            access, collaboration, and sharing of datasets through rich metadata
+                            search, filter, sort, and direct viewing in common industry applications
+                            or in our web-based 3D Volume Viewer.
+                        </div>
                     </div>
+                    <div className={styles.videoWalkthrough}>
+                        <div className={styles.videoWalkthroughFake}>
+                            Video placeholder: Demo showing how to use the app via interactive
+                            walkthrough
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className={styles.section}>
+                <h2 className={styles.header}>
+                    Discover features to improve efficiency in dataset curation
+                </h2>
+                <Features />
+            </div>
+            <div className={styles.section}>
+                <h2 className={styles.header}>What data would you like to explore?</h2>
+                <div className={styles.options}>
+                    {options.map((option, index) => (
+                        <div className={styles.option} key={`option_${index}`}>
+                            <div className={styles.optionHeader}>{option.header}</div>
+                            <div className={styles.optionBody}>{option.body}</div>
+                            {option.action}
+                        </div>
+                    ))}
                 </div>
                 <Modal />
             </div>

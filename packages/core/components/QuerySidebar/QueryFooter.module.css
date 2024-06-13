@@ -6,6 +6,7 @@
 .button {
     color: var(--primary-sidebar-text-color);
     background-color: var(--primary-sidebar-color);
+    border-radius: 4px;
     margin-left: 2px;
 }
 

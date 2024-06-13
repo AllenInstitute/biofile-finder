@@ -55,14 +55,12 @@
     border-radius: var(--small-border-radius);
     color: var(--primary-text-color);
     margin: calc(var(--margin) / 2) calc(var(--margin) / 4);
-}
-
-.container > * {
-    padding: 0 calc(var(--margin) / 2);
+    padding: 3px 6px 10px 6px;
 }
 
 .header {
     display: flex;
+    padding: 6px 8px;
 }
 
 .header:hover, .header:hover button  {

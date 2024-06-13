@@ -27,7 +27,7 @@ export const ROOT_ELEMENT_ID = "root";
 initializeIcons();
 loadTheme({
     defaultFontStyle: {
-        fontFamily: "Roboto",
+        fontFamily: "Open sans, sans-serif",
     },
 });
 

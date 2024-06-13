@@ -40,7 +40,7 @@ export default function QuerySort(props: Props) {
                     ? [
                           {
                               id: props.sort.annotationName,
-                              title: props.sort.annotationName,
+                              title: `${props.sort.annotationName} (${props.sort.order})`,
                           },
                       ]
                     : []
