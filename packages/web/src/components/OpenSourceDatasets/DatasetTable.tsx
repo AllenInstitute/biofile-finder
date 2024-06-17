@@ -14,6 +14,7 @@ import DatasetRow from "./DatasetRow";
 import useDatasetDetails from "./useDatasetDetails";
 import { PublicDatasetProps, DATASET_TABLE_FIELDS } from "../../entity/PublicDataset";
 import FileFilter from "../../../../core/entity/FileFilter";
+import FileSort, { SortOrder } from "../../../../core/entity/FileSort";
 
 import styles from "./DatasetTable.module.css";
 
@@ -22,7 +23,7 @@ interface DatasetTableProps {
 }
 
 export default function DatasetTable(props: DatasetTableProps) {
-    // const [sortColumn, setSortColumn] = React.useState<FileSort | null>(null);
+    const [sortColumn, setSortColumn] = React.useState<FileSort | undefined>(undefined);
     const columns = DATASET_TABLE_FIELDS.map(
         (value, index): IColumn => {
             return {
@@ -31,12 +32,16 @@ export default function DatasetTable(props: DatasetTableProps) {
                 fieldName: value.name,
                 isResizable: true,
                 minWidth: value?.minWidth,
-                // onColumnClick: () => onColumnClick(value.displayLabel),
+                isSorted: sortColumn?.annotationName == value.displayLabel,
+                isSortedDescending: sortColumn?.order == SortOrder.DESC,
+                onColumnClick: () => onColumnClick(value.displayLabel),
             };
         }
     );
-    const [datasetDetails, isLoading, error] = useDatasetDetails(props?.filters || []);
-    const items = datasetDetails?.map((detail) => detail.details);
+    const [datasetDetails, isLoading, error] = useDatasetDetails(props?.filters || [], sortColumn);
+    const items = React.useMemo(() => {
+        return datasetDetails?.map((detail) => detail.details);
+    }, [datasetDetails]);
 
     const renderRow = (
         rowProps: IDetailsRowProps | undefined,
@@ -66,6 +71,14 @@ export default function DatasetTable(props: DatasetTableProps) {
         const fieldContent = item[column?.fieldName as keyof PublicDatasetProps] as string;
         if (!fieldContent) return <>--</>;
         return <div className={styles.doubleLine}>{fieldContent}</div>;
+    }
+
+    function onColumnClick(columnName: string) {
+        let sortOrder = SortOrder.ASC;
+        if (sortColumn?.annotationName == columnName)
+            sortOrder = sortColumn.order == SortOrder.DESC ? SortOrder.ASC : SortOrder.DESC;
+        const newSortColumn = new FileSort(columnName, sortOrder);
+        setSortColumn(newSortColumn);
     }
 
     return (

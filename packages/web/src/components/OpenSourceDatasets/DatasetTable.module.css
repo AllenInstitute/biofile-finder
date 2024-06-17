@@ -15,10 +15,11 @@
   font-weight: 400;
 }
 
-.table-header > div:hover, .table-header span:hover {
-  background-color: var(--secondary-dark);
-  background: var(--secondary-dark);
+.table-header span:hover {
+  background-color: var(--primary-dark);
+  background: var(--primary-dark);
   color: var(--secondary-text-color);
+  cursor: pointer;
 }
 
 .double-line {
