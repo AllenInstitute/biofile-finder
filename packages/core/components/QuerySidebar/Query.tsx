@@ -28,14 +28,16 @@ export default function Query(props: QueryProps) {
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
     const currentQueryParts = useSelector(selection.selectors.getCurrentQueryParts);
 
+    const hasDataSource = !!props.query.parts.sources.length;
+
     const [isExpanded, setIsExpanded] = React.useState(false);
     React.useEffect(() => {
         setIsExpanded(props.isSelected);
     }, [props.isSelected]);
 
-    const decodedURL = React.useMemo(
-        () => (props.isSelected ? currentQueryParts : props.query.parts),
-        [props.query.parts, currentQueryParts, props.isSelected]
+    const queryComponents = React.useMemo(
+        () => (props.isSelected ? currentQueryParts : props.query?.parts),
+        [props.query?.parts, currentQueryParts, props.isSelected]
     );
 
     const onQueryUpdate = (updatedQuery: QueryType) => {
@@ -76,12 +78,13 @@ export default function Query(props: QueryProps) {
                     </div>
                     {props.isSelected && <hr />}
                     <p className={styles.displayRow}>
-                        <strong>Data Source:</strong> {decodedURL.source?.name}
+                        <strong>Data Source:</strong>{" "}
+                        {queryComponents.sources.map((source) => source.name).join(", ")}
                     </p>
-                    {!!decodedURL.hierarchy.length && (
+                    {!!queryComponents.hierarchy.length && (
                         <p className={styles.displayRow}>
                             <strong>Groupings:</strong>{" "}
-                            {decodedURL.hierarchy
+                            {queryComponents.hierarchy
                                 .map(
                                     (a) =>
                                         annotations.find((annotation) => annotation.name === a)
@@ -90,18 +93,18 @@ export default function Query(props: QueryProps) {
                                 .join(", ")}
                         </p>
                     )}
-                    {!!decodedURL.filters.length && (
+                    {!!queryComponents.filters.length && (
                         <p className={styles.displayRow}>
                             <strong>Filters:</strong>{" "}
-                            {decodedURL.filters
+                            {queryComponents.filters
                                 .map((filter) => `${filter.name}: ${filter.value}`)
                                 .join(", ")}
                         </p>
                     )}
-                    {!!decodedURL.sortColumn && (
+                    {!!queryComponents.sortColumn && (
                         <p className={styles.displayRow}>
-                            <strong>Sort:</strong> {decodedURL.sortColumn.annotationName} (
-                            {decodedURL.sortColumn.order})
+                            <strong>Sort:</strong> {queryComponents.sortColumn.annotationName} (
+                            {queryComponents.sortColumn.order})
                         </p>
                     )}
                 </div>
@@ -134,10 +137,10 @@ export default function Query(props: QueryProps) {
                     />
                 </div>
                 <hr className={styles.divider} />
-                <QueryDataSource dataSources={[decodedURL.source]} />
-                <QueryGroup groups={decodedURL.hierarchy} />
-                <QueryFilter filters={decodedURL.filters} />
-                <QuerySort sort={decodedURL.sortColumn} />
+                <QueryDataSource dataSources={queryComponents.sources} />
+                <QueryGroup disabled={!hasDataSource} groups={queryComponents.hierarchy} />
+                <QueryFilter disabled={!hasDataSource} filters={queryComponents.filters} />
+                <QuerySort disabled={!hasDataSource} sort={queryComponents.sortColumn} />
                 <hr className={styles.divider} />
                 <QueryFooter
                     isDeletable={queries.length > 1}

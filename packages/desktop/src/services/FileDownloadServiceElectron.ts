@@ -317,9 +317,9 @@ export default class FileDownloadServiceElectron
         });
     }
 
-    public async prepareHttpResourceForDownload(url: string, postBody: string): Promise<string> {
-        const responseAsJSON = await this.rawPost(url, postBody);
-        return JSON.stringify(responseAsJSON);
+    public async prepareHttpResourceForDownload(url: string, postBody: string): Promise<Blob> {
+        const response = await this.rawPost<string>(url, postBody);
+        return new Blob([response], { type: "application/json" });
     }
 
     public cancelActiveRequest(downloadRequestId: string) {

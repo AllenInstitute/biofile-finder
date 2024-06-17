@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
 import CodeSnippet from "./CodeSnippet";
-import DataSourcePrompt from "./DataSourcePrompt";
+import DataSource from "./DataSource";
 import MetadataManifest from "./MetadataManifest";
 
 export interface ModalProps {
@@ -12,7 +12,7 @@ export interface ModalProps {
 
 export enum ModalType {
     CodeSnippet = 1,
-    DataSourcePrompt = 2,
+    DataSource = 2,
     MetadataManifest = 3,
 }
 
@@ -30,8 +30,8 @@ export default function Modal() {
     switch (visibleModal) {
         case ModalType.CodeSnippet:
             return <CodeSnippet onDismiss={onDismiss} />;
-        case ModalType.DataSourcePrompt:
-            return <DataSourcePrompt onDismiss={onDismiss} />;
+        case ModalType.DataSource:
+            return <DataSource onDismiss={onDismiss} />;
         case ModalType.MetadataManifest:
             return <MetadataManifest onDismiss={onDismiss} />;
         default:

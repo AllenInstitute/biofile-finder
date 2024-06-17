@@ -7,7 +7,6 @@ import Query from "./Query";
 import { HELP_OPTIONS } from "./tutorials";
 import { ModalType } from "../Modal";
 import SvgIcon from "../SvgIcon";
-import FileExplorerURL, { DEFAULT_AICS_FMS_QUERY } from "../../entity/FileExplorerURL";
 import Tutorial from "../../entity/Tutorial";
 import { interaction, selection } from "../../state";
 import { AICS_LOGO } from "../../icons";
@@ -23,47 +22,11 @@ interface QuerySidebarProps {
  */
 export default function QuerySidebar(props: QuerySidebarProps) {
     const dispatch = useDispatch();
+    const isOnWeb = useSelector(interaction.selectors.isOnWeb);
     const queries = useSelector(selection.selectors.getQueries);
     const selectedQuery = useSelector(selection.selectors.getSelectedQuery);
-    const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
-    const isOnWeb = useSelector(interaction.selectors.isOnWeb);
     const dataSources = useSelector(interaction.selectors.getAllDataSources);
     const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
-
-    // Select query by default if none is selected
-    React.useEffect(() => {
-        if (!selectedQuery && queries.length) {
-            dispatch(selection.actions.changeQuery(queries[0]));
-        }
-    }, [selectedQuery, queries, dispatch]);
-
-    // Determine a default query to render or prompt the user for a data source
-    // if no default is accessible
-    React.useEffect(() => {
-        if (!queries.length) {
-            if (!window.location.search) {
-                if (isAicsEmployee === true) {
-                    // If the user is an AICS employee and there is no query in the URL, add a default query
-                    dispatch(
-                        selection.actions.addQuery({
-                            name: "New AICS Query",
-                            parts: DEFAULT_AICS_FMS_QUERY,
-                        })
-                    );
-                } else if (isAicsEmployee === false) {
-                    // If no query is selected and there is no query in the URL, prompt the user to select a data source
-                    dispatch(interaction.actions.setVisibleModal(ModalType.DataSourcePrompt));
-                }
-            } else if (isAicsEmployee === undefined) {
-                dispatch(
-                    selection.actions.addQuery({
-                        name: "New Query",
-                        parts: FileExplorerURL.decode(window.location.search),
-                    })
-                );
-            }
-        }
-    }, [isAicsEmployee, queries, dispatch]);
 
     React.useEffect(() => {
         if (selectedQuery) {
@@ -91,7 +54,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                     dispatch(
                         selection.actions.addQuery({
                             name: `New ${source.name} query`,
-                            parts: { source },
+                            parts: { sources: [source] },
                         })
                     );
                 },
@@ -102,7 +65,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                 text: "New Data Source...",
                 iconProps: { iconName: "NewFolder" },
                 onClick: () => {
-                    dispatch(interaction.actions.setVisibleModal(ModalType.DataSourcePrompt));
+                    dispatch(interaction.actions.setVisibleModal(ModalType.DataSource));
                 },
             },
         ],
@@ -161,13 +124,23 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                 data-is-scrollable="true"
                 data-is-focusable="true"
             >
-                {queries.map((query) => (
+                {queries.length ? (
+                    queries.map((query) => (
+                        <Query
+                            key={query.name}
+                            isSelected={query.name === selectedQuery}
+                            query={query}
+                        />
+                    ))
+                ) : (
                     <Query
-                        key={query.name}
-                        isSelected={query.name === selectedQuery}
-                        query={query}
+                        isSelected
+                        query={{
+                            name: "New Query",
+                            parts: { hierarchy: [], filters: [], sources: [], openFolders: [] },
+                        }}
                     />
-                ))}
+                )}
             </div>
             <div className={styles.footer}>
                 <IconButton

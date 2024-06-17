@@ -5,26 +5,93 @@ import * as path from "path";
 import duckdb from "duckdb";
 
 import { DatabaseService } from "../../../core/services";
+import { Source } from "../../../core/entity/FileExplorerURL";
+import DataSourcePreparationError from "../../../core/errors/DataSourcePreparationError";
 
-export default class DatabaseServiceElectron implements DatabaseService {
+export default class DatabaseServiceElectron extends DatabaseService {
     private database: duckdb.Database;
-    private readonly existingDataSources = new Set<string>();
 
     constructor() {
+        super();
         this.database = new duckdb.Database(":memory:");
     }
 
-    public async addDataSource(
-        name: string,
-        type: "csv" | "json" | "parquet",
-        uri: File | string
-    ): Promise<void> {
+    /**
+     * Saves the result of the query to the designated location.
+     * May return a value if the location is not a physical location but rather
+     * a temporary database location (buffer)
+     */
+    public saveQuery(
+        destination: string,
+        sql: string,
+        format: "csv" | "json" | "parquet"
+    ): Promise<Uint8Array> {
+        const saveOptions = [`FORMAT '${format}'`];
+        if (format === "csv") {
+            saveOptions.push("HEADER");
+        }
+        return new Promise((resolve, reject) => {
+            this.database.run(
+                `COPY (${sql}) TO '${destination}.${format}' (${saveOptions.join(", ")});`,
+                (err: any, result: any) => {
+                    if (err) {
+                        reject(err.message);
+                    } else {
+                        resolve(result);
+                    }
+                }
+            );
+        });
+    }
+
+    public query(sql: string): Promise<duckdb.TableData> {
+        return new Promise((resolve, reject) => {
+            try {
+                this.database.all(sql, (err: any, tableData: any) => {
+                    if (err) {
+                        reject(err.message);
+                    } else {
+                        resolve(tableData);
+                    }
+                });
+            } catch (error) {
+                return Promise.reject(`${error}`);
+            }
+        });
+    }
+
+    public async reset(): Promise<void> {
+        await this.close();
+        this.database = new duckdb.Database(":memory:");
+    }
+
+    public close(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.database.close((err) => {
+                if (err) {
+                    reject(err.message);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    }
+
+    protected async addDataSource(dataSource: Source): Promise<void> {
+        const { name, type, uri } = dataSource;
         if (this.existingDataSources.has(name)) {
             return; // no-op
+        }
+        if (!type || !uri) {
+            throw new DataSourcePreparationError(
+                "Data source type and URI are missing",
+                dataSource.name
+            );
         }
 
         let source: string;
         let tempLocation;
+        this.existingDataSources.add(name);
         try {
             if (typeof uri === "string") {
                 source = uri;
@@ -71,8 +138,9 @@ export default class DatabaseServiceElectron implements DatabaseService {
                     );
                 }
             });
-
-            this.existingDataSources.add(name);
+        } catch (err) {
+            await this.deleteDataSource(name);
+            throw new DataSourcePreparationError((err as Error).message, name);
         } finally {
             if (tempLocation) {
                 await fs.promises.unlink(tempLocation);
@@ -80,56 +148,19 @@ export default class DatabaseServiceElectron implements DatabaseService {
         }
     }
 
-    /**
-     * Saves the result of the query to the designated location.
-     * May return a value if the location is not a physical location but rather
-     * a temporary database location (buffer)
-     */
-    public saveQuery(destination: string, sql: string, format: string): Promise<Uint8Array> {
-        return new Promise((resolve, reject) => {
-            this.database.run(
-                `COPY (${sql}) TO '${destination}.${format}' (FORMAT '${format}');`,
-                (err: any, result: any) => {
-                    if (err) {
-                        reject(err.message);
-                    } else {
-                        resolve(result);
-                    }
-                }
-            );
-        });
-    }
-
-    public query(sql: string): Promise<duckdb.TableData> {
+    protected async execute(sql: string): Promise<void> {
         return new Promise((resolve, reject) => {
             try {
-                this.database.all(sql, (err: any, tableData: any) => {
+                this.database.exec(sql, (err: any) => {
                     if (err) {
                         reject(err.message);
                     } else {
-                        resolve(tableData);
+                        resolve();
                     }
                 });
             } catch (error) {
                 return Promise.reject(`${error}`);
             }
-        });
-    }
-
-    public async reset(): Promise<void> {
-        await this.close();
-        this.database = new duckdb.Database(":memory:");
-    }
-
-    public close(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.database.close((err) => {
-                if (err) {
-                    reject(err.message);
-                } else {
-                    resolve();
-                }
-            });
         });
     }
 }

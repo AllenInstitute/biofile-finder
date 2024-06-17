@@ -31,7 +31,7 @@ export default function DatasetRow(props: DatasetRowProps) {
         dispatch(
             selection.actions.addQuery({
                 name: `New ${source.name} Query on ${dataset?.name || "open-source dataset"}`,
-                parts: { source },
+                parts: { sources: [source] },
             })
         );
     };

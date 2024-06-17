@@ -1,3 +1,5 @@
+import { castArray } from "lodash";
+
 /**
  * A simple SQL query builder.
  */
@@ -20,8 +22,12 @@ export default class SQLBuilder {
         return this;
     }
 
-    public from(statement: string): SQLBuilder {
-        this.fromStatement = statement;
+    public from(statement: string | string[]): SQLBuilder {
+        const statementAsArray = castArray(statement);
+        if (!statementAsArray.length) {
+            throw new Error('"FROM" statement requires at least one argument');
+        }
+        this.fromStatement = statementAsArray.sort().join(", ");
         return this;
     }
 

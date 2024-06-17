@@ -3,15 +3,14 @@ import { throttle } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { ModalProps } from "..";
-import BaseModal from "../BaseModal";
-import { getNameAndTypeFromSourceUrl, Source } from "../../../entity/FileExplorerURL";
-import { interaction, selection } from "../../../state";
+import { interaction, metadata, selection } from "../../state";
+import { DataSourcePromptInfo } from "../../state/interaction/actions";
+import { getNameAndTypeFromSourceUrl, Source } from "../../entity/FileExplorerURL";
 
 import styles from "./DataSourcePrompt.module.css";
 
-interface Props extends ModalProps {
-    isEditing?: boolean;
+interface Props {
+    hideTitle?: boolean;
 }
 
 const DATA_SOURCE_DETAILS = [
@@ -29,22 +28,26 @@ const DATA_SOURCE_DETAILS = [
 /**
  * Dialog meant to prompt user to select a data source option
  */
-export default function DataSourcePrompt({ onDismiss }: Props) {
+export default function DataSourcePrompt(props: Props) {
     const dispatch = useDispatch();
 
-    const dataSourceToReplace = useSelector(interaction.selectors.getDataSourceForVisibleModal);
+    const selectedDataSources = useSelector(metadata.selectors.getDataSources);
+    const dataSourceInfo = useSelector(interaction.selectors.getDataSourceInfoForVisibleModal);
+    const { source: sourceToReplace, query } = dataSourceInfo || ({} as DataSourcePromptInfo);
 
     const [dataSourceURL, setDataSourceURL] = React.useState("");
     const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
 
     const addOrReplaceQuery = (source: Source) => {
-        if (dataSourceToReplace) {
+        if (sourceToReplace) {
             dispatch(selection.actions.replaceDataSource(source));
+        } else if (query) {
+            dispatch(selection.actions.changeDataSources([...selectedDataSources, source]));
         } else {
             dispatch(
                 selection.actions.addQuery({
                     name: `New ${source.name} Query`,
-                    parts: { source },
+                    parts: { sources: [source] },
                 })
             );
         }
@@ -62,7 +65,7 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
                 return;
             }
             addOrReplaceQuery({ name, type: extension, uri: selectedFile });
-            onDismiss();
+            dispatch(interaction.actions.hideVisibleModal());
         }
     };
     const onEnterURL = throttle(
@@ -74,20 +77,20 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
                 type: extensionGuess as "csv" | "json" | "parquet",
                 uri: dataSourceURL,
             });
-            onDismiss();
+            dispatch(interaction.actions.hideVisibleModal());
         },
         10000,
         { leading: true, trailing: false }
     );
 
-    const body = (
+    return (
         <>
-            {dataSourceToReplace && (
+            {sourceToReplace && (
                 <div className={styles.warning}>
                     <h4>Notice</h4>
                     <p>
                         There was an error loading the data source file &quot;
-                        {dataSourceToReplace.name}&quot;. Please re-select the data source file or a
+                        {sourceToReplace.name}&quot;. Please re-select the data source file or a
                         replacement.
                     </p>
                     <p>
@@ -97,10 +100,10 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
                     </p>
                 </div>
             )}
+            {!props.hideTitle && <h2 className={styles.text}>Choose a data source</h2>}
             <p className={styles.text}>
-                Please provide a &quot;.csv&quot;, &quot;.parquet&quot;, or &quot;.json&quot; file
-                containing metadata about some files. See more details for information about what a
-                data source file should look like...
+                To get started, load a CSV, Parquet, or JSON file containing metadata (annotations)
+                about your files to view them.
             </p>
             {isDataSourceDetailExpanded ? (
                 <div>
@@ -166,6 +169,4 @@ export default function DataSourcePrompt({ onDismiss }: Props) {
             </div>
         </>
     );
-
-    return <BaseModal body={body} title="Choose a data source" onDismiss={onDismiss} />;
 }

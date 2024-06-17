@@ -1,13 +1,13 @@
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import QueryPart from ".";
 import AnnotationPicker from "../AnnotationPicker";
 import Tutorial from "../../entity/Tutorial";
-import { metadata, selection } from "../../state";
-import Annotation from "../../entity/Annotation";
+import { selection } from "../../state";
 
 interface Props {
+    disabled?: boolean;
     groups: string[];
 }
 
@@ -16,14 +16,6 @@ interface Props {
  */
 export default function QueryGroup(props: Props) {
     const dispatch = useDispatch();
-
-    const annotations = useSelector(metadata.selectors.getSortedAnnotations);
-
-    const selectedAnnotations = props.groups
-        .map((annotationName) =>
-            annotations.find((annotation) => annotation.name === annotationName)
-        )
-        .filter((a) => !!a) as Annotation[];
 
     const onDelete = (annotationName: string) => {
         dispatch(selection.actions.removeFromAnnotationHierarchy(annotationName));
@@ -36,6 +28,7 @@ export default function QueryGroup(props: Props) {
     return (
         <QueryPart
             title="Group"
+            disabled={props.disabled}
             addButtonIconName="FabricFolder"
             tutorialId={Tutorial.GROUPING_HEADER_ID}
             onDelete={onDelete}
@@ -45,17 +38,17 @@ export default function QueryGroup(props: Props) {
                     disabledTopLevelAnnotations
                     disableUnavailableAnnotations
                     title="Select metadata to group by"
-                    selections={selectedAnnotations}
+                    selections={props.groups}
                     setSelections={(annotations) => {
-                        dispatch(
-                            selection.actions.setAnnotationHierarchy(annotations.map((a) => a.name))
-                        );
+                        dispatch(selection.actions.setAnnotationHierarchy(annotations));
                     }}
                 />
             )}
-            rows={selectedAnnotations.map((annotation) => ({
-                id: annotation.name,
-                title: annotation.displayName,
+            // TODO: Should we care about display name?? seems time to make the name of
+            // annotations just the display name for top level annotations bro
+            rows={props.groups.map((annotation) => ({
+                id: annotation,
+                title: annotation,
             }))}
         />
     );

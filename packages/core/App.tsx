@@ -3,9 +3,10 @@ import { initializeIcons, loadTheme } from "@fluentui/react";
 import classNames from "classnames";
 import { uniqueId } from "lodash";
 import * as React from "react";
-import { batch, useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import ContextMenu from "./components/ContextMenu";
+import DataSourcePrompt from "./components/DataSourcePrompt";
 import Modal from "./components/Modal";
 import DirectoryTree from "./components/DirectoryTree";
 import FileDetails from "./components/FileDetails";
@@ -14,7 +15,7 @@ import StatusMessage from "./components/StatusMessage";
 import TutorialTooltip from "./components/TutorialTooltip";
 import QuerySidebar from "./components/QuerySidebar";
 import { FileExplorerServiceBaseUrl } from "./constants";
-import { interaction, metadata, selection } from "./state";
+import { interaction, selection } from "./state";
 
 import "./styles/global.css";
 import styles from "./App.module.css";
@@ -42,6 +43,7 @@ export default function App(props: AppProps) {
     const { fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION } = props;
 
     const dispatch = useDispatch();
+    const hasQuerySelected = useSelector(selection.selectors.hasQuerySelected);
     const isDarkTheme = useSelector(selection.selectors.getIsDarkTheme);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const platformDependentServices = useSelector(
@@ -70,14 +72,8 @@ export default function App(props: AppProps) {
     }, [platformDependentServices, dispatch]);
 
     // Set data source base urls
-    // And kick off the process of requesting metadata needed by the application.
     React.useEffect(() => {
-        batch(() => {
-            dispatch(interaction.actions.setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl));
-            dispatch(metadata.actions.requestAnnotations());
-            dispatch(metadata.actions.requestDataSources());
-            dispatch(selection.actions.setAnnotationHierarchy([]));
-        });
+        dispatch(interaction.actions.initializeApp(fileExplorerServiceBaseUrl));
     }, [dispatch, fileExplorerServiceBaseUrl]);
 
     return (
@@ -92,8 +88,14 @@ export default function App(props: AppProps) {
                 <div className={styles.querySidebarAndCenter}>
                     <QuerySidebar className={styles.querySidebar} />
                     <div className={styles.center}>
-                        <GlobalActionButtonRow className={styles.globalButtonRow} />
-                        <DirectoryTree className={styles.fileList} />
+                        {hasQuerySelected ? (
+                            <>
+                                <GlobalActionButtonRow className={styles.globalButtonRow} />
+                                <DirectoryTree className={styles.fileList} />
+                            </>
+                        ) : (
+                            <DataSourcePrompt />
+                        )}
                     </div>
                 </div>
                 <FileDetails className={styles.fileDetails} />

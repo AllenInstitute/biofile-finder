@@ -76,7 +76,7 @@
 }
 
 .text, .warning {
-    font-size: smaller;
+    text-align: center;
 }
 
 .warning {

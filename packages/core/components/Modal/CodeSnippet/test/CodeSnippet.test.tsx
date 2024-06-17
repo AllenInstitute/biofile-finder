@@ -13,9 +13,11 @@ describe("<CodeSnippet />", () => {
             visibleModal: ModalType.CodeSnippet,
         },
         selection: {
-            dataSource: {
-                uri: "fake-uri.test",
-            },
+            dataSources: [
+                {
+                    uri: "fake-uri.test",
+                },
+            ],
         },
     });
 
