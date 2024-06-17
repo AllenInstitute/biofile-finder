@@ -2,6 +2,7 @@ import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
+import { getDatasetManifestSource, getDataSources } from "../metadata/selectors";
 import { getSelectedDataSources, getPythonConversion } from "../selection/selectors";
 import { AnnotationService, FileService } from "../../services";
 import DatasetService, {
@@ -12,7 +13,6 @@ import DatabaseAnnotationService from "../../services/AnnotationService/Database
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
-import { getDataSources } from "../metadata/selectors";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 // BASIC SELECTORS
@@ -24,6 +24,9 @@ export const getContextMenuOnDismiss = (state: State) => state.interaction.conte
 export const getCsvColumns = (state: State) => state.interaction.csvColumns;
 export const getDataSourceInfoForVisibleModal = (state: State) =>
     state.interaction.dataSourceInfoForVisibleModal;
+export const getDatasetDetailsVisibility = (state: State) =>
+    state.interaction.datasetDetailsPanelIsVisible;
+export const getSelectedPublicDataset = (state: State) => state.interaction.selectedPublicDataset;
 export const getFileExplorerServiceBaseUrl = (state: State) =>
     state.interaction.fileExplorerServiceBaseUrl;
 export const getFileFiltersForVisibleModal = (state: State) =>
@@ -116,6 +119,25 @@ export const getFileService = createSelector(
         }
 
         return httpFileService;
+    }
+);
+
+/**
+ * Selector specifically for open-source dataset manifest, re-using regular file service interface.
+ * Unlike getFileService, returns undefined if no dataset manifest is present
+ * Used in web only
+ */
+export const getPublicDatasetManifestService = createSelector(
+    [getDatasetManifestSource, getPlatformDependentServices],
+    (datasetManifestSource, platformDependentServices): FileService | undefined => {
+        if (!datasetManifestSource || !platformDependentServices) {
+            return undefined;
+        }
+        return new DatabaseFileService({
+            databaseService: platformDependentServices.databaseService,
+            dataSourceNames: [datasetManifestSource.name],
+            downloadService: platformDependentServices.fileDownloadService,
+        });
     }
 );
 

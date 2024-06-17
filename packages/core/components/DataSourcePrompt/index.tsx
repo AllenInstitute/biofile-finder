@@ -3,8 +3,9 @@ import { throttle } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { interaction, selection } from "../../state";
-import { Source } from "../../entity/FileExplorerURL";
+import { interaction, metadata, selection } from "../../state";
+import { DataSourcePromptInfo } from "../../state/interaction/actions";
+import { getNameAndTypeFromSourceUrl, Source } from "../../entity/FileExplorerURL";
 
 import styles from "./DataSourcePrompt.module.css";
 
@@ -30,9 +31,9 @@ const DATA_SOURCE_DETAILS = [
 export default function DataSourcePrompt(props: Props) {
     const dispatch = useDispatch();
 
-    const selectedDataSources = useSelector(selection.selectors.getSelectedDataSources);
+    const selectedDataSources = useSelector(metadata.selectors.getDataSources);
     const dataSourceInfo = useSelector(interaction.selectors.getDataSourceInfoForVisibleModal);
-    const { source: sourceToReplace, query } = dataSourceInfo || {};
+    const { source: sourceToReplace, query } = dataSourceInfo || ({} as DataSourcePromptInfo);
 
     const [dataSourceURL, setDataSourceURL] = React.useState("");
     const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
@@ -70,21 +71,7 @@ export default function DataSourcePrompt(props: Props) {
     const onEnterURL = throttle(
         (evt: React.FormEvent) => {
             evt.preventDefault();
-            const uriResource = dataSourceURL
-                .substring(dataSourceURL.lastIndexOf("/") + 1)
-                .split("?")[0];
-            const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
-            let extensionGuess = uriResource.split(".").pop();
-            if (
-                !(
-                    extensionGuess === "csv" ||
-                    extensionGuess === "json" ||
-                    extensionGuess === "parquet"
-                )
-            ) {
-                console.warn("Guess that the source is a CSV file since no extension easily found");
-                extensionGuess = "csv";
-            }
+            const { name, extensionGuess } = getNameAndTypeFromSourceUrl(dataSourceURL);
             addOrReplaceQuery({
                 name,
                 type: extensionGuess as "csv" | "json" | "parquet",

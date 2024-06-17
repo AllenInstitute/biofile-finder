@@ -1,0 +1,44 @@
+.table {
+  padding-bottom: calc(2*var(--margin));
+}
+
+.table-header > div {
+  background-color: var(--secondary-dark);
+  background: var(--secondary-dark);
+  border-bottom: 1px solid var(--borders-light-grey);
+}
+
+.table-header span {
+  color: var(--secondary-text-color);
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.table-header > div:hover, .table-header span:hover {
+  background-color: var(--secondary-dark);
+  background: var(--secondary-dark);
+  color: var(--secondary-text-color);
+}
+
+.double-line {
+  outline: transparent;
+  position: relative;
+  min-height: 30px;
+  max-height: 40px;
+  vertical-align: top;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important; /* number of lines to show */
+          line-clamp: 2; 
+  -webkit-box-orient: vertical !important;
+  word-wrap: break-word !important;
+}
+
+.error-message {
+  width: 100%;
+  font-size: 14px;
+  text-align: center;
+}

@@ -6,6 +6,7 @@ import Annotation, { AnnotationName } from "../../entity/Annotation";
 // BASIC SELECTORS
 export const getAnnotations = (state: State) => state.metadata.annotations;
 export const getDataSources = (state: State) => state.metadata.dataSources;
+export const getDatasetManifestSource = (state: State) => state.metadata.datasetManifestSource;
 
 // COMPOSED SELECTORS
 export const getSortedAnnotations = createSelector(getAnnotations, (annotations: Annotation[]) => {
