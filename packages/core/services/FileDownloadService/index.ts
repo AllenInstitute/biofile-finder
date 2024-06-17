@@ -41,7 +41,7 @@ export default interface FileDownloadService {
     /**
      * Retrieve a Blob from a server over HTTP.
      */
-    prepareHttpResourceForDownload(url: string, postBody: string): Promise<object>;
+    prepareHttpResourceForDownload(url: string, postBody: string): Promise<Blob>;
 
     /**
      * Attempt to cancel an active download request, deleting the downloaded artifact if present.
