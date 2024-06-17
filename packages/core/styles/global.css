@@ -50,7 +50,7 @@ body {
     --error-text-color: var(--white);
     --aqua-secondary-hover: rgba(13, 187, 206, 0.18);
     --small-border-radius: 4px;
-    --large-border-radius: 16px;
+    --large-border-radius: 18px;
     --box-shadow: 3px 4px 6px 0.5px black;
     --l-paragraph-size: 16px;
     --s-paragraph-size: 14px;

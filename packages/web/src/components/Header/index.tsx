@@ -1,9 +1,9 @@
-import { DefaultButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import HelpMenu from "./Help";
+import SecondaryButton from "../../../../core/components/Buttons/SecondaryButton";
 import { APPLICATION_NAME } from "../../constants";
 import AICSLogo from "../../../assets/AICS-logo-and-name.svg";
 
@@ -41,10 +41,8 @@ export default function Header() {
                     </Link>
                     <HelpMenu path={currentPath} />
                     {currentPath !== "/app" && (
-                        <DefaultButton
-                            className={classNames(styles.uploadButton, styles.headerOption)}
-                            styles={{ label: styles.uploadButtonLabel }}
-                            ariaLabel="Get started"
+                        <SecondaryButton
+                            className={styles.startButton}
                             onClick={() => navigate("/app")}
                             title="Get started"
                             text="GET STARTED"

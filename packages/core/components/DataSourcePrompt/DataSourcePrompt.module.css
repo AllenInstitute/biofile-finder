@@ -14,28 +14,6 @@
     border-color: var(--border-color) !important;
 }
 
-.file-input-label {
-    background-color: var(--highlight-background-color);
-    color: var(--highlight-text-color);
-    cursor: pointer;
-    border: none;
-    border-radius: var(--large-border-radius);
-    display: flex;
-    font-weight: 100;
-    font-size: small;
-    justify-content: center;
-    padding: 0.75em 1.25em;
-}
-
-.file-input-label:hover, .file-input-label:focus {
-    background-color: var(--highlight-hover-background-color);
-    color: var(--highlight-hover-text-color);
-}
-
-.file-input-label > p {
-    margin: 0 0 0 4px;
-}
-
 .file-input {
     display: none;
 }

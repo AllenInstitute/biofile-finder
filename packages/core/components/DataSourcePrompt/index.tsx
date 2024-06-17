@@ -4,6 +4,7 @@ import { throttle } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import PrimaryButton from "../Buttons/PrimaryButton";
 import { interaction, selection } from "../../state";
 import { Source } from "../../entity/FileExplorerURL";
 
@@ -176,18 +177,20 @@ export default function DataSourcePrompt(props: Props) {
             )}
             <hr className={styles.divider} />
             <div className={styles.actionsContainer}>
-                <form className={styles.fileInputForm}>
+                <form>
                     <label
-                        className={styles.fileInputLabel}
                         aria-label="Browse for a data source file on your machine"
                         title="Browse for a data source file on your machine"
                         htmlFor="data-source-selector"
                     >
-                        <Icon iconName="DocumentSearch" />
-                        <p>CHOOSE FILE</p>
+                        <PrimaryButton
+                            iconName="DocumentSearch"
+                            text="Choose file"
+                            title="Choose file"
+                        />
                     </label>
                     <input
-                        className={styles.fileInput}
+                        hidden
                         accept=".csv,.json,.parquet"
                         type="file"
                         id="data-source-selector"

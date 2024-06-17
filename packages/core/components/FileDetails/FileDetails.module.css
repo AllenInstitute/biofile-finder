@@ -143,23 +143,6 @@
     padding-left: 0;
 }
 
-.icon-button {
-    background-color: var(--highlight-background-color);
-    border: none;
-    border-radius: var(--large-border-radius);
-    color: var(--highlight-text-color);
-    font-size: small;
-    height: 30px;
-    max-width: 250px;
-    overflow-x: hidden;
-    width: 100%;
-    justify-content: center;
-}
-
-.icon-button i {
-    color: var(--highlight-text-color);
-}
-
 .file-name {
     padding: var(--margin);
     text-align: center;
@@ -169,8 +152,4 @@
 
 .title {
     margin: 0 0 0 var(--margin);
-}
-
-.icon-button span {
-    font-weight: normal;
 }

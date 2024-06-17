@@ -1,11 +1,4 @@
-import {
-    ContextualMenuItemType,
-    DefaultButton,
-    DirectionalHint,
-    IContextualMenuItem,
-    Icon,
-    IconButton,
-} from "@fluentui/react";
+import { ContextualMenuItemType, IContextualMenuItem, Icon, IconButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,6 +12,7 @@ import useHelpOptions from "../../hooks/useHelpOptions";
 import { interaction, selection } from "../../state";
 
 import styles from "./QuerySidebar.module.css";
+import PrimaryButton from "../Buttons/PrimaryButton";
 
 interface QuerySidebarProps {
     className?: string;
@@ -125,21 +119,13 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                         [styles.logoHidden]: isOnWeb,
                     })}
                 />
-                <DefaultButton
-                    ariaLabel="Add"
-                    className={styles.addViewButton}
-                    iconProps={{ iconName: "Add" }}
+                <PrimaryButton
+                    className={styles.addButton}
                     id={Tutorial.ADD_QUERY_BUTTON_ID}
-                    menuIconProps={{ className: styles.hidden }}
-                    menuProps={{
-                        className: classNames(styles.buttonMenu, styles.addViewButtonMenu),
-                        directionalHint: DirectionalHint.rightTopEdge,
-                        shouldFocusOnMount: true,
-                        items: addQueryOptions,
-                        calloutProps: { className: styles.buttonMenuContainer },
-                    }}
+                    iconName="Add"
+                    menuItems={addQueryOptions}
                     title="Add new query"
-                    text="ADD"
+                    text="Add"
                 />
             </div>
             <div

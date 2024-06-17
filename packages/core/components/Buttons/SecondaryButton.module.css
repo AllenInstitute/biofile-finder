@@ -1,0 +1,38 @@
+.button {
+    align-items: center;
+    background-color: var(--primary-dark); 
+    border: 1px solid var(--aqua);
+    border-radius: var(--large-border-radius);
+    color: var(--aqua);
+    cursor: pointer;
+    display: flex;
+    font-size: var(--s-paragraph-size);
+    height: 34px;
+    justify-content: center;
+    overflow-x: hidden;
+    padding: 0 16px;
+    width: 100%;
+}
+
+.button:hover, .button:focus {
+    background-color: var(--aqua-secondary-hover);
+    color: var(--bright-aqua);
+    border-color: var(--bright-aqua);
+}
+
+.button-content {
+    display: flex;
+}
+
+.button-icon {
+    color: var(--highlight-text-color);
+    font-weight: 600;
+    padding-right: 6px;
+}
+
+.button-text {
+    font-weight: 400;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

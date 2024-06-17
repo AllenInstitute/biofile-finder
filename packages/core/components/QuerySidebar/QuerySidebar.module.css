@@ -1,54 +1,5 @@
-.add-view-button {
-    color: var(--highlight-text-color);
-    background-color: var(--highlight-background-color);
-    border: none;
-    border-radius: var(--large-border-radius);
-    width: 50px;
-}
-
-.add-view-button:hover, .add-view-button:focus {
-    color: var(--highlight-hover-text-color);
-    background-color: var(--highlight-hover-background-color);
-}
-
-.add-view-button > span > span > span {
-    font-size: small;
-    font-weight: 100;
-}
-
-.add-view-button-menu > ul > li:nth-child(-n + 2) {
-    opacity: 0.25;
-}
-
-.add-view-button-menu > ul > li:first-of-type {
-    opacity: unset;
-}
-
-.add-view-button-menu > ul > li:first-of-type span {
-    font-weight: 500;
-}
-
-.button-menu, .button-menu button {
-    background-color: var(--primary-background-color);
-    color: var(--primary-text-color);
-}
-
-.button-menu i, .button-menu li > div {
-    color: var(--primary-text-color);
-}
-
-.button-menu button span:last-of-type:not(:first-of-type) {
-    color: var(--primary-text-color);
-}
-
-.button-menu :is(a, button):hover, .button-menu :is(a, button):hover i {
-    background-color: var(--highlight-background-color);
-    color: var(--highlight-text-color) !important;
-}
-
-.button-menu-container {
-    border-radius: var(--small-border-radius);
-    box-shadow: var(--box-shadow);
+.add-button {
+    width: 92px;
 }
 
 .logo-hidden {

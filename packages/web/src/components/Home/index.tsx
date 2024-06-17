@@ -1,35 +1,30 @@
-import { DefaultButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import Features from "./Features";
 import { APPLICATION_NAME } from "../../constants";
+import PrimaryButton from "../../../../core/components/Buttons/PrimaryButton";
 import Modal from "../../../../core/components/Modal";
 
 import styles from "./Home.module.css";
 
 // Public-facing splash page
 export default function Home() {
-    const navigate = useNavigate();
-
     const options = [
         {
             header: "YOUR datasets",
             body: `Load a CSV, Parquet or JSON (data source)
             that includes your dataset location to get started.`,
             action: (
-                <DefaultButton
-                    className={classNames(styles.button)}
-                    styles={{
-                        label: styles.buttonLabel,
-                        icon: styles.buttonIcon,
-                    }}
-                    ariaLabel="Get started"
-                    onClick={() => navigate("/app")}
-                    title="Get started"
-                    text="GET STARTED"
-                />
+                <Link to="app">
+                    <PrimaryButton
+                        className={styles.optionButton}
+                        iconName="Checkmark"
+                        title="Get started"
+                        text="GET STARTED"
+                    />
+                </Link>
             ),
         },
         {
@@ -37,15 +32,10 @@ export default function Home() {
             body: `Use BioFile Finder to view and access datasets from
             the Allen Institute for Cell Science and other contributors.`,
             action: (
-                <Link to={"datasets"}>
-                    <DefaultButton
-                        className={classNames(styles.button)}
-                        styles={{
-                            label: styles.buttonLabel,
-                            icon: styles.buttonIcon,
-                        }}
-                        ariaLabel="View datasets"
-                        iconProps={{ iconName: "BulletedList" }}
+                <Link to="datasets">
+                    <PrimaryButton
+                        className={styles.optionButton}
+                        iconName="BulletedList"
                         title="View datasets"
                         text="VIEW DATASETS"
                     />

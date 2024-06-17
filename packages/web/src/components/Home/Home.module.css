@@ -83,45 +83,28 @@
 
 .option {
     flex: none;
-    height: 220px;
     width: 340px;
     background-color: var(--primary-dark);
     margin: var(--margin);
     text-align: center;
-    padding: var(--margin);
+    padding: 30px 16px;
+}
+
+.option > div:first-child {
+    height: 48px;
 }
 
 .option-body {
     font-size: var(--l-paragraph-size);
     font-weight: 400;
     padding: var(--margin);
-    margin: var(--margin) 0;
 }
 
 .options-container {
     padding: calc(2 * var(--margin)) 0;
 }
 
-.button {
-    background-color: var(--aqua);
-    color: var(--white);
-    border: 1px solid var(--secondary-dark);
-    border-radius: 18px;
-    height: 34px;
-}
-
-.button:hover,
-.button:focus {
-    background-color: var(--bright-aqua);
-    color: var(--white);
-}
-
-.button-label { 
-    font-size: 14px;
-    font-weight: 400;
-}
-
-.button-icon { 
-    font-size: 15px;
-    font-weight: 500;
+.option-button {
+    margin: auto;
+    width: 166px
 }

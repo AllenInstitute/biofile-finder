@@ -42,20 +42,6 @@
   color: var(--white)
 }
 
-.upload-button {
-  background-color: var(--primary-dark); 
-  color: var(--aqua);
-  border: 1px solid var(--aqua);
-  border-radius: 18px;
-}
-
-.upload-button:hover, .upload-button:focus {
-  background-color: var(--aqua-secondary-hover);
-  color: var(--aqua);
-}
-
-.upload-button-label { 
-  font-weight: 400; 
-  font-size: 14px;
-  text-wrap: nowrap;
+.start-button {
+  width: 126px;
 }

@@ -1,0 +1,82 @@
+.button {
+    align-items: center;
+    background-color: var(--highlight-background-color);
+    border: none;
+    border-radius: var(--large-border-radius);
+    color: var(--highlight-text-color);
+    cursor: pointer;
+    display: flex;
+    font-size: var(--s-paragraph-size);
+    height: 34px;
+    justify-content: center;
+    overflow-x: hidden;
+    padding: 0 16px;
+    width: 100%;
+}
+
+.button:hover, .button:focus {
+    background-color: var(--highlight-hover-background-color);
+    color: var(--highlight-hover-text-color);
+}
+
+.button-content {
+    display: flex;
+}
+
+.button-icon {
+    color: var(--highlight-text-color);
+    font-weight: 600;
+}
+
+.button-menu, .button-menu button {
+    background-color: var(--primary-background-color);
+    color: var(--primary-text-color);
+}
+
+.button-menu i, .button-menu li > div {
+    color: var(--primary-text-color);
+}
+
+.button-menu button span:last-of-type:not(:first-of-type) {
+    color: var(--primary-text-color);
+}
+
+.button-menu :is(a, button):hover, .button-menu :is(a, button):hover i {
+    background-color: var(--highlight-background-color);
+    color: var(--highlight-text-color) !important;
+}
+
+.button-menu-callout {
+    border-radius: var(--small-border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.button-menu-divider {
+    opacity: 0.25;
+}
+
+.button-menu-header {
+    align-items: center;
+    display: flex;
+    height: 45px;
+}
+
+.button-menu-header span {
+    color: var(--highlight-text-color);
+    font-size: 14px;
+    font-weight: 400;
+    margin: 0;
+}
+
+
+.button-text {
+    font-weight: 400;
+    overflow-x: hidden;
+    padding-left: 6px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hidden {
+    display: none;
+}
