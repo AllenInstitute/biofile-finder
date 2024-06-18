@@ -78,6 +78,13 @@ function resizeHandleDoubleClick() {
 export default function FileDetails(props: Props) {
     const [windowState, windowDispatch] = React.useReducer(windowStateReducer, INITIAL_STATE);
     const [fileDetails, isLoading] = useFileDetails();
+    const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>(undefined);
+
+    React.useEffect(() => {
+        if (fileDetails) {
+            fileDetails.getPathToThumbnail().then(setThumbnailPath);
+        }
+    }, [fileDetails]);
 
     // If FileDetails pane is minimized, set its width to the width of the WindowActionButtons. Else, let it be
     // defined by whatever the CSS determines (setting an inline style to undefined will prompt ReactDOM to not apply
@@ -85,7 +92,6 @@ export default function FileDetails(props: Props) {
     const minimizedWidth =
         windowState.state === WindowState.MINIMIZED ? WINDOW_ACTION_BUTTON_WIDTH : undefined;
 
-    const thumbnailPath = fileDetails?.getPathToThumbnail();
     let thumbnailHeight = undefined;
     let thumbnailWidth = undefined;
     if (windowState.state === WindowState.DEFAULT) {
