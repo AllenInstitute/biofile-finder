@@ -2,9 +2,9 @@ import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 
-import PrimaryButton from "../PrimaryButton";
+import BaseButton from "../BaseButton";
 
-describe("<PrimaryButton />", () => {
+describe("<BaseButton />", () => {
     it("does not perform click when disabled", () => {
         // Arrange
         const title = "Mock";
@@ -14,7 +14,7 @@ describe("<PrimaryButton />", () => {
         };
 
         const { getByText } = render(
-            <PrimaryButton disabled onClick={onClick} iconName="Download" title={title} />
+            <BaseButton disabled onClick={onClick} iconName="Download" title={title} />
         );
 
         // (sanity-check) no click
@@ -36,7 +36,7 @@ describe("<PrimaryButton />", () => {
         };
 
         const { getByText } = render(
-            <PrimaryButton onClick={onClick} iconName="Download" title={title} />
+            <BaseButton onClick={onClick} iconName="Download" title={title} />
         );
 
         // (sanity-check) no click

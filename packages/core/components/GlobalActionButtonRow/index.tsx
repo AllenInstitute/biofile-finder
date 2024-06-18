@@ -1,8 +1,8 @@
-import { ActionButton, IconButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { TertiaryButton } from "../Buttons";
 import { THUMBNAIL_SIZE_TO_NUM_COLUMNS } from "../../constants";
 import { selection } from "../../state";
 
@@ -26,26 +26,20 @@ export default function GlobalActionButtonRow(props: Props) {
     return (
         <div className={classNames(styles.container, props.className)}>
             <div className={styles.buttonGroup}>
-                <IconButton
-                    className={classNames(styles.iconButton, {
-                        [styles.disabled]: !shouldDisplayThumbnailView,
-                    })}
-                    disabled={!shouldDisplayThumbnailView}
+                <TertiaryButton
+                    className={styles.listViewButton}
+                    iconName="NumberedListText"
+                    isSelected={!shouldDisplayThumbnailView}
                     onClick={() =>
                         dispatch(
                             selection.actions.setFileThumbnailView(!shouldDisplayThumbnailView)
                         )
                     }
                     title="List view"
-                    iconProps={{ iconName: "NumberedListText" }}
                 />
-                <IconButton
-                    className={classNames(styles.iconButton, {
-                        [styles.disabled]:
-                            shouldDisplayThumbnailView &&
-                            fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE,
-                    })}
-                    disabled={
+                <TertiaryButton
+                    iconName="GridViewMedium"
+                    isSelected={
                         shouldDisplayThumbnailView &&
                         fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE
                     }
@@ -58,15 +52,10 @@ export default function GlobalActionButtonRow(props: Props) {
                         );
                     }}
                     title="Large thumbnail view"
-                    iconProps={{ iconName: "Photo2", className: styles.largeFont }}
                 />
-                <IconButton
-                    className={classNames(styles.iconButton, {
-                        [styles.disabled]:
-                            shouldDisplayThumbnailView &&
-                            fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL,
-                    })}
-                    disabled={
+                <TertiaryButton
+                    iconName="GridViewSmall"
+                    isSelected={
                         shouldDisplayThumbnailView &&
                         fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL
                     }
@@ -79,31 +68,24 @@ export default function GlobalActionButtonRow(props: Props) {
                         );
                     }}
                     title="Small thumbnail view"
-                    iconProps={{ iconName: "Photo2", className: styles.smallFont }}
                 />
             </div>
             <div className={styles.buttonGroup}>
-                <ActionButton
-                    className={classNames(styles.iconButton, styles.largeFont, {
-                        [styles.disabled]: !shouldDisplaySmallFont,
-                    })}
-                    disabled={!shouldDisplaySmallFont}
+                <TertiaryButton
+                    iconName="FontIncrease"
+                    isSelected={!shouldDisplaySmallFont}
                     onClick={() =>
                         dispatch(selection.actions.adjustGlobalFontSize(!shouldDisplaySmallFont))
                     }
                     title="Large font size"
-                    text="a"
                 />
-                <ActionButton
-                    className={classNames(styles.iconButton, styles.smallFont, {
-                        [styles.disabled]: shouldDisplaySmallFont,
-                    })}
-                    disabled={shouldDisplaySmallFont}
+                <TertiaryButton
+                    iconName="FontDecrease"
+                    isSelected={shouldDisplaySmallFont}
                     onClick={() =>
                         dispatch(selection.actions.adjustGlobalFontSize(!shouldDisplaySmallFont))
                     }
                     title="Small font size"
-                    text="a"
                 />
             </div>
         </div>

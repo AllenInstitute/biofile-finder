@@ -1,9 +1,9 @@
-import { IContextualMenuItem, IconButton } from "@fluentui/react";
-import classNames from "classnames";
+import { IContextualMenuItem } from "@fluentui/react";
 import { throttle } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { TertiaryButton } from "../Buttons";
 import { ModalType } from "../Modal";
 import Tutorial from "../../entity/Tutorial";
 import { interaction, selection } from "../../state";
@@ -73,54 +73,36 @@ export default function QueryFooter(props: Props) {
 
     return (
         <div className={styles.container}>
-            <IconButton
-                ariaDescription="Delete query"
-                ariaLabel="Delete"
-                title="Delete"
-                className={classNames(styles.button, styles.hiddenInnerIcon, {
-                    [styles.disabled]: !props.isDeletable,
-                })}
-                disabled={!props.isDeletable}
-                iconProps={{ iconName: "Delete" }}
-                menuProps={{
-                    className: styles.buttonMenu,
-                    items: deleteQueryOptions,
-                    calloutProps: { className: styles.buttonMenuContainer },
-                }}
-            />
-            <IconButton
-                ariaDescription="Refresh query"
-                ariaLabel="Refresh"
-                title="Refresh"
-                className={classNames(styles.button, { [styles.disabled]: isEmptyQuery })}
+            <TertiaryButton
+                invertColor
                 disabled={isEmptyQuery}
+                iconName="Delete"
+                menuItems={deleteQueryOptions}
                 onClick={onRefresh}
-                iconProps={{ iconName: "Refresh" }}
+                title="Delete query"
             />
-            <IconButton
-                ariaDescription="Copy query"
-                ariaLabel="Copy"
-                title="Duplicate"
-                className={classNames(styles.button, { [styles.disabled]: isEmptyQuery })}
+            <TertiaryButton
+                invertColor
                 disabled={isEmptyQuery}
+                iconName="Refresh"
+                onClick={onRefresh}
+                title="Refresh query"
+            />
+            <TertiaryButton
+                invertColor
+                disabled={isEmptyQuery}
+                iconName="Copy"
                 onClick={() => dispatch(selection.actions.addQuery(props.query))}
-                iconProps={{ iconName: "Copy" }}
+                title="Duplicate query"
             />
-            <IconButton
-                ariaDescription="Share query"
-                ariaLabel="Share"
-                title="Share"
-                className={classNames(styles.button, styles.hiddenInnerIcon, {
-                    [styles.disabled]: isEmptyQuery,
-                })}
+            <TertiaryButton
+                invertColor
                 disabled={isEmptyQuery}
-                menuProps={{
-                    className: styles.buttonMenu,
-                    items: shareQueryOptions,
-                    calloutProps: { className: styles.buttonMenuContainer },
-                }}
-                iconProps={{ iconName: "Share" }}
+                iconName="Share"
                 id={Tutorial.SHARE_BUTTON_ID}
+                menuItems={shareQueryOptions}
+                onClick={onRefresh}
+                title="Share query"
             />
         </div>
     );

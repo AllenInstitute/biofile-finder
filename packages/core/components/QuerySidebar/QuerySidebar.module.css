@@ -2,10 +2,6 @@
     width: 92px;
 }
 
-.logo-hidden {
-    content-visibility: hidden;
-}
-
 .container, .minimized-container {
     --primary-sidebar-color: var(--secondary-background-color);
     --secondary-sidebar-color: var(--primary-background-color);
@@ -111,7 +107,7 @@
 
 .header {
     display: flex;
-    justify-content: space-between;
+    justify-content: right;
     height: var(--header-height);
 }
 

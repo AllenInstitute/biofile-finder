@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 import Features from "./Features";
 import { APPLICATION_NAME } from "../../constants";
-import PrimaryButton from "../../../../core/components/Buttons/PrimaryButton";
+import { PrimaryButton } from "../../../../core/components/Buttons";
 import Modal from "../../../../core/components/Modal";
 
 import styles from "./Home.module.css";

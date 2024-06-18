@@ -1,4 +1,4 @@
-import { ActionButton, IContextualMenuItem, IconButton, TooltipHost } from "@fluentui/react";
+import { ActionButton, IContextualMenuItem, TooltipHost } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
@@ -9,8 +9,7 @@ import { interaction } from "../../../state";
 import BaseModal from "../BaseModal";
 
 import styles from "./CodeSnippet.module.css";
-
-const COPY_ICON = { iconName: "copy" };
+import { TertiaryButton } from "../../Buttons";
 
 /**
  * Dialog meant to show the user a Code snippet
@@ -71,9 +70,8 @@ export default function CodeSnippet({ onDismiss }: ModalProps) {
             <div className={styles.header}>
                 <h4>Setup</h4>
                 <TooltipHost content={isSetupCopied ? "Copied to clipboard!" : undefined}>
-                    <IconButton
-                        className={styles.copyButton}
-                        iconProps={COPY_ICON}
+                    <TertiaryButton
+                        iconName="Copy"
                         onClick={onCopySetup}
                         title="Copy to clipboard"
                     />
@@ -91,9 +89,8 @@ export default function CodeSnippet({ onDismiss }: ModalProps) {
             <div className={styles.header}>
                 <h4>Code</h4>
                 <TooltipHost content={isCodeCopied ? "Copied to clipboard!" : undefined}>
-                    <IconButton
-                        className={styles.copyButton}
-                        iconProps={COPY_ICON}
+                    <TertiaryButton
+                        iconName="Copy"
                         onClick={onCopyCode}
                         title="Copy to clipboard"
                     />

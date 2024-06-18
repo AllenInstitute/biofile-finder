@@ -4,15 +4,13 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import Query from "./Query";
+import { PrimaryButton } from "../Buttons";
 import { ModalType } from "../Modal";
-import SvgIcon from "../SvgIcon";
 import Tutorial from "../../entity/Tutorial";
-import { AICS_LOGO } from "../../icons";
 import useHelpOptions from "../../hooks/useHelpOptions";
 import { interaction, selection } from "../../state";
 
 import styles from "./QuerySidebar.module.css";
-import PrimaryButton from "../Buttons/PrimaryButton";
 
 interface QuerySidebarProps {
     className?: string;
@@ -85,17 +83,6 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     if (!isExpanded) {
         return (
             <div className={styles.minimizedContainer} onClick={() => setIsExpanded(true)}>
-                <div className={styles.header}>
-                    <SvgIcon
-                        height={25}
-                        pathData={AICS_LOGO}
-                        viewBox="0,0,512,512"
-                        width={25}
-                        className={classNames(styles.logo, {
-                            [styles.logoHidden]: isOnWeb,
-                        })}
-                    />
-                </div>
                 <p>
                     <strong>{selectedQuery}</strong>
                 </p>
@@ -110,15 +97,6 @@ export default function QuerySidebar(props: QuerySidebarProps) {
             })}
         >
             <div className={styles.header}>
-                <SvgIcon
-                    height={40}
-                    pathData={AICS_LOGO}
-                    viewBox="0,0,512,512"
-                    width={40}
-                    className={classNames(styles.logo, {
-                        [styles.logoHidden]: isOnWeb,
-                    })}
-                />
                 <PrimaryButton
                     className={styles.addButton}
                     id={Tutorial.ADD_QUERY_BUTTON_ID}

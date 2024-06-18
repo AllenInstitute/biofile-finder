@@ -1,6 +1,8 @@
-import { ContextualMenuItemType, DefaultButton, IContextualMenuItem, Icon } from "@fluentui/react";
+import { DirectionalHint, IContextualMenuItem } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
+
+import BaseButton from "./BaseButton";
 
 import styles from "./PrimaryButton.module.css";
 
@@ -9,6 +11,7 @@ interface Props {
     disabled?: boolean;
     iconName: string;
     id?: string;
+    menuDirection?: DirectionalHint;
     menuItems?: IContextualMenuItem[];
     onClick?: () => void;
     text?: string;
@@ -19,74 +22,19 @@ interface Props {
  * Component styled for primary interactions in the app (ex. Download)
  */
 export default function PrimaryButton(props: Props) {
-    const styledMenuItems = React.useMemo(
-        () =>
-            props.menuItems
-                ? props.menuItems.map((menuItem) => {
-                      if (menuItem.itemType === ContextualMenuItemType.Divider) {
-                          return {
-                              ...menuItem,
-                              className: styles.buttonMenuDivider,
-                          };
-                      }
-
-                      if (menuItem.itemType === ContextualMenuItemType.Header) {
-                          console.log("did the header", menuItem);
-                          return {
-                              ...menuItem,
-                              className: styles.buttonMenuHeader,
-                          };
-                      }
-
-                      return menuItem;
-                  })
-                : undefined,
-        [props.menuItems]
-    );
-
-    const content = (
-        <span className={styles.buttonContent}>
-            <Icon className={styles.buttonIcon} iconName={props.iconName} />
-            <span className={styles.buttonText}>{props.text?.toUpperCase()}</span>
-        </span>
-    );
-
-    // Avoid button element wrapper if not necessary
-    if (!props.onClick && !props.menuItems) {
-        return (
-            <div
-                className={classNames(props.className, styles.button)}
-                id={props.id}
-                title={props.title}
-            >
-                {content}
-            </div>
-        );
-    }
-
     return (
-        <DefaultButton
-            className={classNames(props.className, styles.button)}
-            ariaLabel={props.title}
+        <BaseButton
+            className={classNames(props.className, styles.button, {
+                [styles.disabled]: props.disabled,
+            })}
             disabled={props.disabled}
+            iconName={props.iconName}
             id={props.id}
-            menuIconProps={{ className: styles.hidden }}
-            menuProps={
-                styledMenuItems
-                    ? {
-                          className: styles.buttonMenu,
-                          calloutProps: { className: styles.buttonMenuCallout },
-                          // TODO
-                          // directionalHint: DirectionalHint.rightTopEdge,
-                          shouldFocusOnMount: true,
-                          items: styledMenuItems,
-                      }
-                    : undefined
-            }
+            menuDirection={props.menuDirection}
+            menuItems={props.menuItems}
             onClick={props.onClick}
+            text={props.text}
             title={props.title}
-        >
-            {content}
-        </DefaultButton>
+        />
     );
 }

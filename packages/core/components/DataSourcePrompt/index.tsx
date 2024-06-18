@@ -4,7 +4,7 @@ import { throttle } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import PrimaryButton from "../Buttons/PrimaryButton";
+import { PrimaryButton } from "../Buttons";
 import { interaction, selection } from "../../state";
 import { Source } from "../../entity/FileExplorerURL";
 

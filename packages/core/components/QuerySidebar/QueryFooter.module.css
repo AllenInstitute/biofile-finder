@@ -3,37 +3,6 @@
     justify-content: right;
 }
 
-.button {
-    color: var(--primary-sidebar-text-color);
-    background-color: var(--primary-sidebar-color);
-    border-radius: 4px;
-    margin-left: 2px;
-}
-
-.button:hover:not(.disabled), .button:focus:not(.disabled) {
-    color: var(--highlight-text-color);
-    background-color: var(--highlight-background-color);
-}
-
-.button-menu-container {
-    border-radius: var(--small-border-radius);
-    box-shadow: var(--box-shadow);
-}
-
-.button-menu, .button-menu button {
-    background-color: var(--secondary-background-color);
-    color: var(--secondary-text-color);
-}
-
-.button-menu i, .button-menu li > div {
-    color: var(--secondary-text-color);
-}
-
-.button-menu button:hover, .button-menu button:hover i {
-    background-color: var(--highlight-background-color);
-    color: var(--highlight-text-color) !important;
-}
-
-.hidden-inner-icon i:last-of-type {
-    display: none;
+.container > * {
+    margin-left: 3px;
 }

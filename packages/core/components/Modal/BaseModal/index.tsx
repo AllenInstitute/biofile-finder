@@ -1,8 +1,9 @@
-import { ContextualMenu, IconButton, IDragOptions, Modal } from "@fluentui/react";
+import { ContextualMenu, IDragOptions, Modal } from "@fluentui/react";
 import { noop } from "lodash";
 import * as React from "react";
 
 import styles from "./BaseModal.module.css";
+import { TertiaryButton } from "../../Buttons";
 
 interface BaseModalProps {
     body: React.ReactNode;
@@ -39,12 +40,7 @@ export default function BaseModal(props: BaseModalProps) {
                         {title}
                     </h3>
                 ) : null}
-                <IconButton
-                    ariaLabel="Close"
-                    className={styles.closeButton}
-                    iconProps={{ iconName: "Cancel" }}
-                    onClick={onDismiss}
-                />
+                <TertiaryButton iconName="Cancel" onClick={onDismiss} title="Close" />
             </div>
             {body}
             <div className={styles.footer}>{footer}</div>

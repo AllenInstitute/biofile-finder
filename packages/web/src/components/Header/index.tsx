@@ -3,7 +3,7 @@ import * as React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import HelpMenu from "./Help";
-import SecondaryButton from "../../../../core/components/Buttons/SecondaryButton";
+import { SecondaryButton } from "../../../../core/components/Buttons";
 import { APPLICATION_NAME } from "../../constants";
 import AICSLogo from "../../../assets/AICS-logo-and-name.svg";
 

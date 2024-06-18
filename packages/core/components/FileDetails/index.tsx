@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
 import useFileDetails from "./useFileDetails";
-import PrimaryButton from "../Buttons/PrimaryButton";
+import { PrimaryButton } from "../Buttons";
 import { ContextMenuActions } from "../ContextMenu/items";
 import FileFilter from "../../entity/FileFilter";
 import { ROOT_ELEMENT_ID } from "../../App";
@@ -174,47 +174,45 @@ export default function FileDetails(props: Props) {
                 </div>
                 <div className={styles.paginationAndContent}>
                     <Pagination className={styles.pagination} />
-                    <div className={styles.contentContainer}>
-                        <div className={styles.overflowContainer}>
-                            {fileDetails && (
-                                <>
-                                    <div className={styles.thumbnailContainer}>
-                                        <FileThumbnail
-                                            className={styles.thumbnail}
-                                            width="100%"
-                                            // height={thumbnailHeight}
-                                            uri={fileDetails?.getPathToThumbnail()}
-                                        />
-                                    </div>
-                                    <div className={styles.fileActions}>
-                                        <PrimaryButton
-                                            className={styles.primaryButton}
-                                            disabled={processStatuses.some((status) =>
-                                                status.data.fileId?.includes(fileDetails.id)
-                                            )}
-                                            iconName="Download"
-                                            text="Download"
-                                            title="Download"
-                                            onClick={onDownload}
-                                        />
-                                        <PrimaryButton
-                                            className={styles.primaryButton}
-                                            iconName="OpenInNewWindow"
-                                            text="Open file"
-                                            title="Open file"
-                                            menuItems={openMenuItems}
-                                        />
-                                    </div>
-                                    <p className={styles.fileName}>{fileDetails?.name}</p>
-                                    <h4 className={styles.title}>Information</h4>
-                                    <FileAnnotationList
-                                        className={styles.annotationList}
-                                        fileDetails={fileDetails}
-                                        isLoading={isLoading}
+                    <div className={styles.overflowContainer}>
+                        {fileDetails && (
+                            <>
+                                <div className={styles.thumbnailContainer}>
+                                    <FileThumbnail
+                                        className={styles.thumbnail}
+                                        width="100%"
+                                        // height={thumbnailHeight}
+                                        uri={fileDetails?.getPathToThumbnail()}
                                     />
-                                </>
-                            )}
-                        </div>
+                                </div>
+                                <div className={styles.fileActions}>
+                                    <PrimaryButton
+                                        className={styles.primaryButton}
+                                        disabled={processStatuses.some((status) =>
+                                            status.data.fileId?.includes(fileDetails.id)
+                                        )}
+                                        iconName="Download"
+                                        text="Download"
+                                        title="Download"
+                                        onClick={onDownload}
+                                    />
+                                    <PrimaryButton
+                                        className={styles.primaryButton}
+                                        iconName="OpenInNewWindow"
+                                        text="Open file"
+                                        title="Open file"
+                                        menuItems={openMenuItems}
+                                    />
+                                </div>
+                                <p className={styles.fileName}>{fileDetails?.name}</p>
+                                <h4>Information</h4>
+                                <FileAnnotationList
+                                    className={styles.annotationList}
+                                    fileDetails={fileDetails}
+                                    isLoading={isLoading}
+                                />
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

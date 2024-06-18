@@ -40,20 +40,6 @@
     flex: 1 1 auto;
 }
 
-.close-button {
-    /* flex child */
-    flex: 0 0 auto;
-}
-
-.close-button i {
-    color: var(--primary-text-color);
-}
-
-.close-button:hover, .close-button:hover i {
-    background-color: var(--highlight-background-color);
-    color: var(--highlight-text-color);
-}
-
 .footer {
     position: sticky;
     bottom: 0;
