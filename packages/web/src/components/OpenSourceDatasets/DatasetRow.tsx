@@ -1,7 +1,7 @@
 import { DefaultButton, IDetailsRowProps, IRenderFunction } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import PublicDataset from "../../entity/PublicDataset";
@@ -20,6 +20,7 @@ export default function DatasetRow(props: DatasetRowProps) {
     const navigate = useNavigate();
     const [showActions, setShowActions] = React.useState(true);
     const dataset = new PublicDataset(props.rowProps.item);
+    const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
     const selectDataset = () => {
         dispatch(interaction.actions.setSelectedPublicDataset(dataset));
@@ -27,13 +28,16 @@ export default function DatasetRow(props: DatasetRowProps) {
     };
 
     const openDatasetInApp = (source: Source) => {
-        navigate("/app");
         dispatch(
             selection.actions.addQuery({
                 name: `New ${source.name} Query on ${dataset?.name || "open-source dataset"}`,
                 parts: { source },
             })
         );
+        navigate({
+            pathname: "/app",
+            search: `?${currentGlobalURL}`,
+        });
     };
 
     const loadDataset = () => {
@@ -65,7 +69,7 @@ export default function DatasetRow(props: DatasetRowProps) {
                 })}
             >
                 <DefaultButton
-                    className={classNames(styles.button)}
+                    className={styles.button}
                     styles={{
                         label: styles.buttonLabel,
                     }}
@@ -74,7 +78,7 @@ export default function DatasetRow(props: DatasetRowProps) {
                     text="DETAILS"
                 />
                 <DefaultButton
-                    className={classNames(styles.button)}
+                    className={styles.button}
                     styles={{
                         label: styles.buttonLabel,
                         icon: styles.buttonIcon,

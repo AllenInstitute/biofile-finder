@@ -72,6 +72,28 @@ describe("<DatasetDetails />", () => {
             expect(getByText(mockDataset.name)).to.exist;
             expect(getByText(mockDataset.description)).to.exist;
         });
+        it("renders links for ref publication and DOI if provided", () => {
+            const mockDataset = makePublicDatasetMock("test-id");
+
+            // Arrange
+            const { store } = configureMockStore({
+                state: mergeState(initialState, {
+                    interaction: {
+                        selectedPublicDataset: mockDataset,
+                    },
+                }),
+            });
+            const { getAllByRole } = render(
+                <Provider store={store}>
+                    <RouterProvider router={mockRouter} />
+                </Provider>
+            );
+
+            expect(getAllByRole("link").length).to.equal(2);
+            expect(getAllByRole("link").at(0)?.getAttribute("href")).to.equal(
+                mockDataset.details.doi
+            );
+        });
         it("displays indicator for undefined fields", () => {
             const sparseDataset = new PublicDataset({
                 dataset_name: "Sparse Dataset",

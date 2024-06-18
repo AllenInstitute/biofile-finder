@@ -8,11 +8,16 @@ import {
     ThemeProvider,
 } from "@fluentui/react";
 import { ShimmeredDetailsList } from "@fluentui/react/lib/ShimmeredDetailsList";
+import classNames from "classnames";
 import * as React from "react";
 
 import DatasetRow from "./DatasetRow";
 import useDatasetDetails from "./useDatasetDetails";
-import { PublicDatasetProps, DATASET_TABLE_FIELDS } from "../../entity/PublicDataset";
+import {
+    PublicDatasetProps,
+    DATASET_TABLE_FIELDS,
+    DatasetAnnotations,
+} from "../../entity/PublicDataset";
 import FileFilter from "../../../../core/entity/FileFilter";
 import FileSort, { SortOrder } from "../../../../core/entity/FileSort";
 
@@ -70,6 +75,19 @@ export default function DatasetTable(props: DatasetTableProps) {
     ) {
         const fieldContent = item[column?.fieldName as keyof PublicDatasetProps] as string;
         if (!fieldContent) return <>--</>;
+        if (
+            column?.fieldName === DatasetAnnotations.RELATED_PUBLICATON.name &&
+            item?.[DatasetAnnotations.DOI.name as keyof PublicDatasetProps]
+        ) {
+            return (
+                <a
+                    className={classNames(styles.link, styles.doubleLine)}
+                    href={item[DatasetAnnotations.DOI.name as keyof PublicDatasetProps]}
+                >
+                    {fieldContent}
+                </a>
+            );
+        }
         return <div className={styles.doubleLine}>{fieldContent}</div>;
     }
 

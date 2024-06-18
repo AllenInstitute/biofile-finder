@@ -6,7 +6,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import DatasetDetailsRow from "./DatasetDetailsRow";
-import PublicDataset, { DATASET_DISPLAY_FIELDS } from "../../entity/PublicDataset";
+import PublicDataset, {
+    DATASET_DISPLAY_FIELDS,
+    DatasetAnnotations,
+} from "../../entity/PublicDataset";
 import { interaction, selection } from "../../../../core/state";
 import { getNameAndTypeFromSourceUrl, Source } from "../../../../core/entity/FileExplorerURL";
 
@@ -36,8 +39,15 @@ export default function DatasetDetails() {
         return DATASET_DISPLAY_FIELDS.reduce((accum, field) => {
             const fieldName = field.name;
             let datasetFieldValue;
+            let link;
             if (datasetDetails.details.hasOwnProperty(fieldName)) {
                 datasetFieldValue = _get(datasetDetails.details, fieldName);
+                if (
+                    (fieldName === DatasetAnnotations.RELATED_PUBLICATON.name ||
+                        fieldName === DatasetAnnotations.DOI.name) &&
+                    datasetDetails.details.hasOwnProperty(DatasetAnnotations.DOI.name)
+                )
+                    link = _get(datasetDetails.details, DatasetAnnotations.DOI.name);
             } else datasetFieldValue = "--"; // Still display field, just indicate no value provided
             const ret = [
                 ...accum,
@@ -46,6 +56,7 @@ export default function DatasetDetails() {
                     className={styles.row}
                     name={field.displayLabel}
                     value={datasetFieldValue}
+                    link={link || undefined}
                 />,
             ];
             return ret;
