@@ -13,6 +13,7 @@ import {
     FileExplorerURLComponents,
     Source,
 } from "../../entity/FileExplorerURL";
+import FuzzyFilter from "../../entity/FuzzyFilter";
 
 const STATE_BRANCH_NAME = "selection";
 
@@ -72,6 +73,65 @@ export function removeFileFilter(filter: FileFilter | FileFilter[]): RemoveFileF
     return {
         payload: filter,
         type: REMOVE_FILE_FILTER,
+    };
+}
+
+/**
+ * SET_FUZZY_FILTERS
+ *
+ * Intention to set, wholesale, a list of FuzzyFilters into application state. This should not be dispatched
+ * by UI components; dispatch either an ADD_FUZZY_FILTER or REMOVE_FUZZY_FILTER action. Those actions will
+ * trigger the `modifyFuzzyFilters` logic, which will then dispatch this action.
+ */
+export const SET_FUZZY_FILTERS = makeConstant(STATE_BRANCH_NAME, "set-fuzzy-filters");
+
+export interface SetFuzzyFiltersAction {
+    payload?: FuzzyFilter[];
+    type: string;
+}
+
+export function setFuzzyFilters(fuzzyFilters?: FuzzyFilter[]): SetFuzzyFiltersAction {
+    return {
+        payload: fuzzyFilters,
+        type: SET_FUZZY_FILTERS,
+    };
+}
+
+/**
+ * ADD_FUZZY_FILTER
+ *
+ * Intention to apply a FuzzyFilter.
+ */
+export const ADD_FUZZY_FILTER = makeConstant(STATE_BRANCH_NAME, "add-fuzzy-filter");
+
+export interface AddFuzzyFilterAction {
+    payload: FuzzyFilter | FuzzyFilter[];
+    type: string;
+}
+
+export function addFuzzyFilter(filter: FuzzyFilter | FuzzyFilter[]): AddFuzzyFilterAction {
+    return {
+        payload: filter,
+        type: ADD_FUZZY_FILTER,
+    };
+}
+
+/**
+ * REMOVE_FUZZY_FILTER
+ *
+ * Intention to remove a currently applied FuzzyFilter.
+ */
+export const REMOVE_FUZZY_FILTER = makeConstant(STATE_BRANCH_NAME, "remove-fuzzy-filter");
+
+export interface RemoveFuzzyFilterAction {
+    payload: FuzzyFilter | FuzzyFilter[];
+    type: string;
+}
+
+export function removeFuzzyFilter(filter: FuzzyFilter | FuzzyFilter[]): RemoveFuzzyFilterAction {
+    return {
+        payload: filter,
+        type: REMOVE_FUZZY_FILTER,
     };
 }
 

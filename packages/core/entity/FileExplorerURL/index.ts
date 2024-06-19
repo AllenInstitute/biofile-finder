@@ -3,6 +3,7 @@ import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
+import FuzzyFilter from "../FuzzyFilter";
 
 export interface Source {
     name: string;
@@ -16,12 +17,14 @@ export interface FileExplorerURLComponents {
     sources: Source[];
     filters: FileFilter[];
     openFolders: FileFolder[];
+    fuzzyFilters?: FuzzyFilter[];
     sortColumn?: FileSort;
 }
 
 export const EMPTY_QUERY_COMPONENTS: FileExplorerURLComponents = {
     hierarchy: [],
     filters: [],
+    fuzzyFilters: [],
     openFolders: [],
     sources: [],
 };
@@ -47,6 +50,7 @@ export const DEFAULT_AICS_FMS_QUERY: FileExplorerURLComponents = {
     openFolders: [],
     sources: [{ name: AICS_FMS_DATA_SOURCE_NAME }],
     filters: [PAST_YEAR_FILTER],
+    fuzzyFilters: [],
     sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
 };
 
@@ -82,6 +86,9 @@ export default class FileExplorerURL {
         urlComponents.filters?.forEach((filter) => {
             params.append("filter", JSON.stringify(filter.toJSON()));
         });
+        urlComponents.fuzzyFilters?.forEach((fuzzyFilter) => {
+            params.append("fuzzy", JSON.stringify(fuzzyFilter.toJSON()));
+        });
         urlComponents.openFolders?.map((folder) => {
             params.append("openFolder", JSON.stringify(folder.fileFolder));
         });
@@ -112,9 +119,13 @@ export default class FileExplorerURL {
         const unparsedFilters = params.getAll("filter");
         const unparsedSources = params.getAll("source");
         const hierarchy = params.getAll("group");
+        const unparsedFuzzyFilters = params.getAll("fuzzy");
         const unparsedSort = params.get("sort");
         const hierarchyDepth = hierarchy.length;
 
+        const parsedFuzzyFilters = unparsedFuzzyFilters
+            ? unparsedFuzzyFilters.map((unparsedFuzzyFilter) => JSON.parse(unparsedFuzzyFilter))
+            : undefined;
         const parsedSort = unparsedSort ? JSON.parse(unparsedSort) : undefined;
         if (
             parsedSort &&
@@ -131,6 +142,11 @@ export default class FileExplorerURL {
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
                 .map((parsedFilter) => new FileFilter(parsedFilter.name, parsedFilter.value)),
+            fuzzyFilters: parsedFuzzyFilters
+                ? parsedFuzzyFilters.map(
+                      (parsedFuzzyFilter) => new FuzzyFilter(parsedFuzzyFilter.annotationName)
+                  )
+                : undefined,
             sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
             openFolders: unparsedOpenFolders
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))

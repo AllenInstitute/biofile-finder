@@ -5,6 +5,7 @@ import { AnnotationName } from "../../Annotation";
 import FileFilter from "../../FileFilter";
 import FileFolder from "../../FileFolder";
 import FileSort, { SortOrder } from "../../FileSort";
+import FuzzyFilter from "../../FuzzyFilter";
 
 describe("FileExplorerURL", () => {
     const mockSource: Source = {
@@ -27,6 +28,10 @@ describe("FileExplorerURL", () => {
                 { name: "Cas9", value: "spCas9" },
                 { name: "Donor Plasmid", value: "ACTB-mEGFP" },
             ];
+            const expectedFuzzyFilters = [
+                { annotationName: AnnotationName.FILE_NAME },
+                { annotationName: AnnotationName.FILE_PATH },
+            ];
             const expectedOpenFolders = [
                 ["AICS-0"],
                 ["AICS-0", "ACTB-mEGFP"],
@@ -36,6 +41,9 @@ describe("FileExplorerURL", () => {
             const components: FileExplorerURLComponents = {
                 hierarchy: expectedAnnotationNames,
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                fuzzyFilters: expectedFuzzyFilters.map(
+                    (fuzzyFilter) => new FuzzyFilter(fuzzyFilter.annotationName)
+                ),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC),
                 sources: [mockSource],
@@ -46,7 +54,7 @@ describe("FileExplorerURL", () => {
 
             // Assert
             expect(result).to.be.equal(
-                "group=Cell+Line&group=Donor+Plasmid&group=Lifting%3F&filter=%7B%22name%22%3A%22Cas9%22%2C%22value%22%3A%22spCas9%22%7D&filter=%7B%22name%22%3A%22Donor+Plasmid%22%2C%22value%22%3A%22ACTB-mEGFP%22%7D&openFolder=%5B%22AICS-0%22%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%2Cfalse%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%2Ctrue%5D&source=%7B%22name%22%3A%22Fake+Collection%22%2C%22type%22%3A%22csv%22%7D&sort=%7B%22annotationName%22%3A%22file_size%22%2C%22order%22%3A%22DESC%22%7D"
+                "group=Cell+Line&group=Donor+Plasmid&group=Lifting%3F&filter=%7B%22name%22%3A%22Cas9%22%2C%22value%22%3A%22spCas9%22%7D&filter=%7B%22name%22%3A%22Donor+Plasmid%22%2C%22value%22%3A%22ACTB-mEGFP%22%7D&fuzzy=%7B%22annotationName%22%3A%22file_name%22%7D&fuzzy=%7B%22annotationName%22%3A%22file_path%22%7D&openFolder=%5B%22AICS-0%22%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%2Cfalse%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%2Ctrue%5D&source=%7B%22name%22%3A%22Fake+Collection%22%2C%22type%22%3A%22csv%22%7D&sort=%7B%22annotationName%22%3A%22file_size%22%2C%22order%22%3A%22DESC%22%7D"
             );
         });
 
@@ -55,6 +63,7 @@ describe("FileExplorerURL", () => {
             const components: FileExplorerURLComponents = {
                 hierarchy: [],
                 filters: [],
+                fuzzyFilters: [],
                 openFolders: [],
                 sources: [],
             };
@@ -75,6 +84,10 @@ describe("FileExplorerURL", () => {
                 { name: "Cas9", value: "spCas9" },
                 { name: "Donor Plasmid", value: "ACTB-mEGFP" },
             ];
+            const expectedFuzzyFilters = [
+                { annotationName: AnnotationName.FILE_NAME },
+                { annotationName: AnnotationName.FILE_PATH },
+            ];
             const expectedOpenFolders = [
                 ["3500000654"],
                 ["3500000654", "ACTB-mEGFP"],
@@ -84,6 +97,9 @@ describe("FileExplorerURL", () => {
             const components: FileExplorerURLComponents = {
                 hierarchy: expectedAnnotationNames,
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                fuzzyFilters: expectedFuzzyFilters.map(
+                    (fuzzyFilter) => new FuzzyFilter(fuzzyFilter.annotationName)
+                ),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
                 sources: [mockSource],
@@ -103,6 +119,7 @@ describe("FileExplorerURL", () => {
             const components: FileExplorerURLComponents = {
                 hierarchy: [],
                 filters: [],
+                fuzzyFilters: [],
                 openFolders: [],
                 sortColumn: undefined,
                 sources: [],

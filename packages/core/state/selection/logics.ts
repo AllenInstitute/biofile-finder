@@ -36,6 +36,9 @@ import {
     changeDataSources,
     ChangeDataSourcesAction,
     CHANGE_DATA_SOURCES,
+    ADD_FUZZY_FILTER,
+    REMOVE_FUZZY_FILTER,
+    setFuzzyFilters,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -45,10 +48,10 @@ import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
+import FuzzyFilter from "../../entity/FuzzyFilter";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../services/DataSourceService";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
-
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
  * add to existing selected files state, to replace existing selection state, or to remove a file from the existing
@@ -267,6 +270,50 @@ const modifyFileFilters = createLogic({
 });
 
 /**
+ * Interceptor responsible for transforming ADD_FUZZY_FILTER and REMOVE_FUZZY_FILTER
+ * actions into a concrete list of ordered FuzzyFilters that can be stored directly in
+ * application state under `selections.fuzzyFilters`.
+ */
+const modifyFuzzyFilters = createLogic({
+    transform(deps: ReduxLogicDeps, next, reject) {
+        const { action, getState } = deps;
+
+        const previousFuzzyFilters = selectionSelectors.getFuzzyFilters(getState()) || [];
+        let nextFuzzyFilters: FuzzyFilter[];
+
+        const incomingFuzzyFilters = castArray(action.payload);
+        if (action.type === ADD_FUZZY_FILTER) {
+            nextFuzzyFilters = uniqWith(
+                [...previousFuzzyFilters, ...incomingFuzzyFilters],
+                (existing, incoming) => {
+                    return existing.equals(incoming);
+                }
+            );
+        } else {
+            nextFuzzyFilters = previousFuzzyFilters.filter((existing) => {
+                return !incomingFuzzyFilters.some((incoming) => incoming.equals(existing));
+            });
+        }
+
+        const sortedNextFuzzyFilters = sortBy(nextFuzzyFilters, ["annotationName"]);
+
+        const filtersAreUnchanged =
+            previousFuzzyFilters.length === sortedNextFuzzyFilters.length &&
+            previousFuzzyFilters.every((existing) =>
+                sortedNextFuzzyFilters.some((incoming) => incoming.equals(existing))
+            );
+
+        if (filtersAreUnchanged) {
+            reject && reject(action);
+            return;
+        }
+
+        next(setFuzzyFilters(sortedNextFuzzyFilters));
+    },
+    type: [ADD_FUZZY_FILTER, REMOVE_FUZZY_FILTER],
+});
+
+/**
  * Interceptor responsible for transforming TOGGLE_FILE_FOLDER_COLLAPSE actions into
  * SET_OPEN_FILE_FOLDERS actions by determining whether the file folder is to be considered
  * open or collapsed.
@@ -296,14 +343,20 @@ const toggleFileFolderCollapse = createLogic({
 const decodeFileExplorerURLLogics = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
-        const { hierarchy, filters, openFolders, sortColumn, sources } = FileExplorerURL.decode(
-            encodedURL
-        );
+        const {
+            hierarchy,
+            filters,
+            fuzzyFilters,
+            openFolders,
+            sortColumn,
+            sources,
+        } = FileExplorerURL.decode(encodedURL);
 
         batch(() => {
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
             dispatch(setFileFilters(filters));
+            dispatch(setFuzzyFilters(fuzzyFilters));
             dispatch(setOpenFileFolders(openFolders));
             dispatch(setSortColumn(sortColumn));
         });
@@ -629,6 +682,7 @@ export default [
     selectFile,
     modifyAnnotationHierarchy,
     modifyFileFilters,
+    modifyFuzzyFilters,
     toggleFileFolderCollapse,
     decodeFileExplorerURLLogics,
     selectNearbyFile,

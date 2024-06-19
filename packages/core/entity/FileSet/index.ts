@@ -7,10 +7,12 @@ import FileService from "../../services/FileService";
 import FileServiceNoop from "../../services/FileService/FileServiceNoop";
 import SQLBuilder from "../SQLBuilder";
 import FileDetail from "../FileDetail";
+import FuzzyFilter from "../FuzzyFilter";
 
 interface Opts {
     fileService: FileService;
     filters: FileFilter[];
+    fuzzyFilters?: FuzzyFilter[];
     maxCacheSize: number;
     sort?: FileSort;
 }
@@ -37,6 +39,7 @@ export default class FileSet {
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
     public readonly sort?: FileSort;
+    public readonly fuzzyFilters?: FuzzyFilter[];
     private totalFileCount: number | undefined;
     private indexesForFilesCurrentlyLoading: Set<number> = new Set();
 
@@ -45,10 +48,15 @@ export default class FileSet {
     }
 
     constructor(opts: Partial<Opts> = {}) {
-        const { fileService, filters, maxCacheSize, sort } = defaults({}, opts, DEFAULT_OPTS);
+        const { fileService, filters, fuzzyFilters, maxCacheSize, sort } = defaults(
+            {},
+            opts,
+            DEFAULT_OPTS
+        );
 
         this.cache = new LRUCache<number, FileDetail>({ max: maxCacheSize });
         this._filters = filters;
+        this.fuzzyFilters = fuzzyFilters;
         this.sort = sort;
         this.fileService = fileService;
 
@@ -167,6 +175,15 @@ export default class FileSet {
 
         if (this.sort) {
             query.push(this.sort.toQueryString());
+        }
+
+        if (this.fuzzyFilters) {
+            const sortedFuzzyFilters = [...this.fuzzyFilters].sort((a, b) =>
+                a.toQueryString().localeCompare(b.toQueryString())
+            );
+            query.push(
+                map(sortedFuzzyFilters, (filterName) => filterName.toQueryString()).join("&")
+            );
         }
 
         return join(query, "&");
