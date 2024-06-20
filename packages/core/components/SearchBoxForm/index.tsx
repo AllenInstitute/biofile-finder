@@ -38,6 +38,8 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
     } = props;
 
     const [searchValue, setSearchValue] = React.useState(currentValue?.value ?? "");
+    // Locally stored value, not dispatched to state to avoid frequent re-renders
+    const [fuzzySearchChecked, setfuzzySearchChecked] = React.useState(fuzzySearchEnabled ?? false);
 
     const onSearchBoxChange = (event?: React.ChangeEvent<HTMLInputElement>) => {
         if (event) {
@@ -50,6 +52,24 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
         setSearchValue("");
     }
 
+    function toggleFuzzySearch(event: React.ChangeEvent<HTMLInputElement>) {
+        if (event.target.checked) {
+            if (searchValue !== "") onEnableFuzzySearch();
+            setfuzzySearchChecked(true);
+        } else {
+            if (searchValue !== "") onDisableFuzzySearch();
+            setfuzzySearchChecked(false);
+        }
+    }
+
+    function onSearchSubmitted(value: string) {
+        // Make sure fuzzy search is synchronized in state
+        if (fuzzySearchChecked !== fuzzySearchEnabled) {
+            fuzzySearchChecked ? onEnableFuzzySearch() : onDisableFuzzySearch();
+        }
+        onSearch(value);
+    }
+
     return (
         <div className={props.className} data-is-focusable="true">
             <h3 className={styles.title}>{props.title}</h3>
@@ -58,7 +78,7 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
                 className={styles.searchBoxInput}
                 placeholder={`Search by ${fieldName}`}
                 styles={SEARCH_BOX_STYLE_OVERRIDES}
-                onSearch={onSearch}
+                onSearch={onSearchSubmitted}
                 onChange={onSearchBoxChange}
                 value={searchValue}
             />
@@ -72,15 +92,9 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
                     role="checkbox"
                     name="Enable fuzzy search"
                     value={fieldName}
-                    checked={fuzzySearchEnabled}
-                    aria-checked={fuzzySearchEnabled}
-                    onChange={(event) => {
-                        if (event.target.checked) {
-                            onEnableFuzzySearch();
-                        } else {
-                            onDisableFuzzySearch();
-                        }
-                    }}
+                    checked={fuzzySearchChecked}
+                    aria-checked={fuzzySearchChecked}
+                    onChange={toggleFuzzySearch}
                 />
                 Fuzzy search
             </label>

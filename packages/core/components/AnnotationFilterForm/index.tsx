@@ -60,13 +60,11 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const onEnableFuzzySearch = () => {
         const fuzzyFilter = new FuzzyFilter(props.annotation.name);
-        //TODO: we shouldn't dispatch a new search unless there's actually a search value
         dispatch(selection.actions.addFuzzyFilter(fuzzyFilter));
     };
 
     const onDisableFuzzySearch = () => {
         const fuzzyFilter = new FuzzyFilter(props.annotation.name);
-        //TODO: we shouldn't dispatch a new search unless there's actually a search value
         dispatch(selection.actions.removeFuzzyFilter(fuzzyFilter));
     };
 
