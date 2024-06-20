@@ -4,8 +4,6 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useAnnotationValues from "./useAnnotationValues";
-import Annotation, { AnnotationName } from "../../entity/Annotation";
-import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import ListPicker from "../ListPicker";
 import { ListItem } from "../ListPicker/ListRow";
@@ -13,6 +11,9 @@ import NumberRangePicker from "../NumberRangePicker";
 import SearchBoxForm from "../SearchBoxForm";
 import DateRangePicker from "../DateRangePicker";
 import { interaction, selection } from "../../state";
+import Annotation, { AnnotationName } from "../../entity/Annotation";
+import { AnnotationType } from "../../entity/AnnotationFormatter";
+import FuzzyFilter from "../../entity/FuzzyFilter";
 
 import styles from "./AnnotationFilterForm.module.css";
 
@@ -29,6 +30,7 @@ interface AnnotationFilterFormProps {
 export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const dispatch = useDispatch();
     const allFilters = useSelector(selection.selectors.getFileFilters);
+    const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
         props.annotation.name,
@@ -49,6 +51,24 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             value,
         }));
     }, [props.annotation, annotationValues, filtersForAnnotation]);
+
+    const fuzzySearchEnabled: boolean = React.useMemo(() => {
+        return (
+            fuzzyFilters?.some((filter) => filter.annotationName === props.annotation.name) || false
+        );
+    }, [fuzzyFilters, props.annotation]);
+
+    const onEnableFuzzySearch = () => {
+        const fuzzyFilter = new FuzzyFilter(props.annotation.name);
+        //TODO: we shouldn't dispatch a new search unless there's actually a search value
+        dispatch(selection.actions.addFuzzyFilter(fuzzyFilter));
+    };
+
+    const onDisableFuzzySearch = () => {
+        const fuzzyFilter = new FuzzyFilter(props.annotation.name);
+        //TODO: we shouldn't dispatch a new search unless there's actually a search value
+        dispatch(selection.actions.removeFuzzyFilter(fuzzyFilter));
+    };
 
     const onDeselectAll = () => {
         dispatch(selection.actions.removeFileFilter(filtersForAnnotation));
@@ -157,9 +177,12 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             return (
                 <SearchBoxForm
                     className={styles.picker}
+                    onDisableFuzzySearch={onDisableFuzzySearch}
+                    onEnableFuzzySearch={onEnableFuzzySearch}
                     onSearch={onSearch}
                     onReset={onDeselectAll}
                     fieldName={props.annotation.displayName}
+                    fuzzySearchEnabled={fuzzySearchEnabled}
                     title={`Filter by ${props.annotation.displayName}`}
                     currentValue={filtersForAnnotation?.[0]}
                 />

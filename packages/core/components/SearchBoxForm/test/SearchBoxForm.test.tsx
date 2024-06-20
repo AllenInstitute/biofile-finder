@@ -13,6 +13,9 @@ describe("<SearchBoxForm />", () => {
         const { getAllByRole } = render(
             <SearchBoxForm
                 fieldName={"Example Field"}
+                fuzzySearchEnabled={false}
+                onDisableFuzzySearch={noop}
+                onEnableFuzzySearch={noop}
                 onSearch={noop}
                 onReset={noop}
                 currentValue={undefined}
@@ -29,6 +32,9 @@ describe("<SearchBoxForm />", () => {
         render(
             <SearchBoxForm
                 fieldName={"foo"}
+                fuzzySearchEnabled={false}
+                onDisableFuzzySearch={noop}
+                onEnableFuzzySearch={noop}
                 onSearch={noop}
                 onReset={noop}
                 currentValue={currentValue}
@@ -48,6 +54,9 @@ describe("<SearchBoxForm />", () => {
         const { getByRole, getByLabelText } = render(
             <SearchBoxForm
                 fieldName={"foo"}
+                fuzzySearchEnabled={false}
+                onDisableFuzzySearch={noop}
+                onEnableFuzzySearch={noop}
                 onSearch={onSearch}
                 onReset={onReset}
                 currentValue={undefined}
