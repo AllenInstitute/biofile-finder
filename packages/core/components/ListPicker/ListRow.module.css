@@ -40,9 +40,10 @@
     margin:  calc(var(--spacing) / 4) 0
 }
 
-.isBuffer {
-    background-color: var(--secondary-text-color);
-    height: 3px;
+.divider {
+    background-color: var(--border-color);
+    height: 1px;
+    overflow: hidden;
     pointer-events: none; 
 }
 

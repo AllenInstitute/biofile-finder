@@ -38,6 +38,7 @@ export default function TutorialTooltip() {
 
     return (
         <TeachingBubble
+            isWide
             target={`#${currentTutorialStep.targetId}`}
             calloutProps={{ className: styles.tutorialContainer }}
         >
