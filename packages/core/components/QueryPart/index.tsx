@@ -47,24 +47,22 @@ export default function QueryPart(props: Props) {
 
     return (
         <div className={classNames(styles.container, { [styles.disabled]: props.disabled })}>
-            <div className={styles.header}>
-                <PrimaryButton
-                    ariaLabel={`Add ${props.title}`}
-                    disabled={props.disabled}
-                    className={styles.addButton}
-                    id={props.tutorialId}
-                    menuIconProps={{ iconName: "ChevronRight" }}
-                    text={props.title}
-                    menuProps={{
-                        className: props.addMenuListItems ? styles.buttonMenu : undefined,
-                        directionalHint: DirectionalHint.rightTopEdge,
-                        shouldFocusOnMount: true,
-                        items: props.addMenuListItems || [{ key: "placeholder" }], // necessary to have a non-empty items list to have `onRenderMenuList` called
-                        onRenderMenuList: props.onRenderAddMenuList,
-                        calloutProps: { className: styles.buttonMenuContainer },
-                    }}
-                />
-            </div>
+            <PrimaryButton
+                ariaLabel={`Add ${props.title}`}
+                disabled={props.disabled}
+                className={styles.addButton}
+                id={props.tutorialId}
+                menuIconProps={{ iconName: "ChevronRight" }}
+                text={props.title}
+                menuProps={{
+                    className: props.addMenuListItems ? styles.buttonMenu : undefined,
+                    directionalHint: DirectionalHint.rightTopEdge,
+                    shouldFocusOnMount: true,
+                    items: props.addMenuListItems || [{ key: "placeholder" }], // necessary to have a non-empty items list to have `onRenderMenuList` called
+                    onRenderMenuList: props.onRenderAddMenuList,
+                    calloutProps: { className: styles.buttonMenuContainer },
+                }}
+            />
             <DragDropContext onDragEnd={onDragEnd}>
                 {!!props.rows.length && (
                     <DnDList

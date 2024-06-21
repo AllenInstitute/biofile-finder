@@ -47,6 +47,6 @@
   transform: translateY(0px);
 }
 
-.list-parent > div > *:nth-child(odd) {
+.list-parent > div > div:nth-child(odd) {
   background-color: var(--primary-background-color);
 }

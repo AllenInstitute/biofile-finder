@@ -1,8 +1,31 @@
 .add-button {
     background-color: var(--primary-background-color);
-    color: var(--primary-text-color);
     border: none;
-    padding: 0;
+    border-radius: var(--small-border-radius);
+    color: var(--primary-text-color);
+    font-size: var(--s-paragraph-size);
+    display: flex;
+    padding: 6px 8px 6px 10px;
+    width: 100%;
+}
+
+.add-button:hover {
+    border: none;
+    color: var(--highlight-text-color);
+}
+
+.add-button i {
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.add-button:hover {
+    background-color: var(--highlight-background-color);
+}
+
+.add-button > span {
+    display: flex;
+    justify-content: space-between;
     width: 100%;
 }
 
@@ -11,7 +34,8 @@
 }
 
 .add-button > span > span > span {
-    font-weight: 500;
+    font-size: var(--l-paragraph-size);
+    font-weight: 600;
     margin: 0;
 }
 
@@ -55,19 +79,7 @@
     border-radius: var(--small-border-radius);
     color: var(--primary-text-color);
     margin: calc(var(--margin) / 2) calc(var(--margin) / 4);
-    padding: 3px 6px 10px 6px;
-}
-
-.header {
-    display: flex;
-    padding: 6px 8px;
-}
-
-.header:hover, .header:hover button  {
-    color: var(--highlight-text-color);
-    background-color: var(--highlight-background-color);
-    border: none;
-    border-radius: var(--small-border-radius);
+    padding: 3px 6px 6px 6px;
 }
 
 .disabled {

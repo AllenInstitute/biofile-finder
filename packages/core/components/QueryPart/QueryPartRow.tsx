@@ -22,14 +22,16 @@ interface Props extends DnDItemRendererParams {
  */
 export default function QueryGroupRow(props: Props) {
     const isInteractive = !!props.item.onClick || !props.item.disabled;
-    const marginLeft = props.item.disabled ? 0 : props.index * 10;
+    const baseMargin = isInteractive ? 10 : 0;
+    const marginLeft = props.item.disabled ? baseMargin : props.index * 10 + baseMargin;
+    const marginRight = baseMargin;
     return (
         <div
             className={classNames(styles.row, {
                 [styles.grabbable]: !props.item.disabled,
                 [styles.interactive]: isInteractive,
             })}
-            style={{ marginLeft, maxWidth: `calc(100% - ${marginLeft}px)` }}
+            style={{ marginLeft, maxWidth: `calc(100% - ${marginLeft + marginRight}px)` }}
         >
             <div
                 className={classNames(styles.rowTitle, {

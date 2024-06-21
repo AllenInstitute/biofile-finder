@@ -1,7 +1,7 @@
 .icon-button, .icon-button:hover {
     background-color: unset;
     color: unset;
-    max-height: 28px;
+    width: 22px;
 }
 
 .icon-button:hover {
@@ -10,14 +10,15 @@
 }
 
 .icon-button i {
-    font-size: smaller;
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .icon {
     align-items: center;
     display: flex;
     font-size: smaller;
-    padding-left: 4px;
+    padding-right: 8px;
 }
 
 .hidden-inner-icon i:last-of-type {
@@ -28,13 +29,13 @@
     display: flex;
     height: 34px;
     width: 100%;
-    padding: 0 8px;
+    margin: 0 10px;
+    padding: 0 6px 0 10px;
 }
 
 .interactive {
     border: 1px solid var(--border-color);
     border-radius: var(--small-border-radius);
-    padding: 2px;
     margin: calc(var(--margin) / 4) 0;
 }
 
@@ -50,11 +51,13 @@
 
 .row-title {
     display: flex;
-    max-width: calc(100% - 33px);
+    max-width: calc(100% - 22px);
     width: 100%;
 }
 
 .row-title > p {
+    align-items: center;
+    display: flex;
     font-size: smaller;
     margin: 0;
     padding: 0;
@@ -65,10 +68,10 @@
 }
 
 .dynamic-row-title {
-    max-width: calc(100% - 33px);
+    max-width: calc(100% - 22px);
     width: min-content;
 }
 
 .dynamic-row-title.shortened-row-title {
-    max-width: calc(100% - 55px);
+    max-width: calc(100% - 44px);
 }

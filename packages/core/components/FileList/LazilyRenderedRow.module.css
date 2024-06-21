@@ -1,15 +1,20 @@
 .row {
-    padding-bottom: 1px;
+    padding-top: 1px;
+    padding-bottom: 1px
 }
 
 .row.selected {
-    background-color: var(--highlight-background-color);
+    background-color: var(--highlight-background-color) !important;
+    border-bottom: 1px solid var(--secondary-background-color);
     color: var(--highlight-text-color);
+    padding-bottom: 0;
 }
 
 .row.focused {
-    background-color: var(--highlight-hover-background-color);
+    background-color: var(--highlight-hover-background-color) !important;
+    border-bottom: 1px solid var(--secondary-background-color);
     color: var(--highlight-hover-text-color);
+    padding-bottom: 0;
 }
 
 .row.small-font {
