@@ -37,7 +37,7 @@
     "publish": {
       "provider": "github"
     },
-    "productName": "FMS File Explorer"
+    "productName": "BioFile Finder"
   },
   "scripts": {
     "build": "npm-run-all --print-label clean --parallel bundle:main bundle:renderer",

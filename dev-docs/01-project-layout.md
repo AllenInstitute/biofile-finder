@@ -7,7 +7,7 @@ This project is structured as a multi-package repository. There are three packag
 3. `packages/web`.
 
 ### Core
-`core` is the primary source of the application. It primarily exports a React component: the FMS File Explorer application. It also exports a 
+`core` is the primary source of the application. It primarily exports a React component: the BioFile Finder application. It also exports a 
 function for instantiating the Redux store to be used with the application, as well as some other interfaces and constants that are helpful 
 within the packages that render the application.
 

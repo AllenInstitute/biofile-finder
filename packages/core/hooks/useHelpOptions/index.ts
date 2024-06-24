@@ -131,7 +131,7 @@ export default function useHelpOptions(
                       {
                           key: "download-newest-version",
                           text: "Download Newest Version",
-                          title: "Opens the FMS File Explorer download page in a new window",
+                          title: "Opens the BioFile Finder download page in a new window",
                           href: "https://alleninstitute.github.io/aics-fms-file-explorer-app/",
                           target: "_blank",
                       },
@@ -145,7 +145,7 @@ export default function useHelpOptions(
             {
                 key: "gh-issues-page",
                 text: "Report issue in GitHub",
-                title: "Opens the FMS File Explorer GitHub issues page",
+                title: "Opens the BioFile Finder GitHub issues page",
                 href: "https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues",
                 target: "_blank",
             },

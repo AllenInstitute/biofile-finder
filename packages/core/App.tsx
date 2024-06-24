@@ -59,7 +59,7 @@ export default function App(props: AppProps) {
                 if (isUpdateAvailable) {
                     const homepage = "https://alleninstitute.github.io/aics-fms-file-explorer-app/";
                     const msg = `A new version of the application is available!<br/>
-                    Visit the <a href="${homepage}" target="_blank" title="FMS File Explorer homepage">FMS File Explorer homepage</a> to download.`;
+                    Visit the <a href="${homepage}" target="_blank" title="BioFile Finder homepage">BioFile Finder homepage</a> to download.`;
                     dispatch(interaction.actions.promptUserToUpdateApp(uniqueId(), msg));
                 }
             } catch (e) {
