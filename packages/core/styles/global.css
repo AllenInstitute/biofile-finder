@@ -20,7 +20,7 @@ main {
     padding: 0;
     border: 0;
     overflow: hidden;
-    scrollbar-color:  var(--borders-light-grey) var(--accent-dark);
+    scrollbar-color:  var(--medium-grey) var(--accent-dark);
 }
 
 body {
