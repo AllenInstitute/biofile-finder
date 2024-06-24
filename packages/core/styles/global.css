@@ -20,6 +20,7 @@ main {
     padding: 0;
     border: 0;
     overflow: hidden;
+    /* Unavailable on some versions of some browsers */
     scrollbar-color:  var(--medium-grey) var(--accent-dark);
 }
 
@@ -61,4 +62,40 @@ body {
     --margin: 12px;
     --transition-duration: 0.5s;
     --font-family: 'Open Sans', sans-serif;
+}
+
+h1 {
+    font-size: 38px;
+    font-weight: 300;
+    margin: 0;
+    padding: 0;
+}
+
+h2 {
+    font-size: 24px;
+    font-weight: 300;
+    margin: 0;
+    padding: 0;
+}
+
+h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    padding: 0;
+}
+
+h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    padding: 0;
+}
+
+p {
+    font-weight: 400;
+}
+
+a {
+    text-decoration: none;
 }

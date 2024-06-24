@@ -21,6 +21,8 @@ import PersistentConfigServiceElectron from "../services/PersistentConfigService
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
 import { GlobalVariableChannels } from "../util/constants";
 
+import "../../../core/styles/global.css";
+
 const APP_ID = "fms-file-explorer";
 
 const notificationService = new NotificationServiceElectron();
