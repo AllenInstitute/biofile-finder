@@ -21,8 +21,6 @@ import PersistentConfigServiceElectron from "../services/PersistentConfigService
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
 import { GlobalVariableChannels } from "../util/constants";
 
-import styles from "./renderer.module.css";
-
 const APP_ID = "fms-file-explorer";
 
 const notificationService = new NotificationServiceElectron();
@@ -108,10 +106,7 @@ store.subscribe(() => {
 function renderFmsFileExplorer() {
     render(
         <Provider store={store}>
-            <FmsFileExplorer
-                className={styles.app}
-                fileExplorerServiceBaseUrl={global.fileExplorerServiceBaseUrl}
-            />
+            <FmsFileExplorer fileExplorerServiceBaseUrl={global.fileExplorerServiceBaseUrl} />
         </Provider>,
         document.getElementById(APP_ID)
     );
