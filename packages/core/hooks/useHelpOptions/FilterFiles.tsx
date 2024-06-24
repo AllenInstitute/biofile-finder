@@ -1,7 +1,7 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
 
-import Tutorial from "../../../entity/Tutorial";
+import Tutorial from "../../entity/Tutorial";
 
 export const FILTER_FILES_TUTORIAL = new Tutorial("Filtering")
     .addStep({
@@ -20,5 +20,5 @@ export const FILTER_FILES_TUTORIAL = new Tutorial("Filtering")
     .addStep({
         targetId: Tutorial.FILE_ATTRIBUTE_FILTER_ID,
         message:
-            'You can filter on the selected metadata tag by entering a value here. These values do not have to be exact, e.g. entering a File Name of "ZSD1" would return all files with names starting with or containing "ZSD1".',
+            'You can filter on the selected metadata tag by entering a value here. These values do not have to be exact, e.g. entering a File Name of "ZSD1" would return all file names starting with or containing "ZSD1".',
     });

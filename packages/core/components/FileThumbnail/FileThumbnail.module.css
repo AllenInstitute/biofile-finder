@@ -6,5 +6,5 @@
 }
 
 .no-thumbnail {
-    fill: var(--secondary-text-color);
+    fill: var(--border-color);
 }

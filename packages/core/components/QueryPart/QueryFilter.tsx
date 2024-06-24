@@ -28,7 +28,6 @@ export default function QueryFilter(props: Props) {
         <QueryPart
             title="Filter"
             disabled={props.disabled}
-            addButtonIconName="Filter"
             tutorialId={Tutorial.FILTER_HEADER_ID}
             onDelete={(annotation) =>
                 dispatch(

@@ -47,7 +47,6 @@ export default function MetadataManifest({ onDismiss }: ModalProps) {
             </p>
             <AnnotationPicker
                 hasSelectAllCapability
-                className={styles.annotationSelector}
                 selections={selectedAnnotations}
                 setSelections={setSelectedAnnotations}
             />
@@ -69,7 +68,7 @@ export default function MetadataManifest({ onDismiss }: ModalProps) {
                 />
             }
             onDismiss={onDismiss}
-            title="Download Metadata Manifest"
+            title="Download metadata manifest"
         />
     );
 }

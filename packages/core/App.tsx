@@ -27,11 +27,12 @@ export const ROOT_ELEMENT_ID = "root";
 initializeIcons();
 loadTheme({
     defaultFontStyle: {
-        fontFamily: "Roboto",
+        fontFamily: "Open sans, sans-serif",
     },
 });
 
 interface AppProps {
+    className?: string;
     // E.g.:
     // Localhost: "https://localhost:9081"
     // Stage: "http://stg-aics-api.corp.alleninstitute.org"
@@ -79,7 +80,7 @@ export default function App(props: AppProps) {
     return (
         <div
             id={ROOT_ELEMENT_ID}
-            className={classNames(styles.root, {
+            className={classNames(styles.root, props.className, {
                 [styles.lightTheme]: !isDarkTheme,
                 [styles.smallFont]: shouldDisplaySmallFont,
             })}
@@ -94,7 +95,7 @@ export default function App(props: AppProps) {
                                 <DirectoryTree className={styles.fileList} />
                             </>
                         ) : (
-                            <DataSourcePrompt />
+                            <DataSourcePrompt className={styles.dataSourcePrompt} />
                         )}
                     </div>
                 </div>

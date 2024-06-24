@@ -18,12 +18,22 @@ interface Props {
 export default function QuerySort(props: Props) {
     const dispatch = useDispatch();
 
+    const onToggleSortOrder = () => {
+        if (props.sort) {
+            const oppositeOrder =
+                props.sort.order === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC;
+            const newSort = new FileSort(props.sort.annotationName, oppositeOrder);
+            dispatch(selection.actions.setSortColumn(newSort));
+        }
+    };
+
     return (
         <QueryPart
             title="Sort"
+            titleIconName={props.sort?.order === SortOrder.ASC ? "SortUp" : "SortDown"}
             disabled={props.disabled}
-            addButtonIconName="Sort"
             tutorialId={Tutorial.SORT_HEADER_ID}
+            onClick={onToggleSortOrder}
             onDelete={() => dispatch(selection.actions.setSortColumn())}
             rows={
                 props.sort

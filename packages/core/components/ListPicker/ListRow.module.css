@@ -4,18 +4,24 @@
     align-content: center;
     font-size: 16px;
     margin: calc(var(--spacing) / 2) 0;
+    overflow: hidden;
+    white-space: nowrap;
     width: 100%;
 }
 
 .item > div {
+    align-items: center;
+    display: flex;
     font-size: smaller;
+    min-width: 1.5em;
     width: 1.5em;
 }
 
 .item-container {
-    background-color: var(--secondary-background-color);
+    background-color: var(--primary-background-color);
     border: none;
-    color: var(--secondary-text-color);
+    border-radius: var(--small-border-radius);
+    color: var(--primary-text-color);
     display: flex;
     justify-content: space-between;
     padding-left: 6px;
@@ -29,19 +35,25 @@
 }
 
 .selected {
-    background-color: var(--primary-background-color);
-    color: var(--primary-text-color);
+    background-color: var(--secondary-background-color);
+    color: var(--secondary-text-color);
     margin:  calc(var(--spacing) / 4) 0
 }
 
-.isBuffer {
-    background-color: var(--secondary-text-color);
-    height: 3px;
+.divider {
+    background-color: var(--border-color);
+    height: 1px;
+    overflow: hidden;
     pointer-events: none; 
 }
 
 .item-container, .item-container label {
     cursor: pointer;
+}
+
+.item-container label > p {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .disabled label {
@@ -59,5 +71,5 @@
 }
 
 .spinner > div {
-   border-color: var(--secondary-text-color) var(--secondary-background-color) var(--secondary-background-color);
+   border-color: var(--primary-text-color) var(--primary-background-color) var(--primary-background-color);
 }

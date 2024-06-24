@@ -102,11 +102,11 @@ describe("<ListPicker />", () => {
 
         // Hit reset
         expect(onDeselectAll.called).to.equal(false);
-        fireEvent.click(getByText("Reset"));
+        fireEvent.click(getByText("CLEAR ALL"));
         expect(onDeselectAll.called).to.equal(true);
     });
 
-    it("Unable to select 'Reset' button if no items selected", () => {
+    it("Unable to select 'CLEAR ALL' button if no items selected", () => {
         // Arrange
         const onSelect = noop;
         const onDeselect = noop;
@@ -129,7 +129,7 @@ describe("<ListPicker />", () => {
 
         // Hit reset
         expect(onDeselectAll.called).to.be.false;
-        fireEvent.click(getByText("Reset"));
+        fireEvent.click(getByText("CLEAR ALL"));
         expect(onDeselectAll.called).to.be.false;
     });
 
@@ -155,13 +155,13 @@ describe("<ListPicker />", () => {
         expect(onSelectAll.called).to.be.false;
 
         // Act
-        fireEvent.click(getByText("Select All"));
+        fireEvent.click(getByText("SELECT ALL"));
 
         // Assert
         expect(onSelectAll.called).to.be.true;
     });
 
-    it("Unable to select 'Select All' button if all items selected", () => {
+    it("Unable to select 'SELECT ALL' button if all items selected", () => {
         // Arrange
         const onSelectAll = sinon.spy();
         const items: ListItem[] = ["foo", "bar"].map((val) => ({
@@ -183,7 +183,7 @@ describe("<ListPicker />", () => {
         expect(onSelectAll.called).to.be.false;
 
         // Act
-        fireEvent.click(getByText("Select All"));
+        fireEvent.click(getByText("SELECT ALL"));
 
         // Assert
         expect(onSelectAll.called).to.be.false;

@@ -1,13 +1,17 @@
 .container {
     --spacing: 0.5rem;
     --footer-height: 15px;
-    --header-height: 110px;
+    --header-height: 85px;
 
-    background-color: var(--secondary-background-color);
-    color: var(--secondary-text-color);
+    background-color: var(--primary-background-color);
+    color: var(--primary-text-color);
     height: 75vh;
     padding: var(--spacing);
     width: 35vw;
+}
+
+.bigger-header {
+    --header-height: 110px;
 }
 
 .header {
@@ -21,7 +25,6 @@
 }
 
 .buttons {
-    backdrop-filter: blur(1px);
     display: flex;
 }
 
@@ -32,7 +35,7 @@
 }
 
 .main-content::after {
-    background-image: linear-gradient(transparent, var(--secondary-background-color));
+    background-image: linear-gradient(transparent, var(--primary-background-color));
     bottom: calc(var(--spacing) + var(--footer-height));
     content: " ";
     height: 50px;
@@ -57,16 +60,22 @@
 }
 
 .action-button {
-    display: flex;
-    margin: 0.5rem auto 0;
+    border-radius: var(--small-border-radius);
+    margin: calc(var(--margin) / 2) calc(var(--margin) / 2) calc(var(--margin) / 2) 0;
 }
 
-.action-button, .action-button i {
-    background-color: var(--primary-background-color) !important;
-    color: var(--primary-text-color) !important;
+.action-button {
+    background-color: var(--secondary-background-color) !important;
+    color: var(--secondary-text-color) !important;
 }
 
-.action-button:hover:not(.disabled), .action-button:hover:not(.disabled) i {
+.action-button i {
+    background-color: var(--secondary-background-color) !important;
+    color: var(--secondary-text-color) !important;
+    font-size: smaller;
+}
+
+.action-button:hover:not(.disabled), .action-button:hover:not(.disabled) i{
     background-color: var(--highlight-background-color) !important;
     color: var(--highlight-text-color) !important;
     cursor: pointer;
@@ -77,13 +86,18 @@
 }
 
 .search-box, .search-box > :is(div, input), .search-box :is(button, i) {
-    background-color: var(--primary-background-color) !important;
-    color: var(--primary-text-color) !important;
+    background-color: var(--secondary-background-color) !important;
+    color: var(--secondary-text-color) !important;
 }
 
-.search-box > div:hover > button, .search-box > div:hover i {
-    background-color: var(--primary-background-color) !important;
-    color: var(--primary-text-color) !important;
+.search-box > div:hover > button, .search-box > div:hover > button i {
+    background-color: var(--highlight-background-color) !important;
+    color: var(--highlight-text-color) !important;
+}
+
+.search-box > *::placeholder {
+    color: var(--secondary-text-color);
+    font-style: italic;
 }
 
 .search-box::after {

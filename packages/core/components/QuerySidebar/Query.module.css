@@ -12,8 +12,13 @@
     font-size: smaller;
 }
 
+.display-row > strong {
+    font-weight: 500;
+}
+
 .container {
-    margin: 4px 0 4px 0;
+    border-radius: var(--small-border-radius);
+    margin: 0 0 8px 0;
     overflow: hidden;
     padding: 0.4em;
     text-overflow: ellipsis;
@@ -32,12 +37,15 @@
 
 .title-container {
     display: flex;
+    width: 100%;
 }
 
-.divider {
-    border-color: var(--secondary-text-color);
-    margin: 0 auto;
-    opacity: 0.5;
+.title-container > div {
+    width: 100%;
+}
+
+.title-container > div > div > div {
+    background-color: unset;
 }
 
 .title {
@@ -45,30 +53,15 @@
     color: var(--primary-sidebar-text-color);
     font-size: 16px;
     font-weight: bold;
-    padding-left: 0;
+    padding: 1px;
 }
 
+.title:hover {
+    border: 1px solid var(--border-color);
+    border-radius: var(--small-border-radius);
+    padding: 0;
+}
 
 .selected {
     background-color: var(--primary-sidebar-color);
-}
-
-.row-title {
-    display: flex;
-}
-
-.row-title > p {
-    font-size: smaller;
-    margin: 0;
-    padding-top: 9px;
-    overflow-x: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-    white-space: nowrap;
-}
-
-
-.container p, h4 {
-    margin: 0;
-    padding-top: 8px;
 }

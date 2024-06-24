@@ -8,6 +8,16 @@ import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { metadata, selection } from "../../state";
 
+// Define buffer item
+const DIVIDER_SENTINAL_VALUE = "_BUFFER_BAR_ID_";
+const RECENT_ANNOTATIONS_DIVIDER: ListItem<Annotation> = {
+    selected: false,
+    disabled: false,
+    isDivider: true,
+    value: DIVIDER_SENTINAL_VALUE,
+    displayValue: "",
+};
+
 interface Props {
     id?: string;
     disabledTopLevelAnnotations?: boolean;
@@ -40,21 +50,16 @@ export default function AnnotationPicker(props: Props) {
         annotations.filter((annotation) => annotation.name === name)
     );
 
-    // Define buffer item
-    const bufferBar = {
-        name: "buffer",
-        selected: false,
-        disabled: false,
-        isBuffer: true,
-        value: "recent buffer",
-        displayValue: "",
-    };
-
     // combine all annotation lists and buffer item objects
-    const nonUniqueItems = [...recentAnnotations, bufferBar, ...annotations]
+    const nonUniqueItems: ListItem<Annotation>[] = [
+        ...recentAnnotations,
+        ...(recentAnnotations.length ? [RECENT_ANNOTATIONS_DIVIDER] : []),
+        ...annotations,
+    ]
         .filter(
             (annotation) =>
                 !props.disabledTopLevelAnnotations ||
+                !(annotation instanceof Annotation) ||
                 !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name)
         )
         .map((annotation) => {
@@ -68,6 +73,7 @@ export default function AnnotationPicker(props: Props) {
                 selected: isSelected,
                 recent: recentAnnotationNames.includes(annotation.name) && !isSelected,
                 disabled:
+                    !isSelected &&
                     props.disableUnavailableAnnotations &&
                     unavailableAnnotations.some(
                         (unavailable) => unavailable.name === annotation.name

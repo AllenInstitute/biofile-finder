@@ -15,7 +15,7 @@ export default function ColumnPicker() {
     return (
         <AnnotationPicker
             title="Select metadata to display as columns"
-            selections={columnAnnotations.map((a) => a.name)}
+            selections={columnAnnotations.map((c) => c.name)}
             setSelections={(selectedAnnotations) => {
                 // Prevent de-selecting all columns
                 if (!selectedAnnotations.length) {

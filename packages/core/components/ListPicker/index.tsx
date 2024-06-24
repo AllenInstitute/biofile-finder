@@ -100,7 +100,12 @@ export default function ListPicker(props: ListPickerProps) {
     }
 
     return (
-        <div className={classNames(styles.container, className)} data-is-focusable="true">
+        <div
+            className={classNames(styles.container, className, {
+                [styles.biggerHeader]: !!props.title,
+            })}
+            data-is-focusable="true"
+        >
             <div className={styles.header}>
                 {props.title && <h3>{props.title}</h3>}
                 <SearchBox
@@ -108,11 +113,12 @@ export default function ListPicker(props: ListPickerProps) {
                     className={styles.searchBox}
                     onChange={onSearchBoxChange}
                     onClear={() => setSearchValue("")}
+                    placeholder="Search..."
                 />
                 <div className={styles.buttons}>
                     {onSelectAll && (
                         <ActionButton
-                            ariaLabel="Select All"
+                            ariaLabel="Select all"
                             className={classNames(
                                 {
                                     [styles.disabled]: !hasUnselectedItem,
@@ -124,11 +130,11 @@ export default function ListPicker(props: ListPickerProps) {
                             title={hasUnselectedItem ? undefined : "All options selected"}
                             onClick={onSelectAll}
                         >
-                            Select All
+                            SELECT ALL
                         </ActionButton>
                     )}
                     <ActionButton
-                        ariaLabel="Reset"
+                        ariaLabel="Clear all"
                         className={classNames(
                             {
                                 [styles.disabled]: !hasSelectedItem,
@@ -136,11 +142,11 @@ export default function ListPicker(props: ListPickerProps) {
                             styles.actionButton
                         )}
                         disabled={!hasSelectedItem}
-                        iconProps={{ iconName: "Delete" }}
+                        iconProps={{ iconName: "Clear" }}
                         title={hasSelectedItem ? undefined : "No options selected"}
                         onClick={onDeselectAll}
                     >
-                        Reset
+                        CLEAR ALL
                     </ActionButton>
                 </div>
             </div>
