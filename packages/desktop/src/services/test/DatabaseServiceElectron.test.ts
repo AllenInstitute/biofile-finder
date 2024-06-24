@@ -79,7 +79,7 @@ describe("DatabaseServiceElectron", () => {
 
                 // Assert
                 const fileStat = await fs.promises.stat(`${destination}.${format}`);
-                expect(fileStat.size).to.equal(0);
+                expect(fileStat.size).to.equal(215);
             });
         });
     });

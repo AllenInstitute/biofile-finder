@@ -1,3 +1,5 @@
+import { isEmpty } from "lodash";
+
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
@@ -137,6 +139,9 @@ export default abstract class DatabaseService {
                 .where(`table_name = '${aggregateDataSourceName}'`)
                 .toSQL();
             const rows = await this.query(sql);
+            if (isEmpty(rows)) {
+                throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);
+            }
             const annotations = rows.map(
                 (row) =>
                     new Annotation({

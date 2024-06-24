@@ -6,9 +6,12 @@ import {
     RECEIVE_ANNOTATIONS,
     ReceiveAnnotationAction,
     receiveAnnotations,
+    receiveDatasetManifest,
     receiveDataSources,
     REQUEST_ANNOTATIONS,
     REQUEST_DATA_SOURCES,
+    REQUEST_DATASET_MANIFEST,
+    RequestDatasetManifest,
 } from "./actions";
 import * as metadataSelectors from "./selectors";
 import Annotation, { AnnotationName } from "../../entity/Annotation";
@@ -146,4 +149,36 @@ const requestDataSources = createLogic({
     type: [REQUEST_DATA_SOURCES, interaction.actions.REFRESH],
 });
 
-export default [requestAnnotations, receiveAnnotationsLogic, requestDataSources];
+/**
+ * Interceptor responsible for passing the REQUEST_DATASET_MANIFEST action to the database service.
+ * Outputs RECEIVE_DATASET_MANIFEST action to request state.
+ */
+const requestDatasetManifest = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const {
+            payload: { name, uri },
+        } = deps.action as RequestDatasetManifest;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
+
+        try {
+            if (uri) {
+                await databaseService.prepareDataSources([{ name, type: "csv", uri }]);
+                dispatch(receiveDatasetManifest(name, uri));
+            }
+        } catch (err) {
+            console.error("Failed to add dataset manifest", err);
+        } finally {
+            done();
+        }
+    },
+    type: REQUEST_DATASET_MANIFEST,
+});
+
+export default [
+    requestAnnotations,
+    receiveAnnotationsLogic,
+    requestDataSources,
+    requestDatasetManifest,
+];

@@ -12,8 +12,9 @@ import ExecutionEnvServiceWeb from "./services/ExecutionEnvServiceWeb";
 import DatabaseServiceWeb from "./services/DatabaseServiceWeb";
 import FileViewerServiceWeb from "./services/FileViewerServiceWeb";
 import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
-import Layout from "./components/Layout";
 import Home from "./components/Home";
+import Layout from "./components/Layout";
+import OpenSourceDatasets from "./components/OpenSourceDatasets";
 import FmsFileExplorer from "../../core/App";
 import { createReduxStore } from "../../core/state";
 
@@ -35,7 +36,7 @@ const router = createBrowserRouter([
             },
             {
                 path: "datasets",
-                element: <></>, // Datasets placeholder
+                element: <OpenSourceDatasets />,
             },
         ],
     },

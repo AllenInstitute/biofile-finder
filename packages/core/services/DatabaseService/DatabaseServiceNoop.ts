@@ -6,7 +6,7 @@ export default class DatabaseServiceNoop extends DatabaseService {
     }
 
     public prepareDataSources() {
-        return Promise.reject("DatabaseServiceNoop::prepareDataSources");
+        return Promise.resolve();
     }
 
     public saveQuery(): Promise<Uint8Array> {

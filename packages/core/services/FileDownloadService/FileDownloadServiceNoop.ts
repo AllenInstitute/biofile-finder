@@ -16,9 +16,9 @@ export default class FileDownloadServiceNoop implements FileDownloadService {
         });
     }
 
-    prepareHttpResourceForDownload(): Promise<string> {
+    prepareHttpResourceForDownload(): Promise<Blob> {
         return Promise.resolve(
-            "Triggered prepareHttpResourceForDownload on FileDownloadServiceNoop; returning without triggering a download."
+            "Triggered prepareHttpResourceForDownload on FileDownloadServiceNoop" as any
         );
     }
 

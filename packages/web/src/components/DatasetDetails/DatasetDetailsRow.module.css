@@ -1,0 +1,33 @@
+.row {
+  /* flex parent */
+  display: flex;
+  flex-direction: row;
+  padding-bottom: 16px;
+}
+
+.cell {
+  height: auto;
+  padding: 3px 3px 3px 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.cell:first-of-type {
+  padding-left: 0;
+}
+
+.key {
+  /* flex child */
+  flex: 1 1 30%;
+
+  font-weight: 500;
+  padding-right: 20px
+}
+
+.value {
+  /* flex child */
+  flex: 1 1 60%;
+
+  /* Allow whitespace to be rendered (including carriage returns & new lines) */
+  white-space: pre-wrap; 
+}

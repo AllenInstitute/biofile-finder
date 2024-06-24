@@ -21,10 +21,18 @@ export default class DatabaseServiceElectron extends DatabaseService {
      * May return a value if the location is not a physical location but rather
      * a temporary database location (buffer)
      */
-    public saveQuery(destination: string, sql: string, format: string): Promise<Uint8Array> {
+    public saveQuery(
+        destination: string,
+        sql: string,
+        format: "csv" | "json" | "parquet"
+    ): Promise<Uint8Array> {
+        const saveOptions = [`FORMAT '${format}'`];
+        if (format === "csv") {
+            saveOptions.push("HEADER");
+        }
         return new Promise((resolve, reject) => {
             this.database.run(
-                `COPY (${sql}) TO '${destination}.${format}' (FORMAT '${format}');`,
+                `COPY (${sql}) TO '${destination}.${format}' (${saveOptions.join(", ")});`,
                 (err: any, result: any) => {
                     if (err) {
                         reject(err.message);
