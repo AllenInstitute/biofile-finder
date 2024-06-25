@@ -1,5 +1,4 @@
 import { Icon } from "@fluentui/react";
-import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -43,9 +42,7 @@ function Header(
             columnKey: annotation.name, // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
             displayValue: (
                 <span
-                    className={classNames(styles.headerCell, {
-                        [styles.bold]: isSortedColumn,
-                    })}
+                    className={styles.headerCell}
                     onClick={() => dispatch(selection.actions.sortColumn(annotation.name))}
                 >
                     <span className={styles.headerTitle}>{annotation.displayName}</span>
@@ -57,6 +54,7 @@ function Header(
                         ))}
                 </span>
             ),
+            title: annotation.name,
             width: columnWidths[annotation.name] || 1 / columnAnnotations.length,
         };
     });

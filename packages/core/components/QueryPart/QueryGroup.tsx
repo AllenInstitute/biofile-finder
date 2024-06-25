@@ -27,9 +27,9 @@ export default function QueryGroup(props: Props) {
 
     return (
         <QueryPart
-            title="Group"
+            title="Group by"
+            titleIconName="NumberedListText"
             disabled={props.disabled}
-            addButtonIconName="FabricFolder"
             tutorialId={Tutorial.GROUPING_HEADER_ID}
             onDelete={onDelete}
             onReorder={onReorder}

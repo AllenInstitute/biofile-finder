@@ -1,4 +1,4 @@
-import Tutorial from "../../../entity/Tutorial";
+import Tutorial from "../../entity/Tutorial";
 
 export const GENERATE_MANIFEST_TUTORIAL = new Tutorial("Generating manifests")
     .addStep({

@@ -1,6 +1,6 @@
-.header{
+.header {
   background-color: var(--primary-dark);
-  border-bottom: 1px solid var(--borders-light-grey);
+  border-bottom: 1px solid var(--medium-grey);
   color: var(--secondary-text-color);
   display: flex;
   overflow: hidden;
@@ -10,21 +10,19 @@
 }
 
 .title {
-  color: var(--primary-text-color);
+  border-left: 1px solid var(--secondary-text-color);
+  color: var(--highlight-text-color);
+  height: 24px;
+  padding: 2px 0 0 1em;
+  margin: 6px 0 0 1em;
   text-decoration: none;
-}
-
-.header-option {
-  margin: 0px 10px;
-  font-size: 16px;
-  font-weight: 400;
 }
 
 .left {
   width: 50%;
   display: flex;
   flex: none;
-  align-items: center;
+  padding-top: 4px;
 }
 
 .right {
@@ -44,21 +42,6 @@
   color: var(--white)
 }
 
-.upload-button {
-  background-color: var(--primary-dark); 
-  color: var(--aqua);
-  border: 1px solid var(--aqua);
-  border-radius: 18px;
-  height: 30px;
-  width: 110px;
-}
-
-.upload-button:hover, .upload-button:focus {
-  background-color: var(--aqua-secondary-hover);
-  color: var(--aqua);
-}
-
-.upload-button-label { 
-  font-weight: 400; 
-  font-size: 14px;
+.start-button {
+  width: 126px;
 }

@@ -10,24 +10,50 @@
 }
 
 .footer > h6 {
+    font-size: smaller;
     font-weight: normal;
     margin: var(--margin) 0 0 0;
 }
 
-.action-button, .action-button i {
-    background-color: var(--primary-background-color) !important;
-    color: var(--primary-text-color) !important;
+.action-button, .reset-button {
+    border-radius: var(--small-border-radius);
 }
 
-.action-button:hover:not(.disabled), .action-button:hover:not(.disabled) i {
-    background-color: var(--highlight-background-color) !important;
+.action-button, .action-button span, .action-button i {
     color: var(--highlight-text-color) !important;
+}
+
+.action-button, .action-button i {
+    background-color: var(--highlight-background-color) !important;
+}
+
+.action-button i, .reset-button i {
+    font-size: smaller;
+}
+
+.action-button:hover:not(.disabled), .action-button:hover:not(.disabled) i, .action-button:hover:not(.disabled) span {
+    background-color: var(--highlight-hover-background-color) !important;
+    color: var(--highlight-hover-text-color) !important;
     cursor: pointer;
 }
 
 .action-button.disabled {
     cursor: not-allowed;
     opacity: 0.5;
+}
+
+.reset-button, .reset-button span, .reset-button i {
+    color: var(--secondary-text-color);
+}
+
+.reset-button, .reset-button i {
+    background-color: var(--secondary-background-color) !important;
+}
+
+.reset-button:hover, .reset-button:hover i {
+    background-color: var(--highlight-background-color) !important;
+    color: var(--highlight-text-color) !important;
+    cursor: pointer;
 }
 
 .reset-button-container {
@@ -41,9 +67,10 @@
 }
 
 .input-field > input {
-    background-color: var(--primary-background-color);
-    border: none;
-    color: var(--primary-text-color);
+    background-color: var(--secondary-background-color);
+    border-radius: var(--small-border-radius);
+    border: 1px solid var(--border-color);
+    color: var(--secondary-text-color);
     outline: none;
 }
 
@@ -59,12 +86,12 @@
     padding-bottom: var(--margin);
 }
 
-label,input{
+.container label,input{
     display: block;
 }
 
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
+.container input::-webkit-outer-spin-button,
+.container input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
 }

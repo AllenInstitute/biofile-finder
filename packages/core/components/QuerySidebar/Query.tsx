@@ -54,100 +54,91 @@ export default function Query(props: QueryProps) {
 
     if (!isExpanded) {
         return (
-            <div>
-                <hr className={styles.divider} />
-                <div
-                    className={classNames(styles.container, {
-                        [styles.selected]: props.isSelected,
-                    })}
-                    onClick={() =>
-                        !props.isSelected && dispatch(selection.actions.changeQuery(props.query))
-                    }
-                >
-                    <div className={styles.header}>
-                        <h4>{props.query.name}</h4>
-                        {props.isSelected && (
-                            <IconButton
-                                ariaDescription="Expand view details"
-                                ariaLabel="Expand"
-                                className={styles.collapseButton}
-                                onClick={() => setIsExpanded(!isExpanded)}
-                                iconProps={{ iconName: "ChevronUp" }}
-                            />
-                        )}
-                    </div>
-                    {props.isSelected && <hr />}
-                    <p className={styles.displayRow}>
-                        <strong>Data Source:</strong>{" "}
-                        {queryComponents.sources.map((source) => source.name).join(", ")}
-                    </p>
-                    {!!queryComponents.hierarchy.length && (
-                        <p className={styles.displayRow}>
-                            <strong>Groupings:</strong>{" "}
-                            {queryComponents.hierarchy
-                                .map(
-                                    (a) =>
-                                        annotations.find((annotation) => annotation.name === a)
-                                            ?.displayName || a
-                                )
-                                .join(", ")}
-                        </p>
-                    )}
-                    {!!queryComponents.filters.length && (
-                        <p className={styles.displayRow}>
-                            <strong>Filters:</strong>{" "}
-                            {queryComponents.filters
-                                .map((filter) => `${filter.name}: ${filter.value}`)
-                                .join(", ")}
-                        </p>
-                    )}
-                    {!!queryComponents.sortColumn && (
-                        <p className={styles.displayRow}>
-                            <strong>Sort:</strong> {queryComponents.sortColumn.annotationName} (
-                            {queryComponents.sortColumn.order})
-                        </p>
+            <div
+                className={classNames(styles.container, {
+                    [styles.selected]: props.isSelected,
+                })}
+                onClick={() =>
+                    !props.isSelected && dispatch(selection.actions.changeQuery(props.query))
+                }
+            >
+                <div className={styles.header}>
+                    <h4>{props.query.name}</h4>
+                    {props.isSelected && (
+                        <IconButton
+                            ariaDescription="Expand view details"
+                            ariaLabel="Expand"
+                            className={styles.collapseButton}
+                            onClick={() => setIsExpanded(!isExpanded)}
+                            iconProps={{ iconName: "ChevronUp" }}
+                        />
                     )}
                 </div>
+                <p className={styles.displayRow}>
+                    <strong>Data source:</strong>{" "}
+                    {queryComponents.sources.map((source) => source.name).join(", ")}
+                </p>
+                {!!queryComponents.hierarchy.length && (
+                    <p className={styles.displayRow}>
+                        <strong>Group by:</strong>{" "}
+                        {queryComponents.hierarchy
+                            .map(
+                                (a) =>
+                                    annotations.find((annotation) => annotation.name === a)
+                                        ?.displayName || a
+                            )
+                            .join(", ")}
+                    </p>
+                )}
+                {!!queryComponents.filters.length && (
+                    <p className={styles.displayRow}>
+                        <strong>Filter:</strong>{" "}
+                        {queryComponents.filters
+                            .map((filter) => `${filter.name}: ${filter.value}`)
+                            .join(", ")}
+                    </p>
+                )}
+                {!!queryComponents.sortColumn && (
+                    <p className={styles.displayRow}>
+                        <strong>Sort:</strong> {queryComponents.sortColumn.annotationName} (
+                        {queryComponents.sortColumn.order})
+                    </p>
+                )}
             </div>
         );
     }
 
     return (
-        <div>
-            <hr className={styles.divider} />
-            <div className={classNames(styles.container, { [styles.selected]: props.isSelected })}>
-                <div className={styles.header}>
-                    <div className={styles.titleContainer}>
-                        <TextField
-                            borderless
-                            defaultValue={props.query.name}
-                            inputClassName={styles.title}
-                            onBlur={(e) =>
-                                e.currentTarget.value &&
-                                onQueryUpdate({ ...props.query, name: e.currentTarget.value })
-                            }
-                        />
-                    </div>
-                    <IconButton
-                        ariaDescription="Expand view details"
-                        ariaLabel="Expand"
-                        className={styles.collapseButton}
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        iconProps={{ iconName: "ChevronDown" }}
+        <div className={classNames(styles.container, { [styles.selected]: props.isSelected })}>
+            <div className={styles.header}>
+                <div className={styles.titleContainer}>
+                    <TextField
+                        borderless
+                        defaultValue={props.query.name}
+                        inputClassName={styles.title}
+                        onBlur={(e) =>
+                            e.currentTarget.value &&
+                            onQueryUpdate({ ...props.query, name: e.currentTarget.value })
+                        }
                     />
                 </div>
-                <hr className={styles.divider} />
-                <QueryDataSource dataSources={queryComponents.sources} />
-                <QueryGroup disabled={!hasDataSource} groups={queryComponents.hierarchy} />
-                <QueryFilter disabled={!hasDataSource} filters={queryComponents.filters} />
-                <QuerySort disabled={!hasDataSource} sort={queryComponents.sortColumn} />
-                <hr className={styles.divider} />
-                <QueryFooter
-                    isDeletable={queries.length > 1}
-                    onQueryDelete={onQueryDelete}
-                    query={props.query}
+                <IconButton
+                    ariaDescription="Expand view details"
+                    ariaLabel="Expand"
+                    className={styles.collapseButton}
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    iconProps={{ iconName: "ChevronDown" }}
                 />
             </div>
+            <QueryDataSource dataSources={queryComponents.sources} />
+            <QueryGroup disabled={!hasDataSource} groups={queryComponents.hierarchy} />
+            <QueryFilter disabled={!hasDataSource} filters={queryComponents.filters} />
+            <QuerySort disabled={!hasDataSource} sort={queryComponents.sortColumn} />
+            <QueryFooter
+                isDeletable={queries.length > 1}
+                onQueryDelete={onQueryDelete}
+                query={props.query}
+            />
         </div>
     );
 }

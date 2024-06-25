@@ -15,10 +15,6 @@
     padding-left: calc(var(--padding) / 2);
 }
 
-.cell:last-of-type {
-    padding-right: 0;
-}
-
 .resizable-cell {
     composes: cell;
 }
@@ -39,5 +35,9 @@
     height: 100%;
     text-align: center;
     font-weight: bold;
-    color: var(--secondary-text-color);
+    color: var(--highlight-background-color);
+}
+
+.resize-target:hover {
+    color: var(--highlight-hover-background-color);
 }

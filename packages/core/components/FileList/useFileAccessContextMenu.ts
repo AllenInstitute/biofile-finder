@@ -33,14 +33,26 @@ export function useFileAccessMenuItems(
             };
         });
 
-        savedApps.push({
-            key: ContextMenuActions.OPEN_3D_WEB_VIEWER,
-            text: "3D Web Viewer",
-            title: `Open files with 3D Web Viewer`,
-            href: `https://allen-cell-animated.github.io/website-3d-cell-viewer/?url=${filePath}/`,
-            disabled: !filePath,
-            target: "_blank",
-        });
+        // TODO: These only open the focused item in the below applications not all the items
+        // like the above does with other apps
+        savedApps.push(
+            {
+                key: ContextMenuActions.OPEN_3D_WEB_VIEWER,
+                text: "3D Web Viewer",
+                title: `Open files with 3D Web Viewer`,
+                href: `https://allen-cell-animated.github.io/website-3d-cell-viewer/?url=${filePath}/`,
+                disabled: !filePath,
+                target: "_blank",
+            },
+            {
+                key: ContextMenuActions.AGAVE,
+                text: "AGAVE",
+                title: `Open files with AGAVE`,
+                href: `agave://${filePath}`,
+                disabled: !filePath,
+                target: "_blank",
+            }
+        );
         if (plateLink) {
             savedApps.push({
                 key: ContextMenuActions.OPEN_PLATE_UI,

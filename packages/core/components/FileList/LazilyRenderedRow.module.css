@@ -1,23 +1,32 @@
 .row {
-    /* NOTE! If this is updated, you must also update the corresponding constant in ./LazilyRenderedRow.tsx */
-    --margin: 1.5px;
-    margin: var(--margin);
+    padding-top: 1px;
+    padding-bottom: 1px
 }
 
 .row.selected {
-    background-color: var(--highlight-background-color);
+    background-color: var(--highlight-background-color) !important;
+    border-bottom: 1px solid var(--secondary-background-color);
     color: var(--highlight-text-color);
+    padding-bottom: 0;
 }
 
 .row.focused {
-    border: var(--margin) solid var(--highlight-text-color);
-    margin: calc(var(--margin) - 1px);
+    background-color: var(--highlight-hover-background-color) !important;
+    border-bottom: 1px solid var(--secondary-background-color);
+    color: var(--highlight-hover-text-color);
+    padding-bottom: 0;
+}
+
+.row.small-font {
+    padding: 0px;
 }
 
 .shimmer {
-    height: 22px;
+    background-color: var(--secondary-background-color);
+    height: 18.5px;
 }
 
 .shimmer > div {
     background-color: var(--primary-background-color);
+    border-radius: var(--small-border-radius);
 }

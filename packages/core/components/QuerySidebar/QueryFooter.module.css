@@ -3,27 +3,6 @@
     justify-content: right;
 }
 
-.button {
-    color: var(--primary-sidebar-text-color);
-    background-color: var(--primary-sidebar-color);
-    margin-left: 2px;
-}
-
-.button:hover:not(.disabled) {
-    color: var(--highlight-text-color);
-    background-color: var(--highlight-background-color);
-}
-
-.button-menu, .button-menu button {
-    background-color: var(--secondary-background-color);
-    color: var(--secondary-text-color);
-}
-
-.button-menu i, .button-menu li > div {
-    color: var(--secondary-text-color);
-}
-
-.button-menu button:hover, .button-menu button:hover i {
-    background-color: var(--highlight-background-color);
-    color: var(--highlight-text-color) !important;
+.container > * {
+    margin-left: 3px;
 }

@@ -1,12 +1,11 @@
-import { List } from "@fluentui/react";
+import { ContextualMenuItemType } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import QueryPart from ".";
-import ListRow, { ListItem } from "../ListPicker/ListRow";
-import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { Source } from "../../entity/FileExplorerURL";
 import { interaction, metadata, selection } from "../../state";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 interface Props {
     dataSources: Source[];
@@ -21,27 +20,9 @@ export default function QueryDataSource(props: Props) {
     const dataSources = useSelector(metadata.selectors.getDataSources);
     const selectedDataSources = useSelector(selection.selectors.getSelectedDataSources);
 
-    const addDataSourceOptions: ListItem<Source>[] = [
-        ...dataSources.map((source) => ({
-            displayValue: source.name,
-            value: source.name,
-            disabled:
-                selectedDataSources.length <= 1 &&
-                selectedDataSources.some((selected) => source.name === selected.name),
-            data: source,
-            selected: selectedDataSources.some((selected) => source.name === selected.name),
-        })),
-        {
-            displayValue: "New Data Source...",
-            value: "New Data Source...",
-            selected: false,
-        },
-    ];
-
     return (
         <QueryPart
-            title="Data Source"
-            addButtonIconName="Folder"
+            title="Data source"
             disabled={selectedDataSources[0]?.name === AICS_FMS_DATA_SOURCE_NAME}
             onDelete={
                 selectedDataSources.length > 1
@@ -53,54 +34,40 @@ export default function QueryDataSource(props: Props) {
                           )
                     : undefined
             }
-            onRenderAddMenuList={
-                selectedDataSources[0]?.name === AICS_FMS_DATA_SOURCE_NAME
-                    ? undefined
-                    : () => (
-                          <div data-is-scrollable="true">
-                              <List
-                                  ignoreScrollingState
-                                  getKey={(item) => String(item.value)}
-                                  items={addDataSourceOptions}
-                                  onRenderCell={(item) =>
-                                      item && (
-                                          <ListRow
-                                              item={item}
-                                              onSelect={() =>
-                                                  item.data
-                                                      ? dispatch(
-                                                            selection.actions.changeDataSources([
-                                                                ...selectedDataSources,
-                                                                item.data as Source,
-                                                            ])
-                                                        )
-                                                      : dispatch(
-                                                            interaction.actions.promptForDataSource(
-                                                                {
-                                                                    query: selectedQuery,
-                                                                }
-                                                            )
-                                                        )
-                                              }
-                                              onDeselect={() =>
-                                                  item.data &&
-                                                  selectedDataSources.length > 1 &&
-                                                  dispatch(
-                                                      selection.actions.changeDataSources(
-                                                          selectedDataSources.filter(
-                                                              (source) =>
-                                                                  source.name !== item.data?.name
-                                                          )
-                                                      )
-                                                  )
-                                              }
-                                          />
-                                      )
-                                  }
-                              />
-                          </div>
-                      )
-            }
+            addMenuListItems={[
+                {
+                    key: "ADD DATA SOURCE",
+                    text: "ADD DATA SOURCE",
+                    itemType: ContextualMenuItemType.Header,
+                },
+                {
+                    key: "add-data-source-divider",
+                    itemType: ContextualMenuItemType.Divider,
+                },
+                ...dataSources
+                    .filter((source) => selectedDataSources.some((s) => s.name === source.name))
+                    .map((source) => ({
+                        key: source.id,
+                        text: source.name,
+                        iconProps: { iconName: "Folder" },
+                        onClick: () => {
+                            dispatch(
+                                selection.actions.addQuery({
+                                    name: `New ${source.name} query`,
+                                    parts: { sources: [source] },
+                                })
+                            );
+                        },
+                    })),
+                {
+                    key: "New Data Source",
+                    text: "New data source",
+                    iconProps: { iconName: "NewFolder" },
+                    onClick: () => {
+                        dispatch(interaction.actions.promptForDataSource({ query: selectedQuery }));
+                    },
+                },
+            ]}
             rows={props.dataSources.map((dataSource) => ({
                 id: dataSource.name,
                 title: dataSource.name,
