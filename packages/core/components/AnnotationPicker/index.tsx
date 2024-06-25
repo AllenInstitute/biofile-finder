@@ -46,8 +46,13 @@ export default function AnnotationPicker(props: Props) {
     );
     const recentAnnotationNames = useSelector(selection.selectors.getRecentAnnotations);
 
+    const isSelectable = (annotation: any): boolean =>
+        !props.disabledTopLevelAnnotations ||
+        !(annotation instanceof Annotation) ||
+        !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name);
+
     const recentAnnotations = recentAnnotationNames.flatMap((name) =>
-        annotations.filter((annotation) => annotation.name === name)
+        annotations.filter((annotation) => annotation.name === name && isSelectable(annotation))
     );
 
     // combine all annotation lists and buffer item objects
@@ -56,12 +61,7 @@ export default function AnnotationPicker(props: Props) {
         ...(recentAnnotations.length ? [RECENT_ANNOTATIONS_DIVIDER] : []),
         ...annotations,
     ]
-        .filter(
-            (annotation) =>
-                !props.disabledTopLevelAnnotations ||
-                !(annotation instanceof Annotation) ||
-                !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name)
-        )
+        .filter(isSelectable)
         .map((annotation) => {
             // This is reached if the 'annotation' is a spacer.
             if (!(annotation instanceof Annotation)) {
