@@ -1,36 +1,38 @@
-import { ActionButton, IContextualMenuItem, TooltipHost } from "@fluentui/react";
+import { ActionButton, TooltipHost } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 import SyntaxHighlighter from "react-syntax-highlighter";
 
 import { ModalProps } from "..";
-import { interaction } from "../../../state";
 import BaseModal from "../BaseModal";
+import { TertiaryButton, useButtonMenu } from "../../Buttons";
+import { interaction } from "../../../state";
 
 import styles from "./CodeSnippet.module.css";
-import { TertiaryButton } from "../../Buttons";
+
+const PYTHON_PANDAS_MINIMUM = "Python 3.8+ (pandas)";
 
 /**
  * Dialog meant to show the user a Code snippet
  */
 export default function CodeSnippet({ onDismiss }: ModalProps) {
-    const pythonSnippet = useSelector(interaction.selectors.getPythonSnippet);
-    const code = pythonSnippet?.code;
-    const setup = pythonSnippet?.setup;
-    const languageOptions: IContextualMenuItem[] = [
-        {
-            key: "python",
-            text: "Python 3.8+ (pandas)",
-            onClick() {
-                setLanguage("Python 3.8+ (pandas)");
-            },
-        },
-    ];
+    const { code, setup } = useSelector(interaction.selectors.getPythonSnippet);
 
     const [isSetupCopied, setSetupCopied] = React.useState(false);
     const [isCodeCopied, setCodeCopied] = React.useState(false);
-    const [language, setLanguage] = React.useState(languageOptions[0].text);
+    const [language, setLanguage] = React.useState(PYTHON_PANDAS_MINIMUM);
+    const languageOptionsMenu = useButtonMenu({
+        items: [
+            {
+                key: "python",
+                text: PYTHON_PANDAS_MINIMUM,
+                onClick() {
+                    setLanguage(PYTHON_PANDAS_MINIMUM);
+                },
+            },
+        ],
+    });
 
     const onCopySetup = () => {
         setup && navigator.clipboard.writeText(setup);
@@ -59,10 +61,7 @@ export default function CodeSnippet({ onDismiss }: ModalProps) {
                 <div className={styles.codeActions}>
                     <ActionButton
                         className={classNames(styles.actionButton, styles.copyButton)}
-                        menuProps={{
-                            className: styles.buttonMenu,
-                            items: languageOptions,
-                        }}
+                        menuProps={languageOptionsMenu}
                         text={language}
                     />
                 </div>

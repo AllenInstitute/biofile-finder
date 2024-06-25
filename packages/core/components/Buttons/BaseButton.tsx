@@ -1,12 +1,8 @@
-import {
-    ContextualMenuItemType,
-    DefaultButton,
-    DirectionalHint,
-    IContextualMenuItem,
-    Icon,
-} from "@fluentui/react";
+import { DefaultButton, DirectionalHint, IContextualMenuItem, Icon } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
+
+import useButtonMenu from "./useButtonMenu";
 
 import styles from "./BaseButton.module.css";
 
@@ -28,29 +24,10 @@ interface Props {
  * used as a base for more styled components
  */
 export default function BaseButton(props: Props) {
-    const styledMenuItems = React.useMemo(
-        () =>
-            props.menuItems
-                ? props.menuItems.map((menuItem) => {
-                      if (menuItem.itemType === ContextualMenuItemType.Divider) {
-                          return {
-                              ...menuItem,
-                              className: styles.buttonMenuDivider,
-                          };
-                      }
-
-                      if (menuItem.itemType === ContextualMenuItemType.Header) {
-                          return {
-                              ...menuItem,
-                              className: styles.buttonMenuHeader,
-                          };
-                      }
-
-                      return menuItem;
-                  })
-                : undefined,
-        [props.menuItems]
-    );
+    const styledMenu = useButtonMenu({
+        items: props.menuItems,
+        directionalHint: props.menuDirection,
+    });
 
     const content = (
         <span className={styles.buttonContent}>
@@ -87,17 +64,7 @@ export default function BaseButton(props: Props) {
             disabled={props.disabled}
             id={props.id}
             menuIconProps={{ className: styles.hidden }}
-            menuProps={
-                styledMenuItems
-                    ? {
-                          className: styles.buttonMenu,
-                          calloutProps: { className: styles.buttonMenuCallout },
-                          directionalHint: props.menuDirection,
-                          shouldFocusOnMount: true,
-                          items: styledMenuItems,
-                      }
-                    : undefined
-            }
+            menuProps={styledMenu}
             onClick={props.onClick}
             title={props.title}
         >

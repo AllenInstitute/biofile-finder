@@ -1,10 +1,16 @@
-import { ContextualMenuItemType, IContextualMenuItem, Icon, IconButton } from "@fluentui/react";
+import {
+    ContextualMenuItemType,
+    DirectionalHint,
+    IContextualMenuItem,
+    Icon,
+    IconButton,
+} from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import Query from "./Query";
-import { PrimaryButton } from "../Buttons";
+import { PrimaryButton, useButtonMenu } from "../Buttons";
 import { ModalType } from "../Modal";
 import Tutorial from "../../entity/Tutorial";
 import useHelpOptions from "../../hooks/useHelpOptions";
@@ -28,6 +34,10 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
     const helpMenuOptions = useHelpOptions(dispatch);
+    const helpMenu = useButtonMenu({
+        items: helpMenuOptions,
+        directionalHint: DirectionalHint.topRightEdge,
+    });
 
     React.useEffect(() => {
         if (selectedQuery) {
@@ -136,11 +146,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                     iconProps={{ iconName: "Help" }}
                     title="Help menu"
                     menuIconProps={{ iconName: "ChevronUp" }}
-                    menuProps={{
-                        className: styles.buttonMenu,
-                        items: helpMenuOptions,
-                        calloutProps: { className: styles.buttonMenuContainer },
-                    }}
+                    menuProps={helpMenu}
                 />
             </div>
             <div className={styles.minimizeBar} onClick={() => setIsExpanded(false)}>
