@@ -62,7 +62,7 @@ export default function DatasetTable(props: DatasetTableProps) {
     const globalStyle = getComputedStyle(document.body);
     const shimmeredDetailsListTheme: PartialTheme = createTheme({
         semanticColors: {
-            disabledBackground: globalStyle.getPropertyValue("--borders-light-grey"),
+            disabledBackground: globalStyle.getPropertyValue("--medium-grey"),
             bodyBackground: globalStyle.getPropertyValue("--secondary-dark"),
             bodyDivider: globalStyle.getPropertyValue("--primary-dark"),
         },
@@ -75,15 +75,9 @@ export default function DatasetTable(props: DatasetTableProps) {
     ) {
         const fieldContent = item[column?.fieldName as keyof PublicDatasetProps] as string;
         if (!fieldContent) return <>--</>;
-        if (
-            column?.fieldName === DatasetAnnotations.RELATED_PUBLICATON.name &&
-            item?.[DatasetAnnotations.DOI.name as keyof PublicDatasetProps]
-        ) {
+        if (column?.fieldName === DatasetAnnotations.RELATED_PUBLICATON.name && item?.doi) {
             return (
-                <a
-                    className={classNames(styles.link, styles.doubleLine)}
-                    href={item[DatasetAnnotations.DOI.name as keyof PublicDatasetProps]}
-                >
+                <a className={classNames(styles.link, styles.doubleLine)} href={item.doi}>
                     {fieldContent}
                 </a>
             );
