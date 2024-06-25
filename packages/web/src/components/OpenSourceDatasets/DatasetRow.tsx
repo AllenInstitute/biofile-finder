@@ -1,4 +1,4 @@
-import { DefaultButton, IDetailsRowProps, IRenderFunction } from "@fluentui/react";
+import { IDetailsRowProps, IRenderFunction } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import PublicDataset from "../../entity/PublicDataset";
 import { interaction, selection } from "../../../../core/state";
 import { getNameAndTypeFromSourceUrl, Source } from "../../../../core/entity/FileExplorerURL";
+import { PrimaryButton } from "../../../../core/components/Buttons";
 
 import styles from "./DatasetRow.module.css";
 
@@ -68,23 +69,15 @@ export default function DatasetRow(props: DatasetRowProps) {
                     [styles.buttonWrapperHidden]: showActions,
                 })}
             >
-                <DefaultButton
+                <PrimaryButton
                     className={styles.button}
-                    styles={{
-                        label: styles.buttonLabel,
-                    }}
-                    ariaLabel="Dataset details"
+                    iconName=""
                     title="Dataset details"
                     text="DETAILS"
                 />
-                <DefaultButton
+                <PrimaryButton
                     className={styles.button}
-                    styles={{
-                        label: styles.buttonLabel,
-                        icon: styles.buttonIcon,
-                    }}
-                    ariaLabel="Load dataset"
-                    iconProps={{ iconName: "Upload" }}
+                    iconName="Upload"
                     title="Load dataset"
                     text="LOAD"
                     onClick={loadDataset}

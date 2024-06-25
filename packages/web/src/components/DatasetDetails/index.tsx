@@ -1,4 +1,3 @@
-import { DefaultButton, IconButton } from "@fluentui/react";
 import classNames from "classnames";
 import { get as _get } from "lodash";
 import * as React from "react";
@@ -11,6 +10,11 @@ import PublicDataset, {
     DatasetAnnotations,
 } from "../../entity/PublicDataset";
 import { interaction, selection } from "../../../../core/state";
+import {
+    PrimaryButton,
+    SecondaryButton,
+    TertiaryButton,
+} from "../../../../core/components/Buttons";
 import { getNameAndTypeFromSourceUrl, Source } from "../../../../core/entity/FileExplorerURL";
 
 import styles from "./DatasetDetails.module.css";
@@ -99,21 +103,16 @@ export default function DatasetDetails() {
             })}
         >
             <div className={styles.internalWrapper}>
-                <IconButton
-                    ariaLabel="Close"
+                <TertiaryButton
                     className={styles.closeButton}
-                    iconProps={{ iconName: "Cancel" }}
+                    iconName="Cancel"
+                    title="Close"
                     onClick={() => dispatch(interaction.actions.hideDatasetDetailsPanel())}
                 />
                 <div className={styles.title}>{datasetDetails?.name}</div>
-                <DefaultButton
-                    className={classNames(styles.button)}
-                    styles={{
-                        label: styles.buttonLabel,
-                        icon: styles.buttonIcon,
-                    }}
-                    ariaLabel="Load dataset"
-                    iconProps={{ iconName: "Upload" }}
+                <PrimaryButton
+                    className={styles.button}
+                    iconName="Upload"
                     title="Load dataset"
                     text="LOAD DATASET"
                     onClick={loadDataset}
@@ -130,10 +129,8 @@ export default function DatasetDetails() {
                     </div>
                     {isLongDescription && toggleDescriptionButton}
                     <div className={styles.list}>{content}</div>
-                    <DefaultButton
+                    <SecondaryButton
                         className={styles.secondaryCloseButton}
-                        ariaLabel="Close panel"
-                        styles={{ label: styles.secondaryCloseButtonLabel }}
                         title="Close panel"
                         text="CLOSE"
                         onClick={() => dispatch(interaction.actions.hideDatasetDetailsPanel())}

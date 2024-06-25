@@ -35,26 +35,11 @@
 }
 
 .button {
-  background-color: var(--aqua);
-  color: var(--white);
-  border: 1px solid var(--secondary-dark);
-  border-radius: 18px;
   height: 33px;
-  margin-right: 5px;
+  width: fit-content;
+  margin-right: 5px; 
 }
 
-.button:hover,
-.button:focus {
-  background-color: var(--bright-aqua);
-  color: var(--white);
-}
-
-.button-label { 
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.button-icon { 
-  font-size: 15px;
-  font-weight: 500;
+.button span {
+  overflow-x: clip;
 }
