@@ -22,8 +22,8 @@
 }
 
 .header:hover {
-  background-color: var(--border-color);
-  color: var(--secondary-text-color); /* defined in App.module.css */
+  background-color: var(--accent-dark);
+  color: var(--primary-text-color); /* defined in App.module.css */
 }
 
 .header-title {
@@ -34,6 +34,10 @@
 
 .header-cell {
   cursor: pointer;
+}
+
+.header-cell:hover {
+  color: var(--highlight-text-color);
 }
 
 .sort-icon {
