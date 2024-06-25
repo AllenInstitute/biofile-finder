@@ -10,7 +10,7 @@ export interface ListItem<T = any> {
     disabled?: boolean;
     loading?: boolean;
     recent?: boolean;
-    isBuffer?: boolean;
+    isDivider?: boolean;
     selected: boolean;
     displayValue: AnnotationValue;
     value: AnnotationValue;
@@ -39,10 +39,10 @@ export default function ListRow(props: Props) {
             className={classNames(styles.itemContainer, {
                 [styles.selected]: item.selected,
                 [styles.disabled]: item.disabled,
-                [styles.isBuffer]: item.isBuffer,
+                [styles.divider]: item.isDivider,
             })}
             menuIconProps={{
-                iconName: props.subMenuRenderer && !item.isBuffer ? "ChevronRight" : undefined,
+                iconName: props.subMenuRenderer && !item.isDivider ? "ChevronRight" : undefined,
             }}
             menuProps={
                 props.subMenuRenderer
@@ -58,9 +58,12 @@ export default function ListRow(props: Props) {
             disabled={item.disabled}
             onClick={() => (item.selected ? props.onDeselect(item) : props.onSelect(item))}
         >
-            <label className={styles.item} title={item.description}>
+            <label
+                className={styles.item}
+                title={`${item.displayValue}${item.description ? `: ${item.description}` : ""}`}
+            >
                 <div>{item.selected && <Icon iconName="CheckMark" />}</div>
-                {item.displayValue}
+                <p>{item.displayValue}</p>
             </label>
             {item.recent && <Icon iconName="Redo" />}
             {item.loading && <Spinner className={styles.spinner} size={SpinnerSize.small} />}

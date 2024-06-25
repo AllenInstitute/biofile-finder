@@ -1,0 +1,11 @@
+.button {
+    background-color: var(--highlight-background-color);
+    border-radius: var(--large-border-radius);
+    color: var(--highlight-text-color);
+    padding: 0 16px;
+}
+
+.button:hover:not(.disabled), .button:focus:not(.disabled) {
+    background-color: var(--highlight-hover-background-color);
+    color: var(--highlight-hover-text-color);
+}

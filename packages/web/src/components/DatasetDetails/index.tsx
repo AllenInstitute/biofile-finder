@@ -70,7 +70,7 @@ export default function DatasetDetails() {
                 name: `New ${source.name} Query on ${
                     datasetDetails?.name || "open-source dataset"
                 }`,
-                parts: { source },
+                parts: { sources: [source] },
             })
         );
     };

@@ -18,6 +18,8 @@ import OpenSourceDatasets from "./components/OpenSourceDatasets";
 import FmsFileExplorer from "../../core/App";
 import { createReduxStore } from "../../core/state";
 
+import styles from "./src.module.css";
+
 const APP_ID = "fms-file-explorer-web";
 
 const router = createBrowserRouter([
@@ -30,7 +32,7 @@ const router = createBrowserRouter([
             },
             {
                 path: "app",
-                element: <FmsFileExplorer />,
+                element: <FmsFileExplorer className={styles.app} />,
             },
             {
                 path: "datasets",

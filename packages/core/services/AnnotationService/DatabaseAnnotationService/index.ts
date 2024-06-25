@@ -3,18 +3,11 @@ import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
-import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import SQLBuilder from "../../../entity/SQLBuilder";
 
 interface Config {
     databaseService: DatabaseService;
-    dataSourceName: string;
-}
-
-interface DescribeQueryResult {
-    [key: string]: string;
-    column_name: string;
-    column_type: string;
+    dataSourceNames: string[];
 }
 
 interface SummarizeQueryResult {
@@ -28,44 +21,20 @@ interface SummarizeQueryResult {
  */
 export default class DatabaseAnnotationService implements AnnotationService {
     private readonly databaseService: DatabaseService;
-    private readonly dataSourceName: string;
+    private readonly dataSourceNames: string[];
 
     constructor(
-        config: Config = { dataSourceName: "Unknown", databaseService: new DatabaseServiceNoop() }
+        config: Config = { dataSourceNames: [], databaseService: new DatabaseServiceNoop() }
     ) {
-        this.dataSourceName = config.dataSourceName;
+        this.dataSourceNames = config.dataSourceNames;
         this.databaseService = config.databaseService;
-    }
-
-    private static columnTypeToAnnotationType(columnType: string): string {
-        switch (columnType) {
-            case "INTEGER":
-            case "BIGINT":
-            // TODO: Add support for column types
-            // https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues/60
-            // return AnnotationType.NUMBER;
-            case "VARCHAR":
-            case "TEXT":
-            default:
-                return AnnotationType.STRING;
-        }
     }
 
     /**
      * Fetch all annotations.
      */
-    public async fetchAnnotations(): Promise<Annotation[]> {
-        const sql = `DESCRIBE "${this.dataSourceName}"`;
-        const rows = (await this.databaseService.query(sql)) as DescribeQueryResult[];
-        return rows.map(
-            (row) =>
-                new Annotation({
-                    annotationDisplayName: row["column_name"],
-                    annotationName: row["column_name"],
-                    description: "",
-                    type: DatabaseAnnotationService.columnTypeToAnnotationType(row["column_type"]),
-                })
-        );
+    public fetchAnnotations(): Promise<Annotation[]> {
+        return this.databaseService.fetchAnnotations(this.dataSourceNames);
     }
 
     /**
@@ -75,7 +44,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
         const select_key = "select_key";
         const sql = new SQLBuilder()
             .select(`DISTINCT "${annotation}" AS ${select_key}`)
-            .from(this.dataSourceName)
+            .from(this.dataSourceNames)
             .toSQL();
         const rows = await this.databaseService.query(sql);
         return [
@@ -114,7 +83,8 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
         const sqlBuilder = new SQLBuilder()
             .select(`DISTINCT "${hierarchy[path.length]}"`)
-            .from(this.dataSourceName);
+            .from(this.dataSourceNames);
+
         Object.keys(filtersByAnnotation).forEach((annotation) => {
             const annotationValues = filtersByAnnotation[annotation];
             if (annotationValues[0] === null) {
@@ -125,6 +95,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 );
             }
         });
+
         const rows = await this.databaseService.query(sqlBuilder.toSQL());
         return rows.map((row) => row[hierarchy[path.length]]);
     }
@@ -136,7 +107,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
     public async fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]> {
         const sql = new SQLBuilder()
             .summarize()
-            .from(this.dataSourceName)
+            .from(this.dataSourceNames)
             .where(annotations.map((annotation) => `"${annotation}" IS NOT NULL`))
             .toSQL();
         const rows = (await this.databaseService.query(sql)) as SummarizeQueryResult[];

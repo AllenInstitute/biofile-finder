@@ -9,7 +9,7 @@ import {
     REFRESH,
     REMOVE_STATUS,
     SET_USER_SELECTED_APPLICATIONS,
-    SET_FILE_EXPLORER_SERVICE_BASE_URL,
+    INITIALIZE_APP,
     SET_STATUS,
     SET_VISIBLE_MODAL,
     SHOW_CONTEXT_MENU,
@@ -22,11 +22,12 @@ import {
     PROMPT_FOR_DATA_SOURCE,
     DownloadManifestAction,
     DOWNLOAD_MANIFEST,
+    DataSourcePromptInfo,
+    PromptForDataSource,
     SET_SELECTED_PUBLIC_DATASET,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
-import { Source } from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
 import { PlatformDependentServices } from "../../services";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
@@ -41,12 +42,12 @@ import PublicDataset from "../../../web/src/entity/PublicDataset";
 
 export interface InteractionStateBranch {
     applicationVersion?: string;
-    dataSourceForVisibleModal?: Source;
     contextMenuIsVisible: boolean;
     contextMenuItems: ContextMenuItem[];
     contextMenuPositionReference: PositionReference;
     contextMenuOnDismiss?: () => void;
     csvColumns?: string[];
+    dataSourceInfoForVisibleModal?: DataSourcePromptInfo;
     datasetDetailsPanelIsVisible: boolean;
     fileExplorerServiceBaseUrl: string;
     fileTypeForVisibleModal: "csv" | "json" | "parquet";
@@ -154,7 +155,7 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             csvColumns: action.payload.annotations,
         }),
-        [SET_FILE_EXPLORER_SERVICE_BASE_URL]: (state, action) => ({
+        [INITIALIZE_APP]: (state, action) => ({
             ...state,
             fileExplorerServiceBaseUrl: action.payload,
         }),
@@ -169,10 +170,10 @@ export default makeReducer<InteractionStateBranch>(
             fileTypeForVisibleModal: action.payload.fileType,
             fileFiltersForVisibleModal: action.payload.fileFilters,
         }),
-        [PROMPT_FOR_DATA_SOURCE]: (state, action) => ({
+        [PROMPT_FOR_DATA_SOURCE]: (state, action: PromptForDataSource) => ({
             ...state,
-            visibleModal: ModalType.DataSourcePrompt,
-            dataSourceForVisibleModal: action.payload,
+            visibleModal: ModalType.DataSource,
+            dataSourceInfoForVisibleModal: action.payload,
         }),
         [SHOW_DATASET_DETAILS_PANEL]: (state) => ({
             ...state,

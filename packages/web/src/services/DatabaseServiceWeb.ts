@@ -1,10 +1,11 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 
 import { DatabaseService } from "../../../core/services";
+import DataSourcePreparationError from "../../../core/errors/DataSourcePreparationError";
+import { Source } from "../../../core/entity/FileExplorerURL";
 
-export default class DatabaseServiceWeb implements DatabaseService {
+export default class DatabaseServiceWeb extends DatabaseService {
     private database: duckdb.AsyncDuckDB | undefined;
-    private readonly existingDataSources = new Set<string>();
 
     public async initialize(logLevel: duckdb.LogLevel = duckdb.LogLevel.INFO) {
         const allBundles = duckdb.getJsDelivrBundles();
@@ -23,53 +24,6 @@ export default class DatabaseServiceWeb implements DatabaseService {
 
         await this.database.instantiate(bundle.mainModule, bundle.pthreadWorker);
         URL.revokeObjectURL(worker_url);
-    }
-
-    public async addDataSource(
-        name: string,
-        type: "csv" | "json" | "parquet",
-        uri: File | string
-    ): Promise<void> {
-        if (!this.database) {
-            throw new Error("Database failed to initialize");
-        }
-        if (!this.existingDataSources.has(name)) {
-            if (uri instanceof File) {
-                await this.database.registerFileHandle(
-                    name,
-                    uri,
-                    duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
-                    true
-                );
-            } else {
-                const protocol = uri.startsWith("s3")
-                    ? duckdb.DuckDBDataProtocol.S3
-                    : duckdb.DuckDBDataProtocol.HTTP;
-
-                await this.database.registerFileURL(name, uri, protocol, false);
-            }
-
-            const connection = await this.database.connect();
-            try {
-                if (type === "parquet") {
-                    await connection.query(
-                        `CREATE TABLE "${name}" AS FROM parquet_scan('${name}');`
-                    );
-                } else if (type === "json") {
-                    await connection.query(
-                        `CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`
-                    );
-                } else {
-                    // Default to CSV
-                    await connection.query(
-                        `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true);`
-                    );
-                }
-                this.existingDataSources.add(name);
-            } finally {
-                await connection.close();
-            }
-        }
     }
 
     /**
@@ -117,5 +71,70 @@ export default class DatabaseServiceWeb implements DatabaseService {
 
     public async close(): Promise<void> {
         this.database?.detach();
+    }
+
+    public async addDataSource(dataSource: Source): Promise<void> {
+        const { name, type, uri } = dataSource;
+        if (!this.database) {
+            throw new Error("Database failed to initialize");
+        }
+        if (this.existingDataSources.has(name)) {
+            return;
+        }
+        if (!type || !uri) {
+            throw new DataSourcePreparationError(
+                "Data source type and URI are missing",
+                dataSource.name
+            );
+        }
+
+        this.existingDataSources.add(name);
+        try {
+            if (uri instanceof File) {
+                await this.database.registerFileHandle(
+                    name,
+                    uri,
+                    duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
+                    true
+                );
+            } else if ((uri as any) instanceof String) {
+                const protocol = uri.startsWith("s3")
+                    ? duckdb.DuckDBDataProtocol.S3
+                    : duckdb.DuckDBDataProtocol.HTTP;
+
+                await this.database.registerFileURL(name, uri, protocol, false);
+            } else {
+                throw new Error(
+                    `URI is of unexpected type, should be File instance or String: ${uri}`
+                );
+            }
+
+            if (type === "parquet") {
+                await this.execute(`CREATE TABLE "${name}" AS FROM parquet_scan('${name}');`);
+            } else if (type === "json") {
+                await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
+            } else {
+                // Default to CSV
+                await this.execute(
+                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true);`
+                );
+            }
+        } catch (err) {
+            await this.deleteDataSource(name);
+            throw new DataSourcePreparationError((err as Error).message, name);
+        }
+    }
+
+    protected async execute(sql: string): Promise<void> {
+        if (!this.database) {
+            throw new Error("Database failed to initialize");
+        }
+
+        const connection = await this.database.connect();
+        try {
+            await connection.query(sql);
+        } finally {
+            await connection.close();
+        }
     }
 }

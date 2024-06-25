@@ -12,6 +12,7 @@ import styles from "./FileRow.module.css";
 export interface CellConfig {
     columnKey: string;
     displayValue: string | React.ReactNode;
+    title?: string;
     width: number;
 }
 
@@ -55,6 +56,7 @@ export default function FileRow(props: FileRowProps) {
                     columnKey={cell.columnKey}
                     onContextMenu={onContextMenu}
                     onResize={onResize}
+                    title={cell.title}
                     width={cell.width}
                 >
                     {cell.displayValue}

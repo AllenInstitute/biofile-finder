@@ -1,6 +1,6 @@
 .row {
-    border-top: 1px solid var(--primary-background-color);
-    border-bottom: 1px solid var(--primary-background-color);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
 
     /* flex parent */
     display: flex;

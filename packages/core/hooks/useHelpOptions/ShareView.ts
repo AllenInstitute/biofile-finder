@@ -1,4 +1,4 @@
-import Tutorial from "../../../entity/Tutorial";
+import Tutorial from "../../entity/Tutorial";
 
 export const SHARE_VIEW_TUTORIAL = new Tutorial("Sharing current view (URL)")
     .addStep({

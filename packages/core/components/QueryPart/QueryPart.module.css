@@ -1,37 +1,88 @@
 .add-button {
-    color: var(--primary-sidebar-text-color);
-    background-color: var(--primary-sidebar-color);
+    background-color: var(--primary-background-color);
     border: none;
-    padding: 0 4px;
+    border-radius: var(--small-border-radius);
+    color: var(--primary-text-color);
+    font-size: var(--s-paragraph-size);
+    display: flex;
+    padding: 6px 8px 6px 10px;
     width: 100%;
 }
 
-.add-button:hover, .add-button:hover button  {
-    color: var(--highlight-text-color);
-    background-color: var(--highlight-background-color);
+.add-button:hover {
     border: none;
+    color: var(--highlight-text-color);
+}
+
+.add-button i {
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.add-button:hover {
+    background-color: var(--highlight-background-color);
+}
+
+.add-button > span {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
 }
 
 .add-button > span > span {
     text-align: left;
 }
 
-.add-button-container > * {
-    margin: 5px 0;
-    width: 125px
+.add-button > span > span > span {
+    font-size: var(--l-paragraph-size);
+    font-weight: 600;
+    margin: 0;
+}
+
+.button-menu, .button-menu button {
+    background-color: var(--secondary-background-color);
+    color: var(--secondary-text-color);
+}
+
+.button-menu > ul > li:nth-child(-n + 2) {
+    opacity: 0.25;
+}
+
+.button-menu > ul > li:first-of-type {
+    opacity: unset;
+}
+
+.button-menu > ul > li:first-of-type span {
+    font-weight: 500;
+}
+
+.button-menu i, .button-menu li > div {
+    color: var(--secondary-text-color);
+}
+
+.button-menu button span:last-of-type:not(:first-of-type) {
+    color: var(--secondary-text-color);
+}
+
+.button-menu :is(a, button):hover, .button-menu :is(a, button):hover i {
+    background-color: var(--highlight-background-color);
+    color: var(--highlight-text-color) !important;
+}
+
+.button-menu-container {
+    border-radius: var(--small-border-radius);
+    box-shadow: var(--box-shadow);
 }
 
 .container {
-    margin: 8px 2px;
+    background-color: var(--primary-background-color);
+    border-radius: var(--small-border-radius);
+    color: var(--primary-text-color);
+    margin: calc(var(--margin) / 2) calc(var(--margin) / 4);
+    padding: 3px 6px 6px 6px;
 }
 
-.header {
-    display: flex;
-    height: 32px;
-    margin: 4px 0;
-}
-
-.header > h5 {
-    margin: 0;
-    padding-top: 8px
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
 }

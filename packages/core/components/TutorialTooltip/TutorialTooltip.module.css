@@ -5,46 +5,65 @@
 
 .button-footer {
     display: flex;
+    justify-content: space-between;
 }
 
-.header {
-    display: flex;
-}
-
-.header > h6 {
+.clear-button {
     margin-left: auto;
 }
 
-.tutorial-container {
+.clear-button i {
+    color: var(--secondary-text-color);
+}
+
+.clear-button:hover, .clear-button:hover i {
+    background-color: var(--highlight-background-color);
+    color: var(--highlight-text-color);
+}
+
+.header {
+    align-items: center;
+    display: flex;
+}
+
+.header > h4 {
+    font-weight: 500;
+    margin: 0;
+    padding: 0
+}
+
+.tutorial-container > div {
     background-color: var(--primary-background-color);
+    border-radius: var(--small-border-radius);
+    color: var(--primary-text-color);
 }
 
 .tutorial-step-button {
     border: none;
-    background-color: var(--secondary-background-color);
+    background-color: var(--highlight-background-color);
+    border-radius: var(--small-border-radius);
+    cursor: default;
 }
 
-.tutorial-step-button.disabled:hover {
-    border: none;
-    background: none;
+.tutorial-step-button, .tutorial-step-button i {
+    color: var(--highlight-text-color);
 }
 
-.tutorial-step-button:hover {
-    background-color: white;
+.tutorial-step-button:hover:not(.disabled), .tutorial-step-button:hover:not(.disabled) i {
+    background-color: var(--highlight-hover-background-color);
+    color: var(--highlight-hover-text-color);
+    cursor: pointer;
 }
 
 .tutorial-step-button:first-child {
     margin-left: auto;
+    margin-right: 2px;
 }
 
-.tutorial-step-button i {
-    color: white;
+.tutorial-step-button.disabled {
+    opacity: 0.5;
 }
 
-.tutorial-step-button:hover i {
-    color: var(--highlight-background-color);
-}
-
-.tutorial-step-button.disabled i {
-    opacity: 0;
+.step-buttons > h6 {
+    margin: auto 0 0 0;
 }

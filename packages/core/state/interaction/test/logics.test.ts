@@ -43,6 +43,7 @@ import NotificationServiceNoop from "../../../services/NotificationService/Notif
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import FileDetail, { FmsFile } from "../../../entity/FileDetail";
+import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({
@@ -54,6 +55,12 @@ describe("Interaction logics", () => {
     class FakeFileViewerService implements FileViewerService {
         open() {
             return Promise.resolve();
+        }
+    }
+
+    class MockDatabaseService extends DatabaseServiceNoop {
+        saveQuery() {
+            return Promise.resolve(new Uint8Array());
         }
     }
 
@@ -103,10 +110,12 @@ describe("Interaction logics", () => {
             const state = mergeState(initialState, {
                 interaction: {
                     platformDependentServices: {
+                        databaseService: new MockDatabaseService(),
                         fileDownloadService: new FileDownloadServiceNoop(),
                     },
                 },
                 selection: {
+                    dataSources: [{ name: "mock" }],
                     fileSelection,
                 },
             });

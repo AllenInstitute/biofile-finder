@@ -1,6 +1,8 @@
 .clear-button, .clear-button i {
-    background-color: var(--primary-background-color);
-    color: var(--primary-text-color);
+    background-color: var(--secondary-background-color);
+    border-radius: var(--small-border-radius);
+    color: var(--secondary-text-color);
+    margin-left: 2px;
 }
 
 .clear-button:hover, .clear-button:hover i {
@@ -21,9 +23,10 @@
 }
 
 .filter-input div {
-    background-color: var(--primary-background-color);
+    background-color: var(--secondary-background-color);
     border: none;
-    color: var(--primary-text-color);
+    border-radius: var(--small-border-radius);
+    color: var(--secondary-text-color);
 }
 
 .title {

@@ -89,7 +89,7 @@ export default function DateRangePicker(props: DateRangePickerProps) {
                 <IconButton
                     className={styles.clearButton}
                     ariaLabel="Clear filter date"
-                    iconProps={{ iconName: "Delete" }}
+                    iconProps={{ iconName: "Clear" }}
                     onClick={onReset}
                     title="Reset"
                 />

@@ -39,6 +39,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         style,
     } = props;
 
+    const isSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
     const columnWidths = useSelector(selection.selectors.getColumnWidths);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
@@ -61,20 +62,17 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
             width: columnWidths[annotation.name] || 1 / annotations.length,
         }));
         content = (
-            <FileRow
-                cells={cells}
-                className={classNames(styles.row, {
-                    [styles.selected]: isSelected,
-                    [styles.focused]: isFocused,
-                })}
-                rowIdentifier={{ index, id: file.id }}
-                onSelect={onSelect}
-            />
+            <FileRow cells={cells} rowIdentifier={{ index, id: file.id }} onSelect={onSelect} />
         );
     }
 
     return (
         <div
+            className={classNames(styles.row, {
+                [styles.selected]: isSelected,
+                [styles.focused]: isFocused,
+                [styles.smallFont]: isSmallFont,
+            })}
             style={{
                 ...style,
                 width: `calc(100% - ${2 * MARGIN}px)`,

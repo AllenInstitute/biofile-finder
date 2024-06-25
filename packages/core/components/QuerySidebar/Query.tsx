@@ -28,14 +28,16 @@ export default function Query(props: QueryProps) {
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
     const currentQueryParts = useSelector(selection.selectors.getCurrentQueryParts);
 
+    const hasDataSource = !!props.query.parts.sources.length;
+
     const [isExpanded, setIsExpanded] = React.useState(false);
     React.useEffect(() => {
         setIsExpanded(props.isSelected);
     }, [props.isSelected]);
 
-    const decodedURL = React.useMemo(
-        () => (props.isSelected ? currentQueryParts : props.query.parts),
-        [props.query.parts, currentQueryParts, props.isSelected]
+    const queryComponents = React.useMemo(
+        () => (props.isSelected ? currentQueryParts : props.query?.parts),
+        [props.query?.parts, currentQueryParts, props.isSelected]
     );
 
     const onQueryUpdate = (updatedQuery: QueryType) => {
@@ -52,99 +54,91 @@ export default function Query(props: QueryProps) {
 
     if (!isExpanded) {
         return (
-            <div>
-                <hr className={styles.divider} />
-                <div
-                    className={classNames(styles.container, {
-                        [styles.selected]: props.isSelected,
-                    })}
-                    onClick={() =>
-                        !props.isSelected && dispatch(selection.actions.changeQuery(props.query))
-                    }
-                >
-                    <div className={styles.header}>
-                        <h4>{props.query.name}</h4>
-                        {props.isSelected && (
-                            <IconButton
-                                ariaDescription="Expand view details"
-                                ariaLabel="Expand"
-                                className={styles.collapseButton}
-                                onClick={() => setIsExpanded(!isExpanded)}
-                                iconProps={{ iconName: "ChevronUp" }}
-                            />
-                        )}
-                    </div>
-                    {props.isSelected && <hr />}
-                    <p className={styles.displayRow}>
-                        <strong>Data Source:</strong> {decodedURL.source?.name}
-                    </p>
-                    {!!decodedURL.hierarchy.length && (
-                        <p className={styles.displayRow}>
-                            <strong>Groupings:</strong>{" "}
-                            {decodedURL.hierarchy
-                                .map(
-                                    (a) =>
-                                        annotations.find((annotation) => annotation.name === a)
-                                            ?.displayName || a
-                                )
-                                .join(", ")}
-                        </p>
-                    )}
-                    {!!decodedURL.filters.length && (
-                        <p className={styles.displayRow}>
-                            <strong>Filters:</strong>{" "}
-                            {decodedURL.filters
-                                .map((filter) => `${filter.name}: ${filter.value}`)
-                                .join(", ")}
-                        </p>
-                    )}
-                    {!!decodedURL.sortColumn && (
-                        <p className={styles.displayRow}>
-                            <strong>Sort:</strong> {decodedURL.sortColumn.annotationName} (
-                            {decodedURL.sortColumn.order})
-                        </p>
+            <div
+                className={classNames(styles.container, {
+                    [styles.selected]: props.isSelected,
+                })}
+                onClick={() =>
+                    !props.isSelected && dispatch(selection.actions.changeQuery(props.query))
+                }
+            >
+                <div className={styles.header}>
+                    <h4>{props.query.name}</h4>
+                    {props.isSelected && (
+                        <IconButton
+                            ariaDescription="Expand view details"
+                            ariaLabel="Expand"
+                            className={styles.collapseButton}
+                            onClick={() => setIsExpanded(!isExpanded)}
+                            iconProps={{ iconName: "ChevronUp" }}
+                        />
                     )}
                 </div>
+                <p className={styles.displayRow}>
+                    <strong>Data source:</strong>{" "}
+                    {queryComponents.sources.map((source) => source.name).join(", ")}
+                </p>
+                {!!queryComponents.hierarchy.length && (
+                    <p className={styles.displayRow}>
+                        <strong>Group by:</strong>{" "}
+                        {queryComponents.hierarchy
+                            .map(
+                                (a) =>
+                                    annotations.find((annotation) => annotation.name === a)
+                                        ?.displayName || a
+                            )
+                            .join(", ")}
+                    </p>
+                )}
+                {!!queryComponents.filters.length && (
+                    <p className={styles.displayRow}>
+                        <strong>Filter:</strong>{" "}
+                        {queryComponents.filters
+                            .map((filter) => `${filter.name}: ${filter.value}`)
+                            .join(", ")}
+                    </p>
+                )}
+                {!!queryComponents.sortColumn && (
+                    <p className={styles.displayRow}>
+                        <strong>Sort:</strong> {queryComponents.sortColumn.annotationName} (
+                        {queryComponents.sortColumn.order})
+                    </p>
+                )}
             </div>
         );
     }
 
     return (
-        <div>
-            <hr className={styles.divider} />
-            <div className={classNames(styles.container, { [styles.selected]: props.isSelected })}>
-                <div className={styles.header}>
-                    <div className={styles.titleContainer}>
-                        <TextField
-                            borderless
-                            defaultValue={props.query.name}
-                            inputClassName={styles.title}
-                            onBlur={(e) =>
-                                e.currentTarget.value &&
-                                onQueryUpdate({ ...props.query, name: e.currentTarget.value })
-                            }
-                        />
-                    </div>
-                    <IconButton
-                        ariaDescription="Expand view details"
-                        ariaLabel="Expand"
-                        className={styles.collapseButton}
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        iconProps={{ iconName: "ChevronDown" }}
+        <div className={classNames(styles.container, { [styles.selected]: props.isSelected })}>
+            <div className={styles.header}>
+                <div className={styles.titleContainer}>
+                    <TextField
+                        borderless
+                        defaultValue={props.query.name}
+                        inputClassName={styles.title}
+                        onBlur={(e) =>
+                            e.currentTarget.value &&
+                            onQueryUpdate({ ...props.query, name: e.currentTarget.value })
+                        }
                     />
                 </div>
-                <hr className={styles.divider} />
-                <QueryDataSource dataSources={[decodedURL.source]} />
-                <QueryGroup groups={decodedURL.hierarchy} />
-                <QueryFilter filters={decodedURL.filters} />
-                <QuerySort sort={decodedURL.sortColumn} />
-                <hr className={styles.divider} />
-                <QueryFooter
-                    isDeletable={queries.length > 1}
-                    onQueryDelete={onQueryDelete}
-                    query={props.query}
+                <IconButton
+                    ariaDescription="Expand view details"
+                    ariaLabel="Expand"
+                    className={styles.collapseButton}
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    iconProps={{ iconName: "ChevronDown" }}
                 />
             </div>
+            <QueryDataSource dataSources={queryComponents.sources} />
+            <QueryGroup disabled={!hasDataSource} groups={queryComponents.hierarchy} />
+            <QueryFilter disabled={!hasDataSource} filters={queryComponents.filters} />
+            <QuerySort disabled={!hasDataSource} sort={queryComponents.sortColumn} />
+            <QueryFooter
+                isDeletable={queries.length > 1}
+                onQueryDelete={onQueryDelete}
+                query={props.query}
+            />
         </div>
     );
 }

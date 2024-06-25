@@ -1,9 +1,11 @@
 import {
     DirectionalHint,
+    IContextualMenuItem,
     IContextualMenuListProps,
     IRenderFunction,
     PrimaryButton,
 } from "@fluentui/react";
+import classNames from "classnames";
 import * as React from "react";
 import { DragDropContext, OnDragEndResponder } from "react-beautiful-dnd";
 
@@ -14,11 +16,14 @@ import styles from "./QueryPart.module.css";
 
 interface Props {
     title: string;
+    titleIconName?: string;
+    disabled?: boolean;
     tutorialId?: string;
-    addButtonIconName: string;
     rows: QueryPartRowItem[];
+    onClick?: (itemId: string) => void;
     onDelete?: (itemId: string) => void;
     onReorder?: (itemId: string, destinationIndex: number) => void;
+    addMenuListItems?: IContextualMenuItem[];
     onRenderAddMenuList?: IRenderFunction<IContextualMenuListProps>;
     onRenderEditMenuList?: (item: QueryPartRowItem) => React.ReactElement<QueryPartRowItem>;
 }
@@ -41,34 +46,38 @@ export default function QueryPart(props: Props) {
     };
 
     return (
-        <div className={styles.container}>
-            <div className={styles.header}>
-                <PrimaryButton
-                    ariaLabel={`Add ${props.title}`}
-                    className={styles.addButton}
-                    id={props.tutorialId}
-                    iconProps={{ iconName: props.addButtonIconName }}
-                    menuIconProps={{ iconName: "ChevronRight" }}
-                    text={props.title}
-                    menuProps={{
-                        directionalHint: DirectionalHint.rightTopEdge,
-                        shouldFocusOnMount: true,
-                        items: [{ key: "placeholder" }], // necessary to have a non-empty items list to have `onRenderMenuList` called
-                        onRenderMenuList: props.onRenderAddMenuList,
-                    }}
-                />
-            </div>
+        <div className={classNames(styles.container, { [styles.disabled]: props.disabled })}>
+            <PrimaryButton
+                ariaLabel={`Add ${props.title}`}
+                disabled={props.disabled}
+                className={styles.addButton}
+                id={props.tutorialId}
+                menuIconProps={{ iconName: "ChevronRight" }}
+                text={props.title}
+                menuProps={{
+                    className: props.addMenuListItems ? styles.buttonMenu : undefined,
+                    directionalHint: DirectionalHint.rightTopEdge,
+                    shouldFocusOnMount: true,
+                    items: props.addMenuListItems || [{ key: "placeholder" }], // necessary to have a non-empty items list to have `onRenderMenuList` called
+                    onRenderMenuList: props.onRenderAddMenuList,
+                    calloutProps: { className: styles.buttonMenuContainer },
+                }}
+            />
             <DragDropContext onDragEnd={onDragEnd}>
-                <DnDList
-                    id={props.title}
-                    items={props.rows.map((row) => ({
-                        ...row,
-                        onDelete: props.onDelete,
-                        disabled: !props.onReorder,
-                        onRenderEditMenuList: props.onRenderEditMenuList,
-                    }))}
-                    itemRenderer={QueryPartRow}
-                />
+                {!!props.rows.length && (
+                    <DnDList
+                        id={props.title}
+                        items={props.rows.map((row) => ({
+                            ...row,
+                            titleIconName: props.titleIconName,
+                            onClick: props.onClick,
+                            onDelete: props.onDelete,
+                            disabled: !props.onReorder,
+                            onRenderEditMenuList: props.onRenderEditMenuList,
+                        }))}
+                        itemRenderer={QueryPartRow}
+                    />
+                )}
             </DragDropContext>
         </div>
     );

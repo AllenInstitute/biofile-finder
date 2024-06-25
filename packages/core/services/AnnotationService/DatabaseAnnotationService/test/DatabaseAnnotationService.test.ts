@@ -1,34 +1,11 @@
 import { expect } from "chai";
 
-import Annotation from "../../../../entity/Annotation";
 import FileFilter from "../../../../entity/FileFilter";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
 
 import DatabaseAnnotationService from "..";
 
 describe("DatabaseAnnotationService", () => {
-    describe("fetchAnnotations", () => {
-        const annotations = ["A", "B", "Cc", "dD"].map((name) => ({
-            name,
-        }));
-        class MockDatabaseService extends DatabaseServiceNoop {
-            public query(): Promise<{ [key: string]: string }[]> {
-                return Promise.resolve(annotations);
-            }
-        }
-        const databaseService = new MockDatabaseService();
-
-        it("issues request for all available Annotations", async () => {
-            const annotationService = new DatabaseAnnotationService({
-                dataSourceName: "Unknown",
-                databaseService,
-            });
-            const actualAnnotations = await annotationService.fetchAnnotations();
-            expect(actualAnnotations.length).to.equal(annotations.length);
-            expect(actualAnnotations[0]).to.be.instanceOf(Annotation);
-        });
-    });
-
     describe("fetchAnnotationValues", () => {
         const annotations = ["A", "B", "Cc", "dD"].map((name, index) => ({
             select_key: name.toLowerCase() + index,
@@ -44,7 +21,7 @@ describe("DatabaseAnnotationService", () => {
             const annotation = "foo";
 
             const annotationService = new DatabaseAnnotationService({
-                dataSourceName: "Unknown",
+                dataSourceNames: ["a", "b or c"],
                 databaseService,
             });
             const actualValues = await annotationService.fetchValues(annotation);
@@ -68,7 +45,7 @@ describe("DatabaseAnnotationService", () => {
 
         it("issues a request for annotation values for the first level of the annotation hierarchy", async () => {
             const annotationService = new DatabaseAnnotationService({
-                dataSourceName: "Unknown",
+                dataSourceNames: ["d"],
                 databaseService,
             });
             const values = await annotationService.fetchRootHierarchyValues(["foo"], []);
@@ -77,7 +54,7 @@ describe("DatabaseAnnotationService", () => {
 
         it("issues a request for annotation values for the first level of the annotation hierarchy with filters", async () => {
             const annotationService = new DatabaseAnnotationService({
-                dataSourceName: "Unknown",
+                dataSourceNames: ["e"],
                 databaseService,
             });
             const filter = new FileFilter("bar", "barValue");
@@ -102,7 +79,7 @@ describe("DatabaseAnnotationService", () => {
             const expectedValues = ["A0", "B1", "Cc2", "dD3"];
 
             const annotationService = new DatabaseAnnotationService({
-                dataSourceName: "Unknown",
+                dataSourceNames: ["ghjiasd", "second source"],
                 databaseService,
             });
             const values = await annotationService.fetchHierarchyValuesUnderPath(
@@ -117,7 +94,7 @@ describe("DatabaseAnnotationService", () => {
             const expectedValues = ["A0", "B1", "Cc2", "dD3"];
 
             const annotationService = new DatabaseAnnotationService({
-                dataSourceName: "Unknown",
+                dataSourceNames: ["mock1"],
                 databaseService,
             });
             const filter = new FileFilter("bar", "barValue");
@@ -145,7 +122,7 @@ describe("DatabaseAnnotationService", () => {
 
         it("issues request for annotations that can be combined with current hierarchy", async () => {
             const annotationService = new DatabaseAnnotationService({
-                dataSourceName: "Unknown",
+                dataSourceNames: ["mock1"],
                 databaseService,
             });
             const values = await annotationService.fetchAvailableAnnotationsForHierarchy([

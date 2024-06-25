@@ -8,7 +8,6 @@ import FileSet from "../../entity/FileSet";
 import FileSort from "../../entity/FileSort";
 import NumericRange from "../../entity/NumericRange";
 import Tutorial from "../../entity/Tutorial";
-import { DataSource } from "../../services/DataSourceService";
 import {
     EMPTY_QUERY_COMPONENTS,
     FileExplorerURLComponents,
@@ -551,21 +550,21 @@ export function decodeFileExplorerURL(decodedFileExplorerURL: string): DecodeFil
 }
 
 /**
- * CHANGE_DATA_SOURCE
+ * CHANGE_DATA_SOURCES
  *
- * Intention to update the data source queries are run against.
+ * Intention to update the data sources queries are run against.
  */
-export const CHANGE_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "change-data-source");
+export const CHANGE_DATA_SOURCES = makeConstant(STATE_BRANCH_NAME, "change-data-sources");
 
-export interface ChangeDataSourceAction {
-    payload?: DataSource;
+export interface ChangeDataSourcesAction {
+    payload: Source[];
     type: string;
 }
 
-export function changeDataSource(dataSource?: DataSource): ChangeDataSourceAction {
+export function changeDataSources(dataSources: Source[]): ChangeDataSourcesAction {
     return {
-        payload: dataSource,
-        type: CHANGE_DATA_SOURCE,
+        payload: dataSources,
+        type: CHANGE_DATA_SOURCES,
     };
 }
 

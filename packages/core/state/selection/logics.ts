@@ -20,10 +20,7 @@ import {
     SET_ANNOTATION_HIERARCHY,
     SELECT_NEARBY_FILE,
     setSortColumn,
-    changeDataSource,
-    CHANGE_DATA_SOURCE,
     CHANGE_QUERY,
-    ChangeDataSourceAction,
     SetAnnotationHierarchyAction,
     RemoveFromAnnotationHierarchyAction,
     ReorderAnnotationHierarchyAction,
@@ -36,6 +33,9 @@ import {
     REPLACE_DATA_SOURCE,
     ReplaceDataSource,
     REMOVE_QUERY,
+    changeDataSources,
+    ChangeDataSourcesAction,
+    CHANGE_DATA_SOURCES,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -46,6 +46,8 @@ import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
+import { DataSource } from "../../services/DataSourceService";
+import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -294,25 +296,12 @@ const toggleFileFolderCollapse = createLogic({
 const decodeFileExplorerURLLogics = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
-        const dataSources = interaction.selectors.getAllDataSources(deps.getState());
-        const { hierarchy, filters, openFolders, sortColumn, source } = FileExplorerURL.decode(
+        const { hierarchy, filters, openFolders, sortColumn, sources } = FileExplorerURL.decode(
             encodedURL
         );
 
-        let selectedDataSource = dataSources.find((c) => c.name === source?.name);
-        // It is possible the user was sent a novel data source in the URL
-        if (source && !selectedDataSource) {
-            const newDataSource = {
-                ...source,
-                id: source.name,
-                version: 1,
-            };
-            dispatch(metadata.actions.receiveDataSources([...dataSources, newDataSource]));
-            selectedDataSource = newDataSource;
-        }
-
         batch(() => {
-            dispatch(changeDataSource(selectedDataSource));
+            dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
             dispatch(setFileFilters(filters));
             dispatch(setOpenFileFolders(openFolders));
@@ -445,18 +434,52 @@ const selectNearbyFile = createLogic({
  * a refresh action so that the resources pertain to the current data source
  */
 const changeDataSourceLogic = createLogic({
+    type: CHANGE_DATA_SOURCES,
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const action: ChangeDataSourceAction = deps.action;
-        const dataSource = action.payload;
+        const { payload: selectedDataSources } = deps.action as ChangeDataSourcesAction;
         const dataSources = interaction.selectors.getAllDataSources(deps.getState());
-        if (dataSource && !dataSources.some((dataSource) => dataSource.id === dataSource.id)) {
-            dispatch(metadata.actions.receiveDataSources([...dataSources, dataSource]));
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
+
+        const newSelectedDataSources: DataSource[] = [];
+        const existingSelectedDataSources: DataSource[] = [];
+        selectedDataSources.forEach((source) => {
+            const existingSource = dataSources.find((s) => s.name === source.name);
+            if (existingSource) {
+                existingSelectedDataSources.push(existingSource);
+            } else {
+                newSelectedDataSources.push({ ...source, id: source.name });
+            }
+        });
+
+        // It is possible the user was sent a novel data source in the URL
+        if (selectedDataSources.length > existingSelectedDataSources.length) {
+            dispatch(
+                metadata.actions.receiveDataSources([...dataSources, ...newSelectedDataSources])
+            );
+        }
+
+        // Prepare the data sources ahead of querying against them below
+        try {
+            await databaseService.prepareDataSources(selectedDataSources);
+        } catch (err) {
+            const errMsg = `Error encountered while preparing data sources (Full error: ${
+                (err as Error).message
+            })`;
+            console.error(errMsg);
+            if (err instanceof DataSourcePreparationError) {
+                dispatch(
+                    interaction.actions.promptForDataSource({ source: { name: err.sourceName } })
+                );
+            } else {
+                alert(errMsg);
+            }
         }
 
         dispatch(interaction.actions.refresh() as AnyAction);
         done();
     },
-    type: CHANGE_DATA_SOURCE,
 });
 
 /**
@@ -464,6 +487,28 @@ const changeDataSourceLogic = createLogic({
  */
 const addQueryLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: newQuery } = deps.action as AddQuery;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
+
+        // Prepare the data sources ahead of querying against them below
+        try {
+            await databaseService.prepareDataSources(newQuery.parts.sources);
+        } catch (err) {
+            const errMsg = `Error encountered while preparing data sources (Full error: ${
+                (err as Error).message
+            })`;
+            console.error(errMsg);
+            if (err instanceof DataSourcePreparationError) {
+                dispatch(
+                    interaction.actions.promptForDataSource({ source: { name: err.sourceName } })
+                );
+            } else {
+                alert(errMsg);
+            }
+        }
+
         dispatch(changeQuery(deps.action.payload));
         done();
     },
@@ -498,9 +543,6 @@ const addQueryLogic = createLogic({
 const changeQueryLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: newlySelectedQuery } = deps.action as ChangeQuery;
-        const { databaseService } = interaction.selectors.getPlatformDependentServices(
-            deps.getState()
-        );
         const currentQueries = selectionSelectors.getQueries(deps.getState());
         const currentQueryParts = selectionSelectors.getCurrentQueryParts(deps.getState());
         const updatedQueries = currentQueries.map((query) => ({
@@ -510,19 +552,6 @@ const changeQueryLogic = createLogic({
                     ? currentQueryParts
                     : query.parts,
         }));
-
-        if (newlySelectedQuery.parts.source?.uri) {
-            try {
-                await databaseService.addDataSource(
-                    newlySelectedQuery.parts.source.name,
-                    newlySelectedQuery.parts.source.type,
-                    newlySelectedQuery.parts.source.uri
-                );
-            } catch (error) {
-                console.error("Failed to add data source, prompting for replacement", error);
-                dispatch(interaction.actions.promptForDataSource(newlySelectedQuery.parts.source));
-            }
-        }
 
         dispatch(
             decodeFileExplorerURL(FileExplorerURL.encode(newlySelectedQuery.parts)) as AnyAction
@@ -549,25 +578,27 @@ const removeQueryLogic = createLogic({
 const replaceDataSourceLogic = createLogic({
     type: REPLACE_DATA_SOURCE,
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const {
-            payload: { name, type, uri },
-        } = deps.ctx.replaceDataSourceAction as ReplaceDataSource;
+        const { payload: replacementSource } = deps.ctx
+            .replaceDataSourceAction as ReplaceDataSource;
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
 
+        // Prepare the data sources ahead of querying against them below
         try {
-            if (uri) {
-                await databaseService.addDataSource(name, type, uri);
+            await databaseService.prepareDataSources([replacementSource]);
+        } catch (err) {
+            const errMsg = `Error encountered while replacing data sources (Full error: ${
+                (err as Error).message
+            })`;
+            console.error(errMsg);
+            if (err instanceof DataSourcePreparationError) {
+                dispatch(
+                    interaction.actions.promptForDataSource({ source: { name: err.sourceName } })
+                );
+            } else {
+                alert(errMsg);
             }
-        } catch (error) {
-            console.error("Failed to add data source, prompting for replacement", error);
-            dispatch(
-                interaction.actions.promptForDataSource({
-                    name,
-                    uri,
-                })
-            );
         }
 
         dispatch(interaction.actions.refresh() as AnyAction);
@@ -578,7 +609,7 @@ const replaceDataSourceLogic = createLogic({
         deps.ctx.replaceDataSourceAction = deps.action;
         const queries = selectionSelectors.getQueries(deps.getState());
         const updatedQueries = queries.map((query) => {
-            if (query.parts.source?.name !== replacementDataSource.name) {
+            if (query.parts.sources[0]?.name !== replacementDataSource.name) {
                 return query;
             }
 

@@ -22,15 +22,20 @@ export const PROMPT_FOR_DATA_SOURCE = makeConstant(STATE_BRANCH_NAME, "prompt-fo
 
 type PartialSource = Omit<Source, "type">;
 
-export interface PromptForDataSource {
-    type: string;
-    payload: PartialSource;
+export interface DataSourcePromptInfo {
+    source?: PartialSource;
+    query?: string;
 }
 
-export function promptForDataSource(dataSource: PartialSource): PromptForDataSource {
+export interface PromptForDataSource {
+    type: string;
+    payload: DataSourcePromptInfo;
+}
+
+export function promptForDataSource(info: DataSourcePromptInfo): PromptForDataSource {
     return {
         type: PROMPT_FOR_DATA_SOURCE,
-        payload: dataSource,
+        payload: info,
     };
 }
 
@@ -206,21 +211,18 @@ export function setIsAicsEmployee(isAicsEmployee: boolean): SetIsAicsEmployee {
 }
 
 /**
- * SET CONNECTION CONFIGURATION FOR THE FILE EXPLORER SERVICE
+ * Set connection configuration and kick off any tasks to initialize the app
  */
-export const SET_FILE_EXPLORER_SERVICE_BASE_URL = makeConstant(
-    STATE_BRANCH_NAME,
-    "set-file-explorer-service-connection-config"
-);
+export const INITIALIZE_APP = makeConstant(STATE_BRANCH_NAME, "initialize-app");
 
-export interface SetFileExplorerServiceBaseUrl {
+export interface InitializeApp {
     type: string;
     payload: string;
 }
 
-export function setFileExplorerServiceBaseUrl(baseUrl: string): SetFileExplorerServiceBaseUrl {
+export function initializeApp(baseUrl: string): InitializeApp {
     return {
-        type: SET_FILE_EXPLORER_SERVICE_BASE_URL,
+        type: INITIALIZE_APP,
         payload: baseUrl,
     };
 }

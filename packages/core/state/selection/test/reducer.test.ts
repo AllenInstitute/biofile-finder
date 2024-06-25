@@ -15,16 +15,10 @@ import { DataSource } from "../../../services/DataSourceService";
 
 describe("Selection reducer", () => {
     [
-        {
-            actionConstant: selection.actions.SET_ANNOTATION_HIERARCHY,
-            expectedAction: selection.actions.setAnnotationHierarchy([]),
-        },
-        {
-            actionConstant: interaction.actions.SET_FILE_EXPLORER_SERVICE_BASE_URL,
-            expectedAction: interaction.actions.setFileExplorerServiceBaseUrl("base"),
-        },
-    ].forEach(({ actionConstant, expectedAction }) =>
-        it(`clears selected file state when ${actionConstant} is fired`, () => {
+        selection.actions.setAnnotationHierarchy([]),
+        interaction.actions.initializeApp("base"),
+    ].forEach((expectedAction) =>
+        it(`clears selected file state when ${expectedAction.type} is fired`, () => {
             // arrange
             const prevSelection = new FileSelection().select({
                 fileSet: new FileSet(),
@@ -47,8 +41,8 @@ describe("Selection reducer", () => {
         })
     );
 
-    describe(selection.actions.CHANGE_DATA_SOURCE, () => {
-        it("clears hierarchy, filters, file selection, and open folders", () => {
+    describe(selection.actions.CHANGE_DATA_SOURCES, () => {
+        it("clears file selection and open folders", () => {
             // Arrange
             const state = {
                 ...selection.initialState,
@@ -61,22 +55,25 @@ describe("Selection reducer", () => {
                 filters: [new FileFilter("file_id", "1238401234")],
                 openFileFolders: [new FileFolder(["AICS-11"])],
             };
-            const dataSource: DataSource = {
-                name: "My Tiffs",
-                version: 2,
-                type: "csv",
-                id: "13123019",
-                uri: "",
-            };
+            const dataSources: DataSource[] = [
+                {
+                    name: "My Tiffs",
+                    version: 2,
+                    type: "csv",
+                    id: "13123019",
+                    uri: "",
+                },
+            ];
 
             // Act
-            const actual = selection.reducer(state, selection.actions.changeDataSource(dataSource));
+            const actual = selection.reducer(
+                state,
+                selection.actions.changeDataSources(dataSources)
+            );
 
             // Assert
-            expect(actual.annotationHierarchy).to.be.empty;
-            expect(actual.dataSource).to.deep.equal(dataSource);
+            expect(actual.dataSources).to.deep.equal(dataSources);
             expect(actual.fileSelection.count()).to.equal(0);
-            expect(actual.filters).to.be.empty;
             expect(actual.openFileFolders).to.be.empty;
         });
     });
@@ -251,14 +248,6 @@ describe("Selection reducer", () => {
         it("sets available annotations to loading", () => {
             // Arrange
             const initialSelectionState = { ...selection.initialState };
-
-            // (sanity-check) available annotations are not loading before refresh
-            expect(
-                selection.selectors.getAvailableAnnotationsForHierarchyLoading({
-                    ...initialState,
-                    selection: initialSelectionState,
-                })
-            ).to.be.false;
 
             // Act
             const nextSelectionState = selection.reducer(

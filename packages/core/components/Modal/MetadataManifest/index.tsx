@@ -6,8 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import AnnotationPicker from "../../AnnotationPicker";
-import * as modalSelectors from "../selectors";
-import { interaction } from "../../../state";
+import { interaction, metadata } from "../../../state";
 
 import styles from "./MetadataManifest.module.css";
 
@@ -17,18 +16,26 @@ import styles from "./MetadataManifest.module.css";
  */
 export default function MetadataManifest({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
-    const annotationsPreviouslySelected = useSelector(
-        modalSelectors.getAnnotationsPreviouslySelected
-    );
-    const [selectedAnnotations, setSelectedAnnotations] = React.useState(
-        annotationsPreviouslySelected
-    );
+    const annotations = useSelector(metadata.selectors.getAnnotations);
+    const annotationsPreviouslySelected = useSelector(interaction.selectors.getCsvColumns);
     const fileTypeForVisibleModal = useSelector(interaction.selectors.getFileTypeForVisibleModal);
 
+    const [selectedAnnotations, setSelectedAnnotations] = React.useState<string[]>([]);
+
+    // Update the selected annotations when the previously selected annotations
+    // or list of all annotations change like on data source change
+    React.useEffect(() => {
+        const annotationsPreviouslySelectedAvailable = (
+            annotationsPreviouslySelected || []
+        ).filter((annotationName) =>
+            annotations.some((annotation) => annotationName === annotation.name)
+        );
+        setSelectedAnnotations(annotationsPreviouslySelectedAvailable);
+    }, [annotations, annotationsPreviouslySelected]);
+
     const onDownload = () => {
-        const selectedAnnotationNames = selectedAnnotations.map((annotation) => annotation.name);
         dispatch(
-            interaction.actions.downloadManifest(selectedAnnotationNames, fileTypeForVisibleModal)
+            interaction.actions.downloadManifest(selectedAnnotations, fileTypeForVisibleModal)
         );
         onDismiss();
     };
@@ -40,7 +47,6 @@ export default function MetadataManifest({ onDismiss }: ModalProps) {
             </p>
             <AnnotationPicker
                 hasSelectAllCapability
-                className={styles.annotationSelector}
                 selections={selectedAnnotations}
                 setSelections={setSelectedAnnotations}
             />
@@ -62,7 +68,7 @@ export default function MetadataManifest({ onDismiss }: ModalProps) {
                 />
             }
             onDismiss={onDismiss}
-            title="Download Metadata Manifest"
+            title="Download metadata manifest"
         />
     );
 }

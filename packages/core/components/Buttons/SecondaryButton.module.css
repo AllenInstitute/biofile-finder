@@ -1,0 +1,13 @@
+.button {
+    background-color: var(--primary-dark); 
+    border: 1px solid var(--aqua);
+    border-radius: var(--large-border-radius);
+    color: var(--aqua);
+    padding: 0 16px;
+}
+
+.button:hover:not(.disabled), .button:focus:not(.disabled) {
+    background-color: var(--aqua-secondary-hover);
+    color: var(--bright-aqua);
+    border-color: var(--bright-aqua);
+}

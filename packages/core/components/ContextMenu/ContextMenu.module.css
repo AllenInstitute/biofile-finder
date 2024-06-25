@@ -11,3 +11,8 @@
     background-color: var(--highlight-background-color);
     color: var(--highlight-text-color) !important;
 }
+
+.container-wrapper {
+    border-radius: var(--small-border-radius);
+    box-shadow: var(--box-shadow);
+}

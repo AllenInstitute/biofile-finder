@@ -164,7 +164,7 @@ const requestDatasetManifest = createLogic({
 
         try {
             if (uri) {
-                await databaseService.addDataSource(name, "csv", uri);
+                await databaseService.prepareDataSources([{ name, type: "csv", uri }]);
                 dispatch(receiveDatasetManifest(name, uri));
             }
         } catch (err) {

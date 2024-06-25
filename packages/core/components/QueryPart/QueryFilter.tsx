@@ -11,6 +11,7 @@ import { metadata, selection } from "../../state";
 import Annotation from "../../entity/Annotation";
 
 interface Props {
+    disabled?: boolean;
     filters: FileFilter[];
 }
 
@@ -26,7 +27,7 @@ export default function QueryFilter(props: Props) {
     return (
         <QueryPart
             title="Filter"
-            addButtonIconName="Filter"
+            disabled={props.disabled}
             tutorialId={Tutorial.FILTER_HEADER_ID}
             onDelete={(annotation) =>
                 dispatch(
@@ -38,14 +39,11 @@ export default function QueryFilter(props: Props) {
             onRenderAddMenuList={() => (
                 <AnnotationPicker
                     id={Tutorial.FILE_ATTRIBUTE_FILTER_ID}
-                    disableUnavailableAnnotations
                     title="Select metadata to filter by"
                     annotationSubMenuRenderer={(annotationItem) => (
                         <AnnotationFilterForm annotation={annotationItem.data as Annotation} />
                     )}
-                    selections={annotations.filter((annotation) =>
-                        props.filters.some((f) => f.name === annotation.name)
-                    )}
+                    selections={props.filters.map((filter) => filter.name)}
                     setSelections={() => dispatch(selection.actions.setFileFilters([]))}
                 />
             )}

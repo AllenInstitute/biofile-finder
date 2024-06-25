@@ -64,7 +64,7 @@ describe("<MetadataManifest />", () => {
         );
 
         // Assert
-        expect(getByText("Download Metadata Manifest")).to.exist;
+        expect(getByText("Download metadata manifest")).to.exist;
     });
 
     it("starts download when download button is clicked", async () => {

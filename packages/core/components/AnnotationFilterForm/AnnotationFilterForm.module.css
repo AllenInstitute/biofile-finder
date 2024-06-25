@@ -1,10 +1,10 @@
 .loading-container > div > div {
-    border-color: var(--secondary-text-color) var(--secondary-background-color) var(--secondary-background-color);
+    border-color: var(--primary-text-color) var(--primary-background-color) var(--primary-background-color);
 }
 
 .loading-container, .picker {
-    background-color: var(--secondary-background-color);
-    color: var(--secondary-text-color);
+    background-color: var(--primary-background-color);
+    color: var(--primary-text-color);
     padding: var(--margin);
     width: 35vw;
 }

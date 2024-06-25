@@ -38,7 +38,7 @@ describe("FileExplorerURL", () => {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC),
-                source: mockSource,
+                sources: [mockSource],
             };
 
             // Act
@@ -46,7 +46,7 @@ describe("FileExplorerURL", () => {
 
             // Assert
             expect(result).to.be.equal(
-                "group=Cell+Line&group=Donor+Plasmid&group=Lifting%3F&filter=%7B%22name%22%3A%22Cas9%22%2C%22value%22%3A%22spCas9%22%7D&filter=%7B%22name%22%3A%22Donor+Plasmid%22%2C%22value%22%3A%22ACTB-mEGFP%22%7D&openFolder=%5B%22AICS-0%22%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%2Cfalse%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%2Ctrue%5D&sort=%7B%22annotationName%22%3A%22file_size%22%2C%22order%22%3A%22DESC%22%7D&source=%7B%22name%22%3A%22Fake+Collection%22%2C%22type%22%3A%22csv%22%7D"
+                "group=Cell+Line&group=Donor+Plasmid&group=Lifting%3F&filter=%7B%22name%22%3A%22Cas9%22%2C%22value%22%3A%22spCas9%22%7D&filter=%7B%22name%22%3A%22Donor+Plasmid%22%2C%22value%22%3A%22ACTB-mEGFP%22%7D&openFolder=%5B%22AICS-0%22%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%2Cfalse%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%2Ctrue%5D&source=%7B%22name%22%3A%22Fake+Collection%22%2C%22type%22%3A%22csv%22%7D&sort=%7B%22annotationName%22%3A%22file_size%22%2C%22order%22%3A%22DESC%22%7D"
             );
         });
 
@@ -56,6 +56,7 @@ describe("FileExplorerURL", () => {
                 hierarchy: [],
                 filters: [],
                 openFolders: [],
+                sources: [],
             };
 
             // Act
@@ -85,7 +86,7 @@ describe("FileExplorerURL", () => {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
-                source: mockSource,
+                sources: [mockSource],
             };
             const encodedUrl = FileExplorerURL.encode(components);
             const encodedUrlWithWhitespace = " " + encodedUrl + " ";
@@ -104,7 +105,7 @@ describe("FileExplorerURL", () => {
                 filters: [],
                 openFolders: [],
                 sortColumn: undefined,
-                source: undefined,
+                sources: [],
             };
             const encodedUrl = FileExplorerURL.encode(components);
 
@@ -121,6 +122,7 @@ describe("FileExplorerURL", () => {
                 hierarchy: ["Cell Line"],
                 filters: [],
                 openFolders: [new FileFolder(["AICS-0"]), new FileFolder(["AICS-0", false])],
+                sources: [],
             };
             const encodedUrl = FileExplorerURL.encode(components);
 
@@ -147,6 +149,7 @@ describe("FileExplorerURL", () => {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.FILE_PATH, "Garbage" as any),
+                sources: [],
             };
             const encodedUrl = FileExplorerURL.encode(components);
 
@@ -161,7 +164,7 @@ describe("FileExplorerURL", () => {
             const expectedAnnotationNames = ["Cell Line", "Donor Plasmid", "Lifting?"];
             const components: Partial<FileExplorerURLComponents> = {
                 hierarchy: expectedAnnotationNames,
-                source: mockSourceWithUri,
+                sources: [mockSourceWithUri],
             };
             const expectedPandasGroups = expectedAnnotationNames.map(
                 (annotation) => `.groupby('${annotation}', group_keys=True).apply(lambda x: x)`
@@ -183,7 +186,7 @@ describe("FileExplorerURL", () => {
             ];
             const components: Partial<FileExplorerURLComponents> = {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
-                source: mockSourceWithUri,
+                sources: [mockSourceWithUri],
             };
             const expectedPandasQueries = expectedFilters.map(
                 (filter) => `\`${filter.name}\`=="${filter.value}"`
@@ -205,7 +208,7 @@ describe("FileExplorerURL", () => {
             ];
             const components: Partial<FileExplorerURLComponents> = {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
-                source: mockSourceWithUri,
+                sources: [mockSourceWithUri],
             };
             const expectedPandasQueries = expectedFilters.map(
                 (filter) => `\`${filter.name}\`=="${filter.value}"`
@@ -223,7 +226,7 @@ describe("FileExplorerURL", () => {
             // Arrange
             const components: Partial<FileExplorerURLComponents> = {
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
-                source: mockSourceWithUri,
+                sources: [mockSourceWithUri],
             };
             const expectedPandasSort = `.sort_values(by='${AnnotationName.UPLOADED}', ascending=False`;
             const expectedResult = `df${expectedPandasSort}`;
@@ -238,7 +241,7 @@ describe("FileExplorerURL", () => {
         it("provides info on converting external data source to pandas dataframe", () => {
             // Arrange
             const components: Partial<FileExplorerURLComponents> = {
-                source: mockSourceWithUri,
+                sources: [mockSourceWithUri],
             };
             const expectedResult = `df = pd.read_csv('${mockSourceWithUri.uri}').astype('str')`;
 
@@ -252,7 +255,7 @@ describe("FileExplorerURL", () => {
         it("adds raw flag in pandas conversion code for Windows OS", () => {
             // Arrange
             const components: Partial<FileExplorerURLComponents> = {
-                source: mockSourceWithUri,
+                sources: [mockSourceWithUri],
             };
             const expectedResult = `df = pd.read_csv(r'${mockSourceWithUri.uri}').astype('str')`;
 
@@ -274,7 +277,7 @@ describe("FileExplorerURL", () => {
                 hierarchy: expectedAnnotationNames,
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
-                source: mockSourceWithUri,
+                sources: [mockSourceWithUri],
             };
             const expectedResult = /df\.groupby\(.*\)\.query\(.*\)\.query\(.*\)\.sort_values\(.*\)/i;
 
