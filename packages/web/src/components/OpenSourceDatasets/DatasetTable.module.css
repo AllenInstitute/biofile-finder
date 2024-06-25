@@ -5,7 +5,7 @@
 .table-header > div {
   background-color: var(--secondary-dark);
   background: var(--secondary-dark);
-  border-bottom: 1px solid var(--borders-light-grey);
+  border-bottom: 1px solid var(--medium-grey);
 }
 
 .table-header span {

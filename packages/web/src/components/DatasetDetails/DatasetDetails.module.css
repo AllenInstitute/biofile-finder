@@ -10,7 +10,7 @@
   top: 50px;
   right: 0;
   padding: 24px 30px;
-  border-left: 1px solid var(--borders-light-grey);
+  border-left: 1px solid var(--medium-grey);
   box-shadow: -4px 10px 8px 0px #000000
 }
 
@@ -35,8 +35,8 @@
 hr {
   border: none;
   height: 1px !important;
-  color: var(--borders-light-grey); /* old IE */
-  background-color: var(--borders-light-grey); /* Modern Browsers */
+  color: var(--medium-grey); /* old IE */
+  background-color: var(--medium-grey); /* Modern Browsers */
 }
 
 .content {

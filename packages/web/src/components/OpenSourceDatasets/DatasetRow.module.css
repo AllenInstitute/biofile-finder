@@ -6,7 +6,7 @@
   color: var(--secondary-text-color);
   background-color: var(--secondary-dark);
   background: var(--secondary-dark) !important;
-  border-bottom: 1px solid var(--borders-light-grey);
+  border-bottom: 1px solid var(--medium-grey);
   font-family: var(--font-family);
   font-size: 14px;
   font-weight: 400;
