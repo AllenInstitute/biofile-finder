@@ -178,11 +178,12 @@ export default class FileDetail {
             }
             if (this.cloudPath.endsWith(".zarr")) {
                 try {
-                    // const thumbnailURL = await renderZarrThumbnailURL(this.cloudPath);
-                    const thumbnailURL = await renderZarrThumbnailURL(
-                        "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/variance/136244.zarr"
-                    );
-                    return thumbnailURL;
+                    if (this.path?.startsWith("/allen")) {
+                        return await renderZarrThumbnailURL(
+                            `${AICS_FMS_FILES_NGINX_SERVER}${this.path}`
+                        );
+                    }
+                    return await renderZarrThumbnailURL(this.path);
                 } catch (error) {
                     console.error("Error generating Zarr thumbnail:", error);
                     throw new Error("Unable to generate Zarr thumbnail");
