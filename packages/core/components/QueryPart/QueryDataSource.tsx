@@ -3,9 +3,9 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import QueryPart from ".";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { Source } from "../../entity/FileExplorerURL";
 import { interaction, metadata, selection } from "../../state";
-import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 interface Props {
     dataSources: Source[];
@@ -45,18 +45,31 @@ export default function QueryDataSource(props: Props) {
                     itemType: ContextualMenuItemType.Divider,
                 },
                 ...dataSources
-                    .filter((source) => selectedDataSources.some((s) => s.name === source.name))
+                    .filter(
+                        (source) =>
+                            !selectedDataSources.some((s) => s.name === source.name) &&
+                            source.name !== AICS_FMS_DATA_SOURCE_NAME
+                    )
                     .map((source) => ({
                         key: source.id,
                         text: source.name,
                         iconProps: { iconName: "Folder" },
                         onClick: () => {
-                            dispatch(
-                                selection.actions.addQuery({
-                                    name: `New ${source.name} query`,
-                                    parts: { sources: [source] },
-                                })
-                            );
+                            if (selectedDataSources.length) {
+                                dispatch(
+                                    selection.actions.changeDataSources([
+                                        ...selectedDataSources,
+                                        source,
+                                    ])
+                                );
+                            } else {
+                                dispatch(
+                                    selection.actions.addQuery({
+                                        name: `New ${source.name} query`,
+                                        parts: { sources: [source] },
+                                    })
+                                );
+                            }
                         },
                     })),
                 {

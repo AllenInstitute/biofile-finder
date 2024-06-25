@@ -512,7 +512,7 @@ const addQueryLogic = createLogic({
         dispatch(changeQuery(deps.action.payload));
         done();
     },
-    async transform(deps: ReduxLogicDeps, next) {
+    transform(deps: ReduxLogicDeps, next) {
         const queries = selectionSelectors.getQueries(deps.getState());
         const { payload: newQuery } = deps.action as AddQuery;
         // Map the query names to their occurrences so that queries with the same name
@@ -553,9 +553,11 @@ const changeQueryLogic = createLogic({
                     : query.parts,
         }));
 
-        dispatch(
-            decodeFileExplorerURL(FileExplorerURL.encode(newlySelectedQuery.parts)) as AnyAction
-        );
+        if (newlySelectedQuery) {
+            dispatch(
+                decodeFileExplorerURL(FileExplorerURL.encode(newlySelectedQuery.parts)) as AnyAction
+            );
+        }
         dispatch(setQueries(updatedQueries));
         done();
     },

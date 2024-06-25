@@ -151,7 +151,7 @@ export default makeReducer<SelectionStateBranch>(
         }),
         [CHANGE_QUERY]: (state, action: ChangeQuery) => ({
             ...state,
-            selectedQuery: action.payload.name,
+            selectedQuery: action.payload?.name,
         }),
         [REMOVE_QUERY]: (state, action: RemoveQuery) => ({
             ...state,

@@ -78,7 +78,6 @@ export default function QueryFooter(props: Props) {
                 disabled={isEmptyQuery}
                 iconName="Delete"
                 menuItems={deleteQueryOptions}
-                onClick={onRefresh}
                 title="Delete query"
             />
             <TertiaryButton
