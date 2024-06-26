@@ -136,7 +136,11 @@ export default function DataSourcePrompt(props: Props) {
                                 </li>
                             ))}
                         </ul>
-                        <li className={styles.subtitleButtonContainer}>
+                        <li
+                            className={classNames(styles.subtitleButtonContainer, {
+                                [styles.leftAlign]: props.hideTitle,
+                            })}
+                        >
                             <DefaultButton
                                 className={styles.subtitleButton}
                                 onClick={() => setIsDataSourceDetailExpanded(false)}
@@ -148,7 +152,11 @@ export default function DataSourcePrompt(props: Props) {
                     </ul>
                 </>
             ) : (
-                <div className={styles.subtitleButtonContainer}>
+                <div
+                    className={classNames(styles.subtitleButtonContainer, {
+                        [styles.leftAlign]: props.hideTitle,
+                    })}
+                >
                     <DefaultButton
                         className={styles.subtitleButton}
                         onClick={() => setIsDataSourceDetailExpanded(true)}
