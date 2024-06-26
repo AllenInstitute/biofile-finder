@@ -9,6 +9,7 @@
     padding-right: var(--padding);
     vertical-align: middle;
     font-size: initial;
+    height: 100%;
 }
 
 .cell:first-of-type {

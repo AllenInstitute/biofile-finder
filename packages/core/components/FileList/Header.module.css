@@ -13,17 +13,20 @@
 }
 
 .header {
-  background-color: var(--primary-background-color); /* defined in App.module.css */
-  /* positionX postionY blur spread */
-  box-shadow: 0 1px 2px -1px rgba(0, 0, 0, 0.2),
-    0 2px 2.5px 0 rgba(0, 0, 0, 0.14), 0 0.5px 5px 0 rgba(0, 0, 0, 0.12);
-  color: var(--primary-text-color); /* defined in App.module.css */
+  background-color: var(--primary-background-color);
+  border-radius: var(--small-border-radius);
+  box-shadow: var(--box-shadow);
+  color: var(--primary-text-color);
   padding: var(--inner-header-padding) 0;
 }
 
 .header:hover {
   background-color: var(--accent-dark);
-  color: var(--primary-text-color); /* defined in App.module.css */
+  color: var(--primary-text-color);
+}
+
+.header > div {
+  height: unset;
 }
 
 .header-title {
@@ -51,6 +54,6 @@
   transform: translateY(0px);
 }
 
-.list-parent > div > div:nth-child(odd) {
+.list-parent > div > div:nth-child(even) > div {
   background-color: var(--primary-background-color);
 }

@@ -1,32 +1,30 @@
-.row {
-    padding-top: 1px;
-    padding-bottom: 1px
-}
-
-.row.selected {
+.row.selected > div {
     background-color: var(--highlight-background-color) !important;
     border-bottom: 1px solid var(--secondary-background-color);
     color: var(--highlight-text-color);
-    padding-bottom: 0;
 }
 
-.row.focused {
+.row.focused > div {
     background-color: var(--highlight-hover-background-color) !important;
     border-bottom: 1px solid var(--secondary-background-color);
     color: var(--highlight-hover-text-color);
-    padding-bottom: 0;
+    /* padding-bottom: 0; */
 }
 
 .row.small-font {
     padding: 0px;
 }
 
+.row > div, .row > div > div {
+    height: 100%;
+}
+
 .shimmer {
     background-color: var(--secondary-background-color);
-    height: 18.5px;
+    border-radius: var(--small-border-radius);
+    height: 18px !important;
 }
 
 .shimmer > div {
-    background-color: var(--primary-background-color);
     border-radius: var(--small-border-radius);
 }
