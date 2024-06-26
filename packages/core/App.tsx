@@ -17,7 +17,6 @@ import QuerySidebar from "./components/QuerySidebar";
 import { FileExplorerServiceBaseUrl } from "./constants";
 import { interaction, selection } from "./state";
 
-import "./styles/global.css";
 import styles from "./App.module.css";
 
 // Used for mousemove listeners when resizing elements via click and drag (eg. File Details pane)
