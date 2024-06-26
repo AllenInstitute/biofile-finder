@@ -46,47 +46,44 @@ export default function AnnotationPicker(props: Props) {
     );
     const recentAnnotationNames = useSelector(selection.selectors.getRecentAnnotations);
 
-    const isSelectable = (annotation: any): boolean =>
+    const recentAnnotations = recentAnnotationNames
+        .map((name) => annotations.find((annotation) => annotation.name === name))
+        .filter((annotation) => !!annotation) as Annotation[];
+
+    const isSelectable = (annotation: Annotation): boolean =>
         !props.disabledTopLevelAnnotations ||
-        !(annotation instanceof Annotation) ||
         !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name);
 
-    const recentAnnotations = recentAnnotationNames.flatMap((name) =>
-        annotations.filter((annotation) => annotation.name === name && isSelectable(annotation))
-    );
+    const annotationToListItem = (annotation: Annotation): ListItem<Annotation> => {
+        const selected = props.selections.some((selected) => selected === annotation.name);
+        const disabled =
+            !selected &&
+            props.disableUnavailableAnnotations &&
+            unavailableAnnotations.some((unavailable) => unavailable.name === annotation.name);
+        return {
+            disabled,
+            selected,
+            data: annotation,
+            value: annotation.name,
+            description: annotation.description,
+            displayValue: annotation.displayName,
+            recent: recentAnnotationNames.includes(annotation.name) && !selected,
+            loading: props.disableUnavailableAnnotations && areAvailableAnnotationLoading,
+        };
+    };
 
-    // combine all annotation lists and buffer item objects
-    const nonUniqueItems: ListItem<Annotation>[] = [
-        ...recentAnnotations,
-        ...(recentAnnotations.length ? [RECENT_ANNOTATIONS_DIVIDER] : []),
-        ...annotations,
-    ]
+    // Map recent annotations into a list of items for selection
+    const nonUniqueItems = [...recentAnnotations, ...annotations]
         .filter(isSelectable)
-        .map((annotation) => {
-            // This is reached if the 'annotation' is a spacer.
-            if (!(annotation instanceof Annotation)) {
-                return annotation;
-            }
-
-            const isSelected = props.selections.some((selected) => selected === annotation.name);
-            return {
-                selected: isSelected,
-                recent: recentAnnotationNames.includes(annotation.name) && !isSelected,
-                disabled:
-                    !isSelected &&
-                    props.disableUnavailableAnnotations &&
-                    unavailableAnnotations.some(
-                        (unavailable) => unavailable.name === annotation.name
-                    ),
-                loading: props.disableUnavailableAnnotations && areAvailableAnnotationLoading,
-                description: annotation.description,
-                data: annotation,
-                value: annotation.name,
-                displayValue: annotation.displayName,
-            };
-        });
+        .map(annotationToListItem);
 
     const items = uniqBy(nonUniqueItems, "value");
+
+    // If there are any recent annotations add a divider between them
+    // and the rest of the annotations (assuming any left)
+    if (recentAnnotations.length) {
+        items.push(RECENT_ANNOTATIONS_DIVIDER);
+    }
 
     const removeSelection = (item: ListItem<Annotation>) => {
         props.setSelections(

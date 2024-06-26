@@ -55,7 +55,7 @@
     width: 100%;
 }
 
-.row-title:hover {
+.interactive > .row-title:hover {
     color: var(--highlight-text-color);
 }
 

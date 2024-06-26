@@ -64,6 +64,16 @@ export default function ListPicker(props: ListPickerProps) {
                 return a.selected ? -1 : 1;
             }
 
+            // If recent, sort to the top below selected
+            if (a.recent !== b.recent) {
+                return a.recent ? -1 : 1;
+            }
+
+            // If this is a divider, sort to the top below recent
+            if (a.isDivider !== b.isDivider) {
+                return a.isDivider ? -1 : 1;
+            }
+
             // If disabled, sort to the bottom
             return a.disabled === b.disabled ? 0 : a.disabled ? 1 : -1;
         });

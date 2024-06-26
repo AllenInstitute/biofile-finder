@@ -5,7 +5,9 @@
 
     background-color: var(--primary-background-color);
     color: var(--primary-text-color);
-    height: 75vh;
+    height: 600px;
+    max-height: 75vh;
+    max-width: 400px;
     padding: 16px 30px;
     width: 35vw;
 }
@@ -15,7 +17,7 @@
 }
 
 .header {
-    height: var(--header-height);
+    min-height: var(--header-height);
     padding-bottom: var(--spacing);
     width: 100%;
 }

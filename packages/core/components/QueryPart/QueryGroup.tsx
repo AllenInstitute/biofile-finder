@@ -44,8 +44,6 @@ export default function QueryGroup(props: Props) {
                     }}
                 />
             )}
-            // TODO: Should we care about display name?? seems time to make the name of
-            // annotations just the display name for top level annotations bro
             rows={props.groups.map((annotation) => ({
                 id: annotation,
                 title: annotation,
