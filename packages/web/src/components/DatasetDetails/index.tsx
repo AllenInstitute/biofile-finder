@@ -1,4 +1,3 @@
-import { DefaultButton, IconButton } from "@fluentui/react";
 import classNames from "classnames";
 import { get as _get } from "lodash";
 import * as React from "react";
@@ -6,8 +5,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import DatasetDetailsRow from "./DatasetDetailsRow";
-import PublicDataset, { DATASET_DISPLAY_FIELDS } from "../../entity/PublicDataset";
+import PublicDataset, {
+    DATASET_DISPLAY_FIELDS,
+    DatasetAnnotations,
+} from "../../entity/PublicDataset";
 import { interaction, selection } from "../../../../core/state";
+import {
+    PrimaryButton,
+    SecondaryButton,
+    TertiaryButton,
+} from "../../../../core/components/Buttons";
 import { getNameAndTypeFromSourceUrl, Source } from "../../../../core/entity/FileExplorerURL";
 
 import styles from "./DatasetDetails.module.css";
@@ -36,8 +43,15 @@ export default function DatasetDetails() {
         return DATASET_DISPLAY_FIELDS.reduce((accum, field) => {
             const fieldName = field.name;
             let datasetFieldValue;
+            let link;
             if (datasetDetails.details.hasOwnProperty(fieldName)) {
                 datasetFieldValue = _get(datasetDetails.details, fieldName);
+                if (
+                    (fieldName === DatasetAnnotations.RELATED_PUBLICATON.name ||
+                        fieldName === DatasetAnnotations.DOI.name) &&
+                    datasetDetails.details.hasOwnProperty(DatasetAnnotations.DOI.name)
+                )
+                    link = _get(datasetDetails.details, DatasetAnnotations.DOI.name);
             } else datasetFieldValue = "--"; // Still display field, just indicate no value provided
             const ret = [
                 ...accum,
@@ -46,6 +60,7 @@ export default function DatasetDetails() {
                     className={styles.row}
                     name={field.displayLabel}
                     value={datasetFieldValue}
+                    link={link || undefined}
                 />,
             ];
             return ret;
@@ -88,21 +103,16 @@ export default function DatasetDetails() {
             })}
         >
             <div className={styles.internalWrapper}>
-                <IconButton
-                    ariaLabel="Close"
+                <TertiaryButton
                     className={styles.closeButton}
-                    iconProps={{ iconName: "Cancel" }}
+                    iconName="Cancel"
+                    title="Close"
                     onClick={() => dispatch(interaction.actions.hideDatasetDetailsPanel())}
                 />
                 <div className={styles.title}>{datasetDetails?.name}</div>
-                <DefaultButton
-                    className={classNames(styles.button)}
-                    styles={{
-                        label: styles.buttonLabel,
-                        icon: styles.buttonIcon,
-                    }}
-                    ariaLabel="Load dataset"
-                    iconProps={{ iconName: "Upload" }}
+                <PrimaryButton
+                    className={styles.button}
+                    iconName="Upload"
                     title="Load dataset"
                     text="LOAD DATASET"
                     onClick={loadDataset}
@@ -119,10 +129,8 @@ export default function DatasetDetails() {
                     </div>
                     {isLongDescription && toggleDescriptionButton}
                     <div className={styles.list}>{content}</div>
-                    <DefaultButton
+                    <SecondaryButton
                         className={styles.secondaryCloseButton}
-                        ariaLabel="Close panel"
-                        styles={{ label: styles.secondaryCloseButtonLabel }}
                         title="Close panel"
                         text="CLOSE"
                         onClick={() => dispatch(interaction.actions.hideDatasetDetailsPanel())}

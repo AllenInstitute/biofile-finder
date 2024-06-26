@@ -8,13 +8,18 @@ import {
     ThemeProvider,
 } from "@fluentui/react";
 import { ShimmeredDetailsList } from "@fluentui/react/lib/ShimmeredDetailsList";
+import classNames from "classnames";
 import * as React from "react";
 
-import { DatasetColumns } from "./DatasetColumns";
 import DatasetRow from "./DatasetRow";
 import useDatasetDetails from "./useDatasetDetails";
-import { PublicDatasetProps } from "../../entity/PublicDataset";
+import {
+    PublicDatasetProps,
+    DATASET_TABLE_FIELDS,
+    DatasetAnnotations,
+} from "../../entity/PublicDataset";
 import FileFilter from "../../../../core/entity/FileFilter";
+import FileSort, { SortOrder } from "../../../../core/entity/FileSort";
 
 import styles from "./DatasetTable.module.css";
 
@@ -23,9 +28,25 @@ interface DatasetTableProps {
 }
 
 export default function DatasetTable(props: DatasetTableProps) {
-    const [datasetDetails, isLoading, error] = useDatasetDetails(props?.filters || []);
-
-    const items = datasetDetails?.map((detail) => detail.details);
+    const [sortColumn, setSortColumn] = React.useState<FileSort | undefined>(undefined);
+    const columns = DATASET_TABLE_FIELDS.map(
+        (value, index): IColumn => {
+            return {
+                key: `column${index}`,
+                name: value.displayLabel.toUpperCase(),
+                fieldName: value.name,
+                isResizable: true,
+                minWidth: value?.minWidth,
+                isSorted: sortColumn?.annotationName == value.displayLabel,
+                isSortedDescending: sortColumn?.order == SortOrder.DESC,
+                onColumnClick: () => onColumnClick(value.displayLabel),
+            };
+        }
+    );
+    const [datasetDetails, isLoading, error] = useDatasetDetails(props?.filters || [], sortColumn);
+    const items = React.useMemo(() => {
+        return datasetDetails?.map((detail) => detail.details);
+    }, [datasetDetails]);
 
     const renderRow = (
         rowProps: IDetailsRowProps | undefined,
@@ -41,7 +62,7 @@ export default function DatasetTable(props: DatasetTableProps) {
     const globalStyle = getComputedStyle(document.body);
     const shimmeredDetailsListTheme: PartialTheme = createTheme({
         semanticColors: {
-            disabledBackground: globalStyle.getPropertyValue("--borders-light-grey"),
+            disabledBackground: globalStyle.getPropertyValue("--medium-grey"),
             bodyBackground: globalStyle.getPropertyValue("--secondary-dark"),
             bodyDivider: globalStyle.getPropertyValue("--primary-dark"),
         },
@@ -54,7 +75,22 @@ export default function DatasetTable(props: DatasetTableProps) {
     ) {
         const fieldContent = item[column?.fieldName as keyof PublicDatasetProps] as string;
         if (!fieldContent) return <>--</>;
+        if (column?.fieldName === DatasetAnnotations.RELATED_PUBLICATON.name && item?.doi) {
+            return (
+                <a className={classNames(styles.link, styles.doubleLine)} href={item.doi}>
+                    {fieldContent}
+                </a>
+            );
+        }
         return <div className={styles.doubleLine}>{fieldContent}</div>;
+    }
+
+    function onColumnClick(columnName: string) {
+        let sortOrder = SortOrder.ASC;
+        if (sortColumn?.annotationName == columnName)
+            sortOrder = sortColumn.order == SortOrder.DESC ? SortOrder.ASC : SortOrder.DESC;
+        const newSortColumn = new FileSort(columnName, sortOrder);
+        setSortColumn(newSortColumn);
     }
 
     return (
@@ -63,7 +99,7 @@ export default function DatasetTable(props: DatasetTableProps) {
                 <ShimmeredDetailsList
                     setKey="items"
                     items={items || []}
-                    columns={DatasetColumns}
+                    columns={columns}
                     isHeaderVisible={true}
                     selectionMode={SelectionMode.none}
                     enableShimmer={isLoading}
