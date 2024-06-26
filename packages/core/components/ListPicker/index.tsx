@@ -123,6 +123,7 @@ export default function ListPicker(props: ListPickerProps) {
                                 {
                                     [styles.disabled]: !hasUnselectedItem,
                                 },
+                                styles.selectAllButton,
                                 styles.actionButton
                             )}
                             disabled={!hasUnselectedItem}
@@ -130,7 +131,7 @@ export default function ListPicker(props: ListPickerProps) {
                             title={hasUnselectedItem ? undefined : "All options selected"}
                             onClick={onSelectAll}
                         >
-                            SELECT ALL
+                            Select all
                         </ActionButton>
                     )}
                     <ActionButton
@@ -146,7 +147,7 @@ export default function ListPicker(props: ListPickerProps) {
                         title={hasSelectedItem ? undefined : "No options selected"}
                         onClick={onDeselectAll}
                     >
-                        CLEAR ALL
+                        Clear all
                     </ActionButton>
                 </div>
             </div>
@@ -167,10 +168,10 @@ export default function ListPicker(props: ListPickerProps) {
                 />
             </div>
             <div className={styles.footer}>
-                <h6>
+                <p>
                     {/* (item.length -1) to account for buffer in item list. */}
                     Displaying {filteredItems.length - 1} of {items.length - 1} Options
-                </h6>
+                </p>
             </div>
         </div>
     );
