@@ -1,9 +1,10 @@
-import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "@fluentui/react";
+import { ActionButton, List, Spinner, SpinnerSize } from "@fluentui/react";
 import classNames from "classnames";
 import Fuse from "fuse.js";
 import * as React from "react";
 
 import ListRow, { ListItem } from "./ListRow";
+import SearchBox from "../SearchBox";
 
 import styles from "./ListPicker.module.css";
 
@@ -54,13 +55,6 @@ export default function ListPicker(props: ListPickerProps) {
 
     const [searchValue, setSearchValue] = React.useState("");
 
-    const onSearchBoxChange = (event?: React.ChangeEvent<HTMLInputElement>) => {
-        // bizzarely necessary because of typings on SearchBox
-        if (event) {
-            setSearchValue(event.target.value);
-        }
-    };
-
     const fuse = React.useMemo(() => new Fuse(items, FUZZY_SEARCH_OPTIONS), [items]);
     const filteredItems = React.useMemo(() => {
         const filteredRows = searchValue ? fuse.search(searchValue) : items;
@@ -110,10 +104,8 @@ export default function ListPicker(props: ListPickerProps) {
                 {props.title && <h3>{props.title}</h3>}
                 <SearchBox
                     id={props.id}
-                    className={styles.searchBox}
-                    onChange={onSearchBoxChange}
-                    onClear={() => setSearchValue("")}
-                    placeholder="Search..."
+                    onChange={setSearchValue}
+                    onReset={() => setSearchValue("")}
                 />
                 <div className={styles.buttons}>
                     {onSelectAll && (

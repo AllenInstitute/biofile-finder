@@ -4,19 +4,15 @@ import { noop } from "lodash";
 import * as React from "react";
 import sinon from "sinon";
 
-import SearchBoxForm from "..";
 import FileFilter from "../../../entity/FileFilter";
 
-describe("<SearchBoxForm />", () => {
+import SearchBox from "..";
+
+describe("<SearchBox/>", () => {
     it("renders an input field for the search term", () => {
         // Arrange
         const { getAllByRole } = render(
-            <SearchBoxForm
-                fieldName={"Example Field"}
-                onSearch={noop}
-                onReset={noop}
-                currentValue={undefined}
-            />
+            <SearchBox onSearch={noop} onReset={noop} defaultValue={undefined} />
         );
         // Assert
         expect(getAllByRole("searchbox").length).to.equal(1);
@@ -26,14 +22,7 @@ describe("<SearchBoxForm />", () => {
         // Arrange
         const currentValue = new FileFilter("foo", "bar");
 
-        render(
-            <SearchBoxForm
-                fieldName={"foo"}
-                onSearch={noop}
-                onReset={noop}
-                currentValue={currentValue}
-            />
-        );
+        render(<SearchBox onSearch={noop} onReset={noop} defaultValue={currentValue} />);
 
         // Should initialize to value provided, respectively
         expect(screen.getByRole<HTMLInputElement>("searchbox").value).to.equal("bar");
@@ -46,12 +35,7 @@ describe("<SearchBoxForm />", () => {
 
         // Act / Assert
         const { getByRole, getByLabelText } = render(
-            <SearchBoxForm
-                fieldName={"foo"}
-                onSearch={onSearch}
-                onReset={onReset}
-                currentValue={undefined}
-            />
+            <SearchBox onSearch={onSearch} onReset={onReset} defaultValue={undefined} />
         );
         // Enter values
         fireEvent.change(getByRole("searchbox"), {

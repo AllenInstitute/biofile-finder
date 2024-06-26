@@ -10,7 +10,7 @@ import FileFilter from "../../entity/FileFilter";
 import ListPicker from "../ListPicker";
 import { ListItem } from "../ListPicker/ListRow";
 import NumberRangePicker from "../NumberRangePicker";
-import SearchBoxForm from "../SearchBoxForm";
+import SearchBoxForm from "./SearchBoxForm";
 import DateRangePicker from "../DateRangePicker";
 import { interaction, selection } from "../../state";
 
@@ -161,7 +161,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     onReset={onDeselectAll}
                     fieldName={props.annotation.displayName}
                     title={`Filter by ${props.annotation.displayName}`}
-                    currentValue={filtersForAnnotation?.[0]}
+                    defaultValue={filtersForAnnotation?.[0]}
                 />
             );
         case AnnotationType.DURATION:

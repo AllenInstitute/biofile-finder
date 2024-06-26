@@ -1,7 +1,7 @@
 .container {
     --spacing: 0.5rem;
     --footer-height: 16px;
-    --header-height: 118px;
+    --header-height: 110px;
 
     background-color: var(--primary-background-color);
     color: var(--primary-text-color);
@@ -30,9 +30,8 @@
 }
 
 .main-content {
-    height: calc(100% - var(--header-height) - var(--footer-height) - 16px);
+    height: calc(100% - var(--header-height) - var(--footer-height));
     overflow: auto;
-    margin-top: 8px;
     padding-bottom: 40px;
 }
 
@@ -59,6 +58,7 @@
 .footer > p {
     font-size: var(--xs-paragraph-size);
     font-weight: 400;
+    margin-top: 0;
 }
 
 .action-button {
@@ -92,23 +92,4 @@
 
 .action-button.select-all-button i {
     font-size: var(--l-paragraph-size);
-}
-
-.search-box, .search-box > :is(div, input), .search-box :is(button, i) {
-    background-color: var(--secondary-background-color) !important;
-    color: var(--secondary-text-color) !important;
-}
-
-.search-box > div:hover > button, .search-box > div:hover > button i {
-    background-color: var(--highlight-background-color) !important;
-    color: var(--highlight-text-color) !important;
-}
-
-.search-box > *::placeholder {
-    color: var(--secondary-text-color);
-    font-style: italic;
-}
-
-.search-box::after {
-    display: none;
 }
