@@ -55,6 +55,10 @@
     width: 100%;
 }
 
+.row-title:hover {
+    color: var(--highlight-text-color);
+}
+
 .row-title > p {
     align-items: center;
     display: flex;
