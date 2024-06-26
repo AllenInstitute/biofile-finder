@@ -30,17 +30,17 @@ const INSTRUCTIONS_FOR_OS = {
         <figure class="figure installation-instr">
             <img class="screenshot" src="resources/macos-drag-into-applications.png">
             <figcaption class="figure-caption">
-            Drag and drop the FMS File Explorer icon onto the Applications folder icon. If prompted to 'Keep Both,' 'Stop,' or 'Replace,' choose 'Replace.'
+            Drag and drop the BioFile Finder icon onto the Applications folder icon. If prompted to 'Keep Both,' 'Stop,' or 'Replace,' choose 'Replace.'
             </figcaption>
         </figure>
         `,
-        "Open Finder, and locate the FMS File Explorer in Applications.",
-        "Right-click on the FMS File Explorer, select 'Open.' <em>You may need to do this twice in order to get to the next step</em>.",
+        "Open Finder, and locate the BioFile Finder in Applications.",
+        "Right-click on the BioFile Finder, select 'Open.' <em>You may need to do this twice in order to get to the next step</em>.",
         `
         <figure class="figure installation-instr">
             <img class="screenshot" src="resources/macos-open-anyway.png">
             <figcaption class="figure-caption">
-            You should be prompted with an alert that reads, "macOS cannot verify the developer of 'FMS File Explorer'. Are you sure you want to open it?" Select "Open."
+            You should be prompted with an alert that reads, "macOS cannot verify the developer of 'BioFile Finder'. Are you sure you want to open it?" Select "Open."
             </figcaption>
         </figure>
         `,
@@ -48,7 +48,7 @@ const INSTRUCTIONS_FOR_OS = {
         <figure class="figure installation-instr">
             <img class="screenshot" src="resources/macos-connect-to-fms-storage.png">
             <figcaption class="figure-caption">
-            (Optional) If you'd like to access any of the files found in the FMS File Explorer in a third-party application
+            (Optional) If you'd like to access any of the files found in the BioFile Finder in a third-party application
             (e.g., opening an image in an image viewer), you'll need to mount FMS storage on your computer.
             To do this: <code>Go</code> → <code>Connect to server</code> → enter <code>smb://allen/programs</code> → <code>Connect</code>.
             <strong>Note! This is only possible when connected to the Allen Institute network; you will be unable to do this
@@ -105,7 +105,7 @@ function selectOperatingSystem(os) {
     versionSelector.value && updateDownloadLink(versionSelector.value);
 }
 
-// Fetch the list of releases for the FMS File Explorer & initialize related features
+// Fetch the list of releases for the BioFile Finder & initialize related features
 function fetchReleases() {
     fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO}/releases`)
         .then((response) => {
@@ -170,11 +170,11 @@ const TUTORIALS = [
         vimeoId: 489009968,
     },
     {
-        title: "Opening file(s) in Fiji/ImageJ directly from the FMS File Explorer",
+        title: "Opening file(s) in Fiji/ImageJ directly from the BioFile Finder",
         description: `If you are connected to the Allen Institute network (either directly or via Remote PC) <em>and</em> you have the Isilon mounted on your computer,
-            select your file(s) of interest within the FMS File Explorer, right click on your selection, and select "Open in ImageJ/Fiji."
+            select your file(s) of interest within the BioFile Finder, right click on your selection, and select "Open in ImageJ/Fiji."
             <p>
-                Alternatively, you can copy and paste (e.g.: ⌘ + C, ⌘ + V) a file path found from the FMS File Explorer into your image viewer of choice. To find the file path for a file,
+                Alternatively, you can copy and paste (e.g.: ⌘ + C, ⌘ + V) a file path found from the BioFile Finder into your image viewer of choice. To find the file path for a file,
                 simply select it: the file path will be displayed in the details pane on the right-hand side of the application.
             </p>`,
         vimeoId: 489019973,
@@ -189,7 +189,7 @@ const TUTORIALS = [
                 created for you. Datasets will be accessible for as long as you need them; the "expiration" time of datasets is configurable,
             </p>
             <p>
-                For more information regarding programmatic access to datasets created from within the FMS File Explorer, refer to the
+                For more information regarding programmatic access to datasets created from within the BioFile Finder, refer to the
                 <a href="https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/aicsfiles-python/browse#querying-by-dataset">aicsfiles-python README</a> (VPN required).
             </p>`,
         vimeoId: 489094834,
@@ -240,7 +240,7 @@ function buildVideoTutorials() {
 }
 
 function initialize() {
-    // Fetch releases for the FMS File Explorer
+    // Fetch releases for the BioFile Finder
     fetchReleases();
 
     // Determine operating system

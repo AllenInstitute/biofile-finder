@@ -17,7 +17,7 @@ const defaultMenuItems: MenuItemConstructorOptions[] = [
 
 // If on MacOS, show the "app menu" (only works on MacOS)
 if (process.platform === "darwin") {
-    template.unshift({ role: "appMenu", label: "FMS File Explorer" });
+    template.unshift({ role: "appMenu", label: "BioFile Finder" });
 }
 
 export default [...template, ...defaultMenuItems, dataSourceMenu];
