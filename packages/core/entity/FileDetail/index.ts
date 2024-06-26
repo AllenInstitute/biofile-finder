@@ -176,18 +176,8 @@ export default class FileDetail {
             if (isFileRenderableImage) {
                 return this.downloadPath;
             }
-            if (this.cloudPath.endsWith(".zarr")) {
-                try {
-                    if (this.path?.startsWith("/allen")) {
-                        return await renderZarrThumbnailURL(
-                            `${AICS_FMS_FILES_NGINX_SERVER}${this.path}`
-                        );
-                    }
-                    return await renderZarrThumbnailURL(this.path);
-                } catch (error) {
-                    console.error("Error generating Zarr thumbnail:", error);
-                    throw new Error("Unable to generate Zarr thumbnail");
-                }
+            if (this.path.endsWith(".zarr")) {
+                return await renderZarrThumbnailURL(this.path);
             }
         }
 

@@ -78,7 +78,7 @@ function resizeHandleDoubleClick() {
 export default function FileDetails(props: Props) {
     const [windowState, windowDispatch] = React.useReducer(windowStateReducer, INITIAL_STATE);
     const [fileDetails, isLoading] = useFileDetails();
-    const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>(undefined);
+    const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
 
     React.useEffect(() => {
         if (fileDetails) {

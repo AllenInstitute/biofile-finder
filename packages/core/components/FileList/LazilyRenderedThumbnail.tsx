@@ -59,7 +59,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
         return fileSelection.isFocused(fileSet, overallIndex);
     }, [fileSelection, fileSet, overallIndex]);
 
-    const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>(undefined);
+    const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
     React.useEffect(() => {
         if (file) {
             file.getPathToThumbnail().then(setThumbnailPath);
