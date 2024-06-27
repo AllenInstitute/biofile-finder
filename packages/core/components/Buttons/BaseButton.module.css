@@ -86,3 +86,7 @@
 .selected {
     cursor: default;
 }
+
+.selected i {
+    opacity: unset;
+}
