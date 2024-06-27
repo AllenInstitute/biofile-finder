@@ -42,9 +42,9 @@ body {
     --secondary-background-color: var(--secondary-dark);
     --primary-text-color: var(--light-grey);
     --secondary-text-color: var(--light-grey);
-    --highlight-background-color: var(--dark-aqua);
+    --highlight-background-color: var(--aqua);
     --highlight-text-color: var(--white);
-    --highlight-hover-background-color: var(--aqua);
+    --highlight-hover-background-color: var(--bright-aqua);
     --highlight-hover-text-color: var(--white);
     --border-color: var(--medium-grey);
     --error-background-color: var(--red);
