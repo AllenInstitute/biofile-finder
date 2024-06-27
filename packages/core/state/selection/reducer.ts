@@ -3,7 +3,8 @@ import { castArray, omit, uniq, uniqBy } from "lodash";
 
 import interaction from "../interaction";
 import { THUMBNAIL_SIZE_TO_NUM_COLUMNS } from "../../constants";
-import Annotation, { AnnotationName } from "../../entity/Annotation";
+import Annotation from "../../entity/Annotation";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";

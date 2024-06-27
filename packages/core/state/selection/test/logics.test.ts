@@ -26,7 +26,8 @@ import {
     changeDataSources,
 } from "../actions";
 import { initialState, interaction } from "../../";
-import Annotation, { AnnotationName } from "../../../entity/Annotation";
+import Annotation from "../../../entity/Annotation";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";

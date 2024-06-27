@@ -1,0 +1,30 @@
+.agave-link {
+    color: var(--secondary-text-color);
+}
+
+.agave-link:hover a > i, .agave-link:hover a > div > span {
+    color: var(--secondary-text-color) !important;
+}
+
+.agave-link:hover a > i, .agave-link a > div > span:hover {
+    color: var(--highlight-text-color) !important;
+}
+
+.view-link {
+    align-items: center;
+    color: var(--secondary-text-color);
+    display: flex;
+    font-size: var(--xs-paragraph-size);
+    height: 34px;
+}
+
+.view-link > i {
+    color: var(--secondary-text-color) !important;
+    height: 34px;
+    padding-left: 4px;
+    transform: translateY(-1px);
+}
+
+.view-link:hover, .view-link:hover > i {
+    color: var(--highlight-text-color);
+}

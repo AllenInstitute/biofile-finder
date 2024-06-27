@@ -2,7 +2,6 @@ import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import getContextMenuItems from "../ContextMenu/items";
 import Cell from "../../components/FileRow/Cell";
 import { interaction, selection } from "../../state";
 
@@ -25,10 +24,14 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
     const onContextMenuHandlerFactory = (clipboardText: string) => {
         return (evt: React.MouseEvent) => {
             evt.preventDefault();
-            const availableItems = getContextMenuItems(dispatch);
             const items = [
                 {
-                    ...availableItems.COPY,
+                    key: "copy",
+                    text: "Copy",
+                    title: "Copy to clipboard",
+                    iconProps: {
+                        iconName: "Copy",
+                    },
                     onClick: () => {
                         navigator.clipboard.writeText(clipboardText);
                     },

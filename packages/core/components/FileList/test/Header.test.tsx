@@ -4,7 +4,8 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import Annotation, { AnnotationName } from "../../../entity/Annotation";
+import Annotation from "../../../entity/Annotation";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
 import { initialState, selection } from "../../../state";
 import Header from "../Header";

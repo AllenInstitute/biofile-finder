@@ -4,7 +4,8 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useAnnotationValues from "./useAnnotationValues";
-import Annotation, { AnnotationName } from "../../entity/Annotation";
+import Annotation from "../../entity/Annotation";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import ListPicker from "../ListPicker";

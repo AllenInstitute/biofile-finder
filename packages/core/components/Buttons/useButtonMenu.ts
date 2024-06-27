@@ -5,9 +5,6 @@ import styles from "./useButtonMenu.module.css";
 
 function normalizeButtonMenuItem(item: IContextualMenuItem): IContextualMenuItem {
     let className = item.className;
-    if (item.itemType === ContextualMenuItemType.Divider) {
-        className = styles.buttonMenuDivider;
-    }
 
     if (item.itemType === ContextualMenuItemType.Header) {
         className = styles.buttonMenuHeader;

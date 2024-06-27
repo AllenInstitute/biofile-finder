@@ -1,3 +1,4 @@
+import AnnotationName from "../Annotation/AnnotationName";
 import { FmsFileAnnotation } from "../../services/FileService";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
@@ -179,5 +180,18 @@ export default class FileDetail {
             return `${AICS_FMS_FILES_NGINX_SERVER}${this.thumbnail}`;
         }
         return this.thumbnail;
+    }
+
+    public getLinkToPlateUI(baseURL: string): string | undefined {
+        // Grabbing plate barcode
+        const platebarcode = this.getFirstAnnotationValue(AnnotationName.PLATE_BARCODE);
+
+        if (!platebarcode) {
+            return undefined;
+        }
+
+        // LabKey does not support HTTPS yet
+        const baseURLHttp = baseURL.replace("https", "http");
+        return `${baseURLHttp}/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${platebarcode}}`;
     }
 }

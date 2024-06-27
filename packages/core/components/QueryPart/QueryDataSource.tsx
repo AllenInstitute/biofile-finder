@@ -40,10 +40,6 @@ export default function QueryDataSource(props: Props) {
                     text: "ADD DATA SOURCE",
                     itemType: ContextualMenuItemType.Header,
                 },
-                {
-                    key: "add-data-source-divider",
-                    itemType: ContextualMenuItemType.Divider,
-                },
                 ...dataSources
                     .filter(
                         (source) =>
