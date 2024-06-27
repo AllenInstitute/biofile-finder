@@ -18,6 +18,7 @@ import OpenSourceDatasets from "./components/OpenSourceDatasets";
 import FmsFileExplorer from "../../core/App";
 import { createReduxStore } from "../../core/state";
 
+import "../../core/styles/global.css";
 import styles from "./src.module.css";
 
 const APP_ID = "fms-file-explorer-web";
