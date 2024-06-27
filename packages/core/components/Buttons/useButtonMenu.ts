@@ -13,6 +13,10 @@ function normalizeButtonMenuItem(item: IContextualMenuItem): IContextualMenuItem
         className = styles.buttonMenuHeader;
     }
 
+    if (item.disabled) {
+        className = styles.buttonMenuItemDisabled;
+    }
+
     return {
         ...item,
         className,

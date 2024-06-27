@@ -3,6 +3,18 @@
     color: var(--primary-text-color);
 }
 
+.button-menu {
+    padding: 8px 0;
+}
+
+.button-menu li > button, .button-menu li > button > div > i {
+    height: 34px;
+}
+
+.button-menu li > button, .button-menu-header {
+    padding: 0 10px;
+}
+
 .button-menu i, .button-menu li > div {
     color: var(--primary-text-color);
 }
@@ -21,6 +33,10 @@
     box-shadow: var(--box-shadow);
 }
 
+.button-menu-callout > div {
+    border-radius: var(--small-border-radius);
+}
+
 .button-menu-divider {
     opacity: 0.25;
 }
@@ -28,7 +44,7 @@
 .button-menu-header {
     align-items: center;
     display: flex;
-    height: 45px;
+    height: 40px;
 }
 
 .button-menu-header span {
@@ -36,4 +52,12 @@
     font-size: 14px;
     font-weight: 400;
     margin: 0;
+}
+
+.button-menu-header > div > div > i {
+    display: none;
+}
+
+.button-menu-item-disabled {
+    opacity: 0.5;
 }
