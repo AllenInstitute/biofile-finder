@@ -31,3 +31,13 @@
   /* Allow whitespace to be rendered (including carriage returns & new lines) */
   white-space: pre-wrap; 
 }
+
+.link {
+  color: var(--aqua);
+}
+
+.link:hover {
+  text-decoration: underline;
+  color: var(--bright-aqua);
+}
+

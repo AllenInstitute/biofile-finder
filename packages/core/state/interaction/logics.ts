@@ -50,6 +50,7 @@ const checkAicsEmployee = createLogic({
     type: INITIALIZE_APP,
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const queries = selection.selectors.getQueries(deps.getState());
+        const isOnWeb = interactionSelectors.isOnWeb(deps.getState());
         const selectedQuery = selection.selectors.getSelectedQuery(deps.getState());
         const fileService = interactionSelectors.getHttpFileService(deps.getState());
 
@@ -61,7 +62,7 @@ const checkAicsEmployee = createLogic({
         if (!selectedQuery) {
             // If there are query args representing a query we can extract that
             // into the query to render (ex. when refreshing a page)
-            if (window.location.search) {
+            if (isOnWeb && window.location.search) {
                 dispatch(
                     selection.actions.addQuery({
                         name: "New Query",

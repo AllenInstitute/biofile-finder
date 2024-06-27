@@ -1,12 +1,13 @@
-import { DefaultButton, IDetailsRowProps, IRenderFunction } from "@fluentui/react";
+import { IDetailsRowProps, IRenderFunction } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import PublicDataset from "../../entity/PublicDataset";
 import { interaction, selection } from "../../../../core/state";
 import { getNameAndTypeFromSourceUrl, Source } from "../../../../core/entity/FileExplorerURL";
+import { PrimaryButton } from "../../../../core/components/Buttons";
 
 import styles from "./DatasetRow.module.css";
 
@@ -20,6 +21,7 @@ export default function DatasetRow(props: DatasetRowProps) {
     const navigate = useNavigate();
     const [showActions, setShowActions] = React.useState(true);
     const dataset = new PublicDataset(props.rowProps.item);
+    const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
     const selectDataset = () => {
         dispatch(interaction.actions.setSelectedPublicDataset(dataset));
@@ -27,13 +29,16 @@ export default function DatasetRow(props: DatasetRowProps) {
     };
 
     const openDatasetInApp = (source: Source) => {
-        navigate("/app");
         dispatch(
             selection.actions.addQuery({
                 name: `New ${source.name} Query on ${dataset?.name || "open-source dataset"}`,
                 parts: { sources: [source] },
             })
         );
+        navigate({
+            pathname: "/app",
+            search: `?${currentGlobalURL}`,
+        });
     };
 
     const loadDataset = () => {
@@ -64,23 +69,15 @@ export default function DatasetRow(props: DatasetRowProps) {
                     [styles.buttonWrapperHidden]: showActions,
                 })}
             >
-                <DefaultButton
-                    className={classNames(styles.button)}
-                    styles={{
-                        label: styles.buttonLabel,
-                    }}
-                    ariaLabel="Dataset details"
+                <PrimaryButton
+                    className={styles.button}
+                    iconName=""
                     title="Dataset details"
                     text="DETAILS"
                 />
-                <DefaultButton
-                    className={classNames(styles.button)}
-                    styles={{
-                        label: styles.buttonLabel,
-                        icon: styles.buttonIcon,
-                    }}
-                    ariaLabel="Load dataset"
-                    iconProps={{ iconName: "Upload" }}
+                <PrimaryButton
+                    className={styles.button}
+                    iconName="Upload"
                     title="Load dataset"
                     text="LOAD"
                     onClick={loadDataset}

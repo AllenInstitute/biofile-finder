@@ -41,6 +41,10 @@
     justify-content: center;
 }
 
+.left-align {
+    justify-content: left;
+}
+
 .title {
     font-weight: 100;
 }

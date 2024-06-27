@@ -3,7 +3,7 @@ Using a local `file-explorer-service`
 
 Some features need to be developed across this codebase and the `file-explorer-service`. And in some other cases, it can
 be helpful to do manual testing via the frontend of a feature or bugfix done within `file-explorer-service`. In each of
-these situations, there is a mechanism built into the FMS File Explorer for using a locally running version of the
+these situations, there is a mechanism built into the BioFile Finder for using a locally running version of the
 `file-explorer-service`.
 
 Instructions:

@@ -9,9 +9,8 @@
   position: absolute;
   top: 50px;
   right: 0;
-  /* filter: drop-shadow(black 0px 0px); */
   padding: 24px 30px;
-  border-left: 1px solid var(--borders-light-grey);
+  border-left: 1px solid var(--medium-grey);
   box-shadow: -4px 10px 8px 0px #000000
 }
 
@@ -24,15 +23,6 @@
   position: absolute;
   top: 0;
   right: 0;
-  color: var(--primary-text-color);
-  font-weight: 500;
-}
-
-.close-button:hover, .close-button:focus {
-  background-color: var(--aqua);
-  background: var(--aqua);
-  color: var(--white);
-  font-weight: 600;
 }
 
 .title {
@@ -45,8 +35,8 @@
 hr {
   border: none;
   height: 1px !important;
-  color: var(--borders-light-grey); /* old IE */
-  background-color: var(--borders-light-grey); /* Modern Browsers */
+  color: var(--medium-grey); /* old IE */
+  background-color: var(--medium-grey); /* Modern Browsers */
 }
 
 .content {
@@ -97,49 +87,15 @@ hr {
 }
 
 .button {
-  background-color: var(--aqua);
-  color: var(--white);
-  border: 1px solid var(--secondary-dark);
-  border-radius: 18px;
   height: 33px;
+  width: fit-content;
   margin: var(--margin) 0;
 }
 
-.button:hover,
-.button:focus {
-  background-color: var(--bright-aqua);
-  color: var(--white);
-}
-
-.button-label { 
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.button-icon { 
-  font-size: 15px;
-  font-weight: 500;
-}
-
 .secondary-close-button {
-  background-color: none;
-  background: none;
-  color: var(--aqua);
-  border: 1px solid var(--aqua);
-  border-radius: 18px;
   height: 33px;
+  width: fit-content;
   position: absolute;
   bottom: 0;
   right: 0;
-}
-
-.secondary-close-button-label {
-  font-weight: 400;
-  font-size: 14px;
-}
-
-.secondary-close-button:hover, .secondary-close-button:focus {
-  background-color: var(--aqua-secondary-hover);
-  background: var(--aqua-secondary-hover);
-  color: var(--bright-aqua)
 }

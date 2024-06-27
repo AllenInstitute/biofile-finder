@@ -97,7 +97,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
                     duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
                     true
                 );
-            } else if ((uri as any) instanceof String) {
+            } else if (typeof uri === "string") {
                 const protocol = uri.startsWith("s3")
                     ? duckdb.DuckDBDataProtocol.S3
                     : duckdb.DuckDBDataProtocol.HTTP;

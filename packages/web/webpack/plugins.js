@@ -20,6 +20,7 @@ const BASE_PLUGINS = [
     new CleanWebpackPlugin(),
     new MiniCssExtractPlugin({ filename: "[name].[contenthash].css" }),
     new HtmlWebpackPlugin({
+        favicon: path.resolve(__dirname, "logo.ico"),
         template: path.resolve(__dirname, "index.html"),
     }),
     new Dotenv({
