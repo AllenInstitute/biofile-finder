@@ -1,7 +1,9 @@
 .icon-button, .icon-button:hover {
     background-color: unset;
     color: unset;
-    width: 22px;
+    height: 37px;
+    margin-left: auto;
+    width: 16px;
 }
 
 .icon-button:hover {
@@ -27,16 +29,16 @@
 
 .row {
     display: flex;
-    height: 34px;
+    height: 37px;
     width: 100%;
-    margin: 0 10px;
-    padding: 0 6px 0 10px;
+    margin: 2px 8px;
+    padding: 0 12px;
 }
 
 .interactive {
     border: 1px solid var(--border-color);
     border-radius: var(--small-border-radius);
-    margin: calc(var(--margin) / 4) 0;
+    max-width: calc(100% - 16px);
 }
 
 .interactive:hover {

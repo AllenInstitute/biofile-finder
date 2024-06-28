@@ -63,7 +63,7 @@ export default function Query(props: QueryProps) {
                 }
             >
                 <div className={styles.header}>
-                    <h4>{props.query.name}</h4>
+                    <h4 title={props.query.name}>{props.query.name}</h4>
                     {props.isSelected && (
                         <IconButton
                             ariaDescription="Expand view details"

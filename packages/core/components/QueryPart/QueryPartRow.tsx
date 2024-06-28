@@ -30,9 +30,8 @@ export default function QueryGroupRow(props: Props) {
     });
 
     const isInteractive = !!props.item.onClick || !props.item.disabled;
-    const baseMargin = isInteractive ? 10 : 0;
-    const marginLeft = props.item.disabled ? baseMargin : props.index * 10 + baseMargin;
-    const marginRight = baseMargin;
+    const baseMargin = isInteractive ? 8 : 0;
+    const marginLeft = props.item.disabled ? baseMargin : props.index * 16 + baseMargin;
 
     return (
         <div
@@ -40,7 +39,7 @@ export default function QueryGroupRow(props: Props) {
                 [styles.grabbable]: !props.item.disabled,
                 [styles.interactive]: isInteractive,
             })}
-            style={{ marginLeft, maxWidth: `calc(100% - ${marginLeft + marginRight}px)` }}
+            style={{ marginLeft }}
         >
             <div
                 className={classNames(styles.rowTitle, {
