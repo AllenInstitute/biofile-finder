@@ -48,7 +48,7 @@
 }
 
 .query-sidebar-and-center {
-    width: calc(80% - var(--margin));
+    width: calc(100% - var(--margin) - var(--file-details-width));
     height: 100%;
     display: flex;
 
