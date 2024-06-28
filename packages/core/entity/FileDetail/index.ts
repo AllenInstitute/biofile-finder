@@ -190,8 +190,7 @@ export default class FileDetail {
             return undefined;
         }
 
-        // LabKey does not support HTTPS yet
         const baseURLHttp = baseURL.replace("https", "http");
-        return `${baseURLHttp}/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${platebarcode}}`;
+        return `${baseURLHttp}/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${platebarcode}`;
     }
 }

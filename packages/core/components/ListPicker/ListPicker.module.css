@@ -7,7 +7,6 @@
     color: var(--primary-text-color);
     height: 600px;
     max-height: 75vh;
-    max-width: 400px;
     padding: 16px 30px;
     width: 35vw;
 }
