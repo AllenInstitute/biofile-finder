@@ -1,4 +1,3 @@
-import { Icon } from "@fluentui/react";
 import classNames from "classnames";
 import { noop, throttle } from "lodash";
 import * as React from "react";
@@ -107,7 +106,7 @@ export default function FileDetails(props: Props) {
                     // TODO:???
                     onDoubleClick={resizeHandleDoubleClick}
                 >
-                    <Icon iconName="MoreVertical" />
+                    <div />
                 </div>
                 <div className={styles.paginationAndContent}>
                     <Pagination className={styles.pagination} />
