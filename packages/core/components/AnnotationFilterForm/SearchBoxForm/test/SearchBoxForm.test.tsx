@@ -4,28 +4,48 @@ import { noop } from "lodash";
 import * as React from "react";
 import sinon from "sinon";
 
-import FileFilter from "../../../entity/FileFilter";
+import FileFilter from "../../../../entity/FileFilter";
 
-import SearchBox from "..";
+import SearchBoxForm from "..";
 
-describe("<SearchBox/>", () => {
+describe("<SearchBoxForm/>", () => {
     it("renders an input field for the search term", () => {
         // Arrange
         const { getAllByRole } = render(
-            <SearchBox onSearch={noop} onReset={noop} defaultValue={undefined} />
+            <SearchBoxForm
+                onSearch={noop}
+                defaultValue={undefined} 
+                fieldName=""
+                items={[]}
+                onSelect={noop}
+                onSelectAll={noop}
+                onDeselect={noop}
+                onDeselectAll={noop}
+            />
         );
         // Assert
-        expect(getAllByRole("searchbox").length).to.equal(1);
+        expect(getAllByRole("SearchBoxForm").length).to.equal(1);
     });
 
     it("initializes to values passed through props if provided", () => {
         // Arrange
         const currentValue = new FileFilter("foo", "bar");
 
-        render(<SearchBox onSearch={noop} onReset={noop} defaultValue={currentValue} />);
+        render(
+            <SearchBoxForm
+                onSearch={noop}
+                defaultValue={currentValue} 
+                fieldName=""
+                items={[]}
+                onSelect={noop}
+                onSelectAll={noop}
+                onDeselect={noop}
+                onDeselectAll={noop}
+            />
+        )
 
         // Should initialize to value provided, respectively
-        expect(screen.getByRole<HTMLInputElement>("searchbox").value).to.equal("bar");
+        expect(screen.getByRole<HTMLInputElement>("SearchBoxForm").value).to.equal("bar");
     });
 
     it("renders a 'Reset' button if given a callback", () => {
@@ -35,24 +55,33 @@ describe("<SearchBox/>", () => {
 
         // Act / Assert
         const { getByRole, getByLabelText } = render(
-            <SearchBox onSearch={onSearch} onReset={onReset} defaultValue={undefined} />
+            <SearchBoxForm 
+                onSearch={onSearch}
+                defaultValue={undefined} 
+                fieldName=""
+                items={[]}
+                onSelect={noop}
+                onSelectAll={noop}
+                onDeselect={noop}
+                onDeselectAll={onReset}
+            />
         );
         // Enter values
-        fireEvent.change(getByRole("searchbox"), {
+        fireEvent.change(getByRole("SearchBoxForm"), {
             target: {
                 value: "bar",
             },
         });
 
         // Sanity check
-        expect(screen.getByRole<HTMLInputElement>("searchbox").value).to.equal("bar");
+        expect(screen.getByRole<HTMLInputElement>("SearchBoxForm").value).to.equal("bar");
 
         // Hit reset
         expect(onReset.called).to.equal(false);
         fireEvent.click(getByLabelText("Clear text"));
         expect(onReset.called).to.equal(true);
 
-        expect(screen.getByRole<HTMLInputElement>("searchbox").value).to.equal("");
+        expect(screen.getByRole<HTMLInputElement>("SearchBoxForm").value).to.equal("");
     });
 
     it("renders a list picker when 'List picker' option is selection", () => {
@@ -66,7 +95,7 @@ describe("<SearchBox/>", () => {
                 onDeselectAll={noop}
                 items={[{ value: "foo", selected: false, displayValue: "foo" }]}
                 onSearch={noop}
-                currentValue={undefined}
+                defaultValue={undefined}
             />
         );
 

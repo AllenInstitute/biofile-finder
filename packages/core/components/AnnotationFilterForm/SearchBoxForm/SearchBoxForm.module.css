@@ -1,4 +1,76 @@
+.choice-group {
+    margin-bottom: 6px;
+}
+
+.choice-group input:disabled + label {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.choice-group :is(input, label, span) {
+    color: var(--primary-text-color);
+}
+
+.choice-group label > span {
+    font-size: var(--xs-paragraph-size);
+}
+
+.choice-group label:hover > span {
+    color: var(--highlight-text-color) !important;
+}
+
+.choice-group label::before, .choice-group label:hover::before {
+    background-color: var(--highlight-text-color);
+    border-color: var(--highlight-text-color);
+}
+
+.choice-group label::after {
+    background-color: var(--aqua);
+    border-color: var(--aqua);
+}
+
+.choice-group label:hover::after {
+    background-color: var(--bright-aqua) !important;
+    border-color: var(--bright-aqua) !important;
+}
+
+.choice-group > div > div {
+    display: flex;
+}
+
+.choice-group > div > div > div:not(:first-child) {
+    margin-left: 6px;
+}
+
+.container {
+    padding: 8px;
+}
+
+.list-picker {
+    padding: 0;
+    width: 100%;
+}
+
+.search-box-input, .search-box-input > :is(div, input), .search-box-input :is(button, i) {
+    background-color: var(--secondary-background-color) !important;
+    border-radius: var(--small-border-radius);
+    color: var(--secondary-text-color) !important;
+}
+
+.search-box-input > div:hover > button, .search-box-input > div:hover i {
+    background-color: var(--highlight-background-color) !important;
+    color: var(--highlight-text-color) !important;
+}
+
+.search-box-input::after {
+    display: none;
+}
+
+.search-box-input *::placeholder {
+    color: var(--secondary-text-color);
+    font-style: italic;
+}
+
 .title {
-    margin: 0;
-    padding-bottom: var(--margin);
+    margin: 0 0 8px 0;
 }
