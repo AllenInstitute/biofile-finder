@@ -5,9 +5,8 @@
 
     background-color: var(--primary-background-color);
     color: var(--primary-text-color);
-    height: 600px;
+    height: 500px;
     max-height: 75vh;
-    max-width: 400px;
     padding: 16px 30px;
     width: 35vw;
 }
@@ -55,6 +54,7 @@
     justify-content: right;
     position: relative;
     width: 100%;
+    z-index: 999;
 }
 
 .footer > p {
