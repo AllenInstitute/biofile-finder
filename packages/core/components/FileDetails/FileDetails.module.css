@@ -113,25 +113,33 @@
 
 .resize-handle {
     align-items: center;
+    border-left: 1px solid var(--border-color);
     cursor: col-resize;
     display: flex;
     height: 100%;
     left: 0px;
+    justify-content: center;
     padding-left: 1px;
     position: relative;
     width: var(--resize-handle-width);
     z-index: 11;
 }
 
-.resize-handle i {
-    color: var(--highlight-background-color);
-    font-weight: bold;
-    transform: translateX(-4px);
+.resize-handle:hover {
+    border-left: 2px solid var(--bright-aqua);
+    width: 10px;
+    z-index: 9999;
 }
 
-.resize-handle:hover {
-    border-left: 1px solid var(--highlight-background-color);
-    padding-left: 0;
+.resize-handle > div {
+    height: 15px;
+    width: 2px;
+    background-color: var(--highlight-background-color);
+}
+
+.resize-handle:hover > div {
+    background-color: var(--highlight-hover-background-color);
+    transform: translateX(-0.5px);
 }
 
 .file-name {

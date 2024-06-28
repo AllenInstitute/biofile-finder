@@ -5,7 +5,6 @@ import { useSelector, useDispatch } from "react-redux";
 
 import ColumnPicker from "./ColumnPicker";
 import { ContextMenuItem } from "../ContextMenu";
-import getContextMenuItems from "../ContextMenu/items";
 import FileRow, { CellConfig } from "../../components/FileRow";
 import { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
@@ -61,22 +60,23 @@ function Header(
 
     const onHeaderColumnContextMenu = (evt: React.MouseEvent) => {
         evt.preventDefault();
-        const availableContextMenuItem = getContextMenuItems(dispatch);
-
         const items: ContextMenuItem[] = [
             {
-                ...availableContextMenuItem.MODIFY_COLUMNS,
-                subMenuProps: {
-                    items: [
-                        {
-                            key: "available-annotations",
-                            text: "Available annotations",
-                            onRender() {
-                                return <ColumnPicker />;
-                            },
-                        },
-                    ],
+                key: "modify-columns",
+                text: "Modify columns",
+                title: "Modify columns displayed in the file list",
+                iconProps: {
+                    iconName: "TripleColumnEdit",
                 },
+                items: [
+                    {
+                        key: "available-annotations",
+                        text: "Available annotations",
+                        onRender() {
+                            return <ColumnPicker />;
+                        },
+                    },
+                ],
             },
         ];
         dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));

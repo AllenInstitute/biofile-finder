@@ -81,28 +81,32 @@
     align-items: center;
     background: none;
     bottom: -5px;
+    border-right: 1px solid var(--border-color);
     color: var(--highlight-background-color);
     cursor: pointer;
     display: flex;
-    flex-direction: column;
-    height: 100%;
-    justify-content: space-around;
+    height: calc(100% + 12px);
+    justify-content: center;
     right: 0;
     position: absolute;
-    width: 1em;
+    width: 10px;
 }
 
 .minimize-bar:hover {
-    box-shadow: 5px 0 5px -2px var(--highlight-background-color)
+    border-right: 2px solid var(--bright-aqua);
+    width: 10px;
+    z-index: 9999;
 }
 
-.minimize-bar > i {
-    font-size: xx-small;
-    display: none;
+.minimize-bar > div {
+    height: 15px;
+    width: 2px;
+    background-color: var(--highlight-background-color);
 }
 
-.minimize-bar:hover > i {
-    display: block;
+.minimize-bar:hover > div {
+    background-color: var(--highlight-hover-background-color);
+    transform: translateX(0.5px);
 }
 
 .header {

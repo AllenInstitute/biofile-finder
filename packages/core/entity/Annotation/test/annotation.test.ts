@@ -1,7 +1,8 @@
 import { expect } from "chai";
 import { compact, find } from "lodash";
 
-import Annotation, { AnnotationName } from "../";
+import Annotation from "../";
+import AnnotationName from "../AnnotationName";
 import { AnnotationType } from "../../AnnotationFormatter";
 import dateTimeFormatter from "../../AnnotationFormatter/date-time-formatter";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";

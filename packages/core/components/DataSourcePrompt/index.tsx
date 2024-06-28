@@ -5,7 +5,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { PrimaryButton } from "../Buttons";
-import { interaction, metadata, selection } from "../../state";
+import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
 import { getNameAndTypeFromSourceUrl, Source } from "../../entity/FileExplorerURL";
 
@@ -29,7 +29,7 @@ const ADDITIONAL_COLUMN_DETAILS = [
 export default function DataSourcePrompt(props: Props) {
     const dispatch = useDispatch();
 
-    const selectedDataSources = useSelector(metadata.selectors.getDataSources);
+    const selectedDataSources = useSelector(selection.selectors.getSelectedDataSources);
     const dataSourceInfo = useSelector(interaction.selectors.getDataSourceInfoForVisibleModal);
     const { source: sourceToReplace, query } = dataSourceInfo || ({} as DataSourcePromptInfo);
 

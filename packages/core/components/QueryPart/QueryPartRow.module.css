@@ -1,7 +1,10 @@
 .icon-button, .icon-button:hover {
     background-color: unset;
     color: unset;
-    width: 22px;
+    font-weight: 600;
+    height: 37px;
+    max-width: 22px;
+    width: 100%;
 }
 
 .icon-button:hover {
@@ -27,16 +30,16 @@
 
 .row {
     display: flex;
-    height: 34px;
+    height: 37px;
     width: 100%;
-    margin: 0 10px;
-    padding: 0 6px 0 10px;
+    margin: 2px 8px;
+    padding: 0 8px;
 }
 
 .interactive {
     border: 1px solid var(--border-color);
     border-radius: var(--small-border-radius);
-    margin: calc(var(--margin) / 4) 0;
+    max-width: calc(100% - 16px);
 }
 
 .interactive:hover {
@@ -50,21 +53,29 @@
 }
 
 .row-title {
+    align-items: center;
     display: flex;
     max-width: calc(100% - 22px);
     width: 100%;
 }
 
+.interactive > .row-title:hover {
+    color: var(--highlight-text-color);
+}
+
+.row-title > i {
+    font-weight: 600;
+}
+
 .row-title > p {
-    align-items: center;
-    display: flex;
-    font-size: smaller;
+    font-size: var(--s-paragraph-size);
     margin: 0;
+    display: block;
     padding: 0;
     overflow-x: hidden;
     text-overflow: ellipsis;
-    width: 100%;
     white-space: nowrap;
+    height: unset;
 }
 
 .dynamic-row-title {

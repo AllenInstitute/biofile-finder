@@ -13,7 +13,7 @@ import LazilyRenderedThumbnail from "./LazilyRenderedThumbnail";
 import { selection } from "../../state";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileSelector from "./useFileSelector";
-import useFileAccessContextMenu from "./useFileAccessContextMenu";
+import useFileAccessContextMenu from "../../hooks/useFileAccesContextMenu";
 import EmptyFileListMessage from "../EmptyFileListMessage";
 
 import styles from "./FileList.module.css";

@@ -1,0 +1,26 @@
+.search-box, .search-box > :is(div, input), .search-box :is(button, i) {
+    background-color: var(--secondary-background-color) !important;
+    color: var(--secondary-text-color) !important;
+}
+
+.search-box:hover {
+    border: 1px solid var(--border-color);
+}
+
+.search-box:focus, .search-box:focus-visible {
+    outline: none;
+}
+
+.search-box > div:hover > button, .search-box > div:hover > button i {
+    background-color: var(--highlight-background-color) !important;
+    color: var(--highlight-text-color) !important;
+}
+
+.search-box > *::placeholder {
+    color: var(--secondary-text-color);
+    font-style: italic;
+}
+
+.search-box::after {
+    display: none;
+}

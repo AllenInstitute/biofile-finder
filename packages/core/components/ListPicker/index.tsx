@@ -1,9 +1,10 @@
-import { ActionButton, List, SearchBox, Spinner, SpinnerSize } from "@fluentui/react";
+import { ActionButton, List, Spinner, SpinnerSize } from "@fluentui/react";
 import classNames from "classnames";
 import Fuse from "fuse.js";
 import * as React from "react";
 
 import ListRow, { ListItem } from "./ListRow";
+import SearchBox from "../SearchBox";
 
 import styles from "./ListPicker.module.css";
 
@@ -54,13 +55,6 @@ export default function ListPicker(props: ListPickerProps) {
 
     const [searchValue, setSearchValue] = React.useState("");
 
-    const onSearchBoxChange = (event?: React.ChangeEvent<HTMLInputElement>) => {
-        // bizzarely necessary because of typings on SearchBox
-        if (event) {
-            setSearchValue(event.target.value);
-        }
-    };
-
     const fuse = React.useMemo(() => new Fuse(items, FUZZY_SEARCH_OPTIONS), [items]);
     const filteredItems = React.useMemo(() => {
         const filteredRows = searchValue ? fuse.search(searchValue) : items;
@@ -68,6 +62,16 @@ export default function ListPicker(props: ListPickerProps) {
             // If selected, sort to the top
             if (a.selected !== b.selected) {
                 return a.selected ? -1 : 1;
+            }
+
+            // If recent, sort to the top below selected
+            if (a.recent !== b.recent) {
+                return a.recent ? -1 : 1;
+            }
+
+            // If this is a divider, sort to the top below recent
+            if (a.isDivider !== b.isDivider) {
+                return a.isDivider ? -1 : 1;
             }
 
             // If disabled, sort to the bottom
@@ -110,10 +114,8 @@ export default function ListPicker(props: ListPickerProps) {
                 {props.title && <h3>{props.title}</h3>}
                 <SearchBox
                     id={props.id}
-                    className={styles.searchBox}
-                    onChange={onSearchBoxChange}
-                    onClear={() => setSearchValue("")}
-                    placeholder="Search..."
+                    onChange={setSearchValue}
+                    onReset={() => setSearchValue("")}
                 />
                 <div className={styles.buttons}>
                     {onSelectAll && (
@@ -123,6 +125,7 @@ export default function ListPicker(props: ListPickerProps) {
                                 {
                                     [styles.disabled]: !hasUnselectedItem,
                                 },
+                                styles.selectAllButton,
                                 styles.actionButton
                             )}
                             disabled={!hasUnselectedItem}
@@ -130,7 +133,7 @@ export default function ListPicker(props: ListPickerProps) {
                             title={hasUnselectedItem ? undefined : "All options selected"}
                             onClick={onSelectAll}
                         >
-                            SELECT ALL
+                            Select all
                         </ActionButton>
                     )}
                     <ActionButton
@@ -146,7 +149,7 @@ export default function ListPicker(props: ListPickerProps) {
                         title={hasSelectedItem ? undefined : "No options selected"}
                         onClick={onDeselectAll}
                     >
-                        CLEAR ALL
+                        Clear all
                     </ActionButton>
                 </div>
             </div>
@@ -167,10 +170,10 @@ export default function ListPicker(props: ListPickerProps) {
                 />
             </div>
             <div className={styles.footer}>
-                <h6>
+                <p>
                     {/* (item.length -1) to account for buffer in item list. */}
                     Displaying {filteredItems.length - 1} of {items.length - 1} Options
-                </h6>
+                </p>
             </div>
         </div>
     );

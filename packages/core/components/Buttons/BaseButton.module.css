@@ -24,7 +24,7 @@
 }
 
 .button-text {
-    font-weight: 400;
+    font-weight: 600;
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -44,4 +44,8 @@
 
 .selected {
     cursor: default;
+}
+
+.selected i {
+    opacity: unset;
 }

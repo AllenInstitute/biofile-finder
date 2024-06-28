@@ -3,7 +3,8 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 
 import FileAnnotationRow from "./FileAnnotationRow";
-import Annotation, { AnnotationName } from "../../entity/Annotation";
+import Annotation from "../../entity/Annotation";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileDetail from "../../entity/FileDetail";
 import { interaction, metadata } from "../../state";
 

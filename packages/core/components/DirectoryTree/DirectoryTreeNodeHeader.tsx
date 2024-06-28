@@ -9,7 +9,7 @@ import SvgIcon from "../../components/SvgIcon";
 import { selection } from "../../state";
 import FileSet from "../../entity/FileSet";
 import { ERROR_ICON_PATH_DATA } from "../../icons";
-import useFileAccessContextMenu from "../FileList/useFileAccessContextMenu";
+import useFileAccessContextMenu from "../../hooks/useFileAccesContextMenu";
 
 import styles from "./DirectoryTreeNode.module.css";
 

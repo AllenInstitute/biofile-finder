@@ -61,7 +61,7 @@ export default function QueryPart(props: Props) {
                 disabled={props.disabled}
                 className={styles.addButton}
                 id={props.tutorialId}
-                menuIconProps={{ iconName: "ChevronRight" }}
+                menuIconProps={{ iconName: "Add" }}
                 text={props.title}
                 menuProps={addButtonMenu}
             />

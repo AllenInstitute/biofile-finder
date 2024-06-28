@@ -38,7 +38,7 @@ import {
 } from "../../services/ExecutionEnvService";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import FileDetail from "../../entity/FileDetail";
-import { AnnotationName } from "../../entity/Annotation";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileSelection from "../../entity/FileSelection";
 import NumericRange from "../../entity/NumericRange";
 import FileExplorerURL, { DEFAULT_AICS_FMS_QUERY } from "../../entity/FileExplorerURL";

@@ -132,7 +132,7 @@ describe("<LazilyRenderedThumbnail />", () => {
         const { store } = configureMockStore({ state: initialState });
 
         // Act
-        const { queryByText } = render(
+        const { queryByText, queryAllByTestId } = render(
             <Provider store={store}>
                 <LazilyRenderedThumbnail
                     data={makeItemData()}
@@ -145,7 +145,7 @@ describe("<LazilyRenderedThumbnail />", () => {
 
         // Assert
         expect(queryByText("my_image")).to.equal(null);
-        expect(queryByText("Loading...")).to.not.equal(null);
+        expect(queryAllByTestId("loading-spinner")).to.not.be.empty;
     });
 
     // We want to be able to render empty cells past the total item count in order to fill the grid
@@ -154,7 +154,7 @@ describe("<LazilyRenderedThumbnail />", () => {
         const { store } = configureMockStore({ state: initialState });
 
         // Act
-        const { queryByText } = render(
+        const { queryByText, queryAllByTestId } = render(
             <Provider store={store}>
                 <LazilyRenderedThumbnail
                     data={makeItemData()}
@@ -167,7 +167,7 @@ describe("<LazilyRenderedThumbnail />", () => {
 
         // Assert
         expect(queryByText("my_image")).to.equal(null);
-        expect(queryByText("Loading...")).to.equal(null);
+        expect(queryAllByTestId("loading-spinner")).to.be.empty;
     });
 
     it("renders and indexes correctly with different number of columns", () => {

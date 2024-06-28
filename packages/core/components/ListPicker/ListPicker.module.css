@@ -1,12 +1,13 @@
 .container {
     --spacing: 0.5rem;
-    --footer-height: 15px;
-    --header-height: 85px;
+    --footer-height: 16px;
+    --header-height: 110px;
 
     background-color: var(--primary-background-color);
     color: var(--primary-text-color);
-    height: 75vh;
-    padding: var(--spacing);
+    height: 600px;
+    max-height: 75vh;
+    padding: 16px 30px;
     width: 35vw;
 }
 
@@ -15,17 +16,18 @@
 }
 
 .header {
-    height: var(--header-height);
+    min-height: var(--header-height);
     padding-bottom: var(--spacing);
     width: 100%;
 }
 
 .header > h3 {
-    margin: 0 0 var(--spacing) 0;
+    margin-bottom: 8px;
 }
 
 .buttons {
     display: flex;
+    margin: 8px 0;
 }
 
 .main-content {
@@ -36,7 +38,7 @@
 
 .main-content::after {
     background-image: linear-gradient(transparent, var(--primary-background-color));
-    bottom: calc(var(--spacing) + var(--footer-height));
+    bottom: calc(var(--footer-height) + 16px);
     content: " ";
     height: 50px;
     right: 0;
@@ -49,24 +51,28 @@
 .footer {
     display: flex;
     height: var(--footer-height);
-    justify-content: right;;
+    justify-content: right;
+    position: relative;
     width: 100%;
 }
 
-.footer > h6 {
-    font-size: smaller;
-    font-weight: normal;
-    margin: 0;
-}
-
-.action-button {
-    border-radius: var(--small-border-radius);
-    margin: calc(var(--margin) / 2) calc(var(--margin) / 2) calc(var(--margin) / 2) 0;
+.footer > p {
+    font-size: var(--xs-paragraph-size);
+    font-weight: 400;
+    margin-top: 0;
 }
 
 .action-button {
     background-color: var(--secondary-background-color) !important;
+    border-radius: var(--small-border-radius);
     color: var(--secondary-text-color) !important;
+    display: flex;
+    font-size: var(--l-paragraph-size);
+    font-weight: 400;
+    height: 34px;
+    justify-content: center;
+    margin-right: 16px;
+    width: 118px;
 }
 
 .action-button i {
@@ -85,21 +91,6 @@
     opacity: 0.5;
 }
 
-.search-box, .search-box > :is(div, input), .search-box :is(button, i) {
-    background-color: var(--secondary-background-color) !important;
-    color: var(--secondary-text-color) !important;
-}
-
-.search-box > div:hover > button, .search-box > div:hover > button i {
-    background-color: var(--highlight-background-color) !important;
-    color: var(--highlight-text-color) !important;
-}
-
-.search-box > *::placeholder {
-    color: var(--secondary-text-color);
-    font-style: italic;
-}
-
-.search-box::after {
-    display: none;
+.action-button.select-all-button i {
+    font-size: var(--l-paragraph-size);
 }
