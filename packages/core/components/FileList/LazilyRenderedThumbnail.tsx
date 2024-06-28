@@ -121,7 +121,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
         // Grid will attempt to render a cell even if we're past the total index
         content = (
             <div className={styles.loadingContainer}>
-                <Spinner size={SpinnerSize.small} />
+                <Spinner data-testid="loading-spinner" size={SpinnerSize.small} />
             </div>
         );
     } // No `else` since if past total index we stil want empty content to fill up the outer grid
