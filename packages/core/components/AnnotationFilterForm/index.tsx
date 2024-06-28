@@ -158,8 +158,12 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             return (
                 <SearchBoxForm
                     className={styles.picker}
+                    items={items}
+                    onSelect={onSelect}
+                    onDeselect={onDeselect}
+                    onSelectAll={onSelectAll}
+                    onDeselectAll={onDeselectAll}
                     onSearch={onSearch}
-                    onReset={onDeselectAll}
                     fieldName={props.annotation.displayName}
                     title={`Filter by ${props.annotation.displayName}`}
                     defaultValue={filtersForAnnotation?.[0]}
