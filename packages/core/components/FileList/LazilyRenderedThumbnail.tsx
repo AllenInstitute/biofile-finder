@@ -1,3 +1,4 @@
+import { Spinner, SpinnerSize } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
@@ -106,7 +107,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
                     uri={thumbnailPath}
                 />
                 <div
-                    className={classNames(styles.fileLabel, {
+                    className={classNames({
                         [styles.smallFont]:
                             shouldDisplaySmallFont ||
                             fileGridColCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL,
@@ -118,15 +119,15 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
         );
     } else if (overallIndex < itemCount) {
         // Grid will attempt to render a cell even if we're past the total index
-        content = "Loading...";
+        content = (
+            <div className={styles.loadingContainer}>
+                <Spinner size={SpinnerSize.small} />
+            </div>
+        );
     } // No `else` since if past total index we stil want empty content to fill up the outer grid
 
     return (
-        <div
-            className={classNames(styles.thumbnailWrapper)}
-            style={style}
-            onContextMenu={onContextMenu}
-        >
+        <div className={styles.thumbnailWrapper} style={style} onContextMenu={onContextMenu}>
             {content}
         </div>
     );

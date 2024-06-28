@@ -1,33 +1,49 @@
-.small-font {
-  font-size: var(--smaller-font-size);
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
 }
 
-.file-label {
-  overflow-wrap: anywhere;
-  text-align: center;
+.loading-container > div > div {
+  border-color: var(--primary-text-color) var(--primary-background-color) var(--primary-background-color);
 }
 
 .selected {
   background-color: var(--highlight-background-color);
 }
 
+.small-font {
+  font-size: var(--xs-paragraph-size);
+}
+
 .focused {
-  border: 1px solid var(--highlight-text-color);
+  background-color: var(--highlight-hover-background-color);
 }
 
 .thumbnail-wrapper {
-  padding: 10px
+  font-size: var(--s-paragraph-size);
+  padding: 4px;
 }
 
 .thumbnail-wrapper > div {
+  border-radius: var(--small-border-radius);
   display: flex;
   flex-direction: column;
+  height: 100%;
+  padding: 4px;
 }
 
-.thumbnail-wrapper > div:not(.focused) {
-  margin: 1px;
-}
-
-.thumbnail-wrapper > div > img {
+.thumbnail-wrapper > div > :is(svg, img) {
   margin: 0 auto;
+}
+
+.thumbnail-wrapper > div > div {
+  overflow-wrap: unset;
+  text-overflow: ellipsis;
+  word-break: keep-all;
+  margin: auto;
+  text-align: center;
+  width: 100%;
 }
