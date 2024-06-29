@@ -5,12 +5,14 @@ import HttpServiceBase from "../../HttpServiceBase";
 import Annotation, { AnnotationResponse } from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
+import FuzzyFilter from "../../../entity/FuzzyFilter";
 
 enum QueryParam {
     FILTER = "filter",
     HIERARCHY = "hierarchy",
     ORDER = "order",
     PATH = "path",
+    FUZZY = "fuzzy",
 }
 
 /**
@@ -50,7 +52,8 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
 
     public async fetchRootHierarchyValues(
         hierarchy: string[],
-        filters: FileFilter[]
+        filters: FileFilter[],
+        fuzzyFilters?: FuzzyFilter[]
     ): Promise<string[]> {
         // It's important that we fetch values for the correct (i.e., first) level of the hierarchy.
         // But after that, sort the levels so that we can effectively cache the result
@@ -62,6 +65,10 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
             this.buildQueryParams(
                 QueryParam.FILTER,
                 filters.map((f) => f.toQueryString())
+            ),
+            this.buildQueryParams(
+                QueryParam.FUZZY,
+                fuzzyFilters?.map((f) => f.annotationName) || []
             ),
         ]
             .filter((param) => !!param)
@@ -76,7 +83,8 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
     public async fetchHierarchyValuesUnderPath(
         hierarchy: string[],
         path: string[],
-        filters: FileFilter[]
+        filters: FileFilter[],
+        fuzzyFilters?: FuzzyFilter[]
     ): Promise<string[]> {
         const queryParams = [
             this.buildQueryParams(QueryParam.ORDER, hierarchy),
@@ -84,6 +92,10 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
             this.buildQueryParams(
                 QueryParam.FILTER,
                 filters.map((f) => f.toQueryString())
+            ),
+            this.buildQueryParams(
+                QueryParam.FUZZY,
+                fuzzyFilters?.map((f) => f.annotationName) || []
             ),
         ]
             .filter((param) => !!param)

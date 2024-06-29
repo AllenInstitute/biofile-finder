@@ -13,8 +13,6 @@ export default class FuzzyFilter {
         return `fuzzy=${this.annotationName}`;
     }
 
-    //TODO: Do we need SQL support?
-
     public toJSON(): Record<string, string> {
         return {
             annotationName: this.annotationName,
