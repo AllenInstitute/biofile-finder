@@ -109,6 +109,7 @@ export default function ListPicker(props: ListPickerProps) {
                 [styles.biggerHeader]: !!props.title,
             })}
             data-is-focusable="true"
+            data-testid="list-picker"
         >
             <div className={styles.header}>
                 {props.title && <h3>{props.title}</h3>}

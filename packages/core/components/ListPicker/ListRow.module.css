@@ -34,10 +34,9 @@
     color: var(--highlight-text-color);
 }
 
-.selected {
-    background-color: var(--secondary-background-color);
-    color: var(--secondary-text-color);
-    margin:  calc(var(--spacing) / 4) 0
+.selected:not(:hover) {
+    background-color: var(--secondary-background-color) !important;
+    color: var(--secondary-text-color) !important;
 }
 
 .divider {
