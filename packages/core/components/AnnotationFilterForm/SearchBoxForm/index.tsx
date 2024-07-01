@@ -36,16 +36,23 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
                 className={styles.choiceGroup}
                 label="Filter type"
                 defaultSelectedKey={isListPicking ? "list-picker" : "search-box"}
-                options={[{
-                    key: 'search-box',
-                    text: 'Search box',
-                },{
-                    key: 'list-picker',
-                    text: 'List picker',
-                    disabled: props.items.length === 0,
-                }]}
+                options={[
+                    {
+                        key: "search-box",
+                        text: "Search box",
+                    },
+                    {
+                        key: "list-picker",
+                        text: "List picker",
+                        disabled: props.items.length === 0,
+                    },
+                ]}
                 onChange={(_, selection) => {
-                    props.onDeselectAll();
+                    // Clear the selection if the user switches to the search box
+                    // and the default value is not in the list (i.e. not deselectable)
+                    if (props.defaultValue && !props.items.some((item) => item.selected)) {
+                        props.onDeselectAll();
+                    }
                     setIsListPicking(selection?.key === "list-picker");
                 }}
             />
