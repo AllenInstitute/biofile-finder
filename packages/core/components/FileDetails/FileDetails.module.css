@@ -1,7 +1,6 @@
 .root {
     --pagination-height: 40px;
     --padding: 10px;
-    --resize-handle-width: 10px;
 
     background-color: var(--primary-background-color);
     color: var(--primary-text-color);
@@ -10,7 +9,7 @@
     min-width: 175px;
     max-width: 95%;
     overflow: auto;
-    width: var(--file-details-width); /* defined in App.module.css under .root{} */
+    width: var(--file-details-width); /* defined in App.module.css under .root{} and used by resize handle */
 }
 
 .expandable-transition {
@@ -42,8 +41,7 @@
 }
 
 .pagination-and-content {
-    padding: var(--padding) var(--padding) 0 var(--padding);
-    transform: translateX(calc(-1 * var(--resize-handle-width) / 2));
+    padding: 12px 12px 0 12px;
     width: 100%
 }
 
@@ -105,33 +103,40 @@
     background-color: var(--primary-background-color);
 }
 
-.file-details-content {
-    display: flex;
-    overflow-y: hidden;
-    width: 100%;
-}
 
 .resize-handle {
+    --resize-handle-width: 10px;
+
     align-items: center;
+    background: none;
+    bottom: -5px;
+    border-left: 1px solid var(--border-color);
+    color: var(--highlight-background-color);
     cursor: col-resize;
     display: flex;
-    height: 100%;
-    left: 0px;
-    padding-left: 1px;
-    position: relative;
+    height: calc(100% + 12px);
+    right: calc(var(--file-details-width) - var(--resize-handle-width));
+    justify-content: center;
+    position: absolute;
     width: var(--resize-handle-width);
     z-index: 11;
 }
 
-.resize-handle i {
-    color: var(--highlight-background-color);
-    font-weight: bold;
-    transform: translateX(-4px);
+.resize-handle:hover {
+    border-left: 2px solid var(--bright-aqua);
+    width: 10px;
+    z-index: 9999;
 }
 
-.resize-handle:hover {
-    border-left: 1px solid var(--highlight-background-color);
-    padding-left: 0;
+.resize-handle > div {
+    height: 15px;
+    width: 2px;
+    background-color: var(--highlight-background-color);
+}
+
+.resize-handle:hover > div {
+    background-color: var(--highlight-hover-background-color);
+    transform: translateX(-0.5px);
 }
 
 .file-name {

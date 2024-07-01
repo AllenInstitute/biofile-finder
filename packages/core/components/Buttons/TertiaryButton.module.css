@@ -18,10 +18,18 @@
     background-color: var(--secondary-background-color);
 }
 
-.button:is(.selected, :hover):not(.disabled), .button:is(.selected, :hover):not(.disabled) i {
+.button.selected, .button.selected i {
     color: var(--highlight-text-color);
 }
 
-.button:is(.selected, :hover):not(.disabled) {
+.button:hover:not(.disabled), .button:hover:not(.disabled) i {
+    color: var(--highlight-text-color);
+}
+
+.button.selected {
+    background-color: var(--highlight-background-color);
+}
+
+.button:hover:not(.disabled) {
     background-color: var(--highlight-background-color);
 }

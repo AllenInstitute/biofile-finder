@@ -9,7 +9,7 @@ import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
-import { AnnotationName } from "../../../entity/Annotation";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileFolder from "../../../entity/FileFolder";
 import { DataSource } from "../../../services/DataSourceService";
 

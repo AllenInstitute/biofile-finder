@@ -84,6 +84,7 @@ export const initialState: InteractionStateBranch = {
         fileViewerService: new FileViewerServiceNoop(),
         frontendInsights: new FrontendInsights({
             application: {
+                // Kept old name to compare usage more easily in Amplitude UI
                 name: "FMS File Explorer",
                 version: "0.0.0-noop",
             },

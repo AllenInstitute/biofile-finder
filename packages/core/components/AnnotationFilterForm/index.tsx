@@ -4,15 +4,16 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useAnnotationValues from "./useAnnotationValues";
+import Annotation from "../../entity/Annotation";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
+import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import ListPicker from "../ListPicker";
 import { ListItem } from "../ListPicker/ListRow";
 import NumberRangePicker from "../NumberRangePicker";
-import SearchBoxForm from "../SearchBoxForm";
+import SearchBoxForm from "./SearchBoxForm";
 import DateRangePicker from "../DateRangePicker";
 import { interaction, selection } from "../../state";
-import Annotation, { AnnotationName } from "../../entity/Annotation";
-import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FuzzyFilter from "../../entity/FuzzyFilter";
 
 import styles from "./AnnotationFilterForm.module.css";
@@ -58,14 +59,11 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         );
     }, [fuzzyFilters, props.annotation]);
 
-    const onEnableFuzzySearch = () => {
+    const onToggleFuzzySearch = () => {
         const fuzzyFilter = new FuzzyFilter(props.annotation.name);
-        dispatch(selection.actions.addFuzzyFilter(fuzzyFilter));
-    };
-
-    const onDisableFuzzySearch = () => {
-        const fuzzyFilter = new FuzzyFilter(props.annotation.name);
-        dispatch(selection.actions.removeFuzzyFilter(fuzzyFilter));
+        fuzzySearchEnabled
+            ? dispatch(selection.actions.removeFuzzyFilter(fuzzyFilter))
+            : dispatch(selection.actions.addFuzzyFilter(fuzzyFilter));
     };
 
     const onDeselectAll = () => {
@@ -175,14 +173,17 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             return (
                 <SearchBoxForm
                     className={styles.picker}
-                    onDisableFuzzySearch={onDisableFuzzySearch}
-                    onEnableFuzzySearch={onEnableFuzzySearch}
+                    onToggleFuzzySearch={onToggleFuzzySearch}
+                    items={items}
+                    onSelect={onSelect}
+                    onDeselect={onDeselect}
+                    onSelectAll={onSelectAll}
+                    onDeselectAll={onDeselectAll}
                     onSearch={onSearch}
-                    onReset={onDeselectAll}
                     fieldName={props.annotation.displayName}
                     fuzzySearchEnabled={fuzzySearchEnabled}
                     title={`Filter by ${props.annotation.displayName}`}
-                    currentValue={filtersForAnnotation?.[0]}
+                    defaultValue={filtersForAnnotation?.[0]}
                 />
             );
         case AnnotationType.DURATION:

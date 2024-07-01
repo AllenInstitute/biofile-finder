@@ -1,17 +1,18 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
-import { render } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { createSandbox } from "sinon";
 
-import { DatasetColumns } from "../DatasetColumns";
 import DatasetTable from "../DatasetTable";
 import * as useDatasetDetails from "../useDatasetDetails";
+import { DATASET_TABLE_FIELDS, DatasetAnnotations } from "../../../entity/PublicDataset";
 import { makePublicDatasetMock } from "../../../entity/PublicDataset/mocks";
 import { initialState } from "../../../../../core/state";
 import DatabaseFileService from "../../../../../core/services/FileService/DatabaseFileService";
+import FileSort, { SortOrder } from "../../../../../core/entity/FileSort";
 
 describe("<DatasetTable />", () => {
     const sandbox = createSandbox();
@@ -82,7 +83,7 @@ describe("<DatasetTable />", () => {
         );
 
         // Act / Assert
-        expect(getAllByRole("columnheader").length).to.equal(DatasetColumns.length);
+        expect(getAllByRole("columnheader").length).to.equal(DATASET_TABLE_FIELDS.length);
     });
 
     it("renders rows for each dataset", () => {
@@ -101,5 +102,36 @@ describe("<DatasetTable />", () => {
         // Rows should be total datasets + header
         expect(getAllByRole("row").length).to.equal(mockIdList.length + 1);
         expect(useDatasetDetailsStub.called).to.be.true;
+    });
+
+    it("sorts on column header click", async () => {
+        const getSpy = sandbox.spy(useDatasetDetails, "default");
+
+        const { getByText } = render(
+            <Provider store={store}>
+                <RouterProvider router={mockRouter} />
+            </Provider>
+        );
+
+        const mockFileSortAsc = new FileSort(
+            DatasetAnnotations.DATASET_NAME.displayLabel,
+            SortOrder.ASC
+        );
+        const mockFileSortDesc = new FileSort(
+            DatasetAnnotations.DATASET_NAME.displayLabel,
+            SortOrder.DESC
+        );
+        const mockFileSortAscCount = new FileSort(
+            DatasetAnnotations.FILE_COUNT.displayLabel,
+            SortOrder.ASC
+        );
+
+        // Act / Assert
+        fireEvent.click(getByText(/Dataset Name/i));
+        expect(getSpy.calledWith([], mockFileSortAsc)).to.be.true;
+        fireEvent.click(getByText(/Dataset Name/i));
+        expect(getSpy.calledWith([], mockFileSortDesc)).to.be.true;
+        fireEvent.click(getByText(/File count/i));
+        expect(getSpy.calledWith([], mockFileSortAscCount)).to.be.true;
     });
 });

@@ -1,4 +1,3 @@
-import { ContextualMenuItemType, IContextualMenuItem, Icon } from "@fluentui/react";
 import classNames from "classnames";
 import { noop, throttle } from "lodash";
 import * as React from "react";
@@ -8,8 +7,7 @@ import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
 import useFileDetails from "./useFileDetails";
 import { PrimaryButton } from "../Buttons";
-import { ContextMenuActions } from "../ContextMenu/items";
-import FileFilter from "../../entity/FileFilter";
+import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
 import { interaction } from "../../state";
@@ -73,10 +71,8 @@ function resizeHandleDoubleClick() {
 export default function FileDetails(props: Props) {
     const dispatch = useDispatch();
     const [fileDetails, isLoading] = useFileDetails();
-    const isOnWeb = useSelector(interaction.selectors.isOnWeb);
     const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
-    const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
-    const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
+    const openWithMenuItems = useOpenWithMenuItems(fileDetails || undefined);
 
     // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
     const onDownload = React.useMemo(() => {
@@ -98,122 +94,60 @@ export default function FileDetails(props: Props) {
         }, 1000); // 1s, in ms (arbitrary)
     }, [dispatch, fileDetails]);
 
-    const openMenuItems: IContextualMenuItem[] = React.useMemo(() => {
-        if (!fileDetails) {
-            return [];
-        }
-
-        const savedApps: IContextualMenuItem[] = [
-            ...(userSelectedApplications || []).map((app) => {
-                const name = executionEnvService.getFilename(app.filePath);
-                return {
-                    key: `open-with-${name}`,
-                    text: name,
-                    title: `Open files with ${name}`,
-                    onClick() {
-                        dispatch(interaction.actions.openWith(app, undefined, [fileDetails]));
-                    },
-                };
-            }),
-            {
-                key: ContextMenuActions.OPEN_3D_WEB_VIEWER,
-                text: "3D Web Viewer",
-                title: `Open files with 3D Web Viewer`,
-                href: `https://allen-cell-animated.github.io/website-3d-cell-viewer/?url=${fileDetails.path}/`,
-                target: "_blank",
-            },
-            {
-                key: ContextMenuActions.AGAVE,
-                text: "AGAVE",
-                title: `Open files with AGAVE`,
-                href: `agave://${fileDetails.path}`,
-                target: "_blank",
-            },
-        ];
-
-        return [
-            ...savedApps.sort((a, b) => (a.text || "").localeCompare(b.text || "")),
-            ...(isOnWeb
-                ? []
-                : [
-                      {
-                          key: "default-apps-border",
-                          itemType: ContextualMenuItemType.Divider,
-                      },
-                      // Other is a permanent option that allows the user
-                      // to add another app for file access
-                      {
-                          key: ContextMenuActions.OPEN_WITH_OTHER,
-                          text: "Other...",
-                          title: "Select an application to open the selection with",
-                          onClick() {
-                              dispatch(
-                                  interaction.actions.promptForNewExecutable([
-                                      new FileFilter("file_id", fileDetails.id),
-                                  ])
-                              );
-                          },
-                      },
-                  ]),
-        ];
-    }, [dispatch, isOnWeb, fileDetails, userSelectedApplications, executionEnvService]);
-
     return (
         <div
             className={classNames(styles.root, styles.expandableTransition, props.className)}
             id={FILE_DETAILS_PANE_ID}
         >
-            <div className={styles.fileDetailsContent}>
-                <div
-                    className={styles.resizeHandle}
-                    onMouseDown={(e) => resizeHandleOnMouseDown(e)}
-                    // TODO:???
-                    onDoubleClick={resizeHandleDoubleClick}
-                >
-                    <Icon iconName="MoreVertical" />
-                </div>
-                <div className={styles.paginationAndContent}>
-                    <Pagination className={styles.pagination} />
-                    <div className={styles.overflowContainer}>
-                        {fileDetails && (
-                            <>
-                                <div className={styles.thumbnailContainer}>
-                                    <FileThumbnail
-                                        className={styles.thumbnail}
-                                        width="100%"
-                                        // height={thumbnailHeight}
-                                        uri={fileDetails?.getPathToThumbnail()}
-                                    />
-                                </div>
-                                <div className={styles.fileActions}>
-                                    <PrimaryButton
-                                        className={styles.primaryButton}
-                                        disabled={processStatuses.some((status) =>
-                                            status.data.fileId?.includes(fileDetails.id)
-                                        )}
-                                        iconName="Download"
-                                        text="Download"
-                                        title="Download"
-                                        onClick={onDownload}
-                                    />
-                                    <PrimaryButton
-                                        className={styles.primaryButton}
-                                        iconName="OpenInNewWindow"
-                                        text="Open file"
-                                        title="Open file"
-                                        menuItems={openMenuItems}
-                                    />
-                                </div>
-                                <p className={styles.fileName}>{fileDetails?.name}</p>
-                                <h4>Information</h4>
-                                <FileAnnotationList
-                                    className={styles.annotationList}
-                                    fileDetails={fileDetails}
-                                    isLoading={isLoading}
+            <div
+                className={styles.resizeHandle}
+                onMouseDown={(e) => resizeHandleOnMouseDown(e)}
+                // TODO:???
+                onDoubleClick={resizeHandleDoubleClick}
+            >
+                <div />
+            </div>
+            <div className={styles.paginationAndContent}>
+                <Pagination className={styles.pagination} />
+                <div className={styles.overflowContainer}>
+                    {fileDetails && (
+                        <>
+                            <div className={styles.thumbnailContainer}>
+                                <FileThumbnail
+                                    className={styles.thumbnail}
+                                    width="100%"
+                                    // height={thumbnailHeight}
+                                    uri={fileDetails?.getPathToThumbnail()}
                                 />
-                            </>
-                        )}
-                    </div>
+                            </div>
+                            <div className={styles.fileActions}>
+                                <PrimaryButton
+                                    className={styles.primaryButton}
+                                    disabled={processStatuses.some((status) =>
+                                        status.data.fileId?.includes(fileDetails.id)
+                                    )}
+                                    iconName="Download"
+                                    text="Download"
+                                    title="Download"
+                                    onClick={onDownload}
+                                />
+                                <PrimaryButton
+                                    className={styles.primaryButton}
+                                    iconName="OpenInNewWindow"
+                                    text="Open file"
+                                    title="Open file"
+                                    menuItems={openWithMenuItems}
+                                />
+                            </div>
+                            <p className={styles.fileName}>{fileDetails?.name}</p>
+                            <h4>Information</h4>
+                            <FileAnnotationList
+                                className={styles.annotationList}
+                                fileDetails={fileDetails}
+                                isLoading={isLoading}
+                            />
+                        </>
+                    )}
                 </div>
             </div>
         </div>

@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 import FileExplorerURL, { FileExplorerURLComponents, Source } from "..";
-import { AnnotationName } from "../../Annotation";
+import AnnotationName from "../../Annotation/AnnotationName";
 import FileFilter from "../../FileFilter";
 import FileFolder from "../../FileFolder";
 import FileSort, { SortOrder } from "../../FileSort";

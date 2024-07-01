@@ -375,19 +375,21 @@ export function addQuery(query: PartialQuery): AddQuery {
 export const CHANGE_QUERY = makeConstant(STATE_BRANCH_NAME, "change-query");
 
 export interface ChangeQuery {
-    payload: Query;
+    payload?: Query;
     type: string;
 }
 
-export function changeQuery(query: PartialQuery): ChangeQuery {
+export function changeQuery(query?: PartialQuery): ChangeQuery {
     return {
-        payload: {
-            ...query,
-            parts: {
-                ...EMPTY_QUERY_COMPONENTS,
-                ...query.parts,
-            },
-        },
+        payload: query
+            ? {
+                  ...query,
+                  parts: {
+                      ...EMPTY_QUERY_COMPONENTS,
+                      ...query.parts,
+                  },
+              }
+            : undefined,
         type: CHANGE_QUERY,
     };
 }

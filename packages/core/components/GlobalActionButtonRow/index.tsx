@@ -30,6 +30,7 @@ export default function GlobalActionButtonRow(props: Props) {
                     className={styles.listViewButton}
                     iconName="NumberedListText"
                     isSelected={!shouldDisplayThumbnailView}
+                    disabled={!shouldDisplayThumbnailView}
                     onClick={() =>
                         dispatch(
                             selection.actions.setFileThumbnailView(!shouldDisplayThumbnailView)
@@ -39,6 +40,10 @@ export default function GlobalActionButtonRow(props: Props) {
                 />
                 <TertiaryButton
                     iconName="GridViewMedium"
+                    disabled={
+                        shouldDisplayThumbnailView &&
+                        fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE
+                    }
                     isSelected={
                         shouldDisplayThumbnailView &&
                         fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE
@@ -55,6 +60,10 @@ export default function GlobalActionButtonRow(props: Props) {
                 />
                 <TertiaryButton
                     iconName="GridViewSmall"
+                    disabled={
+                        shouldDisplayThumbnailView &&
+                        fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL
+                    }
                     isSelected={
                         shouldDisplayThumbnailView &&
                         fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL

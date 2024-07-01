@@ -1,7 +1,8 @@
 import { createSelector } from "reselect";
 
 import { State } from "../";
-import Annotation, { AnnotationName } from "../../entity/Annotation";
+import Annotation from "../../entity/Annotation";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 
 // BASIC SELECTORS
 export const getAnnotations = (state: State) => state.metadata.annotations;

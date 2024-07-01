@@ -10,6 +10,7 @@ import * as React from "react";
 import { DragDropContext, OnDragEndResponder } from "react-beautiful-dnd";
 
 import QueryPartRow, { QueryPartRowItem } from "./QueryPartRow";
+import { useButtonMenu } from "../Buttons";
 import DnDList from "../DnDList";
 
 import styles from "./QueryPart.module.css";
@@ -32,6 +33,14 @@ interface Props {
  * Component of an individual query in the query sidebar
  */
 export default function QueryPart(props: Props) {
+    const addButtonMenu = useButtonMenu({
+        shouldFocusOnMount: true,
+        directionalHint: DirectionalHint.rightTopEdge,
+        onRenderMenuList: props.onRenderAddMenuList,
+        // necessary to have a non-empty items list to have `onRenderMenuList` called
+        items: props.addMenuListItems || [{ key: "placeholder" }],
+    });
+
     // On drag end of any draggable item within this DragDropContext
     const onDragEnd: OnDragEndResponder = (result) => {
         if (props.onReorder) {
@@ -52,16 +61,9 @@ export default function QueryPart(props: Props) {
                 disabled={props.disabled}
                 className={styles.addButton}
                 id={props.tutorialId}
-                menuIconProps={{ iconName: "ChevronRight" }}
+                menuIconProps={{ iconName: "Add" }}
                 text={props.title}
-                menuProps={{
-                    className: props.addMenuListItems ? styles.buttonMenu : undefined,
-                    directionalHint: DirectionalHint.rightTopEdge,
-                    shouldFocusOnMount: true,
-                    items: props.addMenuListItems || [{ key: "placeholder" }], // necessary to have a non-empty items list to have `onRenderMenuList` called
-                    onRenderMenuList: props.onRenderAddMenuList,
-                    calloutProps: { className: styles.buttonMenuContainer },
-                }}
+                menuProps={addButtonMenu}
             />
             <DragDropContext onDragEnd={onDragEnd}>
                 {!!props.rows.length && (

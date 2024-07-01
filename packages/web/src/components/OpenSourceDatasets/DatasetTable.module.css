@@ -5,7 +5,7 @@
 .table-header > div {
   background-color: var(--secondary-dark);
   background: var(--secondary-dark);
-  border-bottom: 1px solid var(--borders-light-grey);
+  border-bottom: 1px solid var(--medium-grey);
 }
 
 .table-header span {
@@ -15,10 +15,11 @@
   font-weight: 400;
 }
 
-.table-header > div:hover, .table-header span:hover {
-  background-color: var(--secondary-dark);
-  background: var(--secondary-dark);
+.table-header span:hover {
+  background-color: var(--primary-dark);
+  background: var(--primary-dark);
   color: var(--secondary-text-color);
+  cursor: pointer;
 }
 
 .double-line {
@@ -41,4 +42,13 @@
   width: 100%;
   font-size: 14px;
   text-align: center;
+}
+
+.link {
+  color: var(--aqua);
+}
+
+.link:hover {
+  text-decoration: underline;
+  color: var(--bright-aqua);
 }

@@ -2,6 +2,7 @@ import { DirectionalHint, Icon, IconButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
+import { useButtonMenu } from "../Buttons";
 import { DnDItem, DnDItemRendererParams } from "../DnDList/DnDList";
 
 import styles from "./QueryPartRow.module.css";
@@ -21,17 +22,24 @@ interface Props extends DnDItemRendererParams {
  * Row within a query part that can be reordered and deleted
  */
 export default function QueryGroupRow(props: Props) {
+    const editMenu = useButtonMenu({
+        shouldFocusOnMount: true,
+        directionalHint: DirectionalHint.rightTopEdge,
+        items: [{ key: "placeholder" }], // necessary to have a non-empty items list to have `onRenderMenuList` called
+        onRenderMenuList: () => props.item.onRenderEditMenuList?.(props.item) as React.ReactElement,
+    });
+
     const isInteractive = !!props.item.onClick || !props.item.disabled;
-    const baseMargin = isInteractive ? 10 : 0;
-    const marginLeft = props.item.disabled ? baseMargin : props.index * 10 + baseMargin;
-    const marginRight = baseMargin;
+    const baseMargin = isInteractive ? 8 : 0;
+    const marginLeft = props.item.disabled ? baseMargin : props.index * 16 + baseMargin;
+
     return (
         <div
             className={classNames(styles.row, {
                 [styles.grabbable]: !props.item.disabled,
                 [styles.interactive]: isInteractive,
             })}
-            style={{ marginLeft, maxWidth: `calc(100% - ${marginLeft + marginRight}px)` }}
+            style={{ marginLeft }}
         >
             <div
                 className={classNames(styles.rowTitle, {
@@ -52,14 +60,7 @@ export default function QueryGroupRow(props: Props) {
                     className={classNames(styles.iconButton, styles.hiddenInnerIcon)}
                     iconProps={{ iconName: "Edit" }}
                     title="Edit"
-                    menuProps={{
-                        isSubMenu: true,
-                        directionalHint: DirectionalHint.rightTopEdge,
-                        shouldFocusOnMount: true,
-                        items: [{ key: "placeholder" }], // necessary to have a non-empty items list to have `onRenderMenuList` called
-                        onRenderMenuList: () =>
-                            props.item.onRenderEditMenuList?.(props.item) as React.ReactElement,
-                    }}
+                    menuProps={editMenu}
                 />
             )}
             {props.item.onDelete && (

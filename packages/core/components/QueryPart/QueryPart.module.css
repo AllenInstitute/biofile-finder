@@ -5,7 +5,8 @@
     color: var(--primary-text-color);
     font-size: var(--s-paragraph-size);
     display: flex;
-    padding: 6px 8px 6px 10px;
+    padding: 6px 8px 6px 8px;
+    margin: 0 0 2px 0;
     width: 100%;
 }
 
@@ -39,47 +40,12 @@
     margin: 0;
 }
 
-.button-menu, .button-menu button {
-    background-color: var(--secondary-background-color);
-    color: var(--secondary-text-color);
-}
-
-.button-menu > ul > li:nth-child(-n + 2) {
-    opacity: 0.25;
-}
-
-.button-menu > ul > li:first-of-type {
-    opacity: unset;
-}
-
-.button-menu > ul > li:first-of-type span {
-    font-weight: 500;
-}
-
-.button-menu i, .button-menu li > div {
-    color: var(--secondary-text-color);
-}
-
-.button-menu button span:last-of-type:not(:first-of-type) {
-    color: var(--secondary-text-color);
-}
-
-.button-menu :is(a, button):hover, .button-menu :is(a, button):hover i {
-    background-color: var(--highlight-background-color);
-    color: var(--highlight-text-color) !important;
-}
-
-.button-menu-container {
-    border-radius: var(--small-border-radius);
-    box-shadow: var(--box-shadow);
-}
-
 .container {
     background-color: var(--primary-background-color);
     border-radius: var(--small-border-radius);
     color: var(--primary-text-color);
-    margin: calc(var(--margin) / 2) calc(var(--margin) / 4);
-    padding: 3px 6px 6px 6px;
+    margin: 6px 0;
+    padding: 3px 6px 10px 6px;
 }
 
 .disabled {
