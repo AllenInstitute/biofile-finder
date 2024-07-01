@@ -99,57 +99,55 @@ export default function FileDetails(props: Props) {
             className={classNames(styles.root, styles.expandableTransition, props.className)}
             id={FILE_DETAILS_PANE_ID}
         >
-            <div className={styles.fileDetailsContent}>
-                <div
-                    className={styles.resizeHandle}
-                    onMouseDown={(e) => resizeHandleOnMouseDown(e)}
-                    // TODO:???
-                    onDoubleClick={resizeHandleDoubleClick}
-                >
-                    <div />
-                </div>
-                <div className={styles.paginationAndContent}>
-                    <Pagination className={styles.pagination} />
-                    <div className={styles.overflowContainer}>
-                        {fileDetails && (
-                            <>
-                                <div className={styles.thumbnailContainer}>
-                                    <FileThumbnail
-                                        className={styles.thumbnail}
-                                        width="100%"
-                                        // height={thumbnailHeight}
-                                        uri={fileDetails?.getPathToThumbnail()}
-                                    />
-                                </div>
-                                <div className={styles.fileActions}>
-                                    <PrimaryButton
-                                        className={styles.primaryButton}
-                                        disabled={processStatuses.some((status) =>
-                                            status.data.fileId?.includes(fileDetails.id)
-                                        )}
-                                        iconName="Download"
-                                        text="Download"
-                                        title="Download"
-                                        onClick={onDownload}
-                                    />
-                                    <PrimaryButton
-                                        className={styles.primaryButton}
-                                        iconName="OpenInNewWindow"
-                                        text="Open file"
-                                        title="Open file"
-                                        menuItems={openWithMenuItems}
-                                    />
-                                </div>
-                                <p className={styles.fileName}>{fileDetails?.name}</p>
-                                <h4>Information</h4>
-                                <FileAnnotationList
-                                    className={styles.annotationList}
-                                    fileDetails={fileDetails}
-                                    isLoading={isLoading}
+            <div
+                className={styles.resizeHandle}
+                onMouseDown={(e) => resizeHandleOnMouseDown(e)}
+                // TODO:???
+                onDoubleClick={resizeHandleDoubleClick}
+            >
+                <div />
+            </div>
+            <div className={styles.paginationAndContent}>
+                <Pagination className={styles.pagination} />
+                <div className={styles.overflowContainer}>
+                    {fileDetails && (
+                        <>
+                            <div className={styles.thumbnailContainer}>
+                                <FileThumbnail
+                                    className={styles.thumbnail}
+                                    width="100%"
+                                    // height={thumbnailHeight}
+                                    uri={fileDetails?.getPathToThumbnail()}
                                 />
-                            </>
-                        )}
-                    </div>
+                            </div>
+                            <div className={styles.fileActions}>
+                                <PrimaryButton
+                                    className={styles.primaryButton}
+                                    disabled={processStatuses.some((status) =>
+                                        status.data.fileId?.includes(fileDetails.id)
+                                    )}
+                                    iconName="Download"
+                                    text="Download"
+                                    title="Download"
+                                    onClick={onDownload}
+                                />
+                                <PrimaryButton
+                                    className={styles.primaryButton}
+                                    iconName="OpenInNewWindow"
+                                    text="Open file"
+                                    title="Open file"
+                                    menuItems={openWithMenuItems}
+                                />
+                            </div>
+                            <p className={styles.fileName}>{fileDetails?.name}</p>
+                            <h4>Information</h4>
+                            <FileAnnotationList
+                                className={styles.annotationList}
+                                fileDetails={fileDetails}
+                                isLoading={isLoading}
+                            />
+                        </>
+                    )}
                 </div>
             </div>
         </div>

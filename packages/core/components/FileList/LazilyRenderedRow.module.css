@@ -25,6 +25,10 @@
     height: 18px !important;
 }
 
+.small-font .shimmer {
+    height: 15px !important;
+}
+
 .shimmer > div {
     border-radius: var(--small-border-radius);
 }
