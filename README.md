@@ -7,7 +7,7 @@ incorporating that data into both programmatic and non-programmatic workflows.
 
 
 ### Homepage
-https://alleninstitute.github.io/aics-fms-file-explorer-app/
+https://biofile-finder.allencell.org/
 
 
 ### Developer documentation
