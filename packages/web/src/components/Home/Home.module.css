@@ -36,6 +36,10 @@
     display: flex;
 }
 
+.video-walkthrough > iframe {
+    border: 0;
+}
+
 .relative {
     position: relative;
 }
