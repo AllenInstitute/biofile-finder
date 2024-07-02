@@ -57,10 +57,13 @@ export default function Home() {
                         </div>
                     </div>
                     <div className={styles.videoWalkthrough}>
-                        <div className={styles.videoWalkthroughFake}>
-                            Video placeholder: Demo showing how to use the app via interactive
-                            walkthrough
-                        </div>
+                        <iframe
+                            src="https://player.vimeo.com/video/974452570?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479"
+                            width="267"
+                            height="200"
+                            allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
+                            title="BioFile Finder Demo"
+                        />
                     </div>
                 </div>
             </div>
