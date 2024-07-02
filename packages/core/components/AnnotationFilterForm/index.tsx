@@ -68,6 +68,8 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const onDeselectAll = () => {
         dispatch(selection.actions.removeFileFilter(filtersForAnnotation));
+        // Remove fuzzy filter if present
+        if (fuzzySearchEnabled) onToggleFuzzySearch();
     };
 
     const onDeselect = (item: ListItem) => {

@@ -22,7 +22,9 @@ describe("<SearchBoxForm/>", () => {
             />
         );
 
-        // Sanity check
+        // Consistency checks
+        expect(() => getByTestId("list-picker")).to.throw();
+        fireEvent.click(getByText("Partial match search"));
         expect(() => getByTestId("list-picker")).to.throw();
 
         // Select 'List picker' filter type

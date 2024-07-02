@@ -7,6 +7,7 @@ import AnnotationPicker from "../AnnotationPicker";
 import AnnotationFilterForm from "../AnnotationFilterForm";
 import Tutorial from "../../entity/Tutorial";
 import FileFilter from "../../entity/FileFilter";
+import FuzzyFilter from "../../entity/FuzzyFilter";
 import { metadata, selection } from "../../state";
 import Annotation from "../../entity/Annotation";
 
@@ -29,13 +30,14 @@ export default function QueryFilter(props: Props) {
             title="Filter"
             disabled={props.disabled}
             tutorialId={Tutorial.FILTER_HEADER_ID}
-            onDelete={(annotation) =>
+            onDelete={(annotation) => {
                 dispatch(
                     selection.actions.removeFileFilter(
                         props.filters.filter((filter) => filter.name === annotation)
                     )
-                )
-            }
+                );
+                dispatch(selection.actions.removeFuzzyFilter(new FuzzyFilter(annotation)));
+            }}
             onRenderAddMenuList={() => (
                 <AnnotationPicker
                     id={Tutorial.FILE_ATTRIBUTE_FILTER_ID}

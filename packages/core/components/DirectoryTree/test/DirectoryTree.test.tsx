@@ -64,6 +64,7 @@ describe("<DirectoryTree />", () => {
         selection: {
             annotationHierarchy: [fooAnnotation.name, barAnnotation.name],
             displayAnnotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
+            fuzzyFilters: [],
         },
     });
 
@@ -109,6 +110,15 @@ describe("<DirectoryTree />", () => {
 
     // A set of files maps to the following query string: foo=first
     const fooFirstFiles = range(totalFilesCount).map((idx) => {
+        const foo = {
+            name: fooAnnotation.name,
+            values: [topLevelHierarchyValues[0]],
+        };
+        return makeFmsFile(idx, [foo]);
+    });
+
+    // A set of files maps to the following query string: foo=fir&fuzzy=foo
+    const fooFuzzyFiles = range(totalFilesCount).map((idx) => {
         const foo = {
             name: fooAnnotation.name,
             values: [topLevelHierarchyValues[0]],
@@ -183,6 +193,21 @@ describe("<DirectoryTree />", () => {
             respondWith: {
                 data: {
                     data: fooFirstFiles,
+                },
+            },
+        },
+        {
+            when: (config) => {
+                const url = new URL(_get(config, "url", ""));
+                return (
+                    url.pathname.includes(HttpFileService.BASE_FILES_URL) &&
+                    url.searchParams.get(fooAnnotation.name) === "fir" &&
+                    url.searchParams.get("fuzzy") === fooAnnotation.name
+                );
+            },
+            respondWith: {
+                data: {
+                    data: fooFuzzyFiles,
                 },
             },
         },

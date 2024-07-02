@@ -177,7 +177,7 @@ export default class FileSet {
             query.push(this.sort.toQueryString());
         }
 
-        if (this.fuzzyFilters) {
+        if (this.fuzzyFilters?.length) {
             const sortedFuzzyFilters = [...this.fuzzyFilters].sort((a, b) =>
                 a.toQueryString().localeCompare(b.toQueryString())
             );
