@@ -40,6 +40,8 @@
 }
 
 .carousel > img {
+    display: flex;
+    margin: 0 auto;
     min-height: 240px;
     max-height: 240px;
 }

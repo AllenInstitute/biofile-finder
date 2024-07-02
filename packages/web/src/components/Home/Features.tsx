@@ -88,7 +88,7 @@ export default function Features() {
                 ))}
             </div>
             <div className={styles.carousel}>
-                <img height={300} src="fms-file-explorer-web/assets/banner.png" />
+                <img height={300} src={activeSlide.imgSrc} />
                 <div className={styles.slideButtonsContainer}>
                     {activeFeature.slides.map((_, index) => (
                         <button
