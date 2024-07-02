@@ -90,7 +90,10 @@ export default class FileExplorerURL {
                 "source",
                 JSON.stringify({
                     ...source,
-                    uri: source.uri instanceof String ? source.uri : undefined,
+                    uri:
+                        typeof source.uri === "string" || source.uri instanceof String
+                            ? source.uri
+                            : undefined,
                 })
             );
         });
