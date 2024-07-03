@@ -40,6 +40,7 @@
     "productName": "BioFile Finder"
   },
   "scripts": {
+    "build-executable": "npm run build && npx electron-builder",
     "build": "npm-run-all --print-label clean --parallel bundle:main bundle:renderer",
     "bundle:main": "webpack --config ./webpack/webpack.main.config.js --env production",
     "bundle:renderer": "webpack --config ./webpack/webpack.renderer.config.js --env production",

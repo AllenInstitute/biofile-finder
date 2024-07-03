@@ -14,12 +14,14 @@ behind a web server).
    ![image](./assets/WorkflowButton.png)
 3) Review deploy action & approve if it looks good.
    ![image](./assets/DeployReview.png)
-4) Test out changes on [staging](https://staging.biofile-finder.allencell.org/app).
+4) Test out changes on [staging](https://staging.biofile-finder.allencell.org).
 5) Navigate to the GH workflow actions and select "Run workflow" along with the branch `main` & `production`.
 6) Review deploy action & approve if it looks good.
-7) Test out changes on [production](https://biofile-finder.allencell.org/app)
+7) Test out changes on [production](https://biofile-finder.allencell.org)
 
 # Desktop
+
+Note to build an executable locally run: `npm run --prefix packages/desktop build-executable`
 
 The following captures the steps of a release of this project to desktop:
 
