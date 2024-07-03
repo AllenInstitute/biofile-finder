@@ -34,7 +34,7 @@ export default [
     },
     {
         id: 2,
-        text: "Create new data sources or combine them",
+        text: "Create or combine data sources",
         slides: [
             {
                 imgSrc: "/Datasets/LoadSource.png",
