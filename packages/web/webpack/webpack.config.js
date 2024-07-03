@@ -86,6 +86,10 @@ module.exports = ({ analyze, production } = {}) => ({
                     },
                 ],
             },
+            {
+                test: /\.png/,
+                type: "asset/resource",
+            },
         ],
     },
     output: {
@@ -94,7 +98,7 @@ module.exports = ({ analyze, production } = {}) => ({
     },
     plugins: getPluginsByEnv(production, analyze),
     resolve: {
-        extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
+        extensions: [".ts", ".tsx", ".js", ".jsx", ".json", ".png"],
         mainFields: ["module", "main"],
         symlinks: false,
     },
