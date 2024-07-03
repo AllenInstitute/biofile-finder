@@ -70,7 +70,7 @@ export default [
             {
                 imgSrc: "/Viewers/ContextMenu.png",
                 caption:
-                    "Files can be interacted with via this application, right-clicking your file selection will present a context menu where you can select the application to open the files in. This example highlights the '3D Web Viewier' a free open source 3D web viewer also developed by AICS.",
+                    "Right-click your file selection to open a context menu of external applications that can open the files. This example highlights the '3D Web Viewer,' a free open source visualization tool also developed by AICS.",
             },
             {
                 imgSrc: "/Viewers/WebViewer.png",
