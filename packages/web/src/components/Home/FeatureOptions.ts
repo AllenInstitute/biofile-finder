@@ -86,7 +86,7 @@ export default [
             {
                 imgSrc: "/Share/URL.png",
                 caption:
-                    "Your exact view (filters, groups, sorts, open folders) can be shared via URL. This URL can be shared with anyone and they will see the exact same view you are seeing assuming the data source is accessible to them. Local files for example will have to be re-selected by the user.",
+                    "Your exact file selection (filters, groups, sorts, open folders) can be shared via URL. Anyone with the URL can see the same view as you, as long as the data source is accessible to them. Local files, for example, must be re-selected by the user.",
             },
             {
                 imgSrc: "/Share/CodeSnippet.png",
