@@ -102,7 +102,7 @@ export default [
     },
     {
         id: 5,
-        text: "View OME.Zarr or pre-generated thumbnails previews of files instantly",
+        text: "View OME.Zarr or pre-generated thumbnail previews of files instantly",
         slides: [
             {
                 imgSrc: "/OmeZarr/Zarr.png",
