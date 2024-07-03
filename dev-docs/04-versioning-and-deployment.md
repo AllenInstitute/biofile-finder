@@ -1,12 +1,27 @@
 Versioning and deployment/publishing
 ====================================
 
+
 The strategy for versioning and deployment/publishing within this project is complicated by the fact that there are two distinct
 types of artifacts produced. That is, `packages/desktop` produces platform-specific executables for linux, macOS, and Windows,
 while `packages/web` produces a static website intended to be dumped into an S3 website bucket (or otherwise sit
 behind a web server).
 
-The following captures the steps of a release of this project:
+# Web
+
+1) Make sure all your changes are committed and merged into `main`.
+2) Navigate to the GH workflow actions and select "Run workflow" along with the branch `main` & `staging`.
+   ![image](./assets/WorkflowButton.png)
+3) Review deploy action & approve if it looks good.
+   ![image](./assets/DeployReview.png)
+4) Test out changes on [staging](https://staging.biofile-finder.allencell.org/app).
+5) Navigate to the GH workflow actions and select "Run workflow" along with the branch `main` & `production`.
+6) Review deploy action & approve if it looks good.
+7) Test out changes on [production](https://biofile-finder.allencell.org/app)
+
+# Desktop
+
+The following captures the steps of a release of this project to desktop:
 
 1) Make sure all your changes are committed and merged into main.
 2) Make sure branch is clean:
