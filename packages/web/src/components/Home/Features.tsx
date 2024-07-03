@@ -16,8 +16,6 @@ export default function Features() {
     const activeFeature = FEATURE_OPTIONS[activeFeatureIndex];
     const activeSlide = activeFeature.slides[activeSlideIndex];
 
-    const featureSlideImage = (process.env.REACT_APP_FRONTEND_URL || "") + activeSlide.imgSrc;
-
     const changeFeature = React.useCallback(
         (featureIndex: number, slideIndex = 0) => {
             if (activeFeatureIndex > FEATURE_OPTIONS.length - 1) {
@@ -90,7 +88,7 @@ export default function Features() {
                 ))}
             </div>
             <div className={styles.carousel}>
-                <img height={300} src={featureSlideImage} />
+                <img height={300} src={"." + activeSlide.imgSrc} />
                 <div className={styles.slideButtonsContainer}>
                     {activeFeature.slides.map((_, index) => (
                         <button
