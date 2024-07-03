@@ -49,7 +49,7 @@ export default [
             {
                 imgSrc: "/Datasets/GroupedDataSources.png",
                 caption:
-                    'After you have added your data you can filter, group, and sort it however; this screenshot shows grouping by an automatically generated column "Data source" which represents the Data source each file came from.',
+                    'After you have added data, you can filter, group, and sort it. This screenshot shows an example of grouping by an automatically generated column, "Data source," which represents the source of each file.',
             },
             {
                 imgSrc: "/Datasets/SaveMetadataAs.png",
