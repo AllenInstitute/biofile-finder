@@ -1,14 +1,59 @@
 const OS = {
     WINDOWS: "Windows",
-    MAC: "Mac",
+    MAC_ARM: "Mac (ARM)",
+    MAC_X86: "Mac (x86)",
     LINUX: "Linux",
     UNKNOWN: "Unknown",
 };
 const FILE_TYPE_FOR_OS = {
     [OS.WINDOWS]: "exe",
-    [OS.MAC]: "dmg",
+    [OS.MAC_ARM]: "dmg",
+    [OS.MAC_X86]: "dmg",
     [OS.LINUX]: "AppImage",
 };
+
+const INSTRUCTIONS_FOR_MAC = [
+    "Click the 'Download' button to the left.",
+    `
+    <figure class="figure installation-instr">
+        <img class="screenshot" src="resources/macos-open-with-diskimagemounter.png">
+        <figcaption class="figure-caption">
+        When prompted by your web browser, select 'Open with DiskImageMounter (default).'
+        </figcaption>
+    </figure>
+    `,
+    `
+    <figure class="figure installation-instr">
+        <img class="screenshot" src="resources/macos-drag-into-applications.png">
+        <figcaption class="figure-caption">
+        Drag and drop the BioFile Finder icon onto the Applications folder icon. If prompted to 'Keep Both,' 'Stop,' or 'Replace,' choose 'Replace.'
+        </figcaption>
+    </figure>
+    `,
+    "Open Finder, and locate the BioFile Finder in Applications.",
+    "Right-click on the BioFile Finder, select 'Open.' <em>You may need to do this twice in order to get to the next step</em>.",
+    `
+    <figure class="figure installation-instr">
+        <img class="screenshot" src="resources/macos-open-anyway.png">
+        <figcaption class="figure-caption">
+        You should be prompted with an alert that reads, "macOS cannot verify the developer of 'BioFile Finder'. Are you sure you want to open it?" Select "Open."
+        </figcaption>
+    </figure>
+    `,
+    `
+    <figure class="figure installation-instr">
+        <img class="screenshot" src="resources/macos-connect-to-fms-storage.png">
+        <figcaption class="figure-caption">
+        (Optional) If you'd like to access any of the files found in the BioFile Finder in a third-party application
+        (e.g., opening an image in an image viewer), you'll need to mount FMS storage on your computer.
+        To do this: <code>Go</code> → <code>Connect to server</code> → enter <code>smb://allen/programs</code> → <code>Connect</code>.
+        <strong>Note! This is only possible when connected to the Allen Institute network; you will be unable to do this
+        over VPN.</strong>
+        </figcaption>
+    </figure>
+    `,
+];
+
 const INSTRUCTIONS_FOR_OS = {
     [OS.WINDOWS]: [
         "Click the 'Download' button to the left",
@@ -16,47 +61,8 @@ const INSTRUCTIONS_FOR_OS = {
         '<strong>Recommendation:</strong> store the executable in someplace like <code>C:\\Users\\someuser\\FMS Explorer\\</code>. Once there, you can right-click on the .exe and select "Send to" -> "Desktop (create shortcut)"  to make it more convenient to find.',
         '<strong>If on Windows 10:</strong> the <i>first</i> time you run the application, you\'ll see a blue pop-up warning that "Windows protected your PC." To continue, click "More Info," then press the "Run anyway" button.',
     ],
-    [OS.MAC]: [
-        "Click the 'Download' button to the left.",
-        `
-        <figure class="figure installation-instr">
-            <img class="screenshot" src="resources/macos-open-with-diskimagemounter.png">
-            <figcaption class="figure-caption">
-            When prompted by your web browser, select 'Open with DiskImageMounter (default).'
-            </figcaption>
-        </figure>
-        `,
-        `
-        <figure class="figure installation-instr">
-            <img class="screenshot" src="resources/macos-drag-into-applications.png">
-            <figcaption class="figure-caption">
-            Drag and drop the BioFile Finder icon onto the Applications folder icon. If prompted to 'Keep Both,' 'Stop,' or 'Replace,' choose 'Replace.'
-            </figcaption>
-        </figure>
-        `,
-        "Open Finder, and locate the BioFile Finder in Applications.",
-        "Right-click on the BioFile Finder, select 'Open.' <em>You may need to do this twice in order to get to the next step</em>.",
-        `
-        <figure class="figure installation-instr">
-            <img class="screenshot" src="resources/macos-open-anyway.png">
-            <figcaption class="figure-caption">
-            You should be prompted with an alert that reads, "macOS cannot verify the developer of 'BioFile Finder'. Are you sure you want to open it?" Select "Open."
-            </figcaption>
-        </figure>
-        `,
-        `
-        <figure class="figure installation-instr">
-            <img class="screenshot" src="resources/macos-connect-to-fms-storage.png">
-            <figcaption class="figure-caption">
-            (Optional) If you'd like to access any of the files found in the BioFile Finder in a third-party application
-            (e.g., opening an image in an image viewer), you'll need to mount FMS storage on your computer.
-            To do this: <code>Go</code> → <code>Connect to server</code> → enter <code>smb://allen/programs</code> → <code>Connect</code>.
-            <strong>Note! This is only possible when connected to the Allen Institute network; you will be unable to do this
-            over VPN.</strong>
-            </figcaption>
-        </figure>
-        `,
-    ],
+    [OS.MAC_ARM]: INSTRUCTIONS_FOR_MAC,
+    [OS.MAC_X86]: INSTRUCTIONS_FOR_MAC,
     [OS.LINUX]: [
         "Click the 'Download' button to the left",
         "Locate the download in file browser",
@@ -80,12 +86,17 @@ function updateDownloadLink(releaseIdAsString) {
         const downloadButton = document.getElementById("download-button");
         downloadButton.disabled = true;
     } else {
-        const assetForOs = release["assets"].filter((a) =>
+        let assetsForOs = release["assets"].filter((a) =>
             a["name"].endsWith(FILE_TYPE_FOR_OS[operatingSystem])
-        )[0];
+        );
+        if (assetsForOs.length > 1) {
+            assetsForOs = assetsForOs.filter(
+                (asset) => asset["name"].includes("arm64") && operatingSystem === OS.MAC_ARM
+            );
+        }
         const downloadLink = document.getElementById("download-link");
-        downloadLink.href = assetForOs["browser_download_url"];
-        downloadLink.download = assetForOs["name"];
+        downloadLink.href = assetsForOs[0]["browser_download_url"];
+        downloadLink.download = assetsForOs[0]["name"];
     }
 }
 
@@ -123,6 +134,7 @@ function fetchReleases() {
                 const option = document.createElement("option");
                 option.value = release["id"];
                 option.innerHTML = release["tag_name"];
+                console.log("release id", release["id"]);
                 if (index === 0) {
                     option.innerHTML += " (latest)";
                 }
@@ -248,7 +260,7 @@ function initialize() {
     if (navigator.appVersion.indexOf("Win") !== -1) {
         os = OS.WINDOWS;
     } else if (navigator.appVersion.indexOf("Mac") !== -1) {
-        os = OS.MAC;
+        os = OS.MAC_X86;
     } else if (navigator.appVersion.indexOf("Linux") !== -1) {
         os = OS.LINUX;
     } else {
