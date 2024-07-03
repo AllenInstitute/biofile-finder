@@ -54,7 +54,7 @@ export default [
             {
                 imgSrc: "/Datasets/SaveMetadataAs.png",
                 caption:
-                    'New data sources can be generated from any number of existing data sources (filtered or whole). Right-click to open a context menu over your file selection then select "Save metadata as" then your preferred file format.',
+                    'New data sources can be generated from any number of existing data sources (filtered or whole). Right-click your file selection, select "Save metadata as", and choose your preferred file format.',
             },
             {
                 imgSrc: "/Datasets/NewDataSourceColumns.png",
