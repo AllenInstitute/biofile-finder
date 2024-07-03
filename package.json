@@ -3,8 +3,8 @@
   "version": "6.5.1",
   "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
   "engines": {
-    "node": "16.x",
-    "npm": "8.x"
+    "node": "18.x",
+    "npm": "10.x"
   },
   "workspaces": [
     "packages/desktop",
@@ -75,6 +75,7 @@
     "classnames": "2.2.x",
     "cockatiel": "2.0.x",
     "debounce-promise": "3.1.x",
+    "electron-builder": "^24.13.3",
     "filesize": "5.0.x",
     "fuse.js": "3.4.x",
     "interactjs": "1.6.x",
