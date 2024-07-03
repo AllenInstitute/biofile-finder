@@ -20,11 +20,11 @@ export default [
             },
             {
                 imgSrc: "/FindingData/FilterColumn.png",
-                caption: `Filter by selecting a column to filter by...`,
+                caption: "To filter, first select a column name...",
             },
             {
                 imgSrc: "/FindingData/FilterValue.png",
-                caption: `...then selecting a value for that column to filter by.`,
+                caption: `...then select the desired values.`,
             },
             {
                 imgSrc: "/FindingData/Sort.png",
@@ -39,12 +39,11 @@ export default [
             {
                 imgSrc: "/Datasets/LoadSource.png",
                 caption:
-                    "Data can be loaded from a CSV, Parquet, or JSON file. The data source must include a column that contains the file path to the data. The data source can be loaded from a URL or uploaded from your local machine.",
+                    "Data can be loaded from a CSV, Parquet, or JSON file. The data source must include a column that contains the file path to the data. The data source can be loaded from a URL or uploaded from your computer.",
             },
             {
                 imgSrc: "/Datasets/AddDataSource.png",
-                caption:
-                    "Adding a second, third, fourth, etc. data source works by simply repeating the process.",
+                caption: "Additional data sources can be added the same way as the first.",
             },
             {
                 imgSrc: "/Datasets/GroupedDataSources.png",
