@@ -43,11 +43,12 @@ export default function OpenSourceDatasets() {
                         <div className={styles.bannerContentText}>
                             <div className={styles.bannerHeader}> Open-source datasets</div>
                             <div className={styles.bannerBody}>
-                                This is a paragraph about the table of datasets below
+                                The tables below contain examples of internal (AICS) and externally
+                                contributed datasets that are available for exploration.
                             </div>
                             <div className={styles.bannerBody}>
-                                This is a second paragraph about how to learn about how to use our
-                                datasets, directing users to an eventual <a>Learn</a> page.
+                                Select a dataset to view more information, or click LOAD to open it
+                                in the BioFile Finder app.
                             </div>
                         </div>
                     </div>
