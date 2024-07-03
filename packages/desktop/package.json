@@ -28,6 +28,7 @@
       "icon": "assets/dmg-icon.icns"
     },
     "mac": {
+      "arch": "universal",
       "darkModeSupport": false,
       "target": "dmg"
     },
