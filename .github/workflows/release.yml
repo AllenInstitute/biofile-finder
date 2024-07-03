@@ -27,10 +27,9 @@ jobs:
       - name: Install deps and build app
         env:
           AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
-        working-directory: packages/desktop
         run: |
           npm ci
-          npm run build
+          npm run --prefix packages/desktop build
 
       - name: Build artifact and release Mac
         if: matrix.os == 'macos-latest'
