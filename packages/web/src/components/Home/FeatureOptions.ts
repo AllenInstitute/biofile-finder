@@ -96,7 +96,7 @@ export default [
             {
                 imgSrc: "/Share/Download.png",
                 caption:
-                    "Lastly, BioFile Finder can be used as an interface for downloading files. Select the file you want to download, right-click to open the context menu, and select 'Download' to download the focused file.",
+                    "You can also download files directly from BioFile Finder. Select the file(s) you want to download, right-click to open the context menu, and select 'Download.'",
             },
         ],
     },
