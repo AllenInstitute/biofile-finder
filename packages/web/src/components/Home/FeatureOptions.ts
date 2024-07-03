@@ -91,7 +91,7 @@ export default [
             {
                 imgSrc: "/Share/CodeSnippet.png",
                 caption:
-                    "A code snippet can be generated that will recreate your exact view (filters, groups, sorts) programmatically. This could be useful for sharing your view with a colleague who is working in a Jupyter notebook for example.",
+                    "A code snippet can be generated that recreates your exact view (filters, groups, sorts) programmatically. This allows you to export or share your view to a Jupyter notebook.",
             },
             {
                 imgSrc: "/Share/Download.png",
