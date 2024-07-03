@@ -59,7 +59,7 @@ export default [
             {
                 imgSrc: "/Datasets/NewDataSourceColumns.png",
                 caption:
-                    "The application will ask you which columns you would like included in the resulting new data source.",
+                    "You will be prompted for the columns you would like to include in the resulting new data source.",
             },
         ],
     },
