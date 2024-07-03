@@ -36,12 +36,8 @@
     display: flex;
 }
 
-.video-walkthrough-fake {
-    width: 379px;
-    height: 183px;
-    background-color: var(--primary-dark);
-    margin-left: 32px;
-    flex: none;
+.video-walkthrough > iframe {
+    border: 0;
 }
 
 .relative {

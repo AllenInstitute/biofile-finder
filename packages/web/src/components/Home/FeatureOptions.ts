@@ -1,37 +1,118 @@
-export interface Feature {
-    id: number;
-    text: string; // Left menu
+interface Slide {
     caption: string; // Caption above image
-    imgSrc?: string; // Image src
+    imgSrc: string; // Image src
 }
 
-export const features = [
+interface Feature {
+    id: number;
+    text: string; // Left menu
+    slides: Slide[]; // Right carousel
+}
+
+export default [
     {
         id: 1,
         text: "Find target files quickly",
-        caption: `Filter, sort, group or search for your files
-      in a predictable and standard way and view thumbnails for 
-      quick identification. Switch to thumbnail view for...this 
-      is placeholder text for now.`,
+        slides: [
+            {
+                imgSrc: "/FindingData/Group.png",
+                caption: `Unlike traditional file systems, BioFile Finder allows you to dynamically generate your folder structure based on the metadata of your files. In this screenshot, the files are organized by (Grouped by) the "Gene" and "Structure" columns found in the selected data source.`,
+            },
+            {
+                imgSrc: "/FindingData/FilterColumn.png",
+                caption: "To filter, first select a column name...",
+            },
+            {
+                imgSrc: "/FindingData/FilterValue.png",
+                caption: `...then select the desired values.`,
+            },
+            {
+                imgSrc: "/FindingData/Sort.png",
+                caption: `Sort by clicking on the column header or the "Sort" button.`,
+            },
+        ],
     },
     {
         id: 2,
-        text: "Create new or combine subsets",
-        caption: "Placeholder text about creating or combining",
+        text: "Create or combine data sources",
+        slides: [
+            {
+                imgSrc: "/Datasets/LoadSource.png",
+                caption:
+                    "Data can be loaded from a CSV, Parquet, or JSON file. The data source must include a column that contains the file path to the data. The data source can be loaded from a URL or uploaded from your computer.",
+            },
+            {
+                imgSrc: "/Datasets/AddDataSource.png",
+                caption: "Additional data sources can be added the same way as the first.",
+            },
+            {
+                imgSrc: "/Datasets/GroupedDataSources.png",
+                caption:
+                    'After you have added data, you can filter, group, and sort it. This screenshot shows an example of grouping by an automatically generated column, "Data source," which represents the source of each file.',
+            },
+            {
+                imgSrc: "/Datasets/SaveMetadataAs.png",
+                caption:
+                    'New data sources can be generated from any number of existing data sources (filtered or whole). Right-click your file selection, select "Save metadata as", and choose your preferred file format.',
+            },
+            {
+                imgSrc: "/Datasets/NewDataSourceColumns.png",
+                caption:
+                    "You will be prompted for the columns you would like to include in the resulting new data source.",
+            },
+        ],
     },
     {
         id: 3,
-        text: "Directly open images in popular apps",
-        caption: "Placeholder text about directly opening images",
+        text: "Directly open images in a web-based viewer",
+        slides: [
+            {
+                imgSrc: "/Viewers/ContextMenu.png",
+                caption:
+                    "Right-click your file selection to open a context menu of external applications that can open the files. This example highlights the '3D Web Viewer,' a free open source visualization tool also developed by AICS.",
+            },
+            {
+                imgSrc: "/Viewers/WebViewer.png",
+                caption:
+                    "This is that same file we were looking at in the context menu, now opened in the 3D Web Viewer instantly from BioFile Finder.",
+            },
+        ],
     },
     {
         id: 4,
         text: "Share via URL, code snippet, or download",
-        caption: "Placeholder text about sharing code snippets",
+        slides: [
+            {
+                imgSrc: "/Share/URL.png",
+                caption:
+                    "Your exact file selection (filters, groups, sorts, open folders) can be shared via URL. Anyone with the URL can see the same view as you, as long as the data source is accessible to them. Local files, for example, must be re-selected by the user.",
+            },
+            {
+                imgSrc: "/Share/CodeSnippet.png",
+                caption:
+                    "A code snippet can be generated that recreates your exact view (filters, groups, sorts) programmatically. This allows you to export or share your view to a Jupyter notebook.",
+            },
+            {
+                imgSrc: "/Share/Download.png",
+                caption:
+                    "You can also download files directly from BioFile Finder. Select the file(s) you want to download, right-click to open the context menu, and select 'Download.'",
+            },
+        ],
     },
     {
         id: 5,
-        text: "View OME.Zarr files instantly using the web-based 3D Volume Viewer",
-        caption: "Placeholder text about viewing OME.Zarr files",
+        text: "View OME.Zarr or pre-generated thumbnail previews of files instantly",
+        slides: [
+            {
+                imgSrc: "/OmeZarr/Zarr.png",
+                caption:
+                    "OME.Zarr files are a format for storing multi-dimensional arrays in a chunked, compressed, and efficient manner. BioFile Finder can read these files and preview them as thumbnails automatically.",
+            },
+            {
+                imgSrc: "/OmeZarr/Thumbnail.png",
+                caption:
+                    'For other file formats, BioFile Finder can render pre-generated thumbnails for quick previewing. To do so, in your CSV, Parquet, or JSON file, include a column that contains the file path to the thumbnail image named "Thumbnail"',
+            },
+        ],
     },
-];
+] as Feature[];
