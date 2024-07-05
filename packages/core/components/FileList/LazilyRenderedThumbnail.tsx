@@ -60,6 +60,13 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
         return fileSelection.isFocused(fileSet, overallIndex);
     }, [fileSelection, fileSet, overallIndex]);
 
+    const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
+    React.useEffect(() => {
+        if (file) {
+            file.getPathToThumbnail().then(setThumbnailPath);
+        }
+    }, [file]);
+
     const onClick = (evt: React.MouseEvent) => {
         evt.preventDefault();
         evt.stopPropagation();
@@ -89,7 +96,6 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
 
     let content;
     if (file) {
-        const thumbnailPath = file.getPathToThumbnail();
         const filenameForRender = clipFileName(file?.name);
         content = (
             <div

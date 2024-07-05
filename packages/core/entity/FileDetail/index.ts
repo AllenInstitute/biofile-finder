@@ -1,5 +1,6 @@
 import AnnotationName from "../Annotation/AnnotationName";
 import { FmsFileAnnotation } from "../../services/FileService";
+import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
 
@@ -161,24 +162,26 @@ export default class FileDetail {
         return this.fileDetail.annotations.find((annotation) => annotation.name === annotationName);
     }
 
-    public getPathToThumbnail(): string | undefined {
-        // If no thumbnail present try to render the file itself as the thumbnail
-        if (!this.thumbnail) {
-            const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
-                this.name.toLowerCase().endsWith(format)
-            );
-            if (!isFileRenderableImage) {
-                return undefined;
-            }
-
-            return this.downloadPath;
-        }
-
+    public async getPathToThumbnail(): Promise<string | undefined> {
         // If the thumbnail is a relative path on the allen drive then preprend it to
         // the AICS FMS NGINX server path
         if (this.thumbnail?.startsWith("/allen")) {
             return `${AICS_FMS_FILES_NGINX_SERVER}${this.thumbnail}`;
         }
+
+        // If no thumbnail present try to render the file itself as the thumbnail
+        if (!this.thumbnail) {
+            const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
+                this.name.toLowerCase().endsWith(format)
+            );
+            if (isFileRenderableImage) {
+                return this.downloadPath;
+            }
+            if (this.path.endsWith(".zarr")) {
+                return await renderZarrThumbnailURL(this.path);
+            }
+        }
+
         return this.thumbnail;
     }
 

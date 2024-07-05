@@ -71,6 +71,14 @@ function resizeHandleDoubleClick() {
 export default function FileDetails(props: Props) {
     const dispatch = useDispatch();
     const [fileDetails, isLoading] = useFileDetails();
+    const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
+
+    React.useEffect(() => {
+        if (fileDetails) {
+            fileDetails.getPathToThumbnail().then(setThumbnailPath);
+        }
+    }, [fileDetails]);
+
     const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
     const openWithMenuItems = useOpenWithMenuItems(fileDetails || undefined);
 
@@ -117,7 +125,7 @@ export default function FileDetails(props: Props) {
                                     className={styles.thumbnail}
                                     width="100%"
                                     // height={thumbnailHeight}
-                                    uri={fileDetails?.getPathToThumbnail()}
+                                    uri={thumbnailPath}
                                 />
                             </div>
                             <div className={styles.fileActions}>
