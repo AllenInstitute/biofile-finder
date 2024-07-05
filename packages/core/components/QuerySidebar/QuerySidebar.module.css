@@ -27,6 +27,7 @@
     background-color: var(--highlight-background-color);
     border-radius: var(--large-border-radius);
     color: var(--highlight-text-color);
+    z-index: 9999;
 }
 
 .help-button:hover {
