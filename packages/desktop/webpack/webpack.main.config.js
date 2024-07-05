@@ -44,7 +44,7 @@ module.exports = ({ production } = {}) => ({
         filename: "index.js",
     },
     resolve: {
-        extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
+        extensions: [".ts", ".tsx", ".js", ".jsx", ".json", ".node"],
         mainFields: ["module", "main"],
         symlinks: false,
     },
