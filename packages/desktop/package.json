@@ -29,7 +29,10 @@
     },
     "mac": {
       "darkModeSupport": false,
-      "target": "dmg"
+      "target": {
+        "arch": "universal",
+        "target": "dmg"
+      }
     },
     "win": {
       "target": "portable"
@@ -40,6 +43,7 @@
     "productName": "BioFile Finder"
   },
   "scripts": {
+    "build-executable": "npm run build && npx electron-builder",
     "build": "npm-run-all --print-label clean --parallel bundle:main bundle:renderer",
     "bundle:main": "webpack --config ./webpack/webpack.main.config.js --env production",
     "bundle:renderer": "webpack --config ./webpack/webpack.renderer.config.js --env production",
@@ -61,8 +65,8 @@
     "clean-webpack-plugin": "4.x",
     "css-loader": "6.x",
     "dotenv-webpack": "7.x",
-    "electron": "16.0.x",
-    "electron-builder": "23.6.x",
+    "electron": "22.3.6",
+    "electron-builder": "24.13.x",
     "electron-mocha": "11.0.x",
     "fork-ts-checker-webpack-plugin": "6.x",
     "html-webpack-plugin": "5.x",

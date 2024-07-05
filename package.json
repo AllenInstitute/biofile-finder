@@ -3,8 +3,8 @@
   "version": "6.5.1",
   "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
   "engines": {
-    "node": "16.x",
-    "npm": "8.x"
+    "node": "18.x",
+    "npm": "10.x"
   },
   "workspaces": [
     "packages/desktop",
