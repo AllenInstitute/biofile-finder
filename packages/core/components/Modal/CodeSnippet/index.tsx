@@ -1,37 +1,26 @@
-import { ActionButton, IContextualMenuItem, IconButton, TooltipHost } from "@fluentui/react";
-import classNames from "classnames";
+import { DirectionalHint, TooltipHost } from "@fluentui/react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 import SyntaxHighlighter from "react-syntax-highlighter";
 
 import { ModalProps } from "..";
-import { interaction } from "../../../state";
 import BaseModal from "../BaseModal";
+import { PrimaryButton, TertiaryButton } from "../../Buttons";
+import { interaction } from "../../../state";
 
 import styles from "./CodeSnippet.module.css";
 
-const COPY_ICON = { iconName: "copy" };
+const PYTHON_PANDAS_MINIMUM = "Python 3.8+ (pandas)";
 
 /**
  * Dialog meant to show the user a Code snippet
  */
 export default function CodeSnippet({ onDismiss }: ModalProps) {
-    const pythonSnippet = useSelector(interaction.selectors.getPythonSnippet);
-    const code = pythonSnippet?.code;
-    const setup = pythonSnippet?.setup;
-    const languageOptions: IContextualMenuItem[] = [
-        {
-            key: "python",
-            text: "Python 3.8+ (pandas)",
-            onClick() {
-                setLanguage("Python 3.8+ (pandas)");
-            },
-        },
-    ];
+    const { code, setup } = useSelector(interaction.selectors.getPythonSnippet);
 
     const [isSetupCopied, setSetupCopied] = React.useState(false);
     const [isCodeCopied, setCodeCopied] = React.useState(false);
-    const [language, setLanguage] = React.useState(languageOptions[0].text);
+    const [language, setLanguage] = React.useState(PYTHON_PANDAS_MINIMUM);
 
     const onCopySetup = () => {
         setup && navigator.clipboard.writeText(setup);
@@ -55,26 +44,32 @@ export default function CodeSnippet({ onDismiss }: ModalProps) {
 
     const body = (
         <>
-            <div className={styles.header}>
-                <h4>Language</h4>
-                <div className={styles.codeActions}>
-                    <ActionButton
-                        className={classNames(styles.actionButton, styles.copyButton)}
-                        menuProps={{
-                            className: styles.buttonMenu,
-                            items: languageOptions,
-                        }}
-                        text={language}
-                    />
-                </div>
+            <div className={styles.languageButtonContainer}>
+                <PrimaryButton
+                    className={styles.languageButton}
+                    menuItems={[
+                        {
+                            key: "python",
+                            text: PYTHON_PANDAS_MINIMUM,
+                            disabled: language === PYTHON_PANDAS_MINIMUM,
+                            onClick() {
+                                setLanguage(PYTHON_PANDAS_MINIMUM);
+                            },
+                        },
+                    ]}
+                    menuDirection={DirectionalHint.rightCenter}
+                    iconName="CodeEdit"
+                    text="Select language"
+                    title="Select language to display code snippet for"
+                />
             </div>
             <div className={styles.header}>
                 <h4>Setup</h4>
                 <TooltipHost content={isSetupCopied ? "Copied to clipboard!" : undefined}>
-                    <IconButton
-                        className={styles.copyButton}
-                        iconProps={COPY_ICON}
+                    <TertiaryButton
+                        iconName="Copy"
                         onClick={onCopySetup}
+                        title="Copy to clipboard"
                     />
                 </TooltipHost>
             </div>
@@ -90,10 +85,10 @@ export default function CodeSnippet({ onDismiss }: ModalProps) {
             <div className={styles.header}>
                 <h4>Code</h4>
                 <TooltipHost content={isCodeCopied ? "Copied to clipboard!" : undefined}>
-                    <IconButton
-                        className={styles.copyButton}
-                        iconProps={COPY_ICON}
+                    <TertiaryButton
+                        iconName="Copy"
                         onClick={onCopyCode}
+                        title="Copy to clipboard"
                     />
                 </TooltipHost>
             </div>
@@ -113,5 +108,5 @@ export default function CodeSnippet({ onDismiss }: ModalProps) {
         </>
     );
 
-    return <BaseModal body={body} onDismiss={onDismiss} title="Code Snippet" />;
+    return <BaseModal body={body} onDismiss={onDismiss} title="Code snippet" />;
 }

@@ -8,6 +8,16 @@ import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { metadata, selection } from "../../state";
 
+// Define buffer item
+const DIVIDER_SENTINAL_VALUE = "_BUFFER_BAR_ID_";
+const RECENT_ANNOTATIONS_DIVIDER: ListItem<Annotation> = {
+    selected: false,
+    disabled: false,
+    isDivider: true,
+    value: DIVIDER_SENTINAL_VALUE,
+    displayValue: "",
+};
+
 interface Props {
     id?: string;
     disabledTopLevelAnnotations?: boolean;
@@ -36,51 +46,44 @@ export default function AnnotationPicker(props: Props) {
     );
     const recentAnnotationNames = useSelector(selection.selectors.getRecentAnnotations);
 
-    const recentAnnotations = recentAnnotationNames.flatMap((name) =>
-        annotations.filter((annotation) => annotation.name === name)
-    );
+    const recentAnnotations = recentAnnotationNames
+        .map((name) => annotations.find((annotation) => annotation.name === name))
+        .filter((annotation) => !!annotation) as Annotation[];
 
-    // Define buffer item
-    const bufferBar = {
-        name: "buffer",
-        selected: false,
-        disabled: false,
-        isBuffer: true,
-        value: "recent buffer",
-        displayValue: "",
+    const isSelectable = (annotation: Annotation): boolean =>
+        !props.disabledTopLevelAnnotations ||
+        !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name);
+
+    const annotationToListItem = (annotation: Annotation): ListItem<Annotation> => {
+        const selected = props.selections.some((selected) => selected === annotation.name);
+        const disabled =
+            !selected &&
+            props.disableUnavailableAnnotations &&
+            unavailableAnnotations.some((unavailable) => unavailable.name === annotation.name);
+        return {
+            disabled,
+            selected,
+            data: annotation,
+            value: annotation.name,
+            description: annotation.description,
+            displayValue: annotation.displayName,
+            recent: recentAnnotationNames.includes(annotation.name) && !selected,
+            loading: props.disableUnavailableAnnotations && areAvailableAnnotationLoading,
+        };
     };
 
-    // combine all annotation lists and buffer item objects
-    const nonUniqueItems = [...recentAnnotations, bufferBar, ...annotations]
-        .filter(
-            (annotation) =>
-                !props.disabledTopLevelAnnotations ||
-                !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name)
-        )
-        .map((annotation) => {
-            // This is reached if the 'annotation' is a spacer.
-            if (!(annotation instanceof Annotation)) {
-                return annotation;
-            }
-
-            const isSelected = props.selections.some((selected) => selected === annotation.name);
-            return {
-                selected: isSelected,
-                recent: recentAnnotationNames.includes(annotation.name) && !isSelected,
-                disabled:
-                    props.disableUnavailableAnnotations &&
-                    unavailableAnnotations.some(
-                        (unavailable) => unavailable.name === annotation.name
-                    ),
-                loading: props.disableUnavailableAnnotations && areAvailableAnnotationLoading,
-                description: annotation.description,
-                data: annotation,
-                value: annotation.name,
-                displayValue: annotation.displayName,
-            };
-        });
+    // Map recent annotations into a list of items for selection
+    const nonUniqueItems = [...recentAnnotations, ...annotations]
+        .filter(isSelectable)
+        .map(annotationToListItem);
 
     const items = uniqBy(nonUniqueItems, "value");
+
+    // If there are any recent annotations add a divider between them
+    // and the rest of the annotations (assuming any left)
+    if (recentAnnotations.length) {
+        items.push(RECENT_ANNOTATIONS_DIVIDER);
+    }
 
     const removeSelection = (item: ListItem<Annotation>) => {
         props.setSelections(

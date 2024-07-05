@@ -5,6 +5,7 @@ import PublicDataset from "../../entity/PublicDataset";
 import FileSet from "../../../../core/entity/FileSet";
 import { interaction } from "../../../../core/state";
 import FileFilter from "../../../../core/entity/FileFilter";
+import FileSort from "../../../../core/entity/FileSort";
 
 /**
  * Custom React hook to accomplish storing and fetching details of datasets (i.e., dataset metadata).
@@ -12,7 +13,8 @@ import FileFilter from "../../../../core/entity/FileFilter";
  * of the return array will be true.
  */
 export default function useDatasetDetails(
-    filters: FileFilter[]
+    filters: FileFilter[],
+    fileSort?: FileSort | undefined
 ): [PublicDataset[] | null, boolean, string | undefined] {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState<string>();
@@ -26,8 +28,9 @@ export default function useDatasetDetails(
         return new FileSet({
             fileService: publicDatasetListService,
             filters,
+            sort: fileSort,
         });
-    }, [publicDatasetListService, filters]);
+    }, [publicDatasetListService, filters, fileSort]);
     React.useEffect(() => {
         setIsLoading(true);
         if (!!publicDatasetListService && !!fileSet) {

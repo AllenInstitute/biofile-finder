@@ -1,15 +1,19 @@
-import { DirectionalHint, Icon, IconButton } from "@fluentui/react";
+import {
+    ContextualMenuItemType,
+    DirectionalHint,
+    IContextualMenuItem,
+    IconButton,
+} from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import Query from "./Query";
-import { HELP_OPTIONS } from "./tutorials";
+import { PrimaryButton, useButtonMenu } from "../Buttons";
 import { ModalType } from "../Modal";
-import SvgIcon from "../SvgIcon";
 import Tutorial from "../../entity/Tutorial";
+import useHelpOptions from "../../hooks/useHelpOptions";
 import { interaction, selection } from "../../state";
-import { AICS_LOGO } from "../../icons";
 
 import styles from "./QuerySidebar.module.css";
 
@@ -28,6 +32,12 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     const dataSources = useSelector(interaction.selectors.getAllDataSources);
     const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
+    const helpMenuOptions = useHelpOptions(dispatch);
+    const helpMenu = useButtonMenu({
+        items: helpMenuOptions,
+        directionalHint: DirectionalHint.topRightEdge,
+    });
+
     React.useEffect(() => {
         if (selectedQuery) {
             const newurl =
@@ -43,9 +53,17 @@ export default function QuerySidebar(props: QuerySidebarProps) {
 
     const [isExpanded, setIsExpanded] = React.useState(true);
 
-    const helpMenuOptions = React.useMemo(() => HELP_OPTIONS(dispatch), [dispatch]);
-    const addQueryOptions = React.useMemo(
+    const addQueryOptions: IContextualMenuItem[] = React.useMemo(
         () => [
+            {
+                key: "ADD NEW QUERY",
+                text: "ADD NEW QUERY",
+                itemType: ContextualMenuItemType.Header,
+            },
+            {
+                key: "add-query-divider",
+                itemType: ContextualMenuItemType.Divider,
+            },
             ...dataSources.map((source) => ({
                 key: source.id,
                 text: source.name,
@@ -58,11 +76,10 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                         })
                     );
                 },
-                secondaryText: "Data Source",
             })),
             {
-                key: "New Data Source...",
-                text: "New Data Source...",
+                key: "New data source",
+                text: "New data source",
                 iconProps: { iconName: "NewFolder" },
                 onClick: () => {
                     dispatch(interaction.actions.setVisibleModal(ModalType.DataSource));
@@ -75,17 +92,6 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     if (!isExpanded) {
         return (
             <div className={styles.minimizedContainer} onClick={() => setIsExpanded(true)}>
-                <div className={styles.header}>
-                    <SvgIcon
-                        height={25}
-                        pathData={AICS_LOGO}
-                        viewBox="0,0,512,512"
-                        width={25}
-                        className={classNames(styles.logo, {
-                            [styles.logoHidden]: isOnWeb,
-                        })}
-                    />
-                </div>
                 <p>
                     <strong>{selectedQuery}</strong>
                 </p>
@@ -94,29 +100,19 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     }
 
     return (
-        <div className={classNames(props.className, styles.container)}>
+        <div
+            className={classNames(props.className, styles.container, {
+                [styles.emptyFooter]: isOnWeb,
+            })}
+        >
             <div className={styles.header}>
-                <SvgIcon
-                    height={40}
-                    pathData={AICS_LOGO}
-                    viewBox="0,0,512,512"
-                    width={40}
-                    className={classNames(styles.logo, {
-                        [styles.logoHidden]: isOnWeb,
-                    })}
-                />
-                <IconButton
-                    ariaLabel="Add"
-                    className={styles.addViewButton}
-                    iconProps={{ iconName: "Add" }}
+                <PrimaryButton
+                    className={styles.addButton}
                     id={Tutorial.ADD_QUERY_BUTTON_ID}
-                    menuIconProps={{ iconName: "ChevronRight" }}
-                    menuProps={{
-                        className: styles.buttonMenu,
-                        directionalHint: DirectionalHint.rightTopEdge,
-                        shouldFocusOnMount: true,
-                        items: addQueryOptions,
-                    }}
+                    iconName="Add"
+                    menuItems={addQueryOptions}
+                    title="Add new query"
+                    text="Add"
                 />
             </div>
             <div
@@ -142,23 +138,18 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                     />
                 )}
             </div>
-            <div className={styles.footer}>
+            <div className={classNames(styles.footer, { [styles.hidden]: isOnWeb })}>
                 <IconButton
                     ariaLabel="Help"
+                    className={styles.helpButton}
                     iconProps={{ iconName: "Help" }}
-                    title="Help tutorials"
+                    title="Help menu"
                     menuIconProps={{ iconName: "ChevronUp" }}
-                    menuProps={{ className: styles.buttonMenu, items: helpMenuOptions }}
+                    menuProps={helpMenu}
                 />
             </div>
             <div className={styles.minimizeBar} onClick={() => setIsExpanded(false)}>
-                <Icon iconName="DoubleChevronLeft" />
-                <Icon iconName="DoubleChevronLeft" />
-                <Icon iconName="DoubleChevronLeft" />
-                <Icon iconName="DoubleChevronLeft" />
-                <Icon iconName="DoubleChevronLeft" />
-                <Icon iconName="DoubleChevronLeft" />
-                <Icon iconName="DoubleChevronLeft" />
+                <div />
             </div>
         </div>
     );

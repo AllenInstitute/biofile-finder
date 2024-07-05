@@ -1,60 +1,19 @@
 .root {
-    --window-buttons-height: var(--url-bar-height); /* defined in App.module.css under .root{} */
-    --pagination-height: var(--url-bar-height); /* defined in App.module.css under .root{} */
+    --pagination-height: 40px;
     --padding: 10px;
-    --resize-handle-width: 10px;
-    --max-detail-button-width: 250px;
-} 
 
-.expandable {
-    position: absolute;
-    right: 0;
-    height: calc(100% - var(--margin) * 2);
-    border: 1px solid var(--primary-background-color);
-    background-color: var(--secondary-background-color);
-    overflow: auto;
+    background-color: var(--primary-background-color);
+    color: var(--primary-text-color);
     display: flex;
     justify-content: center;
-    z-index: 1001;
-}
-
-.expandable::after {
-    background-image: linear-gradient(transparent, var(--secondary-background-color));
-    bottom: 0;
-    content: " ";
-    height: 50px;
-    right: 0;
-    max-width: 100%;
-    position: absolute;
-    width: 100%;
-    z-index: 11
+    min-width: 175px;
+    max-width: 95%;
+    overflow: auto;
+    width: var(--file-details-width); /* defined in App.module.css under .root{} and used by resize handle */
 }
 
 .expandable-transition {
     transition: width var(--transition-duration); /* defined in App.module.css under .root{} */
-}
-
-.window-buttons {
-    width: 100%;
-    height: var(--window-buttons-height);
-
-    /* flex parent */
-    display: flex;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    position: absolute;
-    right: 0;
-}
-
-.window-buttons-container {
-    width: 100%;
-    height: var(--window-buttons-height);
-}
-
-.default {
-    width: var(--file-details-width); /* defined in App.module.css under .root{} */
-    min-width: 175px;
-    max-width: 95%;
 }
 
 .minimized {
@@ -81,24 +40,31 @@
     justify-content: space-between;
 }
 
-.content-container {
-    --teaser-height: 3rem;
-
-    position: relative;
-    width: 100%;
-    height: calc(100% - var(--window-buttons-height) - var(--pagination-height));
+.pagination-and-content {
+    padding: 12px 12px 0 12px;
+    width: 100%
 }
 
 .overflow-container {
     overflow: auto;
     padding-bottom: 1.25em;
     width: 100%;
-    height: 100%;
+    height: calc(100% - var(--pagination-height));
+}
+
+.overflow-container::after {
+    background-image: linear-gradient(transparent, var(--primary-background-color));
+    bottom: 0;
+    content: " ";
+    height: 50px;
+    right: 0;
+    max-width: 100%;
+    position: absolute;
+    width: 100%;
+    z-index: 11;
 }
 
 .file-actions {
-    padding: 0 var(--padding) 0 var(--padding);
-
     /* flex parent */
     display: flex;
 }
@@ -117,7 +83,7 @@
 }
 
 .annotation-list {
-    padding: var(--padding) var(--padding) 35px var(--padding);
+    padding: var(--padding) 0 35px 0;
 }
 
 .thumbnail-container {
@@ -137,55 +103,45 @@
     background-color: var(--primary-background-color);
 }
 
-.file-details-content {
-    overflow-y: hidden;
-    width: 96%;
-}
 
 .resize-handle {
-    width: var(--resize-handle-width);
-    height: 100%;
+    --resize-handle-width: 10px;
+
+    align-items: center;
+    background: none;
+    bottom: -5px;
+    border-left: 1px solid var(--border-color);
+    color: var(--highlight-background-color);
     cursor: col-resize;
+    display: flex;
+    height: calc(100% + 12px);
+    right: calc(var(--file-details-width) - var(--resize-handle-width));
+    justify-content: center;
     position: absolute;
-    left: 0px;
+    width: var(--resize-handle-width);
+    z-index: 11;
 }
 
 .resize-handle:hover {
+    border-left: 2px solid var(--bright-aqua);
+    width: 10px;
+    z-index: 9999;
+}
+
+.resize-handle > div {
+    height: 15px;
+    width: 2px;
     background-color: var(--highlight-background-color);
 }
 
-.icon-button {
-    background-color: var(--primary-background-color);
-    border: none;
-    color: var(--primary-text-color);
-    height: 30px;
-    max-width: var(--max-detail-button-width);
-    width: 100%;
-    border-radius: 4px;
-    justify-content: center;
+.resize-handle:hover > div {
+    background-color: var(--highlight-hover-background-color);
+    transform: translateX(-0.5px);
 }
 
 .file-name {
-    padding: var(--margin);
+    padding: var(--padding) 0;
     text-align: center;
     user-select: text !important;
     word-break: break-all;
-}
-
-.title {
-    font-size: large;
-    margin: 0 0 0 var(--margin);
-}
-
-.icon-button span {
-    font-weight: normal;
-}
-
-.icon-button:hover, .icon-button:active {
-    background-color: var(--highlight-background-color);
-    color: var(--highlight-text-color);
-}
-
-.icon-button i, .icon-button:hover i {
-    color: var(--primary-text-color) !important;
 }

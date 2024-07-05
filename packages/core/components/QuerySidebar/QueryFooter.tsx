@@ -1,9 +1,9 @@
-import { IContextualMenuItem, IconButton } from "@fluentui/react";
-import classNames from "classnames";
+import { IContextualMenuItem } from "@fluentui/react";
 import { throttle } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { TertiaryButton } from "../Buttons";
 import { ModalType } from "../Modal";
 import Tutorial from "../../entity/Tutorial";
 import { interaction, selection } from "../../state";
@@ -25,6 +25,8 @@ export default function QueryFooter(props: Props) {
 
     const url = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
+    const isEmptyQuery = !props.query.parts.sources.length;
+
     const onCopy = async () => {
         try {
             navigator.clipboard.writeText(`https://biofile-finder.allencell.org/app?${url}`);
@@ -35,22 +37,29 @@ export default function QueryFooter(props: Props) {
     };
     const shareQueryOptions: IContextualMenuItem[] = [
         {
-            key: "Code Snippet",
-            text: "Code Snippet",
+            key: "Code snippet",
+            text: "Code snippet",
             iconProps: { iconName: "Code" },
             onClick: () => {
                 dispatch(interaction.actions.setVisibleModal(ModalType.CodeSnippet));
             },
         },
         {
-            key: "Shareable Link",
-            text: "Shareable Link",
+            key: "Shareable link",
+            text: "Shareable link",
             iconProps: { iconName: "Link" },
             title:
                 "If you share this link, the recipient will be able to view the current query by importing it as a new query.",
             onClick: () => {
                 onCopy();
             },
+        },
+    ];
+    const deleteQueryOptions: IContextualMenuItem[] = [
+        {
+            key: "Delete",
+            text: "Delete",
+            onClick: props.onQueryDelete,
         },
     ];
 
@@ -64,39 +73,35 @@ export default function QueryFooter(props: Props) {
 
     return (
         <div className={styles.container}>
-            <IconButton
-                ariaDescription="Share query"
-                ariaLabel="Share"
-                title="Share"
-                className={styles.button}
-                menuProps={{ className: styles.buttonMenu, items: shareQueryOptions }}
-                iconProps={{ iconName: "Share" }}
-                id={Tutorial.SHARE_BUTTON_ID}
+            <TertiaryButton
+                invertColor
+                disabled={isEmptyQuery}
+                iconName="Delete"
+                menuItems={deleteQueryOptions}
+                title="Delete query"
             />
-            <IconButton
-                ariaDescription="Refresh query"
-                ariaLabel="Refresh"
-                title="Refresh"
-                className={styles.button}
+            <TertiaryButton
+                invertColor
+                disabled={isEmptyQuery}
+                iconName="Refresh"
                 onClick={onRefresh}
-                iconProps={{ iconName: "Refresh" }}
+                title="Refresh query"
             />
-            <IconButton
-                ariaDescription="Copy query"
-                ariaLabel="Copy"
-                title="Duplicate"
-                className={styles.button}
+            <TertiaryButton
+                invertColor
+                disabled={isEmptyQuery}
+                iconName="Copy"
                 onClick={() => dispatch(selection.actions.addQuery(props.query))}
-                iconProps={{ iconName: "Copy" }}
+                title="Duplicate query"
             />
-            <IconButton
-                ariaDescription="Delete query"
-                ariaLabel="Delete"
-                title="Delete"
-                className={classNames(styles.button, { [styles.disabled]: !props.isDeletable })}
-                disabled={!props.isDeletable}
-                onClick={props.onQueryDelete}
-                iconProps={{ iconName: "Delete" }}
+            <TertiaryButton
+                invertColor
+                disabled={isEmptyQuery}
+                iconName="Share"
+                id={Tutorial.SHARE_BUTTON_ID}
+                menuItems={shareQueryOptions}
+                onClick={onRefresh}
+                title="Share query"
             />
         </div>
     );

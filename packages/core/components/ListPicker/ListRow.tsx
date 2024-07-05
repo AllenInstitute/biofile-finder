@@ -2,6 +2,7 @@ import { DefaultButton, DirectionalHint, Icon, Spinner, SpinnerSize } from "@flu
 import classNames from "classnames";
 import * as React from "react";
 
+import { useButtonMenu } from "../Buttons";
 import { AnnotationValue } from "../../services/AnnotationService";
 
 import styles from "./ListRow.module.css";
@@ -10,7 +11,7 @@ export interface ListItem<T = any> {
     disabled?: boolean;
     loading?: boolean;
     recent?: boolean;
-    isBuffer?: boolean;
+    isDivider?: boolean;
     selected: boolean;
     displayValue: AnnotationValue;
     value: AnnotationValue;
@@ -30,6 +31,13 @@ interface Props {
  */
 export default function ListRow(props: Props) {
     const { item } = props;
+    const buttonMenu = useButtonMenu({
+        directionalHint: DirectionalHint.rightTopEdge,
+        // necessary to have a non-empty items list to have `onRenderMenuList` called
+        items: [{ key: "placeholder" }],
+        onRenderMenuList: () => props.subMenuRenderer?.(item as ListItem) as React.ReactElement,
+    });
+
     if (!item) {
         return null;
     }
@@ -39,28 +47,21 @@ export default function ListRow(props: Props) {
             className={classNames(styles.itemContainer, {
                 [styles.selected]: item.selected,
                 [styles.disabled]: item.disabled,
-                [styles.isBuffer]: item.isBuffer,
+                [styles.divider]: item.isDivider,
             })}
             menuIconProps={{
-                iconName: props.subMenuRenderer && !item.isBuffer ? "ChevronRight" : undefined,
+                iconName: props.subMenuRenderer && !item.isDivider ? "ChevronRight" : undefined,
             }}
-            menuProps={
-                props.subMenuRenderer
-                    ? {
-                          directionalHint: DirectionalHint.rightTopEdge,
-                          shouldFocusOnMount: true,
-                          items: [{ key: "placeholder" }], // necessary to have a non-empty items list to have `onRenderMenuList` called
-                          onRenderMenuList: () =>
-                              props.subMenuRenderer?.(item) as React.ReactElement,
-                      }
-                    : undefined
-            }
+            menuProps={props.subMenuRenderer ? buttonMenu : undefined}
             disabled={item.disabled}
             onClick={() => (item.selected ? props.onDeselect(item) : props.onSelect(item))}
         >
-            <label className={styles.item} title={item.description}>
+            <label
+                className={styles.item}
+                title={`${item.displayValue}${item.description ? `: ${item.description}` : ""}`}
+            >
                 <div>{item.selected && <Icon iconName="CheckMark" />}</div>
-                {item.displayValue}
+                <p>{item.displayValue}</p>
             </label>
             {item.recent && <Icon iconName="Redo" />}
             {item.loading && <Spinner className={styles.spinner} size={SpinnerSize.small} />}

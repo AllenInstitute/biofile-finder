@@ -1,4 +1,4 @@
-import { Shimmer } from "@fluentui/react";
+import { IShimmerColors, Shimmer } from "@fluentui/react";
 import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
@@ -39,6 +39,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         style,
     } = props;
 
+    const isSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
     const columnWidths = useSelector(selection.selectors.getColumnWidths);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
@@ -61,27 +62,37 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
             width: columnWidths[annotation.name] || 1 / annotations.length,
         }));
         content = (
-            <FileRow
-                cells={cells}
-                className={classNames(styles.row, {
-                    [styles.selected]: isSelected,
-                    [styles.focused]: isFocused,
-                })}
-                rowIdentifier={{ index, id: file.id }}
-                onSelect={onSelect}
-            />
+            <FileRow cells={cells} rowIdentifier={{ index, id: file.id }} onSelect={onSelect} />
         );
     }
+    // Unable to convince FluentUI to style the shimmer wave pattern accurately
+    // with pure css so have to rely on extracting the colors from the global document
+    // here and then applying them directly
+    const globalStyle = getComputedStyle(document.body);
+    const shimmerColors: IShimmerColors = {
+        background: globalStyle.getPropertyValue("--primary-dark"),
+        shimmer: globalStyle.getPropertyValue("--primary-dark"),
+        shimmerWave: globalStyle.getPropertyValue("--aqua"),
+    };
 
     return (
         <div
+            className={classNames(styles.row, {
+                [styles.selected]: isSelected,
+                [styles.focused]: isFocused,
+                [styles.smallFont]: isSmallFont,
+            })}
             style={{
                 ...style,
                 width: `calc(100% - ${2 * MARGIN}px)`,
             }}
             onContextMenu={onContextMenu}
         >
-            <Shimmer className={classNames({ [styles.shimmer]: !file })} isDataLoaded={!!file}>
+            <Shimmer
+                className={classNames({ [styles.shimmer]: !file })}
+                isDataLoaded={!!file}
+                shimmerColors={shimmerColors}
+            >
                 {content}
             </Shimmer>
         </div>

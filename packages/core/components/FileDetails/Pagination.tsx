@@ -1,5 +1,4 @@
 import classNames from "classnames";
-import { IconButton } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -7,6 +6,7 @@ import { selection } from "../../state";
 import { FocusDirective } from "../../entity/FileSelection";
 
 import styles from "./Pagination.module.css";
+import { TertiaryButton } from "../Buttons";
 
 interface PaginationProps {
     className?: string;
@@ -22,13 +22,9 @@ export default function Pagination(props: PaginationProps) {
     return (
         <div className={classNames(styles.root, props.className)}>
             <div>
-                <IconButton
-                    ariaLabel="Jump to first selected file"
-                    className={classNames(styles.iconButton, {
-                        [styles.disabled]: !fileSelection.hasPreviousFocusableItem(),
-                    })}
+                <TertiaryButton
                     disabled={!fileSelection.hasPreviousFocusableItem()}
-                    iconProps={{ iconName: "ChevronLeftEnd6" }}
+                    iconName="ChevronLeftEnd6"
                     onClick={() =>
                         dispatch(
                             selection.actions.setFileSelection(
@@ -38,13 +34,9 @@ export default function Pagination(props: PaginationProps) {
                     }
                     title="Jump to first selected file"
                 />
-                <IconButton
-                    ariaLabel="View previous selected file"
-                    className={classNames(styles.iconButton, {
-                        [styles.disabled]: !fileSelection.hasPreviousFocusableItem(),
-                    })}
+                <TertiaryButton
                     disabled={!fileSelection.hasPreviousFocusableItem()}
-                    iconProps={{ iconName: "ChevronLeftSmall" }}
+                    iconName="ChevronLeftSmall"
                     onClick={() =>
                         dispatch(
                             selection.actions.setFileSelection(
@@ -56,13 +48,9 @@ export default function Pagination(props: PaginationProps) {
                 />
             </div>
             <div>
-                <IconButton
-                    ariaLabel="View next selected file"
-                    className={classNames(styles.iconButton, {
-                        [styles.disabled]: !fileSelection.hasNextFocusableItem(),
-                    })}
+                <TertiaryButton
                     disabled={!fileSelection.hasNextFocusableItem()}
-                    iconProps={{ iconName: "ChevronRightSmall" }}
+                    iconName="ChevronRightSmall"
                     onClick={() =>
                         dispatch(
                             selection.actions.setFileSelection(
@@ -72,13 +60,9 @@ export default function Pagination(props: PaginationProps) {
                     }
                     title="View next selected file"
                 />
-                <IconButton
-                    ariaLabel="Jump to last selected file"
-                    className={classNames(styles.iconButton, {
-                        [styles.disabled]: !fileSelection.hasNextFocusableItem(),
-                    })}
+                <TertiaryButton
                     disabled={!fileSelection.hasNextFocusableItem()}
-                    iconProps={{ iconName: "ChevronRightEnd6" }}
+                    iconName="ChevronRightEnd6"
                     onClick={() =>
                         dispatch(
                             selection.actions.setFileSelection(

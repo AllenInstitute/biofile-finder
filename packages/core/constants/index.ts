@@ -1,4 +1,5 @@
-import Annotation, { AnnotationName } from "../entity/Annotation";
+import Annotation from "../entity/Annotation";
+import AnnotationName from "../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../entity/AnnotationFormatter";
 
 export const APP_ID = "fms-file-explorer-core";

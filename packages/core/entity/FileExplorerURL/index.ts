@@ -1,4 +1,4 @@
-import { AnnotationName } from "../Annotation";
+import AnnotationName from "../Annotation/AnnotationName";
 import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
@@ -90,7 +90,10 @@ export default class FileExplorerURL {
                 "source",
                 JSON.stringify({
                     ...source,
-                    uri: source.uri instanceof String ? source.uri : undefined,
+                    uri:
+                        typeof source.uri === "string" || source.uri instanceof String
+                            ? source.uri
+                            : undefined,
                 })
             );
         });

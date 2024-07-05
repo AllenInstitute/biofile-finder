@@ -13,7 +13,7 @@ import LazilyRenderedThumbnail from "./LazilyRenderedThumbnail";
 import { selection } from "../../state";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileSelector from "./useFileSelector";
-import useFileAccessContextMenu from "./useFileAccessContextMenu";
+import useFileAccessContextMenu from "../../hooks/useFileAccesContextMenu";
 import EmptyFileListMessage from "../EmptyFileListMessage";
 
 import styles from "./FileList.module.css";
@@ -37,8 +37,8 @@ const DEFAULTS = {
 };
 
 const MAX_NON_ROOT_HEIGHT = 300;
-const SMALL_ROW_HEIGHT = 18;
-const TALL_ROW_HEIGHT = 22;
+const SMALL_ROW_HEIGHT = 17;
+const TALL_ROW_HEIGHT = 19;
 
 /**
  * Wrapper for react-window-infinite-loader and react-window that knows how to lazily fetch its own data. It will lay

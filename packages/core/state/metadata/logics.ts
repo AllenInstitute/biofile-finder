@@ -14,7 +14,8 @@ import {
     RequestDatasetManifest,
 } from "./actions";
 import * as metadataSelectors from "./selectors";
-import Annotation, { AnnotationName } from "../../entity/Annotation";
+import Annotation from "../../entity/Annotation";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 

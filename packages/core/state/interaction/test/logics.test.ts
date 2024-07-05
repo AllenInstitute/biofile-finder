@@ -24,7 +24,8 @@ import {
 } from "../../../services/ExecutionEnvService";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import interactionLogics from "../logics";
-import Annotation, { AnnotationName } from "../../../entity/Annotation";
+import Annotation from "../../../entity/Annotation";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
 import FileSet from "../../../entity/FileSet";

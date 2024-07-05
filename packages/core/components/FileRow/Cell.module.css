@@ -9,14 +9,11 @@
     padding-right: var(--padding);
     vertical-align: middle;
     font-size: initial;
+    height: 100%;
 }
 
 .cell:first-of-type {
     padding-left: calc(var(--padding) / 2);
-}
-
-.cell:last-of-type {
-    padding-right: 0;
 }
 
 .resizable-cell {
@@ -32,12 +29,16 @@
 }
 
 .resize-target {
-    touch-action: none;
+    background-color: var(--highlight-background-color);
+    height: 18px;
     position: absolute;
-    top: 0;
     right: calc(1em / 2);
-    height: 100%;
     text-align: center;
-    font-weight: bold;
-    color: var(--secondary-text-color);
+    top: 0;
+    touch-action: none;
+    width: 2px;
+}
+
+.resize-target:hover {
+    background-color: var(--highlight-hover-background-color);
 }

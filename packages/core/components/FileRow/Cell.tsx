@@ -13,6 +13,7 @@ export interface CellProps {
     columnKey: string;
     onContextMenu?: (evt: React.MouseEvent) => void;
     onResize?: (columnKey: string, nextWidth?: number) => void; // nextWith is a percentage of parent element's width, a number between 0 and 1.
+    title?: string;
     width: number; // percentage of parent element's width, a number between 0 and 1.
 }
 
@@ -98,6 +99,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                 className={classNames(styles.resizableCell, containerClassName, className)}
                 onContextMenu={this.props.onContextMenu}
                 onDoubleClick={this.onDoubleClick}
+                title={this.props.title}
                 style={{
                     width: `${(provisionalWidth || width) * 100}%`,
                     minWidth: Cell.MINIMUM_WIDTH,
@@ -107,9 +109,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                 <span
                     className={classNames(styles.resizeTarget, resizeTargetClassName)}
                     ref={this.resizeTarget}
-                >
-                    |
-                </span>
+                />
             </div>
         );
     }
@@ -121,6 +121,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                 onContextMenu={this.props.onContextMenu}
                 style={{ width: `${this.props.width * 100}%` }}
                 data-testid={NON_RESIZEABLE_CELL_TEST_ID}
+                title={this.props.title}
             >
                 {this.props.children}
             </div>

@@ -1,12 +1,10 @@
 import { Icon } from "@fluentui/react";
-import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import ColumnPicker from "./ColumnPicker";
 import { ContextMenuItem } from "../ContextMenu";
-import getContextMenuItems from "../ContextMenu/items";
 import FileRow, { CellConfig } from "../../components/FileRow";
 import { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
@@ -43,9 +41,7 @@ function Header(
             columnKey: annotation.name, // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
             displayValue: (
                 <span
-                    className={classNames(styles.headerCell, {
-                        [styles.bold]: isSortedColumn,
-                    })}
+                    className={styles.headerCell}
                     onClick={() => dispatch(selection.actions.sortColumn(annotation.name))}
                 >
                     <span className={styles.headerTitle}>{annotation.displayName}</span>
@@ -57,28 +53,30 @@ function Header(
                         ))}
                 </span>
             ),
+            title: annotation.name,
             width: columnWidths[annotation.name] || 1 / columnAnnotations.length,
         };
     });
 
     const onHeaderColumnContextMenu = (evt: React.MouseEvent) => {
         evt.preventDefault();
-        const availableContextMenuItem = getContextMenuItems(dispatch);
-
         const items: ContextMenuItem[] = [
             {
-                ...availableContextMenuItem.MODIFY_COLUMNS,
-                subMenuProps: {
-                    items: [
-                        {
-                            key: "available-annotations",
-                            text: "Available annotations",
-                            onRender() {
-                                return <ColumnPicker />;
-                            },
-                        },
-                    ],
+                key: "modify-columns",
+                text: "Modify columns",
+                title: "Modify columns displayed in the file list",
+                iconProps: {
+                    iconName: "TripleColumnEdit",
                 },
+                items: [
+                    {
+                        key: "available-annotations",
+                        text: "Available annotations",
+                        onRender() {
+                            return <ColumnPicker />;
+                        },
+                    },
+                ],
             },
         ];
         dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));

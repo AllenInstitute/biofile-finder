@@ -20,60 +20,40 @@ export interface PublicDatasetProps {
     source?: string; // Indicate whether the dataset comes from internal (AICS) or external (other) source
 }
 
+export class DatasetAnnotation {
+    public displayLabel: string;
+    public name: string;
+    public minWidth: number;
+
+    constructor(displayLabel: string, name: string, minWidth = 0) {
+        this.displayLabel = displayLabel;
+        this.name = name;
+        this.minWidth = minWidth;
+    }
+
+    public equals(target: DatasetAnnotation): boolean {
+        return this.displayLabel === target.displayLabel && this.name === target.name;
+    }
+}
+
 // Originally noted in core/entity/Annotation: TypeScript (3.9) raises an error if this is an enum
 // Reference issue without clear resolution: https://github.com/microsoft/TypeScript/issues/6307
 /**
  * Matches fields in the dataset manifest to props in this interface
  */
 export const DatasetAnnotations = {
-    CREATION_DATE: {
-        displayLabel: "Creation date",
-        name: "created",
-    },
-    DATASET_ID: {
-        displayLabel: "Dataset ID",
-        name: "dataset_id",
-    },
-    DATASET_NAME: {
-        displayLabel: "Dataset name",
-        name: "dataset_name",
-    },
-    DATASET_PATH: {
-        displayLabel: "File Path",
-        name: "dataset_path",
-    },
-    DATASET_SIZE: {
-        displayLabel: "Size",
-        name: "dataset_size",
-    },
-    DATASET_DESCRIPTION: {
-        displayLabel: "Short description",
-        name: "description",
-    },
-    DOI: {
-        displayLabel: "DOI",
-        name: "doi",
-    },
-    FILE_COUNT: {
-        displayLabel: "File count",
-        name: "file_count",
-    },
-    PUBLICATION_DATE: {
-        displayLabel: "Publication date",
-        name: "published",
-    },
-    RELATED_PUBLICATON: {
-        displayLabel: "Related publication",
-        name: "related_publication",
-    },
-    SOURCE: {
-        displayLabel: "Source",
-        name: "source",
-    },
-    VERSION: {
-        displayLabel: "Version",
-        name: "version",
-    },
+    CREATION_DATE: new DatasetAnnotation("Creation date", "created", 112),
+    DATASET_ID: new DatasetAnnotation("Dataset ID", "dataset_id"),
+    DATASET_NAME: new DatasetAnnotation("Dataset name", "dataset_name", 50),
+    DATASET_PATH: new DatasetAnnotation("File Path", "dataset_path"),
+    DATASET_SIZE: new DatasetAnnotation("Size", "dataset_size", 78),
+    DATASET_DESCRIPTION: new DatasetAnnotation("Short description", "description", 200),
+    DOI: new DatasetAnnotation("DOI", "doi"),
+    FILE_COUNT: new DatasetAnnotation("File count", "file_count", 89),
+    PUBLICATION_DATE: new DatasetAnnotation("Publication date", "published", 128),
+    RELATED_PUBLICATON: new DatasetAnnotation("Related publication", "related_publication", 178),
+    SOURCE: new DatasetAnnotation("Source", "source"),
+    VERSION: new DatasetAnnotation("Version", "version"),
 };
 
 // Limited set used for the details panel
@@ -84,6 +64,17 @@ export const DATASET_DISPLAY_FIELDS = [
     DatasetAnnotations.PUBLICATION_DATE,
     DatasetAnnotations.FILE_COUNT,
     DatasetAnnotations.DOI,
+];
+
+// Limited set used for the table header
+export const DATASET_TABLE_FIELDS = [
+    DatasetAnnotations.DATASET_NAME,
+    DatasetAnnotations.CREATION_DATE,
+    DatasetAnnotations.RELATED_PUBLICATON,
+    DatasetAnnotations.PUBLICATION_DATE,
+    DatasetAnnotations.FILE_COUNT,
+    DatasetAnnotations.DATASET_SIZE,
+    DatasetAnnotations.DATASET_DESCRIPTION,
 ];
 
 /**

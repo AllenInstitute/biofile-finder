@@ -4,13 +4,14 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useAnnotationValues from "./useAnnotationValues";
-import Annotation, { AnnotationName } from "../../entity/Annotation";
+import Annotation from "../../entity/Annotation";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import ListPicker from "../ListPicker";
 import { ListItem } from "../ListPicker/ListRow";
 import NumberRangePicker from "../NumberRangePicker";
-import SearchBoxForm from "../SearchBoxForm";
+import SearchBoxForm from "./SearchBoxForm";
 import DateRangePicker from "../DateRangePicker";
 import { interaction, selection } from "../../state";
 
@@ -157,11 +158,15 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             return (
                 <SearchBoxForm
                     className={styles.picker}
+                    items={items}
+                    onSelect={onSelect}
+                    onDeselect={onDeselect}
+                    onSelectAll={onSelectAll}
+                    onDeselectAll={onDeselectAll}
                     onSearch={onSearch}
-                    onReset={onDeselectAll}
                     fieldName={props.annotation.displayName}
                     title={`Filter by ${props.annotation.displayName}`}
-                    currentValue={filtersForAnnotation?.[0]}
+                    defaultValue={filtersForAnnotation?.[0]}
                 />
             );
         case AnnotationType.DURATION:

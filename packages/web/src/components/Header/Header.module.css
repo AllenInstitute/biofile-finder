@@ -1,6 +1,6 @@
-.header{
+.header {
   background-color: var(--primary-dark);
-  border-bottom: 1px solid var(--borders-light-grey);
+  border-bottom: 1px solid var(--medium-grey);
   color: var(--secondary-text-color);
   display: flex;
   overflow: hidden;
@@ -9,22 +9,40 @@
   filter: drop-shadow(black 0px 4px 8px);
 }
 
-.title {
-  color: var(--primary-text-color);
-  text-decoration: none;
+.help-menu-button {
+  background-color: var(--primary-dark);
+  color: var(--secondary-text-color);
+  border: none;
+  border-radius: 4px;
+  margin: 0 8px;
+  padding: 0 8px;
 }
 
-.header-option {
-  margin: 0px 10px;
-  font-size: 16px;
+.help-menu-button:hover, .help-menu-button:focus {
+  background-color: var(--accent-dark);
+  border: none;
+  color: var(--highlight-text-color);
+}
+
+.help-menu-label {
   font-weight: 400;
+  font-size: 16px;
+}
+
+.title {
+  border-left: 1px solid var(--secondary-text-color);
+  color: var(--highlight-text-color);
+  height: 24px;
+  padding: 2px 0 0 1em;
+  margin: 6px 0 0 1em;
+  text-decoration: none;
 }
 
 .left {
   width: 50%;
   display: flex;
   flex: none;
-  align-items: center;
+  padding-top: 4px;
 }
 
 .right {
@@ -44,21 +62,6 @@
   color: var(--white)
 }
 
-.upload-button {
-  background-color: var(--primary-dark); 
-  color: var(--aqua);
-  border: 1px solid var(--aqua);
-  border-radius: 18px;
-  height: 30px;
-  width: 110px;
-}
-
-.upload-button:hover, .upload-button:focus {
-  background-color: var(--aqua-secondary-hover);
-  color: var(--aqua);
-}
-
-.upload-button-label { 
-  font-weight: 400; 
-  font-size: 14px;
+.start-button {
+  width: 126px;
 }

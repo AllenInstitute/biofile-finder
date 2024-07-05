@@ -7,9 +7,8 @@ import {
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { useButtonMenu } from "../Buttons";
 import { interaction } from "../../state";
-
-import styles from "./ContextMenu.module.css";
 
 export type ContextMenuItem = IContextualMenuItem;
 export type PositionReference = Target;
@@ -21,7 +20,7 @@ export const ContextualMenuItemType = _ContextualMenuItemType;
  */
 export default function ContextMenu() {
     const dispatch = useDispatch();
-    const items = useSelector(interaction.selectors.getContextMenuItems);
+    const selectedItems = useSelector(interaction.selectors.getContextMenuItems);
     const positionReference = useSelector(interaction.selectors.getContextMenuPositionReference);
     const visible = useSelector(interaction.selectors.getContextMenuVisibility);
     const optionalOnMenuDismiss = useSelector(interaction.selectors.getContextMenuOnDismiss);
@@ -30,13 +29,18 @@ export default function ContextMenu() {
         dispatch(interaction.actions.hideContextMenu());
     };
 
+    const contextMenuStyling = useButtonMenu({ items: selectedItems });
+
+    if (!contextMenuStyling) {
+        return null;
+    }
+
     return (
         <ContextualMenu
-            className={styles.container}
-            items={items}
+            {...contextMenuStyling}
             hidden={!visible}
-            target={positionReference}
             onDismiss={onDismiss}
+            target={positionReference}
         />
     );
 }

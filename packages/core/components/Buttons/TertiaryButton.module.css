@@ -1,0 +1,35 @@
+.button {
+    background-color: var(--primary-background-color);
+    border-radius: var(--small-border-radius);
+    font-size: var(--l-paragraph-size);
+    min-width: 34px;
+    width: 34px;
+}
+
+.button i {
+    color: var(--primary-text-color);
+}
+
+.inverted, .inverted i {
+    color: var(--secondary-text-color);
+}
+
+.inverted {
+    background-color: var(--secondary-background-color);
+}
+
+.button.selected, .button.selected i {
+    color: var(--highlight-text-color);
+}
+
+.button:hover:not(.disabled), .button:hover:not(.disabled) i {
+    color: var(--highlight-text-color);
+}
+
+.button.selected {
+    background-color: var(--highlight-background-color);
+}
+
+.button:hover:not(.disabled) {
+    background-color: var(--highlight-background-color);
+}

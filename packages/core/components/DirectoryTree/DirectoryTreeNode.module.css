@@ -16,6 +16,11 @@
     align-items: center;
 }
 
+.directory-header:hover :is(h4, svg) {
+    color: var(--highlight-text-color);
+    fill: var(--highlight-text-color);
+}
+
 .focused {
     border: 1px solid var(--highlight-text-color);
     margin: 0;
@@ -45,6 +50,7 @@
 }
 
 .selection-count-badge {
+    border-radius: var(--small-border-radius);
     display: inline-block;
     height: var(--height);
     background-color: var(--highlight-background-color); /* defined in App.module.css */

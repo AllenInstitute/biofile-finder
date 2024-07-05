@@ -8,16 +8,50 @@
     margin: calc(2 * var(--margin)) 0;
 }
 
+.slide-buttons-container {
+    display: flex;
+    justify-content: center;
+    margin: 8px 0;
+    width: 100%;
+}
+
+.slide-button {
+    background-color: var(--aqua);
+    border: 1px solid var(--aqua);
+    border-radius: 50%;
+    height: 15px;
+    margin: 0 4px;
+    width: 15px;
+}
+
+.slide-button:hover:not(.selected-slide) {
+    border: 1px solid var(--white);
+    cursor: pointer;
+}
+
+.selected-slide {
+    background-color: var(--bright-aqua);
+    border: 1px solid var(--white);
+}
+
 .carousel {
     flex: auto;
     width: 66%;
 }
 
-.carousel-image {
-    height: 240px;
-    width: 100%;
-    background-color: var(--primary-dark);
-    margin-top: var(--margin);
+.carousel > img {
+    display: flex;
+    margin: 0 auto;
+    min-height: 240px;
+    max-height: 240px;
+}
+
+@media screen and (min-width: 1000px) {
+    .carousel > p {
+        height: 100px;
+        max-height: 100px;
+        overflow: scroll;
+    }
 }
 
 .features {

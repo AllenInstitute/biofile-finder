@@ -1,3 +1,4 @@
+import AnnotationName from "../Annotation/AnnotationName";
 import { FmsFileAnnotation } from "../../services/FileService";
 import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
 
@@ -182,5 +183,17 @@ export default class FileDetail {
         }
 
         return this.thumbnail;
+    }
+
+    public getLinkToPlateUI(baseURL: string): string | undefined {
+        // Grabbing plate barcode
+        const platebarcode = this.getFirstAnnotationValue(AnnotationName.PLATE_BARCODE);
+
+        if (!platebarcode) {
+            return undefined;
+        }
+
+        const baseURLHttp = baseURL.replace("https", "http");
+        return `${baseURLHttp}/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${platebarcode}`;
     }
 }

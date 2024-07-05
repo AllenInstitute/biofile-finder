@@ -1,29 +1,22 @@
 import classNames from "classnames";
+import { noop, throttle } from "lodash";
 import * as React from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import FileThumbnail from "../../components/FileThumbnail";
-import WindowActionButton from "../../components/WindowActionButton";
-import useFileDetails from "./useFileDetails";
-import windowStateReducer, { INITIAL_STATE, WindowState } from "./windowStateReducer";
-import Download from "./Download";
 import FileAnnotationList from "./FileAnnotationList";
-import OpenFileButton from "./OpenFileButton";
 import Pagination from "./Pagination";
+import useFileDetails from "./useFileDetails";
+import { PrimaryButton } from "../Buttons";
+import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import { ROOT_ELEMENT_ID } from "../../App";
+import FileThumbnail from "../../components/FileThumbnail";
+import { interaction } from "../../state";
 
 import styles from "./FileDetails.module.css";
 
 interface Props {
     className?: string;
 }
-
-const windowStateToClassnameMap: { [index: string]: string } = {
-    [WindowState.DEFAULT]: styles.default,
-    [WindowState.MINIMIZED]: styles.minimized,
-    [WindowState.MAXIMIZED]: styles.maximized,
-};
-
-export const WINDOW_ACTION_BUTTON_WIDTH = 23; // arbitrary
 
 const FILE_DETAILS_PANE_ID = "file-details-pane";
 const FILE_DETAILS_WIDTH_ATTRIBUTE = "--file-details-width";
@@ -76,7 +69,7 @@ function resizeHandleDoubleClick() {
  * Right-hand sidebar of application. Displays details of selected file(s).
  */
 export default function FileDetails(props: Props) {
-    const [windowState, windowDispatch] = React.useReducer(windowStateReducer, INITIAL_STATE);
+    const dispatch = useDispatch();
     const [fileDetails, isLoading] = useFileDetails();
     const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
 
@@ -86,98 +79,83 @@ export default function FileDetails(props: Props) {
         }
     }, [fileDetails]);
 
-    // If FileDetails pane is minimized, set its width to the width of the WindowActionButtons. Else, let it be
-    // defined by whatever the CSS determines (setting an inline style to undefined will prompt ReactDOM to not apply
-    // it to the DOMElement altogether).
-    const minimizedWidth =
-        windowState.state === WindowState.MINIMIZED ? WINDOW_ACTION_BUTTON_WIDTH : undefined;
+    const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
+    const openWithMenuItems = useOpenWithMenuItems(fileDetails || undefined);
 
-    let thumbnailHeight = undefined;
-    let thumbnailWidth = undefined;
-    if (windowState.state === WindowState.DEFAULT) {
-        thumbnailWidth = "100%";
-    } else if (windowState.state === WindowState.MAXIMIZED) {
-        thumbnailWidth = "40%";
-        thumbnailHeight = "40%";
-    }
+    // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
+    const onDownload = React.useMemo(() => {
+        if (!fileDetails) {
+            return noop;
+        }
+
+        return throttle(() => {
+            dispatch(
+                interaction.actions.downloadFiles([
+                    {
+                        id: fileDetails.id,
+                        name: fileDetails.name,
+                        size: fileDetails.size,
+                        path: fileDetails.downloadPath,
+                    },
+                ])
+            );
+        }, 1000); // 1s, in ms (arbitrary)
+    }, [dispatch, fileDetails]);
+  
     return (
         <div
-            className={classNames(styles.root, props.className)}
-            style={{
-                flexBasis: minimizedWidth,
-            }}
+            className={classNames(styles.root, styles.expandableTransition, props.className)}
+            id={FILE_DETAILS_PANE_ID}
         >
             <div
-                className={classNames(
-                    styles.expandable,
-                    styles.expandableTransition,
-                    windowStateToClassnameMap[windowState.state]
-                )}
-                style={{ width: minimizedWidth }}
-                id={FILE_DETAILS_PANE_ID}
+                className={styles.resizeHandle}
+                onMouseDown={(e) => resizeHandleOnMouseDown(e)}
+                // TODO:???
+                onDoubleClick={resizeHandleDoubleClick}
             >
-                {windowState.state === WindowState.DEFAULT && (
-                    <div
-                        className={styles.resizeHandle}
-                        onMouseDown={(e) => resizeHandleOnMouseDown(e)}
-                        onDoubleClick={resizeHandleDoubleClick}
-                    />
-                )}
-                <div className={styles.fileDetailsContent}>
-                    <div className={styles.windowButtonsContainer}>
-                        <div className={styles.windowButtons}>
-                            {windowState.possibleActions.map((action) => (
-                                <WindowActionButton
-                                    key={action}
-                                    action={action}
-                                    onClick={() => windowDispatch({ type: action })}
-                                    width={WINDOW_ACTION_BUTTON_WIDTH}
+                <div />
+            </div>
+            <div className={styles.paginationAndContent}>
+                <Pagination className={styles.pagination} />
+                <div className={styles.overflowContainer}>
+                    {fileDetails && (
+                        <>
+                            <div className={styles.thumbnailContainer}>
+                                <FileThumbnail
+                                    className={styles.thumbnail}
+                                    width="100%"
+                                    // height={thumbnailHeight}
+                                    uri={fileDetails?.getPathToThumbnail()}
                                 />
-                            ))}
-                        </div>
-                    </div>
-                    <Pagination
-                        className={classNames(styles.pagination, {
-                            [styles.hidden]: windowState.state === WindowState.MINIMIZED,
-                        })}
-                    />
-                    <div className={styles.contentContainer}>
-                        <div
-                            className={classNames(styles.overflowContainer, {
-                                [styles.hidden]: windowState.state === WindowState.MINIMIZED,
-                            })}
-                        >
-                            {fileDetails && (
-                                <>
-                                    <div className={styles.thumbnailContainer}>
-                                        <FileThumbnail
-                                            className={styles.thumbnail}
-                                            width={thumbnailWidth}
-                                            height={thumbnailHeight}
-                                            uri={thumbnailPath}
-                                        />
-                                    </div>
-                                    <div className={styles.fileActions}>
-                                        <Download
-                                            className={styles.iconButton}
-                                            fileDetails={fileDetails}
-                                        />
-                                        <OpenFileButton
-                                            className={styles.iconButton}
-                                            fileDetails={fileDetails}
-                                        />
-                                    </div>
-                                    <p className={styles.fileName}>{fileDetails?.name}</p>
-                                    <h4 className={styles.title}>Information</h4>
-                                    <FileAnnotationList
-                                        className={styles.annotationList}
-                                        fileDetails={fileDetails}
-                                        isLoading={isLoading}
-                                    />
-                                </>
-                            )}
-                        </div>
-                    </div>
+                            </div>
+                            <div className={styles.fileActions}>
+                                <PrimaryButton
+                                    className={styles.primaryButton}
+                                    disabled={processStatuses.some((status) =>
+                                        status.data.fileId?.includes(fileDetails.id)
+                                    )}
+                                    iconName="Download"
+                                    text="Download"
+                                    title="Download"
+                                    onClick={onDownload}
+                                />
+                                <PrimaryButton
+                                    className={styles.primaryButton}
+                                    iconName="OpenInNewWindow"
+                                    text="Open file"
+                                    title="Open file"
+                                    menuItems={openWithMenuItems}
+                                />
+                            </div>
+                            <p className={styles.fileName}>{fileDetails?.name}</p>
+                            <h4>Information</h4>
+                            <FileAnnotationList
+                                className={styles.annotationList}
+                                fileDetails={fileDetails}
+                                isLoading={isLoading}
+                            />
+                        </>
+                    )}
                 </div>
             </div>
         </div>

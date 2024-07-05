@@ -1,28 +1,33 @@
 .container {
     --spacing: 0.5rem;
-    --footer-height: 15px;
+    --footer-height: 16px;
     --header-height: 110px;
 
-    background-color: var(--secondary-background-color);
-    color: var(--secondary-text-color);
-    height: 75vh;
-    padding: var(--spacing);
+    background-color: var(--primary-background-color);
+    color: var(--primary-text-color);
+    height: 500px;
+    max-height: 75vh;
+    padding: 16px 30px;
     width: 35vw;
 }
 
+.bigger-header {
+    --header-height: 110px;
+}
+
 .header {
-    height: var(--header-height);
+    min-height: var(--header-height);
     padding-bottom: var(--spacing);
     width: 100%;
 }
 
 .header > h3 {
-    margin: 0 0 var(--spacing) 0;
+    margin-bottom: 8px;
 }
 
 .buttons {
-    backdrop-filter: blur(1px);
     display: flex;
+    margin: 8px 0;
 }
 
 .main-content {
@@ -32,8 +37,8 @@
 }
 
 .main-content::after {
-    background-image: linear-gradient(transparent, var(--secondary-background-color));
-    bottom: calc(var(--spacing) + var(--footer-height));
+    background-image: linear-gradient(transparent, var(--primary-background-color));
+    bottom: calc(var(--footer-height) + 16px);
     content: " ";
     height: 50px;
     right: 0;
@@ -46,27 +51,38 @@
 .footer {
     display: flex;
     height: var(--footer-height);
-    justify-content: right;;
+    justify-content: right;
+    position: relative;
     width: 100%;
+    z-index: 999;
 }
 
-.footer > h6 {
-    font-size: smaller;
-    font-weight: normal;
-    margin: 0;
+.footer > p {
+    font-size: var(--xs-paragraph-size);
+    font-weight: 400;
+    margin-top: 0;
 }
 
 .action-button {
+    background-color: var(--secondary-background-color) !important;
+    border-radius: var(--small-border-radius);
+    color: var(--secondary-text-color) !important;
     display: flex;
-    margin: 0.5rem auto 0;
+    font-size: var(--l-paragraph-size);
+    font-weight: 400;
+    height: 34px;
+    justify-content: center;
+    margin-right: 16px;
+    width: 118px;
 }
 
-.action-button, .action-button i {
-    background-color: var(--primary-background-color) !important;
-    color: var(--primary-text-color) !important;
+.action-button i {
+    background-color: var(--secondary-background-color) !important;
+    color: var(--secondary-text-color) !important;
+    font-size: smaller;
 }
 
-.action-button:hover:not(.disabled), .action-button:hover:not(.disabled) i {
+.action-button:hover:not(.disabled), .action-button:hover:not(.disabled) i{
     background-color: var(--highlight-background-color) !important;
     color: var(--highlight-text-color) !important;
     cursor: pointer;
@@ -76,16 +92,6 @@
     opacity: 0.5;
 }
 
-.search-box, .search-box > :is(div, input), .search-box :is(button, i) {
-    background-color: var(--primary-background-color) !important;
-    color: var(--primary-text-color) !important;
-}
-
-.search-box > div:hover > button, .search-box > div:hover i {
-    background-color: var(--primary-background-color) !important;
-    color: var(--primary-text-color) !important;
-}
-
-.search-box::after {
-    display: none;
+.action-button.select-all-button i {
+    font-size: var(--l-paragraph-size);
 }

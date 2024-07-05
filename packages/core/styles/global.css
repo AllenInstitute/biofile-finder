@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0..800&display=swap');
 
 html {
     box-sizing: border-box;
@@ -21,60 +20,82 @@ main {
     padding: 0;
     border: 0;
     overflow: hidden;
-    scrollbar-color:  var(--borders-light-grey) var(--accent-dark);
+    /* Unavailable on some versions of some browsers */
+    scrollbar-color:  var(--medium-grey) var(--accent-dark);
 }
 
 body {
-    /* AICS brand colors pulled from AICS style guide */
-    --dark-purple: #827aa3;
-    --light-purple: #bab5c9;
-    --dark-blue: #003057;
-    /* Additional colors */
-    /* New theme */
+    /* Brand colors */
     --bright-aqua: #0dc4d9;
     --aqua: #0b9aab;
+    --dark-aqua: #0b717c;
     --primary-dark: #2f2f2f;
     --secondary-dark: #1c1c1c;
     --accent-dark: #3d3d3d;
-    --borders-light-grey: #575859;
-    /* Old theme */
-    --dark-grey: #313131;
-    --medium-grey: #4B4B4B;
+    --medium-grey: #575859;
     --light-grey: #BFBFBF;
     --white: #ffffff;
     --red: #c23030;
 
     /* DEFAULT THEME (dark theme) */
-    /* To do: Update greys to new theme, check components for consistency */
-    --primary-background-color: var(--medium-grey);
-    --secondary-background-color: var(--dark-grey);
-    --primary-text-color: var(--white);
+    --primary-background-color: var(--primary-dark);
+    --secondary-background-color: var(--secondary-dark);
+    --primary-text-color: var(--light-grey);
     --secondary-text-color: var(--light-grey);
-    --highlight-background-color: var(--dark-purple);
+    --highlight-background-color: var(--aqua);
     --highlight-text-color: var(--white);
+    --highlight-hover-background-color: var(--bright-aqua);
+    --highlight-hover-text-color: var(--white);
+    --border-color: var(--medium-grey);
     --error-background-color: var(--red);
     --error-text-color: var(--white);
     --aqua-secondary-hover: rgba(13, 187, 206, 0.18);
+    --small-border-radius: 4px;
+    --large-border-radius: 18px;
+    --box-shadow: 3px 4px 6px 0.5px black;
+    --l-paragraph-size: 16px;
+    --s-paragraph-size: 14px;
+    --xs-paragraph-size: 12px;
 
     --query-sidebar-max-width: 350px;
-    --url-bar-height: 40px;
     --file-details-width: 20%;
     --margin: 12px;
     --transition-duration: 0.5s;
     --font-family: 'Open Sans', sans-serif;
 }
 
-body:has(> main:has(.light-theme)) {
-    --primary-background-color: var(--light-grey);
-    --secondary-background-color: var(--dark-grey);
-    --primary-text-color: var(--white);
-    --secondary-text-color: var(--light-grey);
-    --highlight-background-color: var(--dark-purple);
-    --highlight-text-color: var(--white);
-    --error-background-color: var(--red);
-    --error-text-color: var(--white);
+h1 {
+    font-size: 38px;
+    font-weight: 300;
+    margin: 0;
+    padding: 0;
+}
+
+h2 {
+    font-size: 24px;
+    font-weight: 300;
+    margin: 0;
+    padding: 0;
 }
 
 h3 {
-    font-weight: 500;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    padding: 0;
+}
+
+h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    padding: 0;
+}
+
+p {
+    font-weight: 400;
+}
+
+a {
+    text-decoration: none;
 }

@@ -1,0 +1,51 @@
+.button {
+    align-items: center;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    font-size: var(--s-paragraph-size);
+    height: 34px;
+    justify-content: center;
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.disabled i {
+    opacity: 0.5;
+}
+
+.button-content {
+    display: flex;
+}
+
+.button-icon {
+    color: var(--highlight-text-color);
+    font-weight: 600;
+}
+
+.button-text {
+    font-weight: 600;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.disabled {
+    cursor: not-allowed;
+}
+
+.hidden {
+    display: none;
+}
+
+.pad-right {
+    padding-right: 6px;
+}
+
+.selected {
+    cursor: default;
+}
+
+.selected i {
+    opacity: unset;
+}
