@@ -1,6 +1,6 @@
 {
   "name": "fms-file-explorer-desktop",
-  "version": "8.9.9",
+  "version": "8.9.10",
   "description": "An application designed to simplify access and exploration of data produced by the Allen Institute for Cell Science, provide an intuitive mechanism for organizing data and provide simple hooks to incorporating that data into both programmatic and non-programmatic workflows.",
   "main": "dist/main/index.js",
   "repository": {
@@ -66,7 +66,7 @@
     "clean-webpack-plugin": "4.x",
     "css-loader": "6.x",
     "dotenv-webpack": "7.x",
-    "electron": "^22.3.27",
+    "electron": "22.3.27",
     "electron-builder": "^24.13.3",
     "electron-mocha": "11.0.x",
     "fork-ts-checker-webpack-plugin": "6.x",
