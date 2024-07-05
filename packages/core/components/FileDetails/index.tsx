@@ -101,7 +101,7 @@ export default function FileDetails(props: Props) {
             );
         }, 1000); // 1s, in ms (arbitrary)
     }, [dispatch, fileDetails]);
-  
+
     return (
         <div
             className={classNames(styles.root, styles.expandableTransition, props.className)}
@@ -125,7 +125,7 @@ export default function FileDetails(props: Props) {
                                     className={styles.thumbnail}
                                     width="100%"
                                     // height={thumbnailHeight}
-                                    uri={fileDetails?.getPathToThumbnail()}
+                                    uri={thumbnailPath}
                                 />
                             </div>
                             <div className={styles.fileActions}>
