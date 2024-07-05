@@ -17,7 +17,7 @@
     "files": [
       "assets/*",
       "dist/**/*",
-      "node_modules/**/*",
+      "!node_modules/**/*.{mk,a,o,h}",
       "package.json",
       "LICENSE.txt"
     ],
