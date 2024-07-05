@@ -43,8 +43,8 @@ export default function OpenSourceDatasets() {
                         <div className={styles.bannerContentText}>
                             <div className={styles.bannerHeader}> Open-source datasets</div>
                             <div className={styles.bannerBody}>
-                                The tables below contain examples of internal (AICS) and externally
-                                contributed datasets that are available for exploration.
+                                The tables below contain examples of internally (AICS) and
+                                externally contributed datasets that are available for exploration.
                             </div>
                             <div className={styles.bannerBody}>
                                 Select a dataset to view more information, or click LOAD to open it
