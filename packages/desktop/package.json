@@ -1,6 +1,6 @@
 {
   "name": "fms-file-explorer-desktop",
-  "version": "8.9.11",
+  "version": "8.9.12",
   "description": "An application designed to simplify access and exploration of data produced by the Allen Institute for Cell Science, provide an intuitive mechanism for organizing data and provide simple hooks to incorporating that data into both programmatic and non-programmatic workflows.",
   "main": "dist/main/index.js",
   "repository": {
@@ -29,7 +29,6 @@
     },
     "mac": {
       "darkModeSupport": false,
-      "mergeASARs": false,
       "target": {
         "arch": "universal",
         "target": "dmg"
