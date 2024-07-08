@@ -1,6 +1,6 @@
 {
   "name": "fms-file-explorer-desktop",
-  "version": "7.0.0",
+  "version": "6.5.1",
   "description": "An application designed to simplify access and exploration of data produced by the Allen Institute for Cell Science, provide an intuitive mechanism for organizing data and provide simple hooks to incorporating that data into both programmatic and non-programmatic workflows.",
   "main": "dist/main/index.js",
   "repository": {
@@ -10,6 +10,7 @@
   "build": {
     "appId": "org.aics.alleninstitute.fileexplorer",
     "npmRebuild": false,
+    "buildDependenciesFromSource": true,
     "directories": {
       "buildResources": "assets",
       "output": "build"
@@ -29,10 +30,12 @@
     },
     "mac": {
       "darkModeSupport": false,
-      "target": {
-        "arch": "universal",
-        "target": "dmg"
-      }
+      "target": [
+        {
+        "target": "dmg",
+        "arch": "universal"
+      }],
+      "mergeASARs": false
     },
     "win": {
       "target": "portable"
@@ -87,6 +90,7 @@
     "duckdb": "0.8.x",
     "electron-devtools-installer": "3.1.x",
     "electron-store": "8.0.x",
+    "electron-updater": "~4.6.1",
     "regenerator-runtime": "0.13.x",
     "semver": "7.3.x",
     "webpack-node-externals": "^3.0.0"
