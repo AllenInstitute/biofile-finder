@@ -1,6 +1,6 @@
 const path = require("path");
-
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin"); // Importing the polyfill plugin
 
 const { devServer, stats } = require("./constants");
 const getPluginsByEnv = require("./plugins");
@@ -16,6 +16,7 @@ module.exports = ({ analyze, production } = {}) => ({
         app: "./src/index.tsx",
     },
     mode: production ? "production" : "development",
+    target: "electron-renderer", // Set the target to 'electron-renderer' to properly configure for Electron
     module: {
         rules: [
             {
@@ -31,9 +32,6 @@ module.exports = ({ analyze, production } = {}) => ({
                     },
                 ],
             },
-
-            // this rule processes any CSS written for this project.
-            // It applies PostCSS plugins and converts it to CSS Modules
             {
                 test: /\.css/,
                 exclude: /node_modules/,
@@ -63,10 +61,6 @@ module.exports = ({ analyze, production } = {}) => ({
                     },
                 ],
             },
-
-            // this rule will handle any vanilla CSS imports out of node_modules; it does not apply PostCSS,
-            // nor does it convert the imported css to CSS Modules
-            // use case: importing antd component css
             {
                 test: (filepath) => filepath.endsWith(".css"),
                 include: /node_modules/,
@@ -96,7 +90,14 @@ module.exports = ({ analyze, production } = {}) => ({
         path: path.resolve(__dirname, "../", "dist"),
         filename: "[name].[chunkhash].js",
     },
-    plugins: getPluginsByEnv(production, analyze),
+    plugins: [
+        ...getPluginsByEnv(production, analyze),
+        new NodePolyfillPlugin(), // Ensure Node polyfills are applied
+    ],
+    externals: {
+        fs: "commonjs fs", // Marking 'fs' and 'path' as external to avoid bundling them
+        path: "commonjs path",
+    },
     resolve: {
         extensions: [".ts", ".tsx", ".js", ".jsx", ".json", ".png"],
         mainFields: ["module", "main"],

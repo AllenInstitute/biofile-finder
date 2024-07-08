@@ -59,6 +59,7 @@
     "lint-staged": "10.4.x",
     "mocha": "9.x",
     "mock-raf": "1.0.x",
+    "node-polyfill-webpack-plugin": "^4.0.0",
     "npm-run-all": "4.1.x",
     "prettier": "2.1.x",
     "resize-observer": "1.0.x",
