@@ -33,7 +33,7 @@ jobs:
 
       - name: Build artifact and release Mac
         if: matrix.os == 'macos-latest'
-        run: npx --workspace packages/desktop --no-install electron-builder --mac --publish always
+        run: npx --workspace packages/desktop --no-install electron-builder --mac --universal --publish always
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

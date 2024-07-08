@@ -96,7 +96,7 @@ module.exports = ({ analyze, production } = {}) => ({
     },
     plugins: getPluginsByEnv(production, analyze),
     resolve: {
-        extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
+        extensions: [".ts", ".tsx", ".js", ".jsx", ".json", ".node"],
         mainFields: ["module", "main"],
         symlinks: false,
     },
