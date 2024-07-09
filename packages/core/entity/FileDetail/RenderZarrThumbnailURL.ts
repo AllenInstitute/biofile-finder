@@ -1,6 +1,4 @@
-import * as zarr from "@zarrita/core";
-import { FetchStore } from "@zarrita/storage";
-import { get as zarrGet } from "@zarrita/indexing";
+import * as zarr from "zarrita";
 
 interface AxisData {
     name: string;
@@ -33,7 +31,7 @@ function transformAxes(originalArray: AxisData[]): TransformedAxes[] {
  */
 export async function renderZarrThumbnailURL(zarrUrl: string): Promise<string> {
     // read base image into store
-    const store = new FetchStore(zarrUrl);
+    const store = new zarr.FetchStore(zarrUrl);
     const root = zarr.root(store);
     const group = await zarr.open(root, { kind: "group" });
 
@@ -66,7 +64,7 @@ export async function renderZarrThumbnailURL(zarrUrl: string): Promise<string> {
 
     // Create a view (get data) of the determined lowest resolution using the
     // choices made for each axes.
-    const lowestResolutionView = await zarrGet(
+    const lowestResolutionView = await zarr.get(
         lowestResolution,
         axes.map((item) => item.value)
     );
