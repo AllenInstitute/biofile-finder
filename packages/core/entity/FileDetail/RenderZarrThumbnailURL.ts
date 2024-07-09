@@ -14,7 +14,7 @@ interface TransformedAxes {
 
 /** 
 Function to transform metadata array of dims to a map that is easily readable by
-zarrGet function to access a slice of image.
+zarr.get function to access a slice of image.
 */
 function transformAxes(originalArray: AxisData[]): TransformedAxes[] {
     return originalArray.map((item) => ({
