@@ -1,6 +1,6 @@
 {
   "name": "fms-file-explorer-desktop",
-  "version": "7.0.0",
+  "version": "6.5.1",
   "description": "An application designed to simplify access and exploration of data produced by the Allen Institute for Cell Science, provide an intuitive mechanism for organizing data and provide simple hooks to incorporating that data into both programmatic and non-programmatic workflows.",
   "main": "dist/main/index.js",
   "repository": {
@@ -29,7 +29,10 @@
     },
     "mac": {
       "darkModeSupport": false,
-      "target": "dmg"
+      "target": {
+        "arch": "universal",
+        "target": "dmg"
+      }
     },
     "win": {
       "target": "portable"
@@ -40,6 +43,7 @@
     "productName": "BioFile Finder"
   },
   "scripts": {
+    "build-executable": "npm run build && npx electron-builder",
     "build": "npm-run-all --print-label clean --parallel bundle:main bundle:renderer",
     "bundle:main": "webpack --config ./webpack/webpack.main.config.js --env production",
     "bundle:renderer": "webpack --config ./webpack/webpack.renderer.config.js --env production",
