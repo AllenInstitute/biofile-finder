@@ -33,6 +33,7 @@ export interface Selection {
         annotationName: string;
         ascending: boolean;
     };
+    fuzzy?: string[];
 }
 
 export default interface FileService {

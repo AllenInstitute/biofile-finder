@@ -167,6 +167,14 @@ const useDirectoryHierarchy = (
 
                     const filteredValues = values.filter((value) => {
                         if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
+                            if (
+                                fuzzyFilters?.some(
+                                    (fuzzy) => fuzzy.annotationName === annotationNameAtDepth
+                                )
+                            ) {
+                                // There can only be one selected filter with fuzzy search
+                                return value.includes(userSelectedFiltersForCurrentAnnotation[0]);
+                            }
                             return userSelectedFiltersForCurrentAnnotation.includes(value);
                         }
 
