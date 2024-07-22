@@ -36,7 +36,6 @@
 
 .carousel {
     flex: auto;
-    width: 66%;
 }
 
 .carousel > img {
@@ -56,8 +55,6 @@
 
 .features {
     color: var(--aqua);
-    width: 33%;
-    flex: auto;
     margin-right: calc(2 * var(--margin));
     padding-right: calc(2 * var(--margin));
 }
@@ -71,6 +68,7 @@
     padding: 5px 10px;
     line-height: 20px;
     cursor: pointer;
+    display: block;
 }
 
 .features button:hover,
@@ -80,4 +78,17 @@
     background: var(--aqua-secondary-hover) !important;
     width: fit-content;
     border-radius: 4px;
+}
+
+.stack {
+    width: 100%;
+}
+
+.stack-item-left {
+    width: 30%;
+    min-width: 250px;
+}
+
+.stack-item-right {
+    width: 60%;
 }
