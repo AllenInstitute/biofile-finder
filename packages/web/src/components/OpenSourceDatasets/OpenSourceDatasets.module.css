@@ -15,7 +15,7 @@
 .banner {
   color: var(--secondary-text-color);
   background-color: var(--primary-dark);
-  height: 205px;
+  min-height: 205px;
 }
 
 .banner-content {

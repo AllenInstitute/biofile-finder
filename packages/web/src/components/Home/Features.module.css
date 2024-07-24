@@ -53,12 +53,6 @@
     }
 }
 
-.features {
-    color: var(--aqua);
-    margin-right: calc(2 * var(--margin));
-    padding-right: calc(2 * var(--margin));
-}
-
 .features button {
     border: none;
     background: none;
