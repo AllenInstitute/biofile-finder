@@ -1,0 +1,60 @@
+.actions-container {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.actions-container > * {
+    margin: 0 auto 0 auto;
+}
+
+.or-divider {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0 10px 0;
+}
+
+.submit-icon {
+    align-items: center;
+    border-radius: var(--small-border-radius);
+    cursor: pointer;
+    display: flex;
+    padding: 0 0.5em;
+}
+
+.submit-icon.disabled {
+    cursor: default;
+    opacity: 0.8;
+}
+
+.submit-icon:hover:not(.disabled), .submit-icon:focus:not(.disabled) {
+    background-color: var(--highlight-background-color);
+    color: var(--highlight-text-color);
+}
+
+.url-form {
+    background-color: var(--secondary-background-color);
+    width: 100%;
+}
+
+.url-form :is(input, input::placeholder) {
+    background-color: var(--secondary-background-color);
+    border: none;
+    border-color: var(--border-color);
+    border-radius: var(--small-border-radius);
+    color: var(--secondary-text-color);
+}
+
+.url-form input::placeholder {
+    font-style: italic;
+}
+
+.url-form input::after {
+    display: none;
+}
+
+.url-form > div > div > div {
+    background-color: unset;
+}

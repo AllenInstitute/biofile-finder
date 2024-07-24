@@ -36,6 +36,7 @@ import {
     ChangeDataSourcesAction,
     SetSortColumnAction,
     SetFileFiltersAction,
+    CHANGE_SOURCE_METADATA,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
@@ -60,6 +61,7 @@ export interface SelectionStateBranch {
     shouldDisplaySmallFont: boolean;
     shouldDisplayThumbnailView: boolean;
     sortColumn?: FileSort;
+    sourceMetadata?: Source;
     queries: Query[];
     tutorial?: Tutorial;
 }
@@ -145,6 +147,10 @@ export default makeReducer<SelectionStateBranch>(
             dataSources: uniqBy(action.payload, "name"),
             fileSelection: new FileSelection(),
             openFileFolders: [],
+        }),
+        [CHANGE_SOURCE_METADATA]: (state, action) => ({
+            ...state,
+            sourceMetadata: action.payload,
         }),
         [ADD_QUERY]: (state, action) => ({
             ...state,

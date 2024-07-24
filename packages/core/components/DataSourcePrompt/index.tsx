@@ -1,13 +1,12 @@
-import { DefaultButton, Icon, TextField } from "@fluentui/react";
+import { Checkbox, DefaultButton, Icon } from "@fluentui/react";
 import classNames from "classnames";
-import { throttle } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { PrimaryButton } from "../Buttons";
+import FilePrompt from "./FilePrompt";
+import { Source } from "../../entity/FileExplorerURL";
 import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
-import { getNameAndTypeFromSourceUrl, Source } from "../../entity/FileExplorerURL";
 
 import styles from "./DataSourcePrompt.module.css";
 
@@ -33,53 +32,41 @@ export default function DataSourcePrompt(props: Props) {
     const dataSourceInfo = useSelector(interaction.selectors.getDataSourceInfoForVisibleModal);
     const { source: sourceToReplace, query } = dataSourceInfo || ({} as DataSourcePromptInfo);
 
-    const [dataSourceURL, setDataSourceURL] = React.useState("");
+    const [dataSource, setDataSource] = React.useState<Source>();
+    const [metadataSource, setMetadataSource] = React.useState<Source>();
+    const [hasMetadataSource, setHasMetadataSource] = React.useState(false);
     const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
 
-    const addOrReplaceQuery = (source: Source) => {
-        if (sourceToReplace) {
-            dispatch(selection.actions.replaceDataSource(source));
-        } else if (query) {
-            dispatch(selection.actions.changeDataSources([...selectedDataSources, source]));
-        } else {
-            dispatch(
-                selection.actions.addQuery({
-                    name: `New ${source.name} Query`,
-                    parts: { sources: [source] },
-                })
-            );
+    const onSubmit = (dataSource?: Source, metadataSource?: Source) => {
+        if (dataSource && (metadataSource || !hasMetadataSource)) {
+            if (sourceToReplace) {
+                dispatch(selection.actions.replaceDataSource(dataSource));
+                dispatch(selection.actions.changeSourceMetadata(metadataSource));
+            } else if (query) {
+                dispatch(selection.actions.changeDataSources([...selectedDataSources, dataSource]));
+                dispatch(selection.actions.changeSourceMetadata(metadataSource));
+            } else {
+                dispatch(
+                    selection.actions.addQuery({
+                        name: `New ${dataSource.name} Query`,
+                        parts: { sources: [dataSource], sourceMetadata: metadataSource },
+                    })
+                );
+            }
+
+            dispatch(interaction.actions.hideVisibleModal());
         }
     };
 
-    const onChooseFile = (evt: React.FormEvent<HTMLInputElement>) => {
-        const selectedFile = (evt.target as HTMLInputElement).files?.[0];
-        if (selectedFile) {
-            // Grab name minus extension
-            const nameAndExtension = selectedFile.name.split(".");
-            const name = nameAndExtension.slice(0, -1).join("");
-            const extension = nameAndExtension.pop();
-            if (!(extension === "csv" || extension === "json" || extension === "parquet")) {
-                alert("Invalid file type. Please select a .csv, .json, or .parquet file.");
-                return;
-            }
-            addOrReplaceQuery({ name, type: extension, uri: selectedFile });
-            dispatch(interaction.actions.hideVisibleModal());
-        }
+    const onSelectSource = (source: Source) => {
+        setDataSource(source);
+        onSubmit(source, metadataSource);
     };
-    const onEnterURL = throttle(
-        (evt: React.FormEvent) => {
-            evt.preventDefault();
-            const { name, extensionGuess } = getNameAndTypeFromSourceUrl(dataSourceURL);
-            addOrReplaceQuery({
-                name,
-                type: extensionGuess as "csv" | "json" | "parquet",
-                uri: dataSourceURL,
-            });
-            dispatch(interaction.actions.hideVisibleModal());
-        },
-        10000,
-        { leading: true, trailing: false }
-    );
+
+    const onSelectMetadataSource = (source: Source) => {
+        setMetadataSource(source);
+        onSubmit(dataSource, source);
+    };
 
     return (
         <div className={props.className}>
@@ -136,6 +123,14 @@ export default function DataSourcePrompt(props: Props) {
                                 </li>
                             ))}
                         </ul>
+                        <li className={styles.details}>
+                            Optionally, supply an additional metadata source file to add more
+                            information about the data source. This file should have a column
+                            containing each column you want to provide additional information about.
+                            Each row following the first, which should contain the column names,
+                            should contain a description of the column.
+                        </li>
+                        <ul className={styles.detailList}></ul>
                         <li
                             className={classNames(styles.subtitleButtonContainer, {
                                 [styles.leftAlign]: props.hideTitle,
@@ -167,43 +162,36 @@ export default function DataSourcePrompt(props: Props) {
                 </div>
             )}
             <hr className={styles.divider} />
-            <div className={styles.actionsContainer}>
-                <form>
-                    <label
-                        aria-label="Browse for a data source file on your machine"
-                        title="Browse for a data source file on your machine"
-                        htmlFor="data-source-selector"
-                    >
-                        <PrimaryButton
-                            iconName="DocumentSearch"
-                            text="Choose file"
-                            title="Choose file"
-                        />
-                    </label>
-                    <input
-                        hidden
-                        accept=".csv,.json,.parquet"
-                        type="file"
-                        id="data-source-selector"
-                        name="data-source-selector"
-                        onChange={onChooseFile}
+            <FilePrompt onSelectFile={onSelectSource} selectedFile={dataSource} />
+            <div
+                className={classNames(styles.checkboxFormContainer, {
+                    [styles.selected]: hasMetadataSource,
+                })}
+            >
+                <div
+                    className={styles.checkboxContainer}
+                    onClick={() => {
+                        setHasMetadataSource(!hasMetadataSource);
+                        if (hasMetadataSource) {
+                            setMetadataSource(undefined);
+                            onSubmit(dataSource, undefined);
+                        }
+                    }}
+                >
+                    <Checkbox
+                        className={classNames(styles.checkbox, {
+                            [styles.selected]: hasMetadataSource,
+                        })}
+                        checked={hasMetadataSource}
                     />
-                </form>
-                <div className={styles.orDivider}>OR</div>
-                <form className={styles.urlForm} onSubmit={onEnterURL}>
-                    <TextField
-                        onChange={(_, newValue) => setDataSourceURL(newValue || "")}
-                        placeholder="Paste URL (ex. S3, Azure)..."
-                        iconProps={{
-                            className: classNames(styles.submitIcon, {
-                                [styles.disabled]: !dataSourceURL,
-                            }),
-                            iconName: "ReturnKey",
-                            onClick: onEnterURL,
-                        }}
-                        value={dataSourceURL}
+                    <p>Input additional metadata source</p>
+                </div>
+                {hasMetadataSource && (
+                    <FilePrompt
+                        onSelectFile={onSelectMetadataSource}
+                        selectedFile={metadataSource}
                     />
-                </form>
+                )}
             </div>
         </div>
     );
