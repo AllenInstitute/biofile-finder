@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import ContextMenu from "./components/ContextMenu";
 import DataSourcePrompt from "./components/DataSourcePrompt";
-import Modal from "./components/Modal";
+import Modal, { ModalType } from "./components/Modal";
 import DirectoryTree from "./components/DirectoryTree";
 import FileDetails from "./components/FileDetails";
 import GlobalActionButtonRow from "./components/GlobalActionButtonRow";
@@ -16,17 +16,20 @@ import TutorialTooltip from "./components/TutorialTooltip";
 import QuerySidebar from "./components/QuerySidebar";
 import { FileExplorerServiceBaseUrl } from "./constants";
 import { interaction, selection } from "./state";
+import useLayoutMeasurements from "./hooks/useLayoutMeasurements";
 
 import styles from "./App.module.css";
 
 // Used for mousemove listeners when resizing elements via click and drag (eg. File Details pane)
 export const ROOT_ELEMENT_ID = "root";
+// Pixel size; used to alert users that screen is too small for optimal use
+const SMALL_SCREEN_BREAKPOINT = 768;
 
 // initialize @fluentui/react
 initializeIcons();
 loadTheme({
     defaultFontStyle: {
-        fontFamily: "Open sans, sans-serif",
+        fontFamily: "'Open Sans', sans-serif",
     },
 });
 
@@ -46,9 +49,16 @@ export default function App(props: AppProps) {
     const hasQuerySelected = useSelector(selection.selectors.hasQuerySelected);
     const isDarkTheme = useSelector(selection.selectors.getIsDarkTheme);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
+    const isDisplayingSmallScreenWarning = useSelector(
+        interaction.selectors.getIsDisplayingSmallScreenWarning
+    );
+    const hasDismissedSmallScreenWarning = useSelector(
+        interaction.selectors.getHasDismissedSmallScreenWarning
+    );
     const platformDependentServices = useSelector(
         interaction.selectors.getPlatformDependentServices
     );
+    const [measuredNodeRef, , measuredWidth] = useLayoutMeasurements<HTMLDivElement>();
 
     // Check for updates to the application on startup
     React.useEffect(() => {
@@ -76,6 +86,23 @@ export default function App(props: AppProps) {
         dispatch(interaction.actions.initializeApp(fileExplorerServiceBaseUrl));
     }, [dispatch, fileExplorerServiceBaseUrl]);
 
+    // Watch for and respond to screen size changes
+    React.useEffect(() => {
+        if (
+            measuredWidth < SMALL_SCREEN_BREAKPOINT &&
+            measuredWidth !== 0 && // Don't display when hook is still loading
+            !isDisplayingSmallScreenWarning &&
+            !hasDismissedSmallScreenWarning
+        ) {
+            // Don't dispatch if they've marked "Don't show again" before
+            dispatch(interaction.actions.setVisibleModal(ModalType.SmallScreenWarning));
+            dispatch(interaction.actions.setSmallScreenWarning(true));
+        } else if (measuredWidth >= SMALL_SCREEN_BREAKPOINT && isDisplayingSmallScreenWarning) {
+            dispatch(interaction.actions.hideVisibleModal());
+            dispatch(interaction.actions.setSmallScreenWarning(false));
+        }
+    }, [dispatch, measuredWidth, isDisplayingSmallScreenWarning, hasDismissedSmallScreenWarning]);
+
     return (
         <div
             id={ROOT_ELEMENT_ID}
@@ -83,6 +110,7 @@ export default function App(props: AppProps) {
                 [styles.lightTheme]: !isDarkTheme,
                 [styles.smallFont]: shouldDisplaySmallFont,
             })}
+            ref={measuredNodeRef}
         >
             <div className={styles.coreAndFileDetails}>
                 <div className={styles.querySidebarAndCenter}>

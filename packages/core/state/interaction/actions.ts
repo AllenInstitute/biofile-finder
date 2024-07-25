@@ -129,6 +129,48 @@ export function markAsUsedApplicationBefore(): MarkAsUsedApplicationBefore {
 }
 
 /**
+ * MARK_AS_DISMISSED_SMALL_SCREEN_WARNING
+ *
+ * Intention to mark that user selected not to show small screen warning again
+ */
+
+export const MARK_AS_DISMISSED_SMALL_SCREEN_WARNING = makeConstant(
+    STATE_BRANCH_NAME,
+    "mark-as-dismissed-small-screen-warning"
+);
+
+export interface MarkAsDismissedSmallScreenWarning {
+    type: string;
+}
+
+export function markAsDismissedSmallScreenWarning(): MarkAsDismissedSmallScreenWarning {
+    return {
+        type: MARK_AS_DISMISSED_SMALL_SCREEN_WARNING,
+    };
+}
+
+/**
+ * SET_SMALL_SCREEN_WARNING
+ *
+ * Intention to toggle whether the small screen warning is displayed
+ */
+export const SET_SMALL_SCREEN_WARNING = makeConstant(STATE_BRANCH_NAME, "set-small-screen-warning");
+
+export interface SetSmallScreenWarning {
+    payload: boolean;
+    type: string;
+}
+
+export function setSmallScreenWarning(
+    shouldShowSmallScreenWarning: boolean
+): SetSmallScreenWarning {
+    return {
+        payload: shouldShowSmallScreenWarning,
+        type: SET_SMALL_SCREEN_WARNING,
+    };
+}
+
+/**
  * SHOW_CONTEXT_MENU
  *
  * Intention to show context menu.

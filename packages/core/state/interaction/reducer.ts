@@ -17,6 +17,8 @@ import {
     SHOW_MANIFEST_DOWNLOAD_DIALOG,
     StatusUpdate,
     MARK_AS_USED_APPLICATION_BEFORE,
+    MARK_AS_DISMISSED_SMALL_SCREEN_WARNING,
+    SET_SMALL_SCREEN_WARNING,
     ShowManifestDownloadDialogAction,
     SET_IS_AICS_EMPLOYEE,
     PROMPT_FOR_DATA_SOURCE,
@@ -52,8 +54,10 @@ export interface InteractionStateBranch {
     fileExplorerServiceBaseUrl: string;
     fileTypeForVisibleModal: "csv" | "json" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
+    hasDismissedSmallScreenWarning: boolean;
     hasUsedApplicationBefore: boolean;
     isAicsEmployee?: boolean;
+    isDisplayingSmallScreenWarning: boolean;
     isOnWeb: boolean;
     platformDependentServices: PlatformDependentServices;
     refreshKey?: string;
@@ -75,7 +79,9 @@ export const initialState: InteractionStateBranch = {
     fileExplorerServiceBaseUrl: DEFAULT_CONNECTION_CONFIG.baseUrl,
     fileFiltersForVisibleModal: [],
     fileTypeForVisibleModal: "csv",
+    hasDismissedSmallScreenWarning: false,
     hasUsedApplicationBefore: false,
+    isDisplayingSmallScreenWarning: false,
     isOnWeb: false,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
@@ -100,6 +106,14 @@ export default makeReducer<InteractionStateBranch>(
         [MARK_AS_USED_APPLICATION_BEFORE]: (state) => ({
             ...state,
             hasUsedApplicationBefore: true,
+        }),
+        [MARK_AS_DISMISSED_SMALL_SCREEN_WARNING]: (state) => ({
+            ...state,
+            hasDismissedSmallScreenWarning: true,
+        }),
+        [SET_SMALL_SCREEN_WARNING]: (state, action) => ({
+            ...state,
+            isDisplayingSmallScreenWarning: action.payload,
         }),
         [SHOW_CONTEXT_MENU]: (state, action) => ({
             ...state,

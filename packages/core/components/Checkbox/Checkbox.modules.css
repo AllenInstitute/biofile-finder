@@ -1,0 +1,29 @@
+.label {
+  align-items: center;
+}
+
+.label > span {
+  color: var(--primary-text-color);
+}
+
+.root:hover span, .root:focus span {
+  color: var(--primary-text-color) !important;
+}
+
+.checkbox {
+  border: 1px solid var(--primary-text-color);
+  height: 16px;
+  width: 16px;
+}
+
+.checked .checkbox {
+  background-color: var(--aqua);
+}
+
+.root.checked:hover .checkbox, .root.checked:focus .checkbox {
+  background-color: var(--bright-aqua);
+}
+
+.root:hover .checkbox {
+  border: 1px solid var(--primary-text-color);
+}

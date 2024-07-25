@@ -29,10 +29,12 @@ export default function BaseModal(props: BaseModalProps) {
     return (
         <Modal
             isOpen
+            onDismiss={onDismiss}
             containerClassName={styles.container}
             dragOptions={DRAG_OPTIONS}
             scrollableContentClassName={styles.scrollableContainer}
             titleAriaId={titleId}
+            overlay={{ className: styles.overlay }}
         >
             <div className={styles.header}>
                 {title ? (

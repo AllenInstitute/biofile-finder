@@ -5,6 +5,7 @@ import { interaction } from "../../state";
 import CodeSnippet from "./CodeSnippet";
 import DataSource from "./DataSource";
 import MetadataManifest from "./MetadataManifest";
+import SmallScreenWarning from "./SmallScreenWarning";
 
 export interface ModalProps {
     onDismiss: () => void;
@@ -14,6 +15,7 @@ export enum ModalType {
     CodeSnippet = 1,
     DataSource = 2,
     MetadataManifest = 3,
+    SmallScreenWarning = 4,
 }
 
 /**
@@ -34,6 +36,8 @@ export default function Modal() {
             return <DataSource onDismiss={onDismiss} />;
         case ModalType.MetadataManifest:
             return <MetadataManifest onDismiss={onDismiss} />;
+        case ModalType.SmallScreenWarning:
+            return <SmallScreenWarning onDismiss={onDismiss} />;
         default:
             return null;
     }

@@ -33,6 +33,10 @@ export const getFileFiltersForVisibleModal = (state: State) =>
     state.interaction.fileFiltersForVisibleModal;
 export const getFileTypeForVisibleModal = (state: State) =>
     state.interaction.fileTypeForVisibleModal;
+export const getHasDismissedSmallScreenWarning = (state: State) =>
+    state.interaction.hasDismissedSmallScreenWarning;
+export const getIsDisplayingSmallScreenWarning = (state: State) =>
+    state.interaction.isDisplayingSmallScreenWarning;
 export const hasUsedApplicationBefore = (state: State) =>
     state.interaction.hasUsedApplicationBefore;
 export const isOnWeb = (state: State) => state.interaction.isOnWeb;
