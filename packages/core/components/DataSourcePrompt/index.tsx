@@ -125,10 +125,11 @@ export default function DataSourcePrompt(props: Props) {
                         </ul>
                         <li className={styles.details}>
                             Optionally, supply an additional metadata source file to add more
-                            information about the data source. This file should have a column
-                            containing each column you want to provide additional information about.
-                            Each row following the first, which should contain the column names,
-                            should contain a description of the column.
+                            information about the data source. This file should have a header row
+                            column named &quot;Column Name&quot; and another column named
+                            &quote;Description&quot; and a row with the details for each filled in
+                            for any columns present in the actual data source you would like to
+                            describe.
                         </li>
                         <ul className={styles.detailList}></ul>
                         <li
