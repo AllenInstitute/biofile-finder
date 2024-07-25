@@ -33,6 +33,14 @@
     font-weight: 500;
 }
 
+.link {
+    color: var(--aqua);
+}
+
+.link:hover {
+    color: var(--bright-aqua);
+}
+
 .small-font {
     font-size: unset;
 }

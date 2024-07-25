@@ -196,4 +196,21 @@ export default class FileDetail {
         const baseURLHttp = baseURL.replace("https", "http");
         return `${baseURLHttp}/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${platebarcode}`;
     }
+
+    public getAnnotationNameToLinkMap(): { [annotationName: string]: string } {
+        return this.annotations
+            .filter(
+                (annotation) =>
+                    typeof annotation.values[0] === "string" &&
+                    annotation.values[0].startsWith("http") &&
+                    annotation.name !== "File Path"
+            )
+            .reduce(
+                (mapThusFar, annotation) => ({
+                    ...mapThusFar,
+                    [annotation.name]: annotation.values[0] as string,
+                }),
+                {} as { [annotationName: string]: string }
+            );
+    }
 }

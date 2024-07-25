@@ -1,4 +1,5 @@
 import { ContextualMenuItemType, IContextualMenuItem, Icon } from "@fluentui/react";
+import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -18,8 +19,26 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     );
 
     const plateLink = fileDetails?.getLinkToPlateUI(fileExplorerServiceBaseUrl);
+    const annotationNameToLinkMap = fileDetails?.getAnnotationNameToLinkMap() || {};
 
     return [
+        ...(isEmpty(annotationNameToLinkMap)
+            ? []
+            : [
+                  {
+                      key: "custom-links",
+                      text: "USER DEFINED LINKS",
+                      title: "User defined links defined for this file",
+                      itemType: ContextualMenuItemType.Header,
+                  },
+              ]),
+        ...Object.entries(annotationNameToLinkMap).map(([name, link]) => ({
+            key: name,
+            text: name,
+            title: `Open link - ${name}`,
+            href: link,
+            target: "_blank",
+        })),
         {
             key: "web-apps",
             text: "WEB APPS",
