@@ -1,5 +1,6 @@
 .table {
   padding-bottom: calc(2*var(--margin));
+  position: relative;
 }
 
 .table-header > div {
@@ -54,16 +55,13 @@
 }
 
 /* Toggle overlay depending on screen size */
- @media screen and (max-width: 1024px) {
-  .table-header::after {
-    background-image: linear-gradient(to right, transparent, black);
-    top: 0;
-    content: " ";
-    width: 60px;
+@media screen and (max-width: 1070px) {
+  .overlay {
+    top: 8px;
     right: 0;
-    max-height: 100%;
+    background-image: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.9));
     position: absolute;
-    height: 100%;
-    z-index: 11;
+    height: calc(100% - calc(4*var(--margin)));
+    width: 86px;
   }
 }
