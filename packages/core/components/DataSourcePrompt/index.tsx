@@ -68,6 +68,14 @@ export default function DataSourcePrompt(props: Props) {
         onSubmit(dataSource, source);
     };
 
+    const onToggleHasMetadataSource = () => {
+        setHasMetadataSource(!hasMetadataSource);
+        if (hasMetadataSource) {
+            setMetadataSource(undefined);
+            onSubmit(dataSource, undefined);
+        }
+    };
+
     return (
         <div className={props.className}>
             {sourceToReplace && (
@@ -169,23 +177,15 @@ export default function DataSourcePrompt(props: Props) {
                     [styles.selected]: hasMetadataSource,
                 })}
             >
-                <div
-                    className={styles.checkboxContainer}
-                    onClick={() => {
-                        setHasMetadataSource(!hasMetadataSource);
-                        if (hasMetadataSource) {
-                            setMetadataSource(undefined);
-                            onSubmit(dataSource, undefined);
-                        }
-                    }}
-                >
+                <div className={styles.checkboxContainer}>
                     <Checkbox
                         className={classNames(styles.checkbox, {
                             [styles.selected]: hasMetadataSource,
                         })}
                         checked={hasMetadataSource}
+                        onChange={onToggleHasMetadataSource}
                     />
-                    <p>Input additional metadata source</p>
+                    <p onClick={onToggleHasMetadataSource}>Input additional metadata source</p>
                 </div>
                 {hasMetadataSource && (
                     <FilePrompt

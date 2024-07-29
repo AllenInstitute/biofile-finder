@@ -21,7 +21,13 @@
     cursor: pointer;
 }
 
+.checkbox-container:hover > .checkbox i {
+    color: var(--highlight-text-color);
+    opacity: 1;
+}
+
 .checkbox-container:hover > .checkbox > label > div {
+    background-color: var(--bright-aqua);
     color: var(--highlight-text-color);
 }
 
