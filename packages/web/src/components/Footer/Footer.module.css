@@ -14,6 +14,5 @@
 
 .footer-link:hover {
   color: var(--highlight-text-color) !important;
-  border: 0px solid var(--primary-text-color) !important;
   background-color: transparent !important;
 }
