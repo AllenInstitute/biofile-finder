@@ -29,7 +29,7 @@ const SMALL_SCREEN_BREAKPOINT = 768;
 initializeIcons();
 loadTheme({
     defaultFontStyle: {
-        fontFamily: "'Open Sans', sans-serif",
+        fontFamily: "Open Sans, sans-serif",
     },
 });
 
@@ -58,7 +58,9 @@ export default function App(props: AppProps) {
     const platformDependentServices = useSelector(
         interaction.selectors.getPlatformDependentServices
     );
-    const [measuredNodeRef, , measuredWidth] = useLayoutMeasurements<HTMLDivElement>();
+    const [measuredNodeRef, _measuredHeight, measuredWidth] = useLayoutMeasurements<
+        HTMLDivElement
+    >();
 
     // Check for updates to the application on startup
     React.useEffect(() => {
