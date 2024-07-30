@@ -1,0 +1,19 @@
+.footer {
+  height: fit-content;
+  margin: 0 auto;
+  padding: var(--margin) 0;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.footer-link {
+  color: var(--primary-text-color) !important;
+  border: none !important;
+  font-size: var(--s-paragraph-size) !important;
+}
+
+.footer-link:hover {
+  color: var(--highlight-text-color) !important;
+  border: 0px solid var(--primary-text-color) !important;
+  background-color: transparent !important;
+}
