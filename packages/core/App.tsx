@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import ContextMenu from "./components/ContextMenu";
 import DataSourcePrompt from "./components/DataSourcePrompt";
-import Modal, { ModalType } from "./components/Modal";
+import Modal from "./components/Modal";
 import DirectoryTree from "./components/DirectoryTree";
 import FileDetails from "./components/FileDetails";
 import GlobalActionButtonRow from "./components/GlobalActionButtonRow";
@@ -49,12 +49,6 @@ export default function App(props: AppProps) {
     const hasQuerySelected = useSelector(selection.selectors.hasQuerySelected);
     const isDarkTheme = useSelector(selection.selectors.getIsDarkTheme);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
-    const isDisplayingSmallScreenWarning = useSelector(
-        interaction.selectors.getIsDisplayingSmallScreenWarning
-    );
-    const hasDismissedSmallScreenWarning = useSelector(
-        interaction.selectors.getHasDismissedSmallScreenWarning
-    );
     const platformDependentServices = useSelector(
         interaction.selectors.getPlatformDependentServices
     );
@@ -88,22 +82,15 @@ export default function App(props: AppProps) {
         dispatch(interaction.actions.initializeApp(fileExplorerServiceBaseUrl));
     }, [dispatch, fileExplorerServiceBaseUrl]);
 
-    // Watch for and respond to screen size changes
+    // Respond to screen size changes
     React.useEffect(() => {
-        if (
-            measuredWidth < SMALL_SCREEN_BREAKPOINT &&
-            measuredWidth !== 0 && // Don't display when hook is still loading
-            !isDisplayingSmallScreenWarning &&
-            !hasDismissedSmallScreenWarning
-        ) {
-            // Don't dispatch if they've marked "Don't show again" before
-            dispatch(interaction.actions.setVisibleModal(ModalType.SmallScreenWarning));
-            dispatch(interaction.actions.setSmallScreenWarning(true));
-        } else if (measuredWidth >= SMALL_SCREEN_BREAKPOINT && isDisplayingSmallScreenWarning) {
-            dispatch(interaction.actions.hideVisibleModal());
-            dispatch(interaction.actions.setSmallScreenWarning(false));
-        }
-    }, [dispatch, measuredWidth, isDisplayingSmallScreenWarning, hasDismissedSmallScreenWarning]);
+        // Don't display when hook is still loading
+        if (measuredWidth === 0) return;
+
+        // Screen too small, should warn user
+        const isSmallScreen = measuredWidth < SMALL_SCREEN_BREAKPOINT;
+        dispatch(interaction.actions.setIsSmallScreen(isSmallScreen));
+    }, [dispatch, measuredWidth]);
 
     return (
         <div

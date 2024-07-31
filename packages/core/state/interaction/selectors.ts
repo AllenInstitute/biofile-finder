@@ -13,6 +13,7 @@ import DatabaseAnnotationService from "../../services/AnnotationService/Database
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
+import { ModalType } from "../../components/Modal";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 // BASIC SELECTORS
@@ -35,8 +36,6 @@ export const getFileTypeForVisibleModal = (state: State) =>
     state.interaction.fileTypeForVisibleModal;
 export const getHasDismissedSmallScreenWarning = (state: State) =>
     state.interaction.hasDismissedSmallScreenWarning;
-export const getIsDisplayingSmallScreenWarning = (state: State) =>
-    state.interaction.isDisplayingSmallScreenWarning;
 export const hasUsedApplicationBefore = (state: State) =>
     state.interaction.hasUsedApplicationBefore;
 export const isOnWeb = (state: State) => state.interaction.isOnWeb;
@@ -53,6 +52,11 @@ export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee
 export const getApplicationVersion = createSelector(
     [getPlatformDependentServices],
     ({ applicationInfoService }): string => applicationInfoService.getApplicationVersion()
+);
+
+export const getIsDisplayingSmallScreenWarning = createSelector(
+    [getVisibleModal],
+    (visibleModal): boolean => visibleModal === ModalType.SmallScreenWarning
 );
 
 export const getAllDataSources = createSelector(

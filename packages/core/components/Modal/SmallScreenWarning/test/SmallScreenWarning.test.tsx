@@ -29,7 +29,7 @@ describe("<SmallScreenWarning />", () => {
         expect(getByText("This app is not optimized for use on small screens.")).to.exist;
     });
 
-    it("contains checkbox to dismiss for duration of session", async () => {
+    it("dismisses permanently when checkbox is checked", async () => {
         // Arrange
         const { store, logicMiddleware, actions } = configureMockStore({
             state: visibleDialogState,
@@ -57,5 +57,36 @@ describe("<SmallScreenWarning />", () => {
                 type: interaction.actions.MARK_AS_DISMISSED_SMALL_SCREEN_WARNING,
             })
         ).to.be.true;
+    });
+
+    it("does not dismiss permanently when checkbox is unchecked", async () => {
+        // Arrange
+        const { store, logicMiddleware, actions } = configureMockStore({
+            state: visibleDialogState,
+            logics: reduxLogics,
+        });
+
+        const { findByText, findByRole } = render(
+            <Provider store={store}>
+                <Modal />
+            </Provider>
+        );
+
+        // Act
+        const checkbox = await findByRole("checkbox");
+        fireEvent.click(checkbox); // check
+        fireEvent.click(checkbox); // uncheck
+        await logicMiddleware.whenComplete();
+
+        const closeButton = await findByText("OK");
+        fireEvent.click(closeButton);
+        await logicMiddleware.whenComplete();
+
+        // Assert
+        expect(
+            actions.includesMatch({
+                type: interaction.actions.MARK_AS_DISMISSED_SMALL_SCREEN_WARNING,
+            })
+        ).to.be.false;
     });
 });

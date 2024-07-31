@@ -150,23 +150,21 @@ export function markAsDismissedSmallScreenWarning(): MarkAsDismissedSmallScreenW
 }
 
 /**
- * SET_SMALL_SCREEN_WARNING
+ * SET_IS_SMALL_SCREEN
  *
- * Intention to toggle whether the small screen warning is displayed
+ * Intention to respond to screen size changes
  */
-export const SET_SMALL_SCREEN_WARNING = makeConstant(STATE_BRANCH_NAME, "set-small-screen-warning");
+export const SET_IS_SMALL_SCREEN = makeConstant(STATE_BRANCH_NAME, "set-is-small-screen");
 
-export interface SetSmallScreenWarning {
+export interface SetIsSmallScreenAction {
     payload: boolean;
     type: string;
 }
 
-export function setSmallScreenWarning(
-    shouldShowSmallScreenWarning: boolean
-): SetSmallScreenWarning {
+export function setIsSmallScreen(isSmallScreen: boolean): SetIsSmallScreenAction {
     return {
-        payload: shouldShowSmallScreenWarning,
-        type: SET_SMALL_SCREEN_WARNING,
+        payload: isSmallScreen,
+        type: SET_IS_SMALL_SCREEN,
     };
 }
 
