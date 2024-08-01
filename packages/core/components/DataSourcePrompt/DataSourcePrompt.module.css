@@ -1,40 +1,6 @@
-.checkbox > label > div {
-    background-color: var(--secondary-background-color);
-    width: 20px;
-}
-
-.checkbox.selected > label > div {
-    background-color: var(--aqua);
-    border: none;
-}
-
-.checkbox-container {
-    display: flex;
-}
-
-.checkbox-container > p {
-    margin: 0;
-    transform: translateY(2px);
-}
-
-.checkbox-container:hover {
-    cursor: pointer;
-}
-
-.checkbox-container:hover > .checkbox i {
-    color: var(--highlight-text-color);
-    opacity: 1;
-}
-
-.checkbox-container:hover > .checkbox > label > div {
-    background-color: var(--bright-aqua);
-    color: var(--highlight-text-color);
-}
-
-.checkbox-form-container {
-    border: 1px dashed var(--border-color);
-    margin-top: 10px;
-    padding: 10px;
+.advanced-options-title {
+    margin: 30px 0 15px 0;
+    text-align: center;
 }
 
 .divider {
@@ -45,14 +11,34 @@
     display: none;
 }
 
-.subtitle-button {
+.load-button-container {
+    display: flex;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.load-button-container > * {
+    margin-left: 10px;
+    width: min-content;
+}
+
+.load-button-container > *:first-child {
+    margin-left: auto;
+}
+
+.link-like-button {
     background: none;
     color: var(--highlight-background-color);
     border: none;
     font-size: small;
+    padding: 0;
 }
 
-.subtitle-button:hover, .subtitle-button:focus {
+.link-like-button span {
+    font-weight: unset;
+}
+
+.link-like-button:hover, .link-like-button:focus {
     background-color: unset;
     color: var(--highlight-hover-background-color);
 }
@@ -68,22 +54,30 @@
 
 .title {
     font-weight: 100;
+    margin-bottom: 30px;
 }
 
 .text {
-    padding: 2px 0.5em;
+    margin: 0;
+    padding: 2px 0.5em 2px 0;
 }
 
 .title, .details, .warning > p {
     padding: 2px 0;
 }
 
-.text, .title, .warning {
-    text-align: center;
+.details, .details-list {
+    margin-bottom: 0;
+    margin-top: 0;
 }
 
-.detail-list {
-    padding: 0 0 0 1em;
+h4.details {
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.text, .title, .warning {
+    text-align: center;
 }
 
 .warning {

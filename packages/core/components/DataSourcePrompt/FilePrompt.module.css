@@ -12,8 +12,34 @@
 
 .or-divider {
     display: flex;
+    font-weight: 600;
     justify-content: center;
     margin: 10px 0 10px 0;
+}
+
+.selected-file {
+    align-items: center;
+    display: flex;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: min-content;
+    white-space: nowrap;
+}
+
+.selected-file-button {
+    color: var(--primary-text-color);
+    margin-left: auto;
+}
+
+.selected-file-button:hover {
+    background-color: unset;
+    color: var(--highlight-text-color);
+}
+
+.selected-file-container {
+    display: flex;
+    justify-content: center;
 }
 
 .submit-icon {
