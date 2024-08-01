@@ -94,7 +94,10 @@ export default class DatabaseAnnotationService implements AnnotationService {
             } else {
                 sqlBuilder.where(
                     annotationValues
-                        .map((value) => `"${annotationToFilter}" = '${value}'`)
+                        .map(
+                            (value) =>
+                                `REGEXP_MATCHES("${annotationToFilter}", '(\\b${value}\\b)') = true`
+                        )
                         .join(") OR (")
                 );
             }
