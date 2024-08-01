@@ -147,7 +147,10 @@ export default function Query(props: QueryProps) {
                     iconProps={{ iconName: "ChevronDown" }}
                 />
             </div>
-            <QueryDataSource dataSources={queryComponents.sources} />
+            <QueryDataSource
+                dataSources={queryComponents.sources}
+                sourceMetadata={queryComponents.sourceMetadata}
+            />
             <QueryGroup disabled={!hasDataSource} groups={queryComponents.hierarchy} />
             <QueryFilter disabled={!hasDataSource} filters={queryComponents.filters} />
             <QuerySort disabled={!hasDataSource} sort={queryComponents.sortColumn} />

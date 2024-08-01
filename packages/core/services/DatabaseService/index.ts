@@ -10,6 +10,7 @@ import SQLBuilder from "../../entity/SQLBuilder";
  * Service reponsible for querying against a database
  */
 export default abstract class DatabaseService {
+    protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     public static readonly LIST_DELIMITER = ",";
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
@@ -61,10 +62,24 @@ export default abstract class DatabaseService {
         }
     }
 
+    public async prepareSourceMetadata(sourceMetadata: Source): Promise<void> {
+        await this.deleteSourceMetadata();
+
+        await this.addDataSource({
+            ...sourceMetadata,
+            name: this.SOURCE_METADATA_TABLE,
+        });
+    }
+
     protected async deleteDataSource(dataSource: string): Promise<void> {
         this.existingDataSources.delete(dataSource);
         this.dataSourceToAnnotationsMap.delete(dataSource);
         await this.execute(`DROP TABLE IF EXISTS "${dataSource}"`);
+    }
+
+    protected async deleteSourceMetadata(): Promise<void> {
+        this.deleteDataSource(this.SOURCE_METADATA_TABLE);
+        this.dataSourceToAnnotationsMap.clear();
     }
 
     private async aggregateDataSources(dataSources: Source[]): Promise<void> {
@@ -143,12 +158,13 @@ export default abstract class DatabaseService {
             if (isEmpty(rows)) {
                 throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);
             }
+            const annotationNameToDescriptionMap = await this.fetchAnnotationDescriptions();
             const annotations = rows.map(
                 (row) =>
                     new Annotation({
                         annotationDisplayName: row["column_name"],
                         annotationName: row["column_name"],
-                        description: "",
+                        description: annotationNameToDescriptionMap[row["column_name"]] || "",
                         type: DatabaseService.columnTypeToAnnotationType(row["data_type"]),
                     })
             );
@@ -156,5 +172,25 @@ export default abstract class DatabaseService {
         }
 
         return this.dataSourceToAnnotationsMap.get(aggregateDataSourceName) || [];
+    }
+
+    private async fetchAnnotationDescriptions(): Promise<Record<string, string>> {
+        const sql = new SQLBuilder()
+            .select('"Column Name", "Description"')
+            .from(this.SOURCE_METADATA_TABLE)
+            .toSQL();
+        try {
+            const rows = await this.query(sql);
+            return rows.reduce(
+                (map, row) => ({ ...map, [row["Column Name"]]: row["Description"] }),
+                {}
+            );
+        } catch (err) {
+            // Source metadata file may not have been supplied
+            if ((err as Error).message.includes("does not exist")) {
+                return {};
+            }
+            throw err;
+        }
     }
 }

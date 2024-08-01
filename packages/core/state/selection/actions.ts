@@ -571,6 +571,25 @@ export function changeDataSources(dataSources: Source[]): ChangeDataSourcesActio
 }
 
 /**
+ * CHANGE_SOURCE_METADATA
+ *
+ * Intention to update the source file supplying metadata about the selected data sources
+ */
+export const CHANGE_SOURCE_METADATA = makeConstant(STATE_BRANCH_NAME, "change-source-metadata");
+
+export interface ChangeSourceMetadataAction {
+    payload?: Source;
+    type: string;
+}
+
+export function changeSourceMetadata(source?: Source): ChangeSourceMetadataAction {
+    return {
+        payload: source,
+        type: CHANGE_SOURCE_METADATA,
+    };
+}
+
+/**
  * SELECT_TUTORIAL
  *
  * Intention to update the current tutorial step displayed to users

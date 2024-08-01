@@ -23,6 +23,7 @@ export const getIsDarkTheme = (state: State) => state.selection.isDarkTheme;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getRecentAnnotations = (state: State) => state.selection.recentAnnotations;
 export const getSelectedDataSources = (state: State) => state.selection.dataSources;
+export const getSelectedSourceMetadata = (state: State) => state.selection.sourceMetadata;
 export const getSelectedQuery = (state: State) => state.selection.selectedQuery;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
 export const getShouldDisplayThumbnailView = (state: State) =>
@@ -47,13 +48,22 @@ export const getCurrentQueryParts = createSelector(
         getOpenFileFolders,
         getSortColumn,
         getSelectedDataSources,
+        getSelectedSourceMetadata,
     ],
-    (hierarchy, filters, openFolders, sortColumn, sources): FileExplorerURLComponents => ({
+    (
         hierarchy,
         filters,
         openFolders,
         sortColumn,
         sources,
+        sourceMetadata
+    ): FileExplorerURLComponents => ({
+        hierarchy,
+        filters,
+        openFolders,
+        sortColumn,
+        sources,
+        sourceMetadata,
     })
 );
 
