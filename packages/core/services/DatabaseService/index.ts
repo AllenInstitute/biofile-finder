@@ -10,6 +10,7 @@ import SQLBuilder from "../../entity/SQLBuilder";
  * Service reponsible for querying against a database
  */
 export default abstract class DatabaseService {
+    public static readonly LIST_DELIMITER = ",";
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);

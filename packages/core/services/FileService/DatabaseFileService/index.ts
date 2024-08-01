@@ -57,7 +57,7 @@ export default class DatabaseFileService implements FileService {
                               {
                                   name,
                                   values: `${values}`
-                                      .split(",")
+                                      .split(DatabaseService.LIST_DELIMITER)
                                       .map((value: string) => value.trim()),
                               },
                           ]
@@ -143,11 +143,15 @@ export default class DatabaseFileService implements FileService {
                 const subQuery = new SQLBuilder()
                     .select('"File Path"')
                     .from(this.dataSourceNames)
-                    .whereOr(
-                        Object.entries(selection.filters).map(([column, values]) => {
-                            const commaSeperatedValues = values.map((v) => `'${v}'`).join(", ");
-                            return `"${column}" IN (${commaSeperatedValues})`;
-                        })
+                    .where(
+                        Object.entries(selection.filters)
+                            .flatMap(([column, values]) =>
+                                values.map(
+                                    (value) =>
+                                        `REGEXP_MATCHES("${column}", '(\\b${value}\\b)') = true`
+                                )
+                            )
+                            .join(") OR (")
                     )
                     .offset(indexRange.start)
                     .limit(indexRange.end - indexRange.start + 1);
