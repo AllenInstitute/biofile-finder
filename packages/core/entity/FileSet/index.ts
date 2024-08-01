@@ -196,7 +196,9 @@ export default class FileSet {
                 sqlBuilder.where(`"${annotation}" IS NOT NULL`);
             } else {
                 sqlBuilder.where(
-                    filterValues.map((fv) => `"${annotation}" = '${fv}'`).join(") OR (")
+                    filterValues
+                        .map((fv) => `REGEXP_MATCHES("${annotation}", '(\\b${fv}\\b)') = true`)
+                        .join(") OR (")
                 );
             }
         });

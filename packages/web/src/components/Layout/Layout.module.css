@@ -7,3 +7,9 @@
   height: 100%;
   justify-content: center;
 }
+
+/* Scrollable content: main body plus footer */
+.scrollable {
+  height: calc(100% - 60px);
+  overflow-y: auto;
+}

@@ -44,15 +44,6 @@
     position: relative;
 }
 
-.root {
-    margin: 0;
-    border: 0;
-    width: 100%;
-    height: calc(100% - 60px);
-    overflow-y: auto;
-    justify-content: center;
-}
-
 .section {
     border-bottom: 1px solid var(--border-color);
     padding: 24px calc(6 * var(--margin));

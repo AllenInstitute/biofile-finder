@@ -1,3 +1,5 @@
+import { uniq } from "lodash";
+
 import AnnotationService, { AnnotationValue } from "..";
 import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
@@ -41,18 +43,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
      * Fetch the unique values for a specific annotation.
      */
     public async fetchValues(annotation: string): Promise<AnnotationValue[]> {
-        const select_key = "select_key";
-        const sql = new SQLBuilder()
-            .select(`DISTINCT "${annotation}" AS ${select_key}`)
-            .from(this.dataSourceNames)
-            .toSQL();
-        const rows = await this.databaseService.query(sql);
-        return [
-            ...rows.reduce((valueSet, row) => {
-                `${row[select_key]}`.split(",").forEach((value) => valueSet.add(value.trim()));
-                return valueSet;
-            }, new Set<string>()),
-        ];
+        return this.fetchFilteredValuesForAnnotation(annotation);
     }
 
     public async fetchRootHierarchyValues(
@@ -67,11 +58,15 @@ export default class DatabaseAnnotationService implements AnnotationService {
         path: string[],
         filters: FileFilter[]
     ): Promise<string[]> {
-        const filtersByAnnotation = filters.reduce((map, filter) => {
-            const annotationValues = map[filter.name] ? map[filter.name] : [];
-            annotationValues.push(filter.value);
-            return { ...map, [filter.name]: annotationValues };
-        }, {} as { [name: string]: (string | null)[] });
+        const filtersByAnnotation = filters.reduce(
+            (map, filter) => ({
+                ...map,
+                [filter.name]: map[filter.name]
+                    ? [...map[filter.name], filter.value]
+                    : [filter.value],
+            }),
+            {} as { [name: string]: (string | null)[] }
+        );
 
         hierarchy
             // Map before filter because index is important to map to the path
@@ -81,23 +76,38 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 }
             });
 
+        return this.fetchFilteredValuesForAnnotation(hierarchy[path.length], filtersByAnnotation);
+    }
+
+    private async fetchFilteredValuesForAnnotation(
+        annotation: string,
+        filtersByAnnotation: { [name: string]: (string | null)[] } = {}
+    ): Promise<string[]> {
         const sqlBuilder = new SQLBuilder()
-            .select(`DISTINCT "${hierarchy[path.length]}"`)
+            .select(`DISTINCT "${annotation}"`)
             .from(this.dataSourceNames);
 
-        Object.keys(filtersByAnnotation).forEach((annotation) => {
-            const annotationValues = filtersByAnnotation[annotation];
+        Object.keys(filtersByAnnotation).forEach((annotationToFilter) => {
+            const annotationValues = filtersByAnnotation[annotationToFilter];
             if (annotationValues[0] === null) {
-                sqlBuilder.where(`"${annotation}" IS NOT NULL`);
+                sqlBuilder.where(`"${annotationToFilter}" IS NOT NULL`);
             } else {
                 sqlBuilder.where(
-                    annotationValues.map((value) => `"${annotation}" = '${value}'`).join(") OR (")
+                    annotationValues
+                        .map(
+                            (value) =>
+                                `REGEXP_MATCHES("${annotationToFilter}", '(\\b${value}\\b)') = true`
+                        )
+                        .join(") OR (")
                 );
             }
         });
 
         const rows = await this.databaseService.query(sqlBuilder.toSQL());
-        return rows.map((row) => row[hierarchy[path.length]]);
+        const rowsSplitByDelimiter = rows
+            .flatMap((row) => row[annotation].split(DatabaseService.LIST_DELIMITER))
+            .map((value) => value.trim());
+        return uniq(rowsSplitByDelimiter);
     }
 
     /**

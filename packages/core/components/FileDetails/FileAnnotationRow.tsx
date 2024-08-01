@@ -21,6 +21,8 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
     const dispatch = useDispatch();
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
 
+    const isValueLinkLike = props.value.startsWith("http");
+
     const onContextMenuHandlerFactory = (clipboardText: string) => {
         return (evt: React.MouseEvent) => {
             evt.preventDefault();
@@ -64,12 +66,24 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                 columnKey="value"
                 width={1}
             >
-                <span
-                    style={{ userSelect: "text" }}
-                    onContextMenu={onContextMenuHandlerFactory(props.value.trim())}
-                >
-                    {props.value.trim()}
-                </span>
+                {isValueLinkLike ? (
+                    <a
+                        className={styles.link}
+                        onContextMenu={onContextMenuHandlerFactory(props.value.trim())}
+                        href={props.value.trim()}
+                        rel="noreferrer"
+                        target="_blank"
+                    >
+                        {props.value.trim()}
+                    </a>
+                ) : (
+                    <span
+                        style={{ userSelect: "text" }}
+                        onContextMenu={onContextMenuHandlerFactory(props.value.trim())}
+                    >
+                        {props.value.trim()}
+                    </span>
+                )}
             </Cell>
         </div>
     );

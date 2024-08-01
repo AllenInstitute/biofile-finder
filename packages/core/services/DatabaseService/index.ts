@@ -11,7 +11,7 @@ import SQLBuilder from "../../entity/SQLBuilder";
  */
 export default abstract class DatabaseService {
     protected readonly SOURCE_METADATA_TABLE = "source_metadata";
-
+    public static readonly LIST_DELIMITER = ",";
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
