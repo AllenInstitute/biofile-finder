@@ -101,10 +101,10 @@ export default class DatabaseAnnotationService implements AnnotationService {
         });
 
         const rows = await this.databaseService.query(sqlBuilder.toSQL());
-        const rowsSplitByDelimeter = rows
-            .flatMap((row) => row[annotation].split(DatabaseService.LIST_DELIMETER))
+        const rowsSplitByDelimiter = rows
+            .flatMap((row) => row[annotation].split(DatabaseService.LIST_DELIMITER))
             .map((value) => value.trim());
-        return uniq(rowsSplitByDelimeter);
+        return uniq(rowsSplitByDelimiter);
     }
 
     /**

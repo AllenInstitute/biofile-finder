@@ -57,7 +57,7 @@ export default class DatabaseFileService implements FileService {
                               {
                                   name,
                                   values: `${values}`
-                                      .split(DatabaseService.LIST_DELIMETER)
+                                      .split(DatabaseService.LIST_DELIMITER)
                                       .map((value: string) => value.trim()),
                               },
                           ]
