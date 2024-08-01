@@ -12,6 +12,7 @@ import styles from "./useOpenWithMenuItems.module.css";
 export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMenuItem[] => {
     const dispatch = useDispatch();
     const isOnWeb = useSelector(interaction.selectors.isOnWeb);
+    const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
     const fileExplorerServiceBaseUrl = useSelector(
@@ -27,8 +28,8 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             : [
                   {
                       key: "custom-links",
-                      text: "USER DEFINED LINKS",
-                      title: "User defined links defined for this file",
+                      text: "AUTHOR DEFINED",
+                      title: "User defined links for this file",
                       itemType: ContextualMenuItemType.Header,
                   },
               ]),
@@ -53,7 +54,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             disabled: !fileDetails?.path,
             target: "_blank",
         },
-        ...(plateLink
+        ...(plateLink && isAicsEmployee
             ? [
                   {
                       key: "open-plate-ui",

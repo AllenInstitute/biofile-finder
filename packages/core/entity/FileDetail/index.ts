@@ -203,7 +203,7 @@ export default class FileDetail {
                 (annotation) =>
                     typeof annotation.values[0] === "string" &&
                     annotation.values[0].startsWith("http") &&
-                    annotation.name !== "File Path"
+                    !["File Path", "Thumbnail"].includes(annotation.name)
             )
             .reduce(
                 (mapThusFar, annotation) => ({
