@@ -1,4 +1,5 @@
 import { ContextualMenuItemType, IContextualMenuItem, Icon } from "@fluentui/react";
+import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -11,6 +12,7 @@ import styles from "./useOpenWithMenuItems.module.css";
 export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMenuItem[] => {
     const dispatch = useDispatch();
     const isOnWeb = useSelector(interaction.selectors.isOnWeb);
+    const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
     const fileExplorerServiceBaseUrl = useSelector(
@@ -18,8 +20,26 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     );
 
     const plateLink = fileDetails?.getLinkToPlateUI(fileExplorerServiceBaseUrl);
+    const annotationNameToLinkMap = fileDetails?.getAnnotationNameToLinkMap() || {};
 
     return [
+        ...(isEmpty(annotationNameToLinkMap)
+            ? []
+            : [
+                  {
+                      key: "custom-links",
+                      text: "AUTHOR DEFINED",
+                      title: "User defined links for this file",
+                      itemType: ContextualMenuItemType.Header,
+                  },
+              ]),
+        ...Object.entries(annotationNameToLinkMap).map(([name, link]) => ({
+            key: name,
+            text: name,
+            title: `Open link - ${name}`,
+            href: link,
+            target: "_blank",
+        })),
         {
             key: "web-apps",
             text: "WEB APPS",
@@ -34,7 +54,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             disabled: !fileDetails?.path,
             target: "_blank",
         },
-        ...(plateLink
+        ...(plateLink && isAicsEmployee
             ? [
                   {
                       key: "open-plate-ui",
