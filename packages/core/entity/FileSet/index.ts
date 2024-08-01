@@ -197,7 +197,13 @@ export default class FileSet {
             } else {
                 sqlBuilder.where(
                     filterValues
-                        .map((fv) => `REGEXP_MATCHES("${annotation}", '(\\b${fv}\\b)') = true`)
+                        .map(
+                            (fv) =>
+                                // Ex. This regex will match on a value
+                                // that is at the start, middle, end, or only value in a comma separated list
+                                // of values (,\s*Position,)|(^\s*Position\s*,)|(,\s*Position\s*$)|(^\s*Position\s*$)
+                                `REGEXP_MATCHES("${annotation}", '(,\\s*${fv}\\s*,)|(^\\s*${fv}\\s*,)|(,\\s*${fv}\\s*$)|(^\\s*${fv}\\s*$)') = true`
+                        )
                         .join(") OR (")
                 );
             }
