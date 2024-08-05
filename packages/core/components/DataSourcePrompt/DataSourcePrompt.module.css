@@ -36,6 +36,7 @@
 
 .link-like-button span {
     font-weight: unset;
+    margin: 0;
 }
 
 .link-like-button:hover, .link-like-button:focus {

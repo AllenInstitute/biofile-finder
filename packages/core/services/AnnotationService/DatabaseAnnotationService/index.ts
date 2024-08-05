@@ -1,4 +1,4 @@
-import { uniq } from "lodash";
+import { isNil, uniq } from "lodash";
 
 import AnnotationService, { AnnotationValue } from "..";
 import DatabaseService from "../../DatabaseService";
@@ -96,7 +96,10 @@ export default class DatabaseAnnotationService implements AnnotationService {
                     annotationValues
                         .map(
                             (value) =>
-                                `REGEXP_MATCHES("${annotationToFilter}", '(\\b${value}\\b)') = true`
+                                // Ex. This regex will match on a value
+                                // that is at the start, middle, end, or only value in a comma separated list
+                                // of values (,\s*Position,)|(^\s*Position\s*,)|(,\s*Position\s*$)|(^\s*Position\s*$)
+                                `REGEXP_MATCHES("${annotationToFilter}", '(,\\s*${value}\\s*,)|(^\\s*${value}\\s*,)|(,\\s*${value}\\s*$)|(^\\s*${value}\\s*$)') = true`
                         )
                         .join(") OR (")
                 );
@@ -105,7 +108,9 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
         const rows = await this.databaseService.query(sqlBuilder.toSQL());
         const rowsSplitByDelimiter = rows
-            .flatMap((row) => row[annotation].split(DatabaseService.LIST_DELIMITER))
+            .flatMap((row) =>
+                isNil(row[annotation]) ? [] : row[annotation].split(DatabaseService.LIST_DELIMITER)
+            )
             .map((value) => value.trim());
         return uniq(rowsSplitByDelimiter);
     }
