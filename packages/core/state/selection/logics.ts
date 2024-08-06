@@ -524,6 +524,9 @@ const addQueryLogic = createLogic({
         // Prepare the data sources ahead of querying against them below
         try {
             await databaseService.prepareDataSources(newQuery.parts.sources);
+            if (newQuery.parts.sourceMetadata) {
+                await databaseService.prepareSourceMetadata(newQuery.parts.sourceMetadata);
+            }
         } catch (err) {
             const errMsg = `Error encountered while preparing data sources (Full error: ${
                 (err as Error).message

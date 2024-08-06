@@ -83,7 +83,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
         }
         if (!type || !uri) {
             throw new DataSourcePreparationError(
-                "Data source type and URI are missing",
+                `Data source type and URI are missing for ${dataSource.name}`,
                 dataSource.name
             );
         }
