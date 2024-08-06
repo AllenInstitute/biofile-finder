@@ -27,6 +27,10 @@ import {
     setUserSelectedApplication,
     INITIALIZE_APP,
     setIsAicsEmployee,
+    SET_IS_SMALL_SCREEN,
+    SetIsSmallScreenAction,
+    setVisibleModal,
+    hideVisibleModal,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
@@ -42,6 +46,7 @@ import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileSelection from "../../entity/FileSelection";
 import NumericRange from "../../entity/NumericRange";
 import FileExplorerURL, { DEFAULT_AICS_FMS_QUERY } from "../../entity/FileExplorerURL";
+import { ModalType } from "../../components/Modal";
 
 /**
  * Interceptor responsible for checking if the user is able to access the AICS network
@@ -500,6 +505,34 @@ const refresh = createLogic({
     type: REFRESH,
 });
 
+/**
+ * Interceptor responsible for processing screen size changes and
+ * dispatching appropriate modal changes
+ */
+const setIsSmallScreen = createLogic({
+    process(deps: ReduxLogicDeps, dispatch) {
+        const { payload: isSmallScreen } = deps.action as SetIsSmallScreenAction;
+        const isDisplayingSmallScreenModal = interactionSelectors.getIsDisplayingSmallScreenWarning(
+            deps.getState()
+        );
+        const hasDismissedSmallScreenWarning = interactionSelectors.getHasDismissedSmallScreenWarning(
+            deps.getState()
+        );
+
+        if (
+            isSmallScreen &&
+            !isDisplayingSmallScreenModal && // Avoid re-dispatching if already open
+            !hasDismissedSmallScreenWarning // User has selected not to show again
+        ) {
+            dispatch(setVisibleModal(ModalType.SmallScreenWarning));
+        } else if (!isSmallScreen && isDisplayingSmallScreenModal) {
+            // Don't dispatch hide if a different modal is open
+            dispatch(hideVisibleModal());
+        }
+    },
+    type: SET_IS_SMALL_SCREEN,
+});
+
 export default [
     checkAicsEmployee,
     downloadManifest,
@@ -510,4 +543,5 @@ export default [
     downloadFilesLogic,
     showContextMenu,
     refresh,
+    setIsSmallScreen,
 ];

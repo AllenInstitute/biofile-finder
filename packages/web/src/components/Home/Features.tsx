@@ -1,3 +1,4 @@
+import { IStackTokens, Stack } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
@@ -9,6 +10,7 @@ import styles from "./Features.module.css";
  * Component responsible for rendering the features section of the home page.
  */
 export default function Features() {
+    const wrapStackTokens: IStackTokens = { childrenGap: 12 + ' ' + 30 };
     const [{ activeFeatureIndex, activeSlideIndex }, setActiveSlideIndices] = React.useState({
         activeFeatureIndex: 0,
         activeSlideIndex: 0,
@@ -27,7 +29,7 @@ export default function Features() {
                 activeSlideIndex: slideIndex,
             });
         },
-        [activeFeatureIndex, activeSlideIndex, setActiveSlideIndices]
+        [activeFeatureIndex, setActiveSlideIndices]
     );
 
     React.useEffect(() => {
@@ -67,26 +69,30 @@ export default function Features() {
         return () => {
             document.removeEventListener("keydown", handleNextOrPrevKeyPress);
         };
-    }, [activeFeature, activeSlideIndex, setActiveSlideIndices, changeFeature]);
+    }, [activeFeature, activeFeatureIndex, activeSlideIndex, setActiveSlideIndices, changeFeature]);
 
     return (
         <div className={styles.flexContainer}>
-            <div className={styles.features}>
-                {FEATURE_OPTIONS.map((feature, index) => (
-                    <button
-                        className={classNames({
-                            // FluentUI v8 doesn't have a tab component, so enforcing active state manually
-                            [styles.selectedFeature]: activeFeature.id === feature.id,
-                        })}
-                        onClick={() => changeFeature(index)}
-                        role="tab"
-                        aria-selected={activeFeature.id === feature.id}
-                        key={`feature-${feature.id}`}
-                    >
-                        {feature.text}
-                    </button>
-                ))}
-            </div>
+            <Stack horizontal wrap styles={{root: styles.stack}} tokens={wrapStackTokens}>
+            <Stack.Item grow styles={{root: styles.stackItemLeft}}>
+                <div className={styles.features}>
+                    {FEATURE_OPTIONS.map((feature, index) => (
+                        <button
+                            className={classNames({
+                                // FluentUI v8 doesn't have a tab component, so enforcing active state manually
+                                [styles.selectedFeature]: activeFeature.id === feature.id,
+                            })}
+                            onClick={() => changeFeature(index)}
+                            role="tab"
+                            aria-selected={activeFeature.id === feature.id}
+                            key={`feature-${feature.id}`}
+                        >
+                            {feature.text}
+                        </button>
+                    ))}
+                </div>
+            </Stack.Item>
+            <Stack.Item grow styles={{root: styles.stackItemRight}}>
             <div className={styles.carousel}>
                 <img height={300} src={activeSlide.imgSrc} />
                 <div className={styles.slideButtonsContainer}>
@@ -104,6 +110,8 @@ export default function Features() {
                 </div>
                 <p>{activeSlide.caption}</p>
             </div>
+            </Stack.Item>
+            </Stack>
         </div>
     );
 }
