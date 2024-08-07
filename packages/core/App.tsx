@@ -62,7 +62,7 @@ export default function App(props: AppProps) {
             try {
                 const isUpdateAvailable = await platformDependentServices.applicationInfoService.updateAvailable();
                 if (isUpdateAvailable) {
-                    const homepage = "https://alleninstitute.github.io/aics-fms-file-explorer-app/";
+                    const homepage = "https://alleninstitute.github.io/biofile-finder/";
                     const msg = `A new version of the application is available!<br/>
                     Visit the <a href="${homepage}" target="_blank" title="BioFile Finder homepage">BioFile Finder homepage</a> to download.`;
                     dispatch(interaction.actions.promptUserToUpdateApp(uniqueId(), msg));

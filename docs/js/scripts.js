@@ -68,7 +68,7 @@ const INSTRUCTIONS_FOR_OS = {
     ],
 };
 const REPO_OWNER = "AllenInstitute";
-const REPO = "aics-fms-file-explorer-app";
+const REPO = "biofile-finder";
 
 function updateDownloadLink(releaseIdAsString) {
     const releaseId = parseInt(releaseIdAsString, 10);

@@ -9,7 +9,7 @@ import { ApplicationInfoService } from "../../../core/services";
 export default class ApplicationInfoServiceElectron implements ApplicationInfoService {
     public static GET_APP_VERSION_IPC_CHANNEL = "get-app-version";
     public static LATEST_GITHUB_RELEASE_URL =
-        "https://api.github.com/repos/AllenInstitute/aics-fms-file-explorer-app/releases/latest";
+        "https://api.github.com/repos/AllenInstitute/biofile-finder/releases/latest";
 
     public async updateAvailable(): Promise<boolean> {
         const response = await axios.get(ApplicationInfoServiceElectron.LATEST_GITHUB_RELEASE_URL, {

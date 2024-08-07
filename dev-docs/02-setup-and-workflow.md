@@ -18,8 +18,8 @@ To help with the management of three interconnected packages, this project makes
 
 ### Initial setup
 ```bash
-$ git clone git@github.com:AllenInstitute/aics-fms-file-explorer-app.git
-$ cd aics-fms-file-explorer-app
+$ git clone git@github.com:AllenInstitute/biofile-finder.git
+$ cd biofile-finder
 $ npm ci  # or, `npm install` if you want to pick up dependency updates; you need to commit your package-lock.json afterwards, though.
 ```
 

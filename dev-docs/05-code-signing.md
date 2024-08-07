@@ -7,7 +7,7 @@ Refer to that documentation and other widely-available information for a general
 
 ### Windows distribution
 The certificate and its associated password used to sign the Windows artifact are stored as
-[repo-level secrets](https://github.com/AllenInstitute/aics-fms-file-explorer-app/settings/secrets/actions) in Github.
+[repo-level secrets](https://github.com/AllenInstitute/biofile-finder/settings/secrets/actions) in Github.
 The certificate is base64 encoded and stored in the `CSC_LINK` secret.
 The certificate password is stored in the `CSC_KEY_PASSWORD` secret.
 

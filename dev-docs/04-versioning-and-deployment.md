@@ -39,8 +39,8 @@ The following captures the steps of a release of this project to desktop:
     ```bash
     npm --no-commit-hooks version --workspace packages/desktop $VERSION_BUMP_TYPE -m "v%s"
     ```
-5) Wait for a [GitHub Action](https://github.com/AllenInstitute/aics-fms-file-explorer-app/actions) to automatically create new platform-specific
+5) Wait for a [GitHub Action](https://github.com/AllenInstitute/biofile-finder/actions) to automatically create new platform-specific
 builds of `packages/desktop`, prepare a draft Github release, and upload the builds as release artifacts to that release.
-6) [Update the GitHub release](https://github.com/AllenInstitute/aics-fms-file-explorer-app/releases) once the Github action in Step 4 is finished, manually edit the Github release which was drafted as part of Step 4. Format its release name with the date (consistent with other release names), add a description of the changes, and optionally
+6) [Update the GitHub release](https://github.com/AllenInstitute/biofile-finder/releases) once the Github action in Step 4 is finished, manually edit the Github release which was drafted as part of Step 4. Format its release name with the date (consistent with other release names), add a description of the changes, and optionally
 mark whether the release is "pre-release." If it is marked as "pre-release," it will not be accessible for download through the
 Github pages site.
