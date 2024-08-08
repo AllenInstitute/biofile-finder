@@ -63,7 +63,9 @@ export default abstract class DatabaseService {
     }
 
     public async prepareSourceMetadata(sourceMetadata: Source): Promise<void> {
-        await this.deleteSourceMetadata();
+        if (sourceMetadata.type && sourceMetadata.uri) {
+            await this.deleteSourceMetadata();
+        }
 
         await this.addDataSource({
             ...sourceMetadata,
