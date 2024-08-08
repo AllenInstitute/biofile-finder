@@ -5,7 +5,7 @@
   "main": "dist/main/index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AllenInstitute/aics-fms-file-explorer-app.git"
+    "url": "https://github.com/AllenInstitute/biofile-finder.git"
   },
   "build": {
     "appId": "org.aics.alleninstitute.fileexplorer",

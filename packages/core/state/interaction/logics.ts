@@ -228,7 +228,7 @@ const downloadFilesLogic = createLogic({
             filesToDownload.map(async (file) => {
                 const downloadRequestId = uniqueId();
                 // TODO: The byte display should be fixed automatically when moving to downloading using browser
-                // https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues/62
+                // https://github.com/AllenInstitute/biofile-finder/issues/62
                 const fileByteDisplay = numberFormatter.displayValue(file.size || 0, "bytes");
                 const msg = `Downloading ${file.name}, ${fileByteDisplay} out of the total of ${totalBytesDisplay} set to download`;
 

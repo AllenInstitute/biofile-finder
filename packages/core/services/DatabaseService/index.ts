@@ -34,7 +34,7 @@ export default abstract class DatabaseService {
             case "INTEGER":
             case "BIGINT":
             // TODO: Add support for column types
-            // https://github.com/AllenInstitute/aics-fms-file-explorer-app/issues/60
+            // https://github.com/AllenInstitute/biofile-finder/issues/60
             // return AnnotationType.NUMBER;
             case "VARCHAR":
             case "TEXT":
