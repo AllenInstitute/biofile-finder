@@ -46,6 +46,7 @@
     "@types/react-window-infinite-loader": "1.0.x",
     "@types/sinon": "10.x",
     "@types/string-natural-compare": "3.0.x",
+    "@types/xml2js": "^0.4.14",
     "@typescript-eslint/eslint-plugin": "5.x",
     "@typescript-eslint/parser": "5.x",
     "chai": "4.2.x",
@@ -71,13 +72,14 @@
     "@aics/redux-utils": "0.6.0",
     "@fluentui/react": "8.67.x",
     "@tippyjs/react": "4.2.x",
-    "axios": "0.21.x",
+    "axios": "^0.21.4",
     "classnames": "2.2.x",
     "cockatiel": "2.0.x",
     "debounce-promise": "3.1.x",
     "filesize": "5.0.x",
     "fuse.js": "3.4.x",
     "interactjs": "1.6.x",
+    "jszip": "^3.10.1",
     "lodash": "4.17.x",
     "lru-cache": "5.1.x",
     "normalize.css": "8.0.x",
@@ -92,6 +94,7 @@
     "redux-logic": "3.x",
     "reselect": "4.0.x",
     "string-natural-compare": "3.0.x",
+    "xml2js": "^0.6.2",
     "zarrita": "^0.4.0-next.14"
   }
 }
