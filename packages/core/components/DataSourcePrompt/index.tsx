@@ -1,13 +1,13 @@
-import { DefaultButton, Icon, TextField } from "@fluentui/react";
+import { DefaultButton, Icon } from "@fluentui/react";
 import classNames from "classnames";
-import { throttle } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { PrimaryButton } from "../Buttons";
+import FilePrompt from "./FilePrompt";
+import { PrimaryButton, SecondaryButton } from "../Buttons";
+import { Source } from "../../entity/FileExplorerURL";
 import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
-import { getNameAndTypeFromSourceUrl, Source } from "../../entity/FileExplorerURL";
 
 import styles from "./DataSourcePrompt.module.css";
 
@@ -33,53 +33,37 @@ export default function DataSourcePrompt(props: Props) {
     const dataSourceInfo = useSelector(interaction.selectors.getDataSourceInfoForVisibleModal);
     const { source: sourceToReplace, query } = dataSourceInfo || ({} as DataSourcePromptInfo);
 
-    const [dataSourceURL, setDataSourceURL] = React.useState("");
+    const [dataSource, setDataSource] = React.useState<Source>();
+    const [metadataSource, setMetadataSource] = React.useState<Source>();
+    const [showAdvancedOptions, setShowAdvancedOptions] = React.useState(false);
     const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
 
-    const addOrReplaceQuery = (source: Source) => {
-        if (sourceToReplace) {
-            dispatch(selection.actions.replaceDataSource(source));
-        } else if (query) {
-            dispatch(selection.actions.changeDataSources([...selectedDataSources, source]));
+    const onDismiss = () => {
+        dispatch(interaction.actions.hideVisibleModal());
+    };
+
+    const onSubmit = (dataSource: Source, metadataSource?: Source) => {
+        if (sourceToReplace || query) {
+            if (metadataSource) {
+                dispatch(selection.actions.changeSourceMetadata(metadataSource));
+            }
+
+            if (sourceToReplace) {
+                dispatch(selection.actions.replaceDataSource(dataSource));
+            } else {
+                dispatch(selection.actions.changeDataSources([...selectedDataSources, dataSource]));
+            }
         } else {
             dispatch(
                 selection.actions.addQuery({
-                    name: `New ${source.name} Query`,
-                    parts: { sources: [source] },
+                    name: `New ${dataSource.name} Query`,
+                    parts: { sources: [dataSource], sourceMetadata: metadataSource },
                 })
             );
         }
-    };
 
-    const onChooseFile = (evt: React.FormEvent<HTMLInputElement>) => {
-        const selectedFile = (evt.target as HTMLInputElement).files?.[0];
-        if (selectedFile) {
-            // Grab name minus extension
-            const nameAndExtension = selectedFile.name.split(".");
-            const name = nameAndExtension.slice(0, -1).join("");
-            const extension = nameAndExtension.pop();
-            if (!(extension === "csv" || extension === "json" || extension === "parquet")) {
-                alert("Invalid file type. Please select a .csv, .json, or .parquet file.");
-                return;
-            }
-            addOrReplaceQuery({ name, type: extension, uri: selectedFile });
-            dispatch(interaction.actions.hideVisibleModal());
-        }
+        onDismiss();
     };
-    const onEnterURL = throttle(
-        (evt: React.FormEvent) => {
-            evt.preventDefault();
-            const { name, extensionGuess } = getNameAndTypeFromSourceUrl(dataSourceURL);
-            addOrReplaceQuery({
-                name,
-                type: extensionGuess as "csv" | "json" | "parquet",
-                uri: dataSourceURL,
-            });
-            dispatch(interaction.actions.hideVisibleModal());
-        },
-        10000,
-        { leading: true, trailing: false }
-    );
 
     return (
         <div className={props.className}>
@@ -105,7 +89,7 @@ export default function DataSourcePrompt(props: Props) {
             </p>
             {isDataSourceDetailExpanded ? (
                 <>
-                    <ul className={styles.detailList}>
+                    <ul className={styles.detailsList}>
                         <li className={styles.details}>
                             The file must contain a &quot;File Path&quot; column (case-sensitive) &
                             must be unique by the &quot;File Path&quot; column. Any other columns
@@ -116,10 +100,8 @@ export default function DataSourcePrompt(props: Props) {
                             cloud storage.
                         </li>
                     </ul>
-                    <p className={styles.details}>
-                        <strong>Advanced:</strong>
-                    </p>
-                    <ul className={styles.detailList}>
+                    <h4 className={styles.details}>Advanced:</h4>
+                    <ul className={styles.detailsList}>
                         <li className={styles.details}>
                             Data source files can be generated by this application by selecting some
                             files, right-clicking, and selecting one of the &quot;Save metadata
@@ -129,27 +111,35 @@ export default function DataSourcePrompt(props: Props) {
                             These are additional special columns that are optional, but will be
                             handled as a special case in the application:
                         </li>
-                        <ul className={styles.detailList}>
+                        <ul className={styles.detailsList}>
                             {ADDITIONAL_COLUMN_DETAILS.map((text) => (
                                 <li key={text} className={styles.details}>
                                     {text}
                                 </li>
                             ))}
                         </ul>
-                        <li
-                            className={classNames(styles.subtitleButtonContainer, {
-                                [styles.leftAlign]: props.hideTitle,
-                            })}
-                        >
-                            <DefaultButton
-                                className={styles.subtitleButton}
-                                onClick={() => setIsDataSourceDetailExpanded(false)}
-                            >
-                                Show less&nbsp;&nbsp;
-                                <Icon iconName="ChevronUp" />
-                            </DefaultButton>
+                        <li className={styles.details}>
+                            Optionally, supply an additional metadata source file to add more
+                            information about the data source. This file should have a header row
+                            column named &quot;Column Name&quot; and another column named
+                            &quot;Description&quot; and a row with the details for each filled in
+                            for any columns present in the actual data source you would like to
+                            describe.
                         </li>
                     </ul>
+                    <div
+                        className={classNames(styles.subtitleButtonContainer, {
+                            [styles.leftAlign]: props.hideTitle,
+                        })}
+                    >
+                        <DefaultButton
+                            className={styles.linkLikeButton}
+                            onClick={() => setIsDataSourceDetailExpanded(false)}
+                        >
+                            Show less&nbsp;&nbsp;
+                            <Icon iconName="ChevronUp" />
+                        </DefaultButton>
+                    </div>
                 </>
             ) : (
                 <div
@@ -158,7 +148,7 @@ export default function DataSourcePrompt(props: Props) {
                     })}
                 >
                     <DefaultButton
-                        className={styles.subtitleButton}
+                        className={styles.linkLikeButton}
                         onClick={() => setIsDataSourceDetailExpanded(true)}
                     >
                         Show more&nbsp;&nbsp;
@@ -167,43 +157,36 @@ export default function DataSourcePrompt(props: Props) {
                 </div>
             )}
             <hr className={styles.divider} />
-            <div className={styles.actionsContainer}>
-                <form>
-                    <label
-                        aria-label="Browse for a data source file on your machine"
-                        title="Browse for a data source file on your machine"
-                        htmlFor="data-source-selector"
-                    >
-                        <PrimaryButton
-                            iconName="DocumentSearch"
-                            text="Choose file"
-                            title="Choose file"
-                        />
-                    </label>
-                    <input
-                        hidden
-                        accept=".csv,.json,.parquet"
-                        type="file"
-                        id="data-source-selector"
-                        name="data-source-selector"
-                        onChange={onChooseFile}
+            <FilePrompt onSelectFile={setDataSource} selectedFile={dataSource} />
+            {showAdvancedOptions ? (
+                <>
+                    <h4 className={styles.advancedOptionsTitle}>(Optional) Add metadata source</h4>
+                    <FilePrompt onSelectFile={setMetadataSource} selectedFile={metadataSource} />
+                </>
+            ) : (
+                <DefaultButton
+                    className={styles.linkLikeButton}
+                    onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                >
+                    (Optional) Add metadata source
+                </DefaultButton>
+            )}
+            <div className={styles.loadButtonContainer}>
+                {props.hideTitle && (
+                    <SecondaryButton
+                        iconName="Cancel"
+                        title="Cancel"
+                        text="CANCEL"
+                        onClick={() => onDismiss()}
                     />
-                </form>
-                <div className={styles.orDivider}>OR</div>
-                <form className={styles.urlForm} onSubmit={onEnterURL}>
-                    <TextField
-                        onChange={(_, newValue) => setDataSourceURL(newValue || "")}
-                        placeholder="Paste URL (ex. S3, Azure)..."
-                        iconProps={{
-                            className: classNames(styles.submitIcon, {
-                                [styles.disabled]: !dataSourceURL,
-                            }),
-                            iconName: "ReturnKey",
-                            onClick: onEnterURL,
-                        }}
-                        value={dataSourceURL}
-                    />
-                </form>
+                )}
+                <PrimaryButton
+                    disabled={!dataSource}
+                    iconName="CheckMark"
+                    title="Load"
+                    text="LOAD"
+                    onClick={() => dataSource && onSubmit(dataSource, metadataSource)}
+                />
             </div>
         </div>
     );

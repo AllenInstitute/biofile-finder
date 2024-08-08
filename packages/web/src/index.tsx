@@ -21,7 +21,7 @@ import { createReduxStore } from "../../core/state";
 import "../../core/styles/global.css";
 import styles from "./src.module.css";
 
-const APP_ID = "fms-file-explorer-web";
+const APP_ID = "biofile-finder";
 
 const router = createBrowserRouter([
     {

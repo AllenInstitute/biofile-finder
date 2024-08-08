@@ -74,6 +74,30 @@ describe("FileExplorerURL", () => {
             // Assert
             expect(result).to.be.equal("");
         });
+
+        it("encodes source URIs when 'string' type is provided", () => {
+            // Arrange
+            const components: FileExplorerURLComponents = {
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                sources: [
+                    {
+                        name: "Fake Collection",
+                        type: "csv",
+                        uri: "fake-uri.test",
+                    },
+                ],
+            };
+
+            // Act
+            const result = FileExplorerURL.encode(components);
+
+            // Assert
+            expect(result).to.be.equal(
+                "source=%7B%22name%22%3A%22Fake+Collection%22%2C%22type%22%3A%22csv%22%2C%22uri%22%3A%22fake-uri.test%22%7D"
+            );
+        });
     });
 
     describe("decode", () => {

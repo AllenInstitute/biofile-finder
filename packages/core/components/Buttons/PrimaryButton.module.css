@@ -5,6 +5,11 @@
     padding: 0 16px;
 }
 
+.button.disabled {
+    background-color: var(--dark-aqua);
+    color: var(--primary-text-color);
+}
+
 .button:hover:not(.disabled), .button:focus:not(.disabled) {
     background-color: var(--highlight-hover-background-color);
     color: var(--highlight-hover-text-color);

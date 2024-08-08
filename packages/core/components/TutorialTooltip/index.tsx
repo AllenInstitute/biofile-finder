@@ -18,10 +18,17 @@ export default function TutorialTooltip() {
     if (!tutorial) {
         return null;
     }
+    const resetToFirstStep = () => {
+        setTutorialStepIndex(0);
+        return tutorial.getStep(0);
+    };
 
     const nextStepIndex = tutorialStepIndex + 1;
     const previousStepIndex = tutorialStepIndex - 1;
-    const currentTutorialStep = tutorial.getStep(tutorialStepIndex);
+    // If switching from another tooltip, may be out of index range and should reset
+    const currentTutorialStep = tutorial.hasStep(tutorialStepIndex)
+        ? tutorial.getStep(tutorialStepIndex)
+        : resetToFirstStep();
 
     const onDismiss = () => {
         setTutorialStepIndex(0);
@@ -40,7 +47,11 @@ export default function TutorialTooltip() {
         <TeachingBubble
             isWide
             target={`#${currentTutorialStep.targetId}`}
-            calloutProps={{ className: styles.tutorialContainer }}
+            calloutProps={{
+                className: styles.tutorialContainer,
+                minPagePadding: 50, // Prevent tutorial cutoff for small screens
+            }}
+            focusTrapZoneProps={{ disabled: true }}
         >
             <div className={styles.header}>
                 <h4>Tutorial: {tutorial.title}</h4>

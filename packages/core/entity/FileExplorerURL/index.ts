@@ -15,6 +15,7 @@ export interface Source {
 export interface FileExplorerURLComponents {
     hierarchy: string[];
     sources: Source[];
+    sourceMetadata?: Source;
     filters: FileFilter[];
     openFolders: FileFolder[];
     fuzzyFilters?: FuzzyFilter[];
@@ -97,10 +98,26 @@ export default class FileExplorerURL {
                 "source",
                 JSON.stringify({
                     ...source,
-                    uri: source.uri instanceof String ? source.uri : undefined,
+                    uri:
+                        typeof source.uri === "string" || source.uri instanceof String
+                            ? source.uri
+                            : undefined,
                 })
             );
         });
+        if (urlComponents.sourceMetadata) {
+            params.append(
+                "sourceMetadata",
+                JSON.stringify({
+                    ...urlComponents.sourceMetadata,
+                    uri:
+                        typeof urlComponents.sourceMetadata.uri === "string" ||
+                        urlComponents.sourceMetadata.uri instanceof String
+                            ? urlComponents.sourceMetadata.uri
+                            : undefined,
+                })
+            );
+        }
         if (urlComponents.sortColumn) {
             params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
         }
@@ -115,6 +132,7 @@ export default class FileExplorerURL {
     public static decode(encodedURL: string): FileExplorerURLComponents {
         const params = new URLSearchParams(encodedURL.trim());
 
+        const unparsedSourceMetadata = params.get("sourceMetadata");
         const unparsedOpenFolders = params.getAll("openFolder");
         const unparsedFilters = params.getAll("filter");
         const unparsedSources = params.getAll("source");
@@ -148,6 +166,7 @@ export default class FileExplorerURL {
                   )
                 : undefined,
             sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
+            sourceMetadata: unparsedSourceMetadata ? JSON.parse(unparsedSourceMetadata) : undefined,
             openFolders: unparsedOpenFolders
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)

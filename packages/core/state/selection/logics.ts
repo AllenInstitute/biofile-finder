@@ -36,6 +36,9 @@ import {
     changeDataSources,
     ChangeDataSourcesAction,
     CHANGE_DATA_SOURCES,
+    CHANGE_SOURCE_METADATA,
+    ChangeSourceMetadataAction,
+    changeSourceMetadata,
     ADD_FUZZY_FILTER,
     REMOVE_FUZZY_FILTER,
     setFuzzyFilters,
@@ -350,9 +353,11 @@ const decodeFileExplorerURLLogics = createLogic({
             openFolders,
             sortColumn,
             sources,
+            sourceMetadata,
         } = FileExplorerURL.decode(encodedURL);
 
         batch(() => {
+            dispatch(changeSourceMetadata(sourceMetadata));
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
             dispatch(setFileFilters(filters));
@@ -536,6 +541,26 @@ const changeDataSourceLogic = createLogic({
 });
 
 /**
+ * Interceptor responsible for processing changed source metadata events into
+ * actual reads from the source file
+ */
+const changeSourceMetadataLogic = createLogic({
+    type: CHANGE_SOURCE_METADATA,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: selectedSourceMetadata } = deps.action as ChangeSourceMetadataAction;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
+        if (selectedSourceMetadata) {
+            await databaseService.prepareSourceMetadata(selectedSourceMetadata);
+        }
+
+        dispatch(metadata.actions.requestAnnotations());
+        done();
+    },
+});
+
+/**
  * Interceptor responsible for processing the added query to accurate/unique names
  */
 const addQueryLogic = createLogic({
@@ -690,6 +715,7 @@ export default [
     selectNearbyFile,
     setAvailableAnnotationsLogic,
     changeDataSourceLogic,
+    changeSourceMetadataLogic,
     addQueryLogic,
     replaceDataSourceLogic,
     changeQueryLogic,

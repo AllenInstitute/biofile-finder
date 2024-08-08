@@ -1,5 +1,6 @@
 .table {
   padding-bottom: calc(2*var(--margin));
+  position: relative;
 }
 
 .table-header > div {
@@ -51,4 +52,16 @@
 .link:hover {
   text-decoration: underline;
   color: var(--bright-aqua);
+}
+
+/* Toggle overlay depending on screen size */
+@media screen and (max-width: 1070px) {
+  .overlay {
+    top: 8px;
+    right: 0;
+    background-image: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.9));
+    position: absolute;
+    height: calc(100% - calc(4*var(--margin)));
+    width: 86px;
+  }
 }

@@ -213,7 +213,15 @@ export default class FileSet {
                 sqlBuilder.where(`"${annotation}" IS NOT NULL`);
             } else {
                 sqlBuilder.where(
-                    filterValues.map((fv) => `"${annotation}" = '${fv}'`).join(") OR (")
+                    filterValues
+                        .map(
+                            (fv) =>
+                                // Ex. This regex will match on a value
+                                // that is at the start, middle, end, or only value in a comma separated list
+                                // of values (,\s*Position,)|(^\s*Position\s*,)|(,\s*Position\s*$)|(^\s*Position\s*$)
+                                `REGEXP_MATCHES("${annotation}", '(,\\s*${fv}\\s*,)|(^\\s*${fv}\\s*,)|(,\\s*${fv}\\s*$)|(^\\s*${fv}\\s*$)') = true`
+                        )
+                        .join(") OR (")
                 );
             }
         });

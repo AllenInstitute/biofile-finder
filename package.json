@@ -91,6 +91,7 @@
     "redux": "4.0.x",
     "redux-logic": "3.x",
     "reselect": "4.0.x",
-    "string-natural-compare": "3.0.x"
+    "string-natural-compare": "3.0.x",
+    "zarrita": "^0.4.0-next.14"
   }
 }

@@ -9,6 +9,7 @@ import { interaction, metadata, selection } from "../../state";
 
 interface Props {
     dataSources: Source[];
+    sourceMetadata?: Source;
 }
 
 /**
@@ -77,10 +78,20 @@ export default function QueryDataSource(props: Props) {
                     },
                 },
             ]}
-            rows={props.dataSources.map((dataSource) => ({
-                id: dataSource.name,
-                title: dataSource.name,
-            }))}
+            rows={[
+                ...props.dataSources.map((dataSource) => ({
+                    id: dataSource.name,
+                    title: dataSource.name,
+                })),
+                ...(props.sourceMetadata
+                    ? [
+                          {
+                              id: "sourceMetadata",
+                              title: `described by: ${props.sourceMetadata.name}`,
+                          },
+                      ]
+                    : []),
+            ]}
         />
     );
 }

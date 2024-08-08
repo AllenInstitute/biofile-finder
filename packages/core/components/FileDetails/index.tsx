@@ -1,3 +1,4 @@
+import { IStackTokens, Stack, StackItem } from "@fluentui/react";
 import classNames from "classnames";
 import { noop, throttle } from "lodash";
 import * as React from "react";
@@ -71,6 +72,15 @@ function resizeHandleDoubleClick() {
 export default function FileDetails(props: Props) {
     const dispatch = useDispatch();
     const [fileDetails, isLoading] = useFileDetails();
+    const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
+    const stackTokens: IStackTokens = { childrenGap: 12 + " " + 20 };
+
+    React.useEffect(() => {
+        if (fileDetails) {
+            fileDetails.getPathToThumbnail().then(setThumbnailPath);
+        }
+    }, [fileDetails]);
+
     const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
     const openWithMenuItems = useOpenWithMenuItems(fileDetails || undefined);
 
@@ -117,28 +127,38 @@ export default function FileDetails(props: Props) {
                                     className={styles.thumbnail}
                                     width="100%"
                                     // height={thumbnailHeight}
-                                    uri={fileDetails?.getPathToThumbnail()}
+                                    uri={thumbnailPath}
                                 />
                             </div>
-                            <div className={styles.fileActions}>
-                                <PrimaryButton
-                                    className={styles.primaryButton}
-                                    disabled={processStatuses.some((status) =>
-                                        status.data.fileId?.includes(fileDetails.id)
-                                    )}
-                                    iconName="Download"
-                                    text="Download"
-                                    title="Download"
-                                    onClick={onDownload}
-                                />
-                                <PrimaryButton
-                                    className={styles.primaryButton}
-                                    iconName="OpenInNewWindow"
-                                    text="Open file"
-                                    title="Open file"
-                                    menuItems={openWithMenuItems}
-                                />
-                            </div>
+                            <Stack
+                                wrap
+                                horizontal
+                                horizontalAlign="center"
+                                styles={{ root: styles.stack }}
+                                tokens={stackTokens}
+                            >
+                                <StackItem>
+                                    <PrimaryButton
+                                        className={styles.primaryButton}
+                                        disabled={processStatuses.some((status) =>
+                                            status.data.fileId?.includes(fileDetails.id)
+                                        )}
+                                        iconName="Download"
+                                        text="Download"
+                                        title="Download"
+                                        onClick={onDownload}
+                                    />
+                                </StackItem>
+                                <StackItem>
+                                    <PrimaryButton
+                                        className={styles.primaryButton}
+                                        iconName="OpenInNewWindow"
+                                        text="Open file"
+                                        title="Open file"
+                                        menuItems={openWithMenuItems}
+                                    />
+                                </StackItem>
+                            </Stack>
                             <p className={styles.fileName}>{fileDetails?.name}</p>
                             <h4>Information</h4>
                             <FileAnnotationList

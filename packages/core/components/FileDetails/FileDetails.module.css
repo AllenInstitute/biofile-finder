@@ -145,3 +145,12 @@
     user-select: text !important;
     word-break: break-all;
 }
+
+.primary-button { 
+    width: fit-content;
+}
+
+.stack {
+    width: 100%;
+    align-items: center;
+}

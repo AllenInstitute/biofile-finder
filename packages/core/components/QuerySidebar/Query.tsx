@@ -1,4 +1,4 @@
-import { IconButton, TextField } from "@fluentui/react";
+import { IContextualMenuItem, IconButton, TextField } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,7 +8,7 @@ import QueryDataSource from "../QueryPart/QueryDataSource";
 import QueryFilter from "../QueryPart/QueryFilter";
 import QueryGroup from "../QueryPart/QueryGroup";
 import QuerySort from "../QueryPart/QuerySort";
-import { metadata, selection } from "../../state";
+import { interaction, metadata, selection } from "../../state";
 import { Query as QueryType } from "../../state/selection/actions";
 
 import styles from "./Query.module.css";
@@ -52,6 +52,19 @@ export default function Query(props: QueryProps) {
         dispatch(selection.actions.removeQuery(props.query.name));
     };
 
+    const onContextMenu = (evt: React.MouseEvent<HTMLDivElement>) => {
+        evt.preventDefault();
+        const items: IContextualMenuItem[] = [
+            {
+                key: "Delete",
+                text: "Delete query",
+                title: "Delete this query",
+                onClick: onQueryDelete,
+            },
+        ];
+        dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
+    };
+
     if (!isExpanded) {
         return (
             <div
@@ -61,6 +74,7 @@ export default function Query(props: QueryProps) {
                 onClick={() =>
                     !props.isSelected && dispatch(selection.actions.changeQuery(props.query))
                 }
+                onContextMenu={onContextMenu}
             >
                 <div className={styles.header}>
                     <h4 title={props.query.name}>{props.query.name}</h4>
@@ -109,7 +123,10 @@ export default function Query(props: QueryProps) {
     }
 
     return (
-        <div className={classNames(styles.container, { [styles.selected]: props.isSelected })}>
+        <div
+            className={classNames(styles.container, { [styles.selected]: props.isSelected })}
+            onContextMenu={onContextMenu}
+        >
             <div className={styles.header}>
                 <div className={styles.titleContainer}>
                     <TextField
@@ -130,7 +147,10 @@ export default function Query(props: QueryProps) {
                     iconProps={{ iconName: "ChevronDown" }}
                 />
             </div>
-            <QueryDataSource dataSources={queryComponents.sources} />
+            <QueryDataSource
+                dataSources={queryComponents.sources}
+                sourceMetadata={queryComponents.sourceMetadata}
+            />
             <QueryGroup disabled={!hasDataSource} groups={queryComponents.hierarchy} />
             <QueryFilter disabled={!hasDataSource} filters={queryComponents.filters} />
             <QuerySort disabled={!hasDataSource} sort={queryComponents.sortColumn} />

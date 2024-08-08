@@ -16,17 +16,20 @@ import TutorialTooltip from "./components/TutorialTooltip";
 import QuerySidebar from "./components/QuerySidebar";
 import { FileExplorerServiceBaseUrl } from "./constants";
 import { interaction, selection } from "./state";
+import useLayoutMeasurements from "./hooks/useLayoutMeasurements";
 
 import styles from "./App.module.css";
 
 // Used for mousemove listeners when resizing elements via click and drag (eg. File Details pane)
 export const ROOT_ELEMENT_ID = "root";
+// Pixel size; used to alert users that screen is too small for optimal use
+const SMALL_SCREEN_BREAKPOINT = 768;
 
 // initialize @fluentui/react
 initializeIcons();
 loadTheme({
     defaultFontStyle: {
-        fontFamily: "Open sans, sans-serif",
+        fontFamily: "Open Sans, sans-serif",
     },
 });
 
@@ -49,6 +52,9 @@ export default function App(props: AppProps) {
     const platformDependentServices = useSelector(
         interaction.selectors.getPlatformDependentServices
     );
+    const [measuredNodeRef, _measuredHeight, measuredWidth] = useLayoutMeasurements<
+        HTMLDivElement
+    >();
 
     // Check for updates to the application on startup
     React.useEffect(() => {
@@ -76,6 +82,16 @@ export default function App(props: AppProps) {
         dispatch(interaction.actions.initializeApp(fileExplorerServiceBaseUrl));
     }, [dispatch, fileExplorerServiceBaseUrl]);
 
+    // Respond to screen size changes
+    React.useEffect(() => {
+        // Don't display when hook is still loading
+        if (measuredWidth === 0) return;
+
+        // Screen too small, should warn user
+        const isSmallScreen = measuredWidth < SMALL_SCREEN_BREAKPOINT;
+        dispatch(interaction.actions.setIsSmallScreen(isSmallScreen));
+    }, [dispatch, measuredWidth]);
+
     return (
         <div
             id={ROOT_ELEMENT_ID}
@@ -83,6 +99,7 @@ export default function App(props: AppProps) {
                 [styles.lightTheme]: !isDarkTheme,
                 [styles.smallFont]: shouldDisplaySmallFont,
             })}
+            ref={measuredNodeRef}
         >
             <div className={styles.coreAndFileDetails}>
                 <div className={styles.querySidebarAndCenter}>

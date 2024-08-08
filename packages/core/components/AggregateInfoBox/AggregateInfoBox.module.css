@@ -8,6 +8,7 @@
     height: 60px;
     width: 350px;
     text-align: center;
+    z-index: 999;
 }
 
 .row {

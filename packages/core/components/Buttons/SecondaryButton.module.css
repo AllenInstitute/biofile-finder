@@ -1,13 +1,21 @@
 .button {
-    background-color: var(--primary-dark); 
+    background-color: unset; 
     border: 1px solid var(--aqua);
     border-radius: var(--large-border-radius);
     color: var(--aqua);
     padding: 0 16px;
 }
 
+.button i {
+    color: var(--aqua);
+}
+
 .button:hover:not(.disabled), .button:focus:not(.disabled) {
     background-color: var(--aqua-secondary-hover);
     color: var(--bright-aqua);
     border-color: var(--bright-aqua);
+}
+
+.button:hover:not(.disabled) i {
+    color: var(--bright-aqua);
 }

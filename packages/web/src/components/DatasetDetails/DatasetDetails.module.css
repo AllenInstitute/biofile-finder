@@ -11,7 +11,8 @@
   right: 0;
   padding: 24px 30px;
   border-left: 1px solid var(--medium-grey);
-  box-shadow: -4px 10px 8px 0px #000000
+  box-shadow: -4px 10px 8px 0px #000000;
+  z-index: 15;
 }
 
 .internal-wrapper {

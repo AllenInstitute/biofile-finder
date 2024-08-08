@@ -33,7 +33,7 @@
 }
 
 .tutorial-container > div {
-    background-color: var(--primary-background-color);
+    background-color: var(--accent-dark);
     border-radius: var(--small-border-radius);
     color: var(--primary-text-color);
 }
