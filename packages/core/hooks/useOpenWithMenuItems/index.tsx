@@ -50,7 +50,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             key: "3d-web-viewer",
             text: "3D Web Viewer",
             title: `Open files with 3D Web Viewer`,
-            href: `https://allen-cell-animated.github.io/website-3d-cell-viewer/?url=${fileDetails?.path}/`,
+            href: `https://volumeviewer.allencell.org/viewer?url=${fileDetails?.cloudPath}/`,
             disabled: !fileDetails?.path,
             target: "_blank",
         },

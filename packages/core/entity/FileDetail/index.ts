@@ -1,14 +1,9 @@
 import AnnotationName from "../Annotation/AnnotationName";
+import { FileExplorerServiceBaseUrl } from "../../constants";
 import { FmsFileAnnotation } from "../../services/FileService";
 import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
-
-// Should probably record this somewhere we can dynamically adjust to, or perhaps just in the file
-// document itself, alas for now this will do.
-const HARD_CODED_AICS_S3_BUCKET_PATH = "http://production.files.allencell.org.s3.amazonaws.com";
-
-const AICS_FMS_FILES_NGINX_SERVER = "http://aics.corp.alleninstitute.org/labkey/fmsfiles/image";
 
 /**
  * Expected JSON response of a file detail returned from the query service. Example:
@@ -80,6 +75,13 @@ export interface FmsFile {
 export default class FileDetail {
     private fileDetail: FmsFile;
 
+    private static convertAicsDrivePathToAicsS3Path(path: string): string {
+        const pathWithoutDrive = path.replace("/allen/programs/allencell/data/proj0", "");
+        // Should probably record this somewhere we can dynamically adjust to, or perhaps just in the file
+        // document itself, alas for now this will do.
+        return `https://s3.us-west-2.amazonaws.com/production.files.allencell.org${pathWithoutDrive}`;
+    }
+
     constructor(fileDetail: FmsFile) {
         this.fileDetail = fileDetail;
     }
@@ -115,21 +117,22 @@ export default class FileDetail {
     public get cloudPath(): string {
         // Can retrieve a cloud like path for AICS FMS files
         if (this.path.startsWith("/allen")) {
-            const pathWithoutDrive = this.path.replace("/allen/programs/allencell/data/proj0", "");
-            return `${HARD_CODED_AICS_S3_BUCKET_PATH}${pathWithoutDrive}`;
+            return FileDetail.convertAicsDrivePathToAicsS3Path(this.path);
         }
 
+        // Otherwise just return the path as is and hope for the best
         return this.path;
     }
 
     public get downloadPath(): string {
-        if (!this.path.startsWith("/allen")) {
-            return this.path;
-        }
-
         // For AICS files we don't have permission to the bucket nor do we expect to have the /allen
         // drive mounted on the client machine. So we use the NGINX server to serve the file.
-        return `${AICS_FMS_FILES_NGINX_SERVER}${this.path}`;
+        if (this.path.startsWith("/allen")) {
+            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${this.path}`;
+        }
+
+        // Otherwise just return the path as is and hope for the best
+        return this.path;
     }
 
     public get size(): number | undefined {
@@ -166,7 +169,7 @@ export default class FileDetail {
         // If the thumbnail is a relative path on the allen drive then preprend it to
         // the AICS FMS NGINX server path
         if (this.thumbnail?.startsWith("/allen")) {
-            return `${AICS_FMS_FILES_NGINX_SERVER}${this.thumbnail}`;
+            return FileDetail.convertAicsDrivePathToAicsS3Path(this.thumbnail);
         }
 
         // If no thumbnail present try to render the file itself as the thumbnail
@@ -193,8 +196,13 @@ export default class FileDetail {
             return undefined;
         }
 
-        const baseURLHttp = baseURL.replace("https", "http");
-        return `${baseURLHttp}/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${platebarcode}`;
+        let labkeyHost = "localhost:9081";
+        if (baseURL === FileExplorerServiceBaseUrl.PRODUCTION) {
+            labkeyHost = "aics.corp.alleninstitute.org";
+        } else if (baseURL === FileExplorerServiceBaseUrl.STAGING) {
+            labkeyHost = "stg-aics.corp.alleninstitute.org";
+        }
+        return `http://${labkeyHost}/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${platebarcode}`;
     }
 
     public getAnnotationNameToLinkMap(): { [annotationName: string]: string } {
