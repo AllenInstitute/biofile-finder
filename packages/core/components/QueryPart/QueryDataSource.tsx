@@ -48,7 +48,7 @@ export default function QueryDataSource(props: Props) {
                             source.name !== AICS_FMS_DATA_SOURCE_NAME
                     )
                     .map((source) => ({
-                        key: source.id,
+                        key: source.name,
                         text: source.name,
                         iconProps: { iconName: "Folder" },
                         onClick: () => {

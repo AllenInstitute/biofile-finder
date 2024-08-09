@@ -1,86 +1,105 @@
 import classNames from "classnames";
 import { get as _get } from "lodash";
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import DatasetDetailsRow from "./DatasetDetailsRow";
-import PublicDataset, {
-    DATASET_DISPLAY_FIELDS,
-    DatasetAnnotations,
-} from "../../entity/PublicDataset";
-import { interaction, selection } from "../../../../core/state";
+import { selection } from "../../../../core/state";
 import {
     PrimaryButton,
     SecondaryButton,
     TertiaryButton,
 } from "../../../../core/components/Buttons";
+import Annotation from "../../../../core/entity/Annotation";
 import { getNameAndTypeFromSourceUrl, Source } from "../../../../core/entity/FileExplorerURL";
+import { DataSource } from "../../../../core/services/DataSourceService";
 
 import styles from "./DatasetDetails.module.css";
 
-export default function DatasetDetails() {
+interface Props {
+    dataset: DataSource;
+    onDismiss: () => void;
+}
+
+const relatedPublicationKey: keyof DataSource = "publication";
+const doiKey: keyof DataSource = "doi";
+export const DATASET_DISPLAY_FIELDS: { display: string; key: keyof DataSource }[] = [
+    {
+        display: "Creation date",
+        key: "creationDate",
+    },
+    {
+        display: "Related publication",
+        key: "publication",
+    },
+    {
+        display: "Size",
+        key: "size",
+    },
+    {
+        display: "Publication date",
+        key: "publicationDate",
+    },
+    {
+        display: "File count",
+        key: "count",
+    },
+    {
+        display: "DOI",
+        key: "doi",
+    },
+];
+
+/**
+ * Component responsible for displaying a pane containing the given
+ * dataset's details.
+ */
+export default function DatasetDetails(props: Props) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const isDetailsPanelVisible = useSelector(interaction.selectors.getDatasetDetailsVisibility);
-    const datasetDetails: PublicDataset | undefined = useSelector(
-        interaction.selectors.getSelectedPublicDataset
-    );
     const [showLongDescription, setShowLongDescription] = React.useState(false);
-    const isLongDescription: boolean = React.useMemo(() => {
-        if (!datasetDetails) {
-            return false;
-        }
-        // Allow slightly longer than 5 lines
-        return datasetDetails.description.length > 280;
-    }, [datasetDetails]);
+    const isLongDescription = props.dataset.description.length > 280;
 
     const content: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
-        if (!datasetDetails) {
-            return null;
-        }
-
         return DATASET_DISPLAY_FIELDS.reduce((accum, field) => {
-            const fieldName = field.name;
-            let datasetFieldValue;
-            let link;
-            if (datasetDetails.details.hasOwnProperty(fieldName)) {
-                datasetFieldValue = _get(datasetDetails.details, fieldName);
-                if (
-                    (fieldName === DatasetAnnotations.RELATED_PUBLICATON.name ||
-                        fieldName === DatasetAnnotations.DOI.name) &&
-                    datasetDetails.details.hasOwnProperty(DatasetAnnotations.DOI.name)
-                )
-                    link = _get(datasetDetails.details, DatasetAnnotations.DOI.name);
-            } else datasetFieldValue = "--"; // Still display field, just indicate no value provided
-            const ret = [
+            // Default to still display field, just indicate no value provided
+            const datasetFieldValue = _get(
+                props.dataset,
+                field.key,
+                Annotation.MISSING_VALUE
+            ) as string;
+            return [
                 ...accum,
                 <DatasetDetailsRow
-                    key={field.displayLabel}
+                    key={field.display}
                     className={styles.row}
-                    name={field.displayLabel}
+                    name={field.display}
                     value={datasetFieldValue}
-                    link={link || undefined}
+                    link={
+                        datasetFieldValue &&
+                        (field.key === relatedPublicationKey || field.key === doiKey) &&
+                        props.dataset.doi
+                            ? props.dataset.doi
+                            : undefined
+                    }
                 />,
             ];
-            return ret;
         }, [] as JSX.Element[]);
-    }, [datasetDetails]);
+    }, [props.dataset]);
 
     const openDatasetInApp = (source: Source) => {
         navigate("/app");
         dispatch(
             selection.actions.addQuery({
-                name: `New ${source.name} Query on ${
-                    datasetDetails?.name || "open-source dataset"
-                }`,
+                name: `New ${source.name} Query on ${props.dataset.name}`,
                 parts: { sources: [source] },
             })
         );
     };
 
     const loadDataset = () => {
-        const dataSourceURL = datasetDetails?.path;
+        const dataSourceURL = props.dataset.uri as string;
         if (!dataSourceURL) throw new Error("No path provided to dataset");
         const { name, extensionGuess } = getNameAndTypeFromSourceUrl(dataSourceURL);
         openDatasetInApp({
@@ -97,19 +116,15 @@ export default function DatasetDetails() {
     );
 
     return (
-        <div
-            className={classNames(styles.panel, {
-                [styles.hidden]: !isDetailsPanelVisible,
-            })}
-        >
+        <div className={styles.panel}>
             <div className={styles.internalWrapper}>
                 <TertiaryButton
                     className={styles.closeButton}
                     iconName="Cancel"
                     title="Close"
-                    onClick={() => dispatch(interaction.actions.hideDatasetDetailsPanel())}
+                    onClick={props.onDismiss}
                 />
-                <div className={styles.title}>{datasetDetails?.name}</div>
+                <div className={styles.title}>{props.dataset.name}</div>
                 <PrimaryButton
                     className={styles.button}
                     iconName="Upload"
@@ -125,7 +140,7 @@ export default function DatasetDetails() {
                                 !showLongDescription && isLongDescription,
                         })}
                     >
-                        {datasetDetails?.description}
+                        {props.dataset.description}
                     </div>
                     {isLongDescription && toggleDescriptionButton}
                     <div className={styles.list}>{content}</div>
@@ -133,7 +148,7 @@ export default function DatasetDetails() {
                         className={styles.secondaryCloseButton}
                         title="Close panel"
                         text="CLOSE"
-                        onClick={() => dispatch(interaction.actions.hideDatasetDetailsPanel())}
+                        onClick={props.onDismiss}
                     />
                 </div>
             </div>

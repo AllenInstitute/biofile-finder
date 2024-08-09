@@ -43,13 +43,12 @@ import {
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
 import Annotation from "../../entity/Annotation";
-import FileExplorerURL from "../../entity/FileExplorerURL";
+import FileExplorerURL, { Source } from "../../entity/FileExplorerURL";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
-import { DataSource } from "../../services/DataSourceService";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
 /**
@@ -451,14 +450,14 @@ const changeDataSourceLogic = createLogic({
             deps.getState()
         );
 
-        const newSelectedDataSources: DataSource[] = [];
-        const existingSelectedDataSources: DataSource[] = [];
+        const newSelectedDataSources: Source[] = [];
+        const existingSelectedDataSources: Source[] = [];
         selectedDataSources.forEach((source) => {
             const existingSource = dataSources.find((s) => s.name === source.name);
             if (existingSource) {
                 existingSelectedDataSources.push(existingSource);
             } else {
-                newSelectedDataSources.push({ ...source, id: source.name });
+                newSelectedDataSources.push(source);
             }
         });
 

@@ -4,7 +4,6 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 
 import Features from "./Features";
-import { APPLICATION_NAME } from "../../constants";
 import { PrimaryButton } from "../../../../core/components/Buttons";
 import Modal from "../../../../core/components/Modal";
 
@@ -60,14 +59,11 @@ export default function Home() {
                     >
                         <Stack.Item grow styles={{ root: styles.stackItem60 }}>
                             <div className={styles.bannerContentText}>
-                                <h1 className={styles.bannerHeader}>
-                                    {" "}
-                                    Welcome to {APPLICATION_NAME}
-                                </h1>
+                                <h1 className={styles.bannerHeader}> Welcome to BioFile Finder</h1>
                                 <div className={styles.bannerBody}>
-                                    The {APPLICATION_NAME} is an open-use web application created
-                                    for easy access, collaboration, and sharing of datasets through
-                                    rich metadata search, filter, sort, and direct viewing in common
+                                    The BioFile Finder is an open-use web application created for
+                                    easy access, collaboration, and sharing of datasets through rich
+                                    metadata search, filter, sort, and direct viewing in common
                                     industry applications or in our web-based 3D Volume Viewer.
                                 </div>
                             </div>

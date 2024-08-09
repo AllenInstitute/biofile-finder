@@ -58,10 +58,15 @@ describe("Selection reducer", () => {
             const dataSources: DataSource[] = [
                 {
                     name: "My Tiffs",
-                    version: 2,
+                    version: "2",
                     type: "csv",
                     id: "13123019",
                     uri: "",
+                    count: "3",
+                    size: "4",
+                    creationDate: "2020-01-01",
+                    description: "My Tiffs",
+                    source: "external",
                 },
             ];
 

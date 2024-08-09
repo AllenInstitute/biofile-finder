@@ -1,33 +1,30 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
+import { noop } from "lodash";
 import * as React from "react";
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { createSandbox } from "sinon";
 
-import DatasetTable from "../DatasetTable";
-import * as useDatasetDetails from "../useDatasetDetails";
-import { DATASET_TABLE_FIELDS, DatasetAnnotations } from "../../../entity/PublicDataset";
-import { makePublicDatasetMock } from "../../../entity/PublicDataset/mocks";
 import { initialState } from "../../../../../core/state";
 import DatabaseFileService from "../../../../../core/services/FileService/DatabaseFileService";
-import FileSort, { SortOrder } from "../../../../../core/entity/FileSort";
+
+import DatasetTable, { DATASET_TABLE_COLUMNS } from "../DatasetTable";
 
 describe("<DatasetTable />", () => {
     const sandbox = createSandbox();
-    const mockRouter = createBrowserRouter([
-        {
-            path: "/",
-            element: <DatasetTable />,
-        },
-        {
-            path: "/app",
-            element: <></>,
-        },
-    ]);
     const mockIdList = ["abc123", "def456", "ghi789"];
-    const mockDatasetList = mockIdList.map((id) => makePublicDatasetMock(id));
+    const mockDataSources = mockIdList.map((id) => ({
+        id,
+        name: id,
+        version: "1",
+        count: "2",
+        creationDate: "2021-01-01",
+        size: "1",
+        description: "Test description",
+        source: "wherever",
+    }));
 
     const { store } = configureMockStore({
         state: mergeState(initialState, {
@@ -45,7 +42,17 @@ describe("<DatasetTable />", () => {
         // Arrange
         const fileService = new DatabaseFileService();
         sandbox.replace(fileService, "getCountOfMatchingFiles", () => Promise.resolve(0));
-        sandbox.stub(useDatasetDetails, "default").callsFake(() => [[], false, undefined]);
+
+        const mockRouter = createBrowserRouter([
+            {
+                path: "/",
+                element: <DatasetTable rows={[]} onSelect={noop} />,
+            },
+            {
+                path: "/app",
+                element: <></>,
+            },
+        ]);
 
         const { findByText } = render(
             <Provider store={store}>
@@ -58,24 +65,19 @@ describe("<DatasetTable />", () => {
         await findByText("No datasets found");
     });
 
-    it("displays error messages", async () => {
-        // Arrange
-        sandbox
-            .stub(useDatasetDetails, "default")
-            .callsFake(() => [mockDatasetList, false, "This is a test error"]);
-
-        const { findByText } = render(
-            <Provider store={store}>
-                <RouterProvider router={mockRouter} />
-            </Provider>
-        );
-
-        // Act / Assert
-        await findByText("This is a test error");
-    });
-
     it("renders correct number of columns", () => {
         // Arrange
+        const mockRouter = createBrowserRouter([
+            {
+                path: "/",
+                element: <DatasetTable rows={mockDataSources} onSelect={noop} />,
+            },
+            {
+                path: "/app",
+                element: <></>,
+            },
+        ]);
+
         const { getAllByRole } = render(
             <Provider store={store}>
                 <RouterProvider router={mockRouter} />
@@ -83,14 +85,21 @@ describe("<DatasetTable />", () => {
         );
 
         // Act / Assert
-        expect(getAllByRole("columnheader").length).to.equal(DATASET_TABLE_FIELDS.length);
+        expect(getAllByRole("columnheader").length).to.equal(DATASET_TABLE_COLUMNS.length);
     });
 
     it("renders rows for each dataset", () => {
         // Arrange
-        const useDatasetDetailsStub = sandbox
-            .stub(useDatasetDetails, "default")
-            .callsFake(() => [mockDatasetList, false, undefined]);
+        const mockRouter = createBrowserRouter([
+            {
+                path: "/",
+                element: <DatasetTable rows={mockDataSources} onSelect={noop} />,
+            },
+            {
+                path: "/app",
+                element: <></>,
+            },
+        ]);
 
         const { getAllByRole } = render(
             <Provider store={store}>
@@ -101,11 +110,20 @@ describe("<DatasetTable />", () => {
         // Act / Assert
         // Rows should be total datasets + header
         expect(getAllByRole("row").length).to.equal(mockIdList.length + 1);
-        expect(useDatasetDetailsStub.called).to.be.true;
     });
 
-    it("sorts on column header click", async () => {
-        const getSpy = sandbox.spy(useDatasetDetails, "default");
+    it("selects dataset when row is clicked", () => {
+        // Arrange
+        const mockRouter = createBrowserRouter([
+            {
+                path: "/",
+                element: <DatasetTable rows={mockDataSources} onSelect={noop} />,
+            },
+            {
+                path: "/app",
+                element: <></>,
+            },
+        ]);
 
         const { getByText } = render(
             <Provider store={store}>
@@ -113,25 +131,10 @@ describe("<DatasetTable />", () => {
             </Provider>
         );
 
-        const mockFileSortAsc = new FileSort(
-            DatasetAnnotations.DATASET_NAME.displayLabel,
-            SortOrder.ASC
-        );
-        const mockFileSortDesc = new FileSort(
-            DatasetAnnotations.DATASET_NAME.displayLabel,
-            SortOrder.DESC
-        );
-        const mockFileSortAscCount = new FileSort(
-            DatasetAnnotations.FILE_COUNT.displayLabel,
-            SortOrder.ASC
-        );
+        // Act
+        fireEvent.click(getByText(mockDataSources[0].name));
 
-        // Act / Assert
-        fireEvent.click(getByText(/Dataset Name/i));
-        expect(getSpy.calledWith([], mockFileSortAsc)).to.be.true;
-        fireEvent.click(getByText(/Dataset Name/i));
-        expect(getSpy.calledWith([], mockFileSortDesc)).to.be.true;
-        fireEvent.click(getByText(/File count/i));
-        expect(getSpy.calledWith([], mockFileSortAscCount)).to.be.true;
+        // Assert
+        expect(getByText("blah")).to.not.be.undefined;
     });
 });

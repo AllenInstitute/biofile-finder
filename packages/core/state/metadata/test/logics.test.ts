@@ -7,13 +7,12 @@ import {
     RECEIVE_ANNOTATIONS,
     requestAnnotations,
     requestDataSources,
-    receiveDatasetManifest,
-    requestDatasetManifest,
 } from "../actions";
 import metadataLogics from "../logics";
 import { initialState, interaction } from "../../";
-import DatasetService, { DataSource } from "../../../services/DataSourceService";
 import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
+import { Source } from "../../../entity/FileExplorerURL";
+import DataSourceService from "../../../services/DataSourceService";
 
 describe("Metadata logics", () => {
     describe("requestAnnotations", () => {
@@ -58,20 +57,18 @@ describe("Metadata logics", () => {
 
     describe("requestDataSources", () => {
         const sandbox = createSandbox();
-        const dataSources: DataSource[] = [
+        const dataSources: Source[] = [
             {
-                id: "123414",
                 name: "Microscopy Set",
                 type: "csv",
-                version: 1,
                 uri: "",
             },
         ];
 
         before(() => {
-            const datasetService = new DatasetService();
-            sandbox.stub(interaction.selectors, "getDatasetService").returns(datasetService);
-            sandbox.stub(datasetService, "getAll").resolves(dataSources);
+            const dataSourceService = new DataSourceService(new DatabaseServiceNoop(), "staging");
+            sandbox.stub(interaction.selectors, "getDataSourceService").returns(dataSourceService);
+            sandbox.stub(dataSourceService, "getAll").resolves(dataSources);
         });
 
         afterEach(() => {
@@ -97,54 +94,6 @@ describe("Metadata logics", () => {
                 // Assert
                 expect(actions.includesMatch(receiveDataSources(dataSources))).to.be.true;
             });
-        });
-    });
-
-    describe("requestDataManifest", () => {
-        const datasetManifestSource: DataSource = {
-            id: "123414",
-            name: "Dataset Manifest",
-            type: "csv",
-            uri: "fake-uri.test",
-        };
-        class MockDatabaseService extends DatabaseServiceNoop {
-            public async addDataSource(): Promise<void> {
-                return Promise.resolve();
-            }
-        }
-        const state = mergeState(initialState, {
-            interaction: {
-                platformDependentServices: {
-                    databaseService: new MockDatabaseService(),
-                },
-            },
-        });
-
-        it(`Processes requestDatasetmanifest into RECEIVE_DATASET_MANIFEST action`, async () => {
-            // Arrange
-            const { actions, logicMiddleware, store } = configureMockStore({
-                state: state,
-                logics: metadataLogics,
-            });
-
-            // Act
-            store.dispatch(
-                requestDatasetManifest(
-                    datasetManifestSource.name,
-                    datasetManifestSource.uri as string
-                )
-            );
-            await logicMiddleware.whenComplete();
-
-            // Assert
-            expect(
-                actions.includesMatch(
-                    receiveDatasetManifest(
-                        datasetManifestSource.name,
-                        datasetManifestSource.uri as string
-                    )
-                )
-            ).to.be.true;
         });
     });
 });

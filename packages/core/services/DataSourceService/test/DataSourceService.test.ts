@@ -1,18 +1,44 @@
 import { expect } from "chai";
+import { orderBy } from "lodash";
+import * as sinon from "sinon";
 
-import DatasetService from "..";
+import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
+import { Source } from "../../../entity/FileExplorerURL";
+
+import DataSourceService from "..";
 
 describe("DataSourceService", () => {
     describe("getAll", () => {
-        it("issues request for datasets", async () => {
+        it("gets both public and user supplied data sources", async () => {
             // Arrange
-            const service = new DatasetService();
+            const databaseServiceMock = new DatabaseServiceNoop();
+            const publicDataSources = [
+                {
+                    name: "Public Data Source",
+                    type: "csv",
+                    uri: "https://example.com/data.csv",
+                },
+            ];
+            const userSuppliedDataSources: Source[] = [
+                {
+                    name: "User Supplied Data Source",
+                    type: "csv",
+                    uri: "https://example.com/data.csv",
+                },
+            ];
+            sinon.stub(databaseServiceMock, "query").resolves(publicDataSources);
+            sinon.stub(databaseServiceMock, "getDataSources").returns(userSuppliedDataSources);
+            sinon.stub(databaseServiceMock, "prepareDataSources").resolves();
+
+            const service = new DataSourceService(databaseServiceMock, "staging");
 
             // Act
             const datasets = await service.getAll();
 
             // Assert
-            expect(datasets).to.deep.equal([]);
+            expect(orderBy(datasets, "name")).to.deep.equal(
+                orderBy([...publicDataSources, ...userSuppliedDataSources], "name")
+            );
         });
     });
 });

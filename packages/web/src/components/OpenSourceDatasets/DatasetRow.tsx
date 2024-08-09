@@ -4,34 +4,31 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import PublicDataset from "../../entity/PublicDataset";
-import { interaction, selection } from "../../../../core/state";
-import { getNameAndTypeFromSourceUrl, Source } from "../../../../core/entity/FileExplorerURL";
 import { PrimaryButton } from "../../../../core/components/Buttons";
+import { getNameAndTypeFromSourceUrl, Source } from "../../../../core/entity/FileExplorerURL";
+import { DataSource } from "../../../../core/services/DataSourceService";
+import { selection } from "../../../../core/state";
 
 import styles from "./DatasetRow.module.css";
 
 interface DatasetRowProps {
     rowProps: IDetailsRowProps;
     defaultRender: IRenderFunction<IDetailsRowProps>;
+    onSelect: (dataset: DataSource) => void;
 }
 
 export default function DatasetRow(props: DatasetRowProps) {
+    const dataset = props.rowProps.item as DataSource;
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [showActions, setShowActions] = React.useState(true);
-    const dataset = new PublicDataset(props.rowProps.item);
     const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
-
-    const selectDataset = () => {
-        dispatch(interaction.actions.setSelectedPublicDataset(dataset));
-        dispatch(interaction.actions.showDatasetDetailsPanel());
-    };
 
     const openDatasetInApp = (source: Source) => {
         dispatch(
             selection.actions.addQuery({
-                name: `New ${source.name} Query on ${dataset?.name || "open-source dataset"}`,
+                name: `New ${source.name} Query on ${dataset.name}`,
                 parts: { sources: [source] },
             })
         );
@@ -42,7 +39,7 @@ export default function DatasetRow(props: DatasetRowProps) {
     };
 
     const loadDataset = () => {
-        const dataSourceURL = dataset?.path;
+        const dataSourceURL = dataset.uri as string;
         if (!dataSourceURL) throw new Error("No path provided to dataset");
         const { name, extensionGuess } = getNameAndTypeFromSourceUrl(dataSourceURL);
         openDatasetInApp({
@@ -61,7 +58,7 @@ export default function DatasetRow(props: DatasetRowProps) {
             onMouseLeave={() => {
                 setShowActions(true);
             }}
-            onClick={() => selectDataset()}
+            onClick={() => props.onSelect(dataset)}
         >
             {props.defaultRender({ ...props.rowProps })}
             <div

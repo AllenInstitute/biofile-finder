@@ -3,7 +3,6 @@ import * as React from "react";
 import { useDispatch } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
 
-import { APPLICATION_NAME } from "../../constants";
 import { SecondaryButton, useButtonMenu } from "../../../../core/components/Buttons";
 import useHelpOptions from "../../../../core/hooks/useHelpOptions";
 import AICSLogo from "../../../assets/AICS-logo-white.svg";
@@ -48,7 +47,7 @@ export default function Header() {
                         target={isApp ? "_blank" : "_self"}
                         rel="noreferrer"
                     >
-                        <h4>{APPLICATION_NAME}</h4>
+                        <h4>BioFile Finder</h4>
                     </Link>
                 </div>
                 <Stack

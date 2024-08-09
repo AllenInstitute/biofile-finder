@@ -6,12 +6,9 @@ import {
     RECEIVE_ANNOTATIONS,
     ReceiveAnnotationAction,
     receiveAnnotations,
-    receiveDatasetManifest,
     receiveDataSources,
     REQUEST_ANNOTATIONS,
     REQUEST_DATA_SOURCES,
-    REQUEST_DATASET_MANIFEST,
-    RequestDatasetManifest,
 } from "./actions";
 import * as metadataSelectors from "./selectors";
 import Annotation from "../../entity/Annotation";
@@ -135,14 +132,14 @@ const receiveAnnotationsLogic = createLogic({
  */
 const requestDataSources = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const datasetService = interaction.selectors.getDatasetService(deps.getState());
+        const dataSourceService = interaction.selectors.getDataSourceService(deps.getState());
         const existingDataSources = metadataSelectors.getDataSources(deps.getState());
 
         try {
-            const dataSources = await datasetService.getAll();
-            dispatch(receiveDataSources(uniqBy([...existingDataSources, ...dataSources], "id")));
+            const dataSources = await dataSourceService.getAll();
+            dispatch(receiveDataSources(uniqBy([...existingDataSources, ...dataSources], "name")));
         } catch (err) {
-            console.error("Failed to fetch datasets", err);
+            console.error("Failed to fetch data sources", err);
         } finally {
             done();
         }
@@ -150,36 +147,4 @@ const requestDataSources = createLogic({
     type: [REQUEST_DATA_SOURCES, interaction.actions.REFRESH],
 });
 
-/**
- * Interceptor responsible for passing the REQUEST_DATASET_MANIFEST action to the database service.
- * Outputs RECEIVE_DATASET_MANIFEST action to request state.
- */
-const requestDatasetManifest = createLogic({
-    async process(deps: ReduxLogicDeps, dispatch, done) {
-        const {
-            payload: { name, uri },
-        } = deps.action as RequestDatasetManifest;
-        const { databaseService } = interaction.selectors.getPlatformDependentServices(
-            deps.getState()
-        );
-
-        try {
-            if (uri) {
-                await databaseService.prepareDataSources([{ name, type: "csv", uri }]);
-                dispatch(receiveDatasetManifest(name, uri));
-            }
-        } catch (err) {
-            console.error("Failed to add dataset manifest", err);
-        } finally {
-            done();
-        }
-    },
-    type: REQUEST_DATASET_MANIFEST,
-});
-
-export default [
-    requestAnnotations,
-    receiveAnnotationsLogic,
-    requestDataSources,
-    requestDatasetManifest,
-];
+export default [requestAnnotations, receiveAnnotationsLogic, requestDataSources];

@@ -39,12 +39,6 @@
   word-wrap: break-word !important;
 }
 
-.error-message {
-  width: 100%;
-  font-size: 14px;
-  text-align: center;
-}
-
 .link {
   color: var(--aqua);
 }

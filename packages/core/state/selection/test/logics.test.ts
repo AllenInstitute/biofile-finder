@@ -24,6 +24,7 @@ import {
     selectNearbyFile,
     SET_SORT_COLUMN,
     changeDataSources,
+    addQuery,
 } from "../actions";
 import { initialState, interaction } from "../../";
 import Annotation from "../../../entity/Annotation";
@@ -32,15 +33,15 @@ import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import NumericRange from "../../../entity/NumericRange";
-import FileExplorerURL from "../../../entity/FileExplorerURL";
+import FileExplorerURL, { Source } from "../../../entity/FileExplorerURL";
 import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
-import { DatasetService } from "../../../services";
-import { DataSource } from "../../../services/DataSourceService";
+import DataSourceService from "../../../services/DataSourceService";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
+import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -447,6 +448,48 @@ describe("Selection logics", () => {
                     type: SET_FILE_SELECTION,
                 })
             ).to.be.false;
+        });
+    });
+
+    describe("addQueryLogic", () => {
+        it("prepares data sources in query", async () => {
+            // Arrange
+            const { store, logicMiddleware } = configureMockStore({
+                logics: selectionLogics,
+                state: initialState,
+            });
+            const prepareDataSourcesMock = sinon.stub(
+                initialState.interaction.platformDependentServices.databaseService,
+                "prepareDataSources"
+            );
+
+            // Act
+            store.dispatch(addQuery({ name: "test", parts: { sources: [] } }));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(prepareDataSourcesMock.calledOnce).to.be.true;
+        });
+
+        it("updates source metadata when present in query", async () => {
+            // Arrange
+            const { store, logicMiddleware } = configureMockStore({
+                logics: selectionLogics,
+                state: initialState,
+            });
+            const prepareSourceMetadataMock = sinon.stub(
+                initialState.interaction.platformDependentServices.databaseService,
+                "prepareSourceMetadata"
+            );
+
+            // Act
+            store.dispatch(
+                addQuery({ name: "test", parts: { sources: [], sourceMetadata: { name: "test" } } })
+            );
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(prepareSourceMetadataMock.calledOnce).to.be.true;
         });
     });
 
@@ -926,18 +969,16 @@ describe("Selection logics", () => {
     });
 
     describe("decodeFileExplorerURL", () => {
-        const mockDataSources: DataSource[] = [
+        const mockDataSources: Source[] = [
             {
-                id: "1234148",
                 name: "Test Data Source",
-                version: 1,
                 type: "csv",
             },
         ];
 
         beforeEach(() => {
-            const datasetService = new DatasetService();
-            sinon.stub(interaction.selectors, "getDatasetService").returns(datasetService);
+            const dataSourceService = new DataSourceService(new DatabaseServiceNoop(), "staging");
+            sinon.stub(interaction.selectors, "getDataSourceService").returns(dataSourceService);
         });
 
         afterEach(() => {

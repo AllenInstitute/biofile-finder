@@ -1,12 +1,10 @@
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import DatasetTable from "./DatasetTable";
 import DatasetDetails from "../DatasetDetails";
-import { DatasetManifestUrl } from "../../constants";
-import { DatasetAnnotations } from "../../entity/PublicDataset";
 import { metadata } from "../../../../core/state";
-import FileFilter from "../../../../core/entity/FileFilter";
+import { DataSource } from "../../../../core/services/DataSourceService";
 
 import styles from "./OpenSourceDatasets.module.css";
 
@@ -16,24 +14,21 @@ import styles from "./OpenSourceDatasets.module.css";
  */
 export default function OpenSourceDatasets() {
     const dispatch = useDispatch();
-    // Begin request action so dataset manifest is ready for table child component
+    const publicDataSources = useSelector(metadata.selectors.getDataSources);
+
+    const [selectedDataset, setSelectedDataset] = React.useState<DataSource>();
+
+    // Fetch public dataset list
     React.useEffect(() => {
-        dispatch(
-            metadata.actions.requestDatasetManifest(
-                "Dataset Manifest",
-                DatasetManifestUrl.PRODUCTION
-            )
-        );
+        dispatch(metadata.actions.requestDataSources());
     }, [dispatch]);
 
-    const internalDatasetFilter = new FileFilter(
-        DatasetAnnotations.SOURCE.displayLabel,
-        "internal"
-    );
-    const externalDatasetFilter = new FileFilter(
-        DatasetAnnotations.SOURCE.displayLabel,
-        "external"
-    );
+    const internalDataSources = publicDataSources
+        ? publicDataSources.filter((dataSource) => dataSource.source === "internal")
+        : [];
+    const externalDataSources = publicDataSources
+        ? publicDataSources.filter((dataSource) => dataSource.source === "external")
+        : [];
 
     return (
         <>
@@ -57,12 +52,17 @@ export default function OpenSourceDatasets() {
                     <div className={styles.tableTitle}>
                         Datasets from the Allen Institute for Cell Science
                     </div>
-                    <DatasetTable filters={[internalDatasetFilter]} />
+                    <DatasetTable rows={internalDataSources} onSelect={setSelectedDataset} />
                     <div className={styles.tableTitle}>Additional contributed datasets</div>
-                    <DatasetTable filters={[externalDatasetFilter]} />
+                    <DatasetTable rows={externalDataSources} onSelect={setSelectedDataset} />
                 </div>
             </div>
-            <DatasetDetails />
+            {selectedDataset && (
+                <DatasetDetails
+                    dataset={selectedDataset}
+                    onDismiss={() => setSelectedDataset(undefined)}
+                />
+            )}
         </>
     );
 }

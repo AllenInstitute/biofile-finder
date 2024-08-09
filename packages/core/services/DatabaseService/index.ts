@@ -51,6 +51,10 @@ export default abstract class DatabaseService {
         this.query = this.query.bind(this);
     }
 
+    public getDataSources(): Source[] {
+        return [...this.dataSourceToAnnotationsMap.keys()].map((name) => ({ name }));
+    }
+
     public async prepareDataSources(dataSources: Source[]): Promise<void> {
         await Promise.all(dataSources.map(this.addDataSource));
 
@@ -81,7 +85,7 @@ export default abstract class DatabaseService {
 
     protected async deleteSourceMetadata(): Promise<void> {
         this.deleteDataSource(this.SOURCE_METADATA_TABLE);
-        this.dataSourceToAnnotationsMap.clear();
+        this.dataSourceToAnnotationsMap.delete(this.SOURCE_METADATA_TABLE);
     }
 
     private async aggregateDataSources(dataSources: Source[]): Promise<void> {

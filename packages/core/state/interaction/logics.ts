@@ -63,6 +63,9 @@ const checkAicsEmployee = createLogic({
         // checking if the AICS network is accessible
         const isAicsEmployee = await fileService.isNetworkAccessible();
 
+        // Request data sources if not already loaded
+        dispatch(metadata.actions.requestDataSources());
+
         // If no query is currently selected attempt to choose one for the user
         if (!selectedQuery) {
             // If there are query args representing a query we can extract that

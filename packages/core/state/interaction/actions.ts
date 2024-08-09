@@ -8,7 +8,6 @@ import { UserSelectedApplication } from "../../services/PersistentConfigService"
 import FileDetail from "../../entity/FileDetail";
 import { Source } from "../../entity/FileExplorerURL";
 import { FileInfo } from "../../services";
-import PublicDataset from "../../../web/src/entity/PublicDataset";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -610,70 +609,5 @@ export function refresh(): RefreshAction {
     return {
         type: REFRESH,
         payload: uniqueId(),
-    };
-}
-
-/**
- * HIDE_DATASET_DETAILS_PANEL
- *
- * Intention to hide dataset details panel.
- * Used in web only
- */
-export const HIDE_DATASET_DETAILS_PANEL = makeConstant(
-    STATE_BRANCH_NAME,
-    "hide-dataset-details-panel"
-);
-
-export interface HideDatasetDetailsPanelAction {
-    type: string;
-}
-
-export function hideDatasetDetailsPanel(): HideDatasetDetailsPanelAction {
-    return {
-        type: HIDE_DATASET_DETAILS_PANEL,
-    };
-}
-
-/**
- * SHOW_DATASET_DETAILS_PANEL
- *
- * Intention to show dataset details panel.
- * Used in web only
- */
-export const SHOW_DATASET_DETAILS_PANEL = makeConstant(
-    STATE_BRANCH_NAME,
-    "show-dataset-details-panel"
-);
-
-export interface ShowDatasetDetailsPanelAction {
-    type: string;
-}
-
-export function showDatasetDetailsPanel(): ShowDatasetDetailsPanelAction {
-    return {
-        type: SHOW_DATASET_DETAILS_PANEL,
-    };
-}
-
-/**
- * SET_SELECTED_PUBLIC_DATASET
- *
- * Intention to select an open-source dataset to view.
- * Used in web only
- */
-export const SET_SELECTED_PUBLIC_DATASET = makeConstant(
-    STATE_BRANCH_NAME,
-    "set-selected-public-dataset"
-);
-
-export interface SetSelectedPublicDataset {
-    payload: PublicDataset;
-    type: string;
-}
-
-export function setSelectedPublicDataset(dataset: PublicDataset): SetSelectedPublicDataset {
-    return {
-        payload: dataset,
-        type: SET_SELECTED_PUBLIC_DATASET,
     };
 }

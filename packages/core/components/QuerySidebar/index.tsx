@@ -65,7 +65,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                 itemType: ContextualMenuItemType.Divider,
             },
             ...dataSources.map((source) => ({
-                key: source.id,
+                key: source.name,
                 text: source.name,
                 iconProps: { iconName: "Folder" },
                 onClick: () => {

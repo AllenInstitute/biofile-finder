@@ -1,28 +1,38 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
-import { get as _get } from "lodash";
+import { get as _get, noop } from "lodash";
 import * as React from "react";
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import DatasetDetails from "../";
-import PublicDataset, { DATASET_DISPLAY_FIELDS } from "../../../entity/PublicDataset";
-import { makePublicDatasetMock } from "../../../entity/PublicDataset/mocks";
 import { initialState, selection } from "../../../../../core/state";
 import DatabaseServiceNoop from "../../../../../core/services/DatabaseService/DatabaseServiceNoop";
+import { DataSource } from "../../../../../core/services/DataSourceService";
+
+import DatasetDetails, { DATASET_DISPLAY_FIELDS } from "../";
 
 describe("<DatasetDetails />", () => {
+    const mockDescriptionShort = "This is a string that has 40 characters.";
+    const mockDataset: DataSource = {
+        id: "blah",
+        size: "1",
+        count: "4",
+        name: "Mock Dataset",
+        version: "134",
+        creationDate: "2021-01-01",
+        description: mockDescriptionShort,
+        source: "test",
+    };
+
     describe("render", () => {
         const mockRouter = createBrowserRouter([
             {
                 path: "/",
-                element: <DatasetDetails />,
+                element: <DatasetDetails dataset={mockDataset} onDismiss={noop} />,
             },
         ]);
         it("renders correct dataset field names and values for a fully defined dataset", () => {
-            const mockDataset = makePublicDatasetMock("test-id");
-
             // Arrange
             const { store } = configureMockStore({
                 state: mergeState(initialState, {
@@ -31,7 +41,6 @@ describe("<DatasetDetails />", () => {
                         platformDependentServices: {
                             databaseService: new DatabaseServiceNoop(),
                         },
-                        selectedPublicDataset: mockDataset,
                     },
                 }),
             });
@@ -43,14 +52,12 @@ describe("<DatasetDetails />", () => {
 
             // Act / Assert
             DATASET_DISPLAY_FIELDS.forEach((field) => {
-                const value = _get(mockDataset.details, field.name);
-                expect(queryByText(field.displayLabel)).to.exist;
-                expect(queryByText(value)).to.exist;
+                const value = _get(mockDataset, field.key);
+                expect(queryByText(field.display)).to.exist;
+                expect(queryByText(value as string)).to.exist;
             });
         });
         it("renders title and description", () => {
-            const mockDataset = makePublicDatasetMock("test-id");
-
             // Arrange
             const { store } = configureMockStore({
                 state: mergeState(initialState, {
@@ -59,7 +66,6 @@ describe("<DatasetDetails />", () => {
                         platformDependentServices: {
                             databaseService: new DatabaseServiceNoop(),
                         },
-                        selectedPublicDataset: mockDataset,
                     },
                 }),
             });
@@ -73,15 +79,9 @@ describe("<DatasetDetails />", () => {
             expect(getByText(mockDataset.description)).to.exist;
         });
         it("renders links for ref publication and DOI if provided", () => {
-            const mockDataset = makePublicDatasetMock("test-id");
-
             // Arrange
             const { store } = configureMockStore({
-                state: mergeState(initialState, {
-                    interaction: {
-                        selectedPublicDataset: mockDataset,
-                    },
-                }),
+                state: initialState,
             });
             const { getAllByRole } = render(
                 <Provider store={store}>
@@ -90,16 +90,9 @@ describe("<DatasetDetails />", () => {
             );
 
             expect(getAllByRole("link").length).to.equal(2);
-            expect(getAllByRole("link").at(0)?.getAttribute("href")).to.equal(
-                mockDataset.details.doi
-            );
+            expect(getAllByRole("link").at(0)?.getAttribute("href")).to.equal(mockDataset.doi);
         });
         it("displays indicator for undefined fields", () => {
-            const sparseDataset = new PublicDataset({
-                dataset_name: "Sparse Dataset",
-                dataset_size: "100",
-            });
-
             // Arrange
             const { store } = configureMockStore({
                 state: mergeState(initialState, {
@@ -108,7 +101,6 @@ describe("<DatasetDetails />", () => {
                         platformDependentServices: {
                             databaseService: new DatabaseServiceNoop(),
                         },
-                        selectedPublicDataset: sparseDataset,
                     },
                 }),
             });
@@ -118,8 +110,7 @@ describe("<DatasetDetails />", () => {
                 </Provider>
             );
 
-            const undefinedFieldCount = DATASET_DISPLAY_FIELDS.length - 1;
-            expect(getAllByText("--").length).to.equal(undefinedFieldCount);
+            expect(getAllByText("--").length).to.equal(1);
         });
         it("provides two different close buttons", () => {
             // Arrange
@@ -136,27 +127,17 @@ describe("<DatasetDetails />", () => {
         });
     });
     describe("show/hide full description", () => {
-        const mockRouter = createBrowserRouter([
-            {
-                path: "/",
-                element: <DatasetDetails />,
-            },
-        ]);
-        const mockDescriptionShort = "This is a string that has 40 characters.";
-
         it("hides the read more/less buttons for short descriptions", () => {
             // Arrange
-            const mockDataset = new PublicDataset({
-                dataset_name: "Mock Dataset",
-                description: mockDescriptionShort,
-            });
+            const mockRouter = createBrowserRouter([
+                {
+                    path: "/",
+                    element: <DatasetDetails dataset={mockDataset} onDismiss={noop} />,
+                },
+            ]);
 
             const { store } = configureMockStore({
-                state: mergeState(initialState, {
-                    interaction: {
-                        selectedPublicDataset: mockDataset,
-                    },
-                }),
+                state: initialState,
             });
             const { getByText, queryByText } = render(
                 <Provider store={store}>
@@ -173,17 +154,20 @@ describe("<DatasetDetails />", () => {
         it("renders the read more button for long descriptions", () => {
             // Arrange
             const mockDescriptionLong = mockDescriptionShort.repeat(10);
-            const mockDataset = new PublicDataset({
-                dataset_name: "Mock Dataset",
-                description: mockDescriptionLong,
-            });
+            const mockRouter = createBrowserRouter([
+                {
+                    path: "/",
+                    element: (
+                        <DatasetDetails
+                            dataset={{ ...mockDataset, description: mockDescriptionLong }}
+                            onDismiss={noop}
+                        />
+                    ),
+                },
+            ]);
 
             const { store } = configureMockStore({
-                state: mergeState(initialState, {
-                    interaction: {
-                        selectedPublicDataset: mockDataset,
-                    },
-                }),
+                state: initialState,
             });
             const { getByText, queryByText } = render(
                 <Provider store={store}>
@@ -200,17 +184,20 @@ describe("<DatasetDetails />", () => {
         it("renders only the read less button on click", async () => {
             // Arrange
             const mockDescriptionLong = mockDescriptionShort.repeat(10);
-            const mockDataset = new PublicDataset({
-                dataset_name: "Mock Dataset",
-                description: mockDescriptionLong,
-            });
+            const mockRouter = createBrowserRouter([
+                {
+                    path: "/",
+                    element: (
+                        <DatasetDetails
+                            dataset={{ ...mockDataset, description: mockDescriptionLong }}
+                            onDismiss={noop}
+                        />
+                    ),
+                },
+            ]);
 
             const { store } = configureMockStore({
-                state: mergeState(initialState, {
-                    interaction: {
-                        selectedPublicDataset: mockDataset,
-                    },
-                }),
+                state: initialState,
             });
             const { getByText, findByText, queryByText } = render(
                 <Provider store={store}>
@@ -230,7 +217,7 @@ describe("<DatasetDetails />", () => {
         const mockRouter = createBrowserRouter([
             {
                 path: "/",
-                element: <DatasetDetails />,
+                element: <DatasetDetails dataset={mockDataset} onDismiss={noop} />,
             },
             {
                 path: "/app",
@@ -238,8 +225,6 @@ describe("<DatasetDetails />", () => {
             },
         ]);
         it("calls dispatch", () => {
-            const mockDataset = makePublicDatasetMock("test-id");
-
             // Arrange
             const { store, actions } = configureMockStore({
                 state: mergeState(initialState, {
@@ -248,7 +233,6 @@ describe("<DatasetDetails />", () => {
                         platformDependentServices: {
                             databaseService: new DatabaseServiceNoop(),
                         },
-                        selectedPublicDataset: mockDataset,
                     },
                 }),
             });

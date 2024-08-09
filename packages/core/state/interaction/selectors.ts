@@ -2,19 +2,17 @@ import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
-import { getDatasetManifestSource, getDataSources } from "../metadata/selectors";
+import { getDataSources } from "../metadata/selectors";
 import { getSelectedDataSources, getPythonConversion } from "../selection/selectors";
+import { AICS_FMS_DATA_SOURCE_NAME, FileExplorerServiceBaseUrl } from "../../constants";
+import { Source } from "../../entity/FileExplorerURL";
 import { AnnotationService, FileService } from "../../services";
-import DatasetService, {
-    DataSource,
-    PythonicDataAccessSnippet,
-} from "../../services/DataSourceService";
+import DataSourceService from "../../services/DataSourceService";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
 import { ModalType } from "../../components/Modal";
-import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 // BASIC SELECTORS
 export const getContextMenuVisibility = (state: State) => state.interaction.contextMenuIsVisible;
@@ -25,9 +23,6 @@ export const getContextMenuOnDismiss = (state: State) => state.interaction.conte
 export const getCsvColumns = (state: State) => state.interaction.csvColumns;
 export const getDataSourceInfoForVisibleModal = (state: State) =>
     state.interaction.dataSourceInfoForVisibleModal;
-export const getDatasetDetailsVisibility = (state: State) =>
-    state.interaction.datasetDetailsPanelIsVisible;
-export const getSelectedPublicDataset = (state: State) => state.interaction.selectedPublicDataset;
 export const getFileExplorerServiceBaseUrl = (state: State) =>
     state.interaction.fileExplorerServiceBaseUrl;
 export const getFileFiltersForVisibleModal = (state: State) =>
@@ -61,7 +56,7 @@ export const getIsDisplayingSmallScreenWarning = createSelector(
 
 export const getAllDataSources = createSelector(
     [getDataSources, isAicsEmployee],
-    (dataSources, isAicsEmployee): DataSource[] =>
+    (dataSources, isAicsEmployee): Source[] =>
         isAicsEmployee
             ? uniqBy(
                   [
@@ -77,6 +72,11 @@ export const getAllDataSources = createSelector(
               )
             : dataSources
 );
+
+interface PythonicDataAccessSnippet {
+    code: string;
+    setup: string;
+}
 
 export const getPythonSnippet = createSelector(
     [getPythonConversion],
@@ -130,25 +130,6 @@ export const getFileService = createSelector(
     }
 );
 
-/**
- * Selector specifically for open-source dataset manifest, re-using regular file service interface.
- * Unlike getFileService, returns undefined if no dataset manifest is present
- * Used in web only
- */
-export const getPublicDatasetManifestService = createSelector(
-    [getDatasetManifestSource, getPlatformDependentServices],
-    (datasetManifestSource, platformDependentServices): FileService | undefined => {
-        if (!datasetManifestSource || !platformDependentServices) {
-            return undefined;
-        }
-        return new DatabaseFileService({
-            databaseService: platformDependentServices.databaseService,
-            dataSourceNames: [datasetManifestSource.name],
-            downloadService: platformDependentServices.fileDownloadService,
-        });
-    }
-);
-
 export const getAnnotationService = createSelector(
     [
         getApplicationVersion,
@@ -179,14 +160,13 @@ export const getAnnotationService = createSelector(
     }
 );
 
-export const getDatasetService = createSelector(
-    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl, getRefreshKey],
-    (applicationVersion, userName, fileExplorerBaseUrl) =>
-        new DatasetService({
-            applicationVersion,
-            userName,
-            baseUrl: fileExplorerBaseUrl,
-        })
+export const getDataSourceService = createSelector(
+    [getPlatformDependentServices, getFileExplorerServiceBaseUrl, getRefreshKey],
+    (platformDependentServices, fileExplorerBaseUrl) =>
+        new DataSourceService(
+            platformDependentServices.databaseService,
+            fileExplorerBaseUrl === FileExplorerServiceBaseUrl.PRODUCTION ? "production" : "staging"
+        )
 );
 
 /**
