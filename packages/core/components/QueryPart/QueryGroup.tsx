@@ -1,10 +1,10 @@
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import QueryPart from ".";
 import AnnotationPicker from "../AnnotationPicker";
 import Tutorial from "../../entity/Tutorial";
-import { selection } from "../../state";
+import { metadata, selection } from "../../state";
 
 interface Props {
     disabled?: boolean;
@@ -16,6 +16,10 @@ interface Props {
  */
 export default function QueryGroup(props: Props) {
     const dispatch = useDispatch();
+
+    const annotationNameToAnnotationMap = useSelector(
+        metadata.selectors.getAnnotationNameToAnnotationMap
+    );
 
     const onDelete = (annotationName: string) => {
         dispatch(selection.actions.removeFromAnnotationHierarchy(annotationName));
@@ -44,9 +48,10 @@ export default function QueryGroup(props: Props) {
                     }}
                 />
             )}
-            rows={props.groups.map((annotation) => ({
-                id: annotation,
-                title: annotation,
+            rows={props.groups.map((group) => ({
+                id: group,
+                title: group,
+                description: annotationNameToAnnotationMap[group]?.description,
             }))}
         />
     );

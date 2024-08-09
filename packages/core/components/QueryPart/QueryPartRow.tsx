@@ -8,6 +8,7 @@ import { DnDItem, DnDItemRendererParams } from "../DnDList/DnDList";
 import styles from "./QueryPartRow.module.css";
 
 export interface QueryPartRowItem extends DnDItem {
+    description?: string;
     titleIconName?: string;
     onClick?: (itemId: string) => void;
     onDelete?: (itemId: string) => void;
@@ -46,7 +47,7 @@ export default function QueryGroupRow(props: Props) {
                     [styles.shortenedRowTitle]: !!props.item.onRenderEditMenuList,
                     [styles.dynamicRowTitle]: !isInteractive,
                 })}
-                title={props.item.title}
+                title={props.item.description}
                 onClick={() => props.item.onClick?.(props.item.id)}
             >
                 {props.item.titleIconName && (

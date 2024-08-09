@@ -1,9 +1,9 @@
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import QueryPart from ".";
 import AnnotationPicker from "../AnnotationPicker";
-import { selection } from "../../state";
+import { metadata, selection } from "../../state";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
 
@@ -17,6 +17,10 @@ interface Props {
  */
 export default function QuerySort(props: Props) {
     const dispatch = useDispatch();
+
+    const annotationNameToAnnotationMap = useSelector(
+        metadata.selectors.getAnnotationNameToAnnotationMap
+    );
 
     const onToggleSortOrder = () => {
         if (props.sort) {
@@ -41,6 +45,9 @@ export default function QuerySort(props: Props) {
                           {
                               id: props.sort.annotationName,
                               title: `${props.sort.annotationName} (${props.sort.order})`,
+                              description:
+                                  annotationNameToAnnotationMap[props.sort.annotationName]
+                                      ?.description,
                           },
                       ]
                     : []

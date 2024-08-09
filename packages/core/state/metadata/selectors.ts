@@ -27,3 +27,15 @@ export const getSortedAnnotations = createSelector(getAnnotations, (annotations:
         ]),
     ];
 });
+
+export const getAnnotationNameToAnnotationMap = createSelector(
+    getAnnotations,
+    (annotations): Record<string, Annotation> =>
+        annotations.reduce(
+            (map, annotation) => ({
+                ...map,
+                [annotation.name]: annotation,
+            }),
+            {} as Record<string, Annotation>
+        )
+);
