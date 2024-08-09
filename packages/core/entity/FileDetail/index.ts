@@ -181,7 +181,7 @@ export default class FileDetail {
                 return this.downloadPath;
             }
             if (this.path.endsWith(".zarr")) {
-                return await renderZarrThumbnailURL(this.path);
+                return await renderZarrThumbnailURL(this.downloadPath);
             }
         }
 
