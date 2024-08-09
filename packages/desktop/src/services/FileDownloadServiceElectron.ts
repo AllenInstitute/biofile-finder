@@ -71,7 +71,30 @@ export default class FileDownloadServiceElectron
         let downloadUrl: string;
 
         if (fileInfo.path.endsWith(".zarr")) {
-            return this.downloadS3Directory(fileInfo, downloadRequestId, onProgress, destination);
+            const isS3Path = this.isS3Url(fileInfo.path);
+            if (isS3Path) {
+                return this.downloadS3Directory(
+                    fileInfo,
+                    downloadRequestId,
+                    onProgress,
+                    destination
+                );
+            }
+
+            const isLocal = await this.isLocalPath(fileInfo.path);
+            if (isLocal) {
+                return this.copyLocalZarrDirectory(
+                    fileInfo,
+                    downloadRequestId,
+                    onProgress,
+                    destination
+                );
+            }
+
+            throw new DownloadFailure(
+                `Invalid path for Zarr file: ${fileInfo.path}`,
+                downloadRequestId
+            );
         }
 
         if (fileInfo.data instanceof Uint8Array) {
@@ -101,6 +124,73 @@ export default class FileDownloadServiceElectron
             throw err;
         } finally {
             URL.revokeObjectURL(downloadUrl);
+        }
+    }
+
+    private isS3Url(url: string): boolean {
+        try {
+            const { protocol, hostname } = new URL(url);
+            return protocol === "https:" && hostname.endsWith(".amazonaws.com");
+        } catch (error) {
+            return false;
+        }
+    }
+
+    private async isLocalPath(filePath: string): Promise<boolean> {
+        try {
+            await fs.promises.access(filePath);
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    private async copyLocalZarrDirectory(
+        fileInfo: FileInfo,
+        downloadRequestId: string,
+        onProgress?: (transferredBytes: number) => void,
+        destination?: string
+    ): Promise<DownloadResult> {
+        try {
+            const destinationDir = destination || (await this.getDefaultDownloadDirectory());
+            const fullDestinationDir = path.join(destinationDir, fileInfo.name);
+
+            await this.copyDirectory(fileInfo.path, fullDestinationDir, onProgress);
+
+            return {
+                downloadRequestId: fileInfo.id,
+                msg: `Successfully copied Zarr directory ${fileInfo.path} to ${fullDestinationDir}`,
+                resolution: DownloadResolution.SUCCESS,
+            };
+        } catch (err: unknown) {
+            throw new DownloadFailure(
+                `Failed to copy Zarr directory: ${(err as Error).message}`,
+                downloadRequestId
+            );
+        }
+    }
+
+    private async copyDirectory(
+        source: string,
+        destination: string,
+        onProgress?: (transferredBytes: number) => void
+    ): Promise<void> {
+        await fs.promises.mkdir(destination, { recursive: true });
+        const entries = await fs.promises.readdir(source, { withFileTypes: true });
+
+        for (const entry of entries) {
+            const sourcePath = path.join(source, entry.name);
+            const destinationPath = path.join(destination, entry.name);
+
+            if (entry.isDirectory()) {
+                await this.copyDirectory(sourcePath, destinationPath, onProgress);
+            } else {
+                await fs.promises.copyFile(sourcePath, destinationPath);
+                if (onProgress) {
+                    const stats = await fs.promises.stat(sourcePath);
+                    onProgress(stats.size);
+                }
+            }
         }
     }
 
@@ -183,6 +273,11 @@ export default class FileDownloadServiceElectron
             msg: `Successfully downloaded ${outFilePath}`,
             resolution: DownloadResolution.SUCCESS,
         };
+    }
+
+    public async prepareHttpResourceForDownload(url: string, postBody: string): Promise<Blob> {
+        const response = await this.rawPost<string>(url, postBody);
+        return new Blob([response], { type: "application/json" });
     }
 
     private async downloadOverHttp(options: DownloadOptions): Promise<DownloadResult> {
@@ -324,9 +419,89 @@ export default class FileDownloadServiceElectron
         });
     }
 
-    public async prepareHttpResourceForDownload(url: string, postBody: string): Promise<Blob> {
-        const response = await this.rawPost<string>(url, postBody);
-        return new Blob([response], { type: "application/json" });
+    private async downloadS3Directory(
+        fileInfo: FileInfo,
+        downloadRequestId: string,
+        onProgress?: (transferredBytes: number) => void,
+        destination?: string
+    ): Promise<DownloadResult> {
+        const { bucket, key, region } = this.parseS3Url(fileInfo.path);
+        const destinationDir = destination || (await this.getDefaultDownloadDirectory());
+        const fullDestinationDir = path.join(destinationDir, fileInfo.name);
+
+        try {
+            // Ensure the destination directory exists
+            fs.mkdirSync(fullDestinationDir, { recursive: true });
+
+            const keys = await this.listS3Objects(bucket, key, region);
+
+            if (keys.length === 0) {
+                throw new Error("No files found in the specified S3 directory.");
+            }
+
+            for (const fileKey of keys) {
+                if (!fileKey) {
+                    console.warn(`Encountered null or undefined file key. Skipping.`);
+                    continue;
+                }
+
+                const relativePath = path.relative(key, fileKey);
+                const destinationPath = path.join(fullDestinationDir, relativePath);
+
+                // Ensure the subdirectories exist
+                fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
+
+                const fileUrl = `https://${bucket}.s3.${region}.amazonaws.com/${encodeURIComponent(
+                    fileKey
+                )}`;
+
+                await this.downloadS3File(fileUrl, destinationPath, onProgress);
+            }
+
+            return {
+                downloadRequestId: fileInfo.id,
+                msg: `Successfully downloaded ${fileInfo.path} to ${fullDestinationDir}`,
+                resolution: DownloadResolution.SUCCESS,
+            };
+        } catch (err: unknown) {
+            console.error(`Failed to download directory: ${err}`);
+            throw new DownloadFailure(
+                `Failed to download directory: ${(err as Error).message}`,
+                downloadRequestId
+            );
+        }
+    }
+
+    private async downloadS3File(
+        url: string,
+        destinationPath: string,
+        onProgress?: (bytes: number) => void
+    ) {
+        const writer = fs.createWriteStream(destinationPath);
+
+        return new Promise<void>((resolve, reject) => {
+            const requestor = new URL(url).protocol === "http:" ? http : https;
+            const req = requestor.get(url, (response) => {
+                if (response.statusCode !== 200) {
+                    return reject(new Error(`Failed to get '${url}' (${response.statusCode})`));
+                }
+
+                let downloadedLength = 0;
+
+                response.on("data", (chunk: Buffer) => {
+                    downloadedLength += chunk.length;
+                    if (onProgress) {
+                        onProgress(downloadedLength);
+                    }
+                });
+
+                response.pipe(writer);
+                writer.on("finish", resolve);
+                writer.on("error", reject);
+            });
+
+            req.on("error", reject);
+        });
     }
 
     public cancelActiveRequest(downloadRequestId: string): void {
@@ -386,90 +561,5 @@ export default class FileDownloadServiceElectron
         }
 
         return keys;
-    }
-
-    private async downloadS3File(
-        url: string,
-        destinationPath: string,
-        onProgress?: (bytes: number) => void
-    ) {
-        const writer = fs.createWriteStream(destinationPath);
-
-        return new Promise<void>((resolve, reject) => {
-            const requestor = new URL(url).protocol === "http:" ? http : https;
-            const req = requestor.get(url, (response) => {
-                if (response.statusCode !== 200) {
-                    return reject(new Error(`Failed to get '${url}' (${response.statusCode})`));
-                }
-
-                let downloadedLength = 0;
-
-                response.on("data", (chunk: Buffer) => {
-                    downloadedLength += chunk.length;
-                    if (onProgress) {
-                        onProgress(downloadedLength);
-                    }
-                });
-
-                response.pipe(writer);
-                writer.on("finish", resolve);
-                writer.on("error", reject);
-            });
-
-            req.on("error", reject);
-        });
-    }
-
-    private async downloadS3Directory(
-        fileInfo: FileInfo,
-        downloadRequestId: string,
-        onProgress?: (transferredBytes: number) => void,
-        destination?: string
-    ): Promise<DownloadResult> {
-        const { bucket, key, region } = this.parseS3Url(fileInfo.path);
-        const destinationDir = destination || (await this.getDefaultDownloadDirectory());
-        const fullDestinationDir = path.join(destinationDir, fileInfo.name);
-
-        try {
-            // Ensure the destination directory exists
-            fs.mkdirSync(fullDestinationDir, { recursive: true });
-
-            const keys = await this.listS3Objects(bucket, key, region);
-
-            if (keys.length === 0) {
-                throw new Error("No files found in the specified S3 directory.");
-            }
-
-            for (const fileKey of keys) {
-                if (!fileKey) {
-                    console.warn(`Encountered null or undefined file key. Skipping.`);
-                    continue;
-                }
-
-                const relativePath = path.relative(key, fileKey);
-                const destinationPath = path.join(fullDestinationDir, relativePath);
-
-                // Ensure the subdirectories exist
-                fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
-
-                const fileUrl = `https://${bucket}.s3.${region}.amazonaws.com/${encodeURIComponent(
-                    fileKey
-                )}`;
-
-                await this.downloadS3File(fileUrl, destinationPath, onProgress);
-            }
-
-            return {
-                downloadRequestId: fileInfo.id,
-                msg: `Successfully downloaded ${fileInfo.path} to ${fullDestinationDir}`,
-                resolution: DownloadResolution.SUCCESS,
-            };
-        } catch (err: unknown) {
-            console.error(`Failed to download directory: ${err}`);
-            throw new DownloadFailure(
-                `Failed to download directory: ${(err as Error).message}`,
-                downloadRequestId
-            );
-        }
     }
 }
