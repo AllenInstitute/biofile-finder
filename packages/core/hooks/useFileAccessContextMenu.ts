@@ -22,6 +22,10 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
 
     const [fileDetails, setFileDetails] = React.useState<FileDetail>();
 
+    // Remove this an the corresponding usage of it when we are able to download zarrs
+    // from https://github.com/AllenInstitute/biofile-finder/issues/192
+    const isZarrFile = fileDetails?.downloadPath.endsWith(".zarr");
+
     const openWithSubMenuItems = useOpenWithMenuItems(fileDetails, filters);
 
     fileSelection.fetchFocusedItemDetails().then((fileDetails) => {
@@ -148,7 +152,7 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                     key: "download",
                     text: "Download",
                     title: "Download selected files to a specific directory",
-                    disabled: !filters && fileSelection.count() === 0,
+                    disabled: isZarrFile || (!filters && fileSelection.count() === 0),
                     iconProps: {
                         iconName: "Download",
                     },
