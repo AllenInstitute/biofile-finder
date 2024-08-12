@@ -109,7 +109,9 @@ export default class DatabaseAnnotationService implements AnnotationService {
         const rows = await this.databaseService.query(sqlBuilder.toSQL());
         const rowsSplitByDelimiter = rows
             .flatMap((row) =>
-                isNil(row[annotation]) ? [] : row[annotation].split(DatabaseService.LIST_DELIMITER)
+                isNil(row[annotation])
+                    ? []
+                    : `${row[annotation]}`.split(DatabaseService.LIST_DELIMITER)
             )
             .map((value) => value.trim());
         return uniq(rowsSplitByDelimiter);
