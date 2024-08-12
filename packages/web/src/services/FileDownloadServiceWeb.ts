@@ -6,7 +6,7 @@ import {
     HttpServiceBase,
 } from "../../../core/services";
 import axios from "axios";
-import JSZip from "jszip";
+import StreamSaver from "streamsaver";
 
 export default class FileDownloadServiceWeb extends HttpServiceBase implements FileDownloadService {
     isFileSystemAccessible = false;
@@ -53,36 +53,36 @@ export default class FileDownloadServiceWeb extends HttpServiceBase implements F
             throw new Error("No files found in the specified S3 directory.");
         }
 
-        const zip = new JSZip();
-
-        for (const fileKey of keys) {
-            const fileUrl = `https://${bucket}.s3.${region}.amazonaws.com/${encodeURIComponent(
-                fileKey
-            )}`;
-            const response = await axios.get(fileUrl, { responseType: "blob" });
-            const relativePath = fileKey.slice(key.length + 1); // Adjust path to remove prefix
-            zip.file(relativePath, response.data);
-        }
-
-        const blob = await zip.generateAsync({ type: "blob" });
-        const downloadUrl = URL.createObjectURL(blob);
+        const fileStream = StreamSaver.createWriteStream(`${fileInfo.name}.zip`);
+        const writer = fileStream.getWriter();
 
         try {
-            const a = document.createElement("a");
-            a.href = downloadUrl;
-            a.download = `${fileInfo.name}.zip`;
-            a.target = "_blank";
-            a.click();
-            a.remove();
+            for (const fileKey of keys) {
+                const fileUrl = `https://${bucket}.s3.${region}.amazonaws.com/${encodeURIComponent(
+                    fileKey
+                )}`;
+                const response = await axios.get(fileUrl, { responseType: "blob" });
+
+                const blob = response.data;
+                const stream = blob.stream();
+                await stream.pipeTo(
+                    new WritableStream({
+                        write(chunk) {
+                            writer.write(chunk);
+                        },
+                    })
+                );
+            }
+            writer.close();
+
             return {
                 downloadRequestId: fileInfo.id,
                 resolution: DownloadResolution.SUCCESS,
             };
         } catch (err) {
             console.error(`Failed to download directory: ${err}`);
+            writer.abort();
             throw err;
-        } finally {
-            URL.revokeObjectURL(downloadUrl);
         }
     }
 
