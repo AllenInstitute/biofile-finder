@@ -8,7 +8,7 @@ import { ContextMenuItem } from "../ContextMenu";
 import FileRow, { CellConfig } from "../../components/FileRow";
 import { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
-import { interaction, selection } from "../../state";
+import { interaction, metadata, selection } from "../../state";
 
 import styles from "./Header.module.css";
 
@@ -24,6 +24,9 @@ function Header(
     ref: React.Ref<HTMLDivElement>
 ) {
     const dispatch = useDispatch();
+    const annotationNameToAnnotationMap = useSelector(
+        metadata.selectors.getAnnotationNameToAnnotationMap
+    );
     const columnAnnotations = useSelector(selection.selectors.getAnnotationsToDisplay);
     const columnWidths = useSelector(selection.selectors.getColumnWidths);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
@@ -43,6 +46,7 @@ function Header(
                 <span
                     className={styles.headerCell}
                     onClick={() => dispatch(selection.actions.sortColumn(annotation.name))}
+                    title={annotationNameToAnnotationMap[annotation.name]?.description}
                 >
                     <span className={styles.headerTitle}>{annotation.displayName}</span>
                     {isSortedColumn &&

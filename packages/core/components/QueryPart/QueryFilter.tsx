@@ -21,8 +21,10 @@ interface Props {
 export default function QueryFilter(props: Props) {
     const dispatch = useDispatch();
 
-    const annotations = useSelector(metadata.selectors.getSortedAnnotations);
     const filtersGroupedByName = useSelector(selection.selectors.getGroupedByFilterName);
+    const annotationNameToAnnotationMap = useSelector(
+        metadata.selectors.getAnnotationNameToAnnotationMap
+    );
 
     return (
         <QueryPart
@@ -47,16 +49,18 @@ export default function QueryFilter(props: Props) {
                     setSelections={() => dispatch(selection.actions.setFileFilters([]))}
                 />
             )}
-            onRenderEditMenuList={(item) => {
-                const annotation = annotations.find((a) => a.name === item.id);
-                return <AnnotationFilterForm annotation={annotation as Annotation} />;
-            }}
+            onRenderEditMenuList={(item) => (
+                <AnnotationFilterForm
+                    annotation={annotationNameToAnnotationMap[item.id] as Annotation}
+                />
+            )}
             rows={Object.entries(filtersGroupedByName).map(([annotationName, filters]) => {
                 const operator = filters.length > 1 ? "ONE OF" : "EQUALS";
                 const valueDisplay = map(filters, (filter) => filter.displayValue).join(", ");
                 return {
                     id: filters[0].name,
                     title: `${annotationName} ${operator} ${valueDisplay}`,
+                    description: annotationNameToAnnotationMap[annotationName]?.description,
                 };
             })}
         />

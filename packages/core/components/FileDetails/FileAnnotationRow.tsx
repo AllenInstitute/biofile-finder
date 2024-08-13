@@ -3,7 +3,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import Cell from "../../components/FileRow/Cell";
-import { interaction, selection } from "../../state";
+import { interaction, metadata, selection } from "../../state";
 
 import styles from "./FileAnnotationRow.module.css";
 
@@ -20,6 +20,9 @@ interface FileAnnotationRowProps {
 export default function FileAnnotationRow(props: FileAnnotationRowProps) {
     const dispatch = useDispatch();
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
+    const annotationNameToAnnotationMap = useSelector(
+        metadata.selectors.getAnnotationNameToAnnotationMap
+    );
 
     const isValueLinkLike = props.value.startsWith("http");
 
@@ -51,6 +54,7 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                 })}
                 columnKey="key"
                 width={1}
+                title={annotationNameToAnnotationMap[props.name]?.description}
             >
                 <span
                     style={{ userSelect: "text" }}
