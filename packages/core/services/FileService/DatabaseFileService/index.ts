@@ -80,6 +80,7 @@ export default class DatabaseFileService implements FileService {
     }
 
     public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
+        if (!this.dataSourceNames.length) return 0;
         const select_key = "num_files";
         const sql = fileSet
             .toQuerySQLBuilder()
@@ -110,6 +111,7 @@ export default class DatabaseFileService implements FileService {
      * and potentially starting from a particular file_id and limited to a set number of files.
      */
     public async getFiles(request: GetFilesRequest): Promise<FileDetail[]> {
+        if (!this.dataSourceNames.length) return [];
         const sql = request.fileSet
             .toQuerySQLBuilder()
             .from(this.dataSourceNames)

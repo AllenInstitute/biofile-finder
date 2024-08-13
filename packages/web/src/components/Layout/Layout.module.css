@@ -13,3 +13,8 @@
   height: calc(100% - 60px);
   overflow-y: auto;
 }
+
+/* App. -15 so row count is included */
+.fill-screen {
+  height: calc(100% - 15px); 
+}
