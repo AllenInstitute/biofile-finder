@@ -110,6 +110,7 @@ describe("FileExplorerURL", () => {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
+                sourceMetadata: undefined,
                 sources: [mockSource],
             };
             const encodedUrl = FileExplorerURL.encode(components);
@@ -129,6 +130,7 @@ describe("FileExplorerURL", () => {
                 filters: [],
                 openFolders: [],
                 sortColumn: undefined,
+                sourceMetadata: undefined,
                 sources: [],
             };
             const encodedUrl = FileExplorerURL.encode(components);

@@ -18,13 +18,11 @@ describe("DatabaseAnnotationService", () => {
         const databaseService = new MockDatabaseService();
 
         it("issues request for 'foo' values", async () => {
-            const annotation = "foo";
-
             const annotationService = new DatabaseAnnotationService({
                 dataSourceNames: ["a", "b or c"],
                 databaseService,
             });
-            const actualValues = await annotationService.fetchValues(annotation);
+            const actualValues = await annotationService.fetchValues("select_key");
             expect(actualValues).to.be.deep.equal(["a0", "b1", "cc2", "dd3"]);
         });
     });
