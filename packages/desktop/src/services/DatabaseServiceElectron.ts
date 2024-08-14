@@ -133,7 +133,7 @@ export default class DatabaseServiceElectron extends DatabaseService {
                 } else {
                     // Default to CSV
                     this.database.exec(
-                        `CREATE TABLE "${name}" AS FROM read_csv_auto('${source}', header=true);`,
+                        `CREATE TABLE "${name}" AS FROM read_csv_auto('${source}', header=true, all_varchar=true);`,
                         callback
                     );
                 }
