@@ -12,6 +12,13 @@ import SQLBuilder from "../../entity/SQLBuilder";
 export default abstract class DatabaseService {
     protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     public static readonly LIST_DELIMITER = ",";
+    // THIS CAN NEVER CHANGE, THIS VALUE IS INCLUDED IN THE EMT DATA RELEASE
+    // AS A MARKER FOR WHAT IS AN ACTUAL LINK
+    private static readonly LINK_TYPE = "Link";
+    private static readonly ANNOTATION_TYPE_SET = new Set([
+        ...Object.values(AnnotationType),
+        DatabaseService.LINK_TYPE,
+    ]);
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
@@ -153,6 +160,7 @@ export default abstract class DatabaseService {
         const aggregateDataSourceName = dataSourceNames.sort().join(", ");
         if (!this.dataSourceToAnnotationsMap.has(aggregateDataSourceName)) {
             const sql = new SQLBuilder()
+                .select("column_name, data_type")
                 .from('information_schema"."columns')
                 .where(`table_name = '${aggregateDataSourceName}'`)
                 .toSQL();
@@ -160,14 +168,25 @@ export default abstract class DatabaseService {
             if (isEmpty(rows)) {
                 throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);
             }
-            const annotationNameToDescriptionMap = await this.fetchAnnotationDescriptions();
+            const [annotationNameToDescriptionMap, annotationNameToTypeMap] = await Promise.all([
+                this.fetchAnnotationDescriptions(),
+                this.fetchAnnotationTypes(),
+            ]);
             const annotations = rows.map(
                 (row) =>
                     new Annotation({
-                        annotationDisplayName: row["column_name"],
                         annotationName: row["column_name"],
+                        annotationDisplayName: row["column_name"],
                         description: annotationNameToDescriptionMap[row["column_name"]] || "",
-                        type: DatabaseService.columnTypeToAnnotationType(row["data_type"]),
+                        isLink:
+                            annotationNameToTypeMap[row["column_name"]] ===
+                            DatabaseService.LINK_TYPE,
+                        type:
+                            annotationNameToTypeMap[row["column_name"]] ===
+                            DatabaseService.LINK_TYPE
+                                ? AnnotationType.STRING
+                                : annotationNameToTypeMap[row["column_name"]] ||
+                                  DatabaseService.columnTypeToAnnotationType(row["data_type"]),
                     })
             );
             this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);
@@ -189,7 +208,36 @@ export default abstract class DatabaseService {
             );
         } catch (err) {
             // Source metadata file may not have been supplied
-            if ((err as Error).message.includes("does not exist")) {
+            // and/or this column may not exist
+            const errMsg = (err as Error).message;
+            if (errMsg.includes("does not exist") || errMsg.includes("not found in FROM clause")) {
+                return {};
+            }
+            throw err;
+        }
+    }
+
+    private async fetchAnnotationTypes(): Promise<Record<string, string>> {
+        const sql = new SQLBuilder()
+            .select('"Column Name", "Type"')
+            .from(this.SOURCE_METADATA_TABLE)
+            .toSQL();
+
+        try {
+            const rows = await this.query(sql);
+            return rows.reduce(
+                (map, row) =>
+                    DatabaseService.ANNOTATION_TYPE_SET.has(row["Type"])
+                        ? { ...map, [row["Column Name"]]: row["Type"] }
+                        : // Ignore row if invalid annotation type
+                          map,
+                {}
+            );
+        } catch (err) {
+            // Source metadata file may not have been supplied
+            // and/or this column may not exist
+            const errMsg = (err as Error).message;
+            if (errMsg.includes("does not exist") || errMsg.includes("not found in FROM clause")) {
                 return {};
             }
             throw err;
