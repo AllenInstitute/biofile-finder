@@ -116,7 +116,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
             } else {
                 // Default to CSV
                 await this.execute(
-                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true);`
+                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
                 );
             }
         } catch (err) {
