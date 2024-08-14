@@ -216,7 +216,7 @@ export default class FileDetail {
             .reduce(
                 (mapThusFar, annotation) => ({
                     ...mapThusFar,
-                    [annotation.name]: annotation.values[0] as string,
+                    [annotation.name]: annotation.values.join(",") as string,
                 }),
                 {} as { [annotationName: string]: string }
             );
