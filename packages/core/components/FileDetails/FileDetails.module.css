@@ -58,7 +58,7 @@
     content: " ";
     height: 50px;
     right: 0;
-    max-width: 100%;
+    max-width: var(--file-details-width);
     position: absolute;
     width: 100%;
     z-index: 11;
