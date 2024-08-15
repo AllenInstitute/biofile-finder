@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
-import { interaction } from "../../state";
+import { interaction, metadata } from "../../state";
 
 import styles from "./useOpenWithMenuItems.module.css";
 
@@ -15,12 +15,29 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
+    const annotationNameToAnnotationMap = useSelector(
+        metadata.selectors.getAnnotationNameToAnnotationMap
+    );
     const fileExplorerServiceBaseUrl = useSelector(
         interaction.selectors.getFileExplorerServiceBaseUrl
     );
 
     const plateLink = fileDetails?.getLinkToPlateUI(fileExplorerServiceBaseUrl);
-    const annotationNameToLinkMap = fileDetails?.getAnnotationNameToLinkMap() || {};
+    const annotationNameToLinkMap = React.useMemo(
+        () =>
+            fileDetails?.annotations
+                .filter(
+                    (annotation) => annotationNameToAnnotationMap[annotation.name]?.isOpenFileLink
+                )
+                .reduce(
+                    (mapThusFar, annotation) => ({
+                        ...mapThusFar,
+                        [annotation.name]: annotation.values.join(",") as string,
+                    }),
+                    {} as { [annotationName: string]: string }
+                ) || {},
+        [fileDetails, annotationNameToAnnotationMap]
+    );
 
     return [
         ...(isEmpty(annotationNameToLinkMap)

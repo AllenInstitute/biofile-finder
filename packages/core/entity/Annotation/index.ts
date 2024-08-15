@@ -13,6 +13,7 @@ export interface AnnotationResponse {
     annotationName: string;
     description: string;
     type: string;
+    isOpenFileLink?: boolean;
     units?: string;
 }
 
@@ -59,6 +60,10 @@ export default class Annotation {
 
     public get type(): string {
         return this.annotation.type;
+    }
+
+    public get isOpenFileLink(): boolean {
+        return this.annotation.isOpenFileLink || false;
     }
 
     public get units(): string | undefined {

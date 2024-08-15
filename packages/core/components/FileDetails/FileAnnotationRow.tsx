@@ -24,7 +24,7 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
 
-    const isValueLinkLike = props.value.startsWith("http");
+    const isOpenFileLink = annotationNameToAnnotationMap[props.name]?.isOpenFileLink;
 
     const onContextMenuHandlerFactory = (clipboardText: string) => {
         return (evt: React.MouseEvent) => {
@@ -70,7 +70,7 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                 columnKey="value"
                 width={1}
             >
-                {isValueLinkLike ? (
+                {isOpenFileLink ? (
                     <a
                         className={styles.link}
                         onContextMenu={onContextMenuHandlerFactory(props.value.trim())}
