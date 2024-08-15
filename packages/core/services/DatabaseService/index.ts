@@ -14,10 +14,10 @@ export default abstract class DatabaseService {
     public static readonly LIST_DELIMITER = ",";
     // THIS CAN NEVER CHANGE, THIS VALUE IS INCLUDED IN THE EMT DATA RELEASE
     // AS A MARKER FOR WHAT IS AN ACTUAL LINK
-    private static readonly LINK_TYPE = "Link";
+    private static readonly OPEN_FILE_LINK_TYPE = "Open file link";
     private static readonly ANNOTATION_TYPE_SET = new Set([
         ...Object.values(AnnotationType),
-        DatabaseService.LINK_TYPE,
+        DatabaseService.OPEN_FILE_LINK_TYPE,
     ]);
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
@@ -178,12 +178,12 @@ export default abstract class DatabaseService {
                         annotationName: row["column_name"],
                         annotationDisplayName: row["column_name"],
                         description: annotationNameToDescriptionMap[row["column_name"]] || "",
-                        isLink:
+                        isOpenFileLink:
                             annotationNameToTypeMap[row["column_name"]] ===
-                            DatabaseService.LINK_TYPE,
+                            DatabaseService.OPEN_FILE_LINK_TYPE,
                         type:
                             annotationNameToTypeMap[row["column_name"]] ===
-                            DatabaseService.LINK_TYPE
+                            DatabaseService.OPEN_FILE_LINK_TYPE
                                 ? AnnotationType.STRING
                                 : annotationNameToTypeMap[row["column_name"]] ||
                                   DatabaseService.columnTypeToAnnotationType(row["data_type"]),

@@ -13,7 +13,7 @@ export interface AnnotationResponse {
     annotationName: string;
     description: string;
     type: string;
-    isLink?: boolean;
+    isOpenFileLink?: boolean;
     units?: string;
 }
 
@@ -62,8 +62,8 @@ export default class Annotation {
         return this.annotation.type;
     }
 
-    public get isLink(): boolean {
-        return this.annotation.isLink || false;
+    public get isOpenFileLink(): boolean {
+        return this.annotation.isOpenFileLink || false;
     }
 
     public get units(): string | undefined {

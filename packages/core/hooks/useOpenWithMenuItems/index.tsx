@@ -26,7 +26,9 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     const annotationNameToLinkMap = React.useMemo(
         () =>
             fileDetails?.annotations
-                .filter((annotation) => annotationNameToAnnotationMap[annotation.name]?.isLink)
+                .filter(
+                    (annotation) => annotationNameToAnnotationMap[annotation.name]?.isOpenFileLink
+                )
                 .reduce(
                     (mapThusFar, annotation) => ({
                         ...mapThusFar,
