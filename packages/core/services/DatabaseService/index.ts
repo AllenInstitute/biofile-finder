@@ -12,8 +12,9 @@ import SQLBuilder from "../../entity/SQLBuilder";
 export default abstract class DatabaseService {
     protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     public static readonly LIST_DELIMITER = ",";
-    // THIS CAN NEVER CHANGE, THIS VALUE IS INCLUDED IN THE EMT DATA RELEASE
-    // AS A MARKER FOR WHAT IS AN ACTUAL LINK
+    // "Open file link" as a datatype must be hardcoded, and CAN NOT change
+    // without BREAKING visibility in the dataset released in 2024 as part
+    // of the EMT Data Release paper
     private static readonly OPEN_FILE_LINK_TYPE = "Open file link";
     private static readonly ANNOTATION_TYPE_SET = new Set([
         ...Object.values(AnnotationType),
