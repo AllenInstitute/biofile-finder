@@ -12,6 +12,22 @@ export default class SQLBuilder {
     private offsetNum?: number;
     private limitNum?: number;
 
+    /**
+     * Utility function to create a regex match for a value in a list
+     *
+     * Ex. This regex will match on a value
+     * that is at the start, middle, end, or only value in a comma separated list
+     * of values (,\s*Position,)|(^\s*Position\s*,)|(,\s*Position\s*$)|(^\s*Position\s*$)
+     */
+    public static regexMatchValueInList(
+        column: string,
+        value: string | boolean | number | null
+    ): string {
+        // Escape special characters for regex
+        const escapedValue = `${value}`.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+        return `REGEXP_MATCHES("${column}", '(,\\s*${escapedValue}\\s*,)|(^\\s*${escapedValue}\\s*,)|(,\\s*${escapedValue}\\s*$)|(^\\s*${escapedValue}\\s*$)') = true`;
+    }
+
     public summarize(): SQLBuilder {
         this.isSummarizing = true;
         return this;

@@ -94,13 +94,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
             } else {
                 sqlBuilder.where(
                     annotationValues
-                        .map(
-                            (value) =>
-                                // Ex. This regex will match on a value
-                                // that is at the start, middle, end, or only value in a comma separated list
-                                // of values (,\s*Position,)|(^\s*Position\s*,)|(,\s*Position\s*$)|(^\s*Position\s*$)
-                                `REGEXP_MATCHES("${annotationToFilter}", '(,\\s*${value}\\s*,)|(^\\s*${value}\\s*,)|(,\\s*${value}\\s*$)|(^\\s*${value}\\s*$)') = true`
-                        )
+                        .map((v) => SQLBuilder.regexMatchValueInList(annotationToFilter, v))
                         .join(") OR (")
                 );
             }

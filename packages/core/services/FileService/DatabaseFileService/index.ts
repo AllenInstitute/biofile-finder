@@ -146,13 +146,7 @@ export default class DatabaseFileService implements FileService {
                     .where(
                         Object.entries(selection.filters)
                             .flatMap(([column, values]) =>
-                                values.map(
-                                    (value) =>
-                                        // Ex. This regex will match on a value
-                                        // that is at the start, middle, end, or only value in a comma separated list
-                                        // of values (,\s*Position,)|(^\s*Position\s*,)|(,\s*Position\s*$)|(^\s*Position\s*$)
-                                        `REGEXP_MATCHES("${column}", '(,\\s*${value}\\s*,)|(^\\s*${value}\\s*,)|(,\\s*${value}\\s*$)|(^\\s*${value}\\s*$)') = true`
-                                )
+                                values.map((v) => SQLBuilder.regexMatchValueInList(column, v))
                             )
                             .join(") OR (")
                     )
