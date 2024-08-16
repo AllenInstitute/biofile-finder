@@ -49,7 +49,7 @@ export default class FileDownloadServiceWeb extends HttpServiceBase implements F
 
             const message = `The directory containing the Zarr file is located at: ${directoryPath}.
 Due to security restrictions, the web browser cannot open this location directly. 
-Please navigate to this directory manually, or use the desktop version of the application.`;
+Please navigate to this directory manually, or upload files to a remote address such as S3.`;
 
             alert(message);
             console.log(`Local directory path: ${directoryPath}`);
