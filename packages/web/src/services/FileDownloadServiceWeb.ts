@@ -58,8 +58,8 @@ Please navigate to this directory manually, or upload files to a remote address 
     }
 
     private async downloadS3Directory(fileInfo: FileInfo): Promise<DownloadResult> {
-        const { bucket, key, region } = this.parseS3Url(fileInfo.path);
-        const keys = await this.listS3Objects(bucket, key, region);
+        const { hostname, key } = this.parseS3Url(fileInfo.path);
+        const keys = await this.listS3Objects(hostname, key);
 
         if (keys.length === 0) {
             throw new Error("No files found in the specified S3 directory.");
@@ -70,9 +70,7 @@ Please navigate to this directory manually, or upload files to a remote address 
 
         try {
             for (const fileKey of keys) {
-                const fileUrl = `https://${bucket}.s3.${region}.amazonaws.com/${encodeURIComponent(
-                    fileKey
-                )}`;
+                const fileUrl = `${hostname}/${encodeURIComponent(fileKey)}`;
                 const response = await axios.get(fileUrl, { responseType: "blob" });
 
                 const blob = response.data;

@@ -12,18 +12,14 @@ export default class FileStorageServiceBase extends HttpServiceBase {
         }
     }
 
-    public parseS3Url(url: string): { bucket: string; key: string; region: string } {
+    public parseS3Url(url: string): { hostname: string; key: string } {
         const { hostname, pathname } = new URL(url);
-        const [bucket] = hostname.split(".");
         const key = pathname.slice(1);
-        const region = hostname.split(".")[2];
-        return { bucket, key, region };
+        return { hostname, key };
     }
 
-    public async listS3Objects(bucket: string, prefix: string, region: string): Promise<string[]> {
-        const url = `https://${bucket}.s3.${region}.amazonaws.com?list-type=2&prefix=${encodeURIComponent(
-            prefix
-        )}`;
+    public async listS3Objects(hostname: string, prefix: string): Promise<string[]> {
+        const url = `${hostname}?list-type=2&prefix=${encodeURIComponent(prefix)}`;
         const response = await axios.get(url);
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(response.data, "text/xml");

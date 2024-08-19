@@ -414,7 +414,7 @@ export default class FileDownloadServiceElectron
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        const { bucket, key, region } = this.parseS3Url(fileInfo.path);
+        const { hostname, key } = this.parseS3Url(fileInfo.path);
         const destinationDir = destination || (await this.getDefaultDownloadDirectory());
         const fullDestinationDir = path.join(destinationDir, fileInfo.name);
 
@@ -422,7 +422,7 @@ export default class FileDownloadServiceElectron
             // Ensure the destination directory exists
             fs.mkdirSync(fullDestinationDir, { recursive: true });
 
-            const keys = await this.listS3Objects(bucket, key, region);
+            const keys = await this.listS3Objects(hostname, key);
 
             if (keys.length === 0) {
                 throw new Error("No files found in the specified S3 directory.");
@@ -440,9 +440,7 @@ export default class FileDownloadServiceElectron
                 // Ensure the subdirectories exist
                 fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
 
-                const fileUrl = `https://${bucket}.s3.${region}.amazonaws.com/${encodeURIComponent(
-                    fileKey
-                )}`;
+                const fileUrl = `${hostname}/${encodeURIComponent(fileKey)}`;
 
                 await this.downloadS3File(fileUrl, destinationPath, onProgress);
             }
