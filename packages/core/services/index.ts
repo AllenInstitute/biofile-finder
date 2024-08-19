@@ -20,6 +20,7 @@ export type {
 } from "./FileDownloadService";
 export { DownloadResolution, FileDownloadCancellationToken } from "./FileDownloadService";
 export { default as FileService } from "./FileService";
+export { default as FileStorageServiceBase } from "./FileStorageServiceBase";
 export type { default as FileViewerService } from "./FileViewerService";
 export { FileViewerCancellationToken } from "./FileViewerService";
 export { default as HttpServiceBase } from "./HttpServiceBase";

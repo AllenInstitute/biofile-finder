@@ -12,11 +12,9 @@ import {
     FileInfo,
     DownloadResolution,
     FileDownloadCancellationToken,
-    HttpServiceBase,
+    FileStorageServiceBase,
 } from "../../../core/services";
 import { DownloadFailure } from "../../../core/errors";
-import axios from "axios";
-import { parseStringPromise } from "xml2js";
 
 // Maps active request ids (uuids) to request download info
 interface ActiveRequestMap {
@@ -43,7 +41,7 @@ interface DownloadOptions {
 }
 
 export default class FileDownloadServiceElectron
-    extends HttpServiceBase
+    extends FileStorageServiceBase
     implements FileDownloadService {
     // IPC events registered both within the main and renderer processes
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
@@ -127,15 +125,6 @@ export default class FileDownloadServiceElectron
         }
     }
 
-    private isS3Url(url: string): boolean {
-        try {
-            const { protocol, hostname } = new URL(url);
-            return protocol === "https:" && hostname.endsWith(".amazonaws.com");
-        } catch (error) {
-            return false;
-        }
-    }
-
     private async isLocalPath(filePath: string): Promise<boolean> {
         try {
             await fs.promises.access(filePath);
@@ -162,7 +151,7 @@ export default class FileDownloadServiceElectron
                 msg: `Successfully copied Zarr directory ${fileInfo.path} to ${fullDestinationDir}`,
                 resolution: DownloadResolution.SUCCESS,
             };
-        } catch (err: unknown) {
+        } catch (err) {
             throw new DownloadFailure(
                 `Failed to copy Zarr directory: ${(err as Error).message}`,
                 downloadRequestId
@@ -358,7 +347,7 @@ export default class FileDownloadServiceElectron
                             })
                         );
                         await this.deleteArtifact(outFilePath);
-                    } catch (err: unknown) {
+                    } catch (err) {
                         if (err instanceof Error) {
                             const formatted = `${err.name}: ${err.message}`;
                             errors.push(formatted);
@@ -381,7 +370,7 @@ export default class FileDownloadServiceElectron
                 });
             });
 
-            req.on("error", async (err: unknown) => {
+            req.on("error", async (err) => {
                 delete this.activeRequestMap[downloadRequestId];
                 // This first branch applies when the download has been explicitly cancelled
                 if ((err as Error).message === FileDownloadCancellationToken) {
@@ -463,7 +452,7 @@ export default class FileDownloadServiceElectron
                 msg: `Successfully downloaded ${fileInfo.path} to ${fullDestinationDir}`,
                 resolution: DownloadResolution.SUCCESS,
             };
-        } catch (err: unknown) {
+        } catch (err) {
             console.error(`Failed to download directory: ${err}`);
             throw new DownloadFailure(
                 `Failed to download directory: ${(err as Error).message}`,
@@ -533,33 +522,5 @@ export default class FileDownloadServiceElectron
                 }
             });
         });
-    }
-
-    private parseS3Url(url: string): { bucket: string; key: string; region: string } {
-        const { hostname, pathname } = new URL(url);
-        const [bucket] = hostname.split(".");
-        const key = pathname.slice(1);
-        const region = hostname.split(".")[2];
-        return { bucket, key, region };
-    }
-
-    private async listS3Objects(bucket: string, prefix: string, region: string): Promise<string[]> {
-        const url = `https://${bucket}.s3.${region}.amazonaws.com?list-type=2&prefix=${encodeURIComponent(
-            prefix
-        )}`;
-        const response = await axios.get(url);
-        const parsedResult = await parseStringPromise(response.data);
-
-        const contents = parsedResult.ListBucketResult.Contents || [];
-        const keys: string[] = [];
-
-        for (const content of contents) {
-            const key = content.Key?.[0];
-            if (typeof key === "string") {
-                keys.push(key);
-            }
-        }
-
-        return keys;
     }
 }
