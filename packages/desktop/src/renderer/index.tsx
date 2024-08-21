@@ -1,5 +1,4 @@
 import "regenerator-runtime/runtime";
-
 import FrontendInsights, { LogLevel, reduxMiddleware } from "@aics/frontend-insights";
 import AmplitudeNodePlugin from "@aics/frontend-insights-plugin-amplitude-node";
 import { ipcRenderer } from "electron";
@@ -7,11 +6,9 @@ import { memoize } from "lodash";
 import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
-
 import FmsFileExplorer from "../../../core/App";
 import { PersistedConfigKeys } from "../../../core/services";
 import { createReduxStore, interaction, selection } from "../../../core/state";
-
 import ApplicationInfoServiceElectron from "../services/ApplicationInfoServiceElectron";
 import DatabaseServiceElectron from "../services/DatabaseServiceElectron";
 import ExecutionEnvServiceElectron from "../services/ExecutionEnvServiceElectron";
@@ -20,7 +17,7 @@ import FileViewerServiceElectron from "../services/FileViewerServiceElectron";
 import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
 import { GlobalVariableChannels } from "../util/constants";
-
+import { useKeyDown } from "../../../core/hooks/useKeyDown/useKeyDown"; // Import the useKeyDown hook
 import "../../../core/styles/global.css";
 
 const APP_ID = "fms-file-explorer";
@@ -30,7 +27,20 @@ const persistentConfigService = new PersistentConfigServiceElectron();
 const applicationInfoService = new ApplicationInfoServiceElectron();
 const databaseService = new DatabaseServiceElectron();
 const executionEnvService = new ExecutionEnvServiceElectron(notificationService);
-// application analytics/metrics
+
+// Define the KeyDownHandler component inline
+const KeyDownHandler: React.FC<{ clearStore: () => void }> = ({ clearStore }) => {
+    useKeyDown(["Control", "-"], clearStore);
+    return null; // This component doesn't render anything visible
+};
+
+// Function to clear the persistent store
+const clearPersistentStore = () => {
+    persistentConfigService.clear();
+    console.log("Persistent store cleared!");
+};
+
+// Application analytics/metrics
 const frontendInsights = new FrontendInsights(
     {
         application: {
@@ -108,7 +118,10 @@ store.subscribe(() => {
 function renderFmsFileExplorer() {
     render(
         <Provider store={store}>
-            <FmsFileExplorer fileExplorerServiceBaseUrl={global.fileExplorerServiceBaseUrl} />
+            <React.Fragment>
+                <KeyDownHandler clearStore={clearPersistentStore} />
+                <FmsFileExplorer fileExplorerServiceBaseUrl={global.fileExplorerServiceBaseUrl} />
+            </React.Fragment>
         </Provider>,
         document.getElementById(APP_ID)
     );

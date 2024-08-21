@@ -1,5 +1,4 @@
 import Store, { Options } from "electron-store";
-
 import {
     PersistentConfigService,
     PersistedConfig,
@@ -10,9 +9,7 @@ import { find } from "lodash";
 
 const OPTIONS: Options<Record<string, unknown>> = {
     // Defines a validation schema for data inserted into the persistent storage
-    // if a breaking change is made see migration patterns in elecron-store docs
     schema: {
-        // Deprecated in 6.0.0
         [PersistedConfigKeys.AllenMountPoint]: {
             type: "string",
         },
@@ -42,7 +39,6 @@ const OPTIONS: Options<Record<string, unknown>> = {
                 },
             },
         },
-        // ImageJExecutable is Deprecated
         [PersistedConfigKeys.ImageJExecutable]: {
             type: "string",
         },
@@ -88,7 +84,6 @@ const OPTIONS: Options<Record<string, unknown>> = {
         },
     },
     migrations: {
-        // Migrate deprecated ImageJExecutable to new UserSelectedApplication key
         ">4.3.0": (store) => {
             if (store.has(PersistedConfigKeys.ImageJExecutable)) {
                 const fijiExePath = store.get(PersistedConfigKeys.ImageJExecutable) as string;
@@ -107,11 +102,9 @@ const OPTIONS: Options<Record<string, unknown>> = {
                     ]);
                 }
 
-                // Once migrated, remove the deprecated path
                 store.delete(PersistedConfigKeys.ImageJExecutable);
             }
         },
-        // Remove PersistedConfigKeys.AllenMountPoint
         ">5.2.0": (store) => {
             if (store.has(PersistedConfigKeys.AllenMountPoint)) {
                 store.delete(PersistedConfigKeys.AllenMountPoint);
@@ -139,13 +132,30 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
     }
 
     public getAll(): PersistedConfig {
+        // Initialize default values
+        const defaultConfig: PersistedConfig = {
+            [PersistedConfigKeys.AllenMountPoint]: "",
+            [PersistedConfigKeys.CsvColumns]: [],
+            [PersistedConfigKeys.DisplayAnnotations]: [],
+            [PersistedConfigKeys.ImageJExecutable]: "",
+            [PersistedConfigKeys.HasUsedApplicationBefore]: false,
+            [PersistedConfigKeys.Queries]: [],
+            [PersistedConfigKeys.RecentAnnotations]: [],
+            [PersistedConfigKeys.UserSelectedApplications]: [],
+        };
+
+        // Merge defaults with persisted values
         return Object.values(PersistedConfigKeys).reduce(
             (config: PersistedConfig, key) => ({
                 ...config,
-                [key as string]: this.get(key),
+                [key as string]: this.get(key) ?? defaultConfig[key],
             }),
-            {}
+            defaultConfig
         );
+    }
+
+    public clear(): void {
+        this.store.clear();
     }
 
     public persist(config: PersistedConfig): void;
