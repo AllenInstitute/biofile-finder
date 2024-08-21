@@ -47,7 +47,6 @@
     "@types/sinon": "10.x",
     "@types/streamsaver": "^2.0.4",
     "@types/string-natural-compare": "3.0.x",
-    "@types/xml2js": "^0.4.14",
     "@typescript-eslint/eslint-plugin": "5.x",
     "@typescript-eslint/parser": "5.x",
     "chai": "4.2.x",
@@ -73,7 +72,7 @@
     "@aics/redux-utils": "0.6.0",
     "@fluentui/react": "8.67.x",
     "@tippyjs/react": "4.2.x",
-    "axios": "^0.21.4",
+    "axios": "0.21.x",
     "classnames": "2.2.x",
     "cockatiel": "2.0.x",
     "debounce-promise": "3.1.x",
@@ -93,7 +92,7 @@
     "redux": "4.0.x",
     "redux-logic": "3.x",
     "reselect": "4.0.x",
-    "streamsaver": "^2.0.6",
+    "streamsaver": "~2.0.6",
     "string-natural-compare": "3.0.x",
     "zarrita": "^0.4.0-next.14"
   }
