@@ -144,7 +144,7 @@ describe("Interaction logics", () => {
 
         it("marks the failure of a manifest download with a status update", async () => {
             // arrange
-            class FailingDownloadSerivce implements FileDownloadService {
+            class FailingDownloadSerivce extends FileDownloadService {
                 isFileSystemAccessible = false;
                 getDefaultDownloadDirectory() {
                     return Promise.reject();
@@ -410,7 +410,7 @@ describe("Interaction logics", () => {
 
         it("dispatches progress events", async () => {
             // Arrange
-            class TestDownloadSerivce implements FileDownloadService {
+            class TestDownloadSerivce extends FileDownloadService {
                 isFileSystemAccessible = true;
                 getDefaultDownloadDirectory() {
                     return Promise.resolve("wherever");
@@ -476,7 +476,7 @@ describe("Interaction logics", () => {
 
         it("marks the failure of a file download with a status update", async () => {
             // Arrange
-            class TestDownloadSerivce implements FileDownloadService {
+            class TestDownloadSerivce extends FileDownloadService {
                 isFileSystemAccessible = true;
                 getDefaultDownloadDirectory() {
                     return Promise.resolve("wherever");
@@ -542,7 +542,7 @@ describe("Interaction logics", () => {
 
         it("clears status for download request if request was cancelled", async () => {
             // Arrange
-            class TestDownloadSerivce implements FileDownloadService {
+            class TestDownloadSerivce extends FileDownloadService {
                 isFileSystemAccessible = true;
                 getDefaultDownloadDirectory() {
                     return Promise.resolve("wherever");
@@ -596,7 +596,7 @@ describe("Interaction logics", () => {
             // Arrange
             let isDownloading = false;
             const expectedDestination = "yay real destination";
-            class UselessFileDownloadService implements FileDownloadService {
+            class UselessFileDownloadService extends FileDownloadService {
                 isFileSystemAccessible = false;
                 public prepareHttpResourceForDownload() {
                     return Promise.reject();
@@ -653,7 +653,7 @@ describe("Interaction logics", () => {
     describe("cancelFileDownloadLogic", () => {
         it("marks the failure of a download cancellation (on error)", async () => {
             // arrange
-            class TestDownloadService implements FileDownloadService {
+            class TestDownloadService extends FileDownloadService {
                 isFileSystemAccessible = false;
                 getDefaultDownloadDirectory() {
                     return Promise.reject();
@@ -712,7 +712,7 @@ describe("Interaction logics", () => {
         it("clears status if cancelled", async () => {
             // arrange
             const downloadRequestId = "beepbop";
-            class TestDownloadService implements FileDownloadService {
+            class TestDownloadService extends FileDownloadService {
                 isFileSystemAccessible = false;
                 getDefaultDownloadDirectory() {
                     return Promise.reject();

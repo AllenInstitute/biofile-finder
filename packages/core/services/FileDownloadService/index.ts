@@ -1,3 +1,7 @@
+import axios from "axios";
+
+import HttpServiceBase from "../HttpServiceBase";
+
 export enum DownloadResolution {
     CANCELLED = "CANCELLED",
     SUCCESS = "SUCCESS",
@@ -17,36 +21,76 @@ export interface FileInfo {
     data?: Uint8Array | Blob | string;
 }
 
-/**
- * Interface that defines a platform-dependent service for implementing download functionality.
- */
-export default interface FileDownloadService {
-    isFileSystemAccessible: boolean;
+export default abstract class FileDownloadService extends HttpServiceBase {
+    abstract isFileSystemAccessible: boolean;
 
     /**
-     * Retrieves the file system's default download location.
+     * Attempt to cancel an active download request, deleting the downloaded artifact if present.
      */
-    getDefaultDownloadDirectory(): Promise<string>;
+    abstract cancelActiveRequest(downloadRequestId: string): void;
 
     /**
      * Download a file described by `fileInfo`. Optionally provide an "onProgress" callback that will be
      * called repeatedly over the course of the file download with the number of bytes downloaded so far.
      */
-    download(
+    abstract download(
         fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (bytesDownloaded: number) => void
     ): Promise<DownloadResult>;
 
     /**
-     * Retrieve a Blob from a server over HTTP.
+     * Retrieves the file system's default download location.
      */
-    prepareHttpResourceForDownload(url: string, postBody: string): Promise<Blob>;
+    abstract getDefaultDownloadDirectory(): Promise<string>;
 
     /**
-     * Attempt to cancel an active download request, deleting the downloaded artifact if present.
+     * Retrieve a Blob from a server over HTTP.
      */
-    cancelActiveRequest(downloadRequestId: string): void;
+    public async prepareHttpResourceForDownload(url: string, postBody: string): Promise<Blob> {
+        const response = await this.rawPost<string>(url, postBody);
+        return new Blob([response], { type: "application/json" });
+    }
+
+    /**
+     * Return true if s3 file.
+     */
+    public isS3Url(url: string): boolean {
+        try {
+            const { protocol, hostname } = new URL(url);
+            return protocol === "https:" && hostname.endsWith(".amazonaws.com");
+        } catch (error) {
+            return false;
+        }
+    }
+
+    /**
+     * Break down S3 URl to Host and Path.
+     */
+    public parseS3Url(url: string): { hostname: string; key: string } {
+        const { hostname, pathname } = new URL(url);
+        const key = pathname.slice(1);
+        return { hostname, key };
+    }
+
+    /**
+     * List components of S3 directory.
+     */
+    public async listS3Objects(hostname: string, prefix: string): Promise<string[]> {
+        const url = `${hostname}?list-type=2&prefix=${encodeURIComponent(prefix)}`;
+        const response = await axios.get(url);
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(response.data, "text/xml");
+
+        const keys: string[] = [];
+        const contents = xmlDoc.getElementsByTagName("Key");
+
+        for (let i = 0; i < contents.length; i++) {
+            keys.push(contents[i].textContent || "");
+        }
+
+        return keys;
+    }
 }
 
 /**

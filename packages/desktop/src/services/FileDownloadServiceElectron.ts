@@ -7,12 +7,11 @@ import { Policy } from "cockatiel";
 import { app, ipcMain, ipcRenderer } from "electron";
 
 import {
-    FileDownloadService,
     DownloadResult,
+    FileDownloadService,
     FileInfo,
     DownloadResolution,
     FileDownloadCancellationToken,
-    FileStorageServiceBase,
 } from "../../../core/services";
 import { DownloadFailure } from "../../../core/errors";
 
@@ -40,9 +39,7 @@ interface DownloadOptions {
     writeStreamOptions: WriteStreamOptions;
 }
 
-export default class FileDownloadServiceElectron
-    extends FileStorageServiceBase
-    implements FileDownloadService {
+export default class FileDownloadServiceElectron extends FileDownloadService {
     // IPC events registered both within the main and renderer processes
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
     public static GET_DOWNLOADS_DIR = "get-downloads-dir";
@@ -262,11 +259,6 @@ export default class FileDownloadServiceElectron
             msg: `Successfully downloaded ${outFilePath}`,
             resolution: DownloadResolution.SUCCESS,
         };
-    }
-
-    public async prepareHttpResourceForDownload(url: string, postBody: string): Promise<Blob> {
-        const response = await this.rawPost<string>(url, postBody);
-        return new Blob([response], { type: "application/json" });
     }
 
     private async downloadOverHttp(options: DownloadOptions): Promise<DownloadResult> {

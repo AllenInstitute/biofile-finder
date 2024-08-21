@@ -6,12 +6,9 @@ import {
     DownloadResult,
     FileInfo,
     DownloadResolution,
-    FileStorageServiceBase,
 } from "../../../core/services";
 
-export default class FileDownloadServiceWeb
-    extends FileStorageServiceBase
-    implements FileDownloadService {
+export default class FileDownloadServiceWeb extends FileDownloadService {
     isFileSystemAccessible = false;
 
     public async download(fileInfo: FileInfo): Promise<DownloadResult> {
@@ -127,11 +124,6 @@ Please navigate to this directory manually, or upload files to a remote address 
         } finally {
             URL.revokeObjectURL(downloadUrl);
         }
-    }
-
-    public async prepareHttpResourceForDownload(url: string, postBody: string): Promise<Blob> {
-        const response = await this.rawPost<string>(url, postBody);
-        return new Blob([response], { type: "application/json" });
     }
 
     public getDefaultDownloadDirectory(): Promise<string> {

@@ -1,6 +1,6 @@
 import FileDownloadService, { DownloadResolution, DownloadResult, FileInfo } from ".";
 
-export default class FileDownloadServiceNoop implements FileDownloadService {
+export default class FileDownloadServiceNoop extends FileDownloadService {
     isFileSystemAccessible = false;
 
     download(
