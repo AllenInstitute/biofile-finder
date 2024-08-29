@@ -57,40 +57,34 @@ Please navigate to this directory manually, or upload files to a remote address 
     private async downloadS3Directory(fileInfo: FileInfo): Promise<DownloadResult> {
         const { hostname, key } = this.parseS3Url(fileInfo.path);
         const keys = await this.listS3Objects(hostname, key);
-
         if (keys.length === 0) {
             throw new Error("No files found in the specified S3 directory.");
         }
 
         const fileStream = StreamSaver.createWriteStream(`${fileInfo.name}.zip`);
-        const writer = fileStream.getWriter();
 
-        try {
-            for (const fileKey of keys) {
-                const fileUrl = `${hostname}/${encodeURIComponent(fileKey)}`;
-                const response = await axios.get(fileUrl, { responseType: "blob" });
+        const readableZipStream = new ReadableStream({
+            start(ctrl) {
+                keys.forEach((fileKey) => {
+                    const fileUrl = `https://${hostname}/${encodeURIComponent(fileKey)}`;
+                    ctrl.enqueue({
+                        name: fileKey.replace(`${key}/`, ""),
+                        stream: () =>
+                            axios
+                                .get(fileUrl, { responseType: "blob" })
+                                .then((response) => response.data.stream()),
+                    });
+                });
+                ctrl.close();
+            },
+        });
 
-                const blob = response.data;
-                const stream = blob.stream();
-                await stream.pipeTo(
-                    new WritableStream({
-                        write(chunk) {
-                            writer.write(chunk);
-                        },
-                    })
-                );
-            }
-            writer.close();
+        await readableZipStream.pipeTo(fileStream);
 
-            return {
-                downloadRequestId: fileInfo.id,
-                resolution: DownloadResolution.SUCCESS,
-            };
-        } catch (err) {
-            console.error(`Failed to download directory: ${err}`);
-            writer.abort();
-            throw err;
-        }
+        return {
+            downloadRequestId: fileInfo.id,
+            resolution: DownloadResolution.SUCCESS,
+        };
     }
 
     private async downloadFile(fileInfo: FileInfo): Promise<DownloadResult> {
@@ -114,6 +108,7 @@ Please navigate to this directory manually, or upload files to a remote address 
             a.target = "_blank";
             a.click();
             a.remove();
+            console.log(`File ${fileInfo.name} should start downloading...`);
             return {
                 downloadRequestId: fileInfo.id,
                 resolution: DownloadResolution.SUCCESS,

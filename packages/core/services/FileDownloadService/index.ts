@@ -77,7 +77,7 @@ export default abstract class FileDownloadService extends HttpServiceBase {
      * List components of S3 directory.
      */
     public async listS3Objects(hostname: string, prefix: string): Promise<string[]> {
-        const url = `${hostname}?list-type=2&prefix=${encodeURIComponent(prefix)}`;
+        const url = `https://${hostname}?list-type=2&prefix=${encodeURIComponent(prefix)}`;
         const response = await axios.get(url);
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(response.data, "text/xml");
