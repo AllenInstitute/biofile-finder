@@ -56,13 +56,13 @@ describe("<LazilyRenderedThumbnail />", () => {
         };
     }
 
-    it("renders thumbnail when file has one specified", () => {
+    it("renders thumbnail when file has one specified", async () => {
         // Arrange
         const state = mergeState(initialState, {});
         const { store } = configureMockStore({ state });
 
         // Act
-        const { getByText, getByRole } = render(
+        const { getByText, findByRole } = render(
             <Provider store={store}>
                 <LazilyRenderedThumbnail
                     data={makeItemData()}
@@ -75,17 +75,17 @@ describe("<LazilyRenderedThumbnail />", () => {
 
         // Assert
         // Also checking for proper row/col indexing
-        const thumbnail = getByRole("img");
+        const thumbnail = await findByRole("img");
         expect(thumbnail.getAttribute("src")).to.include("some/path/to/my_image0.jpg");
         expect(getByText("my_image0.czi")).to.not.equal(null);
     });
 
-    it("renders file as thumbnail if file is renderable type", () => {
+    it("renders file as thumbnail if file is renderable type", async () => {
         // Arrange
         const { store } = configureMockStore({ state: initialState });
 
         // Act
-        const { getByText, getByRole } = render(
+        const { getByText, findByRole } = render(
             <Provider store={store}>
                 <LazilyRenderedThumbnail
                     data={makeItemData()}
@@ -98,7 +98,7 @@ describe("<LazilyRenderedThumbnail />", () => {
 
         // Assert
         // Also confirms proper row/col indexing
-        const thumbnail = getByRole("img");
+        const thumbnail = await findByRole("img");
         expect(thumbnail.getAttribute("src")).to.include("some/path/to/my_image9.jpg");
         expect(getByText("my_image9.jpg")).to.not.equal(null);
     });
