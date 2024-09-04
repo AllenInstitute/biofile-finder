@@ -83,3 +83,7 @@
 .url-form > div > div > div {
     background-color: unset;
 }
+
+.url-form > div > div > div::after {
+    border: 1px solid var(--aqua);
+}

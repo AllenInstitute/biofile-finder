@@ -201,6 +201,6 @@ describe("<ListPicker />", () => {
         );
 
         // Act / Assert
-        expect(getByText(`Displaying ${items.length - 1} of ${items.length - 1} Options`)).to.exist;
+        expect(getByText(`Displaying ${items.length} of ${items.length} Options`)).to.exist;
     });
 });

@@ -63,7 +63,7 @@ export default function ListRow(props: Props) {
                 <div>{item.selected && <Icon iconName="CheckMark" />}</div>
                 <p>{item.displayValue}</p>
             </label>
-            {item.recent && <Icon iconName="Redo" />}
+            {item.recent && <Icon iconName="Recent" />}
             {item.loading && <Spinner className={styles.spinner} size={SpinnerSize.small} />}
         </DefaultButton>
     );

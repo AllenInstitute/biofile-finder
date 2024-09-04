@@ -17,12 +17,7 @@ describe("<NumberRangePicker />", () => {
 
         // Act / Assert
         const { getAllByTitle } = render(
-            <NumberRangePicker
-                items={items}
-                onSearch={noop}
-                onReset={noop}
-                currentRange={undefined}
-            />
+            <NumberRangePicker items={items} onSearch={noop} currentRange={undefined} />
         );
 
         // Should render both input fields
@@ -42,14 +37,7 @@ describe("<NumberRangePicker />", () => {
             value: val,
         }));
 
-        render(
-            <NumberRangePicker
-                items={items}
-                onSearch={noop}
-                onReset={noop}
-                currentRange={currentRange}
-            />
-        );
+        render(<NumberRangePicker items={items} onSearch={noop} currentRange={currentRange} />);
 
         // Should initialize to min and max item provided, respectively
         expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("0");
@@ -58,8 +46,8 @@ describe("<NumberRangePicker />", () => {
 
     it("renders a 'Reset' button if given a callback", () => {
         // Arrange
-        const onSearch = noop;
-        const onReset = sinon.spy();
+        const onSearch = sinon.spy();
+        const currentRange = new FileFilter("foo", "RANGE(1, 12.34)");
         const items: ListItem[] = ["0", "20"].map((val) => ({
             displayValue: val,
             value: val,
@@ -67,26 +55,21 @@ describe("<NumberRangePicker />", () => {
 
         // Act / Assert
         const { getByTitle } = render(
-            <NumberRangePicker
-                items={items}
-                onSearch={onSearch}
-                onReset={onReset}
-                currentRange={undefined}
-            />
+            <NumberRangePicker items={items} onSearch={onSearch} currentRange={currentRange} />
         );
 
-        // Sanity check
-        expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("0");
-        expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("20");
+        // Consistency check
+        expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("1");
+        expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("12.34");
 
         // Hit reset
-        expect(onReset.called).to.equal(false);
-        fireEvent.click(getByTitle("Reset filter"));
-        expect(onReset.called).to.equal(true);
+        expect(onSearch.called).to.equal(false);
+        fireEvent.click(getByTitle("Reset values"));
+        expect(onSearch.called).to.equal(true);
 
-        // Should clear min and max values
-        expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("");
-        expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("");
+        // Should reset to min and max values
+        expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("0");
+        expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("20");
     });
 
     it("displays available min and max of items", () => {
@@ -96,21 +79,12 @@ describe("<NumberRangePicker />", () => {
             value: val,
         }));
         const { getByText } = render(
-            <NumberRangePicker
-                items={items}
-                onReset={noop}
-                onSearch={noop}
-                currentRange={undefined}
-            />
+            <NumberRangePicker items={items} onSearch={noop} currentRange={undefined} />
         );
 
         // Act / Assert
-        expect(
-            getByText(
-                `Full range available: ${items[0].displayValue}, ${
-                    items[items.length - 1].displayValue
-                }`
-            )
-        ).to.exist;
+        expect(getByText("Full range available:")).to.exist;
+        expect(getByText(`${items[0].displayValue}, ${items[items.length - 1].displayValue}`)).to
+            .exist;
     });
 });

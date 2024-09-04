@@ -1,4 +1,4 @@
-import { SearchBox as SearchBoxComponent } from "@fluentui/react";
+import { IconButton, SearchBox as SearchBoxComponent } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
@@ -14,6 +14,7 @@ interface Props {
     onSearch?: (value: string) => void;
     onReset: () => void;
     placeholder?: string;
+    showSubmitButton?: boolean;
 }
 
 /**
@@ -21,6 +22,7 @@ interface Props {
  */
 export default function SearchBox(props: Props) {
     const [searchValue, setSearchValue] = React.useState(props.defaultValue?.value ?? "");
+    const showSubmitButton = props?.showSubmitButton || false;
 
     const onSearchBoxChange = (event?: React.ChangeEvent<HTMLInputElement>) => {
         if (event) {
@@ -35,14 +37,25 @@ export default function SearchBox(props: Props) {
     }
 
     return (
-        <SearchBoxComponent
-            className={classNames(props.className, styles.searchBox)}
-            id={props.id}
-            onClear={onClear}
-            onSearch={props.onSearch}
-            onChange={onSearchBoxChange}
-            placeholder={props.placeholder || "Search..."}
-            value={searchValue}
-        />
+        <div className={styles.searchBoxWrapper}>
+            <SearchBoxComponent
+                className={classNames(props.className, styles.searchBox)}
+                id={props.id}
+                onClear={onClear}
+                onSearch={props.onSearch}
+                onChange={onSearchBoxChange}
+                placeholder={props.placeholder || "Search..."}
+                value={searchValue}
+            />
+            {showSubmitButton && (
+                <IconButton
+                    ariaLabel="Submit"
+                    className={styles.submitButton}
+                    title={"Submit"}
+                    onClick={() => props.onSearch?.(searchValue)}
+                    iconProps={{ iconName: "ReturnKey" }}
+                />
+            )}
+        </div>
     );
 }

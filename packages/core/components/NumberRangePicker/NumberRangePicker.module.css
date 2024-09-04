@@ -1,45 +1,47 @@
-.buttons {
-    clear: both;
-    display: flex;
-    justify-content: center;
-    padding-top: var(--margin);
-}
-
 .footer {
+    display: flex;
     width: 100%;
-}
-
-.footer > h6 {
-    font-size: smaller;
+    font-size: var(--xs-paragraph-size);
     font-weight: normal;
-    margin: var(--margin) 0 0 0;
+    margin: calc(2*var(--margin)) 0 0 0;
+    overflow: hidden;
+    justify-content: space-between; 
 }
 
-.action-button, .reset-button {
-    border-radius: var(--small-border-radius);
+.footer-left {
+    padding-right: 4px;
+    line-height: 1.5;
+    flex-grow: 1;
 }
 
-.action-button, .action-button span, .action-button i {
-    color: var(--highlight-text-color) !important;
+.footer-right {
+    display: flex;
+    justify-content: flex-end;
 }
 
-.action-button, .action-button i {
+.submit-button {
+    width: fit-content;
+}
+
+.submit-button, .submit-button i {
     background-color: var(--highlight-background-color) !important;
+    color: var(--highlight-text-color) !important;
+    font-size: var(--xs-paragraph-size);
 }
 
-.action-button i, .reset-button i {
-    font-size: smaller;
-}
-
-.action-button:hover:not(.disabled), .action-button:hover:not(.disabled) i, .action-button:hover:not(.disabled) span {
+.submit-button:hover:not(.disabled), .submit-button:hover:not(.disabled) i, .submit-button:hover:not(.disabled) span {
     background-color: var(--highlight-hover-background-color) !important;
     color: var(--highlight-hover-text-color) !important;
     cursor: pointer;
 }
 
-.action-button.disabled {
-    cursor: not-allowed;
+.submit-button.disabled {
     opacity: 0.5;
+}
+
+.reset-button {
+    height: 30px;
+    width: 30px;
 }
 
 .reset-button, .reset-button span, .reset-button i {
@@ -48,6 +50,9 @@
 
 .reset-button, .reset-button i {
     background-color: var(--secondary-background-color) !important;
+    font-size: var(--s-paragraph-size);
+    margin: 0 5px;
+
 }
 
 .reset-button:hover, .reset-button:hover i {
@@ -57,13 +62,16 @@
 }
 
 .reset-button-container {
-    margin-top: 2px;
+    align-items: flex-end;
+    display: flex;
 }
 
 .inputs {
     display: flex;
-    justify-content: space-between;
+}
 
+.input-field {
+    flex-grow: 1;
 }
 
 .input-field > input {
@@ -72,13 +80,28 @@
     border: 1px solid var(--border-color);
     color: var(--secondary-text-color);
     outline: none;
+    padding: 6px;
+    font-size: var(--s-paragraph-size);
+    width: 100%;
+    min-width: fit-content;
+}
+
+.input-field:active > input, .input-field > input:active, 
+.input-field:focus > input, .input-field > input:focus,
+.input-field:focus-within > input, .input-field > input:focus-within  {
+    border: 1px solid var(--aqua);
 }
 
 .range-seperator {
-    align-items: center;
+    align-items: flex-end;
     display: flex;
     font-size: small;
-    margin: 0 2px;
+    margin: 0 10px 8px;
+}
+
+.range-seperator > i {
+    font-size: var(--xs-paragraph-size);
+    font-weight: 600;
 }
 
 .title {
