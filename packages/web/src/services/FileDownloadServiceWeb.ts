@@ -29,6 +29,7 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
 
         const message = `The file path "${fileInfo.path}" is not supported for Zarr downloads in the web environment. 
 Only S3 URLs are supported. Please upload your files to an S3 bucket for web-based downloads.`;
+        alert(message);
         throw new Error(message);
     }
 
@@ -44,7 +45,6 @@ Due to security restrictions, the web browser cannot open this location directly
 Please navigate to this directory manually, or upload files to a remote address such as S3.`;
 
         alert(message);
-        console.log(`Local directory path: ${directoryPath}`);
 
         return {
             downloadRequestId: fileInfo.id,
