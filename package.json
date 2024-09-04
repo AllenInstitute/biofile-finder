@@ -45,7 +45,6 @@
     "@types/react-window": "1.8.x",
     "@types/react-window-infinite-loader": "1.0.x",
     "@types/sinon": "10.x",
-    "@types/streamsaver": "^2.0.4",
     "@types/string-natural-compare": "3.0.x",
     "@typescript-eslint/eslint-plugin": "5.x",
     "@typescript-eslint/parser": "5.x",
@@ -92,7 +91,6 @@
     "redux": "4.0.x",
     "redux-logic": "3.x",
     "reselect": "4.0.x",
-    "streamsaver": "~2.0.6",
     "string-natural-compare": "3.0.x",
     "zarrita": "^0.4.0-next.14"
   }
