@@ -12,45 +12,44 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
 
     public async download(fileInfo: FileInfo): Promise<DownloadResult> {
         if (fileInfo.path.endsWith(".zarr")) {
-            const downloadResult = await this.handleZarrFile(fileInfo);
-            if (downloadResult) {
-                return downloadResult;
-            }
+            return await this.handleZarrFile(fileInfo);
+        } else {
+            return await this.downloadFile(fileInfo);
         }
-
-        return this.downloadFile(fileInfo);
     }
 
-    private async handleZarrFile(fileInfo: FileInfo): Promise<DownloadResult | null> {
+    private async handleZarrFile(fileInfo: FileInfo): Promise<DownloadResult> {
         if (this.isS3Url(fileInfo.path)) {
             return await this.downloadS3Directory(fileInfo);
         }
 
-        const localDownloadResult = this.isLocalPath(fileInfo.path, fileInfo);
-        return localDownloadResult;
+        if (this.isLocalPath(fileInfo.path)) {
+            return this.handleLocalZarrFile(fileInfo);
+        }
+
+        const message = `The file path "${fileInfo.path}" is not supported for Zarr downloads in the web environment. 
+Only S3 URLs are supported. Please upload your files to an S3 bucket for web-based downloads.`;
+        throw new Error(message);
     }
 
-    private isLocalPath(filePath: string, fileInfo: FileInfo): DownloadResult | null {
+    private isLocalPath(filePath: string): boolean {
         const uriPattern = /^(https?|ftp):\/\/|^[a-zA-Z]:\\/;
-        const isLocal = filePath.startsWith("file://") || !uriPattern.test(filePath);
+        return filePath.startsWith("file://") || !uriPattern.test(filePath);
+    }
 
-        if (isLocal) {
-            const directoryPath = fileInfo.path;
-
-            const message = `The directory containing the Zarr file is located at: ${directoryPath}.
+    private handleLocalZarrFile(fileInfo: FileInfo): DownloadResult {
+        const directoryPath = fileInfo.path;
+        const message = `The directory containing the Zarr file is located at: ${directoryPath}.
 Due to security restrictions, the web browser cannot open this location directly. 
 Please navigate to this directory manually, or upload files to a remote address such as S3.`;
 
-            alert(message);
-            console.log(`Local directory path: ${directoryPath}`);
+        alert(message);
+        console.log(`Local directory path: ${directoryPath}`);
 
-            return {
-                downloadRequestId: fileInfo.id,
-                resolution: DownloadResolution.CANCELLED,
-            };
-        }
-
-        return null;
+        return {
+            downloadRequestId: fileInfo.id,
+            resolution: DownloadResolution.CANCELLED,
+        };
     }
 
     private async downloadS3Directory(fileInfo: FileInfo): Promise<DownloadResult> {
@@ -61,41 +60,30 @@ Please navigate to this directory manually, or upload files to a remote address 
             throw new Error("No files found in the specified S3 directory.");
         }
 
-        // Initialize JSZip for zipping files
         const zip = new JSZip();
 
-        try {
-            for (const fileKey of keys) {
-                const fileUrl = `https://${hostname}/${encodeURIComponent(fileKey)}`;
-                const response = await axios.get(fileUrl, { responseType: "blob" });
-                const fileData = response.data;
-                const fileName = fileKey.replace(`${key}/`, "");
+        for (const fileKey of keys) {
+            const fileUrl = `https://${hostname}/${encodeURIComponent(fileKey)}`;
+            const response = await axios.get(fileUrl, { responseType: "blob" });
+            const fileData = response.data;
+            const fileName = fileKey.replace(`${key}/`, "");
 
-                // Add the file to JSZip
-                zip.file(fileName, fileData);
-            }
-
-            // Generate the ZIP file as a Blob and trigger the download
-            const zipBlob = await zip.generateAsync({ type: "blob" });
-            this.downloadZipBlob(zipBlob, `${fileInfo.name}.zip`);
-        } catch (error) {
-            console.error(`Error while creating ZIP: ${error}`);
-            throw error;
+            zip.file(fileName, fileData);
         }
+
+        // Generate the ZIP file as a Blob and trigger the download
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        const downloadUrl = URL.createObjectURL(zipBlob);
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = `${fileInfo.name}.zip`;
+        a.click();
+        URL.revokeObjectURL(downloadUrl);
 
         return {
             downloadRequestId: fileInfo.id,
             resolution: DownloadResolution.SUCCESS,
         };
-    }
-
-    private downloadZipBlob(blob: Blob, fileName: string): void {
-        const downloadUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = downloadUrl;
-        a.download = fileName;
-        a.click();
-        URL.revokeObjectURL(downloadUrl);
     }
 
     private async downloadFile(fileInfo: FileInfo): Promise<DownloadResult> {
