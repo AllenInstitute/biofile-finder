@@ -1,6 +1,5 @@
 import axios from "axios";
-import StreamSaver from "streamsaver";
-
+import JSZip from "jszip";
 import {
     FileDownloadService,
     DownloadResult,
@@ -28,7 +27,7 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
         }
 
         const localDownloadResult = this.isLocalPath(fileInfo.path, fileInfo);
-        return localDownloadResult; // This will be either a DownloadResult or null
+        return localDownloadResult;
     }
 
     private isLocalPath(filePath: string, fileInfo: FileInfo): DownloadResult | null {
@@ -57,34 +56,46 @@ Please navigate to this directory manually, or upload files to a remote address 
     private async downloadS3Directory(fileInfo: FileInfo): Promise<DownloadResult> {
         const { hostname, key } = this.parseS3Url(fileInfo.path);
         const keys = await this.listS3Objects(hostname, key);
+
         if (keys.length === 0) {
             throw new Error("No files found in the specified S3 directory.");
         }
 
-        const fileStream = StreamSaver.createWriteStream(`${fileInfo.name}.zip`);
+        // Initialize JSZip for zipping files
+        const zip = new JSZip();
 
-        const readableZipStream = new ReadableStream({
-            start(ctrl) {
-                keys.forEach((fileKey) => {
-                    const fileUrl = `https://${hostname}/${encodeURIComponent(fileKey)}`;
-                    ctrl.enqueue({
-                        name: fileKey.replace(`${key}/`, ""),
-                        stream: () =>
-                            axios
-                                .get(fileUrl, { responseType: "blob" })
-                                .then((response) => response.data.stream()),
-                    });
-                });
-                ctrl.close();
-            },
-        });
+        try {
+            for (const fileKey of keys) {
+                const fileUrl = `https://${hostname}/${encodeURIComponent(fileKey)}`;
+                const response = await axios.get(fileUrl, { responseType: "blob" });
+                const fileData = response.data;
+                const fileName = fileKey.replace(`${key}/`, "");
 
-        await readableZipStream.pipeTo(fileStream);
+                // Add the file to JSZip
+                zip.file(fileName, fileData);
+            }
+
+            // Generate the ZIP file as a Blob and trigger the download
+            const zipBlob = await zip.generateAsync({ type: "blob" });
+            this.downloadZipBlob(zipBlob, `${fileInfo.name}.zip`);
+        } catch (error) {
+            console.error(`Error while creating ZIP: ${error}`);
+            throw error;
+        }
 
         return {
             downloadRequestId: fileInfo.id,
             resolution: DownloadResolution.SUCCESS,
         };
+    }
+
+    private downloadZipBlob(blob: Blob, fileName: string): void {
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(downloadUrl);
     }
 
     private async downloadFile(fileInfo: FileInfo): Promise<DownloadResult> {
