@@ -110,7 +110,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                 className: styles.agaveLink,
                 text: "AGAVE",
                 title: `Open files with AGAVE`,
-                href: `agave://${fileDetails?.path}`,
+                href: `agave://?url=${fileDetails?.path}`,
                 disabled: !fileDetails?.path,
                 target: "_blank",
                 onRenderContent(props, defaultRenders) {
