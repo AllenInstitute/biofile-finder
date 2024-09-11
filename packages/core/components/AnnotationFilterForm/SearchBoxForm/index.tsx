@@ -42,6 +42,8 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
 
     const _onToggleFuzzySearch = (_: React.MouseEvent<HTMLElement>, checked?: boolean): void => {
         setIsFuzzySearching(!!checked);
+        // Trigger search without requiring user to hit enter/submit
+        if (props?.defaultValue) props.onToggleFuzzySearch();
     };
 
     return (

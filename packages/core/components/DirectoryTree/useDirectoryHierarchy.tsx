@@ -104,6 +104,9 @@ const useDirectoryHierarchy = (
     const hierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const fileService = useSelector(interaction.selectors.getFileService);
+    const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
+    const excludeFilters = useSelector(selection.selectors.getExcludeFilters);
+    const includeFilters = useSelector(selection.selectors.getIncludeFilters);
     const selectedFileFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
     const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
@@ -152,18 +155,32 @@ const useDirectoryHierarchy = (
                     if (isRoot) {
                         values = await annotationService.fetchRootHierarchyValues(
                             hierarchy,
-                            selectedFileFilters
+                            selectedFileFilters,
+                            fuzzyFilters,
+                            excludeFilters,
+                            includeFilters
                         );
                     } else {
                         values = await annotationService.fetchHierarchyValuesUnderPath(
                             hierarchy,
                             pathToNode,
-                            selectedFileFilters
+                            selectedFileFilters,
+                            fuzzyFilters,
+                            excludeFilters,
+                            includeFilters
                         );
                     }
 
                     const filteredValues = values.filter((value) => {
                         if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
+                            if (
+                                fuzzyFilters?.some(
+                                    (fuzzy) => fuzzy.annotationName === annotationNameAtDepth
+                                )
+                            ) {
+                                // There can only be one selected value for fuzzy search, so reverse match
+                                return value.includes(userSelectedFiltersForCurrentAnnotation[0]);
+                            }
                             return userSelectedFiltersForCurrentAnnotation.includes(value);
                         }
 
@@ -211,6 +228,9 @@ const useDirectoryHierarchy = (
                         const childNodeFileSet = new FileSet({
                             fileService,
                             filters,
+                            fuzzyFilters,
+                            excludeFilters,
+                            includeFilters,
                             sort: sortColumn,
                         });
 
@@ -253,9 +273,12 @@ const useDirectoryHierarchy = (
         annotationService,
         currentNode,
         collapsed,
+        excludeFilters,
         fileService,
         fileSet,
+        fuzzyFilters,
         hierarchy,
+        includeFilters,
         isRoot,
         isLeaf,
         selectedFileFilters,
