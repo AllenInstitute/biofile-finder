@@ -3,14 +3,20 @@ import LRUCache from "lru-cache";
 
 import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
+import FuzzyFilter from "../SimpleFilter/FuzzyFilter";
+import ExcludeFilter from "../SimpleFilter/ExcludeFilter";
+import IncludeFilter from "../SimpleFilter/IncludeFilter";
 import FileService from "../../services/FileService";
 import FileServiceNoop from "../../services/FileService/FileServiceNoop";
 import SQLBuilder from "../SQLBuilder";
 import FileDetail from "../FileDetail";
 
 interface Opts {
+    excludeFilters?: ExcludeFilter[];
     fileService: FileService;
     filters: FileFilter[];
+    fuzzyFilters?: FuzzyFilter[];
+    includeFilters?: IncludeFilter[];
     maxCacheSize: number;
     sort?: FileSort;
 }
@@ -36,6 +42,9 @@ export default class FileSet {
     private cache: LRUCache<number, FileDetail>;
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
+    public readonly fuzzyFilters?: FuzzyFilter[];
+    public readonly excludeFilters?: ExcludeFilter[];
+    public readonly includeFilters?: IncludeFilter[];
     public readonly sort?: FileSort;
     private totalFileCount: number | undefined;
     private indexesForFilesCurrentlyLoading: Set<number> = new Set();
@@ -45,10 +54,21 @@ export default class FileSet {
     }
 
     constructor(opts: Partial<Opts> = {}) {
-        const { fileService, filters, maxCacheSize, sort } = defaults({}, opts, DEFAULT_OPTS);
+        const {
+            fileService,
+            filters,
+            fuzzyFilters,
+            excludeFilters,
+            includeFilters,
+            maxCacheSize,
+            sort,
+        } = defaults({}, opts, DEFAULT_OPTS);
 
         this.cache = new LRUCache<number, FileDetail>({ max: maxCacheSize });
         this._filters = filters;
+        this.fuzzyFilters = fuzzyFilters;
+        this.excludeFilters = excludeFilters;
+        this.includeFilters = includeFilters;
         this.sort = sort;
         this.fileService = fileService;
 
@@ -167,6 +187,33 @@ export default class FileSet {
 
         if (this.sort) {
             query.push(this.sort.toQueryString());
+        }
+
+        if (this.fuzzyFilters?.length) {
+            const sortedFuzzyFilters = [...this.fuzzyFilters].sort((a, b) =>
+                a.toQueryString().localeCompare(b.toQueryString())
+            );
+            query.push(
+                map(sortedFuzzyFilters, (filterName) => filterName.toQueryString()).join("&")
+            );
+        }
+
+        if (this.excludeFilters?.length) {
+            const sortedExcludeFilters = [...this.excludeFilters].sort((a, b) =>
+                a.toQueryString().localeCompare(b.toQueryString())
+            );
+            query.push(
+                map(sortedExcludeFilters, (filterName) => filterName.toQueryString()).join("&")
+            );
+        }
+
+        if (this.includeFilters?.length) {
+            const sortedIncludeFilters = [...this.includeFilters].sort((a, b) =>
+                a.toQueryString().localeCompare(b.toQueryString())
+            );
+            query.push(
+                map(sortedIncludeFilters, (filterName) => filterName.toQueryString()).join("&")
+            );
         }
 
         return join(query, "&");

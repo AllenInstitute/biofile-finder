@@ -4,11 +4,17 @@ import AnnotationService, { AnnotationValue } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
 import Annotation, { AnnotationResponse } from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
+import FuzzyFilter from "../../../entity/SimpleFilter/FuzzyFilter";
+import ExcludeFilter from "../../../entity/SimpleFilter/ExcludeFilter";
+import IncludeFilter from "../../../entity/SimpleFilter/IncludeFilter";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
 
 enum QueryParam {
+    EXCLUDE = "exclude",
     FILTER = "filter",
+    FUZZY = "fuzzy",
     HIERARCHY = "hierarchy",
+    INCLUDE = "include",
     ORDER = "order",
     PATH = "path",
 }
@@ -50,7 +56,10 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
 
     public async fetchRootHierarchyValues(
         hierarchy: string[],
-        filters: FileFilter[]
+        filters: FileFilter[],
+        fuzzyFilters?: FuzzyFilter[],
+        excludeFilters?: ExcludeFilter[],
+        includeFilters?: IncludeFilter[]
     ): Promise<string[]> {
         // It's important that we fetch values for the correct (i.e., first) level of the hierarchy.
         // But after that, sort the levels so that we can effectively cache the result
@@ -62,6 +71,18 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
             this.buildQueryParams(
                 QueryParam.FILTER,
                 filters.map((f) => f.toQueryString())
+            ),
+            this.buildQueryParams(
+                QueryParam.FUZZY,
+                fuzzyFilters?.map((f) => f.annotationName) || []
+            ),
+            this.buildQueryParams(
+                QueryParam.EXCLUDE,
+                excludeFilters?.map((f) => f.annotationName) || []
+            ),
+            this.buildQueryParams(
+                QueryParam.INCLUDE,
+                includeFilters?.map((f) => f.annotationName) || []
             ),
         ]
             .filter((param) => !!param)
@@ -76,7 +97,10 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
     public async fetchHierarchyValuesUnderPath(
         hierarchy: string[],
         path: string[],
-        filters: FileFilter[]
+        filters: FileFilter[],
+        fuzzyFilters?: FuzzyFilter[],
+        excludeFilters?: ExcludeFilter[],
+        includeFilters?: IncludeFilter[]
     ): Promise<string[]> {
         const queryParams = [
             this.buildQueryParams(QueryParam.ORDER, hierarchy),
@@ -84,6 +108,18 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
             this.buildQueryParams(
                 QueryParam.FILTER,
                 filters.map((f) => f.toQueryString())
+            ),
+            this.buildQueryParams(
+                QueryParam.FUZZY,
+                fuzzyFilters?.map((f) => f.annotationName) || []
+            ),
+            this.buildQueryParams(
+                QueryParam.EXCLUDE,
+                excludeFilters?.map((f) => f.annotationName) || []
+            ),
+            this.buildQueryParams(
+                QueryParam.INCLUDE,
+                includeFilters?.map((f) => f.annotationName) || []
             ),
         ]
             .filter((param) => !!param)

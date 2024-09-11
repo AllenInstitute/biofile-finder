@@ -2,6 +2,9 @@ import AnnotationName from "../Annotation/AnnotationName";
 import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
+import ExcludeFilter from "../SimpleFilter/ExcludeFilter";
+import FuzzyFilter from "../SimpleFilter/FuzzyFilter";
+import IncludeFilter from "../SimpleFilter/IncludeFilter";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 export interface Source {
@@ -17,6 +20,9 @@ export interface FileExplorerURLComponents {
     sourceMetadata?: Source;
     filters: FileFilter[];
     openFolders: FileFolder[];
+    fuzzyFilters?: FuzzyFilter[];
+    includeFilters?: IncludeFilter[];
+    excludeFilters?: ExcludeFilter[];
     sortColumn?: FileSort;
 }
 
@@ -25,6 +31,9 @@ export const EMPTY_QUERY_COMPONENTS: FileExplorerURLComponents = {
     filters: [],
     openFolders: [],
     sources: [],
+    fuzzyFilters: [],
+    includeFilters: [],
+    excludeFilters: [],
 };
 
 const BEGINNING_OF_TODAY = new Date();
@@ -83,6 +92,15 @@ export default class FileExplorerURL {
         urlComponents.filters?.forEach((filter) => {
             params.append("filter", JSON.stringify(filter.toJSON()));
         });
+        urlComponents.fuzzyFilters?.forEach((fuzzyFilter) => {
+            params.append("fuzzy", JSON.stringify(fuzzyFilter.toJSON()));
+        });
+        urlComponents.includeFilters?.forEach((includeFilter) => {
+            params.append("include", JSON.stringify(includeFilter.toJSON()));
+        });
+        urlComponents.excludeFilters?.forEach((excludeFilters) => {
+            params.append("exclude", JSON.stringify(excludeFilters.toJSON()));
+        });
         urlComponents.openFolders?.map((folder) => {
             params.append("openFolder", JSON.stringify(folder.fileFolder));
         });
@@ -130,9 +148,25 @@ export default class FileExplorerURL {
         const unparsedFilters = params.getAll("filter");
         const unparsedSources = params.getAll("source");
         const hierarchy = params.getAll("group");
+        const unparsedFuzzyFilters = params.getAll("fuzzy");
+        const unparsedIncludeFilters = params.getAll("include");
+        const unparsedExcludeFilters = params.getAll("exclude");
         const unparsedSort = params.get("sort");
         const hierarchyDepth = hierarchy.length;
 
+        const parsedFuzzyFilters = unparsedFuzzyFilters
+            ? unparsedFuzzyFilters.map((unparsedFuzzyFilter) => JSON.parse(unparsedFuzzyFilter))
+            : undefined;
+        const parsedIncludeFilters = unparsedIncludeFilters
+            ? unparsedIncludeFilters.map((unparsedIncludeFilter) =>
+                  JSON.parse(unparsedIncludeFilter)
+              )
+            : undefined;
+        const parsedExcludeFilters = unparsedExcludeFilters
+            ? unparsedExcludeFilters.map((unparsedExcludeFilter) =>
+                  JSON.parse(unparsedExcludeFilter)
+              )
+            : undefined;
         const parsedSort = unparsedSort ? JSON.parse(unparsedSort) : undefined;
         if (
             parsedSort &&
@@ -149,6 +183,21 @@ export default class FileExplorerURL {
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
                 .map((parsedFilter) => new FileFilter(parsedFilter.name, parsedFilter.value)),
+            fuzzyFilters: parsedFuzzyFilters
+                ? parsedFuzzyFilters.map(
+                      (parsedFuzzyFilter) => new FuzzyFilter(parsedFuzzyFilter.annotationName)
+                  )
+                : undefined,
+            includeFilters: parsedIncludeFilters
+                ? parsedIncludeFilters.map(
+                      (parsedIncludeFilter) => new IncludeFilter(parsedIncludeFilter.annotationName)
+                  )
+                : undefined,
+            excludeFilters: parsedExcludeFilters
+                ? parsedExcludeFilters.map(
+                      (parsedExcludeFilter) => new ExcludeFilter(parsedExcludeFilter.annotationName)
+                  )
+                : undefined,
             sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
             sourceMetadata: unparsedSourceMetadata ? JSON.parse(unparsedSourceMetadata) : undefined,
             openFolders: unparsedOpenFolders

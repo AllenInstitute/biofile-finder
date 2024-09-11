@@ -8,12 +8,18 @@ import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
+import ExcludeFilter from "../../entity/SimpleFilter/ExcludeFilter";
+import FuzzyFilter from "../../entity/SimpleFilter/FuzzyFilter";
+import IncludeFilter from "../../entity/SimpleFilter/IncludeFilter";
 
 import {
     SET_DISPLAY_ANNOTATIONS,
     SET_ANNOTATION_HIERARCHY,
     SET_AVAILABLE_ANNOTATIONS,
     SET_FILE_FILTERS,
+    SET_FUZZY_FILTERS,
+    SET_EXCLUDE_FILTERS,
+    SET_INCLUDE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
     RESIZE_COLUMN,
@@ -51,10 +57,13 @@ export interface SelectionStateBranch {
     };
     dataSources: Source[];
     displayAnnotations: Annotation[];
+    excludeFilters?: ExcludeFilter[];
     fileGridColumnCount: number;
     fileSelection: FileSelection;
     filters: FileFilter[];
+    fuzzyFilters?: FuzzyFilter[];
     isDarkTheme: boolean;
+    includeFilters?: IncludeFilter[];
     openFileFolders: FileFolder[];
     recentAnnotations: string[];
     selectedQuery?: string;
@@ -78,14 +87,17 @@ export const initialState = {
     },
     dataSources: [],
     displayAnnotations: [],
-    isDarkTheme: true,
+    excludeFilters: [],
     fileGridColumnCount: THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE,
     fileSelection: new FileSelection(),
     filters: [],
+    fuzzyFilters: [],
+    includeFilters: [],
+    isDarkTheme: true,
     openFileFolders: [],
+    queries: [],
     recentAnnotations: [],
     shouldDisplaySmallFont: false,
-    queries: [],
     shouldDisplayThumbnailView: false,
 };
 
@@ -117,6 +129,18 @@ export default makeReducer<SelectionStateBranch>(
 
             // Reset file selections when file filters change
             fileSelection: new FileSelection(),
+        }),
+        [SET_FUZZY_FILTERS]: (state, action) => ({
+            ...state,
+            fuzzyFilters: action.payload,
+        }),
+        [SET_INCLUDE_FILTERS]: (state, action) => ({
+            ...state,
+            includeFilters: action.payload,
+        }),
+        [SET_EXCLUDE_FILTERS]: (state, action) => ({
+            ...state,
+            excludeFilters: action.payload,
         }),
         [SORT_COLUMN]: (state, action) => {
             if (state.sortColumn?.annotationName === action.payload) {

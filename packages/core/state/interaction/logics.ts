@@ -510,7 +510,7 @@ const refresh = createLogic({
  * dispatching appropriate modal changes
  */
 const setIsSmallScreen = createLogic({
-    process(deps: ReduxLogicDeps, dispatch) {
+    process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: isSmallScreen } = deps.action as SetIsSmallScreenAction;
         const isDisplayingSmallScreenModal = interactionSelectors.getIsDisplayingSmallScreenWarning(
             deps.getState()
@@ -529,6 +529,7 @@ const setIsSmallScreen = createLogic({
             // Don't dispatch hide if a different modal is open
             dispatch(hideVisibleModal());
         }
+        done();
     },
     type: SET_IS_SMALL_SCREEN,
 });

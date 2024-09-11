@@ -16,9 +16,12 @@ export const getAvailableAnnotationsForHierarchy = (state: State) =>
 export const getAvailableAnnotationsForHierarchyLoading = (state: State) =>
     state.selection.availableAnnotationsForHierarchyLoading;
 export const getColumnWidths = (state: State) => state.selection.columnWidths;
+export const getExcludeFilters = (state: State) => state.selection.excludeFilters;
 export const getFileGridColumnCount = (state: State) => state.selection.fileGridColumnCount;
 export const getFileFilters = (state: State) => state.selection.filters;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
+export const getFuzzyFilters = (state: State) => state.selection.fuzzyFilters;
+export const getIncludeFilters = (state: State) => state.selection.includeFilters;
 export const getIsDarkTheme = (state: State) => state.selection.isDarkTheme;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getRecentAnnotations = (state: State) => state.selection.recentAnnotations;
@@ -44,7 +47,10 @@ export const isQueryingAicsFms = createSelector(
 export const getCurrentQueryParts = createSelector(
     [
         getAnnotationHierarchy,
+        getExcludeFilters,
         getFileFilters,
+        getFuzzyFilters,
+        getIncludeFilters,
         getOpenFileFolders,
         getSortColumn,
         getSelectedDataSources,
@@ -52,14 +58,20 @@ export const getCurrentQueryParts = createSelector(
     ],
     (
         hierarchy,
+        excludeFilters,
         filters,
+        fuzzyFilters,
+        includeFilters,
         openFolders,
         sortColumn,
         sources,
         sourceMetadata
     ): FileExplorerURLComponents => ({
         hierarchy,
+        excludeFilters,
         filters,
+        fuzzyFilters,
+        includeFilters,
         openFolders,
         sortColumn,
         sources,

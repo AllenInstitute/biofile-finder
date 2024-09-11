@@ -39,6 +39,15 @@ import {
     CHANGE_SOURCE_METADATA,
     ChangeSourceMetadataAction,
     changeSourceMetadata,
+    ADD_FUZZY_FILTER,
+    REMOVE_FUZZY_FILTER,
+    setFuzzyFilters,
+    ADD_INCLUDE_FILTER,
+    REMOVE_INCLUDE_FILTER,
+    setIncludeFilters,
+    ADD_EXCLUDE_FILTER,
+    REMOVE_EXCLUDE_FILTER,
+    setExcludeFilters,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -48,6 +57,10 @@ import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
+import SimpleFilter from "../../entity/SimpleFilter";
+import ExcludeFilter from "../../entity/SimpleFilter/ExcludeFilter";
+import FuzzyFilter from "../../entity/SimpleFilter/FuzzyFilter";
+import IncludeFilter from "../../entity/SimpleFilter/IncludeFilter";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../services/DataSourceService";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
@@ -270,6 +283,122 @@ const modifyFileFilters = createLogic({
 });
 
 /**
+ * Helper for updating special filters (fuzzy, any, none)
+ * @param previousFilters The currently stored list of this type of filter
+ * @param incomingFilters A list of the filters we need to modify in the stored list
+ * @param shouldAdd Whether to ADD or REMOVE incomingFilters from stored list
+ * @returns updated list sorted by annotation name
+ */
+const processSpecializedFilters = (
+    previousFilters: SimpleFilter[],
+    incomingFilters: SimpleFilter[],
+    shouldAdd: boolean
+) => {
+    let nextFilters: SimpleFilter[];
+    if (shouldAdd) {
+        nextFilters = uniqWith([...previousFilters, ...incomingFilters], (existing, incoming) => {
+            return existing.equals(incoming);
+        });
+    } else {
+        // REMOVE
+        nextFilters = previousFilters.filter((existing) => {
+            return !incomingFilters.some((incoming) => incoming.equals(existing));
+        });
+    }
+    return sortBy(nextFilters, ["annotationName"]);
+};
+
+/**
+ * Interceptor responsible for transforming ADD_FUZZY_FILTER and REMOVE_FUZZY_FILTER
+ * actions into a concrete list of ordered FuzzyFilters that can be stored directly in
+ * application state under `selections.fuzzyFilters`.
+ */
+const modifyFuzzyFilters = createLogic({
+    transform(deps: ReduxLogicDeps, next, reject) {
+        const { action, getState } = deps;
+        const previousFuzzyFilters = selectionSelectors.getFuzzyFilters(getState()) || [];
+        const incomingFuzzyFilters = castArray(action.payload);
+
+        const sortedNextFuzzyFilters: FuzzyFilter[] = processSpecializedFilters(
+            previousFuzzyFilters,
+            incomingFuzzyFilters,
+            action.type === ADD_FUZZY_FILTER
+        );
+        const filtersAreUnchanged =
+            previousFuzzyFilters.length === sortedNextFuzzyFilters.length &&
+            previousFuzzyFilters.every((existing) =>
+                sortedNextFuzzyFilters.some((incoming) => incoming.equals(existing))
+            );
+        if (filtersAreUnchanged) {
+            reject && reject(action);
+            return;
+        }
+        next(setFuzzyFilters(sortedNextFuzzyFilters));
+    },
+    type: [ADD_FUZZY_FILTER, REMOVE_FUZZY_FILTER],
+});
+
+/**
+ * Interceptor responsible for transforming ADD_INCLUDE_FILTER and REMOVE_INCLUDE_FILTER
+ * actions into a concrete list of ordered IncludeFilters that can be stored directly in
+ * application state under `selections.includeFilters`.
+ */
+const modifyIncludeFilters = createLogic({
+    transform(deps: ReduxLogicDeps, next, reject) {
+        const { action, getState } = deps;
+        const previousIncludeFilters = selectionSelectors.getIncludeFilters(getState()) || [];
+        const incomingIncludeFilters = castArray(action.payload);
+
+        const sortedNextIncludeFilters: IncludeFilter[] = processSpecializedFilters(
+            previousIncludeFilters,
+            incomingIncludeFilters,
+            action.type === ADD_INCLUDE_FILTER
+        );
+        const filtersAreUnchanged =
+            previousIncludeFilters.length === sortedNextIncludeFilters.length &&
+            previousIncludeFilters.every((existing) =>
+                sortedNextIncludeFilters.some((incoming) => incoming.equals(existing))
+            );
+        if (filtersAreUnchanged) {
+            reject && reject(action);
+            return;
+        }
+        next(setIncludeFilters(sortedNextIncludeFilters));
+    },
+    type: [ADD_INCLUDE_FILTER, REMOVE_INCLUDE_FILTER],
+});
+
+/**
+ * Interceptor responsible for transforming ADD_EXCLUDE_FILTER and REMOVE_EXCLUDE_FILTER
+ * actions into a concrete list of ordered ExcludeFilters that can be stored directly in
+ * application state under `selections.excludeFilters`.
+ */
+const modifyExcludeFilters = createLogic({
+    transform(deps: ReduxLogicDeps, next, reject) {
+        const { action, getState } = deps;
+        const previousExcludeFilters = selectionSelectors.getExcludeFilters(getState()) || [];
+        const incomingExcludeFilters = castArray(action.payload);
+
+        const sortedNextExcludeFilters: ExcludeFilter[] = processSpecializedFilters(
+            previousExcludeFilters,
+            incomingExcludeFilters,
+            action.type === ADD_EXCLUDE_FILTER
+        );
+        const filtersAreUnchanged =
+            previousExcludeFilters.length === sortedNextExcludeFilters.length &&
+            previousExcludeFilters.every((existing) =>
+                sortedNextExcludeFilters.some((incoming) => incoming.equals(existing))
+            );
+        if (filtersAreUnchanged) {
+            reject && reject(action);
+            return;
+        }
+        next(setExcludeFilters(sortedNextExcludeFilters));
+    },
+    type: [ADD_EXCLUDE_FILTER, REMOVE_EXCLUDE_FILTER],
+});
+
+/**
  * Interceptor responsible for transforming TOGGLE_FILE_FOLDER_COLLAPSE actions into
  * SET_OPEN_FILE_FOLDERS actions by determining whether the file folder is to be considered
  * open or collapsed.
@@ -300,8 +429,11 @@ const decodeFileExplorerURLLogics = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
         const {
+            excludeFilters,
             hierarchy,
             filters,
+            fuzzyFilters,
+            includeFilters,
             openFolders,
             sortColumn,
             sources,
@@ -313,6 +445,9 @@ const decodeFileExplorerURLLogics = createLogic({
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
             dispatch(setFileFilters(filters));
+            dispatch(setFuzzyFilters(fuzzyFilters));
+            dispatch(setExcludeFilters(excludeFilters));
+            dispatch(setIncludeFilters(includeFilters));
             dispatch(setOpenFileFolders(openFolders));
             dispatch(setSortColumn(sortColumn));
         });
@@ -663,6 +798,9 @@ export default [
     selectFile,
     modifyAnnotationHierarchy,
     modifyFileFilters,
+    modifyFuzzyFilters,
+    modifyIncludeFilters,
+    modifyExcludeFilters,
     toggleFileFolderCollapse,
     decodeFileExplorerURLLogics,
     selectNearbyFile,
