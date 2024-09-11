@@ -17,7 +17,7 @@ import FileViewerServiceElectron from "../services/FileViewerServiceElectron";
 import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
 import { GlobalVariableChannels } from "../util/constants";
-import useKeyDown from "../../../core/hooks/useKeyDown/useKeyDown";
+import useKeyDown from "../../../core/hooks/useKeyDown";
 import "../../../core/styles/global.css";
 
 const APP_ID = "fms-file-explorer";
