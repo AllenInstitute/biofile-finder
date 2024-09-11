@@ -1,6 +1,6 @@
 import * as React from "react";
 
-export function useKeyDown(targetKeys: string[], handler: (event: KeyboardEvent) => void) {
+export default function useKeyDown(targetKeys: string[], handler: (event: KeyboardEvent) => void) {
     React.useEffect(() => {
         const keydownListener = (event: KeyboardEvent) => {
             // Check if all target keys are pressed

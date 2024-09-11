@@ -210,7 +210,7 @@ export default abstract class DatabaseService {
         } catch (err) {
             // Source metadata file may not have been supplied
             // and/or this column may not exist
-            const errMsg = (err as Error).message;
+            const errMsg = typeof err === "string" ? err : err instanceof Error ? err.message : "";
             if (errMsg.includes("does not exist") || errMsg.includes("not found in FROM clause")) {
                 return {};
             }
@@ -237,7 +237,7 @@ export default abstract class DatabaseService {
         } catch (err) {
             // Source metadata file may not have been supplied
             // and/or this column may not exist
-            const errMsg = (err as Error).message;
+            const errMsg = typeof err === "string" ? err : err instanceof Error ? err.message : "";
             if (errMsg.includes("does not exist") || errMsg.includes("not found in FROM clause")) {
                 return {};
             }

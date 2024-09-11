@@ -17,7 +17,7 @@ import FileViewerServiceElectron from "../services/FileViewerServiceElectron";
 import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
 import { GlobalVariableChannels } from "../util/constants";
-import { useKeyDown } from "../../../core/hooks/useKeyDown/useKeyDown"; // Import the useKeyDown hook
+import useKeyDown from "../../../core/hooks/useKeyDown/useKeyDown";
 import "../../../core/styles/global.css";
 
 const APP_ID = "fms-file-explorer";
@@ -31,13 +31,13 @@ const executionEnvService = new ExecutionEnvServiceElectron(notificationService)
 // Define the KeyDownHandler component inline
 const KeyDownHandler: React.FC<{ clearStore: () => void }> = ({ clearStore }) => {
     useKeyDown(["Control", "-"], clearStore);
-    return null; // This component doesn't render anything visible
+    return null;
 };
 
 // Function to clear the persistent store
 const clearPersistentStore = () => {
     persistentConfigService.clear();
-    console.log("Persistent store cleared!");
+    window.location.reload();
 };
 
 // Application analytics/metrics
