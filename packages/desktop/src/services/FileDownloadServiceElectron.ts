@@ -87,7 +87,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             }
 
             throw new DownloadFailure(
-                `Invalid path for Zarr file: ${fileInfo.path}`,
+                `Unsupported path for ".zarr":  ${fileInfo.path}. Currently only support AWS S3 or locally stored files.`,
                 downloadRequestId
             );
         }
