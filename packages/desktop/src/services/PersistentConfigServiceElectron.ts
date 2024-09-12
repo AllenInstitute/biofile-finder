@@ -147,6 +147,9 @@ export default class PersistentConfigServiceElectron implements PersistentConfig
             {}
         );
     }
+    public clear(): void {
+        this.store.clear();
+    }
 
     public persist(config: PersistedConfig): void;
     public persist(key: PersistedConfigKeys, value: any): void;
