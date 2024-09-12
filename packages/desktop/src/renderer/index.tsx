@@ -30,7 +30,7 @@ const executionEnvService = new ExecutionEnvServiceElectron(notificationService)
 
 // Define the KeyDownHandler component inline
 const KeyDownHandler: React.FC<{ clearStore: () => void }> = ({ clearStore }) => {
-    useKeyDown(["Control", "-"], clearStore);
+    useKeyDown(["Control", "]"], clearStore);
     return null;
 };
 
