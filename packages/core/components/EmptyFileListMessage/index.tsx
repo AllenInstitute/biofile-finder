@@ -20,8 +20,7 @@ export default function EmptyFileListMessage() {
                         target="_blank"
                         rel="noreferrer"
                     >
-                        {" "}
-                        GitHub{" "}
+                        &nbsp;GitHub&nbsp;
                     </a>
                     if you still expect there to be matches present.
                 </div>
