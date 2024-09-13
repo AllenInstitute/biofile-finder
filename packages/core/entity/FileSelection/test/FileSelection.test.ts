@@ -8,6 +8,9 @@ import NumericRange from "../../NumericRange";
 import FileSelection, { FocusDirective } from "..";
 import FileDetail from "../../FileDetail";
 import FileFilter from "../../FileFilter";
+import FuzzyFilter from "../../SimpleFilter/FuzzyFilter";
+import IncludeFilter from "../../SimpleFilter/IncludeFilter";
+import ExcludeFilter from "../../SimpleFilter/ExcludeFilter";
 import { IndexError, ValueError } from "../../../errors";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
@@ -674,6 +677,9 @@ describe("FileSelection", () => {
             const fileSet1 = new FileSet();
             const fileSet2 = new FileSet({
                 filters: [new FileFilter("foo", "bar")],
+                fuzzyFilters: [new FuzzyFilter("fuzzyfoo1"), new FuzzyFilter("fuzzyfoo2")],
+                includeFilters: [new IncludeFilter("anyfoo")],
+                excludeFilters: [new ExcludeFilter("nonefoo")],
             });
             const selection = new FileSelection()
                 .select({ fileSet: fileSet1, index: 3, sortOrder: 0 })
@@ -692,6 +698,9 @@ describe("FileSelection", () => {
                 new NumericRange(12, 15).toJSON(),
             ]);
             expect(selections[1].filters).to.be.deep.equal({ foo: ["bar"] });
+            expect(selections[1].fuzzy).to.be.deep.equal(["fuzzyfoo1", "fuzzyfoo2"]);
+            expect(selections[1].include).to.be.deep.equal(["anyfoo"]);
+            expect(selections[1].exclude).to.be.deep.equal(["nonefoo"]);
             expect(selections[1].indexRanges).to.be.deep.equal([
                 new NumericRange(8, 10).toJSON(),
                 new NumericRange(33).toJSON(),

@@ -54,9 +54,7 @@ describe("<SearchBoxForm/>", () => {
         const { getByText, getByRole } = render(
             <SearchBoxForm
                 fieldName={"foo"}
-                // onSelect={noop}
                 onSelectAll={noop}
-                // onDeselect={noop}
                 onDeselectAll={noop}
                 onToggleFuzzySearch={noop}
                 fuzzySearchEnabled={true}

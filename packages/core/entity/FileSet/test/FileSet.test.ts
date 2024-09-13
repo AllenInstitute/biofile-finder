@@ -6,6 +6,9 @@ import FileSet from "../";
 import FileFilter from "../../FileFilter";
 import FileSort, { SortOrder } from "../../FileSort";
 import { makeFileDetailMock } from "../../FileDetail/mocks";
+import FuzzyFilter from "../../SimpleFilter/FuzzyFilter";
+import IncludeFilter from "../../SimpleFilter/IncludeFilter";
+import ExcludeFilter from "../../SimpleFilter/ExcludeFilter";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 
@@ -13,6 +16,12 @@ describe("FileSet", () => {
     const scientistEqualsJane = new FileFilter("scientist", "jane");
     const matrigelIsHard = new FileFilter("matrigel_is_hardened", true);
     const dateCreatedDescending = new FileSort("date_created", SortOrder.DESC);
+    const fuzzyFileName = new FuzzyFilter("file_name");
+    const fuzzyFilePath = new FuzzyFilter("file_path");
+    const anyGene = new IncludeFilter("gene");
+    const anyKind = new IncludeFilter("kind");
+    const noCellLine = new ExcludeFilter("cell_line");
+    const noCellBatch = new ExcludeFilter("cell_batch");
 
     describe("toQueryString", () => {
         it("returns an empty string if file set represents a query with no filters and no sorting applied", () => {
@@ -29,12 +38,47 @@ describe("FileSet", () => {
             );
         });
 
+        it("includes name-only filters (fuzzy, include and exclude) in query string", () => {
+            const fileSet = new FileSet({
+                fuzzyFilters: [fuzzyFileName],
+                excludeFilters: [noCellLine],
+                includeFilters: [anyGene],
+            });
+            expect(fileSet.toQueryString()).equals(
+                "fuzzy=file_name&exclude=cell_line&include=gene"
+            );
+        });
+
+        // Enforce query param order for cacheing efficiency. Same args should register as same query regardless of order
+        it("includes sort after name-only filters in query string", () => {
+            const fileSet = new FileSet({
+                fuzzyFilters: [fuzzyFileName],
+                sort: dateCreatedDescending,
+            });
+            expect(fileSet.toQueryString()).equals("fuzzy=file_name&sort=date_created(DESC)");
+        });
+
         it("produces the same query string when given the same filters in different order", () => {
             const fileSet1 = new FileSet({
                 filters: [scientistEqualsJane, matrigelIsHard],
             });
             const fileSet2 = new FileSet({
                 filters: [matrigelIsHard, scientistEqualsJane],
+            });
+
+            expect(fileSet1.toQueryString()).to.equal(fileSet2.toQueryString());
+        });
+
+        it("produces the same query string when given the same name-only filters in different orders", () => {
+            const fileSet1 = new FileSet({
+                fuzzyFilters: [fuzzyFileName, fuzzyFilePath],
+                includeFilters: [anyGene, anyKind],
+                excludeFilters: [noCellBatch, noCellLine],
+            });
+            const fileSet2 = new FileSet({
+                fuzzyFilters: [fuzzyFilePath, fuzzyFileName],
+                includeFilters: [anyKind, anyGene],
+                excludeFilters: [noCellLine, noCellBatch],
             });
 
             expect(fileSet1.toQueryString()).to.equal(fileSet2.toQueryString());

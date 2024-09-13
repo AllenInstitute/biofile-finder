@@ -185,35 +185,20 @@ export default class FileSet {
         );
         const query = map(sortedFilters, (filter) => filter.toQueryString());
 
+        // Name-only filter arrays can all be treated the same way
+        [this.fuzzyFilters, this.excludeFilters, this.includeFilters].forEach((filterArray) => {
+            if (filterArray?.length) {
+                const sortedFilters = [...filterArray].sort((a, b) =>
+                    a.toQueryString().localeCompare(b.toQueryString())
+                );
+                query.push(
+                    map(sortedFilters, (filterName) => filterName.toQueryString()).join("&")
+                );
+            }
+        });
+
         if (this.sort) {
             query.push(this.sort.toQueryString());
-        }
-
-        if (this.fuzzyFilters?.length) {
-            const sortedFuzzyFilters = [...this.fuzzyFilters].sort((a, b) =>
-                a.toQueryString().localeCompare(b.toQueryString())
-            );
-            query.push(
-                map(sortedFuzzyFilters, (filterName) => filterName.toQueryString()).join("&")
-            );
-        }
-
-        if (this.excludeFilters?.length) {
-            const sortedExcludeFilters = [...this.excludeFilters].sort((a, b) =>
-                a.toQueryString().localeCompare(b.toQueryString())
-            );
-            query.push(
-                map(sortedExcludeFilters, (filterName) => filterName.toQueryString()).join("&")
-            );
-        }
-
-        if (this.includeFilters?.length) {
-            const sortedIncludeFilters = [...this.includeFilters].sort((a, b) =>
-                a.toQueryString().localeCompare(b.toQueryString())
-            );
-            query.push(
-                map(sortedIncludeFilters, (filterName) => filterName.toQueryString()).join("&")
-            );
         }
 
         return join(query, "&");

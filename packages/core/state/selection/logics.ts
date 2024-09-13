@@ -308,6 +308,15 @@ const processSpecializedFilters = (
     return sortBy(nextFilters, ["annotationName"]);
 };
 
+const filtersAreUnchanged = (previousFilters: SimpleFilter[], updatedFilters: SimpleFilter[]) => {
+    return (
+        previousFilters.length === updatedFilters.length &&
+        previousFilters.every((existing) =>
+            updatedFilters.some((incoming) => incoming.equals(existing))
+        )
+    );
+};
+
 /**
  * Interceptor responsible for transforming ADD_FUZZY_FILTER and REMOVE_FUZZY_FILTER
  * actions into a concrete list of ordered FuzzyFilters that can be stored directly in
@@ -317,19 +326,12 @@ const modifyFuzzyFilters = createLogic({
     transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState } = deps;
         const previousFuzzyFilters = selectionSelectors.getFuzzyFilters(getState()) || [];
-        const incomingFuzzyFilters = castArray(action.payload);
-
         const sortedNextFuzzyFilters: FuzzyFilter[] = processSpecializedFilters(
             previousFuzzyFilters,
-            incomingFuzzyFilters,
+            castArray(action.payload),
             action.type === ADD_FUZZY_FILTER
         );
-        const filtersAreUnchanged =
-            previousFuzzyFilters.length === sortedNextFuzzyFilters.length &&
-            previousFuzzyFilters.every((existing) =>
-                sortedNextFuzzyFilters.some((incoming) => incoming.equals(existing))
-            );
-        if (filtersAreUnchanged) {
+        if (filtersAreUnchanged(previousFuzzyFilters, sortedNextFuzzyFilters)) {
             reject && reject(action);
             return;
         }
@@ -347,19 +349,12 @@ const modifyIncludeFilters = createLogic({
     transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState } = deps;
         const previousIncludeFilters = selectionSelectors.getIncludeFilters(getState()) || [];
-        const incomingIncludeFilters = castArray(action.payload);
-
         const sortedNextIncludeFilters: IncludeFilter[] = processSpecializedFilters(
             previousIncludeFilters,
-            incomingIncludeFilters,
+            castArray(action.payload),
             action.type === ADD_INCLUDE_FILTER
         );
-        const filtersAreUnchanged =
-            previousIncludeFilters.length === sortedNextIncludeFilters.length &&
-            previousIncludeFilters.every((existing) =>
-                sortedNextIncludeFilters.some((incoming) => incoming.equals(existing))
-            );
-        if (filtersAreUnchanged) {
+        if (filtersAreUnchanged(previousIncludeFilters, sortedNextIncludeFilters)) {
             reject && reject(action);
             return;
         }
@@ -377,19 +372,12 @@ const modifyExcludeFilters = createLogic({
     transform(deps: ReduxLogicDeps, next, reject) {
         const { action, getState } = deps;
         const previousExcludeFilters = selectionSelectors.getExcludeFilters(getState()) || [];
-        const incomingExcludeFilters = castArray(action.payload);
-
         const sortedNextExcludeFilters: ExcludeFilter[] = processSpecializedFilters(
             previousExcludeFilters,
-            incomingExcludeFilters,
+            castArray(action.payload),
             action.type === ADD_EXCLUDE_FILTER
         );
-        const filtersAreUnchanged =
-            previousExcludeFilters.length === sortedNextExcludeFilters.length &&
-            previousExcludeFilters.every((existing) =>
-                sortedNextExcludeFilters.some((incoming) => incoming.equals(existing))
-            );
-        if (filtersAreUnchanged) {
+        if (filtersAreUnchanged(previousExcludeFilters, sortedNextExcludeFilters)) {
             reject && reject(action);
             return;
         }
