@@ -46,6 +46,11 @@ export default interface PersistentConfigService {
     getAll(): PersistedConfig;
 
     /**
+     * Clear all persisted config values.
+     */
+    clear(): void;
+
+    /**
      * Save the config value at the given key. Overwrites any existing data for the key.
      */
     persist(config: PersistedConfig): void;
