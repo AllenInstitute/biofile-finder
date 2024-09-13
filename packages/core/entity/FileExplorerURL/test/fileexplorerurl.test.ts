@@ -5,6 +5,9 @@ import AnnotationName from "../../Annotation/AnnotationName";
 import FileFilter from "../../FileFilter";
 import FileFolder from "../../FileFolder";
 import FileSort, { SortOrder } from "../../FileSort";
+import ExcludeFilter from "../../SimpleFilter/ExcludeFilter";
+import FuzzyFilter from "../../SimpleFilter/FuzzyFilter";
+import IncludeFilter from "../../SimpleFilter/IncludeFilter";
 
 describe("FileExplorerURL", () => {
     const mockSource: Source = {
@@ -50,11 +53,48 @@ describe("FileExplorerURL", () => {
             );
         });
 
+        it("Encodes filters with fuzzy, include, and exclude filters applied", () => {
+            // Arrange
+            const expectedAnnotationNames = ["Cell Line"];
+            const expectedFilters = [{ name: AnnotationName.FILE_NAME, value: "testname" }];
+            const expectedFuzzyFilters = [
+                { annotationName: AnnotationName.FILE_NAME },
+                { annotationName: AnnotationName.FILE_PATH },
+            ];
+            const expectedIncludeFilters = [{ annotationName: "Cell Line" }];
+            const expectedExcludeFilters = [{ annotationName: "Gene" }];
+
+            const components: FileExplorerURLComponents = {
+                hierarchy: expectedAnnotationNames,
+                filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                fuzzyFilters: expectedFuzzyFilters.map(
+                    (fuzzyFilter) => new FuzzyFilter(fuzzyFilter.annotationName)
+                ),
+                excludeFilters: expectedExcludeFilters.map(
+                    (excludeFilter) => new ExcludeFilter(excludeFilter.annotationName)
+                ),
+                includeFilters: expectedIncludeFilters.map(
+                    (includeFilter) => new IncludeFilter(includeFilter.annotationName)
+                ),
+                openFolders: [],
+                sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC),
+                sources: [mockSource],
+            };
+            // Act
+            const result = FileExplorerURL.encode(components);
+
+            // Assert
+            expect(result).to.be.equal(
+                "group=Cell+Line&filter=%7B%22name%22%3A%22file_name%22%2C%22value%22%3A%22testname%22%7D&fuzzy=%7B%22annotationName%22%3A%22file_name%22%7D&fuzzy=%7B%22annotationName%22%3A%22file_path%22%7D&include=%7B%22annotationName%22%3A%22Cell+Line%22%7D&exclude=%7B%22annotationName%22%3A%22Gene%22%7D&source=%7B%22name%22%3A%22Fake+Collection%22%2C%22type%22%3A%22csv%22%7D&sort=%7B%22annotationName%22%3A%22file_size%22%2C%22order%22%3A%22DESC%22%7D"
+            );
+        });
+
         it("Encodes empty state", () => {
             // Arrange
             const components: FileExplorerURLComponents = {
                 hierarchy: [],
                 filters: [],
+                fuzzyFilters: [],
                 openFolders: [],
                 sources: [],
             };
@@ -99,6 +139,12 @@ describe("FileExplorerURL", () => {
                 { name: "Cas9", value: "spCas9" },
                 { name: "Donor Plasmid", value: "ACTB-mEGFP" },
             ];
+            const expectedFuzzyFilters = [
+                { annotationName: AnnotationName.FILE_NAME },
+                { annotationName: AnnotationName.FILE_PATH },
+            ];
+            const expectedIncludeFilters = [{ annotationName: "Gene" }];
+            const expectedExcludeFilters = [{ annotationName: "Cell Line" }];
             const expectedOpenFolders = [
                 ["3500000654"],
                 ["3500000654", "ACTB-mEGFP"],
@@ -108,6 +154,15 @@ describe("FileExplorerURL", () => {
             const components: FileExplorerURLComponents = {
                 hierarchy: expectedAnnotationNames,
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                fuzzyFilters: expectedFuzzyFilters.map(
+                    (fuzzyFilter) => new FuzzyFilter(fuzzyFilter.annotationName)
+                ),
+                excludeFilters: expectedExcludeFilters.map(
+                    (excludeFilter) => new ExcludeFilter(excludeFilter.annotationName)
+                ),
+                includeFilters: expectedIncludeFilters.map(
+                    (includeFilter) => new IncludeFilter(includeFilter.annotationName)
+                ),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
                 sourceMetadata: undefined,
@@ -128,6 +183,9 @@ describe("FileExplorerURL", () => {
             const components: FileExplorerURLComponents = {
                 hierarchy: [],
                 filters: [],
+                fuzzyFilters: [],
+                includeFilters: [],
+                excludeFilters: [],
                 openFolders: [],
                 sortColumn: undefined,
                 sourceMetadata: undefined,
