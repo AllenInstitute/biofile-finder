@@ -6,21 +6,8 @@
 .empty-file-list-message {
     margin: auto;
     text-align: center;
-    width: 600px;
-    max-width: 60%;
-    font-weight: 400;
-    line-height: 26px;
-    font-size: var(--l-paragraph-size)
 }
 
 .empty-search-icon {
     font-size: 7em;
-}
-
-.link {
-    color: var(--aqua);
-}
-
-.link:hover {
-    color: var(--bright-aqua);
 }
