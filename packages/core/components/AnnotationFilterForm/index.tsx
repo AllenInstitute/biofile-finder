@@ -42,37 +42,43 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const dispatch = useDispatch();
     const allFilters = useSelector(selection.selectors.getFileFilters);
     const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
-    const anyValueFilters = useSelector(selection.selectors.getIncludeFilters);
-    const noValueFilters = useSelector(selection.selectors.getExcludeFilters);
+    const includeFilters = useSelector(selection.selectors.getIncludeFilters);
+    const excludeFilters = useSelector(selection.selectors.getExcludeFilters);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
         props.annotation.name,
         annotationService
     );
-    const usingAnyValueFilter: boolean = React.useMemo(() => {
-        return (
-            anyValueFilters?.some((filter) => filter.annotationName === props.annotation.name) ||
-            false
-        );
-    }, [anyValueFilters, props.annotation]);
-    const usingNoValueFilter: boolean = React.useMemo(() => {
-        return (
-            noValueFilters?.some((filter) => filter.annotationName === props.annotation.name) ||
-            false
-        );
-    }, [noValueFilters, props.annotation]);
-    const defaultFilterType = () => {
-        if (usingAnyValueFilter) return FilterType.ANY;
-        if (usingNoValueFilter) return FilterType.NONE;
-        return FilterType.SOME;
-    };
-    const [filterType, setFilterType] = React.useState<FilterType | string>(defaultFilterType);
 
+    // True if list of "ANY/INCLUDE" filters in state contains name of this annotation
+    const usingIncludeFilter: boolean = React.useMemo(() => {
+        return !!includeFilters?.some((filter) => filter.annotationName === props.annotation.name);
+    }, [includeFilters, props.annotation]);
+    // True if list of "NONE/EXCLUDE" filters in state contains name of this annotation
+    const usingExcludeFilter: boolean = React.useMemo(() => {
+        return !!excludeFilters?.some((filter) => filter.annotationName === props.annotation.name);
+    }, [excludeFilters, props.annotation]);
+    // True if list of all regular filters in state contains name of this annotation
     const filtersForAnnotation = React.useMemo(
         () => allFilters.filter((filter) => filter.name === props.annotation.name),
         [allFilters, props.annotation]
     );
+    // True if list of "FUZZY" filters in state contains name of this annotation
+    const fuzzySearchEnabled: boolean = React.useMemo(() => {
+        return (
+            fuzzyFilters?.some((filter) => filter.annotationName === props.annotation.name) || false
+        );
+    }, [fuzzyFilters, props.annotation]);
 
+    // Rehydrate filter type from state into UI
+    const defaultFilterType = () => {
+        if (usingIncludeFilter) return FilterType.ANY;
+        if (usingExcludeFilter) return FilterType.NONE;
+        return FilterType.SOME;
+    };
+    const [filterType, setFilterType] = React.useState<FilterType | string>(defaultFilterType);
+
+    // Propagate filter values from state into UI
     const items = React.useMemo<ListItem[]>(() => {
         const appliedFilters = new Set(filtersForAnnotation.map((filter) => filter.value));
 
@@ -83,12 +89,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         }));
     }, [props.annotation, annotationValues, filtersForAnnotation]);
 
-    const fuzzySearchEnabled: boolean = React.useMemo(() => {
-        return (
-            fuzzyFilters?.some((filter) => filter.annotationName === props.annotation.name) || false
-        );
-    }, [fuzzyFilters, props.annotation]);
-
     const onToggleFuzzySearch = () => {
         const fuzzyFilter = new FuzzyFilter(props.annotation.name);
         fuzzySearchEnabled
@@ -97,82 +97,71 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
 
     const onDeselectAll = () => {
+        // remove all regular filters for this annotation
         dispatch(selection.actions.removeFileFilter(filtersForAnnotation));
     };
 
     const onDeselect = (item: ListItem) => {
-        const fileFilter = new FileFilter(
-            props.annotation.name,
-            isNil(props.annotation.valueOf(item.value))
-                ? item.value
-                : props.annotation.valueOf(item.value)
-        );
-        dispatch(selection.actions.removeFileFilter(fileFilter));
+        dispatch(selection.actions.removeFileFilter(createFileFilter(item)));
     };
 
     const onSelect = (item: ListItem) => {
-        const fileFilter = new FileFilter(
-            props.annotation.name,
-            isNil(props.annotation.valueOf(item.value))
-                ? item.value
-                : props.annotation.valueOf(item.value)
-        );
         removeSpecialFilters();
-        dispatch(selection.actions.addFileFilter(fileFilter));
+        dispatch(selection.actions.addFileFilter(createFileFilter(item)));
     };
 
     // TODO: Should this select ALL or just the visible items in list?
     const onSelectAll = () => {
-        const filters = items.map(
-            (item) =>
-                new FileFilter(
-                    props.annotation.name,
-                    isNil(props.annotation.valueOf(item.value))
-                        ? item.value
-                        : props.annotation.valueOf(item.value)
-                )
-        );
         removeSpecialFilters();
-        dispatch(selection.actions.addFileFilter(filters));
+        dispatch(selection.actions.addFileFilter(items.map((item) => createFileFilter(item))));
+    };
+
+    const createFileFilter = (item: ListItem) => {
+        return new FileFilter(
+            props.annotation.name,
+            isNil(props.annotation.valueOf(item.value))
+                ? item.value
+                : props.annotation.valueOf(item.value)
+        );
     };
 
     // Any value/"include"
     const onSelectAny = () => {
         const includeFilter = new IncludeFilter(props.annotation.name);
-        // Skip if already selected
-        if (!usingAnyValueFilter) {
+        // Skip if already in "INCLUDE" list
+        if (!usingIncludeFilter) {
             removeSpecialFilters();
             // Currently also incompatible with fuzzy search
             dispatch(selection.actions.removeFuzzyFilter(new FuzzyFilter(props.annotation.name)));
-            dispatch(selection.actions.addIncludeFilter(includeFilter));
             // Also remove any other current filters for this annotation
             onDeselectAll();
+            dispatch(selection.actions.addIncludeFilter(includeFilter));
         }
     };
 
     // No value/"exclude"
     const onSelectNone = () => {
         const excludeFilter = new ExcludeFilter(props.annotation.name);
-        // Skip if already selected
-        if (!usingNoValueFilter) {
+        // Skip if already in "EXCLUDE" list
+        if (!usingExcludeFilter) {
             removeSpecialFilters();
             // Currently also incompatible with fuzzy search
             dispatch(selection.actions.removeFuzzyFilter(new FuzzyFilter(props.annotation.name)));
-            dispatch(selection.actions.addExcludeFilter(excludeFilter));
             // Also remove any other current filters for this annotation
             onDeselectAll();
+            dispatch(selection.actions.addExcludeFilter(excludeFilter));
         }
     };
 
     // Check if ANY/NONE filter is applied and remove,
     // since incompatible with each other & SOME filter type
     function removeSpecialFilters() {
-        if (usingAnyValueFilter) {
+        if (usingIncludeFilter) {
             dispatch(
                 selection.actions.removeIncludeFilter(new IncludeFilter(props.annotation.name))
             );
         }
-        if (usingNoValueFilter) {
+        if (usingExcludeFilter) {
             dispatch(
                 selection.actions.removeExcludeFilter(new ExcludeFilter(props.annotation.name))
             );
