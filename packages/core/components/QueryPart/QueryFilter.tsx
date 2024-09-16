@@ -62,8 +62,8 @@ export default function QueryFilter(props: Props) {
                     annotation={annotationNameToAnnotationMap[item.id] as Annotation}
                 />
             )}
-            rows={Object.entries(filtersGroupedByName)
-                .map(([annotationName, filters]) => {
+            rows={[
+                ...Object.entries(filtersGroupedByName).map(([annotationName, filters]) => {
                     const operator = filters.length > 1 ? "ONE OF" : "EQUALS";
                     const valueDisplay = map(filters, (filter) => filter.displayValue).join(", ");
                     return {
@@ -71,27 +71,24 @@ export default function QueryFilter(props: Props) {
                         title: `${annotationName} ${operator} ${valueDisplay}`,
                         description: annotationNameToAnnotationMap[annotationName]?.description,
                     };
-                })
-                .concat(
-                    includeFilters?.map((filter) => {
-                        return {
-                            id: filter.annotationName,
-                            title: `${filter.annotationName} ANY VALUE`,
-                            description:
-                                annotationNameToAnnotationMap[filter.annotationName]?.description,
-                        };
-                    }) || []
-                )
-                .concat(
-                    excludeFilters?.map((filter) => {
-                        return {
-                            id: filter.annotationName,
-                            title: `${filter.annotationName} NO VALUE`,
-                            description:
-                                annotationNameToAnnotationMap[filter.annotationName]?.description,
-                        };
-                    }) || []
-                )}
+                }),
+                ...(includeFilters?.map((filter) => {
+                    return {
+                        id: filter.annotationName,
+                        title: `${filter.annotationName} ANY VALUE`,
+                        description:
+                            annotationNameToAnnotationMap[filter.annotationName]?.description,
+                    };
+                }) || []),
+                ...(excludeFilters?.map((filter) => {
+                    return {
+                        id: filter.annotationName,
+                        title: `${filter.annotationName} NO VALUE`,
+                        description:
+                            annotationNameToAnnotationMap[filter.annotationName]?.description,
+                    };
+                }) || []),
+            ]}
         />
     );
 }
