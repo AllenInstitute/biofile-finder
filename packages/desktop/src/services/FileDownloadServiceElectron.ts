@@ -432,7 +432,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                 // Ensure the subdirectories exist
                 fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
 
-                const fileUrl = `${hostname}/${encodeURIComponent(fileKey)}`;
+                const fileUrl = `https://${hostname}/${encodeURIComponent(fileKey)}`;
 
                 await this.downloadS3File(fileUrl, destinationPath, onProgress);
             }
