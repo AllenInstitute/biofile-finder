@@ -25,7 +25,7 @@
 
 .button-text {
     font-weight: 600;
-    overflow-x: hidden;
+    overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
