@@ -5,6 +5,7 @@ import * as React from "react";
 
 import ListRow, { ListItem } from "./ListRow";
 import SearchBox from "../SearchBox";
+import Tooltip from "../Tooltip";
 
 import styles from "./ListPicker.module.css";
 
@@ -120,40 +121,42 @@ export default function ListPicker(props: ListPickerProps) {
                 />
                 <div className={styles.buttons}>
                     {onSelectAll && (
+                        <Tooltip content={hasUnselectedItem ? undefined : "All options selected"}>
+                            <ActionButton
+                                ariaLabel="Select all"
+                                className={classNames(
+                                    {
+                                        [styles.disabled]: !hasUnselectedItem,
+                                    },
+                                    styles.selectAllButton,
+                                    styles.actionButton
+                                )}
+                                disabled={!hasUnselectedItem}
+                                iconProps={{ iconName: "MultiSelect" }}
+                                title={hasUnselectedItem ? undefined : "All options selected"}
+                                onClick={onSelectAll}
+                            >
+                                Select all
+                            </ActionButton>
+                        </Tooltip>
+                    )}
+                    <Tooltip content={hasSelectedItem ? undefined : "No options selected"}>
                         <ActionButton
-                            ariaLabel="Select all"
+                            ariaLabel="Clear all"
                             className={classNames(
                                 {
-                                    [styles.disabled]: !hasUnselectedItem,
+                                    [styles.disabled]: !hasSelectedItem,
                                 },
-                                styles.selectAllButton,
                                 styles.actionButton
                             )}
-                            disabled={!hasUnselectedItem}
-                            iconProps={{ iconName: "MultiSelect" }}
-                            title={hasUnselectedItem ? undefined : "All options selected"}
-                            // TODO
-                            onClick={onSelectAll}
+                            disabled={!hasSelectedItem}
+                            iconProps={{ iconName: "Clear" }}
+                            title={hasSelectedItem ? undefined : "No options selected"}
+                            onClick={onDeselectAll}
                         >
-                            Select all
+                            Clear all
                         </ActionButton>
-                    )}
-                    <ActionButton
-                        ariaLabel="Clear all"
-                        className={classNames(
-                            {
-                                [styles.disabled]: !hasSelectedItem,
-                            },
-                            styles.actionButton
-                        )}
-                        disabled={!hasSelectedItem}
-                        iconProps={{ iconName: "Clear" }}
-                        title={hasSelectedItem ? undefined : "No options selected"}
-                        // TODO
-                        onClick={onDeselectAll}
-                    >
-                        Clear all
-                    </ActionButton>
+                    </Tooltip>
                 </div>
             </div>
             <div className={styles.mainContent} data-is-scrollable="true">

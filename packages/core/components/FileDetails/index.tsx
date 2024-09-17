@@ -112,7 +112,6 @@ export default function FileDetails(props: Props) {
             <div
                 className={styles.resizeHandle}
                 onMouseDown={(e) => resizeHandleOnMouseDown(e)}
-                // TODO:???
                 onDoubleClick={resizeHandleDoubleClick}
             >
                 <div />

@@ -43,40 +43,40 @@ export default function QueryGroupRow(props: Props) {
             })}
             style={{ marginLeft }}
         >
-            <Tooltip content={props.item.description}>
-                <div
-                    className={classNames(styles.rowTitle, {
-                        [styles.shortenedRowTitle]: !!props.item.onRenderEditMenuList,
-                        [styles.dynamicRowTitle]: !isInteractive,
-                    })}
-                    onClick={() => props.item.onClick?.(props.item.id)}
-                >
-                    {props.item.titleIconName && (
-                        <Icon className={styles.icon} iconName={props.item.titleIconName} />
-                    )}
+            <div
+                className={classNames(styles.rowTitle, {
+                    [styles.shortenedRowTitle]: !!props.item.onRenderEditMenuList,
+                    [styles.dynamicRowTitle]: !isInteractive,
+                })}
+                onClick={() => props.item.onClick?.(props.item.id)}
+            >
+                {props.item.titleIconName && (
+                    <Icon className={styles.icon} iconName={props.item.titleIconName} />
+                )}
+                <Tooltip content={props.item.description}>
                     <p>{props.item.title}</p>
-                </div>
-            </Tooltip>
+                </Tooltip>
+            </div>
             {!!props.item.onRenderEditMenuList && (
-                <IconButton
-                    ariaLabel="Edit"
-                    className={classNames(styles.iconButton, styles.hiddenInnerIcon)}
-                    iconProps={{ iconName: "Edit" }}
-                    // TODO
-                    title="Edit"
-                    menuProps={editMenu}
-                />
+                <Tooltip content="Edit">
+                    <IconButton
+                        ariaLabel="Edit"
+                        className={classNames(styles.iconButton, styles.hiddenInnerIcon)}
+                        iconProps={{ iconName: "Edit" }}
+                        menuProps={editMenu}
+                    />
+                </Tooltip>
             )}
             {props.item.onDelete && (
-                <IconButton
-                    ariaDescription="Delete"
-                    ariaLabel="Delete"
-                    className={styles.iconButton}
-                    iconProps={{ iconName: "Cancel" }}
-                    // TODO
-                    title="Delete"
-                    onClick={() => props.item.onDelete?.(props.item.id)}
-                />
+                <Tooltip content="Delete">
+                    <IconButton
+                        ariaDescription="Delete"
+                        ariaLabel="Delete"
+                        className={styles.iconButton}
+                        iconProps={{ iconName: "Cancel" }}
+                        onClick={() => props.item.onDelete?.(props.item.id)}
+                    />
+                </Tooltip>
             )}
         </div>
     );

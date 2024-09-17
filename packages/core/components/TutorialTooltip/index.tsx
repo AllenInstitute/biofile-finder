@@ -3,6 +3,7 @@ import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { TertiaryButton } from "../Buttons";
 import { selection } from "../../state";
 
 import styles from "./TutorialTooltip.module.css";
@@ -67,7 +68,7 @@ export default function TutorialTooltip() {
                     {tutorialStepIndex + 1} / {tutorial.length}
                 </h6>
                 <div className={styles.stepButtons}>
-                    <IconButton
+                    <TertiaryButton
                         className={classNames(
                             {
                                 [styles.disabled]: !tutorial.hasStep(previousStepIndex),
@@ -75,25 +76,19 @@ export default function TutorialTooltip() {
                             styles.tutorialStepButton
                         )}
                         disabled={!tutorial.hasStep(previousStepIndex)}
-                        iconProps={{ iconName: "CaretSolidLeft" }}
+                        iconName="CaretSolidLeft"
                         onClick={() => setTutorialStepIndex(previousStepIndex)}
-                        // TODO
                         title="Previous step"
                     />
-                    <IconButton
+                    <TertiaryButton
                         className={classNames(
                             {
                                 [styles.biggerIcon]: !tutorial.hasStep(nextStepIndex),
                             },
                             styles.tutorialStepButton
                         )}
-                        iconProps={{
-                            iconName: tutorial.hasStep(nextStepIndex)
-                                ? "CaretSolidRight"
-                                : "Checkmark",
-                        }}
+                        iconName={tutorial.hasStep(nextStepIndex) ? "CaretSolidRight" : "Checkmark"}
                         onClick={selectNextTutorial}
-                        // TODO
                         title={tutorial.hasStep(nextStepIndex) ? "Next step" : "Finished"}
                     />
                 </div>

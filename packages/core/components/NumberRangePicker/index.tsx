@@ -1,7 +1,8 @@
-import { ActionButton, Icon, IconButton, Spinner, SpinnerSize } from "@fluentui/react";
+import { ActionButton, Icon, Spinner, SpinnerSize } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
+import { TertiaryButton } from "../Buttons";
 import FileFilter from "../../entity/FileFilter";
 import { extractValuesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/number-formatter";
 import { AnnotationValue } from "../../services/AnnotationService";
@@ -134,13 +135,11 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                         />
                     </div>
                     <div className={styles.resetButtonContainer}>
-                        <IconButton
-                            ariaLabel="Reset"
+                        <TertiaryButton
                             className={classNames(styles.resetButton)}
-                            // TODO
                             title="Reset filter"
                             onClick={onResetSearch}
-                            iconProps={{ iconName: "Delete" }}
+                            iconName="Delete"
                         />
                     </div>
                 </div>
