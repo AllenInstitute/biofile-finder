@@ -30,7 +30,7 @@ describe("<TutorialTooltip />", () => {
             },
         });
         const { store } = configureMockStore({ state });
-        const { getByText, getByTitle } = render(
+        const { getByText, getByTestId } = render(
             <Provider store={store}>
                 <div id={targetId} />
                 <TutorialTooltip />
@@ -42,14 +42,14 @@ describe("<TutorialTooltip />", () => {
         expect(() => getByText(stepTwoMessage)).to.throw();
 
         // Act
-        fireEvent.click(getByTitle("Next step"));
+        fireEvent.click(getByTestId("base-button-Next step"));
 
         // Assert
         expect(getByText(stepTwoMessage)).to.exist;
         expect(() => getByText(stepOneMessage)).to.throw();
 
         // Act
-        fireEvent.click(getByTitle("Previous step"));
+        fireEvent.click(getByTestId("base-button-Previous step"));
 
         // Assert
         expect(getByText(stepOneMessage)).to.exist;
@@ -75,7 +75,7 @@ describe("<TutorialTooltip />", () => {
             state,
             reducer,
         });
-        const { getByText, getByTitle } = render(
+        const { getByText, getByTestId } = render(
             <Provider store={store}>
                 <div id={targetId} />
                 <TutorialTooltip />
@@ -86,7 +86,7 @@ describe("<TutorialTooltip />", () => {
         expect(getByText(formattedTutorial)).to.exist;
 
         // Act
-        fireEvent.click(getByTitle("Finished"));
+        fireEvent.click(getByTestId("base-button-Finished"));
 
         // Assert
         expect(() => getByText(formattedTutorial)).to.throw();

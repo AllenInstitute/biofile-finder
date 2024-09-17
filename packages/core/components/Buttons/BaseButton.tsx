@@ -60,6 +60,7 @@ export default function BaseButton(props: Props) {
                     [styles.disabled]: props.disabled,
                     [styles.selected]: props.isSelected,
                 })}
+                data-testid={`base-button-${props.title}`}
                 ariaLabel={props.title}
                 disabled={props.disabled}
                 id={props.id}

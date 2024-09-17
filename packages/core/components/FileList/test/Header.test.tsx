@@ -40,14 +40,14 @@ describe("<Header />", () => {
             },
         });
         const { actions, store } = configureMockStore({ state });
-        const { getByText } = render(
+        const { getAllByText } = render(
             <Provider store={store}>
                 <Header />
             </Provider>
         );
 
         // Act
-        const fileSizeColumn = getByText(AnnotationName.FILE_SIZE);
+        const fileSizeColumn = getAllByText(AnnotationName.FILE_SIZE)[0];
         fireEvent.click(fileSizeColumn);
 
         // Assert
@@ -87,19 +87,19 @@ describe("<Header />", () => {
         const { store } = configureMockStore({ state });
 
         // Act
-        const { getByText } = render(
+        const { getAllByText } = render(
             <Provider store={store}>
                 <Header />
             </Provider>
         );
 
         // Assert
-        const fileSizeCell = getByText(AnnotationName.FILE_SIZE);
+        const fileSizeCell = getAllByText(AnnotationName.FILE_SIZE)[0];
         fileSizeCell.querySelector("i[data-icon-name='ChevronDown']");
         expect(fileSizeCell).to.exist;
     });
 
-    it("renders upward chevron when colum is sorted ascending", () => {
+    it("renders upward chevron when column is sorted ascending", () => {
         // Arrange
         const annotations = [
             AnnotationName.FILE_NAME,
@@ -131,14 +131,14 @@ describe("<Header />", () => {
         const { store } = configureMockStore({ state });
 
         // Act
-        const { getByText } = render(
+        const { getAllByText } = render(
             <Provider store={store}>
                 <Header />
             </Provider>
         );
 
         // Assert
-        const fileSizeCell = getByText(AnnotationName.FILE_SIZE);
+        const fileSizeCell = getAllByText(AnnotationName.FILE_SIZE)[0];
         fileSizeCell.querySelector("i[data-icon-name='ChevronUp']");
         expect(fileSizeCell).to.exist;
     });
