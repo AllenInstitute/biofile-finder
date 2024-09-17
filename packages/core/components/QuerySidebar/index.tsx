@@ -143,6 +143,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                     ariaLabel="Help"
                     className={styles.helpButton}
                     iconProps={{ iconName: "Help" }}
+                    // TODO
                     title="Help menu"
                     menuIconProps={{ iconName: "ChevronUp" }}
                     menuProps={helpMenu}

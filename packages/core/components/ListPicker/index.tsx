@@ -132,6 +132,7 @@ export default function ListPicker(props: ListPickerProps) {
                             disabled={!hasUnselectedItem}
                             iconProps={{ iconName: "MultiSelect" }}
                             title={hasUnselectedItem ? undefined : "All options selected"}
+                            // TODO
                             onClick={onSelectAll}
                         >
                             Select all
@@ -148,6 +149,7 @@ export default function ListPicker(props: ListPickerProps) {
                         disabled={!hasSelectedItem}
                         iconProps={{ iconName: "Clear" }}
                         title={hasSelectedItem ? undefined : "No options selected"}
+                        // TODO
                         onClick={onDeselectAll}
                     >
                         Clear all

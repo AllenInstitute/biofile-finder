@@ -137,7 +137,8 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                         <IconButton
                             ariaLabel="Reset"
                             className={classNames(styles.resetButton)}
-                            title={"Reset filter"}
+                            // TODO
+                            title="Reset filter"
                             onClick={onResetSearch}
                             iconProps={{ iconName: "Delete" }}
                         />

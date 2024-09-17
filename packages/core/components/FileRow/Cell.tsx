@@ -4,6 +4,8 @@ import InteractEvent from "@interactjs/core/InteractEvent"; // unfortunately nec
 import interact from "interactjs";
 import * as React from "react";
 
+import Tooltip from "../Tooltip";
+
 import styles from "./Cell.module.css";
 
 export const NON_RESIZEABLE_CELL_TEST_ID = "non-resizeable-cell-test-id";
@@ -94,37 +96,39 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
         const { className, width } = this.props;
         const { containerClassName, provisionalWidth, resizeTargetClassName } = this.state;
         return (
-            <div
-                ref={this.cell}
-                className={classNames(styles.resizableCell, containerClassName, className)}
-                onContextMenu={this.props.onContextMenu}
-                onDoubleClick={this.onDoubleClick}
-                title={this.props.title}
-                style={{
-                    width: `${(provisionalWidth || width) * 100}%`,
-                    minWidth: Cell.MINIMUM_WIDTH,
-                }}
-            >
-                {this.props.children}
-                <span
-                    className={classNames(styles.resizeTarget, resizeTargetClassName)}
-                    ref={this.resizeTarget}
-                />
-            </div>
+            <Tooltip content={this.props.title}>
+                <div
+                    ref={this.cell}
+                    className={classNames(styles.resizableCell, containerClassName, className)}
+                    onContextMenu={this.props.onContextMenu}
+                    onDoubleClick={this.onDoubleClick}
+                    style={{
+                        width: `${(provisionalWidth || width) * 100}%`,
+                        minWidth: Cell.MINIMUM_WIDTH,
+                    }}
+                >
+                    {this.props.children}
+                    <span
+                        className={classNames(styles.resizeTarget, resizeTargetClassName)}
+                        ref={this.resizeTarget}
+                    />
+                </div>
+            </Tooltip>
         );
     }
 
     private renderNonResizeableCell(): JSX.Element {
         return (
-            <div
-                className={classNames(styles.cell, this.props.className)}
-                onContextMenu={this.props.onContextMenu}
-                style={{ width: `${this.props.width * 100}%` }}
-                data-testid={NON_RESIZEABLE_CELL_TEST_ID}
-                title={this.props.title}
-            >
-                {this.props.children}
-            </div>
+            <Tooltip content={this.props.title}>
+                <div
+                    className={classNames(styles.cell, this.props.className)}
+                    onContextMenu={this.props.onContextMenu}
+                    style={{ width: `${this.props.width * 100}%` }}
+                    data-testid={NON_RESIZEABLE_CELL_TEST_ID}
+                >
+                    {this.props.children}
+                </div>
+            </Tooltip>
         );
     }
 

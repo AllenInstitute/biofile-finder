@@ -1,0 +1,19 @@
+.container {
+    background-color: var(--primary-background-color);
+    border-radius: var(--small-border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.container > div {
+    background-color: var(--primary-background-color);
+}
+
+.container > div:not(:first-child) {
+    border-radius: var(--small-border-radius);
+}
+
+.container > div > div {
+    color: var(--primary-text-color);
+    font-size: 14px;
+    font-weight: 400;
+}
