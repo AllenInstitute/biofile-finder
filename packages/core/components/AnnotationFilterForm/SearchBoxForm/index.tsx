@@ -28,9 +28,7 @@ interface SearchBoxFormProps {
  * with a toggle for exact vs fuzzy (non-exact) search matching
  */
 export default function SearchBoxForm(props: SearchBoxFormProps) {
-    const [isFuzzySearching, setIsFuzzySearching] = React.useState(
-        props?.fuzzySearchEnabled || false
-    );
+    const [isFuzzySearching, setIsFuzzySearching] = React.useState(!!props?.fuzzySearchEnabled);
 
     function onSearchSubmitted(value: string) {
         // Make sure fuzzy search is synchronized in state

@@ -1,4 +1,4 @@
-import { Spinner, SpinnerSize } from "@fluentui/react";
+import { IChoiceGroupOption, Spinner, SpinnerSize } from "@fluentui/react";
 import classNames from "classnames";
 import { isNil } from "lodash";
 import * as React from "react";
@@ -50,25 +50,20 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         annotationService
     );
 
-    // True if list of "ANY/INCLUDE" filters in state contains name of this annotation
+    // Check if annotation name is already listed in state as an INCLUDE, EXCLUDE, FUZZY, or regular file filter
     const usingIncludeFilter: boolean = React.useMemo(() => {
         return !!includeFilters?.some((filter) => filter.annotationName === props.annotation.name);
     }, [includeFilters, props.annotation]);
-    // True if list of "NONE/EXCLUDE" filters in state contains name of this annotation
     const usingExcludeFilter: boolean = React.useMemo(() => {
         return !!excludeFilters?.some((filter) => filter.annotationName === props.annotation.name);
     }, [excludeFilters, props.annotation]);
-    // True if list of all regular filters in state contains name of this annotation
+    const fuzzySearchEnabled: boolean = React.useMemo(() => {
+        return !!fuzzyFilters?.some((filter) => filter.annotationName === props.annotation.name);
+    }, [fuzzyFilters, props.annotation]);
     const filtersForAnnotation = React.useMemo(
         () => allFilters.filter((filter) => filter.name === props.annotation.name),
         [allFilters, props.annotation]
     );
-    // True if list of "FUZZY" filters in state contains name of this annotation
-    const fuzzySearchEnabled: boolean = React.useMemo(() => {
-        return (
-            fuzzyFilters?.some((filter) => filter.annotationName === props.annotation.name) || false
-        );
-    }, [fuzzyFilters, props.annotation]);
 
     // Rehydrate filter type from state into UI
     const defaultFilterType = () => {
@@ -78,7 +73,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
     const [filterType, setFilterType] = React.useState<FilterType | string>(defaultFilterType);
 
-    // Propagate filter values from state into UI
+    // Propagate regular file filter values from state into UI
     const items = React.useMemo<ListItem[]>(() => {
         const appliedFilters = new Set(filtersForAnnotation.map((filter) => filter.value));
 
@@ -125,36 +120,35 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         );
     };
 
-    // Any value/"include"
-    const onSelectAny = () => {
-        const includeFilter = new IncludeFilter(props.annotation.name);
-        // Skip if already in "INCLUDE" list
-        if (!usingIncludeFilter) {
-            removeSpecialFilters();
-            // Currently also incompatible with fuzzy search
-            dispatch(selection.actions.removeFuzzyFilter(new FuzzyFilter(props.annotation.name)));
-            // Also remove any other current filters for this annotation
-            onDeselectAll();
-            dispatch(selection.actions.addIncludeFilter(includeFilter));
-        }
-    };
-
-    // No value/"exclude"
-    const onSelectNone = () => {
-        const excludeFilter = new ExcludeFilter(props.annotation.name);
-        // Skip if already in "EXCLUDE" list
-        if (!usingExcludeFilter) {
-            removeSpecialFilters();
-            // Currently also incompatible with fuzzy search
-            dispatch(selection.actions.removeFuzzyFilter(new FuzzyFilter(props.annotation.name)));
-            // Also remove any other current filters for this annotation
-            onDeselectAll();
-            dispatch(selection.actions.addExcludeFilter(excludeFilter));
+    const _onFilterTypeOptionChange = (option: IChoiceGroupOption | undefined) => {
+        // Verify that filter type is changing to avoid dispatching unnecessary clean-up actions
+        if (!!option?.key && option?.key !== filterType) {
+            setFilterType(option.key);
+            let actionToDispatch = selection.actions.addIncludeFilter;
+            let filterToApply = new IncludeFilter(props.annotation.name);
+            // Selecting ANY or NONE should automatically re-trigger search and re-render dom,
+            // but selecting SOME shouldn't trigger anything until a value is selected
+            // or a search term is entered
+            switch (option.key) {
+                case FilterType.SOME:
+                    return; // No further action needed
+                case FilterType.NONE:
+                    actionToDispatch = selection.actions.addExcludeFilter;
+                    filterToApply = new ExcludeFilter(props.annotation.name);
+                case FilterType.ANY:
+                default:
+                    onDeselectAll();
+                    removeSpecialFilters();
+                    dispatch(
+                        selection.actions.removeFuzzyFilter(new FuzzyFilter(props.annotation.name))
+                    );
+                    dispatch(actionToDispatch(filterToApply));
+            }
         }
     };
 
     // Check if ANY/NONE filter is applied and remove,
-    // since incompatible with each other & SOME filter type
+    // since incompatible with each other & SOME filter type.
     function removeSpecialFilters() {
         if (usingIncludeFilter) {
             dispatch(
@@ -278,11 +272,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                             text: "No value (blank)",
                         },
                     ]}
-                    onChange={(_, option) => {
-                        setFilterType(option?.key || filterType);
-                        if (option?.key === FilterType.ANY) onSelectAny();
-                        if (option?.key === FilterType.NONE) onSelectNone();
-                    }}
+                    onChange={(_, option) => _onFilterTypeOptionChange(option)}
                 />
             </div>
             {filterType === FilterType.SOME ? (
