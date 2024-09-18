@@ -222,40 +222,79 @@ const downloadFilesLogic = createLogic({
             }));
         }
 
-        const totalBytesToDownload = sumBy(filesToDownload, "size");
+        await Promise.all(
+            filesToDownload.map(async (file) => {
+                // Handle S3 zarr files
+                if (file.path.includes("amazonaws.com") && file.path.endsWith(".zarr")) {
+                    try {
+                        const { hostname, key } = fileDownloadService.parseS3Url(file.path);
+                        file.size = await fileDownloadService.calculateS3DirectorySize(
+                            hostname,
+                            key
+                        );
+                    } catch (err) {
+                        console.error(
+                            `Failed to calculate directory size for ${file.name}: ${err}`
+                        );
+                    }
+                } else if (file.size === 0 && file.path.includes("amazonaws.com")) {
+                    // Handle individual S3 files
+                    try {
+                        const s3HeadResponse = await fileDownloadService.headS3Object(file.path);
+                        file.size = s3HeadResponse.size;
+                    } catch (err) {
+                        console.error(`Failed to fetch file size for ${file.name}: ${err}`);
+                    }
+                }
+            })
+        );
+
+        // Calculate total bytes to download
+        const totalBytesToDownload = sumBy(filesToDownload, "size") || 0;
         const totalBytesDisplay = numberFormatter.displayValue(totalBytesToDownload, "bytes");
+
         await Promise.all(
             filesToDownload.map(async (file) => {
                 const downloadRequestId = uniqueId();
                 // TODO: The byte display should be fixed automatically when moving to downloading using browser
                 // https://github.com/AllenInstitute/biofile-finder/issues/62
                 const fileByteDisplay = numberFormatter.displayValue(file.size || 0, "bytes");
-                const msg = `Downloading ${file.name}, ${fileByteDisplay} out of the total of ${totalBytesDisplay} set to download`;
-
-                const onCancel = () => {
-                    dispatch(cancelFileDownload(downloadRequestId));
-                };
 
                 let totalBytesDownloaded = 0;
                 // A function that dispatches progress events, throttled
                 // to only be invokable at most once/second
-                const throttledProgressDispatcher = throttle(() => {
+                const onCancel = () => {
+                    dispatch(cancelFileDownload(downloadRequestId));
+                };
+
+                // Throttled progress dispatcher with updated message
+                const throttledProgressDispatcher = throttle((progressMsg: string) => {
                     dispatch(
                         processProgress(
                             downloadRequestId,
-                            file.size ? totalBytesDownloaded / file.size : 0,
-                            msg,
+                            totalBytesToDownload ? totalBytesDownloaded / totalBytesToDownload : 0,
+                            progressMsg,
                             onCancel,
                             [file.id]
                         )
                     );
                 }, 1000);
+
                 const onProgress = (transferredBytes: number) => {
                     totalBytesDownloaded += transferredBytes;
-                    throttledProgressDispatcher();
+
+                    // Generate new message
+                    const updatedBytesDisplay = numberFormatter.displayValue(
+                        totalBytesDownloaded,
+                        "bytes"
+                    );
+                    const progressMsg = `Downloading ${file.name}, ${updatedBytesDisplay} out of the total of ${totalBytesDisplay} set to download`;
+                    throttledProgressDispatcher(progressMsg);
                 };
 
                 try {
+                    // Start the download and handle progress reporting
+                    const msg = `Downloading ${file.name}, ${fileByteDisplay} out of the total of ${totalBytesDisplay} set to download`;
                     if (totalBytesToDownload) {
                         dispatch(processStart(downloadRequestId, msg, onCancel, [file.id]));
                     }
@@ -268,7 +307,6 @@ const downloadFilesLogic = createLogic({
 
                     if (totalBytesToDownload) {
                         if (result.resolution === DownloadResolution.CANCELLED) {
-                            // Clear status if request was cancelled
                             dispatch(removeStatus(downloadRequestId));
                         } else {
                             dispatch(processSuccess(downloadRequestId, result.msg || ""));

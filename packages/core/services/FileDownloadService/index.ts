@@ -1,4 +1,6 @@
 import axios from "axios";
+import * as http from "http";
+import * as https from "https";
 
 import HttpServiceBase from "../HttpServiceBase";
 
@@ -65,7 +67,7 @@ export default abstract class FileDownloadService extends HttpServiceBase {
     }
 
     /**
-     * Break down S3 URl to Host and Path.
+     * Break down S3 URL to Host and Path.
      */
     public parseS3Url(url: string): { hostname: string; key: string } {
         const { hostname, pathname } = new URL(url);
@@ -90,6 +92,65 @@ export default abstract class FileDownloadService extends HttpServiceBase {
         }
 
         return keys;
+    }
+
+    /**
+     * Calculate the total size of all files in an S3 directory (or zarr file).
+     */
+    public async calculateS3DirectorySize(hostname: string, prefix: string): Promise<number> {
+        let totalSize = 0;
+        let continuationToken: string | undefined = undefined;
+
+        const url = `https://${hostname}?list-type=2&prefix=${encodeURIComponent(prefix)}`;
+
+        do {
+            const listUrl = continuationToken
+                ? `${url}&continuation-token=${encodeURIComponent(continuationToken)}`
+                : url;
+
+            try {
+                const response = await axios.get(listUrl);
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(response.data, "text/xml");
+                const nextToken = xmlDoc.getElementsByTagName("NextContinuationToken")[0];
+                continuationToken = nextToken ? nextToken.textContent || undefined : undefined;
+
+                const contents = xmlDoc.getElementsByTagName("Contents");
+                for (let i = 0; i < contents.length; i++) {
+                    const key = contents[i].getElementsByTagName("Key")[0]?.textContent || "";
+                    const size = contents[i].getElementsByTagName("Size")[0]?.textContent || "0";
+
+                    // Skip directory placeholders (keys ending with '/')
+                    if (!key.endsWith("/")) {
+                        totalSize += parseInt(size, 10);
+                    }
+                }
+            } catch (err) {
+                console.error(`Failed to list objects in S3 directory: ${err}`);
+                throw err;
+            }
+        } while (continuationToken);
+
+        return totalSize;
+    }
+
+    /**
+     * Retrieve file metadata (specifically, file size) from an S3 object using a HEAD request.
+     */
+    public async headS3Object(url: string): Promise<{ size: number }> {
+        return new Promise((resolve, reject) => {
+            const requestor = new URL(url).protocol === "http:" ? http : https;
+            const req = requestor.request(url, { method: "HEAD" }, (res) => {
+                if (res.statusCode !== 200) {
+                    return reject(new Error(`Failed to get file metadata: ${res.statusCode}`));
+                }
+                const fileSize = parseInt(res.headers["content-length"] || "0", 10);
+                resolve({ size: fileSize });
+            });
+
+            req.on("error", reject);
+            req.end();
+        });
     }
 }
 
