@@ -374,7 +374,7 @@ describe("FileSelection", () => {
             const fileDetails = await selection.fetchAllDetails();
 
             // Assert
-            expect(fileDetails).to.be.deep.equal(expectedDetails);
+            expect(fileDetails).to.deep.equal(expectedDetails);
         });
     });
 
@@ -674,12 +674,18 @@ describe("FileSelection", () => {
     describe("toCompactSelectionList", () => {
         it("produces array of selections grouped by fileset", () => {
             // Arrange
+            const fuzzyFilterNames: string[] = ["fuzzyFilterName1", "fuzzyFilterName2"];
+            const includeFilterName = "includeFilterName";
+            const excludeFilterName = "excludeFilterName";
             const fileSet1 = new FileSet();
             const fileSet2 = new FileSet({
-                filters: [new FileFilter("foo", "bar")],
-                fuzzyFilters: [new FuzzyFilter("fuzzyfoo1"), new FuzzyFilter("fuzzyfoo2")],
-                includeFilters: [new IncludeFilter("anyfoo")],
-                excludeFilters: [new ExcludeFilter("nonefoo")],
+                filters: [new FileFilter("filterName", "filterValue")],
+                fuzzyFilters: [
+                    new FuzzyFilter(fuzzyFilterNames[0]),
+                    new FuzzyFilter(fuzzyFilterNames[1]),
+                ],
+                includeFilters: [new IncludeFilter(includeFilterName)],
+                excludeFilters: [new ExcludeFilter(excludeFilterName)],
             });
             const selection = new FileSelection()
                 .select({ fileSet: fileSet1, index: 3, sortOrder: 0 })
@@ -693,15 +699,15 @@ describe("FileSelection", () => {
             // Assert
             expect(selections.length).to.equal(2);
             expect(selections[0].filters).to.be.empty;
-            expect(selections[0].indexRanges).to.be.deep.equal([
+            expect(selections[0].indexRanges).to.deep.equal([
                 new NumericRange(3).toJSON(),
                 new NumericRange(12, 15).toJSON(),
             ]);
-            expect(selections[1].filters).to.be.deep.equal({ foo: ["bar"] });
-            expect(selections[1].fuzzy).to.be.deep.equal(["fuzzyfoo1", "fuzzyfoo2"]);
-            expect(selections[1].include).to.be.deep.equal(["anyfoo"]);
-            expect(selections[1].exclude).to.be.deep.equal(["nonefoo"]);
-            expect(selections[1].indexRanges).to.be.deep.equal([
+            expect(selections[1].filters).to.deep.equal({ filterName: ["filterValue"] });
+            expect(selections[1].fuzzy).to.deep.equal([fuzzyFilterNames[0], fuzzyFilterNames[1]]);
+            expect(selections[1].include).to.deep.equal([includeFilterName]);
+            expect(selections[1].exclude).to.deep.equal([excludeFilterName]);
+            expect(selections[1].indexRanges).to.deep.equal([
                 new NumericRange(8, 10).toJSON(),
                 new NumericRange(33).toJSON(),
             ]);

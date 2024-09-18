@@ -175,7 +175,7 @@ describe("FileExplorerURL", () => {
             const result = FileExplorerURL.decode(encodedUrlWithWhitespace);
 
             // Assert
-            expect(result).to.be.deep.equal(components);
+            expect(result).to.deep.equal(components);
         });
 
         it("Decodes to empty app state", () => {
@@ -197,7 +197,7 @@ describe("FileExplorerURL", () => {
             const result = FileExplorerURL.decode(encodedUrl);
 
             // Assert
-            expect(result).to.be.deep.equal(components);
+            expect(result).to.deep.equal(components);
         });
 
         it("Removes folders that are too deep for hierachy", () => {
@@ -212,7 +212,7 @@ describe("FileExplorerURL", () => {
 
             // Act / Assert
             const { openFolders } = FileExplorerURL.decode(encodedUrl);
-            expect(openFolders).to.be.deep.equal([new FileFolder(["AICS-0"])]);
+            expect(openFolders).to.deep.equal([new FileFolder(["AICS-0"])]);
         });
 
         it("Throws error when sort order is not DESC or ASC", () => {
