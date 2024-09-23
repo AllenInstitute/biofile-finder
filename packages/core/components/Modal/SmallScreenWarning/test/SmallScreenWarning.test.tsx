@@ -36,7 +36,7 @@ describe("<SmallScreenWarning />", () => {
             logics: reduxLogics,
         });
 
-        const { findByText, findByRole } = render(
+        const { findByTestId, findByRole } = render(
             <Provider store={store}>
                 <Modal />
             </Provider>
@@ -47,7 +47,7 @@ describe("<SmallScreenWarning />", () => {
         fireEvent.click(checkbox);
         await logicMiddleware.whenComplete();
 
-        const closeButton = await findByText("OK");
+        const closeButton = await findByTestId("base-button-OK");
         fireEvent.click(closeButton);
         await logicMiddleware.whenComplete();
 
@@ -66,7 +66,7 @@ describe("<SmallScreenWarning />", () => {
             logics: reduxLogics,
         });
 
-        const { findByText, findByRole } = render(
+        const { findByTestId, findByRole } = render(
             <Provider store={store}>
                 <Modal />
             </Provider>
@@ -78,7 +78,7 @@ describe("<SmallScreenWarning />", () => {
         fireEvent.click(checkbox); // uncheck
         await logicMiddleware.whenComplete();
 
-        const closeButton = await findByText("OK");
+        const closeButton = await findByTestId("base-button-OK");
         fireEvent.click(closeButton);
         await logicMiddleware.whenComplete();
 

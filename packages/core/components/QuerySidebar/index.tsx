@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Query from "./Query";
 import { PrimaryButton, useButtonMenu } from "../Buttons";
 import { ModalType } from "../Modal";
+import Tooltip from "../Tooltip";
 import Tutorial from "../../entity/Tutorial";
 import useHelpOptions from "../../hooks/useHelpOptions";
 import { interaction, selection } from "../../state";
@@ -139,14 +140,15 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                 )}
             </div>
             <div className={classNames(styles.footer, { [styles.hidden]: isOnWeb })}>
-                <IconButton
-                    ariaLabel="Help"
-                    className={styles.helpButton}
-                    iconProps={{ iconName: "Help" }}
-                    title="Help menu"
-                    menuIconProps={{ iconName: "ChevronUp" }}
-                    menuProps={helpMenu}
-                />
+                <Tooltip content="Help menu">
+                    <IconButton
+                        ariaLabel="Help"
+                        className={styles.helpButton}
+                        iconProps={{ iconName: "Help" }}
+                        menuIconProps={{ iconName: "ChevronUp" }}
+                        menuProps={helpMenu}
+                    />
+                </Tooltip>
             </div>
             <div className={styles.minimizeBar} onClick={() => setIsExpanded(false)}>
                 <div />

@@ -16,7 +16,7 @@ describe("<NumberRangePicker />", () => {
         }));
 
         // Act / Assert
-        const { getAllByTitle } = render(
+        const { getByText } = render(
             <NumberRangePicker
                 items={items}
                 onSearch={noop}
@@ -26,8 +26,8 @@ describe("<NumberRangePicker />", () => {
         );
 
         // Should render both input fields
-        expect(getAllByTitle(/^Min/).length).to.equal(1);
-        expect(getAllByTitle(/^Max/).length).to.equal(1);
+        expect(getByText("Min (inclusive)")).to.not.be.undefined;
+        expect(getByText("Max (exclusive)")).to.not.be.undefined;
 
         // Should initialize to min and max item provided, respectively
         expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("0");
@@ -66,7 +66,7 @@ describe("<NumberRangePicker />", () => {
         }));
 
         // Act / Assert
-        const { getByTitle } = render(
+        const { getByTestId } = render(
             <NumberRangePicker
                 items={items}
                 onSearch={onSearch}
@@ -81,7 +81,7 @@ describe("<NumberRangePicker />", () => {
 
         // Hit reset
         expect(onReset.called).to.equal(false);
-        fireEvent.click(getByTitle("Reset filter"));
+        fireEvent.click(getByTestId("base-button-Reset filter"));
         expect(onReset.called).to.equal(true);
 
         // Should clear min and max values

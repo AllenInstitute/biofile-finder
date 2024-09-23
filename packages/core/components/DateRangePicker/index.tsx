@@ -1,5 +1,7 @@
-import { DatePicker, Icon, IconButton } from "@fluentui/react";
+import { DatePicker, Icon } from "@fluentui/react";
 import * as React from "react";
+
+import { TertiaryButton } from "../Buttons";
 import FileFilter from "../../entity/FileFilter";
 import { extractDatesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/date-time-formatter";
 
@@ -86,10 +88,9 @@ export default function DateRangePicker(props: DateRangePickerProps) {
                     onSelectDate={(v) => (v ? onDateRangeSelection(null, v) : onReset())}
                     value={extractDateFromDateString(endDate?.toISOString())}
                 />
-                <IconButton
+                <TertiaryButton
                     className={styles.clearButton}
-                    ariaLabel="Clear filter date"
-                    iconProps={{ iconName: "Clear" }}
+                    iconName="Clear"
                     onClick={onReset}
                     title="Reset"
                 />

@@ -83,6 +83,10 @@ export default class DatabaseAnnotationService implements AnnotationService {
         annotation: string,
         filtersByAnnotation: { [name: string]: (string | null)[] } = {}
     ): Promise<string[]> {
+        if (!this.dataSourceNames.length) {
+            return [];
+        }
+
         const sqlBuilder = new SQLBuilder()
             .select(`DISTINCT "${annotation}"`)
             .from(this.dataSourceNames);
@@ -116,6 +120,10 @@ export default class DatabaseAnnotationService implements AnnotationService {
      * file set
      */
     public async fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]> {
+        if (!this.dataSourceNames.length) {
+            return [];
+        }
+
         const sql = new SQLBuilder()
             .summarize()
             .from(this.dataSourceNames)

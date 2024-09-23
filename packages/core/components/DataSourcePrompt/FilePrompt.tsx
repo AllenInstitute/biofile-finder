@@ -4,6 +4,7 @@ import { throttle } from "lodash";
 import * as React from "react";
 
 import { SecondaryButton } from "../Buttons";
+import Tooltip from "../Tooltip";
 import { Source, getNameAndTypeFromSourceUrl } from "../../entity/FileExplorerURL";
 
 import styles from "./FilePrompt.module.css";
@@ -54,9 +55,11 @@ export default function FilePrompt(props: Props) {
     if (props.selectedFile) {
         return (
             <div className={styles.selectedFileContainer}>
-                <p className={styles.selectedFile} title={props.selectedFile.name}>
-                    {props.selectedFile.name}.{props.selectedFile.type}
-                </p>
+                <Tooltip content={props.selectedFile.name}>
+                    <p className={styles.selectedFile}>
+                        {props.selectedFile.name}.{props.selectedFile.type}
+                    </p>
+                </Tooltip>
                 <IconButton
                     className={styles.selectedFileButton}
                     iconProps={{ iconName: "Cancel" }}

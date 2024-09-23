@@ -62,7 +62,7 @@ describe("<LazilyRenderedThumbnail />", () => {
         const { store } = configureMockStore({ state });
 
         // Act
-        const { getByText, findByRole } = render(
+        const { getAllByText, findByRole } = render(
             <Provider store={store}>
                 <LazilyRenderedThumbnail
                     data={makeItemData()}
@@ -77,7 +77,7 @@ describe("<LazilyRenderedThumbnail />", () => {
         // Also checking for proper row/col indexing
         const thumbnail = await findByRole("img");
         expect(thumbnail.getAttribute("src")).to.include("some/path/to/my_image0.jpg");
-        expect(getByText("my_image0.czi")).to.not.equal(null);
+        expect(getAllByText("my_image0.czi")).to.not.be.empty;
     });
 
     it("renders file as thumbnail if file is renderable type", async () => {
@@ -85,7 +85,7 @@ describe("<LazilyRenderedThumbnail />", () => {
         const { store } = configureMockStore({ state: initialState });
 
         // Act
-        const { getByText, findByRole } = render(
+        const { getAllByText, findByRole } = render(
             <Provider store={store}>
                 <LazilyRenderedThumbnail
                     data={makeItemData()}
@@ -100,7 +100,7 @@ describe("<LazilyRenderedThumbnail />", () => {
         // Also confirms proper row/col indexing
         const thumbnail = await findByRole("img");
         expect(thumbnail.getAttribute("src")).to.include("some/path/to/my_image9.jpg");
-        expect(getByText("my_image9.jpg")).to.not.equal(null);
+        expect(getAllByText("my_image9.jpg")).to.not.be.empty;
     });
 
     it("renders svg as thumbnail if file has no renderable thumbnail", () => {
@@ -108,7 +108,7 @@ describe("<LazilyRenderedThumbnail />", () => {
         const { store } = configureMockStore({ state: initialState });
 
         // Act
-        const { getByText, queryByRole } = render(
+        const { getAllByText, queryByRole } = render(
             <Provider store={store}>
                 <LazilyRenderedThumbnail
                     data={makeItemData()}
@@ -124,7 +124,7 @@ describe("<LazilyRenderedThumbnail />", () => {
         expect(".no-thumbnail").to.exist;
         expect(".svg").to.exist;
         expect(queryByRole("img")).not.to.exist;
-        expect(getByText("my_image25.czi")).to.not.equal(null);
+        expect(getAllByText("my_image25.czi")).to.not.be.empty;
     });
 
     it("renders a loading indicator when data is not available", () => {
@@ -182,7 +182,7 @@ describe("<LazilyRenderedThumbnail />", () => {
         const { store } = configureMockStore({ state });
 
         // Act
-        const { getByText } = render(
+        const { getAllByText } = render(
             <Provider store={store}>
                 <LazilyRenderedThumbnail
                     data={makeItemData()}
@@ -196,6 +196,6 @@ describe("<LazilyRenderedThumbnail />", () => {
         // Assert
         expect(".no-thumbnail").to.exist;
         expect(".svg").to.exist;
-        expect(getByText("my_image25.czi")).to.not.equal(null);
+        expect(getAllByText("my_image25.czi")).to.not.be.empty;
     });
 });

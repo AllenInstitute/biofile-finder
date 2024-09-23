@@ -8,6 +8,7 @@ import QueryDataSource from "../QueryPart/QueryDataSource";
 import QueryFilter from "../QueryPart/QueryFilter";
 import QueryGroup from "../QueryPart/QueryGroup";
 import QuerySort from "../QueryPart/QuerySort";
+import Tooltip from "../Tooltip";
 import { interaction, metadata, selection } from "../../state";
 import { Query as QueryType } from "../../state/selection/actions";
 
@@ -77,7 +78,9 @@ export default function Query(props: QueryProps) {
                 onContextMenu={onContextMenu}
             >
                 <div className={styles.header}>
-                    <h4 title={props.query.name}>{props.query.name}</h4>
+                    <Tooltip content={props.query.name}>
+                        <h4>{props.query.name}</h4>
+                    </Tooltip>
                     {props.isSelected && (
                         <IconButton
                             ariaDescription="Expand view details"

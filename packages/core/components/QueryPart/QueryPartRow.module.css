@@ -67,7 +67,11 @@
     font-weight: 600;
 }
 
-.row-title > p {
+.row-title > div {
+    width: 100%;
+}
+
+.row-title > p, .row-title > div > p {
     font-size: var(--s-paragraph-size);
     margin: 0;
     display: block;

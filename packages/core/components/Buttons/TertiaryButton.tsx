@@ -23,7 +23,6 @@ interface Props {
  * Component styled for tertiary interactions in the app (ex. font size buttons)
  */
 export default function TertiaryButton(props: Props) {
-    // TODO: invert color
     return (
         <BaseButton
             className={classNames(props.className, styles.button, {

@@ -13,7 +13,7 @@ describe("<BaseButton />", () => {
             wasClicked = true;
         };
 
-        const { getByTitle } = render(
+        const { getByTestId } = render(
             <BaseButton disabled onClick={onClick} iconName="Download" title={title} />
         );
 
@@ -21,7 +21,7 @@ describe("<BaseButton />", () => {
         expect(wasClicked).to.be.false;
 
         // Act
-        fireEvent.click(getByTitle(title));
+        fireEvent.click(getByTestId(`base-button-${title}`));
 
         // Assert
         expect(wasClicked).to.be.false;
@@ -35,7 +35,7 @@ describe("<BaseButton />", () => {
             wasClicked = true;
         };
 
-        const { getByTitle } = render(
+        const { getByTestId } = render(
             <BaseButton onClick={onClick} iconName="Download" title={title} />
         );
 
@@ -43,7 +43,7 @@ describe("<BaseButton />", () => {
         expect(wasClicked).to.be.false;
 
         // Act
-        fireEvent.click(getByTitle(title));
+        fireEvent.click(getByTestId(`base-button-${title}`));
 
         // Assert
         expect(wasClicked).to.be.true;

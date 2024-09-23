@@ -42,7 +42,7 @@ export default function BaseModal(props: BaseModalProps) {
                         {title}
                     </h3>
                 ) : null}
-                <TertiaryButton iconName="Cancel" onClick={onDismiss} title="Close" />
+                <TertiaryButton iconName="Cancel" onClick={onDismiss} title="" />
             </div>
             {body}
             <div className={styles.footer}>{footer}</div>
