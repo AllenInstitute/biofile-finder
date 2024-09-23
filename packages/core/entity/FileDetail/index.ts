@@ -127,6 +127,11 @@ export default class FileDetail {
     public get downloadPath(): string {
         // For AICS files we don't have permission to the bucket nor do we expect to have the /allen
         // drive mounted on the client machine. So we use the NGINX server to serve the file.
+
+        if (this.path.endsWith(".zarr")) {
+            return this.cloudPath;
+        }
+
         if (this.path.startsWith("/allen")) {
             return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${this.path}`;
         }
