@@ -96,39 +96,39 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
         const { className, width } = this.props;
         const { containerClassName, provisionalWidth, resizeTargetClassName } = this.state;
         return (
-            <Tooltip content={this.props.title}>
-                <div
-                    ref={this.cell}
-                    className={classNames(styles.resizableCell, containerClassName, className)}
-                    onContextMenu={this.props.onContextMenu}
-                    onDoubleClick={this.onDoubleClick}
-                    style={{
-                        width: `${(provisionalWidth || width) * 100}%`,
-                        minWidth: Cell.MINIMUM_WIDTH,
-                    }}
-                >
-                    {this.props.children}
-                    <span
-                        className={classNames(styles.resizeTarget, resizeTargetClassName)}
-                        ref={this.resizeTarget}
-                    />
-                </div>
-            </Tooltip>
+            <div
+                ref={this.cell}
+                className={classNames(styles.resizableCell, containerClassName, className)}
+                onContextMenu={this.props.onContextMenu}
+                onDoubleClick={this.onDoubleClick}
+                style={{
+                    width: `${(provisionalWidth || width) * 100}%`,
+                    minWidth: Cell.MINIMUM_WIDTH,
+                }}
+            >
+                <Tooltip content={this.props.title}>
+                    <>{this.props.children}</>
+                </Tooltip>
+                <span
+                    className={classNames(styles.resizeTarget, resizeTargetClassName)}
+                    ref={this.resizeTarget}
+                />
+            </div>
         );
     }
 
     private renderNonResizeableCell(): JSX.Element {
         return (
-            <Tooltip content={this.props.title}>
-                <div
-                    className={classNames(styles.cell, this.props.className)}
-                    onContextMenu={this.props.onContextMenu}
-                    style={{ width: `${this.props.width * 100}%` }}
-                    data-testid={NON_RESIZEABLE_CELL_TEST_ID}
-                >
-                    {this.props.children}
-                </div>
-            </Tooltip>
+            <div
+                className={classNames(styles.cell, this.props.className)}
+                onContextMenu={this.props.onContextMenu}
+                style={{ width: `${this.props.width * 100}%` }}
+                data-testid={NON_RESIZEABLE_CELL_TEST_ID}
+            >
+                <Tooltip content={this.props.title}>
+                    <>{this.props.children}</>
+                </Tooltip>
+            </div>
         );
     }
 
