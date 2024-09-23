@@ -128,6 +128,7 @@ export default class FileDetail {
         // For AICS files we don't have permission to the bucket nor do we expect to have the /allen
         // drive mounted on the client machine. So we use the NGINX server to serve the file.
 
+        // Always try to use cloudpath for zarrs.
         if (this.path.endsWith(".zarr")) {
             return this.cloudPath;
         }
