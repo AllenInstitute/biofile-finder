@@ -1,18 +1,19 @@
 import { Spinner, SpinnerSize } from "@fluentui/react";
+import classNames from "classnames";
 import { isNil } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useAnnotationValues from "./useAnnotationValues";
+import SearchBoxForm from "./SearchBoxForm";
+import DateRangePicker from "../DateRangePicker";
+import ListPicker from "../ListPicker";
+import { ListItem } from "../ListPicker/ListRow";
+import NumberRangePicker from "../NumberRangePicker";
 import Annotation from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
-import ListPicker from "../ListPicker";
-import { ListItem } from "../ListPicker/ListRow";
-import NumberRangePicker from "../NumberRangePicker";
-import SearchBoxForm from "./SearchBoxForm";
-import DateRangePicker from "../DateRangePicker";
 import { interaction, selection } from "../../state";
 
 import styles from "./AnnotationFilterForm.module.css";
@@ -107,82 +108,79 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         );
     }
 
-    // Use the checkboxes if values exist and are few enough to reasonably scroll through
-    if (items.length > 0 && items.length <= 100) {
-        return (
-            <ListPicker
-                items={items}
-                loading={isLoading}
-                title={`Filter by ${props.annotation.displayName}`}
-                errorMessage={errorMessage}
-                onDeselect={onDeselect}
-                onDeselectAll={onDeselectAll}
-                onSelect={onSelect}
-                onSelectAll={onSelectAll}
-            />
-        );
-    }
+    const listPickerComponent = (
+        <ListPicker
+            items={items}
+            loading={isLoading}
+            errorMessage={errorMessage}
+            onDeselect={onDeselect}
+            onDeselectAll={onDeselectAll}
+            onSelect={onSelect}
+            onSelectAll={onSelectAll}
+        />
+    );
 
-    switch (props.annotation.type) {
-        case AnnotationType.DATE:
-        case AnnotationType.DATETIME:
-            return (
-                <DateRangePicker
-                    className={styles.picker}
-                    onSearch={onSearch}
-                    title={`Filter by ${props.annotation.displayName}`}
-                    onReset={onDeselectAll}
-                    currentRange={filtersForAnnotation?.[0]}
-                />
-            );
-        case AnnotationType.NUMBER:
-            // File size is a special case where we don't have
-            // the ability to filter by range in the backend yet
-            // so we'll just let that case fall through to the string below
-            if (props.annotation.name !== AnnotationName.FILE_SIZE) {
+    const searchFormType = () => {
+        // Use the checkboxes if values exist and are few enough to reasonably scroll through
+        if (items.length > 0 && items.length <= 100) {
+            return listPickerComponent;
+        }
+
+        switch (props.annotation.type) {
+            case AnnotationType.DATE:
+            case AnnotationType.DATETIME:
                 return (
-                    <NumberRangePicker
+                    <DateRangePicker
                         className={styles.picker}
-                        items={items}
-                        loading={isLoading}
-                        title={`Filter by ${props.annotation.displayName}`}
-                        errorMessage={errorMessage}
                         onSearch={onSearch}
                         onReset={onDeselectAll}
                         currentRange={filtersForAnnotation?.[0]}
-                        units={props.annotation.units}
                     />
                 );
-            }
-        case AnnotationType.STRING:
-            return (
-                <SearchBoxForm
-                    className={styles.picker}
-                    items={items}
-                    onSelect={onSelect}
-                    onDeselect={onDeselect}
-                    onSelectAll={onSelectAll}
-                    onDeselectAll={onDeselectAll}
-                    onSearch={onSearch}
-                    fieldName={props.annotation.displayName}
-                    title={`Filter by ${props.annotation.displayName}`}
-                    defaultValue={filtersForAnnotation?.[0]}
-                />
-            );
-        case AnnotationType.DURATION:
-        // prettier-ignore
-        default: // FALL-THROUGH
-            return (
-                <ListPicker
-                    items={items}
-                    loading={isLoading}
-                    title={`Filter by ${props.annotation.displayName}`}
-                    errorMessage={errorMessage}
-                    onDeselect={onDeselect}
-                    onDeselectAll={onDeselectAll}
-                    onSelect={onSelect}
-                    onSelectAll={onSelectAll}
-                />
-            );
-    }
+            case AnnotationType.NUMBER:
+                // File size is a special case where we don't have
+                // the ability to filter by range in the backend yet
+                // so we'll just let that case fall through to the string below
+                if (props.annotation.name !== AnnotationName.FILE_SIZE) {
+                    return (
+                        <NumberRangePicker
+                            className={styles.picker}
+                            items={items}
+                            loading={isLoading}
+                            errorMessage={errorMessage}
+                            onSearch={onSearch}
+                            currentRange={filtersForAnnotation?.[0]}
+                            units={props.annotation.units}
+                        />
+                    );
+                }
+            case AnnotationType.STRING:
+                // Annotations without a scrollable list of values, e.g., File Path
+                if (items.length == 0) {
+                    return (
+                        <SearchBoxForm
+                            className={styles.picker}
+                            onSelectAll={onSelectAll}
+                            onDeselectAll={onDeselectAll}
+                            onSearch={onSearch}
+                            fieldName={props.annotation.displayName}
+                            defaultValue={filtersForAnnotation?.[0]}
+                        />
+                    );
+                }
+            case AnnotationType.DURATION:
+            // prettier-ignore
+            default: // FALL-THROUGH
+                return (listPickerComponent);
+        }
+    };
+
+    return (
+        <div>
+            <div className={classNames(styles.header)}>
+                <h3>Filter {props.annotation.displayName} by</h3>
+            </div>
+            {searchFormType()}
+        </div>
+    );
 }

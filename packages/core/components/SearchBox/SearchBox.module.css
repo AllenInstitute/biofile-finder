@@ -1,3 +1,12 @@
+.search-box-wrapper {
+    display: flex;
+    width: 100%;
+}
+
+.search-box {
+    flex-grow: 1;
+}
+
 .search-box, .search-box > :is(div, input), .search-box :is(button, i) {
     background-color: var(--secondary-background-color) !important;
     color: var(--secondary-text-color) !important;
@@ -22,5 +31,22 @@
 }
 
 .search-box::after {
-    display: none;
+    border: 1px solid var(--aqua);
+}
+
+.submit-button {
+    height: 31px;
+    min-width: 30px;
+    margin-left: 8px;
+}
+
+.submit-button, .submit-button i {
+    font-weight: 400;
+    background-color: var(--aqua) !important;
+    color: var(--highlight-text-color)
+}
+
+.submit-button:hover, .submit-button:hover i {
+    background-color: var(--bright-aqua) !important;
+    color: var(--highlight-text-color)
 }
