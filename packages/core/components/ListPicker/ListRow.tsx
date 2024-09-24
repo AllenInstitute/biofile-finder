@@ -3,6 +3,7 @@ import classNames from "classnames";
 import * as React from "react";
 
 import { useButtonMenu } from "../Buttons";
+import Tooltip from "../Tooltip";
 import { AnnotationValue } from "../../services/AnnotationService";
 
 import styles from "./ListRow.module.css";
@@ -56,13 +57,14 @@ export default function ListRow(props: Props) {
             disabled={item.disabled}
             onClick={() => (item.selected ? props.onDeselect(item) : props.onSelect(item))}
         >
-            <label
-                className={styles.item}
-                title={`${item.displayValue}${item.description ? `: ${item.description}` : ""}`}
+            <Tooltip
+                content={`${item.displayValue}${item.description ? `: ${item.description}` : ""}`}
             >
-                <div>{item.selected && <Icon iconName="CheckMark" />}</div>
-                <p>{item.displayValue}</p>
-            </label>
+                <label className={styles.item}>
+                    <div>{item.selected && <Icon iconName="CheckMark" />}</div>
+                    <p>{item.displayValue}</p>
+                </label>
+            </Tooltip>
             {item.recent && <Icon iconName="Recent" />}
             {item.loading && <Spinner className={styles.spinner} size={SpinnerSize.small} />}
         </DefaultButton>
