@@ -44,29 +44,27 @@ export default function ListRow(props: Props) {
     }
 
     return (
-        <DefaultButton
-            className={classNames(styles.itemContainer, {
-                [styles.selected]: item.selected,
-                [styles.disabled]: item.disabled,
-                [styles.divider]: item.isDivider,
-            })}
-            menuIconProps={{
-                iconName: props.subMenuRenderer && !item.isDivider ? "ChevronRight" : undefined,
-            }}
-            menuProps={props.subMenuRenderer ? buttonMenu : undefined}
-            disabled={item.disabled}
-            onClick={() => (item.selected ? props.onDeselect(item) : props.onSelect(item))}
-        >
-            <Tooltip
-                content={`${item.displayValue}${item.description ? `: ${item.description}` : ""}`}
+        <Tooltip content={`${item.displayValue}${item.description ? `: ${item.description}` : ""}`}>
+            <DefaultButton
+                className={classNames(styles.itemContainer, {
+                    [styles.selected]: item.selected,
+                    [styles.disabled]: item.disabled,
+                    [styles.divider]: item.isDivider,
+                })}
+                menuIconProps={{
+                    iconName: props.subMenuRenderer && !item.isDivider ? "ChevronRight" : undefined,
+                }}
+                menuProps={props.subMenuRenderer ? buttonMenu : undefined}
+                disabled={item.disabled}
+                onClick={() => (item.selected ? props.onDeselect(item) : props.onSelect(item))}
             >
                 <label className={styles.item}>
                     <div>{item.selected && <Icon iconName="CheckMark" />}</div>
                     <p>{item.displayValue}</p>
                 </label>
-            </Tooltip>
-            {item.recent && <Icon iconName="Recent" />}
-            {item.loading && <Spinner className={styles.spinner} size={SpinnerSize.small} />}
-        </DefaultButton>
+                {item.recent && <Icon iconName="Recent" />}
+                {item.loading && <Spinner className={styles.spinner} size={SpinnerSize.small} />}
+            </DefaultButton>
+        </Tooltip>
     );
 }
