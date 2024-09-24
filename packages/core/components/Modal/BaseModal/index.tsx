@@ -38,9 +38,9 @@ export default function BaseModal(props: BaseModalProps) {
         >
             <div className={styles.header}>
                 {title ? (
-                    <h3 className={styles.title} id={titleId}>
+                    <h2 className={styles.title} id={titleId}>
                         {title}
-                    </h3>
+                    </h2>
                 ) : null}
                 <TertiaryButton iconName="Cancel" onClick={onDismiss} title="" />
             </div>
