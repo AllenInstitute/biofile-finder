@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 import ColumnPicker from "./ColumnPicker";
 import { ContextMenuItem } from "../ContextMenu";
+import Tooltip from "../Tooltip";
 import FileRow, { CellConfig } from "../../components/FileRow";
 import { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
@@ -46,9 +47,10 @@ function Header(
                 <span
                     className={styles.headerCell}
                     onClick={() => dispatch(selection.actions.sortColumn(annotation.name))}
-                    title={annotationNameToAnnotationMap[annotation.name]?.description}
                 >
-                    <span className={styles.headerTitle}>{annotation.displayName}</span>
+                    <Tooltip content={annotationNameToAnnotationMap[annotation.name]?.description}>
+                        <span className={styles.headerTitle}>{annotation.displayName}</span>
+                    </Tooltip>
                     {isSortedColumn &&
                         (sortColumn?.order === SortOrder.DESC ? (
                             <Icon className={styles.sortIcon} iconName="ChevronDown" />
@@ -57,7 +59,6 @@ function Header(
                         ))}
                 </span>
             ),
-            title: annotation.name,
             width: columnWidths[annotation.name] || 1 / columnAnnotations.length,
         };
     });

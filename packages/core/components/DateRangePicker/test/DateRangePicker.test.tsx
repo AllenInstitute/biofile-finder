@@ -57,13 +57,13 @@ describe("<DateRangePicker />", () => {
         const onReset = sinon.spy();
 
         // Act / Assert
-        const { getByTitle } = render(
+        const { getByTestId } = render(
             <DateRangePicker onSearch={onSearch} onReset={onReset} currentRange={undefined} />
         );
 
         // Hit reset
         expect(onReset.called).to.equal(false);
-        fireEvent.click(getByTitle("Reset"));
+        fireEvent.click(getByTestId("base-button-Reset"));
         expect(onReset.called).to.equal(true);
     });
 });

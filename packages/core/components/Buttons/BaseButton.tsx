@@ -3,6 +3,7 @@ import classNames from "classnames";
 import * as React from "react";
 
 import useButtonMenu from "./useButtonMenu";
+import Tooltip from "../Tooltip";
 
 import styles from "./BaseButton.module.css";
 
@@ -44,31 +45,31 @@ export default function BaseButton(props: Props) {
     // Avoid button element wrapper if not necessary
     if (!props.onClick && !props.menuItems) {
         return (
-            <div
-                className={classNames(props.className, styles.button)}
-                id={props.id}
-                title={props.title}
-            >
-                {content}
-            </div>
+            <Tooltip content={props.title} disabled={props.disabled}>
+                <div className={classNames(props.className, styles.button)} id={props.id}>
+                    {content}
+                </div>
+            </Tooltip>
         );
     }
 
     return (
-        <DefaultButton
-            className={classNames(props.className, styles.button, {
-                [styles.disabled]: props.disabled,
-                [styles.selected]: props.isSelected,
-            })}
-            ariaLabel={props.title}
-            disabled={props.disabled}
-            id={props.id}
-            menuIconProps={{ className: styles.hidden }}
-            menuProps={styledMenu}
-            onClick={props.onClick}
-            title={props.title}
-        >
-            {content}
-        </DefaultButton>
+        <Tooltip content={props.title} disabled={props.disabled}>
+            <DefaultButton
+                className={classNames(props.className, styles.button, {
+                    [styles.disabled]: props.disabled,
+                    [styles.selected]: props.isSelected,
+                })}
+                data-testid={`base-button-${props.title}`}
+                ariaLabel={props.title}
+                disabled={props.disabled}
+                id={props.id}
+                menuIconProps={{ className: styles.hidden }}
+                menuProps={styledMenu}
+                onClick={props.onClick}
+            >
+                {content}
+            </DefaultButton>
+        </Tooltip>
     );
 }

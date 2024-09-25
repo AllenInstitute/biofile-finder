@@ -30,7 +30,7 @@
     font-style: italic;
 }
 
-.search-box::after{
+.search-box::after {
     border: 1px solid var(--aqua);
 }
 

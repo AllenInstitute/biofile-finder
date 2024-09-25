@@ -3,11 +3,12 @@ import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
+import { OnSelect } from "./useFileSelector";
+import Tooltip from "../Tooltip";
 import FileSet from "../../entity/FileSet";
 import FileThumbnail from "../../components/FileThumbnail";
-import { selection } from "../../state";
-import { OnSelect } from "./useFileSelector";
 import { THUMBNAIL_SIZE_TO_NUM_COLUMNS } from "../../constants";
+import { selection } from "../../state";
 
 import styles from "./LazilyRenderedThumbnail.module.css";
 
@@ -98,30 +99,31 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
     if (file) {
         const filenameForRender = clipFileName(file?.name);
         content = (
-            <div
-                onClick={onClick}
-                className={classNames({
-                    [styles.selected]: isSelected,
-                    [styles.focused]: isFocused,
-                })}
-                title={file?.name}
-            >
-                <FileThumbnail
-                    className={styles.thumbnail}
-                    height={thumbnailSize}
-                    width={thumbnailSize}
-                    uri={thumbnailPath}
-                />
+            <Tooltip content={file?.name}>
                 <div
+                    onClick={onClick}
                     className={classNames({
-                        [styles.smallFont]:
-                            shouldDisplaySmallFont ||
-                            fileGridColCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL,
+                        [styles.selected]: isSelected,
+                        [styles.focused]: isFocused,
                     })}
                 >
-                    {filenameForRender}
+                    <FileThumbnail
+                        className={styles.thumbnail}
+                        height={thumbnailSize}
+                        width={thumbnailSize}
+                        uri={thumbnailPath}
+                    />
+                    <div
+                        className={classNames({
+                            [styles.smallFont]:
+                                shouldDisplaySmallFont ||
+                                fileGridColCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL,
+                        })}
+                    >
+                        {filenameForRender}
+                    </div>
                 </div>
-            </div>
+            </Tooltip>
         );
     } else if (overallIndex < itemCount) {
         // Grid will attempt to render a cell even if we're past the total index

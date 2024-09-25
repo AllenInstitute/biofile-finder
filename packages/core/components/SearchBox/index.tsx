@@ -1,7 +1,8 @@
-import { IconButton, SearchBox as SearchBoxComponent } from "@fluentui/react";
+import { SearchBox as SearchBoxComponent } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
+import { TertiaryButton } from "../Buttons";
 import FileFilter from "../../entity/FileFilter";
 
 import styles from "./SearchBox.module.css";
@@ -48,12 +49,11 @@ export default function SearchBox(props: Props) {
                 value={searchValue}
             />
             {showSubmitButton && (
-                <IconButton
-                    ariaLabel="Submit"
+                <TertiaryButton
                     className={styles.submitButton}
                     title={"Submit"}
                     onClick={() => props.onSearch?.(searchValue)}
-                    iconProps={{ iconName: "ReturnKey" }}
+                    iconName="ReturnKey"
                 />
             )}
         </div>

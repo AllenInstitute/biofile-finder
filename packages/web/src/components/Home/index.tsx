@@ -110,7 +110,7 @@ export default function Home() {
                                 )}
                             >
                                 <div className={styles.option} key={`option_${index}`}>
-                                    <div className={styles.optionHeader}>{option.header}</div>
+                                    <h3 className={styles.optionHeader}>{option.header}</h3>
                                     <div className={styles.optionBody}>{option.body}</div>
                                     {option.action}
                                 </div>

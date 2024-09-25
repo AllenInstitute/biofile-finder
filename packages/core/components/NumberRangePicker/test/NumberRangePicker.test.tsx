@@ -16,17 +16,17 @@ describe("<NumberRangePicker />", () => {
         }));
 
         // Act / Assert
-        const { getAllByTitle } = render(
+        const { getByText } = render(
             <NumberRangePicker items={items} onSearch={noop} currentRange={undefined} />
         );
 
         // Should render both input fields
-        expect(getAllByTitle(/^Min/).length).to.equal(1);
-        expect(getAllByTitle(/^Max/).length).to.equal(1);
+        expect(getByText("Min (inclusive)")).to.not.be.undefined;
+        expect(getByText("Max (exclusive)")).to.not.be.undefined;
 
         // Should initialize to min and max item provided, respectively
-        expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("0");
-        expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("20");
+        expect(screen.getByTestId<HTMLInputElement>("rangemin").value).to.equal("0");
+        expect(screen.getByTestId<HTMLInputElement>("rangemax").value).to.equal("20");
     });
 
     it("initializes to values passed through props if provided", () => {
@@ -40,36 +40,36 @@ describe("<NumberRangePicker />", () => {
         render(<NumberRangePicker items={items} onSearch={noop} currentRange={currentRange} />);
 
         // Should initialize to min and max item provided, respectively
-        expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("0");
-        expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("12.34");
+        expect(screen.getByTestId<HTMLInputElement>("rangemin").value).to.equal("0");
+        expect(screen.getByTestId<HTMLInputElement>("rangemax").value).to.equal("12.34");
     });
 
     it("renders a 'Reset' button if given a callback", () => {
         // Arrange
         const onSearch = sinon.spy();
-        const currentRange = new FileFilter("foo", "RANGE(1, 12.34)");
+        const currentRange = new FileFilter("Test Numerical Annotation", "RANGE(1, 12.34)");
         const items: ListItem[] = ["0", "20"].map((val) => ({
             displayValue: val,
             value: val,
         }));
 
         // Act / Assert
-        const { getByTitle } = render(
+        const { getByTestId } = render(
             <NumberRangePicker items={items} onSearch={onSearch} currentRange={currentRange} />
         );
 
         // Consistency check
-        expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("1");
-        expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("12.34");
+        expect(screen.getByTestId<HTMLInputElement>("rangemin").value).to.equal("1");
+        expect(screen.getByTestId<HTMLInputElement>("rangemax").value).to.equal("12.34");
 
         // Hit reset
         expect(onSearch.called).to.equal(false);
-        fireEvent.click(getByTitle("Reset values"));
+        fireEvent.click(getByTestId("base-button-Reset filter"));
         expect(onSearch.called).to.equal(true);
 
         // Should reset to min and max values
-        expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("0");
-        expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("20");
+        expect(screen.getByTestId<HTMLInputElement>("rangemin").value).to.equal("0");
+        expect(screen.getByTestId<HTMLInputElement>("rangemax").value).to.equal("20");
     });
 
     it("displays available min and max of items", () => {

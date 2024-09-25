@@ -7,12 +7,11 @@ import { Policy } from "cockatiel";
 import { app, ipcMain, ipcRenderer } from "electron";
 
 import {
-    FileDownloadService,
     DownloadResult,
+    FileDownloadService,
     FileInfo,
     DownloadResolution,
     FileDownloadCancellationToken,
-    HttpServiceBase,
 } from "../../../core/services";
 import { DownloadFailure } from "../../../core/errors";
 
@@ -40,9 +39,7 @@ interface DownloadOptions {
     writeStreamOptions: WriteStreamOptions;
 }
 
-export default class FileDownloadServiceElectron
-    extends HttpServiceBase
-    implements FileDownloadService {
+export default class FileDownloadServiceElectron extends FileDownloadService {
     // IPC events registered both within the main and renderer processes
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
     public static GET_DOWNLOADS_DIR = "get-downloads-dir";
@@ -66,7 +63,35 @@ export default class FileDownloadServiceElectron
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        let downloadUrl;
+        let downloadUrl: string;
+
+        if (fileInfo.path.endsWith(".zarr")) {
+            const isS3Path = this.isS3Url(fileInfo.path);
+            if (isS3Path) {
+                return this.downloadS3Directory(
+                    fileInfo,
+                    downloadRequestId,
+                    onProgress,
+                    destination
+                );
+            }
+
+            const isLocal = await this.isLocalPath(fileInfo.path);
+            if (isLocal) {
+                return this.copyLocalZarrDirectory(
+                    fileInfo,
+                    downloadRequestId,
+                    onProgress,
+                    destination
+                );
+            }
+
+            throw new DownloadFailure(
+                `Unsupported path for ".zarr":  ${fileInfo.path}. Currently only support AWS S3 or locally stored files.`,
+                downloadRequestId
+            );
+        }
+
         if (fileInfo.data instanceof Uint8Array) {
             downloadUrl = URL.createObjectURL(new Blob([fileInfo.data]));
         } else if (fileInfo.data instanceof Blob) {
@@ -97,12 +122,70 @@ export default class FileDownloadServiceElectron
         }
     }
 
+    private async isLocalPath(filePath: string): Promise<boolean> {
+        try {
+            await fs.promises.access(filePath);
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    private async copyLocalZarrDirectory(
+        fileInfo: FileInfo,
+        downloadRequestId: string,
+        onProgress?: (transferredBytes: number) => void,
+        destination?: string
+    ): Promise<DownloadResult> {
+        try {
+            const destinationDir = destination || (await this.getDefaultDownloadDirectory());
+            const fullDestinationDir = path.join(destinationDir, fileInfo.name);
+
+            await this.copyDirectory(fileInfo.path, fullDestinationDir, onProgress);
+
+            return {
+                downloadRequestId: fileInfo.id,
+                msg: `Successfully copied Zarr directory ${fileInfo.path} to ${fullDestinationDir}`,
+                resolution: DownloadResolution.SUCCESS,
+            };
+        } catch (err) {
+            throw new DownloadFailure(
+                `Failed to copy Zarr directory: ${(err as Error).message}`,
+                downloadRequestId
+            );
+        }
+    }
+
+    private async copyDirectory(
+        source: string,
+        destination: string,
+        onProgress?: (transferredBytes: number) => void
+    ): Promise<void> {
+        await fs.promises.mkdir(destination, { recursive: true });
+        const entries = await fs.promises.readdir(source, { withFileTypes: true });
+
+        for (const entry of entries) {
+            const sourcePath = path.join(source, entry.name);
+            const destinationPath = path.join(destination, entry.name);
+
+            if (entry.isDirectory()) {
+                await this.copyDirectory(sourcePath, destinationPath, onProgress);
+            } else {
+                await fs.promises.copyFile(sourcePath, destinationPath);
+                if (onProgress) {
+                    const stats = await fs.promises.stat(sourcePath);
+                    onProgress(stats.size);
+                }
+            }
+        }
+    }
+
     private async downloadHttpFile(
         fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void,
         destination?: string
-    ) {
+    ): Promise<DownloadResult> {
         const fileSize = fileInfo.size || 0;
 
         destination = destination || (await this.getDefaultDownloadDirectory());
@@ -188,7 +271,7 @@ export default class FileDownloadServiceElectron
             url,
             writeStreamOptions,
         } = options;
-        return new Promise((resolve, reject) => {
+        return new Promise<DownloadResult>((resolve, reject) => {
             // HTTP requests are made when pointed at localhost, HTTPS otherwise. If that ever changes,
             // this logic can be safely removed.
             const requestor = new URL(url).protocol === "http:" ? http : https;
@@ -266,7 +349,7 @@ export default class FileDownloadServiceElectron
                     }
                 };
 
-                incomingMsg.on("error", (err) => {
+                incomingMsg.on("error", (err: Error) => {
                     cleanUp(err.message);
                 });
 
@@ -282,7 +365,7 @@ export default class FileDownloadServiceElectron
             req.on("error", async (err) => {
                 delete this.activeRequestMap[downloadRequestId];
                 // This first branch applies when the download has been explicitly cancelled
-                if (err.message === FileDownloadCancellationToken) {
+                if ((err as Error).message === FileDownloadCancellationToken) {
                     resolve({
                         downloadRequestId,
                         resolution: DownloadResolution.CANCELLED,
@@ -293,7 +376,7 @@ export default class FileDownloadServiceElectron
                     } finally {
                         reject(
                             new DownloadFailure(
-                                `Failed to download file: ${err.message}`,
+                                `Failed to download file: ${(err as Error).message}`,
                                 downloadRequestId
                             )
                         );
@@ -317,12 +400,90 @@ export default class FileDownloadServiceElectron
         });
     }
 
-    public async prepareHttpResourceForDownload(url: string, postBody: string): Promise<Blob> {
-        const response = await this.rawPost<string>(url, postBody);
-        return new Blob([response], { type: "application/json" });
+    private async downloadS3Directory(
+        fileInfo: FileInfo,
+        downloadRequestId: string,
+        onProgress?: (transferredBytes: number) => void,
+        destination?: string
+    ): Promise<DownloadResult> {
+        const { hostname, key } = this.parseS3Url(fileInfo.path);
+        const destinationDir = destination || (await this.getDefaultDownloadDirectory());
+        const fullDestinationDir = path.join(destinationDir, fileInfo.name);
+
+        try {
+            // Ensure the destination directory exists
+            fs.mkdirSync(fullDestinationDir, { recursive: true });
+
+            const keys = await this.listS3Objects(hostname, key);
+
+            if (keys.length === 0) {
+                throw new Error("No files found in the specified S3 directory.");
+            }
+
+            for (const fileKey of keys) {
+                if (!fileKey) {
+                    console.warn(`Encountered null or undefined file key. Skipping.`);
+                    continue;
+                }
+
+                const relativePath = path.relative(key, fileKey);
+                const destinationPath = path.join(fullDestinationDir, relativePath);
+
+                // Ensure the subdirectories exist
+                fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
+
+                const fileUrl = `https://${hostname}/${encodeURIComponent(fileKey)}`;
+
+                await this.downloadS3File(fileUrl, destinationPath, onProgress);
+            }
+
+            return {
+                downloadRequestId: fileInfo.id,
+                msg: `Successfully downloaded ${fileInfo.path} to ${fullDestinationDir}`,
+                resolution: DownloadResolution.SUCCESS,
+            };
+        } catch (err) {
+            console.error(`Failed to download directory: ${err}`);
+            throw new DownloadFailure(
+                `Failed to download directory: ${(err as Error).message}`,
+                downloadRequestId
+            );
+        }
     }
 
-    public cancelActiveRequest(downloadRequestId: string) {
+    private async downloadS3File(
+        url: string,
+        destinationPath: string,
+        onProgress?: (bytes: number) => void
+    ) {
+        const writer = fs.createWriteStream(destinationPath);
+
+        return new Promise<void>((resolve, reject) => {
+            const requestor = new URL(url).protocol === "http:" ? http : https;
+            const req = requestor.get(url, (response) => {
+                if (response.statusCode !== 200) {
+                    return reject(new Error(`Failed to get '${url}' (${response.statusCode})`));
+                }
+
+                let downloadedLength = 0;
+
+                response.on("data", (chunk: Buffer) => {
+                    downloadedLength += chunk.length;
+                    if (onProgress) {
+                        onProgress(downloadedLength);
+                    }
+                });
+
+                response.pipe(writer);
+                writer.on("finish", resolve);
+                writer.on("error", reject);
+            });
+
+            req.on("error", reject);
+        });
+    }
+
+    public cancelActiveRequest(downloadRequestId: string): void {
         this.cancellationRequests.add(downloadRequestId);
         if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
             return;

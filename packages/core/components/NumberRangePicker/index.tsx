@@ -1,8 +1,8 @@
-import { Icon, IconButton, Spinner, SpinnerSize } from "@fluentui/react";
+import { Icon, Spinner, SpinnerSize } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
-import { PrimaryButton } from "../Buttons";
+import { PrimaryButton, TertiaryButton } from "../Buttons";
 import FileFilter from "../../entity/FileFilter";
 import { extractValuesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/number-formatter";
 import { AnnotationValue } from "../../services/AnnotationService";
@@ -109,8 +109,9 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                     <div className={styles.inputField}>
                         <label htmlFor="rangemin">Min (inclusive)</label>
                         <input
+                            aria-label="Input a minimum value (inclusive)"
+                            data-testid="rangemin"
                             id="rangemin"
-                            title="Min (inclusive)"
                             type="number"
                             value={searchMinValue}
                             step="any"
@@ -125,8 +126,9 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                     <div className={styles.inputField}>
                         <label htmlFor="rangemax">Max (exclusive)</label>
                         <input
+                            aria-label="Input a maximum value (exclusive)"
+                            data-testid="rangemax"
                             id="rangemax"
-                            title="Max (exclusive)"
                             type="number"
                             value={searchMaxValue}
                             step="any"
@@ -136,12 +138,11 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                         />
                     </div>
                     <div className={styles.resetButtonContainer}>
-                        <IconButton
-                            ariaLabel="Reset"
+                        <TertiaryButton
                             className={styles.resetButton}
-                            title={"Reset values"}
+                            title="Reset filter"
                             onClick={onResetSearch}
-                            iconProps={{ iconName: "Clear" }}
+                            iconName="Clear"
                         />
                     </div>
                 </div>

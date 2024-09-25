@@ -4,6 +4,8 @@ import InteractEvent from "@interactjs/core/InteractEvent"; // unfortunately nec
 import interact from "interactjs";
 import * as React from "react";
 
+import Tooltip from "../Tooltip";
+
 import styles from "./Cell.module.css";
 
 export const NON_RESIZEABLE_CELL_TEST_ID = "non-resizeable-cell-test-id";
@@ -99,13 +101,14 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                 className={classNames(styles.resizableCell, containerClassName, className)}
                 onContextMenu={this.props.onContextMenu}
                 onDoubleClick={this.onDoubleClick}
-                title={this.props.title}
                 style={{
                     width: `${(provisionalWidth || width) * 100}%`,
                     minWidth: Cell.MINIMUM_WIDTH,
                 }}
             >
-                {this.props.children}
+                <Tooltip content={this.props.title}>
+                    <>{this.props.children}</>
+                </Tooltip>
                 <span
                     className={classNames(styles.resizeTarget, resizeTargetClassName)}
                     ref={this.resizeTarget}
@@ -121,9 +124,10 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                 onContextMenu={this.props.onContextMenu}
                 style={{ width: `${this.props.width * 100}%` }}
                 data-testid={NON_RESIZEABLE_CELL_TEST_ID}
-                title={this.props.title}
             >
-                {this.props.children}
+                <Tooltip content={this.props.title}>
+                    <>{this.props.children}</>
+                </Tooltip>
             </div>
         );
     }

@@ -64,6 +64,11 @@ export default class DatabaseServiceWeb extends DatabaseService {
                 (_, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
             );
             return JSON.parse(resultAsJSONString);
+        } catch (err) {
+            console.error(
+                `${(err as Error).message}\nThe above error occured while executing query: ${sql}`
+            );
+            throw err;
         } finally {
             await connection.close();
         }

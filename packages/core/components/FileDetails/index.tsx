@@ -75,10 +75,6 @@ export default function FileDetails(props: Props) {
     const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
     const stackTokens: IStackTokens = { childrenGap: 12 + " " + 20 };
 
-    // Remove this an the corresponding usage of it when we are able to download zarrs
-    // from https://github.com/AllenInstitute/biofile-finder/issues/192
-    const isZarrFile = fileDetails?.downloadPath.endsWith(".zarr");
-
     React.useEffect(() => {
         if (fileDetails) {
             fileDetails.getPathToThumbnail().then(setThumbnailPath);
@@ -116,7 +112,6 @@ export default function FileDetails(props: Props) {
             <div
                 className={styles.resizeHandle}
                 onMouseDown={(e) => resizeHandleOnMouseDown(e)}
-                // TODO:???
                 onDoubleClick={resizeHandleDoubleClick}
             >
                 <div />
@@ -144,12 +139,9 @@ export default function FileDetails(props: Props) {
                                 <StackItem>
                                     <PrimaryButton
                                         className={styles.primaryButton}
-                                        disabled={
-                                            isZarrFile ||
-                                            processStatuses.some((status) =>
-                                                status.data.fileId?.includes(fileDetails.id)
-                                            )
-                                        }
+                                        disabled={processStatuses.some((status) =>
+                                            status.data.fileId?.includes(fileDetails.id)
+                                        )}
                                         iconName="Download"
                                         text="Download"
                                         title="Download"

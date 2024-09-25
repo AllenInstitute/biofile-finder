@@ -74,7 +74,11 @@
     flex-grow: 1;
 }
 
-.input-field > input {
+.input-field {
+    flex-grow: 1;
+}
+
+.input-field input {
     background-color: var(--secondary-background-color);
     border-radius: var(--small-border-radius);
     border: 1px solid var(--border-color);

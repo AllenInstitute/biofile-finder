@@ -89,6 +89,10 @@
     padding: var(--margin);
 }
 
+.option-header {
+    min-height: 56px;
+}
+
 .option-button {
     margin: auto;
     width: 166px
