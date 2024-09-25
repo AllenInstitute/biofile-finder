@@ -1,7 +1,4 @@
 import axios from "axios";
-import * as http from "http";
-import * as https from "https";
-
 import HttpServiceBase from "../HttpServiceBase";
 
 export enum DownloadResolution {
@@ -138,19 +135,14 @@ export default abstract class FileDownloadService extends HttpServiceBase {
      * Retrieve file metadata (specifically, file size) from an S3 object using a HEAD request.
      */
     public async headS3Object(url: string): Promise<{ size: number }> {
-        return new Promise((resolve, reject) => {
-            const requestor = new URL(url).protocol === "http:" ? http : https;
-            const req = requestor.request(url, { method: "HEAD" }, (res) => {
-                if (res.statusCode !== 200) {
-                    return reject(new Error(`Failed to get file metadata: ${res.statusCode}`));
-                }
-                const fileSize = parseInt(res.headers["content-length"] || "0", 10);
-                resolve({ size: fileSize });
-            });
-
-            req.on("error", reject);
-            req.end();
-        });
+        try {
+            const response = await axios.head(url);
+            const fileSize = parseInt(response.headers["content-length"] || "0", 10);
+            return { size: fileSize };
+        } catch (err) {
+            console.error(`Failed to get file metadata: ${err}`);
+            throw err;
+        }
     }
 }
 

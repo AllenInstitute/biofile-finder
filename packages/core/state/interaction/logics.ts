@@ -309,7 +309,12 @@ const downloadFilesLogic = createLogic({
                         if (result.resolution === DownloadResolution.CANCELLED) {
                             dispatch(removeStatus(downloadRequestId));
                         } else {
-                            dispatch(processSuccess(downloadRequestId, result.msg || ""));
+                            dispatch(
+                                processSuccess(
+                                    downloadRequestId,
+                                    result.msg || "Download completed successfully."
+                                )
+                            );
                         }
                     }
                 } catch (err) {
