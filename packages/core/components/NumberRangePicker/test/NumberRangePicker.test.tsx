@@ -25,8 +25,8 @@ describe("<NumberRangePicker />", () => {
         expect(getByText("Max (exclusive)")).to.not.be.undefined;
 
         // Should initialize to min and max item provided, respectively
-        expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("0");
-        expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("20");
+        expect(screen.getByTestId<HTMLInputElement>("rangemin").value).to.equal("0");
+        expect(screen.getByTestId<HTMLInputElement>("rangemax").value).to.equal("20");
     });
 
     it("initializes to values passed through props if provided", () => {
@@ -40,8 +40,8 @@ describe("<NumberRangePicker />", () => {
         render(<NumberRangePicker items={items} onSearch={noop} currentRange={currentRange} />);
 
         // Should initialize to min and max item provided, respectively
-        expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("0");
-        expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("12.34");
+        expect(screen.getByTestId<HTMLInputElement>("rangemin").value).to.equal("0");
+        expect(screen.getByTestId<HTMLInputElement>("rangemax").value).to.equal("12.34");
     });
 
     it("renders a 'Reset' button if given a callback", () => {
@@ -59,8 +59,8 @@ describe("<NumberRangePicker />", () => {
         );
 
         // Consistency check
-        expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("1");
-        expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("12.34");
+        expect(screen.getByTestId<HTMLInputElement>("rangemin").value).to.equal("1");
+        expect(screen.getByTestId<HTMLInputElement>("rangemax").value).to.equal("12.34");
 
         // Hit reset
         expect(onSearch.called).to.equal(false);
@@ -68,8 +68,8 @@ describe("<NumberRangePicker />", () => {
         expect(onSearch.called).to.equal(true);
 
         // Should reset to min and max values
-        expect(screen.getByTitle<HTMLInputElement>(/^Min/).value).to.equal("0");
-        expect(screen.getByTitle<HTMLInputElement>(/^Max/).value).to.equal("20");
+        expect(screen.getByTestId<HTMLInputElement>("rangemin").value).to.equal("0");
+        expect(screen.getByTestId<HTMLInputElement>("rangemax").value).to.equal("20");
     });
 
     it("displays available min and max of items", () => {

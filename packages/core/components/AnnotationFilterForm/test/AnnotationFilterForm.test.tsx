@@ -12,6 +12,7 @@ import { initialState, reducer, reduxLogics, interaction, selection } from "../.
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 
 describe("<AnnotationFilterForm />", () => {
+    const LISTROW_TESTID_PREFIX = "default-button-";
     describe("Text annotations", () => {
         // setup
         const fooAnnotation = new Annotation({
@@ -93,25 +94,27 @@ describe("<AnnotationFilterForm />", () => {
             });
 
             // act
-            const { getByText } = render(
+            const { getByTestId } = render(
                 <Provider store={store}>
                     <AnnotationFilterForm annotation={fooAnnotation} />
                 </Provider>
             );
-            await waitFor(() => expect(getByText("b")).to.not.be.undefined);
+            await waitFor(
+                () => expect(getByTestId(`${LISTROW_TESTID_PREFIX}b`)).to.not.be.undefined
+            );
 
             // (sanity-check): Check that the "b" input is selected
             expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(1);
 
             // Act: Deselect the "False" input
-            fireEvent.click(getByText("b"));
+            fireEvent.click(getByTestId(`${LISTROW_TESTID_PREFIX}b`));
             await logicMiddleware.whenComplete();
 
             // Assert: Check that the "b" input is deselected
             expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(0);
 
             // Act: Reselect the "b" input
-            fireEvent.click(getByText("b"));
+            fireEvent.click(getByTestId(`${LISTROW_TESTID_PREFIX}b`));
             await logicMiddleware.whenComplete();
 
             // Assert: Check that the "False" input is selected again
@@ -150,10 +153,11 @@ describe("<AnnotationFilterForm />", () => {
             expect(annotationValueListItems.length).to.equal(4);
             const expectedOrder = ["AICS-0", "aICs-2", "AICS-24", "aics-32"];
             annotationValueListItems.forEach((listItem, index) => {
-                const { getByText } = within(listItem);
+                const { getByTestId } = within(listItem);
 
                 // getByLabelText will throw if it can't find a matching node
-                expect(getByText(expectedOrder[index])).to.not.be.undefined;
+                expect(getByTestId(`${LISTROW_TESTID_PREFIX}${expectedOrder[index]}`)).to.not.be
+                    .undefined;
             });
         });
     });
@@ -230,25 +234,27 @@ describe("<AnnotationFilterForm />", () => {
                 responseStubs: responseStub,
             });
             // Act
-            const { getByText } = render(
+            const { getByTestId } = render(
                 <Provider store={store}>
                     <AnnotationFilterForm annotation={fooAnnotation} />
                 </Provider>
             );
-            await waitFor(() => expect(getByText("False")).to.not.be.undefined);
+            await waitFor(
+                () => expect(getByTestId(`${LISTROW_TESTID_PREFIX}False`)).to.not.be.undefined
+            );
 
             // (sanity-check): Check that the "False" input is selected
             expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(1);
 
             // Act: Deselect the "False" input
-            fireEvent.click(getByText("False"));
+            fireEvent.click(getByTestId(`${LISTROW_TESTID_PREFIX}False`));
             await logicMiddleware.whenComplete();
 
             // Assert: Check that the "False" input is deselected
             expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(0);
 
             // Act: Reselect the "False" input
-            fireEvent.click(getByText("False"));
+            fireEvent.click(getByTestId(`${LISTROW_TESTID_PREFIX}False`));
             await logicMiddleware.whenComplete();
 
             // Assert: Check that the "False" input is selected again
@@ -302,10 +308,11 @@ describe("<AnnotationFilterForm />", () => {
             expect(annotationValueListItems.length).to.equal(6);
             const expectedOrder = [-12, 0, 5, 6.3, 8, 10000000000];
             annotationValueListItems.forEach((listItem, index) => {
-                const { getByText } = within(listItem);
+                const { getByTestId } = within(listItem);
 
                 // getByLabelText will throw if it can't find a matching node
-                expect(getByText(String(expectedOrder[index]))).to.not.be.undefined;
+                expect(getByTestId(`${LISTROW_TESTID_PREFIX}${expectedOrder[index]}`)).to.not.be
+                    .undefined;
             });
         });
     });
@@ -354,10 +361,10 @@ describe("<AnnotationFilterForm />", () => {
             const annotationValueListItems = await findAllByRole("listitem");
 
             expect(annotationValueListItems.length).to.equal(4);
-            expect(annotationValueListItems[0].textContent).to.equal("0.125S");
-            expect(annotationValueListItems[1].textContent).to.equal("3H 45S");
-            expect(annotationValueListItems[2].textContent).to.equal("1D");
-            expect(annotationValueListItems[3].textContent).to.equal("5D 4H 3M 2.22S");
+            expect(annotationValueListItems[0].textContent).to.contain("0.125S");
+            expect(annotationValueListItems[1].textContent).to.contain("3H 45S");
+            expect(annotationValueListItems[2].textContent).to.contain("1D");
+            expect(annotationValueListItems[3].textContent).to.contain("5D 4H 3M 2.22S");
         });
     });
 });

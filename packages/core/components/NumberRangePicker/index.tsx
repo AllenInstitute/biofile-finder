@@ -110,6 +110,7 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                         <label htmlFor="rangemin">Min (inclusive)</label>
                         <input
                             aria-label="Input a minimum value (inclusive)"
+                            data-testid="rangemin"
                             id="rangemin"
                             type="number"
                             value={searchMinValue}
@@ -126,6 +127,7 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                         <label htmlFor="rangemax">Max (exclusive)</label>
                         <input
                             aria-label="Input a maximum value (exclusive)"
+                            data-testid="rangemax"
                             id="rangemax"
                             type="number"
                             value={searchMaxValue}

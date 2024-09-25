@@ -8,6 +8,7 @@ import ListPicker from "..";
 import { ListItem } from "../ListRow";
 
 describe("<ListPicker />", () => {
+    const LISTROW_TESTID_PREFIX = "default-button-";
     it("renders a list of items that are selectable and deselectable", () => {
         // Arrange
         const onSelect = sinon.spy();
@@ -19,7 +20,7 @@ describe("<ListPicker />", () => {
         }));
 
         // Act / Assert
-        const { getAllByRole, getByText } = render(
+        const { getAllByRole, getByTestId } = render(
             <ListPicker
                 items={items}
                 onDeselect={onDeselect}
@@ -32,7 +33,7 @@ describe("<ListPicker />", () => {
         expect(getAllByRole("button")).to.be.lengthOf(3);
 
         // Trigger selection for the item that isn't selected
-        fireEvent.click(getByText("foo"));
+        fireEvent.click(getByTestId(`${LISTROW_TESTID_PREFIX}foo`));
         expect(onDeselect.called).to.be.false;
         expect(onSelect.called).to.be.true;
 
@@ -40,7 +41,7 @@ describe("<ListPicker />", () => {
         // (reset spies first to isolate assertions)
         onDeselect.resetHistory();
         onSelect.resetHistory();
-        fireEvent.click(getByText("bar"));
+        fireEvent.click(getByTestId(`${LISTROW_TESTID_PREFIX}bar`));
         expect(onDeselect.called).to.be.true;
         expect(onSelect.called).to.be.false;
     });
@@ -56,7 +57,7 @@ describe("<ListPicker />", () => {
         }));
 
         // Act / Assert
-        const { getByText, getByRole } = render(
+        const { getByTestId, getByRole } = render(
             <ListPicker
                 items={items}
                 onDeselect={onDeselect}
@@ -66,8 +67,8 @@ describe("<ListPicker />", () => {
         );
 
         // Should render both list items
-        expect(getByText("foo")).to.not.be.undefined;
-        expect(getByText("bar")).to.not.be.undefined;
+        expect(getByTestId(`${LISTROW_TESTID_PREFIX}foo`)).to.not.be.undefined;
+        expect(getByTestId(`${LISTROW_TESTID_PREFIX}bar`)).to.not.be.undefined;
 
         // Trigger a search
         fireEvent.change(getByRole("searchbox"), {
@@ -75,8 +76,8 @@ describe("<ListPicker />", () => {
                 value: "foo",
             },
         });
-        expect(getByText("foo")).to.not.be.undefined;
-        expect(() => getByText("bar")).to.throw();
+        expect(getByTestId(`${LISTROW_TESTID_PREFIX}foo`)).to.not.be.undefined;
+        expect(() => getByTestId(`${LISTROW_TESTID_PREFIX}bar`)).to.throw();
     });
 
     it("Renders a 'Reset' button that deselects entire selection", () => {

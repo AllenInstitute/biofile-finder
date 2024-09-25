@@ -55,6 +55,7 @@ export default function ListRow(props: Props) {
                     iconName: props.subMenuRenderer && !item.isDivider ? "ChevronRight" : undefined,
                 }}
                 menuProps={props.subMenuRenderer ? buttonMenu : undefined}
+                data-testid={`default-button-${item.displayValue}`}
                 disabled={item.disabled}
                 onClick={() => (item.selected ? props.onDeselect(item) : props.onSelect(item))}
             >
