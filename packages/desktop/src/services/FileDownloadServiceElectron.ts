@@ -407,12 +407,21 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         destination?: string
     ): Promise<DownloadResult> {
         const { hostname, key } = this.parseS3Url(fileInfo.path);
-        const destinationDir = destination || (await this.getDefaultDownloadDirectory());
-        const fullDestinationDir = path.join(destinationDir, fileInfo.name);
+        const fileSize = fileInfo.size || (await this.calculateS3DirectorySize(hostname, key));
+
+        destination = destination || (await this.getDefaultDownloadDirectory());
+
+        if (destination === FileDownloadCancellationToken) {
+            return {
+                downloadRequestId,
+                resolution: DownloadResolution.CANCELLED,
+            };
+        }
+        const fullDestination = path.join(destination, fileInfo.name);
 
         try {
-            // Ensure the destination directory exists
-            fs.mkdirSync(fullDestinationDir, { recursive: true });
+            // Backfill missing directories from path.
+            fs.mkdirSync(fullDestination, { recursive: true });
 
             const keys = await this.listS3Objects(hostname, key);
 
@@ -420,26 +429,30 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                 throw new Error("No files found in the specified S3 directory.");
             }
 
+            // Download each file, track its size, and report progress
             for (const fileKey of keys) {
                 if (!fileKey) {
                     console.warn(`Encountered null or undefined file key. Skipping.`);
                     continue;
                 }
-
                 const relativePath = path.relative(key, fileKey);
-                const destinationPath = path.join(fullDestinationDir, relativePath);
-
-                // Ensure the subdirectories exist
-                fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
-
+                const destinationPath = path.join(fullDestination, relativePath);
                 const fileUrl = `https://${hostname}/${encodeURIComponent(fileKey)}`;
 
-                await this.downloadS3File(fileUrl, destinationPath, onProgress);
+                // Backfill missing directories from path.
+                fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
+
+                // Download the file and update the downloaded size
+                await this.downloadS3File(fileUrl, destinationPath, (fileDownloadedBytes) => {
+                    if (onProgress && fileSize > 0) {
+                        onProgress(fileDownloadedBytes);
+                    }
+                });
             }
 
             return {
                 downloadRequestId: fileInfo.id,
-                msg: `Successfully downloaded ${fileInfo.path} to ${fullDestinationDir}`,
+                msg: `Successfully downloaded ${fileInfo.path} to ${fullDestination}`,
                 resolution: DownloadResolution.SUCCESS,
             };
         } catch (err) {
@@ -465,12 +478,10 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                     return reject(new Error(`Failed to get '${url}' (${response.statusCode})`));
                 }
 
-                let downloadedLength = 0;
-
                 response.on("data", (chunk: Buffer) => {
-                    downloadedLength += chunk.length;
+                    // Report chunk size progress
                     if (onProgress) {
-                        onProgress(downloadedLength);
+                        onProgress(chunk.length);
                     }
                 });
 
