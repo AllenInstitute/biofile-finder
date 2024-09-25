@@ -1,8 +1,8 @@
-import { ActionButton, Icon, Spinner, SpinnerSize } from "@fluentui/react";
+import { Icon, Spinner, SpinnerSize } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
-import { TertiaryButton } from "../Buttons";
+import { PrimaryButton, TertiaryButton } from "../Buttons";
 import FileFilter from "../../entity/FileFilter";
 import { extractValuesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/number-formatter";
 import { AnnotationValue } from "../../services/AnnotationService";
@@ -22,7 +22,7 @@ interface NumberRangePickerProps {
     items: ListItem[];
     loading?: boolean;
     onSearch: (filterValue: string) => void;
-    onReset: () => void;
+    onReset?: () => void;
     currentRange: FileFilter | undefined;
     units?: string;
 }
@@ -35,7 +35,7 @@ interface NumberRangePickerProps {
  * It is best suited for selecting items that are numbers.
  */
 export default function NumberRangePicker(props: NumberRangePickerProps) {
-    const { errorMessage, items, loading, onSearch, onReset, currentRange, units } = props;
+    const { errorMessage, items, loading, onSearch, currentRange, units } = props;
 
     const overallMin = React.useMemo(() => {
         return items[0]?.displayValue.toString() ?? "";
@@ -51,10 +51,11 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
         extractValuesFromRangeOperatorFilterString(currentRange?.value).maxValue ?? overallMax
     );
 
+    // Instead of removing filter completely, reset to min and max and submit
     function onResetSearch() {
-        onReset();
-        setSearchMinValue("");
-        setSearchMaxValue("");
+        setSearchMinValue(overallMin);
+        setSearchMaxValue(overallMax);
+        onSearch(`RANGE(${overallMin},${overallMax})`);
     }
 
     const onSubmitRange = () => {
@@ -108,8 +109,9 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                     <div className={styles.inputField}>
                         <label htmlFor="rangemin">Min (inclusive)</label>
                         <input
+                            aria-label="Input a minimum value (inclusive)"
+                            data-testid="rangemin"
                             id="rangemin"
-                            title="Min (inclusive)"
                             type="number"
                             value={searchMinValue}
                             step="any"
@@ -124,8 +126,9 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                     <div className={styles.inputField}>
                         <label htmlFor="rangemax">Max (exclusive)</label>
                         <input
+                            aria-label="Input a maximum value (exclusive)"
+                            data-testid="rangemax"
                             id="rangemax"
-                            title="Max (exclusive)"
                             type="number"
                             value={searchMaxValue}
                             step="any"
@@ -136,37 +139,38 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                     </div>
                     <div className={styles.resetButtonContainer}>
                         <TertiaryButton
-                            className={classNames(styles.resetButton)}
+                            className={styles.resetButton}
                             title="Reset filter"
                             onClick={onResetSearch}
-                            iconName="Delete"
+                            iconName="Clear"
                         />
                     </div>
-                </div>
-                <div className={styles.buttons}>
-                    <ActionButton
-                        ariaLabel="Submit"
-                        className={classNames(
-                            {
-                                [styles.disabled]: !searchMinValue && !searchMaxValue,
-                            },
-                            styles.actionButton
-                        )}
-                        disabled={!searchMinValue && !searchMaxValue}
-                        iconProps={{ iconName: "ReturnKey" }}
-                        title={searchMinValue || searchMaxValue ? undefined : "No options selected"}
-                        onClick={onSubmitRange}
-                    >
-                        Submit Range
-                    </ActionButton>
                 </div>
             </div>
             <div className={styles.footer}>
                 {overallMin && overallMax && (
-                    <h6>
-                        Full range available: {overallMin}, {overallMax}
-                    </h6>
+                    <div className={styles.footerLeft}>
+                        <div> Full range available: </div>
+                        <div>
+                            {overallMin}, {overallMax}
+                        </div>
+                    </div>
                 )}
+                <div className={styles.footerRight}>
+                    <PrimaryButton
+                        disabled={!searchMinValue && !searchMaxValue}
+                        iconName=""
+                        text="Submit"
+                        className={classNames(
+                            {
+                                [styles.disabled]: !searchMinValue && !searchMaxValue,
+                            },
+                            styles.submitButton
+                        )}
+                        title={searchMinValue || searchMaxValue ? "" : "No options selected"}
+                        onClick={onSubmitRange}
+                    />
+                </div>
             </div>
         </div>
     );

@@ -54,4 +54,30 @@ describe("<SearchBox/>", () => {
 
         expect(screen.getByRole<HTMLInputElement>("searchbox").value).to.equal("");
     });
+
+    it("renders a clickable button when prop is present that triggers search", () => {
+        // Arrange
+        const onSearch = sinon.spy();
+
+        // Act / Assert
+        const { getByRole, getByLabelText } = render(
+            <SearchBox
+                onSearch={onSearch}
+                onReset={noop}
+                defaultValue={undefined}
+                showSubmitButton
+            />
+        );
+        // Enter values
+        fireEvent.change(getByRole("searchbox"), {
+            target: {
+                value: "bar",
+            },
+        });
+
+        // Hit reset
+        expect(onSearch.called).to.equal(false);
+        fireEvent.click(getByLabelText("Submit"));
+        expect(onSearch.called).to.equal(true);
+    });
 });

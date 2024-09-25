@@ -1,35 +1,62 @@
-.clear-button, .clear-button i {
-    background-color: var(--secondary-background-color);
-    border-radius: var(--small-border-radius);
+.clear-button {
+    height: 30px;
+    width: 30px;
+}
+
+.clear-button, .clear-button span, .clear-button i {
     color: var(--secondary-text-color);
-    margin-left: 2px;
+}
+
+.clear-button, .clear-button i {
+    background-color: var(--secondary-background-color) !important;
+    font-size: var(--s-paragraph-size);
+    margin: 2px 5px;
+
 }
 
 .clear-button:hover, .clear-button:hover i {
-    background-color: var(--highlight-background-color);
-    color: var(--highlight-text-color);
+    background-color: var(--highlight-background-color) !important;
+    color: var(--highlight-text-color) !important;
+    cursor: pointer;
 }
 
 .date-range-container {
     display: flex;
-    justify-content: space-between;
 }
 
 .date-range-separator {
     align-items: center;
     display: flex;
     font-size: small;
-    margin: 0 2px;
+    margin: 0 10px 8px;
 }
 
-.filter-input div {
+.date-range-root {
+    flex-grow: 1;
+}
+
+.text-field div {
     background-color: var(--secondary-background-color);
     border: none;
     border-radius: var(--small-border-radius);
-    color: var(--secondary-text-color);
+    color: var(--primary-text-color);
+}
+
+.text-field div::after {    
+    border: 1px solid var(--aqua)
+}
+
+.text-field > div {
+    border: 1px solid var(--border-color)
 }
 
 .title {
     margin: 0;
     padding-bottom: var(--margin);
+}
+
+.read-only-placeholder {
+    margin-right: 20px;
+    font-style: italic;
+    color: var(--primary-text-color);
 }

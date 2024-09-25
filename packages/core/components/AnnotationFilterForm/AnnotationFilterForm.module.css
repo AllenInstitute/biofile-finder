@@ -5,6 +5,23 @@
 .loading-container, .picker {
     background-color: var(--primary-background-color);
     color: var(--primary-text-color);
-    padding: 16px 30px;
+    padding: 0 30px 16px;
     width: 35vw;
+}
+
+.header {
+    background-color: var(--primary-background-color);
+    padding: 16px 30px 0;
+    width: 35vw;
+}
+
+.header > h3 {
+    padding-bottom: 16px;
+}
+
+.footer {
+    background-color: var(--primary-background-color);
+    padding: 16px 30px 16px;
+    width: 35vw;
+    font-style: italic;
 }
