@@ -1,11 +1,10 @@
-import { PrimaryButton } from "@fluentui/react";
-import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import AnnotationPicker from "../../AnnotationPicker";
+import { PrimaryButton } from "../../Buttons";
 import { interaction, metadata } from "../../../state";
 
 import styles from "./MetadataManifest.module.css";
@@ -58,13 +57,12 @@ export default function MetadataManifest({ onDismiss }: ModalProps) {
             body={body}
             footer={
                 <PrimaryButton
-                    className={classNames(styles.downloadButton, {
-                        [styles.disabled]: !selectedAnnotations.length,
-                    })}
-                    iconProps={{ iconName: "Download" }}
+                    className={styles.downloadButton}
                     disabled={!selectedAnnotations.length}
+                    iconName="Download"
                     onClick={onDownload}
-                    text="Download"
+                    text="DOWNLOAD"
+                    title="Download"
                 />
             }
             onDismiss={onDismiss}

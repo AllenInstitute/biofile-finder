@@ -1,15 +1,3 @@
 .download-button {
-    border: none;
-    background-color: var(--secondary-background-color);
-    color: var(--secondary-text-color);
-}
-
-.disabled {
-    opacity: 0.5;
-}
-
-.download-button:hover:not(.disabled), .download-button:active:not(.disabled), .download-button:focus:not(.disabled)  {
-    border: none;
-    background-color: var(--highlight-background-color);
-    color: var(--highlight-text-color);
+    width: 135px;
 }
