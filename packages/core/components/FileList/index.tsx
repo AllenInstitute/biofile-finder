@@ -130,7 +130,7 @@ export default function FileList(props: FileListProps) {
         };
     }, [fileSet]);
 
-    let content: React.ReactNode | undefined;
+    let content: React.ReactNode;
     if (totalCount === null || totalCount > 0) {
         if (height > 0) {
             // When this component isRoot the height is measured. It takes

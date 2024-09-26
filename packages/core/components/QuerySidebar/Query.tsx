@@ -1,4 +1,4 @@
-import { IContextualMenuItem, IconButton, TextField } from "@fluentui/react";
+import { IContextualMenuItem, IconButton, Spinner, SpinnerSize, TextField } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,6 +13,7 @@ import { interaction, metadata, selection } from "../../state";
 import { Query as QueryType } from "../../state/selection/actions";
 
 import styles from "./Query.module.css";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 interface QueryProps {
     isSelected: boolean;
@@ -30,6 +31,7 @@ export default function Query(props: QueryProps) {
     const currentQueryParts = useSelector(selection.selectors.getCurrentQueryParts);
 
     const hasDataSource = !!props.query.parts.sources.length;
+    const isLoading = !hasDataSource || props.query.name === AICS_FMS_DATA_SOURCE_NAME;
 
     const [isExpanded, setIsExpanded] = React.useState(false);
     React.useEffect(() => {
@@ -37,7 +39,10 @@ export default function Query(props: QueryProps) {
     }, [props.isSelected]);
 
     const queryComponents = React.useMemo(
-        () => (props.isSelected ? currentQueryParts : props.query?.parts),
+        () =>
+            props.isSelected && !!currentQueryParts.sources.length
+                ? currentQueryParts
+                : props.query?.parts,
         [props.query?.parts, currentQueryParts, props.isSelected]
     );
 
@@ -65,6 +70,16 @@ export default function Query(props: QueryProps) {
         ];
         dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
     };
+
+    if (isLoading) {
+        return (
+            <div className={styles.container}>
+                <div className={styles.loadingContainer}>
+                    <Spinner size={SpinnerSize.medium} data-testid="query-spinner" />
+                </div>
+            </div>
+        );
+    }
 
     if (!isExpanded) {
         return (

@@ -62,7 +62,7 @@
 
 .queries-container {
     height: calc(100% - var(--header-height) - var(--footer-height));
-    overflow-y: scroll;
+    overflow-y: auto;
     padding-bottom: 40px;
 }
 
