@@ -429,12 +429,24 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                 throw new Error("No files found in the specified S3 directory.");
             }
 
+            let cancelRequested = false;
+
+            // Register cancellation token for this request
+            this.activeRequestMap[downloadRequestId] = {
+                filePath: fullDestination,
+                cancel: () => {
+                    cancelRequested = true;
+                },
+            };
+
             // Download each file, track its size, and report progress
             for (const fileKey of keys) {
-                if (!fileKey) {
-                    console.warn(`Encountered null or undefined file key. Skipping.`);
-                    continue;
+                // If cancel was requested, cleanup.
+                if (cancelRequested) {
+                    await fs.promises.rm(fullDestination, { recursive: true, force: true });
+                    throw new DownloadFailure(`Download cancelled by user.`, downloadRequestId);
                 }
+
                 const relativePath = path.relative(key, fileKey);
                 const destinationPath = path.join(fullDestination, relativePath);
                 const fileUrl = `https://${hostname}/${encodeURIComponent(fileKey)}`;
@@ -448,7 +460,16 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                         onProgress(fileDownloadedBytes);
                     }
                 });
+
+                // If cancel was requested, cleanup.
+                if (cancelRequested) {
+                    await fs.promises.rm(fullDestination, { recursive: true, force: true });
+                    throw new DownloadFailure(`Download cancelled by user.`, downloadRequestId);
+                }
             }
+
+            // Cleanup after successful download
+            delete this.activeRequestMap[downloadRequestId];
 
             return {
                 downloadRequestId: fileInfo.id,
@@ -456,7 +477,10 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                 resolution: DownloadResolution.SUCCESS,
             };
         } catch (err) {
-            console.error(`Failed to download directory: ${err}`);
+            delete this.activeRequestMap[downloadRequestId];
+
+            // If cancel was requested, cleanup.
+            await fs.promises.rm(fullDestination, { recursive: true, force: true });
             throw new DownloadFailure(
                 `Failed to download directory: ${(err as Error).message}`,
                 downloadRequestId
@@ -496,13 +520,12 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
 
     public cancelActiveRequest(downloadRequestId: string): void {
         this.cancellationRequests.add(downloadRequestId);
-        if (!this.activeRequestMap.hasOwnProperty(downloadRequestId)) {
-            return;
-        }
 
-        const { cancel } = this.activeRequestMap[downloadRequestId];
-        cancel();
-        delete this.activeRequestMap[downloadRequestId];
+        if (this.activeRequestMap[downloadRequestId]) {
+            const { cancel } = this.activeRequestMap[downloadRequestId];
+            cancel();
+            delete this.activeRequestMap[downloadRequestId];
+        }
     }
 
     public getDefaultDownloadDirectory(): Promise<string> {
