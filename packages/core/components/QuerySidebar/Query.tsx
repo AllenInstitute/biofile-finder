@@ -103,6 +103,7 @@ export default function Query(props: QueryProps) {
                             className={styles.collapseButton}
                             onClick={() => setIsExpanded(!isExpanded)}
                             iconProps={{ iconName: "ChevronUp" }}
+                            data-testid="expand-button"
                         />
                     )}
                 </div>
@@ -158,11 +159,12 @@ export default function Query(props: QueryProps) {
                     />
                 </div>
                 <IconButton
-                    ariaDescription="Expand view details"
-                    ariaLabel="Expand"
+                    ariaDescription="Collapse view details"
+                    ariaLabel="Collapse"
                     className={styles.collapseButton}
                     onClick={() => setIsExpanded(!isExpanded)}
                     iconProps={{ iconName: "ChevronDown" }}
+                    data-testid="collapse-button"
                 />
             </div>
             <QueryDataSource
