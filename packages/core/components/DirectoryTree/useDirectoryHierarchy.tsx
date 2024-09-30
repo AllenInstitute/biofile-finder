@@ -107,7 +107,7 @@ const useDirectoryHierarchy = (
     const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
     const excludeFilters = useSelector(selection.selectors.getAnnotationsFilteredOut);
     const includeFilters = useSelector(selection.selectors.getAnnotationsRequired);
-    const selectedFileFilters = useSelector(selection.selectors.getFileFilters);
+    const selectedFileFilters = useSelector(selection.selectors.getDefaultFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
     const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
 
