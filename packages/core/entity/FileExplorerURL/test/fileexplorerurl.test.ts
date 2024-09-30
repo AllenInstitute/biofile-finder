@@ -8,6 +8,7 @@ import FuzzyFilter from "../../FileFilter/FuzzyFilter";
 import IncludeFilter from "../../FileFilter/IncludeFilter";
 import FileFolder from "../../FileFolder";
 import FileSort, { SortOrder } from "../../FileSort";
+
 describe("FileExplorerURL", () => {
     const mockSource: Source = {
         name: "Fake Collection",

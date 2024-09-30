@@ -25,9 +25,6 @@ export const EMPTY_QUERY_COMPONENTS: FileExplorerURLComponents = {
     filters: [],
     openFolders: [],
     sources: [],
-    // fuzzyFilters: [],
-    // includeFilters: [],
-    // excludeFilters: [],
 };
 
 const BEGINNING_OF_TODAY = new Date();
