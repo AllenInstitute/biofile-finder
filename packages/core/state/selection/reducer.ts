@@ -8,18 +8,15 @@ import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
-import ExcludeFilter from "../../entity/SimpleFilter/ExcludeFilter";
-import FuzzyFilter from "../../entity/SimpleFilter/FuzzyFilter";
-import IncludeFilter from "../../entity/SimpleFilter/IncludeFilter";
+import ExcludeFilter from "../../entity/FileFilter/ExcludeFilter";
+import FuzzyFilter from "../../entity/FileFilter/FuzzyFilter";
+import IncludeFilter from "../../entity/FileFilter/IncludeFilter";
 
 import {
     SET_DISPLAY_ANNOTATIONS,
     SET_ANNOTATION_HIERARCHY,
     SET_AVAILABLE_ANNOTATIONS,
     SET_FILE_FILTERS,
-    SET_FUZZY_FILTERS,
-    SET_EXCLUDE_FILTERS,
-    SET_INCLUDE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
     RESIZE_COLUMN,
@@ -129,18 +126,6 @@ export default makeReducer<SelectionStateBranch>(
 
             // Reset file selections when file filters change
             fileSelection: new FileSelection(),
-        }),
-        [SET_FUZZY_FILTERS]: (state, action) => ({
-            ...state,
-            fuzzyFilters: action.payload,
-        }),
-        [SET_INCLUDE_FILTERS]: (state, action) => ({
-            ...state,
-            includeFilters: action.payload,
-        }),
-        [SET_EXCLUDE_FILTERS]: (state, action) => ({
-            ...state,
-            excludeFilters: action.payload,
         }),
         [SORT_COLUMN]: (state, action) => {
             if (state.sortColumn?.annotationName === action.payload) {

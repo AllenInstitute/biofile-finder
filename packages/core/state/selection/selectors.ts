@@ -4,7 +4,7 @@ import { createSelector } from "reselect";
 import { State } from "../";
 import Annotation from "../../entity/Annotation";
 import FileExplorerURL, { FileExplorerURLComponents } from "../../entity/FileExplorerURL";
-import FileFilter from "../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../entity/FileFilter";
 import { getAnnotations } from "../metadata/selectors";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
@@ -16,12 +16,9 @@ export const getAvailableAnnotationsForHierarchy = (state: State) =>
 export const getAvailableAnnotationsForHierarchyLoading = (state: State) =>
     state.selection.availableAnnotationsForHierarchyLoading;
 export const getColumnWidths = (state: State) => state.selection.columnWidths;
-export const getExcludeFilters = (state: State) => state.selection.excludeFilters;
 export const getFileGridColumnCount = (state: State) => state.selection.fileGridColumnCount;
 export const getFileFilters = (state: State) => state.selection.filters;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
-export const getFuzzyFilters = (state: State) => state.selection.fuzzyFilters;
-export const getIncludeFilters = (state: State) => state.selection.includeFilters;
 export const getIsDarkTheme = (state: State) => state.selection.isDarkTheme;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getRecentAnnotations = (state: State) => state.selection.recentAnnotations;
@@ -44,13 +41,26 @@ export const isQueryingAicsFms = createSelector(
     (dataSources): boolean => dataSources[0]?.name === AICS_FMS_DATA_SOURCE_NAME
 );
 
+export const getFuzzyFilters = createSelector([getFileFilters], (filters): FileFilter[] =>
+    filters.filter((filter) => filter.type === FilterType.FUZZY)
+);
+
+export const getAnnotationsFilteredOut = createSelector([getFileFilters], (filters): FileFilter[] =>
+    filters.filter((filter) => filter.type === FilterType.EXCLUDE)
+);
+
+export const getAnnotationsRequired = createSelector([getFileFilters], (filters): FileFilter[] =>
+    filters.filter((filter) => filter.type === FilterType.ANY)
+);
+
+export const getDefaultFileFilters = createSelector([getFileFilters], (filters): FileFilter[] =>
+    filters.filter((filter) => filter.type === FilterType.DEFAULT)
+);
+
 export const getCurrentQueryParts = createSelector(
     [
         getAnnotationHierarchy,
-        getExcludeFilters,
         getFileFilters,
-        getFuzzyFilters,
-        getIncludeFilters,
         getOpenFileFolders,
         getSortColumn,
         getSelectedDataSources,
@@ -58,20 +68,14 @@ export const getCurrentQueryParts = createSelector(
     ],
     (
         hierarchy,
-        excludeFilters,
         filters,
-        fuzzyFilters,
-        includeFilters,
         openFolders,
         sortColumn,
         sources,
         sourceMetadata
     ): FileExplorerURLComponents => ({
         hierarchy,
-        excludeFilters,
         filters,
-        fuzzyFilters,
-        includeFilters,
         openFolders,
         sortColumn,
         sources,
@@ -118,6 +122,7 @@ export const getGroupedByFilterName = createSelector(
                 name: filter.name,
                 value: filter.value,
                 displayValue: annotation?.getDisplayValue(filter.value),
+                type: filter?.type || FilterType.DEFAULT,
             };
         }).filter((filter) => filter.displayValue !== undefined);
         return groupBy(filters, (filter) => filter.displayName);

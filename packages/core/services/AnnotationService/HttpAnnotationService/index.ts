@@ -4,9 +4,9 @@ import AnnotationService, { AnnotationValue } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
 import Annotation, { AnnotationResponse } from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
-import FuzzyFilter from "../../../entity/SimpleFilter/FuzzyFilter";
-import ExcludeFilter from "../../../entity/SimpleFilter/ExcludeFilter";
-import IncludeFilter from "../../../entity/SimpleFilter/IncludeFilter";
+import FuzzyFilter from "../../../entity/FileFilter/FuzzyFilter";
+import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
+import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
 
 enum QueryParam {
@@ -72,18 +72,9 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
                 QueryParam.FILTER,
                 filters.map((f) => f.toQueryString())
             ),
-            this.buildQueryParams(
-                QueryParam.FUZZY,
-                fuzzyFilters?.map((f) => f.annotationName) || []
-            ),
-            this.buildQueryParams(
-                QueryParam.EXCLUDE,
-                excludeFilters?.map((f) => f.annotationName) || []
-            ),
-            this.buildQueryParams(
-                QueryParam.INCLUDE,
-                includeFilters?.map((f) => f.annotationName) || []
-            ),
+            this.buildQueryParams(QueryParam.FUZZY, fuzzyFilters?.map((f) => f.name) || []),
+            this.buildQueryParams(QueryParam.EXCLUDE, excludeFilters?.map((f) => f.name) || []),
+            this.buildQueryParams(QueryParam.INCLUDE, includeFilters?.map((f) => f.name) || []),
         ]
             .filter((param) => !!param)
             .join("&");
@@ -109,18 +100,9 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
                 QueryParam.FILTER,
                 filters.map((f) => f.toQueryString())
             ),
-            this.buildQueryParams(
-                QueryParam.FUZZY,
-                fuzzyFilters?.map((f) => f.annotationName) || []
-            ),
-            this.buildQueryParams(
-                QueryParam.EXCLUDE,
-                excludeFilters?.map((f) => f.annotationName) || []
-            ),
-            this.buildQueryParams(
-                QueryParam.INCLUDE,
-                includeFilters?.map((f) => f.annotationName) || []
-            ),
+            this.buildQueryParams(QueryParam.FUZZY, fuzzyFilters?.map((f) => f.name) || []),
+            this.buildQueryParams(QueryParam.EXCLUDE, excludeFilters?.map((f) => f.name) || []),
+            this.buildQueryParams(QueryParam.INCLUDE, includeFilters?.map((f) => f.name) || []),
         ]
             .filter((param) => !!param)
             .join("&");

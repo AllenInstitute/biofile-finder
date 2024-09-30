@@ -523,9 +523,9 @@ export default class FileSelection {
                       ascending: fileSet.sort.order === SortOrder.ASC,
                   }
                 : undefined,
-            fuzzy: fileSet?.fuzzyFilters?.map((filter) => filter.annotationName),
-            include: fileSet?.includeFilters?.map((filter) => filter.annotationName),
-            exclude: fileSet?.excludeFilters?.map((filter) => filter.annotationName),
+            fuzzy: fileSet?.fuzzyFilters?.map((filter) => filter.name),
+            include: fileSet?.includeFilters?.map((filter) => filter.name),
+            exclude: fileSet?.excludeFilters?.map((filter) => filter.name),
         }));
     }
 

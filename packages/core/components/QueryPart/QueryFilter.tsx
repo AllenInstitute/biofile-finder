@@ -6,10 +6,7 @@ import QueryPart from ".";
 import AnnotationPicker from "../AnnotationPicker";
 import AnnotationFilterForm from "../AnnotationFilterForm";
 import Annotation from "../../entity/Annotation";
-import FileFilter from "../../entity/FileFilter";
-import FuzzyFilter from "../../entity/SimpleFilter/FuzzyFilter";
-import IncludeFilter from "../../entity/SimpleFilter/IncludeFilter";
-import ExcludeFilter from "../../entity/SimpleFilter/ExcludeFilter";
+import FileFilter, { FilterType } from "../../entity/FileFilter";
 import Tutorial from "../../entity/Tutorial";
 import { metadata, selection } from "../../state";
 
@@ -25,8 +22,6 @@ export default function QueryFilter(props: Props) {
     const dispatch = useDispatch();
 
     const filtersGroupedByName = useSelector(selection.selectors.getGroupedByFilterName);
-    const includeFilters = useSelector(selection.selectors.getIncludeFilters);
-    const excludeFilters = useSelector(selection.selectors.getExcludeFilters);
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
@@ -42,9 +37,6 @@ export default function QueryFilter(props: Props) {
                         props.filters.filter((filter) => filter.name === annotation)
                     )
                 );
-                dispatch(selection.actions.removeFuzzyFilter(new FuzzyFilter(annotation)));
-                dispatch(selection.actions.removeExcludeFilter(new ExcludeFilter(annotation)));
-                dispatch(selection.actions.removeIncludeFilter(new IncludeFilter(annotation)));
             }}
             onRenderAddMenuList={() => (
                 <AnnotationPicker
@@ -62,33 +54,20 @@ export default function QueryFilter(props: Props) {
                     annotation={annotationNameToAnnotationMap[item.id] as Annotation}
                 />
             )}
-            rows={[
-                ...Object.entries(filtersGroupedByName).map(([annotationName, filters]) => {
-                    const operator = filters.length > 1 ? "ONE OF" : "EQUALS";
-                    const valueDisplay = map(filters, (filter) => filter.displayValue).join(", ");
-                    return {
-                        id: filters[0].name,
-                        title: `${annotationName} ${operator} ${valueDisplay}`,
-                        description: annotationNameToAnnotationMap[annotationName]?.description,
-                    };
-                }),
-                ...(includeFilters?.map((filter) => {
-                    return {
-                        id: filter.annotationName,
-                        title: `${filter.annotationName} ANY VALUE`,
-                        description:
-                            annotationNameToAnnotationMap[filter.annotationName]?.description,
-                    };
-                }) || []),
-                ...(excludeFilters?.map((filter) => {
-                    return {
-                        id: filter.annotationName,
-                        title: `${filter.annotationName} NO VALUE`,
-                        description:
-                            annotationNameToAnnotationMap[filter.annotationName]?.description,
-                    };
-                }) || []),
-            ]}
+            rows={Object.entries(filtersGroupedByName).map(([annotationName, filters]) => {
+                let operator = "EQUALS";
+                if (filters.length > 1) operator = "ONE OF";
+                else if (filters[0].type === FilterType.ANY) operator = "ANY VALUE";
+                else if (filters[0].type === FilterType.EXCLUDE) operator = "NO VALUE";
+                else if (filters[0].type === FilterType.FUZZY) operator = "CONTAINS";
+
+                const valueDisplay = map(filters, (filter) => filter.displayValue).join(", ");
+                return {
+                    id: filters[0].name,
+                    title: `${annotationName} ${operator} ${valueDisplay}`,
+                    description: annotationNameToAnnotationMap[annotationName]?.description,
+                };
+            })}
         />
     );
 }

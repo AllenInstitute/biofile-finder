@@ -105,8 +105,8 @@ const useDirectoryHierarchy = (
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const fileService = useSelector(interaction.selectors.getFileService);
     const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
-    const excludeFilters = useSelector(selection.selectors.getExcludeFilters);
-    const includeFilters = useSelector(selection.selectors.getIncludeFilters);
+    const excludeFilters = useSelector(selection.selectors.getAnnotationsFilteredOut);
+    const includeFilters = useSelector(selection.selectors.getAnnotationsRequired);
     const selectedFileFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
     const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
@@ -174,9 +174,7 @@ const useDirectoryHierarchy = (
                     const filteredValues = values.filter((value) => {
                         if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
                             if (
-                                fuzzyFilters?.some(
-                                    (fuzzy) => fuzzy.annotationName === annotationNameAtDepth
-                                )
+                                fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationNameAtDepth)
                             ) {
                                 // There can only be one selected value for fuzzy search, so reverse match
                                 return value.includes(userSelectedFiltersForCurrentAnnotation[0]);

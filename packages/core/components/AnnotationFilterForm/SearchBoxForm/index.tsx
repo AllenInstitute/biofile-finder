@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { ListItem } from "../../ListPicker/ListRow";
 import SearchBox from "../../SearchBox";
-import FileFilter from "../../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../../entity/FileFilter";
 
 import styles from "./SearchBoxForm.module.css";
 
@@ -16,9 +16,8 @@ interface SearchBoxFormProps {
     onDeselectAll: () => void;
     onSelect?: (item: ListItem) => void;
     onSelectAll: () => void;
-    onSearch: (filterValue: string) => void;
+    onSearch: (filterValue: string, type: FilterType) => void;
     fieldName: string;
-    onToggleFuzzySearch: () => void;
     fuzzySearchEnabled?: boolean;
     defaultValue: FileFilter | undefined;
 }
@@ -31,18 +30,8 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
     const [isFuzzySearching, setIsFuzzySearching] = React.useState(!!props?.fuzzySearchEnabled);
 
     function onSearchSubmitted(value: string) {
-        // Make sure fuzzy search is synchronized in state
-        if (isFuzzySearching !== props?.fuzzySearchEnabled) {
-            props.onToggleFuzzySearch();
-        }
-        props.onSearch(value);
+        props.onSearch(value, isFuzzySearching ? FilterType.FUZZY : FilterType.DEFAULT);
     }
-
-    const _onToggleFuzzySearch = (_: React.MouseEvent<HTMLElement>, checked?: boolean): void => {
-        setIsFuzzySearching(!!checked);
-        // Trigger search without requiring user to hit enter/submit
-        if (props?.defaultValue) props.onToggleFuzzySearch();
-    };
 
     return (
         <div className={classNames(props.className, styles.container)}>
@@ -54,7 +43,7 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
                 onText="On"
                 inlineLabel
                 offText="Off"
-                onChange={_onToggleFuzzySearch}
+                onChange={(_, checked?) => setIsFuzzySearching(!!checked)}
                 title={`Turn ${isFuzzySearching ? "off" : "on"} fuzzy search (non-exact searching)`}
                 styles={{
                     label: styles.toggleLabel,

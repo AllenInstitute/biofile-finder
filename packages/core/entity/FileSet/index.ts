@@ -3,9 +3,9 @@ import LRUCache from "lru-cache";
 
 import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
-import FuzzyFilter from "../SimpleFilter/FuzzyFilter";
-import ExcludeFilter from "../SimpleFilter/ExcludeFilter";
-import IncludeFilter from "../SimpleFilter/IncludeFilter";
+import FuzzyFilter from "../FileFilter/FuzzyFilter";
+import ExcludeFilter from "../FileFilter/ExcludeFilter";
+import IncludeFilter from "../FileFilter/IncludeFilter";
 import FileService from "../../services/FileService";
 import FileServiceNoop from "../../services/FileService/FileServiceNoop";
 import SQLBuilder from "../SQLBuilder";

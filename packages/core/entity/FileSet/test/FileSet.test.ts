@@ -6,9 +6,9 @@ import FileSet from "../";
 import FileFilter from "../../FileFilter";
 import FileSort, { SortOrder } from "../../FileSort";
 import { makeFileDetailMock } from "../../FileDetail/mocks";
-import FuzzyFilter from "../../SimpleFilter/FuzzyFilter";
-import IncludeFilter from "../../SimpleFilter/IncludeFilter";
-import ExcludeFilter from "../../SimpleFilter/ExcludeFilter";
+import FuzzyFilter from "../../FileFilter/FuzzyFilter";
+import IncludeFilter from "../../FileFilter/IncludeFilter";
+import ExcludeFilter from "../../FileFilter/ExcludeFilter";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 

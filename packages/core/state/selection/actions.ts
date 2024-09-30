@@ -1,15 +1,12 @@
 import { makeConstant } from "@aics/redux-utils";
 
 import Annotation from "../../entity/Annotation";
-import FileFilter from "../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import FileSort from "../../entity/FileSort";
 import NumericRange from "../../entity/NumericRange";
-import ExcludeFilter from "../../entity/SimpleFilter/ExcludeFilter";
-import FuzzyFilter from "../../entity/SimpleFilter/FuzzyFilter";
-import IncludeFilter from "../../entity/SimpleFilter/IncludeFilter";
 import Tutorial from "../../entity/Tutorial";
 import {
     EMPTY_QUERY_COMPONENTS,
@@ -79,183 +76,27 @@ export function removeFileFilter(filter: FileFilter | FileFilter[]): RemoveFileF
 }
 
 /**
- * SET_FUZZY_FILTERS
+ * CHANGE_FILE_FILTER_TYPE
  *
- * Intention to set, wholesale, a list of FuzzyFilters into application state. This should not be dispatched
- * by UI components; dispatch either an ADD_FUZZY_FILTER or REMOVE_FUZZY_FILTER action. Those actions will
- * trigger the `modifyFuzzyFilters` logic, which will then dispatch this action.
+ * Intention to change the type of any currently applied FileFilter
  */
-export const SET_FUZZY_FILTERS = makeConstant(STATE_BRANCH_NAME, "set-fuzzy-filters");
+export const CHANGE_FILE_FILTER_TYPE = makeConstant(STATE_BRANCH_NAME, "change-file-filter-type");
 
-export interface SetFuzzyFiltersAction {
-    payload?: FuzzyFilter[];
-    type: string;
-}
-
-export function setFuzzyFilters(fuzzyFilters?: FuzzyFilter[]): SetFuzzyFiltersAction {
-    return {
-        payload: fuzzyFilters,
-        type: SET_FUZZY_FILTERS,
+export interface ChangeFileFilterTypeAction {
+    payload: {
+        annotationName: string;
+        type: FilterType;
     };
-}
-
-/**
- * ADD_FUZZY_FILTER
- *
- * Intention to apply a FuzzyFilter.
- */
-export const ADD_FUZZY_FILTER = makeConstant(STATE_BRANCH_NAME, "add-fuzzy-filter");
-
-export interface AddFuzzyFilterAction {
-    payload: FuzzyFilter | FuzzyFilter[];
     type: string;
 }
 
-export function addFuzzyFilter(filter: FuzzyFilter | FuzzyFilter[]): AddFuzzyFilterAction {
+export function changeFileFilterType(
+    annotationName: string,
+    type: FilterType
+): ChangeFileFilterTypeAction {
     return {
-        payload: filter,
-        type: ADD_FUZZY_FILTER,
-    };
-}
-
-/**
- * REMOVE_FUZZY_FILTER
- *
- * Intention to remove a currently applied FuzzyFilter.
- */
-export const REMOVE_FUZZY_FILTER = makeConstant(STATE_BRANCH_NAME, "remove-fuzzy-filter");
-
-export interface RemoveFuzzyFilterAction {
-    payload: FuzzyFilter | FuzzyFilter[];
-    type: string;
-}
-
-export function removeFuzzyFilter(filter: FuzzyFilter | FuzzyFilter[]): RemoveFuzzyFilterAction {
-    return {
-        payload: filter,
-        type: REMOVE_FUZZY_FILTER,
-    };
-}
-
-/**
- * SET_INCLUDE_FILTERS
- *
- * Intention to set, wholesale, a list of IncludeFilters into application state. This should not be dispatched
- * by UI components; dispatch either an ADD_INCLUDE_FILTER or REMOVE_INCLUDE_FILTER action. Those actions will
- * trigger the `modifyIncludeFilters` logic, which will then dispatch this action.
- */
-export const SET_INCLUDE_FILTERS = makeConstant(STATE_BRANCH_NAME, "set-include-filters");
-
-export interface SetIncludeFiltersAction {
-    payload?: IncludeFilter[];
-    type: string;
-}
-
-export function setIncludeFilters(includeFilters?: IncludeFilter[]): SetIncludeFiltersAction {
-    return {
-        payload: includeFilters,
-        type: SET_INCLUDE_FILTERS,
-    };
-}
-
-/**
- * ADD_INCLUDE_FILTER
- *
- * Intention to apply a IncludeFilter (aka, any value filter).
- */
-export const ADD_INCLUDE_FILTER = makeConstant(STATE_BRANCH_NAME, "add-include-filter");
-
-export interface AddIncludeFilterAction {
-    payload: IncludeFilter | IncludeFilter[];
-    type: string;
-}
-
-export function addIncludeFilter(filter: IncludeFilter | IncludeFilter[]): AddIncludeFilterAction {
-    return {
-        payload: filter,
-        type: ADD_INCLUDE_FILTER,
-    };
-}
-
-/**
- * REMOVE_INCLUDE_FILTER
- *
- * Intention to remove a currently applied IncludeFilter.
- */
-export const REMOVE_INCLUDE_FILTER = makeConstant(STATE_BRANCH_NAME, "remove-include-filter");
-
-export interface RemoveIncludeFilterAction {
-    payload: IncludeFilter | IncludeFilter[];
-    type: string;
-}
-
-export function removeIncludeFilter(
-    filter: IncludeFilter | IncludeFilter[]
-): RemoveIncludeFilterAction {
-    return {
-        payload: filter,
-        type: REMOVE_INCLUDE_FILTER,
-    };
-}
-
-/**
- * SET_EXCLUDE_FILTERS
- *
- * Intention to set, wholesale, a list of ExcludeFilters into application state. This should not be dispatched
- * by UI components; dispatch either an ADD_ExCLUDE_FILTER or REMOVE_EXCLUDE_FILTER action. Those actions will
- * trigger the `modifyExcludeFilters` logic, which will then dispatch this action.
- */
-export const SET_EXCLUDE_FILTERS = makeConstant(STATE_BRANCH_NAME, "set-exclude-filters");
-
-export interface SetExcludeFiltersAction {
-    payload?: ExcludeFilter[];
-    type: string;
-}
-
-export function setExcludeFilters(excludeFilters?: ExcludeFilter[]): SetExcludeFiltersAction {
-    return {
-        payload: excludeFilters,
-        type: SET_EXCLUDE_FILTERS,
-    };
-}
-
-/**
- * ADD_EXCLUDE_FILTER
- *
- * Intention to apply a ExcludeFilter (aka, any value filter).
- */
-export const ADD_EXCLUDE_FILTER = makeConstant(STATE_BRANCH_NAME, "add-exclude-filter");
-
-export interface AddExcludeFilterAction {
-    payload: ExcludeFilter | ExcludeFilter[];
-    type: string;
-}
-
-export function addExcludeFilter(filter: ExcludeFilter | ExcludeFilter[]): AddExcludeFilterAction {
-    return {
-        payload: filter,
-        type: ADD_EXCLUDE_FILTER,
-    };
-}
-
-/**
- * REMOVE_EXCLUDE_FILTER
- *
- * Intention to remove a currently applied ExcludeFilter.
- */
-export const REMOVE_EXCLUDE_FILTER = makeConstant(STATE_BRANCH_NAME, "remove-exclude-filter");
-
-export interface RemoveExcludeFilterAction {
-    payload: ExcludeFilter | ExcludeFilter[];
-    type: string;
-}
-
-export function removeExcludeFilter(
-    filter: ExcludeFilter | ExcludeFilter[]
-): RemoveExcludeFilterAction {
-    return {
-        payload: filter,
-        type: REMOVE_EXCLUDE_FILTER,
+        payload: { annotationName, type },
+        type: CHANGE_FILE_FILTER_TYPE,
     };
 }
 

@@ -17,7 +17,7 @@ interface Props {
 /**
  * Custom styled wrapper for default fluentui component
  */
-export default function BaseCheckbox(props: Props) {
+export default function BaseChoiceGroup(props: Props) {
     return (
         <ChoiceGroup
             className={props?.className}

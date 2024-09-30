@@ -14,22 +14,13 @@ import NumberRangePicker from "../NumberRangePicker";
 import Annotation from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
-import FileFilter from "../../entity/FileFilter";
-import ExcludeFilter from "../../entity/SimpleFilter/ExcludeFilter";
-import FuzzyFilter from "../../entity/SimpleFilter/FuzzyFilter";
-import IncludeFilter from "../../entity/SimpleFilter/IncludeFilter";
+import FileFilter, { FilterType } from "../../entity/FileFilter";
 import { interaction, selection } from "../../state";
 
 import styles from "./AnnotationFilterForm.module.css";
 
 interface AnnotationFilterFormProps {
     annotation: Annotation;
-}
-
-enum FilterType {
-    ANY = "any",
-    NONE = "none",
-    SOME = "some",
 }
 
 /**
@@ -42,36 +33,27 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const dispatch = useDispatch();
     const allFilters = useSelector(selection.selectors.getFileFilters);
     const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
-    const includeFilters = useSelector(selection.selectors.getIncludeFilters);
-    const excludeFilters = useSelector(selection.selectors.getExcludeFilters);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
         props.annotation.name,
         annotationService
     );
 
-    // Check if annotation name is already listed in state as an INCLUDE, EXCLUDE, FUZZY, or regular file filter
-    const usingIncludeFilter: boolean = React.useMemo(() => {
-        return !!includeFilters?.some((filter) => filter.annotationName === props.annotation.name);
-    }, [includeFilters, props.annotation]);
-    const usingExcludeFilter: boolean = React.useMemo(() => {
-        return !!excludeFilters?.some((filter) => filter.annotationName === props.annotation.name);
-    }, [excludeFilters, props.annotation]);
-    const fuzzySearchEnabled: boolean = React.useMemo(() => {
-        return !!fuzzyFilters?.some((filter) => filter.annotationName === props.annotation.name);
+    const fuzzySearchEnabled = React.useMemo(() => {
+        return !!fuzzyFilters?.some((filter) => filter.name === props.annotation.name);
     }, [fuzzyFilters, props.annotation]);
+
     const filtersForAnnotation = React.useMemo(
         () => allFilters.filter((filter) => filter.name === props.annotation.name),
         [allFilters, props.annotation]
     );
 
-    // Rehydrate filter type from state into UI
-    const defaultFilterType = () => {
-        if (usingIncludeFilter) return FilterType.ANY;
-        if (usingExcludeFilter) return FilterType.NONE;
-        return FilterType.SOME;
-    };
-    const [filterType, setFilterType] = React.useState<FilterType | string>(defaultFilterType);
+    // Assume all filters use same type
+    const defaultFilterType = React.useMemo(() => {
+        return filtersForAnnotation?.[0]?.type ?? FilterType.DEFAULT;
+    }, [filtersForAnnotation]);
+
+    const [filterType, setFilterType] = React.useState<FilterType>(defaultFilterType);
 
     // Propagate regular file filter values from state into UI
     const items = React.useMemo<ListItem[]>(() => {
@@ -84,13 +66,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         }));
     }, [props.annotation, annotationValues, filtersForAnnotation]);
 
-    const onToggleFuzzySearch = () => {
-        const fuzzyFilter = new FuzzyFilter(props.annotation.name);
-        fuzzySearchEnabled
-            ? dispatch(selection.actions.removeFuzzyFilter(fuzzyFilter))
-            : dispatch(selection.actions.addFuzzyFilter(fuzzyFilter));
-    };
-
     const onDeselectAll = () => {
         // remove all regular filters for this annotation
         dispatch(selection.actions.removeFileFilter(filtersForAnnotation));
@@ -101,13 +76,13 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
 
     const onSelect = (item: ListItem) => {
-        removeSpecialFilters();
+        dispatch(selection.actions.changeFileFilterType(props.annotation.name, FilterType.DEFAULT));
         dispatch(selection.actions.addFileFilter(createFileFilter(item)));
     };
 
     // TODO: Should this select ALL or just the visible items in list?
     const onSelectAll = () => {
-        removeSpecialFilters();
+        dispatch(selection.actions.changeFileFilterType(props.annotation.name, FilterType.DEFAULT));
         dispatch(selection.actions.addFileFilter(items.map((item) => createFileFilter(item))));
     };
 
@@ -116,59 +91,40 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             props.annotation.name,
             isNil(props.annotation.valueOf(item.value))
                 ? item.value
-                : props.annotation.valueOf(item.value)
+                : props.annotation.valueOf(item.value),
+            filterType
         );
     };
 
     const _onFilterTypeOptionChange = (option: IChoiceGroupOption | undefined) => {
         // Verify that filter type is changing to avoid dispatching unnecessary clean-up actions
         if (!!option?.key && option?.key !== filterType) {
-            setFilterType(option.key);
-            let actionToDispatch = selection.actions.addIncludeFilter;
-            let filterToApply = new IncludeFilter(props.annotation.name);
+            setFilterType(option.key as FilterType);
             // Selecting ANY or NONE should automatically re-trigger search and re-render dom,
             // but selecting SOME shouldn't trigger anything until a value is selected
             // or a search term is entered
             switch (option.key) {
-                case FilterType.SOME:
-                    return; // No further action needed
-                case FilterType.NONE:
-                    actionToDispatch = selection.actions.addExcludeFilter;
-                    filterToApply = new ExcludeFilter(props.annotation.name);
+                case FilterType.DEFAULT:
+                    return; // No further action needed, dispatch on search instead
+                case FilterType.EXCLUDE:
                 case FilterType.ANY:
                 default:
-                    onDeselectAll();
-                    removeSpecialFilters();
                     dispatch(
-                        selection.actions.removeFuzzyFilter(new FuzzyFilter(props.annotation.name))
+                        selection.actions.changeFileFilterType(
+                            props.annotation.name,
+                            option.key as FilterType
+                        )
                     );
-                    dispatch(actionToDispatch(filterToApply));
             }
         }
     };
 
-    // Check if ANY/NONE filter is applied and remove,
-    // since incompatible with each other & SOME filter type.
-    function removeSpecialFilters() {
-        if (usingIncludeFilter) {
-            dispatch(
-                selection.actions.removeIncludeFilter(new IncludeFilter(props.annotation.name))
-            );
-        }
-        if (usingExcludeFilter) {
-            dispatch(
-                selection.actions.removeExcludeFilter(new ExcludeFilter(props.annotation.name))
-            );
-        }
-    }
-
-    function onSearch(filterValue: string) {
-        removeSpecialFilters();
+    function onSearch(filterValue: string, type: FilterType = FilterType.DEFAULT) {
         if (filterValue && filterValue.trim()) {
             dispatch(
                 selection.actions.setFileFilters([
                     ...allFilters.filter((filter) => filter.name !== props.annotation.name),
-                    new FileFilter(props.annotation.name, filterValue),
+                    new FileFilter(props.annotation.name, filterValue, type),
                 ])
             );
         }
@@ -237,7 +193,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                             onSelectAll={onSelectAll}
                             onDeselectAll={onDeselectAll}
                             onSearch={onSearch}
-                            onToggleFuzzySearch={onToggleFuzzySearch}
                             fuzzySearchEnabled={fuzzySearchEnabled}
                             fieldName={props.annotation.displayName}
                             defaultValue={filtersForAnnotation?.[0]}
@@ -257,10 +212,13 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                 <h3>Filter {props.annotation.displayName} by</h3>
                 <ChoiceGroup
                     className={styles.choiceGroup}
-                    defaultSelectedKey={filterType}
+                    // Fuzzy is not in choice group
+                    defaultSelectedKey={
+                        filterType !== FilterType.FUZZY ? filterType : FilterType.DEFAULT
+                    }
                     options={[
                         {
-                            key: FilterType.SOME,
+                            key: FilterType.DEFAULT,
                             text: `Some value${items.length > 0 ? "(s)" : ""}`,
                         },
                         {
@@ -268,18 +226,18 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                             text: "Any value",
                         },
                         {
-                            key: FilterType.NONE,
+                            key: FilterType.EXCLUDE,
                             text: "No value (blank)",
                         },
                     ]}
                     onChange={(_, option) => _onFilterTypeOptionChange(option)}
                 />
             </div>
-            {filterType === FilterType.SOME ? (
+            {filterType === FilterType.DEFAULT || filterType === FilterType.FUZZY ? (
                 searchFormType()
             ) : (
                 <div className={styles.footer}>
-                    All files with {filterType === FilterType.NONE ? "no " : "any "}
+                    All files with {filterType === FilterType.EXCLUDE ? "no " : "any "}
                     value for {props.annotation.displayName}
                 </div>
             )}

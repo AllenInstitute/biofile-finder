@@ -1,8 +1,8 @@
 import Annotation from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
-import ExcludeFilter from "../../entity/SimpleFilter/ExcludeFilter";
-import FuzzyFilter from "../../entity/SimpleFilter/FuzzyFilter";
-import IncludeFilter from "../../entity/SimpleFilter/IncludeFilter";
+import ExcludeFilter from "../../entity/FileFilter/ExcludeFilter";
+import FuzzyFilter from "../../entity/FileFilter/FuzzyFilter";
+import IncludeFilter from "../../entity/FileFilter/IncludeFilter";
 
 export type AnnotationValue = string | number | boolean | Date;
 

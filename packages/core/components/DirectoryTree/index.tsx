@@ -37,11 +37,11 @@ interface FileListProps {
  */
 export default function DirectoryTree(props: FileListProps) {
     const dispatch = useDispatch();
-    const excludeFilters = useSelector(selection.selectors.getExcludeFilters);
+    const excludeFilters = useSelector(selection.selectors.getAnnotationsFilteredOut);
     const fileService = useSelector(interaction.selectors.getFileService);
     const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
-    const globalFilters = useSelector(selection.selectors.getFileFilters);
-    const includeFilters = useSelector(selection.selectors.getIncludeFilters);
+    const globalFilters = useSelector(selection.selectors.getDefaultFileFilters);
+    const includeFilters = useSelector(selection.selectors.getAnnotationsRequired);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
     const fileSet = React.useMemo(() => {
         return new FileSet({
