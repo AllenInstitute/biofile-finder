@@ -107,7 +107,7 @@ const useDirectoryHierarchy = (
     const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
     const excludeFilters = useSelector(selection.selectors.getAnnotationsFilteredOut);
     const includeFilters = useSelector(selection.selectors.getAnnotationsRequired);
-    const selectedFileFilters = useSelector(selection.selectors.getDefaultFileFilters);
+    const selectedFileFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
     const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
 
@@ -155,23 +155,19 @@ const useDirectoryHierarchy = (
                     if (isRoot) {
                         values = await annotationService.fetchRootHierarchyValues(
                             hierarchy,
-                            selectedFileFilters,
-                            fuzzyFilters,
-                            excludeFilters,
-                            includeFilters
+                            selectedFileFilters
                         );
                     } else {
                         values = await annotationService.fetchHierarchyValuesUnderPath(
                             hierarchy,
                             pathToNode,
-                            selectedFileFilters,
-                            fuzzyFilters,
-                            excludeFilters,
-                            includeFilters
+                            selectedFileFilters
                         );
                     }
 
                     const filteredValues = values.filter((value) => {
+                        if (includeFilters?.some((filter) => filter.name === annotationNameAtDepth))
+                            return true;
                         if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
                             if (
                                 fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationNameAtDepth)
@@ -181,7 +177,6 @@ const useDirectoryHierarchy = (
                             }
                             return userSelectedFiltersForCurrentAnnotation.includes(value);
                         }
-
                         return true;
                     });
 
@@ -226,9 +221,6 @@ const useDirectoryHierarchy = (
                         const childNodeFileSet = new FileSet({
                             fileService,
                             filters,
-                            fuzzyFilters,
-                            excludeFilters,
-                            includeFilters,
                             sort: sortColumn,
                         });
 

@@ -679,13 +679,13 @@ describe("FileSelection", () => {
             const excludeFilterName = "excludeFilterName";
             const fileSet1 = new FileSet();
             const fileSet2 = new FileSet({
-                filters: [new FileFilter("filterName", "filterValue")],
-                fuzzyFilters: [
+                filters: [
+                    new FileFilter("filterName", "filterValue"),
                     new FuzzyFilter(fuzzyFilterNames[0]),
                     new FuzzyFilter(fuzzyFilterNames[1]),
+                    new IncludeFilter(includeFilterName),
+                    new ExcludeFilter(excludeFilterName),
                 ],
-                includeFilters: [new IncludeFilter(includeFilterName)],
-                excludeFilters: [new ExcludeFilter(excludeFilterName)],
             });
             const selection = new FileSelection()
                 .select({ fileSet: fileSet1, index: 3, sortOrder: 0 })

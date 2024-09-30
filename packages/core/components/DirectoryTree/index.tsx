@@ -37,22 +37,16 @@ interface FileListProps {
  */
 export default function DirectoryTree(props: FileListProps) {
     const dispatch = useDispatch();
-    const excludeFilters = useSelector(selection.selectors.getAnnotationsFilteredOut);
     const fileService = useSelector(interaction.selectors.getFileService);
-    const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
-    const globalFilters = useSelector(selection.selectors.getDefaultFileFilters);
-    const includeFilters = useSelector(selection.selectors.getAnnotationsRequired);
+    const globalFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
     const fileSet = React.useMemo(() => {
         return new FileSet({
-            excludeFilters: excludeFilters,
             fileService: fileService,
             filters: globalFilters,
-            fuzzyFilters: fuzzyFilters,
-            includeFilters: includeFilters,
             sort: sortColumn,
         });
-    }, [excludeFilters, fileService, fuzzyFilters, globalFilters, includeFilters, sortColumn]);
+    }, [fileService, globalFilters, sortColumn]);
 
     // On a up arrow key or down arrow key press this event will update the file list selection & focused file
     // to be either the row above (if the up arrow was pressed) or the row below (if the down arrow was pressed)

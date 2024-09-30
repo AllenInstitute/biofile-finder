@@ -1,7 +1,7 @@
 import { defaults, find, join, map, uniqueId } from "lodash";
 import LRUCache from "lru-cache";
 
-import FileFilter from "../FileFilter";
+import FileFilter, { FilterType } from "../FileFilter";
 import FileSort from "../FileSort";
 import FuzzyFilter from "../FileFilter/FuzzyFilter";
 import ExcludeFilter from "../FileFilter/ExcludeFilter";
@@ -12,11 +12,8 @@ import SQLBuilder from "../SQLBuilder";
 import FileDetail from "../FileDetail";
 
 interface Opts {
-    excludeFilters?: ExcludeFilter[];
     fileService: FileService;
     filters: FileFilter[];
-    fuzzyFilters?: FuzzyFilter[];
-    includeFilters?: IncludeFilter[];
     maxCacheSize: number;
     sort?: FileSort;
 }
@@ -54,21 +51,13 @@ export default class FileSet {
     }
 
     constructor(opts: Partial<Opts> = {}) {
-        const {
-            fileService,
-            filters,
-            fuzzyFilters,
-            excludeFilters,
-            includeFilters,
-            maxCacheSize,
-            sort,
-        } = defaults({}, opts, DEFAULT_OPTS);
+        const { fileService, filters, maxCacheSize, sort } = defaults({}, opts, DEFAULT_OPTS);
 
         this.cache = new LRUCache<number, FileDetail>({ max: maxCacheSize });
         this._filters = filters;
-        this.fuzzyFilters = fuzzyFilters;
-        this.excludeFilters = excludeFilters;
-        this.includeFilters = includeFilters;
+        this.fuzzyFilters = filters.filter((f) => f.type === FilterType.FUZZY);
+        this.excludeFilters = filters.filter((f) => f.type === FilterType.EXCLUDE);
+        this.includeFilters = filters.filter((f) => f.type === FilterType.ANY);
         this.sort = sort;
         this.fileService = fileService;
 
@@ -180,22 +169,11 @@ export default class FileSet {
     public toQueryString(): string {
         // filters must be sorted in order to ensure requests can be effectively cached
         // according to their url
-        const sortedFilters = [...this.filters].sort((a, b) =>
-            a.toQueryString().localeCompare(b.toQueryString())
+        const sortedFilters = [...this.filters].sort(
+            (a, b) =>
+                a.type.localeCompare(b.type) || a.toQueryString().localeCompare(b.toQueryString())
         );
         const query = map(sortedFilters, (filter) => filter.toQueryString());
-
-        // Name-only filter arrays can all be treated the same way
-        [this.fuzzyFilters, this.excludeFilters, this.includeFilters].forEach((filterArray) => {
-            if (filterArray?.length) {
-                const sortedFilters = [...filterArray].sort((a, b) =>
-                    a.toQueryString().localeCompare(b.toQueryString())
-                );
-                query.push(
-                    map(sortedFilters, (filterName) => filterName.toQueryString()).join("&")
-                );
-            }
-        });
 
         if (this.sort) {
             query.push(this.sort.toQueryString());

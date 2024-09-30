@@ -40,19 +40,17 @@ describe("FileSet", () => {
 
         it("includes name-only filters (fuzzy, include and exclude) in query string", () => {
             const fileSet = new FileSet({
-                fuzzyFilters: [fuzzyFileName],
-                excludeFilters: [noCellLine],
-                includeFilters: [anyGene],
+                filters: [fuzzyFileName, noCellLine, anyGene],
             });
             expect(fileSet.toQueryString()).equals(
-                "fuzzy=file_name&exclude=cell_line&include=gene"
+                "exclude=cell_line&fuzzy=file_name&include=gene"
             );
         });
 
         // Enforce query param order for cacheing efficiency. Same args should register as same query regardless of order
         it("includes sort after name-only filters in query string", () => {
             const fileSet = new FileSet({
-                fuzzyFilters: [fuzzyFileName],
+                filters: [fuzzyFileName],
                 sort: dateCreatedDescending,
             });
             expect(fileSet.toQueryString()).equals("fuzzy=file_name&sort=date_created(DESC)");
@@ -70,15 +68,18 @@ describe("FileSet", () => {
         });
 
         it("produces the same query string when given the same name-only filters in different orders", () => {
+            const fuzzyFilters = [fuzzyFileName, fuzzyFilePath];
+            const includeFilters = [anyGene, anyKind];
+            const excludeFilters = [noCellBatch, noCellLine];
             const fileSet1 = new FileSet({
-                fuzzyFilters: [fuzzyFileName, fuzzyFilePath],
-                includeFilters: [anyGene, anyKind],
-                excludeFilters: [noCellBatch, noCellLine],
+                filters: [...fuzzyFilters, ...includeFilters, ...excludeFilters],
             });
             const fileSet2 = new FileSet({
-                fuzzyFilters: [fuzzyFilePath, fuzzyFileName],
-                includeFilters: [anyKind, anyGene],
-                excludeFilters: [noCellLine, noCellBatch],
+                filters: [
+                    ...excludeFilters.reverse(),
+                    ...fuzzyFilters.reverse(),
+                    ...includeFilters.reverse(),
+                ],
             });
 
             expect(fileSet1.toQueryString()).to.equal(fileSet2.toQueryString());

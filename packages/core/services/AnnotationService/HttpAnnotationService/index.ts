@@ -4,9 +4,6 @@ import AnnotationService, { AnnotationValue } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
 import Annotation, { AnnotationResponse } from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
-import FuzzyFilter from "../../../entity/FileFilter/FuzzyFilter";
-import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
-import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
 
 enum QueryParam {
@@ -56,10 +53,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
 
     public async fetchRootHierarchyValues(
         hierarchy: string[],
-        filters: FileFilter[],
-        fuzzyFilters?: FuzzyFilter[],
-        excludeFilters?: ExcludeFilter[],
-        includeFilters?: IncludeFilter[]
+        filters: FileFilter[]
     ): Promise<string[]> {
         // It's important that we fetch values for the correct (i.e., first) level of the hierarchy.
         // But after that, sort the levels so that we can effectively cache the result
@@ -72,9 +66,6 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
                 QueryParam.FILTER,
                 filters.map((f) => f.toQueryString())
             ),
-            this.buildQueryParams(QueryParam.FUZZY, fuzzyFilters?.map((f) => f.name) || []),
-            this.buildQueryParams(QueryParam.EXCLUDE, excludeFilters?.map((f) => f.name) || []),
-            this.buildQueryParams(QueryParam.INCLUDE, includeFilters?.map((f) => f.name) || []),
         ]
             .filter((param) => !!param)
             .join("&");
@@ -88,10 +79,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
     public async fetchHierarchyValuesUnderPath(
         hierarchy: string[],
         path: string[],
-        filters: FileFilter[],
-        fuzzyFilters?: FuzzyFilter[],
-        excludeFilters?: ExcludeFilter[],
-        includeFilters?: IncludeFilter[]
+        filters: FileFilter[]
     ): Promise<string[]> {
         const queryParams = [
             this.buildQueryParams(QueryParam.ORDER, hierarchy),
@@ -100,9 +88,6 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
                 QueryParam.FILTER,
                 filters.map((f) => f.toQueryString())
             ),
-            this.buildQueryParams(QueryParam.FUZZY, fuzzyFilters?.map((f) => f.name) || []),
-            this.buildQueryParams(QueryParam.EXCLUDE, excludeFilters?.map((f) => f.name) || []),
-            this.buildQueryParams(QueryParam.INCLUDE, includeFilters?.map((f) => f.name) || []),
         ]
             .filter((param) => !!param)
             .join("&");
