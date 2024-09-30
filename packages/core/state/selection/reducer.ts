@@ -8,9 +8,6 @@ import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
-import ExcludeFilter from "../../entity/FileFilter/ExcludeFilter";
-import FuzzyFilter from "../../entity/FileFilter/FuzzyFilter";
-import IncludeFilter from "../../entity/FileFilter/IncludeFilter";
 
 import {
     SET_DISPLAY_ANNOTATIONS,
@@ -54,13 +51,10 @@ export interface SelectionStateBranch {
     };
     dataSources: Source[];
     displayAnnotations: Annotation[];
-    excludeFilters?: ExcludeFilter[];
     fileGridColumnCount: number;
     fileSelection: FileSelection;
     filters: FileFilter[];
-    fuzzyFilters?: FuzzyFilter[];
     isDarkTheme: boolean;
-    includeFilters?: IncludeFilter[];
     openFileFolders: FileFolder[];
     recentAnnotations: string[];
     selectedQuery?: string;
@@ -84,12 +78,9 @@ export const initialState = {
     },
     dataSources: [],
     displayAnnotations: [],
-    excludeFilters: [],
     fileGridColumnCount: THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE,
     fileSelection: new FileSelection(),
     filters: [],
-    fuzzyFilters: [],
-    includeFilters: [],
     isDarkTheme: true,
     openFileFolders: [],
     queries: [],
