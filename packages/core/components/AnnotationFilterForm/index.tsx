@@ -33,6 +33,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const dispatch = useDispatch();
     const allFilters = useSelector(selection.selectors.getFileFilters);
     const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
+    const isQueryingAicsFms = useSelector(selection.selectors.isQueryingAicsFms);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
         props.annotation.name,
@@ -196,6 +197,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                             fuzzySearchEnabled={fuzzySearchEnabled}
                             fieldName={props.annotation.displayName}
                             defaultValue={filtersForAnnotation?.[0]}
+                            hideFuzzyToggle={!isQueryingAicsFms}
                         />
                     );
                 }

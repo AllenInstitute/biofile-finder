@@ -202,7 +202,12 @@ export default class FileSet {
         Object.entries(filterValuesByAnnotation).forEach(([annotation, filterValues]) => {
             // If a filter value is `null` then we need to modify the way we approach filtering
             // it in SQL
-            if (filterValues.length === 0) {
+            if (!!this.excludeFilters?.some((filter) => filter.name === annotation)) {
+                sqlBuilder.where(`"${annotation}" IS NULL`);
+            } else if (
+                !!this.includeFilters?.some((filter) => filter.name === annotation) ||
+                filterValues.length === 0
+            ) {
                 sqlBuilder.where(`"${annotation}" IS NOT NULL`);
             } else {
                 sqlBuilder.where(
