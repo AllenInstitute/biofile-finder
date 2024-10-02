@@ -39,9 +39,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         annotationService
     );
 
-    const fuzzySearchEnabled = React.useMemo(() => {
-        return !!fuzzyFilters?.some((filter) => filter.name === props.annotation.name);
-    }, [fuzzyFilters, props.annotation]);
+    const fuzzySearchEnabled = React.useMemo(
+        () => !!fuzzyFilters?.some((filter) => filter.name === props.annotation.name),
+        [fuzzyFilters, props.annotation]
+    );
 
     const filtersForAnnotation = React.useMemo(
         () => allFilters.filter((filter) => filter.name === props.annotation.name),
@@ -49,9 +50,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     );
 
     // Assume all filters use same type
-    const defaultFilterType = React.useMemo(() => {
-        return filtersForAnnotation?.[0]?.type ?? FilterType.DEFAULT;
-    }, [filtersForAnnotation]);
+    const defaultFilterType = React.useMemo(
+        () => filtersForAnnotation?.[0]?.type ?? FilterType.DEFAULT,
+        [filtersForAnnotation]
+    );
 
     const [filterType, setFilterType] = React.useState<FilterType>(defaultFilterType);
 
@@ -96,7 +98,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         );
     };
 
-    const _onFilterTypeOptionChange = (option: IChoiceGroupOption | undefined) => {
+    const onFilterTypeOptionChange = (option: IChoiceGroupOption | undefined) => {
         // Verify that filter type is changing to avoid dispatching unnecessary clean-up actions
         if (!!option?.key && option?.key !== filterType) {
             setFilterType(option.key as FilterType);
@@ -230,7 +232,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                             text: "No value (blank)",
                         },
                     ]}
-                    onChange={(_, option) => _onFilterTypeOptionChange(option)}
+                    onChange={(_, option) => onFilterTypeOptionChange(option)}
                 />
             </div>
             {filterType === FilterType.DEFAULT || filterType === FilterType.FUZZY ? (
