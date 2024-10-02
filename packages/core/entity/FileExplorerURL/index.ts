@@ -133,10 +133,6 @@ export default class FileExplorerURL {
         const unparsedSort = params.get("sort");
         const hierarchyDepth = hierarchy.length;
 
-        const allParsedFilters = [...unparsedFilters].map((unparsedFilter) =>
-            JSON.parse(unparsedFilter)
-        );
-
         const parsedSort = unparsedSort ? JSON.parse(unparsedSort) : undefined;
         if (
             parsedSort &&
@@ -150,10 +146,12 @@ export default class FileExplorerURL {
             sortColumn: parsedSort
                 ? new FileSort(parsedSort.annotationName, parsedSort.order || SortOrder.ASC)
                 : undefined,
-            filters: allParsedFilters.map(
-                (parsedFilter) =>
-                    new FileFilter(parsedFilter.name, parsedFilter.value, parsedFilter.type)
-            ),
+            filters: unparsedFilters
+                .map((unparsedFilter) => JSON.parse(unparsedFilter))
+                .map(
+                    (parsedFilter) =>
+                        new FileFilter(parsedFilter.name, parsedFilter.value, parsedFilter.type)
+                ),
             sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
             sourceMetadata: unparsedSourceMetadata ? JSON.parse(unparsedSourceMetadata) : undefined,
             openFolders: unparsedOpenFolders
