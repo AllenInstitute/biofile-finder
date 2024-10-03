@@ -1,6 +1,10 @@
-import { Link, Stack } from "@fluentui/react";
+import { Icon, Link, Stack } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
+
+import LearnDiagramBFF from "../../../assets/learn-diagram-bff.png";
+import LearnDiagramCSV from "../../../assets/learn-diagram-csv.png";
+import LearnDiagramViewer from "../../../assets/learn-diagram-viewer.png";
 
 import styles from "./Learn.module.css";
 
@@ -13,27 +17,27 @@ export default function Learn() {
                     <div className={classNames(styles.section, styles.titleContainer)}>
                         <h1>Curate your data your way</h1>
                         <p>
-                            BioFile Finder helps users efficiently and effectively interact,
-                            extrapolate, and share data.
+                            BioFile Finder helps users effortlessly interact with, extrapolate, and
+                            share data.
                         </p>
                     </div>
                 </div>
             </div>
             <div className={styles.section}>
                 <h2>Why BioFile Finder?</h2>
-                <Stack wrap horizontal styles={{ root: styles.stack }} tokens={{ childrenGap: 5 }}>
-                    <Stack.Item className={styles.column} basis={0} grow={1} shrink={1}>
+                <Stack wrap horizontal tokens={{ childrenGap: 5 }}>
+                    <Stack.Item basis={0} grow={1} shrink={1}>
                         <h3>Group, filter, & sort data through rich metadata search.</h3>
                         <p>
                             Use quick & efficient query builder tools to build a customized view
                             into users data
                         </p>
                     </Stack.Item>
-                    <Stack.Item className={styles.column} basis={0} grow={1} shrink={1}>
+                    <Stack.Item basis={0} grow={1} shrink={1}>
                         <h3>Directly view images.</h3>
                         <p>Quickly view images using various supported image viewers</p>
                     </Stack.Item>
-                    <Stack.Item className={styles.column} basis={0} grow={1} shrink={1}>
+                    <Stack.Item basis={0} grow={1} shrink={1}>
                         <h3>Share data.</h3>
                         <p>
                             Users can simply copy & paste the URL to share the same query the are
@@ -41,12 +45,47 @@ export default function Learn() {
                             datasource (.csv).
                         </p>
                     </Stack.Item>
-                    <Stack.Item className={styles.column} basis={0} grow={1} shrink={1}>
+                    <Stack.Item basis={0} grow={1} shrink={1}>
                         <h3>Collaborate programmatically.</h3>
                         <p>
                             Share the exact query presented in BioFile Finder as a snippet of code
                             which programmatic users can use to access the same data.
                         </p>
+                    </Stack.Item>
+                </Stack>
+            </div>
+            <div className={styles.section}>
+                <h2>How does it work?</h2>
+                <p>
+                    BioFile Finder is a web application that allows users to interact with their
+                    data in a more efficient and effective way. Users upload a .csv file with
+                    metadata and a link to their data. The .csv file is used to create a query that
+                    can be shared with others. The query is a URL that can be shared with others to
+                    view the same data and metadata that the user is currently looking at. The
+                    receiver of the URL will need access to the datasource (.csv).
+                </p>
+                <Stack wrap horizontal className={styles.iconStack} tokens={{ childrenGap: 5 }}>
+                    <Stack.Item className={styles.column} basis={1} grow={1} shrink={1}>
+                        <img alt="Example CSV" height={135} src={LearnDiagramCSV} />
+                        <p className={styles.imageTitle}>.csv File</p>
+                    </Stack.Item>
+                    <Stack.Item className={styles.iconContainer} basis={1} grow={0} shrink={1}>
+                        <Icon iconName="Forward" />
+                    </Stack.Item>
+                    <Stack.Item className={styles.column} basis={1} grow={1} shrink={1}>
+                        <img
+                            alt="Example BioFile Finder Usage"
+                            height={150}
+                            src={LearnDiagramBFF}
+                        />
+                        <p className={styles.imageTitle}>Biofile Finder</p>
+                    </Stack.Item>
+                    <Stack.Item className={styles.iconContainer} basis={1} grow={0} shrink={1}>
+                        <Icon iconName="Forward" />
+                    </Stack.Item>
+                    <Stack.Item className={styles.column} basis={1} grow={1} shrink={1}>
+                        <img alt="Example Image Viewer" height={150} src={LearnDiagramViewer} />
+                        <p className={styles.imageTitle}>Image Viewer</p>
                     </Stack.Item>
                 </Stack>
             </div>

@@ -23,6 +23,30 @@
     width: 100%;
 }
 
+.column {
+    text-align: center;
+}
+
+.column:first-of-type > p {
+    margin-top: 15px
+}
+
+.icon-container {
+    align-items: center;
+    display: flex;
+    padding: 0 var(--margin);
+}
+
+.icon-container i {
+    color: var(--aqua);
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.icon-stack {
+    margin-top: calc(var(--margin) * 2);
+}
+
 .link, .link:active, .link:visited {
     color: var(--aqua);
 }
