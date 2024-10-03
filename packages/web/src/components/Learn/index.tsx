@@ -29,26 +29,28 @@ export default function Learn() {
                     <Stack.Item basis={0} grow={1} shrink={1}>
                         <h3>Group, filter, & sort data through rich metadata search.</h3>
                         <p>
-                            Use quick & efficient query builder tools to build a customized view
-                            into users data
+                            Use the query builder tool to easily design powerful, nested data
+                            queries with group, filter, and sort functionality.
                         </p>
                     </Stack.Item>
                     <Stack.Item basis={0} grow={1} shrink={1}>
                         <h3>Directly view images.</h3>
-                        <p>Quickly view images using various supported image viewers</p>
+                        <p>
+                            One click opens images in Allen Institute and other common image
+                            viewers.
+                        </p>
                     </Stack.Item>
                     <Stack.Item basis={0} grow={1} shrink={1}>
                         <h3>Share data.</h3>
                         <p>
-                            Users can simply copy & paste the URL to share the same query the are
-                            currently looking at, the receiver of the URL will need access to the
-                            datasource (.csv).
+                            Share a custom built query simply by sharing the current URL; no
+                            instruction manual needed.
                         </p>
                     </Stack.Item>
                     <Stack.Item basis={0} grow={1} shrink={1}>
                         <h3>Collaborate programmatically.</h3>
                         <p>
-                            Share the exact query presented in BioFile Finder as a snippet of code
+                            Export the exact query presented in BioFile Finder as a snippet of code
                             which programmatic users can use to access the same data.
                         </p>
                     </Stack.Item>
@@ -94,10 +96,8 @@ export default function Learn() {
                 <h3>Is my data a good fit?</h3>
                 <p>
                     BioFile Finder is designed to be flexible and work with a wide range of data.
-                    Currently, all you need to get started is a .csv file with metadata and a link
-                    to your data. The .csv just has to have a first row with the column names one of
-                    which has to be &quot;File Path&quot; which is the column you will provide
-                    unique links to your data in.
+                    Currently, all you need to get started is a .csv file containing links to your
+                    data. Add metadata to your .csv to make using BioFile Finder even more powerful!
                 </p>
                 <h3>Does my data have to be public?</h3>
                 <p>
@@ -114,8 +114,7 @@ export default function Learn() {
                 <h3>Can BioFile Finder store my data to make it public?</h3>
                 <p>
                     Sort of. We, at the Allen Institute for Cell Science, are working on a way to
-                    allow users to store their .csv with us to make it public. In the meantime, if
-                    you send a request to us at
+                    allow users to store their .csv with us to make it public. In the meantime, use
                     <a
                         className={styles.link}
                         href="https://github.com/AllenInstitute/biofile-finder/issues"
@@ -124,9 +123,9 @@ export default function Learn() {
                     >
                         &nbsp;this link
                     </a>
-                    , we can see about including your data in our open-source datasets ahead of
-                    time. Please note, your image data would need to be stored in a public location
-                    like
+                    , to request your data be included with our own collection of open-source
+                    datasets. Please note, your image data would need to be stored in a public
+                    location like on
                     <a
                         className={styles.link}
                         href="https://idr.openmicroscopy.org/"
@@ -135,7 +134,7 @@ export default function Learn() {
                     >
                         &nbsp;on Image Data Registry&nbsp;
                     </a>
-                    or AWS for example.
+                    or AWS.
                 </p>
                 <p className={styles.sectionFooter}>
                     Check out our{" "}
