@@ -132,7 +132,7 @@ const useDirectoryHierarchy = (
             if (isLeaf || hierarchy.length === 0) {
                 // if we're at the top or bottom of the hierarchy, render a FileList
                 // unless we have cancelled or there is nothing to query against
-                if (!cancel && !isEmpty(fileSet.toJSON().queryString)) {
+                if (!cancel) {
                     dispatch(
                         receiveContent(
                             <FileList fileSet={fileSet} isRoot={isRoot} sortOrder={sortOrder} />
