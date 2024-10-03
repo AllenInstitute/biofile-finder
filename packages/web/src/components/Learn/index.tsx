@@ -25,33 +25,39 @@ export default function Learn() {
             </div>
             <div className={styles.section}>
                 <h2>Why BioFile Finder?</h2>
+                <p>
+                    Explore the data without any coding through the standardized metadata, using
+                    filters and hierarchies of folders to search for the data needed to answer a
+                    specific question. Example...
+                </p>
                 <Stack wrap horizontal tokens={{ childrenGap: 5 }}>
                     <Stack.Item basis={0} grow={1} shrink={1}>
-                        <h3>Group, filter, & sort data through rich metadata search.</h3>
+                        <h3>Find.</h3>
                         <p>
-                            Use the query builder tool to easily design powerful, nested data
-                            queries with group, filter, and sort functionality.
+                            Find all images corresponding to a list of criteria provided by
+                            annotation and tags.
                         </p>
                     </Stack.Item>
                     <Stack.Item basis={0} grow={1} shrink={1}>
-                        <h3>Directly view images.</h3>
+                        <h3>View.</h3>
                         <p>
-                            One click opens images in Allen Institute and other common image
-                            viewers.
+                            Visualize each file before uploading them ensuring you extracted the
+                            right data for your research.
                         </p>
                     </Stack.Item>
                     <Stack.Item basis={0} grow={1} shrink={1}>
-                        <h3>Share data.</h3>
+                        <h3>Share.</h3>
                         <p>
-                            Share a custom built query simply by sharing the current URL; no
-                            instruction manual needed.
+                            Provide the URL address to your collaborator in just one click for
+                            analysis and further exploration of your exact query.
                         </p>
                     </Stack.Item>
                     <Stack.Item basis={0} grow={1} shrink={1}>
-                        <h3>Collaborate programmatically.</h3>
+                        <h3>Publish.</h3>
                         <p>
-                            Export the exact query presented in BioFile Finder as a snippet of code
-                            which programmatic users can use to access the same data.
+                            By storing the .csv file in a public cloud storage, you can include the
+                            URL address in your publication for others to access your data in just
+                            one click.
                         </p>
                     </Stack.Item>
                 </Stack>
