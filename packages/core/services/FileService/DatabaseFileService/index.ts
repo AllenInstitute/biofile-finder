@@ -1,6 +1,11 @@
 import { isEmpty, isNil, uniqueId } from "lodash";
 
-import FileService, { GetFilesRequest, SelectionAggregationResult, Selection } from "..";
+import FileService, {
+    GetFilesRequest,
+    SelectionAggregationResult,
+    Selection,
+    AnnotationNameToValuesMap,
+} from "..";
 import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadService, { DownloadResolution, DownloadResult } from "../../FileDownloadService";
@@ -183,5 +188,44 @@ export default class DatabaseFileService implements FileService {
             },
             uniqueId()
         );
+    }
+
+    public editFile(fileId: string, annotations: AnnotationNameToValuesMap): Promise<void> {
+        const tableName = this.dataSourceNames.sort().join(", ");
+        const columnAssignments = Object.entries(annotations).map(
+            ([name, values]) => `${name} = ${values.join(DatabaseService.LIST_DELIMITER)}`
+        );
+        const sql = `\
+            UPDATE ${tableName} \
+            SET ${columnAssignments.join(", ")} \
+            WHERE FileId = ${fileId}; \
+        `;
+        return this.databaseService.execute(sql);
+    }
+
+    public async getEdittableFileMetadata(
+        fileIds: string[]
+    ): Promise<{ [fileId: string]: AnnotationNameToValuesMap }> {
+        const sql = new SQLBuilder()
+            .from(this.dataSourceNames)
+            .where(`"File ID" IN (${fileIds.join(", ")})`)
+            .toSQL();
+
+        const rows = await this.databaseService.query(sql);
+        return rows
+            .map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, 0))
+            .reduce(
+                (acc, file) => ({
+                    ...acc,
+                    [file.id]: file.annotations.reduce(
+                        (annoAcc, annotation) => ({
+                            ...annoAcc,
+                            [annotation.name]: annotation.values,
+                        }),
+                        {} as AnnotationNameToValuesMap
+                    ),
+                }),
+                {} as { [fileId: string]: AnnotationNameToValuesMap }
+            );
     }
 }
