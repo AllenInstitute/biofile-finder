@@ -106,7 +106,10 @@ const useDirectoryHierarchy = (
     const fileService = useSelector(interaction.selectors.getFileService);
     const selectedFileFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
-    const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
+    const [state, dispatch] = React.useReducer(reducer, {
+        ...INITIAL_STATE,
+        isLoading: !collapsed,
+    });
 
     const isRoot = currentNode === ROOT_NODE;
     const isLeaf = !isRoot && !!hierarchy.length && ancestorNodes.length === hierarchy.length - 1;
@@ -128,6 +131,7 @@ const useDirectoryHierarchy = (
         async function getContent() {
             if (isLeaf || hierarchy.length === 0) {
                 // if we're at the top or bottom of the hierarchy, render a FileList
+                // unless we have cancelled or there is nothing to query against
                 if (!cancel) {
                     dispatch(
                         receiveContent(

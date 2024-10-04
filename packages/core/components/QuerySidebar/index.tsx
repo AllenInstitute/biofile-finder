@@ -125,7 +125,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                     queries.map((query) => (
                         <Query
                             key={query.name}
-                            isSelected={query.name === selectedQuery}
+                            isSelected={query.name === selectedQuery || queries.length === 1}
                             query={query}
                         />
                     ))

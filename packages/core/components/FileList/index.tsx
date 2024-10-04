@@ -120,17 +120,27 @@ export default function FileList(props: FileListProps) {
     // Get a count of all files in the FileList, but don't wait on it
     React.useEffect(() => {
         let cancel = false;
-        fileSet.fetchTotalCount().then((count) => {
-            if (!cancel) {
-                setTotalCount(count);
-            }
-        });
+        fileSet
+            .fetchTotalCount()
+            .then((count) => {
+                if (!cancel) {
+                    setTotalCount(count);
+                }
+            })
+            .catch((err) => {
+                // Data source may not be prepared if the data source is taking longer to load
+                // than the component does to render. In this case, we can ignore the error.
+                // The component will re-render when the data source is prepared.
+                if (!err?.message.includes("Data source is not prepared")) {
+                    throw err;
+                }
+            });
         return () => {
             cancel = true;
         };
     }, [fileSet]);
 
-    let content: React.ReactNode | undefined;
+    let content: React.ReactNode;
     if (totalCount === null || totalCount > 0) {
         if (height > 0) {
             // When this component isRoot the height is measured. It takes

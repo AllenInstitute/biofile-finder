@@ -24,6 +24,10 @@
     margin-bottom: 5px;
 }
 
+.column-data > div > div {
+    border-color: var(--primary-text-color) var(--primary-background-color) var(--primary-background-color);
+}
+
 .label {
     font-weight: lighter;
     margin: 0;

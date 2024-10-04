@@ -17,6 +17,14 @@
     flex: 1 1 auto;
 }
 
+.indeterminate-progress-bar > div > div:first-child {
+    background: var(--primary-text-color);
+}
+
+.indeterminate-progress-bar > div > div:last-child {
+    background: linear-gradient(to right, var(--primary-text-color) 0%, var(--secondary-background-color) 25%, var(--secondary-background-color) 75%, var(--primary-text-color) 100%);
+}
+
 .hidden {
     display: none;
 }

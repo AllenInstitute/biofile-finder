@@ -81,7 +81,7 @@ export default class DatabaseFileService implements FileService {
 
     public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
         if (!this.dataSourceNames.length) {
-            return 0;
+            throw new Error("Data source is not prepared");
         }
 
         const select_key = "num_files";
