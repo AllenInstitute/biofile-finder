@@ -1,4 +1,4 @@
-import { compact, join, uniqueId } from "lodash";
+import { chunk, compact, invert, join, uniqueId } from "lodash";
 
 import FileService, {
     GetFilesRequest,
@@ -47,10 +47,12 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     public static readonly BASE_FILES_URL = `file-explorer-service/${HttpFileService.ENDPOINT_VERSION}/files`;
     public static readonly BASE_FILE_COUNT_URL = `${HttpFileService.BASE_FILES_URL}/count`;
     public static readonly BASE_EDIT_FILES_URL = `metadata-management-service/1.0/filemetadata`;
+    public static readonly BASE_ANNOTATION_ID_URL = `metadata-management-service/1.0/annotation`;
     public static readonly SELECTION_AGGREGATE_URL = `${HttpFileService.BASE_FILES_URL}/selection/aggregate`;
     private static readonly CSV_ENDPOINT_VERSION = "2.0";
     public static readonly BASE_CSV_DOWNLOAD_URL = `file-explorer-service/${HttpFileService.CSV_ENDPOINT_VERSION}/files/selection/manifest`;
     private readonly downloadService: FileDownloadService;
+    private readonly edittableAnnotationIdToNameCache: { [name: string]: number } = {};
 
     constructor(config: Config = { downloadService: new FileDownloadServiceNoop() }) {
         super(config);
