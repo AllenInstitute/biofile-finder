@@ -17,6 +17,7 @@ import * as metadataSelectors from "./selectors";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
+import HttpFileService from "../../services/FileService/HttpFileService";
 
 /**
  * Interceptor responsible for turning REQUEST_ANNOTATIONS action into a network call for available annotations. Outputs
@@ -26,7 +27,9 @@ const requestAnnotations = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { getState, httpClient } = deps;
         const annotationService = interaction.selectors.getAnnotationService(getState());
+        const fileService = interaction.selectors.getFileService(getState());
         const applicationVersion = interaction.selectors.getApplicationVersion(getState());
+        const isAicsEmployee = interaction.selectors.isAicsEmployee(getState());
         if (annotationService instanceof HttpAnnotationService) {
             if (applicationVersion) {
                 annotationService.setApplicationVersion(applicationVersion);
@@ -37,6 +40,11 @@ const requestAnnotations = createLogic({
         try {
             const annotations = await annotationService.fetchAnnotations();
             dispatch(receiveAnnotations(annotations));
+
+            if (isAicsEmployee && fileService instanceof HttpFileService) {
+                const annotationNames = annotations.map((annotation) => annotation.name);
+                await fileService.prepareAnnotationIdCache(annotationNames);
+            }
         } catch (err) {
             console.error("Failed to fetch annotations", err);
         } finally {
