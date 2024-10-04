@@ -1,4 +1,4 @@
-import { isEmpty, sumBy, throttle, uniq, uniqueId } from "lodash";
+import { chunk, isEmpty, noop, sumBy, throttle, uniq, uniqueId } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -31,6 +31,8 @@ import {
     SetIsSmallScreenAction,
     setVisibleModal,
     hideVisibleModal,
+    EDIT_FILES,
+    EditFiles,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
@@ -500,6 +502,98 @@ const openWithLogic = createLogic({
 });
 
 /**
+ * Interceptor responsible for translating an EDIT_FILES action into a progress tracked
+ * series of edits on the files currently selected.
+ */
+const editFilesLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const fileService = interactionSelectors.getFileService(deps.getState());
+        const fileSelection = selection.selectors.getFileSelection(deps.getState());
+        const sortColumn = selection.selectors.getSortColumn(deps.getState());
+        const {
+            payload: { annotations, filters },
+        } = deps.action as EditFiles;
+
+        // Gather up the files for the files selected currently
+        // if filters is present then actual "selected" files
+        // are the ones that match the filters, this happens when
+        // editing a whole folder for example
+        let filesSelected;
+        if (filters) {
+            const fileSet = new FileSet({
+                filters,
+                fileService,
+                sort: sortColumn,
+            });
+            const totalFileCount = await fileSet.fetchTotalCount();
+            filesSelected = await fileSet.fetchFileRange(0, totalFileCount);
+        } else {
+            filesSelected = await fileSelection.fetchAllDetails();
+        }
+
+        // Break files into batches of 10 File IDs
+        const fileIds = filesSelected.map((file) => file.id);
+        const batches = chunk(fileIds, 10);
+
+        // Dispatch an event to alert the user of the start of the process
+        const editRequestId = uniqueId();
+        const editProcessMsg = "Editing files in progress.";
+        // TODO: Lyndsay's design did not include a progress bar for editing files
+        // nor a way to cancel the process. This is a placeholder for now.
+        dispatch(processStart(editRequestId, editProcessMsg, noop));
+
+        // Track the total number of files edited
+        let totalFileEdited = 0;
+
+        // Throttled progress dispatcher
+        const onProgress = throttle(() => {
+            dispatch(
+                processProgress(
+                    editRequestId,
+                    totalFileEdited / fileIds.length,
+                    editProcessMsg,
+                    noop
+                )
+            );
+        }, 1000);
+
+        try {
+            // Begin editing files in batches
+            for (const batch of batches) {
+                // Asynchronously begin the edit for each file in the batch
+                const promises = batch.map(
+                    (fileId) =>
+                        new Promise<void>(async (resolve, reject) => {
+                            try {
+                                await fileService.editFile(fileId, annotations);
+                                totalFileEdited += 1;
+                                onProgress();
+                                resolve();
+                            } catch (err) {
+                                reject(err);
+                            }
+                        })
+                );
+
+                // Await the results of this batch
+                await Promise.all(promises);
+            }
+
+            dispatch(processSuccess(editRequestId, "Successfully edited files."));
+        } catch (err) {
+            // Dispatch an event to alert the user of the failure
+            const errorMsg = `Failed to finish editing files, some may have been edited. Details:<br/>${
+                err instanceof Error ? err.message : err
+            }`;
+            dispatch(processFailure(editRequestId, errorMsg));
+        } finally {
+            done();
+        }
+    },
+    type: EDIT_FILES,
+});
+
+/**
  * Interceptor responsible for responding to a SHOW_CONTEXT_MENU action and ensuring the previous
  * context menu is dismissed gracefully.
  */
@@ -578,6 +672,7 @@ const setIsSmallScreen = createLogic({
 export default [
     initializeApp,
     downloadManifest,
+    editFilesLogic,
     cancelFileDownloadLogic,
     promptForNewExecutable,
     openWithDefault,

@@ -111,7 +111,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
         }
     }
 
-    protected async execute(sql: string): Promise<void> {
+    public async execute(sql: string): Promise<void> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }

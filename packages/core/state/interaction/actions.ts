@@ -4,6 +4,7 @@ import { uniqueId } from "lodash";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import FileFilter from "../../entity/FileFilter";
 import { ModalType } from "../../components/Modal";
+import { AnnotationValue } from "../../services/AnnotationService";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import FileDetail from "../../entity/FileDetail";
 import { Source } from "../../entity/FileExplorerURL";
@@ -264,6 +265,32 @@ export function initializeApp(baseUrl: string): InitializeApp {
     return {
         type: INITIALIZE_APP,
         payload: baseUrl,
+    };
+}
+
+/**
+ * Edit the currently selected files with the given metadata
+ */
+export const EDIT_FILES = makeConstant(STATE_BRANCH_NAME, "edit-files");
+
+export interface EditFiles {
+    type: string;
+    payload: {
+        annotations: { [name: string]: AnnotationValue[] };
+        filters?: FileFilter[];
+    };
+}
+
+export function editFiles(
+    annotations: { [name: string]: AnnotationValue[] },
+    filters?: FileFilter[]
+): EditFiles {
+    return {
+        type: EDIT_FILES,
+        payload: {
+            annotations,
+            filters,
+        },
     };
 }
 
