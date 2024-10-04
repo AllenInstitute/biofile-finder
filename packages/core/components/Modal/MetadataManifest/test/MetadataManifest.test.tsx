@@ -98,7 +98,7 @@ describe("<MetadataManifest />", () => {
         );
 
         // Act
-        const downloadButton = await findByText("Download");
+        const downloadButton = await findByText("DOWNLOAD");
         fireEvent.click(downloadButton);
         await logicMiddleware.whenComplete();
 

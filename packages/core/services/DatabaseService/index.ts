@@ -35,7 +35,7 @@ export default abstract class DatabaseService {
 
     protected abstract addDataSource(_dataSource: Source): Promise<void>;
 
-    protected abstract execute(_sql: string): Promise<void>;
+    public abstract execute(_sql: string): Promise<void>;
 
     private static columnTypeToAnnotationType(columnType: string): string {
         switch (columnType) {

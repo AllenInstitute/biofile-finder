@@ -1,4 +1,4 @@
-import FileService, { SelectionAggregationResult } from ".";
+import FileService, { AnnotationNameToValuesMap, SelectionAggregationResult } from ".";
 import { DownloadResolution, DownloadResult } from "../FileDownloadService";
 import FileDetail from "../../entity/FileDetail";
 
@@ -11,15 +11,19 @@ export default class FileServiceNoop implements FileService {
         return Promise.resolve({ count: 0, size: 0 });
     }
 
+    public getEdittableFileMetadata(): Promise<{ [fileId: string]: AnnotationNameToValuesMap }> {
+        return Promise.resolve({});
+    }
+
     public getFiles(): Promise<FileDetail[]> {
         return Promise.resolve([]);
     }
 
-    public getFilesAsBuffer(): Promise<Uint8Array> {
-        return Promise.resolve(new Uint8Array());
-    }
-
     public download(): Promise<DownloadResult> {
         return Promise.resolve({ downloadRequestId: "", resolution: DownloadResolution.CANCELLED });
+    }
+
+    public editFile(): Promise<void> {
+        return Promise.resolve();
     }
 }

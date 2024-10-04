@@ -15,6 +15,7 @@ export enum FileExplorerServiceBaseUrl {
     PRODUCTION = "https://production.int.allencell.org",
 }
 
+// TODO: Do we need this?
 export enum MetadataManagementServiceBaseUrl {
     LOCALHOST = "http://localhost:9060/metadata-management-service",
     STAGING = "http://stg-aics-api/metadata-management-service",

@@ -17,6 +17,7 @@ import {
     promptForNewExecutable,
     openWithDefault,
     downloadFiles,
+    editFiles,
 } from "../actions";
 import {
     ExecutableEnvCancellationToken,
@@ -647,6 +648,163 @@ describe("Interaction logics", () => {
 
             // Assert
             expect(isDownloading).to.be.true;
+        });
+    });
+
+    describe("editFilesLogic", () => {
+        const files = [];
+        const fileKinds = ["PNG", "TIFF"];
+        for (let i = 0; i <= 100; i++) {
+            files.push({
+                file_path: `/allen/file_${i}.ext`,
+                annotations: [
+                    {
+                        name: AnnotationName.KIND,
+                        values: fileKinds,
+                    },
+                    {
+                        name: "Cell Line",
+                        values: ["AICS-10", "AICS-12"],
+                    },
+                ],
+            });
+        }
+        const baseUrl = "test";
+        const responseStub = {
+            when: () => true,
+            respondWith: {
+                data: { data: files },
+            },
+        };
+        const mockHttpClient = createMockHttpClient(responseStub);
+        const fileService = new HttpFileService({
+            baseUrl,
+            httpClient: mockHttpClient,
+            downloadService: new FileDownloadServiceNoop(),
+        });
+        const fakeSelection = new FileSelection().select({
+            fileSet: new FileSet({ fileService }),
+            index: new NumericRange(0, 100),
+            sortOrder: 0,
+        });
+
+        it("edits 'folder' when filter specified'", async () => {
+            // Arrange
+            const state = mergeState(initialState, {});
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(editFiles({ "Cell Line": ["AICS-12"] }, []));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.SUCCEEDED,
+                        },
+                    },
+                })
+            ).to.be.true;
+
+            // sanity-check: make certain this isn't evergreen
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.FAILED,
+                        },
+                    },
+                })
+            ).to.be.false;
+        });
+
+        it("edits selected files when no filter sepecified", async () => {
+            // Arrange
+            const state = mergeState(initialState, {
+                selection: {
+                    fileSelection: fakeSelection,
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(editFiles({ "Cell Line": ["AICS-12"] }));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.SUCCEEDED,
+                        },
+                    },
+                })
+            ).to.be.true;
+
+            // sanity-check: make certain this isn't evergreen
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.FAILED,
+                        },
+                    },
+                })
+            ).to.be.false;
+        });
+
+        it("alerts user to failure editing", async () => {
+            // Arrange
+            const state = mergeState(initialState, {
+                selection: {
+                    fileSelection: fakeSelection,
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(editFiles({ "Cell Line": ["AICS-12"] }));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.FAILED,
+                        },
+                    },
+                })
+            ).to.be.true;
+
+            // sanity-check: make certain this isn't evergreen
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.SUCCEEDED,
+                        },
+                    },
+                })
+            ).to.be.false;
         });
     });
 
