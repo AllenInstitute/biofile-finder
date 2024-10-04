@@ -15,6 +15,12 @@ export enum FileExplorerServiceBaseUrl {
     PRODUCTION = "https://production.int.allencell.org",
 }
 
+export enum MetadataManagementServiceBaseUrl {
+    LOCALHOST = "http://localhost:9060/metadata-management-service",
+    STAGING = "http://stg-aics-api/metadata-management-service",
+    PRODUCTION = "http://aics-api/metadata-management-service",
+}
+
 // Channels global variables can be modified on / listen to
 export enum GlobalVariableChannels {
     BaseUrl = "data-source-base-url",
