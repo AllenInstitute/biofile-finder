@@ -44,6 +44,130 @@ describe("HttpFileService", () => {
         });
     });
 
+    describe("editFile", () => {
+        const httpClient = createMockHttpClient([
+            {
+                when: () => true,
+                respondWith: {},
+            },
+        ]);
+
+        it("fails if unable to find id of annotation", async () => {
+            // Arrange
+            const httpFileService = new HttpFileService({
+                baseUrl,
+                httpClient,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+
+            // Act / Assert
+            try {
+                await httpFileService.editFile("file_id", { ["Color"]: ["red"] });
+                expect(false, "Expected to throw").to.be.true;
+            } catch (e) {
+                /* noop */
+            }
+        });
+    });
+
+    describe("getEdittableFileMetadata", () => {
+        const colorAnnotation = "Color";
+        const colorAnnotationId = 3;
+        const fileIdWithColorAnnotation = "abc123";
+        const fileIdWithoutColorAnnotation = "def456";
+        const httpClient = createMockHttpClient([
+            {
+                when: (config) =>
+                    !!config.url?.includes(`filemetadata/${fileIdWithColorAnnotation}`),
+                respondWith: {
+                    data: {
+                        data: [
+                            {
+                                fileId: "abc123",
+                                annotations: [
+                                    {
+                                        annotationId: colorAnnotationId,
+                                        values: ["red"],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                },
+            },
+            {
+                when: (config) =>
+                    !!config.url?.includes(`filemetadata/${fileIdWithoutColorAnnotation}`),
+                respondWith: {
+                    data: {
+                        data: [
+                            {
+                                fileId: "abc123",
+                                annotations: [
+                                    {
+                                        annotationId: 4,
+                                        values: ["AICS-0"],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                },
+            },
+            {
+                when: (config) => !!config.url?.includes(`annotation/${colorAnnotation}`),
+                respondWith: {
+                    data: {
+                        data: [
+                            {
+                                annotationId: colorAnnotationId,
+                            },
+                        ],
+                    },
+                },
+            },
+        ]);
+
+        it("converts response into a map of file_id to metadata", async () => {
+            const httpFileService = new HttpFileService({
+                baseUrl,
+                httpClient,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+
+            // fails if cache is not prepared beforehand
+            await httpFileService.prepareAnnotationIdCache([colorAnnotation]);
+
+            // Act
+            const fileMetadata = await httpFileService.getEdittableFileMetadata([
+                fileIdWithColorAnnotation,
+            ]);
+
+            // Assert
+            expect(fileMetadata).to.deep.equal({
+                [fileIdWithColorAnnotation]: {
+                    [colorAnnotation]: ["red"],
+                },
+            });
+        });
+
+        it("fails if unable to find id of annotation", async () => {
+            const httpFileService = new HttpFileService({
+                baseUrl,
+                httpClient,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+
+            // Act / Assert
+            try {
+                await httpFileService.getEdittableFileMetadata([fileIdWithoutColorAnnotation]);
+                expect(false, "Expected to throw").to.be.true;
+            } catch (e) {
+                /* noop */
+            }
+        });
+    });
+
     describe("getAggregateInformation", () => {
         const totalFileSize = 12424114;
         const totalFileCount = 7;

@@ -148,7 +148,7 @@ export default class DatabaseServiceElectron extends DatabaseService {
         }
     }
 
-    protected async execute(sql: string): Promise<void> {
+    public async execute(sql: string): Promise<void> {
         return new Promise((resolve, reject) => {
             try {
                 this.database.exec(sql, (err: any) => {
