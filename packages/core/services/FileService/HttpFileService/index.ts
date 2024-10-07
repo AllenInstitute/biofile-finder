@@ -1,4 +1,4 @@
-import { chunk, compact, invert, join, uniqueId } from "lodash";
+import { compact, join, uniqueId } from "lodash";
 
 import FileService, {
     GetFilesRequest,
