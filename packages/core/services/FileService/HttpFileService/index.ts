@@ -1,4 +1,4 @@
-import { chunk, compact, invert, join, uniqueId } from "lodash";
+import { compact, join, uniqueId } from "lodash";
 
 import FileService, {
     GetFilesRequest,
@@ -6,10 +6,10 @@ import FileService, {
     Selection,
     AnnotationNameToValuesMap,
 } from "..";
-import { AnnotationValue } from "../../AnnotationService";
 import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
 import HttpServiceBase, { ConnectionConfig } from "../../HttpServiceBase";
+import Annotation from "../../../entity/Annotation";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail, { FmsFile } from "../../../entity/FileDetail";
@@ -147,67 +147,53 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         );
     }
 
-    public async editFile(fileId: string, annotations: AnnotationNameToValuesMap): Promise<void> {
+    public async editFile(
+        fileId: string,
+        annotationNameToValuesMap: AnnotationNameToValuesMap,
+        annotationNameToAnnotationMap?: Record<string, Annotation>
+    ): Promise<void> {
         const url = `${this.baseUrl}/${HttpFileService.BASE_EDIT_FILES_URL}/${fileId}`;
-        const mmsAnnotations: { annotationId: number; values: AnnotationValue[] }[] = [];
-        for (const [name, values] of Object.entries(annotations)) {
-            const annotationId = await this.getEdittableAnnotationIdByName(name);
-            mmsAnnotations.push({ annotationId, values });
-        }
-        const requestBody = JSON.stringify({
-            annotations: mmsAnnotations,
+        const annotations = Object.entries(annotationNameToValuesMap).map(([name, values]) => {
+            const annotationId = annotationNameToAnnotationMap?.[name].id;
+            if (!annotationId) {
+                throw new Error(
+                    `Unable to edit file. Failed to find annotation id for annotation ${name}`
+                );
+            }
+            return { annotationId, values };
         });
+        const requestBody = JSON.stringify({ annotations });
         await this.put(url, requestBody);
     }
 
     public async getEdittableFileMetadata(
-        fileIds: string[]
+        fileIds: string[],
+        annotationIdToAnnotationMap?: Record<number, Annotation>
     ): Promise<{ [fileId: string]: AnnotationNameToValuesMap }> {
         const url = `${this.baseUrl}/${HttpFileService.BASE_EDIT_FILES_URL}/${fileIds.join(",")}`;
         const response = await this.get<EdittableFileMetadata>(url);
 
-        const fileIdToAnnotations: { [fileId: string]: AnnotationNameToValuesMap } = {};
-        for (const file of response.data) {
-            fileIdToAnnotations[file.fileId] = {};
-            for (const annotation of file.annotations || []) {
-                const name = await this.getEdittableAnnotationNameById(annotation.annotationId);
-                fileIdToAnnotations[file.fileId][name] = annotation.values;
-            }
-        }
-        return fileIdToAnnotations;
-    }
-
-    /**
-     * For every annotation name given, fetch the annotation id from MMS and cache it
-     * for future in edit scenarios, necessary because we don't have an endpoint in MMS
-     * that can grab the annotation name from the annotation id
-     */
-    public async prepareAnnotationIdCache(annotationNames: string[]): Promise<void> {
-        const batches = chunk(annotationNames, 25);
-        for (const batch of batches) {
-            await Promise.all(batch.map((name) => this.getEdittableAnnotationIdByName(name)));
-        }
-    }
-
-    private async getEdittableAnnotationIdByName(name: string): Promise<number> {
-        if (!this.edittableAnnotationIdToNameCache[name]) {
-            const url = `${this.baseUrl}/${HttpFileService.BASE_ANNOTATION_ID_URL}/${name}`;
-            const response = await this.get<{ annotationId: number }>(url);
-
-            this.edittableAnnotationIdToNameCache[name] = response.data[0].annotationId;
-        }
-
-        return this.edittableAnnotationIdToNameCache[name];
-    }
-
-    private async getEdittableAnnotationNameById(id: number): Promise<string> {
-        const edittableAnnotationNameToIdCache = invert(this.edittableAnnotationIdToNameCache);
-        if (!edittableAnnotationNameToIdCache[id]) {
-            throw new Error(
-                `Unable to find annotation name for id ${id}. This should have been cached on app initialization.`
-            );
-        }
-
-        return edittableAnnotationNameToIdCache[id];
+        // Group files by fileId
+        return response.data.reduce(
+            (fileAcc, file) => ({
+                ...fileAcc,
+                // Group annotations by annotationId
+                [file.fileId]:
+                    file.annotations?.reduce((annoAcc, annotation) => {
+                        const name = annotationIdToAnnotationMap?.[annotation.annotationId]?.name;
+                        if (!name) {
+                            throw new Error(
+                                "Failure mapping editable metadata response. " +
+                                    `Failed to find annotation name for annotation id ${annotation.annotationId}`
+                            );
+                        }
+                        return {
+                            ...annoAcc,
+                            [name]: annotation.values,
+                        };
+                    }, {} as AnnotationNameToValuesMap) || {},
+            }),
+            {} as { [fileId: string]: AnnotationNameToValuesMap }
+        );
     }
 }
