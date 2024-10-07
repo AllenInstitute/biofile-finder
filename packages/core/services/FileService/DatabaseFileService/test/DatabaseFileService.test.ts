@@ -79,6 +79,38 @@ describe("DatabaseFileService", () => {
         });
     });
 
+    describe("getEdittableFileMetadata", () => {
+        it("converts response into a map of file_id to metadata", async () => {
+            // Arrange
+            const databaseFileService = new DatabaseFileService({
+                dataSourceNames: ["whatever", "and another"],
+                databaseService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+
+            // Act
+            const response = await databaseFileService.getEdittableFileMetadata(["abc123"]);
+
+            // Assert
+            expect(response).to.deep.equal({
+                abc123: {
+                    "File ID": ["abc123"],
+                    "File Name": ["file"],
+                    "File Path": ["path/to/file"],
+                    "File Size": ["432226"],
+                    num_files: ["6"],
+                },
+                def456: {
+                    "File ID": ["def456"],
+                    "File Name": ["file"],
+                    "File Path": ["path/to/file"],
+                    "File Size": ["432226"],
+                    num_files: ["6"],
+                },
+            });
+        });
+    });
+
     describe("getAggregateInformation", () => {
         it("issues request for aggregated information about given files", async () => {
             // Arrange
