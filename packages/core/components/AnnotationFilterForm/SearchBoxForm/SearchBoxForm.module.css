@@ -1,54 +1,54 @@
-.choice-group {
+.toggle {
     margin-bottom: 6px;
 }
 
-.choice-group input:disabled + label {
+.toggle input:disabled + label {
     cursor: not-allowed;
     opacity: 0.5;
 }
 
-.choice-group :is(input, label, span) {
+.toggle :is(input, label, span), .toggle-label {
     color: var(--primary-text-color);
+    font-size: var(--l-paragraph-size);
+    font-weight: 500;
 }
 
-.choice-group label > span {
-    font-size: var(--xs-paragraph-size);
-}
-
-.choice-group label:hover > span {
+.toggle label:hover > span {
     color: var(--highlight-text-color) !important;
 }
 
-.choice-group label::before, .choice-group label:hover::before {
-    background-color: var(--highlight-text-color);
-    border-color: var(--highlight-text-color);
+.toggle-pill-off {
+    border-color: var(--border-color) !important;
+    background-color: unset !important;
 }
 
-.choice-group label::after {
-    background-color: var(--aqua);
-    border-color: var(--aqua);
+.toggle-pill-off {
+    border-color: var(--border-color) !important;
 }
 
-.choice-group label:hover::after {
-    background-color: var(--bright-aqua) !important;
-    border-color: var(--bright-aqua) !important;
+.toggle-pill-off > span {
+    background-color: var(--border-color) !important;
 }
 
-.choice-group > div > div {
-    display: flex;
+.toggle-pill-off:hover > span {
+    background-color: var(--primary-text-color) !important;
 }
 
-.choice-group > div > div > div:not(:first-child) {
-    margin-left: 6px;
+.toggle-pill-on {
+    border: none !important;
+    background-color: var(--aqua) !important;
+}
+
+.toggle-pill-on > span {
+    background-color: var(--highlight-hover-text-color) !important;
+}
+
+.toggle-pill-on:hover {
+    background-color: var(--dark-aqua) !important;
 }
 
 .container {
     padding: 8px;
-}
-
-.list-picker {
-    padding: 0;
-    width: 100%;
 }
 
 .title {

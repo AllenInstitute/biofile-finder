@@ -148,7 +148,10 @@ export default class FileExplorerURL {
                 : undefined,
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
-                .map((parsedFilter) => new FileFilter(parsedFilter.name, parsedFilter.value)),
+                .map(
+                    (parsedFilter) =>
+                        new FileFilter(parsedFilter.name, parsedFilter.value, parsedFilter.type)
+                ),
             sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
             sourceMetadata: unparsedSourceMetadata ? JSON.parse(unparsedSourceMetadata) : undefined,
             openFolders: unparsedOpenFolders

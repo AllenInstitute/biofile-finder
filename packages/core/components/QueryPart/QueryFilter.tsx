@@ -5,10 +5,10 @@ import { useDispatch, useSelector } from "react-redux";
 import QueryPart from ".";
 import AnnotationPicker from "../AnnotationPicker";
 import AnnotationFilterForm from "../AnnotationFilterForm";
-import Tutorial from "../../entity/Tutorial";
-import FileFilter from "../../entity/FileFilter";
-import { metadata, selection } from "../../state";
 import Annotation from "../../entity/Annotation";
+import FileFilter, { FilterType } from "../../entity/FileFilter";
+import Tutorial from "../../entity/Tutorial";
+import { metadata, selection } from "../../state";
 
 interface Props {
     disabled?: boolean;
@@ -31,13 +31,13 @@ export default function QueryFilter(props: Props) {
             title="Filter"
             disabled={props.disabled}
             tutorialId={Tutorial.FILTER_HEADER_ID}
-            onDelete={(annotation) =>
+            onDelete={(annotation) => {
                 dispatch(
                     selection.actions.removeFileFilter(
                         props.filters.filter((filter) => filter.name === annotation)
                     )
-                )
-            }
+                );
+            }}
             onRenderAddMenuList={() => (
                 <AnnotationPicker
                     id={Tutorial.FILE_ATTRIBUTE_FILTER_ID}
@@ -55,7 +55,12 @@ export default function QueryFilter(props: Props) {
                 />
             )}
             rows={Object.entries(filtersGroupedByName).map(([annotationName, filters]) => {
-                const operator = filters.length > 1 ? "ONE OF" : "EQUALS";
+                let operator = "EQUALS";
+                if (filters.length > 1) operator = "ONE OF";
+                else if (filters[0].type === FilterType.ANY) operator = "ANY VALUE";
+                else if (filters[0].type === FilterType.EXCLUDE) operator = "NO VALUE";
+                else if (filters[0].type === FilterType.FUZZY) operator = "CONTAINS";
+
                 const valueDisplay = map(filters, (filter) => filter.displayValue).join(", ");
                 return {
                     id: filters[0].name,

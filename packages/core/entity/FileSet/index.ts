@@ -1,8 +1,11 @@
 import { defaults, find, join, map, uniqueId } from "lodash";
 import LRUCache from "lru-cache";
 
-import FileFilter from "../FileFilter";
+import FileFilter, { FilterType } from "../FileFilter";
 import FileSort from "../FileSort";
+import FuzzyFilter from "../FileFilter/FuzzyFilter";
+import ExcludeFilter from "../FileFilter/ExcludeFilter";
+import IncludeFilter from "../FileFilter/IncludeFilter";
 import FileService from "../../services/FileService";
 import FileServiceNoop from "../../services/FileService/FileServiceNoop";
 import SQLBuilder from "../SQLBuilder";
@@ -36,6 +39,9 @@ export default class FileSet {
     private cache: LRUCache<number, FileDetail>;
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
+    public readonly fuzzyFilters?: FuzzyFilter[];
+    public readonly excludeFilters?: ExcludeFilter[];
+    public readonly includeFilters?: IncludeFilter[];
     public readonly sort?: FileSort;
     private totalFileCount: number | undefined;
     private indexesForFilesCurrentlyLoading: Set<number> = new Set();
@@ -49,6 +55,9 @@ export default class FileSet {
 
         this.cache = new LRUCache<number, FileDetail>({ max: maxCacheSize });
         this._filters = filters;
+        this.fuzzyFilters = filters.filter((f) => f.type === FilterType.FUZZY);
+        this.excludeFilters = filters.filter((f) => f.type === FilterType.EXCLUDE);
+        this.includeFilters = filters.filter((f) => f.type === FilterType.ANY);
         this.sort = sort;
         this.fileService = fileService;
 
@@ -160,8 +169,9 @@ export default class FileSet {
     public toQueryString(): string {
         // filters must be sorted in order to ensure requests can be effectively cached
         // according to their url
-        const sortedFilters = [...this.filters].sort((a, b) =>
-            a.toQueryString().localeCompare(b.toQueryString())
+        const sortedFilters = [...this.filters].sort(
+            (a, b) =>
+                a.type.localeCompare(b.type) || a.toQueryString().localeCompare(b.toQueryString())
         );
         const query = map(sortedFilters, (filter) => filter.toQueryString());
 

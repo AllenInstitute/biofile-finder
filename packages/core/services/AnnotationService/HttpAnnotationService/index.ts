@@ -7,8 +7,11 @@ import FileFilter from "../../../entity/FileFilter";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
 
 enum QueryParam {
+    EXCLUDE = "exclude",
     FILTER = "filter",
+    FUZZY = "fuzzy",
     HIERARCHY = "hierarchy",
+    INCLUDE = "include",
     ORDER = "order",
     PATH = "path",
 }
