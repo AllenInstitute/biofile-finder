@@ -1,6 +1,7 @@
-import { Icon, Link, Stack } from "@fluentui/react";
+import { Icon, Stack } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
+import { Link } from "react-router-dom";
 
 import LearnDiagramBFF from "../../../assets/learn-diagram-bff.png";
 import LearnDiagramCSV from "../../../assets/learn-diagram-csv.png";
@@ -68,9 +69,9 @@ export default function Learn() {
                     BioFile Finder is a web application that allows users to interact with their
                     data in a more efficient and effective way. Users upload a .csv file with
                     metadata and a link to their data. The .csv file is used to create a query that
-                    can be shared with others. The query is a URL that can be shared with others to
-                    view the same data and metadata that the user is currently looking at. The
-                    receiver of the URL will need access to the datasource (.csv).
+                    can be shared with others. The URL contains the query that can be shared with
+                    others to view the same data and metadata that the user is currently looking at.
+                    The receiver of the URL will need access to the datasource (.csv).
                 </p>
                 <Stack wrap horizontal className={styles.iconStack} tokens={{ childrenGap: 5 }}>
                     <Stack.Item className={styles.column} basis={1} grow={1} shrink={1}>
@@ -114,8 +115,8 @@ export default function Learn() {
                 </p>
                 <h3>Is BioFile Finder storing my image data or metadata?</h3>
                 <p>
-                    No! The data source file you upload is not stored by BioFile Finder nor does any
-                    of the data you query get sent to us.
+                    No! The data source file you upload is not stored by BioFile Finder, nor does
+                    any of the data you query get sent to us.
                 </p>
                 <h3>Can BioFile Finder store my data to make it public?</h3>
                 <p>
