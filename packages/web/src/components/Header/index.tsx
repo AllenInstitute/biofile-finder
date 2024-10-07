@@ -79,6 +79,14 @@ export default function Header() {
                             >
                                 Open-source datasets
                             </Link>
+                            <Link
+                                to="learn"
+                                className={styles.routeLink}
+                                target={isApp ? "_blank" : "_self"}
+                                rel="noreferrer"
+                            >
+                                Learn
+                            </Link>
                             <PrimaryButton
                                 ariaLabel="Help"
                                 className={styles.helpMenuButton}
