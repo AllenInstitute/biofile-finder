@@ -177,7 +177,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         return response.data.reduce(
             (fileAcc, file) => ({
                 ...fileAcc,
-                // Group annotations by annotationId
+                // Group annotations by name
                 [file.fileId]:
                     file.annotations?.reduce((annoAcc, annotation) => {
                         const name = annotationIdToAnnotationMap?.[annotation.annotationId]?.name;
