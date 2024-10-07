@@ -9,6 +9,7 @@ import FileService, {
 import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
 import HttpServiceBase, { ConnectionConfig } from "../../HttpServiceBase";
+import { FileExplorerServiceBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
@@ -32,6 +33,12 @@ interface EdittableFileMetadata {
     templateId?: number;
 }
 
+const FESBaseUrlToMMSBaseUrlMap = {
+    [FileExplorerServiceBaseUrl.LOCALHOST]: "http://localhost:9060",
+    [FileExplorerServiceBaseUrl.STAGING]: "http://stg-aics-api",
+    [FileExplorerServiceBaseUrl.PRODUCTION]: "http://stg-aics-api",
+};
+
 /**
  * Service responsible for fetching file related metadata.
  */
@@ -40,7 +47,6 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     public static readonly BASE_FILES_URL = `file-explorer-service/${HttpFileService.ENDPOINT_VERSION}/files`;
     public static readonly BASE_FILE_COUNT_URL = `${HttpFileService.BASE_FILES_URL}/count`;
     public static readonly BASE_EDIT_FILES_URL = `metadata-management-service/1.0/filemetadata`;
-    public static readonly BASE_ANNOTATION_ID_URL = `metadata-management-service/1.0/annotation`;
     public static readonly SELECTION_AGGREGATE_URL = `${HttpFileService.BASE_FILES_URL}/selection/aggregate`;
     private static readonly CSV_ENDPOINT_VERSION = "2.0";
     public static readonly BASE_CSV_DOWNLOAD_URL = `file-explorer-service/${HttpFileService.CSV_ENDPOINT_VERSION}/files/selection/manifest`;
@@ -152,7 +158,8 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         annotationNameToValuesMap: AnnotationNameToValuesMap,
         annotationNameToAnnotationMap?: Record<string, Annotation>
     ): Promise<void> {
-        const url = `${this.baseUrl}/${HttpFileService.BASE_EDIT_FILES_URL}/${fileId}`;
+        const mmsBaseUrl = FESBaseUrlToMMSBaseUrlMap[this.baseUrl as FileExplorerServiceBaseUrl];
+        const url = `${mmsBaseUrl}/${HttpFileService.BASE_EDIT_FILES_URL}/${fileId}`;
         const annotations = Object.entries(annotationNameToValuesMap).map(([name, values]) => {
             const annotationId = annotationNameToAnnotationMap?.[name].id;
             if (!annotationId) {
@@ -170,7 +177,8 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         fileIds: string[],
         annotationIdToAnnotationMap?: Record<number, Annotation>
     ): Promise<{ [fileId: string]: AnnotationNameToValuesMap }> {
-        const url = `${this.baseUrl}/${HttpFileService.BASE_EDIT_FILES_URL}/${fileIds.join(",")}`;
+        const mmsBaseUrl = FESBaseUrlToMMSBaseUrlMap[this.baseUrl as FileExplorerServiceBaseUrl];
+        const url = `${mmsBaseUrl}/${HttpFileService.BASE_EDIT_FILES_URL}/${fileIds.join(",")}`;
         const response = await this.get<EdittableFileMetadata>(url);
 
         // Group files by fileId
