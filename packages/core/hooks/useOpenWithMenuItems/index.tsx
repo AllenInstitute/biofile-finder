@@ -71,6 +71,17 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             disabled: !fileDetails?.path,
             target: "_blank",
         },
+        ...(!fileDetails?.name.includes(".simularium")
+            ? []
+            : [
+                  {
+                      key: "simularium",
+                      text: "Simularium",
+                      title: `Open files with Simularium`,
+                      href: `https://simularium.allencell.org/viewer?trajUrl=${fileDetails?.cloudPath}`,
+                      target: "_blank",
+                  },
+              ]),
         ...(plateLink && isAicsEmployee
             ? [
                   {
