@@ -512,6 +512,9 @@ const editFilesLogic = createLogic({
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
         const sortColumn = selection.selectors.getSortColumn(deps.getState());
+        const annotationNameToAnnotationMap = metadata.selectors.getAnnotationNameToAnnotationMap(
+            deps.getState()
+        );
         const {
             payload: { annotations, filters },
         } = deps.action as EditFiles;
@@ -567,7 +570,11 @@ const editFilesLogic = createLogic({
                     (fileId) =>
                         new Promise<void>(async (resolve, reject) => {
                             try {
-                                await fileService.editFile(fileId, annotations);
+                                await fileService.editFile(
+                                    fileId,
+                                    annotations,
+                                    annotationNameToAnnotationMap
+                                );
                                 totalFileEdited += 1;
                                 onProgress();
                                 resolve();

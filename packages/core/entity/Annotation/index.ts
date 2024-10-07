@@ -9,6 +9,8 @@ import { AnnotationValue } from "../../services/AnnotationService";
  * Expected JSON structure of an annotation returned from the query service.
  */
 export interface AnnotationResponse {
+    // Undefined when pulled from a non-AICS FMS data source
+    annotationId?: number;
     annotationDisplayName: string;
     annotationName: string;
     description: string;
@@ -68,6 +70,10 @@ export default class Annotation {
 
     public get units(): string | undefined {
         return this.annotation.units;
+    }
+
+    public get id(): number | undefined {
+        return this.annotation.annotationId;
     }
 
     /**

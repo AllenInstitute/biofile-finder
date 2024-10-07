@@ -2,6 +2,7 @@ import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 
 import HttpFileService from "..";
+import Annotation from "../../../../entity/Annotation";
 import FileSelection from "../../../../entity/FileSelection";
 import FileSet from "../../../../entity/FileSet";
 import NumericRange from "../../../../entity/NumericRange";
@@ -65,7 +66,9 @@ describe("HttpFileService", () => {
                 await httpFileService.editFile("file_id", { ["Color"]: ["red"] });
                 expect(false, "Expected to throw").to.be.true;
             } catch (e) {
-                /* noop */
+                expect((e as Error).message).to.equal(
+                    "Unable to edit file. Failed to find annotation id for annotation Color"
+                );
             }
         });
     });
@@ -114,18 +117,6 @@ describe("HttpFileService", () => {
                     },
                 },
             },
-            {
-                when: (config) => !!config.url?.includes(`annotation/${colorAnnotation}`),
-                respondWith: {
-                    data: {
-                        data: [
-                            {
-                                annotationId: colorAnnotationId,
-                            },
-                        ],
-                    },
-                },
-            },
         ]);
 
         it("converts response into a map of file_id to metadata", async () => {
@@ -135,13 +126,11 @@ describe("HttpFileService", () => {
                 downloadService: new FileDownloadServiceNoop(),
             });
 
-            // fails if cache is not prepared beforehand
-            await httpFileService.prepareAnnotationIdCache([colorAnnotation]);
-
             // Act
-            const fileMetadata = await httpFileService.getEdittableFileMetadata([
-                fileIdWithColorAnnotation,
-            ]);
+            const fileMetadata = await httpFileService.getEdittableFileMetadata(
+                [fileIdWithColorAnnotation],
+                { [colorAnnotationId]: new Annotation({ annotationName: colorAnnotation } as any) }
+            );
 
             // Assert
             expect(fileMetadata).to.deep.equal({
@@ -163,7 +152,9 @@ describe("HttpFileService", () => {
                 await httpFileService.getEdittableFileMetadata([fileIdWithoutColorAnnotation]);
                 expect(false, "Expected to throw").to.be.true;
             } catch (e) {
-                /* noop */
+                expect((e as Error).message).to.equal(
+                    "Failure mapping editable metadata response. Failed to find annotation name for annotation id 4"
+                );
             }
         });
     });

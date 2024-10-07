@@ -1,5 +1,6 @@
 import { AnnotationValue } from "../AnnotationService";
 import { DownloadResult } from "../FileDownloadService";
+import Annotation from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
@@ -47,11 +48,16 @@ export default interface FileService {
         selections: Selection[],
         format: "csv" | "json" | "parquet"
     ): Promise<DownloadResult>;
-    editFile(fileId: string, annotations: AnnotationNameToValuesMap): Promise<void>;
+    editFile(
+        fileId: string,
+        annotations: AnnotationNameToValuesMap,
+        annotationNameToAnnotationMap?: Record<string, Annotation>
+    ): Promise<void>;
     getAggregateInformation(fileSelection: FileSelection): Promise<SelectionAggregationResult>;
     getCountOfMatchingFiles(fileSet: FileSet): Promise<number>;
     getEdittableFileMetadata(
-        fileIds: string[]
+        fileIds: string[],
+        annotationIdToAnnotationMap?: Record<number, Annotation>
     ): Promise<{ [fileId: string]: AnnotationNameToValuesMap }>;
     getFiles(request: GetFilesRequest): Promise<FileDetail[]>;
 }
