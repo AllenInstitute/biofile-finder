@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import FileFilter from "../../../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../../../entity/FileFilter";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
 
 import DatabaseAnnotationService from "..";
@@ -59,6 +59,16 @@ describe("DatabaseAnnotationService", () => {
             const values = await annotationService.fetchRootHierarchyValues(["foo"], [filter]);
             expect(values).to.deep.equal(["Cell Line0", "Is Split Scene1", "Whatever2"]);
         });
+
+        it("issues a request for annotation values for the first level of the annotation hierarchy with typed filters", async () => {
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: ["e"],
+                databaseService,
+            });
+            const filter = new FileFilter("bar", "barValue", FilterType.ANY);
+            const values = await annotationService.fetchRootHierarchyValues(["foo"], [filter]);
+            expect(values).to.deep.equal(["Cell Line0", "Is Split Scene1", "Whatever2"]);
+        });
     });
 
     describe("fetchHierarchyValuesUnderPath", () => {
@@ -96,6 +106,22 @@ describe("DatabaseAnnotationService", () => {
                 databaseService,
             });
             const filter = new FileFilter("bar", "barValue");
+            const values = await annotationService.fetchHierarchyValuesUnderPath(
+                ["foo", "bar"],
+                ["baz"],
+                [filter]
+            );
+            expect(values).to.deep.equal(expectedValues);
+        });
+
+        it("issues request for hierarchy values under a specific path within the hierarchy with typed filters", async () => {
+            const expectedValues = ["A0", "B1", "Cc2", "dD3"];
+
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: ["mock1"],
+                databaseService,
+            });
+            const filter = new FileFilter("bar", "barValue", FilterType.FUZZY);
             const values = await annotationService.fetchHierarchyValuesUnderPath(
                 ["foo", "bar"],
                 ["baz"],

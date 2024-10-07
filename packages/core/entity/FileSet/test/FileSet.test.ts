@@ -86,6 +86,30 @@ describe("FileSet", () => {
         });
     });
 
+    describe("toQuerySQLBuilder", () => {
+        const mockDatasource = "testSource";
+
+        it("builds SQL queries with include filters", () => {
+            const fileSet = new FileSet({ filters: [anyGene] });
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
+                "NOT NULL"
+            );
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).not.to.contain(
+                "IS NULL"
+            );
+        });
+
+        it("builds SQL queries with exclude filters", () => {
+            const fileSet = new FileSet({ filters: [noCellBatch] });
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
+                "IS NULL"
+            );
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).not.to.contain(
+                "NOT NULL"
+            );
+        });
+    });
+
     describe("fetchFileRange", () => {
         const sandbox = createSandbox();
         const fileIds = ["abc123", "def456", "ghi789", "jkl012", "mno345"];

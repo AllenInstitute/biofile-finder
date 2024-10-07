@@ -91,7 +91,7 @@ export default class SQLBuilder {
 
     public toSQL(): string {
         if (!this.fromStatement) {
-            throw new Error("Unable to build SLQ without a FROM statement");
+            throw new Error("Unable to build SQL without a FROM statement");
         }
         return `
             ${this.isSummarizing ? "SUMMARIZE" : ""}
