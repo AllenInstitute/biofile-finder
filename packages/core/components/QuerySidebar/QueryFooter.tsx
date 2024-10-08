@@ -29,7 +29,7 @@ export default function QueryFooter(props: Props) {
 
     const onCopy = async () => {
         try {
-            navigator.clipboard.writeText(`https://biofile-finder.allencell.org/app?${url}`);
+            await navigator.clipboard.writeText(`https://biofile-finder.allencell.org/app?${url}`);
             window.alert("Link copied to clipboard!");
         } catch (error) {
             window.alert("Failed to copy shareable link to clipboard");

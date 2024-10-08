@@ -277,6 +277,8 @@ export enum ProcessStatus {
     SUCCEEDED,
     FAILED,
     NOT_SET,
+    WARNING,
+    ERROR,
 }
 
 export interface StatusUpdate {

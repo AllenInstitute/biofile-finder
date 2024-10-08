@@ -51,7 +51,6 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
 
         const message = `The file path "${fileInfo.path}" is not supported for Zarr downloads in the web environment. 
 Only S3 URLs are supported. Please upload your files to an S3 bucket for web-based downloads.`;
-        alert(message);
         throw new Error(message);
     }
 

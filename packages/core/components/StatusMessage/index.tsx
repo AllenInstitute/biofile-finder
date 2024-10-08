@@ -23,6 +23,8 @@ const statusToTypeMap = {
     [ProcessStatus.SUCCEEDED]: MessageBarType.success,
     [ProcessStatus.FAILED]: MessageBarType.error,
     [ProcessStatus.NOT_SET]: MessageBarType.info,
+    [ProcessStatus.WARNING]: MessageBarType.severeWarning,
+    [ProcessStatus.ERROR]: MessageBarType.severeWarning,
 };
 
 const SPACING = 5; // px
@@ -45,7 +47,7 @@ export default function StatusMessage() {
     const dispatch = useDispatch();
 
     return (
-        <Stack {...verticalStackProps} className={styles.container}>
+        <Stack {...verticalStackProps} verticalAlign="end" className={styles.container}>
             {map(
                 useSelector(interaction.selectors.getProcessStatuses),
                 (statusUpdate: StatusUpdate) => {
@@ -62,11 +64,20 @@ export default function StatusMessage() {
                         <MessageBar
                             className={classNames(styles.messageBar, {
                                 [styles.success]: status === ProcessStatus.SUCCEEDED,
-                                [styles.error]: status === ProcessStatus.FAILED,
+                                [styles.warning]: status === ProcessStatus.WARNING,
+                                [styles.error]:
+                                    status === ProcessStatus.FAILED ||
+                                    status === ProcessStatus.ERROR,
                             })}
                             actions={cancelButton}
                             key={statusUpdate.processId}
                             messageBarType={statusToTypeMap[status]}
+                            styles={{
+                                iconContainer:
+                                    status === ProcessStatus.STARTED
+                                        ? styles.iconContainerHidden
+                                        : styles.iconContainer,
+                            }}
                             onDismiss={() =>
                                 dispatch(interaction.actions.removeStatus(statusUpdate.processId))
                             }

@@ -1,56 +1,82 @@
 .container {
     position: absolute;
-    margin-top: 25px;
-    width: 50vw; /* half the width of the window */
-    left: 50%; /* push the left side of the element in to the mid-point of the window... */
-    transform: translateX(-50%); /* ... then pull it back 50% of its own width (accomplishing centering) */
+    padding-bottom: 30px;
+    width: 40vw; 
+    height: 100%;
+    left: 30px;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.icon-container {
+    padding-top: 4px;
+}
+
+.icon-container-hidden {
+    width: 10px;
+    display: none;
 }
 
 .centeringParent {
     display: flex;
-    font-size: 1.5em;
+    font-size: var(--l-paragraph-size);
+    font-weight: 500;
     line-height: normal;
 }
 
 .spinner {
-    margin-right: 0.5em;
+    margin: 0 0.5em;
 }
 
 .spinner > div {
-    border-color: var(--secondary-text-color) var(--secondary-background-color) var(--secondary-background-color);
+    border-color: var(--info-status-background-color) var(--info-status-text-color) var(--info-status-text-color);
  }
 
 .message-bar {
-    background-color: var(--secondary-background-color);
-    color: var(--secondary-text-color);
+    border-radius: 4px;
+    background-color: var(--info-status-background-color);
+    color: var(--info-status-text-color);
+    border: solid 1px;
+    font-size: var(--l-paragraph-size);
+    pointer-events: all;
 }
 
-.message-bar button i {
-    color: var(--secondary-text-color) !important;
+.message-bar i {
+    color: var(--info-status-text-color) !important;
+    font-weight: 600;
 }
 
 .success {
-    background-color: green;
-    color: white;
- }
+    background-color: var(--success-status-background-color);
+    color: var(--success-status-text-color);
+}
 
-.success button i {
-    color: white !important;
+.success i {
+    color: var(--success-status-text-color) !important;
+}
+
+.warning {
+    background-color: var(--warning-status-background-color);
+    color: var(--warning-status-text-color);
+}
+
+.warning i {
+    color: var(--warning-status-text-color) !important;
 }
 
 .error {
-    background-color: var(--error-background-color);
-    color: var(--error-text-color);
+    background-color: var(--error-status-background-color);
+    color: var(--error-status-text-color);
 }
 
-.error button i {
-    color: white !important;
+.error i {
+    color: var(--error-status-text-color) !important;
 }
 
 .progress-indicator > div > div:first-child {
-    background-color: var(--secondary-text-color);
+    background-color: var(--secondary-dark);
 }
 
 .progress-indicator > div > div:last-child {
-    background-color: var(--highlight-background-color);
+    background-color: var(--info-status-text-color);
 }
