@@ -46,6 +46,12 @@
     font-weight: 600;
 }
 
+.message-bar a, .message-bar .link {
+    color: inherit;
+    text-decoration-line: underline !important;
+    text-decoration-thickness: 1px;
+}
+
 .success {
     background-color: var(--success-status-background-color);
     color: var(--success-status-text-color);
