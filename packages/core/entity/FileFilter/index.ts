@@ -73,8 +73,10 @@ export default class FileFilter {
         return `${this.annotationName}=${this.annotationValue}`;
     }
 
-    // Unlike with sort, we shouldn't generate a full SQLBuilder
-    // Instead, just generate the string that will be passed into .where() clause
+    /** Unlike with FileSort, we shouldn't construct a new SQLBuilder since these will
+     * be applied to a pre-existing SQLBuilder.
+     * Instead, generate the string that can be passed into the .where() clause.
+     */
     public toSQLWhereString(): string {
         switch (this.type) {
             case FilterType.ANY:
