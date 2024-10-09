@@ -145,7 +145,7 @@ export default function Learn() {
                 </p>
                 <p className={styles.sectionFooter}>
                     Check out our{" "}
-                    <Link className={styles.link} to="datasets">
+                    <Link className={styles.link} to="/datasets">
                         Open-source datasets
                     </Link>{" "}
                     for inspiration and examples of datasets.
