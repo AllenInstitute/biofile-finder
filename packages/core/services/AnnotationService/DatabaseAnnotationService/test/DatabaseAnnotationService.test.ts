@@ -28,9 +28,9 @@ describe("DatabaseAnnotationService", () => {
     });
 
     describe("fetchRootHierarchyValues", () => {
-        const annotationNames = ["Cell Line", "Is Split Scene", "Whatever"];
+        const annotationNames = ["Cell Line", "Is Split Scene", "Gene"];
         const annotations = annotationNames.map((name, index) => ({
-            foo: name + index,
+            mock_annotation: name + index,
             column_name: name,
             column_type: "VARCHAR",
         }));
@@ -40,37 +40,52 @@ describe("DatabaseAnnotationService", () => {
             }
         }
         const databaseService = new MockDatabaseService();
+        const mockDataSourceName = "mockDataSourceName";
+        const mockAnnotationName = "mock_annotation"; // snake case to match annotation properties in annotation map
 
+        // This test suite does not test the implementation or return values of fetchRootHierarchyValues
+        // It simply checks that a DatabaseService query is successfully issued
         it("issues a request for annotation values for the first level of the annotation hierarchy", async () => {
             const annotationService = new DatabaseAnnotationService({
-                dataSourceNames: ["d"],
+                dataSourceNames: [mockDataSourceName],
                 databaseService,
             });
-            const values = await annotationService.fetchRootHierarchyValues(["foo"], []);
-            expect(values).to.deep.equal(["Cell Line0", "Is Split Scene1", "Whatever2"]);
+            const values = await annotationService.fetchRootHierarchyValues(
+                [mockAnnotationName],
+                []
+            );
+            expect(values).to.deep.equal(["Cell Line0", "Is Split Scene1", "Gene2"]);
         });
 
         it("issues a request for annotation values for the first level of the annotation hierarchy with filters", async () => {
             const annotationService = new DatabaseAnnotationService({
-                dataSourceNames: ["e"],
+                dataSourceNames: [mockDataSourceName],
                 databaseService,
             });
-            const filter = new FileFilter("bar", "barValue");
-            const values = await annotationService.fetchRootHierarchyValues(["foo"], [filter]);
-            expect(values).to.deep.equal(["Cell Line0", "Is Split Scene1", "Whatever2"]);
+            const filter = new FileFilter("annotationName", "annotationValue");
+            const values = await annotationService.fetchRootHierarchyValues(
+                [mockAnnotationName],
+                [filter]
+            );
+            expect(values).to.deep.equal(["Cell Line0", "Is Split Scene1", "Gene2"]);
         });
 
         it("issues a request for annotation values for the first level of the annotation hierarchy with typed filters", async () => {
             const annotationService = new DatabaseAnnotationService({
-                dataSourceNames: ["e"],
+                dataSourceNames: [mockDataSourceName],
                 databaseService,
             });
-            const filter = new FileFilter("bar", "barValue", FilterType.ANY);
-            const values = await annotationService.fetchRootHierarchyValues(["foo"], [filter]);
-            expect(values).to.deep.equal(["Cell Line0", "Is Split Scene1", "Whatever2"]);
+            const filter = new FileFilter("annotationName", "annotationValue", FilterType.ANY);
+            const values = await annotationService.fetchRootHierarchyValues(
+                [mockAnnotationName],
+                [filter]
+            );
+            expect(values).to.deep.equal(["Cell Line0", "Is Split Scene1", "Gene2"]);
         });
     });
 
+    // This test suite does not test the implementation or return values of fetchHierarchyValuesUnderPath
+    // It simply checks that a DatabaseService query is successfully issued
     describe("fetchHierarchyValuesUnderPath", () => {
         const annotations = ["A", "B", "Cc", "dD"].map((name, index) => ({
             foo: name + index,
@@ -99,8 +114,6 @@ describe("DatabaseAnnotationService", () => {
         });
 
         it("issues request for hierarchy values under a specific path within the hierarchy with filters", async () => {
-            const expectedValues = ["A0", "B1", "Cc2", "dD3"];
-
             const annotationService = new DatabaseAnnotationService({
                 dataSourceNames: ["mock1"],
                 databaseService,
@@ -111,14 +124,12 @@ describe("DatabaseAnnotationService", () => {
                 ["baz"],
                 [filter]
             );
-            expect(values).to.deep.equal(expectedValues);
+            expect(values).to.deep.equal(["A0", "B1", "Cc2", "dD3"]);
         });
 
         it("issues request for hierarchy values under a specific path within the hierarchy with typed filters", async () => {
-            const expectedValues = ["A0", "B1", "Cc2", "dD3"];
-
             const annotationService = new DatabaseAnnotationService({
-                dataSourceNames: ["mock1"],
+                dataSourceNames: ["mockDataSource"],
                 databaseService,
             });
             const filter = new FileFilter("bar", "barValue", FilterType.FUZZY);
@@ -127,7 +138,7 @@ describe("DatabaseAnnotationService", () => {
                 ["baz"],
                 [filter]
             );
-            expect(values).to.deep.equal(expectedValues);
+            expect(values).to.deep.equal(["A0", "B1", "Cc2", "dD3"]);
         });
     });
 

@@ -187,33 +187,24 @@ export default class FileSet {
      */
     public toQuerySQLBuilder(): SQLBuilder {
         // Map the filter values to the annotation names they filter
-        const filterValuesByAnnotation = this.filters.reduce(
+        const filtersGroupedByAnnotation = this.filters.reduce(
             (map, filter) => ({
                 ...map,
-                [filter.name]:
-                    filter.name in map ? [...map[filter.name], filter.value] : [filter.value],
+                [filter.name]: filter.name in map ? [...map[filter.name], filter] : [filter],
             }),
-            {} as { [name: string]: string[] }
+            {} as { [name: string]: FileFilter[] }
         );
 
         // Transform the map above into SQL comparison clauses
         const sqlBuilder = this.sort ? this.sort.toQuerySQLBuilder() : new SQLBuilder();
 
-        Object.entries(filterValuesByAnnotation).forEach(([annotation, filterValues]) => {
-            // If a filter value is `null` then we need to modify the way we approach filtering
-            // it in SQL
-            if (!!this.excludeFilters?.some((filter) => filter.name === annotation)) {
-                sqlBuilder.where(`"${annotation}" IS NULL`);
-            } else if (
-                !!this.includeFilters?.some((filter) => filter.name === annotation) ||
-                filterValues.length === 0
-            ) {
+        Object.entries(filtersGroupedByAnnotation).forEach(([annotation, appliedFilters]) => {
+            // If an annotation has no filtered values applied, we assume it's a hierarchy or include filter
+            if (appliedFilters.length === 0) {
                 sqlBuilder.where(`"${annotation}" IS NOT NULL`);
             } else {
                 sqlBuilder.where(
-                    filterValues
-                        .map((fv) => SQLBuilder.regexMatchValueInList(annotation, fv))
-                        .join(") OR (")
+                    appliedFilters.map((filter) => filter.toSQLWhereString()).join(") OR (")
                 );
             }
         });

@@ -4,7 +4,7 @@ import AnnotationService, { AnnotationValue } from "..";
 import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import Annotation from "../../../entity/Annotation";
-import FileFilter, { FilterType } from "../../../entity/FileFilter";
+import FileFilter from "../../../entity/FileFilter";
 import SQLBuilder from "../../../entity/SQLBuilder";
 
 interface Config {
@@ -61,11 +61,9 @@ export default class DatabaseAnnotationService implements AnnotationService {
         const filtersByAnnotation = filters.reduce(
             (map, filter) => ({
                 ...map,
-                [filter.name]: map[filter.name]
-                    ? [...map[filter.name], { value: filter.value, type: filter.type }]
-                    : [{ value: filter.value, type: filter.type }],
+                [filter.name]: map[filter.name] ? [...map[filter.name], filter] : [filter],
             }),
-            {} as { [name: string]: { value: string | null; type: string | null }[] }
+            {} as { [name: string]: FileFilter[] }
         );
 
         hierarchy
@@ -73,7 +71,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
             .forEach((annotation, index) => {
                 if (!filtersByAnnotation[annotation]) {
                     filtersByAnnotation[annotation] = [
-                        { value: index < path.length ? path[index] : null, type: null },
+                        new FileFilter(annotation, index < path.length ? path[index] : null),
                     ];
                 }
             });
@@ -81,10 +79,11 @@ export default class DatabaseAnnotationService implements AnnotationService {
         return this.fetchFilteredValuesForAnnotation(hierarchy[path.length], filtersByAnnotation);
     }
 
+    // Given a particular annotation in the hierarchy list, apply filters to the files in that category
     private async fetchFilteredValuesForAnnotation(
         annotation: string,
         filtersByAnnotation: {
-            [name: string]: { value: string | null; type: string | null }[];
+            [name: string]: FileFilter[];
         } = {}
     ): Promise<string[]> {
         if (!this.dataSourceNames.length) {
@@ -96,19 +95,13 @@ export default class DatabaseAnnotationService implements AnnotationService {
             .from(this.dataSourceNames);
 
         Object.keys(filtersByAnnotation).forEach((annotationToFilter) => {
-            const annotationValues = filtersByAnnotation[annotationToFilter];
-            if (
-                annotationValues[0].value === null ||
-                annotationValues[0]?.type === FilterType.ANY
-            ) {
+            const appliedFilters = filtersByAnnotation[annotationToFilter];
+            // If an annotation has no filtered values applied, we assume it's a hierarchy or include filter
+            if (appliedFilters[0].value === null) {
                 sqlBuilder.where(`"${annotationToFilter}" IS NOT NULL`);
-            } else if (annotationValues[0]?.type === FilterType.EXCLUDE) {
-                sqlBuilder.where(`"${annotationToFilter}" IS NULL`);
             } else {
                 sqlBuilder.where(
-                    annotationValues
-                        .map((v) => SQLBuilder.regexMatchValueInList(annotationToFilter, v.value))
-                        .join(") OR (")
+                    appliedFilters.map((filter) => filter.toSQLWhereString()).join(") OR (")
                 );
             }
         });

@@ -14,6 +14,7 @@ import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileD
 
 describe("FileSet", () => {
     const scientistEqualsJane = new FileFilter("scientist", "jane");
+    const scientistEqualsJohn = new FileFilter("scientist", "john");
     const matrigelIsHard = new FileFilter("matrigel_is_hardened", true);
     const dateCreatedDescending = new FileSort("date_created", SortOrder.DESC);
     const fuzzyFileName = new FuzzyFilter("file_name");
@@ -92,7 +93,7 @@ describe("FileSet", () => {
         it("builds SQL queries with include filters", () => {
             const fileSet = new FileSet({ filters: [anyGene] });
             expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
-                "NOT NULL"
+                'WHERE ("gene" IS NOT NULL'
             );
             expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).not.to.contain(
                 "IS NULL"
@@ -102,10 +103,30 @@ describe("FileSet", () => {
         it("builds SQL queries with exclude filters", () => {
             const fileSet = new FileSet({ filters: [noCellBatch] });
             expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
-                "IS NULL"
+                'WHERE ("cell_batch" IS NULL'
             );
             expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).not.to.contain(
                 "NOT NULL"
+            );
+        });
+
+        it("builds SQL queries with regular filters for different annotations", () => {
+            const fileSet = new FileSet({ filters: [scientistEqualsJane, matrigelIsHard] });
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
+                'WHERE (REGEXP_MATCHES("scientist"'
+            );
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
+                'AND (REGEXP_MATCHES("matrigel_is_hardened"'
+            );
+        });
+
+        it("builds SQL queries with regular filters for same annotation with different values", () => {
+            const fileSet = new FileSet({ filters: [scientistEqualsJane, scientistEqualsJohn] });
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
+                'WHERE (REGEXP_MATCHES("scientist"'
+            );
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
+                'OR (REGEXP_MATCHES("scientist"'
             );
         });
     });
