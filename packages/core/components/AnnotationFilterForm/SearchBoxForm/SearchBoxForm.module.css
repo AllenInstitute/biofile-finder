@@ -2,6 +2,10 @@
     margin-bottom: 6px;
 }
 
+.toggle-hidden {
+    display: none;
+}
+
 .toggle input:disabled + label {
     cursor: not-allowed;
     opacity: 0.5;

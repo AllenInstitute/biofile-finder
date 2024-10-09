@@ -19,6 +19,7 @@ interface SearchBoxFormProps {
     onSearch: (filterValue: string, type: FilterType) => void;
     fieldName: string;
     fuzzySearchEnabled?: boolean;
+    hideFuzzyToggle?: boolean;
     defaultValue: FileFilter | undefined;
 }
 
@@ -38,7 +39,9 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
             <h3 className={styles.title}>{props.title}</h3>
             <Toggle
                 label="Fuzzy search"
-                className={styles.toggle}
+                className={classNames(styles.toggle, {
+                    [styles.toggleHidden]: !!props?.hideFuzzyToggle,
+                })}
                 defaultChecked={isFuzzySearching}
                 onText="On"
                 inlineLabel

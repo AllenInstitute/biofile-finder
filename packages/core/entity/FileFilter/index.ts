@@ -1,3 +1,5 @@
+import SQLBuilder from "../SQLBuilder";
+
 export interface FileFilterJson {
     name: string;
     value: any;
@@ -69,6 +71,22 @@ export default class FileFilter {
                 return `${this.annotationName}=${this.annotationValue}&fuzzy=${this.annotationName}`;
         }
         return `${this.annotationName}=${this.annotationValue}`;
+    }
+
+    /** Unlike with FileSort, we shouldn't construct a new SQLBuilder since these will
+     * be applied to a pre-existing SQLBuilder.
+     * Instead, generate the string that can be passed into the .where() clause.
+     */
+    public toSQLWhereString(): string {
+        switch (this.type) {
+            case FilterType.ANY:
+                return `"${this.annotationName}" IS NOT NULL`;
+            case FilterType.EXCLUDE:
+                return `"${this.annotationName}" IS NULL`;
+            case FilterType.FUZZY:
+            default:
+                return SQLBuilder.regexMatchValueInList(this.annotationName, this.annotationValue);
+        }
     }
 
     public toJSON(): FileFilterJson {
