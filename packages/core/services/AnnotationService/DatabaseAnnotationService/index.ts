@@ -5,6 +5,7 @@ import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
+import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import SQLBuilder from "../../../entity/SQLBuilder";
 
 interface Config {
@@ -71,7 +72,9 @@ export default class DatabaseAnnotationService implements AnnotationService {
             .forEach((annotation, index) => {
                 if (!filtersByAnnotation[annotation]) {
                     filtersByAnnotation[annotation] = [
-                        new FileFilter(annotation, index < path.length ? path[index] : null),
+                        index < path.length
+                            ? new FileFilter(annotation, path[index])
+                            : new IncludeFilter(annotation), // If no value provided in hierachy, equivalent to Include filter
                     ];
                 }
             });
@@ -96,14 +99,9 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
         Object.keys(filtersByAnnotation).forEach((annotationToFilter) => {
             const appliedFilters = filtersByAnnotation[annotationToFilter];
-            // If an annotation has no filtered values applied, we assume it's a hierarchy or include filter
-            if (appliedFilters[0].value === null) {
-                sqlBuilder.where(`"${annotationToFilter}" IS NOT NULL`);
-            } else {
-                sqlBuilder.where(
-                    appliedFilters.map((filter) => filter.toSQLWhereString()).join(") OR (")
-                );
-            }
+            sqlBuilder.where(
+                appliedFilters.map((filter) => filter.toSQLWhereString()).join(") OR (")
+            );
         });
 
         const rows = await this.databaseService.query(sqlBuilder.toSQL());

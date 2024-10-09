@@ -198,15 +198,10 @@ export default class FileSet {
         // Transform the map above into SQL comparison clauses
         const sqlBuilder = this.sort ? this.sort.toQuerySQLBuilder() : new SQLBuilder();
 
-        Object.entries(filtersGroupedByAnnotation).forEach(([annotation, appliedFilters]) => {
-            // If an annotation has no filtered values applied, we assume it's a hierarchy or include filter
-            if (appliedFilters.length === 0) {
-                sqlBuilder.where(`"${annotation}" IS NOT NULL`);
-            } else {
-                sqlBuilder.where(
-                    appliedFilters.map((filter) => filter.toSQLWhereString()).join(") OR (")
-                );
-            }
+        Object.entries(filtersGroupedByAnnotation).forEach(([_, appliedFilters]) => {
+            sqlBuilder.where(
+                appliedFilters.map((filter) => filter.toSQLWhereString()).join(") OR (")
+            );
         });
 
         return sqlBuilder;
