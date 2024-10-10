@@ -286,13 +286,13 @@ const downloadFilesLogic = createLogic({
                         totalBytesDownloaded,
                         "bytes"
                     );
-                    const progressMsg = `Downloading ${file.name}, ${updatedBytesDisplay} out of the total of ${totalBytesDisplay} set to download`;
+                    const progressMsg = `Downloading ${file.name}. <br/> ${updatedBytesDisplay} out of ${totalBytesDisplay} set to download`;
                     throttledProgressDispatcher(progressMsg);
                 };
 
                 try {
                     // Start the download and handle progress reporting
-                    const msg = `Downloading ${file.name}, ${fileByteDisplay} out of the total of ${totalBytesDisplay} set to download`;
+                    const msg = `Downloading ${file.name}. <br/> ${fileByteDisplay} out of ${totalBytesDisplay} set to download`;
                     if (totalBytesToDownload) {
                         dispatch(processStart(downloadRequestId, msg, onCancel, [file.id]));
                     }

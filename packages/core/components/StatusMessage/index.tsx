@@ -5,13 +5,13 @@ import {
     Spinner,
     SpinnerSize,
     Stack,
-    DefaultButton,
 } from "@fluentui/react";
 import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { SecondaryButton } from "../Buttons";
 import { interaction } from "../../state";
 import { StatusUpdate, ProcessStatus } from "../../state/interaction/actions";
 
@@ -55,10 +55,20 @@ export default function StatusMessage() {
                         data: { msg, status = ProcessStatus.NOT_SET, progress },
                         onCancel,
                     } = statusUpdate;
+                    let onDismiss; // If has cancel option, don't show dismiss button
                     let cancelButton;
                     if (onCancel) {
-                        cancelButton = <DefaultButton onClick={onCancel}>Cancel</DefaultButton>;
-                    }
+                        cancelButton = (
+                            <SecondaryButton
+                                iconName=""
+                                title="Cancel"
+                                text="CANCEL"
+                                onClick={onCancel}
+                            />
+                        );
+                    } else
+                        onDismiss = () =>
+                            dispatch(interaction.actions.removeStatus(statusUpdate.processId));
 
                     return (
                         <MessageBar
@@ -77,10 +87,10 @@ export default function StatusMessage() {
                                     status === ProcessStatus.STARTED
                                         ? styles.iconContainerHidden
                                         : styles.iconContainer,
+                                innerText: styles.messageBarInnerText,
+                                actions: styles.messageBarActions,
                             }}
-                            onDismiss={() =>
-                                dispatch(interaction.actions.removeStatus(statusUpdate.processId))
-                            }
+                            onDismiss={onDismiss}
                             isMultiline={msg !== undefined}
                         >
                             <div className={styles.centeringParent}>

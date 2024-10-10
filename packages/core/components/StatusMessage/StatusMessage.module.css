@@ -30,7 +30,7 @@
 
 .spinner > div {
     border-color: var(--info-status-background-color) var(--info-status-text-color) var(--info-status-text-color);
- }
+}
 
 .message-bar {
     border-radius: 4px;
@@ -50,6 +50,19 @@
     color: inherit;
     text-decoration-line: underline !important;
     text-decoration-thickness: 1px;
+}
+
+.message-bar-actions {
+    margin: 0px 18px 10px 10px;
+}
+
+.message-bar-actions button {
+    color: var(--info-status-text-color) !important;
+}
+
+.message-bar-inner-text {
+    margin-right: 10px;
+    width: 100%;
 }
 
 .success {
@@ -80,9 +93,11 @@
 }
 
 .progress-indicator > div > div:first-child {
+    height: 3px;
     background-color: var(--secondary-dark);
 }
 
 .progress-indicator > div > div:last-child {
+    height: 3px;
     background-color: var(--info-status-text-color);
 }
