@@ -665,3 +665,61 @@ export function setFileGridColumnCount(fileGridColumnCount: number): SetFileGrid
         type: SET_FILE_GRID_COLUMN_COUNT,
     };
 }
+
+/** SET_REQUIRES_DATASOURCE_RELOAD
+ *  Intention to indicate whether some data source needs to be reloaded
+ */
+export const SET_REQUIRES_DATASOURCE_RELOAD = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-requires-datasource-reload"
+);
+
+export interface SetRequiresDataSourceReload {
+    payload: boolean;
+    type: string;
+}
+
+export function setRequiresDataSourceReload(requiresReload: boolean): SetRequiresDataSourceReload {
+    return {
+        payload: requiresReload,
+        type: SET_REQUIRES_DATASOURCE_RELOAD,
+    };
+}
+
+/** ADD_DATASOURCE_RELOAD_ERROR
+ *  Intention to set indicate that a data source needs to be reloaded and display a warning popup
+ */
+export const ADD_DATASOURCE_RELOAD_ERROR = makeConstant(
+    STATE_BRANCH_NAME,
+    "add-datasource-reload-error"
+);
+
+export interface AddDataSourceReloadError {
+    payload: string;
+    type: string;
+}
+
+export function addDataSourceReloadError(dataSourceName: string): AddDataSourceReloadError {
+    return {
+        payload: dataSourceName,
+        type: ADD_DATASOURCE_RELOAD_ERROR,
+    };
+}
+
+/** REMOVE_DATASOURCE_RELOAD_ERROR
+ *  Intention to indicate that a data source no longer needs to be reloaded and remove warning popup
+ */
+export const REMOVE_DATASOURCE_RELOAD_ERROR = makeConstant(
+    STATE_BRANCH_NAME,
+    "remove-datasource-reload-error"
+);
+
+export interface RemoveDataSourceReloadError {
+    type: string;
+}
+
+export function removeDataSourceReloadError(): RemoveDataSourceReloadError {
+    return {
+        type: REMOVE_DATASOURCE_RELOAD_ERROR,
+    };
+}

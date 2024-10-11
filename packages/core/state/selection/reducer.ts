@@ -37,6 +37,8 @@ import {
     SetSortColumnAction,
     SetFileFiltersAction,
     CHANGE_SOURCE_METADATA,
+    SET_REQUIRES_DATASOURCE_RELOAD,
+    SetRequiresDataSourceReload,
 } from "./actions";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
@@ -57,6 +59,7 @@ export interface SelectionStateBranch {
     isDarkTheme: boolean;
     openFileFolders: FileFolder[];
     recentAnnotations: string[];
+    requiresDataSourceReload?: boolean;
     selectedQuery?: string;
     shouldDisplaySmallFont: boolean;
     shouldDisplayThumbnailView: boolean;
@@ -84,6 +87,7 @@ export const initialState = {
     filters: [],
     openFileFolders: [],
     recentAnnotations: [],
+    requiresDataSourceReload: false,
     shouldDisplaySmallFont: false,
     queries: [],
     shouldDisplayThumbnailView: false,
@@ -223,6 +227,10 @@ export default makeReducer<SelectionStateBranch>(
 
             // Reset file selections when pointed at a new backend
             fileSelection: new FileSelection(),
+        }),
+        [SET_REQUIRES_DATASOURCE_RELOAD]: (state, action: SetRequiresDataSourceReload) => ({
+            ...state,
+            requiresDataSourceReload: action.payload,
         }),
     },
     initialState

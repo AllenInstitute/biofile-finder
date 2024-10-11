@@ -32,6 +32,7 @@ export default function DataSourcePrompt(props: Props) {
     const selectedDataSources = useSelector(selection.selectors.getSelectedDataSources);
     const dataSourceInfo = useSelector(interaction.selectors.getDataSourceInfoForVisibleModal);
     const { source: sourceToReplace, query } = dataSourceInfo || ({} as DataSourcePromptInfo);
+    const requiresDataSourceReload = useSelector(selection.selectors.getRequiresDataSourceReload);
 
     const [dataSource, setDataSource] = React.useState<Source>();
     const [metadataSource, setMetadataSource] = React.useState<Source>();
@@ -43,12 +44,12 @@ export default function DataSourcePrompt(props: Props) {
     };
 
     const onSubmit = (dataSource: Source, metadataSource?: Source) => {
-        if (sourceToReplace || query) {
+        if (sourceToReplace || query || requiresDataSourceReload) {
             if (metadataSource) {
                 dispatch(selection.actions.changeSourceMetadata(metadataSource));
             }
 
-            if (sourceToReplace) {
+            if (sourceToReplace || requiresDataSourceReload) {
                 dispatch(selection.actions.replaceDataSource(dataSource));
             } else {
                 dispatch(selection.actions.changeDataSources([...selectedDataSources, dataSource]));
@@ -67,21 +68,6 @@ export default function DataSourcePrompt(props: Props) {
 
     return (
         <div className={props.className}>
-            {sourceToReplace && (
-                <div className={styles.warning}>
-                    <h4>Notice</h4>
-                    <p>
-                        There was an error loading the data source file &quot;
-                        {sourceToReplace.name}&quot;. Please re-select the data source file or a
-                        replacement.
-                    </p>
-                    <p>
-                        If this is a local file, the browser&apos;s permissions to access the file
-                        may have expired since last time. If so, consider putting the file in a
-                        cloud storage and providing the URL to avoid this issue in the future.
-                    </p>
-                </div>
-            )}
             {!props.hideTitle && <h2 className={styles.title}>Choose a data source</h2>}
             <p className={styles.text}>
                 To get started, load a CSV, Parquet, or JSON file containing metadata (annotations)

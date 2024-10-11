@@ -39,6 +39,11 @@ import {
     CHANGE_SOURCE_METADATA,
     ChangeSourceMetadataAction,
     changeSourceMetadata,
+    setRequiresDataSourceReload,
+    addDataSourceReloadError,
+    removeDataSourceReloadError,
+    ADD_DATASOURCE_RELOAD_ERROR,
+    REMOVE_DATASOURCE_RELOAD_ERROR,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -472,15 +477,15 @@ const changeDataSourceLogic = createLogic({
         // Prepare the data sources ahead of querying against them below
         try {
             await databaseService.prepareDataSources(selectedDataSources);
+            // Hide warning pop-up if present and remove datasource error from state
+            dispatch(removeDataSourceReloadError());
         } catch (err) {
             const errMsg = `Error encountered while preparing data sources (Full error: ${
                 (err as Error).message
             })`;
             console.error(errMsg);
             if (err instanceof DataSourcePreparationError) {
-                dispatch(
-                    interaction.actions.promptForDataSource({ source: { name: err.sourceName } })
-                );
+                dispatch(addDataSourceReloadError(err.sourceName) as AnyAction);
             } else {
                 alert(errMsg);
             }
@@ -527,15 +532,15 @@ const addQueryLogic = createLogic({
             if (newQuery.parts.sourceMetadata) {
                 await databaseService.prepareSourceMetadata(newQuery.parts.sourceMetadata);
             }
+            // Hide warning pop-up if present and remove datasource error from state
+            dispatch(removeDataSourceReloadError());
         } catch (err) {
             const errMsg = `Error encountered while preparing data sources (Full error: ${
                 (err as Error).message
             })`;
             console.error(errMsg);
             if (err instanceof DataSourcePreparationError) {
-                dispatch(
-                    interaction.actions.promptForDataSource({ source: { name: err.sourceName } })
-                );
+                dispatch(addDataSourceReloadError(err.sourceName) as AnyAction);
             } else {
                 alert(errMsg);
             }
@@ -621,15 +626,15 @@ const replaceDataSourceLogic = createLogic({
         // Prepare the data sources ahead of querying against them below
         try {
             await databaseService.prepareDataSources([replacementSource]);
+            // Hide warning pop-up if present and remove datasource error from state
+            dispatch(removeDataSourceReloadError());
         } catch (err) {
             const errMsg = `Error encountered while replacing data sources (Full error: ${
                 (err as Error).message
             })`;
             console.error(errMsg);
             if (err instanceof DataSourcePreparationError) {
-                dispatch(
-                    interaction.actions.promptForDataSource({ source: { name: err.sourceName } })
-                );
+                dispatch(addDataSourceReloadError(err.sourceName) as AnyAction);
             } else {
                 alert(errMsg);
             }
@@ -659,6 +664,33 @@ const replaceDataSourceLogic = createLogic({
     },
 });
 
+// Logic for adding and removing data source reload errors
+// If adding, renders a pop-up to notify user that a datasource couldn't be loaded sets bool to true
+// If removing, hides pop-up (if there is one) and unsets bool
+const setDataSourceReloadErrorLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: dataSourceName, type } = deps.action;
+        const datasourceErrorDefaultMessage = `There was an error loading the data source file
+                        '${dataSourceName}'. Please re-select the data source file or a replacement.
+                    </br>
+                        If this is a local file, the browser&apos;s permissions to access the file
+                        may have expired since last time. If so, consider putting the file in a
+                        cloud storage and providing the URL to avoid this issue in the future.`;
+
+        if (type === ADD_DATASOURCE_RELOAD_ERROR) {
+            dispatch(
+                interaction.actions.processError(
+                    "dataSourcePreparationError",
+                    datasourceErrorDefaultMessage
+                )
+            );
+        } else dispatch(interaction.actions.removeStatus("dataSourcePreparationError"));
+        dispatch(setRequiresDataSourceReload(type === ADD_DATASOURCE_RELOAD_ERROR) as AnyAction);
+        done();
+    },
+    type: [ADD_DATASOURCE_RELOAD_ERROR, REMOVE_DATASOURCE_RELOAD_ERROR],
+});
+
 export default [
     selectFile,
     modifyAnnotationHierarchy,
@@ -671,6 +703,7 @@ export default [
     changeSourceMetadataLogic,
     addQueryLogic,
     replaceDataSourceLogic,
+    setDataSourceReloadErrorLogic,
     changeQueryLogic,
     removeQueryLogic,
 ];
