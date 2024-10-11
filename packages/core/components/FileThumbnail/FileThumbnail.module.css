@@ -8,3 +8,11 @@
 .no-thumbnail {
     fill: var(--border-color);
 }
+
+.thumbnailPlaceholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--border-color);
+    border: 5px var(--primary-background-color);
+}

@@ -47,19 +47,3 @@
   text-align: center;
   width: 100%;
 }
-
-.thumbnailPlaceholder {
-  width: 100%;
-  height: 100%;
-  background-color: var(--primary-text-color);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.spinnerContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-}

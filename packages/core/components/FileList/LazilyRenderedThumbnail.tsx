@@ -113,21 +113,13 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
                         [styles.focused]: isFocused,
                     })}
                 >
-                    {isLoading ? (
-                        <div
-                            className={styles.thumbnailPlaceholder}
-                            style={{ width: thumbnailSize, height: thumbnailSize }}
-                        >
-                            <Spinner size={SpinnerSize.large} />
-                        </div>
-                    ) : (
-                        <FileThumbnail
-                            className={styles.thumbnail}
-                            height={thumbnailSize}
-                            width={thumbnailSize}
-                            uri={thumbnailPath}
-                        />
-                    )}
+                    <FileThumbnail
+                        className={styles.thumbnail}
+                        height={thumbnailSize}
+                        width={thumbnailSize}
+                        uri={thumbnailPath}
+                        loading={isLoading}
+                    />
                     <div
                         className={classNames({
                             [styles.smallFont]:
