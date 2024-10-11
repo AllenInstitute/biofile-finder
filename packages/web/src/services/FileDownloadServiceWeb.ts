@@ -101,7 +101,7 @@ Please navigate to this directory manually, or upload files to a remote address 
         // Register cancellation token for this request
         let cancelToken: Canceler;
         this.activeRequestMap[downloadRequestId] = {
-            cancel: () => cancelToken && cancelToken(),
+            cancel: () => cancelToken && cancelToken("Download cancelled by user"),
         };
 
         // Download each file and add it to the ZIP archive
