@@ -31,7 +31,7 @@ export default function DataSourcePrompt(props: Props) {
 
     const selectedDataSources = useSelector(selection.selectors.getSelectedDataSources);
     const dataSourceInfo = useSelector(interaction.selectors.getDataSourceInfoForVisibleModal);
-    const { source: sourceToReplace, query } = dataSourceInfo || ({} as DataSourcePromptInfo);
+    const { query } = dataSourceInfo || ({} as DataSourcePromptInfo);
     const requiresDataSourceReload = useSelector(selection.selectors.getRequiresDataSourceReload);
 
     const [dataSource, setDataSource] = React.useState<Source>();
@@ -44,12 +44,12 @@ export default function DataSourcePrompt(props: Props) {
     };
 
     const onSubmit = (dataSource: Source, metadataSource?: Source) => {
-        if (sourceToReplace || query || requiresDataSourceReload) {
+        if (requiresDataSourceReload || query) {
             if (metadataSource) {
                 dispatch(selection.actions.changeSourceMetadata(metadataSource));
             }
 
-            if (sourceToReplace || requiresDataSourceReload) {
+            if (requiresDataSourceReload) {
                 dispatch(selection.actions.replaceDataSource(dataSource));
             } else {
                 dispatch(selection.actions.changeDataSources([...selectedDataSources, dataSource]));

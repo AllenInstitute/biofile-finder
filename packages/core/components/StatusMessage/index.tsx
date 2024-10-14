@@ -21,10 +21,9 @@ const statusToTypeMap = {
     [ProcessStatus.STARTED]: MessageBarType.info,
     [ProcessStatus.PROGRESS]: MessageBarType.info,
     [ProcessStatus.SUCCEEDED]: MessageBarType.success,
-    [ProcessStatus.FAILED]: MessageBarType.error,
     [ProcessStatus.NOT_SET]: MessageBarType.info,
     [ProcessStatus.WARNING]: MessageBarType.severeWarning,
-    [ProcessStatus.ERROR]: MessageBarType.severeWarning,
+    [ProcessStatus.ERROR]: MessageBarType.error,
 };
 
 const SPACING = 5; // px
@@ -75,9 +74,7 @@ export default function StatusMessage() {
                             className={classNames(styles.messageBar, {
                                 [styles.success]: status === ProcessStatus.SUCCEEDED,
                                 [styles.warning]: status === ProcessStatus.WARNING,
-                                [styles.error]:
-                                    status === ProcessStatus.FAILED ||
-                                    status === ProcessStatus.ERROR,
+                                [styles.error]: status === ProcessStatus.ERROR,
                             })}
                             actions={cancelButton}
                             key={statusUpdate.processId}

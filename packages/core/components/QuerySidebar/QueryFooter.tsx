@@ -35,7 +35,7 @@ export default function QueryFooter(props: Props) {
             );
         } catch (error) {
             dispatch(
-                interaction.actions.processFailure(
+                interaction.actions.processError(
                     "linkCopyFailure",
                     "Failed to copy shareable link to clipboard"
                 )
