@@ -5,6 +5,12 @@ This project makes use of [`@aics/frontend-insights`](https://aicsbitbucket.corp
 to abstract how application monitoring, metrics, and user event tracking are done, and where that data is sent.
 
 ### User event tracking
+
+#### On Web
+
+We use [Microsoft Clarity](https://clarity.microsoft.com/projects). New developers will need to request access from an existing user.
+
+#### On Desktop
 [Amplitude](https://amplitude.com/) is currently used as our user event tracking platform; it is plugged into `@aics/frontend-insights` via 
 [`@aics/frontend-insights-plugin-amplitude-node`](https://aicsbitbucket.corp.alleninstitute.org/projects/SW/repos/frontend-insights/browse/packages/frontend-insights-plugin-amplitude-node).
 
