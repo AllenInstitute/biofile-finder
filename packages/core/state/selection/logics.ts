@@ -487,7 +487,7 @@ const changeDataSourceLogic = createLogic({
             if (err instanceof DataSourcePreparationError) {
                 dispatch(addDataSourceReloadError(err.sourceName) as AnyAction);
             } else {
-                alert(errMsg);
+                dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
             }
         }
 
@@ -542,7 +542,7 @@ const addQueryLogic = createLogic({
             if (err instanceof DataSourcePreparationError) {
                 dispatch(addDataSourceReloadError(err.sourceName) as AnyAction);
             } else {
-                alert(errMsg);
+                dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
             }
         }
 
@@ -636,7 +636,7 @@ const replaceDataSourceLogic = createLogic({
             if (err instanceof DataSourcePreparationError) {
                 dispatch(addDataSourceReloadError(err.sourceName) as AnyAction);
             } else {
-                alert(errMsg);
+                dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
             }
         }
 
@@ -680,11 +680,11 @@ const setDataSourceReloadErrorLogic = createLogic({
         if (type === ADD_DATASOURCE_RELOAD_ERROR) {
             dispatch(
                 interaction.actions.processError(
-                    "dataSourcePreparationError",
+                    "dataSourceReloadError",
                     datasourceErrorDefaultMessage
                 )
             );
-        } else dispatch(interaction.actions.removeStatus("dataSourcePreparationError"));
+        } else dispatch(interaction.actions.removeStatus("dataSourceReloadError"));
         dispatch(setRequiresDataSourceReload(type === ADD_DATASOURCE_RELOAD_ERROR) as AnyAction);
         done();
     },

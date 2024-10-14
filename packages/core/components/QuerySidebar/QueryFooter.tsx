@@ -30,9 +30,16 @@ export default function QueryFooter(props: Props) {
     const onCopy = async () => {
         try {
             await navigator.clipboard.writeText(`https://biofile-finder.allencell.org/app?${url}`);
-            window.alert("Link copied to clipboard!");
+            dispatch(
+                interaction.actions.processSuccess("linkCopySuccess", "Link copied to clipboard!")
+            );
         } catch (error) {
-            window.alert("Failed to copy shareable link to clipboard");
+            dispatch(
+                interaction.actions.processFailure(
+                    "linkCopyFailure",
+                    "Failed to copy shareable link to clipboard"
+                )
+            );
         }
     };
     const shareQueryOptions: IContextualMenuItem[] = [
