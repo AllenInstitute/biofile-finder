@@ -1,6 +1,6 @@
 import { find, isArray, reject } from "lodash";
 
-import FileFilter from "../FileFilter";
+import FileFilter, { FilterType } from "../FileFilter";
 import FileSet from "../FileSet";
 import { SortOrder } from "../FileSort";
 import NumericRange from "../NumericRange";
@@ -509,13 +509,14 @@ export default class FileSelection {
      */
     public toCompactSelectionList(): Selection[] {
         return [...this.groupByFileSet().entries()].map(([fileSet, selectedRanges]) => ({
-            filters: fileSet.filters.reduce(
-                (accum, filter) => ({
-                    ...accum,
-                    [filter.name]: [...(accum[filter.name] || []), filter.value],
-                }),
-                {} as { [index: string]: any }
-            ),
+            filters: fileSet.filters.reduce((accum, filter) => {
+                if (filter.type === FilterType.DEFAULT) {
+                    return {
+                        ...accum,
+                        [filter.name]: [...(accum[filter.name] || []), filter.value],
+                    };
+                } else return accum;
+            }, {} as { [index: string]: any }),
             indexRanges: selectedRanges.map((range) => range.toJSON()),
             sort: fileSet.sort
                 ? {
@@ -523,6 +524,9 @@ export default class FileSelection {
                       ascending: fileSet.sort.order === SortOrder.ASC,
                   }
                 : undefined,
+            fuzzy: fileSet?.fuzzyFilters?.map((filter) => filter.name),
+            include: fileSet?.includeFilters?.map((filter) => filter.name),
+            exclude: fileSet?.excludeFilters?.map((filter) => filter.name),
         }));
     }
 

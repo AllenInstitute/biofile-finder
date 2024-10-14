@@ -1,8 +1,11 @@
 import { defaults, find, join, map, uniqueId } from "lodash";
 import LRUCache from "lru-cache";
 
-import FileFilter from "../FileFilter";
+import FileFilter, { FilterType } from "../FileFilter";
 import FileSort from "../FileSort";
+import FuzzyFilter from "../FileFilter/FuzzyFilter";
+import ExcludeFilter from "../FileFilter/ExcludeFilter";
+import IncludeFilter from "../FileFilter/IncludeFilter";
 import FileService from "../../services/FileService";
 import FileServiceNoop from "../../services/FileService/FileServiceNoop";
 import SQLBuilder from "../SQLBuilder";
@@ -36,6 +39,9 @@ export default class FileSet {
     private cache: LRUCache<number, FileDetail>;
     private readonly fileService: FileService;
     private readonly _filters: FileFilter[];
+    public readonly fuzzyFilters?: FuzzyFilter[];
+    public readonly excludeFilters?: ExcludeFilter[];
+    public readonly includeFilters?: IncludeFilter[];
     public readonly sort?: FileSort;
     private totalFileCount: number | undefined;
     private indexesForFilesCurrentlyLoading: Set<number> = new Set();
@@ -49,6 +55,9 @@ export default class FileSet {
 
         this.cache = new LRUCache<number, FileDetail>({ max: maxCacheSize });
         this._filters = filters;
+        this.fuzzyFilters = filters.filter((f) => f.type === FilterType.FUZZY);
+        this.excludeFilters = filters.filter((f) => f.type === FilterType.EXCLUDE);
+        this.includeFilters = filters.filter((f) => f.type === FilterType.ANY);
         this.sort = sort;
         this.fileService = fileService;
 
@@ -160,8 +169,9 @@ export default class FileSet {
     public toQueryString(): string {
         // filters must be sorted in order to ensure requests can be effectively cached
         // according to their url
-        const sortedFilters = [...this.filters].sort((a, b) =>
-            a.toQueryString().localeCompare(b.toQueryString())
+        const sortedFilters = [...this.filters].sort(
+            (a, b) =>
+                a.type.localeCompare(b.type) || a.toQueryString().localeCompare(b.toQueryString())
         );
         const query = map(sortedFilters, (filter) => filter.toQueryString());
 
@@ -177,30 +187,21 @@ export default class FileSet {
      */
     public toQuerySQLBuilder(): SQLBuilder {
         // Map the filter values to the annotation names they filter
-        const filterValuesByAnnotation = this.filters.reduce(
+        const filtersGroupedByAnnotation = this.filters.reduce(
             (map, filter) => ({
                 ...map,
-                [filter.name]:
-                    filter.name in map ? [...map[filter.name], filter.value] : [filter.value],
+                [filter.name]: filter.name in map ? [...map[filter.name], filter] : [filter],
             }),
-            {} as { [name: string]: string[] }
+            {} as { [name: string]: FileFilter[] }
         );
 
         // Transform the map above into SQL comparison clauses
         const sqlBuilder = this.sort ? this.sort.toQuerySQLBuilder() : new SQLBuilder();
 
-        Object.entries(filterValuesByAnnotation).forEach(([annotation, filterValues]) => {
-            // If a filter value is `null` then we need to modify the way we approach filtering
-            // it in SQL
-            if (filterValues.length === 0) {
-                sqlBuilder.where(`"${annotation}" IS NOT NULL`);
-            } else {
-                sqlBuilder.where(
-                    filterValues
-                        .map((fv) => SQLBuilder.regexMatchValueInList(annotation, fv))
-                        .join(") OR (")
-                );
-            }
+        Object.entries(filtersGroupedByAnnotation).forEach(([_, appliedFilters]) => {
+            sqlBuilder.where(
+                appliedFilters.map((filter) => filter.toSQLWhereString()).join(") OR (")
+            );
         });
 
         return sqlBuilder;

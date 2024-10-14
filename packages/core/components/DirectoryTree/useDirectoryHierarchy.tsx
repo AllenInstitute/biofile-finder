@@ -104,6 +104,9 @@ const useDirectoryHierarchy = (
     const hierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const fileService = useSelector(interaction.selectors.getFileService);
+    const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
+    const excludeFilters = useSelector(selection.selectors.getAnnotationsFilteredOut);
+    const includeFilters = useSelector(selection.selectors.getAnnotationsRequired);
     const selectedFileFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
     const [state, dispatch] = React.useReducer(reducer, {
@@ -167,10 +170,17 @@ const useDirectoryHierarchy = (
                     }
 
                     const filteredValues = values.filter((value) => {
+                        if (includeFilters?.some((filter) => filter.name === annotationNameAtDepth))
+                            return true;
                         if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
+                            if (
+                                fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationNameAtDepth)
+                            ) {
+                                // There can only be one selected value for fuzzy search, so reverse match
+                                return value.includes(userSelectedFiltersForCurrentAnnotation[0]);
+                            }
                             return userSelectedFiltersForCurrentAnnotation.includes(value);
                         }
-
                         return true;
                     });
 
@@ -257,9 +267,12 @@ const useDirectoryHierarchy = (
         annotationService,
         currentNode,
         collapsed,
+        excludeFilters,
         fileService,
         fileSet,
+        fuzzyFilters,
         hierarchy,
+        includeFilters,
         isRoot,
         isLeaf,
         selectedFileFilters,

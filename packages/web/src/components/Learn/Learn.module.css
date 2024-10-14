@@ -1,0 +1,90 @@
+.root h2 {
+    text-align: center;
+    margin-bottom: var(--margin);
+}
+
+.root h3 {
+    margin: var(--margin) 0;
+}
+
+.root p {
+    margin: 0;
+}
+
+.banner {
+    background-image: url('../../../assets/learn-banner.png');
+    background-size: cover;
+    background-position: right;
+}
+
+.banner-blur {
+    backdrop-filter: blur(8px);
+    height: 100%;
+    width: 100%;
+}
+
+.column {
+    text-align: center;
+}
+
+.column:first-of-type > p {
+    margin-top: 15px
+}
+
+.icon-container {
+    align-items: center;
+    display: flex;
+    padding: 0 var(--margin);
+}
+
+.icon-container i {
+    color: var(--aqua);
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.icon-stack {
+    margin-top: calc(var(--margin) * 2);
+}
+
+.link, .link:active, .link:visited {
+    color: var(--aqua);
+}
+
+.section {
+    border-bottom: 1px solid var(--border-color);
+    line-height: 1.5;
+    margin: 0 auto;
+    max-width: 1200px;
+    padding: 40px calc(2 * var(--margin));
+}
+
+.banner .section {
+    height: 280px;
+}
+
+.section:last-of-type {
+    border-bottom: none;
+}
+
+.section-footer {
+    margin-top: calc(var(--margin) * 2) !important;
+    text-align: center;
+}
+
+.title-container {
+    align-items: center;
+    color: var(--highlight-text-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.title-container > h1 {
+    margin-top: auto;
+    width: 100%;
+}
+
+.title-container > p {
+    margin-bottom: auto;
+    width: 100%;
+}

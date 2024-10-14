@@ -44,12 +44,13 @@ import {
     removeDataSourceReloadError,
     ADD_DATASOURCE_RELOAD_ERROR,
     REMOVE_DATASOURCE_RELOAD_ERROR,
+    CHANGE_FILE_FILTER_TYPE,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
 import Annotation from "../../entity/Annotation";
 import FileExplorerURL from "../../entity/FileExplorerURL";
-import FileFilter from "../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
@@ -231,7 +232,7 @@ const setAvailableAnnotationsLogic = createLogic({
 });
 
 /**
- * Interceptor responsible for transforming ADD_FILE_FILTER and REMOVE_FILE_FILTER
+ * Interceptor responsible for transforming ADD_FILE_FILTER, REMOVE_FILE_FILTER, and CHANGE_FILE_FILTER_TYPE
  * actions into a concrete list of ordered FileFilters that can be stored directly in
  * application state under `selections.filters`.
  */
@@ -242,18 +243,57 @@ const modifyFileFilters = createLogic({
         const previousFilters = selectionSelectors.getFileFilters(getState());
         let nextFilters: FileFilter[];
 
-        const incomingFilters = castArray(action.payload);
-        if (action.type === ADD_FILE_FILTER) {
-            nextFilters = uniqWith(
-                [...previousFilters, ...incomingFilters],
-                (existing, incoming) => {
-                    return existing.equals(incoming);
-                }
-            );
+        if (action.type === CHANGE_FILE_FILTER_TYPE) {
+            switch (action.payload.type) {
+                // For include/exclude, remove all previous filters for this annotation
+                // and replace with a new single filter
+                case FilterType.ANY:
+                case FilterType.EXCLUDE:
+                    const newFilter = new FileFilter(
+                        action.payload.annotationName,
+                        "",
+                        action.payload.type
+                    );
+                    nextFilters = [
+                        ...previousFilters.filter(
+                            (filter) => filter.name !== action.payload.annotationName
+                        ),
+                        newFilter,
+                    ];
+                    break;
+                // For default/fuzzy, toggle the type for existing default/fuzzy filters but keep their value,
+                // and fully remove include/exclude filters
+                case FilterType.FUZZY:
+                default:
+                    nextFilters = previousFilters
+                        .filter((filter) => {
+                            return !(
+                                filter.name === action.payload.annotationName &&
+                                (filter.type === FilterType.ANY ||
+                                    filter.type === FilterType.EXCLUDE)
+                            );
+                        })
+                        .map((filter) => {
+                            if (filter.name === action.payload.annotationName) {
+                                filter.type = action.payload.type;
+                            }
+                            return filter;
+                        });
+            }
         } else {
-            nextFilters = previousFilters.filter((existing) => {
-                return !incomingFilters.some((incoming) => incoming.equals(existing));
-            });
+            const incomingFilters = castArray(action.payload);
+            if (action.type === ADD_FILE_FILTER) {
+                nextFilters = uniqWith(
+                    [...previousFilters, ...incomingFilters],
+                    (existing, incoming) => {
+                        return existing.equals(incoming);
+                    }
+                );
+            } else {
+                nextFilters = previousFilters.filter((existing) => {
+                    return !incomingFilters.some((incoming) => incoming.equals(existing));
+                });
+            }
         }
 
         const sortedNextFilters = sortBy(nextFilters, ["name", "value"]);
@@ -271,7 +311,7 @@ const modifyFileFilters = createLogic({
 
         next(setFileFilters(sortedNextFilters));
     },
-    type: [ADD_FILE_FILTER, REMOVE_FILE_FILTER],
+    type: [ADD_FILE_FILTER, REMOVE_FILE_FILTER, CHANGE_FILE_FILTER_TYPE],
 });
 
 /**
