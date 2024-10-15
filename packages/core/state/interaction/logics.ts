@@ -592,7 +592,7 @@ const editFilesLogic = createLogic({
             const errorMsg = `Failed to finish editing files, some may have been edited. Details:<br/>${
                 err instanceof Error ? err.message : err
             }`;
-            dispatch(processFailure(editRequestId, errorMsg));
+            dispatch(processError(editRequestId, errorMsg));
         } finally {
             done();
         }

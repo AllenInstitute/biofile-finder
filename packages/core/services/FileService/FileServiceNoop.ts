@@ -11,7 +11,7 @@ export default class FileServiceNoop implements FileService {
         return Promise.resolve({ count: 0, size: 0 });
     }
 
-    public getEdittableFileMetadata(): Promise<{ [fileId: string]: AnnotationNameToValuesMap }> {
+    public getEditableFileMetadata(): Promise<{ [fileId: string]: AnnotationNameToValuesMap }> {
         return Promise.resolve({});
     }
 

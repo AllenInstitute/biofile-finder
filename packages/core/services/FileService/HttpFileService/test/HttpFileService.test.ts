@@ -73,7 +73,7 @@ describe("HttpFileService", () => {
         });
     });
 
-    describe("getEdittableFileMetadata", () => {
+    describe("getEditableFileMetadata", () => {
         const colorAnnotation = "Color";
         const colorAnnotationId = 3;
         const fileIdWithColorAnnotation = "abc123";
@@ -127,7 +127,7 @@ describe("HttpFileService", () => {
             });
 
             // Act
-            const fileMetadata = await httpFileService.getEdittableFileMetadata(
+            const fileMetadata = await httpFileService.getEditableFileMetadata(
                 [fileIdWithColorAnnotation],
                 { [colorAnnotationId]: new Annotation({ annotationName: colorAnnotation } as any) }
             );
@@ -149,7 +149,7 @@ describe("HttpFileService", () => {
 
             // Act / Assert
             try {
-                await httpFileService.getEdittableFileMetadata([fileIdWithoutColorAnnotation]);
+                await httpFileService.getEditableFileMetadata([fileIdWithoutColorAnnotation]);
                 expect(false, "Expected to throw").to.be.true;
             } catch (e) {
                 expect((e as Error).message).to.equal(

@@ -203,7 +203,7 @@ export default class DatabaseFileService implements FileService {
         return this.databaseService.execute(sql);
     }
 
-    public async getEdittableFileMetadata(
+    public async getEditableFileMetadata(
         fileIds: string[]
     ): Promise<{ [fileId: string]: AnnotationNameToValuesMap }> {
         const sql = new SQLBuilder()
