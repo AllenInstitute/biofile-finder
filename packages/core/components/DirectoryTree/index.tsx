@@ -2,13 +2,13 @@ import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { interaction, selection } from "../../state";
-import AggregateInfoBox from "../AggregateInfoBox";
-import FileSet from "../../entity/FileSet";
-import Tutorial from "../../entity/Tutorial";
 import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
+import AggregateInfoBox from "../AggregateInfoBox";
 import EmptyFileListMessage from "../EmptyFileListMessage";
+import FileSet from "../../entity/FileSet";
+import Tutorial from "../../entity/Tutorial";
+import { interaction, selection } from "../../state";
 
 import styles from "./DirectoryTree.module.css";
 
@@ -81,9 +81,7 @@ export default function DirectoryTree(props: FileListProps) {
                 aria-multiselectable="true"
                 id={Tutorial.FILE_LIST_ID}
             >
-                {!error && (!content || (Array.isArray(content) && !content.length)) && (
-                    <EmptyFileListMessage />
-                )}
+                {!error && Array.isArray(content) && !content.length && <EmptyFileListMessage />}
                 {!error && content}
                 {error && (
                     <aside className={styles.errorMessage}>

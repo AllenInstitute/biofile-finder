@@ -6,13 +6,23 @@ import FileSet from "../";
 import FileFilter from "../../FileFilter";
 import FileSort, { SortOrder } from "../../FileSort";
 import { makeFileDetailMock } from "../../FileDetail/mocks";
+import FuzzyFilter from "../../FileFilter/FuzzyFilter";
+import IncludeFilter from "../../FileFilter/IncludeFilter";
+import ExcludeFilter from "../../FileFilter/ExcludeFilter";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("FileSet", () => {
     const scientistEqualsJane = new FileFilter("scientist", "jane");
+    const scientistEqualsJohn = new FileFilter("scientist", "john");
     const matrigelIsHard = new FileFilter("matrigel_is_hardened", true);
     const dateCreatedDescending = new FileSort("date_created", SortOrder.DESC);
+    const fuzzyFileName = new FuzzyFilter("file_name");
+    const fuzzyFilePath = new FuzzyFilter("file_path");
+    const anyGene = new IncludeFilter("gene");
+    const anyKind = new IncludeFilter("kind");
+    const noCellLine = new ExcludeFilter("cell_line");
+    const noCellBatch = new ExcludeFilter("cell_batch");
 
     describe("toQueryString", () => {
         it("returns an empty string if file set represents a query with no filters and no sorting applied", () => {
@@ -29,6 +39,24 @@ describe("FileSet", () => {
             );
         });
 
+        it("includes name-only filters (fuzzy, include and exclude) in query string", () => {
+            const fileSet = new FileSet({
+                filters: [fuzzyFileName, noCellLine, anyGene],
+            });
+            expect(fileSet.toQueryString()).equals(
+                "exclude=cell_line&fuzzy=file_name&include=gene"
+            );
+        });
+
+        // Enforce query param order for cacheing efficiency. Same args should register as same query regardless of order
+        it("includes sort after name-only filters in query string", () => {
+            const fileSet = new FileSet({
+                filters: [fuzzyFileName],
+                sort: dateCreatedDescending,
+            });
+            expect(fileSet.toQueryString()).equals("fuzzy=file_name&sort=date_created(DESC)");
+        });
+
         it("produces the same query string when given the same filters in different order", () => {
             const fileSet1 = new FileSet({
                 filters: [scientistEqualsJane, matrigelIsHard],
@@ -38,6 +66,68 @@ describe("FileSet", () => {
             });
 
             expect(fileSet1.toQueryString()).to.equal(fileSet2.toQueryString());
+        });
+
+        it("produces the same query string when given the same name-only filters in different orders", () => {
+            const fuzzyFilters = [fuzzyFileName, fuzzyFilePath];
+            const includeFilters = [anyGene, anyKind];
+            const excludeFilters = [noCellBatch, noCellLine];
+            const fileSet1 = new FileSet({
+                filters: [...fuzzyFilters, ...includeFilters, ...excludeFilters],
+            });
+            const fileSet2 = new FileSet({
+                filters: [
+                    ...excludeFilters.reverse(),
+                    ...fuzzyFilters.reverse(),
+                    ...includeFilters.reverse(),
+                ],
+            });
+
+            expect(fileSet1.toQueryString()).to.equal(fileSet2.toQueryString());
+        });
+    });
+
+    describe("toQuerySQLBuilder", () => {
+        const mockDatasource = "testSource";
+
+        it("builds SQL queries with include filters", () => {
+            const fileSet = new FileSet({ filters: [anyGene] });
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
+                'WHERE ("gene" IS NOT NULL'
+            );
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).not.to.contain(
+                "IS NULL"
+            );
+        });
+
+        it("builds SQL queries with exclude filters", () => {
+            const fileSet = new FileSet({ filters: [noCellBatch] });
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
+                'WHERE ("cell_batch" IS NULL'
+            );
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).not.to.contain(
+                "NOT NULL"
+            );
+        });
+
+        it("builds SQL queries with regular filters for different annotations", () => {
+            const fileSet = new FileSet({ filters: [scientistEqualsJane, matrigelIsHard] });
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
+                'WHERE (REGEXP_MATCHES("scientist"'
+            );
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
+                'AND (REGEXP_MATCHES("matrigel_is_hardened"'
+            );
+        });
+
+        it("builds SQL queries with regular filters for same annotation with different values", () => {
+            const fileSet = new FileSet({ filters: [scientistEqualsJane, scientistEqualsJohn] });
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
+                'WHERE (REGEXP_MATCHES("scientist"'
+            );
+            expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
+                'OR (REGEXP_MATCHES("scientist"'
+            );
         });
     });
 

@@ -105,7 +105,7 @@ export default function App(props: AppProps) {
                 <div className={styles.querySidebarAndCenter}>
                     <QuerySidebar className={styles.querySidebar} />
                     <div className={styles.center}>
-                        {hasQuerySelected ? (
+                        {hasQuerySelected || window.location.search ? (
                             <>
                                 <GlobalActionButtonRow className={styles.globalButtonRow} />
                                 <DirectoryTree className={styles.fileList} />

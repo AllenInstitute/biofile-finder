@@ -79,7 +79,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    height: min-content;
+    padding-top: 1px;
+    height: calc(var(--s-paragraph-size) + 4px);
 }
 
 .dynamic-row-title {

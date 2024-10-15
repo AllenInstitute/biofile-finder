@@ -78,14 +78,14 @@ export const initialState = {
     },
     dataSources: [],
     displayAnnotations: [],
-    isDarkTheme: true,
     fileGridColumnCount: THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE,
     fileSelection: new FileSelection(),
     filters: [],
+    isDarkTheme: true,
     openFileFolders: [],
+    queries: [],
     recentAnnotations: [],
     shouldDisplaySmallFont: false,
-    queries: [],
     shouldDisplayThumbnailView: false,
 };
 

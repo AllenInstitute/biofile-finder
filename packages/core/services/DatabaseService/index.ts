@@ -197,6 +197,11 @@ export default abstract class DatabaseService {
     }
 
     private async fetchAnnotationDescriptions(): Promise<Record<string, string>> {
+        // Unless we have actually added the source metadata table we can't fetch the descriptions
+        if (!this.existingDataSources.has(this.SOURCE_METADATA_TABLE)) {
+            return {};
+        }
+
         const sql = new SQLBuilder()
             .select('"Column Name", "Description"')
             .from(this.SOURCE_METADATA_TABLE)
@@ -219,6 +224,11 @@ export default abstract class DatabaseService {
     }
 
     private async fetchAnnotationTypes(): Promise<Record<string, string>> {
+        // Unless we have actually added the source metadata table we can't fetch the types
+        if (!this.existingDataSources.has(this.SOURCE_METADATA_TABLE)) {
+            return {};
+        }
+
         const sql = new SQLBuilder()
             .select('"Column Name", "Type"')
             .from(this.SOURCE_METADATA_TABLE)

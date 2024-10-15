@@ -60,6 +60,28 @@ export default function OpenSourceDatasets() {
                     <DatasetTable filters={[internalDatasetFilter]} />
                     <div className={styles.tableTitle}>Additional contributed datasets</div>
                     <DatasetTable filters={[externalDatasetFilter]} />
+                    <p>
+                        Want to include your dataset? Send us a request on
+                        <a
+                            className={styles.link}
+                            href="https://github.com/AllenInstitute/biofile-finder/issues"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            &nbsp;our GitHub page here&nbsp;
+                        </a>
+                        and we can see about including your data. Please note, your image data would
+                        need to be stored in a public location like
+                        <a
+                            className={styles.link}
+                            href="https://idr.openmicroscopy.org/"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            &nbsp;on Image Data Registry&nbsp;
+                        </a>{" "}
+                        or AWS for example.
+                    </p>
                 </div>
             </div>
             <DatasetDetails />

@@ -39,7 +39,7 @@ $ npm ci
 In many cases, you'll need to make changes to the `core` package, and you'll want to see how those changes play out in the context of a
 rendered application, like `desktop` or `web`.
 To make that happen:
-1. Navigate to either `packages/desktop` or `packages/web` and run `npm run start`.
+1. To start the desktop version, run `npm --prefix packages/desktop run start`. Otherwise to start the web version, run `npm --prefix packages/web run start`.
 
 ### Testing
 Most components in the project have associated unit tests; to run the full suite, run `npm run test`.

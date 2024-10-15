@@ -56,6 +56,10 @@
   font-weight: 400;
 }
 
+.route-link:not(:last-of-type) {
+  margin-right: 16px;
+}
+
 .route-link:hover, .route-link:focus  {
   color: var(--white)
 }

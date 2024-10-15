@@ -1,7 +1,7 @@
 import { makeConstant } from "@aics/redux-utils";
 
 import Annotation from "../../entity/Annotation";
-import FileFilter from "../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
@@ -72,6 +72,31 @@ export function removeFileFilter(filter: FileFilter | FileFilter[]): RemoveFileF
     return {
         payload: filter,
         type: REMOVE_FILE_FILTER,
+    };
+}
+
+/**
+ * CHANGE_FILE_FILTER_TYPE
+ *
+ * Intention to change the type of any currently applied FileFilter
+ */
+export const CHANGE_FILE_FILTER_TYPE = makeConstant(STATE_BRANCH_NAME, "change-file-filter-type");
+
+export interface ChangeFileFilterTypeAction {
+    payload: {
+        annotationName: string;
+        type: FilterType;
+    };
+    type: string;
+}
+
+export function changeFileFilterType(
+    annotationName: string,
+    type: FilterType
+): ChangeFileFilterTypeAction {
+    return {
+        payload: { annotationName, type },
+        type: CHANGE_FILE_FILTER_TYPE,
     };
 }
 

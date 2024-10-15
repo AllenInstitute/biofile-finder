@@ -1,0 +1,47 @@
+
+.choice-group input:disabled + label {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.choice-group :is(input, label, span) {
+  color: var(--primary-text-color);
+}
+
+.choice-group label > span {
+  font-size: var(--s-paragraph-size);
+  margin-right: 5px;
+  margin-top: 2px;
+  padding-left: 24px !important;
+}
+
+.choice-group label:hover > span {
+  color: var(--highlight-text-color) !important;
+}
+
+.choice-group label::before, .choice-group label:hover::before {
+  background-color: unset !important;
+  border-color: var(--aqua);
+  width: 16px;
+  height: 16px;
+  top: 2.1px;
+  left: 2.1px;
+}
+
+.choice-group label::after {
+  background-color: var(--aqua);
+  border-color: var(--aqua);
+}
+
+.choice-group label:hover::after {
+  background-color: var(--bright-aqua) !important;
+  border-color: var(--bright-aqua) !important;
+}
+
+.choice-group > div > div {
+  display: flex;
+}
+
+.choice-group > div > div > div:not(:first-child) {
+  margin-left: 6px;
+}

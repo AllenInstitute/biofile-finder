@@ -12,6 +12,7 @@ import ExecutionEnvServiceWeb from "./services/ExecutionEnvServiceWeb";
 import DatabaseServiceWeb from "./services/DatabaseServiceWeb";
 import FileViewerServiceWeb from "./services/FileViewerServiceWeb";
 import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
+import Learn from "./components/Learn";
 import Home from "./components/Home";
 import Layout from "./components/Layout";
 import OpenSourceDatasets from "./components/OpenSourceDatasets";
@@ -30,6 +31,10 @@ const router = createBrowserRouter([
             {
                 path: "/",
                 element: <Home />, // Splash page
+            },
+            {
+                path: "learn",
+                element: <Learn />,
             },
             {
                 path: "app",

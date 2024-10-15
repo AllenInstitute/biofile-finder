@@ -48,6 +48,10 @@
   line-height: 1.5;
 }
 
+.link {
+  color: var(--aqua);
+}
+
 .table-title {
   font-weight: 300;
   font-size: 24px;
