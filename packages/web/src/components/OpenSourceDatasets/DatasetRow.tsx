@@ -69,12 +69,7 @@ export default function DatasetRow(props: DatasetRowProps) {
                     [styles.buttonWrapperHidden]: showActions,
                 })}
             >
-                <PrimaryButton
-                    className={styles.button}
-                    iconName=""
-                    title="Dataset details"
-                    text="DETAILS"
-                />
+                <PrimaryButton className={styles.button} title="Dataset details" text="DETAILS" />
                 <PrimaryButton
                     className={styles.button}
                     iconName="Upload"
