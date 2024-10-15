@@ -24,7 +24,7 @@ interface Config extends ConnectionConfig {
 }
 
 // Used for the GET request to MMS for file metadata
-interface EdittableFileMetadata {
+interface EditableFileMetadata {
     fileId: string;
     annotations?: {
         annotationId: number;
@@ -51,7 +51,6 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     private static readonly CSV_ENDPOINT_VERSION = "2.0";
     public static readonly BASE_CSV_DOWNLOAD_URL = `file-explorer-service/${HttpFileService.CSV_ENDPOINT_VERSION}/files/selection/manifest`;
     private readonly downloadService: FileDownloadService;
-    private readonly edittableAnnotationIdToNameCache: { [name: string]: number } = {};
 
     constructor(config: Config = { downloadService: new FileDownloadServiceNoop() }) {
         super(config);
@@ -173,13 +172,13 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         await this.put(url, requestBody);
     }
 
-    public async getEdittableFileMetadata(
+    public async getEditableFileMetadata(
         fileIds: string[],
         annotationIdToAnnotationMap?: Record<number, Annotation>
     ): Promise<{ [fileId: string]: AnnotationNameToValuesMap }> {
         const mmsBaseUrl = FESBaseUrlToMMSBaseUrlMap[this.baseUrl as FileExplorerServiceBaseUrl];
         const url = `${mmsBaseUrl}/${HttpFileService.BASE_EDIT_FILES_URL}/${fileIds.join(",")}`;
-        const response = await this.get<EdittableFileMetadata>(url);
+        const response = await this.get<EditableFileMetadata>(url);
 
         // Group files by fileId
         return response.data.reduce(
