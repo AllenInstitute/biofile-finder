@@ -9,7 +9,7 @@ import styles from "./PrimaryButton.module.css";
 interface Props {
     className?: string;
     disabled?: boolean;
-    iconName: string;
+    iconName?: string;
     id?: string;
     menuDirection?: DirectionalHint;
     menuItems?: IContextualMenuItem[];

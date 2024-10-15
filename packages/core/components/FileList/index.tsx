@@ -271,7 +271,7 @@ export default function FileList(props: FileListProps) {
                 {content}
             </div>
             <p className={styles.rowCountDisplay}>
-                {totalCount !== null ? `${totalCount} files` : "Counting files..."}
+                {totalCount !== null ? `${totalCount.toLocaleString()} files` : "Counting files..."}
             </p>
         </div>
     );

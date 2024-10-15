@@ -10,6 +10,13 @@
   (in ./index.tsx). */
   height: calc(var(--inner-header-size) + 10px);
   z-index: 1000;
+
+  /* Makes the gradient not prevent clicking the first file */
+  pointer-events: none;
+}
+
+.header-wrapper > * {
+  pointer-events: auto;
 }
 
 .header {

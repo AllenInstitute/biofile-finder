@@ -7,7 +7,7 @@ import {
     removeStatus,
     processStart,
     processSuccess,
-    processFailure,
+    processError,
 } from "../actions";
 
 describe("Interaction reducer", () => {
@@ -58,7 +58,7 @@ describe("Interaction reducer", () => {
                         processId,
                         data: {
                             msg: "something failed",
-                            status: ProcessStatus.FAILED, // say, a previous failure and the user is going to retry
+                            status: ProcessStatus.ERROR, // say, a previous failure and the user is going to retry
                         },
                     },
                 ],
@@ -127,7 +127,7 @@ describe("Interaction reducer", () => {
                     },
                 ],
             };
-            const failAction = processFailure(processId, "whoops");
+            const failAction = processError(processId, "whoops");
 
             // act
             const nextState = interaction.reducer(prevState, failAction);

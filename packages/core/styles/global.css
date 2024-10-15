@@ -57,6 +57,16 @@ body {
     --s-paragraph-size: 14px;
     --xs-paragraph-size: 12px;
 
+    /* STATUS COLORS (dark theme)*/
+    --info-status-background-color: #29484C;
+    --info-status-text-color: var(--bright-aqua);
+    --error-status-background-color: #4C2929;
+    --error-status-text-color: #F57575;
+    --warning-status-background-color: #4C3C29;
+    --warning-status-text-color: #E39B0D;
+    --success-status-background-color: #294C2F;
+    --success-status-text-color: #0CCF4D;
+
     --query-sidebar-max-width: 350px;
     --file-details-width: 20%;
     --margin: 12px;
