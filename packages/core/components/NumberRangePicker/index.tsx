@@ -159,7 +159,6 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                 <div className={styles.footerRight}>
                     <PrimaryButton
                         disabled={!searchMinValue && !searchMaxValue}
-                        iconName=""
                         text="Submit"
                         className={classNames(
                             {

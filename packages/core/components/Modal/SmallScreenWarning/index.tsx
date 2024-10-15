@@ -39,7 +39,6 @@ export default function SmallScreenWarning({ onDismiss }: ModalProps) {
                     onClick={_onDismiss}
                     title="OK"
                     text="OK"
-                    iconName=""
                 />
             }
             onDismiss={_onDismiss}
