@@ -185,7 +185,7 @@ describe("Interaction logics", () => {
                     type: SET_STATUS,
                     payload: {
                         data: {
-                            status: ProcessStatus.FAILED,
+                            status: ProcessStatus.ERROR,
                         },
                     },
                 })
@@ -521,7 +521,7 @@ describe("Interaction logics", () => {
                     type: SET_STATUS,
                     payload: {
                         data: {
-                            status: ProcessStatus.FAILED,
+                            status: ProcessStatus.ERROR,
                         },
                     },
                 })
@@ -702,7 +702,7 @@ describe("Interaction logics", () => {
                     type: SET_STATUS,
                     payload: {
                         data: {
-                            status: ProcessStatus.FAILED,
+                            status: ProcessStatus.ERROR,
                         },
                     },
                 })

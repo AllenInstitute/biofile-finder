@@ -7,7 +7,7 @@ import {
     DOWNLOAD_MANIFEST,
     DownloadManifestAction,
     processSuccess,
-    processFailure,
+    processError,
     removeStatus,
     processStart,
     SHOW_CONTEXT_MENU,
@@ -155,7 +155,7 @@ const downloadManifest = createLogic({
             const errorMsg = `Download of metadata manifest failed. Details: ${
                 err instanceof Error ? err.message : err
             }`;
-            dispatch(processFailure(manifestDownloadProcessId, errorMsg));
+            dispatch(processError(manifestDownloadProcessId, errorMsg));
         }
 
         done();
@@ -178,7 +178,7 @@ const cancelFileDownloadLogic = createLogic({
             dispatch(removeStatus(action.payload.downloadProcessId));
         } catch (err) {
             dispatch(
-                processFailure(
+                processError(
                     action.payload.downloadProcessId,
                     `Something went wrong cleaning up cancelled download. Details: ${
                         err instanceof Error ? err.message : err
@@ -286,13 +286,13 @@ const downloadFilesLogic = createLogic({
                         totalBytesDownloaded,
                         "bytes"
                     );
-                    const progressMsg = `Downloading ${file.name}, ${updatedBytesDisplay} out of the total of ${totalBytesDisplay} set to download`;
+                    const progressMsg = `Downloading ${file.name}. <br/> ${updatedBytesDisplay} out of ${totalBytesDisplay} set to download`;
                     throttledProgressDispatcher(progressMsg);
                 };
 
                 try {
                     // Start the download and handle progress reporting
-                    const msg = `Downloading ${file.name}, ${fileByteDisplay} out of the total of ${totalBytesDisplay} set to download`;
+                    const msg = `Downloading ${file.name}. <br/> ${fileByteDisplay} out of ${totalBytesDisplay} set to download`;
                     if (totalBytesToDownload) {
                         dispatch(processStart(downloadRequestId, msg, onCancel, [file.id]));
                     }
@@ -319,7 +319,7 @@ const downloadFilesLogic = createLogic({
                     const errorMsg = `File download failed for file ${file.name}. Details:<br/>${
                         err instanceof Error ? err.message : err
                     }`;
-                    dispatch(processFailure(downloadRequestId, errorMsg));
+                    dispatch(processError(downloadRequestId, errorMsg));
                 }
             })
         );

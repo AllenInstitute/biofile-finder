@@ -5,13 +5,13 @@ import {
     Spinner,
     SpinnerSize,
     Stack,
-    DefaultButton,
 } from "@fluentui/react";
 import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { SecondaryButton } from "../Buttons";
 import { interaction } from "../../state";
 import { StatusUpdate, ProcessStatus } from "../../state/interaction/actions";
 
@@ -21,8 +21,9 @@ const statusToTypeMap = {
     [ProcessStatus.STARTED]: MessageBarType.info,
     [ProcessStatus.PROGRESS]: MessageBarType.info,
     [ProcessStatus.SUCCEEDED]: MessageBarType.success,
-    [ProcessStatus.FAILED]: MessageBarType.error,
     [ProcessStatus.NOT_SET]: MessageBarType.info,
+    [ProcessStatus.WARNING]: MessageBarType.severeWarning,
+    [ProcessStatus.ERROR]: MessageBarType.error,
 };
 
 const SPACING = 5; // px
@@ -45,7 +46,7 @@ export default function StatusMessage() {
     const dispatch = useDispatch();
 
     return (
-        <Stack {...verticalStackProps} className={styles.container}>
+        <Stack {...verticalStackProps} verticalAlign="end" className={styles.container}>
             {map(
                 useSelector(interaction.selectors.getProcessStatuses),
                 (statusUpdate: StatusUpdate) => {
@@ -53,23 +54,40 @@ export default function StatusMessage() {
                         data: { msg, status = ProcessStatus.NOT_SET, progress },
                         onCancel,
                     } = statusUpdate;
+                    let onDismiss; // If has cancel option, don't show dismiss button
                     let cancelButton;
                     if (onCancel) {
-                        cancelButton = <DefaultButton onClick={onCancel}>Cancel</DefaultButton>;
-                    }
+                        cancelButton = (
+                            <SecondaryButton
+                                iconName=""
+                                title="Cancel"
+                                text="CANCEL"
+                                onClick={onCancel}
+                            />
+                        );
+                    } else
+                        onDismiss = () =>
+                            dispatch(interaction.actions.removeStatus(statusUpdate.processId));
 
                     return (
                         <MessageBar
                             className={classNames(styles.messageBar, {
                                 [styles.success]: status === ProcessStatus.SUCCEEDED,
-                                [styles.error]: status === ProcessStatus.FAILED,
+                                [styles.warning]: status === ProcessStatus.WARNING,
+                                [styles.error]: status === ProcessStatus.ERROR,
                             })}
                             actions={cancelButton}
                             key={statusUpdate.processId}
                             messageBarType={statusToTypeMap[status]}
-                            onDismiss={() =>
-                                dispatch(interaction.actions.removeStatus(statusUpdate.processId))
-                            }
+                            styles={{
+                                iconContainer:
+                                    status === ProcessStatus.STARTED
+                                        ? styles.iconContainerHidden
+                                        : styles.iconContainer,
+                                innerText: styles.messageBarInnerText,
+                                actions: styles.messageBarActions,
+                            }}
+                            onDismiss={onDismiss}
                             isMultiline={msg !== undefined}
                         >
                             <div className={styles.centeringParent}>

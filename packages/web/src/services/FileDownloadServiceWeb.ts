@@ -51,7 +51,6 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
 
         const message = `The file path "${fileInfo.path}" is not supported for Zarr downloads in the web environment. 
 Only S3 URLs are supported. Please upload your files to an S3 bucket for web-based downloads.`;
-        alert(message);
         throw new Error(message);
     }
 
@@ -66,13 +65,7 @@ Only S3 URLs are supported. Please upload your files to an S3 bucket for web-bas
 Due to security restrictions, the web browser cannot open this location directly. 
 Please navigate to this directory manually, or upload files to a remote address such as S3.`;
 
-        alert(message);
-
-        return {
-            downloadRequestId: fileInfo.id,
-            msg: `Download cancelled: the Zarr file is located locally at ${directoryPath}.`,
-            resolution: DownloadResolution.CANCELLED,
-        };
+        throw new Error(message);
     }
 
     private async downloadS3Directory(
@@ -102,7 +95,7 @@ Please navigate to this directory manually, or upload files to a remote address 
         // Register cancellation token for this request
         let cancelToken: Canceler;
         this.activeRequestMap[downloadRequestId] = {
-            cancel: () => cancelToken && cancelToken(),
+            cancel: () => cancelToken && cancelToken("Download cancelled by user"),
         };
 
         // Download each file and add it to the ZIP archive
