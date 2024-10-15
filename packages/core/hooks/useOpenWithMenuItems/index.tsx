@@ -9,6 +9,90 @@ import { interaction, metadata } from "../../state";
 
 import styles from "./useOpenWithMenuItems.module.css";
 
+interface WebApps {
+    neuroglancer: IContextualMenuItem;
+    simularium: IContextualMenuItem;
+    volumeviewer: IContextualMenuItem;
+    volview: IContextualMenuItem;
+}
+
+const WEB_APPS = (fileDetails?: FileDetail): WebApps => ({
+    volumeviewer: {
+        key: "3d-web-viewer",
+        text: "3D Web Viewer",
+        title: `Open files with 3D Web Viewer`,
+        href: `https://volumeviewer.allencell.org/viewer?url=${fileDetails?.cloudPath}/`,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+    },
+    neuroglancer: {
+        key: "neuroglancer",
+        text: "Neuroglancer",
+        title: `Open files with Neuroglancer`,
+        href: `https://neuroglancer-demo.appspot.com/#!{%22layers%22:[{%22source%22:%22zarr://${fileDetails?.cloudPath}%22,%22name%22:%22${fileDetails?.name}%22}]}`,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+    },
+    simularium: {
+        key: "simularium",
+        text: "Simularium",
+        title: `Open files with Simularium`,
+        href: `https://simularium.allencell.org/viewer?trajUrl=${fileDetails?.cloudPath}`,
+        target: "_blank",
+    },
+    volview: {
+        key: "volview",
+        text: "VolView",
+        title: `Open files with VolView`,
+        href: `https://volview.kitware.app/?urls=[${fileDetails?.cloudPath}]`,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+    },
+});
+
+const DESKTOP_APPS = (fileDetails?: FileDetail): { agave: IContextualMenuItem } => ({
+    agave: {
+        key: "agave",
+        className: styles.agaveLink,
+        text: "AGAVE",
+        title: `Open files with AGAVE`,
+        href: `agave://?url=${fileDetails?.path}`,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <a
+                        className={styles.viewLink}
+                        href="https://www.allencell.org/pathtrace-rendering.html"
+                        rel="noreferrer"
+                        target="_blank"
+                    >
+                        | View info
+                        <Icon iconName="Link" />
+                    </a>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
+});
+
+function getWebAppMenuItems(fileDetails?: FileDetail): IContextualMenuItem[] {
+    switch (true) {
+        case fileDetails?.name.includes(".simularium"):
+            return [WEB_APPS(fileDetails).simularium];
+        case fileDetails?.name.includes(".dcm"):
+            return [WEB_APPS(fileDetails).volview];
+        default:
+            return [WEB_APPS(fileDetails).volumeviewer, WEB_APPS(fileDetails).neuroglancer];
+    }
+}
+
+function getDesktopAppMenuItems(fileDetails?: FileDetail): IContextualMenuItem[] {
+    return [DESKTOP_APPS(fileDetails).agave];
+}
+
 export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMenuItem[] => {
     const dispatch = useDispatch();
     const isOnWeb = useSelector(interaction.selectors.isOnWeb);
@@ -39,6 +123,17 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         [fileDetails, annotationNameToAnnotationMap]
     );
 
+    const priorityWebApps = getWebAppMenuItems(fileDetails);
+    // Grab every other web app that isn't in the priority list
+    const otherWebApps = Object.values(WEB_APPS(fileDetails)).filter((app) =>
+        priorityWebApps.every((item) => item.key !== app.key)
+    );
+    const priorityDesktopApps = getDesktopAppMenuItems(fileDetails);
+    // Grab every other desktop app that isn't in the priority list
+    const otherDesktopApps = Object.values(DESKTOP_APPS(fileDetails)).filter((app) =>
+        priorityDesktopApps.every((item) => item.key !== app.key)
+    );
+
     return [
         ...(isEmpty(annotationNameToLinkMap)
             ? []
@@ -63,25 +158,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             title: "Web applications (no installation necessary)",
             itemType: ContextualMenuItemType.Header,
         },
-        {
-            key: "3d-web-viewer",
-            text: "3D Web Viewer",
-            title: `Open files with 3D Web Viewer`,
-            href: `https://volumeviewer.allencell.org/viewer?url=${fileDetails?.cloudPath}/`,
-            disabled: !fileDetails?.path,
-            target: "_blank",
-        },
-        ...(!fileDetails?.name.includes(".simularium")
-            ? []
-            : [
-                  {
-                      key: "simularium",
-                      text: "Simularium",
-                      title: `Open files with Simularium`,
-                      href: `https://simularium.allencell.org/viewer?trajUrl=${fileDetails?.cloudPath}`,
-                      target: "_blank",
-                  },
-              ]),
+        ...priorityWebApps,
         ...(plateLink && isAicsEmployee
             ? [
                   {
@@ -100,6 +177,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             itemType: ContextualMenuItemType.Header,
         },
         ...[
+            ...priorityDesktopApps,
             ...(userSelectedApplications || []).map((app) => {
                 const name = executionEnvService.getFilename(app.filePath);
                 return {
@@ -116,35 +194,18 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                     },
                 };
             }),
-            {
-                key: "agave",
-                className: styles.agaveLink,
-                text: "AGAVE",
-                title: `Open files with AGAVE`,
-                href: `agave://?url=${fileDetails?.path}`,
-                disabled: !fileDetails?.path,
-                target: "_blank",
-                onRenderContent(props, defaultRenders) {
-                    return (
-                        <>
-                            {defaultRenders.renderItemName(props)}
-                            <a
-                                className={styles.viewLink}
-                                href="https://www.allencell.org/pathtrace-rendering.html"
-                                rel="noreferrer"
-                                target="_blank"
-                            >
-                                | View info
-                                <Icon iconName="Link" />
-                            </a>
-                        </>
-                    );
-                },
-            } as IContextualMenuItem,
         ].sort((a, b) => (a.text || "").localeCompare(b.text || "")),
-        // Unable to open arbitrary applications on the web at the moment
+        {
+            key: "other-apps",
+            text: "OTHER APPS",
+            title: "Other applications that are not expected to support this file type",
+            itemType: ContextualMenuItemType.Header,
+        },
+        ...otherWebApps,
+        ...otherDesktopApps,
         ...(isOnWeb
-            ? []
+            ? // Unable to open arbitrary applications on the web at the moment
+              []
             : [
                   {
                       key: "other...",
