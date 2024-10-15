@@ -51,7 +51,6 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     private static readonly CSV_ENDPOINT_VERSION = "2.0";
     public static readonly BASE_CSV_DOWNLOAD_URL = `file-explorer-service/${HttpFileService.CSV_ENDPOINT_VERSION}/files/selection/manifest`;
     private readonly downloadService: FileDownloadService;
-    private readonly edittableAnnotationIdToNameCache: { [name: string]: number } = {};
 
     constructor(config: Config = { downloadService: new FileDownloadServiceNoop() }) {
         super(config);
