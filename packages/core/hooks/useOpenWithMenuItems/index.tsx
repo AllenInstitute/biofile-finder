@@ -38,6 +38,7 @@ const WEB_APPS = (fileDetails?: FileDetail): WebApps => ({
         text: "Simularium",
         title: `Open files with Simularium`,
         href: `https://simularium.allencell.org/viewer?trajUrl=${fileDetails?.cloudPath}`,
+        disabled: !fileDetails?.path,
         target: "_blank",
     },
     volview: {
