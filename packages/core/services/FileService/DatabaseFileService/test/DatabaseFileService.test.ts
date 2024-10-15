@@ -79,7 +79,7 @@ describe("DatabaseFileService", () => {
         });
     });
 
-    describe("getEdittableFileMetadata", () => {
+    describe("getEditableFileMetadata", () => {
         it("converts response into a map of file_id to metadata", async () => {
             // Arrange
             const databaseFileService = new DatabaseFileService({
@@ -89,7 +89,10 @@ describe("DatabaseFileService", () => {
             });
 
             // Act
-            const response = await databaseFileService.getEdittableFileMetadata(["abc123"]);
+            const response = await databaseFileService.getEditableFileMetadata([
+                "abc123",
+                "def456",
+            ]);
 
             // Assert
             expect(response).to.deep.equal({
