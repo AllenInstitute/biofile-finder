@@ -12,6 +12,8 @@ import Query from "./Query";
 import { PrimaryButton, useButtonMenu } from "../Buttons";
 import { ModalType } from "../Modal";
 import Tooltip from "../Tooltip";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
+import { DEFAULT_AICS_FMS_QUERY } from "../../entity/FileExplorerURL";
 import Tutorial from "../../entity/Tutorial";
 import useHelpOptions from "../../hooks/useHelpOptions";
 import { interaction, selection } from "../../state";
@@ -73,7 +75,10 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                     dispatch(
                         selection.actions.addQuery({
                             name: `New ${source.name} query`,
-                            parts: { sources: [source] },
+                            parts:
+                                source.name === AICS_FMS_DATA_SOURCE_NAME
+                                    ? DEFAULT_AICS_FMS_QUERY
+                                    : { sources: [source] },
                         })
                     );
                 },
