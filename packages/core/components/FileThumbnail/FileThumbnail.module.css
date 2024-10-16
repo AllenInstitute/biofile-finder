@@ -15,4 +15,5 @@
     align-items: center;
     background-color: var(--border-color);
     border: 5px var(--primary-background-color);
+    margin: auto;
 }

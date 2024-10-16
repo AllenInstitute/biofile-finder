@@ -76,8 +76,6 @@ export async function renderZarrThumbnailURL(zarrUrl: string): Promise<string | 
     try {
         return await retryWithTimeout(
             async () => {
-                console.log("Starting Zarr thumbnail rendering for:", zarrUrl);
-
                 // read base image into store
                 const store = new zarr.FetchStore(zarrUrl);
                 const root = zarr.root(store);
