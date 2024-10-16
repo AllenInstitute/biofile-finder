@@ -1,4 +1,9 @@
-import { configureMockStore, mergeState, createMockHttpClient } from "@aics/redux-utils";
+import {
+    configureMockStore,
+    mergeState,
+    createMockHttpClient,
+    ResponseStub,
+} from "@aics/redux-utils";
 import { expect } from "chai";
 import { get as _get } from "lodash";
 import { createSandbox } from "sinon";
@@ -652,11 +657,23 @@ describe("Interaction logics", () => {
     });
 
     describe("editFilesLogic", () => {
+        const sandbox = createSandbox();
+        before(() => {
+            sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
+        });
+        afterEach(() => {
+            sandbox.resetHistory();
+        });
+        after(() => {
+            sandbox.restore();
+        });
+
         const files = [];
         const fileKinds = ["PNG", "TIFF"];
         for (let i = 0; i <= 100; i++) {
             files.push({
                 file_path: `/allen/file_${i}.ext`,
+                file_id: `file_${i}`,
                 annotations: [
                     {
                         name: AnnotationName.KIND,
@@ -669,14 +686,40 @@ describe("Interaction logics", () => {
                 ],
             });
         }
+        const mockAnnotations = [
+            new Annotation({
+                annotationDisplayName: AnnotationName.KIND,
+                annotationName: AnnotationName.KIND,
+                description: "",
+                type: "Text",
+                annotationId: 0,
+            }),
+            new Annotation({
+                annotationDisplayName: "Cell Line",
+                annotationName: "Cell Line",
+                description: "",
+                type: "Text",
+                annotationId: 1,
+            }),
+        ];
+
         const baseUrl = "test";
-        const responseStub = {
-            when: () => true,
-            respondWith: {
-                data: { data: files },
+        const responseStubs: ResponseStub[] = [
+            {
+                when: (config) =>
+                    _get(config, "url", "").includes(HttpFileService.BASE_FILE_COUNT_URL),
+                respondWith: {
+                    data: { data: [files.length] },
+                },
             },
-        };
-        const mockHttpClient = createMockHttpClient(responseStub);
+            {
+                when: (config) => _get(config, "url", "").includes(HttpFileService.BASE_FILES_URL),
+                respondWith: {
+                    data: { data: files },
+                },
+            },
+        ];
+        const mockHttpClient = createMockHttpClient(responseStubs);
         const fileService = new HttpFileService({
             baseUrl,
             httpClient: mockHttpClient,
@@ -690,14 +733,22 @@ describe("Interaction logics", () => {
 
         it("edits 'folder' when filter specified'", async () => {
             // Arrange
-            const state = mergeState(initialState, {});
+            const state = mergeState(initialState, {
+                metadata: {
+                    annotations: mockAnnotations,
+                },
+            });
             const { store, logicMiddleware, actions } = configureMockStore({
                 state,
                 logics: interactionLogics,
             });
 
             // Act
-            store.dispatch(editFiles({ "Cell Line": ["AICS-12"] }, []));
+            store.dispatch(
+                editFiles({ "Cell Line": ["AICS-12"] }, [
+                    new FileFilter(AnnotationName.KIND, "PNG"),
+                ])
+            );
             await logicMiddleware.whenComplete();
 
             // Assert
@@ -725,11 +776,14 @@ describe("Interaction logics", () => {
             ).to.be.false;
         });
 
-        it("edits selected files when no filter sepecified", async () => {
+        it("edits selected files when no filter specified", async () => {
             // Arrange
             const state = mergeState(initialState, {
                 selection: {
                     fileSelection: fakeSelection,
+                },
+                metadata: {
+                    annotations: mockAnnotations,
                 },
             });
             const { store, logicMiddleware, actions } = configureMockStore({
@@ -779,7 +833,8 @@ describe("Interaction logics", () => {
             });
 
             // Act
-            store.dispatch(editFiles({ "Cell Line": ["AICS-12"] }));
+            // Try to edit an annotation we don't recognize
+            store.dispatch(editFiles({ "Nonexistent Annotation": ["AICS-12"] }));
             await logicMiddleware.whenComplete();
 
             // Assert
