@@ -62,9 +62,15 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
     }, [fileSelection, fileSet, overallIndex]);
 
     const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
+    const [isLoading, setIsLoading] = React.useState(true);
+
     React.useEffect(() => {
         if (file) {
-            file.getPathToThumbnail().then(setThumbnailPath);
+            setIsLoading(true);
+            file.getPathToThumbnail().then((path) => {
+                setThumbnailPath(path);
+                setIsLoading(false);
+            });
         }
     }, [file]);
 
@@ -112,6 +118,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
                         height={thumbnailSize}
                         width={thumbnailSize}
                         uri={thumbnailPath}
+                        loading={isLoading}
                     />
                     <div
                         className={classNames({

@@ -38,7 +38,7 @@ function resizeHandleOnMouseDown(mouseDownEvent: React.MouseEvent<HTMLDivElement
 
             if (mouseMoveEvent.buttons === 1 && newWidth >= 175) {
                 // If primary button (left-click) is still pressed and newWidth is still greater
-                //   than the minimum width we want for the pane
+                // than the minimum width we want for the pane
                 rootElement.style.setProperty(FILE_DETAILS_WIDTH_ATTRIBUTE, `${newWidth}px`);
             } else {
                 // Remove this listener if user releases the primary button
@@ -73,11 +73,16 @@ export default function FileDetails(props: Props) {
     const dispatch = useDispatch();
     const [fileDetails, isLoading] = useFileDetails();
     const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
+    const [isThumbnailLoading, setIsThumbnailLoading] = React.useState(true);
     const stackTokens: IStackTokens = { childrenGap: 12 + " " + 20 };
 
     React.useEffect(() => {
         if (fileDetails) {
-            fileDetails.getPathToThumbnail().then(setThumbnailPath);
+            setIsThumbnailLoading(true);
+            fileDetails.getPathToThumbnail().then((path) => {
+                setThumbnailPath(path);
+                setIsThumbnailLoading(false);
+            });
         }
     }, [fileDetails]);
 
@@ -125,8 +130,8 @@ export default function FileDetails(props: Props) {
                                 <FileThumbnail
                                     className={styles.thumbnail}
                                     width="100%"
-                                    // height={thumbnailHeight}
                                     uri={thumbnailPath}
+                                    loading={isThumbnailLoading}
                                 />
                             </div>
                             <Stack
