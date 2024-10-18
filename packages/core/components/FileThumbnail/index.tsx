@@ -28,7 +28,12 @@ export default function FileThumbnail(props: Props) {
                     styles.fileThumbnail,
                     styles.thumbnailPlaceholder
                 )}
-                style={{ height: props.height, width: props.width }}
+                style={{
+                    height: props.height,
+                    width: props.width,
+                    maxHeight: props.height,
+                    maxWidth: props.width,
+                }}
             >
                 <Spinner size={SpinnerSize.large} />
             </div>
@@ -52,7 +57,12 @@ export default function FileThumbnail(props: Props) {
         <img
             className={classNames(props.className, styles.fileThumbnail)}
             src={props.uri}
-            style={{ height: props.height, maxWidth: props.width }}
+            style={{
+                height: props.height,
+                width: props.width,
+                maxHeight: props.height,
+                maxWidth: props.width,
+            }}
         />
     );
 }
