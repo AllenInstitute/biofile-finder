@@ -41,12 +41,19 @@
     overflow: hidden;
     padding: 8px 10px;
     text-overflow: ellipsis;
+    box-shadow: 2px 2px 4px rgb(0 0 0 / 0.8);
+    width: calc(100% - 5px);
 }
 
 .container:hover:not(.selected) {
     background-color: var(--highlight-background-color);
     color: var(--highlight-text-color);
     cursor: pointer;
+}
+
+.container:hover:not(.selected) .expand-button {
+    color: var(--highlight-text-color);
+    background: none;
 }
 
 .header {
