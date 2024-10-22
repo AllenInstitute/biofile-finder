@@ -64,6 +64,7 @@
     height: calc(100% - var(--header-height) - var(--footer-height));
     overflow-y: auto;
     padding-bottom: 40px;
+    padding-right: 8px;
 }
 
 .queries-container::after {
@@ -99,14 +100,15 @@
     z-index: 9999;
 }
 
-.minimize-bar > div {
-    height: 15px;
-    width: 2px;
-    background-color: var(--highlight-background-color);
+.minimize-bar > i {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--highlight-background-color);
+    padding-right: 4px;
 }
 
-.minimize-bar:hover > div {
-    background-color: var(--highlight-hover-background-color);
+.minimize-bar:hover > i {
+    color: var(--highlight-hover-background-color);
     transform: translateX(0.5px);
 }
 

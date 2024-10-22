@@ -2,6 +2,7 @@ import {
     ContextualMenuItemType,
     DirectionalHint,
     IContextualMenuItem,
+    Icon,
     IconButton,
 } from "@fluentui/react";
 import classNames from "classnames";
@@ -156,7 +157,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                 </Tooltip>
             </div>
             <div className={styles.minimizeBar} onClick={() => setIsExpanded(false)}>
-                <div />
+                <Icon iconName={"ChevronLeft"} />
             </div>
         </div>
     );
