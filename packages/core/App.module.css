@@ -45,6 +45,8 @@
 
 .data-source-prompt {
     padding: 10%;
+    overflow: scroll;
+    height: 100%;
 }
 
 .query-sidebar-and-center {

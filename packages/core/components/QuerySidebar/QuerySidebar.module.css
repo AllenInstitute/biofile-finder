@@ -101,7 +101,7 @@
 }
 
 .minimize-bar > i {
-    font-size: 13px;
+    font-size: 10px;
     font-weight: 700;
     color: var(--highlight-background-color);
     padding-right: 4px;

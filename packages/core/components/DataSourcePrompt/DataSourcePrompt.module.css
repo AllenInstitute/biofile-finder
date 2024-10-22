@@ -54,7 +54,12 @@
 }
 
 .title {
-    margin-bottom: 30px;
+    margin-bottom: 6px;
+}
+
+.datasource-subhead {
+    margin-bottom: 26px !important;
+    font-weight: 600;
 }
 
 .text {

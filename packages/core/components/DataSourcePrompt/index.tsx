@@ -69,7 +69,11 @@ export default function DataSourcePrompt(props: Props) {
     return (
         <div className={props.className}>
             {!props.hideTitle && <h2 className={styles.title}>Choose a data source</h2>}
-            <p className={styles.text}>
+            <p
+                className={classNames(styles.text, {
+                    [styles.datasourceSubhead]: !props?.hideTitle,
+                })}
+            >
                 To get started, load a CSV, Parquet, or JSON file containing metadata (annotations)
                 about your files to view them.
             </p>

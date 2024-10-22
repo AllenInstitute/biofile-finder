@@ -101,7 +101,7 @@ export default function Query(props: QueryProps) {
                         ariaLabel="Expand"
                         className={styles.expandButton}
                         onClick={() => setIsExpanded(!isExpanded)}
-                        iconProps={{ iconName: "ChevronDown" }}
+                        iconProps={{ iconName: "ChevronDownMed" }}
                         data-testid="expand-button"
                     />
                 </div>
@@ -161,7 +161,7 @@ export default function Query(props: QueryProps) {
                     ariaLabel="Collapse"
                     className={styles.collapseButton}
                     onClick={() => setIsExpanded(!isExpanded)}
-                    iconProps={{ iconName: "ChevronUp" }}
+                    iconProps={{ iconName: "ChevronUpMed" }}
                     data-testid="collapse-button"
                 />
             </div>

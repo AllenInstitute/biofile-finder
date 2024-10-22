@@ -157,7 +157,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                 </Tooltip>
             </div>
             <div className={styles.minimizeBar} onClick={() => setIsExpanded(false)}>
-                <Icon iconName={"ChevronLeft"} />
+                <Icon iconName={"ChevronLeftSmall"} />
             </div>
         </div>
     );
