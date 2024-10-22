@@ -86,9 +86,6 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                             {
                                 key: "csv",
                                 text: "CSV",
-                                iconProps: {
-                                    iconName: "Folder",
-                                },
                                 disabled: !filters && fileSelection.count() === 0,
                                 title: "Download a CSV of the metadata of the selected files",
                                 onClick() {
@@ -107,9 +104,6 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                                       {
                                           key: "json",
                                           text: "JSON",
-                                          iconProps: {
-                                              iconName: "Folder",
-                                          },
                                           disabled: !filters && fileSelection.count() === 0,
                                           title:
                                               "Download a JSON file of the metadata of the selected files",
@@ -125,9 +119,6 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                                       {
                                           key: "parquet",
                                           text: "Parquet",
-                                          iconProps: {
-                                              iconName: "Folder",
-                                          },
                                           disabled: !filters && fileSelection.count() === 0,
                                           title:
                                               "Download a Parquet file of the metadata of the selected files",

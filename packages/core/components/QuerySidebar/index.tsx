@@ -100,7 +100,11 @@ export default function QuerySidebar(props: QuerySidebarProps) {
         return (
             <div className={styles.minimizedContainer} onClick={() => setIsExpanded(true)}>
                 <p>
-                    <strong>{selectedQuery}</strong>
+                    Query Panel
+                    <Icon
+                        iconName={"ChevronLeftSmall"}
+                        className={styles.minimizedContainerExpand}
+                    />
                 </p>
             </div>
         );
