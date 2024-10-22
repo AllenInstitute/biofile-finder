@@ -41,8 +41,8 @@
 }
 
 .pagination-and-content {
-    padding: 12px 12px 0 12px;
-    width: 100%
+    padding: 12px 12px 0 16px;
+    width: 100%;
 }
 
 .overflow-container {
@@ -105,7 +105,7 @@
 
 
 .resize-handle {
-    --resize-handle-width: 10px;
+    --resize-handle-width: 15px;
 
     align-items: center;
     background: none;
@@ -124,7 +124,7 @@
 
 .resize-handle:hover {
     border-left: 2px solid var(--bright-aqua);
-    width: 10px;
+    width: var(--resize-handle-width);
     z-index: 9999;
 }
 
