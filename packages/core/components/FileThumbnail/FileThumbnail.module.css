@@ -6,7 +6,13 @@
 }
 
 .no-thumbnail {
-    fill: var(--border-color);
+    fill: var(--medium-grey);
+    position: relative;
+    left: -4px;
+}
+
+.no-thumbnail-selected {
+    fill: var(--primary-dark);
 }
 
 .thumbnailPlaceholder {

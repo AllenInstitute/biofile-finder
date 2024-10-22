@@ -119,9 +119,10 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
                         width={thumbnailSize}
                         uri={thumbnailPath}
                         loading={isLoading}
+                        selected={isSelected}
                     />
                     <div
-                        className={classNames({
+                        className={classNames(styles.thumbnailLabel, {
                             [styles.smallFont]:
                                 shouldDisplaySmallFont ||
                                 fileGridColCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL,
