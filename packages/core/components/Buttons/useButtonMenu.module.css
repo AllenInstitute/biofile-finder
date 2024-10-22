@@ -35,6 +35,11 @@
 
 .button-menu-callout > div {
     border-radius: var(--small-border-radius);
+    background-color: unset;
+}
+
+.button-menu-callout span {
+    font-size: var(--l-paragraph-size);
 }
 
 .button-menu li:empty {

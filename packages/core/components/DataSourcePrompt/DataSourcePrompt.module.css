@@ -60,10 +60,12 @@
 .text {
     margin: 0;
     padding: 2px 0.5em 2px 0;
+    line-height: 1.5;
 }
 
 .title, .details, .warning > p {
     padding: 2px 0;
+    line-height: 1.5;
 }
 
 .details, .details-list {

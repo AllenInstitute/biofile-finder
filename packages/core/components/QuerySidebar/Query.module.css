@@ -8,6 +8,20 @@
     background-color: var(--highlight-background-color);
 }
 
+.expand-button {
+    color: var(--primary-sidebar-text-color);
+    background: none;
+}
+
+.expand-button:hover {
+    color: var(--highlight-text-color);
+    background: none;
+}
+
+.collapse-button i, .expand-button i {
+    font-weight: 600;
+}
+
 .display-row {
     margin: 8px 0;
 }
@@ -84,6 +98,12 @@
 
 .title:hover {
     border: 1px solid var(--border-color);
+    border-radius: var(--small-border-radius);
+    padding: 0 6px;
+}
+
+.title:active, .title:focus {
+    border: 1px solid var(--bright-aqua);
     border-radius: var(--small-border-radius);
     padding: 0 6px;
 }
