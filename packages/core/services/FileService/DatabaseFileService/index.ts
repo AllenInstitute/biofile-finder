@@ -192,7 +192,6 @@ export default class DatabaseFileService implements FileService {
             };
         }
 
-        console.log("THE SQL", sqlBuilder.toSQL());
         const buffer = await this.databaseService.saveQuery(uniqueId(), sqlBuilder.toSQL(), format);
         const name = `file-selection-${new Date()}.${format}`;
         return this.downloadService.download(
