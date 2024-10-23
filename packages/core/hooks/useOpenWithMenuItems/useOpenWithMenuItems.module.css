@@ -20,7 +20,7 @@
     font-size: 10px;
 }
 
-.desktop-menu-item:hover > div, .desktop-menu-item:hover .info-button {
+.desktop-menu-item:hover > div, .desktop-menu-item:hover .info-button, .desktop-menu-item:hover .info-button i {
     background-color: var(--highlight-background-color);
     color: var(--highlight-text-color);
 }
