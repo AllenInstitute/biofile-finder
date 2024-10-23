@@ -66,7 +66,6 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
 
     React.useEffect(() => {
         if (file) {
-            setIsLoading(true);
             file.getPathToThumbnail().then((path) => {
                 setThumbnailPath(path);
                 setIsLoading(false);
