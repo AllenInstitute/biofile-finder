@@ -13,6 +13,7 @@ interface Props {
     height?: number | string;
     width?: number | string;
     loading?: boolean;
+    selected?: boolean;
 }
 
 /**
@@ -48,7 +49,9 @@ export default function FileThumbnail(props: Props) {
                 pathData={NO_IMAGE_ICON_PATH_DATA}
                 viewBox="0,1,22,22"
                 width={props.width}
-                className={classNames(styles.noThumbnail)}
+                className={classNames(styles.noThumbnail, {
+                    [styles.noThumbnailSelected]: props?.selected,
+                })}
             />
         );
     }

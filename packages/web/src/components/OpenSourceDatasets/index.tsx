@@ -68,19 +68,19 @@ export default function OpenSourceDatasets() {
                             target="_blank"
                             rel="noreferrer"
                         >
-                            &nbsp;our GitHub page here&nbsp;
+                            &nbsp;our GitHub page&nbsp;
                         </a>
-                        and we can see about including your data. Please note, your image data would
-                        need to be stored in a public location like
+                        and we can see about including your data. Please note that your image data
+                        would need to be stored in a public location like
                         <a
                             className={styles.link}
                             href="https://idr.openmicroscopy.org/"
                             target="_blank"
                             rel="noreferrer"
                         >
-                            &nbsp;on Image Data Registry&nbsp;
+                            &nbsp;the Image Data Resource&nbsp;
                         </a>{" "}
-                        or AWS for example.
+                        or AWS.
                     </p>
                 </div>
             </div>

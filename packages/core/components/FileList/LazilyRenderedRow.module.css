@@ -1,14 +1,13 @@
-.row.selected > div {
+.row.selected div {
     background-color: var(--highlight-background-color) !important;
     border-bottom: 1px solid var(--secondary-background-color);
     color: var(--highlight-text-color);
 }
 
-.row.focused > div {
+.row.focused div {
     background-color: var(--highlight-hover-background-color) !important;
     border-bottom: 1px solid var(--secondary-background-color);
     color: var(--highlight-hover-text-color);
-    /* padding-bottom: 0; */
 }
 
 .row.small-font {

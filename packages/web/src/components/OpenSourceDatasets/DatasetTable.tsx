@@ -77,7 +77,12 @@ export default function DatasetTable(props: DatasetTableProps) {
         if (!fieldContent) return <>--</>;
         if (column?.fieldName === DatasetAnnotations.RELATED_PUBLICATON.name && item?.doi) {
             return (
-                <a className={classNames(styles.link, styles.doubleLine)} href={item.doi}>
+                <a
+                    className={classNames(styles.link, styles.doubleLine)}
+                    href={item.doi}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
                     {fieldContent}
                 </a>
             );

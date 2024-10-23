@@ -40,7 +40,7 @@ export default function Home() {
                 <Link to="datasets">
                     <PrimaryButton
                         className={styles.optionButton}
-                        iconName="BulletedList"
+                        iconName="List"
                         title="View datasets"
                         text="VIEW DATASETS"
                     />

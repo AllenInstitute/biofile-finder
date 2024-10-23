@@ -12,6 +12,7 @@
 
 .selected {
   background-color: var(--highlight-background-color);
+  color: var(--highlight-text-color);
 }
 
 .small-font {
@@ -20,6 +21,7 @@
 
 .focused {
   background-color: var(--highlight-hover-background-color);
+  color: var(--highlight-text-color);
 }
 
 .thumbnail-wrapper {
@@ -40,10 +42,15 @@
 }
 
 .thumbnail-wrapper > div > div {
+  border-radius: var(--small-border-radius);
   overflow-wrap: unset;
   text-overflow: ellipsis;
   word-break: keep-all;
   margin: auto;
   text-align: center;
   width: 100%;
+}
+
+.thumbnail-label {
+  padding-bottom: 5px;
 }

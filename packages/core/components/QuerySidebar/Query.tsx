@@ -96,16 +96,14 @@ export default function Query(props: QueryProps) {
                     <Tooltip content={props.query.name}>
                         <h4>{props.query.name}</h4>
                     </Tooltip>
-                    {props.isSelected && (
-                        <IconButton
-                            ariaDescription="Expand view details"
-                            ariaLabel="Expand"
-                            className={styles.collapseButton}
-                            onClick={() => setIsExpanded(!isExpanded)}
-                            iconProps={{ iconName: "ChevronUp" }}
-                            data-testid="expand-button"
-                        />
-                    )}
+                    <IconButton
+                        ariaDescription="Expand view details"
+                        ariaLabel="Expand"
+                        className={styles.expandButton}
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        iconProps={{ iconName: "ChevronDownMed" }}
+                        data-testid="expand-button"
+                    />
                 </div>
                 <p className={styles.displayRow}>
                     <strong>Data source:</strong>{" "}
@@ -163,7 +161,7 @@ export default function Query(props: QueryProps) {
                     ariaLabel="Collapse"
                     className={styles.collapseButton}
                     onClick={() => setIsExpanded(!isExpanded)}
-                    iconProps={{ iconName: "ChevronDown" }}
+                    iconProps={{ iconName: "ChevronUpMed" }}
                     data-testid="collapse-button"
                 />
             </div>
