@@ -56,7 +56,7 @@ const DESKTOP_APPS = (fileDetails?: FileDetail): { agave: IContextualMenuItem } 
         key: "agave",
         className: styles.desktopMenuItem,
         text: "AGAVE",
-        title: `Open files with AGAVE v1.7.2+`,
+        title: "Open files with AGAVE v1.7.2+",
         href: `agave://?url=${fileDetails?.path}`,
         disabled: !fileDetails?.path,
         target: "_blank",

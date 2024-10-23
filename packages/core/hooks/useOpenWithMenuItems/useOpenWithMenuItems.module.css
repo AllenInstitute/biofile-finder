@@ -5,20 +5,27 @@
     color: var(--primary-text-color);
     font-size: 12px;
     height: 20px;
-    padding: 0;
-
-     /* TODO: The below is a bit funky */
-    max-width: 40px;
+    max-width: 50px;
+    min-width: 50px;
     overflow: hidden;
-    width: 40px;
+    padding: 0;
+    width: 50px;
 }
 
-.desktop-menu-item:hover .info-button {
+.desktop-menu-item .info-button {
+    transform: translateY(-2px);
+}
+
+.desktop-menu-item .info-button {
+    font-size: 10px;
+}
+
+.desktop-menu-item:hover > div, .desktop-menu-item:hover .info-button {
     background-color: var(--highlight-background-color);
     color: var(--highlight-text-color);
 }
 
-.desktop-menu-item .info-button:hover {
+.desktop-menu-item .info-button:hover, .desktop-menu-item .info-button:hover i {
     background-color: var(--dark-aqua);
 }
 
@@ -27,6 +34,6 @@
 }
 
 .desktop-menu-item a {
-    padding-left: 35px;
+    padding-left: 57.5px;
     width: 25px;
 }
