@@ -16,8 +16,8 @@
     transform: translateY(-2px);
 }
 
-.desktop-menu-item .info-button {
-    font-size: 10px;
+.desktop-menu-item .info-button > span {
+    font-size: 12px;
 }
 
 .desktop-menu-item:hover > div, .desktop-menu-item:hover .info-button, .desktop-menu-item:hover .info-button i {
