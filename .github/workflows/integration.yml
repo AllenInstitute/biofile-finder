@@ -76,7 +76,7 @@ jobs:
 
   build-desktop:
     runs-on: ${{ matrix.os }}
-    needs: test-desktop, test-web, test-core
+    needs: [test-desktop, test-web, test-core]
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
