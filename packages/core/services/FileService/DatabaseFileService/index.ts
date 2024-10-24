@@ -1,4 +1,4 @@
-import { isNil, omit, uniqueId } from "lodash";
+import { isEmpty, isNil, omit, uniqueId } from "lodash";
 
 import FileService, { GetFilesRequest, SelectionAggregationResult, Selection } from "..";
 import DatabaseService from "../../DatabaseService";
@@ -151,16 +151,18 @@ export default class DatabaseFileService implements FileService {
                 const subQuery = new SQLBuilder()
                     .select('"File Path"')
                     .from(this.dataSourceNames)
-                    .where(
+                    .offset(indexRange.start)
+                    .limit(indexRange.end - indexRange.start + 1);
+
+                if (!isEmpty(selection.filters)) {
+                    subQuery.where(
                         Object.entries(selection.filters)
                             .flatMap(([column, values]) =>
                                 values.map((v) => SQLBuilder.regexMatchValueInList(column, v))
                             )
                             .join(") OR (")
-                    )
-                    .offset(indexRange.start)
-                    .limit(indexRange.end - indexRange.start + 1);
-
+                    );
+                }
                 if (selection.sort) {
                     subQuery.orderBy(
                         `"${selection.sort.annotationName}" ${
