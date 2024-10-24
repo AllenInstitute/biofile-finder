@@ -147,6 +147,37 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                         dispatch(interaction.actions.downloadFiles());
                     },
                 },
+                {
+                    key: "move-files",
+                    text: "Move Files",
+                    title: "Move files between NAS Cache",
+                    disabled: !filters && fileSelection.count() === 0,
+                    iconProps: {
+                        iconName: "MoveToFolder",
+                    },
+                    subMenuProps: {
+                        items: [
+                            {
+                                key: "off-nas",
+                                text: "Off NAS Cache",
+                                title: "Move files off the NAS cache",
+                                onClick() {
+                                    // Placeholder for moving files off NAS Cache
+                                    console.log("Move files off NAS Cache");
+                                },
+                            },
+                            {
+                                key: "onto-nas",
+                                text: "Onto NAS Cache",
+                                title: "Move files onto the NAS cache",
+                                onClick() {
+                                    // Placeholder for moving files onto NAS Cache
+                                    console.log("Move files onto NAS Cache");
+                                },
+                            },
+                        ],
+                    },
+                },
             ];
 
             dispatch(
