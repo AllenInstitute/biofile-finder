@@ -30,8 +30,10 @@ export default function Query(props: QueryProps) {
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
     const currentQueryParts = useSelector(selection.selectors.getCurrentQueryParts);
 
+    const shouldHaveDataSource = !!window.location.search;
     const hasDataSource = !!props.query.parts.sources.length;
-    const isLoading = !hasDataSource || props.query.name === AICS_FMS_DATA_SOURCE_NAME;
+    const isLoading =
+        (shouldHaveDataSource && !hasDataSource) || props.query.name === AICS_FMS_DATA_SOURCE_NAME;
 
     const [isExpanded, setIsExpanded] = React.useState(false);
     React.useEffect(() => {
