@@ -1,4 +1,4 @@
-import { ContextualMenuItemType, IContextualMenuItem, Icon } from "@fluentui/react";
+import { ContextualMenuItemType, DefaultButton, Icon, IContextualMenuItem } from "@fluentui/react";
 import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -54,9 +54,9 @@ const WEB_APPS = (fileDetails?: FileDetail): WebApps => ({
 const DESKTOP_APPS = (fileDetails?: FileDetail): { agave: IContextualMenuItem } => ({
     agave: {
         key: "agave",
-        className: styles.agaveLink,
+        className: styles.desktopMenuItem,
         text: "AGAVE",
-        title: `Open files with AGAVE`,
+        title: "Open files with AGAVE v1.7.2+",
         href: `agave://?url=${fileDetails?.path}`,
         disabled: !fileDetails?.path,
         target: "_blank",
@@ -70,8 +70,13 @@ const DESKTOP_APPS = (fileDetails?: FileDetail): { agave: IContextualMenuItem } 
                         rel="noreferrer"
                         target="_blank"
                     >
-                        | View info
-                        <Icon iconName="Link" />
+                        <DefaultButton
+                            className={styles.infoButton}
+                            title="Get info or download to enable use"
+                        >
+                            Info
+                            <Icon iconName="OpenInNewWindow" />
+                        </DefaultButton>
                     </a>
                 </>
             );
