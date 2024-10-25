@@ -679,3 +679,27 @@ export function setSelectedPublicDataset(dataset: PublicDataset): SetSelectedPub
         type: SET_SELECTED_PUBLIC_DATASET,
     };
 }
+
+/**
+ * SHOW_MOVE_FILE_MANIFEST
+ *
+ * Action to show the Move File dialog (manifest) for NAS cache operations.
+ * This modal will allow users to move files on or off the NAS cache.
+ */
+export const SHOW_MOVE_FILE_MANIFEST = makeConstant(STATE_BRANCH_NAME, "show-move-file-manifest");
+
+export interface ShowMoveFileManifestAction {
+    type: string;
+    payload: {
+        target: "ON_TO_NAS" | "OFF_NAS";
+    };
+}
+
+export function showMoveFileManifest(target: "ON_TO_NAS" | "OFF_NAS"): ShowMoveFileManifestAction {
+    return {
+        type: SHOW_MOVE_FILE_MANIFEST,
+        payload: {
+            target,
+        },
+    };
+}

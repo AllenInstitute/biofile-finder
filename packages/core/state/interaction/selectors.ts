@@ -47,6 +47,7 @@ export const getUserSelectedApplications = (state: State) =>
     state.interaction.userSelectedApplications;
 export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee;
+export const getMoveFileTarget = (state: State) => state.interaction.moveFileTarget;
 
 // COMPOSED SELECTORS
 export const getApplicationVersion = createSelector(
