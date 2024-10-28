@@ -3,8 +3,80 @@ name: integration
 on: pull_request
 
 jobs:
-  build-fms-file-explorer-electron:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@main
+
+      - name: Install Node.js
+        uses: actions/setup-node@main
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+  test-core:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@main
+
+      - name: Install Node.js
+        uses: actions/setup-node@main
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Unit Test
+        run: npm run test:core
+
+  test-web:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@main
+
+      - name: Install Node.js
+        uses: actions/setup-node@main
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Unit Test
+        run: npm run test:web
+
+  test-desktop:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@main
+
+      - name: Install Node.js
+        uses: actions/setup-node@main
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Unit Test
+        run: npm run test:desktop
+
+  build-desktop:
     runs-on: ${{ matrix.os }}
+    needs: [test-desktop, test-web, test-core]
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -13,12 +85,12 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@main
 
-      - name: Install Node.js, NPM and Yarn
+      - name: Install Node.js
         uses: actions/setup-node@main
         with:
           node-version: 16
 
-      - name: Build/release Electron app
+      - name: Build Electron app
         uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
         with:
           # GitHub token, automatically provided to the action
