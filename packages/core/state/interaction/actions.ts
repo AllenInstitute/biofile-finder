@@ -715,9 +715,6 @@ export interface MoveFilesAction {
 }
 
 export function moveFiles(fileDetails: FileDetail[], target: string): MoveFilesAction {
-    console.log(
-        `Moving ${fileDetails.length} files ${target === "ON_TO_NAS" ? "onto" : "off of"} NAS.`
-    );
     return {
         type: MOVE_FILES,
         payload: {

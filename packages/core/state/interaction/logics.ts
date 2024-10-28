@@ -31,6 +31,8 @@ import {
     SetIsSmallScreenAction,
     setVisibleModal,
     hideVisibleModal,
+    MoveFilesAction,
+    MOVE_FILES,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
@@ -575,6 +577,19 @@ const setIsSmallScreen = createLogic({
     type: SET_IS_SMALL_SCREEN,
 });
 
+/**
+ * Interceptor responsible for handling the MOVE_FILES action.
+ * Logs the target location for file movement in the console.
+ */
+const moveFilesLogic = createLogic({
+    type: MOVE_FILES,
+    process(deps, dispatch, done) {
+        const action = deps.action as MoveFilesAction;
+        console.log(`Moving files to location: ${action.payload.target}`);
+        done();
+    },
+});
+
 export default [
     initializeApp,
     downloadManifest,
@@ -586,4 +601,5 @@ export default [
     showContextMenu,
     refresh,
     setIsSmallScreen,
+    moveFilesLogic,
 ];
