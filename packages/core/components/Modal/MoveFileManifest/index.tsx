@@ -4,10 +4,11 @@ import { useSelector } from "react-redux";
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import { PrimaryButton } from "../../Buttons";
-import { interaction, selection } from "../../../state";
 import FileDetail from "../../../entity/FileDetail";
-import styles from "./MoveFileManifest.module.css";
 import FileSelection from "../../../entity/FileSelection";
+import { interaction, selection } from "../../../state";
+
+import styles from "./MoveFileManifest.module.css";
 
 /**
  * Modal overlay for displaying details of selected files for NAS cache operations.
