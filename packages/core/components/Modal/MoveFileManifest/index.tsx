@@ -46,14 +46,23 @@ export default function MoveFileManifest({ onDismiss }: ModalProps) {
     const body = (
         <div>
             <p>Selected Files:</p>
-            <div className={styles.fileListContainer}>
-                <ul className={styles.fileList}>
-                    {fileDetails.map((file) => (
-                        <li key={file.id} className={styles.fileItem}>
-                            {file.name} - {formatFileSize(file.size || 0)}
-                        </li>
-                    ))}
-                </ul>
+            <div className={styles.fileTableContainer}>
+                <table className={styles.fileTable}>
+                    <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>File Size</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {fileDetails.map((file) => (
+                            <tr key={file.id}>
+                                <td>{file.name}</td>
+                                <td>{formatFileSize(file.size || 0)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
             <p>Total Files: {fileDetails.length}</p>
             <p>Total Size: {formatFileSize(totalSize)}</p>
