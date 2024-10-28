@@ -203,11 +203,6 @@ export default makeReducer<InteractionStateBranch>(
             visibleModal: ModalType.MoveFileManifest,
             moveFileTarget: action.payload.target,
         }),
-        [HIDE_VISIBLE_MODAL]: (state) => ({
-            ...state,
-            visibleModal: undefined,
-            moveFileTarget: undefined,
-        }),
     },
     initialState
 );
