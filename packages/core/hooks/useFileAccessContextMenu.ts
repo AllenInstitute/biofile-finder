@@ -147,41 +147,53 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                         dispatch(interaction.actions.downloadFiles());
                     },
                 },
-                {
-                    key: "move-files",
-                    text: "Move Files",
-                    title: "Move files between NAS Cache",
-                    disabled: !filters && fileSelection.count() === 0,
-                    iconProps: {
-                        iconName: "MoveToFolder",
-                    },
-                    subMenuProps: {
-                        items: [
-                            {
-                                key: "move-files-title",
-                                text: "CACHE LOCATION",
-                                title: "Move files to or from the NAS cache",
-                                itemType: ContextualMenuItemType.Header,
-                            },
-                            {
-                                key: "off-nas",
-                                text: "Off NAS Cache",
-                                title: "Move files off the NAS cache",
-                                onClick() {
-                                    dispatch(interaction.actions.showMoveFileManifest("OFF_NAS"));
-                                },
-                            },
-                            {
-                                key: "onto-nas",
-                                text: "Onto NAS Cache",
-                                title: "Move files onto the NAS cache",
-                                onClick() {
-                                    dispatch(interaction.actions.showMoveFileManifest("ON_TO_NAS"));
-                                },
-                            },
-                        ],
-                    },
-                },
+                ...(isQueryingAicsFms
+                    ? [
+                          {
+                              key: "move-files",
+                              text: "Move Files",
+                              title: "Move files between NAS Cache",
+                              disabled: !filters && fileSelection.count() === 0,
+                              iconProps: {
+                                  iconName: "MoveToFolder",
+                              },
+                              subMenuProps: {
+                                  items: [
+                                      {
+                                          key: "move-files-title",
+                                          text: "CACHE LOCATION",
+                                          title: "Move files to or from the NAS cache",
+                                          itemType: ContextualMenuItemType.Header,
+                                      },
+                                      {
+                                          key: "off-nas",
+                                          text: "Off NAS Cache",
+                                          title: "Move files off the NAS cache",
+                                          onClick() {
+                                              dispatch(
+                                                  interaction.actions.showMoveFileManifest(
+                                                      "OFF_NAS"
+                                                  )
+                                              );
+                                          },
+                                      },
+                                      {
+                                          key: "onto-nas",
+                                          text: "Onto NAS Cache",
+                                          title: "Move files onto the NAS cache",
+                                          onClick() {
+                                              dispatch(
+                                                  interaction.actions.showMoveFileManifest(
+                                                      "ON_TO_NAS"
+                                                  )
+                                              );
+                                          },
+                                      },
+                                  ],
+                              },
+                          },
+                      ]
+                    : []),
             ];
 
             dispatch(
