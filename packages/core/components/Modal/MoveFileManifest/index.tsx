@@ -1,6 +1,6 @@
 import filesize from "filesize";
 import * as React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
@@ -15,7 +15,7 @@ import styles from "./MoveFileManifest.module.css";
  * Modal overlay for displaying details of selected files for NAS cache operations.
  */
 export default function MoveFileManifest({ onDismiss }: ModalProps) {
-    // const dispatch = useDispatch(); //TODO: add onMove functionality
+    const dispatch = useDispatch();
     const fileService = useSelector(interaction.selectors.getFileService);
     const fileSelection = useSelector(
         selection.selectors.getFileSelection,
@@ -43,12 +43,14 @@ export default function MoveFileManifest({ onDismiss }: ModalProps) {
     }, [fileSelection, fileService]);
 
     const onMove = () => {
-        console.log(
-            `Moving ${fileDetails.length} files ${
-                moveFileTarget === "ON_TO_NAS" ? "onto" : "off of"
-            } NAS.`
-        );
-        onDismiss();
+        if (moveFileTarget) {
+            dispatch(interaction.actions.moveFiles(fileDetails, moveFileTarget));
+            onDismiss();
+        } else {
+            console.warn(
+                "Move file target location is undefined. Cannot proceed with moving files."
+            );
+        }
     };
 
     const body = (

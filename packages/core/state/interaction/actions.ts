@@ -703,3 +703,26 @@ export function showMoveFileManifest(target: "ON_TO_NAS" | "OFF_NAS"): ShowMoveF
         },
     };
 }
+
+export const MOVE_FILES = makeConstant(STATE_BRANCH_NAME, "move-files");
+
+export interface MoveFilesAction {
+    type: string;
+    payload: {
+        fileDetails: FileDetail[];
+        target: string;
+    };
+}
+
+export function moveFiles(fileDetails: FileDetail[], target: string): MoveFilesAction {
+    console.log(
+        `Moving ${fileDetails.length} files ${target === "ON_TO_NAS" ? "onto" : "off of"} NAS.`
+    );
+    return {
+        type: MOVE_FILES,
+        payload: {
+            fileDetails,
+            target,
+        },
+    };
+}
