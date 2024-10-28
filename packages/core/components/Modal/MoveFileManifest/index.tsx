@@ -1,3 +1,4 @@
+import filesize from "filesize";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -15,6 +16,7 @@ import styles from "./MoveFileManifest.module.css";
  */
 export default function MoveFileManifest({ onDismiss }: ModalProps) {
     // const dispatch = useDispatch(); //TODO: add onMove functionality
+    const fileService = useSelector(interaction.selectors.getFileService);
     const fileSelection = useSelector(
         selection.selectors.getFileSelection,
         FileSelection.selectionsAreEqual
@@ -22,18 +24,23 @@ export default function MoveFileManifest({ onDismiss }: ModalProps) {
     const moveFileTarget = useSelector(interaction.selectors.getMoveFileTarget);
 
     const [fileDetails, setFileDetails] = React.useState<FileDetail[]>([]);
-    const [totalSize, setTotalSize] = React.useState<number>(0);
+    const [totalSize, setTotalSize] = React.useState<string | undefined>();
+    const [isLoading, setLoading] = React.useState(false);
 
     React.useEffect(() => {
         async function fetchDetails() {
+            setLoading(true);
             const details = await fileSelection.fetchAllDetails();
             setFileDetails(details);
-            const totalFileSize = details.reduce((acc, file) => acc + (file.size || 0), 0);
-            setTotalSize(totalFileSize);
+
+            const aggregateInfo = await fileService.getAggregateInformation(fileSelection);
+            const formattedSize = aggregateInfo.size ? filesize(aggregateInfo.size) : undefined;
+            setTotalSize(formattedSize);
+            setLoading(false);
         }
 
         fetchDetails();
-    }, [fileSelection]);
+    }, [fileSelection, fileService]);
 
     const onMove = () => {
         console.log(
@@ -59,14 +66,14 @@ export default function MoveFileManifest({ onDismiss }: ModalProps) {
                         {fileDetails.map((file) => (
                             <tr key={file.id}>
                                 <td>{file.name}</td>
-                                <td>{formatFileSize(file.size || 0)}</td>
+                                <td>{filesize(file.size || 0)}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
             <p>Total Files: {fileDetails.length}</p>
-            <p>Total Size: {formatFileSize(totalSize)}</p>
+            <p>Total Size: {isLoading ? "Loading..." : totalSize}</p>
         </div>
     );
 
@@ -88,20 +95,3 @@ export default function MoveFileManifest({ onDismiss }: ModalProps) {
         />
     );
 }
-
-/**
- * Formats a file size to a human-readable string.
- */
-const formatFileSize = (size: number) => {
-    if (size < 1024) return `${size} B`;
-    const units = ["KB", "MB", "GB", "TB"];
-    let unitIndex = -1;
-    let formattedSize = size;
-
-    do {
-        formattedSize /= 1024;
-        unitIndex++;
-    } while (formattedSize >= 1024 && unitIndex < units.length - 1);
-
-    return `${formattedSize.toFixed(2)} ${units[unitIndex]}`;
-};
