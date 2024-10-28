@@ -691,11 +691,11 @@ export const SHOW_MOVE_FILE_MANIFEST = makeConstant(STATE_BRANCH_NAME, "show-mov
 export interface ShowMoveFileManifestAction {
     type: string;
     payload: {
-        target: "ON_TO_NAS" | "OFF_NAS";
+        target: string;
     };
 }
 
-export function showMoveFileManifest(target: "ON_TO_NAS" | "OFF_NAS"): ShowMoveFileManifestAction {
+export function showMoveFileManifest(target: string): ShowMoveFileManifestAction {
     return {
         type: SHOW_MOVE_FILE_MANIFEST,
         payload: {

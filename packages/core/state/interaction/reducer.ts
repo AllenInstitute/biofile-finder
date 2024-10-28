@@ -59,7 +59,7 @@ export interface InteractionStateBranch {
     hasUsedApplicationBefore: boolean;
     isAicsEmployee?: boolean;
     isOnWeb: boolean;
-    moveFileTarget?: "ON_TO_NAS" | "OFF_NAS";
+    moveFileTarget?: string;
     platformDependentServices: PlatformDependentServices;
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;

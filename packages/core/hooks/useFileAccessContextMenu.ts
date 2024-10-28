@@ -166,26 +166,12 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                                           itemType: ContextualMenuItemType.Header,
                                       },
                                       {
-                                          key: "off-nas",
-                                          text: "Off NAS Cache",
-                                          title: "Move files off the NAS cache",
-                                          onClick() {
-                                              dispatch(
-                                                  interaction.actions.showMoveFileManifest(
-                                                      "OFF_NAS"
-                                                  )
-                                              );
-                                          },
-                                      },
-                                      {
                                           key: "onto-nas",
                                           text: "Onto NAS Cache",
                                           title: "Move files onto the NAS cache",
                                           onClick() {
                                               dispatch(
-                                                  interaction.actions.showMoveFileManifest(
-                                                      "ON_TO_NAS"
-                                                  )
+                                                  interaction.actions.showMoveFileManifest("NAS")
                                               );
                                           },
                                       },
