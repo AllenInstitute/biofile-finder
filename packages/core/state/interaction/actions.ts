@@ -684,7 +684,7 @@ export function setSelectedPublicDataset(dataset: PublicDataset): SetSelectedPub
  * SHOW_MOVE_FILE_MANIFEST
  *
  * Action to show the Move File dialog (manifest) for NAS cache operations.
- * This modal will allow users to move files on or off the NAS cache.
+ * This modal will allow users to move files onto the NAS cache.
  */
 export const SHOW_MOVE_FILE_MANIFEST = makeConstant(STATE_BRANCH_NAME, "show-move-file-manifest");
 

@@ -150,32 +150,13 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                 ...(isQueryingAicsFms
                     ? [
                           {
-                              key: "move-files",
-                              text: "Move Files",
-                              title: "Move files between NAS Cache",
+                              key: "move-to-cache",
+                              text: "Move to Cache",
+                              title: "Move selected files to NAS Cache",
                               disabled: !filters && fileSelection.count() === 0,
-                              iconProps: {
-                                  iconName: "MoveToFolder",
-                              },
-                              subMenuProps: {
-                                  items: [
-                                      {
-                                          key: "move-files-title",
-                                          text: "CACHE LOCATION",
-                                          title: "Move files to or from the NAS cache",
-                                          itemType: ContextualMenuItemType.Header,
-                                      },
-                                      {
-                                          key: "onto-nas",
-                                          text: "Onto NAS Cache",
-                                          title: "Move files onto the NAS cache",
-                                          onClick() {
-                                              dispatch(
-                                                  interaction.actions.showMoveFileManifest("NAS")
-                                              );
-                                          },
-                                      },
-                                  ],
+                              iconProps: { iconName: "MoveToFolder" },
+                              onClick() {
+                                  dispatch(interaction.actions.showMoveFileManifest("NAS"));
                               },
                           },
                       ]

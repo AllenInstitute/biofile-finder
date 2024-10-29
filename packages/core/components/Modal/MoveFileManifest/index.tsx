@@ -93,7 +93,7 @@ export default function MoveFileManifest({ onDismiss }: ModalProps) {
                 />
             }
             onDismiss={onDismiss}
-            title={`Move Files ${moveFileTarget === "ON_TO_NAS" ? "onto" : "off of"} NAS Cache`}
+            title={`Move Files to ${moveFileTarget}`}
         />
     );
 }
