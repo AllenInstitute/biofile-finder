@@ -9,7 +9,7 @@ export default {
         {
             imgSrc: ContextMenu,
             caption:
-                "Right-click your file selection to open a context menu of external applications that can open the files. This example highlights the '3D Web Viewer,' a free open source visualization tool also developed by AICS.",
+                'Right-click your file selection to open a context menu of external applications that can open the files. This example highlights the "3D Web Viewer," a free open source visualization tool also developed by AICS.',
         },
         {
             imgSrc: WebViewer,

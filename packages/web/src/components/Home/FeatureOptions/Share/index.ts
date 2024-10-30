@@ -20,7 +20,7 @@ export default {
         {
             imgSrc: Download,
             caption:
-                "You can also download files directly from BioFile Finder. Select the file(s) you want to download, right-click to open the context menu, and select 'Download.'",
+                'You can also download files directly from BioFile Finder. Select the file(s) you want to download, right-click to open the context menu, and select "Download."',
         },
     ],
 } as Feature;

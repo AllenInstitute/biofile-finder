@@ -10,7 +10,7 @@ export default {
     slides: [
         {
             imgSrc: Group,
-            caption: `Unlike traditional file systems, BioFile Finder allows you to dynamically generate your folder structure based on the metadata of your files. In this screenshot, the files are organized by (Grouped by) the "Structure" and "Plate Barcode" columns found in the selected data source.`,
+            caption: `Unlike traditional file systems, BioFile Finder allows you to dynamically generate your folder structure based on the metadata of your files. In this screenshot, the files are organized (grouped) by the "Structure" and "Plate Barcode" columns found in the selected data source.`,
         },
         {
             imgSrc: FilterColumn,
