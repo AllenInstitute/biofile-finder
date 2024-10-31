@@ -77,7 +77,7 @@ export default class DatabaseServiceElectron extends DatabaseService {
         });
     }
 
-    protected async addDataSource(dataSource: Source): Promise<void> {
+    protected async addDataSource(dataSource: Source, skipValidation = false): Promise<void> {
         const { name, type, uri } = dataSource;
         if (this.existingDataSources.has(name)) {
             return; // no-op
@@ -138,6 +138,13 @@ export default class DatabaseServiceElectron extends DatabaseService {
                     );
                 }
             });
+
+            if (!skipValidation) {
+                const errors = await this.checkDataSourceForErrors(name);
+                if (errors.length) {
+                    throw new Error(errors.join("</br></br>"));
+                }
+            }
         } catch (err) {
             await this.deleteDataSource(name);
             throw new DataSourcePreparationError((err as Error).message, name);

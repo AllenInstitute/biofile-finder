@@ -31,9 +31,9 @@ export default abstract class DatabaseService {
         _format: "csv" | "parquet" | "json"
     ): Promise<Uint8Array>;
 
-    public abstract query(_sql: string): Promise<{ [key: string]: string }[]>;
+    public abstract query(_sql: string): Promise<{ [key: string]: any }[]>;
 
-    protected abstract addDataSource(_dataSource: Source): Promise<void>;
+    protected abstract addDataSource(_dataSource: Source, _skipValidation?: boolean): Promise<void>;
 
     protected abstract execute(_sql: string): Promise<void>;
 
@@ -59,8 +59,10 @@ export default abstract class DatabaseService {
         this.query = this.query.bind(this);
     }
 
-    public async prepareDataSources(dataSources: Source[]): Promise<void> {
-        await Promise.all(dataSources.map(this.addDataSource));
+    public async prepareDataSources(dataSources: Source[], skipValidation = false): Promise<void> {
+        await Promise.all(
+            dataSources.map((dataSource) => this.addDataSource(dataSource, skipValidation))
+        );
 
         // Because when querying multiple data sources column differences can complicate the queries
         // preparing a table ahead of time that is the aggregate of the data sources is most optimal
@@ -90,6 +92,70 @@ export default abstract class DatabaseService {
     protected async deleteSourceMetadata(): Promise<void> {
         this.deleteDataSource(this.SOURCE_METADATA_TABLE);
         this.dataSourceToAnnotationsMap.clear();
+    }
+
+    protected async checkDataSourceForErrors(name: string): Promise<string[]> {
+        const tableColumnsQueryResult = await this.query(`\
+            SELECT COLUMN_NAME                \
+            FROM INFORMATION_SCHEMA.COLUMNS   \
+            WHERE TABLE_NAME = '${name}'      \
+        `);
+        const columnsOnTable = tableColumnsQueryResult.reduce(
+            (accum: Set<string>, row) => accum.add(row.column_name),
+            new Set<string>()
+        );
+
+        if (!columnsOnTable.has("File Path")) {
+            let error =
+                '\
+                "File Path" column is missing in the data source. \
+                Check the data source header row for a "File Path" (case-sensitive) column name and try again.';
+
+            // Attempt to find a column with a similar name to "File Path"
+            const columns = Array.from(columnsOnTable);
+            const filePathLikeColumn =
+                columns.find((column) => column.toLowerCase().includes("path")) ||
+                columns.find((column) => column.toLowerCase().includes("file"));
+            if (filePathLikeColumn) {
+                error += ` Found a column with a similar name: "${filePathLikeColumn}".`;
+            }
+
+            // Unable to determine if the file path is empty or not
+            // when it is not present so return here before checking
+            // for other errors
+            return [error];
+        }
+
+        const errors: string[] = [];
+        const isFilePathEverBlankQueryResult = await this.query(`\
+            SELECT EXISTS (                      \
+                FROM "${name}"                   \
+                WHERE TRIM("File Path") IS NULL  \
+            ) AS result                          \
+        `);
+        if (isFilePathEverBlankQueryResult[0]["result"]) {
+            errors.push('"File Path" column contains empty or purely whitespace values.');
+        }
+
+        // Exclude the rows where the file path is blank to avoid false positives
+        // between this check and the previous one
+        const uniqueFilePathQueryResult = await this.query(`\
+            SELECT COUNT("File Path") AS all, COUNT(DISTINCT "File Path") AS uniques        \
+            FROM "${name}"                   \
+            WHERE TRIM("File Path") IS NOT NULL  \
+        `);
+        const {
+            all: totalFilePathCount,
+            uniques: uniqueFilePathCount,
+        } = uniqueFilePathQueryResult[0];
+        const duplicateFilePathCount = totalFilePathCount - uniqueFilePathCount;
+        if (duplicateFilePathCount > 0) {
+            errors.push(
+                `"File Path" column contains duplicates. Found ${duplicateFilePathCount} duplicate values.`
+            );
+        }
+
+        return errors;
     }
 
     private async aggregateDataSources(dataSources: Source[]): Promise<void> {

@@ -50,7 +50,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
         }
     }
 
-    public async query(sql: string): Promise<any> {
+    public async query(sql: string): Promise<{ [key: string]: any }[]> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
@@ -78,7 +78,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
         this.database?.detach();
     }
 
-    public async addDataSource(dataSource: Source): Promise<void> {
+    public async addDataSource(dataSource: Source, skipValidation = false): Promise<void> {
         const { name, type, uri } = dataSource;
         if (!this.database) {
             throw new Error("Database failed to initialize");
@@ -88,7 +88,16 @@ export default class DatabaseServiceWeb extends DatabaseService {
         }
         if (!type || !uri) {
             throw new DataSourcePreparationError(
-                `Data source type and URI are missing for ${dataSource.name}`,
+                `Unable to access the data source.\
+                </br> \
+                For local data sources, you'll need to re-upload them \
+                with each refresh to maintain access permissions. \
+                To avoid this, consider using cloud storage for the \
+                file and sharing the URL. \
+                </br>\
+                If the data source is already \
+                hosted in the cloud, check for any changes in its location \
+                or permissions.`,
                 dataSource.name
             );
         }
@@ -123,6 +132,13 @@ export default class DatabaseServiceWeb extends DatabaseService {
                 await this.execute(
                     `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
                 );
+            }
+
+            if (!skipValidation) {
+                const errors = await this.checkDataSourceForErrors(name);
+                if (errors.length) {
+                    throw new Error(errors.join("</br></br>"));
+                }
             }
         } catch (err) {
             await this.deleteDataSource(name);
