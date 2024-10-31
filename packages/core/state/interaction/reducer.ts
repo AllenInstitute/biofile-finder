@@ -20,7 +20,6 @@ import {
     MARK_AS_USED_APPLICATION_BEFORE,
     MARK_AS_DISMISSED_SMALL_SCREEN_WARNING,
     ShowManifestDownloadDialogAction,
-    ShowMoveFileManifestAction,
     SET_IS_AICS_EMPLOYEE,
     PROMPT_FOR_DATA_SOURCE,
     DownloadManifestAction,
@@ -59,7 +58,6 @@ export interface InteractionStateBranch {
     hasUsedApplicationBefore: boolean;
     isAicsEmployee?: boolean;
     isOnWeb: boolean;
-    moveFileTarget?: string;
     platformDependentServices: PlatformDependentServices;
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;
@@ -198,10 +196,9 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             selectedPublicDataset: action.payload,
         }),
-        [SHOW_MOVE_FILE_MANIFEST]: (state, action: ShowMoveFileManifestAction) => ({
+        [SHOW_MOVE_FILE_MANIFEST]: (state) => ({
             ...state,
             visibleModal: ModalType.MoveFileManifest,
-            moveFileTarget: action.payload.target,
         }),
     },
     initialState

@@ -690,17 +690,11 @@ export const SHOW_MOVE_FILE_MANIFEST = makeConstant(STATE_BRANCH_NAME, "show-mov
 
 export interface ShowMoveFileManifestAction {
     type: string;
-    payload: {
-        target: string;
-    };
 }
 
-export function showMoveFileManifest(target: string): ShowMoveFileManifestAction {
+export function showMoveFileManifest(): ShowMoveFileManifestAction {
     return {
         type: SHOW_MOVE_FILE_MANIFEST,
-        payload: {
-            target,
-        },
     };
 }
 
@@ -710,16 +704,14 @@ export interface MoveFilesAction {
     type: string;
     payload: {
         fileDetails: FileDetail[];
-        target: string;
     };
 }
 
-export function moveFiles(fileDetails: FileDetail[], target: string): MoveFilesAction {
+export function moveFiles(fileDetails: FileDetail[]): MoveFilesAction {
     return {
         type: MOVE_FILES,
         payload: {
             fileDetails,
-            target,
         },
     };
 }

@@ -579,13 +579,13 @@ const setIsSmallScreen = createLogic({
 
 /**
  * Interceptor responsible for handling the MOVE_FILES action.
- * Logs the target location for file movement in the console.
+ * Logs details of files that are being moved.
  */
 const moveFilesLogic = createLogic({
     type: MOVE_FILES,
     process(deps, dispatch, done) {
         const action = deps.action as MoveFilesAction;
-        console.log(`Moving files to location: ${action.payload.target}`);
+        console.log(`Moving files:`, action.payload.fileDetails);
         done();
     },
 });

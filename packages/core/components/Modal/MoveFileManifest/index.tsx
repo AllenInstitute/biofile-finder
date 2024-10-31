@@ -21,7 +21,6 @@ export default function MoveFileManifest({ onDismiss }: ModalProps) {
         selection.selectors.getFileSelection,
         FileSelection.selectionsAreEqual
     );
-    const moveFileTarget = useSelector(interaction.selectors.getMoveFileTarget);
 
     const [fileDetails, setFileDetails] = React.useState<FileDetail[]>([]);
     const [totalSize, setTotalSize] = React.useState<string | undefined>();
@@ -43,14 +42,8 @@ export default function MoveFileManifest({ onDismiss }: ModalProps) {
     }, [fileSelection, fileService]);
 
     const onMove = () => {
-        if (moveFileTarget) {
-            dispatch(interaction.actions.moveFiles(fileDetails, moveFileTarget));
-            onDismiss();
-        } else {
-            console.warn(
-                "Move file target location is undefined. Cannot proceed with moving files."
-            );
-        }
+        dispatch(interaction.actions.moveFiles(fileDetails));
+        onDismiss();
     };
 
     const body = (
@@ -93,7 +86,7 @@ export default function MoveFileManifest({ onDismiss }: ModalProps) {
                 />
             }
             onDismiss={onDismiss}
-            title={`Move Files to ${moveFileTarget}`}
+            title="Move Files to NAS Cache"
         />
     );
 }
