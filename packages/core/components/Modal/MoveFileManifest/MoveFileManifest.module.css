@@ -1,8 +1,10 @@
-.file-table-container {
+.fileTableContainer {
     max-height: 300px;
     overflow-y: auto;
     border: 1px solid var(--border-color);
-    margin-bottom: var(--margin);
+    margin-bottom: 1em;
+    padding: 1em;
+    background: linear-gradient(to bottom, transparent, var(--secondary-background-color));
 }
 
 .file-table {
