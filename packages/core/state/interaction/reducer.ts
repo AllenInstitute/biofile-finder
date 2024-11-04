@@ -15,6 +15,7 @@ import {
     SHOW_CONTEXT_MENU,
     SHOW_DATASET_DETAILS_PANEL,
     SHOW_MANIFEST_DOWNLOAD_DIALOG,
+    SHOW_MOVE_FILE_MANIFEST,
     StatusUpdate,
     MARK_AS_USED_APPLICATION_BEFORE,
     MARK_AS_DISMISSED_SMALL_SCREEN_WARNING,
@@ -194,6 +195,10 @@ export default makeReducer<InteractionStateBranch>(
         [SET_SELECTED_PUBLIC_DATASET]: (state, action) => ({
             ...state,
             selectedPublicDataset: action.payload,
+        }),
+        [SHOW_MOVE_FILE_MANIFEST]: (state) => ({
+            ...state,
+            visibleModal: ModalType.MoveFileManifest,
         }),
     },
     initialState
