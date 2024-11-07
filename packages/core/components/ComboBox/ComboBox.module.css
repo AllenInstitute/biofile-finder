@@ -1,0 +1,99 @@
+.combo-box {
+  border: 1px solid var(--border-color);
+  border-radius: var(--small-border-radius);
+}
+
+.combo-box, .combo-box > :is(div, input), .combo-box :is(button, i) {
+  background-color: var(--secondary-background-color) !important;
+  color: var(--secondary-text-color) !important;
+}
+
+.combo-box:focus, .combo-box:focus-visible {
+  outline: none;
+}
+
+.combo-box:hover > button, .combo-box:hover > button i {
+  color: var(--highlight-text-color) !important;
+}
+
+.combo-box > *::placeholder {
+  color: var(--secondary-text-color) !important;
+  font-style: italic;
+}
+
+.combo-box::after {
+  border: unset;
+}
+
+.combo-box:focus-within, .combo-box:focus, .combo-box:active {
+  border: 1px solid var(--aqua);
+}
+
+.combo-box-caret {
+  position: absolute;
+  right: 0;
+}
+
+.combo-box-label {
+  color: var(--primary-text-color) !important;
+  font-size: var(--l-paragraph-size);
+}
+
+.combo-box-callout {
+  background-color: var(--primary-background-color);
+  border-radius: var(--small-border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 8px 0;
+  max-height: 250px !important;
+}
+
+.combo-box-callout > div {
+  background-color: var(--primary-background-color);
+  border-radius: 0;
+}
+
+.combo-box-item :is(input, button, label){
+  color: var(--primary-text-color);
+}
+
+.combo-box-item button:disabled, .combo-box-item-disabled {
+  color: var(--primary-text-color);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.combo-box-item-disabled > div:hover,
+.combo-box-item-disabled > div:hover :is(input, label) {
+  background-color: var(--primary-background-color) !important;
+  color: unset !important;
+}
+
+.combo-box-item button:not(:disabled):hover,
+.combo-box-item > div:hover,
+.combo-box-item > div:hover :is(input, label) {
+  background-color: var(--highlight-background-color);
+  color: var(--highlight-text-color);
+}
+
+.combo-box-callout button:not(:disabled):active, 
+.combo-box-callout button:not(:disabled):active:hover,
+.combo-box-callout button:not(:disabled):focus,
+.combo-box-item > div:active,
+.combo-box-item > div:active:hover,
+.combo-box-item > div:focus,
+.combo-box-item > div:active :is(input, label),
+.combo-box-item > div:active:hover :is(input, label),
+.combo-box-item > div:focus :is(input, label)  {
+  background-color: var(--secondary-dark);
+  color: var(--highlight-text-color);
+}
+
+/* Remove border and background from checkbox for multiselect */
+.combo-box-item > div :is(i, div) {
+  border: none !important;
+  background: none !important;
+}
+
+.combo-box-item > div:hover :is(i, div) {
+  color: var(--highlight-text-color) !important;
+}
