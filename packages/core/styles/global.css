@@ -22,7 +22,7 @@ main {
     overflow: hidden;
 }
 
-/* For browsers that support `scrollbar-*` properties */
+/* For browsers that support `scrollbar-*` properties (updated versions of Firefox, Chrome, Edge) */
 @supports (scrollbar-color: auto) {
     html,
     body,
@@ -30,7 +30,7 @@ main {
         scrollbar-color: var(--medium-grey) var(--accent-dark);
     }
 }
-/* Otherwise, use `::-webkit-scrollbar-*` pseudo-elements */
+/* Otherwise, use pseudo-elements (Safari, Chromium) */
 @supports selector(::-webkit-scrollbar) {
     body *::-webkit-scrollbar {
         background-color: var(--accent-dark);
