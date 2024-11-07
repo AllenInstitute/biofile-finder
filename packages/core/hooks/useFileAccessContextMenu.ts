@@ -3,6 +3,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useOpenWithMenuItems from "./useOpenWithMenuItems";
+import { ModalType } from "../components/Modal";
 import FileDetail from "../entity/FileDetail";
 import FileFilter from "../entity/FileFilter";
 import { interaction, selection } from "../state";
@@ -135,6 +136,24 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                         ],
                     },
                 },
+                ...(isQueryingAicsFms
+                    ? [
+                          {
+                              key: "edit",
+                              text: "Edit metadata",
+                              title: "Edit metadata of selected files",
+                              disabled: !filters && fileSelection.count() === 0,
+                              iconProps: {
+                                  iconName: "Edit",
+                              },
+                              onClick() {
+                                  dispatch(
+                                      interaction.actions.setVisibleModal(ModalType.EditMetadata)
+                                  );
+                              },
+                          },
+                      ]
+                    : []),
                 {
                     key: "download",
                     text: "Download",
