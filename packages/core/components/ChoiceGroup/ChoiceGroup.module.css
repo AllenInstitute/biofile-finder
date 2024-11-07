@@ -24,8 +24,8 @@
   border-color: var(--aqua);
   width: 16px;
   height: 16px;
-  top: 2.1px;
-  left: 2.1px;
+  top: 2px;
+  left: 2px;
 }
 
 .choice-group label::after {
