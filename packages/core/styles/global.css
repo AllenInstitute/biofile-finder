@@ -20,8 +20,30 @@ main {
     padding: 0;
     border: 0;
     overflow: hidden;
-    /* Unavailable on some versions of some browsers */
-    scrollbar-color:  var(--medium-grey) var(--accent-dark);
+}
+
+/* For browsers that support `scrollbar-*` properties */
+@supports (scrollbar-color: auto) {
+    html,
+    body,
+    main {
+        scrollbar-color: var(--medium-grey) var(--accent-dark);
+    }
+}
+/* Otherwise, use `::-webkit-scrollbar-*` pseudo-elements */
+@supports selector(::-webkit-scrollbar) {
+    body *::-webkit-scrollbar {
+        background-color: var(--accent-dark);
+        width: 12px;
+        height: 12px;
+    }
+    body *::-webkit-scrollbar-corner {
+        background-color: var(--accent-dark);
+    }
+    body *::-webkit-scrollbar-thumb {
+        background-color: var(--medium-grey);
+        border-radius: 8px
+    }
 }
 
 body {
