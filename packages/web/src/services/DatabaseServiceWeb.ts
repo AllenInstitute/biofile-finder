@@ -1,8 +1,6 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 
 import { DatabaseService } from "../../../core/services";
-import DataSourcePreparationError from "../../../core/errors/DataSourcePreparationError";
-import { Source } from "../../../core/entity/FileExplorerURL";
 
 export default class DatabaseServiceWeb extends DatabaseService {
     private database: duckdb.AsyncDuckDB | undefined;
@@ -78,71 +76,39 @@ export default class DatabaseServiceWeb extends DatabaseService {
         this.database?.detach();
     }
 
-    public async addDataSource(dataSource: Source, skipValidation = false): Promise<void> {
-        const { name, type, uri } = dataSource;
+    protected async addDataSource(
+        name: string,
+        type: "csv" | "json" | "parquet",
+        uri: string | File
+    ): Promise<void> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
-        if (this.existingDataSources.has(name)) {
-            return;
-        }
-        if (!type || !uri) {
-            throw new DataSourcePreparationError(
-                `Unable to access the data source.\
-                </br> \
-                For local data sources, you'll need to re-upload them \
-                with each refresh to maintain access permissions. \
-                To avoid this, consider using cloud storage for the \
-                file and sharing the URL. \
-                </br>\
-                If the data source is already \
-                hosted in the cloud, check for any changes in its location \
-                or permissions.`,
-                dataSource.name
+
+        if (uri instanceof File) {
+            await this.database.registerFileHandle(
+                name,
+                uri,
+                duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
+                true
             );
+        } else {
+            const protocol = uri.startsWith("s3")
+                ? duckdb.DuckDBDataProtocol.S3
+                : duckdb.DuckDBDataProtocol.HTTP;
+
+            await this.database.registerFileURL(name, uri, protocol, false);
         }
 
-        this.existingDataSources.add(name);
-        try {
-            if (uri instanceof File) {
-                await this.database.registerFileHandle(
-                    name,
-                    uri,
-                    duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
-                    true
-                );
-            } else if (typeof uri === "string") {
-                const protocol = uri.startsWith("s3")
-                    ? duckdb.DuckDBDataProtocol.S3
-                    : duckdb.DuckDBDataProtocol.HTTP;
-
-                await this.database.registerFileURL(name, uri, protocol, false);
-            } else {
-                throw new Error(
-                    `URI is of unexpected type, should be File instance or String: ${uri}`
-                );
-            }
-
-            if (type === "parquet") {
-                await this.execute(`CREATE TABLE "${name}" AS FROM parquet_scan('${name}');`);
-            } else if (type === "json") {
-                await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
-            } else {
-                // Default to CSV
-                await this.execute(
-                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
-                );
-            }
-
-            if (!skipValidation) {
-                const errors = await this.checkDataSourceForErrors(name);
-                if (errors.length) {
-                    throw new Error(errors.join("</br></br>"));
-                }
-            }
-        } catch (err) {
-            await this.deleteDataSource(name);
-            throw new DataSourcePreparationError((err as Error).message, name);
+        if (type === "parquet") {
+            await this.execute(`CREATE TABLE "${name}" AS FROM parquet_scan('${name}');`);
+        } else if (type === "json") {
+            await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
+        } else {
+            // Default to CSV
+            await this.execute(
+                `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
+            );
         }
     }
 

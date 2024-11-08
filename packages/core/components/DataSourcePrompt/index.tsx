@@ -17,10 +17,10 @@ interface Props {
 }
 
 const ADDITIONAL_COLUMN_DETAILS = [
-    'If a "Thumbnail" column (case-sensitive) is present it should contain a web URL to a thumbnail image for the file. ',
-    'If a "File Name" column (case-sensitive) is present it should be the file\'s name (this will replace the "File Name" created by default from the path). ',
-    'If a "File Size" column (case-sensitive) is present it should contain the size of the file in bytes. ',
-    'If an "Uploaded" column (case-sensitive) is present it should contain the date the file was uploaded to the cloud storage and be formatted as YYYY-MM-DD HH:MM:SS.Z where Z is a timezone offset. ',
+    'If a "Thumbnail" column is present it should contain a web URL to a thumbnail image for the file. ',
+    'If a "File Name" column is present it should be the file\'s name (this will replace the "File Name" created by default from the path). ',
+    'If a "File Size" column is present it should contain the size of the file in bytes. ',
+    'If an "Uploaded" column is present it should contain the date the file was uploaded to the cloud storage and be formatted as YYYY-MM-DD HH:MM:SS.Z where Z is a timezone offset. ',
 ];
 
 /**
@@ -81,13 +81,10 @@ export default function DataSourcePrompt(props: Props) {
                 <>
                     <ul className={styles.detailsList}>
                         <li className={styles.details}>
-                            The file must contain a &quot;File Path&quot; column (case-sensitive) &
-                            must be unique by the &quot;File Path&quot; column. Any other columns
-                            are optional and will be available as annotations to query by.
-                        </li>
-                        <li className={styles.details}>
-                            The &quot;File Path&quot; column should contain full path to a file in a
-                            cloud storage.
+                            The file must contain a &quot;File Path&quot; column & must be unique by
+                            the &quot;File Path&quot; column or have a unique &quot;File ID&quot;
+                            column. Any other columns are optional and will be available as
+                            annotations to query by.
                         </li>
                     </ul>
                     <h4 className={styles.details}>Advanced:</h4>
@@ -98,7 +95,7 @@ export default function DataSourcePrompt(props: Props) {
                             as&quot; options.
                         </li>
                         <li className={styles.details}>
-                            These are additional special columns that are optional, but will be
+                            These are additional pre-defined columns that are optional, but will be
                             handled as a special case in the application:
                         </li>
                         <ul className={styles.detailsList}>
