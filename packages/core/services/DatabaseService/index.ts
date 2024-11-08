@@ -101,8 +101,6 @@ export default abstract class DatabaseService {
         const { name, type, uri } = dataSource;
 
         if (!type || !uri) {
-            // TODO: We know at this point the file is local.
-            // A missing permission or moved file is a different error we need to catch
             throw new DataSourcePreparationError(
                 `Lost access to the data source.\
                 </br> \
@@ -182,7 +180,7 @@ export default abstract class DatabaseService {
             // ordered by file path.
             await this.execute(`
                 UPDATE "${name}"
-                SET "File ID" = CONCAT(SQ.row, '${dataSourceNameWithoutDate}')
+                SET "File ID" = CONCAT(SQ.row, '-', '${dataSourceNameWithoutDate}')
                 FROM (
                     SELECT "File Path", ROW_NUMBER() OVER (ORDER BY "File Path") AS row
                     FROM "${name}"
@@ -379,11 +377,11 @@ export default abstract class DatabaseService {
             SELECT ROW_NUMBER() OVER () AS row        
             FROM "${dataSource}"            
             WHERE "${column}" IN (
-                SELECT "${column}", COUNT(*)
+                SELECT "${column}"
                 FROM "${dataSource}"
                 WHERE TRIM("${column}") IS NOT NULL
                 GROUP BY "${column}"
-                HAVING COUNT(*) > 1;
+                HAVING COUNT(*) > 1
             )
         `);
         return duplicateColumnQueryResult.map((row) => row.row);

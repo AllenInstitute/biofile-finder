@@ -63,10 +63,9 @@ export default class DatabaseServiceWeb extends DatabaseService {
             );
             return JSON.parse(resultAsJSONString);
         } catch (err) {
-            console.error(
-                `${(err as Error).message}\nThe above error occured while executing query: ${sql}`
+            throw new Error(
+                `${(err as Error).message}. \nThe above error occured while executing query: ${sql}`
             );
-            throw err;
         } finally {
             await connection.close();
         }
