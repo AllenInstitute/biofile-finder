@@ -328,6 +328,7 @@ export default abstract class DatabaseService {
                 // Grab near matches to the pre-defined columns like "file_name" for "File Name"
                 const matches = [...columnsOnDataSource].filter((column) => {
                     const formattedColumn = column
+                        .trim()
                         .toLowerCase()
                         .replace("_", " ")
                         .replace("-", " ");
