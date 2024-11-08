@@ -138,13 +138,13 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                 ...(isQueryingAicsFms
                     ? [
                           {
-                              key: "move-to-cache",
-                              text: "Move to Cache",
-                              title: "Move selected files to NAS Cache",
+                              key: "copy-to-cache",
+                              text: "Copy to vast",
+                              title: "Copy selected files to NAS Cache (VAST)",
                               disabled: !filters && fileSelection.count() === 0,
                               iconProps: { iconName: "MoveToFolder" },
                               onClick() {
-                                  dispatch(interaction.actions.showMoveFileManifest());
+                                  dispatch(interaction.actions.showCopyFileManifest());
                               },
                           },
                       ]
