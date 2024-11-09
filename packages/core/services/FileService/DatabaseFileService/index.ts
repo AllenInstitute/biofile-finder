@@ -41,7 +41,6 @@ export default class DatabaseFileService implements FileService {
         }
         return new FileDetail({
             annotations: [
-                ...annotations,
                 ...Object.entries(omit(row, ...annotations.keys())).flatMap(([name, values]: any) =>
                     values !== null
                         ? [

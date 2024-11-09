@@ -15,6 +15,7 @@ describe("DatabaseFileService", () => {
         "File ID": file_id,
         "File Size": `${totalFileSize / 2}`,
         "File Path": "path/to/file",
+        "File Name": "file",
         num_files: "6",
     }));
 
@@ -43,32 +44,20 @@ describe("DatabaseFileService", () => {
             expect(data[0].details).to.deep.equal({
                 annotations: [
                     {
+                        name: "File ID",
+                        values: ["abc123"],
+                    },
+                    {
+                        name: "File Size",
+                        values: ["432226"],
+                    },
+                    {
                         name: "File Path",
                         values: ["path/to/file"],
                     },
                     {
                         name: "File Name",
                         values: ["file"],
-                    },
-                    {
-                        name: "File ID",
-                        values: ["abc123"],
-                    },
-                    {
-                        name: "File Size",
-                        values: ["432226"],
-                    },
-                    {
-                        name: "File ID",
-                        values: ["abc123"],
-                    },
-                    {
-                        name: "File Size",
-                        values: ["432226"],
-                    },
-                    {
-                        name: "File Path",
-                        values: ["path/to/file"],
                     },
                     {
                         name: "num_files",
