@@ -20,9 +20,11 @@ interface Config extends ConnectionConfig {
  * Service responsible for fetching file related metadata.
  */
 export default class HttpFileService extends HttpServiceBase implements FileService {
+    private static readonly CACHE_ENDPOINT_VERSION = "3.0";
     private static readonly ENDPOINT_VERSION = "3.0";
     public static readonly BASE_FILES_URL = `file-explorer-service/${HttpFileService.ENDPOINT_VERSION}/files`;
     public static readonly BASE_FILE_COUNT_URL = `${HttpFileService.BASE_FILES_URL}/count`;
+    public static readonly BASE_FILE_CACHE_URL = `fss2/${HttpFileService.CACHE_ENDPOINT_VERSION}/file/cache`;
     public static readonly SELECTION_AGGREGATE_URL = `${HttpFileService.BASE_FILES_URL}/selection/aggregate`;
     private static readonly CSV_ENDPOINT_VERSION = "2.0";
     public static readonly BASE_CSV_DOWNLOAD_URL = `file-explorer-service/${HttpFileService.CSV_ENDPOINT_VERSION}/files/selection/manifest`;
@@ -126,5 +128,26 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
             },
             uniqueId()
         );
+    }
+
+    /**
+     * Cache a list of files to NAS cache (VAST) by sending their IDs to FSS.
+     */
+    public async cacheFiles(
+        fileIds: string[]
+    ): Promise<{ cacheFileStatuses: { [fileId: string]: string } }> {
+        const requestUrl = `${this.baseUrl}/${HttpFileService.BASE_FILE_CACHE_URL}${this.pathSuffix}`;
+        const requestBody = JSON.stringify({ fileIds });
+
+        try {
+            const cacheStatuses = await this.rawPost<{
+                cacheFileStatuses: { [fileId: string]: string };
+            }>(requestUrl, requestBody);
+
+            return cacheStatuses; // Return the entire response object
+        } catch (error) {
+            console.error("Failed to cache files:", error);
+            throw new Error("Unable to complete the caching request.");
+        }
     }
 }
