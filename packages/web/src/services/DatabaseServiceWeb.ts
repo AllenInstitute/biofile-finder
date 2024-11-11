@@ -1,8 +1,6 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 
 import { DatabaseService } from "../../../core/services";
-import DataSourcePreparationError from "../../../core/errors/DataSourcePreparationError";
-import { Source } from "../../../core/entity/FileExplorerURL";
 
 export default class DatabaseServiceWeb extends DatabaseService {
     private database: duckdb.AsyncDuckDB | undefined;
@@ -50,7 +48,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
         }
     }
 
-    public async query(sql: string): Promise<any> {
+    public async query(sql: string): Promise<{ [key: string]: any }[]> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
@@ -65,10 +63,9 @@ export default class DatabaseServiceWeb extends DatabaseService {
             );
             return JSON.parse(resultAsJSONString);
         } catch (err) {
-            console.error(
-                `${(err as Error).message}\nThe above error occured while executing query: ${sql}`
+            throw new Error(
+                `${(err as Error).message}. \nThe above error occured while executing query: ${sql}`
             );
-            throw err;
         } finally {
             await connection.close();
         }
@@ -78,55 +75,39 @@ export default class DatabaseServiceWeb extends DatabaseService {
         this.database?.detach();
     }
 
-    public async addDataSource(dataSource: Source): Promise<void> {
-        const { name, type, uri } = dataSource;
+    protected async addDataSource(
+        name: string,
+        type: "csv" | "json" | "parquet",
+        uri: string | File
+    ): Promise<void> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
-        if (this.existingDataSources.has(name)) {
-            return;
-        }
-        if (!type || !uri) {
-            throw new DataSourcePreparationError(
-                `Data source type and URI are missing for ${dataSource.name}`,
-                dataSource.name
+
+        if (uri instanceof File) {
+            await this.database.registerFileHandle(
+                name,
+                uri,
+                duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
+                true
             );
+        } else {
+            const protocol = uri.startsWith("s3")
+                ? duckdb.DuckDBDataProtocol.S3
+                : duckdb.DuckDBDataProtocol.HTTP;
+
+            await this.database.registerFileURL(name, uri, protocol, false);
         }
 
-        this.existingDataSources.add(name);
-        try {
-            if (uri instanceof File) {
-                await this.database.registerFileHandle(
-                    name,
-                    uri,
-                    duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
-                    true
-                );
-            } else if (typeof uri === "string") {
-                const protocol = uri.startsWith("s3")
-                    ? duckdb.DuckDBDataProtocol.S3
-                    : duckdb.DuckDBDataProtocol.HTTP;
-
-                await this.database.registerFileURL(name, uri, protocol, false);
-            } else {
-                throw new Error(
-                    `URI is of unexpected type, should be File instance or String: ${uri}`
-                );
-            }
-
-            if (type === "parquet") {
-                await this.execute(`CREATE TABLE "${name}" AS FROM parquet_scan('${name}');`);
-            } else if (type === "json") {
-                await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
-            } else {
-                // Default to CSV
-                await this.execute(
-                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
-                );
-            }
-        } catch (err) {
-            await this.deleteDataSource(name);
-            throw new DataSourcePreparationError((err as Error).message, name);
+        if (type === "parquet") {
+            await this.execute(`CREATE TABLE "${name}" AS FROM parquet_scan('${name}');`);
+        } else if (type === "json") {
+            await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
+        } else {
+            // Default to CSV
+            await this.execute(
+                `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
+            );
         }
     }
 

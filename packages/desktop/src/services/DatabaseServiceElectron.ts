@@ -5,8 +5,6 @@ import * as path from "path";
 import duckdb from "duckdb";
 
 import { DatabaseService } from "../../../core/services";
-import { Source } from "../../../core/entity/FileExplorerURL";
-import DataSourcePreparationError from "../../../core/errors/DataSourcePreparationError";
 
 export default class DatabaseServiceElectron extends DatabaseService {
     private database: duckdb.Database;
@@ -77,21 +75,13 @@ export default class DatabaseServiceElectron extends DatabaseService {
         });
     }
 
-    protected async addDataSource(dataSource: Source): Promise<void> {
-        const { name, type, uri } = dataSource;
-        if (this.existingDataSources.has(name)) {
-            return; // no-op
-        }
-        if (!type || !uri) {
-            throw new DataSourcePreparationError(
-                "Data source type and URI are missing",
-                dataSource.name
-            );
-        }
-
+    protected async addDataSource(
+        name: string,
+        type: "csv" | "json" | "parquet",
+        uri: string | File
+    ): Promise<void> {
         let source: string;
         let tempLocation;
-        this.existingDataSources.add(name);
         try {
             if (typeof uri === "string") {
                 source = uri;
@@ -138,9 +128,6 @@ export default class DatabaseServiceElectron extends DatabaseService {
                     );
                 }
             });
-        } catch (err) {
-            await this.deleteDataSource(name);
-            throw new DataSourcePreparationError((err as Error).message, name);
         } finally {
             if (tempLocation) {
                 await fs.promises.unlink(tempLocation);

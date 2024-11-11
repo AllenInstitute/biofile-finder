@@ -24,21 +24,12 @@ export default class DatabaseFileService implements FileService {
     private readonly downloadService: FileDownloadService;
     private readonly dataSourceNames: string[];
 
-    private static convertDatabaseRowToFileDetail(
-        row: { [key: string]: string },
-        rowNumber: number
-    ): FileDetail {
-        const filePath = row["File Path"];
-        if (!filePath) {
-            throw new Error('"File Path" (case-sensitive) is a required column for data sources');
-        }
-
-        const annotations = [];
-        annotations.push({ name: "File Path", values: [filePath] });
-        const fileName =
-            row["File Name"] || filePath.split("\\").pop()?.split("/").pop() || filePath;
-        annotations.push({ name: "File Name", values: [fileName] });
-        annotations.push({ name: "File ID", values: [row["File ID"] || `${rowNumber}`] });
+    private static convertDatabaseRowToFileDetail(row: { [key: string]: string }): FileDetail {
+        const annotations = [
+            { name: "File Path", values: [row["File Path"]] },
+            { name: "File ID", values: [row["File ID"]] },
+            { name: "File Name", values: [row["File Name"]] },
+        ];
         if (!isNil(row["File Size"])) {
             annotations.push({ name: "File Size", values: [row["File Size"]] });
         }
@@ -50,7 +41,6 @@ export default class DatabaseFileService implements FileService {
         }
         return new FileDetail({
             annotations: [
-                ...annotations,
                 ...Object.entries(omit(row, ...annotations.keys())).flatMap(([name, values]: any) =>
                     values !== null
                         ? [
@@ -126,12 +116,7 @@ export default class DatabaseFileService implements FileService {
             .toSQL();
 
         const rows = await this.databaseService.query(sql);
-        return rows.map((row, index) =>
-            DatabaseFileService.convertDatabaseRowToFileDetail(
-                row,
-                index + request.from * request.limit
-            )
-        );
+        return rows.map(DatabaseFileService.convertDatabaseRowToFileDetail);
     }
 
     /**
