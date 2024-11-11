@@ -496,6 +496,10 @@ const changeDataSourceLogic = createLogic({
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
+        const statuses = interaction.selectors.getProcessStatuses(deps.getState());
+        const dataSourceErrorStatus = statuses.find(
+            (status) => status.processId === "dataSourceReloadError"
+        );
 
         const newSelectedDataSources: DataSource[] = [];
         const existingSelectedDataSources: DataSource[] = [];
@@ -522,9 +526,12 @@ const changeDataSourceLogic = createLogic({
             dispatch(removeDataSourceReloadError());
         } catch (err) {
             const errMsg = (err as Error).message || "Unknown error while changing data source";
-            console.error(errMsg);
             if (err instanceof DataSourcePreparationError) {
-                dispatch(addDataSourceReloadError(err.sourceName, errMsg) as AnyAction);
+                // Avoid re-appending the same error message to the state,
+                // the original may have been more specific
+                if (!dataSourceErrorStatus?.data.msg.includes(err.sourceName)) {
+                    dispatch(addDataSourceReloadError(err.sourceName, errMsg) as AnyAction);
+                }
             } else {
                 dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
             }
