@@ -78,25 +78,38 @@ describe("HttpFileService", () => {
         });
     });
 
-    describe("getCountOfMatchingFiles", () => {
+    describe("cacheFiles", () => {
         const httpClient = createMockHttpClient({
-            when: `${baseUrl}/${HttpFileService.BASE_FILE_COUNT_URL}`,
+            when: `${baseUrl}/${HttpFileService.BASE_FILE_CACHE_URL}`,
             respondWith: {
                 data: {
-                    data: [2],
+                    cacheFileStatuses: {
+                        abc123: "DOWNLOAD_COMPLETE",
+                        def456: "ERROR",
+                    },
                 },
             },
         });
 
-        it("issues request for count of files matching given parameters", async () => {
+        it("sends file IDs to be cached and returns their statuses", async () => {
+            // Arrange
             const fileService = new HttpFileService({
                 baseUrl,
                 httpClient,
                 downloadService: new FileDownloadServiceNoop(),
             });
-            const fileSet = new FileSet();
-            const count = await fileService.getCountOfMatchingFiles(fileSet);
-            expect(count).to.equal(2);
+            const fileIds = ["abc123", "def456"];
+
+            // Act
+            const response = await fileService.cacheFiles(fileIds);
+
+            // Assert
+            expect(response).to.deep.equal({
+                cacheFileStatuses: {
+                    abc123: "DOWNLOAD_COMPLETE",
+                    def456: "ERROR",
+                },
+            });
         });
     });
 });
