@@ -130,9 +130,9 @@ export default abstract class DatabaseService {
                 if (errors.length) {
                     throw new Error(errors.join("</br></br>"));
                 }
-            }
 
-            await this.addRequiredColumns(dataSource.name);
+                await this.addRequiredColumns(dataSource.name);
+            }
         } catch (err) {
             await this.deleteDataSource(name);
             throw new DataSourcePreparationError((err as Error).message, name);
