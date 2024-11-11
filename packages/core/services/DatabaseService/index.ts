@@ -321,16 +321,17 @@ export default abstract class DatabaseService {
             // Filter out any pre-defined columns that are exact matches to columns on the data source
             // since those are already perfect
             if (!columnsOnDataSource.has(preDefinedColumn)) {
-                const preDefinedColumnAsLowerCase = preDefinedColumn.toLowerCase();
+                const preDefinedColumnSimplified = preDefinedColumn.toLowerCase().replace(" ", "");
 
                 // Grab near matches to the pre-defined columns like "file_name" for "File Name"
                 const matches = [...columnsOnDataSource].filter((column) => {
-                    const formattedColumn = column
+                    const simplifiedColumn = column
                         .trim()
-                        .toLowerCase()
-                        .replace("_", " ")
-                        .replace("-", " ");
-                    return formattedColumn === preDefinedColumnAsLowerCase;
+                        .toLowerCase() // File Name -> file name
+                        .replace("_", "") // file_path -> filepath
+                        .replace(" ", "") // file path -> filepath
+                        .replace("-", ""); // file-path -> filepath
+                    return simplifiedColumn === preDefinedColumnSimplified;
                 });
 
                 // Doesn't seem like we should guess at a pre-defined column match in this case
