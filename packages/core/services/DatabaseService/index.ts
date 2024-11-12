@@ -326,11 +326,8 @@ export default abstract class DatabaseService {
                 // Grab near matches to the pre-defined columns like "file_name" for "File Name"
                 const matches = [...columnsOnDataSource].filter((column) => {
                     const simplifiedColumn = column
-                        .trim()
                         .toLowerCase() // File Name -> file name
-                        .replace("_", "") // file_path -> filepath
-                        .replace(" ", "") // file path -> filepath
-                        .replace("-", ""); // file-path -> filepath
+                        .replaceAll(/\s|-|_/g, ""); // Matches any whitespace, hyphen, or underscore
                     return simplifiedColumn === preDefinedColumnSimplified;
                 });
 
