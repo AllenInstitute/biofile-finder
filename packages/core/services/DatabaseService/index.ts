@@ -343,7 +343,7 @@ export default abstract class DatabaseService {
 
                 if (matches.length === 1) {
                     // Rename matching column name to new pre-defined column
-                    this.execute(`
+                    await this.execute(`
                         ALTER TABLE "${dataSourceName}"
                         RENAME COLUMN "${matches[0]}" TO '${preDefinedColumn}'
                     `);
