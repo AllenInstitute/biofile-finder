@@ -7,14 +7,15 @@ import { Source } from "../../entity/FileExplorerURL";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
-const PRE_DEFINED_COLUMNS = [
-    "File ID",
-    "File Path",
-    "File Name",
-    "File Size",
-    "Thumbnail",
-    "Uploaded",
-];
+enum PreDefinedColumn {
+    FILE_ID = "File ID",
+    FILE_PATH = "File Path",
+    FILE_NAME = "File Name",
+    FILE_SIZE = "File Size",
+    THUMBNAIL = "Thumbnail",
+    UPLOADED = "Uploaded",
+}
+const PRE_DEFINED_COLUMNS = Object.values(PreDefinedColumn);
 
 /**
  * Service reponsible for querying against a database
@@ -167,10 +168,10 @@ export default abstract class DatabaseService {
     */
     protected async addRequiredColumns(name: string): Promise<void> {
         const dataSourceColumns = await this.getColumnsOnDataSource(name);
-        if (!dataSourceColumns.has("File ID")) {
+        if (!dataSourceColumns.has(PreDefinedColumn.FILE_ID)) {
             await this.execute(`
                 ALTER TABLE "${name}"
-                ADD COLUMN IF NOT EXISTS "File ID" VARCHAR;
+                ADD COLUMN IF NOT EXISTS "${PreDefinedColumn.FILE_ID}" VARCHAR;
             `);
             // The data source's input date gets appended to the end
             // of the auto-generated name, that makes it kind of messy
@@ -180,33 +181,33 @@ export default abstract class DatabaseService {
             // ordered by file path.
             await this.execute(`
                 UPDATE "${name}"
-                SET "File ID" = CONCAT(SQ.row, '-', '${dataSourceNameWithoutDate}')
+                SET "${PreDefinedColumn.FILE_ID}" = CONCAT(SQ.row, '-', '${dataSourceNameWithoutDate}')
                 FROM (
-                    SELECT "File Path", ROW_NUMBER() OVER (ORDER BY "File Path") AS row
+                    SELECT "${PreDefinedColumn.FILE_PATH}", ROW_NUMBER() OVER (ORDER BY "${PreDefinedColumn.FILE_PATH}") AS row
                     FROM "${name}"
                 ) AS SQ
-                WHERE "${name}"."File Path" = SQ."File Path";
+                WHERE "${name}"."${PreDefinedColumn.FILE_PATH}" = SQ."${PreDefinedColumn.FILE_PATH}";
             `);
         }
 
-        if (!dataSourceColumns.has("File Name")) {
+        if (!dataSourceColumns.has(PreDefinedColumn.FILE_NAME)) {
             await this.execute(`
                 ALTER TABLE "${name}"
-                ADD COLUMN IF NOT EXISTS "File Name" VARCHAR;
+                ADD COLUMN IF NOT EXISTS "${PreDefinedColumn.FILE_NAME}" VARCHAR;
             `);
             // Best shot attempt at auto-generating a "File Name"
             // from the "File Path", defaults to full path if this fails
             await this.execute(`
                 UPDATE "${name}"
-                SET "File Name" = COALESCE(
+                SET "${PreDefinedColumn.FILE_NAME}" = COALESCE(
                     NULLIF(
                         REGEXP_REPLACE(
-                            "File Path",
+                            "${PreDefinedColumn.FILE_PATH}",
                             '^.*/([^/]*?)(\\.[^/.]+)?$', '\\1',
                             ''
                         ),
                     ''),
-                "File Path");
+                "${PreDefinedColumn.FILE_PATH}");
             `);
         }
 
@@ -224,21 +225,24 @@ export default abstract class DatabaseService {
         const columnsOnTable = await this.getColumnsOnDataSource(name);
 
         // If a data source has a File ID it must also pass validation
-        const hasFileIdColumn = columnsOnTable.has("File ID");
+        const hasFileIdColumn = columnsOnTable.has(PreDefinedColumn.FILE_ID);
         if (hasFileIdColumn) {
             // Check for empty or just whitespace File ID column values
-            const blankFileIdRows = await this.getRowsWhereColumnIsBlank(name, "File ID");
+            const blankFileIdRows = await this.getRowsWhereColumnIsBlank(
+                name,
+                PreDefinedColumn.FILE_ID
+            );
             if (blankFileIdRows.length > 0) {
                 const rowNumbers = DatabaseService.truncateString(blankFileIdRows.join(", "), 100);
                 errors.push(
-                    `"File ID" column contains ${blankFileIdRows.length} empty or purely whitespace values at rows ${rowNumbers}.`
+                    `"${PreDefinedColumn.FILE_ID}" column contains ${blankFileIdRows.length} empty or purely whitespace ids at rows ${rowNumbers}.`
                 );
             }
 
             // Check for duplicate File ID column values
             const duplicateFileIdRows = await this.getRowsWhereColumnIsNotUniqueOrBlank(
                 name,
-                "File ID"
+                PreDefinedColumn.FILE_ID
             );
             if (duplicateFileIdRows.length > 0) {
                 const rowNumbers = DatabaseService.truncateString(
@@ -246,21 +250,17 @@ export default abstract class DatabaseService {
                     100
                 );
                 errors.push(
-                    `"File ID" column contains duplicates. Found ${duplicateFileIdRows.length} duplicate values at rows ${rowNumbers}.`
+                    `"${PreDefinedColumn.FILE_ID}" column contains duplicates. Found ${duplicateFileIdRows.length} duplicate ids at rows ${rowNumbers}.`
                 );
             }
         }
 
-        if (!columnsOnTable.has("File Path")) {
-            let error =
-                '\
-                "File Path" column is missing in the data source. \
-                Check the data source header row for a "File Path" column name and try again.';
+        if (!columnsOnTable.has(PreDefinedColumn.FILE_PATH)) {
+            let error = `"${PreDefinedColumn.FILE_PATH}" column is missing in the data source.
+                Check the data source header row for a "${PreDefinedColumn.FILE_PATH}" column name and try again.`;
 
             // Attempt to find a column with a similar name to "File Path"
             const columns = Array.from(columnsOnTable);
-            // TODO: In addition to doing this, on ingestion detect "file_path", "file path", etc.
-            // and convert to "File Path" in DB table
             const filePathLikeColumn =
                 columns.find((column) => column.toLowerCase().includes("path")) ||
                 columns.find((column) => column.toLowerCase().includes("file"));
@@ -274,14 +274,17 @@ export default abstract class DatabaseService {
             errors.push(error);
         } else {
             // Check for empty or just whitespace File Path column values
-            const blankFilePathRows = await this.getRowsWhereColumnIsBlank(name, "File Path");
+            const blankFilePathRows = await this.getRowsWhereColumnIsBlank(
+                name,
+                PreDefinedColumn.FILE_PATH
+            );
             if (blankFilePathRows.length > 0) {
                 const rowNumbers = DatabaseService.truncateString(
                     blankFilePathRows.join(", "),
                     100
                 );
                 errors.push(
-                    `"File Path" column contains ${blankFilePathRows.length} empty or purely whitespace values at rows ${rowNumbers}.`
+                    `"${PreDefinedColumn.FILE_PATH}" column contains ${blankFilePathRows.length} empty or purely whitespace paths at rows ${rowNumbers}.`
                 );
             }
 
@@ -291,7 +294,7 @@ export default abstract class DatabaseService {
                 // Check for duplicate File ID column values
                 const duplicateFilePathRows = await this.getRowsWhereColumnIsNotUniqueOrBlank(
                     name,
-                    "File Path"
+                    PreDefinedColumn.FILE_PATH
                 );
                 if (duplicateFilePathRows.length > 0) {
                     const rowNumbers = DatabaseService.truncateString(
@@ -299,7 +302,7 @@ export default abstract class DatabaseService {
                         100
                     );
                     errors.push(
-                        `"File Path" column contains duplicates, but has no "File ID" column to use as a unique identifier instead. Add a unique "File ID" column or make "File Path" values unique. Found ${duplicateFilePathRows.length} duplicate values at rows ${rowNumbers}.`
+                        `"${PreDefinedColumn.FILE_PATH}" column contains duplicates, but has no "${PreDefinedColumn.FILE_ID}" column to use as a unique identifier instead. Add a unique "${PreDefinedColumn.FILE_ID}" column or make "${PreDefinedColumn.FILE_PATH}" values unique. Found ${duplicateFilePathRows.length} duplicate paths at rows ${rowNumbers}.`
                     );
                 }
             }
