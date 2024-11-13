@@ -19,7 +19,7 @@ export interface CellConfig {
 interface FileRowProps {
     cells: CellConfig[];
     className?: string;
-    rowIdentifier?: any;
+    rowIdentifier?: { index: number; id: string };
     onContextMenu?: (evt: React.MouseEvent) => void;
     onResize?: (columnKey: string, nextWidth?: number) => void;
     onSelect?: OnSelect;

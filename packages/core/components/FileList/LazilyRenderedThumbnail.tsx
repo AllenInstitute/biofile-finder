@@ -79,7 +79,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
 
         if (onSelect && file !== undefined) {
             onSelect(
-                { index: overallIndex, id: file.id },
+                { index: overallIndex, id: file.uid },
                 {
                     // Details on different OS keybindings
                     // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent#Properties

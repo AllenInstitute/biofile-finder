@@ -21,10 +21,10 @@ const PRE_DEFINED_COLUMNS = Object.values(PreDefinedColumn);
  * Service reponsible for querying against a database
  */
 export default abstract class DatabaseService {
-    protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     public static readonly LIST_DELIMITER = ",";
+    public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
     // Name of the hidden column BFF uses to uniquely identify rows
-    private static readonly HIDDEN_UID_COLUMN = "hidden_bff_uid";
+    protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     // "Open file link" as a datatype must be hardcoded, and CAN NOT change
     // without BREAKING visibility in the dataset released in 2024 as part
     // of the EMT Data Release paper
@@ -173,7 +173,19 @@ export default abstract class DatabaseService {
             // Add hidden UID column to uniquely identify rows
             `
                 ALTER TABLE "${name}"
-                ADD COLUMN IF NOT EXISTS "${DatabaseService.HIDDEN_UID_COLUMN}" INT NOT NULL PRIMARY KEY
+                ADD COLUMN ${DatabaseService.HIDDEN_UID_ANNOTATION} INT
+            `,
+            // Altering tables to add primary keys or serially generated columns
+            // isn't yet supported in DuckDB, so this does a serially generated
+            // column addition manually
+            `
+                UPDATE "${name}"
+                SET "${DatabaseService.HIDDEN_UID_ANNOTATION}" = SQ.row
+                FROM (
+                    SELECT "${PreDefinedColumn.FILE_PATH}", ROW_NUMBER() OVER (ORDER BY "${PreDefinedColumn.FILE_PATH}") AS row
+                    FROM "${name}"
+                ) AS SQ
+                WHERE "${name}"."${PreDefinedColumn.FILE_PATH}" = SQ."${PreDefinedColumn.FILE_PATH}";
             `,
         ];
 
@@ -181,7 +193,7 @@ export default abstract class DatabaseService {
         if (!dataSourceColumns.has(PreDefinedColumn.FILE_NAME)) {
             commandsToExecute.push(`
                 ALTER TABLE "${name}"
-                ADD COLUMN IF NOT EXISTS "${PreDefinedColumn.FILE_NAME}" VARCHAR;
+                ADD COLUMN "${PreDefinedColumn.FILE_NAME}" VARCHAR;
             `);
             // Best shot attempt at auto-generating a "File Name"
             // from the "File Path", defaults to full path if this fails
@@ -214,37 +226,6 @@ export default abstract class DatabaseService {
         const errors: string[] = [];
         const columnsOnTable = await this.getColumnsOnDataSource(name);
 
-        // If a data source has a File ID it must also pass validation
-        const hasFileIdColumn = columnsOnTable.has(PreDefinedColumn.FILE_ID);
-        if (hasFileIdColumn) {
-            // Check for empty or just whitespace File ID column values
-            const blankFileIdRows = await this.getRowsWhereColumnIsBlank(
-                name,
-                PreDefinedColumn.FILE_ID
-            );
-            if (blankFileIdRows.length > 0) {
-                const rowNumbers = DatabaseService.truncateString(blankFileIdRows.join(", "), 100);
-                errors.push(
-                    `"${PreDefinedColumn.FILE_ID}" column contains ${blankFileIdRows.length} empty or purely whitespace ids at rows ${rowNumbers}.`
-                );
-            }
-
-            // Check for duplicate File ID column values
-            const duplicateFileIdRows = await this.getRowsWhereColumnIsNotUniqueOrBlank(
-                name,
-                PreDefinedColumn.FILE_ID
-            );
-            if (duplicateFileIdRows.length > 0) {
-                const rowNumbers = DatabaseService.truncateString(
-                    duplicateFileIdRows.join(", "),
-                    100
-                );
-                errors.push(
-                    `"${PreDefinedColumn.FILE_ID}" column contains duplicates. Found ${duplicateFileIdRows.length} duplicate ids at rows ${rowNumbers}.`
-                );
-            }
-        }
-
         if (!columnsOnTable.has(PreDefinedColumn.FILE_PATH)) {
             let error = `"${PreDefinedColumn.FILE_PATH}" column is missing in the data source.
                 Check the data source header row for a "${PreDefinedColumn.FILE_PATH}" column name and try again.`;
@@ -276,25 +257,6 @@ export default abstract class DatabaseService {
                 errors.push(
                     `"${PreDefinedColumn.FILE_PATH}" column contains ${blankFilePathRows.length} empty or purely whitespace paths at rows ${rowNumbers}.`
                 );
-            }
-
-            // "File Path" has to be unique when a unique File ID is not provided
-            // otherwise we can't cleanly auto-generate a File ID based on the File Path
-            if (!hasFileIdColumn) {
-                // Check for duplicate File ID column values
-                const duplicateFilePathRows = await this.getRowsWhereColumnIsNotUniqueOrBlank(
-                    name,
-                    PreDefinedColumn.FILE_PATH
-                );
-                if (duplicateFilePathRows.length > 0) {
-                    const rowNumbers = DatabaseService.truncateString(
-                        duplicateFilePathRows.join(", "),
-                        100
-                    );
-                    errors.push(
-                        `"${PreDefinedColumn.FILE_PATH}" column contains duplicates, but has no "${PreDefinedColumn.FILE_ID}" column to use as a unique identifier instead. Add a unique "${PreDefinedColumn.FILE_ID}" column or make "${PreDefinedColumn.FILE_PATH}" values unique. Found ${duplicateFilePathRows.length} duplicate paths at rows ${rowNumbers}.`
-                    );
-                }
             }
         }
 
@@ -336,7 +298,7 @@ export default abstract class DatabaseService {
                     );
                 }
 
-                if (matches.length < 0) {
+                if (matches.length < 1) {
                     return []; // No-op essentially if no matches
                 }
 
@@ -458,7 +420,7 @@ export default abstract class DatabaseService {
                 .select("column_name, data_type")
                 .from('information_schema"."columns')
                 .where(`table_name = '${aggregateDataSourceName}'`)
-                .where(`column_name != '${DatabaseService.HIDDEN_UID_COLUMN}'`)
+                .where(`column_name != '${DatabaseService.HIDDEN_UID_ANNOTATION}'`)
                 .toSQL();
             const rows = await this.query(sql);
             if (isEmpty(rows)) {

@@ -19,8 +19,8 @@ interface Props {
 const ADDITIONAL_COLUMN_DETAILS = [
     'If a "Thumbnail" column is present it should contain a web URL to a thumbnail image for the file. ',
     'If a "File Name" column is present it should be the file\'s name (this will replace the "File Name" created by default from the path). ',
-    'If a "File Size" column is present it should contain the size of the file in bytes. ',
-    'If an "Uploaded" column is present it should contain the date the file was uploaded to the cloud storage and be formatted as YYYY-MM-DD HH:MM:SS.Z where Z is a timezone offset. ',
+    'If a "File Size" column is present it should contain the size of the file in bytes. This is used for showing feedback to the user during downloads. ',
+    'If an "Uploaded" column is present it should contain the date the file was uploaded to the storage and be formatted as YYYY-MM-DD HH:MM:SS.Z where Z is a timezone offset. ',
 ];
 
 /**
@@ -81,10 +81,8 @@ export default function DataSourcePrompt(props: Props) {
                 <>
                     <ul className={styles.detailsList}>
                         <li className={styles.details}>
-                            The file must contain a &quot;File Path&quot; column & must be unique by
-                            the &quot;File Path&quot; column or have a unique &quot;File ID&quot;
-                            column. Any other columns are optional and will be available as
-                            annotations to query by.
+                            The file must contain a &quot;File Path&quot; column. Any other columns
+                            are optional and will be available as metadata to query by.
                         </li>
                     </ul>
                     <h4 className={styles.details}>Advanced:</h4>
