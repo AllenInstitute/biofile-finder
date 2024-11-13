@@ -53,6 +53,15 @@
     justify-content: left;
 }
 
+.table-example, .table-example > tr > :is(th, td) {
+    border: 2px solid var(--secondary-background-color);
+    border-collapse: collapse;
+}
+
+.table-example > tr > :is(th, td) {
+    padding: 5px;
+}
+
 .title {
     margin-bottom: 6px;
 }

@@ -77,14 +77,42 @@ export default function DataSourcePrompt(props: Props) {
                 To get started, load a CSV, Parquet, or JSON file containing metadata (annotations)
                 about your files to view them.
             </p>
+            <p
+                className={classNames(styles.text, {
+                    [styles.datasourceSubhead]: !props?.hideTitle,
+                })}
+            >
+                The first row should be the metadata tags and each row proceeding it should be
+                metadata about a file. The only required column is &quot;File Path&quot; which is
+                intended to represent the path to a file in storage. Any other columns are optional
+                and will be available as metadata to query by.
+            </p>
+            <p
+                className={classNames(styles.text, {
+                    [styles.datasourceSubhead]: !props?.hideTitle,
+                })}
+            >
+                Example CSV:
+            </p>
+            <table className={styles.tableExample}>
+                <tr>
+                    <th>File Path</th>
+                    <th>Gene (Just an example)</th>
+                    <th>Color (Also an example)</th>
+                </tr>
+                <tr>
+                    <td>/some/path/to/storage/somewhere.zarr</td>
+                    <td>CDH2</td>
+                    <td>Blue</td>
+                </tr>
+                <tr>
+                    <td>/another/path/to/another/file.txt</td>
+                    <td>VIM</td>
+                    <td>Green</td>
+                </tr>
+            </table>
             {isDataSourceDetailExpanded ? (
                 <>
-                    <ul className={styles.detailsList}>
-                        <li className={styles.details}>
-                            The file must contain a &quot;File Path&quot; column. Any other columns
-                            are optional and will be available as metadata to query by.
-                        </li>
-                    </ul>
                     <h4 className={styles.details}>Advanced:</h4>
                     <ul className={styles.detailsList}>
                         <li className={styles.details}>
