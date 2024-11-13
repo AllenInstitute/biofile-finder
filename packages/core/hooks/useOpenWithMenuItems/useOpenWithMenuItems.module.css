@@ -13,7 +13,19 @@
 }
 
 .desktop-menu-item .info-button {
-    transform: translateY(-2px);
+    color: var(--white);
+    opacity: 0.5;
+}
+
+.desktop-menu-item .info-button:hover {
+    opacity: 1;
+}
+
+.secondary-text {
+    color: var(--white);
+    font-size: 12px !important;
+    opacity: 0.5;
+    padding-left: 10px;
 }
 
 .desktop-menu-item .info-button > span {
@@ -34,6 +46,5 @@
 }
 
 .desktop-menu-item a {
-    padding-left: 57.5px;
-    width: 25px;
+    padding-left: 0;
 }

@@ -1,4 +1,4 @@
-import { ContextualMenuItemType, DefaultButton, Icon, IContextualMenuItem } from "@fluentui/react";
+import { DefaultButton, Icon, IContextualMenuItem } from "@fluentui/react";
 import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,51 +9,26 @@ import { interaction, metadata } from "../../state";
 
 import styles from "./useOpenWithMenuItems.module.css";
 
-interface WebApps {
-    neuroglancer: IContextualMenuItem;
-    simularium: IContextualMenuItem;
-    volumeviewer: IContextualMenuItem;
-    volview: IContextualMenuItem;
+enum AppKeys {
+    AGAVE = "agave",
+    NEUROGLANCER = "neuroglancer",
+    SIMULARIUM = "simularium",
+    VOLE = "vole",
+    VOLVIEW = "volview",
 }
 
-const WEB_APPS = (fileDetails?: FileDetail): WebApps => ({
-    volumeviewer: {
-        key: "3d-web-viewer",
-        text: "3D Web Viewer",
-        title: `Open files with 3D Web Viewer`,
-        href: `https://volumeviewer.allencell.org/viewer?url=${fileDetails?.cloudPath}/`,
-        disabled: !fileDetails?.path,
-        target: "_blank",
-    },
-    neuroglancer: {
-        key: "neuroglancer",
-        text: "Neuroglancer",
-        title: `Open files with Neuroglancer`,
-        href: `https://neuroglancer-demo.appspot.com/#!{%22layers%22:[{%22source%22:%22zarr://${fileDetails?.cloudPath}%22,%22name%22:%22${fileDetails?.name}%22}]}`,
-        disabled: !fileDetails?.path,
-        target: "_blank",
-    },
-    simularium: {
-        key: "simularium",
-        text: "Simularium",
-        title: `Open files with Simularium`,
-        href: `https://simularium.allencell.org/viewer?trajUrl=${fileDetails?.cloudPath}`,
-        disabled: !fileDetails?.path,
-        target: "_blank",
-    },
-    volview: {
-        key: "volview",
-        text: "VolView",
-        title: `Open files with VolView`,
-        href: `https://volview.kitware.app/?urls=[${fileDetails?.cloudPath}]`,
-        disabled: !fileDetails?.path,
-        target: "_blank",
-    },
-});
+interface Apps {
+    [AppKeys.AGAVE]: IContextualMenuItem;
+    [AppKeys.NEUROGLANCER]: IContextualMenuItem;
+    [AppKeys.SIMULARIUM]: IContextualMenuItem;
+    [AppKeys.VOLE]: IContextualMenuItem;
+    [AppKeys.VOLVIEW]: IContextualMenuItem;
+}
 
-const DESKTOP_APPS = (fileDetails?: FileDetail): { agave: IContextualMenuItem } => ({
-    agave: {
-        key: "agave",
+const APPS = (fileDetails?: FileDetail): Apps => ({
+    [AppKeys.AGAVE]: {
+        key: AppKeys.AGAVE,
+        // TODO: Upgrade styling here
         className: styles.desktopMenuItem,
         text: "AGAVE",
         title: "Open files with AGAVE v1.7.2+",
@@ -64,6 +39,7 @@ const DESKTOP_APPS = (fileDetails?: FileDetail): { agave: IContextualMenuItem } 
             return (
                 <>
                     {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Desktop |</span>
                     <a
                         className={styles.viewLink}
                         href="https://www.allencell.org/pathtrace-rendering.html"
@@ -82,21 +58,98 @@ const DESKTOP_APPS = (fileDetails?: FileDetail): { agave: IContextualMenuItem } 
             );
         },
     } as IContextualMenuItem,
+    [AppKeys.NEUROGLANCER]: {
+        key: AppKeys.NEUROGLANCER,
+        text: "Neuroglancer",
+        title: `Open files with Neuroglancer`,
+        href: `https://neuroglancer-demo.appspot.com/#!{%22layers%22:[{%22source%22:%22zarr://${fileDetails?.cloudPath}%22,%22name%22:%22${fileDetails?.name}%22}]}`,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
+    [AppKeys.SIMULARIUM]: {
+        key: AppKeys.SIMULARIUM,
+        text: "Simularium",
+        title: `Open files with Simularium`,
+        href: `https://simularium.allencell.org/viewer?trajUrl=${fileDetails?.cloudPath}`,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
+    [AppKeys.VOLE]: {
+        key: AppKeys.VOLE,
+        text: "Vol-E",
+        title: `Open files with Vol-E`,
+        href: `https://volumeviewer.allencell.org/viewer?url=${fileDetails?.cloudPath}/`,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
+    [AppKeys.VOLVIEW]: {
+        key: AppKeys.VOLVIEW,
+        text: "VolView",
+        title: `Open files with VolView`,
+        href: `https://volview.kitware.app/?urls=[${fileDetails?.cloudPath}]`,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
 });
 
-function getWebAppMenuItems(fileDetails?: FileDetail): IContextualMenuItem[] {
-    switch (true) {
-        case fileDetails?.name.includes(".simularium"):
-            return [WEB_APPS(fileDetails).simularium];
-        case fileDetails?.name.includes(".dcm"):
-            return [WEB_APPS(fileDetails).volview];
-        default:
-            return [WEB_APPS(fileDetails).volumeviewer, WEB_APPS(fileDetails).neuroglancer];
+function getPrioritySupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
+    if (!fileDetails) {
+        return [];
     }
-}
+    const isLikelyLocalFile =
+        !fileDetails.path.startsWith("http") && !fileDetails.path.startsWith("s3");
 
-function getDesktopAppMenuItems(fileDetails?: FileDetail): IContextualMenuItem[] {
-    return [DESKTOP_APPS(fileDetails).agave];
+    const fileExt = fileDetails.name.slice(fileDetails.name.lastIndexOf(".") + 1).toLowerCase();
+    const apps = APPS(fileDetails);
+    switch (fileExt) {
+        case "simularium":
+            return [apps.simularium];
+        case "dcm":
+            return [apps.volview];
+        case "n5":
+        case "czi":
+            [apps.neuroglancer];
+        case "tiff":
+        case "zarr":
+        case "": // No extension
+            return isLikelyLocalFile
+                ? [apps.agave, apps.neuroglancer, apps.vole]
+                : [apps.vole, apps.neuroglancer, apps.agave];
+        default:
+            return [];
+    }
 }
 
 export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMenuItem[] => {
@@ -112,7 +165,6 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         interaction.selectors.getFileExplorerServiceBaseUrl
     );
 
-    const plateLink = fileDetails?.getLinkToPlateUI(fileExplorerServiceBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
         () =>
             fileDetails?.annotations
@@ -129,98 +181,109 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         [fileDetails, annotationNameToAnnotationMap]
     );
 
-    const priorityWebApps = getWebAppMenuItems(fileDetails);
-    // Grab every other web app that isn't in the priority list
-    const otherWebApps = Object.values(WEB_APPS(fileDetails)).filter((app) =>
-        priorityWebApps.every((item) => item.key !== app.key)
-    );
-    const priorityDesktopApps = getDesktopAppMenuItems(fileDetails);
-    // Grab every other desktop app that isn't in the priority list
-    const otherDesktopApps = Object.values(DESKTOP_APPS(fileDetails)).filter((app) =>
-        priorityDesktopApps.every((item) => item.key !== app.key)
+    const authorDefinedApps = Object.entries(annotationNameToLinkMap).map(
+        ([name, link]): IContextualMenuItem =>
+            ({
+                key: name,
+                text: name,
+                title: `Open link - ${name}`,
+                href: link,
+                target: "_blank",
+                onRenderContent(props, defaultRenders) {
+                    return (
+                        <>
+                            {defaultRenders.renderItemName(props)}
+                            <span className={styles.secondaryText}>Web</span>
+                        </>
+                    );
+                },
+            } as IContextualMenuItem)
     );
 
-    return [
-        ...(isEmpty(annotationNameToLinkMap)
-            ? []
-            : [
-                  {
-                      key: "custom-links",
-                      text: "AUTHOR DEFINED",
-                      title: "User defined links for this file",
-                      itemType: ContextualMenuItemType.Header,
-                  },
-              ]),
-        ...Object.entries(annotationNameToLinkMap).map(([name, link]) => ({
-            key: name,
-            text: name,
-            title: `Open link - ${name}`,
-            href: link,
+    // If there are author defined apps, we don't need to check for priority apps
+    const priorityApps = authorDefinedApps.length
+        ? authorDefinedApps
+        : getPrioritySupportedApps(fileDetails);
+    console.log(authorDefinedApps, priorityApps);
+
+    const plateLink = fileDetails?.getLinkToPlateUI(fileExplorerServiceBaseUrl);
+    if (plateLink && isAicsEmployee) {
+        priorityApps.push({
+            key: "open-plate-ui",
+            text: "LabKey Plate UI",
+            title: "Open this plate in the Plate UI",
+            href: plateLink,
             target: "_blank",
-        })),
-        {
-            key: "web-apps",
-            text: "WEB APPS",
-            title: "Web applications (no installation necessary)",
-            itemType: ContextualMenuItemType.Header,
-        },
-        ...priorityWebApps,
-        ...(plateLink && isAicsEmployee
-            ? [
-                  {
-                      key: "open-plate-ui",
-                      text: "LabKey Plate UI",
-                      title: "Open this plate in the Plate UI",
-                      href: plateLink,
-                      target: "_blank",
-                  },
-              ]
-            : []),
-        {
-            key: "desktop-apps",
-            text: "DESKTOP APPS",
-            title: "Desktop applications (installation required)",
-            itemType: ContextualMenuItemType.Header,
-        },
-        ...[
-            ...priorityDesktopApps,
-            ...(userSelectedApplications || []).map((app) => {
-                const name = executionEnvService.getFilename(app.filePath);
-                return {
-                    key: `open-with-${name}`,
-                    text: name,
-                    title: `Open files with ${name}`,
-                    disabled: !filters && !fileDetails,
-                    onClick() {
-                        if (filters) {
-                            dispatch(interaction.actions.openWith(app, filters));
-                        } else if (fileDetails) {
-                            dispatch(interaction.actions.openWith(app, undefined, [fileDetails]));
-                        }
-                    },
-                };
-            }),
-        ].sort((a, b) => (a.text || "").localeCompare(b.text || "")),
-        {
+            onRenderContent(props, defaultRenders) {
+                return (
+                    <>
+                        {defaultRenders.renderItemName(props)}
+                        <span className={styles.secondaryText}>Web</span>
+                    </>
+                );
+            },
+        } as IContextualMenuItem);
+    }
+
+    const userApps = (userSelectedApplications || [])
+        .map((app) => {
+            const name = executionEnvService.getFilename(app.filePath);
+            return {
+                key: `open-with-${name}`,
+                text: name,
+                title: `Open files with ${name}`,
+                disabled: !filters && !fileDetails,
+                onClick() {
+                    if (filters) {
+                        dispatch(interaction.actions.openWith(app, filters));
+                    } else if (fileDetails) {
+                        dispatch(interaction.actions.openWith(app, undefined, [fileDetails]));
+                    }
+                },
+                onRenderContent(props, defaultRenders) {
+                    return (
+                        <>
+                            {defaultRenders.renderItemName(props)}
+                            <span className={styles.secondaryText}>Desktop</span>
+                        </>
+                    );
+                },
+            } as IContextualMenuItem;
+        })
+        .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
+
+    // Grab every other known app
+    const unsupportedApps = Object.values(APPS(fileDetails)).filter((app) =>
+        priorityApps.every((item) => item.key !== app.key)
+    );
+
+    // Combine the priority apps with the user selected apps
+    // to begin building the menu list
+    const menuItems = [...priorityApps, ...userApps];
+
+    // Unable to open arbirary applications on the web
+    // this adds to the bottom of the "Other apps" sub menu
+    if (!isOnWeb) {
+        unsupportedApps.push({
+            key: "other...",
+            text: "Other...",
+            title: "Select an application to open the selection with",
+            onClick() {
+                dispatch(interaction.actions.promptForNewExecutable(filters));
+            },
+        });
+    }
+
+    if (!isEmpty(unsupportedApps)) {
+        menuItems.push({
             key: "other-apps",
-            text: "OTHER APPS",
+            text: "Other apps",
             title: "Other applications that are not expected to support this file type",
-            itemType: ContextualMenuItemType.Header,
-        },
-        ...otherWebApps,
-        ...otherDesktopApps,
-        ...(isOnWeb
-            ? // Unable to open arbitrary applications on the web at the moment
-              []
-            : [
-                  {
-                      key: "other...",
-                      text: "Other...",
-                      title: "Select an application to open the selection with",
-                      onClick() {
-                          dispatch(interaction.actions.promptForNewExecutable(filters));
-                      },
-                  },
-              ]),
-    ];
+            subMenuProps: {
+                items: unsupportedApps,
+            },
+        });
+    }
+
+    return menuItems;
 };
