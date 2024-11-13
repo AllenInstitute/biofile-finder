@@ -82,19 +82,23 @@ export default function DataSourcePrompt(props: Props) {
                     [styles.datasourceSubhead]: !props?.hideTitle,
                 })}
             >
-                The first row should be the metadata tags and each row proceeding it should be
-                metadata about a file. The only required column is &quot;File Path&quot; which is
-                intended to represent the path to a file in storage. Any other columns are optional
-                and will be available as metadata to query by.
+                The first row should contain metadata tags, and each subsequent row includes
+                metadata for a file, with &quot;File Path&quot; being the only required column.
+                Other columns are optional and can be used for querying additional file metadata.
             </p>
             <p
                 className={classNames(styles.text, {
                     [styles.datasourceSubhead]: !props?.hideTitle,
+                    [styles.leftTextAlign]: !props?.hideTitle,
                 })}
             >
                 Example CSV:
             </p>
-            <table className={styles.tableExample}>
+            <table
+                className={classNames(styles.tableExample, {
+                    [styles.lightBorder]: !props?.hideTitle,
+                })}
+            >
                 <tr>
                     <th>File Path</th>
                     <th>Gene (Just an example)</th>
