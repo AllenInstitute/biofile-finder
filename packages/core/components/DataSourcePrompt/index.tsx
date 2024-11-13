@@ -99,21 +99,25 @@ export default function DataSourcePrompt(props: Props) {
                     [styles.lightBorder]: !props?.hideTitle,
                 })}
             >
-                <tr>
-                    <th>File Path</th>
-                    <th>Gene (Just an example)</th>
-                    <th>Color (Also an example)</th>
-                </tr>
-                <tr>
-                    <td>/some/path/to/storage/somewhere.zarr</td>
-                    <td>CDH2</td>
-                    <td>Blue</td>
-                </tr>
-                <tr>
-                    <td>/another/path/to/another/file.txt</td>
-                    <td>VIM</td>
-                    <td>Green</td>
-                </tr>
+                <thead>
+                    <tr>
+                        <th>File Path</th>
+                        <th>Gene (Just an example)</th>
+                        <th>Color (Also an example)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>/some/path/to/storage/somewhere.zarr</td>
+                        <td>CDH2</td>
+                        <td>Blue</td>
+                    </tr>
+                    <tr>
+                        <td>/another/path/to/another/file.txt</td>
+                        <td>VIM</td>
+                        <td>Green</td>
+                    </tr>
+                </tbody>
             </table>
             {isDataSourceDetailExpanded ? (
                 <>
