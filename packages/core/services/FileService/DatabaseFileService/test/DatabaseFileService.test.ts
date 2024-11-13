@@ -45,10 +45,6 @@ describe("DatabaseFileService", () => {
             expect(data[0].details).to.deep.equal({
                 annotations: [
                     {
-                        name: "File ID",
-                        values: ["abc123"],
-                    },
-                    {
                         name: "File Size",
                         values: ["432226"],
                     },

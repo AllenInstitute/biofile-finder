@@ -25,7 +25,7 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         type: AnnotationType.STRING,
     }),
     new Annotation({
-        annotationDisplayName: "File Path",
+        annotationDisplayName: "File Path (Canonical)",
         annotationName: AnnotationName.FILE_PATH,
         description: "Path to file in storage.",
         type: AnnotationType.STRING,
