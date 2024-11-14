@@ -555,6 +555,8 @@ const changeSourceMetadataLogic = createLogic({
         );
         if (selectedSourceMetadata) {
             await databaseService.prepareSourceMetadata(selectedSourceMetadata);
+        } else {
+            await databaseService.deleteSourceMetadata();
         }
 
         dispatch(metadata.actions.requestAnnotations());
@@ -577,6 +579,8 @@ const addQueryLogic = createLogic({
             await databaseService.prepareDataSources(newQuery.parts.sources);
             if (newQuery.parts.sourceMetadata) {
                 await databaseService.prepareSourceMetadata(newQuery.parts.sourceMetadata);
+            } else {
+                await databaseService.deleteSourceMetadata();
             }
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());

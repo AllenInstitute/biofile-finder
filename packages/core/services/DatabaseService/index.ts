@@ -30,6 +30,7 @@ export default abstract class DatabaseService {
         ...Object.values(AnnotationType),
         DatabaseService.OPEN_FILE_LINK_TYPE,
     ]);
+    private sourceMetadataName?: string;
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
@@ -140,11 +141,12 @@ export default abstract class DatabaseService {
     }
 
     public async prepareSourceMetadata(sourceMetadata: Source): Promise<void> {
-        if (sourceMetadata.type && sourceMetadata.uri) {
-            this.deleteDataSource(this.SOURCE_METADATA_TABLE);
-            this.dataSourceToAnnotationsMap.clear();
+        const isOldSource = sourceMetadata.name === this.sourceMetadataName;
+        if (isOldSource) {
+            return;
         }
 
+        await this.deleteSourceMetadata();
         await this.prepareDataSource(
             {
                 ...sourceMetadata,
@@ -152,6 +154,12 @@ export default abstract class DatabaseService {
             },
             true
         );
+        this.sourceMetadataName = sourceMetadata.name;
+    }
+
+    public async deleteSourceMetadata(): Promise<void> {
+        await this.deleteDataSource(this.SOURCE_METADATA_TABLE);
+        this.dataSourceToAnnotationsMap.clear();
     }
 
     protected async deleteDataSource(dataSource: string): Promise<void> {
@@ -456,7 +464,12 @@ export default abstract class DatabaseService {
 
     public async fetchAnnotations(dataSourceNames: string[]): Promise<Annotation[]> {
         const aggregateDataSourceName = dataSourceNames.sort().join(", ");
-        if (!this.dataSourceToAnnotationsMap.has(aggregateDataSourceName)) {
+        const hasAnnotations = this.dataSourceToAnnotationsMap.has(aggregateDataSourceName);
+        const hasDescriptions = this.dataSourceToAnnotationsMap
+            .get(aggregateDataSourceName)
+            ?.some((annotation) => !!annotation.description);
+        const shouldHaveDescriptions = dataSourceNames.includes(this.SOURCE_METADATA_TABLE);
+        if (!hasAnnotations || (!hasDescriptions && shouldHaveDescriptions)) {
             const sql = new SQLBuilder()
                 .select("column_name, data_type")
                 .from('information_schema"."columns')
