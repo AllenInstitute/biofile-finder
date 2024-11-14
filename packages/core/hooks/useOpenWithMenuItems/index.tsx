@@ -131,7 +131,7 @@ function getPrioritySupportedApps(fileDetails?: FileDetail): IContextualMenuItem
     const isLikelyLocalFile =
         !fileDetails.path.startsWith("http") && !fileDetails.path.startsWith("s3");
 
-    const fileExt = fileDetails.name.slice(fileDetails.name.lastIndexOf(".") + 1).toLowerCase();
+    const fileExt = fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
     const apps = APPS(fileDetails);
     switch (fileExt) {
         case "simularium":
@@ -204,7 +204,6 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     const priorityApps = authorDefinedApps.length
         ? authorDefinedApps
         : getPrioritySupportedApps(fileDetails);
-    console.log(authorDefinedApps, priorityApps);
 
     const plateLink = fileDetails?.getLinkToPlateUI(fileExplorerServiceBaseUrl);
     if (plateLink && isAicsEmployee) {
