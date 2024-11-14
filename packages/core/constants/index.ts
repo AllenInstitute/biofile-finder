@@ -11,6 +11,12 @@ export enum FileExplorerServiceBaseUrl {
     PRODUCTION = "https://production.int.allencell.org",
 }
 
+export enum AicsLoadBalancerBaseUrl {
+    LOCALHOST = "http://localhost:8080",
+    STAGING = "http://stg-aics.corp.alleninstitute.org",
+    PRODUCTION = "http://aics.corp.alleninstitute.org",
+}
+
 export const TOP_LEVEL_FILE_ANNOTATIONS = [
     new Annotation({
         annotationDisplayName: "File ID",

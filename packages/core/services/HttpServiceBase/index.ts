@@ -2,10 +2,11 @@ import axios, { AxiosInstance } from "axios";
 import { Policy } from "cockatiel";
 import LRUCache from "lru-cache";
 
-import { FileExplorerServiceBaseUrl } from "../../constants";
+import { AicsLoadBalancerBaseUrl, FileExplorerServiceBaseUrl } from "../../constants";
 import RestServiceResponse from "../../entity/RestServiceResponse";
 
 export interface ConnectionConfig {
+    aicsLoadBalancerBaseUrl?: string | keyof typeof AicsLoadBalancerBaseUrl;
     applicationVersion?: string;
     baseUrl?: string | keyof typeof FileExplorerServiceBaseUrl;
     httpClient?: AxiosInstance;
@@ -14,6 +15,7 @@ export interface ConnectionConfig {
 }
 
 export const DEFAULT_CONNECTION_CONFIG = {
+    aicsLoadBalancerBaseUrl: AicsLoadBalancerBaseUrl.PRODUCTION,
     baseUrl: FileExplorerServiceBaseUrl.PRODUCTION,
     httpClient: axios.create(),
 };
@@ -97,8 +99,11 @@ export default class HttpServiceBase {
             .join("");
     }
 
+    public aicsLoadBalancerBaseUrl: string | keyof typeof AicsLoadBalancerBaseUrl =
+        DEFAULT_CONNECTION_CONFIG.aicsLoadBalancerBaseUrl;
     public baseUrl: string | keyof typeof FileExplorerServiceBaseUrl =
         DEFAULT_CONNECTION_CONFIG.baseUrl;
+
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
     private applicationVersion = "NOT SET";
     private userName?: string;
@@ -106,6 +111,10 @@ export default class HttpServiceBase {
     private readonly urlToResponseDataCache = new LRUCache<string, any>({ max: MAX_CACHE_SIZE });
 
     constructor(config: ConnectionConfig = {}) {
+        if (config.aicsLoadBalancerBaseUrl) {
+            this.setAicsLoadBalancerBaseUrl(config.aicsLoadBalancerBaseUrl);
+        }
+
         if (config.applicationVersion) {
             this.setApplicationVersion(config.applicationVersion);
         }
@@ -232,6 +241,17 @@ export default class HttpServiceBase {
         }
 
         return new RestServiceResponse(response.data);
+    }
+
+    public setAicsLoadBalancerBaseUrl(
+        aicsLoadBalancerBaseUrl: string | keyof typeof AicsLoadBalancerBaseUrl
+    ) {
+        if (this.aicsLoadBalancerBaseUrl !== aicsLoadBalancerBaseUrl) {
+            // bust cache when base url changes
+            this.urlToResponseDataCache.reset();
+        }
+
+        this.aicsLoadBalancerBaseUrl = aicsLoadBalancerBaseUrl;
     }
 
     public setApplicationVersion(applicationVersion: string) {

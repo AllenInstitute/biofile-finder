@@ -136,7 +136,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     public async cacheFiles(
         fileIds: string[]
     ): Promise<{ cacheFileStatuses: { [fileId: string]: string } }> {
-        const requestUrl = `${this.baseUrl}/${HttpFileService.BASE_FILE_CACHE_URL}${this.pathSuffix}`;
+        const requestUrl = `${this.aicsLoadBalancerBaseUrl}/${HttpFileService.BASE_FILE_CACHE_URL}${this.pathSuffix}`;
         const requestBody = JSON.stringify({ fileIds });
 
         try {

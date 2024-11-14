@@ -260,12 +260,13 @@ export interface InitializeApp {
     payload: string;
 }
 
-export function initializeApp(baseUrl: string): InitializeApp {
-    return {
-        type: INITIALIZE_APP,
-        payload: baseUrl,
-    };
-}
+export const initializeApp = (payload: {
+    aicsLoadBalancerBaseUrl: string;
+    fileExplorerServiceBaseUrl: string;
+}) => ({
+    type: INITIALIZE_APP,
+    payload,
+});
 
 /**
  * PROCESS AND STATUS RELATED ENUMS, INTERFACES, ETC.

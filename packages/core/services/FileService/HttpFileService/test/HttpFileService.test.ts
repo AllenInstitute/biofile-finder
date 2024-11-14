@@ -9,6 +9,7 @@ import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadSe
 
 describe("HttpFileService", () => {
     const baseUrl = "test";
+    const aicsLoadBalancerBaseUrlMock = "http://loadbalancer-test.aics.corp.alleninstitute.org";
     const fileIds = ["abc123", "def456", "ghi789", "jkl012"];
     const files = fileIds.map((file_id) => ({
         file_id,
@@ -28,7 +29,7 @@ describe("HttpFileService", () => {
 
         it("issues request for files that match given parameters", async () => {
             const httpFileService = new HttpFileService({
-                baseUrl,
+                baseUrl: baseUrl,
                 httpClient,
                 downloadService: new FileDownloadServiceNoop(),
             });
@@ -80,7 +81,7 @@ describe("HttpFileService", () => {
 
     describe("cacheFiles", () => {
         const httpClient = createMockHttpClient({
-            when: `${baseUrl}/${HttpFileService.BASE_FILE_CACHE_URL}`,
+            when: `${aicsLoadBalancerBaseUrlMock}/${HttpFileService.BASE_FILE_CACHE_URL}`,
             respondWith: {
                 data: {
                     cacheFileStatuses: {
@@ -94,7 +95,7 @@ describe("HttpFileService", () => {
         it("sends file IDs to be cached and returns their statuses", async () => {
             // Arrange
             const fileService = new HttpFileService({
-                baseUrl,
+                aicsLoadBalancerBaseUrl: aicsLoadBalancerBaseUrlMock,
                 httpClient,
                 downloadService: new FileDownloadServiceNoop(),
             });

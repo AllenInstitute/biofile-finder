@@ -43,6 +43,7 @@ import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceN
 import PublicDataset from "../../../web/src/entity/PublicDataset";
 
 export interface InteractionStateBranch {
+    aicsLoadBalancerBaseUrl: string;
     applicationVersion?: string;
     contextMenuIsVisible: boolean;
     contextMenuItems: ContextMenuItem[];
@@ -67,6 +68,7 @@ export interface InteractionStateBranch {
 }
 
 export const initialState: InteractionStateBranch = {
+    aicsLoadBalancerBaseUrl: DEFAULT_CONNECTION_CONFIG.aicsLoadBalancerBaseUrl,
     contextMenuIsVisible: false,
     contextMenuItems: [],
     // Passed to `ContextualMenu` as `target`. From the "@fluentui/react" docs:
@@ -166,7 +168,8 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [INITIALIZE_APP]: (state, action) => ({
             ...state,
-            fileExplorerServiceBaseUrl: action.payload,
+            aicsLoadBalancerBaseUrl: action.payload.aicsLoadBalancerBaseUrl,
+            fileExplorerServiceBaseUrl: action.payload.fileExplorerServiceBaseUrl,
         }),
         [SET_VISIBLE_MODAL]: (state, action) => ({
             ...state,

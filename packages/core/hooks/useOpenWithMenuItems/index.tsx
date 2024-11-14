@@ -103,11 +103,9 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
-    const fileExplorerServiceBaseUrl = useSelector(
-        interaction.selectors.getFileExplorerServiceBaseUrl
-    );
+    const aicsLoadBalancerBaseUrl = useSelector(interaction.selectors.getAicsLoadBalancerBaseUrl);
 
-    const plateLink = fileDetails?.getLinkToPlateUI(fileExplorerServiceBaseUrl);
+    const plateLink = fileDetails?.getLinkToPlateUI(aicsLoadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
         () =>
             fileDetails?.annotations

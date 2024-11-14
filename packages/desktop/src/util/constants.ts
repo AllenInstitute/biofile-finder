@@ -3,10 +3,10 @@
 // pattern used in the npm script used to invoke electron-mocha.
 export const RUN_IN_RENDERER = "@renderer";
 
-export enum FileDownloadServiceBaseUrl {
-    LOCALHOST = "http://localhost:8080/labkey/fmsfiles/image",
-    STAGING = "http://stg-aics.corp.alleninstitute.org/labkey/fmsfiles/image",
-    PRODUCTION = "http://aics.corp.alleninstitute.org/labkey/fmsfiles/image",
+export enum AicsLoadBalancerBaseUrl {
+    LOCALHOST = "http://localhost:8080",
+    STAGING = "http://stg-aics.corp.alleninstitute.org",
+    PRODUCTION = "http://aics.corp.alleninstitute.org",
 }
 
 export enum FileExplorerServiceBaseUrl {

@@ -2,12 +2,12 @@ import { MenuItemConstructorOptions } from "electron";
 
 import {
     GlobalVariableChannels,
-    FileDownloadServiceBaseUrl,
+    AicsLoadBalancerBaseUrl,
     FileExplorerServiceBaseUrl,
 } from "../../util/constants";
 
 // Least effort state management accessible to both the main and renderer processes.
-global.fileDownloadServiceBaseUrl = FileDownloadServiceBaseUrl.PRODUCTION;
+global.aicsLoadBalancerBaseUrl = AicsLoadBalancerBaseUrl.PRODUCTION;
 global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION;
 
 const dataSourceMenu: MenuItemConstructorOptions = {
@@ -16,12 +16,16 @@ const dataSourceMenu: MenuItemConstructorOptions = {
         {
             label: "Localhost",
             type: "radio",
-            checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.LOCALHOST,
+            checked:
+                global.aicsLoadBalancerBaseUrl === AicsLoadBalancerBaseUrl.LOCALHOST &&
+                global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.LOCALHOST,
             click: (_, focusedWindow) => {
                 if (focusedWindow) {
+                    global.aicsLoadBalancerBaseUrl = AicsLoadBalancerBaseUrl.LOCALHOST;
+                    global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.LOCALHOST;
                     focusedWindow.webContents.send(GlobalVariableChannels.BaseUrl, {
+                        aicsLoadBalancerBaseUrl: AicsLoadBalancerBaseUrl.LOCALHOST,
                         fileExplorerServiceBaseUrl: FileExplorerServiceBaseUrl.LOCALHOST,
-                        fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl.LOCALHOST,
                     });
                 }
             },
@@ -29,12 +33,16 @@ const dataSourceMenu: MenuItemConstructorOptions = {
         {
             label: "Staging",
             type: "radio",
-            checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.STAGING,
+            checked:
+                global.aicsLoadBalancerBaseUrl === AicsLoadBalancerBaseUrl.STAGING &&
+                global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.STAGING,
             click: (_, focusedWindow) => {
                 if (focusedWindow) {
+                    global.aicsLoadBalancerBaseUrl = AicsLoadBalancerBaseUrl.STAGING;
+                    global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.STAGING;
                     focusedWindow.webContents.send(GlobalVariableChannels.BaseUrl, {
+                        aicsLoadBalancerBaseUrl: AicsLoadBalancerBaseUrl.STAGING,
                         fileExplorerServiceBaseUrl: FileExplorerServiceBaseUrl.STAGING,
-                        fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl.STAGING,
                     });
                 }
             },
@@ -42,12 +50,16 @@ const dataSourceMenu: MenuItemConstructorOptions = {
         {
             label: "Production",
             type: "radio",
-            checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.PRODUCTION,
+            checked:
+                global.aicsLoadBalancerBaseUrl === AicsLoadBalancerBaseUrl.PRODUCTION &&
+                global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.PRODUCTION,
             click: (_, focusedWindow) => {
                 if (focusedWindow) {
+                    global.aicsLoadBalancerBaseUrl = AicsLoadBalancerBaseUrl.PRODUCTION;
+                    global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION;
                     focusedWindow.webContents.send(GlobalVariableChannels.BaseUrl, {
+                        aicsLoadBalancerBaseUrl: AicsLoadBalancerBaseUrl.PRODUCTION,
                         fileExplorerServiceBaseUrl: FileExplorerServiceBaseUrl.PRODUCTION,
-                        fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl.PRODUCTION,
                     });
                 }
             },

@@ -17,6 +17,8 @@ import { ModalType } from "../../components/Modal";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 // BASIC SELECTORS
+export const getAicsLoadBalancerBaseUrl = (state: State) =>
+    state.interaction.aicsLoadBalancerBaseUrl;
 export const getContextMenuVisibility = (state: State) => state.interaction.contextMenuIsVisible;
 export const getContextMenuItems = (state: State) => state.interaction.contextMenuItems;
 export const getContextMenuPositionReference = (state: State) =>
@@ -102,14 +104,22 @@ export const getHttpFileService = createSelector(
     [
         getApplicationVersion,
         getUserName,
+        getAicsLoadBalancerBaseUrl,
         getFileExplorerServiceBaseUrl,
         getPlatformDependentServices,
         getRefreshKey,
     ],
-    (applicationVersion, userName, fileExplorerBaseUrl, platformDependentServices) =>
+    (
+        applicationVersion,
+        userName,
+        aicsLoadBalancerBaseUrl,
+        fileExplorerBaseUrl,
+        platformDependentServices
+    ) =>
         new HttpFileService({
             applicationVersion,
             userName,
+            aicsLoadBalancerBaseUrl: aicsLoadBalancerBaseUrl,
             baseUrl: fileExplorerBaseUrl,
             downloadService: platformDependentServices.fileDownloadService,
         })
@@ -153,6 +163,7 @@ export const getAnnotationService = createSelector(
     [
         getApplicationVersion,
         getUserName,
+        getAicsLoadBalancerBaseUrl,
         getFileExplorerServiceBaseUrl,
         getSelectedDataSources,
         getPlatformDependentServices,
@@ -161,6 +172,7 @@ export const getAnnotationService = createSelector(
     (
         applicationVersion,
         userName,
+        aicsLoadBalancerBaseUrl,
         fileExplorerBaseUrl,
         dataSources,
         platformDependentServices
@@ -174,17 +186,25 @@ export const getAnnotationService = createSelector(
         return new HttpAnnotationService({
             applicationVersion,
             userName,
+            aicsLoadBalancerBaseUrl: aicsLoadBalancerBaseUrl,
             baseUrl: fileExplorerBaseUrl,
         });
     }
 );
 
 export const getDatasetService = createSelector(
-    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl, getRefreshKey],
-    (applicationVersion, userName, fileExplorerBaseUrl) =>
+    [
+        getApplicationVersion,
+        getUserName,
+        getAicsLoadBalancerBaseUrl,
+        getFileExplorerServiceBaseUrl,
+        getRefreshKey,
+    ],
+    (applicationVersion, userName, aicsLoadBalancerBaseUrl, fileExplorerBaseUrl) =>
         new DatasetService({
             applicationVersion,
             userName,
+            aicsLoadBalancerBaseUrl: aicsLoadBalancerBaseUrl,
             baseUrl: fileExplorerBaseUrl,
         })
 );
