@@ -82,9 +82,9 @@ export default function DataSourcePrompt(props: Props) {
                     [styles.datasourceSubhead]: !props?.hideTitle,
                 })}
             >
-                The first row should contain metadata tags, and each subsequent row includes
-                metadata for a file, with &quot;File Path&quot; being the only required column.
-                Other columns are optional and can be used for querying additional file metadata.
+                The first row should contain metadata tags, and each subsequent row include metadata
+                for a file, with &quot;File Path&quot; being the only required column. Other columns
+                are optional and can be used for querying additional file metadata.
             </p>
             <p
                 className={classNames(styles.text, {
