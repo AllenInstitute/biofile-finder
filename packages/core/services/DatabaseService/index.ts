@@ -141,8 +141,8 @@ export default abstract class DatabaseService {
     }
 
     public async prepareSourceMetadata(sourceMetadata: Source): Promise<void> {
-        const isOldSource = sourceMetadata.name === this.sourceMetadataName;
-        if (isOldSource) {
+        const isPreviousSource = sourceMetadata.name === this.sourceMetadataName;
+        if (isPreviousSource) {
             return;
         }
 
