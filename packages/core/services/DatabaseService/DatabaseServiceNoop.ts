@@ -1,6 +1,10 @@
 import DatabaseService from ".";
 
 export default class DatabaseServiceNoop extends DatabaseService {
+    public deleteSourceMetadata(): Promise<void> {
+        return Promise.reject("DatabaseServiceNoop:deleteSourceMetadata");
+    }
+
     public execute(): Promise<void> {
         return Promise.reject("DatabaseServiceNoop:execute");
     }
