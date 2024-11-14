@@ -22,8 +22,8 @@ const PRE_DEFINED_COLUMNS = Object.values(PreDefinedColumn);
  */
 export default abstract class DatabaseService {
     public static readonly LIST_DELIMITER = ",";
-    public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
     // Name of the hidden column BFF uses to uniquely identify rows
+    public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
     protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     // "Open file link" as a datatype must be hardcoded, and CAN NOT change
     // without BREAKING visibility in the dataset released in 2024 as part
