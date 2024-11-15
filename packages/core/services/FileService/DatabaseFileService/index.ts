@@ -1,4 +1,4 @@
-import { isEmpty, isNil, omit, uniqueId } from "lodash";
+import { isEmpty, isNil, uniqueId } from "lodash";
 
 import FileService, { GetFilesRequest, SelectionAggregationResult, Selection } from "..";
 import DatabaseService from "../../DatabaseService";
@@ -25,36 +25,29 @@ export default class DatabaseFileService implements FileService {
     private readonly dataSourceNames: string[];
 
     private static convertDatabaseRowToFileDetail(row: { [key: string]: string }): FileDetail {
-        const annotations = [
-            { name: "File Path", values: [row["File Path"]] },
-            { name: "File ID", values: [row["File ID"]] },
-            { name: "File Name", values: [row["File Name"]] },
-        ];
-        if (!isNil(row["File Size"])) {
-            annotations.push({ name: "File Size", values: [row["File Size"]] });
+        const uniqueId: string | undefined = row[DatabaseService.HIDDEN_UID_ANNOTATION];
+        if (!uniqueId) {
+            throw new Error("Missing auto-generated unique ID");
         }
-        if (row["Thumbnail"]) {
-            annotations.push({ name: "Thumbnail", values: [row["Thumbnail"]] });
-        }
-        if (row["Uploaded"]) {
-            annotations.push({ name: "Uploaded", values: [row["Uploaded"]] });
-        }
-        return new FileDetail({
-            annotations: [
-                ...Object.entries(omit(row, ...annotations.keys())).flatMap(([name, values]: any) =>
-                    values !== null
-                        ? [
-                              {
-                                  name,
-                                  values: `${values}`
-                                      .split(DatabaseService.LIST_DELIMITER)
-                                      .map((value: string) => value.trim()),
-                              },
-                          ]
-                        : []
-                ),
-            ],
-        });
+
+        return new FileDetail(
+            {
+                annotations: Object.entries(row)
+                    .filter(
+                        ([name, values]) =>
+                            !isNil(values) &&
+                            // Omit hidden UID annotation
+                            name !== DatabaseService.HIDDEN_UID_ANNOTATION
+                    )
+                    .map(([name, values]) => ({
+                        name,
+                        values: `${values}`
+                            .split(DatabaseService.LIST_DELIMITER)
+                            .map((value: string) => value.trim()),
+                    })),
+            },
+            uniqueId
+        );
     }
 
     constructor(
@@ -134,7 +127,7 @@ export default class DatabaseFileService implements FileService {
         selections.forEach((selection) => {
             selection.indexRanges.forEach((indexRange) => {
                 const subQuery = new SQLBuilder()
-                    .select('"File Path"')
+                    .select(`${DatabaseService.HIDDEN_UID_ANNOTATION}`)
                     .from(this.dataSourceNames)
                     .offset(indexRange.start)
                     .limit(indexRange.end - indexRange.start + 1);
@@ -156,7 +149,9 @@ export default class DatabaseFileService implements FileService {
                     );
                 }
 
-                sqlBuilder.whereOr(`"File Path" IN (${subQuery.toSQL()})`);
+                sqlBuilder.whereOr(
+                    `${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`
+                );
             });
         });
 

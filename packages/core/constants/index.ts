@@ -15,14 +15,13 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
     new Annotation({
         annotationDisplayName: "File ID",
         annotationName: AnnotationName.FILE_ID,
-        description:
-            "Auto or manually generated unique ID for file. Should not be used for collaboration or sharing as it may change.",
+        description: "ID for file.",
         type: AnnotationType.STRING,
     }),
     new Annotation({
         annotationDisplayName: "File Name",
         annotationName: AnnotationName.FILE_NAME,
-        description: "Name of file",
+        description: "Name of file.",
         type: AnnotationType.STRING,
     }),
     new Annotation({

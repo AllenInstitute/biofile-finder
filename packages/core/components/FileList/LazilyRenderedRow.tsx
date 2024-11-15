@@ -67,7 +67,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
                     displayValue: annotation.extractFromFile(file),
                     width: columnWidths[annotation.name] || 1 / annotations.length,
                 }))}
-                rowIdentifier={{ index, id: file.id }}
+                rowIdentifier={{ index, id: file.uid }}
                 onSelect={onSelect}
             />
         );
