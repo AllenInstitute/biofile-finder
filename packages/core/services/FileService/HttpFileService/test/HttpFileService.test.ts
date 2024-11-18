@@ -100,9 +100,10 @@ describe("HttpFileService", () => {
                 downloadService: new FileDownloadServiceNoop(),
             });
             const fileIds = ["abc123", "def456"];
+            const username = "test.user";
 
             // Act
-            const response = await fileService.cacheFiles(fileIds);
+            const response = await fileService.cacheFiles(fileIds, username);
 
             // Assert
             expect(response).to.deep.equal({

@@ -134,15 +134,16 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
      * Cache a list of files to NAS cache (VAST) by sending their IDs to FSS.
      */
     public async cacheFiles(
-        fileIds: string[]
+        fileIds: string[],
+        username?: string
     ): Promise<{ cacheFileStatuses: { [fileId: string]: string } }> {
         const requestUrl = `${this.aicsLoadBalancerBaseUrl}/${HttpFileService.BASE_FILE_CACHE_URL}${this.pathSuffix}`;
         const requestBody = JSON.stringify({ fileIds });
         const headers = {
             "Content-Type": "application/json",
-            "X-User-Id": "brian.whitney", // TODO: Make this not my user
+            "X-User-Id": username || "anonymous",
         };
-
+        console.log(headers);
         try {
             const cacheStatuses = await this.rawPut<{
                 cacheFileStatuses: { [fileId: string]: string };

@@ -585,8 +585,9 @@ const moveFilesLogic = createLogic({
     async process({ action, getState }: ReduxLogicDeps, _dispatch, done) {
         try {
             const httpFileService = interactionSelectors.getHttpFileService(getState());
+            const username = interactionSelectors.getUserName(getState());
             const fileIds = (action as MoveFilesAction).payload.fileDetails.map((file) => file.id);
-            const cacheStatuses = await httpFileService.cacheFiles(fileIds);
+            const cacheStatuses = await httpFileService.cacheFiles(fileIds, username);
 
             // TODO: What to do with the status
             console.log("Cache statuses:", cacheStatuses);
