@@ -15,13 +15,13 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
     new Annotation({
         annotationDisplayName: "File ID",
         annotationName: AnnotationName.FILE_ID,
-        description: "File Id",
+        description: "ID for file.",
         type: AnnotationType.STRING,
     }),
     new Annotation({
         annotationDisplayName: "File Name",
         annotationName: AnnotationName.FILE_NAME,
-        description: "Name of file",
+        description: "Name of file.",
         type: AnnotationType.STRING,
     }),
     new Annotation({

@@ -1,4 +1,4 @@
-import { isEmpty, isNil, omit, uniqueId } from "lodash";
+import { isEmpty, isNil, uniqueId } from "lodash";
 
 import FileService, { GetFilesRequest, SelectionAggregationResult, Selection } from "..";
 import DatabaseService from "../../DatabaseService";
@@ -24,47 +24,30 @@ export default class DatabaseFileService implements FileService {
     private readonly downloadService: FileDownloadService;
     private readonly dataSourceNames: string[];
 
-    private static convertDatabaseRowToFileDetail(
-        row: { [key: string]: string },
-        rowNumber: number
-    ): FileDetail {
-        const filePath = row["File Path"];
-        if (!filePath) {
-            throw new Error('"File Path" (case-sensitive) is a required column for data sources');
+    private static convertDatabaseRowToFileDetail(row: { [key: string]: string }): FileDetail {
+        const uniqueId: string | undefined = row[DatabaseService.HIDDEN_UID_ANNOTATION];
+        if (!uniqueId) {
+            throw new Error("Missing auto-generated unique ID");
         }
 
-        const annotations = [];
-        annotations.push({ name: "File Path", values: [filePath] });
-        const fileName =
-            row["File Name"] || filePath.split("\\").pop()?.split("/").pop() || filePath;
-        annotations.push({ name: "File Name", values: [fileName] });
-        annotations.push({ name: "File ID", values: [row["File ID"] || `${rowNumber}`] });
-        if (!isNil(row["File Size"])) {
-            annotations.push({ name: "File Size", values: [row["File Size"]] });
-        }
-        if (row["Thumbnail"]) {
-            annotations.push({ name: "Thumbnail", values: [row["Thumbnail"]] });
-        }
-        if (row["Uploaded"]) {
-            annotations.push({ name: "Uploaded", values: [row["Uploaded"]] });
-        }
-        return new FileDetail({
-            annotations: [
-                ...annotations,
-                ...Object.entries(omit(row, ...annotations.keys())).flatMap(([name, values]: any) =>
-                    values !== null
-                        ? [
-                              {
-                                  name,
-                                  values: `${values}`
-                                      .split(DatabaseService.LIST_DELIMITER)
-                                      .map((value: string) => value.trim()),
-                              },
-                          ]
-                        : []
-                ),
-            ],
-        });
+        return new FileDetail(
+            {
+                annotations: Object.entries(row)
+                    .filter(
+                        ([name, values]) =>
+                            !isNil(values) &&
+                            // Omit hidden UID annotation
+                            name !== DatabaseService.HIDDEN_UID_ANNOTATION
+                    )
+                    .map(([name, values]) => ({
+                        name,
+                        values: `${values}`
+                            .split(DatabaseService.LIST_DELIMITER)
+                            .map((value: string) => value.trim()),
+                    })),
+            },
+            uniqueId
+        );
     }
 
     constructor(
@@ -126,12 +109,7 @@ export default class DatabaseFileService implements FileService {
             .toSQL();
 
         const rows = await this.databaseService.query(sql);
-        return rows.map((row, index) =>
-            DatabaseFileService.convertDatabaseRowToFileDetail(
-                row,
-                index + request.from * request.limit
-            )
-        );
+        return rows.map(DatabaseFileService.convertDatabaseRowToFileDetail);
     }
 
     /**
@@ -149,7 +127,7 @@ export default class DatabaseFileService implements FileService {
         selections.forEach((selection) => {
             selection.indexRanges.forEach((indexRange) => {
                 const subQuery = new SQLBuilder()
-                    .select('"File Path"')
+                    .select(`${DatabaseService.HIDDEN_UID_ANNOTATION}`)
                     .from(this.dataSourceNames)
                     .offset(indexRange.start)
                     .limit(indexRange.end - indexRange.start + 1);
@@ -171,7 +149,9 @@ export default class DatabaseFileService implements FileService {
                     );
                 }
 
-                sqlBuilder.whereOr(`"File Path" IN (${subQuery.toSQL()})`);
+                sqlBuilder.whereOr(
+                    `${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`
+                );
             });
         });
 

@@ -213,7 +213,7 @@ const downloadFilesLogic = createLogic({
         } else {
             const selectedFilesDetails = await fileSelection.fetchAllDetails();
             filesToDownload = selectedFilesDetails.map((file) => ({
-                id: file.id,
+                id: file.uid,
                 name: file.name,
                 size: file.size,
                 path: file.downloadPath,

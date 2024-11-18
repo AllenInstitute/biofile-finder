@@ -99,7 +99,7 @@ export default function FileDetails(props: Props) {
             dispatch(
                 interaction.actions.downloadFiles([
                     {
-                        id: fileDetails.id,
+                        id: fileDetails.uid,
                         name: fileDetails.name,
                         size: fileDetails.size,
                         path: fileDetails.downloadPath,
@@ -145,7 +145,7 @@ export default function FileDetails(props: Props) {
                                     <PrimaryButton
                                         className={styles.primaryButton}
                                         disabled={processStatuses.some((status) =>
-                                            status.data.fileId?.includes(fileDetails.id)
+                                            status.data.fileId?.includes(fileDetails.uid)
                                         )}
                                         iconName="Download"
                                         text="Download"

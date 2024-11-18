@@ -17,10 +17,10 @@ interface Props {
 }
 
 const ADDITIONAL_COLUMN_DETAILS = [
-    'If a "Thumbnail" column (case-sensitive) is present it should contain a web URL to a thumbnail image for the file. ',
-    'If a "File Name" column (case-sensitive) is present it should be the file\'s name (this will replace the "File Name" created by default from the path). ',
-    'If a "File Size" column (case-sensitive) is present it should contain the size of the file in bytes. ',
-    'If an "Uploaded" column (case-sensitive) is present it should contain the date the file was uploaded to the cloud storage and be formatted as YYYY-MM-DD HH:MM:SS.Z where Z is a timezone offset. ',
+    'If a "Thumbnail" column is present it should contain a web URL to a thumbnail image for the file. ',
+    'If a "File Name" column is present it should be the file\'s name (this will replace the "File Name" created by default from the path). ',
+    'If a "File Size" column is present it should contain the size of the file in bytes. This is used for showing feedback to the user during downloads. ',
+    'If an "Uploaded" column is present it should contain the date the file was uploaded to the storage and be formatted as YYYY-MM-DD HH:MM:SS.Z where Z is a timezone offset. ',
 ];
 
 /**
@@ -77,19 +77,50 @@ export default function DataSourcePrompt(props: Props) {
                 To get started, load a CSV, Parquet, or JSON file containing metadata (annotations)
                 about your files to view them.
             </p>
+            <p
+                className={classNames(styles.text, {
+                    [styles.datasourceSubhead]: !props?.hideTitle,
+                })}
+            >
+                The first row should contain metadata tags, and each subsequent row include metadata
+                for a file, with &quot;File Path&quot; being the only required column. Other columns
+                are optional and can be used for querying additional file metadata.
+            </p>
+            <p
+                className={classNames(styles.text, {
+                    [styles.datasourceSubhead]: !props?.hideTitle,
+                    [styles.leftTextAlign]: !props?.hideTitle,
+                })}
+            >
+                Example CSV:
+            </p>
+            <table
+                className={classNames(styles.tableExample, {
+                    [styles.lightBorder]: !props?.hideTitle,
+                })}
+            >
+                <thead>
+                    <tr>
+                        <th>File Path</th>
+                        <th>Gene (Just an example)</th>
+                        <th>Color (Also an example)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>/some/path/to/storage/somewhere.zarr</td>
+                        <td>CDH2</td>
+                        <td>Blue</td>
+                    </tr>
+                    <tr>
+                        <td>/another/path/to/another/file.txt</td>
+                        <td>VIM</td>
+                        <td>Green</td>
+                    </tr>
+                </tbody>
+            </table>
             {isDataSourceDetailExpanded ? (
                 <>
-                    <ul className={styles.detailsList}>
-                        <li className={styles.details}>
-                            The file must contain a &quot;File Path&quot; column (case-sensitive) &
-                            must be unique by the &quot;File Path&quot; column. Any other columns
-                            are optional and will be available as annotations to query by.
-                        </li>
-                        <li className={styles.details}>
-                            The &quot;File Path&quot; column should contain full path to a file in a
-                            cloud storage.
-                        </li>
-                    </ul>
                     <h4 className={styles.details}>Advanced:</h4>
                     <ul className={styles.detailsList}>
                         <li className={styles.details}>
@@ -98,7 +129,7 @@ export default function DataSourcePrompt(props: Props) {
                             as&quot; options.
                         </li>
                         <li className={styles.details}>
-                            These are additional special columns that are optional, but will be
+                            These are additional pre-defined columns that are optional, but will be
                             handled as a special case in the application:
                         </li>
                         <ul className={styles.detailsList}>
