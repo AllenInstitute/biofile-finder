@@ -195,6 +195,32 @@ export default class HttpServiceBase {
         return response.data;
     }
 
+    public async rawPut<T>(
+        url: string,
+        body: string,
+        headers: { [key: string]: string } = {}
+    ): Promise<T> {
+        const encodedUrl = HttpServiceBase.encodeURI(url);
+        const config = { headers: { ...headers } };
+
+        let response;
+        try {
+            // Retry policy wrapped around axios PUT
+            response = await retry.execute(() => this.httpClient.put(encodedUrl, body, config));
+        } catch (err) {
+            if (axios.isAxiosError(err) && err?.response?.data?.message) {
+                throw new Error(JSON.stringify(err.response.data.message));
+            }
+            throw err;
+        }
+
+        if (response.status >= 400 || response.data === undefined) {
+            throw new Error(`Request for ${encodedUrl} failed`);
+        }
+
+        return response.data;
+    }
+
     public async post<T>(url: string, body: string): Promise<RestServiceResponse<T>> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
         const config = { headers: { "Content-Type": "application/json" } };

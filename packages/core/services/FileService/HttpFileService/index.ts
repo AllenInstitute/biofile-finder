@@ -20,7 +20,7 @@ interface Config extends ConnectionConfig {
  * Service responsible for fetching file related metadata.
  */
 export default class HttpFileService extends HttpServiceBase implements FileService {
-    private static readonly CACHE_ENDPOINT_VERSION = "3.0";
+    private static readonly CACHE_ENDPOINT_VERSION = "v3.0";
     private static readonly ENDPOINT_VERSION = "3.0";
     public static readonly BASE_FILES_URL = `file-explorer-service/${HttpFileService.ENDPOINT_VERSION}/files`;
     public static readonly BASE_FILE_COUNT_URL = `${HttpFileService.BASE_FILES_URL}/count`;
@@ -138,13 +138,16 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     ): Promise<{ cacheFileStatuses: { [fileId: string]: string } }> {
         const requestUrl = `${this.aicsLoadBalancerBaseUrl}/${HttpFileService.BASE_FILE_CACHE_URL}${this.pathSuffix}`;
         const requestBody = JSON.stringify({ fileIds });
+        const headers = {
+            "Content-Type": "application/json",
+            "X-User-Id": "brian.whitney", // TODO: Make this not my user
+        };
 
         try {
-            const cacheStatuses = await this.rawPost<{
+            const cacheStatuses = await this.rawPut<{
                 cacheFileStatuses: { [fileId: string]: string };
-            }>(requestUrl, requestBody);
-
-            return cacheStatuses; // Return the entire response object
+            }>(requestUrl, requestBody, headers);
+            return cacheStatuses;
         } catch (error) {
             console.error("Failed to cache files:", error);
             throw new Error("Unable to complete the caching request.");
