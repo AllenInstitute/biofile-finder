@@ -48,7 +48,6 @@ export default function App(props: AppProps) {
     const dispatch = useDispatch();
     const hasQuerySelected = useSelector(selection.selectors.hasQuerySelected);
     const requiresDataSourceReload = useSelector(selection.selectors.getRequiresDataSourceReload);
-    const isDarkTheme = useSelector(selection.selectors.getIsDarkTheme);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const platformDependentServices = useSelector(
         interaction.selectors.getPlatformDependentServices
@@ -97,7 +96,6 @@ export default function App(props: AppProps) {
         <div
             id={ROOT_ELEMENT_ID}
             className={classNames(styles.root, props.className, {
-                [styles.lightTheme]: !isDarkTheme,
                 [styles.smallFont]: shouldDisplaySmallFont,
             })}
             ref={measuredNodeRef}
