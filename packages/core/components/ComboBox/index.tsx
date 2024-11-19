@@ -18,7 +18,7 @@ const FUZZY_SEARCH_OPTIONS = {
 
 interface Props {
     className?: string;
-    defaultValue?: string;
+    selectedKey?: string;
     disabled?: boolean;
     label: string;
     multiSelect?: boolean;
@@ -70,7 +70,7 @@ export default function BaseComboBox(props: Props) {
             allowFreeform
             caretDownButtonStyles={{ root: styles.comboBoxCaret }}
             className={props?.className}
-            defaultValue={props?.defaultValue}
+            selectedKey={props?.selectedKey}
             disabled={props?.disabled}
             placeholder={placeholder}
             label={label}
