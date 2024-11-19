@@ -66,7 +66,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
             <FileRow
                 cells={map(columns, (column) => ({
                     columnKey: column.name,
-                    displayValue: annotationNameToAnnotationMap[column.name].extractFromFile(file),
+                    displayValue: annotationNameToAnnotationMap[column.name]?.extractFromFile(file),
                     width: column.width,
                 }))}
                 rowIdentifier={{ index, id: file.id }}
