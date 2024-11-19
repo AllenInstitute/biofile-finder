@@ -1,4 +1,4 @@
-import { DefaultButton, Icon, IContextualMenuItem } from "@fluentui/react";
+import { ContextualMenuItemType, DefaultButton, Icon, IContextualMenuItem } from "@fluentui/react";
 import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -24,6 +24,20 @@ interface Apps {
     [AppKeys.VOLE]: IContextualMenuItem;
     [AppKeys.VOLVIEW]: IContextualMenuItem;
 }
+
+const SUPPORTED_APPS_HEADER = {
+    key: "supported-apps-headers",
+    text: "SUPPORT FILE TYPE",
+    title: "Apps that are expected to support this file type",
+    itemType: ContextualMenuItemType.Header,
+};
+
+const UNSUPPORTED_APPS_HEADER = {
+    key: "unsupported-apps-headers",
+    text: "DO NOT SUPPORT FILE TYPE",
+    title: "Apps that are not expected to support this file type",
+    itemType: ContextualMenuItemType.Header,
+};
 
 const APPS = (fileDetails?: FileDetail): Apps => ({
     [AppKeys.AGAVE]: {
@@ -138,10 +152,11 @@ function getPrioritySupportedApps(fileDetails?: FileDetail): IContextualMenuItem
             return [apps.simularium];
         case "dcm":
             return [apps.volview];
+        case "dvi":
         case "n5":
-        case "czi":
-            [apps.neuroglancer];
+            return [apps.neuroglancer];
         case "tiff":
+            return [apps.agave];
         case "zarr":
         case "": // No extension
             return isLikelyLocalFile
@@ -200,30 +215,6 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             } as IContextualMenuItem)
     );
 
-    // If there are author defined apps, we don't need to check for priority apps
-    const priorityApps = authorDefinedApps.length
-        ? authorDefinedApps
-        : getPrioritySupportedApps(fileDetails);
-
-    const plateLink = fileDetails?.getLinkToPlateUI(fileExplorerServiceBaseUrl);
-    if (plateLink && isAicsEmployee) {
-        priorityApps.push({
-            key: "open-plate-ui",
-            text: "LabKey Plate UI",
-            title: "Open this plate in the Plate UI",
-            href: plateLink,
-            target: "_blank",
-            onRenderContent(props, defaultRenders) {
-                return (
-                    <>
-                        {defaultRenders.renderItemName(props)}
-                        <span className={styles.secondaryText}>Web</span>
-                    </>
-                );
-            },
-        } as IContextualMenuItem);
-    }
-
     const userApps = (userSelectedApplications || [])
         .map((app) => {
             const name = executionEnvService.getFilename(app.filePath);
@@ -251,37 +242,99 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         })
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
+    const supportedApps = [...getPrioritySupportedApps(fileDetails), ...userApps];
     // Grab every other known app
-    const unsupportedApps = Object.values(APPS(fileDetails)).filter((app) =>
-        priorityApps.every((item) => item.key !== app.key)
-    );
+    const unsupportedApps = Object.values(APPS(fileDetails))
+        .filter((app) => supportedApps.every((item) => item.key !== app.key))
+        .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    // Combine the priority apps with the user selected apps
-    // to begin building the menu list
-    const menuItems = [...priorityApps, ...userApps];
+    const plateLink = fileDetails?.getLinkToPlateUI(fileExplorerServiceBaseUrl);
+    if (plateLink && isAicsEmployee) {
+        supportedApps.push({
+            key: "open-plate-ui",
+            text: "LabKey Plate UI",
+            title: "Open this plate in the Plate UI",
+            href: plateLink,
+            target: "_blank",
+            onRenderContent(props, defaultRenders) {
+                return (
+                    <>
+                        {defaultRenders.renderItemName(props)}
+                        <span className={styles.secondaryText}>Web</span>
+                    </>
+                );
+            },
+        } as IContextualMenuItem);
+    }
+
+    // Add placeholder message if no supported apps found
+    if (!supportedApps.length) {
+        supportedApps.push({
+            key: "no-supported-apps-found",
+            text: "None",
+            title: "No applications found that are expected to support this file type",
+            disabled: true,
+        });
+    }
+
+    if (!unsupportedApps.length) {
+        unsupportedApps.push({
+            key: "no-unsupported-apps-found",
+            text: "None",
+            title: "No applications found that are not expected to support this file type",
+            disabled: true,
+        });
+    }
+
+    // Priority apps are those that are known to work well with the file type
+    // or those defined by the author of the dataset
+    const menuItems: IContextualMenuItem[] = [];
+    const subMenuItems: IContextualMenuItem[] = [];
+    if (authorDefinedApps.length) {
+        menuItems.push(...authorDefinedApps);
+        subMenuItems.push(SUPPORTED_APPS_HEADER, ...supportedApps);
+    } else {
+        menuItems.push(SUPPORTED_APPS_HEADER, ...supportedApps);
+    }
+
+    subMenuItems.push(UNSUPPORTED_APPS_HEADER, ...unsupportedApps);
 
     // Unable to open arbirary applications on the web
     // this adds to the bottom of the "Other apps" sub menu
     if (!isOnWeb) {
-        unsupportedApps.push({
-            key: "other...",
-            text: "Other...",
-            title: "Select an application to open the selection with",
-            onClick() {
-                dispatch(interaction.actions.promptForNewExecutable(filters));
+        subMenuItems.push(
+            {
+                key: "other-divider",
+                className: styles.divider,
+                itemType: ContextualMenuItemType.Divider,
             },
-        });
+            {
+                key: "other...",
+                text: "Other...",
+                title: "Select an application to open the selection with",
+                onClick() {
+                    dispatch(interaction.actions.promptForNewExecutable(filters));
+                },
+            }
+        );
     }
 
-    if (!isEmpty(unsupportedApps)) {
-        menuItems.push({
-            key: "other-apps",
-            text: "Other apps",
-            title: "Other applications that are not expected to support this file type",
-            subMenuProps: {
-                items: unsupportedApps,
+    if (!isEmpty(subMenuItems)) {
+        menuItems.push(
+            {
+                key: "other-apps-divider",
+                className: styles.divider,
+                itemType: ContextualMenuItemType.Divider,
             },
-        });
+            {
+                key: "other-apps",
+                text: "Other apps",
+                title: "Other applications that are not expected to support this file type",
+                subMenuProps: {
+                    items: subMenuItems,
+                },
+            }
+        );
     }
 
     return menuItems;

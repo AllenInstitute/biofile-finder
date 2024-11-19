@@ -21,6 +21,11 @@
     opacity: 1;
 }
 
+.divider {
+    display: inherit !important;
+    opacity: 0.25;
+}
+
 .secondary-text {
     color: var(--white);
     font-size: 12px !important;
