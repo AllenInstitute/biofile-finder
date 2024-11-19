@@ -30,7 +30,6 @@
     color: var(--white);
     font-size: 12px !important;
     opacity: 0.5;
-    padding-left: 10px;
 }
 
 .desktop-menu-item .info-button > span {
@@ -52,4 +51,8 @@
 
 .desktop-menu-item a {
     padding-left: 0;
+}
+
+.view-link {
+    padding-left: 24px !important;
 }

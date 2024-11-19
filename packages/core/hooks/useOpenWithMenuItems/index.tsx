@@ -53,7 +53,6 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
             return (
                 <>
                     {defaultRenders.renderItemName(props)}
-                    <span className={styles.secondaryText}>Desktop |</span>
                     <a
                         className={styles.viewLink}
                         href="https://www.allencell.org/pathtrace-rendering.html"
@@ -68,6 +67,7 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
                             <Icon iconName="OpenInNewWindow" />
                         </DefaultButton>
                     </a>
+                    <span className={styles.secondaryText}>| Desktop</span>
                 </>
             );
         },
@@ -138,10 +138,11 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
     } as IContextualMenuItem,
 });
 
-function getPrioritySupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
+function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
     if (!fileDetails) {
         return [];
     }
+
     const isLikelyLocalFile =
         !fileDetails.path.startsWith("http") && !fileDetails.path.startsWith("s3");
 
@@ -242,7 +243,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         })
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    const supportedApps = [...getPrioritySupportedApps(fileDetails), ...userApps];
+    const supportedApps = [...getSupportedApps(fileDetails), ...userApps];
     // Grab every other known app
     const unsupportedApps = Object.values(APPS(fileDetails))
         .filter((app) => supportedApps.every((item) => item.key !== app.key))
