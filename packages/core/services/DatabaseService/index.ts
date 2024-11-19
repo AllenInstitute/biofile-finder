@@ -7,21 +7,24 @@ import { Source } from "../../entity/FileExplorerURL";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
-const PRE_DEFINED_COLUMNS = [
-    "File ID",
-    "File Path",
-    "File Name",
-    "File Size",
-    "Thumbnail",
-    "Uploaded",
-];
+enum PreDefinedColumn {
+    FILE_ID = "File ID",
+    FILE_PATH = "File Path",
+    FILE_NAME = "File Name",
+    FILE_SIZE = "File Size",
+    THUMBNAIL = "Thumbnail",
+    UPLOADED = "Uploaded",
+}
+const PRE_DEFINED_COLUMNS = Object.values(PreDefinedColumn);
 
 /**
  * Service reponsible for querying against a database
  */
 export default abstract class DatabaseService {
-    protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     public static readonly LIST_DELIMITER = ",";
+    // Name of the hidden column BFF uses to uniquely identify rows
+    public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
+    protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     // "Open file link" as a datatype must be hardcoded, and CAN NOT change
     // without BREAKING visibility in the dataset released in 2024 as part
     // of the EMT Data Release paper
@@ -162,7 +165,7 @@ export default abstract class DatabaseService {
         this.dataSourceToAnnotationsMap.clear();
     }
 
-    protected async deleteDataSource(dataSource: string): Promise<void> {
+    private async deleteDataSource(dataSource: string): Promise<void> {
         this.existingDataSources.delete(dataSource);
         this.dataSourceToAnnotationsMap.delete(dataSource);
         await this.execute(`DROP TABLE IF EXISTS "${dataSource}"`);
@@ -173,50 +176,50 @@ export default abstract class DatabaseService {
         MUST come after we check for errors so that we can rely on the table
         to at least be valid before modifying it further
     */
-    protected async addRequiredColumns(name: string): Promise<void> {
-        const dataSourceColumns = await this.getColumnsOnDataSource(name);
-        if (!dataSourceColumns.has("File ID")) {
-            await this.execute(`
+    private async addRequiredColumns(name: string): Promise<void> {
+        const commandsToExecute = [
+            // Add hidden UID column to uniquely identify rows
+            `
                 ALTER TABLE "${name}"
-                ADD COLUMN IF NOT EXISTS "File ID" VARCHAR;
-            `);
-            // The data source's input date gets appended to the end
-            // of the auto-generated name, that makes it kind of messy
-            // as an ID though so here lets remove it
-            const dataSourceNameWithoutDate = name.split(" ")[0];
-            // Auto-generates a File ID based on the row number when
-            // ordered by file path.
-            await this.execute(`
+                ADD COLUMN ${DatabaseService.HIDDEN_UID_ANNOTATION} INT
+            `,
+            // Altering tables to add primary keys or serially generated columns
+            // isn't yet supported in DuckDB, so this does a serially generated
+            // column addition manually
+            `
                 UPDATE "${name}"
-                SET "File ID" = CONCAT(SQ.row, '-', '${dataSourceNameWithoutDate}')
+                SET "${DatabaseService.HIDDEN_UID_ANNOTATION}" = SQ.row
                 FROM (
-                    SELECT "File Path", ROW_NUMBER() OVER (ORDER BY "File Path") AS row
+                    SELECT "${PreDefinedColumn.FILE_PATH}", ROW_NUMBER() OVER (ORDER BY "${PreDefinedColumn.FILE_PATH}") AS row
                     FROM "${name}"
                 ) AS SQ
-                WHERE "${name}"."File Path" = SQ."File Path";
-            `);
-        }
+                WHERE "${name}"."${PreDefinedColumn.FILE_PATH}" = SQ."${PreDefinedColumn.FILE_PATH}";
+            `,
+        ];
 
-        if (!dataSourceColumns.has("File Name")) {
-            await this.execute(`
+        const dataSourceColumns = await this.getColumnsOnDataSource(name);
+        if (!dataSourceColumns.has(PreDefinedColumn.FILE_NAME)) {
+            commandsToExecute.push(`
                 ALTER TABLE "${name}"
-                ADD COLUMN IF NOT EXISTS "File Name" VARCHAR;
+                ADD COLUMN "${PreDefinedColumn.FILE_NAME}" VARCHAR;
             `);
             // Best shot attempt at auto-generating a "File Name"
             // from the "File Path", defaults to full path if this fails
-            await this.execute(`
+            commandsToExecute.push(`
                 UPDATE "${name}"
-                SET "File Name" = COALESCE(
+                SET "${PreDefinedColumn.FILE_NAME}" = COALESCE(
                     NULLIF(
                         REGEXP_REPLACE(
-                            "File Path",
+                            "${PreDefinedColumn.FILE_PATH}",
                             '^.*/([^/]*?)(\\.[^/.]+)?$', '\\1',
                             ''
                         ),
                     ''),
-                "File Path");
+                "${PreDefinedColumn.FILE_PATH}");
             `);
         }
+
+        await this.execute(commandsToExecute.join("; "));
 
         // Because we edited the column names this cache is now invalid
         this.dataSourceToAnnotationsMap.delete(name);
@@ -227,48 +230,16 @@ export default abstract class DatabaseService {
         the expectations around uniqueness/blankness for pre-defined columns
         like "File Path", "File ID", etc.
     */
-    protected async checkDataSourceForErrors(name: string): Promise<string[]> {
+    private async checkDataSourceForErrors(name: string): Promise<string[]> {
         const errors: string[] = [];
         const columnsOnTable = await this.getColumnsOnDataSource(name);
 
-        // If a data source has a File ID it must also pass validation
-        const hasFileIdColumn = columnsOnTable.has("File ID");
-        if (hasFileIdColumn) {
-            // Check for empty or just whitespace File ID column values
-            const blankFileIdRows = await this.getRowsWhereColumnIsBlank(name, "File ID");
-            if (blankFileIdRows.length > 0) {
-                const rowNumbers = DatabaseService.truncateString(blankFileIdRows.join(", "), 100);
-                errors.push(
-                    `"File ID" column contains ${blankFileIdRows.length} empty or purely whitespace values at rows ${rowNumbers}.`
-                );
-            }
-
-            // Check for duplicate File ID column values
-            const duplicateFileIdRows = await this.getRowsWhereColumnIsNotUniqueOrBlank(
-                name,
-                "File ID"
-            );
-            if (duplicateFileIdRows.length > 0) {
-                const rowNumbers = DatabaseService.truncateString(
-                    duplicateFileIdRows.join(", "),
-                    100
-                );
-                errors.push(
-                    `"File ID" column contains duplicates. Found ${duplicateFileIdRows.length} duplicate values at rows ${rowNumbers}.`
-                );
-            }
-        }
-
-        if (!columnsOnTable.has("File Path")) {
-            let error =
-                '\
-                "File Path" column is missing in the data source. \
-                Check the data source header row for a "File Path" column name and try again.';
+        if (!columnsOnTable.has(PreDefinedColumn.FILE_PATH)) {
+            let error = `"${PreDefinedColumn.FILE_PATH}" column is missing in the data source.
+                Check the data source header row for a "${PreDefinedColumn.FILE_PATH}" column name and try again.`;
 
             // Attempt to find a column with a similar name to "File Path"
             const columns = Array.from(columnsOnTable);
-            // TODO: In addition to doing this, on ingestion detect "file_path", "file path", etc.
-            // and convert to "File Path" in DB table
             const filePathLikeColumn =
                 columns.find((column) => column.toLowerCase().includes("path")) ||
                 columns.find((column) => column.toLowerCase().includes("file"));
@@ -282,34 +253,18 @@ export default abstract class DatabaseService {
             errors.push(error);
         } else {
             // Check for empty or just whitespace File Path column values
-            const blankFilePathRows = await this.getRowsWhereColumnIsBlank(name, "File Path");
+            const blankFilePathRows = await this.getRowsWhereColumnIsBlank(
+                name,
+                PreDefinedColumn.FILE_PATH
+            );
             if (blankFilePathRows.length > 0) {
                 const rowNumbers = DatabaseService.truncateString(
                     blankFilePathRows.join(", "),
                     100
                 );
                 errors.push(
-                    `"File Path" column contains ${blankFilePathRows.length} empty or purely whitespace values at rows ${rowNumbers}.`
+                    `"${PreDefinedColumn.FILE_PATH}" column contains ${blankFilePathRows.length} empty or purely whitespace paths at rows ${rowNumbers}.`
                 );
-            }
-
-            // "File Path" has to be unique when a unique File ID is not provided
-            // otherwise we can't cleanly auto-generate a File ID based on the File Path
-            if (!hasFileIdColumn) {
-                // Check for duplicate File ID column values
-                const duplicateFilePathRows = await this.getRowsWhereColumnIsNotUniqueOrBlank(
-                    name,
-                    "File Path"
-                );
-                if (duplicateFilePathRows.length > 0) {
-                    const rowNumbers = DatabaseService.truncateString(
-                        duplicateFilePathRows.join(", "),
-                        100
-                    );
-                    errors.push(
-                        `"File Path" column contains duplicates, but has no "File ID" column to use as a unique identifier instead. Add a unique "File ID" column or make "File Path" values unique. Found ${duplicateFilePathRows.length} duplicate values at rows ${rowNumbers}.`
-                    );
-                }
             }
         }
 
@@ -325,22 +280,21 @@ export default abstract class DatabaseService {
     private async normalizeDataSourceColumnNames(dataSourceName: string): Promise<void> {
         const columnsOnDataSource = await this.getColumnsOnDataSource(dataSourceName);
 
-        for (const preDefinedColumn of PRE_DEFINED_COLUMNS) {
+        const combinedAlterCommands = PRE_DEFINED_COLUMNS
             // Filter out any pre-defined columns that are exact matches to columns on the data source
             // since those are already perfect
-            if (!columnsOnDataSource.has(preDefinedColumn)) {
+            .filter((preDefinedColumn) => !columnsOnDataSource.has(preDefinedColumn))
+            // Map the rest to SQL alter table commands to rename the columns
+            .flatMap((preDefinedColumn) => {
                 const preDefinedColumnSimplified = preDefinedColumn.toLowerCase().replace(" ", "");
 
                 // Grab near matches to the pre-defined columns like "file_name" for "File Name"
-                const matches = [...columnsOnDataSource].filter((column) => {
-                    const simplifiedColumn = column
-                        .trim()
-                        .toLowerCase() // File Name -> file name
-                        .replace("_", "") // file_path -> filepath
-                        .replace(" ", "") // file path -> filepath
-                        .replace("-", ""); // file-path -> filepath
-                    return simplifiedColumn === preDefinedColumnSimplified;
-                });
+                const matches = [...columnsOnDataSource].filter(
+                    (column) =>
+                        preDefinedColumnSimplified ===
+                        // Matches regardless of caps, whitespace, hyphens, or underscores
+                        column.toLowerCase().replaceAll(/\s|-|_/g, "")
+                );
 
                 // Doesn't seem like we should guess at a pre-defined column match in this case
                 // so just toss up a user-actionable error to try to get them to retry
@@ -352,14 +306,22 @@ export default abstract class DatabaseService {
                     );
                 }
 
-                if (matches.length === 1) {
-                    // Rename matching column name to new pre-defined column
-                    this.execute(`
-                        ALTER TABLE "${dataSourceName}"
-                        RENAME COLUMN "${matches[0]}" TO '${preDefinedColumn}'
-                    `);
+                if (matches.length < 1) {
+                    return []; // No-op essentially if no matches
                 }
-            }
+
+                // Rename matching column name to new pre-defined column
+                return [
+                    `
+                    ALTER TABLE "${dataSourceName}"
+                    RENAME COLUMN "${matches[0]}" TO '${preDefinedColumn}'
+                `,
+                ];
+            })
+            .join("; ");
+
+        if (combinedAlterCommands) {
+            await this.execute(combinedAlterCommands);
         }
 
         // Because we edited the column names this cache is now invalid
@@ -396,19 +358,16 @@ export default abstract class DatabaseService {
         return duplicateColumnQueryResult.map((row) => row.row);
     }
 
-    // TODO: Triple check this is going to work still...
     private async aggregateDataSources(dataSources: Source[]): Promise<void> {
         const viewName = dataSources
             .map((source) => source.name)
             .sort()
             .join(", ");
 
-        if (this.currentAggregateSource) {
+        if (this.currentAggregateSource === viewName) {
             // Prevent adding the same data source multiple times by shortcutting out here
-            if (this.currentAggregateSource === viewName) {
-                return;
-            }
-
+            return;
+        } else if (this.currentAggregateSource) {
             // Otherwise, if an old aggregate exists, delete it
             await this.deleteDataSource(this.currentAggregateSource);
         }
@@ -474,6 +433,7 @@ export default abstract class DatabaseService {
                 .select("column_name, data_type")
                 .from('information_schema"."columns')
                 .where(`table_name = '${aggregateDataSourceName}'`)
+                .where(`column_name != '${DatabaseService.HIDDEN_UID_ANNOTATION}'`)
                 .toSQL();
             const rows = await this.query(sql);
             if (isEmpty(rows)) {

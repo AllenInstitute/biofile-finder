@@ -69,7 +69,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
                     displayValue: annotationNameToAnnotationMap[column.name]?.extractFromFile(file),
                     width: column.width,
                 }))}
-                rowIdentifier={{ index, id: file.id }}
+                rowIdentifier={{ index, id: file.uid }}
                 onSelect={onSelect}
             />
         );
