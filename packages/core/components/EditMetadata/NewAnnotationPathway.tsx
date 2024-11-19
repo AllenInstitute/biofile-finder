@@ -27,7 +27,7 @@ interface NewAnnotationProps {
  */
 export default function NewAnnotationPathway(props: NewAnnotationProps) {
     const [step, setStep] = React.useState<EditStep>(EditStep.CREATE_FIELD);
-    const [_newValues, setNewValues] = React.useState<string | undefined>();
+    const [newValues, setNewValues] = React.useState<string | undefined>();
     const [newFieldName, setNewFieldName] = React.useState<string>("");
     const [newFieldDataType, setNewFieldDataType] = React.useState<string | undefined>();
     const [newDropdownOption, setNewDropdownOption] = React.useState<string>("");
@@ -147,18 +147,30 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                         <SecondaryButton title="Cancel" text="CANCEL" onClick={props.onDismiss} />
                         {step === EditStep.CREATE_FIELD && (
                             <PrimaryButton
+                                className={styles.primaryButton}
                                 disabled={
                                     !newFieldName ||
                                     (newFieldDataType === AnnotationType.DROPDOWN &&
                                         !dropdownOptions.length)
                                 }
-                                title="Next"
                                 text="NEXT"
+                                title="Next"
                                 onClick={() => setStep(EditStep.EDIT_FILES)}
                             />
                         )}
                         {step === EditStep.EDIT_FILES && (
-                            <PrimaryButton title="Submit" text="SUBMIT" onClick={onSubmit} />
+                            <PrimaryButton
+                                className={styles.primaryButton}
+                                disabled={
+                                    !newFieldName ||
+                                    (newFieldDataType === AnnotationType.DROPDOWN &&
+                                        !dropdownOptions.length) ||
+                                    !newValues
+                                }
+                                text="SUBMIT"
+                                title="Submit"
+                                onClick={onSubmit}
+                            />
                         )}
                     </StackItem>
                 </Stack>
