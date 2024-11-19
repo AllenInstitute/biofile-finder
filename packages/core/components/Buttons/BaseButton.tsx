@@ -1,6 +1,5 @@
 import { DefaultButton, DirectionalHint, IContextualMenuItem, Icon } from "@fluentui/react";
 import classNames from "classnames";
-import { noop } from "lodash";
 import * as React from "react";
 
 import useButtonMenu from "./useButtonMenu";
@@ -29,7 +28,6 @@ export default function BaseButton(props: Props) {
     const styledMenu = useButtonMenu({
         items: props.menuItems,
         directionalHint: props.menuDirection,
-        onRestoreFocus: noop, // Prevent button from refocusing on menu close
     });
 
     const content = (
