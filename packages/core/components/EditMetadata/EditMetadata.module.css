@@ -1,0 +1,113 @@
+.footer {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.footer-align-right {
+  width: 100%;
+  display: flex;
+}
+
+.footer-align-right > * {
+  margin-left: 10px;
+  width: min-content;
+}
+
+.footer-align-right > *:first-child{
+  margin-left: auto;
+}
+
+.text-field {
+  padding-top: var(--margin);
+  max-width: 300px;;
+}
+
+.text-field > div > label, .text-field > div > label::after {
+  color: var(--secondary-text-color) !important;
+  font-size: var(--l-paragraph-size);
+}
+
+.text-field :is(input) {
+  background-color: var(--secondary-background-color) !important;
+  color: var(--secondary-text-color) !important;
+  border-radius: 4px;
+}
+
+.text-field > div:focus, .text-field div:focus-visible, .text-field:focus-visible, .text-field > div:active {
+  outline: none;
+}
+
+.text-field > div > div {
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--secondary-background-color) !important;
+  color: var(--secondary-text-color) !important;
+}
+
+.text-field > div > div::after {
+  border: 1px solid var(--aqua);
+  border-radius: 4px;
+  outline: none;
+}
+
+.text-field > div > div > *::placeholder {
+  color: var(--secondary-text-color);
+  font-style: italic;
+}
+
+.text-field > div > div:hover {
+  border: 1px solid var(--border-color)
+}
+
+.combo-box {
+  width: 295px;
+  padding-top: var(--margin);
+}
+
+.chips {
+  padding-left: 5px;
+}
+
+.submit-icon {
+  align-items: center;
+  border-radius: var(--small-border-radius);
+  cursor: pointer;
+  display: flex;
+  padding: 0 0.5em;
+}
+
+.submit-icon.disabled {
+  cursor: default;
+  opacity: 0.8;
+}
+
+.submit-icon:hover:not(.disabled), .submit-icon:focus:not(.disabled) {
+  background-color: var(--highlight-background-color);
+  color: var(--highlight-text-color);
+}
+
+.selected-option-container {
+  display: flex;
+  margin-left: var(--margin);
+}
+
+.selected-option {
+  align-items: center;
+  display: flex;
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: min-content;
+  white-space: nowrap;
+}
+
+.selected-option-button {
+  color: var(--primary-text-color);
+  margin-left: 10px;
+}
+
+.selected-option-button:hover {
+  background-color: unset;
+  color: var(--highlight-text-color);
+}

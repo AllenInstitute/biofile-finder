@@ -12,6 +12,7 @@ export enum AnnotationType {
     STRING = "Text",
     BOOLEAN = "YesNo",
     DURATION = "Duration",
+    DROPDOWN = "Dropdown",
 }
 
 export interface AnnotationFormatter {

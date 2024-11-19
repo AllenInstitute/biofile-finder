@@ -5,16 +5,27 @@ import * as React from "react";
 
 import styles from "./ComboBox.module.css";
 
+const FUZZY_SEARCH_OPTIONS = {
+    // which keys to search on
+    keys: [{ name: "text", weight: 1.0 }],
+
+    // return resulting matches sorted
+    shouldSort: true,
+
+    // arbitrarily tuned; 0.0 requires a perfect match, 1.0 would match anything
+    threshold: 0.3,
+};
+
 interface Props {
     className?: string;
+    defaultValue?: string;
     disabled?: boolean;
     label: string;
     multiSelect?: boolean;
     options: IComboBoxOption[];
     placeholder: string;
-    threshold?: number;
     useComboBoxAsMenuWidth?: boolean;
-    onChange?: (option: IComboBoxOption | undefined) => void;
+    onChange?: (option: IComboBoxOption | undefined, value?: string | undefined) => void;
 }
 
 /**
@@ -22,17 +33,6 @@ interface Props {
  */
 export default function BaseComboBox(props: Props) {
     const { options, label, placeholder } = props;
-
-    const FUZZY_SEARCH_OPTIONS = {
-        // which keys to search on
-        keys: [{ name: "text", weight: 1.0 }],
-
-        // return resulting matches sorted
-        shouldSort: true,
-
-        // arbitrarily tuned; 0.0 requires a perfect match, 1.0 would match anything
-        threshold: props?.threshold || 0.3,
-    };
 
     const [searchValue, setSearchValue] = React.useState("");
 
@@ -70,12 +70,14 @@ export default function BaseComboBox(props: Props) {
             allowFreeform
             caretDownButtonStyles={{ root: styles.comboBoxCaret }}
             className={props?.className}
+            defaultValue={props?.defaultValue}
             disabled={props?.disabled}
             placeholder={placeholder}
             label={label}
             multiSelect={props?.multiSelect}
             options={filteredOptions}
-            onChange={(_, option) => props.onChange?.(option)}
+            onChange={(_ev, option, _ind, value) => props.onChange?.(option, value)}
+            onItemClick={(_, option) => props.onChange?.(option)}
             onInputValueChange={(value) => {
                 setSearchValue(value || "");
             }}
