@@ -72,12 +72,12 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                 <>
                     <ComboBox
                         className={styles.comboBox}
-                        defaultValue={newFieldDataType || undefined}
+                        selectedKey={`datatype-${newFieldDataType}` || undefined}
                         label="Data type"
                         placeholder="Select a data type"
-                        options={Object.values(AnnotationType).map((type, index) => {
+                        options={Object.values(AnnotationType).map((type) => {
                             return {
-                                key: `datatype-${index}`,
+                                key: `datatype-${type}`,
                                 text: type,
                             };
                         })}
