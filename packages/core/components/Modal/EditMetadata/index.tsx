@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
-// import EditMetadataForm from "../../EditMetadata";
+import EditMetadataForm from "../../EditMetadata";
 import { selection } from "../../../state";
 import FileSelection from "../../../entity/FileSelection";
 
@@ -20,11 +20,9 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
         totalFilesSelected === 1 ? "" : "s"
     })`;
 
-    const body = <></>; //<EditMetadataForm />
-
     return (
         <BaseModal
-            body={body}
+            body={<EditMetadataForm />}
             onDismiss={onDismiss}
             title={`Edit Metadata ${filesSelectedCountString}`}
         />
