@@ -82,21 +82,16 @@ const store = createReduxStore({
 // https://redux.js.org/api/store#subscribelistener
 store.subscribe(() => {
     const state = store.getState();
+    const columns = selection.selectors.getColumns(state);
     const queries = selection.selectors.getQueries(state);
     const csvColumns = interaction.selectors.getCsvColumns(state);
-    const displayAnnotations = selection.selectors.getAnnotationsToDisplay(state);
     const hasUsedApplicationBefore = interaction.selectors.hasUsedApplicationBefore(state);
     const recentAnnotations = selection.selectors.getRecentAnnotations(state);
     const userSelectedApplications = interaction.selectors.getUserSelectedApplications(state);
 
     const appState = {
+        [PersistedConfigKeys.Columns]: columns,
         [PersistedConfigKeys.CsvColumns]: csvColumns,
-        [PersistedConfigKeys.DisplayAnnotations]: displayAnnotations.map((annotation) => ({
-            annotationDisplayName: annotation.displayName,
-            annotationName: annotation.name,
-            description: annotation.description,
-            type: annotation.type,
-        })),
         [PersistedConfigKeys.HasUsedApplicationBefore]: hasUsedApplicationBefore,
         [PersistedConfigKeys.Queries]: queries,
         [PersistedConfigKeys.RecentAnnotations]: recentAnnotations,

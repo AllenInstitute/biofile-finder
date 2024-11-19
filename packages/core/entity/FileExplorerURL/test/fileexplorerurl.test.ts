@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import FileExplorerURL, { FileExplorerURLComponents, Source } from "..";
+import FileExplorerURL, { FileExplorerURLComponents, FileView, Source } from "..";
 import AnnotationName from "../../Annotation/AnnotationName";
 import FileFilter from "../../FileFilter";
 import ExcludeFilter from "../../FileFilter/ExcludeFilter";
@@ -37,6 +37,8 @@ describe("FileExplorerURL", () => {
                 ["AICS-0", "ACTB-mEGFP", true],
             ];
             const components: FileExplorerURLComponents = {
+                columns: [],
+                fileView: FileView.LIST,
                 hierarchy: expectedAnnotationNames,
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
@@ -74,6 +76,8 @@ describe("FileExplorerURL", () => {
             const expectedExcludeFilters = [{ annotationName: "Gene" }];
 
             const components: FileExplorerURLComponents = {
+                columns: [],
+                fileView: FileView.LIST,
                 hierarchy: expectedAnnotationNames,
                 filters: [
                     ...expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
@@ -111,6 +115,8 @@ describe("FileExplorerURL", () => {
         it("Encodes empty state", () => {
             // Arrange
             const components: FileExplorerURLComponents = {
+                columns: [],
+                fileView: FileView.LIST,
                 hierarchy: [],
                 filters: [],
                 openFolders: [],
@@ -127,6 +133,8 @@ describe("FileExplorerURL", () => {
         it("encodes source URIs when 'string' type is provided", () => {
             // Arrange
             const components: FileExplorerURLComponents = {
+                columns: [],
+                fileView: FileView.LIST,
                 hierarchy: [],
                 filters: [],
                 openFolders: [],
@@ -170,6 +178,8 @@ describe("FileExplorerURL", () => {
                 ["3500000654", "ACTB-mEGFP", true],
             ];
             const components: FileExplorerURLComponents = {
+                columns: [],
+                fileView: FileView.LIST,
                 hierarchy: expectedAnnotationNames,
                 filters: [
                     ...expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
@@ -201,6 +211,8 @@ describe("FileExplorerURL", () => {
         it("Decodes to empty app state", () => {
             // Arrange
             const components: FileExplorerURLComponents = {
+                columns: [],
+                fileView: FileView.LIST,
                 hierarchy: [],
                 filters: [],
                 openFolders: [],
@@ -220,6 +232,8 @@ describe("FileExplorerURL", () => {
         it("Removes folders that are too deep for hierachy", () => {
             // Arrange
             const components: FileExplorerURLComponents = {
+                columns: [],
+                fileView: FileView.SMALL_THUMBNAIL,
                 hierarchy: ["Cell Line"],
                 filters: [],
                 openFolders: [new FileFolder(["AICS-0"]), new FileFolder(["AICS-0", false])],
@@ -246,6 +260,8 @@ describe("FileExplorerURL", () => {
                 ["3500000654", "ACTB-mEGFP", true],
             ];
             const components: FileExplorerURLComponents = {
+                columns: [],
+                fileView: FileView.LARGE_THUMBNAIL,
                 hierarchy: expectedAnnotationNames,
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),

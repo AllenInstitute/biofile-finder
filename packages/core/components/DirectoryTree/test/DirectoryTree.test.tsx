@@ -63,7 +63,10 @@ describe("<DirectoryTree />", () => {
         },
         selection: {
             annotationHierarchy: [fooAnnotation.name, barAnnotation.name],
-            displayAnnotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
+            columns: [...baseDisplayAnnotations, fooAnnotation, barAnnotation].map((a) => ({
+                name: a.name,
+                width: 0.1,
+            })),
         },
     });
 
@@ -358,7 +361,10 @@ describe("<DirectoryTree />", () => {
             },
             selection: {
                 annotationHierarchy: [fooAnnotation.name],
-                displayAnnotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
+                columns: [...baseDisplayAnnotations, fooAnnotation, barAnnotation].map((a) => ({
+                    name: a.name,
+                    width: 0.1,
+                })),
             },
         });
 

@@ -3,7 +3,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { TertiaryButton } from "../Buttons";
-import { THUMBNAIL_SIZE_TO_NUM_COLUMNS } from "../../constants";
+import { FileView } from "../../entity/FileExplorerURL";
 import { selection } from "../../state";
 
 import styles from "./GlobalActionButtonRow.module.css";
@@ -17,11 +17,8 @@ interface Props {
  */
 export default function GlobalActionButtonRow(props: Props) {
     const dispatch = useDispatch();
-    const fileGridColumnCount = useSelector(selection.selectors.getFileGridColumnCount);
+    const fileView = useSelector(selection.selectors.getFileView);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
-    const shouldDisplayThumbnailView = useSelector(
-        selection.selectors.getShouldDisplayThumbnailView
-    );
 
     return (
         <div className={classNames(styles.container, props.className)}>
@@ -29,52 +26,26 @@ export default function GlobalActionButtonRow(props: Props) {
                 <TertiaryButton
                     className={styles.listViewButton}
                     iconName="NumberedListText"
-                    isSelected={!shouldDisplayThumbnailView}
-                    disabled={!shouldDisplayThumbnailView}
-                    onClick={() =>
-                        dispatch(
-                            selection.actions.setFileThumbnailView(!shouldDisplayThumbnailView)
-                        )
-                    }
+                    disabled={fileView === FileView.LIST}
+                    isSelected={fileView === FileView.LIST}
+                    onClick={() => dispatch(selection.actions.setFileView(FileView.LIST))}
                     title="List view"
                 />
                 <TertiaryButton
                     iconName="GridViewMedium"
-                    disabled={
-                        shouldDisplayThumbnailView &&
-                        fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE
-                    }
-                    isSelected={
-                        shouldDisplayThumbnailView &&
-                        fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE
-                    }
+                    disabled={fileView === FileView.LARGE_THUMBNAIL}
+                    isSelected={fileView === FileView.LARGE_THUMBNAIL}
                     onClick={() => {
-                        dispatch(selection.actions.setFileThumbnailView(true));
-                        dispatch(
-                            selection.actions.setFileGridColumnCount(
-                                THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE
-                            )
-                        );
+                        dispatch(selection.actions.setFileView(FileView.LARGE_THUMBNAIL));
                     }}
                     title="Large thumbnail view"
                 />
                 <TertiaryButton
                     iconName="GridViewSmall"
-                    disabled={
-                        shouldDisplayThumbnailView &&
-                        fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL
-                    }
-                    isSelected={
-                        shouldDisplayThumbnailView &&
-                        fileGridColumnCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL
-                    }
+                    disabled={fileView === FileView.SMALL_THUMBNAIL}
+                    isSelected={fileView === FileView.SMALL_THUMBNAIL}
                     onClick={() => {
-                        dispatch(selection.actions.setFileThumbnailView(true));
-                        dispatch(
-                            selection.actions.setFileGridColumnCount(
-                                THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL
-                            )
-                        );
+                        dispatch(selection.actions.setFileView(FileView.SMALL_THUMBNAIL));
                     }}
                     title="Small thumbnail view"
                 />

@@ -4,18 +4,6 @@
     position: relative;
 }
 
-.container::after {
-    background-image: linear-gradient(to right, transparent, var(--secondary-background-color));
-    bottom: 0;
-    content: " ";
-    height: 100%;
-    right: 0;
-    position: absolute;
-    pointer-events: none;
-    width: 60px;
-    z-index: 11;
-}
-
 .filter-display-bar {
     flex-shrink: 0;
     width: 100%;
