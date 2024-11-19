@@ -329,7 +329,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             {
                 key: "other-apps",
                 text: "Other apps",
-                title: "Other applications that are not expected to support this file type",
+                title: "Other applications that are not recommended for this file",
                 subMenuProps: {
                     items: subMenuItems,
                 },
