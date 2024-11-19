@@ -47,8 +47,8 @@ export const isQueryingAicsFms = createSelector(
 
 const FILE_VIEW_TO_COL_COUNT = {
     [FileView.LIST]: 1,
-    [FileView.SMALL_THUMBNAIL]: 5,
-    [FileView.LARGE_THUMBNAIL]: 10,
+    [FileView.SMALL_THUMBNAIL]: 10,
+    [FileView.LARGE_THUMBNAIL]: 5,
 };
 export const getFileGridColCount = createSelector(
     [getFileView],

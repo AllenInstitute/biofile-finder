@@ -98,10 +98,13 @@ class ColumnCoder {
     }
 
     public static decode(encoded: string): Column[] {
-        return encoded.split(ColumnCoder.COLUMN_DELIMETER).map((unparsedColumn: string) => {
-            const [name, widthAsStr] = unparsedColumn.split(ColumnCoder.VALUE_DELIMETER);
-            return { name, width: parseFloat(widthAsStr) };
-        });
+        return encoded
+            .split(ColumnCoder.COLUMN_DELIMETER)
+            .filter((unparsedColumn) => !!unparsedColumn)
+            .map((unparsedColumn) => {
+                const [name, widthAsStr] = unparsedColumn.split(ColumnCoder.VALUE_DELIMETER);
+                return { name, width: parseFloat(widthAsStr) };
+            });
     }
 }
 
@@ -181,7 +184,7 @@ export default class FileExplorerURL {
         const unparsedSources = params.getAll("source");
         const hierarchy = params.getAll("group");
         const unparsedSort = params.get("sort");
-        const unparsedColumns = params.get(URLQueryArgShorthands.COLUMNS) || "{}";
+        const unparsedColumns = params.get(URLQueryArgShorthands.COLUMNS) || "";
         const fileView = (params.get(URLQueryArgShorthands.FILE_VIEW) as FileView) || FileView.LIST;
         const hierarchyDepth = hierarchy.length;
 

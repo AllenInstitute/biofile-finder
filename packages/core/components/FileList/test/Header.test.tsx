@@ -19,6 +19,13 @@ describe("<Header />", () => {
             AnnotationName.UPLOADED,
         ];
         const state = mergeState(initialState, {
+            metadata: {
+                annotations: annotations.map((name) => ({
+                    name,
+                    displayName: name,
+                    description: name,
+                })),
+            },
             selection: {
                 columns: annotations.map((name) => ({
                     name: name,
@@ -51,6 +58,13 @@ describe("<Header />", () => {
             AnnotationName.UPLOADED,
         ];
         const state = mergeState(initialState, {
+            metadata: {
+                annotations: annotations.map((name) => ({
+                    name,
+                    displayName: name,
+                    description: name,
+                })),
+            },
             selection: {
                 columns: annotations.map((name) => ({
                     name: name,
@@ -83,6 +97,13 @@ describe("<Header />", () => {
             AnnotationName.UPLOADED,
         ];
         const state = mergeState(initialState, {
+            metadata: {
+                annotations: annotations.map((name) => ({
+                    name,
+                    displayName: name,
+                    description: name,
+                })),
+            },
             selection: {
                 columns: annotations.map((name) => ({
                     name: name,

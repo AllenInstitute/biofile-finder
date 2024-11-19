@@ -58,6 +58,9 @@ describe("<DirectoryTree />", () => {
         (a) => a.name === AnnotationName.FILE_NAME
     );
     const state = mergeState(initialState, {
+        metadata: {
+            annotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
+        },
         interaction: {
             fileExplorerServiceBaseUrl: baseUrl,
         },
@@ -356,6 +359,9 @@ describe("<DirectoryTree />", () => {
 
     it("only includes one filter value per annotation for an annotation within the hierarchy", async () => {
         const oneAnnotationDeepState = mergeState(initialState, {
+            metadata: {
+                annotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
+            },
             interaction: {
                 fileExplorerServiceBaseUrl: baseUrl,
             },
