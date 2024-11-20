@@ -16,6 +16,7 @@ import Learn from "./components/Learn";
 import Home from "./components/Home";
 import Layout from "./components/Layout";
 import OpenSourceDatasets from "./components/OpenSourceDatasets";
+import BFFLogo from "../assets/bff-logo.png";
 import FmsFileExplorer from "../../core/App";
 import { createReduxStore } from "../../core/state";
 
@@ -72,6 +73,13 @@ async function asyncRender() {
         </Provider>,
         document.getElementById(APP_ID)
     );
+
+    try {
+        (document.getElementById("og-image") as any).content = BFFLogo;
+        (document.getElementById("tw-image") as any).content = BFFLogo;
+    } catch (err) {
+        console.error("Failed to set <head /> meta tags", err);
+    }
 }
 
 asyncRender();

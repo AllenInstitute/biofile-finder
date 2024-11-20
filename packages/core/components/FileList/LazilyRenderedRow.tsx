@@ -46,34 +46,43 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
 
     const file = fileSet.getFileByIndex(index);
 
-    const isSelected = React.useMemo(() => {
-        return fileSelection.isSelected(fileSet, index);
-    }, [fileSelection, fileSet, index]);
+    const isSelected = React.useMemo(() => fileSelection.isSelected(fileSet, index), [
+        fileSelection,
+        fileSet,
+        index,
+    ]);
 
-    const isFocused = React.useMemo(() => {
-        return fileSelection.isFocused(fileSet, index);
-    }, [fileSelection, fileSet, index]);
+    const isFocused = React.useMemo(() => fileSelection.isFocused(fileSet, index), [
+        fileSelection,
+        fileSet,
+        index,
+    ]);
 
-    let content = null;
+    let content: React.ReactElement;
     if (file) {
-        const cells = map(annotations, (annotation) => ({
-            columnKey: annotation.name,
-            displayValue: annotation.extractFromFile(file),
-            width: columnWidths[annotation.name] || 1 / annotations.length,
-        }));
         content = (
-            <FileRow cells={cells} rowIdentifier={{ index, id: file.id }} onSelect={onSelect} />
+            <FileRow
+                cells={map(annotations, (annotation) => ({
+                    columnKey: annotation.name,
+                    displayValue: annotation.extractFromFile(file),
+                    width: columnWidths[annotation.name] || 1 / annotations.length,
+                }))}
+                rowIdentifier={{ index, id: file.uid }}
+                onSelect={onSelect}
+            />
         );
+    } else {
+        // Unable to convince FluentUI to style the shimmer wave pattern accurately
+        // with pure css so have to rely on extracting the colors from the global document
+        // here and then applying them directly
+        const globalStyle = getComputedStyle(document.body);
+        const shimmerColors: IShimmerColors = {
+            background: globalStyle.getPropertyValue("--primary-dark"),
+            shimmer: globalStyle.getPropertyValue("--primary-dark"),
+            shimmerWave: globalStyle.getPropertyValue("--aqua"),
+        };
+        content = <Shimmer className={styles.shimmer} shimmerColors={shimmerColors} />;
     }
-    // Unable to convince FluentUI to style the shimmer wave pattern accurately
-    // with pure css so have to rely on extracting the colors from the global document
-    // here and then applying them directly
-    const globalStyle = getComputedStyle(document.body);
-    const shimmerColors: IShimmerColors = {
-        background: globalStyle.getPropertyValue("--primary-dark"),
-        shimmer: globalStyle.getPropertyValue("--primary-dark"),
-        shimmerWave: globalStyle.getPropertyValue("--aqua"),
-    };
 
     return (
         <div
@@ -88,13 +97,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
             }}
             onContextMenu={onContextMenu}
         >
-            <Shimmer
-                className={classNames({ [styles.shimmer]: !file })}
-                isDataLoaded={!!file}
-                shimmerColors={shimmerColors}
-            >
-                {content}
-            </Shimmer>
+            {content}
         </div>
     );
 }

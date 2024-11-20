@@ -16,7 +16,7 @@
 }
 
 .small-font {
-  font-size: var(--xs-paragraph-size);
+  font-size: var(--s-paragraph-size);
 }
 
 .focused {
@@ -25,7 +25,7 @@
 }
 
 .thumbnail-wrapper {
-  font-size: var(--s-paragraph-size);
+  font-size: var(--l-paragraph-size);
   padding: 4px;
 }
 

@@ -6,6 +6,7 @@ import { Provider } from "react-redux";
 
 import Query from "../Query";
 import { initialState } from "../../../state";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../../constants";
 
 describe("<Query />", () => {
     it("expands and collapses when clicked", async () => {
@@ -55,7 +56,7 @@ describe("<Query />", () => {
                 <Query
                     isSelected
                     query={{
-                        name: "Test Random Query",
+                        name: AICS_FMS_DATA_SOURCE_NAME,
                         parts: {
                             filters: [],
                             hierarchy: [],
