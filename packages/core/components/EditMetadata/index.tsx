@@ -66,6 +66,7 @@ export default function EditMetadataForm() {
     return (
         <>
             <ChoiceGroup
+                className={styles.choiceGroup}
                 defaultSelectedKey={editPathway}
                 onChange={(_ev, option) =>
                     setEditPathway(
