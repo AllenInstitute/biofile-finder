@@ -58,7 +58,7 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
     return (
         <div className={styles.wrapper}>
             <Stack className={styles.stack} horizontal tokens={{ childrenGap: 20 }}>
-                <StackItem grow className={styles.leftStackItem}>
+                <StackItem grow className={styles.stackItemLeft}>
                     <h4>Existing values</h4>
                     <DetailsList
                         setKey="items"
@@ -94,10 +94,10 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                         onRenderItemColumn={renderItemColumn}
                     />
                 </StackItem>
-                <StackItem grow align="center">
+                <StackItem grow align="center" className={styles.stackItemCenter}>
                     <Icon iconName="Forward" />
                 </StackItem>
-                <StackItem grow className={styles.rightStackItem}>
+                <StackItem grow className={styles.stackItemRight}>
                     {/* TODO: Display different entry types depending on datatype of annotation */}
                     <TextField
                         label="Replace with"

@@ -41,11 +41,15 @@
   width: 100%;
 }
 
-.left-stack-item {
+.stack-item-left {
   padding-top: 5px;
   width: 300px;
 }
 
-.right-stack-item {
+.stack-item-center {
+  padding-bottom: 14px;
+}
+
+.stack-item-right {
   width: 275px;
 }
