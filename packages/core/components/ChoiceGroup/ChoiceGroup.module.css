@@ -9,9 +9,9 @@
 }
 
 .choice-group label > span {
-  font-size: var(--s-paragraph-size);
+  font-size: var(--l-paragraph-size);
   margin-right: 5px;
-  margin-top: 2px;
+  margin-top: 1px;
   padding-left: 24px !important;
 }
 
@@ -43,5 +43,5 @@
 }
 
 .choice-group > div > div > div:not(:first-child) {
-  margin-left: 6px;
+  margin-left: var(--margin);
 }
