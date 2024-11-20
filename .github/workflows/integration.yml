@@ -1,10 +1,94 @@
 name: integration
 
-on: pull_request
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    # <minute [0,59]> <hour [0,23]> <day of the month [1,31]>
+    # <month of the year [1,12]> <day of the week [0,6]>
+    # https://pubs.opengroup.org/onlinepubs/9699919799/utilities/crontab.html#tag_20_25_07
+    # Run every Monday at 07:24:00 PST
+    # (Since these CRONs are used by a lot of people -
+    # let's be nice to the servers and schedule it _not_ on the hour)
+    - cron: "24 7 * * 1"
 
 jobs:
-  build-fms-file-explorer-electron:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@main
+
+      - name: Install Node.js
+        uses: actions/setup-node@main
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+  test-core:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@main
+
+      - name: Install Node.js
+        uses: actions/setup-node@main
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Unit Test
+        run: npm run test:core
+
+  test-web:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@main
+
+      - name: Install Node.js
+        uses: actions/setup-node@main
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Unit Test
+        run: npm run test:web
+
+  test-desktop:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@main
+
+      - name: Install Node.js
+        uses: actions/setup-node@main
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Unit Test
+        run: npm run test:desktop
+
+  build-desktop:
     runs-on: ${{ matrix.os }}
+    needs: [test-desktop, test-web, test-core]
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -13,12 +97,12 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@main
 
-      - name: Install Node.js, NPM and Yarn
+      - name: Install Node.js
         uses: actions/setup-node@main
         with:
           node-version: 16
 
-      - name: Build/release Electron app
+      - name: Build Electron app
         uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
         with:
           # GitHub token, automatically provided to the action

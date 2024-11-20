@@ -72,7 +72,8 @@ export interface FmsFile {
  * Facade for a FileDetailResponse.
  */
 export default class FileDetail {
-    private fileDetail: FmsFile;
+    private readonly fileDetail: FmsFile;
+    private readonly uniqueId?: string;
 
     private static convertAicsDrivePathToAicsS3Path(path: string): string {
         const pathWithoutDrive = path.replace("/allen/programs/allencell/data/proj0", "");
@@ -81,12 +82,17 @@ export default class FileDetail {
         return `https://s3.us-west-2.amazonaws.com/production.files.allencell.org${pathWithoutDrive}`;
     }
 
-    constructor(fileDetail: FmsFile) {
+    constructor(fileDetail: FmsFile, uniqueId?: string) {
         this.fileDetail = fileDetail;
+        this.uniqueId = uniqueId;
     }
 
     public get details() {
         return this.fileDetail;
+    }
+
+    public get uid(): string {
+        return this.uniqueId || this.id;
     }
 
     public get id(): string {

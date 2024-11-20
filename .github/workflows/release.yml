@@ -7,7 +7,7 @@ on:
       - v*
 
 jobs:
-  release-fms-file-explorer-desktop:
+  release-desktop:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -19,7 +19,7 @@ jobs:
         with:
           ref: ${{ github.event.client_payload.ref }}
 
-      - name: Install Node.js, NPM and Yarn
+      - name: Install Node.js
         uses: actions/setup-node@main
         with:
           node-version: 16

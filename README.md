@@ -1,8 +1,8 @@
 BioFile Finder
 =================
 
-BioFile Finder is an application designed to simplify access and exploration of data produced by the Allen
-Institute for Cell Science, provide an intuitive mechanism for organizing that data, and provide simple hooks for
+BioFile Finder is an application produced by the Allen
+Institute for Cell Science designed to simplify access and exploration of data, provide an intuitive mechanism for organizing that data, and provide simple hooks for
 incorporating that data into both programmatic and non-programmatic workflows.
 
 

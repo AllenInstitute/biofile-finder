@@ -36,17 +36,16 @@
     padding-bottom: 40px;
 }
 
-.main-content::after {
+.container::after {
     background-image: linear-gradient(transparent, var(--primary-background-color));
-    bottom: calc(var(--footer-height) + 16px);
     content: " ";
+    display: block;
     height: 50px;
-    right: 0;
-    max-width: 100%;
-    position: absolute;
+    pointer-events: none;
+    /* Adjusted for height - footer height */
+    transform: translateY(calc(-50px - var(--footer-height)));
     width: 100%;
     z-index: 10;
-    pointer-events: none;
 }
 
 .footer {

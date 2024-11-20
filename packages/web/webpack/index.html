@@ -5,9 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>BioFile Finder</title>
+
     <meta name="description" content="Open-use web application created for easy access, collaboration, and sharing of datasets through rich metadata search, filter, sort, and direct viewing.">
     <meta name="author" content="Allen Institute for Cell Science">
     <link rel="icon" type="image/x-icon"href="logo.ico" />
+
+    <!-- Necessary for BFF link to be unfurled into rich context info -->
+    <meta property="og:title" content="BioFile Finder" />
+    <meta property="og:description" content="Open-use web application created for easy access, collaboration, and sharing of datasets through rich metadata search, filter, sort, and direct viewing." />
+    <!-- Dynamically entered in src/components/index.tsx -->
+    <meta id="og-image" property="og:image" content="" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://biofile-finder.allencell.org" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="BioFile Finder" />
+    <meta name="twitter:description" content="Open-use web application created for easy access, collaboration, and sharing of datasets through rich metadata search, filter, sort, and direct viewing." />
+    <!-- Dynamically entered in src/components/index.tsx -->
+    <meta id="tw-image" name="twitter:image" content="" />
 
     <!-- Google Tag Manager -->
     <script>(function (w, d, s, l, i) {
@@ -25,6 +39,7 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KCCN6L4X" height="0" width="0"
             style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
+
     <main id="biofile-finder"></main>
 </body>
 </html>
