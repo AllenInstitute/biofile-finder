@@ -118,6 +118,8 @@ export default function FileDetails(props: Props) {
         ? processStatuses.some((status) => status.data.fileId?.includes(fileDetails.id)) ||
           (isOnWeb &&
               isZarr &&
+              // The Zarr size is calculated using the same traversal method as downloads
+              // meaning that if the size cannot be determined, the download is also not possible.
               (calculatedSize === null || calculatedSize > MaximumDownloadSizeBrowser))
         : true;
 

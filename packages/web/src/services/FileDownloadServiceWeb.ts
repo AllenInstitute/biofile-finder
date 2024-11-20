@@ -84,6 +84,8 @@ Please navigate to this directory manually, or upload files to a remote address 
         // Most modern web browsers have memory constraints that limit them to using approximately 2 GB of RAM.
         // Exceeding this limit can cause memory issues, crashes, or download failures due to insufficient memory.
         // This check ensures that the total download size does not surpass the supported 2 GB threshold.
+        // Additionally, zarr size is calculated using the same traversal method as downloads,
+        // meaning that if the size cannot be determined, the download is also not possible.
         if (totalSize > MaximumDownloadSizeBrowser) {
             throw new Error(
                 `The total download size of the requested zarr file exceeds the 2 GB RAM limit supported by web browsers. ` +
