@@ -14,6 +14,7 @@ import FileThumbnail from "../../components/FileThumbnail";
 import { interaction } from "../../state";
 
 import styles from "./FileDetails.module.css";
+import { MaximumDownloadSizeBrowser } from "../../services/FileDownloadService";
 
 interface Props {
     className?: string;
@@ -117,7 +118,7 @@ export default function FileDetails(props: Props) {
         ? processStatuses.some((status) => status.data.fileId?.includes(fileDetails.id)) ||
           (isOnWeb &&
               isZarr &&
-              (calculatedSize === null || calculatedSize > 2 * 1024 * 1024 * 1024))
+              (calculatedSize === null || calculatedSize > MaximumDownloadSizeBrowser))
         : true;
 
     // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait

@@ -6,6 +6,7 @@ import {
     FileInfo,
     DownloadResolution,
 } from "../../../core/services";
+import { MaximumDownloadSizeBrowser } from "../../../core/services/FileDownloadService";
 
 interface ActiveRequestMap {
     [id: string]: {
@@ -79,11 +80,11 @@ Please navigate to this directory manually, or upload files to a remote address 
         // Calculate the total size of the S3 directory
         const totalSize = await this.calculateS3DirectorySize(hostname, key);
 
-        // Check if the total size exceeds 2 GB (2 * 1024 * 1024 * 1024 bytes)
+        // Check if the total size exceeds 2 GB.
         // Most modern web browsers have memory constraints that limit them to using approximately 2 GB of RAM.
         // Exceeding this limit can cause memory issues, crashes, or download failures due to insufficient memory.
         // This check ensures that the total download size does not surpass the supported 2 GB threshold.
-        if (totalSize > 2 * 1024 * 1024 * 1024) {
+        if (totalSize > MaximumDownloadSizeBrowser) {
             throw new Error(
                 `The total download size of the requested zarr file exceeds the 2 GB RAM limit supported by web browsers. ` +
                     `Attempting to download a total size of ${(
