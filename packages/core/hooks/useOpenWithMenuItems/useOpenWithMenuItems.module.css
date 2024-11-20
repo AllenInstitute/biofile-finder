@@ -1,30 +1,58 @@
-.agave-link {
-    color: var(--secondary-text-color);
+.desktop-menu-item .info-button {
+    background-color: var(--primary-background-color);
+    border-radius: var(--large-border-radius);
+    border: none;
+    color: var(--primary-text-color);
+    font-size: 12px;
+    height: 20px;
+    max-width: 50px;
+    min-width: 50px;
+    overflow: hidden;
+    padding: 0;
+    width: 50px;
 }
 
-.agave-link:hover a > i, .agave-link:hover a > div > span {
-    color: var(--secondary-text-color) !important;
+.desktop-menu-item .info-button {
+    color: var(--white);
+    opacity: 0.5;
 }
 
-.agave-link:hover a > i, .agave-link a > div > span:hover {
-    color: var(--highlight-text-color) !important;
+.desktop-menu-item .info-button:hover {
+    opacity: 1;
+}
+
+.divider {
+    display: inherit !important;
+    opacity: 0.25;
+}
+
+.secondary-text {
+    color: var(--white);
+    font-size: 12px !important;
+    opacity: 0.5;
+}
+
+.desktop-menu-item .info-button > span {
+    font-size: 12px;
+}
+
+.desktop-menu-item:hover > div, .desktop-menu-item:hover .info-button, .desktop-menu-item:hover .info-button i {
+    background-color: var(--highlight-background-color);
+    color: var(--highlight-text-color);
+}
+
+.desktop-menu-item .info-button:hover, .desktop-menu-item .info-button:hover i {
+    background-color: var(--dark-aqua);
+}
+
+.desktop-menu-item .info-button i {
+    padding-left: 4px;
+}
+
+.desktop-menu-item a {
+    padding-left: 0;
 }
 
 .view-link {
-    align-items: center;
-    color: var(--secondary-text-color);
-    display: flex;
-    font-size: var(--xs-paragraph-size);
-    height: 34px;
-}
-
-.view-link > i {
-    color: var(--secondary-text-color) !important;
-    height: 34px;
-    padding-left: 4px;
-    transform: translateY(-1px);
-}
-
-.view-link:hover, .view-link:hover > i {
-    color: var(--highlight-text-color);
+    padding-left: 24px !important;
 }

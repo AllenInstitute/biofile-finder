@@ -720,13 +720,22 @@ export const ADD_DATASOURCE_RELOAD_ERROR = makeConstant(
 );
 
 export interface AddDataSourceReloadError {
-    payload: string;
+    payload: {
+        dataSourceName: string;
+        error: string;
+    };
     type: string;
 }
 
-export function addDataSourceReloadError(dataSourceName: string): AddDataSourceReloadError {
+export function addDataSourceReloadError(
+    dataSourceName: string,
+    error: string
+): AddDataSourceReloadError {
     return {
-        payload: dataSourceName,
+        payload: {
+            dataSourceName,
+            error,
+        },
         type: ADD_DATASOURCE_RELOAD_ERROR,
     };
 }

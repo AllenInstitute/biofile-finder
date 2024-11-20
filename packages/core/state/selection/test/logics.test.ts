@@ -24,6 +24,7 @@ import {
     selectNearbyFile,
     SET_SORT_COLUMN,
     changeDataSources,
+    changeSourceMetadata,
 } from "../actions";
 import { initialState, interaction } from "../../";
 import Annotation from "../../../entity/Annotation";
@@ -40,6 +41,7 @@ import FileSort, { SortOrder } from "../../../entity/FileSort";
 import { DatasetService } from "../../../services";
 import { DataSource } from "../../../services/DataSourceService";
 import HttpFileService from "../../../services/FileService/HttpFileService";
+import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("Selection logics", () => {
@@ -947,7 +949,17 @@ describe("Selection logics", () => {
         it("dispatches new hierarchy, filters, sort, source, & opened folders from given URL", async () => {
             // Arrange
             const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
+            class MockDatabaseService extends DatabaseServiceNoop {
+                public deleteSourceMetadata(): Promise<void> {
+                    return Promise.resolve();
+                }
+            }
             const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        databaseService: new MockDatabaseService(),
+                    },
+                },
                 metadata: {
                     annotations,
                     dataSources: mockDataSources,
@@ -998,6 +1010,7 @@ describe("Selection logics", () => {
                     payload: sortColumn,
                 })
             ).to.be.true;
+            expect(actions.includesMatch(changeSourceMetadata())).to.be.true;
             expect(actions.includesMatch(changeDataSources(mockDataSources))).to.be.true;
         });
     });
