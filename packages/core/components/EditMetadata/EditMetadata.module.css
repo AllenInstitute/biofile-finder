@@ -1,6 +1,10 @@
 .combo-box {
   width: 295px;
-  padding-top: var(--margin);
+  padding-bottom: var(--margin);
+}
+
+.choice-group {
+  padding-bottom: var(--margin);
 }
 
 .chips {
@@ -76,7 +80,7 @@
 }
 
 .text-field {
-  padding-top: var(--margin);
+  padding-bottom: var(--margin);
   max-width: 300px;;
 }
 
