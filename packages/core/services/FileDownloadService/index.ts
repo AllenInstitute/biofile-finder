@@ -155,4 +155,4 @@ export const FileDownloadCancellationToken =
 /**
  * Maximum size of multifile cloud files that can be downloaded from a browser ~2GB
  */
-export const MaximumDownloadSizeBrowser = 2 * 1024 * 1024 * 1024;
+export const MAX_DOWNLOAD_SIZE_WEB = 2 * 1024 * 1024 * 1024;

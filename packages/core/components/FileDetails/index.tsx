@@ -14,7 +14,7 @@ import FileThumbnail from "../../components/FileThumbnail";
 import { interaction } from "../../state";
 
 import styles from "./FileDetails.module.css";
-import { MaximumDownloadSizeBrowser } from "../../services/FileDownloadService";
+import { MAX_DOWNLOAD_SIZE_WEB } from "../../services/FileDownloadService";
 
 interface Props {
     className?: string;
@@ -120,7 +120,7 @@ export default function FileDetails(props: Props) {
               isZarr &&
               // The Zarr size is calculated using the same traversal method as downloads
               // meaning that if the size cannot be determined, the download is also not possible.
-              (calculatedSize === null || calculatedSize > MaximumDownloadSizeBrowser))
+              (calculatedSize === null || calculatedSize > MAX_DOWNLOAD_SIZE_WEB))
         : true;
 
     // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait

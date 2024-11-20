@@ -6,7 +6,7 @@ import {
     FileInfo,
     DownloadResolution,
 } from "../../../core/services";
-import { MaximumDownloadSizeBrowser } from "../../../core/services/FileDownloadService";
+import { MAX_DOWNLOAD_SIZE_WEB } from "../../../core/services/FileDownloadService";
 
 interface ActiveRequestMap {
     [id: string]: {
@@ -86,7 +86,7 @@ Please navigate to this directory manually, or upload files to a remote address 
         // This check ensures that the total download size does not surpass the supported 2 GB threshold.
         // Additionally, zarr size is calculated using the same traversal method as downloads,
         // meaning that if the size cannot be determined, the download is also not possible.
-        if (totalSize > MaximumDownloadSizeBrowser) {
+        if (totalSize > MAX_DOWNLOAD_SIZE_WEB) {
             throw new Error(
                 `The total download size of the requested zarr file exceeds the 2 GB RAM limit supported by web browsers. ` +
                     `Attempting to download a total size of ${(
