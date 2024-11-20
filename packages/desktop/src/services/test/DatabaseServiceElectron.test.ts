@@ -28,7 +28,7 @@ describe("DatabaseServiceElectron", () => {
             // Arrange
             const tempFileName = "test.csv";
             const tempFile = path.resolve(tempDir, tempFileName);
-            await fs.promises.writeFile(tempFile, "color\nblue\ngreen\norange");
+            await fs.promises.writeFile(tempFile, "file_path\nblue\ngreen\norange");
 
             // Act
             await service.prepareDataSources([{ name: tempFileName, type: "csv", uri: tempFile }]);
@@ -44,7 +44,10 @@ describe("DatabaseServiceElectron", () => {
             const tempFile = path.resolve(tempDir, tempFileName);
             await fs.promises.writeFile(
                 tempFile,
-                JSON.stringify([{ color: "blue" }, { color: "green" }])
+                JSON.stringify([
+                    { file_path: "a", color: "blue" },
+                    { file_path: "b", color: "green" },
+                ])
             );
 
             // Act

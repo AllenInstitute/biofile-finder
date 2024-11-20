@@ -1,5 +1,6 @@
 import { expect } from "chai";
 
+import DatabaseService from "../../../DatabaseService";
 import FileSelection from "../../../../entity/FileSelection";
 import FileSet from "../../../../entity/FileSet";
 import NumericRange from "../../../../entity/NumericRange";
@@ -12,9 +13,10 @@ describe("DatabaseFileService", () => {
     const totalFileSize = 864452;
     const fileIds = ["abc123", "def456"];
     const files = fileIds.map((file_id) => ({
-        "File ID": file_id,
+        [DatabaseService.HIDDEN_UID_ANNOTATION]: file_id,
         "File Size": `${totalFileSize / 2}`,
         "File Path": "path/to/file",
+        "File Name": "file",
         num_files: "6",
     }));
 
@@ -43,32 +45,16 @@ describe("DatabaseFileService", () => {
             expect(data[0].details).to.deep.equal({
                 annotations: [
                     {
+                        name: "File Size",
+                        values: ["432226"],
+                    },
+                    {
                         name: "File Path",
                         values: ["path/to/file"],
                     },
                     {
                         name: "File Name",
                         values: ["file"],
-                    },
-                    {
-                        name: "File ID",
-                        values: ["abc123"],
-                    },
-                    {
-                        name: "File Size",
-                        values: ["432226"],
-                    },
-                    {
-                        name: "File ID",
-                        values: ["abc123"],
-                    },
-                    {
-                        name: "File Size",
-                        values: ["432226"],
-                    },
-                    {
-                        name: "File Path",
-                        values: ["path/to/file"],
                     },
                     {
                         name: "num_files",

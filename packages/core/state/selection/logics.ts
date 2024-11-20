@@ -45,6 +45,7 @@ import {
     ADD_DATASOURCE_RELOAD_ERROR,
     REMOVE_DATASOURCE_RELOAD_ERROR,
     CHANGE_FILE_FILTER_TYPE,
+    AddDataSourceReloadError,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -495,6 +496,10 @@ const changeDataSourceLogic = createLogic({
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
+        const statuses = interaction.selectors.getProcessStatuses(deps.getState());
+        const dataSourceErrorStatus = statuses.find(
+            (status) => status.processId === "dataSourceReloadError"
+        );
 
         const newSelectedDataSources: DataSource[] = [];
         const existingSelectedDataSources: DataSource[] = [];
@@ -520,12 +525,13 @@ const changeDataSourceLogic = createLogic({
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());
         } catch (err) {
-            const errMsg = `Error encountered while preparing data sources (Full error: ${
-                (err as Error).message
-            })`;
-            console.error(errMsg);
+            const errMsg = (err as Error).message || "Unknown error while changing data source";
             if (err instanceof DataSourcePreparationError) {
-                dispatch(addDataSourceReloadError(err.sourceName) as AnyAction);
+                // Avoid re-appending the same error message to the state,
+                // the original may have been more specific
+                if (!dataSourceErrorStatus?.data.msg.includes(err.sourceName)) {
+                    dispatch(addDataSourceReloadError(err.sourceName, errMsg) as AnyAction);
+                }
             } else {
                 dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
             }
@@ -549,6 +555,8 @@ const changeSourceMetadataLogic = createLogic({
         );
         if (selectedSourceMetadata) {
             await databaseService.prepareSourceMetadata(selectedSourceMetadata);
+        } else {
+            await databaseService.deleteSourceMetadata();
         }
 
         dispatch(metadata.actions.requestAnnotations());
@@ -571,16 +579,16 @@ const addQueryLogic = createLogic({
             await databaseService.prepareDataSources(newQuery.parts.sources);
             if (newQuery.parts.sourceMetadata) {
                 await databaseService.prepareSourceMetadata(newQuery.parts.sourceMetadata);
+            } else {
+                await databaseService.deleteSourceMetadata();
             }
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());
         } catch (err) {
-            const errMsg = `Error encountered while preparing data sources (Full error: ${
-                (err as Error).message
-            })`;
+            const errMsg = (err as Error).message || "Unknown error while adding query";
             console.error(errMsg);
             if (err instanceof DataSourcePreparationError) {
-                dispatch(addDataSourceReloadError(err.sourceName) as AnyAction);
+                dispatch(addDataSourceReloadError(err.sourceName, errMsg) as AnyAction);
             } else {
                 dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
             }
@@ -669,12 +677,10 @@ const replaceDataSourceLogic = createLogic({
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());
         } catch (err) {
-            const errMsg = `Error encountered while replacing data sources (Full error: ${
-                (err as Error).message
-            })`;
+            const errMsg = (err as Error).message || "Unknown error while replacing data source";
             console.error(errMsg);
             if (err instanceof DataSourcePreparationError) {
-                dispatch(addDataSourceReloadError(err.sourceName) as AnyAction);
+                dispatch(addDataSourceReloadError(err.sourceName, errMsg) as AnyAction);
             } else {
                 dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
             }
@@ -709,15 +715,21 @@ const replaceDataSourceLogic = createLogic({
 // If removing, hides pop-up (if there is one) and unsets bool
 const setDataSourceReloadErrorLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { payload: dataSourceName, type } = deps.action;
-        const datasourceErrorDefaultMessage = `There was an error loading the data source file
-                        '${dataSourceName}'. Please re-select the data source file or a replacement.
-                    </br>
-                        If this is a local file, the browser&apos;s permissions to access the file
-                        may have expired since last time. If so, consider putting the file in a
-                        cloud storage and providing the URL to avoid this issue in the future.`;
-
-        if (type === ADD_DATASOURCE_RELOAD_ERROR) {
+        const isNewError = deps.action.type === ADD_DATASOURCE_RELOAD_ERROR;
+        if (isNewError) {
+            const {
+                payload: { dataSourceName, error },
+            } = deps.action as AddDataSourceReloadError;
+            const datasourceErrorDefaultMessage = `
+                The following error occurred while loading the data source
+                &quot;${dataSourceName}&quot;:
+                </br>
+                </br>
+                ${error}
+                </br>
+                </br>
+                Please re-select the data source or a replacement.
+            `;
             dispatch(
                 interaction.actions.processError(
                     "dataSourceReloadError",
@@ -725,7 +737,7 @@ const setDataSourceReloadErrorLogic = createLogic({
                 )
             );
         } else dispatch(interaction.actions.removeStatus("dataSourceReloadError"));
-        dispatch(setRequiresDataSourceReload(type === ADD_DATASOURCE_RELOAD_ERROR) as AnyAction);
+        dispatch(setRequiresDataSourceReload(isNewError) as AnyAction);
         done();
     },
     type: [ADD_DATASOURCE_RELOAD_ERROR, REMOVE_DATASOURCE_RELOAD_ERROR],
