@@ -31,8 +31,8 @@ import {
     SetIsSmallScreenAction,
     setVisibleModal,
     hideVisibleModal,
-    MoveFilesAction,
-    MOVE_FILES,
+    CopyFilesAction,
+    COPY_FILES,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
@@ -578,13 +578,13 @@ const setIsSmallScreen = createLogic({
 });
 
 /**
- * Interceptor responsible for handling the MOVE_FILES action.
- * Logs details of files that are being moved.
+ * Interceptor responsible for handling the COPY_FILES action.
+ * Logs details of files that are being copied to cache.
  */
-const moveFilesLogic = createLogic({
-    type: MOVE_FILES,
+const CopyFilesLogic = createLogic({
+    type: COPY_FILES,
     process(deps, dispatch, done) {
-        const action = deps.action as MoveFilesAction;
+        const action = deps.action as CopyFilesAction;
         console.log(`Moving files:`, action.payload.fileDetails);
         done();
     },
@@ -601,5 +601,5 @@ export default [
     showContextMenu,
     refresh,
     setIsSmallScreen,
-    moveFilesLogic,
+    CopyFilesLogic,
 ];

@@ -681,35 +681,35 @@ export function setSelectedPublicDataset(dataset: PublicDataset): SetSelectedPub
 }
 
 /**
- * SHOW_MOVE_FILE_MANIFEST
+ * SHOW_COPY_FILE_MANIFEST
  *
- * Action to show the Move File dialog (manifest) for NAS cache operations.
- * This modal will allow users to move files onto the NAS cache.
+ * Action to show the Copy File dialog (manifest) for NAS cache operations.
+ * This modal will allow users to copy files onto the NAS cache.
  */
-export const SHOW_MOVE_FILE_MANIFEST = makeConstant(STATE_BRANCH_NAME, "show-move-file-manifest");
+export const SHOW_COPY_FILE_MANIFEST = makeConstant(STATE_BRANCH_NAME, "show-copy-file-manifest");
 
-export interface ShowMoveFileManifestAction {
+export interface ShowCopyFileManifestAction {
     type: string;
 }
 
-export function showMoveFileManifest(): ShowMoveFileManifestAction {
+export function showCopyFileManifest(): ShowCopyFileManifestAction {
     return {
-        type: SHOW_MOVE_FILE_MANIFEST,
+        type: SHOW_COPY_FILE_MANIFEST,
     };
 }
 
-export const MOVE_FILES = makeConstant(STATE_BRANCH_NAME, "move-files");
+export const COPY_FILES = makeConstant(STATE_BRANCH_NAME, "copy-files");
 
-export interface MoveFilesAction {
+export interface CopyFilesAction {
     type: string;
     payload: {
         fileDetails: FileDetail[];
     };
 }
 
-export function moveFiles(fileDetails: FileDetail[]): MoveFilesAction {
+export function copyFiles(fileDetails: FileDetail[]): CopyFilesAction {
     return {
-        type: MOVE_FILES,
+        type: COPY_FILES,
         payload: {
             fileDetails,
         },
