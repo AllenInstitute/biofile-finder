@@ -21,7 +21,10 @@ describe("HttpAnnotationService", () => {
         });
 
         it("issues request for all available Annotations", async () => {
-            const annotationService = new HttpAnnotationService({ baseUrl: "test", httpClient });
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: "test",
+                httpClient,
+            });
             const annotations = await annotationService.fetchAnnotations();
             expect(annotations.length).to.equal(
                 annotationsJson.length + TOP_LEVEL_FILE_ANNOTATION_NAMES.length
@@ -43,7 +46,10 @@ describe("HttpAnnotationService", () => {
                 },
             });
 
-            const annotationService = new HttpAnnotationService({ baseUrl: "test", httpClient });
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: "test",
+                httpClient,
+            });
             const actualValues = await annotationService.fetchValues(annotation);
             expect(actualValues.length).to.equal(values.length);
             expect(actualValues).to.be.deep.equal(values);
@@ -62,7 +68,10 @@ describe("HttpAnnotationService", () => {
                 },
             });
 
-            const annotationService = new HttpAnnotationService({ baseUrl: "test", httpClient });
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: "test",
+                httpClient,
+            });
             const values = await annotationService.fetchRootHierarchyValues(["foo"], []);
             expect(values).to.equal(expectedValues);
         });
@@ -80,7 +89,10 @@ describe("HttpAnnotationService", () => {
             });
             const getSpy = spy(httpClient, "get");
 
-            const annotationService = new HttpAnnotationService({ baseUrl: "test", httpClient });
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: "test",
+                httpClient,
+            });
 
             // first time around
             const firstCallRet = await annotationService.fetchRootHierarchyValues(
@@ -113,7 +125,10 @@ describe("HttpAnnotationService", () => {
                 },
             });
 
-            const annotationService = new HttpAnnotationService({ baseUrl: "test", httpClient });
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: "test",
+                httpClient,
+            });
             const filter = new FileFilter("bar", "barValue");
             const values = await annotationService.fetchRootHierarchyValues(["foo"], [filter]);
             expect(values).to.equal(expectedValues);
@@ -132,7 +147,10 @@ describe("HttpAnnotationService", () => {
                 },
             });
 
-            const annotationService = new HttpAnnotationService({ baseUrl: "test", httpClient });
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: "test",
+                httpClient,
+            });
             const values = await annotationService.fetchHierarchyValuesUnderPath(
                 ["foo", "bar"],
                 ["baz"],
@@ -152,7 +170,10 @@ describe("HttpAnnotationService", () => {
                 },
             });
 
-            const annotationService = new HttpAnnotationService({ baseUrl: "test", httpClient });
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: "test",
+                httpClient,
+            });
             const filter = new FileFilter("bar", "barValue");
             const values = await annotationService.fetchHierarchyValuesUnderPath(
                 ["foo", "bar"],
@@ -181,7 +202,10 @@ describe("HttpAnnotationService", () => {
                 ...annotationsFromServer,
                 ...hierarchy,
             ];
-            const annotationService = new HttpAnnotationService({ baseUrl: "test", httpClient });
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: "test",
+                httpClient,
+            });
             const values = await annotationService.fetchAvailableAnnotationsForHierarchy(hierarchy);
             expect(values.sort()).to.deep.equal(expectedValues.sort());
         });

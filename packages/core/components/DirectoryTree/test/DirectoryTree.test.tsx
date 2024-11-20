@@ -53,14 +53,10 @@ describe("<DirectoryTree />", () => {
         type: "Text",
     });
 
-    const baseUrl = "http://test-aics.corp.alleninstitute.org";
     const baseDisplayAnnotations = TOP_LEVEL_FILE_ANNOTATIONS.filter(
         (a) => a.name === AnnotationName.FILE_NAME
     );
     const state = mergeState(initialState, {
-        interaction: {
-            fileExplorerServiceBaseUrl: baseUrl,
-        },
         selection: {
             annotationHierarchy: [fooAnnotation.name, barAnnotation.name],
             displayAnnotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
@@ -188,9 +184,13 @@ describe("<DirectoryTree />", () => {
         },
     ];
     const mockHttpClient = createMockHttpClient(responseStubs);
-    const annotationService = new HttpAnnotationService({ baseUrl, httpClient: mockHttpClient });
+    const fileExplorerServiceBaseUrl = "http://test.int.allencell.org";
+    const annotationService = new HttpAnnotationService({
+        fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
+        httpClient: mockHttpClient,
+    });
     const fileService = new HttpFileService({
-        baseUrl,
+        fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
         httpClient: mockHttpClient,
         downloadService: new FileDownloadServiceNoop(),
     });
@@ -353,9 +353,6 @@ describe("<DirectoryTree />", () => {
 
     it("only includes one filter value per annotation for an annotation within the hierarchy", async () => {
         const oneAnnotationDeepState = mergeState(initialState, {
-            interaction: {
-                fileExplorerServiceBaseUrl: baseUrl,
-            },
             selection: {
                 annotationHierarchy: [fooAnnotation.name],
                 displayAnnotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],

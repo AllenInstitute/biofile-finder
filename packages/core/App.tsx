@@ -14,7 +14,7 @@ import GlobalActionButtonRow from "./components/GlobalActionButtonRow";
 import StatusMessage from "./components/StatusMessage";
 import TutorialTooltip from "./components/TutorialTooltip";
 import QuerySidebar from "./components/QuerySidebar";
-import { AicsLoadBalancerBaseUrl, FileExplorerServiceBaseUrl } from "./constants";
+import { Environment } from "./constants";
 import { interaction, selection } from "./state";
 import useLayoutMeasurements from "./hooks/useLayoutMeasurements";
 
@@ -39,15 +39,11 @@ interface AppProps {
     // Localhost: "https://localhost:9081"
     // Stage: "http://stg-aics-api.corp.alleninstitute.org"
     // From the web (behind load balancer): "/"
-    aicsLoadBalancerBaseUrl?: string;
-    fileExplorerServiceBaseUrl?: string;
+    environment?: string;
 }
 
 export default function App(props: AppProps) {
-    const {
-        aicsLoadBalancerBaseUrl = AicsLoadBalancerBaseUrl.PRODUCTION,
-        fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION,
-    } = props;
+    const { environment = Environment.PRODUCTION } = props;
 
     const dispatch = useDispatch();
     const hasQuerySelected = useSelector(selection.selectors.hasQuerySelected);
@@ -86,11 +82,10 @@ export default function App(props: AppProps) {
     React.useEffect(() => {
         dispatch(
             interaction.actions.initializeApp({
-                aicsLoadBalancerBaseUrl,
-                fileExplorerServiceBaseUrl,
+                environment,
             })
         );
-    }, [dispatch, aicsLoadBalancerBaseUrl, fileExplorerServiceBaseUrl]);
+    }, [dispatch, environment]);
 
     // Respond to screen size changes
     React.useEffect(() => {

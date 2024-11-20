@@ -260,10 +260,7 @@ export interface InitializeApp {
     payload: string;
 }
 
-export const initializeApp = (payload: {
-    aicsLoadBalancerBaseUrl: string;
-    fileExplorerServiceBaseUrl: string;
-}) => ({
+export const initializeApp = (payload: { environment: string }) => ({
     type: INITIALIZE_APP,
     payload,
 });

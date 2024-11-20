@@ -19,10 +19,11 @@ import HttpFileService from "../../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("<MetadataManifest />", () => {
-    const baseUrl = "test";
+    const fileExplorerServiceBaseUrl = "TEST";
+    const environment = "TEST";
     const visibleDialogState = mergeState(initialState, {
         interaction: {
-            fileExplorerServiceBaseUrl: baseUrl,
+            environment: environment,
             visibleModal: ModalType.MetadataManifest,
         },
     });
@@ -35,7 +36,7 @@ describe("<MetadataManifest />", () => {
     };
     const mockHttpClient = createMockHttpClient(responseStub);
     const fileService = new HttpFileService({
-        baseUrl,
+        fileExplorerServiceBaseUrl,
         httpClient: mockHttpClient,
         downloadService: new FileDownloadServiceNoop(),
     });

@@ -38,7 +38,7 @@ describe("<AnnotationFilterForm />", () => {
             };
             const mockHttpClient = createMockHttpClient(responseStub);
             const annotationService = new HttpAnnotationService({
-                baseUrl: "test",
+                fileExplorerServiceBaseUrl: "test",
                 httpClient: mockHttpClient,
             });
             sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
@@ -75,7 +75,7 @@ describe("<AnnotationFilterForm />", () => {
             };
             const mockHttpClient = createMockHttpClient(responseStub);
             const annotationService = new HttpAnnotationService({
-                baseUrl: "test",
+                fileExplorerServiceBaseUrl: "test",
                 httpClient: mockHttpClient,
             });
             sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
@@ -131,7 +131,7 @@ describe("<AnnotationFilterForm />", () => {
             };
             const mockHttpClient = createMockHttpClient(responseStub);
             const annotationService = new HttpAnnotationService({
-                baseUrl: "test",
+                fileExplorerServiceBaseUrl: "test",
                 httpClient: mockHttpClient,
             });
             sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
@@ -179,7 +179,7 @@ describe("<AnnotationFilterForm />", () => {
         };
         const mockHttpClient = createMockHttpClient(responseStub);
         const annotationService = new HttpAnnotationService({
-            baseUrl: "test",
+            fileExplorerServiceBaseUrl: "test",
             httpClient: mockHttpClient,
         });
 
@@ -286,7 +286,7 @@ describe("<AnnotationFilterForm />", () => {
             };
             const mockHttpClient = createMockHttpClient(responseStub);
             const annotationService = new HttpAnnotationService({
-                baseUrl: "test",
+                fileExplorerServiceBaseUrl: "test",
                 httpClient: mockHttpClient,
             });
             sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
@@ -341,7 +341,7 @@ describe("<AnnotationFilterForm />", () => {
             };
             const mockHttpClient = createMockHttpClient(responseStub);
             const annotationService = new HttpAnnotationService({
-                baseUrl: "test",
+                fileExplorerServiceBaseUrl: "test",
                 httpClient: mockHttpClient,
             });
             sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);

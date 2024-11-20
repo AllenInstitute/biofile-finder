@@ -344,7 +344,7 @@ describe("FileSelection", () => {
     describe("fetchAllDetails", () => {
         it("returns file details for each selected item", async () => {
             // Arrange
-            const baseUrl = "test";
+            const fileExplorerServiceBaseUrl = "test";
             const queryResult = [];
             for (let i = 0; i < 31; i++) {
                 queryResult.push(i);
@@ -354,13 +354,15 @@ describe("FileSelection", () => {
                 .slice(1, 31)
                 .map((detail) => new FileDetail(detail as any));
             const httpClient = createMockHttpClient({
-                when: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=${0}&limit=${31}`,
+                when: `${fileExplorerServiceBaseUrl}/${
+                    HttpFileService.BASE_FILES_URL
+                }?from=${0}&limit=${31}`,
                 respondWith: {
                     data: { data: queryResult },
                 },
             });
             const fileService = new HttpFileService({
-                baseUrl,
+                fileExplorerServiceBaseUrl,
                 httpClient,
                 downloadService: new FileDownloadServiceNoop(),
             });

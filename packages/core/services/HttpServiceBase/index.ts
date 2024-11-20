@@ -2,22 +2,24 @@ import axios, { AxiosInstance } from "axios";
 import { Policy } from "cockatiel";
 import LRUCache from "lru-cache";
 
-import { AicsLoadBalancerBaseUrl, FileExplorerServiceBaseUrl } from "../../constants";
+import { FESBaseUrlMap, LoadBalancerBaseUrlMap, MMSBaseUrlMap } from "../../constants";
 import RestServiceResponse from "../../entity/RestServiceResponse";
 
 export interface ConnectionConfig {
-    aicsLoadBalancerBaseUrl?: string | keyof typeof AicsLoadBalancerBaseUrl;
     applicationVersion?: string;
-    baseUrl?: string | keyof typeof FileExplorerServiceBaseUrl;
+    fileExplorerServiceBaseUrl?: string | keyof typeof FESBaseUrlMap;
     httpClient?: AxiosInstance;
+    loadBalancerBaseUrl?: string | keyof typeof LoadBalancerBaseUrlMap;
+    metadataManagementServiceBaseURl?: string | keyof typeof MMSBaseUrlMap;
     pathSuffix?: string;
     userName?: string;
 }
 
 export const DEFAULT_CONNECTION_CONFIG = {
-    aicsLoadBalancerBaseUrl: AicsLoadBalancerBaseUrl.PRODUCTION,
-    baseUrl: FileExplorerServiceBaseUrl.PRODUCTION,
+    fileExplorerServiceBaseUrl: FESBaseUrlMap.PRODUCTION,
     httpClient: axios.create(),
+    loadBalancerBaseUrl: LoadBalancerBaseUrlMap.PRODUCTION,
+    metadataManagementServiceBaseURl: MMSBaseUrlMap.PRODUCTION,
 };
 
 const CHARACTER_TO_ENCODING_MAP: { [index: string]: string } = {
@@ -47,7 +49,7 @@ const retry = Policy.handleAll()
     });
 
 /**
- * Base class for services that interact with AICS APIs.
+ * Base class for services that interact with APIs.
  */
 export default class HttpServiceBase {
     /**
@@ -68,7 +70,7 @@ export default class HttpServiceBase {
         }
 
         // encode ampersands that do not separate query string components, so first
-        // need to separate the query string componenets (which are split by ampersands themselves)
+        // need to separate the query string components (which are split by ampersands themselves)
         // handles case like `workflow=R&DExp&cell_line=AICS-46&foo=bar&cTnT%=3.0`
         const re = /&(?=(?:[^&])+\=)/g;
         const queryStringComponents = queryString.split(re);
@@ -99,10 +101,11 @@ export default class HttpServiceBase {
             .join("");
     }
 
-    public aicsLoadBalancerBaseUrl: string | keyof typeof AicsLoadBalancerBaseUrl =
-        DEFAULT_CONNECTION_CONFIG.aicsLoadBalancerBaseUrl;
-    public baseUrl: string | keyof typeof FileExplorerServiceBaseUrl =
-        DEFAULT_CONNECTION_CONFIG.baseUrl;
+    public fileExplorerServiceBaseUrl: string =
+        DEFAULT_CONNECTION_CONFIG.fileExplorerServiceBaseUrl;
+    public loadBalancerBaseUrl: string = DEFAULT_CONNECTION_CONFIG.loadBalancerBaseUrl;
+    public metadataManagementServiceBaseURl: string =
+        DEFAULT_CONNECTION_CONFIG.metadataManagementServiceBaseURl;
 
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
     private applicationVersion = "NOT SET";
@@ -111,10 +114,6 @@ export default class HttpServiceBase {
     private readonly urlToResponseDataCache = new LRUCache<string, any>({ max: MAX_CACHE_SIZE });
 
     constructor(config: ConnectionConfig = {}) {
-        if (config.aicsLoadBalancerBaseUrl) {
-            this.setAicsLoadBalancerBaseUrl(config.aicsLoadBalancerBaseUrl);
-        }
-
         if (config.applicationVersion) {
             this.setApplicationVersion(config.applicationVersion);
         }
@@ -123,12 +122,20 @@ export default class HttpServiceBase {
             this.setUserName(config.userName);
         }
 
-        if (config.baseUrl) {
-            this.setBaseUrl(config.baseUrl);
+        if (config.fileExplorerServiceBaseUrl) {
+            this.setFileExplorerServiceBaseUrl(config.fileExplorerServiceBaseUrl);
         }
 
         if (config.httpClient) {
             this.setHttpClient(config.httpClient);
+        }
+
+        if (config.loadBalancerBaseUrl) {
+            this.setLoadBalancerBaseUrl(config.loadBalancerBaseUrl);
+        }
+
+        if (config.metadataManagementServiceBaseURl) {
+            this.setLoadBalancerBaseUrl(config.metadataManagementServiceBaseURl);
         }
 
         if (config.pathSuffix) {
@@ -269,34 +276,20 @@ export default class HttpServiceBase {
         return new RestServiceResponse(response.data);
     }
 
-    public setAicsLoadBalancerBaseUrl(
-        aicsLoadBalancerBaseUrl: string | keyof typeof AicsLoadBalancerBaseUrl
-    ) {
-        if (this.aicsLoadBalancerBaseUrl !== aicsLoadBalancerBaseUrl) {
-            // bust cache when base url changes
-            this.urlToResponseDataCache.reset();
-        }
-
-        this.aicsLoadBalancerBaseUrl = aicsLoadBalancerBaseUrl;
-    }
-
     public setApplicationVersion(applicationVersion: string) {
         this.applicationVersion = applicationVersion;
         this.setHeaders();
     }
 
-    public setUserName(userName: string) {
-        this.userName = userName;
-        this.setHeaders();
-    }
-
-    public setBaseUrl(baseUrl: string | keyof typeof FileExplorerServiceBaseUrl) {
-        if (this.baseUrl !== baseUrl) {
+    public setFileExplorerServiceBaseUrl(
+        fileExplorerServiceBaseUrl: string | keyof typeof FESBaseUrlMap
+    ) {
+        if (this.fileExplorerServiceBaseUrl !== fileExplorerServiceBaseUrl) {
             // bust cache when base url changes
             this.urlToResponseDataCache.reset();
         }
 
-        this.baseUrl = baseUrl;
+        this.fileExplorerServiceBaseUrl = fileExplorerServiceBaseUrl;
     }
 
     public setHttpClient(client: AxiosInstance) {
@@ -318,5 +311,32 @@ export default class HttpServiceBase {
         } else {
             delete this.httpClient.defaults.headers.common["X-User-Id"];
         }
+    }
+
+    public setLoadBalancerBaseUrl(
+        loadBalancerBaseUrl: string | keyof typeof LoadBalancerBaseUrlMap
+    ) {
+        if (this.loadBalancerBaseUrl !== loadBalancerBaseUrl) {
+            // bust cache when base url changes
+            this.urlToResponseDataCache.reset();
+        }
+
+        this.loadBalancerBaseUrl = loadBalancerBaseUrl;
+    }
+
+    public setMetadataManagementServiceBaseURl(
+        metadataManagementServiceBaseURl: string | keyof typeof MMSBaseUrlMap
+    ) {
+        if (this.metadataManagementServiceBaseURl !== metadataManagementServiceBaseURl) {
+            // bust cache when base url changes
+            this.urlToResponseDataCache.reset();
+        }
+
+        this.metadataManagementServiceBaseURl = metadataManagementServiceBaseURl;
+    }
+
+    public setUserName(userName: string) {
+        this.userName = userName;
+        this.setHeaders();
     }
 }

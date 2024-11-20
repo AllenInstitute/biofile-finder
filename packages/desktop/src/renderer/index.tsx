@@ -120,10 +120,7 @@ function renderFmsFileExplorer() {
         <Provider store={store}>
             <React.Fragment>
                 <KeyDownHandler clearStore={clearPersistentStore} />
-                <FmsFileExplorer
-                    aicsLoadBalancerBaseUrl={global.aicsLoadBalancerBaseUrl}
-                    fileExplorerServiceBaseUrl={global.fileExplorerServiceBaseUrl}
-                />
+                <FmsFileExplorer environment={global.environment} />
             </React.Fragment>
         </Provider>,
         document.getElementById(APP_ID)
@@ -131,13 +128,9 @@ function renderFmsFileExplorer() {
 }
 
 // Listen for IPC updates to global variables
-ipcRenderer.addListener(
-    GlobalVariableChannels.BaseUrl,
-    (_, { aicsLoadBalancerBaseUrl, fileExplorerServiceBaseUrl }) => {
-        global.aicsLoadBalancerBaseUrl = aicsLoadBalancerBaseUrl;
-        global.fileExplorerServiceBaseUrl = fileExplorerServiceBaseUrl;
-        renderFmsFileExplorer();
-    }
-);
+ipcRenderer.addListener(GlobalVariableChannels.BaseUrl, (_, { environment }) => {
+    global.environment = environment;
+    renderFmsFileExplorer();
+});
 
 renderFmsFileExplorer();

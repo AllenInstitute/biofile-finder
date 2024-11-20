@@ -35,15 +35,15 @@ import { PlatformDependentServices } from "../../services";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
 import FileViewerServiceNoop from "../../services/FileViewerService/FileViewerServiceNoop";
-import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
 import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
 import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
 
+import { Environment } from "../../constants";
+
 export interface InteractionStateBranch {
-    aicsLoadBalancerBaseUrl: string;
     applicationVersion?: string;
     contextMenuIsVisible: boolean;
     contextMenuItems: ContextMenuItem[];
@@ -52,9 +52,9 @@ export interface InteractionStateBranch {
     csvColumns?: string[];
     dataSourceInfoForVisibleModal?: DataSourcePromptInfo;
     datasetDetailsPanelIsVisible: boolean;
-    fileExplorerServiceBaseUrl: string;
     fileTypeForVisibleModal: "csv" | "json" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
+    environment: "LOCALHOST" | "STAGING" | "PRODUCTION" | "TEST";
     hasDismissedSmallScreenWarning: boolean;
     hasUsedApplicationBefore: boolean;
     isAicsEmployee?: boolean;
@@ -68,16 +68,11 @@ export interface InteractionStateBranch {
 }
 
 export const initialState: InteractionStateBranch = {
-    aicsLoadBalancerBaseUrl: DEFAULT_CONNECTION_CONFIG.aicsLoadBalancerBaseUrl,
+    environment: Environment.PRODUCTION,
     contextMenuIsVisible: false,
     contextMenuItems: [],
-    // Passed to `ContextualMenu` as `target`. From the "@fluentui/react" docs:
-    // "The target that ContextualMenu should try to position itself based on.
-    // It can be either an element, a query selector string resolving to a valid element, or a MouseEvent.
-    // If a MouseEvent is given, the origin point of the event will be used."
     contextMenuPositionReference: null,
     datasetDetailsPanelIsVisible: false,
-    fileExplorerServiceBaseUrl: DEFAULT_CONNECTION_CONFIG.baseUrl,
     fileFiltersForVisibleModal: [],
     fileTypeForVisibleModal: "csv",
     hasDismissedSmallScreenWarning: false,
@@ -90,7 +85,6 @@ export const initialState: InteractionStateBranch = {
         fileViewerService: new FileViewerServiceNoop(),
         frontendInsights: new FrontendInsights({
             application: {
-                // Kept old name to compare usage more easily in Amplitude UI
                 name: "FMS File Explorer",
                 version: "0.0.0-noop",
             },
@@ -168,8 +162,7 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [INITIALIZE_APP]: (state, action) => ({
             ...state,
-            aicsLoadBalancerBaseUrl: action.payload.aicsLoadBalancerBaseUrl,
-            fileExplorerServiceBaseUrl: action.payload.fileExplorerServiceBaseUrl,
+            environment: action.payload.environment,
         }),
         [SET_VISIBLE_MODAL]: (state, action) => ({
             ...state,

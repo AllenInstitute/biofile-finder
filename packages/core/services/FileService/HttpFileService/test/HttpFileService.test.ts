@@ -8,8 +8,8 @@ import NumericRange from "../../../../entity/NumericRange";
 import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadServiceNoop";
 
 describe("HttpFileService", () => {
-    const baseUrl = "test";
-    const aicsLoadBalancerBaseUrlMock = "http://loadbalancer-test.aics.corp.alleninstitute.org";
+    const fileExplorerServiceBaseUrl = "TEST";
+    const loadBalancerBaseUrlMock = "http://loadbalancer-test.aics.corp.alleninstitute.org";
     const fileIds = ["abc123", "def456", "ghi789", "jkl012"];
     const files = fileIds.map((file_id) => ({
         file_id,
@@ -29,7 +29,7 @@ describe("HttpFileService", () => {
 
         it("issues request for files that match given parameters", async () => {
             const httpFileService = new HttpFileService({
-                baseUrl: baseUrl,
+                fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
                 httpClient,
                 downloadService: new FileDownloadServiceNoop(),
             });
@@ -49,7 +49,7 @@ describe("HttpFileService", () => {
         const totalFileSize = 12424114;
         const totalFileCount = 7;
         const httpClient = createMockHttpClient({
-            when: `${baseUrl}/${HttpFileService.SELECTION_AGGREGATE_URL}`,
+            when: `${fileExplorerServiceBaseUrl}/${HttpFileService.SELECTION_AGGREGATE_URL}`,
             respondWith: {
                 data: {
                     data: [{ count: totalFileCount, size: totalFileSize }],
@@ -60,7 +60,7 @@ describe("HttpFileService", () => {
         it("issues request for aggregated information about given files", async () => {
             // Arrange
             const fileService = new HttpFileService({
-                baseUrl,
+                fileExplorerServiceBaseUrl,
                 httpClient,
                 downloadService: new FileDownloadServiceNoop(),
             });
@@ -81,7 +81,7 @@ describe("HttpFileService", () => {
 
     describe("cacheFiles", () => {
         const httpClient = createMockHttpClient({
-            when: `${aicsLoadBalancerBaseUrlMock}/${HttpFileService.BASE_FILE_CACHE_URL}`,
+            when: `${loadBalancerBaseUrlMock}/${HttpFileService.BASE_FILE_CACHE_URL}`,
             respondWith: {
                 data: {
                     cacheFileStatuses: {
@@ -95,7 +95,7 @@ describe("HttpFileService", () => {
         it("sends file IDs to be cached and returns their statuses", async () => {
             // Arrange
             const fileService = new HttpFileService({
-                aicsLoadBalancerBaseUrl: aicsLoadBalancerBaseUrlMock,
+                loadBalancerBaseUrl: loadBalancerBaseUrlMock,
                 httpClient,
                 downloadService: new FileDownloadServiceNoop(),
             });
