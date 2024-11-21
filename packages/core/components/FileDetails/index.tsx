@@ -115,7 +115,7 @@ export default function FileDetails(props: Props) {
 
     // Disable download of large Zarrs ( > 2GB).
     const isDownloadDisabled = fileDetails
-        ? processStatuses.some((status) => status.data.fileId?.includes(fileDetails.id)) ||
+        ? processStatuses.some((status) => status.data.fileId?.includes(fileDetails.uid)) ||
           (isOnWeb &&
               isZarr &&
               // The Zarr size is calculated using the same traversal method as downloads
@@ -133,7 +133,7 @@ export default function FileDetails(props: Props) {
             dispatch(
                 interaction.actions.downloadFiles([
                     {
-                        id: fileDetails.id,
+                        id: fileDetails.uid,
                         name: fileDetails.name,
                         size: fileDetails.size,
                         path: fileDetails.downloadPath,
