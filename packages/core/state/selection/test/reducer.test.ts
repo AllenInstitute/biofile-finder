@@ -17,8 +17,7 @@ describe("Selection reducer", () => {
     [
         selection.actions.setAnnotationHierarchy([]),
         interaction.actions.initializeApp({
-            fileExplorerServiceBaseUrl: "base",
-            aicsLoadBalancerBaseUrl: "loadBalancerBaseUrl",
+            environment: "TEST",
         }),
     ].forEach((expectedAction) =>
         it(`clears selected file state when ${expectedAction.type} is fired`, () => {

@@ -3,16 +3,11 @@
 // pattern used in the npm script used to invoke electron-mocha.
 export const RUN_IN_RENDERER = "@renderer";
 
-export enum AicsLoadBalancerBaseUrl {
-    LOCALHOST = "http://localhost:8080",
-    STAGING = "http://stg-aics.corp.alleninstitute.org",
-    PRODUCTION = "http://aics.corp.alleninstitute.org",
-}
-
-export enum FileExplorerServiceBaseUrl {
-    LOCALHOST = "http://localhost:9081",
-    STAGING = "https://staging.int.allencell.org",
-    PRODUCTION = "https://production.int.allencell.org",
+export enum Environment {
+    LOCALHOST = "LOCALHOST",
+    STAGING = "STAGING",
+    PRODUCTION = "PRODUCTION",
+    TEST = "TEST",
 }
 
 // Channels global variables can be modified on / listen to

@@ -5,16 +5,11 @@ import { AnnotationType } from "../entity/AnnotationFormatter";
 export const APP_ID = "fms-file-explorer-core";
 
 // Refer to packages/fms-file-explorer-electron/src/main/menu
-export enum FileExplorerServiceBaseUrl {
-    LOCALHOST = "http://localhost:9081",
-    STAGING = "https://staging.int.allencell.org",
-    PRODUCTION = "https://production.int.allencell.org",
-}
-
-export enum AicsLoadBalancerBaseUrl {
-    LOCALHOST = "http://localhost:8080",
-    STAGING = "http://stg-aics.corp.alleninstitute.org",
-    PRODUCTION = "http://aics.corp.alleninstitute.org",
+export enum Environment {
+    LOCALHOST = "LOCALHOST",
+    STAGING = "STAGING",
+    PRODUCTION = "PRODUCTION",
+    TEST = "TEST",
 }
 
 export const TOP_LEVEL_FILE_ANNOTATIONS = [
@@ -65,3 +60,24 @@ export const THUMBNAIL_SIZE_TO_NUM_COLUMNS = {
 };
 
 export const AICS_FMS_DATA_SOURCE_NAME = "AICS FMS";
+
+export enum FESBaseUrl {
+    LOCALHOST = "http://localhost:9081",
+    STAGING = "https://staging.int.allencell.org",
+    PRODUCTION = "https://production.int.allencell.org",
+    TEST = "http://test.int.allencell.org",
+}
+
+export enum MMSBaseUrl {
+    LOCALHOST = "http://localhost:9060",
+    STAGING = "http://stg-aics-api",
+    PRODUCTION = "http://prod-aics-api",
+    TEST = "http://test-aics-api",
+}
+
+export enum LoadBalancerBaseUrl {
+    LOCALHOST = "http://localhost:8080",
+    STAGING = "http://stg-aics.corp.alleninstitute.org",
+    PRODUCTION = "http://aics.corp.alleninstitute.org",
+    TEST = "http://test-aics.corp.alleninstitute.org",
+}

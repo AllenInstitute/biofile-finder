@@ -34,10 +34,18 @@ const KeyDownHandler: React.FC<{ clearStore: () => void }> = ({ clearStore }) =>
     return null;
 };
 
-// Function to clear the persistent store
+// Clears the persistent store but retains `Environment` to prevent misalignment
+// between the data source and the selected menu item in the app.
 const clearPersistentStore = () => {
+    const currentEnvironment = global.environment;
     persistentConfigService.clear();
+    persistentConfigService.persist({ [PersistedConfigKeys.Environment]: currentEnvironment });
     window.location.reload();
+};
+
+const initializeEnvironment = () => {
+    const savedEnvironment = persistentConfigService.get(PersistedConfigKeys.Environment);
+    global.environment = savedEnvironment || "PRODUCTION";
 };
 
 // Application analytics/metrics
@@ -120,10 +128,7 @@ function renderFmsFileExplorer() {
         <Provider store={store}>
             <React.Fragment>
                 <KeyDownHandler clearStore={clearPersistentStore} />
-                <FmsFileExplorer
-                    aicsLoadBalancerBaseUrl={global.aicsLoadBalancerBaseUrl}
-                    fileExplorerServiceBaseUrl={global.fileExplorerServiceBaseUrl}
-                />
+                <FmsFileExplorer environment={global.environment} />
             </React.Fragment>
         </Provider>,
         document.getElementById(APP_ID)
@@ -131,13 +136,11 @@ function renderFmsFileExplorer() {
 }
 
 // Listen for IPC updates to global variables
-ipcRenderer.addListener(
-    GlobalVariableChannels.BaseUrl,
-    (_, { aicsLoadBalancerBaseUrl, fileExplorerServiceBaseUrl }) => {
-        global.aicsLoadBalancerBaseUrl = aicsLoadBalancerBaseUrl;
-        global.fileExplorerServiceBaseUrl = fileExplorerServiceBaseUrl;
-        renderFmsFileExplorer();
-    }
-);
+ipcRenderer.addListener(GlobalVariableChannels.BaseUrl, (_, { environment }) => {
+    global.environment = environment;
+    persistentConfigService.persist({ [PersistedConfigKeys.Environment]: environment });
+    renderFmsFileExplorer();
+});
 
+initializeEnvironment();
 renderFmsFileExplorer();

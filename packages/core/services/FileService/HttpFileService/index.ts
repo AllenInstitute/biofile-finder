@@ -40,7 +40,9 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
      */
     public async isNetworkAccessible(): Promise<boolean> {
         try {
-            await this.get(`${this.baseUrl}/${HttpFileService.BASE_FILE_COUNT_URL}`);
+            await this.get(
+                `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILE_COUNT_URL}`
+            );
             return true;
         } catch (error) {
             console.error(`Unable to access AICS network ${error}`);
@@ -51,7 +53,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
         const requestUrl = join(
             compact([
-                `${this.baseUrl}/${HttpFileService.BASE_FILE_COUNT_URL}${this.pathSuffix}`,
+                `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILE_COUNT_URL}${this.pathSuffix}`,
                 fileSet.toQueryString(),
             ]),
             "?"
@@ -72,7 +74,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     ): Promise<SelectionAggregationResult> {
         const selections = fileSelection.toCompactSelectionList();
         const postBody: SelectionAggregationRequest = { selections };
-        const requestUrl = `${this.baseUrl}/${HttpFileService.SELECTION_AGGREGATE_URL}${this.pathSuffix}`;
+        const requestUrl = `${this.fileExplorerServiceBaseUrl}/${HttpFileService.SELECTION_AGGREGATE_URL}${this.pathSuffix}`;
 
         const response = await this.post<SelectionAggregationResult>(
             requestUrl,
@@ -93,7 +95,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     public async getFiles(request: GetFilesRequest): Promise<FileDetail[]> {
         const { from, limit, fileSet } = request;
 
-        const base = `${this.baseUrl}/${HttpFileService.BASE_FILES_URL}${this.pathSuffix}?from=${from}&limit=${limit}`;
+        const base = `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}${this.pathSuffix}?from=${from}&limit=${limit}`;
         const requestUrl = join(compact([base, fileSet.toQueryString()]), "&");
 
         const response = await this.get<FmsFile>(requestUrl);
@@ -115,7 +117,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         }
 
         const postData = JSON.stringify({ annotations, selections });
-        const url = `${this.baseUrl}/${HttpFileService.BASE_CSV_DOWNLOAD_URL}${this.pathSuffix}`;
+        const url = `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_CSV_DOWNLOAD_URL}${this.pathSuffix}`;
 
         const manifest = await this.downloadService.prepareHttpResourceForDownload(url, postData);
         const name = `file-manifest-${new Date()}.csv`;
@@ -137,13 +139,13 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         fileIds: string[],
         username?: string
     ): Promise<{ cacheFileStatuses: { [fileId: string]: string } }> {
-        const requestUrl = `${this.aicsLoadBalancerBaseUrl}/${HttpFileService.BASE_FILE_CACHE_URL}${this.pathSuffix}`;
+        const requestUrl = `${this.loadBalancerBaseUrl}/${HttpFileService.BASE_FILE_CACHE_URL}${this.pathSuffix}`;
         const requestBody = JSON.stringify({ fileIds });
         const headers = {
             "Content-Type": "application/json",
             "X-User-Id": username || "anonymous",
         };
-        console.log(headers);
+        console.log(requestUrl, requestBody, headers);
         try {
             const cacheStatuses = await this.rawPut<{
                 cacheFileStatuses: { [fileId: string]: string };
