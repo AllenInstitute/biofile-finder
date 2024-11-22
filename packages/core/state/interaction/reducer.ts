@@ -70,6 +70,10 @@ export const initialState: InteractionStateBranch = {
     environment: Environment.PRODUCTION,
     contextMenuIsVisible: false,
     contextMenuItems: [],
+    // Passed to `ContextualMenu` as `target`. From the "@fluentui/react" docs:
+    // "The target that ContextualMenu should try to position itself based on.
+    // It can be either an element, a query selector string resolving to a valid element, or a MouseEvent.
+    // If a MouseEvent is given, the origin point of the event will be used."
     contextMenuPositionReference: null,
     datasetDetailsPanelIsVisible: false,
     fileFiltersForVisibleModal: [],
@@ -84,6 +88,7 @@ export const initialState: InteractionStateBranch = {
         fileViewerService: new FileViewerServiceNoop(),
         frontendInsights: new FrontendInsights({
             application: {
+                // Kept old name to compare usage more easily in Amplitude UI
                 name: "FMS File Explorer",
                 version: "0.0.0-noop",
             },
