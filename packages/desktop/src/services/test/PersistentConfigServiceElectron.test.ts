@@ -61,8 +61,10 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                     units: "string",
                 },
             ];
+            const expectedColumns = [{ file_size: 0.4 }, { file_name: 0.6 }];
 
             service.persist(PersistedConfigKeys.AllenMountPoint, expectedAllenMountPoint);
+            service.persist(PersistedConfigKeys.Columns, expectedColumns);
             service.persist(PersistedConfigKeys.CsvColumns, expectedCsvColumns);
             service.persist(PersistedConfigKeys.ImageJExecutable, expectedImageJExecutable);
             service.persist(PersistedConfigKeys.Queries, expectedQueries);
@@ -76,6 +78,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
 
             const expectedConfig = {
                 [PersistedConfigKeys.AllenMountPoint]: expectedAllenMountPoint,
+                [PersistedConfigKeys.Columns]: expectedColumns,
                 [PersistedConfigKeys.CsvColumns]: expectedCsvColumns,
                 [PersistedConfigKeys.ImageJExecutable]: expectedImageJExecutable,
                 [PersistedConfigKeys.Queries]: expectedQueries,
@@ -99,6 +102,10 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const service = new PersistentConfigServiceElectron({ clearExistingData: true });
             const config = {
                 [PersistedConfigKeys.AllenMountPoint]: "/some/path/to/allen",
+                [PersistedConfigKeys.Columns]: [
+                    { name: "a", width: 0.25 },
+                    { name: "b", width: 0.3 },
+                ],
                 [PersistedConfigKeys.CsvColumns]: ["a", "b"],
                 [PersistedConfigKeys.ImageJExecutable]: "/my/imagej",
                 [PersistedConfigKeys.Queries]: [],

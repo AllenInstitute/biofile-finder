@@ -28,40 +28,37 @@ function Header(
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
-    const columnAnnotations = useSelector(selection.selectors.getAnnotationsToDisplay);
-    const columnWidths = useSelector(selection.selectors.getColumnWidths);
+    const columns = useSelector(selection.selectors.getColumns);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
 
-    const onResize = (columnKey: string, nextWidthPercent?: number) => {
-        if (nextWidthPercent) {
-            dispatch(selection.actions.resizeColumn(columnKey, nextWidthPercent));
-        } else {
-            dispatch(selection.actions.resetColumnWidth(columnKey));
-        }
+    const onResize = (name: string, width?: number) => {
+        // Default to 0.25 if width is undefined
+        // which resets the column width to the default
+        dispatch(selection.actions.resizeColumn({ name, width: width || 0.25 }));
     };
-    const headerCells: CellConfig[] = map(columnAnnotations, (annotation) => {
-        const isSortedColumn = sortColumn?.annotationName === annotation.name;
-        return {
-            columnKey: annotation.name, // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
-            displayValue: (
-                <span
-                    className={styles.headerCell}
-                    onClick={() => dispatch(selection.actions.sortColumn(annotation.name))}
-                >
-                    <Tooltip content={annotationNameToAnnotationMap[annotation.name]?.description}>
-                        <span className={styles.headerTitle}>{annotation.displayName}</span>
-                    </Tooltip>
-                    {isSortedColumn &&
-                        (sortColumn?.order === SortOrder.DESC ? (
-                            <Icon className={styles.sortIcon} iconName="ChevronDown" />
-                        ) : (
-                            <Icon className={styles.sortIcon} iconName="ChevronUp" />
-                        ))}
-                </span>
-            ),
-            width: columnWidths[annotation.name] || 1 / columnAnnotations.length,
-        };
-    });
+    const headerCells: CellConfig[] = map(columns, (column) => ({
+        // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
+        columnKey: column.name,
+        displayValue: (
+            <span
+                className={styles.headerCell}
+                onClick={() => dispatch(selection.actions.sortColumn(column.name))}
+            >
+                <Tooltip content={annotationNameToAnnotationMap[column.name]?.description}>
+                    <span className={styles.headerTitle}>
+                        {annotationNameToAnnotationMap[column.name]?.displayName}
+                    </span>
+                </Tooltip>
+                {sortColumn?.annotationName === column.name &&
+                    (sortColumn?.order === SortOrder.DESC ? (
+                        <Icon className={styles.sortIcon} iconName="ChevronDown" />
+                    ) : (
+                        <Icon className={styles.sortIcon} iconName="ChevronUp" />
+                    ))}
+            </span>
+        ),
+        width: column.width,
+    }));
 
     const onHeaderColumnContextMenu = (evt: React.MouseEvent) => {
         evt.preventDefault();

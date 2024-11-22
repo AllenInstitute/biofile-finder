@@ -1,23 +1,13 @@
 import { makeReducer } from "@aics/redux-utils";
-import { castArray, omit, uniq, uniqBy } from "lodash";
-
-import interaction from "../interaction";
-import { THUMBNAIL_SIZE_TO_NUM_COLUMNS } from "../../constants";
-import Annotation from "../../entity/Annotation";
-import AnnotationName from "../../entity/Annotation/AnnotationName";
-import FileFilter from "../../entity/FileFilter";
-import FileFolder from "../../entity/FileFolder";
-import FileSelection from "../../entity/FileSelection";
+import { castArray, uniq, uniqBy } from "lodash";
 
 import {
-    SET_DISPLAY_ANNOTATIONS,
     SET_ANNOTATION_HIERARCHY,
     SET_AVAILABLE_ANNOTATIONS,
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
     RESIZE_COLUMN,
-    RESET_COLUMN_WIDTH,
     SORT_COLUMN,
     SET_SORT_COLUMN,
     CHANGE_DATA_SOURCES,
@@ -29,8 +19,6 @@ import {
     SET_QUERIES,
     SetQueries,
     ChangeQuery,
-    SET_FILE_THUMBNAIL_VIEW,
-    SET_FILE_GRID_COLUMN_COUNT,
     REMOVE_QUERY,
     RemoveQuery,
     ChangeDataSourcesAction,
@@ -39,30 +27,35 @@ import {
     CHANGE_SOURCE_METADATA,
     SET_REQUIRES_DATASOURCE_RELOAD,
     SetRequiresDataSourceReload,
+    SET_FILE_VIEW,
+    SetFileView,
+    ResizeColumnAction,
+    Column,
+    SetColumns,
+    SET_COLUMNS,
 } from "./actions";
+import interaction from "../interaction";
+import { FileView, Source } from "../../entity/FileExplorerURL";
+import FileFilter from "../../entity/FileFilter";
+import FileFolder from "../../entity/FileFolder";
+import FileSelection from "../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
-import { Source } from "../../entity/FileExplorerURL";
 
 export interface SelectionStateBranch {
     annotationHierarchy: string[];
     availableAnnotationsForHierarchy: string[];
     availableAnnotationsForHierarchyLoading: boolean;
-    columnWidths: {
-        [index: string]: number; // columnName to widthPercent mapping
-    };
+    columns: Column[];
     dataSources: Source[];
-    displayAnnotations: Annotation[];
-    fileGridColumnCount: number;
     fileSelection: FileSelection;
+    fileView: FileView;
     filters: FileFilter[];
-    isDarkTheme: boolean;
     openFileFolders: FileFolder[];
     recentAnnotations: string[];
     requiresDataSourceReload?: boolean;
     selectedQuery?: string;
     shouldDisplaySmallFont: boolean;
-    shouldDisplayThumbnailView: boolean;
     sortColumn?: FileSort;
     sourceMetadata?: Source;
     queries: Query[];
@@ -73,24 +66,16 @@ export const initialState = {
     annotationHierarchy: [],
     availableAnnotationsForHierarchy: [],
     availableAnnotationsForHierarchyLoading: true,
-    columnWidths: {
-        [AnnotationName.FILE_NAME]: 0.4,
-        [AnnotationName.KIND]: 0.2,
-        [AnnotationName.TYPE]: 0.25,
-        [AnnotationName.FILE_SIZE]: 0.15,
-    },
+    columns: [],
     dataSources: [],
-    displayAnnotations: [],
-    fileGridColumnCount: THUMBNAIL_SIZE_TO_NUM_COLUMNS.LARGE,
     fileSelection: new FileSelection(),
+    fileView: FileView.LIST,
     filters: [],
-    isDarkTheme: true,
     openFileFolders: [],
     queries: [],
     recentAnnotations: [],
     requiresDataSourceReload: false,
     shouldDisplaySmallFont: false,
-    shouldDisplayThumbnailView: false,
 };
 
 export default makeReducer<SelectionStateBranch>(
@@ -103,14 +88,6 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             shouldDisplaySmallFont: action.payload,
         }),
-        [SET_FILE_THUMBNAIL_VIEW]: (state, action) => ({
-            ...state,
-            shouldDisplayThumbnailView: action.payload,
-        }),
-        [SET_FILE_GRID_COLUMN_COUNT]: (state, action) => ({
-            ...state,
-            fileGridColumnCount: action.payload,
-        }),
         [SET_FILE_FILTERS]: (state, action: SetFileFiltersAction) => ({
             ...state,
             filters: action.payload,
@@ -121,6 +98,10 @@ export default makeReducer<SelectionStateBranch>(
 
             // Reset file selections when file filters change
             fileSelection: new FileSelection(),
+        }),
+        [SET_FILE_VIEW]: (state, action: SetFileView) => ({
+            ...state,
+            fileView: action.payload,
         }),
         [SORT_COLUMN]: (state, action) => {
             if (state.sortColumn?.annotationName === action.payload) {
@@ -185,20 +166,15 @@ export default makeReducer<SelectionStateBranch>(
             availableAnnotationsForHierarchyLoading: true,
             fileSelection: new FileSelection(),
         }),
-        [RESET_COLUMN_WIDTH]: (state, action) => ({
+        [RESIZE_COLUMN]: (state, action: ResizeColumnAction) => ({
             ...state,
-            columnWidths: omit(state.columnWidths, [action.payload]),
+            columns: state.columns.map((column) =>
+                column.name !== action.payload.name ? column : action.payload
+            ),
         }),
-        [RESIZE_COLUMN]: (state, action) => ({
+        [SET_COLUMNS]: (state, action: SetColumns) => ({
             ...state,
-            columnWidths: {
-                ...state.columnWidths,
-                [action.payload.columnHeader]: action.payload.widthPercent,
-            },
-        }),
-        [SET_DISPLAY_ANNOTATIONS]: (state, action) => ({
-            ...state,
-            displayAnnotations: action.payload,
+            columns: action.payload,
         }),
         [SET_FILE_SELECTION]: (state, action) => ({
             ...state,

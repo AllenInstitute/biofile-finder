@@ -8,12 +8,12 @@ export default function EmptyFileListMessage() {
         <div className={styles.emptyFileListContainer}>
             <div className={styles.emptyFileListMessage}>
                 <Icon className={styles.emptySearchIcon} iconName="SearchIssue" />
-                <h2>Sorry! No files found</h2>
+                <h2>No files match your query</h2>
                 <br />
-                <div>We couldn&apos;t find any files matching your request.</div>
+                <div>Double check your filters for any issues.</div>
                 <br />
                 <div>
-                    Double check your filters for any issues and then contact the software team via
+                    Contact us via
                     <a
                         className={styles.link}
                         href="https://github.com/AllenInstitute/biofile-finder/issues"
@@ -22,7 +22,7 @@ export default function EmptyFileListMessage() {
                     >
                         &nbsp;GitHub&nbsp;
                     </a>
-                    if you still expect there to be matches present.
+                    if you expect there should be matches present for this query.
                 </div>
             </div>
         </div>

@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 
 import FileRow from "../../components/FileRow";
 import FileSet from "../../entity/FileSet";
-import { selection } from "../../state";
+import { metadata, selection } from "../../state";
 import { OnSelect } from "./useFileSelector";
 
 import styles from "./LazilyRenderedRow.module.css";
@@ -39,9 +39,11 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         style,
     } = props;
 
+    const columns = useSelector(selection.selectors.getColumns);
     const isSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
-    const annotations = useSelector(selection.selectors.getAnnotationsToDisplay);
-    const columnWidths = useSelector(selection.selectors.getColumnWidths);
+    const annotationNameToAnnotationMap = useSelector(
+        metadata.selectors.getAnnotationNameToAnnotationMap
+    );
     const fileSelection = useSelector(selection.selectors.getFileSelection);
 
     const file = fileSet.getFileByIndex(index);
@@ -62,10 +64,10 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     if (file) {
         content = (
             <FileRow
-                cells={map(annotations, (annotation) => ({
-                    columnKey: annotation.name,
-                    displayValue: annotation.extractFromFile(file),
-                    width: columnWidths[annotation.name] || 1 / annotations.length,
+                cells={map(columns, (column) => ({
+                    columnKey: column.name,
+                    displayValue: annotationNameToAnnotationMap[column.name]?.extractFromFile(file),
+                    width: column.width,
                 }))}
                 rowIdentifier={{ index, id: file.uid }}
                 onSelect={onSelect}

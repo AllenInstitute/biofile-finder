@@ -8,7 +8,6 @@ import metadata, { MetadataStateBranch } from "./metadata";
 import selection, { SelectionStateBranch } from "./selection";
 import { PlatformDependentServices } from "../services";
 import { PersistedConfig, PersistedConfigKeys } from "../services/PersistentConfigService";
-import Annotation from "../entity/Annotation";
 import FileSort from "../entity/FileSort";
 import FileFilter from "../entity/FileFilter";
 import FileFolder from "../entity/FileFolder";
@@ -67,11 +66,6 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
     const queries = persistedConfig?.[PersistedConfigKeys.Queries]?.length
         ? (persistedConfig[PersistedConfigKeys.Queries] as Query[])
         : [];
-    const rawDisplayAnnotations =
-        persistedConfig && persistedConfig[PersistedConfigKeys.DisplayAnnotations];
-    const displayAnnotations = rawDisplayAnnotations
-        ? rawDisplayAnnotations.map((annotation) => new Annotation(annotation))
-        : [];
     const recentAnnotations = persistedConfig?.[PersistedConfigKeys.RecentAnnotations]?.length
         ? persistedConfig?.[PersistedConfigKeys.RecentAnnotations]
         : [];
@@ -89,7 +83,7 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
                 persistedConfig?.[PersistedConfigKeys.UserSelectedApplications],
         },
         selection: {
-            displayAnnotations,
+            columns: persistedConfig?.[PersistedConfigKeys.Columns] || [],
             queries: queries.map((query) => ({
                 ...query,
                 parts: {

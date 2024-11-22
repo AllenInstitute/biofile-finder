@@ -5,9 +5,9 @@ import { useSelector } from "react-redux";
 
 import { OnSelect } from "./useFileSelector";
 import Tooltip from "../Tooltip";
-import FileSet from "../../entity/FileSet";
 import FileThumbnail from "../../components/FileThumbnail";
-import { THUMBNAIL_SIZE_TO_NUM_COLUMNS } from "../../constants";
+import { FileView } from "../../entity/FileExplorerURL";
+import FileSet from "../../entity/FileSet";
 import { selection } from "../../state";
 
 import styles from "./LazilyRenderedThumbnail.module.css";
@@ -48,7 +48,8 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
 
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
-    const fileGridColCount = useSelector(selection.selectors.getFileGridColumnCount);
+    const fileView = useSelector(selection.selectors.getFileView);
+    const fileGridColCount = useSelector(selection.selectors.getFileGridColCount);
     const overallIndex = fileGridColCount * rowIndex + columnIndex;
     const file = fileSet.getFileByIndex(overallIndex);
     const thumbnailSize = measuredWidth / fileGridColCount - 2 * MARGIN;
@@ -92,7 +93,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
 
     // Display the start of the file name and at least part of the file type
     const clipFileName = (filename: string) => {
-        if (fileGridColCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL && filename.length > 15) {
+        if (fileView === FileView.SMALL_THUMBNAIL && filename.length > 15) {
             return filename.slice(0, 6) + "..." + filename.slice(-4);
         } else if (filename.length > 20) {
             return filename.slice(0, 9) + "..." + filename.slice(-8);
@@ -123,8 +124,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
                     <div
                         className={classNames(styles.thumbnailLabel, {
                             [styles.smallFont]:
-                                shouldDisplaySmallFont ||
-                                fileGridColCount === THUMBNAIL_SIZE_TO_NUM_COLUMNS.SMALL,
+                                shouldDisplaySmallFont || fileView === FileView.SMALL_THUMBNAIL,
                         })}
                     >
                         {filenameForRender}
