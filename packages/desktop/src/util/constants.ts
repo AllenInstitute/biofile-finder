@@ -3,12 +3,12 @@
 // pattern used in the npm script used to invoke electron-mocha.
 export const RUN_IN_RENDERER = "@renderer";
 
-export const Environment = {
-    LOCALHOST: "LOCALHOST",
-    STAGING: "STAGING",
-    PRODUCTION: "PRODUCTION",
-    TEST: "TEST",
-};
+export enum Environment {
+    LOCALHOST = "LOCALHOST",
+    STAGING = "STAGING",
+    PRODUCTION = "PRODUCTION",
+    TEST = "TEST",
+}
 
 // Channels global variables can be modified on / listen to
 export enum GlobalVariableChannels {

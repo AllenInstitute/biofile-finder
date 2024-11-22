@@ -30,6 +30,7 @@ import {
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
+import { Environment } from "../../constants";
 import FileFilter from "../../entity/FileFilter";
 import { PlatformDependentServices } from "../../services";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
@@ -40,8 +41,6 @@ import { UserSelectedApplication } from "../../services/PersistentConfigService"
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
 import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
-
-import { Environment } from "../../constants";
 
 export interface InteractionStateBranch {
     applicationVersion?: string;

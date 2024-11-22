@@ -24,6 +24,7 @@ import {
 } from "../../../services/ExecutionEnvService";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import interactionLogics from "../logics";
+import { FESBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
@@ -206,7 +207,7 @@ describe("Interaction logics", () => {
 
         it("doesn't use selected files when given a specific file folder path", async () => {
             // arrange
-            const fileExplorerServiceBaseUrl = "TEST";
+            const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
             const filters = [
                 new FileFilter("Cell Line", "AICS-12"),
                 new FileFilter("Notes", "Hello"),
@@ -775,7 +776,7 @@ describe("Interaction logics", () => {
 
     describe("refresh", () => {
         const sandbox = createSandbox();
-        const fileExplorerServiceBaseUrl = "test";
+        const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
         const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
         const availableAnnotations = [annotations[1].displayName];
         const responseStubs = [
@@ -882,7 +883,7 @@ describe("Interaction logics", () => {
                 ],
             });
         }
-        const fileExplorerServiceBaseUrl = "test";
+        const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
         const responseStub = {
             when: () => true,
             respondWith: {
@@ -1098,7 +1099,7 @@ describe("Interaction logics", () => {
             });
         }
         const files = [...csvFiles, ...pngFiles];
-        const fileExplorerServiceBaseUrl = "test";
+        const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
         const responseStub = {
             when: `${fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=101`,
             respondWith: {
@@ -1213,7 +1214,7 @@ describe("Interaction logics", () => {
         for (let i = 0; i <= 100; i++) {
             files.push({ file_path: `/allen/file_${i}.ext` });
         }
-        const fileExplorerServiceBaseUrl = "test";
+        const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
         const responseStub = {
             when: `${fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=101`,
             respondWith: {

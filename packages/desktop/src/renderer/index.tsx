@@ -34,10 +34,18 @@ const KeyDownHandler: React.FC<{ clearStore: () => void }> = ({ clearStore }) =>
     return null;
 };
 
-// Function to clear the persistent store
+// Clears the persistent store but retains `Environment` to prevent misalignment
+// between the data source and the selected menu item in the app.
 const clearPersistentStore = () => {
+    const currentEnvironment = global.environment;
     persistentConfigService.clear();
+    persistentConfigService.persist({ [PersistedConfigKeys.Environment]: currentEnvironment });
     window.location.reload();
+};
+
+const initializeEnvironment = () => {
+    const savedEnvironment = persistentConfigService.get(PersistedConfigKeys.Environment);
+    global.environment = savedEnvironment || "PRODUCTION";
 };
 
 // Application analytics/metrics
@@ -130,7 +138,9 @@ function renderFmsFileExplorer() {
 // Listen for IPC updates to global variables
 ipcRenderer.addListener(GlobalVariableChannels.BaseUrl, (_, { environment }) => {
     global.environment = environment;
+    persistentConfigService.persist({ [PersistedConfigKeys.Environment]: environment });
     renderFmsFileExplorer();
 });
 
+initializeEnvironment();
 renderFmsFileExplorer();

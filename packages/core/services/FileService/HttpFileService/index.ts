@@ -145,7 +145,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
             "Content-Type": "application/json",
             "X-User-Id": username || "anonymous",
         };
-        console.log(headers);
+        console.log(requestUrl, requestBody, headers);
         try {
             const cacheStatuses = await this.rawPut<{
                 cacheFileStatuses: { [fileId: string]: string };

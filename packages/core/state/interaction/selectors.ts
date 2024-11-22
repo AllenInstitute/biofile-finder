@@ -16,9 +16,9 @@ import HttpFileService from "../../services/FileService/HttpFileService";
 import { ModalType } from "../../components/Modal";
 import {
     AICS_FMS_DATA_SOURCE_NAME,
-    FESBaseUrlMap,
-    MMSBaseUrlMap,
-    LoadBalancerBaseUrlMap,
+    FESBaseUrl,
+    MMSBaseUrl,
+    LoadBalancerBaseUrl,
 } from "../../constants";
 
 // BASIC SELECTORS
@@ -55,17 +55,17 @@ export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee
 // URL Mapping Selectors
 export const getFileExplorerServiceBaseUrl = createSelector(
     [getEnvironment],
-    (environment) => FESBaseUrlMap[environment]
+    (environment) => FESBaseUrl[environment]
 );
 
 export const getLoadBalancerBaseUrl = createSelector(
     [getEnvironment],
-    (environment) => LoadBalancerBaseUrlMap[environment]
+    (environment) => LoadBalancerBaseUrl[environment]
 );
 
 export const getMetadataManagementServiceBaseUrl = createSelector(
     [getEnvironment],
-    (environment) => MMSBaseUrlMap[environment]
+    (environment) => MMSBaseUrl[environment]
 );
 
 // COMPOSED SELECTORS
@@ -138,8 +138,8 @@ export const getHttpFileService = createSelector(
     ) =>
         new HttpFileService({
             applicationVersion,
-            loadBalancerBaseUrl: loadBalancerBaseUrl,
             fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
+            loadBalancerBaseUrl: loadBalancerBaseUrl,
             metadataManagementServiceBaseURl: metadataManagementServiceBaseURL,
             userName,
             downloadService: platformDependentServices.fileDownloadService,

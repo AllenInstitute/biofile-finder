@@ -2,24 +2,24 @@ import axios, { AxiosInstance } from "axios";
 import { Policy } from "cockatiel";
 import LRUCache from "lru-cache";
 
-import { FESBaseUrlMap, LoadBalancerBaseUrlMap, MMSBaseUrlMap } from "../../constants";
+import { FESBaseUrl, LoadBalancerBaseUrl, MMSBaseUrl } from "../../constants";
 import RestServiceResponse from "../../entity/RestServiceResponse";
 
 export interface ConnectionConfig {
     applicationVersion?: string;
-    fileExplorerServiceBaseUrl?: string | keyof typeof FESBaseUrlMap;
+    fileExplorerServiceBaseUrl?: FESBaseUrl;
     httpClient?: AxiosInstance;
-    loadBalancerBaseUrl?: string | keyof typeof LoadBalancerBaseUrlMap;
-    metadataManagementServiceBaseURl?: string | keyof typeof MMSBaseUrlMap;
+    loadBalancerBaseUrl?: LoadBalancerBaseUrl;
+    metadataManagementServiceBaseURl?: MMSBaseUrl;
     pathSuffix?: string;
     userName?: string;
 }
 
 export const DEFAULT_CONNECTION_CONFIG = {
-    fileExplorerServiceBaseUrl: FESBaseUrlMap.PRODUCTION,
+    fileExplorerServiceBaseUrl: FESBaseUrl.PRODUCTION,
     httpClient: axios.create(),
-    loadBalancerBaseUrl: LoadBalancerBaseUrlMap.PRODUCTION,
-    metadataManagementServiceBaseURl: MMSBaseUrlMap.PRODUCTION,
+    loadBalancerBaseUrl: LoadBalancerBaseUrl.PRODUCTION,
+    metadataManagementServiceBaseURl: MMSBaseUrl.PRODUCTION,
 };
 
 const CHARACTER_TO_ENCODING_MAP: { [index: string]: string } = {
@@ -135,7 +135,7 @@ export default class HttpServiceBase {
         }
 
         if (config.metadataManagementServiceBaseURl) {
-            this.setLoadBalancerBaseUrl(config.metadataManagementServiceBaseURl);
+            this.setMetadataManagementServiceBaseURl(config.metadataManagementServiceBaseURl);
         }
 
         if (config.pathSuffix) {
@@ -281,9 +281,7 @@ export default class HttpServiceBase {
         this.setHeaders();
     }
 
-    public setFileExplorerServiceBaseUrl(
-        fileExplorerServiceBaseUrl: string | keyof typeof FESBaseUrlMap
-    ) {
+    public setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl: FESBaseUrl) {
         if (this.fileExplorerServiceBaseUrl !== fileExplorerServiceBaseUrl) {
             // bust cache when base url changes
             this.urlToResponseDataCache.reset();
@@ -313,9 +311,7 @@ export default class HttpServiceBase {
         }
     }
 
-    public setLoadBalancerBaseUrl(
-        loadBalancerBaseUrl: string | keyof typeof LoadBalancerBaseUrlMap
-    ) {
+    public setLoadBalancerBaseUrl(loadBalancerBaseUrl: LoadBalancerBaseUrl) {
         if (this.loadBalancerBaseUrl !== loadBalancerBaseUrl) {
             // bust cache when base url changes
             this.urlToResponseDataCache.reset();
@@ -324,9 +320,7 @@ export default class HttpServiceBase {
         this.loadBalancerBaseUrl = loadBalancerBaseUrl;
     }
 
-    public setMetadataManagementServiceBaseURl(
-        metadataManagementServiceBaseURl: string | keyof typeof MMSBaseUrlMap
-    ) {
+    public setMetadataManagementServiceBaseURl(metadataManagementServiceBaseURl: MMSBaseUrl) {
         if (this.metadataManagementServiceBaseURl !== metadataManagementServiceBaseURl) {
             // bust cache when base url changes
             this.urlToResponseDataCache.reset();

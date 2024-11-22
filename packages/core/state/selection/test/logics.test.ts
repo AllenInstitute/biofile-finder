@@ -27,6 +27,7 @@ import {
     changeSourceMetadata,
 } from "../actions";
 import { initialState, interaction } from "../../";
+import { FESBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileFilter from "../../../entity/FileFilter";
@@ -330,7 +331,7 @@ describe("Selection logics", () => {
                 },
             },
         ];
-        const fileExplorerServiceBaseUrl = "test";
+        const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
         const mockHttpClient = createMockHttpClient(responseStubs);
         const fileService = new HttpFileService({
             fileExplorerServiceBaseUrl,

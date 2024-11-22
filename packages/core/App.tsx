@@ -39,7 +39,7 @@ interface AppProps {
     // Localhost: "https://localhost:9081"
     // Stage: "http://stg-aics-api.corp.alleninstitute.org"
     // From the web (behind load balancer): "/"
-    environment?: string;
+    environment?: Environment;
 }
 
 export default function App(props: AppProps) {

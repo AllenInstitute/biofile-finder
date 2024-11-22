@@ -6,6 +6,7 @@ import FileSet from "../../FileSet";
 import NumericRange from "../../NumericRange";
 
 import FileSelection, { FocusDirective } from "..";
+import { FESBaseUrl } from "../../../constants";
 import FileDetail from "../../FileDetail";
 import FileFilter from "../../FileFilter";
 import FuzzyFilter from "../../FileFilter/FuzzyFilter";
@@ -344,7 +345,7 @@ describe("FileSelection", () => {
     describe("fetchAllDetails", () => {
         it("returns file details for each selected item", async () => {
             // Arrange
-            const fileExplorerServiceBaseUrl = "test";
+            const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
             const queryResult = [];
             for (let i = 0; i < 31; i++) {
                 queryResult.push(i);

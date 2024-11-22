@@ -19,7 +19,7 @@ import {
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
+import { FESBaseUrl, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { FmsFileAnnotation } from "../../../services/FileService";
@@ -184,7 +184,7 @@ describe("<DirectoryTree />", () => {
         },
     ];
     const mockHttpClient = createMockHttpClient(responseStubs);
-    const fileExplorerServiceBaseUrl = "http://test.int.allencell.org";
+    const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
     const annotationService = new HttpAnnotationService({
         fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
         httpClient: mockHttpClient,

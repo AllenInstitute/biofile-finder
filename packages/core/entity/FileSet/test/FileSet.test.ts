@@ -3,6 +3,7 @@ import { expect } from "chai";
 import { createSandbox } from "sinon";
 
 import FileSet from "../";
+import { FESBaseUrl } from "../../../constants";
 import FileFilter from "../../FileFilter";
 import FileSort, { SortOrder } from "../../FileSort";
 import { makeFileDetailMock } from "../../FileDetail/mocks";
@@ -148,7 +149,7 @@ describe("FileSet", () => {
         });
 
         it("turns indicies for requested data into a properly formed pagination query", async () => {
-            const fileExplorerServiceBaseUrl = "test";
+            const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
             const spec = [
                 {
                     expectedUrl: `${fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}?from=1&limit=28`,

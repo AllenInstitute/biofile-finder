@@ -2,7 +2,7 @@ import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 import { spy } from "sinon";
 
-import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../../constants";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES, FESBaseUrl } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import { annotationsJson } from "../../../../entity/Annotation/mocks";
 import FileFilter from "../../../../entity/FileFilter";
@@ -12,7 +12,7 @@ import HttpAnnotationService from "..";
 describe("HttpAnnotationService", () => {
     describe("fetchAnnotations", () => {
         const httpClient = createMockHttpClient({
-            when: `test/${HttpAnnotationService.BASE_ANNOTATION_URL}`,
+            when: `${FESBaseUrl.TEST}/${HttpAnnotationService.BASE_ANNOTATION_URL}`,
             respondWith: {
                 data: {
                     data: annotationsJson,
@@ -22,7 +22,7 @@ describe("HttpAnnotationService", () => {
 
         it("issues request for all available Annotations", async () => {
             const annotationService = new HttpAnnotationService({
-                fileExplorerServiceBaseUrl: "test",
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient,
             });
             const annotations = await annotationService.fetchAnnotations();
@@ -38,7 +38,7 @@ describe("HttpAnnotationService", () => {
             const annotation = "foo";
             const values = ["a", "b", "c"];
             const httpClient = createMockHttpClient({
-                when: `test/${HttpAnnotationService.BASE_ANNOTATION_URL}/${annotation}/values`,
+                when: `${FESBaseUrl.TEST}/${HttpAnnotationService.BASE_ANNOTATION_URL}/${annotation}/values`,
                 respondWith: {
                     data: {
                         data: values,
@@ -47,7 +47,7 @@ describe("HttpAnnotationService", () => {
             });
 
             const annotationService = new HttpAnnotationService({
-                fileExplorerServiceBaseUrl: "test",
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient,
             });
             const actualValues = await annotationService.fetchValues(annotation);
@@ -60,7 +60,7 @@ describe("HttpAnnotationService", () => {
         it("issues a request for annotation values for the first level of the annotation hierarchy", async () => {
             const expectedValues = ["foo", "bar", "baz"];
             const httpClient = createMockHttpClient({
-                when: `test/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?order=foo`,
+                when: `${FESBaseUrl.TEST}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?order=foo`,
                 respondWith: {
                     data: {
                         data: expectedValues,
@@ -69,7 +69,7 @@ describe("HttpAnnotationService", () => {
             });
 
             const annotationService = new HttpAnnotationService({
-                fileExplorerServiceBaseUrl: "test",
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient,
             });
             const values = await annotationService.fetchRootHierarchyValues(["foo"], []);
@@ -80,7 +80,7 @@ describe("HttpAnnotationService", () => {
             const expectedValues = ["foo", "bar", "baz"];
             const httpClient = createMockHttpClient({
                 // note order of query params
-                when: `test/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?order=z&order=a&order=b&order=c`,
+                when: `${FESBaseUrl.TEST}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?order=z&order=a&order=b&order=c`,
                 respondWith: {
                     data: {
                         data: expectedValues,
@@ -90,7 +90,7 @@ describe("HttpAnnotationService", () => {
             const getSpy = spy(httpClient, "get");
 
             const annotationService = new HttpAnnotationService({
-                fileExplorerServiceBaseUrl: "test",
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient,
             });
 
@@ -117,7 +117,7 @@ describe("HttpAnnotationService", () => {
         it("issues a request for annotation values for the first level of the annotation hierarchy with filters", async () => {
             const expectedValues = ["foo", "barValue", "baz"];
             const httpClient = createMockHttpClient({
-                when: `test/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?order=foo&filter=bar=barValue`,
+                when: `${FESBaseUrl.TEST}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?order=foo&filter=bar=barValue`,
                 respondWith: {
                     data: {
                         data: expectedValues,
@@ -126,7 +126,7 @@ describe("HttpAnnotationService", () => {
             });
 
             const annotationService = new HttpAnnotationService({
-                fileExplorerServiceBaseUrl: "test",
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient,
             });
             const filter = new FileFilter("bar", "barValue");
@@ -139,7 +139,7 @@ describe("HttpAnnotationService", () => {
         it("issues request for hierarchy values under a specific path within the hierarchy", async () => {
             const expectedValues = [1, 2, 3];
             const httpClient = createMockHttpClient({
-                when: `test/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}?order=foo&order=bar&path=baz`,
+                when: `${FESBaseUrl.TEST}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}?order=foo&order=bar&path=baz`,
                 respondWith: {
                     data: {
                         data: expectedValues,
@@ -148,7 +148,7 @@ describe("HttpAnnotationService", () => {
             });
 
             const annotationService = new HttpAnnotationService({
-                fileExplorerServiceBaseUrl: "test",
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient,
             });
             const values = await annotationService.fetchHierarchyValuesUnderPath(
@@ -162,7 +162,7 @@ describe("HttpAnnotationService", () => {
         it("issues request for hierarchy values under a specific path within the hierarchy with filters", async () => {
             const expectedValues = [1, "barValue", 3];
             const httpClient = createMockHttpClient({
-                when: `test/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}?order=foo&order=bar&path=baz&filter=bar=barValue`,
+                when: `${FESBaseUrl.TEST}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}?order=foo&order=bar&path=baz&filter=bar=barValue`,
                 respondWith: {
                     data: {
                         data: expectedValues,
@@ -171,7 +171,7 @@ describe("HttpAnnotationService", () => {
             });
 
             const annotationService = new HttpAnnotationService({
-                fileExplorerServiceBaseUrl: "test",
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient,
             });
             const filter = new FileFilter("bar", "barValue");
@@ -188,7 +188,7 @@ describe("HttpAnnotationService", () => {
         it("issues request for annotations that can be combined with current hierarchy", async () => {
             const annotationsFromServer = ["cell_dead", "date_created"];
             const httpClient = createMockHttpClient({
-                when: `test/${HttpAnnotationService.BASE_ANNOTATION_URL}/hierarchy/available?hierarchy=cas9&hierarchy=cell_line`,
+                when: `${FESBaseUrl.TEST}/${HttpAnnotationService.BASE_ANNOTATION_URL}/hierarchy/available?hierarchy=cas9&hierarchy=cell_line`,
                 respondWith: {
                     data: {
                         data: annotationsFromServer,
@@ -203,7 +203,7 @@ describe("HttpAnnotationService", () => {
                 ...hierarchy,
             ];
             const annotationService = new HttpAnnotationService({
-                fileExplorerServiceBaseUrl: "test",
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient,
             });
             const values = await annotationService.fetchAvailableAnnotationsForHierarchy(hierarchy);
