@@ -22,7 +22,7 @@ export default function EmptyFileListMessage() {
                     >
                         &nbsp;GitHub&nbsp;
                     </a>
-                    if you expect there should be matches present for query.
+                    if you expect there should be matches present for this query.
                 </div>
             </div>
         </div>
