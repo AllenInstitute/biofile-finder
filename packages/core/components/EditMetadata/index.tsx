@@ -20,10 +20,11 @@ enum EditMetadataPathway {
  */
 export default function EditMetadataForm() {
     const dispatch = useDispatch();
-    const fileSelection = useSelector(selection.selectors.getFileSelection);
     const onDismiss = () => {
         dispatch(interaction.actions.hideVisibleModal());
     };
+    const fileSelection = useSelector(selection.selectors.getFileSelection);
+    const fileCount = fileSelection.count();
     // Don't allow users to edit top level annotations (e.g., File Name)
     const annotationOptions = useSelector(metadata.selectors.getSortedAnnotations)
         .filter((annotation) => !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name))
@@ -90,13 +91,10 @@ export default function EditMetadataForm() {
                         onDismiss={onDismiss}
                         annotationValueMap={annotationValueMap}
                         annotationOptions={annotationOptions}
-                        selectedFileCount={fileSelection.count()}
+                        selectedFileCount={fileCount}
                     />
                 ) : (
-                    <NewAnnotationPathway
-                        onDismiss={onDismiss}
-                        selectedFileCount={fileSelection.count()}
-                    />
+                    <NewAnnotationPathway onDismiss={onDismiss} selectedFileCount={fileCount} />
                 )}
             </div>
         </>
