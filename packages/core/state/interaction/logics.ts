@@ -592,7 +592,7 @@ const moveFilesLogic = createLogic({
             // TODO: What to do with the status
             console.log("Cache statuses:", cacheStatuses);
         } catch (err) {
-            console.error(`Error encountered while moving files: ${err}`);
+            throw new Error(`Error encountered while moving files: ${err}`);
         } finally {
             done();
         }
