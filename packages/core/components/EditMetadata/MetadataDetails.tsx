@@ -59,7 +59,7 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
         <div className={styles.wrapper}>
             <Stack className={styles.stack} horizontal tokens={{ childrenGap: 20 }}>
                 <StackItem grow className={styles.stackItemLeft}>
-                    <h4>Existing values</h4>
+                    <h4 className={styles.tableTitle}>Existing values</h4>
                     <DetailsList
                         setKey="items"
                         cellStyleProps={{

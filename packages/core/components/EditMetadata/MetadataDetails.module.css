@@ -8,11 +8,17 @@
 .details-header > div, .details-header > div:hover, .details-header span {
   background-color: var(--primary-background-color);
   color: var(--secondary-text-color);
+  font-size: var(--xs-paragraph-size);
+  height: 36px;
 }
 
 .details-header > div {
   padding-top: 5px;
   border-bottom: 1px solid var(--border-color);
+}
+
+.details-header > div > div:hover {
+  background-color: unset;
 }
 
 .column-right-align span, .column-right-align-cell {
@@ -28,13 +34,16 @@
 .table-row > div:first-child {
   color: var(--secondary-text-color);
   background-color: unset;
-  font-family: var(--font-family);
-  font-size: 14px;
+  font-size: var(--l-paragraph-size);
   font-weight: 400;
 }
 
 .table-row > div:hover:first-child, .table-row > div:hover {
   color: var(--secondary-text-color);
+}
+
+.table-title {
+  padding-bottom: 5px
 }
 
 .stack {
