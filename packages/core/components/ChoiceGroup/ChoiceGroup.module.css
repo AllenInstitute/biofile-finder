@@ -1,4 +1,3 @@
-
 .choice-group input:disabled + label {
   cursor: not-allowed;
   opacity: 0.5;
@@ -9,9 +8,9 @@
 }
 
 .choice-group label > span {
-  font-size: var(--s-paragraph-size);
+  font-size: var(--l-paragraph-size);
   margin-right: 5px;
-  margin-top: 2px;
+  margin-top: 1px;
   padding-left: 24px !important;
 }
 
@@ -24,8 +23,8 @@
   border-color: var(--aqua);
   width: 16px;
   height: 16px;
-  top: 2.1px;
-  left: 2.1px;
+  top: 2px;
+  left: 2px;
 }
 
 .choice-group label::after {
@@ -43,5 +42,5 @@
 }
 
 .choice-group > div > div > div:not(:first-child) {
-  margin-left: 6px;
+  margin-left: var(--margin);
 }
