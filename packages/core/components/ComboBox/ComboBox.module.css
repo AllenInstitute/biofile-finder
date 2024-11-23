@@ -44,12 +44,25 @@
   border-radius: var(--small-border-radius);
   box-shadow: var(--box-shadow);
   padding: 8px 0;
-  max-height: 250px !important;
+  max-height: 300px !important;
 }
 
 .combo-box-callout > div {
   background-color: var(--primary-background-color);
   border-radius: 0;
+}
+
+.combo-box-callout::after  {
+  background-image: linear-gradient(transparent,  var(--primary-background-color));
+  content: " ";
+  display: block;
+  height: 30px;
+  pointer-events: none;
+  /* Adjusted for height - footer height */
+  width: 100%;
+  z-index: 10;
+  position: absolute;
+  bottom: 5px;
 }
 
 .combo-box-item :is(input, button, label){
@@ -96,4 +109,8 @@
 
 .combo-box-item > div:hover :is(i, div) {
   color: var(--highlight-text-color) !important;
+}
+
+.options-container {
+  padding-bottom: var(--margin);
 }
