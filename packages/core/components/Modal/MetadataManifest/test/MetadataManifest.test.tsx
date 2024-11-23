@@ -12,6 +12,7 @@ import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
 import Modal, { ModalType } from "../..";
+import { FESBaseUrl } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import FileFilter from "../../../../entity/FileFilter";
 import { initialState, interaction, reduxLogics } from "../../../../state";
@@ -19,10 +20,11 @@ import HttpFileService from "../../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("<MetadataManifest />", () => {
-    const baseUrl = "test";
+    const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
+    const environment = "TEST";
     const visibleDialogState = mergeState(initialState, {
         interaction: {
-            fileExplorerServiceBaseUrl: baseUrl,
+            environment: environment,
             visibleModal: ModalType.MetadataManifest,
         },
     });
@@ -35,7 +37,7 @@ describe("<MetadataManifest />", () => {
     };
     const mockHttpClient = createMockHttpClient(responseStub);
     const fileService = new HttpFileService({
-        baseUrl,
+        fileExplorerServiceBaseUrl,
         httpClient: mockHttpClient,
         downloadService: new FileDownloadServiceNoop(),
     });

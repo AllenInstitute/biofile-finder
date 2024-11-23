@@ -16,7 +16,9 @@ import { DataSource } from "../../../services/DataSourceService";
 describe("Selection reducer", () => {
     [
         selection.actions.setAnnotationHierarchy([]),
-        interaction.actions.initializeApp("base"),
+        interaction.actions.initializeApp({
+            environment: "TEST",
+        }),
     ].forEach((expectedAction) =>
         it(`clears selected file state when ${expectedAction.type} is fired`, () => {
             // arrange

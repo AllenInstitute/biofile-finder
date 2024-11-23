@@ -582,12 +582,22 @@ const setIsSmallScreen = createLogic({
  * Logs details of files that are being moved.
  */
 const moveFilesLogic = createLogic({
-    type: MOVE_FILES,
-    process(deps, dispatch, done) {
-        const action = deps.action as MoveFilesAction;
-        console.log(`Moving files:`, action.payload.fileDetails);
-        done();
+    async process({ action, getState }: ReduxLogicDeps, _dispatch, done) {
+        try {
+            const httpFileService = interactionSelectors.getHttpFileService(getState());
+            const username = interactionSelectors.getUserName(getState());
+            const fileIds = (action as MoveFilesAction).payload.fileDetails.map((file) => file.id);
+            const cacheStatuses = await httpFileService.cacheFiles(fileIds, username);
+
+            // TODO: What to do with the status
+            console.log("Cache statuses:", cacheStatuses);
+        } catch (err) {
+            throw new Error(`Error encountered while moving files: ${err}`);
+        } finally {
+            done();
+        }
     },
+    type: MOVE_FILES,
 });
 
 export default [

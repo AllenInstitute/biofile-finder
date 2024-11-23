@@ -1,5 +1,6 @@
 import { AnnotationResponse } from "../../entity/Annotation";
 import { Query } from "../../state/selection/actions";
+import { Environment } from "../../constants";
 
 /**
  * Keys for the data saved by this service
@@ -13,6 +14,7 @@ export enum PersistedConfigKeys {
     UserSelectedApplications = "USER_SELECTED_APPLICATIONS",
     Queries = "QUERIES",
     RecentAnnotations = "RECENT_ANNOTATIONS",
+    Environment = "ENVIRONMENT",
 }
 
 export interface UserSelectedApplication {
@@ -29,6 +31,7 @@ export interface PersistedConfig {
     [PersistedConfigKeys.Queries]?: Query[];
     [PersistedConfigKeys.RecentAnnotations]?: string[];
     [PersistedConfigKeys.UserSelectedApplications]?: UserSelectedApplication[];
+    [PersistedConfigKeys.Environment]?: Environment;
 }
 
 /**
