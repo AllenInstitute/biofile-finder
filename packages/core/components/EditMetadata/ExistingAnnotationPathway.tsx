@@ -35,12 +35,12 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
         // Track how many values we've seen, since some files may not have a value for this field
         let totalValueCount = 0;
         if (props?.annotationValueMap?.has(selectedFieldName)) {
-            const fieldValues = props.annotationValueMap.get(selectedFieldName);
-            valueMap = Object.keys(fieldValues).map((fieldName) => {
-                totalValueCount += fieldValues[fieldName];
+            const fieldValueToOccurenceMap = props.annotationValueMap.get(selectedFieldName);
+            valueMap = Object.keys(fieldValueToOccurenceMap).map((fieldName) => {
+                totalValueCount += fieldValueToOccurenceMap[fieldName];
                 return {
                     value: fieldName,
-                    fileCount: fieldValues[fieldName],
+                    fileCount: fieldValueToOccurenceMap[fieldName],
                 };
             });
         }
@@ -81,13 +81,15 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
             )}
             <div className={classNames(styles.footer, styles.footerAlignRight)}>
                 <SecondaryButton title="Cancel" text="CANCEL" onClick={props.onDismiss} />
-                <PrimaryButton
-                    className={styles.primaryButton}
-                    disabled={!newValues}
-                    title="Replace"
-                    text="REPLACE"
-                    onClick={onSubmit}
-                />
+                {valueCount && (
+                    <PrimaryButton
+                        className={styles.primaryButton}
+                        disabled={!newValues}
+                        title="Replace"
+                        text="REPLACE"
+                        onClick={onSubmit}
+                    />
+                )}
             </div>
         </>
     );

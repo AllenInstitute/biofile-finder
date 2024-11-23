@@ -78,10 +78,12 @@ export default function EditMetadataForm() {
                     {
                         key: EditMetadataPathway.EXISTING,
                         text: "Existing field",
+                        title: "Choose a field that already exists in the data source(s).",
                     },
                     {
                         key: EditMetadataPathway.NEW,
                         text: "New field",
+                        title: "Create a new field that doesn't yet exist in the data source(s).",
                     },
                 ]}
             />
