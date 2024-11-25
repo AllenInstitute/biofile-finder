@@ -4,7 +4,6 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
 import { initialState, selection } from "../../../state";
@@ -20,23 +19,18 @@ describe("<Header />", () => {
             AnnotationName.UPLOADED,
         ];
         const state = mergeState(initialState, {
+            metadata: {
+                annotations: annotations.map((name) => ({
+                    name,
+                    displayName: name,
+                    description: name,
+                })),
+            },
             selection: {
-                displayAnnotations: annotations.map(
-                    (name) =>
-                        new Annotation({
-                            annotationName: name,
-                            description: "Column Header Annotation",
-                            annotationDisplayName: name,
-                            type: "TEXT",
-                        })
-                ),
-                columnWidths: annotations.reduce(
-                    (accum, name) => ({
-                        ...accum,
-                        [name]: 1 / annotations.length,
-                    }),
-                    {}
-                ),
+                columns: annotations.map((name) => ({
+                    name: name,
+                    width: 1 / annotations.length,
+                })),
             },
         });
         const { actions, store } = configureMockStore({ state });
@@ -64,23 +58,18 @@ describe("<Header />", () => {
             AnnotationName.UPLOADED,
         ];
         const state = mergeState(initialState, {
+            metadata: {
+                annotations: annotations.map((name) => ({
+                    name,
+                    displayName: name,
+                    description: name,
+                })),
+            },
             selection: {
-                displayAnnotations: annotations.map(
-                    (name) =>
-                        new Annotation({
-                            annotationName: name,
-                            description: "Column Header Annotation",
-                            annotationDisplayName: name,
-                            type: "TEXT",
-                        })
-                ),
-                columnWidths: annotations.reduce(
-                    (accum, name) => ({
-                        ...accum,
-                        [name]: 1 / annotations.length,
-                    }),
-                    {}
-                ),
+                columns: annotations.map((name) => ({
+                    name: name,
+                    width: 1 / annotations.length,
+                })),
                 sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC),
             },
         });
@@ -108,23 +97,18 @@ describe("<Header />", () => {
             AnnotationName.UPLOADED,
         ];
         const state = mergeState(initialState, {
+            metadata: {
+                annotations: annotations.map((name) => ({
+                    name,
+                    displayName: name,
+                    description: name,
+                })),
+            },
             selection: {
-                displayAnnotations: annotations.map(
-                    (name) =>
-                        new Annotation({
-                            annotationName: name,
-                            description: "Column Header Annotation",
-                            annotationDisplayName: name,
-                            type: "TEXT",
-                        })
-                ),
-                columnWidths: annotations.reduce(
-                    (accum, name) => ({
-                        ...accum,
-                        [name]: 1 / annotations.length,
-                    }),
-                    {}
-                ),
+                columns: annotations.map((name) => ({
+                    name: name,
+                    width: 1 / annotations.length,
+                })),
                 sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.ASC),
             },
         });

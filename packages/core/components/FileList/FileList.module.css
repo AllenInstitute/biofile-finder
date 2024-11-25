@@ -10,6 +10,18 @@
     height: calc(100% - 3px);
 }
 
+.horizontal-overflow::after {
+    background-image: linear-gradient(to right, transparent, var(--secondary-background-color));
+    bottom: 0;
+    content: " ";
+    height: 100%;
+    right: 0;
+    position: absolute;
+    pointer-events: none;
+    width: 60px;
+    z-index: 11;
+}
+
 .row-count-display {
     color: var(--secondary-text-color);
     opacity: 0.8;

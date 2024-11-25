@@ -6,6 +6,7 @@ import {
     FileInfo,
     DownloadResolution,
 } from "../../../core/services";
+import { MAX_DOWNLOAD_SIZE_WEB } from "../../../core/services/FileDownloadService";
 
 interface ActiveRequestMap {
     [id: string]: {
@@ -75,22 +76,33 @@ Please navigate to this directory manually, or upload files to a remote address 
         destination?: string
     ): Promise<DownloadResult> {
         const { hostname, key } = this.parseS3Url(fileInfo.path);
-        const keys = await this.listS3Objects(hostname, key);
 
+        // Calculate the total size of the S3 directory
+        const totalSize = await this.calculateS3DirectorySize(hostname, key);
+
+        // Check if the total size exceeds 2 GB.
+        // Most modern web browsers have memory constraints that limit them to using approximately 2 GB of RAM.
+        // Exceeding this limit can cause memory issues, crashes, or download failures due to insufficient memory.
+        // This check ensures that the total download size does not surpass the supported 2 GB threshold.
+        // Additionally, zarr size is calculated using the same traversal method as downloads,
+        // meaning that if the size cannot be determined, the download is also not possible.
+        if (totalSize > MAX_DOWNLOAD_SIZE_WEB) {
+            throw new Error(
+                `The total download size of the requested zarr file exceeds the 2 GB RAM limit supported by web browsers. ` +
+                    `Attempting to download a total size of ${(
+                        totalSize /
+                        (1024 * 1024 * 1024)
+                    ).toFixed(2)} GB can lead to ` +
+                    `browser memory issues, potential crashes, or failed downloads.`
+            );
+        }
+
+        const keys = await this.listS3Objects(hostname, key);
         if (keys.length === 0) {
             throw new Error("No files found in the specified S3 directory.");
         }
 
         const zip = new JSZip();
-        let totalSize = 0;
-
-        // Fetch the size of each file to calculate total download size
-        for (const fileKey of keys) {
-            const fileUrl = `https://${hostname}/${encodeURIComponent(fileKey)}`;
-            const response = await axios.head(fileUrl);
-            const fileSize = parseInt(response.headers["content-length"] || "0", 10);
-            totalSize += fileSize; // Calculate total size for all files
-        }
 
         // Register cancellation token for this request
         let cancelToken: Canceler;

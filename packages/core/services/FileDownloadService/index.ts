@@ -151,3 +151,8 @@ export default abstract class FileDownloadService extends HttpServiceBase {
  */
 export const FileDownloadCancellationToken =
     "FMS_EXPLORER_EXECUTABLE_FILE_DOWNLOAD_CANCELLATION_TOKEN";
+
+/**
+ * Maximum size of multifile cloud files that can be downloaded from a browser ~2GB
+ */
+export const MAX_DOWNLOAD_SIZE_WEB = 2 * 1024 * 1024 * 1024;

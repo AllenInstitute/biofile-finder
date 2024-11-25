@@ -3,7 +3,6 @@ import { expect } from "chai";
 import selection from "..";
 import { initialState } from "../..";
 import interaction from "../../interaction";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import FileFilter from "../../../entity/FileFilter";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
@@ -80,26 +79,30 @@ describe("Selection reducer", () => {
         });
     });
 
-    describe("SET_DISPLAY_ANNOTATIONS", () => {
+    describe("SET_COLUMNS", () => {
         it("performs a set", () => {
             // arrange
             const initialSelectionState = {
                 ...selection.initialState,
-                displayAnnotations: [TOP_LEVEL_FILE_ANNOTATIONS[0]],
+                columns: [{ name: "Green", width: 0.11 }],
             };
+            const columns = [
+                { name: "Orange", width: 0.42 },
+                { name: "Red", width: 0.47 },
+            ];
 
-            const action = selection.actions.setDisplayAnnotations(TOP_LEVEL_FILE_ANNOTATIONS);
+            const action = selection.actions.setColumns(columns);
 
             // act
             const nextSelectionState = selection.reducer(initialSelectionState, action);
 
             // assert
             expect(
-                selection.selectors.getAnnotationsToDisplay({
+                selection.selectors.getColumns({
                     ...initialState,
                     selection: nextSelectionState,
                 })
-            ).to.deep.equal(TOP_LEVEL_FILE_ANNOTATIONS);
+            ).to.deep.equal(columns);
         });
     });
 

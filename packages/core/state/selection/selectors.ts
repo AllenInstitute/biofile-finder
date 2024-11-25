@@ -3,23 +3,21 @@ import { createSelector } from "reselect";
 
 import { State } from "../";
 import Annotation from "../../entity/Annotation";
-import FileExplorerURL, { FileExplorerURLComponents } from "../../entity/FileExplorerURL";
+import FileExplorerURL, { FileExplorerURLComponents, FileView } from "../../entity/FileExplorerURL";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import { getAnnotations } from "../metadata/selectors";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 // BASIC SELECTORS
 export const getAnnotationHierarchy = (state: State) => state.selection.annotationHierarchy;
-export const getAnnotationsToDisplay = (state: State) => state.selection.displayAnnotations;
 export const getAvailableAnnotationsForHierarchy = (state: State) =>
     state.selection.availableAnnotationsForHierarchy;
 export const getAvailableAnnotationsForHierarchyLoading = (state: State) =>
     state.selection.availableAnnotationsForHierarchyLoading;
-export const getColumnWidths = (state: State) => state.selection.columnWidths;
-export const getFileGridColumnCount = (state: State) => state.selection.fileGridColumnCount;
+export const getColumns = (state: State) => state.selection.columns;
 export const getFileFilters = (state: State) => state.selection.filters;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
-export const getIsDarkTheme = (state: State) => state.selection.isDarkTheme;
+export const getFileView = (state: State) => state.selection.fileView;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getRecentAnnotations = (state: State) => state.selection.recentAnnotations;
 export const getRequiresDataSourceReload = (state: State) =>
@@ -28,8 +26,6 @@ export const getSelectedDataSources = (state: State) => state.selection.dataSour
 export const getSelectedSourceMetadata = (state: State) => state.selection.sourceMetadata;
 export const getSelectedQuery = (state: State) => state.selection.selectedQuery;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
-export const getShouldDisplayThumbnailView = (state: State) =>
-    state.selection.shouldDisplayThumbnailView;
 export const getSortColumn = (state: State) => state.selection.sortColumn;
 export const getTutorial = (state: State) => state.selection.tutorial;
 export const getQueries = (state: State) => state.selection.queries;
@@ -38,9 +34,25 @@ const getPlatformDependentServices = (state: State) => state.interaction.platfor
 // COMPOSED SELECTORS
 export const hasQuerySelected = createSelector([getSelectedQuery], (query): boolean => !!query);
 
+export const isColumnWidthOverflowing = createSelector(
+    [getColumns, getFileView],
+    (columns, fileView): boolean =>
+        fileView === FileView.LIST && columns.reduce((acc, column) => acc + column.width, 0) > 1
+);
+
 export const isQueryingAicsFms = createSelector(
     [getSelectedDataSources],
     (dataSources): boolean => dataSources[0]?.name === AICS_FMS_DATA_SOURCE_NAME
+);
+
+const FILE_VIEW_TO_COL_COUNT = {
+    [FileView.LIST]: 1,
+    [FileView.SMALL_THUMBNAIL]: 10,
+    [FileView.LARGE_THUMBNAIL]: 5,
+};
+export const getFileGridColCount = createSelector(
+    [getFileView],
+    (fileView): number => FILE_VIEW_TO_COL_COUNT[fileView]
 );
 
 export const getFuzzyFilters = createSelector([getFileFilters], (filters): FileFilter[] =>
@@ -59,10 +71,16 @@ export const getDefaultFileFilters = createSelector([getFileFilters], (filters):
     filters.filter((filter) => filter.type === FilterType.DEFAULT)
 );
 
+export const getColumnNames = createSelector([getColumns], (columns): string[] =>
+    columns.map((column) => column.name)
+);
+
 export const getCurrentQueryParts = createSelector(
     [
         getAnnotationHierarchy,
+        getColumns,
         getFileFilters,
+        getFileView,
         getOpenFileFolders,
         getSortColumn,
         getSelectedDataSources,
@@ -70,13 +88,17 @@ export const getCurrentQueryParts = createSelector(
     ],
     (
         hierarchy,
+        columns,
         filters,
+        fileView,
         openFolders,
         sortColumn,
         sources,
         sourceMetadata
     ): FileExplorerURLComponents => ({
+        columns,
         hierarchy,
+        fileView,
         filters,
         openFolders,
         sortColumn,

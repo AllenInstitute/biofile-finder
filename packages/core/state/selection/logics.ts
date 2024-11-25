@@ -46,6 +46,8 @@ import {
     REMOVE_DATASOURCE_RELOAD_ERROR,
     CHANGE_FILE_FILTER_TYPE,
     AddDataSourceReloadError,
+    setFileView,
+    setColumns,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -346,7 +348,9 @@ const decodeFileExplorerURLLogics = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
         const {
+            columns,
             hierarchy,
+            fileView,
             filters,
             openFolders,
             sortColumn,
@@ -358,7 +362,9 @@ const decodeFileExplorerURLLogics = createLogic({
             dispatch(changeSourceMetadata(sourceMetadata));
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
+            columns && dispatch(setColumns(columns));
             dispatch(setFileFilters(filters));
+            fileView && dispatch(setFileView(fileView) as AnyAction);
             dispatch(setOpenFileFolders(openFolders));
             dispatch(setSortColumn(sortColumn));
         });

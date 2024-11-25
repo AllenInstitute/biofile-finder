@@ -6,15 +6,16 @@ import { useSelector } from "react-redux";
 import { FixedSizeGrid, FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 
-import FileSet from "../../entity/FileSet";
 import Header from "./Header";
 import LazilyRenderedRow from "./LazilyRenderedRow";
 import LazilyRenderedThumbnail from "./LazilyRenderedThumbnail";
-import { selection } from "../../state";
-import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileSelector from "./useFileSelector";
-import useFileAccessContextMenu from "../../hooks/useFileAccessContextMenu";
 import EmptyFileListMessage from "../EmptyFileListMessage";
+import { FileView } from "../../entity/FileExplorerURL";
+import FileSet from "../../entity/FileSet";
+import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
+import useFileAccessContextMenu from "../../hooks/useFileAccessContextMenu";
+import { selection } from "../../state";
 
 import styles from "./FileList.module.css";
 
@@ -46,17 +47,16 @@ const TALL_ROW_HEIGHT = 19;
  */
 export default function FileList(props: FileListProps) {
     const [totalCount, setTotalCount] = React.useState<number | null>(null);
+    const fileView = useSelector(selection.selectors.getFileView);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
+    const fileGridColumnCount = useSelector(selection.selectors.getFileGridColCount);
     const isDisplayingSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
-    const shouldDisplayThumbnailView = useSelector(
-        selection.selectors.getShouldDisplayThumbnailView
-    );
-    const fileGridColumnCount = useSelector(selection.selectors.getFileGridColumnCount);
+    const isColumnWidthOverflowing = useSelector(selection.selectors.isColumnWidthOverflowing);
     const [measuredNodeRef, measuredHeight, measuredWidth] = useLayoutMeasurements<
         HTMLDivElement
     >();
     let defaultRowHeight = isDisplayingSmallFont ? SMALL_ROW_HEIGHT : TALL_ROW_HEIGHT;
-    if (shouldDisplayThumbnailView) defaultRowHeight = measuredWidth / fileGridColumnCount;
+    if (fileView !== FileView.LIST) defaultRowHeight = measuredWidth / fileGridColumnCount;
     const { className, fileSet, isRoot, rowHeight, sortOrder } = defaults({}, props, DEFAULTS, {
         rowHeight: defaultRowHeight,
     });
@@ -205,7 +205,29 @@ export default function FileList(props: FileListProps) {
                             });
                         };
 
-                        const fixedSizeGrid = (
+                        if (fileView === FileView.LIST) {
+                            return (
+                                <FixedSizeList
+                                    itemData={{
+                                        fileSet: fileSet,
+                                        onSelect,
+                                        onContextMenu: onFileRowContextMenu,
+                                    }}
+                                    itemSize={rowHeight} // row height
+                                    height={height} // height of the list itself; affects number of rows rendered at any given time
+                                    itemCount={totalCount || DEFAULT_TOTAL_COUNT}
+                                    onItemsRendered={onItemsRendered}
+                                    outerElementType={Header}
+                                    outerRef={outerRef}
+                                    ref={callbackRefList}
+                                    width={measuredWidth}
+                                >
+                                    {LazilyRenderedRow}
+                                </FixedSizeList>
+                            );
+                        }
+
+                        return (
                             <FixedSizeGrid
                                 itemData={{
                                     fileSet: fileSet,
@@ -229,28 +251,6 @@ export default function FileList(props: FileListProps) {
                                 {LazilyRenderedThumbnail}
                             </FixedSizeGrid>
                         );
-
-                        const fixedSizeList = (
-                            <FixedSizeList
-                                itemData={{
-                                    fileSet: fileSet,
-                                    onSelect,
-                                    onContextMenu: onFileRowContextMenu,
-                                }}
-                                itemSize={rowHeight} // row height
-                                height={height} // height of the list itself; affects number of rows rendered at any given time
-                                itemCount={totalCount || DEFAULT_TOTAL_COUNT}
-                                onItemsRendered={onItemsRendered}
-                                outerElementType={Header}
-                                outerRef={outerRef}
-                                ref={callbackRefList}
-                                width={measuredWidth}
-                            >
-                                {LazilyRenderedRow}
-                            </FixedSizeList>
-                        );
-
-                        return shouldDisplayThumbnailView ? fixedSizeGrid : fixedSizeList;
                     }}
                 </InfiniteLoader>
             );
@@ -262,7 +262,9 @@ export default function FileList(props: FileListProps) {
     return (
         <div className={classNames(styles.container, className)}>
             <div
-                className={classNames(styles.list)}
+                className={classNames(styles.list, {
+                    [styles.horizontalOverflow]: isColumnWidthOverflowing,
+                })}
                 style={{
                     height: isRoot ? undefined : `${calculatedHeight}px`,
                 }}

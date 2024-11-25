@@ -16,12 +16,33 @@ const OPTIONS: Options<Record<string, unknown>> = {
         [PersistedConfigKeys.AllenMountPoint]: {
             type: "string",
         },
+        [PersistedConfigKeys.Columns]: {
+            type: "array",
+            items: {
+                type: "object",
+                properties: {
+                    annotationDisplayName: {
+                        type: "string",
+                    },
+                    annotationName: {
+                        type: "string",
+                    },
+                    description: {
+                        type: "string",
+                    },
+                    type: {
+                        type: "string",
+                    },
+                },
+            },
+        },
         [PersistedConfigKeys.CsvColumns]: {
             type: "array",
             items: {
                 type: "string",
             },
         },
+        // Deprecated in 8.10.0
         [PersistedConfigKeys.DisplayAnnotations]: {
             type: "array",
             items: {
@@ -115,6 +136,12 @@ const OPTIONS: Options<Record<string, unknown>> = {
         ">5.2.0": (store) => {
             if (store.has(PersistedConfigKeys.AllenMountPoint)) {
                 store.delete(PersistedConfigKeys.AllenMountPoint);
+            }
+        },
+        // Remove PersistedConfigKeys.DisplayAnnotations
+        ">8.9.3": (store) => {
+            if (store.has(PersistedConfigKeys.DisplayAnnotations)) {
+                store.delete(PersistedConfigKeys.DisplayAnnotations);
             }
         },
     },

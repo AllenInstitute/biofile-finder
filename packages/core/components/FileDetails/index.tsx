@@ -14,6 +14,7 @@ import FileThumbnail from "../../components/FileThumbnail";
 import { interaction } from "../../state";
 
 import styles from "./FileDetails.module.css";
+import { MAX_DOWNLOAD_SIZE_WEB } from "../../services/FileDownloadService";
 
 interface Props {
     className?: string;
@@ -75,19 +76,52 @@ export default function FileDetails(props: Props) {
     const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
     const [isThumbnailLoading, setIsThumbnailLoading] = React.useState(true);
     const stackTokens: IStackTokens = { childrenGap: 12 + " " + 20 };
+    const [calculatedSize, setCalculatedSize] = React.useState<number | null>(null);
+
+    const platformDependentServices = useSelector(
+        interaction.selectors.getPlatformDependentServices
+    );
+    const fileDownloadService = platformDependentServices.fileDownloadService;
+    const isOnWeb = useSelector(interaction.selectors.isOnWeb);
+    const isZarr = fileDetails?.path.endsWith(".zarr") || fileDetails?.path.endsWith(".zarr/");
 
     React.useEffect(() => {
+        setCalculatedSize(null);
         if (fileDetails) {
             setIsThumbnailLoading(true);
             fileDetails.getPathToThumbnail().then((path) => {
                 setThumbnailPath(path);
                 setIsThumbnailLoading(false);
             });
+
+            // Determine size of Zarr on web.
+            if (isOnWeb && isZarr) {
+                if (fileDetails.size && fileDetails.size > 0) {
+                    setCalculatedSize(fileDetails.size);
+                } else {
+                    const { hostname, key } = fileDownloadService.parseS3Url(
+                        fileDetails.downloadPath
+                    );
+                    fileDownloadService
+                        .calculateS3DirectorySize(hostname, key)
+                        .then(setCalculatedSize);
+                }
+            }
         }
-    }, [fileDetails]);
+    }, [fileDetails, fileDownloadService, isOnWeb, isZarr]);
 
     const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
     const openWithMenuItems = useOpenWithMenuItems(fileDetails || undefined);
+
+    // Disable download of large Zarrs ( > 2GB).
+    const isDownloadDisabled = fileDetails
+        ? processStatuses.some((status) => status.data.fileId?.includes(fileDetails.uid)) ||
+          (isOnWeb &&
+              isZarr &&
+              // The Zarr size is calculated using the same traversal method as downloads
+              // meaning that if the size cannot be determined, the download is also not possible.
+              (calculatedSize === null || calculatedSize > MAX_DOWNLOAD_SIZE_WEB))
+        : true;
 
     // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
     const onDownload = React.useMemo(() => {
@@ -144,9 +178,7 @@ export default function FileDetails(props: Props) {
                                 <StackItem>
                                     <PrimaryButton
                                         className={styles.primaryButton}
-                                        disabled={processStatuses.some((status) =>
-                                            status.data.fileId?.includes(fileDetails.uid)
-                                        )}
+                                        disabled={isDownloadDisabled}
                                         iconName="Download"
                                         text="Download"
                                         title="Download"

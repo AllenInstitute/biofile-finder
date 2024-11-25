@@ -1,6 +1,5 @@
 import { makeConstant } from "@aics/redux-utils";
 
-import Annotation from "../../entity/Annotation";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -11,6 +10,7 @@ import Tutorial from "../../entity/Tutorial";
 import {
     EMPTY_QUERY_COMPONENTS,
     FileExplorerURLComponents,
+    FileView,
     Source,
 } from "../../entity/FileExplorerURL";
 
@@ -138,26 +138,9 @@ export function setSortColumn(fileSort?: FileSort): SetSortColumnAction {
     };
 }
 
-/**
- * SET_DISPLAY_ANNOTATIONS
- *
- * Intention to select annotations for a file to display in the file list (i.e., as a column).
- *
- * For example, by default, we may only see "File name | File size | Date created" as the columns in the file list. This
- * is the mechanism for a user to then add/remove a column to view.
- */
-export const SET_DISPLAY_ANNOTATIONS = makeConstant(STATE_BRANCH_NAME, "set-display-annotations");
-
-export interface SetDisplayAnnotationsAction {
-    payload: Annotation[];
-    type: string;
-}
-
-export function setDisplayAnnotations(annotations: Annotation[]): SetDisplayAnnotationsAction {
-    return {
-        payload: annotations,
-        type: SET_DISPLAY_ANNOTATIONS,
-    };
+export interface Column {
+    name: string;
+    width: number; // percent between 0 and 1
 }
 
 /**
@@ -168,40 +151,33 @@ export function setDisplayAnnotations(annotations: Annotation[]): SetDisplayAnno
 export const RESIZE_COLUMN = makeConstant(STATE_BRANCH_NAME, "resize-column");
 
 export interface ResizeColumnAction {
-    payload: {
-        columnHeader: string;
-        widthPercent: number; // between 0 and 1
-    };
+    payload: Column;
     type: string;
 }
 
-export function resizeColumn(columnHeader: string, widthPercent: number) {
+export function resizeColumn(column: Column) {
     return {
-        payload: {
-            columnHeader,
-            widthPercent,
-        },
+        payload: column,
         type: RESIZE_COLUMN,
     };
 }
 
 /**
- * RESET_COLUMN_WIDTH
+ * SET_COLUMNS
  *
- * Intention to remove a previous manual resizing of a column using the ResizeColumnAction. The expectation
- * is that if no specific mapping between a column and a width exists in state, a default will apply.
+ * Intention to set the columns that are displayed to the user in the file list
  */
-export const RESET_COLUMN_WIDTH = makeConstant(STATE_BRANCH_NAME, "reset-column-width");
+export const SET_COLUMNS = makeConstant(STATE_BRANCH_NAME, "set-columns");
 
-export interface ResetColumnWidthAction {
-    payload: string; // columnHeader
+export interface SetColumns {
+    payload: Column[];
     type: string;
 }
 
-export function resetColumnWidth(columnHeader: string) {
+export function setColumns(columns: Column[]) {
     return {
-        payload: columnHeader,
-        type: RESET_COLUMN_WIDTH,
+        payload: columns,
+        type: SET_COLUMNS,
     };
 }
 
@@ -653,41 +629,21 @@ export function adjustGlobalFontSize(shouldDisplaySmallFont: boolean): AdjustGlo
 }
 
 /**
- * SET_FILE_VIEW_TYPE
+ * SET_FILE_VIEW
  *
- * Intention to set the file view type to thumbnail or list
+ * Intention to set how the user sees the files displayed (ex. a list)
  */
-export const SET_FILE_THUMBNAIL_VIEW = makeConstant(STATE_BRANCH_NAME, "set-file-thumbnail-view");
+export const SET_FILE_VIEW = makeConstant(STATE_BRANCH_NAME, "set-file-view");
 
-export interface SetFileThumbnailView {
-    payload: boolean;
+export interface SetFileView {
+    payload: FileView;
     type: string;
 }
 
-export function setFileThumbnailView(shouldDisplayThumbnailView: boolean): SetFileThumbnailView {
+export function setFileView(view: FileView): SetFileView {
     return {
-        payload: shouldDisplayThumbnailView,
-        type: SET_FILE_THUMBNAIL_VIEW,
-    };
-}
-
-/**
- * SET_FILE_GRID_COLUMN_COUNT
- */
-export const SET_FILE_GRID_COLUMN_COUNT = makeConstant(
-    STATE_BRANCH_NAME,
-    "set-file-grid-column-count"
-);
-
-export interface SetFileGridColumnCount {
-    payload: number;
-    type: string;
-}
-
-export function setFileGridColumnCount(fileGridColumnCount: number): SetFileGridColumnCount {
-    return {
-        payload: fileGridColumnCount,
-        type: SET_FILE_GRID_COLUMN_COUNT,
+        payload: view,
+        type: SET_FILE_VIEW,
     };
 }
 
