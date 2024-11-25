@@ -2,7 +2,7 @@ import { isEmpty, sumBy, throttle, uniq, uniqueId } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
-import { metadata, ReduxLogicDeps, selection } from "../";
+import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import {
     DOWNLOAD_MANIFEST,
     DownloadManifestAction,
@@ -582,17 +582,81 @@ const setIsSmallScreen = createLogic({
  * Logs details of files that are being moved.
  */
 const moveFilesLogic = createLogic({
-    async process({ action, getState }: ReduxLogicDeps, _dispatch, done) {
+    async process({ action, getState }: ReduxLogicDeps, dispatch, done) {
         try {
             const httpFileService = interactionSelectors.getHttpFileService(getState());
             const username = interactionSelectors.getUserName(getState());
-            const fileIds = (action as MoveFilesAction).payload.fileDetails.map((file) => file.id);
-            const cacheStatuses = await httpFileService.cacheFiles(fileIds, username);
 
-            // TODO: What to do with the status
-            console.log("Cache statuses:", cacheStatuses);
+            const fileDetails = (action as MoveFilesAction).payload.fileDetails;
+
+            // Map file IDs to file names for easy lookup
+            const fileIdToNameMap = Object.fromEntries(
+                fileDetails.map((file) => [file.id, file.name])
+            );
+
+            // Extract file IDs
+            const fileIds = fileDetails.map((file) => file.id);
+
+            const response = await httpFileService.cacheFiles(fileIds, username);
+            const cacheStatuses = response.cacheFileStatuses;
+
+            // Check if the response is empty.
+            if (!cacheStatuses || Object.keys(cacheStatuses).length === 0) {
+                dispatch(
+                    interaction.actions.processError(
+                        "moveFilesNoFilesProcessed",
+                        "No files were processed. Please check the request or try again."
+                    )
+                );
+                return;
+            }
+
+            const successfulFiles: string[] = [];
+            const failedFiles: string[] = [];
+
+            Object.entries(cacheStatuses).forEach(([fileId, status]) => {
+                if (
+                    status === "DOWNLOAD_COMPLETE" ||
+                    status === "DOWNLOAD_IN_PROGRESS" ||
+                    status === "DOWNLOAD_STARTED"
+                ) {
+                    successfulFiles.push(fileId);
+                } else if (
+                    status === "FILE_RECORD_NOT_FOUND" ||
+                    status === "FILE_NOT_FOUND_ON_CLOUD"
+                ) {
+                    failedFiles.push(fileId);
+                }
+            });
+
+            // Dispatch net success message. (Assuming some files were successful)
+            if (successfulFiles.length > 0) {
+                dispatch(
+                    interaction.actions.processSuccess(
+                        "moveFilesSuccess",
+                        `${successfulFiles.length} out of ${
+                            Object.keys(cacheStatuses).length
+                        } files were successfully cached.`
+                    )
+                );
+            }
+
+            // Dispatch individual errors for each failed file.
+            failedFiles.forEach((fileId) => {
+                const fileName = fileIdToNameMap[fileId] || "Unknown File";
+                dispatch(
+                    interaction.actions.processError(
+                        `moveFileFailure_${fileId}`,
+                        `File "${fileName}" failed to cache. Status: ${cacheStatuses[fileId]}`
+                    )
+                );
+            });
         } catch (err) {
-            throw new Error(`Error encountered while moving files: ${err}`);
+            // Service call itself fails
+            console.log(err);
+            dispatch(
+                interaction.actions.processError("moveFilesFailure", `Failed to cache files.`)
+            );
         } finally {
             done();
         }
