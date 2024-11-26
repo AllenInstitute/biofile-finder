@@ -636,7 +636,7 @@ const moveFilesLogic = createLogic({
                         "moveFilesSuccess",
                         `${successfulFiles.length} out of ${
                             Object.keys(cacheStatuses).length
-                        } files were successfully cached.`
+                        } files were successfully cached. Files will be available in the NAS (VAST) after downloads finish asynchronously`
                     )
                 );
             }
@@ -653,7 +653,6 @@ const moveFilesLogic = createLogic({
             });
         } catch (err) {
             // Service call itself fails
-            console.log(err);
             dispatch(
                 interaction.actions.processError("moveFilesFailure", `Failed to cache files.`)
             );
