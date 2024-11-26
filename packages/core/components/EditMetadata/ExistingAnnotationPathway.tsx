@@ -80,12 +80,12 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 />
             )}
             <div className={classNames(styles.footer, styles.footerAlignRight)}>
-                <SecondaryButton title="Cancel" text="CANCEL" onClick={props.onDismiss} />
+                <SecondaryButton title="" text="CANCEL" onClick={props.onDismiss} />
                 {valueCount && (
                     <PrimaryButton
                         className={styles.primaryButton}
                         disabled={!newValues}
-                        title="Replace"
+                        title=""
                         text="REPLACE"
                         onClick={onSubmit}
                     />
