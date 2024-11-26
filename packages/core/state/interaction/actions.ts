@@ -260,12 +260,10 @@ export interface InitializeApp {
     payload: string;
 }
 
-export function initializeApp(baseUrl: string): InitializeApp {
-    return {
-        type: INITIALIZE_APP,
-        payload: baseUrl,
-    };
-}
+export const initializeApp = (payload: { environment: string }) => ({
+    type: INITIALIZE_APP,
+    payload,
+});
 
 /**
  * PROCESS AND STATUS RELATED ENUMS, INTERFACES, ETC.
@@ -677,5 +675,41 @@ export function setSelectedPublicDataset(dataset: PublicDataset): SetSelectedPub
     return {
         payload: dataset,
         type: SET_SELECTED_PUBLIC_DATASET,
+    };
+}
+
+/**
+ * SHOW_MOVE_FILE_MANIFEST
+ *
+ * Action to show the Move File dialog (manifest) for NAS cache operations.
+ * This modal will allow users to move files onto the NAS cache.
+ */
+export const SHOW_MOVE_FILE_MANIFEST = makeConstant(STATE_BRANCH_NAME, "show-move-file-manifest");
+
+export interface ShowMoveFileManifestAction {
+    type: string;
+}
+
+export function showMoveFileManifest(): ShowMoveFileManifestAction {
+    return {
+        type: SHOW_MOVE_FILE_MANIFEST,
+    };
+}
+
+export const MOVE_FILES = makeConstant(STATE_BRANCH_NAME, "move-files");
+
+export interface MoveFilesAction {
+    type: string;
+    payload: {
+        fileDetails: FileDetail[];
+    };
+}
+
+export function moveFiles(fileDetails: FileDetail[]): MoveFilesAction {
+    return {
+        type: MOVE_FILES,
+        payload: {
+            fileDetails,
+        },
     };
 }

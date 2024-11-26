@@ -177,10 +177,9 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
-    const fileExplorerServiceBaseUrl = useSelector(
-        interaction.selectors.getFileExplorerServiceBaseUrl
-    );
+    const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
 
+    const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
         () =>
             fileDetails?.annotations
@@ -249,7 +248,6 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         .filter((app) => supportedApps.every((item) => item.key !== app.key))
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    const plateLink = fileDetails?.getLinkToPlateUI(fileExplorerServiceBaseUrl);
     if (plateLink && isAicsEmployee) {
         supportedApps.push({
             key: "open-plate-ui",
