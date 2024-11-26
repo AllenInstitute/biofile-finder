@@ -621,10 +621,7 @@ const moveFilesLogic = createLogic({
                     status === "DOWNLOAD_STARTED"
                 ) {
                     successfulFiles.push(fileId);
-                } else if (
-                    status === "FILE_RECORD_NOT_FOUND" ||
-                    status === "FILE_NOT_FOUND_ON_CLOUD"
-                ) {
+                } else {
                     failedFiles.push(fileId);
                 }
             });
@@ -636,7 +633,8 @@ const moveFilesLogic = createLogic({
                         "moveFilesSuccess",
                         `${successfulFiles.length} out of ${
                             Object.keys(cacheStatuses).length
-                        } files were successfully cached. Files will be available in the NAS (VAST) after downloads finish asynchronously`
+                        } files were successfully queued for download to NAS (Vast) from cloud. 
+                        Files will be available in the NAS after downloads finish asynchronously`
                     )
                 );
             }
