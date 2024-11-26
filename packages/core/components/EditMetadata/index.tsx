@@ -1,11 +1,11 @@
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import ExistingAnnotationPathway from "./ExistingAnnotationPathway";
 import NewAnnotationPathway from "./NewAnnotationPathway";
 import ChoiceGroup from "../ChoiceGroup";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
-import { interaction, metadata, selection } from "../../state";
+import { metadata, selection } from "../../state";
 
 import styles from "./EditMetadata.module.css";
 
@@ -14,15 +14,17 @@ enum EditMetadataPathway {
     NEW = "new",
 }
 
+interface EditMetadataProps {
+    className?: string;
+    onDismiss: () => void;
+    onUnsavedChanges: (hasUnsavedChanges: boolean) => void;
+}
+
 /**
  * Form that acts as a wrapper for both metadata editing pathways (new vs existing annotations).
  * Performs all necessary state selections on render and passes data as props to child components
  */
-export default function EditMetadataForm() {
-    const dispatch = useDispatch();
-    const onDismiss = () => {
-        dispatch(interaction.actions.hideVisibleModal());
-    };
+export default function EditMetadataForm(props: EditMetadataProps) {
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const fileCount = fileSelection.count();
     // Don't allow users to edit top level annotations (e.g., File Name)
@@ -65,7 +67,7 @@ export default function EditMetadataForm() {
     }, [fileSelection]);
 
     return (
-        <>
+        <div className={props.className}>
             <ChoiceGroup
                 className={styles.choiceGroup}
                 defaultSelectedKey={editPathway}
@@ -90,15 +92,19 @@ export default function EditMetadataForm() {
             <div className={styles.contentWrapper}>
                 {editPathway === EditMetadataPathway.EXISTING ? (
                     <ExistingAnnotationPathway
-                        onDismiss={onDismiss}
+                        onDismiss={props.onDismiss}
                         annotationValueMap={annotationValueMap}
                         annotationOptions={annotationOptions}
                         selectedFileCount={fileCount}
                     />
                 ) : (
-                    <NewAnnotationPathway onDismiss={onDismiss} selectedFileCount={fileCount} />
+                    <NewAnnotationPathway
+                        onDismiss={props.onDismiss}
+                        onUnsavedChanges={() => props.onUnsavedChanges(true)}
+                        selectedFileCount={fileCount}
+                    />
                 )}
             </div>
-        </>
+        </div>
     );
 }
