@@ -18,6 +18,7 @@ enum EditStep {
 
 interface NewAnnotationProps {
     onDismiss: () => void;
+    onUnsavedChanges: () => void;
     selectedFileCount: number;
 }
 
@@ -55,6 +56,12 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
     function onSubmit() {
         // TO DO: endpoint logic is in progress on a different branch
         props.onDismiss();
+    }
+
+    // TO DO: determine when to submit the new annotation post req
+    function onCreateNewAnnotation() {
+        props?.onUnsavedChanges();
+        setStep(EditStep.EDIT_FILES);
     }
 
     return (
@@ -137,14 +144,14 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                     <StackItem>
                         {step === EditStep.EDIT_FILES && (
                             <SecondaryButton
-                                title="Go back"
+                                title=""
                                 text="BACK"
                                 onClick={() => setStep(EditStep.CREATE_FIELD)}
                             />
                         )}
                     </StackItem>
                     <StackItem grow align="end" className={styles.footerAlignRight}>
-                        <SecondaryButton title="Cancel" text="CANCEL" onClick={props.onDismiss} />
+                        <SecondaryButton title="" text="CANCEL" onClick={props.onDismiss} />
                         {step === EditStep.CREATE_FIELD && (
                             <PrimaryButton
                                 className={styles.primaryButton}
@@ -154,8 +161,8 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                                         !dropdownOptions.length)
                                 }
                                 text="NEXT"
-                                title="Next"
-                                onClick={() => setStep(EditStep.EDIT_FILES)}
+                                title=""
+                                onClick={onCreateNewAnnotation}
                             />
                         )}
                         {step === EditStep.EDIT_FILES && (
@@ -168,7 +175,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                                     !newValues
                                 }
                                 text="SUBMIT"
-                                title="Submit"
+                                title=""
                                 onClick={onSubmit}
                             />
                         )}
