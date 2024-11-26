@@ -652,7 +652,7 @@ const moveFilesLogic = createLogic({
         } catch (err) {
             // Service call itself fails
             dispatch(
-                interaction.actions.processError("moveFilesFailure", `Failed to cache files.`)
+                interaction.actions.processError("moveFilesFailure", `Failed to cache files, details: ${(err as Error).message}.`)
             );
         } finally {
             done();
