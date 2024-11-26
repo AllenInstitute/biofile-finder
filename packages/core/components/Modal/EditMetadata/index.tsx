@@ -36,6 +36,11 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
             body={
                 // Use styling instead of conditionals to persist rendered data
                 <>
+                    <EditMetadataForm
+                        className={classNames({ [styles.hidden]: showWarning })}
+                        onDismiss={onDismissWithWarning}
+                        onUnsavedChanges={setHasUnsavedChanges}
+                    />
                     <div className={classNames({ [styles.hidden]: !showWarning })}>
                         <p className={styles.warning}>
                             Some edits will not be completed and could cause inaccuracies. Are you
@@ -50,11 +55,6 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
                             <PrimaryButton title="" text="Yes, Quit" onClick={onDismiss} />
                         </div>
                     </div>
-                    <EditMetadataForm
-                        className={classNames({ [styles.hidden]: showWarning })}
-                        onDismiss={onDismissWithWarning}
-                        onUnsavedChanges={setHasUnsavedChanges}
-                    />
                 </>
             }
             onDismiss={onDismissWithWarning}
