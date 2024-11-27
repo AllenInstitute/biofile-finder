@@ -30,7 +30,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
     const [step, setStep] = React.useState<EditStep>(EditStep.CREATE_FIELD);
     const [newValues, setNewValues] = React.useState<string | undefined>();
     const [newFieldName, setNewFieldName] = React.useState<string>("");
-    const [newFieldDataType, setNewFieldDataType] = React.useState<string | undefined>();
+    const [newFieldDataType, setNewFieldDataType] = React.useState<AnnotationType | undefined>();
     const [newDropdownOption, setNewDropdownOption] = React.useState<string>("");
     const [dropdownOptions, setDropdownOptions] = React.useState<IComboBoxOption[]>([]);
 
@@ -89,7 +89,9 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                             };
                         })}
                         useComboBoxAsMenuWidth
-                        onChange={(option) => setNewFieldDataType(option?.text || "")}
+                        onChange={(option) =>
+                            setNewFieldDataType((option?.text as AnnotationType) || "")
+                        }
                     />
                     {newFieldDataType === AnnotationType.DROPDOWN && (
                         <>
@@ -130,13 +132,14 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
             )}
             {step === EditStep.EDIT_FILES && (
                 <MetadataDetails
-                    onChange={(value) => setNewValues(value)}
+                    fieldType={newFieldDataType}
                     items={[
                         {
                             value: undefined,
                             fileCount: props.selectedFileCount,
                         } as ValueCountItem,
                     ]}
+                    onChange={(value) => setNewValues(value)}
                 />
             )}
             <div className={styles.footer}>

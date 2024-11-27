@@ -62,3 +62,42 @@
 .stack-item-right {
   width: 275px;
 }
+
+.read-only-placeholder {
+  margin-right: 20px;
+  font-style: italic;
+  color: var(--primary-text-color);
+}
+
+.input-field input {
+  background-color: var(--secondary-background-color);
+  border-radius: var(--small-border-radius);
+  border: 1px solid var(--border-color);
+  color: var(--secondary-text-color);
+  outline: none;
+  padding: 6px;
+  font-size: var(--s-paragraph-size);
+  width: 100%;
+  min-width: fit-content;
+}
+
+.input-field:active > input, .input-field > input:active, 
+.input-field:focus > input, .input-field > input:focus,
+.input-field:focus-within > input, .input-field > input:focus-within  {
+  border: 1px solid var(--aqua);
+}
+
+.date-range-text-field div {
+  background-color: var(--secondary-background-color);
+  border: none;
+  border-radius: var(--small-border-radius);
+  color: var(--primary-text-color);
+}
+
+.date-range-text-field div::after {    
+  border: 1px solid var(--aqua)
+}
+
+.date-range-text-field > div {
+  border: 1px solid var(--border-color)
+}
