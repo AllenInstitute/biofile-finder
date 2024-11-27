@@ -1,4 +1,5 @@
 import {
+    DatePicker,
     DetailsList,
     IColumn,
     Icon,
@@ -11,6 +12,9 @@ import {
 } from "@fluentui/react";
 import * as React from "react";
 
+import ChoiceGroup from "../ChoiceGroup";
+import { AnnotationType } from "../../entity/AnnotationFormatter";
+
 import rootStyles from "./EditMetadata.module.css";
 import styles from "./MetadataDetails.module.css";
 
@@ -20,6 +24,7 @@ export interface ValueCountItem {
 }
 
 interface DetailsListProps {
+    fieldType?: AnnotationType;
     items: ValueCountItem[];
     onChange: (value: string | undefined) => void;
     newValues?: string;
@@ -54,6 +59,68 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
         }
         return fieldContent;
     }
+
+    const inputField = () => {
+        switch (props.fieldType) {
+            case AnnotationType.DATE:
+            case AnnotationType.DATETIME:
+                return (
+                    <DatePicker
+                        styles={{
+                            root: styles.dateRangeRoot,
+                            readOnlyPlaceholder: styles.readOnlyPlaceholder,
+                            textField: styles.dateRangeTextField,
+                        }}
+                        placeholder={"Select a date"}
+                    />
+                );
+            case AnnotationType.NUMBER:
+                return (
+                    <div className={styles.inputField}>
+                        <input
+                            aria-label="Input a numerical value"
+                            id="numInput"
+                            type="number"
+                            step="any"
+                        />
+                    </div>
+                );
+            case AnnotationType.BOOLEAN:
+                return (
+                    <ChoiceGroup
+                        className={rootStyles.choiceGroup}
+                        defaultSelectedKey={"true"}
+                        onChange={() => {
+                            console.info("placeholder");
+                        }}
+                        options={[
+                            {
+                                key: "true",
+                                text: "True",
+                            },
+                            {
+                                key: "false",
+                                text: "False",
+                            },
+                        ]}
+                    />
+                );
+            case AnnotationType.DURATION:
+            case AnnotationType.DROPDOWN:
+            case AnnotationType.STRING:
+            default:
+                return (
+                    <TextField
+                        className={rootStyles.textField}
+                        onBlur={(e) =>
+                            e.currentTarget.value && props.onChange(e.currentTarget.value)
+                        }
+                        placeholder="Value(s)"
+                        defaultValue={props.newValues}
+                    />
+                );
+        }
+    };
 
     return (
         <div className={styles.wrapper}>
@@ -98,16 +165,8 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                     <Icon iconName="Forward" />
                 </StackItem>
                 <StackItem grow className={styles.stackItemRight}>
-                    {/* TODO: Display different entry types depending on datatype of annotation */}
-                    <TextField
-                        label="Replace with"
-                        className={rootStyles.textField}
-                        onBlur={(e) =>
-                            e.currentTarget.value && props.onChange(e.currentTarget.value)
-                        }
-                        placeholder="Value(s)"
-                        defaultValue={props.newValues}
-                    />
+                    <h4 className={styles.tableTitle}>Replace with</h4>
+                    {inputField()}
                 </StackItem>
             </Stack>
         </div>
