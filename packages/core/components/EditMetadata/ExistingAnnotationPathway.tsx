@@ -11,7 +11,7 @@ import styles from "./EditMetadata.module.css";
 interface ExistingAnnotationProps {
     onDismiss: () => void;
     annotationValueMap: Map<string, any> | undefined;
-    annotationOptions: { key: string; text: string }[];
+    annotationOptions: IComboBoxOption[];
     selectedFileCount: number;
 }
 
@@ -22,6 +22,7 @@ interface ExistingAnnotationProps {
 export default function ExistingAnnotationPathway(props: ExistingAnnotationProps) {
     const [newValues, setNewValues] = React.useState<string>();
     const [valueCount, setValueCount] = React.useState<ValueCountItem[]>();
+    const [selectedAnnotation, setSelectedAnnotation] = React.useState<string | undefined>();
 
     const onSelectMetadataField = (
         option: IComboBoxOption | undefined,
@@ -55,6 +56,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 ...valueMap,
             ];
         }
+        setSelectedAnnotation(option?.key.toString());
         setValueCount(valueMap);
     };
 
@@ -69,6 +71,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 className={styles.comboBox}
                 label="Select a metadata field"
                 placeholder="Select a field"
+                selectedKey={selectedAnnotation}
                 options={props.annotationOptions}
                 useComboBoxAsMenuWidth
                 onChange={onSelectMetadataField}

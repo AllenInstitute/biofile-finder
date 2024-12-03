@@ -56,6 +56,7 @@ export default function BaseComboBox(props: Props) {
                     key={`${itemProps.key}-${itemProps.index}`}
                     className={classNames(styles.comboBoxItem, {
                         [styles.comboBoxItemDisabled]: !!itemProps.disabled,
+                        [styles.comboBoxItemSelected]: itemProps.key === props.selectedKey,
                     })}
                 >
                     {defaultRender(itemProps)}
@@ -74,6 +75,7 @@ export default function BaseComboBox(props: Props) {
             disabled={props?.disabled}
             placeholder={placeholder}
             label={label}
+            openOnKeyboardFocus
             multiSelect={props?.multiSelect}
             options={filteredOptions}
             onChange={(_ev, option, _ind, value) => props.onChange?.(option, value)}
@@ -87,6 +89,9 @@ export default function BaseComboBox(props: Props) {
                 label: styles.comboBoxLabel,
                 callout: styles.comboBoxCallout,
                 optionsContainer: styles.optionsContainer,
+            }}
+            comboBoxOptionStyles={{
+                rootChecked: styles.comboBoxItemChecked,
             }}
             useComboBoxAsMenuWidth={props?.useComboBoxAsMenuWidth}
         />

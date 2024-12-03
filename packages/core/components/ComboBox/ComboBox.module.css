@@ -81,6 +81,16 @@
   color: unset !important;
 }
 
+.combo-box-item-selected button:not(:disabled) {
+  background-color: var(--secondary-dark);
+  color: var(--highlight-text-color);
+}
+
+.combo-box-item-checked {
+  background-color: var(--highlight-background-color) !important;
+  color: var(--highlight-text-color) !important;
+}
+
 .combo-box-item button:not(:disabled):hover,
 .combo-box-item > div:hover,
 .combo-box-item > div:hover :is(input, label) {
@@ -109,6 +119,11 @@
 
 .combo-box-item > div:hover :is(i, div) {
   color: var(--highlight-text-color) !important;
+}
+
+.combo-box-item > button::after {
+  outline: unset !important;
+  border: unset !important;
 }
 
 .options-container {
