@@ -90,7 +90,6 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                                 text,
                             };
                         })}
-                        useComboBoxAsMenuWidth
                         onChange={(option) =>
                             setNewFieldDataType((option?.key as AnnotationType) || "")
                         }
@@ -141,6 +140,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                             fileCount: props.selectedFileCount,
                         } as ValueCountItem,
                     ]}
+                    dropdownOptions={dropdownOptions}
                     onChange={(value) => setNewValues(value)}
                 />
             )}

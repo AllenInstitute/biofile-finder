@@ -12,7 +12,6 @@ interface Props {
     multiSelect?: boolean;
     options: IComboBoxOption[];
     placeholder: string;
-    useComboBoxAsMenuWidth?: boolean;
     onChange?: (option: IComboBoxOption | undefined, value?: string | undefined) => void;
 }
 
@@ -67,7 +66,7 @@ export default function BaseComboBox(props: Props) {
             comboBoxOptionStyles={{
                 rootChecked: styles.comboBoxItemChecked,
             }}
-            useComboBoxAsMenuWidth={props?.useComboBoxAsMenuWidth}
+            useComboBoxAsMenuWidth
         />
     );
 }

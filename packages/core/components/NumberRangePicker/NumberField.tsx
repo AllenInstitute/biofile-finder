@@ -5,12 +5,12 @@ import styles from "./NumberField.module.css";
 
 interface NumberFieldProps {
     className?: string;
-    id: string;
-    onChange: (event?: React.ChangeEvent<HTMLInputElement>) => void;
     defaultValue?: string | number;
+    id: string;
     label?: string;
-    min?: number;
     max?: number;
+    min?: number;
+    onChange: (event?: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder?: string;
 }
 
