@@ -24,7 +24,6 @@ interface Props {
     multiSelect?: boolean;
     options: IComboBoxOption[];
     placeholder: string;
-    useComboBoxAsMenuWidth?: boolean;
     onChange?: (option: IComboBoxOption | undefined, value?: string | undefined) => void;
 }
 
@@ -88,7 +87,7 @@ export default function BaseComboBox(props: Props) {
                 callout: styles.comboBoxCallout,
                 optionsContainer: styles.optionsContainer,
             }}
-            useComboBoxAsMenuWidth={props?.useComboBoxAsMenuWidth}
+            useComboBoxAsMenuWidth
         />
     );
 }

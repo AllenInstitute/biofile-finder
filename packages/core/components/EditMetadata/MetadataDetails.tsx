@@ -2,6 +2,7 @@ import {
     DatePicker,
     DetailsList,
     IColumn,
+    IComboBoxOption,
     Icon,
     IDetailsRowProps,
     IRenderFunction,
@@ -13,6 +14,7 @@ import {
 import * as React from "react";
 
 import ChoiceGroup from "../ChoiceGroup";
+import ComboBox from "../ComboBox";
 import DurationForm from "../DurationForm";
 import NumberField from "../NumberRangePicker/NumberField";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
@@ -26,6 +28,7 @@ export interface ValueCountItem {
 }
 
 interface DetailsListProps {
+    dropdownOptions?: IComboBoxOption[];
     fieldType?: AnnotationType;
     items: ValueCountItem[];
     onChange: (value: string | undefined) => void;
@@ -119,6 +122,15 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                     />
                 );
             case AnnotationType.DROPDOWN:
+                if (props?.dropdownOptions) {
+                    return (
+                        <ComboBox
+                            options={props?.dropdownOptions || []}
+                            label=""
+                            placeholder="values"
+                        />
+                    );
+                }
             case AnnotationType.STRING:
             default:
                 return (

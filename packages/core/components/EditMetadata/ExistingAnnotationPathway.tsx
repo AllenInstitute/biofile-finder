@@ -73,7 +73,6 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 label="Select a metadata field"
                 placeholder="Select a field"
                 options={props.annotationOptions}
-                useComboBoxAsMenuWidth
                 onChange={onSelectMetadataField}
             />
             {valueCount && (
