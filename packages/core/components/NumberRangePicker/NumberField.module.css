@@ -1,0 +1,35 @@
+.input-field {
+    flex-grow: 1;
+}
+
+.input-field input {
+    background-color: var(--secondary-background-color);
+    border-radius: var(--small-border-radius);
+    border: 1px solid var(--border-color);
+    color: var(--secondary-text-color);
+    outline: none;
+    padding: 6px;
+    font-size: var(--s-paragraph-size);
+    width: 100%;
+    min-width: fit-content;
+}
+
+.input-field > input::placeholder {
+    color: var(--secondary-text-color) !important;
+    font-style: italic;
+}
+
+.input-field:active > input,
+.input-field > input:active,
+.input-field:focus > input,
+.input-field > input:focus,
+.input-field:focus-within > input,
+.input-field > input:focus-within {
+    border: 1px solid var(--aqua);
+}
+
+.input-field input::-webkit-outer-spin-button,
+.input-field input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0; /* <-- Margins are still present when hidden */
+}

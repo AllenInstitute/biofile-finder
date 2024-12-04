@@ -8,6 +8,7 @@ import { extractValuesFromRangeOperatorFilterString } from "../../entity/Annotat
 import { AnnotationValue } from "../../services/AnnotationService";
 
 import styles from "./NumberRangePicker.module.css";
+import NumberField from "./NumberField";
 
 export interface ListItem {
     displayValue: AnnotationValue;
@@ -106,37 +107,27 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
             <h3 className={styles.title}>{units ? `${props.title} (in ${units})` : props.title}</h3>
             <div className={styles.header}>
                 <div className={styles.inputs}>
-                    <div className={styles.inputField}>
-                        <label htmlFor="rangemin">Min (inclusive)</label>
-                        <input
-                            aria-label="Input a minimum value (inclusive)"
-                            data-testid="rangemin"
-                            id="rangemin"
-                            type="number"
-                            value={searchMinValue}
-                            step="any"
-                            onChange={onMinChange}
-                            min={Number(overallMin)}
-                            max={Number(overallMax)}
-                        />
-                    </div>
+                    <NumberField
+                        aria-label="Input a minimum value (inclusive)"
+                        defaultValue={searchMinValue}
+                        id="rangemin"
+                        label="Min (inclusive)"
+                        onChange={onMinChange}
+                        min={Number(overallMin)}
+                        max={Number(overallMax)}
+                    />
                     <div className={styles.rangeSeperator}>
                         <Icon iconName="Forward" />
                     </div>
-                    <div className={styles.inputField}>
-                        <label htmlFor="rangemax">Max (exclusive)</label>
-                        <input
-                            aria-label="Input a maximum value (exclusive)"
-                            data-testid="rangemax"
-                            id="rangemax"
-                            type="number"
-                            value={searchMaxValue}
-                            step="any"
-                            onChange={onMaxChange}
-                            min={Number(overallMin)}
-                            max={Number(overallMax)}
-                        />
-                    </div>
+                    <NumberField
+                        aria-label="Input a maximum value (exclusive)"
+                        defaultValue={searchMaxValue}
+                        id="rangemax"
+                        label="Max (exclusive)"
+                        onChange={onMaxChange}
+                        min={Number(overallMin)}
+                        max={Number(overallMax)}
+                    />
                     <div className={styles.resetButtonContainer}>
                         <TertiaryButton
                             className={styles.resetButton}
