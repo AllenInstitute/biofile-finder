@@ -13,7 +13,9 @@ import {
 import * as React from "react";
 
 import ChoiceGroup from "../ChoiceGroup";
-import { AnnotationType } from "../../entity/AnnotationFormatter";
+import DurationForm from "../DurationForm";
+import NumberField from "../NumberRangePicker/NumberField";
+import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 
 import rootStyles from "./EditMetadata.module.css";
 import styles from "./MetadataDetails.module.css";
@@ -46,6 +48,9 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
         }
         return <></>;
     };
+    const annotationFormatter = annotationFormatterFactory(
+        props.fieldType || AnnotationType.STRING
+    );
 
     function renderItemColumn(
         item: ValueCountItem,
@@ -53,8 +58,10 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
         column: IColumn | undefined
     ) {
         const fieldContent = item[column?.fieldName as keyof ValueCountItem] as string;
-        if (!fieldContent) return "[No value] (blank)";
-        if (column?.fieldName === "fileCount") {
+        if (column?.fieldName === "value") {
+            if (!fieldContent) return "[No value] (blank)";
+            else return annotationFormatter.displayValue(fieldContent);
+        } else if (column?.fieldName === "fileCount") {
             return <div className={styles.columnRightAlignCell}>{fieldContent}</div>;
         }
         return fieldContent;
@@ -76,14 +83,14 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                 );
             case AnnotationType.NUMBER:
                 return (
-                    <div className={styles.inputField}>
-                        <input
-                            aria-label="Input a numerical value"
-                            id="numInput"
-                            type="number"
-                            step="any"
-                        />
-                    </div>
+                    <NumberField
+                        aria-label="Input a numerical value"
+                        id="numInput"
+                        placeholder="Enter value..."
+                        onChange={() => {
+                            console.info("placeholder for linting");
+                        }}
+                    />
                 );
             case AnnotationType.BOOLEAN:
                 return (
@@ -106,6 +113,11 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                     />
                 );
             case AnnotationType.DURATION:
+                return (
+                    <DurationForm
+                        onChange={(totalDuration: number) => console.info(totalDuration)}
+                    />
+                );
             case AnnotationType.DROPDOWN:
             case AnnotationType.STRING:
             default:

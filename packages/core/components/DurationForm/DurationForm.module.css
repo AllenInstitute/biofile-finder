@@ -1,0 +1,15 @@
+.input-wrapper {
+  display: flex;
+}
+
+.input-field {
+  margin-right: 3px;
+  max-height: fit-content;
+  display: flex; 
+}
+
+.input-field > input {
+  padding: 6px;
+  font-size: var(--s-paragraph-size);
+  max-width: 70px; 
+}

@@ -79,18 +79,20 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                 <>
                     <ComboBox
                         className={styles.comboBox}
-                        selectedKey={`datatype-${newFieldDataType}` || undefined}
+                        selectedKey={newFieldDataType || undefined}
                         label="Data type"
                         placeholder="Select a data type"
                         options={Object.values(AnnotationType).map((type) => {
+                            const text =
+                                type === AnnotationType.BOOLEAN ? "Boolean (true/false)" : type;
                             return {
-                                key: `datatype-${type}`,
-                                text: type,
+                                key: type,
+                                text,
                             };
                         })}
                         useComboBoxAsMenuWidth
                         onChange={(option) =>
-                            setNewFieldDataType((option?.text as AnnotationType) || "")
+                            setNewFieldDataType((option?.key as AnnotationType) || "")
                         }
                     />
                     {newFieldDataType === AnnotationType.DROPDOWN && (
