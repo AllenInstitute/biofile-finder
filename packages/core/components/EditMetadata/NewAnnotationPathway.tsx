@@ -81,7 +81,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                         className={styles.comboBox}
                         selectedKey={newFieldDataType || undefined}
                         label="Data type"
-                        placeholder="Select a data type"
+                        placeholder="Select a data type..."
                         options={Object.values(AnnotationType).map((type) => {
                             const text =
                                 type === AnnotationType.BOOLEAN ? "Boolean (true/false)" : type;
