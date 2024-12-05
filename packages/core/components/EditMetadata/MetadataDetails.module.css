@@ -43,7 +43,12 @@
 }
 
 .table-title {
-  padding-bottom: 5px
+  padding-bottom: 5px;
+}
+
+.values-title {
+  padding-bottom: 5px;
+  padding-left: 35px;
 }
 
 .stack {
@@ -87,6 +92,16 @@
   border: 1px solid var(--aqua);
 }
 
+.input-wrapper {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.date-range-root {
+  width: 300px;
+}
+
 .date-range-text-field div {
   background-color: var(--secondary-background-color);
   border: none;
@@ -100,4 +115,12 @@
 
 .date-range-text-field > div {
   border: 1px solid var(--border-color)
+}
+
+.no-padding {
+  padding-bottom: 0 !important;
+}
+
+.forward-icon {
+ padding-right: 20px;
 }

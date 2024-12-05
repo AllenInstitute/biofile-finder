@@ -81,7 +81,7 @@
 
 .text-field {
   padding-bottom: var(--margin);
-  max-width: 300px;;
+  width: 300px;;
 }
 
 .text-field > div > label, .text-field > div > label::after {

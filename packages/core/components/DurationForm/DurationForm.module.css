@@ -5,7 +5,6 @@
 .input-field {
   margin-right: 3px;
   max-height: fit-content;
-  display: flex; 
 }
 
 .input-field > input {
