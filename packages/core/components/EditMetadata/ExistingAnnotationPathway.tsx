@@ -71,7 +71,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
             <ComboBox
                 className={styles.comboBox}
                 label="Select a metadata field"
-                placeholder="Select a field"
+                placeholder="Select a field..."
                 options={props.annotationOptions}
                 onChange={onSelectMetadataField}
             />

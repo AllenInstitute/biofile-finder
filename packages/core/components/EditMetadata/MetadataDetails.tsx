@@ -82,7 +82,7 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                             readOnlyPlaceholder: styles.readOnlyPlaceholder,
                             textField: styles.dateRangeTextField,
                         }}
-                        placeholder={"Select a date"}
+                        placeholder={"Select a date..."}
                         onSelectDate={(date) => props.onChange(date?.toISOString())}
                     />
                 );
@@ -91,7 +91,7 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                     <NumberField
                         aria-label="Input a numerical value"
                         id="numInput"
-                        placeholder="Enter value..."
+                        placeholder="Numerical value..."
                         onChange={(ev) => props.onChange(ev?.target?.value)}
                     />
                 );
@@ -124,7 +124,7 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                             className={rootStyles.comboBox}
                             options={props?.dropdownOptions || []}
                             label=""
-                            placeholder="values"
+                            placeholder="Select value(s)..."
                         />
                     );
                 }
@@ -134,7 +134,7 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                     <TextField
                         className={classNames(rootStyles.textField, styles.noPadding)}
                         onChange={(e) => props.onChange(e?.currentTarget?.value)}
-                        placeholder="Value(s)"
+                        placeholder="Value(s)..."
                         defaultValue={props.newValues?.toString()}
                     />
                 );
