@@ -11,6 +11,7 @@ import {
     StackItem,
     TextField,
 } from "@fluentui/react";
+import classNames from "classnames";
 import * as React from "react";
 
 import ChoiceGroup from "../ChoiceGroup";
@@ -82,6 +83,7 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                             textField: styles.dateRangeTextField,
                         }}
                         placeholder={"Select a date"}
+                        onSelectDate={(date) => props.onChange(date?.toISOString())}
                     />
                 );
             case AnnotationType.NUMBER:
@@ -90,9 +92,7 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                         aria-label="Input a numerical value"
                         id="numInput"
                         placeholder="Enter value..."
-                        onChange={() => {
-                            console.info("placeholder for linting");
-                        }}
+                        onChange={(ev) => props.onChange(ev?.target?.value)}
                     />
                 );
             case AnnotationType.BOOLEAN:
@@ -100,9 +100,7 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                     <ChoiceGroup
                         className={rootStyles.choiceGroup}
                         defaultSelectedKey={"true"}
-                        onChange={() => {
-                            console.info("placeholder");
-                        }}
+                        onChange={(_, opt?) => props.onChange(opt?.key)}
                         options={[
                             {
                                 key: "true",
@@ -117,14 +115,13 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                 );
             case AnnotationType.DURATION:
                 return (
-                    <DurationForm
-                        onChange={(totalDuration: number) => console.info(totalDuration)}
-                    />
+                    <DurationForm onChange={(duration) => props.onChange(duration.toString())} />
                 );
             case AnnotationType.DROPDOWN:
                 if (props?.dropdownOptions) {
                     return (
                         <ComboBox
+                            className={rootStyles.comboBox}
                             options={props?.dropdownOptions || []}
                             label=""
                             placeholder="values"
@@ -135,12 +132,10 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
             default:
                 return (
                     <TextField
-                        className={rootStyles.textField}
-                        onBlur={(e) =>
-                            e.currentTarget.value && props.onChange(e.currentTarget.value)
-                        }
+                        className={classNames(rootStyles.textField, styles.noPadding)}
+                        onChange={(e) => props.onChange(e?.currentTarget?.value)}
                         placeholder="Value(s)"
-                        defaultValue={props.newValues}
+                        defaultValue={props.newValues?.toString()}
                     />
                 );
         }
@@ -185,12 +180,14 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                         onRenderItemColumn={renderItemColumn}
                     />
                 </StackItem>
-                <StackItem grow align="center" className={styles.stackItemCenter}>
-                    <Icon iconName="Forward" />
-                </StackItem>
                 <StackItem grow className={styles.stackItemRight}>
-                    <h4 className={styles.tableTitle}>Replace with</h4>
-                    {inputField()}
+                    <h4 className={styles.valuesTitle}>Replace with</h4>
+                    {
+                        <div className={styles.inputWrapper}>
+                            <Icon iconName="Forward" className={styles.forwardIcon} />
+                            {inputField()}
+                        </div>
+                    }
                 </StackItem>
             </Stack>
         </div>

@@ -17,10 +17,10 @@ interface DurationFormProps {
  */
 export default function DurationForm(props: DurationFormProps) {
     const { onChange } = props;
-    const [days, setDurationDays] = React.useState<string>("");
-    const [hours, setDurationHours] = React.useState<string>("");
-    const [minutes, setDurationMinutes] = React.useState<string>("");
-    const [seconds, setDurationSeconds] = React.useState<string>("");
+    const [days, setDurationDays] = React.useState<string>("0");
+    const [hours, setDurationHours] = React.useState<string>("0");
+    const [minutes, setDurationMinutes] = React.useState<string>("0");
+    const [seconds, setDurationSeconds] = React.useState<string>("0");
     const durationFormatter = annotationFormatterFactory(AnnotationType.DURATION);
 
     React.useEffect(() => {
@@ -39,32 +39,32 @@ export default function DurationForm(props: DurationFormProps) {
                     aria-label="Days"
                     className={styles.inputField}
                     id="durationDays"
+                    label="Days"
                     onChange={(event) => setDurationDays(event?.target?.value || "")}
-                    placeholder="Days..."
                     defaultValue={days}
                 />
                 <NumberField
                     aria-label="Hours"
                     className={styles.inputField}
                     id="durationHours"
+                    label="Hrs"
                     onChange={(event) => setDurationHours(event?.target?.value || "")}
-                    placeholder="Hrs..."
                     defaultValue={hours}
                 />
                 <NumberField
                     aria-label="Minutes"
                     className={styles.inputField}
                     id="durationMinutes"
+                    label="Mins"
                     onChange={(event) => setDurationMinutes(event?.target?.value || "")}
-                    placeholder="Mins..."
                     defaultValue={minutes}
                 />
                 <NumberField
                     aria-label="Seconds"
                     className={styles.inputField}
                     id="durationSeconds"
+                    label="Secs"
                     onChange={(event) => setDurationSeconds(event?.target?.value || "")}
-                    placeholder="Secs..."
                     defaultValue={seconds}
                 />
             </div>
