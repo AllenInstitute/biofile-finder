@@ -91,7 +91,7 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                     <NumberField
                         aria-label="Input a numerical value"
                         id="numInput"
-                        placeholder="Numerical value..."
+                        placeholder="Type a numerical value..."
                         onChange={(ev) => props.onChange(ev?.target?.value)}
                     />
                 );
@@ -134,7 +134,7 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                     <TextField
                         className={classNames(rootStyles.textField, styles.noPadding)}
                         onChange={(e) => props.onChange(e?.currentTarget?.value)}
-                        placeholder="Value(s)..."
+                        placeholder="Type in value(s)..."
                         defaultValue={props.newValues?.toString()}
                     />
                 );
