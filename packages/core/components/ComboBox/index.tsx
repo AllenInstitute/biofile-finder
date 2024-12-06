@@ -87,7 +87,7 @@ export default function BaseComboBox(props: Props) {
                 callout: styles.comboBoxCallout,
                 optionsContainer: styles.optionsContainer,
             }}
-            useComboBoxAsMenuWidth
+            useComboBoxAsMenuWidth={true}
         />
     );
 }
