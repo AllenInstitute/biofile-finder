@@ -83,6 +83,7 @@ export default function BaseComboBox(props: Props) {
             onInputValueChange={(value) => {
                 setSearchValue(value || "");
             }}
+            // onPendingValueChanged={(option?: IComboBoxOption, index?: number, value?: string) => console.info("option", option, "value", value)}
             onRenderItem={(props, defaultRender) => onRenderItem(props, defaultRender)}
             styles={{
                 root: styles.comboBox,
