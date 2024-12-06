@@ -117,6 +117,10 @@
   border: 1px solid var(--border-color)
 }
 
+.date-range-text-field i {
+  color: var(--primary-text-color)
+}
+
 .no-padding {
   padding-bottom: 0 !important;
 }
