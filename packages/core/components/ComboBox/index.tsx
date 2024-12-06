@@ -66,7 +66,7 @@ export default function BaseComboBox(props: Props) {
             comboBoxOptionStyles={{
                 rootChecked: styles.comboBoxItemChecked,
             }}
-            useComboBoxAsMenuWidth
+            useComboBoxAsMenuWidth={true}
         />
     );
 }
