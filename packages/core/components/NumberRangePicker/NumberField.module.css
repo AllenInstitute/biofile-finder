@@ -12,11 +12,13 @@
     font-size: var(--s-paragraph-size);
     width: 100%;
     min-width: fit-content;
+    text-align: right;
 }
 
 .input-field > input::placeholder {
     color: var(--secondary-text-color) !important;
     font-style: italic;
+    text-align: left;
 }
 
 .input-field:active > input,
