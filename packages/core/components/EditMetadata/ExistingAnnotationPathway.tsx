@@ -5,13 +5,14 @@ import * as React from "react";
 import MetadataDetails, { ValueCountItem } from "./MetadataDetails";
 import { PrimaryButton, SecondaryButton } from "../Buttons";
 import ComboBox from "../ComboBox";
+import { AnnotationType } from "../../entity/AnnotationFormatter";
 
 import styles from "./EditMetadata.module.css";
 
 interface ExistingAnnotationProps {
     onDismiss: () => void;
     annotationValueMap: Map<string, any> | undefined;
-    annotationOptions: { key: string; text: string }[];
+    annotationOptions: { key: string; text: string; data: string }[];
     selectedFileCount: number;
 }
 
@@ -22,6 +23,7 @@ interface ExistingAnnotationProps {
 export default function ExistingAnnotationPathway(props: ExistingAnnotationProps) {
     const [newValues, setNewValues] = React.useState<string>();
     const [valueCount, setValueCount] = React.useState<ValueCountItem[]>();
+    const [annotationType, setAnnotationType] = React.useState<AnnotationType | undefined>();
 
     const onSelectMetadataField = (
         option: IComboBoxOption | undefined,
@@ -55,6 +57,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 ...valueMap,
             ];
         }
+        setAnnotationType(option?.data);
         setValueCount(valueMap);
     };
 
@@ -68,15 +71,15 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
             <ComboBox
                 className={styles.comboBox}
                 label="Select a metadata field"
-                placeholder="Select a field"
+                placeholder="Select a field..."
                 options={props.annotationOptions}
-                useComboBoxAsMenuWidth
                 onChange={onSelectMetadataField}
             />
             {valueCount && (
                 <MetadataDetails
                     onChange={(value) => setNewValues(value)}
                     items={valueCount || []}
+                    fieldType={annotationType}
                 />
             )}
             <div className={classNames(styles.footer, styles.footerAlignRight)}>
