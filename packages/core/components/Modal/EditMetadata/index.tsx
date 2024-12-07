@@ -57,6 +57,7 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
                     </div>
                 </>
             }
+            isStatic
             onDismiss={onDismissWithWarning}
             title={
                 showWarning
