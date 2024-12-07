@@ -40,6 +40,7 @@ export default function DirectoryTree(props: FileListProps) {
     const fileService = useSelector(interaction.selectors.getFileService);
     const globalFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
+    const visibleModal = useSelector(interaction.selectors.getVisibleModal);
     const fileSet = React.useMemo(() => {
         return new FileSet({
             fileService: fileService,
@@ -53,9 +54,11 @@ export default function DirectoryTree(props: FileListProps) {
     // this will effectively clear the current selection in favor of the newly navigated to row.
     // If at the beginning or end of a file list and attempting to navigate up or down the file selected & focused will
     // be in the file list above or below respectively if possible.
+    // Should not register key presses when an overlay modal is active
     React.useEffect(() => {
         const onArrowKeyDown = (event: KeyboardEvent) => {
-            if (event.code === KeyboardCode.ArrowUp) {
+            if (!!visibleModal) return;
+            else if (event.code === KeyboardCode.ArrowUp) {
                 event.preventDefault(); // Prevent list from scrolling
                 dispatch(selection.actions.selectNearbyFile("up", event.shiftKey));
             } else if (event.code === KeyboardCode.ArrowDown) {
@@ -66,7 +69,7 @@ export default function DirectoryTree(props: FileListProps) {
 
         window.addEventListener("keydown", onArrowKeyDown, true);
         return () => window.removeEventListener("keydown", onArrowKeyDown, true);
-    }, [dispatch]);
+    }, [dispatch, visibleModal]);
 
     const {
         state: { content, error, isLoading },
