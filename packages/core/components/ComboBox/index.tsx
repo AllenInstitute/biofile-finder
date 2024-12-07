@@ -1,20 +1,8 @@
 import { ComboBox, IComboBoxOption, IRenderFunction, ISelectableOption } from "@fluentui/react";
 import classNames from "classnames";
-import Fuse from "fuse.js";
 import * as React from "react";
 
 import styles from "./ComboBox.module.css";
-
-const FUZZY_SEARCH_OPTIONS = {
-    // which keys to search on
-    keys: [{ name: "text", weight: 1.0 }],
-
-    // return resulting matches sorted
-    shouldSort: true,
-
-    // arbitrarily tuned; 0.0 requires a perfect match, 1.0 would match anything
-    threshold: 0.3,
-};
 
 interface Props {
     className?: string;
@@ -33,18 +21,6 @@ interface Props {
  */
 export default function BaseComboBox(props: Props) {
     const { options, label, placeholder } = props;
-
-    const [searchValue, setSearchValue] = React.useState("");
-
-    // Fuse logic borrowed from the ListPicker component
-    const fuse = React.useMemo(() => new Fuse(options, FUZZY_SEARCH_OPTIONS), [options]);
-    const filteredOptions = React.useMemo(() => {
-        const filteredRows = searchValue ? fuse.search(searchValue) : options;
-        return filteredRows.sort((a, b) => {
-            // If disabled, sort to the bottom
-            return a.disabled === b.disabled ? 0 : a.disabled ? 1 : -1;
-        });
-    }, [options, searchValue, fuse]);
 
     const onRenderItem = (
         itemProps: ISelectableOption | undefined,
@@ -77,14 +53,11 @@ export default function BaseComboBox(props: Props) {
             label={label}
             openOnKeyboardFocus
             multiSelect={props?.multiSelect}
-            options={filteredOptions}
+            options={options}
             onChange={(_ev, option, _ind, value) => props.onChange?.(option, value)}
             onItemClick={(_, option) => props.onChange?.(option)}
-            onInputValueChange={(value) => {
-                setSearchValue(value || "");
-            }}
-            // onPendingValueChanged={(option?: IComboBoxOption, index?: number, value?: string) => console.info("option", option, "value", value)}
             onRenderItem={(props, defaultRender) => onRenderItem(props, defaultRender)}
+            scrollSelectedToTop
             styles={{
                 root: styles.comboBox,
                 label: styles.comboBoxLabel,
