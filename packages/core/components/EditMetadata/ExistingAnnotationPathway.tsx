@@ -32,7 +32,11 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
         // FluentUI's combobox doesn't always register the entered value as an option,
         // so we need to be able to check both
         const selectedFieldName = option?.text || value;
-        if (!selectedFieldName) return;
+        if (
+            !selectedFieldName ||
+            !props.annotationOptions.some((opt) => opt.key === selectedFieldName)
+        )
+            return;
         // Track how many values we've seen, since some files may not have a value for this field
         let totalValueCount = 0;
         if (props?.annotationValueMap?.has(selectedFieldName)) {
@@ -56,7 +60,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 ...valueMap,
             ];
         }
-        setSelectedAnnotation(option?.key.toString());
+        setSelectedAnnotation(selectedFieldName);
         setValueCount(valueMap);
     };
 
@@ -76,7 +80,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 useComboBoxAsMenuWidth
                 onChange={onSelectMetadataField}
             />
-            {valueCount && (
+            {!!selectedAnnotation && (
                 <MetadataDetails
                     onChange={(value) => setNewValues(value)}
                     items={valueCount || []}
