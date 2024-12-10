@@ -213,7 +213,7 @@ export default class DatabaseFileService implements FileService {
 
         const rows = await this.databaseService.query(sql);
         return rows
-            .map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, 0))
+            .map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row))
             .reduce(
                 (acc, file) => ({
                     ...acc,
