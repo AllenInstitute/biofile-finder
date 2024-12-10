@@ -10,6 +10,7 @@ interface BaseModalProps {
     footer?: React.ReactNode;
     onDismiss?: () => void;
     title?: string;
+    isStatic?: boolean; // Not draggable
 }
 
 const DRAG_OPTIONS: IDragOptions = {
@@ -31,7 +32,7 @@ export default function BaseModal(props: BaseModalProps) {
             isOpen
             onDismiss={onDismiss}
             containerClassName={styles.container}
-            dragOptions={DRAG_OPTIONS}
+            dragOptions={props?.isStatic ? undefined : DRAG_OPTIONS}
             scrollableContentClassName={styles.scrollableContainer}
             titleAriaId={titleId}
             overlay={{ className: styles.overlay }}
@@ -53,4 +54,5 @@ export default function BaseModal(props: BaseModalProps) {
 BaseModal.defaultProps = {
     footer: null,
     onDismiss: noop,
+    isStatic: false,
 };
