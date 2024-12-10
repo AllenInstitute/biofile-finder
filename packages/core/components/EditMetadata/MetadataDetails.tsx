@@ -66,7 +66,7 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
             if (!fieldContent) return "[No value] (blank)";
             else return annotationFormatter.displayValue(fieldContent);
         } else if (column?.fieldName === "fileCount") {
-            return <div className={styles.columnRightAlignCell}>{fieldContent}</div>;
+            return <div className={styles.columnRightAlignCell}>{fieldContent || 0}</div>;
         }
         return fieldContent;
     }
