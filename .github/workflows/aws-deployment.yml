@@ -17,13 +17,11 @@ env:
   AWS_ACCOUNT_ID: ${{ vars.AWS_PUBLIC_DATA_RELEASES_ACCOUNT_ID }}
   AWS_REGION: ${{ vars.AWS_DEFAULT_REGION }}
   STAGING_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.STAGING_CLOUDFRONT_DISTRIBUTION_ID }}
-  STAGING_S3_BUCKET: s3://staging.biofile-finder.allencell.org
+  STAGING_S3_BUCKET: s3://staging.bff.allencell.org
   STAGING_BFF_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.STAGING_BFF_CLOUDFRONT_DISTRIBUTION_ID }}
-  STAGING_BFF_S3_BUCKET: s3://staging.bff.allencell.org
   PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID }}
-  PRODUCTION_S3_BUCKET: s3://biofile-finder.allencell.org
+  PRODUCTION_S3_BUCKET: s3://bff.allencell.org
   PRODUCTION_BFF_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.PRODUCTION_BFF_CLOUDFRONT_DISTRIBUTION_ID }}
-  PRODUCTION_BFF_S3_BUCKET: s3://bff.allencell.org
 
 permissions:
   id-token: write  # Required for requesting the JWT and OIDC
@@ -98,11 +96,11 @@ jobs:
       - name: Copy build files to biofile-finder S3
         run: aws s3 sync ./packages/web/dist ${{ env.S3_BUCKET }}
 
-      - name : Copy build filed to BFF S3
-        run : aws s3 sync ./packages/web/dist ${{env.BFF_S3_BUCKET}}
+      - name: Copy build filed to BFF S3
+        run: aws s3 sync ./packages/web/dist ${{ env.BFF_S3_BUCKET }}
 
       - name: Invalidate CloudFront biofile-finder cache
         run: aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
 
       - name: Invalidate CloudFront BFF cashe
-        run: aws cloudfront create-invalidation --distribution-id ${{env.BFF_CLOUDFRONT_DISTRIBUTION_ID}} --path "/*"
+        run: aws cloudfront create-invalidation --distribution-id ${{ env.BFF_CLOUDFRONT_DISTRIBUTION_ID }} --path "/*"
