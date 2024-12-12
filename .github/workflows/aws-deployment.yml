@@ -77,9 +77,11 @@ jobs:
           if [ "${{ github.event.inputs.environment }}" == "production" ]; then
             echo "S3_BUCKET=${{ env.PRODUCTION_S3_BUCKET }}" >> $GITHUB_ENV
             echo "CLOUDFRONT_DISTRIBUTION_ID=${{ env.PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+            echo "BFF_CLOUDFRONT_DISTRIBUTION_ID=${{ env.PRODUCTION_BFF_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
           elif [ "${{ github.event.inputs.environment }}" == "staging" ]; then
             echo "S3_BUCKET=${{ env.STAGING_S3_BUCKET }}" >> $GITHUB_ENV
             echo "CLOUDFRONT_DISTRIBUTION_ID=${{ env.STAGING_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+            echo "BFF_CLOUDFRONT_DISTRIBUTION_ID=${{ env.STAGING_BFF_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
           else
             echo "Invalid environment specified"
             exit 1
@@ -100,5 +102,5 @@ jobs:
       - name: Invalidate CloudFront biofile-finder cache
         run: aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
 
-      - name: Invalidate CloudFront BFF cashe
-        run: aws cloudfront create-invalidation --distribution-id ${{ env.BFF_CLOUDFRONT_DISTRIBUTION_ID }} --path "/*"
+      - name: Invalidate CloudFront BFF cache
+        run: aws cloudfront create-invalidation --distribution-id ${{ env.BFF_CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
