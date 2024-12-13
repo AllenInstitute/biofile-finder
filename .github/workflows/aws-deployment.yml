@@ -96,7 +96,7 @@ jobs:
       # Note that the command below will copy the files to the root of the S3 bucket e.g., s3://bff.allencell.org/
       # If you want to copy files to a S3 prefix / subdirectory, you would want something like ${{ env.BFF_S3_BUCKET }}/your_prefix below
       - name: Copy build files to BFF S3
-        run: aws s3 sync ./packages/web/dist ${{ env.BFF_S3_BUCKET }}
+        run: aws s3 sync ./packages/web/dist ${{ env.S3_BUCKET }}
 
       # This isn't strictly necessary since this distribution only handles redirects and doesn't serve any content directly
       - name: Invalidate CloudFront biofile-finder cache
