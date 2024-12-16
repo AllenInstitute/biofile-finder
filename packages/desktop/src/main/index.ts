@@ -1,7 +1,6 @@
 import * as path from "path";
 
 import { app, BrowserWindow, Menu } from "electron";
-import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
 
 import template from "./menu";
 import ExecutionEnvServicElectron from "../services/ExecutionEnvServiceElectron";
@@ -54,28 +53,11 @@ const createMainWindow = () => {
     });
 
     if (isDevelopment) {
-        installExtension(REACT_DEVELOPER_TOOLS)
-            .then((name: string) => {
-                console.log(`Added extension: ${name}`);
-
-                if (!mainWindow) {
-                    throw new Error("mainWindow not defined");
-                }
-
-                mainWindow
-                    .loadURL(`http://localhost:${process.env.WEBPACK_DEV_SERVER_PORT}`)
-                    .then(() => {
-                        if (mainWindow) {
-                            mainWindow.webContents.openDevTools();
-                        }
-                    })
-                    .catch((error: Error) => {
-                        console.error("Failed to load from webpack-dev-server", error);
-                    });
-            })
-            .catch((err: Error) =>
-                console.error("An error occurred loading React Dev Tools: ", err)
-            );
+        mainWindow
+            .loadURL(`http://localhost:${process.env.WEBPACK_DEV_SERVER_PORT}`)
+            .catch((error: Error) => {
+                console.error("Failed to load from webpack-dev-server", error);
+            });
     } else {
         mainWindow.loadFile(path.join("dist", "renderer", "index.html")).catch((error: Error) => {
             console.error("Failed to load from file", error);
