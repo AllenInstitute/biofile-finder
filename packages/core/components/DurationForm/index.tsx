@@ -52,7 +52,7 @@ export default function DurationForm(props: DurationFormProps) {
                     onChange={(event) => setDurationHours(event?.target?.value || "")}
                     defaultValue={hours}
                     min={0}
-                    max={24}
+                    max={23}
                 />
                 <NumberField
                     aria-label="Minutes"
@@ -62,7 +62,7 @@ export default function DurationForm(props: DurationFormProps) {
                     onChange={(event) => setDurationMinutes(event?.target?.value || "")}
                     defaultValue={minutes}
                     min={0}
-                    max={60}
+                    max={59}
                 />
                 <NumberField
                     aria-label="Seconds"
@@ -72,7 +72,7 @@ export default function DurationForm(props: DurationFormProps) {
                     onChange={(event) => setDurationSeconds(event?.target?.value || "")}
                     defaultValue={seconds}
                     min={0}
-                    max={60}
+                    max={59}
                 />
             </div>
         </div>

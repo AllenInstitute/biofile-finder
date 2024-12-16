@@ -16,7 +16,7 @@
 }
 
 .input-field > input::placeholder {
-    color: var(--secondary-text-color) !important;
+    color: var(--secondary-text-color);
     font-style: italic;
     text-align: left;
 }
