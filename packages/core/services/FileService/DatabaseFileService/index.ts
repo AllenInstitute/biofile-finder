@@ -193,12 +193,12 @@ export default class DatabaseFileService implements FileService {
     public editFile(fileId: string, annotations: AnnotationNameToValuesMap): Promise<void> {
         const tableName = this.dataSourceNames.sort().join(", ");
         const columnAssignments = Object.entries(annotations).map(
-            ([name, values]) => `${name} = ${values.join(DatabaseService.LIST_DELIMITER)}`
+            ([name, values]) => `"${name}" = '${values.join(DatabaseService.LIST_DELIMITER)}'`
         );
         const sql = `\
-            UPDATE ${tableName} \
+            UPDATE '${tableName}' \
             SET ${columnAssignments.join(", ")} \
-            WHERE FileId = ${fileId}; \
+            WHERE "File ID" = '${fileId}'; \
         `;
         return this.databaseService.execute(sql);
     }

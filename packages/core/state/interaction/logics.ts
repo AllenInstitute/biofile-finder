@@ -585,7 +585,7 @@ const editFilesLogic = createLogic({
                 // Await the results of this batch
                 await Promise.all(promises);
             }
-
+            dispatch(refresh); // Sync state to pull updated files
             dispatch(processSuccess(editRequestId, "Successfully edited files."));
         } catch (err) {
             // Dispatch an event to alert the user of the failure
