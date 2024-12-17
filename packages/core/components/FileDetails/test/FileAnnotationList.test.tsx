@@ -123,5 +123,27 @@ describe("<FileAnnotationList />", () => {
                 }
             );
         });
+
+        it("has loading message when file is downloading", () => {
+            // Arrange
+            const fileDetails = new FileDetail({
+                file_path: "path/to/file",
+                file_id: "abc123",
+                file_name: "MyFile.txt",
+                file_size: 7,
+                uploaded: "01/01/01",
+                annotations: [{ name: "shouldBeInLocal", values: [true] }],
+            });
+
+            // Act
+            const { findByText } = render(
+                <FileAnnotationList isLoading={false} fileDetails={fileDetails} />
+            );
+
+            // Assert
+            ["File Path (Canonical)", "Copying to Vast in progress…"].forEach(async (cellText) => {
+                expect(await findByText(cellText)).to.not.be.undefined;
+            });
+        });
     });
 });
