@@ -26,14 +26,16 @@ export default {
     },
 
     valueOf(value: any) {
-        const RANGE_OPERATOR_REGEX = /([0-9]+)D ([0-9]+)H ([0-9]+)M ([0-9]*\.?[0-9]+)S/g;
-        const exec = RANGE_OPERATOR_REGEX.exec(value);
-        // Check if value is a pre-formatted duration string
-        if (exec) {
-            const daysInMs = Number(exec[1]) * msInADay;
-            const hrsInMs = Number(exec[2]) * msInAnHour;
-            const minsInMs = Number(exec[3]) * msInAMinute;
-            const secsInMs = Number(exec[4]) * msInASecond;
+        // Check for pre-formatted duration strings: must have at least one of #D, #H, #M, or #S in that order
+        const regexMatch = value.match(
+            /^(([0-9]+)D)?\s?(([0-9]+)H)?\s?(([0-9]+)M)?\s?(([0-9]*\.?[0-9]+)S)?$/
+        );
+        if (regexMatch) {
+            // Capture group order is [full string, aD, a, bH, b, cM, c, dS, d]
+            const daysInMs = (Number(regexMatch[2]) || 0) * msInADay;
+            const hrsInMs = (Number(regexMatch[4]) || 0) * msInAnHour;
+            const minsInMs = (Number(regexMatch[6]) || 0) * msInAMinute;
+            const secsInMs = (Number(regexMatch[8]) || 0) * msInASecond;
             return daysInMs + hrsInMs + minsInMs + secsInMs;
         }
         return Number(value);
