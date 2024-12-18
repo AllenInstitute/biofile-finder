@@ -24,6 +24,9 @@ describe("<FileAnnotationList />", () => {
 
             const { store } = configureMockStore({
                 state: mergeState(initialState, {
+                    metadata: {
+                        annotations: TOP_LEVEL_FILE_ANNOTATIONS,
+                    },
                     interaction: {
                         platformDependentServices: {
                             executionEnvService: new FakeExecutionEnvService(),
@@ -33,10 +36,9 @@ describe("<FileAnnotationList />", () => {
             });
 
             const filePathInsideAllenDrive = "path/to/MyFile.txt";
-
-            const canonicalFilePath = `/allen/${filePathInsideAllenDrive}`;
+            const filePath = `/allen/${filePathInsideAllenDrive}`;
             const fileDetails = new FileDetail({
-                file_path: canonicalFilePath,
+                file_path: filePath,
                 file_id: "abc123",
                 file_name: "MyFile.txt",
                 file_size: 7,
@@ -54,14 +56,14 @@ describe("<FileAnnotationList />", () => {
             );
 
             // Assert
-            [
+            for (const cellText of [
                 "File Path (Canonical)",
-                canonicalFilePath,
+                filePath,
                 "File Path (Local)",
                 expectedLocalPath,
-            ].forEach(async (cellText) => {
+            ]) {
                 expect(await findByText(cellText)).to.not.be.undefined;
-            });
+            }
         });
 
         it("has only canonical file path when no allen mount point is found", () => {
