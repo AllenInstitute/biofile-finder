@@ -2,7 +2,7 @@ import { isEmpty, sumBy, throttle, uniq, uniqueId } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
-import { metadata, ReduxLogicDeps, selection } from "../";
+import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import {
     DOWNLOAD_MANIFEST,
     DownloadManifestAction,
@@ -581,13 +581,87 @@ const setIsSmallScreen = createLogic({
  * Interceptor responsible for handling the COPY_FILES action.
  * Logs details of files that are being copied to cache.
  */
-const CopyFilesLogic = createLogic({
-    type: COPY_FILES,
-    process(deps, dispatch, done) {
-        const action = deps.action as CopyFilesAction;
-        console.log(`Moving files:`, action.payload.fileDetails);
-        done();
+const copyFilesLogic = createLogic({
+    async process({ action, getState }: ReduxLogicDeps, dispatch, done) {
+        try {
+            const httpFileService = interactionSelectors.getHttpFileService(getState());
+            const username = interactionSelectors.getUserName(getState());
+
+            const fileDetails = (action as CopyFilesAction).payload.fileDetails;
+
+            // Map file IDs to file names for easy lookup
+            const fileIdToNameMap = Object.fromEntries(
+                fileDetails.map((file) => [file.id, file.name])
+            );
+
+            // Extract file IDs
+            const fileIds = fileDetails.map((file) => file.id);
+
+            const response = await httpFileService.cacheFiles(fileIds, username);
+            const cacheStatuses = response.cacheFileStatuses;
+
+            // Check if the response is empty.
+            if (!cacheStatuses || Object.keys(cacheStatuses).length === 0) {
+                dispatch(
+                    interaction.actions.processError(
+                        "moveFilesNoFilesProcessed",
+                        "No files were processed. Please check the request or try again."
+                    )
+                );
+                return;
+            }
+
+            const successfulFiles: string[] = [];
+            const failedFiles: string[] = [];
+
+            Object.entries(cacheStatuses).forEach(([fileId, status]) => {
+                if (
+                    status === "DOWNLOAD_COMPLETE" ||
+                    status === "DOWNLOAD_IN_PROGRESS" ||
+                    status === "DOWNLOAD_STARTED"
+                ) {
+                    successfulFiles.push(fileId);
+                } else {
+                    failedFiles.push(fileId);
+                }
+            });
+
+            // Dispatch net success message. (Assuming some files were successful)
+            if (successfulFiles.length > 0) {
+                dispatch(
+                    interaction.actions.processSuccess(
+                        "moveFilesSuccess",
+                        `${successfulFiles.length} out of ${
+                            Object.keys(cacheStatuses).length
+                        } files were successfully queued for download to NAS (Vast) from cloud. 
+                        Files will be available in the NAS after downloads finish asynchronously`
+                    )
+                );
+            }
+
+            // Dispatch individual errors for each failed file.
+            failedFiles.forEach((fileId) => {
+                const fileName = fileIdToNameMap[fileId] || "Unknown File";
+                dispatch(
+                    interaction.actions.processError(
+                        `moveFileFailure_${fileId}`,
+                        `File "${fileName}" failed to cache. Status: ${cacheStatuses[fileId]}`
+                    )
+                );
+            });
+        } catch (err) {
+            // Service call itself fails
+            dispatch(
+                interaction.actions.processError(
+                    "moveFilesFailure",
+                    `Failed to cache files, details: ${(err as Error).message}.`
+                )
+            );
+        } finally {
+            done();
+        }
     },
+    type: COPY_FILES,
 });
 
 export default [
@@ -601,5 +675,5 @@ export default [
     showContextMenu,
     refresh,
     setIsSmallScreen,
-    CopyFilesLogic,
+    copyFilesLogic,
 ];

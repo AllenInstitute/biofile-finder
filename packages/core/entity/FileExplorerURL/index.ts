@@ -3,6 +3,15 @@ import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
+import { Column } from "../../state/selection/actions";
+
+// These values CANNOT change otherwise it would break compatibility
+// with any existing URLs that use these in the encoding
+export enum FileView {
+    LIST = "1",
+    SMALL_THUMBNAIL = "2",
+    LARGE_THUMBNAIL = "3",
+}
 
 export interface Source {
     name: string;
@@ -12,7 +21,9 @@ export interface Source {
 
 // Components of the application state this captures
 export interface FileExplorerURLComponents {
+    columns?: Column[];
     hierarchy: string[];
+    fileView?: FileView;
     sources: Source[];
     sourceMetadata?: Source;
     filters: FileFilter[];
@@ -44,6 +55,13 @@ export const PAST_YEAR_FILTER = new FileFilter(
     `RANGE(${DATE_LAST_YEAR.toISOString()},${END_OF_TODAY.toISOString()})`
 );
 export const DEFAULT_AICS_FMS_QUERY: FileExplorerURLComponents = {
+    columns: [
+        { name: AnnotationName.FILE_NAME, width: 0.4 },
+        { name: AnnotationName.KIND, width: 0.2 },
+        { name: AnnotationName.TYPE, width: 0.25 },
+        { name: AnnotationName.FILE_SIZE, width: 0.15 },
+    ],
+    fileView: FileView.LIST,
     hierarchy: [],
     openFolders: [],
     sources: [{ name: AICS_FMS_DATA_SOURCE_NAME }],
@@ -62,6 +80,34 @@ export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
     return { name, extensionGuess };
 };
 
+// We want to eventually use shorthands and other tricks to
+// try to shortern the resulting URL however we can
+enum URLQueryArgShorthands {
+    COLUMNS = "c",
+    FILE_VIEW = "v",
+}
+
+class ColumnCoder {
+    private static readonly COLUMN_DELIMETER = ",";
+    private static readonly VALUE_DELIMETER = ":";
+
+    public static encode(columns: Column[]): string {
+        return columns
+            .map((column) => `${column.name}${ColumnCoder.VALUE_DELIMETER}${column.width}`)
+            .join(ColumnCoder.COLUMN_DELIMETER);
+    }
+
+    public static decode(encoded: string): Column[] {
+        return encoded
+            .split(ColumnCoder.COLUMN_DELIMETER)
+            .filter((unparsedColumn) => !!unparsedColumn)
+            .map((unparsedColumn) => {
+                const [name, widthAsStr] = unparsedColumn.split(ColumnCoder.VALUE_DELIMETER);
+                return { name, width: parseFloat(widthAsStr) };
+            });
+    }
+}
+
 /**
  * This represents a system for encoding application state information in a way
  * that allows users to copy, share, and paste the result back into the app and have the
@@ -77,6 +123,13 @@ export default class FileExplorerURL {
      * */
     public static encode(urlComponents: Partial<FileExplorerURLComponents>): string {
         const params = new URLSearchParams();
+        if (urlComponents.columns?.length) {
+            params.append(URLQueryArgShorthands.COLUMNS, ColumnCoder.encode(urlComponents.columns));
+        }
+        // Avoid including default in the URL
+        if (urlComponents.fileView && urlComponents.fileView !== FileView.LIST) {
+            params.append(URLQueryArgShorthands.FILE_VIEW, urlComponents.fileView);
+        }
         urlComponents.hierarchy?.forEach((annotation) => {
             params.append("group", annotation);
         });
@@ -131,6 +184,8 @@ export default class FileExplorerURL {
         const unparsedSources = params.getAll("source");
         const hierarchy = params.getAll("group");
         const unparsedSort = params.get("sort");
+        const unparsedColumns = params.get(URLQueryArgShorthands.COLUMNS) || "";
+        const fileView = (params.get(URLQueryArgShorthands.FILE_VIEW) as FileView) || FileView.LIST;
         const hierarchyDepth = hierarchy.length;
 
         const parsedSort = unparsedSort ? JSON.parse(unparsedSort) : undefined;
@@ -142,22 +197,24 @@ export default class FileExplorerURL {
             throw new Error("Sort order must be ASC or DESC");
         }
         return {
+            fileView,
             hierarchy,
-            sortColumn: parsedSort
-                ? new FileSort(parsedSort.annotationName, parsedSort.order || SortOrder.ASC)
-                : undefined,
+            columns: ColumnCoder.decode(unparsedColumns),
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
                 .map(
                     (parsedFilter) =>
                         new FileFilter(parsedFilter.name, parsedFilter.value, parsedFilter.type)
                 ),
-            sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
-            sourceMetadata: unparsedSourceMetadata ? JSON.parse(unparsedSourceMetadata) : undefined,
             openFolders: unparsedOpenFolders
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
                 .map((parsedFolder) => new FileFolder(parsedFolder)),
+            sortColumn: parsedSort
+                ? new FileSort(parsedSort.annotationName, parsedSort.order || SortOrder.ASC)
+                : undefined,
+            sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
+            sourceMetadata: unparsedSourceMetadata ? JSON.parse(unparsedSourceMetadata) : undefined,
         };
     }
 

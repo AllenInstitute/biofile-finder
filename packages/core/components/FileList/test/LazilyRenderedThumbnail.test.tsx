@@ -9,6 +9,7 @@ import LazilyRenderedThumbnail from "../LazilyRenderedThumbnail";
 import { initialState } from "../../../state";
 import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
+import { FileView } from "../../../entity/FileExplorerURL";
 
 describe("<LazilyRenderedThumbnail />", () => {
     function makeItemData() {
@@ -82,7 +83,13 @@ describe("<LazilyRenderedThumbnail />", () => {
 
     it("renders file as thumbnail if file is renderable type", async () => {
         // Arrange
-        const { store } = configureMockStore({ state: initialState });
+        const { store } = configureMockStore({
+            state: mergeState(initialState, {
+                selection: {
+                    fileView: FileView.LARGE_THUMBNAIL,
+                },
+            }),
+        });
 
         // Act
         const { getAllByText, findByRole } = render(
@@ -105,7 +112,13 @@ describe("<LazilyRenderedThumbnail />", () => {
 
     it("renders svg as thumbnail if file has no renderable thumbnail", () => {
         // Arrange
-        const { store } = configureMockStore({ state: initialState });
+        const { store } = configureMockStore({
+            state: mergeState(initialState, {
+                selection: {
+                    fileView: FileView.LARGE_THUMBNAIL,
+                },
+            }),
+        });
 
         // Act
         const { getAllByText, queryByRole } = render(
@@ -176,7 +189,7 @@ describe("<LazilyRenderedThumbnail />", () => {
             ...initialState,
             selection: {
                 ...initialState.selection,
-                fileGridColumnCount: 10,
+                fileView: FileView.SMALL_THUMBNAIL,
             },
         };
         const { store } = configureMockStore({ state });

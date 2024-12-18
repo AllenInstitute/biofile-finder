@@ -1,14 +1,9 @@
 import { MenuItemConstructorOptions } from "electron";
 
-import {
-    GlobalVariableChannels,
-    FileDownloadServiceBaseUrl,
-    FileExplorerServiceBaseUrl,
-} from "../../util/constants";
+import { GlobalVariableChannels, Environment } from "../../util/constants";
 
 // Least effort state management accessible to both the main and renderer processes.
-global.fileDownloadServiceBaseUrl = FileDownloadServiceBaseUrl.PRODUCTION;
-global.fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION;
+global.environment = Environment.PRODUCTION;
 
 const dataSourceMenu: MenuItemConstructorOptions = {
     label: "Data Source",
@@ -16,12 +11,12 @@ const dataSourceMenu: MenuItemConstructorOptions = {
         {
             label: "Localhost",
             type: "radio",
-            checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.LOCALHOST,
+            checked: global.environment === Environment.LOCALHOST,
             click: (_, focusedWindow) => {
                 if (focusedWindow) {
+                    global.environment = Environment.LOCALHOST;
                     focusedWindow.webContents.send(GlobalVariableChannels.BaseUrl, {
-                        fileExplorerServiceBaseUrl: FileExplorerServiceBaseUrl.LOCALHOST,
-                        fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl.LOCALHOST,
+                        environment: Environment.LOCALHOST,
                     });
                 }
             },
@@ -29,12 +24,12 @@ const dataSourceMenu: MenuItemConstructorOptions = {
         {
             label: "Staging",
             type: "radio",
-            checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.STAGING,
+            checked: global.environment === Environment.STAGING,
             click: (_, focusedWindow) => {
                 if (focusedWindow) {
+                    global.environment = Environment.STAGING;
                     focusedWindow.webContents.send(GlobalVariableChannels.BaseUrl, {
-                        fileExplorerServiceBaseUrl: FileExplorerServiceBaseUrl.STAGING,
-                        fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl.STAGING,
+                        environment: Environment.STAGING,
                     });
                 }
             },
@@ -42,12 +37,12 @@ const dataSourceMenu: MenuItemConstructorOptions = {
         {
             label: "Production",
             type: "radio",
-            checked: global.fileExplorerServiceBaseUrl === FileExplorerServiceBaseUrl.PRODUCTION,
+            checked: global.environment === Environment.PRODUCTION,
             click: (_, focusedWindow) => {
                 if (focusedWindow) {
+                    global.environment = Environment.PRODUCTION;
                     focusedWindow.webContents.send(GlobalVariableChannels.BaseUrl, {
-                        fileExplorerServiceBaseUrl: FileExplorerServiceBaseUrl.PRODUCTION,
-                        fileDownloadServiceBaseUrl: FileDownloadServiceBaseUrl.PRODUCTION,
+                        environment: Environment.PRODUCTION,
                     });
                 }
             },

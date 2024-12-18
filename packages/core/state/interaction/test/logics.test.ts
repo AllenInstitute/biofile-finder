@@ -24,6 +24,7 @@ import {
 } from "../../../services/ExecutionEnvService";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import interactionLogics from "../logics";
+import { FESBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
@@ -206,7 +207,7 @@ describe("Interaction logics", () => {
 
         it("doesn't use selected files when given a specific file folder path", async () => {
             // arrange
-            const baseUrl = "test";
+            const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
             const filters = [
                 new FileFilter("Cell Line", "AICS-12"),
                 new FileFilter("Notes", "Hello"),
@@ -215,7 +216,6 @@ describe("Interaction logics", () => {
             const state = mergeState(initialState, {
                 interaction: {
                     fileFiltersForVisibleModal: filters,
-                    fileExplorerServiceBaseUrl: baseUrl,
                     platformDependentServices: {
                         fileDownloadService: new FileDownloadServiceNoop(),
                     },
@@ -232,7 +232,7 @@ describe("Interaction logics", () => {
             };
             const mockHttpClient = createMockHttpClient(responseStub);
             const fileService = new HttpFileService({
-                baseUrl,
+                fileExplorerServiceBaseUrl,
                 httpClient: mockHttpClient,
                 downloadService: new FileDownloadServiceNoop(),
             });
@@ -776,12 +776,12 @@ describe("Interaction logics", () => {
 
     describe("refresh", () => {
         const sandbox = createSandbox();
-        const baseUrl = "test";
+        const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
         const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
         const availableAnnotations = [annotations[1].displayName];
         const responseStubs = [
             {
-                when: `${baseUrl}/${HttpAnnotationService.BASE_ANNOTATION_URL}`,
+                when: `${fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_ANNOTATION_URL}`,
                 respondWith: {
                     data: { data: annotations },
                 },
@@ -798,7 +798,7 @@ describe("Interaction logics", () => {
         ];
         const mockHttpClient = createMockHttpClient(responseStubs);
         const annotationService = new HttpAnnotationService({
-            baseUrl,
+            fileExplorerServiceBaseUrl,
             httpClient: mockHttpClient,
         });
 
@@ -883,7 +883,7 @@ describe("Interaction logics", () => {
                 ],
             });
         }
-        const baseUrl = "test";
+        const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
         const responseStub = {
             when: () => true,
             respondWith: {
@@ -892,7 +892,7 @@ describe("Interaction logics", () => {
         };
         const mockHttpClient = createMockHttpClient(responseStub);
         const fileService = new HttpFileService({
-            baseUrl,
+            fileExplorerServiceBaseUrl,
             httpClient: mockHttpClient,
             downloadService: new FileDownloadServiceNoop(),
         });
@@ -1099,16 +1099,16 @@ describe("Interaction logics", () => {
             });
         }
         const files = [...csvFiles, ...pngFiles];
-        const baseUrl = "test";
+        const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
         const responseStub = {
-            when: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=101`,
+            when: `${fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=101`,
             respondWith: {
                 data: { data: files },
             },
         };
         const mockHttpClient = createMockHttpClient(responseStub);
         const fileService = new HttpFileService({
-            baseUrl,
+            fileExplorerServiceBaseUrl,
             httpClient: mockHttpClient,
             downloadService: new FileDownloadServiceNoop(),
         });
@@ -1214,16 +1214,16 @@ describe("Interaction logics", () => {
         for (let i = 0; i <= 100; i++) {
             files.push({ file_path: `/allen/file_${i}.ext` });
         }
-        const baseUrl = "test";
+        const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
         const responseStub = {
-            when: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=101`,
+            when: `${fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=101`,
             respondWith: {
                 data: { data: files },
             },
         };
         const mockHttpClient = createMockHttpClient(responseStub);
         const fileService = new HttpFileService({
-            baseUrl,
+            fileExplorerServiceBaseUrl,
             httpClient: mockHttpClient,
             downloadService: new FileDownloadServiceNoop(),
         });

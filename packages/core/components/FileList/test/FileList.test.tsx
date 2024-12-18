@@ -35,7 +35,7 @@ describe("<FileList />", () => {
         expect(queryByText("Counting files...")).to.not.exist;
     });
 
-    it("displays 'No files found' when no files found", async () => {
+    it("displays 'No files match your query' when no files found", async () => {
         // Arrange
         const { store } = configureMockStore({ state: initialState });
 
@@ -55,7 +55,7 @@ describe("<FileList />", () => {
         expect(queryByText("Counting files...")).to.exist;
 
         // Wait for the fileService call to return, then check for updated list length display
-        await findByText("Sorry! No files found");
+        await findByText("No files match your query");
 
         // Assert
         expect(queryByText("Counting files...")).to.not.exist;

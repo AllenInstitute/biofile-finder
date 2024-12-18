@@ -27,6 +27,7 @@ import {
     changeSourceMetadata,
 } from "../actions";
 import { initialState, interaction } from "../../";
+import { FESBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileFilter from "../../../entity/FileFilter";
@@ -330,10 +331,10 @@ describe("Selection logics", () => {
                 },
             },
         ];
-        const baseUrl = "test";
+        const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
         const mockHttpClient = createMockHttpClient(responseStubs);
         const fileService = new HttpFileService({
-            baseUrl,
+            fileExplorerServiceBaseUrl,
             httpClient: mockHttpClient,
             downloadService: new FileDownloadServiceNoop(),
         });
@@ -354,9 +355,6 @@ describe("Selection logics", () => {
         it("selects file above current focused row", async () => {
             // Arrange
             const state = mergeState(initialState, {
-                interaction: {
-                    fileExplorerServiceBaseUrl: baseUrl,
-                },
                 selection: {
                     fileSelection: new FileSelection()
                         .select({
@@ -398,9 +396,6 @@ describe("Selection logics", () => {
                 sortOrder: 1,
             });
             const state = mergeState(initialState, {
-                interaction: {
-                    fileExplorerServiceBaseUrl: baseUrl,
-                },
                 selection: {
                     fileSelection: new FileSelection().select({
                         fileSet,
@@ -462,9 +457,6 @@ describe("Selection logics", () => {
         it("adds a new annotation to the end of the hierarchy", async () => {
             // setup
             const state = mergeState(initialState, {
-                interaction: {
-                    fileExplorerServiceBaseUrl: "test",
-                },
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -494,9 +486,6 @@ describe("Selection logics", () => {
         it("moves an annotation within the hierarchy to a new position", async () => {
             // setup
             const state = mergeState(initialState, {
-                interaction: {
-                    fileExplorerServiceBaseUrl: "test",
-                },
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -540,9 +529,6 @@ describe("Selection logics", () => {
             // ones to test proper comparison using annotationName
             const annotationHierarchy = annotations.slice(0, 4).map((a) => a.name);
             const state = mergeState(initialState, {
-                interaction: {
-                    fileExplorerServiceBaseUrl: "test",
-                },
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -580,9 +566,6 @@ describe("Selection logics", () => {
                 new FileFolder(["AICS-0", "false"]),
             ];
             const state = mergeState(initialState, {
-                interaction: {
-                    fileExplorerServiceBaseUrl: "test",
-                },
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -612,9 +595,6 @@ describe("Selection logics", () => {
         it("determines which paths can still be opened after annotation is added", async () => {
             // setup
             const state = mergeState(initialState, {
-                interaction: {
-                    fileExplorerServiceBaseUrl: "test",
-                },
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -647,9 +627,6 @@ describe("Selection logics", () => {
         it("determines which paths can still be opened after annotation is removed", async () => {
             // setup
             const state = mergeState(initialState, {
-                interaction: {
-                    fileExplorerServiceBaseUrl: "test",
-                },
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -711,9 +688,6 @@ describe("Selection logics", () => {
         it("sets available annotations", async () => {
             // Arrange
             const state = mergeState(initialState, {
-                interaction: {
-                    fileExplorerServiceBaseUrl: "test",
-                },
                 metadata: {
                     annotations: [...annotations],
                 },
@@ -752,9 +726,6 @@ describe("Selection logics", () => {
         it("sets all annotations as available when actual cannot be found", async () => {
             // Arrange
             const state = mergeState(initialState, {
-                interaction: {
-                    fileExplorerServiceBaseUrl: "test",
-                },
                 metadata: {
                     annotations: [...annotations],
                 },

@@ -135,7 +135,7 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                         ],
                     },
                 },
-                ...(isQueryingAicsFms
+                ...(isQueryingAicsFms && !isOnWeb
                     ? [
                           {
                               key: "copy-to-cache",

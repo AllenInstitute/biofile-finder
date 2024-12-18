@@ -14,7 +14,7 @@ import GlobalActionButtonRow from "./components/GlobalActionButtonRow";
 import StatusMessage from "./components/StatusMessage";
 import TutorialTooltip from "./components/TutorialTooltip";
 import QuerySidebar from "./components/QuerySidebar";
-import { FileExplorerServiceBaseUrl } from "./constants";
+import { Environment } from "./constants";
 import { interaction, selection } from "./state";
 import useLayoutMeasurements from "./hooks/useLayoutMeasurements";
 
@@ -39,16 +39,15 @@ interface AppProps {
     // Localhost: "https://localhost:9081"
     // Stage: "http://stg-aics-api.corp.alleninstitute.org"
     // From the web (behind load balancer): "/"
-    fileExplorerServiceBaseUrl?: string;
+    environment?: Environment;
 }
 
 export default function App(props: AppProps) {
-    const { fileExplorerServiceBaseUrl = FileExplorerServiceBaseUrl.PRODUCTION } = props;
+    const { environment = Environment.PRODUCTION } = props;
 
     const dispatch = useDispatch();
     const hasQuerySelected = useSelector(selection.selectors.hasQuerySelected);
     const requiresDataSourceReload = useSelector(selection.selectors.getRequiresDataSourceReload);
-    const isDarkTheme = useSelector(selection.selectors.getIsDarkTheme);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const platformDependentServices = useSelector(
         interaction.selectors.getPlatformDependentServices
@@ -80,8 +79,12 @@ export default function App(props: AppProps) {
 
     // Set data source base urls
     React.useEffect(() => {
-        dispatch(interaction.actions.initializeApp(fileExplorerServiceBaseUrl));
-    }, [dispatch, fileExplorerServiceBaseUrl]);
+        dispatch(
+            interaction.actions.initializeApp({
+                environment,
+            })
+        );
+    }, [dispatch, environment]);
 
     // Respond to screen size changes
     React.useEffect(() => {
@@ -97,7 +100,6 @@ export default function App(props: AppProps) {
         <div
             id={ROOT_ELEMENT_ID}
             className={classNames(styles.root, props.className, {
-                [styles.lightTheme]: !isDarkTheme,
                 [styles.smallFont]: shouldDisplaySmallFont,
             })}
             ref={measuredNodeRef}
