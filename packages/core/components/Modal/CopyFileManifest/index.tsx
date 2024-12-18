@@ -49,18 +49,31 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
         fetchDetails();
     }, [fileSelection, fileService]);
 
+    // Handler for moving files to NAS cache
     const onMove = () => {
         dispatch(interaction.actions.copyFiles(fileDetails));
         onDismiss();
     };
 
-    const body = (
-        <div className={styles.bodyContainer}>
-            <p className={styles.note}>
-                Files copied to the local NAS cache (VAST) are stored with a 180-day lease, after
-                which they revert to cloud-only. To renew the lease, simply reselect the files and
-                confirm the copy.
-            </p>
+    // Separate files by "Should Be in Local Cache"
+    const filesInLocalCache = fileDetails.filter((file) =>
+        file.annotations.some(
+            (annotation) =>
+                annotation.name === "Should Be in Local Cache" && annotation.values[0] === true
+        )
+    );
+
+    const filesNotInLocalCache = fileDetails.filter((file) =>
+        file.annotations.some(
+            (annotation) =>
+                annotation.name === "Should Be in Local Cache" && annotation.values[0] === false
+        )
+    );
+
+    // Reusable function to render a table for files
+    const renderTable = (files: FileDetail[], title: string) => (
+        <div>
+            <h3 className={styles.tableTitle}>{title}</h3>
             <div className={styles.fileTableContainer}>
                 <table className={styles.fileTable}>
                     <thead>
@@ -70,7 +83,7 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
                         </tr>
                     </thead>
                     <tbody>
-                        {fileDetails.map((file) => (
+                        {files.map((file) => (
                             <tr key={file.id}>
                                 <td>{clipFileName(file.name)}</td>
                                 <td>{filesize(file.size || 0)}</td>
@@ -79,6 +92,21 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
                     </tbody>
                 </table>
             </div>
+        </div>
+    );
+
+    const body = (
+        <div className={styles.bodyContainer}>
+            <p className={styles.note}>
+                Files copied to the local NAS cache (VAST) are stored with a 180-day lease, after
+                which they revert to cloud-only. To renew the lease, simply reselect the files and
+                confirm the copy.
+            </p>
+            {renderTable(
+                filesInLocalCache,
+                "Files that are already in Local Cache (VAST) to renew lease for"
+            )}
+            {renderTable(filesNotInLocalCache, "Files to Download to Local Cache (VAST)")}
             <div className={styles.summary}>
                 <span className={styles.totalSize}>
                     {isLoading ? "Calculating..." : totalSize || "0 B"}
