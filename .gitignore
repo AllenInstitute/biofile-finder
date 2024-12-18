@@ -13,3 +13,4 @@ build
 *.log
 *.tgz
 .env
+mise.toml
