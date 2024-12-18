@@ -36,17 +36,16 @@ describe("<FileAnnotationList />", () => {
             });
 
             const filePathInsideAllenDrive = "path/to/MyFile.txt";
-            const filePath = `/allen/${filePathInsideAllenDrive}`;
+            const filePath = `production.allencell.org/${filePathInsideAllenDrive}`;
+            const localPath = `${hostMountPoint}/${filePathInsideAllenDrive}`;
             const fileDetails = new FileDetail({
                 file_path: filePath,
                 file_id: "abc123",
                 file_name: "MyFile.txt",
                 file_size: 7,
                 uploaded: "01/01/01",
-                annotations: [],
+                annotations: [{ name: "Local File Path", values: [localPath] }],
             });
-
-            const expectedLocalPath = `${hostMountPoint}/${filePathInsideAllenDrive}`;
 
             // Act
             const { findByText } = render(
@@ -60,7 +59,7 @@ describe("<FileAnnotationList />", () => {
                 "File Path (Canonical)",
                 filePath,
                 "File Path (Local)",
-                expectedLocalPath,
+                localPath,
             ]) {
                 expect(await findByText(cellText)).to.not.be.undefined;
             }
