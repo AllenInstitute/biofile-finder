@@ -535,7 +535,7 @@ const editFilesLogic = createLogic({
         }
 
         // Break files into batches of 10 File IDs
-        const fileIds = filesSelected.map((file) => file.id);
+        const fileIds = filesSelected.map((file) => file.uid);
         const batches = chunk(fileIds, 10);
 
         // Dispatch an event to alert the user of the start of the process

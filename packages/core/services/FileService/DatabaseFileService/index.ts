@@ -198,7 +198,7 @@ export default class DatabaseFileService implements FileService {
         const sql = `\
             UPDATE '${tableName}' \
             SET ${columnAssignments.join(", ")} \
-            WHERE "File ID" = '${fileId}'; \
+            WHERE ${DatabaseService.HIDDEN_UID_ANNOTATION} = '${fileId}'; \
         `;
         return this.databaseService.execute(sql);
     }
@@ -208,7 +208,7 @@ export default class DatabaseFileService implements FileService {
     ): Promise<{ [fileId: string]: AnnotationNameToValuesMap }> {
         const sql = new SQLBuilder()
             .from(this.dataSourceNames)
-            .where(`"File ID" IN (${fileIds.join(", ")})`)
+            .where(`${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${fileIds.join(", ")})`)
             .toSQL();
 
         const rows = await this.databaseService.query(sql);
@@ -217,7 +217,7 @@ export default class DatabaseFileService implements FileService {
             .reduce(
                 (acc, file) => ({
                     ...acc,
-                    [file.id]: file.annotations.reduce(
+                    [file.uid]: file.annotations.reduce(
                         (annoAcc, annotation) => ({
                             ...annoAcc,
                             [annotation.name]: annotation.values,

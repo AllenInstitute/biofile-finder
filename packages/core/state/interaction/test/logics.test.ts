@@ -658,16 +658,6 @@ describe("Interaction logics", () => {
 
     describe("editFilesLogic", () => {
         const sandbox = createSandbox();
-        before(() => {
-            sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
-        });
-        afterEach(() => {
-            sandbox.resetHistory();
-        });
-        after(() => {
-            sandbox.restore();
-        });
-
         const files = [];
         const fileKinds = ["PNG", "TIFF"];
         for (let i = 0; i <= 100; i++) {
@@ -729,6 +719,16 @@ describe("Interaction logics", () => {
             fileSet: new FileSet({ fileService }),
             index: new NumericRange(0, 100),
             sortOrder: 0,
+        });
+
+        before(() => {
+            sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
+        });
+        afterEach(() => {
+            sandbox.resetHistory();
+        });
+        after(() => {
+            sandbox.restore();
         });
 
         it("edits 'folder' when filter specified'", async () => {
