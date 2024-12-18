@@ -70,32 +70,6 @@
     display: flex;
 }
 
-.input-field {
-    flex-grow: 1;
-}
-
-.input-field {
-    flex-grow: 1;
-}
-
-.input-field input {
-    background-color: var(--secondary-background-color);
-    border-radius: var(--small-border-radius);
-    border: 1px solid var(--border-color);
-    color: var(--secondary-text-color);
-    outline: none;
-    padding: 6px;
-    font-size: var(--s-paragraph-size);
-    width: 100%;
-    min-width: fit-content;
-}
-
-.input-field:active > input, .input-field > input:active, 
-.input-field:focus > input, .input-field > input:focus,
-.input-field:focus-within > input, .input-field > input:focus-within  {
-    border: 1px solid var(--aqua);
-}
-
 .range-seperator {
     align-items: flex-end;
     display: flex;
@@ -115,10 +89,4 @@
 
 .container label,input{
     display: block;
-}
-
-.container input::-webkit-outer-spin-button,
-.container input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
 }
