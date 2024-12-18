@@ -98,15 +98,12 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
     const body = (
         <div className={styles.bodyContainer}>
             <p className={styles.note}>
-                Files copied to the local NAS cache (VAST) are stored with a 180-day lease, after
-                which they revert to cloud-only. To renew the lease, simply reselect the files and
-                confirm the copy.
+                Files copied to the local NAS (Vast) are stored with a 180-day expiration, after
+                which they revert to cloud-only. To extend the expiration, simply reselect the files
+                and confirm the update.
             </p>
-            {renderTable(
-                filesInLocalCache,
-                "Files that are already in Local Cache (VAST) to renew lease for"
-            )}
-            {renderTable(filesNotInLocalCache, "Files to Download to Local Cache (VAST)")}
+            {renderTable(filesInLocalCache, "Files that are already on Vast: Extend expiration")}
+            {renderTable(filesNotInLocalCache, "Files to download to Vast")}
             <div className={styles.summary}>
                 <span className={styles.totalSize}>
                     {isLoading ? "Calculating..." : totalSize || "0 B"}
@@ -139,7 +136,7 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
                 </div>
             }
             onDismiss={onDismiss}
-            title="Copy Files to NAS Cache (VAST)"
+            title="Copy Files to Local NAS (Vast)"
         />
     );
 }
