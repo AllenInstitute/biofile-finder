@@ -37,15 +37,18 @@ describe("<FileAnnotationList />", () => {
 
             const filePathInsideAllenDrive = "path/to/MyFile.txt";
             const filePath = `production.allencell.org/${filePathInsideAllenDrive}`;
-            const localPath = `${hostMountPoint}/${filePathInsideAllenDrive}`;
             const fileDetails = new FileDetail({
                 file_path: filePath,
                 file_id: "abc123",
                 file_name: "MyFile.txt",
                 file_size: 7,
                 uploaded: "01/01/01",
-                annotations: [{ name: "Local File Path", values: [localPath] }],
+                annotations: [
+                    { name: "Local File Path", values: [`/allen/${filePathInsideAllenDrive}`] },
+                ],
             });
+
+            const localPath = `${hostMountPoint}/${filePathInsideAllenDrive}`;
 
             // Act
             const { findByText } = render(
