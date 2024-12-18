@@ -3,6 +3,7 @@ import { expect } from "chai";
 import { createSandbox } from "sinon";
 
 import FileSet from "../";
+import { FESBaseUrl } from "../../../constants";
 import FileFilter from "../../FileFilter";
 import FileSort, { SortOrder } from "../../FileSort";
 import { makeFileDetailMock } from "../../FileDetail/mocks";
@@ -148,40 +149,40 @@ describe("FileSet", () => {
         });
 
         it("turns indicies for requested data into a properly formed pagination query", async () => {
-            const baseUrl = "test";
+            const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
             const spec = [
                 {
-                    expectedUrl: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=1&limit=28`,
+                    expectedUrl: `${fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}?from=1&limit=28`,
                     start: 35,
                     end: 55,
                 },
                 {
-                    expectedUrl: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=11&limit=23`,
+                    expectedUrl: `${fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}?from=11&limit=23`,
                     start: 256,
                     end: 274,
                 },
                 {
-                    expectedUrl: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=6`,
+                    expectedUrl: `${fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=6`,
                     start: 0,
                     end: 5,
                 },
                 {
-                    expectedUrl: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=1&limit=11`,
+                    expectedUrl: `${fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}?from=1&limit=11`,
                     start: 14,
                     end: 21,
                 },
                 {
-                    expectedUrl: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=6`,
+                    expectedUrl: `${fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=6`,
                     start: 2,
                     end: 5,
                 },
                 {
-                    expectedUrl: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=3&limit=4`,
+                    expectedUrl: `${fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}?from=3&limit=4`,
                     start: 12,
                     end: 15,
                 },
                 {
-                    expectedUrl: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=301`,
+                    expectedUrl: `${fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}?from=0&limit=301`,
                     start: 2,
                     end: 300,
                 },
@@ -203,7 +204,7 @@ describe("FileSet", () => {
                 const fileSet = new FileSet({
                     fileService: new HttpFileService({
                         httpClient,
-                        baseUrl,
+                        fileExplorerServiceBaseUrl,
                         downloadService: new FileDownloadServiceNoop(),
                     }),
                 });

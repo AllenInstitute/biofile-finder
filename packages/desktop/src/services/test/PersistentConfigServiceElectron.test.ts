@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 import { PersistedConfigKeys } from "../../../../core/services";
-import { RUN_IN_RENDERER } from "../../util/constants";
+import { Environment, RUN_IN_RENDERER } from "../../util/constants";
 import PersistentConfigServiceElectron from "../PersistentConfigServiceElectron";
 
 describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
@@ -61,6 +61,8 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                     units: "string",
                 },
             ];
+
+            const expectedEnvironment = Environment.TEST;
             const expectedColumns = [{ file_size: 0.4 }, { file_name: 0.6 }];
 
             service.persist(PersistedConfigKeys.AllenMountPoint, expectedAllenMountPoint);
@@ -75,6 +77,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             service.persist(PersistedConfigKeys.UserSelectedApplications, expectedUserSelectedApps);
             service.persist(PersistedConfigKeys.DisplayAnnotations, expectedDisplayAnnotations);
             service.persist(PersistedConfigKeys.RecentAnnotations, expectedRecentAnnotations);
+            service.persist(PersistedConfigKeys.Environment, expectedEnvironment);
 
             const expectedConfig = {
                 [PersistedConfigKeys.AllenMountPoint]: expectedAllenMountPoint,
@@ -86,6 +89,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                 [PersistedConfigKeys.UserSelectedApplications]: expectedUserSelectedApps,
                 [PersistedConfigKeys.DisplayAnnotations]: expectedDisplayAnnotations,
                 [PersistedConfigKeys.RecentAnnotations]: expectedRecentAnnotations,
+                [PersistedConfigKeys.Environment]: expectedEnvironment,
             };
 
             // Act
@@ -127,6 +131,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                         units: "string",
                     },
                 ],
+                [PersistedConfigKeys.Environment]: Environment.TEST,
             };
 
             // Act
@@ -166,10 +171,13 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             service.persist(PersistedConfigKeys.CsvColumns, ["Cell Line"]);
             service.persist(PersistedConfigKeys.CsvColumns, expected);
             service.persist(PersistedConfigKeys.AllenMountPoint, "/my/path/allen");
+            service.persist(PersistedConfigKeys.Environment, Environment.TEST);
 
             // Assert
             const actual = service.get(PersistedConfigKeys.CsvColumns);
+            const actualEnvironment = service.get(PersistedConfigKeys.Environment);
             expect(actual).to.be.deep.equal(expected);
+            expect(actualEnvironment).to.equal(Environment.TEST);
         });
     });
 });

@@ -30,7 +30,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
      * Fetch all annotations.
      */
     public async fetchAnnotations(): Promise<Annotation[]> {
-        const requestUrl = `${this.baseUrl}/${HttpAnnotationService.BASE_ANNOTATION_URL}${this.pathSuffix}`;
+        const requestUrl = `${this.fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_ANNOTATION_URL}${this.pathSuffix}`;
 
         const response = await this.get<AnnotationResponse>(requestUrl);
         return [
@@ -45,7 +45,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
     public async fetchValues(annotation: string): Promise<AnnotationValue[]> {
         // Encode any special characters in the annotation as necessary
         const encodedAnnotation = HttpServiceBase.encodeURISection(annotation);
-        const requestUrl = `${this.baseUrl}/${HttpAnnotationService.BASE_ANNOTATION_URL}/${encodedAnnotation}/values${this.pathSuffix}`;
+        const requestUrl = `${this.fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_ANNOTATION_URL}/${encodedAnnotation}/values${this.pathSuffix}`;
 
         const response = await this.get<AnnotationValue>(requestUrl);
         return response.data;
@@ -70,7 +70,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
             .filter((param) => !!param)
             .join("&");
 
-        const requestUrl = `${this.baseUrl}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}${this.pathSuffix}?${queryParams}`;
+        const requestUrl = `${this.fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}${this.pathSuffix}?${queryParams}`;
 
         const response = await this.get<string>(requestUrl);
         return response.data;
@@ -91,7 +91,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         ]
             .filter((param) => !!param)
             .join("&");
-        const requestUrl = `${this.baseUrl}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}${this.pathSuffix}?${queryParams}`;
+        const requestUrl = `${this.fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}${this.pathSuffix}?${queryParams}`;
 
         const response = await this.get<string>(requestUrl);
         return response.data;
@@ -103,7 +103,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
      */
     public async fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]> {
         const queryParams = this.buildQueryParams(QueryParam.HIERARCHY, [...annotations].sort());
-        const requestUrl = `${this.baseUrl}/${HttpAnnotationService.BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY}${this.pathSuffix}?${queryParams}`;
+        const requestUrl = `${this.fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY}${this.pathSuffix}?${queryParams}`;
 
         const response = await this.get<string>(requestUrl);
         if (!response.data) {
