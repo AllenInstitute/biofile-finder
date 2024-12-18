@@ -4,6 +4,8 @@ import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
 
+const AICS_FMS_S3_BUCKET = "production.files.allencell.org";
+
 /**
  * Expected JSON response of a file detail returned from the query service. Example:
  * {
@@ -79,7 +81,11 @@ export default class FileDetail {
         const pathWithoutDrive = path.replace("/allen/programs/allencell/data/proj0", "");
         // Should probably record this somewhere we can dynamically adjust to, or perhaps just in the file
         // document itself, alas for now this will do.
-        return `https://s3.us-west-2.amazonaws.com/production.files.allencell.org${pathWithoutDrive}`;
+        return `https://s3.us-west-2.amazonaws.com/${AICS_FMS_S3_BUCKET}${pathWithoutDrive}`;
+    }
+
+    private static convertAicsS3PathToHttpUrl(path: string): string {
+        return `https://s3.us-west-2.amazonaws.com/${path}`;
     }
 
     constructor(fileDetail: FmsFile, uniqueId?: string) {
@@ -116,6 +122,13 @@ export default class FileDetail {
         if (path === undefined) {
             throw new Error("File Path is not defined");
         }
+
+        // AICS FMS files have paths like staging.files.allencell.org/130/b23/bfe/117/2a4/71b/746/002/064/db4/1a/danny_int_test_4.txt
+        if (typeof path === "string" && path.startsWith(AICS_FMS_S3_BUCKET)) {
+            return FileDetail.convertAicsS3PathToHttpUrl(path) as string;
+        }
+
+        // Otherwise just return the path as is and hope for the best
         return path as string;
     }
 
@@ -128,12 +141,7 @@ export default class FileDetail {
     }
 
     public get cloudPath(): string {
-        // Can retrieve a cloud like path for AICS FMS files
-        if (this.path.startsWith("/allen")) {
-            return FileDetail.convertAicsDrivePathToAicsS3Path(this.path);
-        }
-
-        // Otherwise just return the path as is and hope for the best
+        // AICS FMS files' paths are cloud paths
         return this.path;
     }
 
