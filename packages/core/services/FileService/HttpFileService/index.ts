@@ -34,9 +34,9 @@ interface EditableFileMetadata {
 }
 
 const FESBaseUrlToMMSBaseUrlMap = {
-    [FileExplorerServiceBaseUrl.LOCALHOST]: "http://localhost:9060",
-    [FileExplorerServiceBaseUrl.STAGING]: "http://stg-aics-api",
-    [FileExplorerServiceBaseUrl.PRODUCTION]: "http://stg-aics-api",
+    [FileExplorerServiceBaseUrl.LOCALHOST]: "https://localhost:9060",
+    [FileExplorerServiceBaseUrl.STAGING]: "https://stg-aics.corp.alleninstitute.org",
+    [FileExplorerServiceBaseUrl.PRODUCTION]: "https://stg-aics.corp.alleninstitute.org", // TO DO: unsure if using stg for prod was intentional
 };
 
 /**
@@ -168,7 +168,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
             }
             return { annotationId, values };
         });
-        const requestBody = JSON.stringify({ annotations });
+        const requestBody = JSON.stringify({ customMetadata: { annotations } });
         await this.put(url, requestBody);
     }
 
