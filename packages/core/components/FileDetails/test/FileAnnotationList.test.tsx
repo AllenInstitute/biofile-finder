@@ -9,6 +9,8 @@ import FileDetail from "../../../entity/FileDetail";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { initialState } from "../../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
+import Annotation from "../../../entity/Annotation";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 
 describe("<FileAnnotationList />", () => {
     describe("file path representation", () => {
@@ -25,7 +27,15 @@ describe("<FileAnnotationList />", () => {
             const { store } = configureMockStore({
                 state: mergeState(initialState, {
                     metadata: {
-                        annotations: TOP_LEVEL_FILE_ANNOTATIONS,
+                        annotations: [
+                            ...TOP_LEVEL_FILE_ANNOTATIONS,
+                            new Annotation({
+                                annotationName: "Local File Path",
+                                annotationDisplayName: "File Path (Local)",
+                                description: "Path to file in on-premises storage.",
+                                type: AnnotationType.STRING,
+                            }),
+                        ],
                     },
                     interaction: {
                         platformDependentServices: {
