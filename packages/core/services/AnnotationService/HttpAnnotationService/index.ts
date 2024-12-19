@@ -4,6 +4,7 @@ import AnnotationService, { AnnotationValue } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
 import Annotation, { AnnotationResponse } from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
+import renameAnnotation from "./FMSAnnotationPresentationLayer";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
 
 enum QueryParam {
@@ -35,7 +36,10 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         const response = await this.get<AnnotationResponse>(requestUrl);
         return [
             ...TOP_LEVEL_FILE_ANNOTATIONS,
-            ...map(response.data, (annotationResponse) => new Annotation(annotationResponse)),
+            ...map(
+                response.data,
+                (annotationResponse) => new Annotation(renameAnnotation(annotationResponse))
+            ),
         ];
     }
 
