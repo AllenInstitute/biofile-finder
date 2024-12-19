@@ -23,20 +23,10 @@ interface Config extends ConnectionConfig {
     downloadService: FileDownloadService;
 }
 
-// Used for the GET request to MMS for file metadata
-interface EditableFileMetadata {
-    fileId: string;
-    annotations?: {
-        annotationId: number;
-        values: string[];
-    }[];
-    templateId?: number;
-}
-
 const FESBaseUrlToMMSBaseUrlMap = {
     [FileExplorerServiceBaseUrl.LOCALHOST]: "https://localhost:9060",
     [FileExplorerServiceBaseUrl.STAGING]: "https://stg-aics.corp.alleninstitute.org",
-    [FileExplorerServiceBaseUrl.PRODUCTION]: "https://stg-aics.corp.alleninstitute.org", // TO DO: unsure if using stg for prod was intentional
+    [FileExplorerServiceBaseUrl.PRODUCTION]: "https://aics.corp.alleninstitute.org",
 };
 
 /**
@@ -170,37 +160,5 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         });
         const requestBody = JSON.stringify({ customMetadata: { annotations } });
         await this.put(url, requestBody);
-    }
-
-    public async getEditableFileMetadata(
-        fileIds: string[],
-        annotationIdToAnnotationMap?: Record<number, Annotation>
-    ): Promise<{ [fileId: string]: AnnotationNameToValuesMap }> {
-        const mmsBaseUrl = FESBaseUrlToMMSBaseUrlMap[this.baseUrl as FileExplorerServiceBaseUrl];
-        const url = `${mmsBaseUrl}/${HttpFileService.BASE_EDIT_FILES_URL}/${fileIds.join(",")}`;
-        const response = await this.get<EditableFileMetadata>(url);
-
-        // Group files by fileId
-        return response.data.reduce(
-            (fileAcc, file) => ({
-                ...fileAcc,
-                // Group annotations by name
-                [file.fileId]:
-                    file.annotations?.reduce((annoAcc, annotation) => {
-                        const name = annotationIdToAnnotationMap?.[annotation.annotationId]?.name;
-                        if (!name) {
-                            throw new Error(
-                                "Failure mapping editable metadata response. " +
-                                    `Failed to find annotation name for annotation id ${annotation.annotationId}`
-                            );
-                        }
-                        return {
-                            ...annoAcc,
-                            [name]: annotation.values,
-                        };
-                    }, {} as AnnotationNameToValuesMap) || {},
-            }),
-            {} as { [fileId: string]: AnnotationNameToValuesMap }
-        );
     }
 }

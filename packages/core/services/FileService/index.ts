@@ -58,9 +58,5 @@ export default interface FileService {
     ): Promise<void>;
     getAggregateInformation(fileSelection: FileSelection): Promise<SelectionAggregationResult>;
     getCountOfMatchingFiles(fileSet: FileSet): Promise<number>;
-    getEditableFileMetadata(
-        fileIds: string[],
-        annotationIdToAnnotationMap?: Record<number, Annotation>
-    ): Promise<{ [fileId: string]: AnnotationNameToValuesMap }>;
     getFiles(request: GetFilesRequest): Promise<FileDetail[]>;
 }

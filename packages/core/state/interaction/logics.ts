@@ -541,8 +541,6 @@ const editFilesLogic = createLogic({
         // Dispatch an event to alert the user of the start of the process
         const editRequestId = uniqueId();
         const editProcessMsg = "Editing files in progress.";
-        // TODO: Lyndsay's design did not include a progress bar for editing files
-        // nor a way to cancel the process. This is a placeholder for now.
         dispatch(processStart(editRequestId, editProcessMsg, noop));
 
         // Track the total number of files edited

@@ -65,39 +65,6 @@ describe("DatabaseFileService", () => {
         });
     });
 
-    describe("getEditableFileMetadata", () => {
-        it("converts response into a map of file uids to metadata", async () => {
-            // Arrange
-            const databaseFileService = new DatabaseFileService({
-                dataSourceNames: ["mock source name", "another mock source name"],
-                databaseService,
-                downloadService: new FileDownloadServiceNoop(),
-            });
-
-            // Act
-            const response = await databaseFileService.getEditableFileMetadata([
-                "abc123",
-                "def456",
-            ]);
-
-            // Assert
-            expect(response).to.deep.equal({
-                abc123: {
-                    "File Name": ["file"],
-                    "File Path": ["path/to/file"],
-                    "File Size": ["432226"],
-                    num_files: ["6"],
-                },
-                def456: {
-                    "File Name": ["file"],
-                    "File Path": ["path/to/file"],
-                    "File Size": ["432226"],
-                    num_files: ["6"],
-                },
-            });
-        });
-    });
-
     describe("getAggregateInformation", () => {
         it("issues request for aggregated information about given files", async () => {
             // Arrange

@@ -202,30 +202,4 @@ export default class DatabaseFileService implements FileService {
         `;
         return this.databaseService.execute(sql);
     }
-
-    public async getEditableFileMetadata(
-        fileIds: string[]
-    ): Promise<{ [fileId: string]: AnnotationNameToValuesMap }> {
-        const sql = new SQLBuilder()
-            .from(this.dataSourceNames)
-            .where(`${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${fileIds.join(", ")})`)
-            .toSQL();
-
-        const rows = await this.databaseService.query(sql);
-        return rows
-            .map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row))
-            .reduce(
-                (acc, file) => ({
-                    ...acc,
-                    [file.uid]: file.annotations.reduce(
-                        (annoAcc, annotation) => ({
-                            ...annoAcc,
-                            [annotation.name]: annotation.values,
-                        }),
-                        {} as AnnotationNameToValuesMap
-                    ),
-                }),
-                {} as { [fileId: string]: AnnotationNameToValuesMap }
-            );
-    }
 }
