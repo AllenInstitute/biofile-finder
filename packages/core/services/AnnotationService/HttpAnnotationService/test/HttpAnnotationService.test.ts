@@ -31,6 +31,16 @@ describe("HttpAnnotationService", () => {
             );
             expect(annotations[0]).to.be.instanceOf(Annotation);
         });
+
+        it("renames Local File Path to File Path (Local)", async () => {
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient,
+            });
+            const annotations = await annotationService.fetchAnnotations();
+            const localPathAnnotation = annotations.find((a) => a.name === "Local File Path");
+            expect(localPathAnnotation?.displayName).to.equal("File Path (Local)");
+        });
     });
 
     describe("fetchAnnotationValues", () => {
