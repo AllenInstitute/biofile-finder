@@ -4,6 +4,7 @@
     width: 40vw; 
     height: 100%;
     left: 30px;
+    /* FluentUI modal z-index is set to 1000000 */
     z-index: 1000;
     pointer-events: none;
 }
