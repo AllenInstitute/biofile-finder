@@ -121,7 +121,6 @@ export default class FileDetail {
 
     public get localPath(): string | null {
         const localPath = this.getFirstAnnotationValue("Local File Path");
-        console.log("local path is ", localPath);
         if (localPath === undefined) {
             return null;
         }

@@ -32,12 +32,6 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         type: AnnotationType.STRING,
     }),
     new Annotation({
-        annotationDisplayName: "File Path (Local)",
-        annotationName: AnnotationName.LOCAL_FILE_PATH,
-        description: "Path to the file on-premises.",
-        type: AnnotationType.STRING,
-    }),
-    new Annotation({
         annotationDisplayName: "Size",
         annotationName: AnnotationName.FILE_SIZE,
         description: "Size of file on disk.",
