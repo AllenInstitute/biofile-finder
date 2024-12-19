@@ -135,6 +135,20 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                         ],
                     },
                 },
+                ...(isQueryingAicsFms && !isOnWeb
+                    ? [
+                          {
+                              key: "move-to-cache",
+                              text: "Move to Cache",
+                              title: "Move selected files to NAS Cache",
+                              disabled: !filters && fileSelection.count() === 0,
+                              iconProps: { iconName: "MoveToFolder" },
+                              onClick() {
+                                  dispatch(interaction.actions.showMoveFileManifest());
+                              },
+                          },
+                      ]
+                    : []),
                 {
                     key: "download",
                     text: "Download",

@@ -2,13 +2,15 @@ import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 
 import HttpFileService from "..";
+import { FESBaseUrl, LoadBalancerBaseUrl } from "../../../../constants";
 import FileSelection from "../../../../entity/FileSelection";
 import FileSet from "../../../../entity/FileSet";
 import NumericRange from "../../../../entity/NumericRange";
 import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadServiceNoop";
 
 describe("HttpFileService", () => {
-    const baseUrl = "test";
+    const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
+    const loadBalancerBaseUrl = LoadBalancerBaseUrl.TEST;
     const fileIds = ["abc123", "def456", "ghi789", "jkl012"];
     const files = fileIds.map((file_id) => ({
         file_id,
@@ -28,7 +30,7 @@ describe("HttpFileService", () => {
 
         it("issues request for files that match given parameters", async () => {
             const httpFileService = new HttpFileService({
-                baseUrl,
+                fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
                 httpClient,
                 downloadService: new FileDownloadServiceNoop(),
             });
@@ -48,7 +50,7 @@ describe("HttpFileService", () => {
         const totalFileSize = 12424114;
         const totalFileCount = 7;
         const httpClient = createMockHttpClient({
-            when: `${baseUrl}/${HttpFileService.SELECTION_AGGREGATE_URL}`,
+            when: `${fileExplorerServiceBaseUrl}/${HttpFileService.SELECTION_AGGREGATE_URL}`,
             respondWith: {
                 data: {
                     data: [{ count: totalFileCount, size: totalFileSize }],
@@ -59,7 +61,7 @@ describe("HttpFileService", () => {
         it("issues request for aggregated information about given files", async () => {
             // Arrange
             const fileService = new HttpFileService({
-                baseUrl,
+                fileExplorerServiceBaseUrl,
                 httpClient,
                 downloadService: new FileDownloadServiceNoop(),
             });
@@ -78,25 +80,39 @@ describe("HttpFileService", () => {
         });
     });
 
-    describe("getCountOfMatchingFiles", () => {
+    describe("cacheFiles", () => {
         const httpClient = createMockHttpClient({
-            when: `${baseUrl}/${HttpFileService.BASE_FILE_COUNT_URL}`,
+            when: `${loadBalancerBaseUrl}/${HttpFileService.BASE_FILE_CACHE_URL}`,
             respondWith: {
                 data: {
-                    data: [2],
+                    cacheFileStatuses: {
+                        abc123: "DOWNLOAD_COMPLETE",
+                        def456: "ERROR",
+                    },
                 },
             },
         });
 
-        it("issues request for count of files matching given parameters", async () => {
+        it("sends file IDs to be cached and returns their statuses", async () => {
+            // Arrange
             const fileService = new HttpFileService({
-                baseUrl,
+                loadBalancerBaseUrl: loadBalancerBaseUrl,
                 httpClient,
                 downloadService: new FileDownloadServiceNoop(),
             });
-            const fileSet = new FileSet();
-            const count = await fileService.getCountOfMatchingFiles(fileSet);
-            expect(count).to.equal(2);
+            const fileIds = ["abc123", "def456"];
+            const username = "test.user";
+
+            // Act
+            const response = await fileService.cacheFiles(fileIds, username);
+
+            // Assert
+            expect(response).to.deep.equal({
+                cacheFileStatuses: {
+                    abc123: "DOWNLOAD_COMPLETE",
+                    def456: "ERROR",
+                },
+            });
         });
     });
 });

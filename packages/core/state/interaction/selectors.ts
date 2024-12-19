@@ -14,9 +14,15 @@ import DatabaseFileService from "../../services/FileService/DatabaseFileService"
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
 import { ModalType } from "../../components/Modal";
-import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
+import {
+    AICS_FMS_DATA_SOURCE_NAME,
+    FESBaseUrl,
+    MMSBaseUrl,
+    LoadBalancerBaseUrl,
+} from "../../constants";
 
 // BASIC SELECTORS
+export const getEnvironment = (state: State) => state.interaction.environment;
 export const getContextMenuVisibility = (state: State) => state.interaction.contextMenuIsVisible;
 export const getContextMenuItems = (state: State) => state.interaction.contextMenuItems;
 export const getContextMenuPositionReference = (state: State) =>
@@ -28,8 +34,6 @@ export const getDataSourceInfoForVisibleModal = (state: State) =>
 export const getDatasetDetailsVisibility = (state: State) =>
     state.interaction.datasetDetailsPanelIsVisible;
 export const getSelectedPublicDataset = (state: State) => state.interaction.selectedPublicDataset;
-export const getFileExplorerServiceBaseUrl = (state: State) =>
-    state.interaction.fileExplorerServiceBaseUrl;
 export const getFileFiltersForVisibleModal = (state: State) =>
     state.interaction.fileFiltersForVisibleModal;
 export const getFileTypeForVisibleModal = (state: State) =>
@@ -47,6 +51,22 @@ export const getUserSelectedApplications = (state: State) =>
     state.interaction.userSelectedApplications;
 export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee;
+
+// URL Mapping Selectors
+export const getFileExplorerServiceBaseUrl = createSelector(
+    [getEnvironment],
+    (environment) => FESBaseUrl[environment]
+);
+
+export const getLoadBalancerBaseUrl = createSelector(
+    [getEnvironment],
+    (environment) => LoadBalancerBaseUrl[environment]
+);
+
+export const getMetadataManagementServiceBaseUrl = createSelector(
+    [getEnvironment],
+    (environment) => MMSBaseUrl[environment]
+);
 
 // COMPOSED SELECTORS
 export const getApplicationVersion = createSelector(
@@ -101,16 +121,27 @@ export const getUserName = createSelector(
 export const getHttpFileService = createSelector(
     [
         getApplicationVersion,
-        getUserName,
         getFileExplorerServiceBaseUrl,
+        getLoadBalancerBaseUrl,
+        getMetadataManagementServiceBaseUrl,
+        getUserName,
         getPlatformDependentServices,
         getRefreshKey,
     ],
-    (applicationVersion, userName, fileExplorerBaseUrl, platformDependentServices) =>
+    (
+        applicationVersion,
+        fileExplorerServiceBaseUrl,
+        loadBalancerBaseUrl,
+        metadataManagementServiceBaseURL,
+        userName,
+        platformDependentServices
+    ) =>
         new HttpFileService({
             applicationVersion,
+            fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
+            loadBalancerBaseUrl: loadBalancerBaseUrl,
+            metadataManagementServiceBaseURl: metadataManagementServiceBaseURL,
             userName,
-            baseUrl: fileExplorerBaseUrl,
             downloadService: platformDependentServices.fileDownloadService,
         })
 );
@@ -161,7 +192,7 @@ export const getAnnotationService = createSelector(
     (
         applicationVersion,
         userName,
-        fileExplorerBaseUrl,
+        fileExplorerServiceBaseUrl,
         dataSources,
         platformDependentServices
     ): AnnotationService => {
@@ -174,18 +205,18 @@ export const getAnnotationService = createSelector(
         return new HttpAnnotationService({
             applicationVersion,
             userName,
-            baseUrl: fileExplorerBaseUrl,
+            fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
         });
     }
 );
 
 export const getDatasetService = createSelector(
     [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl, getRefreshKey],
-    (applicationVersion, userName, fileExplorerBaseUrl) =>
+    (applicationVersion, userName, fileExplorerServiceBaseUrl) =>
         new DatasetService({
             applicationVersion,
             userName,
-            baseUrl: fileExplorerBaseUrl,
+            fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
         })
 );
 

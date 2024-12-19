@@ -39,7 +39,7 @@ export interface Selection {
 }
 
 export default interface FileService {
-    baseUrl?: string;
+    fileExplorerServiceBaseUrl?: string;
     download(
         annotations: string[],
         selections: Selection[],

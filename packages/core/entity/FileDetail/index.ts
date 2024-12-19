@@ -1,5 +1,4 @@
 import AnnotationName from "../Annotation/AnnotationName";
-import { FileExplorerServiceBaseUrl } from "../../constants";
 import { FmsFileAnnotation } from "../../services/FileService";
 import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
 
@@ -194,21 +193,13 @@ export default class FileDetail {
         return this.thumbnail;
     }
 
-    public getLinkToPlateUI(baseURL: string): string | undefined {
+    public getLinkToPlateUI(labkeyHost: string): string | undefined {
         // Grabbing plate barcode
         const platebarcode = this.getFirstAnnotationValue(AnnotationName.PLATE_BARCODE);
-
         if (!platebarcode) {
             return undefined;
         }
-
-        let labkeyHost = "localhost:9081";
-        if (baseURL === FileExplorerServiceBaseUrl.PRODUCTION) {
-            labkeyHost = "aics.corp.alleninstitute.org";
-        } else if (baseURL === FileExplorerServiceBaseUrl.STAGING) {
-            labkeyHost = "stg-aics.corp.alleninstitute.org";
-        }
-        return `http://${labkeyHost}/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${platebarcode}`;
+        return `${labkeyHost}/labkey/aics_microscopy/AICS/editPlate.view?Barcode=${platebarcode}`;
     }
 
     public getAnnotationNameToLinkMap(): { [annotationName: string]: string } {

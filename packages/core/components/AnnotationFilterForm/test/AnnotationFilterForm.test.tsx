@@ -10,6 +10,7 @@ import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import { initialState, reducer, reduxLogics, interaction, selection } from "../../../state";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
+import { FESBaseUrl } from "../../../constants";
 
 describe("<AnnotationFilterForm />", () => {
     const LISTROW_TESTID_PREFIX = "default-button-";
@@ -31,14 +32,14 @@ describe("<AnnotationFilterForm />", () => {
         it("shows all values as unchecked at first", async () => {
             // arrange
             const responseStub = {
-                when: `test/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
                 respondWith: {
                     data: { data: ["a", "b", "c", "d"] },
                 },
             };
             const mockHttpClient = createMockHttpClient(responseStub);
             const annotationService = new HttpAnnotationService({
-                baseUrl: "test",
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient: mockHttpClient,
             });
             sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
@@ -68,14 +69,14 @@ describe("<AnnotationFilterForm />", () => {
         it("deselects and selects a value", async () => {
             // arrange
             const responseStub = {
-                when: `test/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
                 respondWith: {
                     data: { data: ["a", "b", "c", "d"] },
                 },
             };
             const mockHttpClient = createMockHttpClient(responseStub);
             const annotationService = new HttpAnnotationService({
-                baseUrl: "test",
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient: mockHttpClient,
             });
             sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
@@ -124,14 +125,14 @@ describe("<AnnotationFilterForm />", () => {
         it("naturally sorts values", async () => {
             // arrange
             const responseStub = {
-                when: `test/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
                 respondWith: {
                     data: { data: ["AICS-24", "AICS-0", "aics-32", "aICs-2"] },
                 },
             };
             const mockHttpClient = createMockHttpClient(responseStub);
             const annotationService = new HttpAnnotationService({
-                baseUrl: "test",
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient: mockHttpClient,
             });
             sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
@@ -172,14 +173,14 @@ describe("<AnnotationFilterForm />", () => {
         });
 
         const responseStub = {
-            when: `test/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+            when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
             respondWith: {
                 data: { data: [true, false] },
             },
         };
         const mockHttpClient = createMockHttpClient(responseStub);
         const annotationService = new HttpAnnotationService({
-            baseUrl: "test",
+            fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
             httpClient: mockHttpClient,
         });
 
@@ -279,14 +280,14 @@ describe("<AnnotationFilterForm />", () => {
         it("naturally sorts values", async () => {
             // arrange
             const responseStub = {
-                when: `test/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
                 respondWith: {
                     data: { data: [5, 8, 6.3, -12, 10000000000, 0] },
                 },
             };
             const mockHttpClient = createMockHttpClient(responseStub);
             const annotationService = new HttpAnnotationService({
-                baseUrl: "test",
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient: mockHttpClient,
             });
             sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
@@ -334,14 +335,14 @@ describe("<AnnotationFilterForm />", () => {
         it("naturally sorts values", async () => {
             // arrange
             const responseStub = {
-                when: `test/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
                 respondWith: {
                     data: { data: [446582220, 125, 10845000, 86400000] },
                 },
             };
             const mockHttpClient = createMockHttpClient(responseStub);
             const annotationService = new HttpAnnotationService({
-                baseUrl: "test",
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient: mockHttpClient,
             });
             sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
