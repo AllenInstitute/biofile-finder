@@ -88,7 +88,12 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                 }
             }
 
-            const ret = [
+            if (annotation.name === AnnotationName.FILE_PATH) {
+                // Display the full http://... URL
+                annotationValue = fileDetails.cloudPath;
+            }
+
+            return [
                 ...accum,
                 <FileAnnotationRow
                     key={annotation.displayName}
@@ -97,8 +102,6 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                     value={annotationValue}
                 />,
             ];
-
-            return ret;
         }, [] as JSX.Element[]);
     }, [annotations, fileDetails, isLoading, localPath]);
 

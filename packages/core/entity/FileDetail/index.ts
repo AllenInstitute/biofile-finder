@@ -81,7 +81,7 @@ export default class FileDetail {
         const pathWithoutDrive = path.replace("/allen/programs/allencell/data/proj0", "");
         // Should probably record this somewhere we can dynamically adjust to, or perhaps just in the file
         // document itself, alas for now this will do.
-        return `https://s3.us-west-2.amazonaws.com/${AICS_FMS_S3_BUCKET}${pathWithoutDrive}`;
+        return FileDetail.convertAicsS3PathToHttpUrl(`${AICS_FMS_S3_BUCKET}${pathWithoutDrive}`);
     }
 
     private static convertAicsS3PathToHttpUrl(path: string): string {
