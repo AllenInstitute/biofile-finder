@@ -89,7 +89,12 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                 }
             }
 
-            const ret = [
+            if (annotation.name === AnnotationName.FILE_PATH) {
+                // Display the full http://... URL
+                annotationValue = fileDetails.cloudPath;
+            }
+
+            return [
                 ...accum,
                 <FileAnnotationRow
                     key={annotation.displayName}
@@ -98,24 +103,6 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                     value={annotationValue}
                 />,
             ];
-
-            // Special case for file paths: we want to display both the "canonical" FMS path
-            // (i.e. POSIX path held in the database; what we have an annotation for)
-            // as well as the path at which the file is *actually* accessible on _this_ computer ("local" file path)
-            if (annotation.name === AnnotationName.FILE_PATH) {
-                if (fileDetails.path !== fileDetails.cloudPath) {
-                    ret.push(
-                        <FileAnnotationRow
-                            key="file-path-cloud"
-                            className={styles.row}
-                            name="File Path (Cloud)"
-                            value={fileDetails.cloudPath}
-                        />
-                    );
-                }
-            }
-
-            return ret;
         }, [] as JSX.Element[]);
     }, [annotations, fileDetails, isLoading, localPath]);
 
