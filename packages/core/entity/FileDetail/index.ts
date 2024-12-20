@@ -124,7 +124,8 @@ export default class FileDetail {
             throw new Error("File Path is not defined");
         }
 
-        // AICS FMS files have paths like staging.files.allencell.org/130/b23/bfe/117/2a4/71b/746/002/064/db4/1a/danny_int_test_4.txt
+        // AICS FMS files have paths like this in fileDetail.file_path:
+        // staging.files.allencell.org/130/b23/bfe/117/2a4/71b/746/002/064/db4/1a/danny_int_test_4.txt
         if (typeof path === "string" && path.startsWith(AICS_FMS_S3_BUCKET)) {
             return FileDetail.convertAicsS3PathToHttpUrl(path) as string;
         }
