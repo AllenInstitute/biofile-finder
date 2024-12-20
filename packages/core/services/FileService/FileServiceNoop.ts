@@ -15,11 +15,11 @@ export default class FileServiceNoop implements FileService {
         return Promise.resolve([]);
     }
 
-    public getFilesAsBuffer(): Promise<Uint8Array> {
-        return Promise.resolve(new Uint8Array());
-    }
-
     public download(): Promise<DownloadResult> {
         return Promise.resolve({ downloadRequestId: "", resolution: DownloadResolution.CANCELLED });
+    }
+
+    public editFile(): Promise<void> {
+        return Promise.resolve();
     }
 }

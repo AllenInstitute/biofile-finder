@@ -53,7 +53,7 @@ export default abstract class DatabaseService {
         _uri: string | File
     ): Promise<void>;
 
-    protected abstract execute(_sql: string): Promise<void>;
+    public abstract execute(_sql: string): Promise<void>;
 
     private static columnTypeToAnnotationType(columnType: string): string {
         switch (columnType) {

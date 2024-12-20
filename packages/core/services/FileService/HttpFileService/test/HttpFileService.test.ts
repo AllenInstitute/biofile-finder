@@ -44,6 +44,34 @@ describe("HttpFileService", () => {
         });
     });
 
+    describe("editFile", () => {
+        const httpClient = createMockHttpClient([
+            {
+                when: () => true,
+                respondWith: {},
+            },
+        ]);
+
+        it("fails if unable to find id of annotation", async () => {
+            // Arrange
+            const httpFileService = new HttpFileService({
+                baseUrl,
+                httpClient,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+
+            // Act / Assert
+            try {
+                await httpFileService.editFile("file_id", { ["Color"]: ["red"] });
+                expect(false, "Expected to throw").to.be.true;
+            } catch (e) {
+                expect((e as Error).message).to.equal(
+                    "Unable to edit file. Failed to find annotation id for annotation Color"
+                );
+            }
+        });
+    });
+
     describe("getAggregateInformation", () => {
         const totalFileSize = 12424114;
         const totalFileCount = 7;

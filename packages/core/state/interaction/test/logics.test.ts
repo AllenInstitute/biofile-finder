@@ -1,4 +1,9 @@
-import { configureMockStore, mergeState, createMockHttpClient } from "@aics/redux-utils";
+import {
+    configureMockStore,
+    mergeState,
+    createMockHttpClient,
+    ResponseStub,
+} from "@aics/redux-utils";
 import { expect } from "chai";
 import { get as _get } from "lodash";
 import { createSandbox } from "sinon";
@@ -17,6 +22,7 @@ import {
     promptForNewExecutable,
     openWithDefault,
     downloadFiles,
+    editFiles,
 } from "../actions";
 import {
     ExecutableEnvCancellationToken,
@@ -647,6 +653,213 @@ describe("Interaction logics", () => {
 
             // Assert
             expect(isDownloading).to.be.true;
+        });
+    });
+
+    describe("editFilesLogic", () => {
+        const sandbox = createSandbox();
+        const files = [];
+        const fileKinds = ["PNG", "TIFF"];
+        for (let i = 0; i <= 100; i++) {
+            files.push({
+                file_path: `/allen/file_${i}.ext`,
+                file_id: `file_${i}`,
+                annotations: [
+                    {
+                        name: AnnotationName.KIND,
+                        values: fileKinds,
+                    },
+                    {
+                        name: "Cell Line",
+                        values: ["AICS-10", "AICS-12"],
+                    },
+                ],
+            });
+        }
+        const mockAnnotations = [
+            new Annotation({
+                annotationDisplayName: AnnotationName.KIND,
+                annotationName: AnnotationName.KIND,
+                description: "",
+                type: "Text",
+                annotationId: 0,
+            }),
+            new Annotation({
+                annotationDisplayName: "Cell Line",
+                annotationName: "Cell Line",
+                description: "",
+                type: "Text",
+                annotationId: 1,
+            }),
+        ];
+
+        const baseUrl = "test";
+        const responseStubs: ResponseStub[] = [
+            {
+                when: (config) =>
+                    _get(config, "url", "").includes(HttpFileService.BASE_FILE_COUNT_URL),
+                respondWith: {
+                    data: { data: [files.length] },
+                },
+            },
+            {
+                when: (config) => _get(config, "url", "").includes(HttpFileService.BASE_FILES_URL),
+                respondWith: {
+                    data: { data: files },
+                },
+            },
+        ];
+        const mockHttpClient = createMockHttpClient(responseStubs);
+        const fileService = new HttpFileService({
+            baseUrl,
+            httpClient: mockHttpClient,
+            downloadService: new FileDownloadServiceNoop(),
+        });
+        const fakeSelection = new FileSelection().select({
+            fileSet: new FileSet({ fileService }),
+            index: new NumericRange(0, 100),
+            sortOrder: 0,
+        });
+
+        before(() => {
+            sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
+        });
+        afterEach(() => {
+            sandbox.resetHistory();
+        });
+        after(() => {
+            sandbox.restore();
+        });
+
+        it("edits 'folder' when filter specified'", async () => {
+            // Arrange
+            const state = mergeState(initialState, {
+                metadata: {
+                    annotations: mockAnnotations,
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(
+                editFiles({ "Cell Line": ["AICS-12"] }, [
+                    new FileFilter(AnnotationName.KIND, "PNG"),
+                ])
+            );
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.SUCCEEDED,
+                        },
+                    },
+                })
+            ).to.be.true;
+
+            // sanity-check: make certain this isn't evergreen
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.ERROR,
+                        },
+                    },
+                })
+            ).to.be.false;
+        });
+
+        it("edits selected files when no filter specified", async () => {
+            // Arrange
+            const state = mergeState(initialState, {
+                selection: {
+                    fileSelection: fakeSelection,
+                },
+                metadata: {
+                    annotations: mockAnnotations,
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(editFiles({ "Cell Line": ["AICS-12"] }));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.SUCCEEDED,
+                        },
+                    },
+                })
+            ).to.be.true;
+
+            // sanity-check: make certain this isn't evergreen
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.ERROR,
+                        },
+                    },
+                })
+            ).to.be.false;
+        });
+
+        it("alerts user to failure editing", async () => {
+            // Arrange
+            const state = mergeState(initialState, {
+                selection: {
+                    fileSelection: fakeSelection,
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: interactionLogics,
+            });
+
+            // Act
+            // Try to edit an annotation we don't recognize
+            store.dispatch(editFiles({ "Nonexistent Annotation": ["AICS-12"] }));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.ERROR,
+                        },
+                    },
+                })
+            ).to.be.true;
+
+            // sanity-check: make certain this isn't evergreen
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.SUCCEEDED,
+                        },
+                    },
+                })
+            ).to.be.false;
         });
     });
 

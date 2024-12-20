@@ -1,10 +1,12 @@
 import { IComboBoxOption } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
+import { useDispatch } from "react-redux";
 
 import MetadataDetails, { ValueCountItem } from "./MetadataDetails";
 import { PrimaryButton, SecondaryButton } from "../Buttons";
 import ComboBox from "../ComboBox";
+import { interaction } from "../../state";
 
 import styles from "./EditMetadata.module.css";
 
@@ -20,6 +22,7 @@ interface ExistingAnnotationProps {
  * and then entering values for the selected files
  */
 export default function ExistingAnnotationPathway(props: ExistingAnnotationProps) {
+    const dispatch = useDispatch();
     const [newValues, setNewValues] = React.useState<string>();
     const [valueCount, setValueCount] = React.useState<ValueCountItem[]>();
     const [selectedAnnotation, setSelectedAnnotation] = React.useState<string | undefined>();
@@ -65,7 +68,9 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
     };
 
     function onSubmit() {
-        // TO DO: endpoint logic is in progress on a different branch
+        if (selectedAnnotation && newValues?.trim()) {
+            dispatch(interaction.actions.editFiles({ [selectedAnnotation]: [newValues.trim()] }));
+        }
         props.onDismiss();
     }
 
@@ -91,7 +96,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 {valueCount && (
                     <PrimaryButton
                         className={styles.primaryButton}
-                        disabled={!newValues}
+                        disabled={!newValues?.trim()}
                         title=""
                         text="REPLACE"
                         onClick={onSubmit}

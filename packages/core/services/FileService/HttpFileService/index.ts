@@ -1,9 +1,16 @@
 import { compact, join, uniqueId } from "lodash";
 
-import FileService, { GetFilesRequest, SelectionAggregationResult, Selection } from "..";
+import FileService, {
+    GetFilesRequest,
+    SelectionAggregationResult,
+    Selection,
+    AnnotationNameToValuesMap,
+} from "..";
 import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
 import HttpServiceBase, { ConnectionConfig } from "../../HttpServiceBase";
+import { FileExplorerServiceBaseUrl } from "../../../constants";
+import Annotation from "../../../entity/Annotation";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail, { FmsFile } from "../../../entity/FileDetail";
@@ -16,6 +23,12 @@ interface Config extends ConnectionConfig {
     downloadService: FileDownloadService;
 }
 
+const FESBaseUrlToMMSBaseUrlMap = {
+    [FileExplorerServiceBaseUrl.LOCALHOST]: "https://localhost:9060",
+    [FileExplorerServiceBaseUrl.STAGING]: "https://stg-aics.corp.alleninstitute.org",
+    [FileExplorerServiceBaseUrl.PRODUCTION]: "https://aics.corp.alleninstitute.org",
+};
+
 /**
  * Service responsible for fetching file related metadata.
  */
@@ -23,6 +36,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     private static readonly ENDPOINT_VERSION = "3.0";
     public static readonly BASE_FILES_URL = `file-explorer-service/${HttpFileService.ENDPOINT_VERSION}/files`;
     public static readonly BASE_FILE_COUNT_URL = `${HttpFileService.BASE_FILES_URL}/count`;
+    public static readonly BASE_EDIT_FILES_URL = `metadata-management-service/1.0/filemetadata`;
     public static readonly SELECTION_AGGREGATE_URL = `${HttpFileService.BASE_FILES_URL}/selection/aggregate`;
     private static readonly CSV_ENDPOINT_VERSION = "2.0";
     public static readonly BASE_CSV_DOWNLOAD_URL = `file-explorer-service/${HttpFileService.CSV_ENDPOINT_VERSION}/files/selection/manifest`;
@@ -126,5 +140,25 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
             },
             uniqueId()
         );
+    }
+
+    public async editFile(
+        fileId: string,
+        annotationNameToValuesMap: AnnotationNameToValuesMap,
+        annotationNameToAnnotationMap?: Record<string, Annotation>
+    ): Promise<void> {
+        const mmsBaseUrl = FESBaseUrlToMMSBaseUrlMap[this.baseUrl as FileExplorerServiceBaseUrl];
+        const url = `${mmsBaseUrl}/${HttpFileService.BASE_EDIT_FILES_URL}/${fileId}`;
+        const annotations = Object.entries(annotationNameToValuesMap).map(([name, values]) => {
+            const annotationId = annotationNameToAnnotationMap?.[name].id;
+            if (!annotationId) {
+                throw new Error(
+                    `Unable to edit file. Failed to find annotation id for annotation ${name}`
+                );
+            }
+            return { annotationId, values };
+        });
+        const requestBody = JSON.stringify({ customMetadata: { annotations } });
+        await this.put(url, requestBody);
     }
 }
