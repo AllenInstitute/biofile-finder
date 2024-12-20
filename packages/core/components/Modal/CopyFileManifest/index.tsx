@@ -82,7 +82,7 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
 }
 
 /**
- * Modal overlay for displaying details of selected files for NAS cache operations.
+ * Modal overlay for displaying details of selected files for NAS cache (VAST) operations.
  */
 export default function CopyFileManifest({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
@@ -127,9 +127,9 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
             body={
                 <div className={styles.bodyContainer}>
                     <p className={styles.note}>
-                        Files copied to the local NAS (VAST) are stored with a 180-day expiration,
-                        after which they revert to cloud-only storage. To extend the expiration,
-                        reselect the files and confirm the update.
+                        Files copied to the local storage (VAST) are stored with a 180-day
+                        expiration, after which they revert to cloud-only storage. To extend the
+                        expiration, reselect the files and confirm the update.
                     </p>
                     <FileTable
                         files={filesInLocalCache}
@@ -156,7 +156,7 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
                 </div>
             }
             onDismiss={onDismiss}
-            title="Copy files to local NAS (VAST)"
+            title="Copy files to local storage (VAST)"
         />
     );
 }
