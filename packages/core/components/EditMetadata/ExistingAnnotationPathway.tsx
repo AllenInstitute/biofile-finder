@@ -68,8 +68,8 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
     };
 
     function onSubmit() {
-        if (selectedAnnotation && newValues) {
-            dispatch(interaction.actions.editFiles({ [selectedAnnotation]: [newValues] }));
+        if (selectedAnnotation && newValues?.trim()) {
+            dispatch(interaction.actions.editFiles({ [selectedAnnotation]: [newValues.trim()] }));
         }
         props.onDismiss();
     }
@@ -96,7 +96,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 {valueCount && (
                     <PrimaryButton
                         className={styles.primaryButton}
-                        disabled={!newValues}
+                        disabled={!newValues?.trim()}
                         title=""
                         text="REPLACE"
                         onClick={onSubmit}
