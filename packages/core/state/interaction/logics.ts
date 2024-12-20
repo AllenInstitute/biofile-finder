@@ -31,8 +31,8 @@ import {
     SetIsSmallScreenAction,
     setVisibleModal,
     hideVisibleModal,
-    MoveFilesAction,
-    MOVE_FILES,
+    CopyFilesAction,
+    COPY_FILES,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
@@ -578,16 +578,16 @@ const setIsSmallScreen = createLogic({
 });
 
 /**
- * Interceptor responsible for handling the MOVE_FILES action.
- * Logs details of files that are being moved.
+ * Interceptor responsible for handling the COPY_FILES action.
+ * Logs details of files that are being copied to cache.
  */
-const moveFilesLogic = createLogic({
+const copyFilesLogic = createLogic({
     async process({ action, getState }: ReduxLogicDeps, dispatch, done) {
         try {
             const httpFileService = interactionSelectors.getHttpFileService(getState());
             const username = interactionSelectors.getUserName(getState());
 
-            const fileDetails = (action as MoveFilesAction).payload.fileDetails;
+            const fileDetails = (action as CopyFilesAction).payload.fileDetails;
 
             // Map file IDs to file names for easy lookup
             const fileIdToNameMap = Object.fromEntries(
@@ -652,13 +652,16 @@ const moveFilesLogic = createLogic({
         } catch (err) {
             // Service call itself fails
             dispatch(
-                interaction.actions.processError("moveFilesFailure", `Failed to cache files, details: ${(err as Error).message}.`)
+                interaction.actions.processError(
+                    "moveFilesFailure",
+                    `Failed to cache files, details: ${(err as Error).message}.`
+                )
             );
         } finally {
             done();
         }
     },
-    type: MOVE_FILES,
+    type: COPY_FILES,
 });
 
 export default [
@@ -672,5 +675,5 @@ export default [
     showContextMenu,
     refresh,
     setIsSmallScreen,
-    moveFilesLogic,
+    copyFilesLogic,
 ];

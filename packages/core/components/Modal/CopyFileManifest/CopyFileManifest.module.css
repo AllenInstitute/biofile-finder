@@ -1,0 +1,93 @@
+.bodyContainer {
+    position: relative;
+}
+
+.note {
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+}
+
+.tableContainer {
+    margin-bottom: 2em;
+}
+
+.tableTitle {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 4px 0 8px 0;
+}
+
+.tableWrapper {
+    position: relative;
+}
+
+.fileTableContainer {
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: var(--secondary-background-color);
+    position: relative;
+    z-index: 1;
+}
+
+.gradientOverlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background-image: linear-gradient(transparent, black);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.file-table {
+    width: 100%;
+    border-collapse: collapse;
+    position: relative;
+    z-index: 1;
+}
+
+.file-table th,
+.file-table td {
+    padding: 8px;
+    text-align: left;
+    white-space: nowrap;
+    color: var(--primary-text-color);
+    background-color: var(--secondary-color);
+}
+
+.file-table th {
+    background-color: var(--secondary-background-color);
+    position: sticky;
+    top: 0;
+    z-index: 3;
+}
+
+.file-table td:first-child {
+    border-right: 1px solid var(--border-color);
+}
+
+.footerButtons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.summary {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1em;
+    margin-top: var(--row-count-margin-top);
+    color: var(--secondary-text-color);
+    opacity: 0.8;
+    font-size: var(--row-count-intrisic-height);
+    height: var(--row-count-intrisic-height-height);
+}
+
+.totalSize {
+    text-align: right;
+}
+
+.fileCount {
+    text-align: right;
+}
