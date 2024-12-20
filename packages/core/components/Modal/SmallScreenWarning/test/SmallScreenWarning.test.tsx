@@ -8,10 +8,8 @@ import Modal, { ModalType } from "../..";
 import { initialState, interaction, reduxLogics } from "../../../../state";
 
 describe("<SmallScreenWarning />", () => {
-    const baseUrl = "test";
     const visibleDialogState = mergeState(initialState, {
         interaction: {
-            fileExplorerServiceBaseUrl: baseUrl,
             visibleModal: ModalType.SmallScreenWarning,
         },
     });

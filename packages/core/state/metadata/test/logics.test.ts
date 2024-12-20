@@ -19,11 +19,7 @@ describe("Metadata logics", () => {
     describe("requestAnnotations", () => {
         it("Fires RECEIVE_ANNOTATIONS action after processing REQUEST_ANNOTATIONS action", async () => {
             // arrange
-            const state = mergeState(initialState, {
-                interaction: {
-                    fileExplorerServiceBaseUrl: "test",
-                },
-            });
+            const state = mergeState(initialState, {});
 
             const responseStub = {
                 when: () => true,
