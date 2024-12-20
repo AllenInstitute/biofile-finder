@@ -5,6 +5,7 @@ import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
 
 const AICS_FMS_S3_BUCKET = "production.files.allencell.org";
+const AICS_FMS_S3_URL_PREFIX = "https://s3.us-west-2.amazonaws.com/";
 
 /**
  * Expected JSON response of a file detail returned from the query service. Example:
@@ -85,7 +86,7 @@ export default class FileDetail {
     }
 
     private static convertAicsS3PathToHttpUrl(path: string): string {
-        return `https://s3.us-west-2.amazonaws.com/${path}`;
+        return `${AICS_FMS_S3_URL_PREFIX}${path}`;
     }
 
     constructor(fileDetail: FmsFile, uniqueId?: string) {
