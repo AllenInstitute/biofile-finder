@@ -143,5 +143,27 @@ describe("Annotation formatters", () => {
         it("formats a duration with less than a second", () => {
             expect(durationFormatter.displayValue(125)).to.equal("0.125S");
         });
+
+        it("extracts time in milliseconds from formatted duration strings", () => {
+            expect(durationFormatter.valueOf("1D 23H 45M 6.78S")).to.equal(171906780);
+        });
+
+        it("extracts time in milliseconds from formatted strings with only days", () => {
+            expect(durationFormatter.valueOf("100D")).to.equal(8.64e9);
+        });
+
+        it("extracts time in milliseconds from formatted strings with only some units", () => {
+            expect(durationFormatter.valueOf("12H 34S")).to.equal(43234000);
+        });
+
+        it("extracts time in milliseconds from non-formatted numerical-valued strings", () => {
+            expect(durationFormatter.valueOf("9876")).to.equal(9876);
+        });
+
+        it("returns NaN when string letters or order don't match duration pattern", () => {
+            expect(isNaN(durationFormatter.valueOf("4A"))).to.be.true;
+            expect(isNaN(durationFormatter.valueOf("4D 3M 2H 12S"))).to.be.true;
+            expect(isNaN(durationFormatter.valueOf("DHMS"))).to.be.true;
+        });
     });
 });

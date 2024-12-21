@@ -1,4 +1,4 @@
-import { DatePicker, Icon } from "@fluentui/react";
+import { Icon } from "@fluentui/react";
 import * as React from "react";
 
 import { TertiaryButton } from "../Buttons";
@@ -6,6 +6,7 @@ import FileFilter from "../../entity/FileFilter";
 import { extractDatesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/date-time-formatter";
 
 import styles from "./DateRangePicker.module.css";
+import DateTimePicker from "./DateTimePicker";
 
 interface DateRangePickerProps {
     className?: string;
@@ -69,30 +70,18 @@ export default function DateRangePicker(props: DateRangePickerProps) {
         <div className={props.className}>
             <h3 className={styles.title}>{props.title}</h3>
             <div className={styles.dateRangeContainer}>
-                <DatePicker
-                    styles={{
-                        root: styles.dateRangeRoot,
-                        readOnlyPlaceholder: styles.readOnlyPlaceholder,
-                        textField: styles.textField,
-                    }}
-                    ariaLabel="Select a start date"
-                    placeholder={`Start of date range`}
+                <DateTimePicker
+                    placeholder="Start of date range"
                     onSelectDate={(v) => (v ? onDateRangeSelection(v, null) : onReset())}
-                    value={extractDateFromDateString(startDate?.toISOString())}
+                    defaultDate={extractDateFromDateString(startDate?.toISOString())}
                 />
                 <div className={styles.dateRangeSeparator}>
                     <Icon iconName="Forward" />
                 </div>
-                <DatePicker
-                    styles={{
-                        root: styles.dateRangeRoot,
-                        readOnlyPlaceholder: styles.readOnlyPlaceholder,
-                        textField: styles.textField,
-                    }}
-                    ariaLabel="Select an end date"
-                    placeholder={`End of date range`}
+                <DateTimePicker
+                    placeholder="End of date range"
                     onSelectDate={(v) => (v ? onDateRangeSelection(null, v) : onReset())}
-                    value={extractDateFromDateString(endDate?.toISOString())}
+                    defaultDate={extractDateFromDateString(endDate?.toISOString())}
                 />
                 <TertiaryButton
                     className={styles.clearButton}

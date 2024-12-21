@@ -65,7 +65,8 @@
   bottom: 5px;
 }
 
-.combo-box-item :is(input, button, label){
+.combo-box-item :is(input, button, label),
+.options-container :is(input, button, label) {
   color: var(--primary-text-color);
 }
 
@@ -93,7 +94,9 @@
 
 .combo-box-item button:not(:disabled):hover,
 .combo-box-item > div:hover,
-.combo-box-item > div:hover :is(input, label) {
+.combo-box-item > div:hover :is(input, label), 
+.options-container button:not(:disabled):hover,
+.options-container > div:hover :is(input, label){
   background-color: var(--highlight-background-color);
   color: var(--highlight-text-color);
 }

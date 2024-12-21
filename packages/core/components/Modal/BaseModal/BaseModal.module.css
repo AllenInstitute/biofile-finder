@@ -4,7 +4,7 @@
     padding: 2em 2em 2em 2em;
     min-width: 300px; /* per guidance from fluentui docs: https://developer.microsoft.com/en-us/fluentui#/controls/web/modal */
     min-height: 175px; /* per guidance from fluentui docs: https://developer.microsoft.com/en-us/fluentui#/controls/web/modal */
-    max-width: 40%;
+    max-width: 45%;
     overflow: hidden;
 
     /* flex parent */
