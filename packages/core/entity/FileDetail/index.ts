@@ -148,10 +148,10 @@ export default class FileDetail {
     }
 
     public get downloadPath(): string {
-        // For AICS files we don't have permission to the bucket nor do we expect to have the /allen
-        // drive mounted on the client machine. So we use the NGINX server to serve the file.
-        if (this.path.startsWith("/allen")) {
-            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${this.path}`;
+        // For AICS files that are available on the Vast, users can use the cloud path, but the
+        // download will be faster and not incur egress fees if we download via the local network.
+        if (this.localPath && this.localPath.startsWith("/allen")) {
+            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${this.localPath}`;
         }
 
         // Otherwise just return the path as is and hope for the best
