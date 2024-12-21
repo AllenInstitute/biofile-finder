@@ -1,5 +1,4 @@
 import {
-    DatePicker,
     DetailsList,
     IColumn,
     IComboBoxOption,
@@ -16,6 +15,7 @@ import * as React from "react";
 
 import ChoiceGroup from "../ChoiceGroup";
 import ComboBox from "../ComboBox";
+import DateTimePicker from "../DateRangePicker/DateTimePicker";
 import DurationForm from "../DurationForm";
 import NumberField from "../NumberRangePicker/NumberField";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
@@ -74,16 +74,18 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
     const inputField = () => {
         switch (props.fieldType) {
             case AnnotationType.DATE:
-            case AnnotationType.DATETIME:
                 return (
-                    <DatePicker
-                        styles={{
-                            root: styles.dateRangeRoot,
-                            readOnlyPlaceholder: styles.readOnlyPlaceholder,
-                            textField: styles.dateRangeTextField,
-                        }}
+                    <DateTimePicker
                         placeholder={"Select a date..."}
                         onSelectDate={(date) => props.onChange(date?.toISOString())}
+                    />
+                );
+            case AnnotationType.DATETIME:
+                return (
+                    <DateTimePicker
+                        placeholder={"Select a date..."}
+                        onSelectDate={(date) => props.onChange(date?.toISOString())}
+                        showTimeSelection
                     />
                 );
             case AnnotationType.NUMBER:

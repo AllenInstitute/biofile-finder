@@ -7,7 +7,6 @@ import styles from "./DurationForm.module.css";
 
 interface DurationFormProps {
     className?: string;
-    defaultValue?: number;
     onChange: (totalDuration: number) => void;
     title?: string;
 }

@@ -65,7 +65,7 @@
 }
 
 .stack-item-right {
-  width: 275px;
+  width: 300px;
 }
 
 .read-only-placeholder {
@@ -96,29 +96,6 @@
   margin-top: 4px;
   display: flex;
   align-items: center;
-}
-
-.date-range-root {
-  width: 300px;
-}
-
-.date-range-text-field div {
-  background-color: var(--secondary-background-color);
-  border: none;
-  border-radius: var(--small-border-radius);
-  color: var(--primary-text-color);
-}
-
-.date-range-text-field div::after {    
-  border: 1px solid var(--aqua)
-}
-
-.date-range-text-field > div {
-  border: 1px solid var(--border-color)
-}
-
-.date-range-text-field i {
-  color: var(--primary-text-color)
 }
 
 .no-padding {
