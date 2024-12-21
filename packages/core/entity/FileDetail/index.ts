@@ -119,6 +119,14 @@ export default class FileDetail {
         return path as string;
     }
 
+    public get localPath(): string | null {
+        const localPath = this.getFirstAnnotationValue("Local File Path");
+        if (localPath === undefined) {
+            return null;
+        }
+        return localPath as string;
+    }
+
     public get cloudPath(): string {
         // Can retrieve a cloud like path for AICS FMS files
         if (this.path.startsWith("/allen")) {
