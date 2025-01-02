@@ -31,7 +31,7 @@ describe("<FileAnnotationList />", () => {
                             ...TOP_LEVEL_FILE_ANNOTATIONS,
                             new Annotation({
                                 annotationName: "Local File Path",
-                                annotationDisplayName: "File Path (Vast)",
+                                annotationDisplayName: "File Path (Local VAST)",
                                 description: "Path to file in on-premises storage.",
                                 type: AnnotationType.STRING,
                             }),
@@ -71,7 +71,7 @@ describe("<FileAnnotationList />", () => {
             for (const cellText of [
                 "File Path (Canonical)",
                 filePath,
-                "File Path (Vast)",
+                "File Path (Local VAST)",
                 localPath,
             ]) {
                 expect(await findByText(cellText)).to.not.be.undefined;
@@ -118,7 +118,7 @@ describe("<FileAnnotationList />", () => {
             );
 
             // Assert
-            expect(() => getByText("File Path (Vast)")).to.throw();
+            expect(() => getByText("File Path (Local VAST)")).to.throw();
             ["File Path (Canonical)", filePath].forEach((cellText) => {
                 expect(getByText(cellText)).to.not.be.undefined;
             });
