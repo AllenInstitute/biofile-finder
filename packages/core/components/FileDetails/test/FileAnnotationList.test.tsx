@@ -14,7 +14,7 @@ import { AnnotationType } from "../../../entity/AnnotationFormatter";
 
 describe("<FileAnnotationList />", () => {
     describe("file path representation", () => {
-        it("has both canonical file path and file path adjusted to OS & allen mount point", async () => {
+        it("has both cloud file path and local file path adjusted to OS & allen mount point", async () => {
             // Arrange
             const hostMountPoint = "/some/path";
 
@@ -46,7 +46,7 @@ describe("<FileAnnotationList />", () => {
             });
 
             const filePathInsideAllenDrive = "path/to/MyFile.txt";
-            const filePath = `production.allencell.org/${filePathInsideAllenDrive}`;
+            const filePath = `production.files.allencell.org/${filePathInsideAllenDrive}`;
             const fileDetails = new FileDetail({
                 file_path: filePath,
                 file_id: "abc123",
@@ -58,8 +58,6 @@ describe("<FileAnnotationList />", () => {
                 ],
             });
 
-            const localPath = `${hostMountPoint}/${filePathInsideAllenDrive}`;
-
             // Act
             const { findByText } = render(
                 <Provider store={store}>
@@ -69,16 +67,16 @@ describe("<FileAnnotationList />", () => {
 
             // Assert
             for (const cellText of [
-                "File Path (Canonical)",
-                filePath,
+                "File Path (Cloud)",
+                `https://s3.us-west-2.amazonaws.com/${filePath}`,
                 "File Path (Local VAST)",
-                localPath,
+                `${hostMountPoint}/${filePathInsideAllenDrive}`,
             ]) {
                 expect(await findByText(cellText)).to.not.be.undefined;
             }
         });
 
-        it("has only canonical file path when no allen mount point is found", () => {
+        it("has only cloud file path when no allen mount point is found", () => {
             // Arrange
             class FakeExecutionEnvService extends ExecutionEnvServiceNoop {
                 public formatPathForHost(posixPath: string): Promise<string> {
@@ -100,7 +98,7 @@ describe("<FileAnnotationList />", () => {
             });
 
             const filePathInsideAllenDrive = "path/to/MyFile.txt";
-            const filePath = `/allen/${filePathInsideAllenDrive}`;
+            const filePath = `production.files.allencell.org/${filePathInsideAllenDrive}`;
             const fileDetails = new FileDetail({
                 file_path: filePath,
                 file_id: "abc123",
@@ -119,9 +117,11 @@ describe("<FileAnnotationList />", () => {
 
             // Assert
             expect(() => getByText("File Path (Local VAST)")).to.throw();
-            ["File Path (Canonical)", filePath].forEach((cellText) => {
-                expect(getByText(cellText)).to.not.be.undefined;
-            });
+            ["File Path (Cloud)", `https://s3.us-west-2.amazonaws.com/${filePath}`].forEach(
+                (cellText) => {
+                    expect(getByText(cellText)).to.not.be.undefined;
+                }
+            );
         });
     });
 });
