@@ -5,7 +5,7 @@ export default function renameAnnotation(annotation: AnnotationResponse): Annota
     if (annotation.annotationName === AnnotationName.LOCAL_FILE_PATH) {
         return {
             ...annotation,
-            annotationDisplayName: "File Path (Vast)",
+            annotationDisplayName: "File Path (Local VAST)",
         } as AnnotationResponse;
     } else {
         return annotation;

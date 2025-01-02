@@ -1,10 +1,10 @@
 import { map } from "lodash";
 
+import renameAnnotation from "./FMSAnnotationPresentationLayer";
 import AnnotationService, { AnnotationValue } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
 import Annotation, { AnnotationResponse } from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
-import renameAnnotation from "./FMSAnnotationPresentationLayer";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
 
 enum QueryParam {

@@ -31,7 +31,7 @@ describe("<FileAnnotationList />", () => {
                             ...TOP_LEVEL_FILE_ANNOTATIONS,
                             new Annotation({
                                 annotationName: "Local File Path",
-                                annotationDisplayName: "File Path (Vast)",
+                                annotationDisplayName: "File Path (Local VAST)",
                                 description: "Path to file in on-premises storage.",
                                 type: AnnotationType.STRING,
                             }),

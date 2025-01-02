@@ -17,9 +17,11 @@ env:
   AWS_ACCOUNT_ID: ${{ vars.AWS_PUBLIC_DATA_RELEASES_ACCOUNT_ID }}
   AWS_REGION: ${{ vars.AWS_DEFAULT_REGION }}
   STAGING_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.STAGING_CLOUDFRONT_DISTRIBUTION_ID }}
-  STAGING_S3_BUCKET: s3://staging.biofile-finder.allencell.org
+  STAGING_S3_BUCKET: s3://staging.bff.allencell.org
+  STAGING_BFF_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.STAGING_BFF_CLOUDFRONT_DISTRIBUTION_ID }}
   PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID }}
-  PRODUCTION_S3_BUCKET: s3://biofile-finder.allencell.org
+  PRODUCTION_S3_BUCKET: s3://bff.allencell.org
+  PRODUCTION_BFF_CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.PRODUCTION_BFF_CLOUDFRONT_DISTRIBUTION_ID }}
 
 permissions:
   id-token: write  # Required for requesting the JWT and OIDC
@@ -75,9 +77,11 @@ jobs:
           if [ "${{ github.event.inputs.environment }}" == "production" ]; then
             echo "S3_BUCKET=${{ env.PRODUCTION_S3_BUCKET }}" >> $GITHUB_ENV
             echo "CLOUDFRONT_DISTRIBUTION_ID=${{ env.PRODUCTION_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+            echo "BFF_CLOUDFRONT_DISTRIBUTION_ID=${{ env.PRODUCTION_BFF_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
           elif [ "${{ github.event.inputs.environment }}" == "staging" ]; then
             echo "S3_BUCKET=${{ env.STAGING_S3_BUCKET }}" >> $GITHUB_ENV
             echo "CLOUDFRONT_DISTRIBUTION_ID=${{ env.STAGING_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
+            echo "BFF_CLOUDFRONT_DISTRIBUTION_ID=${{ env.STAGING_BFF_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_ENV
           else
             echo "Invalid environment specified"
             exit 1
@@ -89,10 +93,14 @@ jobs:
           name: aws-deploy-files
           path: ./packages/web/dist
 
-      # Note that the command below will copy the files to the root of the S3 bucket e.g., s3://biofile-finder.allencell.org/
-      # If you want to copy files to a S3 prefix / subdirectory, you would want something like ${{ env.S3_BUCKET }}/your_prefix below
-      - name: Copy build files to S3 root
+      # Note that the command below will copy the files to the root of the S3 bucket e.g., s3://bff.allencell.org/
+      # If you want to copy files to a S3 prefix / subdirectory, you would want something like ${{ env.BFF_S3_BUCKET }}/your_prefix below
+      - name: Copy build files to BFF S3
         run: aws s3 sync ./packages/web/dist ${{ env.S3_BUCKET }}
 
-      - name: Invalidate CloudFront cache
+      # This isn't strictly necessary since this distribution only handles redirects and doesn't serve any content directly
+      - name: Invalidate CloudFront biofile-finder cache
         run: aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+
+      - name: Invalidate CloudFront BFF cache
+        run: aws cloudfront create-invalidation --distribution-id ${{ env.BFF_CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"

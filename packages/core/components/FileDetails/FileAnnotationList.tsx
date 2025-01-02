@@ -80,7 +80,8 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
 
             if (annotation.name === AnnotationName.LOCAL_FILE_PATH) {
                 if (localPath === null) {
-                    // localPath hasn't loaded yet
+                    // localPath hasn't loaded yet, but it should eventually because there is an
+                    // annotation named AnnotationName.LOCAL_FILE_PATH
                     return accum;
                 } else {
                     // Use the user's /allen mount point, if known
