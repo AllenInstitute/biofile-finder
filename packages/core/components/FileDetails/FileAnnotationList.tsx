@@ -37,7 +37,14 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                 return;
             }
 
-            const path = await executionEnvService.formatPathForHost(fileDetails.path);
+            let path;
+            if (fileDetails.localPath === null) {
+                // The Local File Path annotation is not defined because the file is not available
+                // on-premises
+                path = fileDetails.localPath;
+            } else {
+                path = await executionEnvService.formatPathForHost(fileDetails.localPath);
+            }
             if (!active) {
                 return;
             }
@@ -65,10 +72,21 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                 return accum;
             }
 
-            const annotationValue = annotation.extractFromFile(fileDetails);
+            let annotationValue = annotation.extractFromFile(fileDetails);
             if (annotationValue === Annotation.MISSING_VALUE) {
                 // Nothing to show for this annotation -- skip
                 return accum;
+            }
+
+            if (annotation.name === AnnotationName.LOCAL_FILE_PATH) {
+                if (localPath === null) {
+                    // localPath hasn't loaded yet, but it should eventually because there is an
+                    // annotation named AnnotationName.LOCAL_FILE_PATH
+                    return accum;
+                } else {
+                    // Use the user's /allen mount point, if known
+                    annotationValue = localPath;
+                }
             }
 
             const ret = [
@@ -92,20 +110,6 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                             className={styles.row}
                             name="File Path (Cloud)"
                             value={fileDetails.cloudPath}
-                        />
-                    );
-                }
-
-                // In certain circumstances (i.e., linux), the path at which a file is accessible is === the canonical path
-                if (localPath && localPath !== annotationValue && !localPath.startsWith("http")) {
-                    ret.splice(
-                        -1, // Insert before the "canonical" path so that it is the first path-like row to be seen
-                        0, // ...don't delete the "canonical" path
-                        <FileAnnotationRow
-                            key="file-path-local"
-                            className={styles.row}
-                            name="File Path (Local)"
-                            value={localPath}
                         />
                     );
                 }

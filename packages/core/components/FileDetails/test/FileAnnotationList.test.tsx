@@ -9,6 +9,8 @@ import FileDetail from "../../../entity/FileDetail";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { initialState } from "../../../state";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
+import Annotation from "../../../entity/Annotation";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 
 describe("<FileAnnotationList />", () => {
     describe("file path representation", () => {
@@ -24,6 +26,17 @@ describe("<FileAnnotationList />", () => {
 
             const { store } = configureMockStore({
                 state: mergeState(initialState, {
+                    metadata: {
+                        annotations: [
+                            ...TOP_LEVEL_FILE_ANNOTATIONS,
+                            new Annotation({
+                                annotationName: "Local File Path",
+                                annotationDisplayName: "File Path (Local VAST)",
+                                description: "Path to file in on-premises storage.",
+                                type: AnnotationType.STRING,
+                            }),
+                        ],
+                    },
                     interaction: {
                         platformDependentServices: {
                             executionEnvService: new FakeExecutionEnvService(),
@@ -33,18 +46,19 @@ describe("<FileAnnotationList />", () => {
             });
 
             const filePathInsideAllenDrive = "path/to/MyFile.txt";
-
-            const canonicalFilePath = `/allen/${filePathInsideAllenDrive}`;
+            const filePath = `production.allencell.org/${filePathInsideAllenDrive}`;
             const fileDetails = new FileDetail({
-                file_path: canonicalFilePath,
+                file_path: filePath,
                 file_id: "abc123",
                 file_name: "MyFile.txt",
                 file_size: 7,
                 uploaded: "01/01/01",
-                annotations: [],
+                annotations: [
+                    { name: "Local File Path", values: [`/allen/${filePathInsideAllenDrive}`] },
+                ],
             });
 
-            const expectedLocalPath = `${hostMountPoint}/${filePathInsideAllenDrive}`;
+            const localPath = `${hostMountPoint}/${filePathInsideAllenDrive}`;
 
             // Act
             const { findByText } = render(
@@ -54,14 +68,14 @@ describe("<FileAnnotationList />", () => {
             );
 
             // Assert
-            [
+            for (const cellText of [
                 "File Path (Canonical)",
-                canonicalFilePath,
-                "File Path (Local)",
-                expectedLocalPath,
-            ].forEach(async (cellText) => {
+                filePath,
+                "File Path (Local VAST)",
+                localPath,
+            ]) {
                 expect(await findByText(cellText)).to.not.be.undefined;
-            });
+            }
         });
 
         it("has only canonical file path when no allen mount point is found", () => {
@@ -104,7 +118,7 @@ describe("<FileAnnotationList />", () => {
             );
 
             // Assert
-            expect(() => getByText("File Path (Local)")).to.throw();
+            expect(() => getByText("File Path (Local VAST)")).to.throw();
             ["File Path (Canonical)", filePath].forEach((cellText) => {
                 expect(getByText(cellText)).to.not.be.undefined;
             });

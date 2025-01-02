@@ -29,4 +29,10 @@ export const annotationsJson = [
         description: "Imaging objective",
         type: "Number",
     },
+    {
+        annotationName: "Local File Path",
+        annotationDisplayName: "Local File Path",
+        description: "Path to file in on-premises storage.",
+        type: "Text",
+    },
 ];
