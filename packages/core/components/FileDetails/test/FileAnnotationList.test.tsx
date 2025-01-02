@@ -69,7 +69,7 @@ describe("<FileAnnotationList />", () => {
             for (const cellText of [
                 "File Path (Cloud)",
                 `https://s3.us-west-2.amazonaws.com/${filePath}`,
-                "File Path (Vast)",
+                "File Path (Local VAST)",
                 `${hostMountPoint}/${filePathInsideAllenDrive}`,
             ]) {
                 expect(await findByText(cellText)).to.not.be.undefined;
@@ -116,7 +116,7 @@ describe("<FileAnnotationList />", () => {
             );
 
             // Assert
-            expect(() => getByText("File Path (Vast)")).to.throw();
+            expect(() => getByText("File Path (Local VAST)")).to.throw();
             ["File Path (Cloud)", `https://s3.us-west-2.amazonaws.com/${filePath}`].forEach(
                 (cellText) => {
                     expect(getByText(cellText)).to.not.be.undefined;
