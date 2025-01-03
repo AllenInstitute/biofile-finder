@@ -14,10 +14,10 @@ export interface ModalProps {
 
 export enum ModalType {
     CodeSnippet = 1,
-    DataSource = 2,
-    MetadataManifest = 3,
-    SmallScreenWarning = 4,
-    CopyFileManifest = 5,
+    CopyFileManifest = 2,
+    DataSource = 3,
+    MetadataManifest = 4,
+    SmallScreenWarning = 5,
 }
 
 /**

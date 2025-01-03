@@ -6,12 +6,12 @@ import FileSet from "../../FileSet";
 import NumericRange from "../../NumericRange";
 
 import FileSelection, { FocusDirective } from "..";
-import { FESBaseUrl } from "../../../constants";
 import FileDetail from "../../FileDetail";
 import FileFilter from "../../FileFilter";
 import FuzzyFilter from "../../FileFilter/FuzzyFilter";
 import IncludeFilter from "../../FileFilter/IncludeFilter";
 import ExcludeFilter from "../../FileFilter/ExcludeFilter";
+import { FESBaseUrl } from "../../../constants";
 import { IndexError, ValueError } from "../../../errors";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";

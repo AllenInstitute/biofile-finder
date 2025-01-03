@@ -53,7 +53,7 @@ export interface InteractionStateBranch {
     datasetDetailsPanelIsVisible: boolean;
     fileTypeForVisibleModal: "csv" | "json" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
-    environment: "LOCALHOST" | "STAGING" | "PRODUCTION" | "TEST";
+    environment: "LOCALHOST" | "PRODUCTION" | "STAGING" | "TEST";
     hasDismissedSmallScreenWarning: boolean;
     hasUsedApplicationBefore: boolean;
     isAicsEmployee?: boolean;

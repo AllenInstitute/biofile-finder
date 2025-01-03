@@ -1,4 +1,4 @@
-.bodyContainer {
+.body-container {
     position: relative;
 }
 
@@ -7,21 +7,21 @@
     margin-bottom: 1em;
 }
 
-.tableContainer {
+.table-container {
     margin-bottom: 2em;
 }
 
-.tableTitle {
+.table-title {
     font-size: 16px;
     font-weight: 600;
     margin: 4px 0 8px 0;
 }
 
-.tableWrapper {
+.table-wrapper {
     position: relative;
 }
 
-.fileTableContainer {
+.file-table-container {
     max-height: 300px;
     overflow-y: auto;
     background-color: var(--secondary-background-color);
@@ -29,7 +29,7 @@
     z-index: 1;
 }
 
-.gradientOverlay {
+.gradient-overlay {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -67,7 +67,7 @@
     border-right: 1px solid var(--border-color);
 }
 
-.footerButtons {
+.footer-buttons {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
@@ -84,10 +84,10 @@
     height: var(--row-count-intrisic-height-height);
 }
 
-.totalSize {
+.total-size {
     text-align: right;
 }
 
-.fileCount {
+.file-count {
     text-align: right;
 }

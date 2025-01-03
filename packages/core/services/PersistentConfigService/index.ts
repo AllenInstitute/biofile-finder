@@ -28,12 +28,12 @@ export interface PersistedConfig {
     [PersistedConfigKeys.Columns]?: Column[];
     [PersistedConfigKeys.CsvColumns]?: string[];
     [PersistedConfigKeys.DisplayAnnotations]?: AnnotationResponse[];
+    [PersistedConfigKeys.Environment]?: Environment;
     [PersistedConfigKeys.ImageJExecutable]?: string; // Deprecated
     [PersistedConfigKeys.HasUsedApplicationBefore]?: boolean;
     [PersistedConfigKeys.Queries]?: Query[];
     [PersistedConfigKeys.RecentAnnotations]?: string[];
     [PersistedConfigKeys.UserSelectedApplications]?: UserSelectedApplication[];
-    [PersistedConfigKeys.Environment]?: Environment;
 }
 
 /**
