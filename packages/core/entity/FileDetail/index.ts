@@ -135,6 +135,11 @@ export default class FileDetail {
     }
 
     public get localPath(): string | null {
+        // REMOVE THIS (BACKWARDS COMPAT)
+        if (this.path.startsWith("/allen")) {
+            return this.path;
+        }
+
         const localPath = this.getFirstAnnotationValue("Local File Path");
         if (localPath === undefined) {
             return null;
@@ -143,11 +148,21 @@ export default class FileDetail {
     }
 
     public get cloudPath(): string {
+        // REMOVE THIS (BACKWARDS COMPAT)
+        if (this.path.startsWith("/allen")) {
+            return FileDetail.convertAicsDrivePathToAicsS3Path(this.path);
+        }
+
         // AICS FMS files' paths are cloud paths
         return this.path;
     }
 
     public get downloadPath(): string {
+        // REMOVE THIS (BACKWARDS COMPAT)
+        if (this.path.startsWith("/allen")) {
+            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${this.path}`;
+        }
+
         // For AICS files that are available on the Vast, users can use the cloud path, but the
         // download will be faster and not incur egress fees if we download via the local network.
         if (this.localPath && this.localPath.startsWith("/allen")) {
