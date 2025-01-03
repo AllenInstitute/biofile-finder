@@ -19,7 +19,7 @@ import {
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
+import { FESBaseUrl, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { FmsFileAnnotation } from "../../../services/FileService";
@@ -53,16 +53,12 @@ describe("<DirectoryTree />", () => {
         type: "Text",
     });
 
-    const baseUrl = "http://test-aics.corp.alleninstitute.org";
     const baseDisplayAnnotations = TOP_LEVEL_FILE_ANNOTATIONS.filter(
         (a) => a.name === AnnotationName.FILE_NAME
     );
     const state = mergeState(initialState, {
         metadata: {
             annotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
-        },
-        interaction: {
-            fileExplorerServiceBaseUrl: baseUrl,
         },
         selection: {
             annotationHierarchy: [fooAnnotation.name, barAnnotation.name],
@@ -194,9 +190,13 @@ describe("<DirectoryTree />", () => {
         },
     ];
     const mockHttpClient = createMockHttpClient(responseStubs);
-    const annotationService = new HttpAnnotationService({ baseUrl, httpClient: mockHttpClient });
+    const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
+    const annotationService = new HttpAnnotationService({
+        fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
+        httpClient: mockHttpClient,
+    });
     const fileService = new HttpFileService({
-        baseUrl,
+        fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
         httpClient: mockHttpClient,
         downloadService: new FileDownloadServiceNoop(),
     });
@@ -361,9 +361,6 @@ describe("<DirectoryTree />", () => {
         const oneAnnotationDeepState = mergeState(initialState, {
             metadata: {
                 annotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
-            },
-            interaction: {
-                fileExplorerServiceBaseUrl: baseUrl,
             },
             selection: {
                 annotationHierarchy: [fooAnnotation.name],

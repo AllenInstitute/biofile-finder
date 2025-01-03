@@ -15,6 +15,7 @@ import {
     SHOW_CONTEXT_MENU,
     SHOW_DATASET_DETAILS_PANEL,
     SHOW_MANIFEST_DOWNLOAD_DIALOG,
+    SHOW_COPY_FILE_MANIFEST,
     StatusUpdate,
     MARK_AS_USED_APPLICATION_BEFORE,
     MARK_AS_DISMISSED_SMALL_SCREEN_WARNING,
@@ -29,12 +30,12 @@ import {
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
+import { Environment } from "../../constants";
 import FileFilter from "../../entity/FileFilter";
 import { PlatformDependentServices } from "../../services";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
 import FileViewerServiceNoop from "../../services/FileViewerService/FileViewerServiceNoop";
-import { DEFAULT_CONNECTION_CONFIG } from "../../services/HttpServiceBase";
 import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
@@ -50,9 +51,9 @@ export interface InteractionStateBranch {
     csvColumns?: string[];
     dataSourceInfoForVisibleModal?: DataSourcePromptInfo;
     datasetDetailsPanelIsVisible: boolean;
-    fileExplorerServiceBaseUrl: string;
     fileTypeForVisibleModal: "csv" | "json" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
+    environment: "LOCALHOST" | "PRODUCTION" | "STAGING" | "TEST";
     hasDismissedSmallScreenWarning: boolean;
     hasUsedApplicationBefore: boolean;
     isAicsEmployee?: boolean;
@@ -66,6 +67,7 @@ export interface InteractionStateBranch {
 }
 
 export const initialState: InteractionStateBranch = {
+    environment: Environment.PRODUCTION,
     contextMenuIsVisible: false,
     contextMenuItems: [],
     // Passed to `ContextualMenu` as `target`. From the "@fluentui/react" docs:
@@ -74,7 +76,6 @@ export const initialState: InteractionStateBranch = {
     // If a MouseEvent is given, the origin point of the event will be used."
     contextMenuPositionReference: null,
     datasetDetailsPanelIsVisible: false,
-    fileExplorerServiceBaseUrl: DEFAULT_CONNECTION_CONFIG.baseUrl,
     fileFiltersForVisibleModal: [],
     fileTypeForVisibleModal: "csv",
     hasDismissedSmallScreenWarning: false,
@@ -165,7 +166,7 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [INITIALIZE_APP]: (state, action) => ({
             ...state,
-            fileExplorerServiceBaseUrl: action.payload,
+            environment: action.payload.environment,
         }),
         [SET_VISIBLE_MODAL]: (state, action) => ({
             ...state,
@@ -194,6 +195,10 @@ export default makeReducer<InteractionStateBranch>(
         [SET_SELECTED_PUBLIC_DATASET]: (state, action) => ({
             ...state,
             selectedPublicDataset: action.payload,
+        }),
+        [SHOW_COPY_FILE_MANIFEST]: (state) => ({
+            ...state,
+            visibleModal: ModalType.CopyFileManifest,
         }),
     },
     initialState

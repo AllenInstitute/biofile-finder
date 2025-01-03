@@ -11,6 +11,7 @@ import FileFilter from "../../FileFilter";
 import FuzzyFilter from "../../FileFilter/FuzzyFilter";
 import IncludeFilter from "../../FileFilter/IncludeFilter";
 import ExcludeFilter from "../../FileFilter/ExcludeFilter";
+import { FESBaseUrl } from "../../../constants";
 import { IndexError, ValueError } from "../../../errors";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
@@ -344,7 +345,7 @@ describe("FileSelection", () => {
     describe("fetchAllDetails", () => {
         it("returns file details for each selected item", async () => {
             // Arrange
-            const baseUrl = "test";
+            const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
             const queryResult = [];
             for (let i = 0; i < 31; i++) {
                 queryResult.push(i);
@@ -354,13 +355,15 @@ describe("FileSelection", () => {
                 .slice(1, 31)
                 .map((detail) => new FileDetail(detail as any));
             const httpClient = createMockHttpClient({
-                when: `${baseUrl}/${HttpFileService.BASE_FILES_URL}?from=${0}&limit=${31}`,
+                when: `${fileExplorerServiceBaseUrl}/${
+                    HttpFileService.BASE_FILES_URL
+                }?from=${0}&limit=${31}`,
                 respondWith: {
                     data: { data: queryResult },
                 },
             });
             const fileService = new HttpFileService({
-                baseUrl,
+                fileExplorerServiceBaseUrl,
                 httpClient,
                 downloadService: new FileDownloadServiceNoop(),
             });
