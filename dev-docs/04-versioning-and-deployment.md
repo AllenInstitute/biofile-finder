@@ -39,8 +39,18 @@ The following captures the steps of a release of this project to desktop:
     ```bash
     npm --no-commit-hooks version --workspace packages/desktop $VERSION_BUMP_TYPE -m "v%s"
     ```
+    Verify that the `"version"` property in all `package.json` files matches the new version number; otherwise, update them to match. 
 5) Wait for a [GitHub Action](https://github.com/AllenInstitute/biofile-finder/actions) to automatically create new platform-specific
 builds of `packages/desktop`, prepare a draft Github release, and upload the builds as release artifacts to that release.
 6) [Update the GitHub release](https://github.com/AllenInstitute/biofile-finder/releases) once the Github action in Step 4 is finished, manually edit the Github release which was drafted as part of Step 4. Format its release name with the date (consistent with other release names), add a description of the changes, and optionally
 mark whether the release is "pre-release." If it is marked as "pre-release," it will not be accessible for download through the
 Github pages site.
+
+### Manually building an executable
+To manually build an executable for the desktop app, run the following from inside the `packages/desktop` directory:
+```
+npm run build-executable
+```
+This will create a `build` directory in `packages/desktop`, where it will package the app based on your current branch. The directory will contain an install file (e.g., `BioFile Finder-tag.number.dmg` if built on a Mac). 
+
+If needed, this install file can be manually added to a GitHub release. Note that this is currently necessary in order to release BFF for Macs that use Intel chips, since the GitHub workflow only generates working executables for ARM processors (Apple Silicon chips).
