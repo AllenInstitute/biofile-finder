@@ -57,11 +57,12 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
                     </div>
                 </>
             }
+            isStatic
             onDismiss={onDismissWithWarning}
             title={
                 showWarning
                     ? "Warning! Edits in progress."
-                    : `Edit Metadata ${filesSelectedCountString}`
+                    : `Edit metadata ${filesSelectedCountString}`
             }
         />
     );

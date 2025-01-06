@@ -8,7 +8,7 @@
 }
 
 .choice-group label > span {
-  font-size: var(--l-paragraph-size);
+  font-size: var(--s-paragraph-size);
   margin-right: 5px;
   margin-top: 1px;
   padding-left: 24px !important;

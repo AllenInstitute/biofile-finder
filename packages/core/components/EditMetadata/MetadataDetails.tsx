@@ -1,6 +1,7 @@
 import {
     DetailsList,
     IColumn,
+    IComboBoxOption,
     Icon,
     IDetailsRowProps,
     IRenderFunction,
@@ -9,7 +10,15 @@ import {
     StackItem,
     TextField,
 } from "@fluentui/react";
+import classNames from "classnames";
 import * as React from "react";
+
+import ChoiceGroup from "../ChoiceGroup";
+import ComboBox from "../ComboBox";
+import DateTimePicker from "../DateRangePicker/DateTimePicker";
+import DurationForm from "../DurationForm";
+import NumberField from "../NumberRangePicker/NumberField";
+import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 
 import rootStyles from "./EditMetadata.module.css";
 import styles from "./MetadataDetails.module.css";
@@ -20,6 +29,8 @@ export interface ValueCountItem {
 }
 
 interface DetailsListProps {
+    dropdownOptions?: IComboBoxOption[];
+    fieldType?: AnnotationType;
     items: ValueCountItem[];
     onChange: (value: string | undefined) => void;
     newValues?: string;
@@ -41,6 +52,9 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
         }
         return <></>;
     };
+    const annotationFormatter = annotationFormatterFactory(
+        props.fieldType || AnnotationType.STRING
+    );
 
     function renderItemColumn(
         item: ValueCountItem,
@@ -48,12 +62,86 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
         column: IColumn | undefined
     ) {
         const fieldContent = item[column?.fieldName as keyof ValueCountItem] as string;
-        if (!fieldContent) return "[No value] (blank)";
-        if (column?.fieldName === "fileCount") {
-            return <div className={styles.columnRightAlignCell}>{fieldContent}</div>;
+        if (column?.fieldName === "value") {
+            if (!fieldContent) return "[No value] (blank)";
+            else return annotationFormatter.displayValue(fieldContent);
+        } else if (column?.fieldName === "fileCount") {
+            return <div className={styles.columnRightAlignCell}>{fieldContent || 0}</div>;
         }
         return fieldContent;
     }
+
+    const inputField = () => {
+        switch (props.fieldType) {
+            case AnnotationType.DATE:
+                return (
+                    <DateTimePicker
+                        placeholder={"Select a date..."}
+                        onSelectDate={(date) => props.onChange(date?.toISOString())}
+                    />
+                );
+            case AnnotationType.DATETIME:
+                return (
+                    <DateTimePicker
+                        placeholder={"Select a date..."}
+                        onSelectDate={(date) => props.onChange(date?.toISOString())}
+                        showTimeSelection
+                    />
+                );
+            case AnnotationType.NUMBER:
+                return (
+                    <NumberField
+                        aria-label="Input a numerical value"
+                        id="numInput"
+                        placeholder="Type a numerical value..."
+                        onChange={(ev) => props.onChange(ev?.target?.value)}
+                    />
+                );
+            case AnnotationType.BOOLEAN:
+                return (
+                    <ChoiceGroup
+                        className={rootStyles.choiceGroup}
+                        defaultSelectedKey={"true"}
+                        onChange={(_, opt?) => props.onChange(opt?.key)}
+                        options={[
+                            {
+                                key: "true",
+                                text: "True",
+                            },
+                            {
+                                key: "false",
+                                text: "False",
+                            },
+                        ]}
+                    />
+                );
+            case AnnotationType.DURATION:
+                return (
+                    <DurationForm onChange={(duration) => props.onChange(duration.toString())} />
+                );
+            case AnnotationType.DROPDOWN:
+                if (props?.dropdownOptions) {
+                    return (
+                        <ComboBox
+                            className={rootStyles.comboBox}
+                            options={props?.dropdownOptions || []}
+                            label=""
+                            placeholder="Select value(s)..."
+                        />
+                    );
+                }
+            case AnnotationType.STRING:
+            default:
+                return (
+                    <TextField
+                        className={classNames(rootStyles.textField, styles.noPadding)}
+                        onChange={(e) => props.onChange(e?.currentTarget?.value)}
+                        placeholder="Type in value(s)..."
+                        defaultValue={props.newValues?.toString()}
+                    />
+                );
+        }
+    };
 
     return (
         <div className={styles.wrapper}>
@@ -94,20 +182,14 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                         onRenderItemColumn={renderItemColumn}
                     />
                 </StackItem>
-                <StackItem grow align="center" className={styles.stackItemCenter}>
-                    <Icon iconName="Forward" />
-                </StackItem>
                 <StackItem grow className={styles.stackItemRight}>
-                    {/* TODO: Display different entry types depending on datatype of annotation */}
-                    <TextField
-                        label="Replace with"
-                        className={rootStyles.textField}
-                        onBlur={(e) =>
-                            e.currentTarget.value && props.onChange(e.currentTarget.value)
-                        }
-                        placeholder="Value(s)"
-                        defaultValue={props.newValues}
-                    />
+                    <h4 className={styles.valuesTitle}>Replace with</h4>
+                    {
+                        <div className={styles.inputWrapper}>
+                            <Icon iconName="Forward" className={styles.forwardIcon} />
+                            {inputField()}
+                        </div>
+                    }
                 </StackItem>
             </Stack>
         </div>

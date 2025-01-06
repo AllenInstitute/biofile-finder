@@ -1,4 +1,5 @@
-const msInAMinute = 60 * 1000;
+const msInASecond = 1000;
+const msInAMinute = 60 * msInASecond;
 const msInAnHour = 60 * msInAMinute;
 const msInADay = 24 * msInAnHour;
 
@@ -19,12 +20,24 @@ export default {
         addUnit(msInAnHour, "H");
         addUnit(msInAMinute, "M");
         // Since seconds can have values like "3.5S", don't use floor when calculating
-        addUnit(1000, "S", false);
+        addUnit(msInASecond, "S", false);
 
         return display.trim();
     },
 
     valueOf(value: any) {
+        // Check for pre-formatted duration strings: must have at least one of #D, #H, #M, or #S in that order
+        const regexMatch = value.match(
+            /^(([0-9]+)D)?\s?(([0-9]+)H)?\s?(([0-9]+)M)?\s?(([0-9]*\.?[0-9]+)S)?$/
+        );
+        if (regexMatch) {
+            // Capture group order is [full string, aD, a, bH, b, cM, c, dS, d]
+            const daysInMs = (Number(regexMatch[2]) || 0) * msInADay;
+            const hrsInMs = (Number(regexMatch[4]) || 0) * msInAnHour;
+            const minsInMs = (Number(regexMatch[6]) || 0) * msInAMinute;
+            const secsInMs = (Number(regexMatch[8]) || 0) * msInASecond;
+            return daysInMs + hrsInMs + minsInMs + secsInMs;
+        }
         return Number(value);
     },
 };

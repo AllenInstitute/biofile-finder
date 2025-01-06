@@ -31,10 +31,6 @@
     margin: 0 10px 8px;
 }
 
-.date-range-root {
-    flex-grow: 1;
-}
-
 .text-field div {
     background-color: var(--secondary-background-color);
     border: none;
@@ -53,10 +49,4 @@
 .title {
     margin: 0;
     padding-bottom: var(--margin);
-}
-
-.read-only-placeholder {
-    margin-right: 20px;
-    font-style: italic;
-    color: var(--primary-text-color);
 }
