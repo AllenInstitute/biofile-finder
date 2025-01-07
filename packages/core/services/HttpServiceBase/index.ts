@@ -2,20 +2,24 @@ import axios, { AxiosInstance } from "axios";
 import { Policy } from "cockatiel";
 import LRUCache from "lru-cache";
 
-import { FileExplorerServiceBaseUrl } from "../../constants";
+import { FESBaseUrl, LoadBalancerBaseUrl, MMSBaseUrl } from "../../constants";
 import RestServiceResponse from "../../entity/RestServiceResponse";
 
 export interface ConnectionConfig {
     applicationVersion?: string;
-    baseUrl?: string | keyof typeof FileExplorerServiceBaseUrl;
+    fileExplorerServiceBaseUrl?: FESBaseUrl;
     httpClient?: AxiosInstance;
+    loadBalancerBaseUrl?: LoadBalancerBaseUrl;
+    metadataManagementServiceBaseURl?: MMSBaseUrl;
     pathSuffix?: string;
     userName?: string;
 }
 
 export const DEFAULT_CONNECTION_CONFIG = {
-    baseUrl: FileExplorerServiceBaseUrl.PRODUCTION,
+    fileExplorerServiceBaseUrl: FESBaseUrl.PRODUCTION,
     httpClient: axios.create(),
+    loadBalancerBaseUrl: LoadBalancerBaseUrl.PRODUCTION,
+    metadataManagementServiceBaseURl: MMSBaseUrl.PRODUCTION,
 };
 
 const CHARACTER_TO_ENCODING_MAP: { [index: string]: string } = {
@@ -45,7 +49,7 @@ const retry = Policy.handleAll()
     });
 
 /**
- * Base class for services that interact with AICS APIs.
+ * Base class for services that interact with APIs.
  */
 export default class HttpServiceBase {
     /**
@@ -66,7 +70,7 @@ export default class HttpServiceBase {
         }
 
         // encode ampersands that do not separate query string components, so first
-        // need to separate the query string componenets (which are split by ampersands themselves)
+        // need to separate the query string components (which are split by ampersands themselves)
         // handles case like `workflow=R&DExp&cell_line=AICS-46&foo=bar&cTnT%=3.0`
         const re = /&(?=(?:[^&])+\=)/g;
         const queryStringComponents = queryString.split(re);
@@ -97,8 +101,12 @@ export default class HttpServiceBase {
             .join("");
     }
 
-    public baseUrl: string | keyof typeof FileExplorerServiceBaseUrl =
-        DEFAULT_CONNECTION_CONFIG.baseUrl;
+    public fileExplorerServiceBaseUrl: string =
+        DEFAULT_CONNECTION_CONFIG.fileExplorerServiceBaseUrl;
+    public loadBalancerBaseUrl: string = DEFAULT_CONNECTION_CONFIG.loadBalancerBaseUrl;
+    public metadataManagementServiceBaseURl: string =
+        DEFAULT_CONNECTION_CONFIG.metadataManagementServiceBaseURl;
+
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
     private applicationVersion = "NOT SET";
     private userName?: string;
@@ -114,12 +122,20 @@ export default class HttpServiceBase {
             this.setUserName(config.userName);
         }
 
-        if (config.baseUrl) {
-            this.setBaseUrl(config.baseUrl);
+        if (config.fileExplorerServiceBaseUrl) {
+            this.setFileExplorerServiceBaseUrl(config.fileExplorerServiceBaseUrl);
         }
 
         if (config.httpClient) {
             this.setHttpClient(config.httpClient);
+        }
+
+        if (config.loadBalancerBaseUrl) {
+            this.setLoadBalancerBaseUrl(config.loadBalancerBaseUrl);
+        }
+
+        if (config.metadataManagementServiceBaseURl) {
+            this.setMetadataManagementServiceBaseURl(config.metadataManagementServiceBaseURl);
         }
 
         if (config.pathSuffix) {
@@ -180,6 +196,32 @@ export default class HttpServiceBase {
 
         if (response.status >= 400 || response.data === undefined) {
             // by default axios will reject if does not satisfy: status >= 200 && status < 300
+            throw new Error(`Request for ${encodedUrl} failed`);
+        }
+
+        return response.data;
+    }
+
+    public async rawPut<T>(
+        url: string,
+        body: string,
+        headers: { [key: string]: string } = {}
+    ): Promise<T> {
+        const encodedUrl = HttpServiceBase.encodeURI(url);
+        const config = { headers: { ...headers } };
+
+        let response;
+        try {
+            // Retry policy wrapped around axios PUT
+            response = await retry.execute(() => this.httpClient.put(encodedUrl, body, config));
+        } catch (err) {
+            if (axios.isAxiosError(err) && err?.response?.data?.message) {
+                throw new Error(JSON.stringify(err.response.data.message));
+            }
+            throw err;
+        }
+
+        if (response.status >= 400 || response.data === undefined) {
             throw new Error(`Request for ${encodedUrl} failed`);
         }
 
@@ -263,18 +305,13 @@ export default class HttpServiceBase {
         this.setHeaders();
     }
 
-    public setUserName(userName: string) {
-        this.userName = userName;
-        this.setHeaders();
-    }
-
-    public setBaseUrl(baseUrl: string | keyof typeof FileExplorerServiceBaseUrl) {
-        if (this.baseUrl !== baseUrl) {
+    public setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl: FESBaseUrl) {
+        if (this.fileExplorerServiceBaseUrl !== fileExplorerServiceBaseUrl) {
             // bust cache when base url changes
             this.urlToResponseDataCache.reset();
         }
 
-        this.baseUrl = baseUrl;
+        this.fileExplorerServiceBaseUrl = fileExplorerServiceBaseUrl;
     }
 
     public setHttpClient(client: AxiosInstance) {
@@ -296,5 +333,28 @@ export default class HttpServiceBase {
         } else {
             delete this.httpClient.defaults.headers.common["X-User-Id"];
         }
+    }
+
+    public setLoadBalancerBaseUrl(loadBalancerBaseUrl: LoadBalancerBaseUrl) {
+        if (this.loadBalancerBaseUrl !== loadBalancerBaseUrl) {
+            // bust cache when base url changes
+            this.urlToResponseDataCache.reset();
+        }
+
+        this.loadBalancerBaseUrl = loadBalancerBaseUrl;
+    }
+
+    public setMetadataManagementServiceBaseURl(metadataManagementServiceBaseURl: MMSBaseUrl) {
+        if (this.metadataManagementServiceBaseURl !== metadataManagementServiceBaseURl) {
+            // bust cache when base url changes
+            this.urlToResponseDataCache.reset();
+        }
+
+        this.metadataManagementServiceBaseURl = metadataManagementServiceBaseURl;
+    }
+
+    public setUserName(userName: string) {
+        this.userName = userName;
+        this.setHeaders();
     }
 }

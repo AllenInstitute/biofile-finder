@@ -84,7 +84,7 @@ export default class FileSet {
      * by using this as the component's `key` attribute.
      */
     public get hash() {
-        return `${this.toQueryString()}:${this.fileService.baseUrl}`;
+        return `${this.toQueryString()}:${this.fileService.fileExplorerServiceBaseUrl}`;
     }
 
     public async fetchTotalCount() {
@@ -210,7 +210,7 @@ export default class FileSet {
     public toJSON() {
         return {
             queryString: this.toQueryString(),
-            baseUrl: this.fileService.baseUrl,
+            fileExplorerServiceBaseUrl: this.fileService.fileExplorerServiceBaseUrl,
         };
     }
 

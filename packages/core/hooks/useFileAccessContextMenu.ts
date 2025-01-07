@@ -148,6 +148,20 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                         dispatch(interaction.actions.setVisibleModal(ModalType.EditMetadata));
                     },
                 },
+                ...(isQueryingAicsFms && !isOnWeb
+                    ? [
+                          {
+                              key: "copy-to-cache",
+                              text: "Copy to vast",
+                              title: "Copy selected files to NAS Cache (VAST)",
+                              disabled: !filters && fileSelection.count() === 0,
+                              iconProps: { iconName: "MoveToFolder" },
+                              onClick() {
+                                  dispatch(interaction.actions.showCopyFileManifest());
+                              },
+                          },
+                      ]
+                    : []),
                 {
                     key: "download",
                     text: "Download",

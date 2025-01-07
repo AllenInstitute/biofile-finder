@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import MetadataDetails, { ValueCountItem } from "./MetadataDetails";
 import { PrimaryButton, SecondaryButton } from "../Buttons";
 import ComboBox from "../ComboBox";
+import { AnnotationType } from "../../entity/AnnotationFormatter";
 import { interaction } from "../../state";
 
 import styles from "./EditMetadata.module.css";
@@ -13,7 +14,7 @@ import styles from "./EditMetadata.module.css";
 interface ExistingAnnotationProps {
     onDismiss: () => void;
     annotationValueMap: Map<string, any> | undefined;
-    annotationOptions: IComboBoxOption[];
+    annotationOptions: { key: string; text: string; data: string }[];
     selectedFileCount: number;
 }
 
@@ -26,6 +27,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
     const [newValues, setNewValues] = React.useState<string>();
     const [valueCount, setValueCount] = React.useState<ValueCountItem[]>();
     const [selectedAnnotation, setSelectedAnnotation] = React.useState<string | undefined>();
+    const [annotationType, setAnnotationType] = React.useState<AnnotationType | undefined>();
 
     const onSelectMetadataField = (
         option: IComboBoxOption | undefined,
@@ -64,6 +66,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
             ];
         }
         setSelectedAnnotation(selectedFieldName);
+        setAnnotationType(option?.data);
         setValueCount(valueMap);
     };
 
@@ -79,16 +82,16 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
             <ComboBox
                 className={styles.comboBox}
                 label="Select a metadata field"
-                placeholder="Select a field"
+                placeholder="Select a field..."
                 selectedKey={selectedAnnotation}
                 options={props.annotationOptions}
-                useComboBoxAsMenuWidth
                 onChange={onSelectMetadataField}
             />
             {!!selectedAnnotation && (
                 <MetadataDetails
                     onChange={(value) => setNewValues(value)}
                     items={valueCount || []}
+                    fieldType={annotationType}
                 />
             )}
             <div className={classNames(styles.footer, styles.footerAlignRight)}>

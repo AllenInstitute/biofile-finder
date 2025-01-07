@@ -3,8 +3,8 @@
   "version": "6.5.1",
   "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
   "engines": {
-    "node": "16.x",
-    "npm": "8.x"
+    "node": "18.x",
+    "npm": "10.x"
   },
   "workspaces": [
     "packages/desktop",
@@ -78,6 +78,7 @@
     "filesize": "5.0.x",
     "fuse.js": "3.4.x",
     "interactjs": "1.6.x",
+    "jszip": "^3.10.1",
     "lodash": "4.17.x",
     "lru-cache": "5.1.x",
     "normalize.css": "8.0.x",

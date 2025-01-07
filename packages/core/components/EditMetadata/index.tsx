@@ -34,6 +34,7 @@ export default function EditMetadataForm(props: EditMetadataProps) {
             return {
                 key: annotation.name,
                 text: annotation.displayName,
+                data: annotation.type,
             };
         });
     const [editPathway, setEditPathway] = React.useState<EditMetadataPathway>(

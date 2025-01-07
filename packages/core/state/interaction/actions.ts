@@ -261,19 +261,17 @@ export interface InitializeApp {
     payload: string;
 }
 
-export function initializeApp(baseUrl: string): InitializeApp {
-    return {
-        type: INITIALIZE_APP,
-        payload: baseUrl,
-    };
-}
+export const initializeApp = (payload: { environment: string }) => ({
+    type: INITIALIZE_APP,
+    payload,
+});
 
 /**
  * Edit the currently selected files with the given metadata
  */
 export const EDIT_FILES = makeConstant(STATE_BRANCH_NAME, "edit-files");
 
-export interface EditFiles {
+export interface EditFilesAction {
     type: string;
     payload: {
         annotations: { [name: string]: AnnotationValue[] };
@@ -284,7 +282,7 @@ export interface EditFiles {
 export function editFiles(
     annotations: { [name: string]: AnnotationValue[] },
     filters?: FileFilter[]
-): EditFiles {
+): EditFilesAction {
     return {
         type: EDIT_FILES,
         payload: {
@@ -704,5 +702,41 @@ export function setSelectedPublicDataset(dataset: PublicDataset): SetSelectedPub
     return {
         payload: dataset,
         type: SET_SELECTED_PUBLIC_DATASET,
+    };
+}
+
+/**
+ * SHOW_COPY_FILE_MANIFEST
+ *
+ * Action to show the Copy File dialog (manifest) for NAS cache operations.
+ * This modal will allow users to copy files onto the NAS cache.
+ */
+export const SHOW_COPY_FILE_MANIFEST = makeConstant(STATE_BRANCH_NAME, "show-copy-file-manifest");
+
+export interface ShowCopyFileManifestAction {
+    type: string;
+}
+
+export function showCopyFileManifest(): ShowCopyFileManifestAction {
+    return {
+        type: SHOW_COPY_FILE_MANIFEST,
+    };
+}
+
+export const COPY_FILES = makeConstant(STATE_BRANCH_NAME, "copy-files");
+
+export interface CopyFilesAction {
+    type: string;
+    payload: {
+        fileDetails: FileDetail[];
+    };
+}
+
+export function copyFiles(fileDetails: FileDetail[]): CopyFilesAction {
+    return {
+        type: COPY_FILES,
+        payload: {
+            fileDetails,
+        },
     };
 }

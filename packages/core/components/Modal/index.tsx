@@ -7,6 +7,7 @@ import DataSource from "./DataSource";
 import EditMetadata from "./EditMetadata";
 import MetadataManifest from "./MetadataManifest";
 import SmallScreenWarning from "./SmallScreenWarning";
+import CopyFileManifest from "./CopyFileManifest";
 
 export interface ModalProps {
     onDismiss: () => void;
@@ -14,10 +15,11 @@ export interface ModalProps {
 
 export enum ModalType {
     CodeSnippet = 1,
-    DataSource = 2,
-    EditMetadata = 3,
-    MetadataManifest = 4,
-    SmallScreenWarning = 5,
+    CopyFileManifest = 2,
+    DataSource = 3,
+    EditMetadata = 4,
+    MetadataManifest = 5,
+    SmallScreenWarning = 6,
 }
 
 /**
@@ -34,6 +36,8 @@ export default function Modal() {
     switch (visibleModal) {
         case ModalType.CodeSnippet:
             return <CodeSnippet onDismiss={onDismiss} />;
+        case ModalType.CopyFileManifest:
+            return <CopyFileManifest onDismiss={onDismiss} />;
         case ModalType.DataSource:
             return <DataSource onDismiss={onDismiss} />;
         case ModalType.EditMetadata:
