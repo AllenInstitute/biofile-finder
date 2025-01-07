@@ -8,7 +8,7 @@ import { expect } from "chai";
 import { get as _get } from "lodash";
 import { createSandbox } from "sinon";
 
-import { initialState, interaction } from "../..";
+import { initialState, interaction, reduxLogics } from "../..";
 import {
     downloadManifest,
     ProcessStatus,
@@ -740,7 +740,7 @@ describe("Interaction logics", () => {
             });
             const { store, logicMiddleware, actions } = configureMockStore({
                 state,
-                logics: interactionLogics,
+                logics: reduxLogics,
             });
 
             // Act
@@ -788,7 +788,7 @@ describe("Interaction logics", () => {
             });
             const { store, logicMiddleware, actions } = configureMockStore({
                 state,
-                logics: interactionLogics,
+                logics: reduxLogics,
             });
 
             // Act
