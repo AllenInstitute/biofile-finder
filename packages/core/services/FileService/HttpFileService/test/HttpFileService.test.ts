@@ -2,7 +2,7 @@ import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 
 import HttpFileService from "..";
-import { FESBaseUrl, LoadBalancerBaseUrl } from "../../../../constants";
+import { FESBaseUrl, LoadBalancerBaseUrl, MMSBaseUrl } from "../../../../constants";
 import FileSelection from "../../../../entity/FileSelection";
 import FileSet from "../../../../entity/FileSet";
 import NumericRange from "../../../../entity/NumericRange";
@@ -11,6 +11,7 @@ import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadSe
 describe("HttpFileService", () => {
     const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
     const loadBalancerBaseUrl = LoadBalancerBaseUrl.TEST;
+    const metadataManagementServiceBaseURl = MMSBaseUrl.TEST;
     const fileIds = ["abc123", "def456", "ghi789", "jkl012"];
     const files = fileIds.map((file_id) => ({
         file_id,
@@ -57,7 +58,7 @@ describe("HttpFileService", () => {
         it("fails if unable to find id of annotation", async () => {
             // Arrange
             const httpFileService = new HttpFileService({
-                baseUrl,
+                metadataManagementServiceBaseURl,
                 httpClient,
                 downloadService: new FileDownloadServiceNoop(),
             });
