@@ -30,7 +30,7 @@ import {
 } from "../../../services/ExecutionEnvService";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import interactionLogics from "../logics";
-import { FESBaseUrl } from "../../../constants";
+import { FESBaseUrl, MMSBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
@@ -660,6 +660,7 @@ describe("Interaction logics", () => {
         const sandbox = createSandbox();
         const files = [];
         const fileKinds = ["PNG", "TIFF"];
+        const metadataManagementServiceBaseURl = MMSBaseUrl.TEST;
         for (let i = 0; i <= 100; i++) {
             files.push({
                 file_path: `/allen/file_${i}.ext`,
@@ -693,7 +694,6 @@ describe("Interaction logics", () => {
             }),
         ];
 
-        const baseUrl = "test";
         const responseStubs: ResponseStub[] = [
             {
                 when: (config) =>
@@ -711,7 +711,7 @@ describe("Interaction logics", () => {
         ];
         const mockHttpClient = createMockHttpClient(responseStubs);
         const fileService = new HttpFileService({
-            baseUrl,
+            metadataManagementServiceBaseURl,
             httpClient: mockHttpClient,
             downloadService: new FileDownloadServiceNoop(),
         });
