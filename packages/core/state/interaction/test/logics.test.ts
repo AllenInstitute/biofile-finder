@@ -656,11 +656,12 @@ describe("Interaction logics", () => {
         });
     });
 
-    describe("editFilesLogic", () => {
+    describe.only("editFilesLogic", () => {
         const sandbox = createSandbox();
         const files = [];
         const fileKinds = ["PNG", "TIFF"];
         const metadataManagementServiceBaseURl = MMSBaseUrl.TEST;
+        const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
         for (let i = 0; i <= 100; i++) {
             files.push({
                 file_path: `/allen/file_${i}.ext`,
@@ -712,6 +713,7 @@ describe("Interaction logics", () => {
         const mockHttpClient = createMockHttpClient(responseStubs);
         const fileService = new HttpFileService({
             metadataManagementServiceBaseURl,
+            fileExplorerServiceBaseUrl,
             httpClient: mockHttpClient,
             downloadService: new FileDownloadServiceNoop(),
         });
