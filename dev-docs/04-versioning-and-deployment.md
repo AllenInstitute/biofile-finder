@@ -45,8 +45,13 @@ builds of `packages/desktop`, prepare a draft Github release, and upload the bui
 6) [Update the GitHub release](https://github.com/AllenInstitute/biofile-finder/releases) once the Github action in Step 4 is finished, manually edit the Github release which was drafted as part of Step 4. Format its release name with the date (consistent with other release names), add a description of the changes, and optionally
 mark whether the release is "pre-release." If it is marked as "pre-release," it will not be accessible for download through the
 Github pages site.
+7) **Temporary workaround for MacOS**: GitHub Actions currently builds .dmg files that don't work for x86 processors and that are interpreted as "damaged" by new MacOS versions. To get around this, follow the instructions below to [manually build executables](#manually-building-an-executable). You will need to do this separately for both arm64 and x86, and each build process **must be done on a machine that uses the correct processor** (e.g., on a computer with an Intel chip for the x86 build). 
+  
+    After building, change the .dmg name to match the current tag number and the processor that the build is for (e.g., `BioFile Finder-tag.number-arm64.dmg` or `BioFile Finder-tag.number-x86_64.dmg`), ad upload these to the release page. You may need to delete existing .dmg files from the release if GitHub has already generated them automatically.
 
-### Manually building an executable
+    If the build doesn't work (e.g., says it's damaged), change the `mac` build arch in `/desktop/package.json` from `"universal"` to whichever processor you're targeting (e.g., `"arm64"`).
+
+## Manually building an executable
 To manually build an executable for the desktop app, run the following from inside the `packages/desktop` directory:
 ```
 npm run build-executable
