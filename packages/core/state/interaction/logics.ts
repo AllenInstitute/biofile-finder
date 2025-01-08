@@ -567,18 +567,26 @@ const editFilesLogic = createLogic({
                 const promises = batch.map(
                     (fileId) =>
                         new Promise<void>(async (resolve, reject) => {
-                            try {
-                                await fileService.editFile(
-                                    fileId,
-                                    annotations,
-                                    annotationNameToAnnotationMap
-                                );
-                                totalFileEdited += 1;
-                                onProgress();
-                                resolve();
-                            } catch (err) {
-                                reject(err);
-                            }
+                            fileService
+                                .editFile(fileId, annotations, annotationNameToAnnotationMap)
+                                .then((_) => {
+                                    totalFileEdited += 1;
+                                    onProgress();
+                                    resolve();
+                                })
+                                .catch((err) => reject(err));
+                            // try {
+                            //     await fileService.editFile(
+                            //         fileId,
+                            //         annotations,
+                            //         annotationNameToAnnotationMap
+                            //     );
+                            //     totalFileEdited += 1;
+                            //     onProgress();
+                            //     resolve();
+                            // } catch (err) {
+                            //     reject(err);
+                            // }
                         })
                 );
 
@@ -594,6 +602,7 @@ const editFilesLogic = createLogic({
             }`;
             dispatch(processError(editRequestId, errorMsg));
         } finally {
+            console.log("reached finally in editFiles logic");
             done();
         }
     },

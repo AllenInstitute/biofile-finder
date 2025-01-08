@@ -794,7 +794,7 @@ describe("Interaction logics", () => {
             // Act
             store.dispatch(editFiles({ "Cell Line": ["AICS-12"] }));
             await logicMiddleware.whenComplete();
-
+            console.log("finished awaiting");
             // Assert
             expect(
                 actions.includesMatch({
