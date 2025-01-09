@@ -73,10 +73,12 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
             }
 
             let annotationValue = annotation.extractFromFile(fileDetails);
+            let fmsStateIndicator = false;
 
             if (annotation.name === AnnotationName.LOCAL_FILE_PATH) {
                 if (fileDetails && fileDetails.downloadInProgress) {
                     annotationValue = "Copying to VAST in progress…";
+                    fmsStateIndicator = true;
                 } else if (localPath === null) {
                     // localPath hasn't loaded yet or there is no local path annotation
                     return accum;
@@ -103,6 +105,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                     className={styles.row}
                     name={annotation.displayName}
                     value={annotationValue}
+                    fmsStateIndicator={fmsStateIndicator}
                 />,
             ];
         }, [] as JSX.Element[]);
