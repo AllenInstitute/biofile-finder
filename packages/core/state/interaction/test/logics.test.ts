@@ -5,7 +5,7 @@ import {
     ResponseStub,
 } from "@aics/redux-utils";
 import { expect } from "chai";
-import { get as _get } from "lodash";
+import { get as _get, noop } from "lodash";
 import { createSandbox } from "sinon";
 
 import { initialState, interaction, reduxLogics } from "../..";
@@ -711,11 +711,35 @@ describe("Interaction logics", () => {
             },
         ];
         const mockHttpClient = createMockHttpClient(responseStubs);
+        class TestDownloadService extends FileDownloadService {
+            isFileSystemAccessible = false;
+            getDefaultDownloadDirectory() {
+                return Promise.reject();
+            }
+            prepareHttpResourceForDownload() {
+                return Promise.reject();
+            }
+            download(_fileInfo: FileInfo) {
+                return Promise.reject();
+            }
+            cancelActiveRequest() {
+                noop();
+            }
+        }
+
+        const annotationService = new HttpAnnotationService({
+            fileExplorerServiceBaseUrl,
+            httpClient: mockHttpClient,
+        });
+        const downloadService = new TestDownloadService({
+            fileExplorerServiceBaseUrl,
+            metadataManagementServiceBaseURl,
+        });
         const fileService = new HttpFileService({
             metadataManagementServiceBaseURl,
             fileExplorerServiceBaseUrl,
             httpClient: mockHttpClient,
-            downloadService: new FileDownloadServiceNoop(),
+            downloadService,
         });
         const fakeSelection = new FileSelection().select({
             fileSet: new FileSet({ fileService }),
@@ -725,6 +749,7 @@ describe("Interaction logics", () => {
 
         before(() => {
             sandbox.stub(interaction.selectors, "getFileService").returns(fileService);
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
         });
         afterEach(() => {
             sandbox.resetHistory();
@@ -736,6 +761,11 @@ describe("Interaction logics", () => {
         it("edits 'folder' when filter specified'", async () => {
             // Arrange
             const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: downloadService,
+                    },
+                },
                 metadata: {
                     annotations: mockAnnotations,
                 },
@@ -787,6 +817,11 @@ describe("Interaction logics", () => {
                 metadata: {
                     annotations: mockAnnotations,
                 },
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: downloadService,
+                    },
+                },
             });
             const { store, logicMiddleware, actions } = configureMockStore({
                 state,
@@ -827,6 +862,11 @@ describe("Interaction logics", () => {
             const state = mergeState(initialState, {
                 selection: {
                     fileSelection: fakeSelection,
+                },
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: downloadService,
+                    },
                 },
             });
             const { store, logicMiddleware, actions } = configureMockStore({
