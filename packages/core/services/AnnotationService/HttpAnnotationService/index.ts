@@ -96,12 +96,6 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
             .filter((param) => !!param)
             .join("&");
         const requestUrl = `${this.fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}${this.pathSuffix}?${queryParams}`;
-        console.log(
-            "fes base url",
-            this.fileExplorerServiceBaseUrl,
-            "mms base url",
-            this.metadataManagementServiceBaseURl
-        );
 
         const response = await this.get<string>(requestUrl);
         return response.data;
@@ -115,12 +109,6 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         const queryParams = this.buildQueryParams(QueryParam.HIERARCHY, [...annotations].sort());
         const requestUrl = `${this.fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY}${this.pathSuffix}?${queryParams}`;
 
-        console.log(
-            "fes base url",
-            this.fileExplorerServiceBaseUrl,
-            "mms base url",
-            this.metadataManagementServiceBaseURl
-        );
         const response = await this.get<string>(requestUrl);
         if (!response.data) {
             return annotations;

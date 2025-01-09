@@ -602,7 +602,6 @@ const editFilesLogic = createLogic({
             }`;
             dispatch(processError(editRequestId, errorMsg));
         } finally {
-            console.log("reached finally in editFiles logic");
             done();
         }
     },

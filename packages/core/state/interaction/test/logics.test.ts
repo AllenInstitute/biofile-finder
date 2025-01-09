@@ -656,7 +656,7 @@ describe("Interaction logics", () => {
         });
     });
 
-    describe.only("editFilesLogic", () => {
+    describe("editFilesLogic", () => {
         const sandbox = createSandbox();
         const files = [];
         const fileKinds = ["PNG", "TIFF"];
@@ -831,7 +831,6 @@ describe("Interaction logics", () => {
             // Act
             store.dispatch(editFiles({ "Cell Line": ["AICS-12"] }));
             await logicMiddleware.whenComplete();
-            console.log("finished awaiting");
             // Assert
             expect(
                 actions.includesMatch({
