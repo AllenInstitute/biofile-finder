@@ -73,15 +73,12 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
             }
 
             let annotationValue = annotation.extractFromFile(fileDetails);
-            if (annotationValue === Annotation.MISSING_VALUE) {
-                // Nothing to show for this annotation -- skip
-                return accum;
-            }
 
             if (annotation.name === AnnotationName.LOCAL_FILE_PATH) {
-                if (localPath === null) {
-                    // localPath hasn't loaded yet, but it should eventually because there is an
-                    // annotation named AnnotationName.LOCAL_FILE_PATH
+                if (fileDetails && fileDetails.downloadInProgress) {
+                    annotationValue = "Copying to VAST in progress…";
+                } else if (localPath === null) {
+                    // localPath hasn't loaded yet or there is no local path annotation
                     return accum;
                 } else {
                     // Use the user's /allen mount point, if known
@@ -92,6 +89,11 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
             if (annotation.name === AnnotationName.FILE_PATH) {
                 // Display the full http://... URL
                 annotationValue = fileDetails.cloudPath;
+            }
+
+            if (annotationValue === Annotation.MISSING_VALUE) {
+                // Nothing to show for this annotation -- skip
+                return accum;
             }
 
             return [

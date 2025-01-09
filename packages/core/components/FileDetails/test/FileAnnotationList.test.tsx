@@ -126,6 +126,24 @@ describe("<FileAnnotationList />", () => {
 
         it("has loading message when file is downloading", () => {
             // Arrange
+            class FakeExecutionEnvService extends ExecutionEnvServiceNoop {
+                public formatPathForHost(posixPath: string): Promise<string> {
+                    return Promise.resolve(posixPath);
+                }
+            }
+            const { store } = configureMockStore({
+                state: mergeState(initialState, {
+                    metadata: {
+                        annotations: TOP_LEVEL_FILE_ANNOTATIONS,
+                    },
+                    interaction: {
+                        platformDependentServices: {
+                            executionEnvService: new FakeExecutionEnvService(),
+                        },
+                    },
+                }),
+            });
+
             const fileDetails = new FileDetail({
                 file_path: "path/to/file",
                 file_id: "abc123",
@@ -137,11 +155,13 @@ describe("<FileAnnotationList />", () => {
 
             // Act
             const { findByText } = render(
-                <FileAnnotationList isLoading={false} fileDetails={fileDetails} />
+                <Provider store={store}>
+                    <FileAnnotationList isLoading={false} fileDetails={fileDetails} />
+                </Provider>
             );
 
             // Assert
-            ["File Path (Canonical)", "Copying to Vast in progress…"].forEach(async (cellText) => {
+            ["File Path (Local VAST)", "Copying to VAST in progress…"].forEach(async (cellText) => {
                 expect(await findByText(cellText)).to.not.be.undefined;
             });
         });
