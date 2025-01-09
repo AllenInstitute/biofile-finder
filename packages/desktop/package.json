@@ -29,7 +29,10 @@
     },
     "mac": {
       "darkModeSupport": false,
-      "target": "dmg"
+      "target": [{
+        "target": "dmg",
+        "arch": "universal"
+      }]
     },
     "win": {
       "target": "portable"
