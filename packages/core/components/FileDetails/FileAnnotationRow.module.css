@@ -52,3 +52,7 @@
     /* Allow whitespace to be rendered (including carriage returns & new lines) */
     white-space: pre-wrap; 
 }
+
+.fms-state-indicator {
+    font-style: italic;
+}

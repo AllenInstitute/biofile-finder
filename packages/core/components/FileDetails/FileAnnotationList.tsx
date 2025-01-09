@@ -73,15 +73,14 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
             }
 
             let annotationValue = annotation.extractFromFile(fileDetails);
-            if (annotationValue === Annotation.MISSING_VALUE) {
-                // Nothing to show for this annotation -- skip
-                return accum;
-            }
+            let fmsStateIndicator = false;
 
             if (annotation.name === AnnotationName.LOCAL_FILE_PATH) {
-                if (localPath === null) {
-                    // localPath hasn't loaded yet, but it should eventually because there is an
-                    // annotation named AnnotationName.LOCAL_FILE_PATH
+                if (fileDetails && fileDetails.downloadInProgress) {
+                    annotationValue = "Copying to VAST in progress…";
+                    fmsStateIndicator = true;
+                } else if (localPath === null) {
+                    // localPath hasn't loaded yet or there is no local path annotation
                     return accum;
                 } else {
                     // Use the user's /allen mount point, if known
@@ -94,6 +93,11 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                 annotationValue = fileDetails.cloudPath;
             }
 
+            if (annotationValue === Annotation.MISSING_VALUE) {
+                // Nothing to show for this annotation -- skip
+                return accum;
+            }
+
             return [
                 ...accum,
                 <FileAnnotationRow
@@ -101,6 +105,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                     className={styles.row}
                     name={annotation.displayName}
                     value={annotationValue}
+                    fmsStateIndicator={fmsStateIndicator}
                 />,
             ];
         }, [] as JSX.Element[]);
