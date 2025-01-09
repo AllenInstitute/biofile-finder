@@ -252,6 +252,30 @@ export default class HttpServiceBase {
         return new RestServiceResponse(response.data);
     }
 
+    public async put<T>(url: string, body: string): Promise<RestServiceResponse<T>> {
+        const encodedUrl = HttpServiceBase.encodeURI(url);
+        const config = { headers: { "Content-Type": "application/json" } };
+
+        let response;
+        try {
+            // if this fails, bubble up exception
+            response = await retry.execute(() => this.httpClient.put(encodedUrl, body, config));
+        } catch (err) {
+            // Specific errors about the failure from services will be in this path
+            if (axios.isAxiosError(err) && err?.response?.data?.message) {
+                throw new Error(JSON.stringify(err.response.data.message));
+            }
+            throw err;
+        }
+
+        if (response.status >= 400 || response.data === undefined) {
+            // by default axios will reject if does not satisfy: status >= 200 && status < 300
+            throw new Error(`Request for ${encodedUrl} failed`);
+        }
+
+        return new RestServiceResponse(response.data);
+    }
+
     public async patch<T>(url: string, body: string): Promise<RestServiceResponse<T>> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
         const config = { headers: { "Content-Type": "application/json" } };

@@ -64,10 +64,10 @@ export enum FESBaseUrl {
 }
 
 export enum MMSBaseUrl {
-    LOCALHOST = "http://localhost:9060",
-    STAGING = "http://stg-aics-api",
-    PRODUCTION = "http://prod-aics-api",
-    TEST = "http://test-aics-api",
+    LOCALHOST = "https://localhost:9060",
+    STAGING = "https://stg-aics.corp.alleninstitute.org",
+    PRODUCTION = "https://aics.corp.alleninstitute.org",
+    TEST = "http://test-aics-mms-api.corp.alleninstitute.org",
 }
 
 export enum LoadBalancerBaseUrl {
