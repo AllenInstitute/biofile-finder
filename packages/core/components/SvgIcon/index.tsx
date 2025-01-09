@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { castArray, defaults } from "lodash";
+import { castArray } from "lodash";
 import * as React from "react";
 
 import styles from "./SvgIcon.module.css";
@@ -13,22 +13,12 @@ interface SvgIconProps {
     width?: number | string;
     viewBox: string;
 }
-
-// forwardRef components cannot make use of React's defaultProps mechanism
-const DEFAULT_PROPS = {
-    height: 15,
-    pathAttrs: {},
-    width: 15,
-};
-
 /**
  * A generalized SVG icon.
  */
 function SvgIcon(props: SvgIconProps, ref?: React.Ref<SVGSVGElement>) {
-    const { className, height, onClick, pathAttrs, pathData, viewBox, width } = defaults(
-        props,
-        DEFAULT_PROPS
-    );
+    const { className, height, onClick, pathAttrs = {}, pathData, viewBox, width } = props;
+
     return (
         <svg
             className={classNames({ [styles.interactive]: onClick !== undefined }, className)}

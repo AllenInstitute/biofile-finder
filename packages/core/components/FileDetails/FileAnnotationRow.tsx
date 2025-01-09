@@ -11,6 +11,7 @@ interface FileAnnotationRowProps {
     className?: string;
     name: string;
     value: string;
+    fmsStateIndicator?: boolean;
 }
 
 /**
@@ -66,6 +67,7 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
             <Cell
                 className={classNames(styles.cell, styles.value, {
                     [styles.smallFont]: shouldDisplaySmallFont,
+                    [styles.fmsStateIndicator]: props.fmsStateIndicator,
                 })}
                 columnKey="value"
                 width={1}

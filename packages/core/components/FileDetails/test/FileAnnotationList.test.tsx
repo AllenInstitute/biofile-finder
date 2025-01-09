@@ -123,5 +123,47 @@ describe("<FileAnnotationList />", () => {
                 }
             );
         });
+
+        it("has loading message when file is downloading", () => {
+            // Arrange
+            class FakeExecutionEnvService extends ExecutionEnvServiceNoop {
+                public formatPathForHost(posixPath: string): Promise<string> {
+                    return Promise.resolve(posixPath);
+                }
+            }
+            const { store } = configureMockStore({
+                state: mergeState(initialState, {
+                    metadata: {
+                        annotations: TOP_LEVEL_FILE_ANNOTATIONS,
+                    },
+                    interaction: {
+                        platformDependentServices: {
+                            executionEnvService: new FakeExecutionEnvService(),
+                        },
+                    },
+                }),
+            });
+
+            const fileDetails = new FileDetail({
+                file_path: "path/to/file",
+                file_id: "abc123",
+                file_name: "MyFile.txt",
+                file_size: 7,
+                uploaded: "01/01/01",
+                annotations: [{ name: "shouldBeInLocal", values: [true] }],
+            });
+
+            // Act
+            const { findByText } = render(
+                <Provider store={store}>
+                    <FileAnnotationList isLoading={false} fileDetails={fileDetails} />
+                </Provider>
+            );
+
+            // Assert
+            ["File Path (Local VAST)", "Copying to VAST in progress…"].forEach(async (cellText) => {
+                expect(await findByText(cellText)).to.not.be.undefined;
+            });
+        });
     });
 });

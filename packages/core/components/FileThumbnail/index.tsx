@@ -45,10 +45,10 @@ export default function FileThumbnail(props: Props) {
     if (!props.uri) {
         return (
             <SvgIcon
-                height={props.height}
+                height={props?.height || 150}
                 pathData={NO_IMAGE_ICON_PATH_DATA}
                 viewBox="0,1,22,22"
-                width={props.width}
+                width={props?.width || 150}
                 className={classNames(styles.noThumbnail, {
                     [styles.noThumbnailSelected]: props?.selected,
                 })}

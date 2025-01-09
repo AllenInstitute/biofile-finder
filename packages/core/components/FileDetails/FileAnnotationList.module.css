@@ -12,3 +12,7 @@
   /* flex child */
   flex: 1 1 100%;
 }
+
+.status-indicator {
+  font-style: italic;
+}

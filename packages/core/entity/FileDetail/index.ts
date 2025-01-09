@@ -173,6 +173,11 @@ export default class FileDetail {
         return this.path;
     }
 
+    public get downloadInProgress(): boolean {
+        const shouldBeInLocal = this.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL);
+        return Boolean(shouldBeInLocal) && !this.localPath;
+    }
+
     public get size(): number | undefined {
         const size = this.fileDetail.file_size || this.getFirstAnnotationValue("File Size");
         if (size === undefined) {
