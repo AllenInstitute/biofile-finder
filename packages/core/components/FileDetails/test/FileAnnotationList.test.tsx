@@ -18,7 +18,9 @@ describe("<FileAnnotationList />", () => {
 
             class FakeExecutionEnvService extends ExecutionEnvServiceNoop {
                 public formatPathForHost(posixPath: string): Promise<string> {
-                    return Promise.resolve(posixPath.replace("/allen", hostMountPoint));
+                    return Promise.resolve(
+                        posixPath.replace("/allen/programs/allencell/data/proj0", hostMountPoint)
+                    );
                 }
             }
 
@@ -35,18 +37,18 @@ describe("<FileAnnotationList />", () => {
                 }),
             });
 
-            const filePathInsideAllenDrive = "path/to/MyFile.txt";
+            const filePathInsideAllenDrive = "MyFile.txt";
             const filePath = `production.files.allencell.org/${filePathInsideAllenDrive}`;
             const fileDetails = new FileDetail(
                 {
                     file_path: filePath,
-                    file_id: "abc123",
+                    file_id: "c32e3eed66e4416d9532d369ffe1636f",
                     file_name: "MyFile.txt",
                     file_size: 7,
                     uploaded: "01/01/01",
                     annotations: [],
                 },
-                Environment.TEST
+                Environment.PRODUCTION
             );
 
             // Act
@@ -61,7 +63,7 @@ describe("<FileAnnotationList />", () => {
                 "File Path (Cloud)",
                 `https://s3.us-west-2.amazonaws.com/${filePath}`,
                 "File Path (Local VAST)",
-                `${hostMountPoint}/123/abc/${filePathInsideAllenDrive}`,
+                `${hostMountPoint}/36f/e16/9ff/d36/532/6d9/441/66e/eed/2e3/c3/${filePathInsideAllenDrive}`,
             ]) {
                 expect(await findByText(cellText)).to.not.be.undefined;
             }
