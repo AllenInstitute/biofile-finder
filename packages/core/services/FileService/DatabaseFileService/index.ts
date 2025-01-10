@@ -9,6 +9,7 @@ import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
 import SQLBuilder from "../../../entity/SQLBuilder";
+import { Environment } from "../../../constants";
 
 interface Config {
     databaseService: DatabaseService;
@@ -24,7 +25,10 @@ export default class DatabaseFileService implements FileService {
     private readonly downloadService: FileDownloadService;
     private readonly dataSourceNames: string[];
 
-    private static convertDatabaseRowToFileDetail(row: { [key: string]: string }): FileDetail {
+    private static convertDatabaseRowToFileDetail(
+        row: { [key: string]: string },
+        env: Environment
+    ): FileDetail {
         const uniqueId: string | undefined = row[DatabaseService.HIDDEN_UID_ANNOTATION];
         if (!uniqueId) {
             throw new Error("Missing auto-generated unique ID");
@@ -46,6 +50,7 @@ export default class DatabaseFileService implements FileService {
                             .map((value: string) => value.trim()),
                     })),
             },
+            env,
             uniqueId
         );
     }
@@ -109,7 +114,8 @@ export default class DatabaseFileService implements FileService {
             .toSQL();
 
         const rows = await this.databaseService.query(sql);
-        return rows.map(DatabaseFileService.convertDatabaseRowToFileDetail);
+        const env = this.downloadService.getEnvironmentFromUrl();
+        return rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env));
     }
 
     /**

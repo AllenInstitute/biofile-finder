@@ -10,41 +10,51 @@ import { initialState } from "../../../state";
 import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
 import { FileView } from "../../../entity/FileExplorerURL";
+import { Environment } from "../../../constants";
 
 describe("<LazilyRenderedThumbnail />", () => {
     function makeItemData() {
         const fileSet = new FileSet();
         sinon.stub(fileSet, "getFileByIndex").callsFake((index) => {
             if (index === 0) {
-                return new FileDetail({
-                    annotations: [],
-                    file_id: "abc1230",
-                    file_name: "my_image0.czi",
-                    file_path: "some/path/to/my_image0.czi",
-                    file_size: 1,
-                    thumbnail: "some/path/to/my_image0.jpg",
-                    uploaded: new Date().toISOString(),
-                });
+                return new FileDetail(
+                    {
+                        annotations: [],
+                        file_id: "abc1230",
+                        file_name: "my_image0.czi",
+                        file_path: "some/path/to/my_image0.czi",
+                        file_size: 1,
+                        thumbnail: "some/path/to/my_image0.jpg",
+                        uploaded: new Date().toISOString(),
+                    },
+                    Environment.TEST
+                );
             }
             if (index === 9) {
-                return new FileDetail({
-                    annotations: [],
-                    file_id: "abc1239",
-                    file_name: "my_image9.jpg",
-                    file_path: "some/path/to/my_image9.jpg",
-                    file_size: 1,
-                    uploaded: new Date().toISOString(),
-                });
+                return new FileDetail(
+                    {
+                        annotations: [],
+                        file_id: "abc1239",
+                        file_name: "my_image9.jpg",
+                        file_path: "some/path/to/my_image9.jpg",
+                        file_size: 1,
+                        uploaded: new Date().toISOString(),
+                    },
+                    Environment.TEST
+                );
             }
             if (index === 25) {
-                return new FileDetail({
-                    annotations: [],
-                    file_id: "abc12325",
-                    file_name: "my_image25.czi",
-                    file_path: "some/path/to/my_image25.czi",
-                    file_size: 1,
-                    uploaded: new Date().toISOString(),
-                });
+                return new FileDetail(
+                    {
+                        annotations: [],
+                        file_id: "abc12325",
+                        file_name: "my_image25.czi",
+                        file_path: "some/path/to/my_image25.czi",
+                        file_size: 1,
+                        uploaded: new Date().toISOString(),
+                    },
+                    Environment.TEST
+                );
             }
         });
 

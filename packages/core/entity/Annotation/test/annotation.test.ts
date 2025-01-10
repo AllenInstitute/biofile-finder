@@ -5,7 +5,7 @@ import Annotation from "../";
 import AnnotationName from "../AnnotationName";
 import { AnnotationType } from "../../AnnotationFormatter";
 import dateTimeFormatter from "../../AnnotationFormatter/date-time-formatter";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
+import { Environment, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import FileDetail from "../../FileDetail";
 
 describe("Annotation", () => {
@@ -66,21 +66,24 @@ describe("Annotation", () => {
     describe("extractFromFile", () => {
         it("gets the display value for a top-level annotation it represents from a given FmsFile", () => {
             const uploaded = new Date().toISOString();
-            const fmsFile = new FileDetail({
-                annotations: [
-                    {
-                        name: "Cell Line",
-                        values: ["AICS_10", "AICS_12"],
-                    },
-                ],
-                file_id: "abc123",
-                file_name: "mockfile.png",
-                file_path: "some/path/to/mockfile.png",
-                file_size: 1,
-                thumbnail:
-                    "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
-                uploaded,
-            });
+            const fmsFile = new FileDetail(
+                {
+                    annotations: [
+                        {
+                            name: "Cell Line",
+                            values: ["AICS_10", "AICS_12"],
+                        },
+                    ],
+                    file_id: "abc123",
+                    file_name: "mockfile.png",
+                    file_path: "some/path/to/mockfile.png",
+                    file_size: 1,
+                    thumbnail:
+                        "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
+                    uploaded,
+                },
+                Environment.TEST
+            );
 
             const annotation = new Annotation(annotationResponse);
             expect(annotation.extractFromFile(fmsFile)).to.equal(
@@ -96,21 +99,24 @@ describe("Annotation", () => {
                 type: AnnotationType.DATETIME,
             };
 
-            const fmsFile = new FileDetail({
-                annotations: [
-                    {
-                        name: "someDateAnnotation",
-                        values: ["2019-05-17T07:43:55.205Z"],
-                    },
-                ],
-                file_id: "abc123",
-                file_name: "mockfile.text",
-                file_path: "some/path/to/mockfile.png",
-                file_size: 1,
-                thumbnail:
-                    "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
-                uploaded: new Date().toISOString(),
-            });
+            const fmsFile = new FileDetail(
+                {
+                    annotations: [
+                        {
+                            name: "someDateAnnotation",
+                            values: ["2019-05-17T07:43:55.205Z"],
+                        },
+                    ],
+                    file_id: "abc123",
+                    file_name: "mockfile.text",
+                    file_path: "some/path/to/mockfile.png",
+                    file_size: 1,
+                    thumbnail:
+                        "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
+                    uploaded: new Date().toISOString(),
+                },
+                Environment.TEST
+            );
 
             const annotation = new Annotation(someDateAnnotation);
             expect(annotation.extractFromFile(fmsFile)).to.equal("5/17/2019, 12:43:55 AM");
@@ -124,29 +130,32 @@ describe("Annotation", () => {
                 type: AnnotationType.STRING,
             };
 
-            const fmsFile = new FileDetail({
-                annotations: [
-                    {
-                        name: "Cell Line",
-                        values: ["AICS_10", "AICS_12"],
-                    },
-                    {
-                        name: "isImage",
-                        values: [true],
-                    },
-                    {
-                        name: "Days Since Last Seen Light",
-                        values: [932829],
-                    },
-                ],
-                file_id: "abc123",
-                file_name: "mockfile.png",
-                file_path: "some/path/to/mockfile.png",
-                file_size: 1,
-                thumbnail:
-                    "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
-                uploaded: new Date().toISOString(),
-            });
+            const fmsFile = new FileDetail(
+                {
+                    annotations: [
+                        {
+                            name: "Cell Line",
+                            values: ["AICS_10", "AICS_12"],
+                        },
+                        {
+                            name: "isImage",
+                            values: [true],
+                        },
+                        {
+                            name: "Days Since Last Seen Light",
+                            values: [932829],
+                        },
+                    ],
+                    file_id: "abc123",
+                    file_name: "mockfile.png",
+                    file_path: "some/path/to/mockfile.png",
+                    file_size: 1,
+                    thumbnail:
+                        "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
+                    uploaded: new Date().toISOString(),
+                },
+                Environment.TEST
+            );
 
             const annotation = new Annotation(missingAnnotation);
             expect(annotation.extractFromFile(fmsFile)).to.equal(Annotation.MISSING_VALUE);

@@ -8,9 +8,7 @@ import FileAnnotationList from "../FileAnnotationList";
 import FileDetail from "../../../entity/FileDetail";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { initialState } from "../../../state";
-import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
-import Annotation from "../../../entity/Annotation";
-import { AnnotationType } from "../../../entity/AnnotationFormatter";
+import { Environment, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 
 describe("<FileAnnotationList />", () => {
     describe("file path representation", () => {
@@ -27,15 +25,7 @@ describe("<FileAnnotationList />", () => {
             const { store } = configureMockStore({
                 state: mergeState(initialState, {
                     metadata: {
-                        annotations: [
-                            ...TOP_LEVEL_FILE_ANNOTATIONS,
-                            new Annotation({
-                                annotationName: "Local File Path",
-                                annotationDisplayName: "File Path (Local VAST)",
-                                description: "Path to file in on-premises storage.",
-                                type: AnnotationType.STRING,
-                            }),
-                        ],
+                        annotations: [...TOP_LEVEL_FILE_ANNOTATIONS],
                     },
                     interaction: {
                         platformDependentServices: {
@@ -47,16 +37,17 @@ describe("<FileAnnotationList />", () => {
 
             const filePathInsideAllenDrive = "path/to/MyFile.txt";
             const filePath = `production.files.allencell.org/${filePathInsideAllenDrive}`;
-            const fileDetails = new FileDetail({
-                file_path: filePath,
-                file_id: "abc123",
-                file_name: "MyFile.txt",
-                file_size: 7,
-                uploaded: "01/01/01",
-                annotations: [
-                    { name: "Local File Path", values: [`/allen/${filePathInsideAllenDrive}`] },
-                ],
-            });
+            const fileDetails = new FileDetail(
+                {
+                    file_path: filePath,
+                    file_id: "abc123",
+                    file_name: "MyFile.txt",
+                    file_size: 7,
+                    uploaded: "01/01/01",
+                    annotations: [],
+                },
+                Environment.TEST
+            );
 
             // Act
             const { findByText } = render(
@@ -70,7 +61,7 @@ describe("<FileAnnotationList />", () => {
                 "File Path (Cloud)",
                 `https://s3.us-west-2.amazonaws.com/${filePath}`,
                 "File Path (Local VAST)",
-                `${hostMountPoint}/${filePathInsideAllenDrive}`,
+                `${hostMountPoint}/123/abc/${filePathInsideAllenDrive}`,
             ]) {
                 expect(await findByText(cellText)).to.not.be.undefined;
             }
@@ -99,14 +90,17 @@ describe("<FileAnnotationList />", () => {
 
             const filePathInsideAllenDrive = "path/to/MyFile.txt";
             const filePath = `production.files.allencell.org/${filePathInsideAllenDrive}`;
-            const fileDetails = new FileDetail({
-                file_path: filePath,
-                file_id: "abc123",
-                file_name: "MyFile.txt",
-                file_size: 7,
-                uploaded: "01/01/01",
-                annotations: [],
-            });
+            const fileDetails = new FileDetail(
+                {
+                    file_path: filePath,
+                    file_id: "abc123",
+                    file_name: "MyFile.txt",
+                    file_size: 7,
+                    uploaded: "01/01/01",
+                    annotations: [],
+                },
+                Environment.TEST
+            );
 
             // Act
             const { getByText } = render(
@@ -144,14 +138,17 @@ describe("<FileAnnotationList />", () => {
                 }),
             });
 
-            const fileDetails = new FileDetail({
-                file_path: "path/to/file",
-                file_id: "abc123",
-                file_name: "MyFile.txt",
-                file_size: 7,
-                uploaded: "01/01/01",
-                annotations: [{ name: "shouldBeInLocal", values: [true] }],
-            });
+            const fileDetails = new FileDetail(
+                {
+                    file_path: "path/to/file",
+                    file_id: "abc123",
+                    file_name: "MyFile.txt",
+                    file_size: 7,
+                    uploaded: "01/01/01",
+                    annotations: [{ name: "shouldBeInLocal", values: [true] }],
+                },
+                Environment.TEST
+            );
 
             // Act
             const { findByText } = render(
