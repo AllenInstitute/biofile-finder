@@ -2,6 +2,7 @@ import { sampleSize } from "lodash";
 
 import FileDetail from ".";
 import { FmsFileAnnotation } from "../../services/FileService";
+import { Environment } from "../../constants";
 
 const userAnnotations: FmsFileAnnotation[] = [
     {
@@ -39,5 +40,5 @@ export function makeFileDetailMock(id: string): FileDetail {
             "https://s3-us-west-2.amazonaws.com/production.imsc-visual-essay.allencell.org/assets/Cell-grid-images-144ppi/ACTB_Interphase.png",
         uploaded: new Date().toISOString(),
     };
-    return new FileDetail(detail);
+    return new FileDetail(detail, Environment.TEST);
 }

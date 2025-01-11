@@ -99,7 +99,8 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         const requestUrl = join(compact([base, fileSet.toQueryString()]), "&");
 
         const response = await this.get<FmsFile>(requestUrl);
-        return response.data.map((file) => new FileDetail(file));
+        const env = this.getEnvironmentFromUrl();
+        return response.data.map((file) => new FileDetail(file, env));
     }
 
     /**

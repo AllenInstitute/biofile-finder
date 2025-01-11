@@ -11,6 +11,7 @@ import FileSet from "../../../entity/FileSet";
 import { initialState } from "../../../state";
 
 import LazilyRenderedRow from "../LazilyRenderedRow";
+import { Environment } from "../../../constants";
 
 describe("<LazilyRenderedRow />", () => {
     const fileNameAnnotation = new Annotation({
@@ -24,20 +25,23 @@ describe("<LazilyRenderedRow />", () => {
         const fileSet = new FileSet();
         sinon.stub(fileSet, "getFileByIndex").callsFake((index) => {
             if (index === 3) {
-                return new FileDetail({
-                    annotations: [
-                        {
-                            name: "someDateAnnotation",
-                            values: ["2019-05-17T07:43:55.205Z"],
-                        },
-                    ],
-                    file_id: "abc123",
-                    file_name: "my_image.czi",
-                    file_path: "some/path/to/my_image.czi",
-                    file_size: 1,
-                    thumbnail: "",
-                    uploaded: new Date().toISOString(),
-                });
+                return new FileDetail(
+                    {
+                        annotations: [
+                            {
+                                name: "someDateAnnotation",
+                                values: ["2019-05-17T07:43:55.205Z"],
+                            },
+                        ],
+                        file_id: "abc123",
+                        file_name: "my_image.czi",
+                        file_path: "some/path/to/my_image.czi",
+                        file_size: 1,
+                        thumbnail: "",
+                        uploaded: new Date().toISOString(),
+                    },
+                    Environment.TEST
+                );
             }
         });
 
