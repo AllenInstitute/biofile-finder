@@ -575,18 +575,6 @@ const editFilesLogic = createLogic({
                                     resolve();
                                 })
                                 .catch((err) => reject(err));
-                            // try {
-                            //     await fileService.editFile(
-                            //         fileId,
-                            //         annotations,
-                            //         annotationNameToAnnotationMap
-                            //     );
-                            //     totalFileEdited += 1;
-                            //     onProgress();
-                            //     resolve();
-                            // } catch (err) {
-                            //     reject(err);
-                            // }
                         })
                 );
 
