@@ -22,6 +22,7 @@ describe("FileDetail", () => {
 
             // Assert
             expect(fileDetail.downloadPath).to.equal(
+                // The downloadPath is HTTP, but will get redirected to HTTPS
                 `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image/allen/programs/allencell/data/proj0/36f/e16/9ff/d36/532/6d9/441/66e/eed/2e3/c3/${file_name}`
             );
         });
