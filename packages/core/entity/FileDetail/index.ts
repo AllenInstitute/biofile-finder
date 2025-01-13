@@ -194,11 +194,10 @@ export default class FileDetail {
     }
 
     public get localPath(): string | null {
-        return FileDetail.generateFilePath(
-            this.env, // env
-            this.name, // fileName
-            this.id // fmsID
-        );
+        if (this.getAnnotation("Cache Eviction Date")) {
+            return FileDetail.generateFilePath(this.env, this.name, this.id);
+        }
+        return null;
     }
 
     public get cloudPath(): string {

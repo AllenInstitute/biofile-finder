@@ -44,7 +44,7 @@ describe("<FileAnnotationList />", () => {
                     file_name: "MyFile.txt",
                     file_size: 7,
                     uploaded: "01/01/01",
-                    annotations: [],
+                    annotations: [{ name: "Cache Eviction Date", values: ["SOME DATE"] }],
                 },
                 Environment.PRODUCTION
             );

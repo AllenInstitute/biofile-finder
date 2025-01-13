@@ -16,7 +16,7 @@ describe("FileDetail", () => {
                     file_path: `production.files.allencell.org/${file_name}`,
                     file_name: file_name,
                     file_id: file_id,
-                    annotations: [],
+                    annotations: [{ name: "Cache Eviction Date", values: ["SOME DATE"] }],
                 },
                 Environment.PRODUCTION
             );
