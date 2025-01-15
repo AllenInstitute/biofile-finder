@@ -4,9 +4,21 @@ import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
 import { Environment } from "../../constants";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
-
-const AICS_FMS_S3_BUCKET = "production.files.allencell.org";
 const AICS_FMS_S3_URL_PREFIX = "https://s3.us-west-2.amazonaws.com/";
+
+const AICS_FMS_S3_BUCKETS: Record<Environment, string> = {
+    PRODUCTION: "production.files.allencell.org",
+    STAGING: "staging.files.allencell.org",
+    LOCALHOST: "",
+    TEST: "test.files.allencell.org",
+};
+
+const HOST_PREFIXES: Record<Environment, string> = {
+    LOCALHOST: "/tmp/fss/local",
+    PRODUCTION: "/allen/programs/allencell/data/proj0",
+    STAGING: "/allen/aics/software/apps/staging/fss/data",
+    TEST: "/test",
+};
 
 /**
  * Expected JSON response of a file detail returned from the query service. Example:
@@ -80,69 +92,6 @@ export default class FileDetail {
     private readonly env: Environment;
     private readonly uniqueId?: string;
 
-    private static convertAicsDrivePathToAicsS3Path(path: string): string {
-        const pathWithoutDrive = path.replace("/allen/programs/allencell/data/proj0", "");
-        // Should probably record this somewhere we can dynamically adjust to, or perhaps just in the file
-        // document itself, alas for now this will do.
-        return FileDetail.convertAicsS3PathToHttpUrl(`${AICS_FMS_S3_BUCKET}${pathWithoutDrive}`);
-    }
-
-    private static generateFilePath(env: Environment, fileName: string, fmsId: string): string {
-        if (!fileName || !fmsId) {
-            throw new Error("File name and FMS ID must be provided");
-        }
-
-        // Define prefixes based on the environment
-        const prefixes: Record<Environment, string> = {
-            LOCALHOST: "/tmp/fss/local",
-            PRODUCTION: "/allen/programs/allencell/data/proj0",
-            STAGING: "/allen/aics/software/apps/staging/fss/data",
-            TEST: "test",
-        };
-
-        // Get the prefix for the given environment
-        const prefix = prefixes[env];
-        if (!prefix) {
-            throw new Error(`Invalid environment: ${env}`);
-        }
-
-        // Generate path segments from FMS ID
-        const pathSegments = this.convertFMSIDToLocalPath(fmsId);
-
-        // Construct the full file path
-        const filePath = `${prefix}/${pathSegments.join("/")}/${fileName}`;
-
-        return filePath;
-    }
-
-    private static convertFMSIDToLocalPath(guid: string): string[] {
-        if (!guid) {
-            throw new Error("GUID cannot be null or undefined");
-        }
-
-        const paths: string[] = [];
-
-        while (guid.length > 2) {
-            paths.push(this.getLastNChars(3, guid));
-            guid = guid.slice(0, -3); // Remove the last 3 characters
-        }
-
-        // Add final characters as the last path segment
-        paths.push(guid);
-
-        return paths;
-    }
-
-    /**
-     * Get the last `numChars` characters of a string.
-     * If the string is shorter than `numChars`, return the entire string.
-     */
-    private static getLastNChars(numChars: number, str: string): string {
-        const safeString = str || "";
-        const idx = safeString.length - numChars;
-        return idx >= 0 ? safeString.slice(idx) : safeString;
-    }
-
     private static convertAicsS3PathToHttpUrl(path: string): string {
         return `${AICS_FMS_S3_URL_PREFIX}${path}`;
     }
@@ -185,7 +134,11 @@ export default class FileDetail {
 
         // AICS FMS files have paths like this in fileDetail.file_path:
         // staging.files.allencell.org/130/b23/bfe/117/2a4/71b/746/002/064/db4/1a/danny_int_test_4.txt
-        if (typeof path === "string" && path.startsWith(AICS_FMS_S3_BUCKET)) {
+        if (
+            typeof path === "string" &&
+            path.startsWith(AICS_FMS_S3_BUCKETS[this.env]) &&
+            AICS_FMS_S3_BUCKETS[this.env]
+        ) {
             return FileDetail.convertAicsS3PathToHttpUrl(path) as string;
         }
 
@@ -193,32 +146,44 @@ export default class FileDetail {
         return path as string;
     }
 
-    public get localPath(): string | null {
-        if (this.getAnnotation("Cache Eviction Date")) {
-            return FileDetail.generateFilePath(this.env, this.name, this.id);
-        }
-        return null;
-    }
-
     public get cloudPath(): string {
         // AICS FMS files' paths are cloud paths
         return this.path;
     }
 
-    public get downloadPath(): string {
-        // For AICS files that are available on the Vast, users can use the cloud path, but the
-        // download will be faster and not incur egress fees if we download via the local network.
-        if (this.localPath && this.localPath.startsWith("/allen")) {
-            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${this.localPath}`;
+    public get localPath(): string | null {
+        if (this.getAnnotation("Cache Eviction Date")) {
+            return this.getLocalPath();
+        }
+        return null;
+    }
+
+    public getLocalPath(): string | null {
+        const localPrefix = HOST_PREFIXES[this.env];
+        const cloudPrefix = `${AICS_FMS_S3_URL_PREFIX}${AICS_FMS_S3_BUCKETS[this.env]}`;
+
+        if (this.path.startsWith(cloudPrefix)) {
+            const relativePath = this.path.replace(`${cloudPrefix}`, "");
+            return `${localPrefix}${relativePath}`;
         }
 
-        // Otherwise just return the path as is and hope for the best
+        return this.path;
+    }
+
+    public get downloadPath(): string {
+        const localPath = this.getLocalPath();
+        // For AICS files that are available on the Vast, users can use the cloud path, but the
+        // download will be faster and not incur egress fees if we download via the local network.
+        if (localPath && localPath.startsWith("/allen") && this.env === Environment.PRODUCTION) {
+            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${localPath}`;
+        }
+        // Otherwise just return path (cloud probably)
         return this.path;
     }
 
     public get downloadInProgress(): boolean {
         const shouldBeInLocal = this.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL);
-        return Boolean(shouldBeInLocal) && !this.localPath;
+        return Boolean(shouldBeInLocal) && !this.getLocalPath();
     }
 
     public get size(): number | undefined {
@@ -255,7 +220,10 @@ export default class FileDetail {
         // If the thumbnail is a relative path on the allen drive then preprend it to
         // the AICS FMS NGINX server path
         if (this.thumbnail?.startsWith("/allen")) {
-            return FileDetail.convertAicsDrivePathToAicsS3Path(this.thumbnail);
+            const pathWithoutDrive = this.thumbnail.replace(HOST_PREFIXES[this.env], "");
+            return FileDetail.convertAicsS3PathToHttpUrl(
+                `${AICS_FMS_S3_BUCKETS[this.env]}${pathWithoutDrive}`
+            );
         }
 
         // If no thumbnail present try to render the file itself as the thumbnail
