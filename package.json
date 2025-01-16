@@ -14,7 +14,7 @@
   "scripts": {
     "lint": "eslint --ext .jsx --ext .js --ext .tsx --ext .ts packages/",
     "test:core": "cd packages/core && BABEL_ENV=nodejs mocha --exit",
-    "test:desktop": "cd packages/desktop && npm test",
+    "test:desktop": "cd packages/desktop && BABEL_ENV=nodejs && npm test",
     "test:web": "cd packages/web && BABEL_ENV=nodejs mocha --exit",
     "test": "npm-run-all test:core test:desktop test:web",
     "typeCheck": "tsc --noEmit"
