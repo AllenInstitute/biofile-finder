@@ -92,6 +92,16 @@ export default class FileDetail {
     private readonly env: Environment;
     private readonly uniqueId?: string;
 
+    // REMOVE THIS FUNCITON (BACKWARDS COMPAT)
+    public convertAicsDrivePathToAicsS3Path(path: string): string {
+        const pathWithoutDrive = path.replace(HOST_PREFIXES[this.env], "");
+        // Should probably record this somewhere we can dynamically adjust to, or perhaps just in the file
+        // document itself, alas for now this will do.
+        return FileDetail.convertAicsS3PathToHttpUrl(
+            `${AICS_FMS_S3_BUCKETS[this.env]}${pathWithoutDrive}`
+        );
+    }
+
     private static convertAicsS3PathToHttpUrl(path: string): string {
         return `${AICS_FMS_S3_URL_PREFIX}${path}`;
     }
@@ -147,11 +157,23 @@ export default class FileDetail {
     }
 
     public get cloudPath(): string {
+        //// REMOVE THIS (BACKWARDS COMPAT)
+        if (this.path.startsWith("/allen")) {
+            return this.convertAicsDrivePathToAicsS3Path(this.path);
+        }
+        ////
+
         // AICS FMS files' paths are cloud paths
         return this.path;
     }
 
     public get localPath(): string | null {
+        //// REMOVE THIS (BACKWARDS COMPAT)
+        if (this.path.startsWith("/allen")) {
+            return this.path;
+        }
+        ////
+
         if (this.getAnnotation("Cache Eviction Date")) {
             return this.getLocalPath();
         }
@@ -171,6 +193,12 @@ export default class FileDetail {
     }
 
     public get downloadPath(): string {
+        //// REMOVE THIS (BACKWARDS COMPAT)
+        if (this.path.startsWith("/allen")) {
+            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${this.path}`;
+        }
+        ////
+
         const localPath = this.getLocalPath();
         // For AICS files that are available on the Vast, users can use the cloud path, but the
         // download will be faster and not incur egress fees if we download via the local network.
