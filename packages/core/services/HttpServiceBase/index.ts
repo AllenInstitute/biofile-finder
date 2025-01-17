@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from "axios";
 import { Policy } from "cockatiel";
 import LRUCache from "lru-cache";
 
-import { FESBaseUrl, LoadBalancerBaseUrl, MMSBaseUrl } from "../../constants";
+import { Environment, FESBaseUrl, LoadBalancerBaseUrl, MMSBaseUrl } from "../../constants";
 import RestServiceResponse from "../../entity/RestServiceResponse";
 
 export interface ConnectionConfig {
@@ -165,6 +165,19 @@ export default class HttpServiceBase {
         }
 
         return new RestServiceResponse(cachedResponseData);
+    }
+
+    public getEnvironmentFromUrl(): Environment {
+        const url = this.fileExplorerServiceBaseUrl;
+
+        // Find the key corresponding to the URL in the FESBaseUrl constant
+        for (const [env, envUrl] of Object.entries(FESBaseUrl)) {
+            if (envUrl === url) {
+                return env as Environment;
+            }
+        }
+
+        throw new Error(`Unknown fileExplorerServiceBaseUrl: ${url}`);
     }
 
     /**

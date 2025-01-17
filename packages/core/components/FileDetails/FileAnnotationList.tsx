@@ -33,21 +33,11 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
         let active = true;
 
         async function formatPathForHost() {
-            if (!fileDetails) {
-                return;
-            }
+            if (!fileDetails || !active) return;
 
-            let path;
-            if (fileDetails.localPath === null) {
-                // The Local File Path annotation is not defined because the file is not available
-                // on-premises
-                path = fileDetails.localPath;
-            } else {
-                path = await executionEnvService.formatPathForHost(fileDetails.localPath);
-            }
-            if (!active) {
-                return;
-            }
+            const localPath = fileDetails.localPath;
+            const path = localPath ? await executionEnvService.formatPathForHost(localPath) : null;
+
             setLocalPath(path);
         }
 

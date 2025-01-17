@@ -1,11 +1,24 @@
 import AnnotationName from "../Annotation/AnnotationName";
 import { FmsFileAnnotation } from "../../services/FileService";
 import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
+import { Environment } from "../../constants";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
-
-const AICS_FMS_S3_BUCKET = "production.files.allencell.org";
 const AICS_FMS_S3_URL_PREFIX = "https://s3.us-west-2.amazonaws.com/";
+
+const AICS_FMS_S3_BUCKETS: Record<Environment, string> = {
+    PRODUCTION: "production.files.allencell.org",
+    STAGING: "staging.files.allencell.org",
+    LOCALHOST: "",
+    TEST: "test.files.allencell.org",
+};
+
+const NAS_HOST_PREFIXES: Record<Environment, string> = {
+    LOCALHOST: "/tmp/fss/local",
+    PRODUCTION: "/allen/programs/allencell/data/proj0",
+    STAGING: "/allen/aics/software/apps/staging/fss/data",
+    TEST: "/test",
+};
 
 /**
  * Expected JSON response of a file detail returned from the query service. Example:
@@ -76,21 +89,26 @@ export interface FmsFile {
  */
 export default class FileDetail {
     private readonly fileDetail: FmsFile;
+    private readonly env: Environment;
     private readonly uniqueId?: string;
 
-    private static convertAicsDrivePathToAicsS3Path(path: string): string {
-        const pathWithoutDrive = path.replace("/allen/programs/allencell/data/proj0", "");
+    // REMOVE THIS FUNCITON (BACKWARDS COMPAT)
+    public convertAicsDrivePathToAicsS3Path(path: string): string {
+        const pathWithoutDrive = path.replace(NAS_HOST_PREFIXES[this.env], "");
         // Should probably record this somewhere we can dynamically adjust to, or perhaps just in the file
         // document itself, alas for now this will do.
-        return FileDetail.convertAicsS3PathToHttpUrl(`${AICS_FMS_S3_BUCKET}${pathWithoutDrive}`);
+        return FileDetail.convertAicsS3PathToHttpUrl(
+            `${AICS_FMS_S3_BUCKETS[this.env]}${pathWithoutDrive}`
+        );
     }
 
     private static convertAicsS3PathToHttpUrl(path: string): string {
         return `${AICS_FMS_S3_URL_PREFIX}${path}`;
     }
 
-    constructor(fileDetail: FmsFile, uniqueId?: string) {
+    constructor(fileDetail: FmsFile, env: Environment, uniqueId?: string) {
         this.fileDetail = fileDetail;
+        this.env = env;
         this.uniqueId = uniqueId;
     }
 
@@ -126,7 +144,11 @@ export default class FileDetail {
 
         // AICS FMS files have paths like this in fileDetail.file_path:
         // staging.files.allencell.org/130/b23/bfe/117/2a4/71b/746/002/064/db4/1a/danny_int_test_4.txt
-        if (typeof path === "string" && path.startsWith(AICS_FMS_S3_BUCKET)) {
+        if (
+            typeof path === "string" &&
+            path.startsWith(AICS_FMS_S3_BUCKETS[this.env]) &&
+            AICS_FMS_S3_BUCKETS[this.env]
+        ) {
             return FileDetail.convertAicsS3PathToHttpUrl(path) as string;
         }
 
@@ -134,48 +156,62 @@ export default class FileDetail {
         return path as string;
     }
 
-    public get localPath(): string | null {
-        // REMOVE THIS (BACKWARDS COMPAT)
-        if (this.path.startsWith("/allen")) {
-            return this.path;
-        }
-
-        const localPath = this.getFirstAnnotationValue("Local File Path");
-        if (localPath === undefined) {
-            return null;
-        }
-        return localPath as string;
-    }
-
     public get cloudPath(): string {
-        // REMOVE THIS (BACKWARDS COMPAT)
+        //// REMOVE THIS (BACKWARDS COMPAT)
         if (this.path.startsWith("/allen")) {
-            return FileDetail.convertAicsDrivePathToAicsS3Path(this.path);
+            return this.convertAicsDrivePathToAicsS3Path(this.path);
         }
+        ////
 
         // AICS FMS files' paths are cloud paths
         return this.path;
     }
 
+    public get localPath(): string | null {
+        //// REMOVE THIS (BACKWARDS COMPAT)
+        if (this.path.startsWith("/allen")) {
+            return this.path;
+        }
+        ////
+
+        if (this.getAnnotation("Cache Eviction Date")) {
+            return this.getLocalPath();
+        }
+        return null;
+    }
+
+    public getLocalPath(): string | null {
+        const localPrefix = NAS_HOST_PREFIXES[this.env];
+        const cloudPrefix = `${AICS_FMS_S3_URL_PREFIX}${AICS_FMS_S3_BUCKETS[this.env]}`;
+
+        if (this.path.startsWith(cloudPrefix)) {
+            const relativePath = this.path.replace(`${cloudPrefix}`, "");
+            return `${localPrefix}${relativePath}`;
+        }
+
+        return null;
+    }
+
     public get downloadPath(): string {
-        // REMOVE THIS (BACKWARDS COMPAT)
+        //// REMOVE THIS (BACKWARDS COMPAT)
         if (this.path.startsWith("/allen")) {
             return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${this.path}`;
         }
+        ////
 
+        const localPath = this.getLocalPath();
         // For AICS files that are available on the Vast, users can use the cloud path, but the
         // download will be faster and not incur egress fees if we download via the local network.
-        if (this.localPath && this.localPath.startsWith("/allen")) {
-            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${this.localPath}`;
+        if (localPath && localPath.startsWith("/allen") && this.env === Environment.PRODUCTION) {
+            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${localPath}`;
         }
-
-        // Otherwise just return the path as is and hope for the best
+        // Otherwise just return path (cloud probably)
         return this.path;
     }
 
     public get downloadInProgress(): boolean {
         const shouldBeInLocal = this.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL);
-        return Boolean(shouldBeInLocal) && !this.localPath;
+        return Boolean(shouldBeInLocal) && !this.getLocalPath();
     }
 
     public get size(): number | undefined {
@@ -212,7 +248,10 @@ export default class FileDetail {
         // If the thumbnail is a relative path on the allen drive then preprend it to
         // the AICS FMS NGINX server path
         if (this.thumbnail?.startsWith("/allen")) {
-            return FileDetail.convertAicsDrivePathToAicsS3Path(this.thumbnail);
+            const pathWithoutDrive = this.thumbnail.replace(NAS_HOST_PREFIXES[this.env], "");
+            return FileDetail.convertAicsS3PathToHttpUrl(
+                `${AICS_FMS_S3_BUCKETS[this.env]}${pathWithoutDrive}`
+            );
         }
 
         // If no thumbnail present try to render the file itself as the thumbnail
