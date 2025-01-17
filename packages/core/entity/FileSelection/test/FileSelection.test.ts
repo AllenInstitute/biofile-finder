@@ -11,7 +11,7 @@ import FileFilter from "../../FileFilter";
 import FuzzyFilter from "../../FileFilter/FuzzyFilter";
 import IncludeFilter from "../../FileFilter/IncludeFilter";
 import ExcludeFilter from "../../FileFilter/ExcludeFilter";
-import { FESBaseUrl } from "../../../constants";
+import { Environment, FESBaseUrl } from "../../../constants";
 import { IndexError, ValueError } from "../../../errors";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
@@ -353,7 +353,7 @@ describe("FileSelection", () => {
             // Due to overfetching the result set we desire is a subsection of query results
             const expectedDetails = queryResult
                 .slice(1, 31)
-                .map((detail) => new FileDetail(detail as any));
+                .map((detail) => new FileDetail(detail as any, Environment.TEST));
             const httpClient = createMockHttpClient({
                 when: `${fileExplorerServiceBaseUrl}/${
                     HttpFileService.BASE_FILES_URL
