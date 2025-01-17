@@ -51,7 +51,7 @@
     "postversion": "git push origin `git rev-parse --abbrev-ref HEAD` && git push --tags",
     "publishArtifact": "echo 'npm run publishArtifact is a noop for fms-file-explorer-desktop'",
     "start": "node scripts/start-dev.js",
-    "test:renderer": "BABEL_ENV=nodejs xvfb-maybe electron-mocha --require-main src/main/init-electron-store.js --renderer --grep @renderer --preload ./scripts/test-env-setup.js",
+    "test:renderer": "BABEL_ENV=nodejs xvfb-maybe electron-mocha --require-main src/main/init-electron-store.js --renderer --grep @renderer --preload ./scripts/test-env-setup.js --no-sandbox",
     "test:nodejs": "BABEL_ENV=nodejs mocha --grep @renderer --invert",
     "test": "npm-run-all --print-label test:renderer test:nodejs",
     "version": "git add package.json && git commit -m \"v${npm_package_version}\" && git tag -am \"v${npm_package_version}\" \"v${npm_package_version}\""

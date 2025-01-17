@@ -30,7 +30,7 @@ import {
 } from "../../../services/ExecutionEnvService";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import interactionLogics from "../logics";
-import { FESBaseUrl, MMSBaseUrl } from "../../../constants";
+import { Environment, FESBaseUrl, MMSBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
@@ -290,14 +290,17 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const file = new FileDetail({
-                file_id: "678142",
-                file_name: "test_file_1",
-                file_size: 18,
-                file_path: "/some/path/test_file_1",
-                uploaded: "whenever",
-                annotations: [],
-            });
+            const file = new FileDetail(
+                {
+                    file_id: "678142",
+                    file_name: "test_file_1",
+                    file_size: 18,
+                    file_path: "/some/path/test_file_1",
+                    uploaded: "whenever",
+                    annotations: [],
+                },
+                Environment.TEST
+            );
 
             // Act
             store.dispatch(downloadFiles([file]));
@@ -329,22 +332,28 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const file1 = new FileDetail({
-                file_id: "930213",
-                file_name: "test_file_1",
-                file_size: 18,
-                file_path: "/some/path/test_file_1",
-                uploaded: "whenever",
-                annotations: [],
-            });
-            const file2 = new FileDetail({
-                file_id: "8932432",
-                file_name: "test_file_2",
-                file_size: 2349014,
-                file_path: "/some/path/test_file_2",
-                uploaded: "whenever",
-                annotations: [],
-            });
+            const file1 = new FileDetail(
+                {
+                    file_id: "930213",
+                    file_name: "test_file_1",
+                    file_size: 18,
+                    file_path: "/some/path/test_file_1",
+                    uploaded: "whenever",
+                    annotations: [],
+                },
+                Environment.TEST
+            );
+            const file2 = new FileDetail(
+                {
+                    file_id: "8932432",
+                    file_name: "test_file_2",
+                    file_size: 2349014,
+                    file_path: "/some/path/test_file_2",
+                    uploaded: "whenever",
+                    annotations: [],
+                },
+                Environment.TEST
+            );
 
             // Act
             store.dispatch(downloadFiles([file1, file2]));
@@ -388,14 +397,17 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const file = new FileDetail({
-                file_id: "32490241",
-                file_name: "test_file_1",
-                file_size: 18,
-                file_path: "/some/path/test_file_1",
-                uploaded: "whenever",
-                annotations: [],
-            });
+            const file = new FileDetail(
+                {
+                    file_id: "32490241",
+                    file_name: "test_file_1",
+                    file_size: 18,
+                    file_path: "/some/path/test_file_1",
+                    uploaded: "whenever",
+                    annotations: [],
+                },
+                Environment.TEST
+            );
 
             // Act
             store.dispatch(downloadFiles([file]));
@@ -454,14 +466,17 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const file = new FileDetail({
-                file_id: "5483295",
-                file_name: "test_file_1",
-                file_size: 18,
-                file_path: "/some/path/test_file_1",
-                uploaded: "whenever",
-                annotations: [],
-            });
+            const file = new FileDetail(
+                {
+                    file_id: "5483295",
+                    file_name: "test_file_1",
+                    file_size: 18,
+                    file_path: "/some/path/test_file_1",
+                    uploaded: "whenever",
+                    annotations: [],
+                },
+                Environment.TEST
+            );
 
             // Act
             store.dispatch(downloadFiles([file]));
@@ -508,14 +523,17 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const file = new FileDetail({
-                file_id: "872342",
-                file_name: "test_file_1",
-                file_size: 18,
-                file_path: "/some/path/test_file_1",
-                uploaded: "whenever",
-                annotations: [],
-            });
+            const file = new FileDetail(
+                {
+                    file_id: "872342",
+                    file_name: "test_file_1",
+                    file_size: 18,
+                    file_path: "/some/path/test_file_1",
+                    uploaded: "whenever",
+                    annotations: [],
+                },
+                Environment.TEST
+            );
 
             // Act
             store.dispatch(downloadFiles([file]));
@@ -577,14 +595,17 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const file = new FileDetail({
-                file_id: "930213",
-                file_name: "test_file_1",
-                file_size: 18,
-                file_path: "/some/path/test_file_1",
-                uploaded: "whenever",
-                annotations: [],
-            });
+            const file = new FileDetail(
+                {
+                    file_id: "930213",
+                    file_name: "test_file_1",
+                    file_size: 18,
+                    file_path: "/some/path/test_file_1",
+                    uploaded: "whenever",
+                    annotations: [],
+                },
+                Environment.TEST
+            );
 
             // Act
             store.dispatch(downloadFiles([file]));
@@ -638,14 +659,17 @@ describe("Interaction logics", () => {
                 state,
                 logics: interactionLogics,
             });
-            const file = new FileDetail({
-                file_id: "32490241",
-                file_name: "test_file_1",
-                file_size: 18,
-                file_path: "/some/path/test_file_1",
-                uploaded: "whenever",
-                annotations: [],
-            });
+            const file = new FileDetail(
+                {
+                    file_id: "32490241",
+                    file_name: "test_file_1",
+                    file_size: 18,
+                    file_path: "/some/path/test_file_1",
+                    uploaded: "whenever",
+                    annotations: [],
+                },
+                Environment.TEST
+            );
 
             // Act
             store.dispatch(downloadFiles([file]));
