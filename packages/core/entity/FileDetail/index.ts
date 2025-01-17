@@ -13,7 +13,7 @@ const AICS_FMS_S3_BUCKETS: Record<Environment, string> = {
     TEST: "test.files.allencell.org",
 };
 
-const HOST_PREFIXES: Record<Environment, string> = {
+const NAS_HOST_PREFIXES: Record<Environment, string> = {
     LOCALHOST: "/tmp/fss/local",
     PRODUCTION: "/allen/programs/allencell/data/proj0",
     STAGING: "/allen/aics/software/apps/staging/fss/data",
@@ -94,7 +94,7 @@ export default class FileDetail {
 
     // REMOVE THIS FUNCITON (BACKWARDS COMPAT)
     public convertAicsDrivePathToAicsS3Path(path: string): string {
-        const pathWithoutDrive = path.replace(HOST_PREFIXES[this.env], "");
+        const pathWithoutDrive = path.replace(NAS_HOST_PREFIXES[this.env], "");
         // Should probably record this somewhere we can dynamically adjust to, or perhaps just in the file
         // document itself, alas for now this will do.
         return FileDetail.convertAicsS3PathToHttpUrl(
@@ -181,7 +181,7 @@ export default class FileDetail {
     }
 
     public getLocalPath(): string | null {
-        const localPrefix = HOST_PREFIXES[this.env];
+        const localPrefix = NAS_HOST_PREFIXES[this.env];
         const cloudPrefix = `${AICS_FMS_S3_URL_PREFIX}${AICS_FMS_S3_BUCKETS[this.env]}`;
 
         if (this.path.startsWith(cloudPrefix)) {
@@ -189,7 +189,7 @@ export default class FileDetail {
             return `${localPrefix}${relativePath}`;
         }
 
-        return this.path;
+        return null;
     }
 
     public get downloadPath(): string {
@@ -248,7 +248,7 @@ export default class FileDetail {
         // If the thumbnail is a relative path on the allen drive then preprend it to
         // the AICS FMS NGINX server path
         if (this.thumbnail?.startsWith("/allen")) {
-            const pathWithoutDrive = this.thumbnail.replace(HOST_PREFIXES[this.env], "");
+            const pathWithoutDrive = this.thumbnail.replace(NAS_HOST_PREFIXES[this.env], "");
             return FileDetail.convertAicsS3PathToHttpUrl(
                 `${AICS_FMS_S3_BUCKETS[this.env]}${pathWithoutDrive}`
             );
