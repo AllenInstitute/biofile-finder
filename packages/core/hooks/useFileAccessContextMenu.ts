@@ -136,18 +136,24 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                         ],
                     },
                 },
-                {
-                    key: "edit",
-                    text: "Edit metadata",
-                    title: "Edit metadata for selected files",
-                    disabled: !filters && fileSelection.count() === 0,
-                    iconProps: {
-                        iconName: "Edit",
-                    },
-                    onClick() {
-                        dispatch(interaction.actions.setVisibleModal(ModalType.EditMetadata));
-                    },
-                },
+                ...(isQueryingAicsFms
+                    ? [
+                          {
+                              key: "edit",
+                              text: "Edit metadata",
+                              title: "Edit metadata for selected files",
+                              disabled: !filters && fileSelection.count() === 0,
+                              iconProps: {
+                                  iconName: "Edit",
+                              },
+                              onClick() {
+                                  dispatch(
+                                      interaction.actions.setVisibleModal(ModalType.EditMetadata)
+                                  );
+                              },
+                          },
+                      ]
+                    : []),
                 ...(isQueryingAicsFms && !isOnWeb
                     ? [
                           {
