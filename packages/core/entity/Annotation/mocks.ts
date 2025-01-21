@@ -35,4 +35,10 @@ export const annotationsJson = [
         description: "Path to file in on-premises storage.",
         type: "Text",
     },
+    {
+        annotationName: "Cache Eviction Date",
+        annotationDisplayName: "Cache Eviction Date",
+        description: "Date to remove from local storage (VAST)",
+        type: "Date",
+    },
 ];

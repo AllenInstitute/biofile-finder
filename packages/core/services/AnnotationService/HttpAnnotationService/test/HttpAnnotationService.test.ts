@@ -31,6 +31,16 @@ describe("HttpAnnotationService", () => {
             );
             expect(annotations[0]).to.be.instanceOf(Annotation);
         });
+
+        it("renames Cache Eviction Date to VAST Expiration Date", async () => {
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient,
+            });
+            const annotations = await annotationService.fetchAnnotations();
+            const localPathAnnotation = annotations.find((a) => a.name === "Cache Eviction Date");
+            expect(localPathAnnotation?.displayName).to.equal("VAST Expiration Date");
+        });
     });
 
     describe("fetchAnnotationValues", () => {
