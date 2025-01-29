@@ -1,12 +1,14 @@
+import { noop } from "lodash";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
+import CopyFileManifest from "./CopyFileManifest";
 import CodeSnippet from "./CodeSnippet";
 import DataSource from "./DataSource";
+import DirectoryInput from "./DirectoryInputModal";
 import MetadataManifest from "./MetadataManifest";
 import SmallScreenWarning from "./SmallScreenWarning";
-import CopyFileManifest from "./CopyFileManifest";
 
 export interface ModalProps {
     onDismiss: () => void;
@@ -43,6 +45,6 @@ export default function Modal() {
         case ModalType.CopyFileManifest:
             return <CopyFileManifest onDismiss={onDismiss} />;
         default:
-            return null;
+            return <DirectoryInput onDismiss={noop} />;
     }
 }

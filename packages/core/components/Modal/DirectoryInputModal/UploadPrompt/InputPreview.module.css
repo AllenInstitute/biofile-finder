@@ -1,0 +1,19 @@
+.container {
+    border: 1px dashed white;
+    padding: 12px;
+    margin: 12px 0;
+}
+
+.right-button {
+    max-width: 50%;
+    margin: 6px 0 6px auto;
+}
+
+.table, .table :is(th, td) {
+    border: 1px solid white;
+    border-collapse: collapse;
+}
+
+.table :is(th, td) {
+    padding: 5px;
+}

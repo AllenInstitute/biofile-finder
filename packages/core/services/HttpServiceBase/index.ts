@@ -289,6 +289,10 @@ export default class HttpServiceBase {
         return new RestServiceResponse(response.data);
     }
 
+    public async delete<T>(url: string): Promise<RestServiceResponse<T>> {
+        throw new Error("delete not implemented");
+    }
+
     public setApplicationVersion(applicationVersion: string) {
         this.applicationVersion = applicationVersion;
         this.setHeaders();

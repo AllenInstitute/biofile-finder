@@ -1,0 +1,25 @@
+.middle-button {
+    max-width: 50%;
+    margin: 6px auto;
+}
+
+.right-button {
+    max-width: 50%;
+    margin: 6px 0 6px auto;
+}
+
+.save-results-container {
+    border: 1px dashed white;
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+}
+
+.table, .table :is(th, td) {
+    border: 1px solid white;
+    border-collapse: collapse;
+}
+
+.table :is(th, td) {
+    padding: 5px;
+}
