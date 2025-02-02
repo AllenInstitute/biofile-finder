@@ -2,14 +2,25 @@ import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
+import PasswordForm from "./PasswordForm";
+import useAnnotationValues from "./useAnnotationValues";
+import useFilteredSelection from "./useFilteredSelection";
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import { PrimaryButton, SecondaryButton } from "../../Buttons";
 import EditMetadataForm from "../../EditMetadata";
 import { selection } from "../../../state";
-import FileSelection from "../../../entity/FileSelection";
 
 import styles from "./EditMetadata.module.css";
+
+// Hard-coded mapping of passwords to programs, due to this being an internal
+// specific feature, this is acceptable for now. However, we should think about
+// a more robust solution in the future such as login or a more secure method.
+const PASSWORD_TO_PROGRAM_MAP: Record<string, string> = {
+    S6KNQ7SW: "EMT",
+    "2VSYXAQK": "IntegratedNucleus",
+    SENX6787: "NucMorph",
+};
 
 /**
  * Dialog to display workflow for editing metadata for selected files
@@ -17,10 +28,15 @@ import styles from "./EditMetadata.module.css";
 export default function EditMetadata({ onDismiss }: ModalProps) {
     const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState<boolean>(false);
     const [showWarning, setShowWarning] = React.useState<boolean>(false);
-    const fileSelection = useSelector(
-        selection.selectors.getFileSelection,
-        FileSelection.selectionsAreEqual
-    );
+    const [isInvalidPassword, setIsInvalidPassword] = React.useState(false);
+    const [program, setProgram] = React.useState<string>();
+    const isQueryingAicsFms = useSelector(selection.selectors.isQueryingAicsFms);
+
+    const fileSelection = useFilteredSelection();
+    const programsInSelection = useAnnotationValues(fileSelection, "Program") as
+        | string[]
+        | undefined;
+
     const totalFilesSelected = fileSelection.count();
     const filesSelectedCountString = `(${totalFilesSelected} file${
         totalFilesSelected === 1 ? "" : "s"
@@ -31,32 +47,51 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
         else onDismiss();
     }
 
+    const onEnterPassword = (password: string) => {
+        const program = programsInSelection?.includes(PASSWORD_TO_PROGRAM_MAP[password])
+            ? PASSWORD_TO_PROGRAM_MAP[password]
+            : undefined;
+        setProgram(program);
+        setIsInvalidPassword(!program);
+    };
+
+    const body =
+        !isQueryingAicsFms || program ? (
+            // Use styling on form instead of conditionals to persist rendered data
+            <>
+                <EditMetadataForm
+                    className={classNames({ [styles.hidden]: showWarning })}
+                    onDismiss={onDismissWithWarning}
+                    onUnsavedChanges={setHasUnsavedChanges}
+                />
+                <div className={classNames({ [styles.hidden]: !showWarning })}>
+                    <p className={styles.warning}>
+                        Some edits will not be completed and could cause inaccuracies. Are you sure
+                        you want to quit now?
+                    </p>
+                    <div className={classNames(styles.footer, styles.footerAlignRight)}>
+                        <SecondaryButton
+                            title=""
+                            text="Back"
+                            onClick={() => setShowWarning(false)}
+                        />
+                        <PrimaryButton title="" text="Yes, Quit" onClick={onDismiss} />
+                    </div>
+                </div>
+            </>
+        ) : (
+            <PasswordForm
+                isInvalidPassword={isInvalidPassword}
+                isInvalidSelection={!programsInSelection?.length}
+                onCancel={onDismiss}
+                onEnterPassword={onEnterPassword}
+                validPrograms={programsInSelection}
+            />
+        );
+
     return (
         <BaseModal
-            body={
-                // Use styling instead of conditionals to persist rendered data
-                <>
-                    <EditMetadataForm
-                        className={classNames({ [styles.hidden]: showWarning })}
-                        onDismiss={onDismissWithWarning}
-                        onUnsavedChanges={setHasUnsavedChanges}
-                    />
-                    <div className={classNames({ [styles.hidden]: !showWarning })}>
-                        <p className={styles.warning}>
-                            Some edits will not be completed and could cause inaccuracies. Are you
-                            sure you want to quit now?
-                        </p>
-                        <div className={classNames(styles.footer, styles.footerAlignRight)}>
-                            <SecondaryButton
-                                title=""
-                                text="Back"
-                                onClick={() => setShowWarning(false)}
-                            />
-                            <PrimaryButton title="" text="Yes, Quit" onClick={onDismiss} />
-                        </div>
-                    </div>
-                </>
-            }
+            body={body}
             isStatic
             onDismiss={onDismissWithWarning}
             title={

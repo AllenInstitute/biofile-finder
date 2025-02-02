@@ -1,0 +1,69 @@
+import { Spinner, SpinnerSize, TextField } from "@fluentui/react";
+import classNames from "classnames";
+import * as React from "react";
+
+import { PrimaryButton, SecondaryButton } from "../../Buttons";
+
+import styles from "./PasswordForm.module.css";
+
+interface Props {
+    isInvalidPassword: boolean;
+    isInvalidSelection: boolean;
+    onCancel: () => void;
+    onEnterPassword: (password: string) => void;
+    validPrograms?: string[];
+}
+
+/**
+ * Form for entering a password to edit metadata, this form is specific to metadata edits.
+ */
+export default function PasswordForm(props: Props) {
+    const [password, setPassword] = React.useState("");
+
+    let infoMessage;
+    if (!props.validPrograms) {
+        infoMessage = <Spinner size={SpinnerSize.small} />;
+    } else if (props.isInvalidSelection) {
+        infoMessage = (
+            <p className={styles.badFileSelectionWarning}>
+                The files you have selected do not share the same program or do not have a program
+                at all.
+            </p>
+        );
+    } else {
+        infoMessage = (
+            <p>
+                The files you have selected are associated with the following programs:{" "}
+                <strong>{props.validPrograms.join(", ")}</strong>
+            </p>
+        );
+    }
+
+    return (
+        <>
+            <p>
+                A password is required for editing or creating new metadata. Each password is
+                specific to a program, only files associated with that program can be edited. Talk
+                to your program lead for the password.
+            </p>
+            {infoMessage}
+            <h4 className={styles.passwordLabel}>Password</h4>
+            <TextField
+                className={styles.passwordInput}
+                disabled={props.isInvalidPassword || !props.validPrograms?.length}
+                onChange={(_, newValue) => setPassword(newValue || "")}
+                placeholder="Enter password..."
+            />
+            <div className={classNames(styles.footer, styles.footerAlignRight)}>
+                <SecondaryButton title="" text="CANCEL" onClick={props.onCancel} />
+                <PrimaryButton
+                    className={styles.primaryButton}
+                    disabled={!password.trim() || !props.validPrograms?.length}
+                    title="SUBMIT"
+                    text="SUBMIT"
+                    onClick={() => props.onEnterPassword(password)}
+                />
+            </div>
+        </>
+    );
+}
