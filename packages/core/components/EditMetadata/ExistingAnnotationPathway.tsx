@@ -13,7 +13,7 @@ import styles from "./EditMetadata.module.css";
 
 interface ExistingAnnotationProps {
     onDismiss: () => void;
-    annotationValueMap: Map<string, any> | undefined;
+    annotationValueMap?: Map<string, any>;
     annotationOptions: { key: string; text: string; data: string }[];
     selectedFileCount: number;
 }
@@ -25,9 +25,9 @@ interface ExistingAnnotationProps {
 export default function ExistingAnnotationPathway(props: ExistingAnnotationProps) {
     const dispatch = useDispatch();
     const [newValues, setNewValues] = React.useState<string>();
-    const [valueCount, setValueCount] = React.useState<ValueCountItem[]>();
-    const [selectedAnnotation, setSelectedAnnotation] = React.useState<string | undefined>();
-    const [annotationType, setAnnotationType] = React.useState<AnnotationType | undefined>();
+    const [valueCounts, setValueCounts] = React.useState<ValueCountItem[]>();
+    const [selectedAnnotation, setSelectedAnnotation] = React.useState<string>();
+    const [annotationType, setAnnotationType] = React.useState<AnnotationType>();
 
     const onSelectMetadataField = (
         option: IComboBoxOption | undefined,
@@ -67,7 +67,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
         }
         setSelectedAnnotation(selectedFieldName);
         setAnnotationType(option?.data);
-        setValueCount(valueMap);
+        setValueCounts(valueMap);
     };
 
     function onSubmit() {
@@ -90,13 +90,13 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
             {!!selectedAnnotation && (
                 <MetadataDetails
                     onChange={(value) => setNewValues(value)}
-                    items={valueCount || []}
+                    items={valueCounts || []}
                     fieldType={annotationType}
                 />
             )}
             <div className={classNames(styles.footer, styles.footerAlignRight)}>
                 <SecondaryButton title="" text="CANCEL" onClick={props.onDismiss} />
-                {valueCount && (
+                {valueCounts && (
                     <PrimaryButton
                         className={styles.primaryButton}
                         disabled={!newValues?.trim()}

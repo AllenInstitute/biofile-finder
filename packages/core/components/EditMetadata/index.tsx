@@ -5,7 +5,8 @@ import ExistingAnnotationPathway from "./ExistingAnnotationPathway";
 import NewAnnotationPathway from "./NewAnnotationPathway";
 import ChoiceGroup from "../ChoiceGroup";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
-import { metadata, selection } from "../../state";
+import { metadata } from "../../state";
+import useFilteredSelection from "../../hooks/useFilteredSelection";
 
 import styles from "./EditMetadata.module.css";
 
@@ -25,7 +26,7 @@ interface EditMetadataProps {
  * Performs all necessary state selections on render and passes data as props to child components
  */
 export default function EditMetadataForm(props: EditMetadataProps) {
-    const fileSelection = useSelector(selection.selectors.getFileSelection);
+    const fileSelection = useFilteredSelection();
     const fileCount = fileSelection.count();
     // Don't allow users to edit top level annotations (e.g., File Name)
     const annotationOptions = useSelector(metadata.selectors.getSortedAnnotations)

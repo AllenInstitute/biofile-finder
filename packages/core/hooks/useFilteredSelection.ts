@@ -1,10 +1,10 @@
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import { interaction, selection } from "../../../state";
-import FileSelection from "../../../entity/FileSelection";
-import FileSet from "../../../entity/FileSet";
-import NumericRange from "../../../entity/NumericRange";
+import { interaction, selection } from "../state";
+import FileSelection from "../entity/FileSelection";
+import FileSet from "../entity/FileSet";
+import NumericRange from "../entity/NumericRange";
 
 export default function useFilteredSelection() {
     const defaultSelection = useSelector(

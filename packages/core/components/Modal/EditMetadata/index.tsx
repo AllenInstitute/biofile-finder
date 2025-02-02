@@ -4,11 +4,11 @@ import { useSelector } from "react-redux";
 
 import PasswordForm from "./PasswordForm";
 import useAnnotationValues from "./useAnnotationValues";
-import useFilteredSelection from "./useFilteredSelection";
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import { PrimaryButton, SecondaryButton } from "../../Buttons";
 import EditMetadataForm from "../../EditMetadata";
+import useFilteredSelection from "../../../hooks/useFilteredSelection";
 import { selection } from "../../../state";
 
 import styles from "./EditMetadata.module.css";
@@ -18,7 +18,7 @@ import styles from "./EditMetadata.module.css";
 // a more robust solution in the future such as login or a more secure method.
 const PASSWORD_TO_PROGRAM_MAP: Record<string, string> = {
     S6KNQ7SW: "EMT",
-    "2VSYXAQK": "IntegratedNucleus",
+    V2SYXAQK: "IntegratedNucleus",
     SENX6787: "NucMorph",
 };
 
