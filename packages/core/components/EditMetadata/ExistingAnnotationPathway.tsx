@@ -1,22 +1,24 @@
 import { IComboBoxOption } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import MetadataDetails, { ValueCountItem } from "./MetadataDetails";
+import useAnnotationValueByNameMap from "./useAnnotationValueByNameMap";
 import { PrimaryButton, SecondaryButton } from "../Buttons";
 import ComboBox from "../ComboBox";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
-import { interaction } from "../../state";
+import { interaction, metadata } from "../../state";
 
 import styles from "./EditMetadata.module.css";
 
 interface ExistingAnnotationProps {
     onDismiss: () => void;
-    annotationValueMap?: Map<string, any>;
-    annotationOptions: { key: string; text: string; data: string }[];
     selectedFileCount: number;
 }
+
+const FORBIDDEN_ANNOTATION_NAMES = new Set([...TOP_LEVEL_FILE_ANNOTATION_NAMES]);
 
 /**
  * Component for selecting an existing annotation
@@ -28,24 +30,32 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
     const [valueCounts, setValueCounts] = React.useState<ValueCountItem[]>();
     const [selectedAnnotation, setSelectedAnnotation] = React.useState<string>();
     const [annotationType, setAnnotationType] = React.useState<AnnotationType>();
+    const annotationValueByNameMap = useAnnotationValueByNameMap();
+
+    // Don't allow users to edit top level annotations (e.g., File Name)
+    const annotationOptions = useSelector(metadata.selectors.getSortedAnnotations)
+        .filter((annotation) => !FORBIDDEN_ANNOTATION_NAMES.has(annotation.name))
+        .map((annotation) => ({
+            key: annotation.name,
+            text: annotation.displayName,
+            data: annotation.type,
+        }));
 
     const onSelectMetadataField = (
         option: IComboBoxOption | undefined,
         value: string | undefined
     ) => {
-        let valueMap: ValueCountItem[] = [];
         // FluentUI's combobox doesn't always register the entered value as an option,
         // so we need to be able to check both
         const selectedFieldName = option?.text || value;
-        if (
-            !selectedFieldName ||
-            !props.annotationOptions.some((opt) => opt.key === selectedFieldName)
-        )
+        if (!selectedFieldName || !annotationOptions.some((opt) => opt.key === selectedFieldName))
             return;
+
+        let valueMap: ValueCountItem[] = [];
         // Track how many values we've seen, since some files may not have a value for this field
         let totalValueCount = 0;
-        if (props?.annotationValueMap?.has(selectedFieldName)) {
-            const fieldValueToOccurenceMap = props.annotationValueMap.get(selectedFieldName);
+        const fieldValueToOccurenceMap = annotationValueByNameMap?.get(selectedFieldName);
+        if (fieldValueToOccurenceMap) {
             valueMap = Object.keys(fieldValueToOccurenceMap).map((fieldName) => {
                 totalValueCount += fieldValueToOccurenceMap[fieldName];
                 return {
@@ -84,7 +94,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 label="Select a metadata field"
                 placeholder="Select a field..."
                 selectedKey={selectedAnnotation}
-                options={props.annotationOptions}
+                options={annotationOptions}
                 onChange={onSelectMetadataField}
             />
             {!!selectedAnnotation && (

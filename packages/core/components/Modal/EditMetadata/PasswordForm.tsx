@@ -20,14 +20,32 @@ interface Props {
 export default function PasswordForm(props: Props) {
     const [password, setPassword] = React.useState("");
 
-    let infoMessage;
     if (!props.validPrograms) {
-        infoMessage = <Spinner size={SpinnerSize.small} />;
-    } else if (props.isInvalidSelection) {
+        return (
+            <>
+                <p>
+                    A password is required for editing or creating new metadata. Each password is
+                    specific to a program, only files associated with that program can be edited.
+                    Talk to your program lead for the password.
+                </p>
+                <Spinner size={SpinnerSize.small} />
+            </>
+        );
+    }
+
+    let infoMessage;
+    if (props.isInvalidSelection) {
         infoMessage = (
-            <p className={styles.badFileSelectionWarning}>
+            <p className={styles.errorMessage}>
                 The files you have selected do not share the same program or do not have a program
                 at all.
+            </p>
+        );
+    } else if (props.isInvalidPassword) {
+        infoMessage = (
+            <p className={styles.errorMessage}>
+                Incorrect password for any of the following programs:{" "}
+                <strong>{props.validPrograms.join(", ")}</strong>. Please try again.
             </p>
         );
     } else {
@@ -50,7 +68,7 @@ export default function PasswordForm(props: Props) {
             <h4 className={styles.passwordLabel}>Password</h4>
             <TextField
                 className={styles.passwordInput}
-                disabled={props.isInvalidPassword || !props.validPrograms?.length}
+                disabled={props.isInvalidSelection}
                 onChange={(_, newValue) => setPassword(newValue || "")}
                 placeholder="Enter password..."
             />
@@ -58,7 +76,7 @@ export default function PasswordForm(props: Props) {
                 <SecondaryButton title="" text="CANCEL" onClick={props.onCancel} />
                 <PrimaryButton
                     className={styles.primaryButton}
-                    disabled={!password.trim() || !props.validPrograms?.length}
+                    disabled={props.isInvalidSelection || !password.trim()}
                     title="SUBMIT"
                     text="SUBMIT"
                     onClick={() => props.onEnterPassword(password)}

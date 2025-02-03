@@ -41,7 +41,7 @@ interface DetailsListProps {
  * and provides an field for user to input new values.
  * Used by both the new & existing annotation pathways
  */
-export default function EditMetadataDetailsList(props: DetailsListProps) {
+export default function MetadataDetails(props: DetailsListProps) {
     const { items } = props;
     const renderRow = (
         rowProps: IDetailsRowProps | undefined,

@@ -1,11 +1,8 @@
 import * as React from "react";
-import { useSelector } from "react-redux";
 
 import ExistingAnnotationPathway from "./ExistingAnnotationPathway";
 import NewAnnotationPathway from "./NewAnnotationPathway";
 import ChoiceGroup from "../ChoiceGroup";
-import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
-import { metadata } from "../../state";
 import useFilteredSelection from "../../hooks/useFilteredSelection";
 
 import styles from "./EditMetadata.module.css";
@@ -28,45 +25,9 @@ interface EditMetadataProps {
 export default function EditMetadataForm(props: EditMetadataProps) {
     const fileSelection = useFilteredSelection();
     const fileCount = fileSelection.count();
-    // Don't allow users to edit top level annotations (e.g., File Name)
-    const annotationOptions = useSelector(metadata.selectors.getSortedAnnotations)
-        .filter((annotation) => !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name))
-        .map((annotation) => {
-            return {
-                key: annotation.name,
-                text: annotation.displayName,
-                data: annotation.type,
-            };
-        });
     const [editPathway, setEditPathway] = React.useState<EditMetadataPathway>(
         EditMetadataPathway.EXISTING
     );
-    const [annotationValueMap, setAnnotationValueMap] = React.useState<Map<string, any>>();
-
-    React.useEffect(() => {
-        fileSelection.fetchAllDetails().then((fileDetails) => {
-            const annotationMapping = new Map();
-            // Group details by annotation with a count for each value
-            fileDetails.forEach((file) => {
-                file.annotations.map((annotation) => {
-                    // For now, if a file has multiple values for an annotation it should be considered a distinct set
-                    const joinedValues = annotation.values.join(", ");
-                    if (!annotationMapping.has(annotation.name)) {
-                        annotationMapping.set(annotation.name, { [joinedValues]: 1 });
-                    } else {
-                        const existing = annotationMapping.get(annotation.name);
-                        annotationMapping.set(annotation.name, {
-                            ...existing,
-                            [joinedValues]: existing?.[joinedValues]
-                                ? existing[joinedValues] + 1
-                                : 1,
-                        });
-                    }
-                });
-            });
-            setAnnotationValueMap(annotationMapping);
-        });
-    }, [fileSelection]);
 
     return (
         <div className={props.className}>
@@ -95,8 +56,6 @@ export default function EditMetadataForm(props: EditMetadataProps) {
                 {editPathway === EditMetadataPathway.EXISTING ? (
                     <ExistingAnnotationPathway
                         onDismiss={props.onDismiss}
-                        annotationValueMap={annotationValueMap}
-                        annotationOptions={annotationOptions}
                         selectedFileCount={fileCount}
                     />
                 ) : (
