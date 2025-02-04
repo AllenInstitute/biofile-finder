@@ -1,4 +1,5 @@
 import { isEmpty, sumBy, throttle, uniq, uniqueId } from "lodash";
+import { isAbsolute } from "path";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
@@ -489,8 +490,14 @@ const openWithLogic = createLogic({
         } else {
             filesToOpen = await fileSelection.fetchAllDetails();
         }
+
+        // Determine if exePath is local
+        const isLocalExecutable = isAbsolute(exePath);
         const filePaths = await Promise.all(
-            filesToOpen.map((file) => executionEnvService.formatPathForHost(file.path))
+            filesToOpen.map((file) => {
+                const filePath = isLocalExecutable ? file.localPath ?? file.path : file.path;
+                return executionEnvService.formatPathForHost(filePath);
+            })
         );
 
         // Open the files in the specified executable
