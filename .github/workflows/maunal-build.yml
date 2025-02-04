@@ -1,0 +1,45 @@
+name: manual-build
+
+ on:
+   workflow_dispatch:
+     inputs:
+       os:
+         description: "Operating System"
+         required: true
+         type: choice
+         options:
+           - ubuntu-latest
+           - windows-latest
+           - macos-latest
+
+ jobs:
+   build:
+     runs-on: ${{ github.event.inputs.os }}
+
+     steps:
+       - name: Check out Git repository
+         uses: actions/checkout@v4
+
+       - name: Install Node.js
+         uses: actions/setup-node@v4
+         with:
+           node-version: 18
+
+       - name: Build/release Electron app
+         uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
+         env:
+           AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
+         with:
+           github_token: ${{ secrets.github_token }}
+           package_root: "packages/desktop"
+           release: false  # No release, just build
+           windows_certs: ${{ secrets.CSC_LINK }}
+           windows_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}
+
+       - name: Upload build artifacts
+         uses: actions/upload-artifact@v4
+         with:
+           name: electron-build-${{ github.event.inputs.os }}
+           path: |
+             packages/desktop/build
+           retention-days: 7  # Artifacts will be stored for 7 days
