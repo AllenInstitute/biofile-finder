@@ -47,6 +47,8 @@ interface AnnotationStatus {
  */
 export default function NewAnnotationPathway(props: NewAnnotationProps) {
     const dispatch = useDispatch();
+    // Destructure to prevent unnecessary useEffect triggers
+    const { onDismiss, hasUnsavedChanges } = props;
 
     const [step, setStep] = React.useState<EditStep>(EditStep.CREATE_FIELD);
     const [newValues, setNewValues] = React.useState<AnnotationValue | undefined>();
@@ -87,8 +89,8 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                                 message: `Failed to create annotation: ${e}`,
                             });
                         } finally {
-                            props?.hasUnsavedChanges(false);
-                            props.onDismiss();
+                            hasUnsavedChanges(false);
+                            onDismiss();
                         }
                     }
                 default:
@@ -96,7 +98,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
             }
         };
         checkForStatusUpdates();
-    }, [statuses, annotationCreationStatus, dispatch]);
+    }, [annotationCreationStatus, dispatch, hasUnsavedChanges, newFieldName, newValues, onDismiss]);
 
     const addDropdownChip = (evt: React.FormEvent) => {
         evt.preventDefault();
