@@ -7,7 +7,6 @@ import MetadataDetails, { ValueCountItem } from "./MetadataDetails";
 import useAnnotationValueByNameMap from "./useAnnotationValueByNameMap";
 import { PrimaryButton, SecondaryButton } from "../Buttons";
 import ComboBox from "../ComboBox";
-import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import { interaction, metadata } from "../../state";
 
@@ -17,8 +16,6 @@ interface ExistingAnnotationProps {
     onDismiss: () => void;
     selectedFileCount: number;
 }
-
-const FORBIDDEN_ANNOTATION_NAMES = new Set([...TOP_LEVEL_FILE_ANNOTATION_NAMES]);
 
 /**
  * Component for selecting an existing annotation
@@ -30,16 +27,19 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
     const [valueCounts, setValueCounts] = React.useState<ValueCountItem[]>();
     const [selectedAnnotation, setSelectedAnnotation] = React.useState<string>();
     const [annotationType, setAnnotationType] = React.useState<AnnotationType>();
-    const annotationValueByNameMap = useAnnotationValueByNameMap();
+    const [dropdownOptions, setDropdownOptions] = React.useState<string[]>();
 
-    // Don't allow users to edit top level annotations (e.g., File Name)
-    const annotationOptions = useSelector(metadata.selectors.getSortedAnnotations)
-        .filter((annotation) => !FORBIDDEN_ANNOTATION_NAMES.has(annotation.name))
-        .map((annotation) => ({
+    const annotationValueByNameMap = useAnnotationValueByNameMap();
+    const annotationService = useSelector(interaction.selectors.getAnnotationService);
+    const { notificationService } = useSelector(interaction.selectors.getPlatformDependentServices);
+
+    const annotationOptions = useSelector(metadata.selectors.getEdittableAnnotations).map(
+        (annotation) => ({
             key: annotation.name,
             text: annotation.displayName,
             data: annotation.type,
-        }));
+        })
+    );
 
     const onSelectMetadataField = (
         option: IComboBoxOption | undefined,
@@ -75,16 +75,51 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 ...valueMap,
             ];
         }
-        setSelectedAnnotation(selectedFieldName);
-        setAnnotationType(option?.data);
-        setValueCounts(valueMap);
+
+        annotationService
+            .fetchAnnotationDetails(selectedFieldName)
+            .then((response) => {
+                setSelectedAnnotation(selectedFieldName);
+                setAnnotationType(response.type);
+                setValueCounts(valueMap);
+                setDropdownOptions(response.dropdownOptions);
+            })
+            .catch((err) => {
+                notificationService.showError(
+                    "Error",
+                    `Failed to grab details for metadata field ${selectedFieldName}. Error: ${err.message}`
+                );
+            });
     };
 
     function onSubmit() {
-        if (selectedAnnotation && newValues?.trim()) {
-            dispatch(interaction.actions.editFiles({ [selectedAnnotation]: [newValues.trim()] }));
+        const trimmedValues = newValues?.trim();
+        const newValuesAsArray = newValues?.split(",").map((value) => value.trim());
+        if (selectedAnnotation && trimmedValues && newValuesAsArray?.length) {
+            annotationService
+                .validateAnnotationValues(selectedAnnotation, newValuesAsArray)
+                .then((isValid: boolean) => {
+                    if (isValid) {
+                        dispatch(
+                            interaction.actions.editFiles({ [selectedAnnotation]: [trimmedValues] })
+                        );
+                        props.onDismiss();
+                    } else {
+                        notificationService.showError(
+                            "Validation Error",
+                            "Invalid value for selected metadata field"
+                        );
+                    }
+                })
+                .catch((err) => {
+                    notificationService.showError(
+                        "Error",
+                        `Failed trying to validate metadata field, unsure why. Details: ${err.message}`
+                    );
+                });
+        } else {
+            props.onDismiss();
         }
-        props.onDismiss();
     }
 
     return (
@@ -96,9 +131,11 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 selectedKey={selectedAnnotation}
                 options={annotationOptions}
                 onChange={onSelectMetadataField}
+                disabled={!annotationOptions.length}
             />
             {!!selectedAnnotation && (
                 <MetadataDetails
+                    dropdownOptions={dropdownOptions}
                     onChange={(value) => setNewValues(value)}
                     items={valueCounts || []}
                     fieldType={annotationType}

@@ -13,6 +13,7 @@ export enum AnnotationType {
     BOOLEAN = "YesNo",
     DURATION = "Duration",
     DROPDOWN = "Dropdown",
+    LOOKUP = "Lookup",
 }
 
 export interface AnnotationFormatter {
