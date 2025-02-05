@@ -1,9 +1,10 @@
-import { Icon, Spinner, SpinnerSize } from "@fluentui/react";
+import { Icon, SpinnerSize } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
 import NumberField from "./NumberField";
 import { PrimaryButton, TertiaryButton } from "../Buttons";
+import LoadingIcon from "../Icons/LoadingIcon";
 import FileFilter from "../../entity/FileFilter";
 import { extractValuesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/number-formatter";
 import { AnnotationValue } from "../../services/AnnotationService";
@@ -93,7 +94,7 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
     if (loading) {
         return (
             <div className={classNames(styles.container, props.className)}>
-                <Spinner size={SpinnerSize.small} />
+                <LoadingIcon size={SpinnerSize.small} />
             </div>
         );
     }

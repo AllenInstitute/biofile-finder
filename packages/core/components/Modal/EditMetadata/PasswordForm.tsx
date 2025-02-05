@@ -1,8 +1,9 @@
-import { Spinner, SpinnerSize, TextField } from "@fluentui/react";
+import { SpinnerSize, TextField } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
 import { PrimaryButton, SecondaryButton } from "../../Buttons";
+import LoadingIcon from "../../Icons/LoadingIcon";
 
 import styles from "./PasswordForm.module.css";
 
@@ -28,7 +29,7 @@ export default function PasswordForm(props: Props) {
                     specific to a program, only files associated with that program can be edited.
                     Talk to your program lead for the password.
                 </p>
-                <Spinner size={SpinnerSize.small} />
+                <LoadingIcon size={SpinnerSize.small} />
             </>
         );
     }
