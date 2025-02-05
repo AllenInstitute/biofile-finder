@@ -101,7 +101,7 @@ export default function EditMetadataForm(props: EditMetadataProps) {
                 ) : (
                     <NewAnnotationPathway
                         onDismiss={props.onDismiss}
-                        onUnsavedChanges={() => props.onUnsavedChanges(true)}
+                        hasUnsavedChanges={(arg) => props.onUnsavedChanges(arg)}
                         selectedFileCount={fileCount}
                     />
                 )}

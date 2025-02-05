@@ -4,6 +4,7 @@ import FileFilter from "../../entity/FileFilter";
 export type AnnotationValue = string | number | boolean | Date;
 
 export default interface AnnotationService {
+    createAnnotation(annotation: Annotation, annotationOptions?: string[]): Promise<string[]>;
     fetchValues(annotation: string): Promise<AnnotationValue[]>;
     fetchAnnotations(): Promise<Annotation[]>;
     fetchRootHierarchyValues(hierarchy: string[], filters: FileFilter[]): Promise<string[]>;

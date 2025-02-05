@@ -3,6 +3,7 @@ import { createLogic } from "redux-logic";
 
 import { interaction, ReduxLogicDeps, selection } from "..";
 import {
+    CREATE_ANNOTATION,
     RECEIVE_ANNOTATIONS,
     ReceiveAnnotationAction,
     receiveAnnotations,
@@ -108,6 +109,54 @@ const receiveAnnotationsLogic = createLogic({
     type: RECEIVE_ANNOTATIONS,
 });
 
+const createNewAnnotationLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { getState, httpClient, action } = deps;
+        const { annotation, annotationOptions } = action.payload;
+        const annotationProcessId = annotation.name;
+        dispatch(
+            interaction.actions.processStart(
+                annotationProcessId,
+                `Creating annotation ${annotation.name}...`
+            )
+        );
+
+        const annotationService = interaction.selectors.getAnnotationService(getState());
+        const applicationVersion = interaction.selectors.getApplicationVersion(getState());
+        if (annotationService instanceof HttpAnnotationService) {
+            if (applicationVersion) {
+                annotationService.setApplicationVersion(applicationVersion);
+            }
+            annotationService.setHttpClient(httpClient);
+        }
+
+        return new Promise<string[]>(async (resolve, reject) => {
+            annotationService
+                .createAnnotation(annotation, annotationOptions)
+                .then((res) => {
+                    dispatch(
+                        interaction.actions.processSuccess(
+                            annotationProcessId,
+                            `Successfully created annotation ${annotation.name}`
+                        )
+                    );
+                    resolve(res);
+                })
+                .catch((err) => {
+                    dispatch(
+                        interaction.actions.processError(
+                            annotationProcessId,
+                            `Failed to create annotation: ${err.message}`
+                        )
+                    );
+                    reject(err);
+                })
+                .finally(() => done());
+        });
+    },
+    type: CREATE_ANNOTATION,
+});
+
 /**
  * Interceptor responsible for turning REQUEST_DATA_SOURCES action into a network call for data source. Outputs
  * RECEIVE_DATA_SOURCES action.
@@ -157,6 +206,7 @@ const requestDatasetManifest = createLogic({
 });
 
 export default [
+    createNewAnnotationLogic,
     requestAnnotations,
     receiveAnnotationsLogic,
     requestDataSources,

@@ -43,6 +43,31 @@ export function requestAnnotations(): RequestAnnotationAction {
 }
 
 /**
+ * CREATE_ANNOTATION
+ *
+ * Intention to create a new annotation in the data service that will become available for grouping, filtering, and sorting files.
+ */
+export const CREATE_ANNOTATION = makeConstant(STATE_BRANCH_NAME, "create-annotation");
+
+export interface CreateAnnotationAction {
+    payload: {
+        annotation: Annotation;
+        annotationOptions?: string[];
+    };
+    type: string;
+}
+
+export function createAnnotation(
+    annotation: Annotation,
+    annotationOptions?: string[]
+): CreateAnnotationAction {
+    return {
+        payload: { annotation, annotationOptions },
+        type: CREATE_ANNOTATION,
+    };
+}
+
+/**
  * RECEIVE_DATA_SOURCES
  *
  * Intention to store listing of data sources returned from data service. These are sets of file metadata

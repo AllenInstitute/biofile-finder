@@ -1,7 +1,10 @@
 import { get as _get, sortBy } from "lodash";
 
 import AnnotationName from "./AnnotationName";
-import annotationFormatterFactory, { AnnotationFormatter } from "../AnnotationFormatter";
+import annotationFormatterFactory, {
+    AnnotationFormatter,
+    AnnotationType,
+} from "../AnnotationFormatter";
 import FileDetail from "../FileDetail";
 import { AnnotationValue } from "../../services/AnnotationService";
 
@@ -14,7 +17,7 @@ export interface AnnotationResponse {
     annotationDisplayName: string;
     annotationName: string;
     description: string;
-    type: string;
+    type: string | AnnotationType;
     isOpenFileLink?: boolean;
     units?: string;
 }
@@ -60,7 +63,7 @@ export default class Annotation {
         return this.annotation.annotationName;
     }
 
-    public get type(): string {
+    public get type(): string | AnnotationType {
         return this.annotation.type;
     }
 
