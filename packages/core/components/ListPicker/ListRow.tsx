@@ -1,8 +1,9 @@
-import { DefaultButton, DirectionalHint, Icon, Spinner, SpinnerSize } from "@fluentui/react";
+import { DefaultButton, DirectionalHint, Icon } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
 import { useButtonMenu } from "../Buttons";
+import LoadingIcon from "../Icons/LoadingIcon";
 import Tooltip from "../Tooltip";
 import { AnnotationValue } from "../../services/AnnotationService";
 
@@ -64,7 +65,7 @@ export default function ListRow(props: Props) {
                     <p>{item.displayValue}</p>
                 </label>
                 {item.recent && <Icon iconName="Recent" />}
-                {item.loading && <Spinner className={styles.spinner} size={SpinnerSize.small} />}
+                {item.loading && <LoadingIcon />}
             </DefaultButton>
         </Tooltip>
     );
