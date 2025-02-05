@@ -1,5 +1,5 @@
-import filesize from "filesize";
 import * as React from "react";
+import filesize from "filesize";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
@@ -44,6 +44,11 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
         return totalBytes ? filesize(totalBytes) : "Calculating...";
     };
 
+    // Check for bad files
+    if (files.length === 0 || files.some((file) => !file)) {
+        throw new Error("No file details available or invalid file details encountered.");
+    }
+
     return (
         <div className={styles.tableContainer}>
             <h3 className={styles.tableTitle}>{title}</h3>
@@ -60,8 +65,8 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {files.map((file) => (
-                                <tr key={file.id}>
+                            {files.map((file, index) => (
+                                <tr key={file.id || index}>
                                     <td>{clipFileName(file.name)}</td>
                                     <td>{filesize(file.size || 0)}</td>
                                 </tr>
@@ -72,9 +77,7 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
                 {hasScroll && <div className={styles.gradientOverlay} />}
             </div>
             <div className={styles.summary}>
-                {files.length > 0 && (
-                    <span className={styles.totalSize}>{calculateTotalSize(files)}</span>
-                )}
+                <span className={styles.totalSize}>{calculateTotalSize(files)}</span>
                 <span className={styles.fileCount}>{files.length.toLocaleString()} files</span>
             </div>
         </div>
@@ -91,14 +94,56 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
         FileSelection.selectionsAreEqual
     );
 
+    // State for file details, loading status, and errors.
     const [fileDetails, setFileDetails] = React.useState<FileDetail[]>([]);
+    const [loading, setLoading] = React.useState<boolean>(true);
+    const [error, setError] = React.useState<string | null>(null);
 
+    // Progressive fetching of file details.
     React.useEffect(() => {
-        async function fetchDetails() {
-            const details = await fileSelection.fetchAllDetails();
-            setFileDetails(details);
+        async function fetchDetailsIncrementally() {
+            try {
+                // Group file ranges by file set.
+                const fileRangesByFileSets = fileSelection.groupByFileSet();
+
+                // Array to hold promises that resolve to FileDetail[]
+                const promises: Promise<FileDetail[]>[] = [];
+
+                // For each file range, fetch details and update state as soon as they're available.
+                fileRangesByFileSets.forEach((ranges, fileSet) => {
+                    ranges.forEach((range) => {
+                        const promise: Promise<FileDetail[]> = fileSet
+                            .fetchFileRange(range.from, range.to)
+                            .then((details) => {
+                                details.forEach((file) => {
+                                    if (!file.id) {
+                                        throw new Error("File ID is not defined");
+                                    }
+                                });
+                                setFileDetails((prev) => [...prev, ...details]);
+                                return details;
+                            })
+                            .catch((err) => {
+                                throw new Error(
+                                    `Error fetching files with range ${range.from}-${range.to}: ${err.message}`
+                                );
+                            });
+                        promises.push(promise);
+                    });
+                });
+
+                // Wait for all the fetch promises to settle.
+                await Promise.allSettled(promises);
+            } catch (err: any) {
+                setError(
+                    err.message ||
+                        "An error occurred while fetching file details. Please try again. If this issue persists try a smaller query."
+                );
+            } finally {
+                setLoading(false);
+            }
         }
-        fetchDetails();
+        fetchDetailsIncrementally();
     }, [fileSelection]);
 
     const onMove = () => {
@@ -124,18 +169,42 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
 
     return (
         <BaseModal
+            title="Copy files to local storage (VAST)"
+            onDismiss={onDismiss}
             body={
                 <div className={styles.bodyContainer}>
-                    <p className={styles.note}>
-                        Files copied to the local storage (VAST) are stored with a 180-day
-                        expiration, after which they revert to cloud-only storage. To extend the
-                        expiration, reselect the files and confirm the update.
-                    </p>
-                    <FileTable
-                        files={filesInLocalCache}
-                        title="Files that are already on VAST: Extend expiration"
-                    />
-                    <FileTable files={filesNotInLocalCache} title="Files to download to VAST" />
+                    {loading && (
+                        <div className={styles.loading}>
+                            <p>Loading file details...</p>
+                        </div>
+                    )}
+                    {error && (
+                        <div className={styles.errorContainer}>
+                            <h3>Error</h3>
+                            <p>{error}</p>
+                        </div>
+                    )}
+                    {!loading && !error && (
+                        <>
+                            <p className={styles.note}>
+                                Files copied to the local storage (VAST) are stored with a 180-day
+                                expiration, after which they revert to cloud-only storage. To extend
+                                the expiration, reselect the files and confirm the update.
+                            </p>
+                            {filesInLocalCache.length > 0 && (
+                                <FileTable
+                                    files={filesInLocalCache}
+                                    title="Files that are already on VAST: Extend expiration"
+                                />
+                            )}
+                            {filesNotInLocalCache.length > 0 && (
+                                <FileTable
+                                    files={filesNotInLocalCache}
+                                    title="Files to download to VAST"
+                                />
+                            )}
+                        </>
+                    )}
                 </div>
             }
             footer={
@@ -148,15 +217,13 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
                     />
                     <PrimaryButton
                         className={styles.confirmButton}
-                        disabled={!fileDetails.length}
+                        disabled={loading || !!error || fileDetails.length === 0}
                         onClick={onMove}
                         text="CONFIRM"
                         title=""
                     />
                 </div>
             }
-            onDismiss={onDismiss}
-            title="Copy files to local storage (VAST)"
         />
     );
 }
