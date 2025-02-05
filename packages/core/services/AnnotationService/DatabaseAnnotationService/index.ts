@@ -1,4 +1,4 @@
-import { isNil, uniq } from "lodash";
+import { isNil, noop, uniq } from "lodash";
 
 import AnnotationService, { AnnotationValue } from "..";
 import DatabaseService from "../../DatabaseService";
@@ -139,5 +139,12 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 return annotations;
             }, [] as string[])
             .filter((annotation) => !annotationSet.has(annotation));
+    }
+
+    public async createAnnotation(
+        _annotation: Annotation,
+        _annotationOptions?: string[]
+    ): Promise<any> {
+        return noop;
     }
 }
