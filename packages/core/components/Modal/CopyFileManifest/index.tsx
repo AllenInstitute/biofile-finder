@@ -39,7 +39,6 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
     };
 
     const calculateTotalSize = (files: FileDetail[]) => {
-        if (files.length === 0) return "";
         const totalBytes = files.reduce((acc, file) => acc + (file.size || 0), 0);
         return totalBytes ? filesize(totalBytes) : "Calculating...";
     };
@@ -72,9 +71,7 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
                 {hasScroll && <div className={styles.gradientOverlay} />}
             </div>
             <div className={styles.summary}>
-                {files.length > 0 && (
-                    <span className={styles.totalSize}>{calculateTotalSize(files)}</span>
-                )}
+                <span className={styles.totalSize}>{calculateTotalSize(files)}</span>
                 <span className={styles.fileCount}>{files.length.toLocaleString()} files</span>
             </div>
         </div>
@@ -92,13 +89,22 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
     );
 
     const [fileDetails, setFileDetails] = React.useState<FileDetail[]>([]);
+    const [loading, setLoading] = React.useState<boolean>(true);
+    const [error, setError] = React.useState<string | null>(null);
 
     React.useEffect(() => {
-        async function fetchDetails() {
-            const details = await fileSelection.fetchAllDetails();
-            setFileDetails(details);
+        async function fetchFiles() {
+            try {
+                const details = await fileSelection.fetchAllDetails();
+                setFileDetails(details);
+            } catch (err: any) {
+                console.error("Error fetching file details:", err);
+                setError(err.message || "Error fetching file details.");
+            } finally {
+                setLoading(false);
+            }
         }
-        fetchDetails();
+        fetchFiles();
     }, [fileSelection]);
 
     const onMove = () => {
@@ -124,18 +130,42 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
 
     return (
         <BaseModal
+            title="Copy files to local storage (VAST)"
+            onDismiss={onDismiss}
             body={
                 <div className={styles.bodyContainer}>
-                    <p className={styles.note}>
-                        Files copied to the local storage (VAST) are stored with a 180-day
-                        expiration, after which they revert to cloud-only storage. To extend the
-                        expiration, reselect the files and confirm the update.
-                    </p>
-                    <FileTable
-                        files={filesInLocalCache}
-                        title="Files that are already on VAST: Extend expiration"
-                    />
-                    <FileTable files={filesNotInLocalCache} title="Files to download to VAST" />
+                    {loading && (
+                        <div className={styles.loading}>
+                            <p>Loading file details...</p>
+                        </div>
+                    )}
+                    {error && (
+                        <div className={styles.errorContainer}>
+                            <h3>Error</h3>
+                            <p>{error}</p>
+                        </div>
+                    )}
+                    {!loading && !error && (
+                        <>
+                            <p className={styles.note}>
+                                Files copied to the local storage (VAST) are stored with a 180-day
+                                expiration, after which they revert to cloud-only storage. To extend
+                                the expiration, reselect the files and confirm the update.
+                            </p>
+                            {filesInLocalCache.length > 0 && (
+                                <FileTable
+                                    files={filesInLocalCache}
+                                    title="Files that are already on VAST: Extend expiration"
+                                />
+                            )}
+                            {filesNotInLocalCache.length > 0 && (
+                                <FileTable
+                                    files={filesNotInLocalCache}
+                                    title="Files to download to VAST"
+                                />
+                            )}
+                        </>
+                    )}
                 </div>
             }
             footer={
@@ -148,15 +178,13 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
                     />
                     <PrimaryButton
                         className={styles.confirmButton}
-                        disabled={!fileDetails.length}
+                        disabled={loading || !!error}
                         onClick={onMove}
                         text="CONFIRM"
                         title=""
                     />
                 </div>
             }
-            onDismiss={onDismiss}
-            title="Copy files to local storage (VAST)"
         />
     );
 }
