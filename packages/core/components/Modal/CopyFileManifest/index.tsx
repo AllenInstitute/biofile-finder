@@ -1,5 +1,5 @@
-import * as React from "react";
 import filesize from "filesize";
+import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
@@ -39,15 +39,9 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
     };
 
     const calculateTotalSize = (files: FileDetail[]) => {
-        if (files.length === 0) return "";
         const totalBytes = files.reduce((acc, file) => acc + (file.size || 0), 0);
         return totalBytes ? filesize(totalBytes) : "Calculating...";
     };
-
-    // Check for bad files
-    if (files.length === 0 || files.some((file) => !file)) {
-        throw new Error("No file details available or invalid file details encountered.");
-    }
 
     return (
         <div className={styles.tableContainer}>
@@ -94,56 +88,21 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
         FileSelection.selectionsAreEqual
     );
 
-    // State for file details, loading status, and errors.
     const [fileDetails, setFileDetails] = React.useState<FileDetail[]>([]);
     const [loading, setLoading] = React.useState<boolean>(true);
-    const [error, setError] = React.useState<string | null>(null);
 
-    // Progressive fetching of file details.
     React.useEffect(() => {
-        async function fetchDetailsIncrementally() {
+        async function fetchFiles() {
             try {
-                // Group file ranges by file set.
-                const fileRangesByFileSets = fileSelection.groupByFileSet();
-
-                // Array to hold promises that resolve to FileDetail[]
-                const promises: Promise<FileDetail[]>[] = [];
-
-                // For each file range, fetch details and update state as soon as they're available.
-                fileRangesByFileSets.forEach((ranges, fileSet) => {
-                    ranges.forEach((range) => {
-                        const promise: Promise<FileDetail[]> = fileSet
-                            .fetchFileRange(range.from, range.to)
-                            .then((details) => {
-                                details.forEach((file) => {
-                                    if (!file.id) {
-                                        throw new Error("File ID is not defined");
-                                    }
-                                });
-                                setFileDetails((prev) => [...prev, ...details]);
-                                return details;
-                            })
-                            .catch((err) => {
-                                throw new Error(
-                                    `Error fetching files with range ${range.from}-${range.to}: ${err.message}`
-                                );
-                            });
-                        promises.push(promise);
-                    });
-                });
-
-                // Wait for all the fetch promises to settle.
-                await Promise.allSettled(promises);
+                const details = await fileSelection.fetchAllDetails();
+                setFileDetails(details);
             } catch (err: any) {
-                setError(
-                    err.message ||
-                        "An error occurred while fetching file details. Please try again. If this issue persists try a smaller query."
-                );
+                throw new Error(err.message || "Error fetching file details.");
             } finally {
                 setLoading(false);
             }
         }
-        fetchDetailsIncrementally();
+        fetchFiles();
     }, [fileSelection]);
 
     const onMove = () => {
@@ -178,13 +137,7 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
                             <p>Loading file details...</p>
                         </div>
                     )}
-                    {error && (
-                        <div className={styles.errorContainer}>
-                            <h3>Error</h3>
-                            <p>{error}</p>
-                        </div>
-                    )}
-                    {!loading && !error && (
+                    {!loading && (
                         <>
                             <p className={styles.note}>
                                 Files copied to the local storage (VAST) are stored with a 180-day
@@ -217,7 +170,7 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
                     />
                     <PrimaryButton
                         className={styles.confirmButton}
-                        disabled={loading || !!error || fileDetails.length === 0}
+                        disabled={loading || fileDetails.length === 0}
                         onClick={onMove}
                         text="CONFIRM"
                         title=""
