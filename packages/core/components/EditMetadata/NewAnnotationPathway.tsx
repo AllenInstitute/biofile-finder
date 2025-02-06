@@ -100,6 +100,19 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
         checkForStatusUpdates();
     }, [annotationCreationStatus, dispatch, hasUnsavedChanges, newFieldName, newValues, onDismiss]);
 
+    const onChangeAlphanumericField = (
+        e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+        newValue: string | undefined
+    ) => {
+        const regex = /^[\w\-\s]+$/g;
+        // Restricts character entry to alphanumeric
+        if (newValue && !regex.test(newValue)) {
+            e.preventDefault();
+        } else {
+            setNewFieldName(newValue || "");
+        }
+    };
+
     const addDropdownChip = (evt: React.FormEvent) => {
         evt.preventDefault();
         if (
@@ -154,7 +167,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                 required
                 label="New metadata field name"
                 className={styles.textField}
-                onChange={(_, newValue) => setNewFieldName(newValue || "")}
+                onChange={(ev, newValue) => onChangeAlphanumericField(ev, newValue)}
                 placeholder="Add a new field name..."
                 value={newFieldName}
             />
