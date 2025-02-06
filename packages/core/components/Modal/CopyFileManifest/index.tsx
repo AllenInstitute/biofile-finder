@@ -59,8 +59,8 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {files.map((file, index) => (
-                                <tr key={file.id || index}>
+                            {files.map((file) => (
+                                <tr key={file.id}>
                                     <td>{clipFileName(file.name)}</td>
                                     <td>{filesize(file.size || 0)}</td>
                                 </tr>
@@ -170,7 +170,7 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
                     />
                     <PrimaryButton
                         className={styles.confirmButton}
-                        disabled={loading || fileDetails.length === 0}
+                        disabled={loading}
                         onClick={onMove}
                         text="CONFIRM"
                         title=""
