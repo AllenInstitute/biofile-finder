@@ -2,7 +2,7 @@ import { map } from "lodash";
 
 import AnnotationService, { AnnotationValue } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
-import Annotation, { AnnotationResponse } from "../../../entity/Annotation";
+import Annotation, { AnnotationResponse, AnnotationResponseMms } from "../../../entity/Annotation";
 import { AnnotationType, AnnotationTypeIdMap } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
@@ -127,7 +127,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
     public async createAnnotation(
         annotation: Annotation,
         annotationOptions: string[] = []
-    ): Promise<string[]> {
+    ): Promise<AnnotationResponseMms[]> {
         const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpAnnotationService.BASE_MMS_ANNOTATION_URL}`;
         const annotationType = (annotation.type as AnnotationType) || AnnotationType.STRING;
         const requestBody = {
@@ -136,7 +136,10 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
             description: annotation.description,
             name: annotation.name,
         };
-        const response = await this.post<string>(requestUrl, JSON.stringify(requestBody));
+        const response = await this.post<AnnotationResponseMms>(
+            requestUrl,
+            JSON.stringify(requestBody)
+        );
         return response.data;
     }
 }

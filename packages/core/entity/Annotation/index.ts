@@ -23,6 +23,16 @@ export interface AnnotationResponse {
 }
 
 /**
+ * TODO: MMS queries return a different JSON structure than FES
+ */
+export interface AnnotationResponseMms {
+    annotationId: number;
+    annotationTypeId: number;
+    description: "string";
+    name: string;
+}
+
+/**
  * Representation of an annotation available for filtering, grouping, or sorting files from FMS.
  */
 export default class Annotation {

@@ -1,10 +1,13 @@
-import Annotation from "../../entity/Annotation";
+import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 
 export type AnnotationValue = string | number | boolean | Date;
 
 export default interface AnnotationService {
-    createAnnotation(annotation: Annotation, annotationOptions?: string[]): Promise<string[]>;
+    createAnnotation(
+        annotation: Annotation,
+        annotationOptions?: string[]
+    ): Promise<AnnotationResponseMms[]>;
     fetchValues(annotation: string): Promise<AnnotationValue[]>;
     fetchAnnotations(): Promise<Annotation[]>;
     fetchRootHierarchyValues(hierarchy: string[], filters: FileFilter[]): Promise<string[]>;

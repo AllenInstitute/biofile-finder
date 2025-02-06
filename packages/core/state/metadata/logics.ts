@@ -1,7 +1,7 @@
 import { uniqBy } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { interaction, ReduxLogicDeps, selection } from "..";
+import { interaction, metadata, ReduxLogicDeps, selection } from "..";
 import {
     CREATE_ANNOTATION,
     RECEIVE_ANNOTATIONS,
@@ -13,9 +13,14 @@ import {
     REQUEST_DATA_SOURCES,
     REQUEST_DATASET_MANIFEST,
     RequestDatasetManifest,
+    STORE_NEW_ANNOTATION,
+    storeNewAnnotation,
+    StoreNewAnnotationAction,
 } from "./actions";
 import * as metadataSelectors from "./selectors";
+import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
+import { AnnotationType, AnnotationTypeIdMap } from "../../entity/AnnotationFormatter";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 
@@ -130,10 +135,16 @@ const createNewAnnotationLogic = createLogic({
             annotationService.setHttpClient(httpClient);
         }
 
-        return new Promise<string[]>(async (resolve, reject) => {
+        return new Promise<AnnotationResponseMms[]>(async (resolve, reject) => {
             annotationService
                 .createAnnotation(annotation, annotationOptions)
                 .then((res) => {
+                    // For HTTPS annotations, temporarily capture the returned
+                    // annotation metadata so that it can be used to edit file metadata
+                    if (res?.[0].annotationId) {
+                        dispatch(storeNewAnnotation(res?.[0]));
+                    }
+
                     dispatch(
                         interaction.actions.processSuccess(
                             annotationProcessId,
@@ -205,10 +216,38 @@ const requestDatasetManifest = createLogic({
     type: REQUEST_DATASET_MANIFEST,
 });
 
+/**
+ * This is a workaround to get new annotations to temporarily show up in the store after creation
+ * so that they can be used in file metadata editing regardless of whether they've been fully ingested
+ */
+const storeNewAnnotationLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const {
+            payload: { annotation },
+        } = deps.action as StoreNewAnnotationAction;
+        const annotations = metadata.selectors.getAnnotations(deps.getState());
+        const type =
+            Object.keys(AnnotationTypeIdMap).find(
+                (key) => AnnotationTypeIdMap[key as AnnotationType] === annotation.annotationTypeId
+            ) || AnnotationType.STRING;
+        const newMmsAnnotation = new Annotation({
+            annotationName: annotation.name,
+            annotationDisplayName: annotation.name,
+            annotationId: annotation.annotationId,
+            description: annotation.description,
+            type,
+        });
+        dispatch(receiveAnnotations([...annotations, newMmsAnnotation]));
+        done();
+    },
+    type: STORE_NEW_ANNOTATION,
+});
+
 export default [
     createNewAnnotationLogic,
     requestAnnotations,
     receiveAnnotationsLogic,
     requestDataSources,
     requestDatasetManifest,
+    storeNewAnnotationLogic,
 ];
