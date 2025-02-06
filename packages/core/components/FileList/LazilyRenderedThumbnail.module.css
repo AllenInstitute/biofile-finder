@@ -6,10 +6,6 @@
   width: 100%;
 }
 
-.loading-container > div > div {
-  border-color: var(--primary-text-color) var(--primary-background-color) var(--primary-background-color);
-}
-
 .selected {
   background-color: var(--highlight-background-color);
   color: var(--highlight-text-color);

@@ -1,3 +1,7 @@
 .spinner > div {
     border-color: var(--primary-text-color) var(--primary-background-color) var(--primary-background-color);
- }
+}
+
+.invert-color > div {
+    border-color: var(--secondary-text-color) var(--secondary-background-color) var(--secondary-background-color);
+}

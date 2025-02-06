@@ -1,11 +1,4 @@
-import {
-    MessageBar,
-    MessageBarType,
-    ProgressIndicator,
-    Spinner,
-    SpinnerSize,
-    Stack,
-} from "@fluentui/react";
+import { MessageBar, MessageBarType, ProgressIndicator, Stack } from "@fluentui/react";
 import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
@@ -16,6 +9,7 @@ import { interaction } from "../../state";
 import { StatusUpdate, ProcessStatus } from "../../state/interaction/actions";
 
 import styles from "./StatusMessage.module.css";
+import LoadingIcon from "../Icons/LoadingIcon";
 
 const statusToTypeMap = {
     [ProcessStatus.STARTED]: MessageBarType.info,
@@ -92,7 +86,7 @@ export default function StatusMessage() {
                         >
                             <div className={styles.centeringParent}>
                                 {progress === undefined && status === ProcessStatus.STARTED && (
-                                    <Spinner className={styles.spinner} size={SpinnerSize.small} />
+                                    <LoadingIcon className={styles.spinner} />
                                 )}
                                 <div
                                     dangerouslySetInnerHTML={{ __html: msg }}

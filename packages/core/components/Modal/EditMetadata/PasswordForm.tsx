@@ -1,4 +1,4 @@
-import { SpinnerSize, TextField } from "@fluentui/react";
+import { TextField } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
@@ -29,7 +29,7 @@ export default function PasswordForm(props: Props) {
                     specific to a program, only files associated with that program can be edited.
                     Talk to your program lead for the password.
                 </p>
-                <LoadingIcon size={SpinnerSize.small} />
+                <LoadingIcon />
             </>
         );
     }

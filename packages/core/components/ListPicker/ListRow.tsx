@@ -65,7 +65,7 @@ export default function ListRow(props: Props) {
                     <p>{item.displayValue}</p>
                 </label>
                 {item.recent && <Icon iconName="Recent" />}
-                {item.loading && <LoadingIcon />}
+                {item.loading && <LoadingIcon invertColor={!item.selected} />}
             </DefaultButton>
         </Tooltip>
     );

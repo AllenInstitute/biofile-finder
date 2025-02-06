@@ -58,20 +58,23 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
     public async fetchAnnotationDetails(name: string): Promise<AnnotationDetails> {
         const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpAnnotationService.BASE_ANNOTATION_DETAILS_URL}/${name}`;
 
-        const response = await this.get<AnnotationDetails>(requestUrl);
+        const response = await this.get<{ annotationTypeName: AnnotationType }>(requestUrl);
         const details = response.data[0];
-        if (details.type !== AnnotationType.LOOKUP) {
-            return details;
+        if (
+            details.annotationTypeName !== AnnotationType.LOOKUP &&
+            details.annotationTypeName !== AnnotationType.DROPDOWN
+        ) {
+            return { type: details.annotationTypeName };
         }
 
-        // LOOKUP annotations are special in that their options consist of values
+        // DROPDOWN & LOOKUP annotations are special in that their options consist of values
         // pulled from various database tables. We can't compile a complete list of these
         // due to BFF not being connected directly to the LabKey DB. Instead, what we can
         // do is grab the values in use for this annotation already as available options.
         const dropdownOptions = await this.fetchValues(name);
         return {
-            ...details,
             dropdownOptions: dropdownOptions.map((opt) => opt.toString()),
+            type: details.annotationTypeName,
         };
     }
 

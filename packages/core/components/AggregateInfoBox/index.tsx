@@ -1,5 +1,4 @@
 import filesize from "filesize";
-import { Spinner, SpinnerSize } from "@fluentui/react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -86,7 +85,7 @@ export default function AggregateInfoBox() {
                         {!isLoading && aggregateData ? (
                             aggregateData.count
                         ) : (
-                            <LoadingIcon testId="aggregate-info-box-spinner" />
+                            <LoadingIcon data-testid="aggregate-info-box-spinner" />
                         )}
                     </div>
                     <h6 className={styles.label}>
@@ -99,10 +98,7 @@ export default function AggregateInfoBox() {
                             {!isLoading && aggregateData ? (
                                 aggregateData.size
                             ) : (
-                                <Spinner
-                                    size={SpinnerSize.small}
-                                    data-testid="aggregate-info-box-spinner"
-                                />
+                                <LoadingIcon data-testid="aggregate-info-box-spinner" />
                             )}
                         </div>
                         <h6 className={styles.label}>

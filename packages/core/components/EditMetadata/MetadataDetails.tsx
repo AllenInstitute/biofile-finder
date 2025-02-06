@@ -139,7 +139,6 @@ export default function MetadataDetails(props: DetailsListProps) {
             default:
                 return (
                     <TextField
-                        disabled={isLoading}
                         className={classNames(rootStyles.textField, styles.noPadding)}
                         onChange={(e) => props.onChange(e?.currentTarget?.value)}
                         placeholder="Type in value(s)..."
@@ -154,7 +153,6 @@ export default function MetadataDetails(props: DetailsListProps) {
             <Stack className={styles.stack} horizontal tokens={{ childrenGap: 20 }}>
                 <StackItem grow className={styles.stackItemLeft}>
                     <h4 className={styles.tableTitle}>Existing values</h4>
-                    {isLoading && <LoadingIcon />}
                     <DetailsList
                         setKey="items"
                         cellStyleProps={{
@@ -188,6 +186,7 @@ export default function MetadataDetails(props: DetailsListProps) {
                         onRenderRow={(props, defaultRender) => renderRow(props, defaultRender)}
                         onRenderItemColumn={renderItemColumn}
                     />
+                    {isLoading && <LoadingIcon invertColor />}
                 </StackItem>
                 <StackItem grow className={styles.stackItemRight}>
                     <h4 className={styles.valuesTitle}>Replace with</h4>

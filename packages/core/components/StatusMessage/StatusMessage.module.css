@@ -28,10 +28,6 @@
     margin: 0 0.5em;
 }
 
-.spinner > div {
-    border-color: var(--info-status-background-color) var(--info-status-text-color) var(--info-status-text-color);
-}
-
 .message-bar {
     border-radius: 4px;
     background-color: var(--info-status-background-color);
@@ -39,6 +35,10 @@
     border: solid 1px;
     font-size: var(--l-paragraph-size);
     pointer-events: all;
+}
+
+.message-bar .spinner > div {
+    border-color: var(--info-status-background-color) var(--info-status-text-color) var(--info-status-text-color);
 }
 
 .message-bar i {

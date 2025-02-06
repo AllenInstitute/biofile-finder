@@ -1,4 +1,4 @@
-import { Icon, SpinnerSize } from "@fluentui/react";
+import { Icon } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
@@ -94,7 +94,7 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
     if (loading) {
         return (
             <div className={classNames(styles.container, props.className)}>
-                <LoadingIcon size={SpinnerSize.small} />
+                <LoadingIcon />
             </div>
         );
     }
