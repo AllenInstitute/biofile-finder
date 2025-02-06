@@ -1,7 +1,6 @@
 import { createSelector } from "reselect";
 
 import { State } from "../";
-import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 
@@ -29,14 +28,8 @@ export const getSortedAnnotations = createSelector(getAnnotations, (annotations:
     ];
 });
 
-// Don't allow users to edit top level annotations (e.g., File Name) or annotations
-// that are automatically computed by the system (e.g., Should Be In Local).
-const NON_EDITTABLE_ANNOTATION_NAMES = new Set([
-    ...TOP_LEVEL_FILE_ANNOTATION_NAMES,
-    "Should Be In Local",
-]);
-export const getEdittableAnnotations = createSelector(getAnnotations, (annotations: Annotation[]) =>
-    annotations.filter((annotation) => !NON_EDITTABLE_ANNOTATION_NAMES.has(annotation.name))
+export const getEdittableAnnotations = createSelector(getAnnotations, (annotations) =>
+    annotations.filter((annotation) => !annotation.isImmutable)
 );
 
 export const getAnnotationNameToAnnotationMap = createSelector(

@@ -1,5 +1,6 @@
 import { map } from "lodash";
 
+import IMMUTABLE_ANNOTATION_NAMES from "./immutableAnnotationNames";
 import AnnotationService, { AnnotationDetails, AnnotationValue } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
 import Annotation, { AnnotationResponse } from "../../../entity/Annotation";
@@ -38,7 +39,16 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         const response = await this.get<AnnotationResponse>(requestUrl);
         return [
             ...TOP_LEVEL_FILE_ANNOTATIONS,
-            ...map(response.data, (annotationResponse) => new Annotation(annotationResponse)),
+            ...map(
+                response.data,
+                (annotationResponse) =>
+                    new Annotation({
+                        ...annotationResponse,
+                        isImmutable: IMMUTABLE_ANNOTATION_NAMES.has(
+                            annotationResponse.annotationName
+                        ),
+                    })
+            ),
         ];
     }
 

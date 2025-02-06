@@ -498,7 +498,7 @@ export default abstract class DatabaseService {
         }
     }
 
-    private async fetchAnnotationTypes(): Promise<Record<string, string>> {
+    public async fetchAnnotationTypes(): Promise<Record<string, string>> {
         // Unless we have actually added the source metadata table we can't fetch the types
         if (!this.existingDataSources.has(this.SOURCE_METADATA_TABLE)) {
             return {};
