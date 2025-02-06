@@ -90,6 +90,7 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
 
     const [fileDetails, setFileDetails] = React.useState<FileDetail[]>([]);
     const [loading, setLoading] = React.useState<boolean>(true);
+    const [error, setError] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         async function fetchFiles() {
@@ -97,7 +98,8 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
                 const details = await fileSelection.fetchAllDetails();
                 setFileDetails(details);
             } catch (err: any) {
-                throw new Error(err.message || "Error fetching file details.");
+                console.error("Error fetching file details:", err);
+                setError(err.message || "Error fetching file details.");
             } finally {
                 setLoading(false);
             }
@@ -137,7 +139,13 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
                             <p>Loading file details...</p>
                         </div>
                     )}
-                    {!loading && (
+                    {error && (
+                        <div className={styles.errorContainer}>
+                            <h3>Error</h3>
+                            <p>{error}</p>
+                        </div>
+                    )}
+                    {!loading && !error && (
                         <>
                             <p className={styles.note}>
                                 Files copied to the local storage (VAST) are stored with a 180-day
@@ -170,7 +178,7 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
                     />
                     <PrimaryButton
                         className={styles.confirmButton}
-                        disabled={loading}
+                        disabled={loading || !!error}
                         onClick={onMove}
                         text="CONFIRM"
                         title=""
