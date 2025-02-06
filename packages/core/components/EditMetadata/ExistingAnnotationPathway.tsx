@@ -1,5 +1,6 @@
 import { IComboBoxOption } from "@fluentui/react";
 import classNames from "classnames";
+import { uniqueId } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -31,7 +32,6 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
 
     const annotationValueByNameMap = useAnnotationValueByNameMap();
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
-    const { notificationService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
     const annotationOptions = useSelector(metadata.selectors.getEdittableAnnotations).map(
         (annotation) => ({
@@ -76,20 +76,27 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
             ];
         }
 
-        annotationService
-            .fetchAnnotationDetails(selectedFieldName)
-            .then((response) => {
-                setSelectedAnnotation(selectedFieldName);
-                setAnnotationType(response.type);
-                setValueCounts(valueMap);
-                setDropdownOptions(response.dropdownOptions);
-            })
-            .catch((err) => {
-                notificationService.showError(
-                    "Error",
-                    `Failed to grab details for metadata field ${selectedFieldName}. Error: ${err.message}`
-                );
-            });
+        // String type annotations might be dropdown or lookup
+        // If it's a dropdown, we need to fetch the dropdown options
+        if (option?.data === AnnotationType.STRING) {
+            annotationService
+                .fetchAnnotationDetails(selectedFieldName)
+                .then((response) => {
+                    setSelectedAnnotation(selectedFieldName);
+                    setAnnotationType(response.type);
+                    setValueCounts(valueMap);
+                    setDropdownOptions(response.dropdownOptions);
+                })
+                .catch((err) => {
+                    const errMsg = `Failed to grab details for metadata field "${selectedFieldName}". Error: ${err.message}`;
+                    dispatch(interaction.actions.processError(uniqueId(), errMsg));
+                });
+        } else {
+            setSelectedAnnotation(selectedFieldName);
+            setAnnotationType(option?.data);
+            setValueCounts(valueMap);
+            setDropdownOptions(undefined);
+        }
     };
 
     function onSubmit() {
@@ -105,17 +112,13 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                         );
                         props.onDismiss();
                     } else {
-                        notificationService.showError(
-                            "Validation Error",
-                            "Invalid value for selected metadata field"
-                        );
+                        const errMsg = "Invalid value for selected metadata field";
+                        dispatch(interaction.actions.processError(uniqueId(), errMsg));
                     }
                 })
                 .catch((err) => {
-                    notificationService.showError(
-                        "Error",
-                        `Failed trying to validate metadata field, unsure why. Details: ${err.message}`
-                    );
+                    const errMsg = `Failed trying to validate metadata field, unsure why. Details: ${err.message}`;
+                    dispatch(interaction.actions.processError(uniqueId(), errMsg));
                 });
         } else {
             props.onDismiss();

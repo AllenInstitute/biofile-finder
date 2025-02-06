@@ -45,7 +45,7 @@ export default function PasswordForm(props: Props) {
     } else if (props.isInvalidPassword) {
         infoMessage = (
             <p className={styles.errorMessage}>
-                Incorrect password for any of the following programs:{" "}
+                Not a valid password for any of the following programs:{" "}
                 <strong>{props.validPrograms.join(", ")}</strong>. Please try again.
             </p>
         );
