@@ -1,15 +1,17 @@
 import * as path from "path";
-
 import { app, BrowserWindow, Menu } from "electron";
-
-import template from "./menu";
+import getMenuTemplate from "./menu";
+import { loadEnvironment } from "./envManager";
 import ExecutionEnvServicElectron from "../services/ExecutionEnvServiceElectron";
 import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
-const menu = Menu.buildFromTemplate(template);
+loadEnvironment();
+
+// Build and set the initial menu.
+const menu = Menu.buildFromTemplate(getMenuTemplate());
 Menu.setApplicationMenu(menu);
 
 // Note: Must match `build.appId` in package.json
@@ -39,6 +41,11 @@ const createMainWindow = () => {
             nodeIntegration: true,
         },
         width: 1200,
+    });
+
+    // When the renderer finishes loading, send the current environment.
+    mainWindow.webContents.on("did-finish-load", () => {
+        mainWindow?.webContents.send("environment-changed", global.environment);
     });
 
     mainWindow.once("ready-to-show", () => {
@@ -86,7 +93,6 @@ app.on("second-instance", () => {
         if (mainWindow.isMinimized()) {
             mainWindow.restore();
         }
-
         mainWindow.show();
     }
 });
