@@ -54,7 +54,9 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
     const [newValues, setNewValues] = React.useState<AnnotationValue | undefined>();
     const [newFieldName, setNewFieldName] = React.useState<string>("");
     const [newFieldDescription, setNewFieldDescription] = React.useState<string>("");
-    const [newFieldDataType, setNewFieldDataType] = React.useState<AnnotationType | undefined>();
+    const [newFieldDataType, setNewFieldDataType] = React.useState<AnnotationType>(
+        AnnotationType.STRING
+    );
     const [newDropdownOption, setNewDropdownOption] = React.useState<string>("");
     const [dropdownOptions, setDropdownOptions] = React.useState<IComboBoxOption[]>([]);
     const [submissionStatus, setSubmissionStatus] = React.useState<AnnotationStatus | undefined>();
@@ -148,8 +150,8 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
         const annotation = new Annotation({
             annotationDisplayName: newFieldName,
             annotationName: newFieldName,
-            description: newFieldDescription ?? "",
-            type: newFieldDataType ?? AnnotationType.STRING,
+            description: newFieldDescription,
+            type: newFieldDataType,
         });
         // File editing step occurs after dispatch is processed and status is updated
         dispatch(
@@ -196,7 +198,9 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                             };
                         })}
                         onChange={(option) =>
-                            setNewFieldDataType((option?.key as AnnotationType) || "")
+                            setNewFieldDataType(
+                                (option?.key as AnnotationType) || AnnotationType.STRING
+                            )
                         }
                     />
                     {newFieldDataType === AnnotationType.DROPDOWN && (

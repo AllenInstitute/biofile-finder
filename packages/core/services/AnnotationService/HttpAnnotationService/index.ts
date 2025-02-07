@@ -129,7 +129,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         annotationOptions: string[] = []
     ): Promise<AnnotationResponseMms[]> {
         const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpAnnotationService.BASE_MMS_ANNOTATION_URL}`;
-        const annotationType = (annotation.type as AnnotationType) || AnnotationType.STRING;
+        const annotationType = annotation.type as AnnotationType;
         const requestBody = {
             annotationTypeId: AnnotationTypeIdMap[annotationType],
             annotationOptions,

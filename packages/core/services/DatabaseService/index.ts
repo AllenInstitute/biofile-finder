@@ -531,21 +531,15 @@ export default abstract class DatabaseService {
     }
 
     public async addNewColumn(datasourceName: string, columnName: string, description?: string) {
-        try {
-            await this.execute(
-                `ALTER TABLE "${datasourceName}" ADD COLUMN "${columnName}" VARCHAR;`
-            );
+        await this.execute(`ALTER TABLE "${datasourceName}" ADD COLUMN "${columnName}" VARCHAR;`);
 
-            // Cache is now invalid since we added a column
-            this.dataSourceToAnnotationsMap.delete(datasourceName);
+        // Cache is now invalid since we added a column
+        this.dataSourceToAnnotationsMap.delete(datasourceName);
 
-            if (description?.trim() && this.existingDataSources.has(this.SOURCE_METADATA_TABLE)) {
-                await this
-                    .execute(`INSERT INTO "${this.SOURCE_METADATA_TABLE}" ("Column Name", "Description")
-                        VALUES ('${columnName}', '${description}');`);
-            }
-        } catch (err) {
-            throw err;
+        if (description?.trim() && this.existingDataSources.has(this.SOURCE_METADATA_TABLE)) {
+            await this
+                .execute(`INSERT INTO "${this.SOURCE_METADATA_TABLE}" ("Column Name", "Description")
+                    VALUES ('${columnName}', '${description}');`);
         }
     }
 }

@@ -141,9 +141,9 @@ export default class DatabaseAnnotationService implements AnnotationService {
             .filter((annotation) => !annotationSet.has(annotation));
     }
 
-    public async createAnnotation(annotation: Annotation): Promise<any> {
+    public createAnnotation(annotation: Annotation): Promise<any> {
         const tableName = this.dataSourceNames.sort().join(", ");
-        return await this.databaseService.addNewColumn(
+        return this.databaseService.addNewColumn(
             tableName,
             annotation.name,
             annotation?.description

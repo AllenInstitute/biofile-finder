@@ -23,7 +23,7 @@ export interface AnnotationResponse {
 }
 
 /**
- * TODO: MMS queries return a different JSON structure than FES
+ * MMS queries return a different JSON structure than FES
  */
 export interface AnnotationResponseMms {
     annotationId: number;
