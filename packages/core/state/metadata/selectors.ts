@@ -28,6 +28,10 @@ export const getSortedAnnotations = createSelector(getAnnotations, (annotations:
     ];
 });
 
+export const getEdittableAnnotations = createSelector(getSortedAnnotations, (annotations) =>
+    annotations.filter((annotation) => !annotation.isImmutable)
+);
+
 export const getAnnotationNameToAnnotationMap = createSelector(
     getAnnotations,
     (annotations): Record<string, Annotation> =>

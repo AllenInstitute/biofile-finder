@@ -1,4 +1,4 @@
-import { IChoiceGroupOption, Spinner, SpinnerSize } from "@fluentui/react";
+import { IChoiceGroupOption } from "@fluentui/react";
 import classNames from "classnames";
 import { isNil } from "lodash";
 import * as React from "react";
@@ -8,6 +8,7 @@ import useAnnotationValues from "./useAnnotationValues";
 import SearchBoxForm from "./SearchBoxForm";
 import ChoiceGroup from "../ChoiceGroup";
 import DateRangePicker from "../DateRangePicker";
+import LoadingIcon from "../Icons/LoadingIcon";
 import ListPicker from "../ListPicker";
 import { ListItem } from "../ListPicker/ListRow";
 import NumberRangePicker from "../NumberRangePicker";
@@ -136,7 +137,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     if (isLoading) {
         return (
             <div className={styles.loadingContainer}>
-                <Spinner size={SpinnerSize.small} />
+                <LoadingIcon />
             </div>
         );
     }

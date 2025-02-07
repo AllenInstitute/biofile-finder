@@ -1,4 +1,4 @@
-import { IComboBoxOption, IconButton, Stack, StackItem, TextField } from "@fluentui/react";
+import { IconButton, Stack, StackItem, TextField } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
@@ -32,24 +32,20 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
     const [newFieldName, setNewFieldName] = React.useState<string>("");
     const [newFieldDataType, setNewFieldDataType] = React.useState<AnnotationType | undefined>();
     const [newDropdownOption, setNewDropdownOption] = React.useState<string>("");
-    const [dropdownOptions, setDropdownOptions] = React.useState<IComboBoxOption[]>([]);
+    const [dropdownOptions, setDropdownOptions] = React.useState<string[]>([]);
 
     const addDropdownChip = (evt: React.FormEvent) => {
         evt.preventDefault();
         if (
             newDropdownOption &&
-            !dropdownOptions.filter((opt) => opt.key === newDropdownOption).length
+            !dropdownOptions.filter((opt) => opt === newDropdownOption).length
         ) {
-            const newOptionAsIComboBox: IComboBoxOption = {
-                key: newDropdownOption,
-                text: newDropdownOption,
-            };
-            setDropdownOptions([...dropdownOptions, newOptionAsIComboBox]);
+            setDropdownOptions([...dropdownOptions, newDropdownOption]);
             setNewDropdownOption("");
         }
     };
 
-    const removeDropdownChip = (optionToRemove: IComboBoxOption) => {
+    const removeDropdownChip = (optionToRemove: string) => {
         setDropdownOptions(dropdownOptions.filter((opt) => opt !== optionToRemove));
     };
 
@@ -82,14 +78,16 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                         selectedKey={newFieldDataType || undefined}
                         label="Data type"
                         placeholder="Select a data type..."
-                        options={Object.values(AnnotationType).map((type) => {
-                            const text =
-                                type === AnnotationType.BOOLEAN ? "Boolean (true/false)" : type;
-                            return {
-                                key: type,
-                                text,
-                            };
-                        })}
+                        options={Object.values(AnnotationType)
+                            .filter((type) => type !== AnnotationType.LOOKUP)
+                            .map((type) => {
+                                const text =
+                                    type === AnnotationType.BOOLEAN ? "Boolean (true/false)" : type;
+                                return {
+                                    key: type,
+                                    text,
+                                };
+                            })}
                         onChange={(option) =>
                             setNewFieldDataType((option?.key as AnnotationType) || "")
                         }
@@ -112,12 +110,9 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                             </form>
                             <div>
                                 {dropdownOptions.map((option) => (
-                                    <div
-                                        key={option.key}
-                                        className={styles.selectedOptionContainer}
-                                    >
-                                        <Tooltip content={option.text}>
-                                            <p className={styles.selectedOption}>{option.text}</p>
+                                    <div key={option} className={styles.selectedOptionContainer}>
+                                        <Tooltip content={option}>
+                                            <p className={styles.selectedOption}>{option}</p>
                                         </Tooltip>
                                         <IconButton
                                             className={styles.selectedOptionButton}

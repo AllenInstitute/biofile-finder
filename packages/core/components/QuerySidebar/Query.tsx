@@ -1,19 +1,20 @@
-import { IContextualMenuItem, IconButton, Spinner, SpinnerSize, TextField } from "@fluentui/react";
+import { IContextualMenuItem, IconButton, SpinnerSize, TextField } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import QueryFooter from "./QueryFooter";
+import LoadingIcon from "../Icons/LoadingIcon";
 import QueryDataSource from "../QueryPart/QueryDataSource";
 import QueryFilter from "../QueryPart/QueryFilter";
 import QueryGroup from "../QueryPart/QueryGroup";
 import QuerySort from "../QueryPart/QuerySort";
 import Tooltip from "../Tooltip";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { interaction, metadata, selection } from "../../state";
 import { Query as QueryType } from "../../state/selection/actions";
 
 import styles from "./Query.module.css";
-import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 interface QueryProps {
     isSelected: boolean;
@@ -77,7 +78,7 @@ export default function Query(props: QueryProps) {
         return (
             <div className={styles.container}>
                 <div className={styles.loadingContainer}>
-                    <Spinner size={SpinnerSize.medium} data-testid="query-spinner" />
+                    <LoadingIcon size={SpinnerSize.medium} data-testid="query-spinner" />
                 </div>
             </div>
         );

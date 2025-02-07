@@ -610,14 +610,18 @@ export const SET_VISIBLE_MODAL = makeConstant(STATE_BRANCH_NAME, "set-visible-mo
 export interface SetVisibleModalAction {
     type: string;
     payload: {
+        fileFiltersForVisibleModal: FileFilter[];
         visibleModal: ModalType;
     };
 }
 
-export function setVisibleModal(visibleModal: ModalType): SetVisibleModalAction {
+export function setVisibleModal(
+    visibleModal: ModalType,
+    fileFiltersForVisibleModal: FileFilter[] = []
+): SetVisibleModalAction {
     return {
         type: SET_VISIBLE_MODAL,
-        payload: { visibleModal },
+        payload: { visibleModal, fileFiltersForVisibleModal },
     };
 }
 
