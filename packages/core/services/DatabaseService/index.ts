@@ -55,7 +55,7 @@ export default abstract class DatabaseService {
 
     public abstract execute(_sql: string): Promise<void>;
 
-    private static columnTypeToAnnotationType(columnType: string): string {
+    private static columnTypeToAnnotationType(columnType: string): AnnotationType {
         switch (columnType) {
             case "INTEGER":
             case "BIGINT":
@@ -456,7 +456,7 @@ export default abstract class DatabaseService {
                             annotationNameToTypeMap[row["column_name"]] ===
                             DatabaseService.OPEN_FILE_LINK_TYPE
                                 ? AnnotationType.STRING
-                                : annotationNameToTypeMap[row["column_name"]] ||
+                                : (annotationNameToTypeMap[row["column_name"]] as AnnotationType) ||
                                   DatabaseService.columnTypeToAnnotationType(row["data_type"]),
                     })
             );

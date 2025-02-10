@@ -236,7 +236,7 @@ const storeNewAnnotationLogic = createLogic({
             annotationDisplayName: annotation.name,
             annotationId: annotation.annotationId,
             description: annotation.description,
-            type,
+            type: type as AnnotationType,
         });
         dispatch(receiveAnnotations([...annotations, newMmsAnnotation]));
         done();

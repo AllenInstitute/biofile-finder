@@ -17,7 +17,7 @@ export interface AnnotationResponse {
     annotationDisplayName: string;
     annotationName: string;
     description: string;
-    type: string | AnnotationType;
+    type: AnnotationType;
     isOpenFileLink?: boolean;
     units?: string;
 }
