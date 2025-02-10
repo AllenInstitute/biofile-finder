@@ -141,12 +141,12 @@ export default class DatabaseAnnotationService implements AnnotationService {
             .filter((annotation) => !annotationSet.has(annotation));
     }
 
-    public createAnnotation(annotation: Annotation): Promise<any> {
-        const tableName = this.dataSourceNames.sort().join(", ");
+    public createAnnotation(annotation: Annotation): Promise<void> {
+        const tableName = this.dataSourceNames.sort().join(DatabaseService.LIST_DELIMITER);
         return this.databaseService.addNewColumn(
             tableName,
             annotation.name,
-            annotation?.description
+            annotation.description
         );
     }
 }

@@ -7,7 +7,7 @@ export default interface AnnotationService {
     createAnnotation(
         annotation: Annotation,
         annotationOptions?: string[]
-    ): Promise<AnnotationResponseMms[]>;
+    ): Promise<AnnotationResponseMms[] | void>;
     fetchValues(annotation: string): Promise<AnnotationValue[]>;
     fetchAnnotations(): Promise<Annotation[]>;
     fetchRootHierarchyValues(hierarchy: string[], filters: FileFilter[]): Promise<string[]>;

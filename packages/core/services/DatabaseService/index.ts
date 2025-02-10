@@ -530,7 +530,11 @@ export default abstract class DatabaseService {
         }
     }
 
-    public async addNewColumn(datasourceName: string, columnName: string, description?: string) {
+    public async addNewColumn(
+        datasourceName: string,
+        columnName: string,
+        description?: string
+    ): Promise<void> {
         await this.execute(`ALTER TABLE "${datasourceName}" ADD COLUMN "${columnName}" VARCHAR;`);
 
         // Cache is now invalid since we added a column

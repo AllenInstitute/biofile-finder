@@ -135,7 +135,8 @@ const createNewAnnotationLogic = createLogic({
             annotationService.setHttpClient(httpClient);
         }
 
-        return new Promise<AnnotationResponseMms[]>(async (resolve, reject) => {
+        // HTTP returns the annotation, DB does not
+        await new Promise<AnnotationResponseMms[] | void>((resolve, reject) => {
             annotationService
                 .createAnnotation(annotation, annotationOptions)
                 .then((res) => {
