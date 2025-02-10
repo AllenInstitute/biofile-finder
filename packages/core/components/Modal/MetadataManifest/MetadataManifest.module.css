@@ -1,3 +1,20 @@
 .download-button {
     width: 135px;
 }
+
+.body-container {
+    padding: 0 1em 0 0;
+    position: relative;
+    max-height: 55vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.footer-buttons {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.list-picker {
+    padding: 0 0 0 0;
+}
