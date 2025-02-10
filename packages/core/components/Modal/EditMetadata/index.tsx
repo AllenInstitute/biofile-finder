@@ -39,7 +39,7 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
                     <EditMetadataForm
                         className={classNames({ [styles.hidden]: showWarning })}
                         onDismiss={onDismissWithWarning}
-                        onUnsavedChanges={setHasUnsavedChanges}
+                        setHasUnsavedChanges={setHasUnsavedChanges}
                     />
                     <div className={classNames({ [styles.hidden]: !showWarning })}>
                         <p className={styles.warning}>

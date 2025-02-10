@@ -31,7 +31,7 @@ enum EditStep {
 
 interface NewAnnotationProps {
     onDismiss: () => void;
-    hasUnsavedChanges: (arg: boolean) => void;
+    setHasUnsavedChanges: (arg: boolean) => void;
     selectedFileCount: number;
 }
 
@@ -48,7 +48,7 @@ interface AnnotationStatus {
 export default function NewAnnotationPathway(props: NewAnnotationProps) {
     const dispatch = useDispatch();
     // Destructure to prevent unnecessary useEffect triggers
-    const { onDismiss, hasUnsavedChanges } = props;
+    const { onDismiss, setHasUnsavedChanges } = props;
 
     const [step, setStep] = React.useState<EditStep>(EditStep.CREATE_FIELD);
     const [newValues, setNewValues] = React.useState<AnnotationValue | undefined>();
@@ -91,7 +91,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                                 message: `Failed to create annotation: ${e}`,
                             });
                         } finally {
-                            hasUnsavedChanges(false);
+                            setHasUnsavedChanges(false);
                             onDismiss();
                         }
                     }
@@ -100,7 +100,14 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
             }
         };
         checkForStatusUpdates();
-    }, [annotationCreationStatus, dispatch, hasUnsavedChanges, newFieldName, newValues, onDismiss]);
+    }, [
+        annotationCreationStatus,
+        dispatch,
+        setHasUnsavedChanges,
+        newFieldName,
+        newValues,
+        onDismiss,
+    ]);
 
     const onChangeAlphanumericField = (
         e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -135,7 +142,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
     };
 
     function onCreateNewAnnotation() {
-        props?.hasUnsavedChanges(true);
+        setHasUnsavedChanges(true);
         setStep(EditStep.EDIT_FILES);
     }
 

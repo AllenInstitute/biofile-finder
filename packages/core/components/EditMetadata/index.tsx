@@ -17,7 +17,7 @@ enum EditMetadataPathway {
 interface EditMetadataProps {
     className?: string;
     onDismiss: () => void;
-    onUnsavedChanges: (hasUnsavedChanges: boolean) => void;
+    setHasUnsavedChanges: (hasUnsavedChanges: boolean) => void;
 }
 
 /**
@@ -101,7 +101,7 @@ export default function EditMetadataForm(props: EditMetadataProps) {
                 ) : (
                     <NewAnnotationPathway
                         onDismiss={props.onDismiss}
-                        hasUnsavedChanges={(arg) => props.onUnsavedChanges(arg)}
+                        setHasUnsavedChanges={(arg) => props.setHasUnsavedChanges(arg)}
                         selectedFileCount={fileCount}
                     />
                 )}
