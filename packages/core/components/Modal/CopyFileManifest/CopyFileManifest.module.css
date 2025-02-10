@@ -1,5 +1,8 @@
 .body-container {
+    padding: 0 1em 0 0;
     position: relative;
+    max-height: 55vh;
+    overflow-y: auto;
 }
 
 .note {
