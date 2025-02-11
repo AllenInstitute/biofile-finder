@@ -2,7 +2,7 @@
     padding: 0 1em 0 0;
     position: relative;
     max-height: 55vh;
-    overflow-y: auto;
+    overflow-y: hidden;
 }
 
 .note {
@@ -11,7 +11,7 @@
 }
 
 .table-container {
-    margin-bottom: 2em;
+    margin-bottom: 0;
 }
 
 .table-title {
@@ -25,7 +25,8 @@
 }
 
 .file-table-container {
-    max-height: 300px;
+    min-height: 45px;
+    max-height: 15vh;
     overflow-y: auto;
     background-color: var(--secondary-background-color);
     position: relative;
