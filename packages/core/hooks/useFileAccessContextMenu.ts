@@ -14,7 +14,7 @@ import { interaction, selection } from "../state";
  * previously saved applications. Can be supplied an array of filters to use
  * to find files to access instead of the currently selected files.
  */
-export default (filters?: FileFilter[], onDismiss?: () => void) => {
+export default (filters?: FileFilter[], onDismiss?: () => void, isFolder?: boolean) => {
     const dispatch = useDispatch();
     const isOnWeb = useSelector(interaction.selectors.isOnWeb);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
@@ -33,6 +33,24 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
             evt.preventDefault();
 
             const contextMenuItems: IContextualMenuItem[] = [
+                ...(!isFolder
+                    ? []
+                    : [
+                          {
+                              key: "expand",
+                              text: "Expand all",
+                              iconProps: {
+                                  iconName: "ExploreContent",
+                              },
+                          },
+                          {
+                              key: "collapse",
+                              text: "Collapse all",
+                              iconProps: {
+                                  iconName: "CollapseContent",
+                              },
+                          },
+                      ]),
                 // Avoid showing default open option when on web
                 ...(isOnWeb
                     ? []
