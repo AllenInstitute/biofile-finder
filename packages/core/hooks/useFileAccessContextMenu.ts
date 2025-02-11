@@ -1,11 +1,21 @@
 import { ContextualMenuItemType, IContextualMenuItem } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { shell } from "electron";
 
 import useOpenWithMenuItems from "./useOpenWithMenuItems";
 import FileDetail from "../entity/FileDetail";
 import FileFilter from "../entity/FileFilter";
 import { interaction, selection } from "../state";
+
+/**
+ * Reveals a selected file in the user's native file browser
+ */
+const openNativeFileBrowser = (fileDetails: FileDetail) => {
+    if (fileDetails.localPath) {
+        shell.showItemInFolder(fileDetails.localPath);
+    }
+};
 
 /**
  * Custom React hook for creating the file access context menu.
@@ -68,6 +78,26 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                         items: openWithSubMenuItems,
                     },
                 },
+                ...(isQueryingAicsFms && !isOnWeb
+                    ? [
+                          {
+                              key: "go-to-file-location",
+                              text: "Go to file location",
+                              title: "Show selected file in your native file browser",
+                              disabled:
+                                  fileDetails?.localPath === null ||
+                                  fileDetails?.localPath === undefined ||
+                                  fileSelection.count() > 1 ||
+                                  (!filters && fileSelection.count() === 0),
+                              iconProps: { iconName: "FolderOpen" },
+                              onClick() {
+                                  if (fileDetails) {
+                                      openNativeFileBrowser(fileDetails);
+                                  }
+                              },
+                          },
+                      ]
+                    : []),
                 {
                     key: "save-as",
                     text: "Save metadata as",
