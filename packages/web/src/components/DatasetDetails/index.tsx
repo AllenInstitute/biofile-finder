@@ -103,12 +103,13 @@ export default function DatasetDetails() {
             })}
         >
             <div className={styles.internalWrapper}>
-                <TertiaryButton
-                    className={styles.closeButton}
-                    iconName="Cancel"
-                    title=""
-                    onClick={() => dispatch(interaction.actions.hideDatasetDetailsPanel())}
-                />
+                <div className={styles.header}>
+                    <TertiaryButton
+                        iconName="Cancel"
+                        title="Close"
+                        onClick={() => dispatch(interaction.actions.hideDatasetDetailsPanel())}
+                    />
+                </div>
                 <div className={styles.title}>{datasetDetails?.name}</div>
                 <div className={styles.buttonWrapper}>
                     <PrimaryButton

@@ -20,7 +20,7 @@
   height: calc(100% - var(--margin) * 4);
 }
 
-.close-button {
+.header {
   position: absolute;
   top: 0;
   right: 0;
