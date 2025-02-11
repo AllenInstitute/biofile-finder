@@ -87,16 +87,26 @@ hr {
   flex: 1 1 100%;
 }
 
+.button-wrapper {
+  width: fit-content;
+}
+
 .button {
   height: 33px;
-  width: fit-content;
   margin: var(--margin) 0;
 }
 
 .secondary-close-button {
   height: 33px;
   width: fit-content;
+}
+
+.footer {
+  width: 100%;
   position: absolute;
   bottom: 0;
-  right: 0;
+  
+  /* flex parent */
+  display: flex;
+  justify-content: flex-end;
 }

@@ -57,7 +57,7 @@
 /* Toggle overlay depending on screen size */
 @media screen and (max-width: 1070px) {
   .overlay {
-    top: 8px;
+    top: 16px;
     right: 0;
     background-image: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.9));
     position: absolute;
