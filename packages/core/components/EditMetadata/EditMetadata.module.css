@@ -11,6 +11,24 @@
   padding-left: 5px;
 }
 
+.error-message {
+  color: var(--error-status-text-color);
+  line-height: 1.15;
+}
+
+.status-message {
+  color: var(--info-status-text-color);
+  display: flex;
+}
+
+.spinner {
+  margin: 0 0.5em;
+}
+
+.spinner > div {
+  border-color: var(--info-status-background-color) var(--info-status-text-color) var(--info-status-text-color);
+}
+
 .footer {
   margin-top: 20px;
   width: 100%;
@@ -89,7 +107,7 @@
   font-size: var(--l-paragraph-size);
 }
 
-.text-field :is(input) {
+.text-field :is(input), .text-field :is(textarea) {
   background-color: var(--secondary-background-color) !important;
   color: var(--secondary-text-color) !important;
   border-radius: 4px;

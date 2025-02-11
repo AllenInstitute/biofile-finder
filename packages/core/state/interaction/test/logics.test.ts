@@ -707,14 +707,14 @@ describe("Interaction logics", () => {
                 annotationDisplayName: AnnotationName.KIND,
                 annotationName: AnnotationName.KIND,
                 description: "",
-                type: "Text",
+                type: AnnotationType.STRING,
                 annotationId: 0,
             }),
             new Annotation({
                 annotationDisplayName: "Cell Line",
                 annotationName: "Cell Line",
                 description: "",
-                type: "Text",
+                type: AnnotationType.STRING,
                 annotationId: 1,
             }),
         ];

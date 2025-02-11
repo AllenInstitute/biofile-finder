@@ -1,12 +1,25 @@
-import { IComboBoxOption, IconButton, Stack, StackItem, TextField } from "@fluentui/react";
+import {
+    IComboBoxOption,
+    IconButton,
+    Spinner,
+    SpinnerSize,
+    Stack,
+    StackItem,
+    TextField,
+} from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import MetadataDetails, { ValueCountItem } from "./MetadataDetails";
 import { PrimaryButton, SecondaryButton } from "../Buttons";
 import ComboBox from "../ComboBox";
 import Tooltip from "../Tooltip";
+import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
+import { AnnotationValue } from "../../services/AnnotationService";
+import { interaction, metadata } from "../../state";
+import { ProcessStatus } from "../../state/interaction/actions";
 
 import styles from "./EditMetadata.module.css";
 
@@ -18,8 +31,14 @@ enum EditStep {
 
 interface NewAnnotationProps {
     onDismiss: () => void;
-    onUnsavedChanges: () => void;
+    setHasUnsavedChanges: (arg: boolean) => void;
     selectedFileCount: number;
+}
+
+// Simplified version of status message
+interface AnnotationStatus {
+    status: ProcessStatus;
+    message: string | undefined;
 }
 
 /**
@@ -27,12 +46,81 @@ interface NewAnnotationProps {
  * and then entering values for the selected files
  */
 export default function NewAnnotationPathway(props: NewAnnotationProps) {
+    const dispatch = useDispatch();
+    // Destructure to prevent unnecessary useEffect triggers
+    const { onDismiss, setHasUnsavedChanges } = props;
+
     const [step, setStep] = React.useState<EditStep>(EditStep.CREATE_FIELD);
-    const [newValues, setNewValues] = React.useState<string | undefined>();
+    const [newValues, setNewValues] = React.useState<AnnotationValue | undefined>();
     const [newFieldName, setNewFieldName] = React.useState<string>("");
-    const [newFieldDataType, setNewFieldDataType] = React.useState<AnnotationType | undefined>();
+    const [newFieldDescription, setNewFieldDescription] = React.useState<string>("");
+    const [newFieldDataType, setNewFieldDataType] = React.useState<AnnotationType>(
+        AnnotationType.STRING
+    );
     const [newDropdownOption, setNewDropdownOption] = React.useState<string>("");
     const [dropdownOptions, setDropdownOptions] = React.useState<IComboBoxOption[]>([]);
+    const [submissionStatus, setSubmissionStatus] = React.useState<AnnotationStatus | undefined>();
+
+    const statuses = useSelector(interaction.selectors.getProcessStatuses);
+    const annotationCreationStatus = React.useMemo(
+        () => statuses.find((status) => status.processId === newFieldName),
+        [newFieldName, statuses]
+    );
+    // Check for updates to the annotation submission status
+    React.useEffect(() => {
+        const checkForStatusUpdates = async () => {
+            const currentStatus = annotationCreationStatus?.data?.status;
+            switch (currentStatus) {
+                case ProcessStatus.ERROR:
+                case ProcessStatus.STARTED:
+                case ProcessStatus.PROGRESS:
+                    setSubmissionStatus({
+                        status: currentStatus,
+                        message: annotationCreationStatus?.data?.msg,
+                    });
+                    return;
+                case ProcessStatus.SUCCEEDED:
+                    if (newFieldName && newValues) {
+                        try {
+                            dispatch(
+                                interaction.actions.editFiles({ [newFieldName]: [newValues] })
+                            );
+                        } catch (e) {
+                            setSubmissionStatus({
+                                status: ProcessStatus.ERROR,
+                                message: `Failed to create annotation: ${e}`,
+                            });
+                        } finally {
+                            setHasUnsavedChanges(false);
+                            onDismiss();
+                        }
+                    }
+                default:
+                    return;
+            }
+        };
+        checkForStatusUpdates();
+    }, [
+        annotationCreationStatus,
+        dispatch,
+        setHasUnsavedChanges,
+        newFieldName,
+        newValues,
+        onDismiss,
+    ]);
+
+    const onChangeAlphanumericField = (
+        e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+        newValue: string | undefined
+    ) => {
+        const regex = /^[\w\-\s]+$/g;
+        // Restricts character entry to alphanumeric
+        if (newValue && !regex.test(newValue)) {
+            e.preventDefault();
+        } else {
+            setNewFieldName(newValue || "");
+        }
+    };
 
     const addDropdownChip = (evt: React.FormEvent) => {
         evt.preventDefault();
@@ -53,15 +141,32 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
         setDropdownOptions(dropdownOptions.filter((opt) => opt !== optionToRemove));
     };
 
-    function onSubmit() {
-        // TO DO: endpoint logic is in progress on a different branch
-        props.onDismiss();
+    function onCreateNewAnnotation() {
+        setHasUnsavedChanges(true);
+        setStep(EditStep.EDIT_FILES);
     }
 
-    // TO DO: determine when to submit the new annotation post req
-    function onCreateNewAnnotation() {
-        props?.onUnsavedChanges();
-        setStep(EditStep.EDIT_FILES);
+    function onSubmit() {
+        if (!newFieldName || !newValues) {
+            setSubmissionStatus({
+                status: ProcessStatus.ERROR,
+                message: `Missing ${!newFieldName ? "field name" : "values for file"}`,
+            });
+            return;
+        }
+        const annotation = new Annotation({
+            annotationDisplayName: newFieldName,
+            annotationName: newFieldName,
+            description: newFieldDescription,
+            type: newFieldDataType,
+        });
+        // File editing step occurs after dispatch is processed and status is updated
+        dispatch(
+            metadata.actions.createAnnotation(
+                annotation,
+                dropdownOptions.map((opt) => opt.text)
+            )
+        );
     }
 
     return (
@@ -71,12 +176,21 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                 required
                 label="New metadata field name"
                 className={styles.textField}
-                onChange={(_, newValue) => setNewFieldName(newValue || "")}
+                onChange={(ev, newValue) => onChangeAlphanumericField(ev, newValue)}
                 placeholder="Add a new field name..."
                 value={newFieldName}
             />
             {step === EditStep.CREATE_FIELD && (
                 <>
+                    <TextField
+                        multiline
+                        rows={2}
+                        label="Description"
+                        className={styles.textField}
+                        onChange={(_, newValue) => setNewFieldDescription(newValue || "")}
+                        placeholder="Add a short description of the new field..."
+                        value={newFieldDescription}
+                    />
                     <ComboBox
                         className={styles.comboBox}
                         selectedKey={newFieldDataType || undefined}
@@ -91,7 +205,9 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                             };
                         })}
                         onChange={(option) =>
-                            setNewFieldDataType((option?.key as AnnotationType) || "")
+                            setNewFieldDataType(
+                                (option?.key as AnnotationType) || AnnotationType.STRING
+                            )
                         }
                     />
                     {newFieldDataType === AnnotationType.DROPDOWN && (
@@ -132,17 +248,38 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                 </>
             )}
             {step === EditStep.EDIT_FILES && (
-                <MetadataDetails
-                    fieldType={newFieldDataType}
-                    items={[
-                        {
-                            value: undefined,
-                            fileCount: props.selectedFileCount,
-                        } as ValueCountItem,
-                    ]}
-                    dropdownOptions={dropdownOptions}
-                    onChange={(value) => setNewValues(value)}
-                />
+                <>
+                    {newFieldDescription.trim() && (
+                        <>
+                            <b>Description: </b> {newFieldDescription}
+                        </>
+                    )}
+                    <MetadataDetails
+                        fieldType={newFieldDataType}
+                        items={[
+                            {
+                                value: undefined,
+                                fileCount: props.selectedFileCount,
+                            } as ValueCountItem,
+                        ]}
+                        dropdownOptions={dropdownOptions}
+                        onChange={(value) => setNewValues(value)}
+                    />
+                    {submissionStatus && (
+                        <div
+                            className={classNames(
+                                submissionStatus.status === ProcessStatus.ERROR
+                                    ? styles.errorMessage
+                                    : styles.statusMessage
+                            )}
+                        >
+                            {submissionStatus.status === ProcessStatus.STARTED && (
+                                <Spinner className={styles.spinner} size={SpinnerSize.small} />
+                            )}
+                            {submissionStatus?.message}
+                        </div>
+                    )}
+                </>
             )}
             <div className={styles.footer}>
                 <Stack horizontal>

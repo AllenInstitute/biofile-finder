@@ -14,6 +14,7 @@ import { createSandbox } from "sinon";
 import Modal, { ModalType } from "../..";
 import { FESBaseUrl } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
+import { AnnotationType } from "../../../../entity/AnnotationFormatter";
 import FileFilter from "../../../../entity/FileFilter";
 import { initialState, interaction, reduxLogics } from "../../../../state";
 import HttpFileService from "../../../../services/FileService/HttpFileService";
@@ -82,7 +83,7 @@ describe("<MetadataManifest />", () => {
                         annotationDisplayName: "Cell Line",
                         annotationName: "Cell Line",
                         description: "test",
-                        type: "text",
+                        type: AnnotationType.STRING,
                     }),
                 ],
             },
@@ -127,7 +128,7 @@ describe("<MetadataManifest />", () => {
                                 annotationDisplayName: c,
                                 annotationName: c,
                                 description: "test",
-                                type: "text",
+                                type: AnnotationType.STRING,
                             })
                     ),
                 },
