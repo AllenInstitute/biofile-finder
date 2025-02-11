@@ -103,20 +103,23 @@ export default function DatasetDetails() {
             })}
         >
             <div className={styles.internalWrapper}>
-                <TertiaryButton
-                    className={styles.closeButton}
-                    iconName="Cancel"
-                    title="Close"
-                    onClick={() => dispatch(interaction.actions.hideDatasetDetailsPanel())}
-                />
+                <div className={styles.header}>
+                    <TertiaryButton
+                        iconName="Cancel"
+                        title="Close"
+                        onClick={() => dispatch(interaction.actions.hideDatasetDetailsPanel())}
+                    />
+                </div>
                 <div className={styles.title}>{datasetDetails?.name}</div>
-                <PrimaryButton
-                    className={styles.button}
-                    iconName="Upload"
-                    title="Load dataset"
-                    text="LOAD DATASET"
-                    onClick={loadDataset}
-                />
+                <div className={styles.buttonWrapper}>
+                    <PrimaryButton
+                        className={styles.button}
+                        iconName="Upload"
+                        title="Load dataset"
+                        text="LOAD DATASET"
+                        onClick={loadDataset}
+                    />
+                </div>
                 <hr></hr>
                 <div className={styles.content}>
                     <div
@@ -129,12 +132,14 @@ export default function DatasetDetails() {
                     </div>
                     {isLongDescription && toggleDescriptionButton}
                     <div className={styles.list}>{content}</div>
-                    <SecondaryButton
-                        className={styles.secondaryCloseButton}
-                        title="Close panel"
-                        text="CLOSE"
-                        onClick={() => dispatch(interaction.actions.hideDatasetDetailsPanel())}
-                    />
+                    <div className={styles.footer}>
+                        <SecondaryButton
+                            className={styles.secondaryCloseButton}
+                            title="Close panel"
+                            text="CLOSE"
+                            onClick={() => dispatch(interaction.actions.hideDatasetDetailsPanel())}
+                        />
+                    </div>
                 </div>
             </div>
         </div>
