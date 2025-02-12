@@ -62,7 +62,7 @@ export default function OpenSourceDatasets() {
             datasetDetails.name,
             {
                 name,
-                type: extensionGuess as "csv" | "json" | "parquet",
+                type: extensionGuess,
                 uri: dataSourceURL,
             },
             url

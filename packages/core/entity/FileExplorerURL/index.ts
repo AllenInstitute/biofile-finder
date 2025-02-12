@@ -13,9 +13,11 @@ export enum FileView {
     LARGE_THUMBNAIL = "3",
 }
 
+export const ACCEPTED_SOURCE_TYPES = ["csv", "json", "parquet"] as const;
+
 export interface Source {
     name: string;
-    type?: "csv" | "json" | "parquet";
+    type?: typeof ACCEPTED_SOURCE_TYPES[number];
     uri?: string | File;
 }
 
@@ -72,8 +74,11 @@ export const DEFAULT_AICS_FMS_QUERY: FileExplorerURLComponents = {
 export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
     const uriResource = dataSourceURL.substring(dataSourceURL.lastIndexOf("/") + 1).split("?")[0];
     const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
-    let extensionGuess = uriResource.split(".").pop();
-    if (!(extensionGuess === "csv" || extensionGuess === "json" || extensionGuess === "parquet")) {
+    // Returns undefined if can't find a match
+    let extensionGuess = ACCEPTED_SOURCE_TYPES.find(
+        (validSourcetype) => validSourcetype === uriResource.split(".").pop()
+    );
+    if (!extensionGuess) {
         console.warn("Assuming the source is csv since no extension was recognized");
         extensionGuess = "csv";
     }
