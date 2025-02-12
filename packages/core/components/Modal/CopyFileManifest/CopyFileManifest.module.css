@@ -1,8 +1,17 @@
+.modal-container {
+    width: 100%;
+    max-width: 40vw;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
 .body-container {
+    width: 100%;
     padding: 0 1em 0 0;
     position: relative;
     max-height: 55vh;
     overflow-y: hidden;
+    box-sizing: border-box;
 }
 
 .note {
@@ -11,6 +20,7 @@
 }
 
 .table-container {
+    width: 100%;
     margin-bottom: 0;
 }
 
@@ -21,13 +31,17 @@
 }
 
 .table-wrapper {
+    width: 100%;
     position: relative;
+    overflow-x: hidden;
 }
 
 .file-table-container {
+    width: 100%;
     min-height: 45px;
     max-height: 15vh;
     overflow-y: auto;
+    overflow-x: hidden;
     background-color: var(--secondary-background-color);
     position: relative;
     z-index: 1;
@@ -46,6 +60,7 @@
 
 .file-table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     position: relative;
     z-index: 1;
@@ -67,9 +82,23 @@
     z-index: 3;
 }
 
+.file-table th:last-child,
+.file-table td:last-child {
+    width: 10em;
+    min-width: 10em;
+    max-width: 10em;
+}
+
+.file-table th:first-child,
+.file-table td:first-child {
+    width: calc(100% - 10em);
+}
+
+
 .file-table td:first-child {
     border-right: 1px solid var(--border-color);
 }
+
 
 .footer-buttons {
     display: flex;
@@ -94,4 +123,23 @@
 
 .file-count {
     text-align: right;
+}
+
+.fileName {
+    width: 100%;
+    display: flex;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.fileNameBase {
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fileNameExtension {
+    flex-shrink: 0;
+    margin-left: 0;
 }

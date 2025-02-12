@@ -11,6 +11,19 @@ import { interaction, selection } from "../../../state";
 
 import styles from "./CopyFileManifest.module.css";
 
+function ResponsiveFileName({ fileName }: { fileName: string }) {
+    const lastDot = fileName.lastIndexOf(".");
+    const base = lastDot > 0 ? fileName.slice(0, lastDot) : fileName;
+    const extension = lastDot > 0 ? fileName.slice(lastDot) : "";
+
+    return (
+        <div className={styles.fileName}>
+            <span className={styles.fileNameBase}>{base}</span>
+            {extension && <span className={styles.fileNameExtension}>{extension}</span>}
+        </div>
+    );
+}
+
 /**
  * Table component for rendering file details.
  */
@@ -30,13 +43,6 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
         window.addEventListener("resize", checkScroll);
         return () => window.removeEventListener("resize", checkScroll);
     }, [files]);
-
-    const clipFileName = (filename: string) => {
-        if (filename.length > 20) {
-            return filename.slice(0, 9) + "..." + filename.slice(-8);
-        }
-        return filename;
-    };
 
     const calculateTotalSize = (files: FileDetail[]) => {
         const totalBytes = files.reduce((acc, file) => acc + (file.size || 0), 0);
@@ -61,7 +67,9 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
                         <tbody>
                             {files.map((file) => (
                                 <tr key={file.id}>
-                                    <td>{clipFileName(file.name)}</td>
+                                    <td>
+                                        <ResponsiveFileName fileName={file.name} />
+                                    </td>
                                     <td>{filesize(file.size || 0)}</td>
                                 </tr>
                             ))}
