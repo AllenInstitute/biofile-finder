@@ -2,26 +2,27 @@ import classNames from "classnames";
 import { get as _get } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 
 import DatasetDetailsRow from "./DatasetDetailsRow";
 import PublicDataset, {
     DATASET_DISPLAY_FIELDS,
     DatasetAnnotations,
 } from "../../entity/PublicDataset";
-import { interaction, selection } from "../../../../core/state";
+import { interaction } from "../../../../core/state";
 import {
     PrimaryButton,
     SecondaryButton,
     TertiaryButton,
 } from "../../../../core/components/Buttons";
-import { getNameAndTypeFromSourceUrl, Source } from "../../../../core/entity/FileExplorerURL";
 
 import styles from "./DatasetDetails.module.css";
 
-export default function DatasetDetails() {
+interface DatasetDetailsProps {
+    onLoadDataset: (datasetDetails: PublicDataset | undefined) => void;
+}
+
+export default function DatasetDetails(props: DatasetDetailsProps) {
     const dispatch = useDispatch();
-    const navigate = useNavigate();
     const isDetailsPanelVisible = useSelector(interaction.selectors.getDatasetDetailsVisibility);
     const datasetDetails: PublicDataset | undefined = useSelector(
         interaction.selectors.getSelectedPublicDataset
@@ -80,29 +81,6 @@ export default function DatasetDetails() {
         }, [] as JSX.Element[]);
     }, [datasetDetails]);
 
-    const openDatasetInApp = (source: Source) => {
-        navigate("/app");
-        dispatch(
-            selection.actions.addQuery({
-                name: `New ${source.name} Query on ${
-                    datasetDetails?.name || "open-source dataset"
-                }`,
-                parts: { sources: [source] },
-            })
-        );
-    };
-
-    const loadDataset = () => {
-        const dataSourceURL = datasetDetails?.path;
-        if (!dataSourceURL) throw new Error("No path provided to dataset");
-        const { name, extensionGuess } = getNameAndTypeFromSourceUrl(dataSourceURL);
-        openDatasetInApp({
-            name,
-            type: extensionGuess as "csv" | "json" | "parquet",
-            uri: dataSourceURL,
-        });
-    };
-
     const toggleDescriptionButton = (
         <a className={styles.link} onClick={() => setShowLongDescription(!showLongDescription)}>
             Read {showLongDescription ? "less" : "more"}
@@ -130,7 +108,7 @@ export default function DatasetDetails() {
                         iconName="Upload"
                         title="Load dataset"
                         text="LOAD DATASET"
-                        onClick={loadDataset}
+                        onClick={() => props.onLoadDataset(datasetDetails)}
                     />
                 </div>
                 <hr></hr>
