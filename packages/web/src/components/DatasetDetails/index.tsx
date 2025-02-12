@@ -47,11 +47,24 @@ export default function DatasetDetails() {
             if (datasetDetails.details.hasOwnProperty(fieldName)) {
                 datasetFieldValue = _get(datasetDetails.details, fieldName);
                 if (
-                    (fieldName === DatasetAnnotations.RELATED_PUBLICATON.name ||
-                        fieldName === DatasetAnnotations.DOI.name) &&
-                    datasetDetails.details.hasOwnProperty(DatasetAnnotations.DOI.name)
-                )
+                    fieldName === DatasetAnnotations.DOI.name ||
+                    fieldName === DatasetAnnotations.RELATED_PUBLICATON.name
+                ) {
+                    // Start by using the DOI for both links
                     link = _get(datasetDetails.details, DatasetAnnotations.DOI.name);
+                }
+                if (
+                    fieldName === DatasetAnnotations.RELATED_PUBLICATON.name &&
+                    datasetDetails.details.hasOwnProperty(
+                        DatasetAnnotations.RELATED_PUBLICATION_LINK.name
+                    )
+                ) {
+                    // If RELATED_PUBLICATON has its own link other than the DOI, prioritize that
+                    link = _get(
+                        datasetDetails.details,
+                        DatasetAnnotations.RELATED_PUBLICATION_LINK.name
+                    );
+                }
             } else datasetFieldValue = "--"; // Still display field, just indicate no value provided
             const ret = [
                 ...accum,

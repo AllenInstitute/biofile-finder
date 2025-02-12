@@ -16,6 +16,7 @@ export interface PublicDatasetProps {
     created?: string;
     published?: string;
     related_publication?: string;
+    related_publication_link?: string;
     version?: string;
     source?: string; // Indicate whether the dataset comes from internal (AICS) or external (other) source
 }
@@ -52,6 +53,10 @@ export const DatasetAnnotations = {
     FILE_COUNT: new DatasetAnnotation("File count", "file_count", 89),
     PUBLICATION_DATE: new DatasetAnnotation("Publication date", "published", 128),
     RELATED_PUBLICATON: new DatasetAnnotation("Related publication", "related_publication", 178),
+    RELATED_PUBLICATION_LINK: new DatasetAnnotation(
+        "Related publication link",
+        "related_publication_link"
+    ),
     SOURCE: new DatasetAnnotation("Source", "source"),
     VERSION: new DatasetAnnotation("Version", "version"),
 };
