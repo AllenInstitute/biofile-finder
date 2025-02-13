@@ -40,7 +40,7 @@ export default function MetadataManifest({ onDismiss }: ModalProps) {
     };
 
     const body = (
-        <>
+        <div className={styles.bodyContainer}>
             <p>
                 Select which annotations you would like included as columns in the downloaded file
             </p>
@@ -48,22 +48,25 @@ export default function MetadataManifest({ onDismiss }: ModalProps) {
                 hasSelectAllCapability
                 selections={selectedAnnotations}
                 setSelections={setSelectedAnnotations}
+                className={styles.listPicker}
             />
-        </>
+        </div>
     );
 
     return (
         <BaseModal
             body={body}
             footer={
-                <PrimaryButton
-                    className={styles.downloadButton}
-                    disabled={!selectedAnnotations.length}
-                    iconName="Download"
-                    onClick={onDownload}
-                    text="DOWNLOAD"
-                    title="Download"
-                />
+                <div className={styles.footerButtons}>
+                    <PrimaryButton
+                        className={styles.downloadButton}
+                        disabled={!selectedAnnotations.length}
+                        iconName="Download"
+                        onClick={onDownload}
+                        text="DOWNLOAD"
+                        title="Download"
+                    />
+                </div>
             }
             onDismiss={onDismiss}
             title="Download metadata manifest"
