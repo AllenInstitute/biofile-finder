@@ -1,3 +1,7 @@
+:root {
+    --file-size-column-width: 7em;
+}
+
 .modal-container {
     width: 100%;
     max-width: 40vw;
@@ -7,7 +11,7 @@
 
 .body-container {
     width: 100%;
-    padding: 0 1em 0 0;
+    padding: 0 0 0 0;
     position: relative;
     max-height: 55vh;
     overflow-y: hidden;
@@ -84,14 +88,14 @@
 
 .file-table th:last-child,
 .file-table td:last-child {
-    width: 10em;
-    min-width: 10em;
-    max-width: 10em;
+    width: var(--file-size-column-width);
+    min-width: var(--file-size-column-width);
+    max-width: var(--file-size-column-width);
 }
 
 .file-table th:first-child,
 .file-table td:first-child {
-    width: calc(100% - 10em);
+    width: calc(100% - var(--file-size-column-width));
 }
 
 
