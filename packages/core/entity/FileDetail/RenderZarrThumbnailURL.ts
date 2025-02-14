@@ -103,7 +103,14 @@ export async function renderZarrThumbnailURL(zarrUrl: string): Promise<string | 
                 // Determine a slice of the image that has the best chance at being a good thumbnail.
                 // X and Y will have full range, while Z will be the middle integer.
                 // Non-spatial dims will default to None.
-                const axes = transformAxes(multiscales[0].axes);
+                const defaultAxes = [
+                    { name: "t", type: "time" },
+                    { name: "c", type: "channel" },
+                    { name: "z", type: "space" },
+                    { name: "y", type: "space" },
+                    { name: "x", type: "space" },
+                ];
+                const axes = transformAxes(multiscales[0].axes || defaultAxes);
                 const zIndex = axes.findIndex((item) => item.name === "z");
                 if (zIndex !== -1) {
                     // if size Z is 1, use Math.floor so we get slice of 0
