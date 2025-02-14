@@ -1,5 +1,9 @@
+.root {
+  --edit-form-field-width: 350px
+}
+
 .combo-box {
-  width: 295px;
+  width: var(--edit-form-field-width);
   padding-bottom: var(--margin);
 }
 
@@ -13,7 +17,21 @@
 
 .error-message {
   color: var(--error-status-text-color);
-  line-height: 1.15;
+  line-height: 1.5;
+}
+
+.warning-message {
+  color: var(--warning-status-text-color);
+  line-height: 1.5;
+  font-size: 12px;
+  top: -5px;
+  position: relative;
+  margin-bottom: 5px;
+  max-width: var(--edit-form-field-width);
+}
+
+.warning-message-fields {
+  margin-block: 0;
 }
 
 .status-message {
@@ -99,7 +117,7 @@
 
 .text-field {
   padding-bottom: var(--margin);
-  width: 300px;
+  width: var(--edit-form-field-width);
 }
 
 .text-field > div > label, .text-field > div > label::after {
@@ -137,4 +155,9 @@
 
 .text-field > div > div:hover {
   border: 1px solid var(--border-color)
+}
+
+.text-field-error > div > div  {
+  border: 1px solid var(--error-status-text-color);
+  border-radius: 4px;
 }

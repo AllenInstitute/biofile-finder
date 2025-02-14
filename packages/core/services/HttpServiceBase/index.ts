@@ -251,8 +251,13 @@ export default class HttpServiceBase {
             response = await retry.execute(() => this.httpClient.post(encodedUrl, body, config));
         } catch (err) {
             // Specific errors about the failure from services will be in this path
-            if (axios.isAxiosError(err) && err?.response?.data?.message) {
-                throw new Error(JSON.stringify(err.response.data.message));
+            if (
+                axios.isAxiosError(err) &&
+                (err?.response?.data?.message || err?.response?.data?.error)
+            ) {
+                throw new Error(
+                    JSON.stringify(err.response.data.message || err.response.data.error)
+                );
             }
             throw err;
         }

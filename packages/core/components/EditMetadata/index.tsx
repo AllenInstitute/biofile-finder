@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -68,7 +69,7 @@ export default function EditMetadataForm(props: EditMetadataProps) {
     }, [fileSelection]);
 
     return (
-        <div className={props.className}>
+        <div className={classNames(props.className, styles.root)}>
             <ChoiceGroup
                 className={styles.choiceGroup}
                 defaultSelectedKey={editPathway}
@@ -102,6 +103,7 @@ export default function EditMetadataForm(props: EditMetadataProps) {
                     <NewAnnotationPathway
                         onDismiss={props.onDismiss}
                         setHasUnsavedChanges={(arg) => props.setHasUnsavedChanges(arg)}
+                        annotationOptions={annotationOptions}
                         selectedFileCount={fileCount}
                     />
                 )}

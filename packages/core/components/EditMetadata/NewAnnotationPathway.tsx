@@ -8,6 +8,7 @@ import {
     TextField,
 } from "@fluentui/react";
 import classNames from "classnames";
+import Fuse from "fuse.js";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -32,6 +33,7 @@ enum EditStep {
 interface NewAnnotationProps {
     onDismiss: () => void;
     setHasUnsavedChanges: (arg: boolean) => void;
+    annotationOptions: { key: string; text: string; data: string }[];
     selectedFileCount: number;
 }
 
@@ -40,6 +42,15 @@ interface AnnotationStatus {
     status: ProcessStatus;
     message: string | undefined;
 }
+
+const FUZZY_SEARCH_OPTIONS = {
+    // which keys on FilterItem to search
+    keys: [{ name: "key", weight: 1.0 }],
+    // return resulting matches sorted
+    shouldSort: true,
+    // 0.0 requires a perfect match, 1.0 would match anything
+    threshold: 0.2,
+};
 
 /**
  * Component for submitting a new annotation
@@ -60,6 +71,17 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
     const [newDropdownOption, setNewDropdownOption] = React.useState<string>("");
     const [dropdownOptions, setDropdownOptions] = React.useState<IComboBoxOption[]>([]);
     const [submissionStatus, setSubmissionStatus] = React.useState<AnnotationStatus | undefined>();
+    // Distinguish between errors (blocking) and warnings
+    const [hasNameErrors, setHasNameErrors] = React.useState<boolean>(false);
+    const [nameWarnings, setNameWarnings] = React.useState<any[]>([]);
+
+    const fuse = React.useMemo(() => new Fuse(props.annotationOptions, FUZZY_SEARCH_OPTIONS), [
+        props.annotationOptions,
+    ]);
+    const similarExistingFields = React.useMemo(() => fuse.search(newFieldName), [
+        newFieldName,
+        fuse,
+    ]);
 
     const statuses = useSelector(interaction.selectors.getProcessStatuses);
     const annotationCreationStatus = React.useMemo(
@@ -88,7 +110,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                         } catch (e) {
                             setSubmissionStatus({
                                 status: ProcessStatus.ERROR,
-                                message: `Failed to create annotation: ${e}`,
+                                message: `Failed to edit selected files with new field: ${e}`,
                             });
                         } finally {
                             setHasUnsavedChanges(false);
@@ -120,6 +142,52 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
         } else {
             setNewFieldName(newValue || "");
         }
+    };
+
+    const validateFieldName = (value: string) => {
+        const matchingAnnotation = similarExistingFields.find(
+            (annotation) =>
+                annotation.key.toLocaleLowerCase().trim() === value.toLocaleLowerCase().trim()
+        );
+        // Exact match should be a blocking error
+        if (matchingAnnotation) {
+            setNameWarnings([]);
+            setHasNameErrors(true);
+            return (
+                <div className={styles.errorMessage}>
+                    Error: Metadata field name/key &quot;{matchingAnnotation.key}&quot; already
+                    exists.
+                    <br />
+                    Switch to <i>Existing field</i> to edit pre-existing or try an alternate field
+                    name.
+                </div>
+            );
+        } else if (similarExistingFields.length > 0) {
+            // Similar but not exact match, just warn for the 3 most similar (arbitrary small number)
+            setNameWarnings(similarExistingFields.slice(0, 3));
+            setHasNameErrors(false);
+        } else {
+            // Reset existing warnings & errors
+            setNameWarnings([]);
+            setHasNameErrors(false);
+        }
+    };
+
+    const nameWarningComponent = () => {
+        if (nameWarnings.length > 0) {
+            return (
+                <div className={styles.warningMessage}>
+                    Caution: Similar field name(s)/key(s) found.
+                    <ul className={styles.warningMessageFields}>
+                        {nameWarnings.map((name) => {
+                            return <li key={name.key}> {name.key} </li>;
+                        })}
+                    </ul>
+                    You may want to switch to <i>Existing field</i> to edit pre-existing or try an
+                    alternate field name.
+                </div>
+            );
+        } else <></>;
     };
 
     const addDropdownChip = (evt: React.FormEvent) => {
@@ -174,12 +242,17 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
             {/* TO DO: Prevent user from entering a name that collides with existing annotation */}
             <TextField
                 required
-                label="New metadata field name"
-                className={styles.textField}
+                label="New metadata field name (key)"
+                className={classNames(styles.textField, {
+                    [styles.textFieldError]: hasNameErrors,
+                })}
                 onChange={(ev, newValue) => onChangeAlphanumericField(ev, newValue)}
+                onGetErrorMessage={validateFieldName}
                 placeholder="Add a new field name..."
+                validateOnFocusOut
                 value={newFieldName}
             />
+            {nameWarningComponent()}
             {step === EditStep.CREATE_FIELD && (
                 <>
                     <TextField
@@ -299,6 +372,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                                 className={styles.primaryButton}
                                 disabled={
                                     !newFieldName ||
+                                    hasNameErrors ||
                                     (newFieldDataType === AnnotationType.DROPDOWN &&
                                         !dropdownOptions.length)
                                 }
@@ -312,6 +386,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                                 className={styles.primaryButton}
                                 disabled={
                                     !newFieldName ||
+                                    hasNameErrors ||
                                     (newFieldDataType === AnnotationType.DROPDOWN &&
                                         !dropdownOptions.length) ||
                                     !newValues

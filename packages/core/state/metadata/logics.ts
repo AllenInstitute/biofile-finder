@@ -122,7 +122,7 @@ const createNewAnnotationLogic = createLogic({
         dispatch(
             interaction.actions.processStart(
                 annotationProcessId,
-                `Creating annotation ${annotation.name}...`
+                `Creating new field "${annotation.name}"...`
             )
         );
 
@@ -149,18 +149,18 @@ const createNewAnnotationLogic = createLogic({
                     dispatch(
                         interaction.actions.processSuccess(
                             annotationProcessId,
-                            `Successfully created annotation ${annotation.name}`
+                            `Successfully created new field "${annotation.name}"`
                         )
                     );
                     resolve(res);
                 })
                 .catch((err) => {
-                    dispatch(
-                        interaction.actions.processError(
-                            annotationProcessId,
-                            `Failed to create annotation: ${err.message}`
-                        )
-                    );
+                    const msg = `Sorry, creation of field name/key "${annotation.name}" failed${
+                        err?.message
+                            ? `: ${err.message}`
+                            : ". Please try again later or contact the support team for further assistance."
+                    }`;
+                    dispatch(interaction.actions.processError(annotationProcessId, msg));
                     reject(err);
                 })
                 .finally(() => done());
