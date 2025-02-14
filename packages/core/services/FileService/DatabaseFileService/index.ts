@@ -130,36 +130,82 @@ export default class DatabaseFileService implements FileService {
             .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
             .from(this.dataSourceNames);
 
-        selections.forEach((selection) => {
-            selection.indexRanges.forEach((indexRange) => {
-                const subQuery = new SQLBuilder()
-                    .select(`${DatabaseService.HIDDEN_UID_ANNOTATION}`)
-                    .from(this.dataSourceNames)
-                    .offset(indexRange.start)
-                    .limit(indexRange.end - indexRange.start + 1);
+        const uidConditions: string[] = [];
 
-                if (!isEmpty(selection.filters)) {
-                    subQuery.where(
-                        Object.entries(selection.filters)
-                            .flatMap(([column, values]) =>
-                                values.map((v) => SQLBuilder.regexMatchValueInList(column, v))
-                            )
-                            .join(") OR (")
+        for (const selection of selections) {
+            const selectionUIDs: string[] = [];
+
+            for (const indexRange of selection.indexRanges) {
+                if (indexRange.start === indexRange.end) {
+                    // Single index selection case, fetch the UID directly
+                    const uidQuery = new SQLBuilder()
+                        .select(`${DatabaseService.HIDDEN_UID_ANNOTATION}`)
+                        .from(this.dataSourceNames)
+                        .offset(indexRange.start)
+                        .limit(1); // Select exactly one row
+
+                    if (!isEmpty(selection.filters)) {
+                        uidQuery.where(
+                            Object.entries(selection.filters)
+                                .flatMap(([column, values]) =>
+                                    values.map((v) => SQLBuilder.regexMatchValueInList(column, v))
+                                )
+                                .join(") OR (")
+                        );
+                    }
+
+                    if (selection.sort) {
+                        uidQuery.orderBy(
+                            `"${selection.sort.annotationName}" ${
+                                selection.sort.ascending ? "ASC" : "DESC"
+                            }`
+                        );
+                    }
+
+                    selectionUIDs.push(`(${uidQuery.toSQL()})`);
+                } else {
+                    // Normal range selection
+                    const subQuery = new SQLBuilder()
+                        .select(`${DatabaseService.HIDDEN_UID_ANNOTATION}`)
+                        .from(this.dataSourceNames)
+                        .offset(indexRange.start)
+                        .limit(indexRange.end - indexRange.start + 1);
+
+                    if (!isEmpty(selection.filters)) {
+                        subQuery.where(
+                            Object.entries(selection.filters)
+                                .flatMap(([column, values]) =>
+                                    values.map((v) => SQLBuilder.regexMatchValueInList(column, v))
+                                )
+                                .join(") OR (")
+                        );
+                    }
+                    if (selection.sort) {
+                        subQuery.orderBy(
+                            `"${selection.sort.annotationName}" ${
+                                selection.sort.ascending ? "ASC" : "DESC"
+                            }`
+                        );
+                    }
+
+                    uidConditions.push(
+                        `${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`
                     );
                 }
-                if (selection.sort) {
-                    subQuery.orderBy(
-                        `"${selection.sort.annotationName}" ${
-                            selection.sort.ascending ? "ASC" : "DESC"
-                        }`
-                    );
-                }
+            }
 
-                sqlBuilder.whereOr(
-                    `${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`
+            // Add collected UIDs from single-index selections
+            if (selectionUIDs.length > 0) {
+                uidConditions.push(
+                    `${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${selectionUIDs.join(", ")})`
                 );
-            });
-        });
+            }
+        }
+
+        // Apply the final WHERE clause
+        if (uidConditions.length > 0) {
+            sqlBuilder.whereOr(uidConditions.join(" OR "));
+        }
 
         // If the file system is accessible we can just have DuckDB write the
         // output query directly to the system rather than to a buffer then the file
