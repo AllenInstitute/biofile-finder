@@ -262,7 +262,7 @@ export default class FileDetail {
             if (isFileRenderableImage) {
                 return this.downloadPath;
             }
-            if (this.path.endsWith(".zarr")) {
+            if (this.path.includes(".zarr")) {
                 return await renderZarrThumbnailURL(this.downloadPath);
             }
         }
