@@ -130,71 +130,38 @@ export default class DatabaseFileService implements FileService {
             .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
             .from(this.dataSourceNames);
 
+        this.applySelectionFilters(sqlBuilder, selections);
+
+        return this.handleFileDownload(sqlBuilder.toSQL(), format);
+    }
+
+    /**
+     * Processes selections and applies WHERE clause directly to the SQLBuilder.
+     */
+    private applySelectionFilters(sqlBuilder: SQLBuilder, selections: Selection[]): void {
         const uidConditions: string[] = [];
 
         for (const selection of selections) {
             const selectionUIDs: string[] = [];
 
             for (const indexRange of selection.indexRanges) {
+                const subQuery = new SQLBuilder()
+                    .select(`${DatabaseService.HIDDEN_UID_ANNOTATION}`)
+                    .from(this.dataSourceNames)
+                    .offset(indexRange.start)
+                    .limit(indexRange.end - indexRange.start + 1);
+
+                this.applyFiltersAndSorting(subQuery, selection);
+
                 if (indexRange.start === indexRange.end) {
-                    // Single index selection case, fetch the UID directly
-                    const uidQuery = new SQLBuilder()
-                        .select(`${DatabaseService.HIDDEN_UID_ANNOTATION}`)
-                        .from(this.dataSourceNames)
-                        .offset(indexRange.start)
-                        .limit(1); // Select exactly one row
-
-                    if (!isEmpty(selection.filters)) {
-                        uidQuery.where(
-                            Object.entries(selection.filters)
-                                .flatMap(([column, values]) =>
-                                    values.map((v) => SQLBuilder.regexMatchValueInList(column, v))
-                                )
-                                .join(") OR (")
-                        );
-                    }
-
-                    if (selection.sort) {
-                        uidQuery.orderBy(
-                            `"${selection.sort.annotationName}" ${
-                                selection.sort.ascending ? "ASC" : "DESC"
-                            }`
-                        );
-                    }
-
-                    selectionUIDs.push(`(${uidQuery.toSQL()})`);
+                    selectionUIDs.push(`(${subQuery.toSQL()})`);
                 } else {
-                    // Normal range selection
-                    const subQuery = new SQLBuilder()
-                        .select(`${DatabaseService.HIDDEN_UID_ANNOTATION}`)
-                        .from(this.dataSourceNames)
-                        .offset(indexRange.start)
-                        .limit(indexRange.end - indexRange.start + 1);
-
-                    if (!isEmpty(selection.filters)) {
-                        subQuery.where(
-                            Object.entries(selection.filters)
-                                .flatMap(([column, values]) =>
-                                    values.map((v) => SQLBuilder.regexMatchValueInList(column, v))
-                                )
-                                .join(") OR (")
-                        );
-                    }
-                    if (selection.sort) {
-                        subQuery.orderBy(
-                            `"${selection.sort.annotationName}" ${
-                                selection.sort.ascending ? "ASC" : "DESC"
-                            }`
-                        );
-                    }
-
                     uidConditions.push(
                         `${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`
                     );
                 }
             }
 
-            // Add collected UIDs from single-index selections
             if (selectionUIDs.length > 0) {
                 uidConditions.push(
                     `${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${selectionUIDs.join(", ")})`
@@ -202,21 +169,46 @@ export default class DatabaseFileService implements FileService {
             }
         }
 
-        // Apply the final WHERE clause
         if (uidConditions.length > 0) {
             sqlBuilder.whereOr(uidConditions.join(" OR "));
         }
+    }
 
-        // If the file system is accessible we can just have DuckDB write the
-        // output query directly to the system rather than to a buffer then the file
+    /**
+     * Applies filters and sorting to a query.
+     */
+    private applyFiltersAndSorting(query: SQLBuilder, selection: Selection): void {
+        if (!isEmpty(selection.filters)) {
+            query.where(
+                Object.entries(selection.filters)
+                    .flatMap(([column, values]) =>
+                        values.map((v) => SQLBuilder.regexMatchValueInList(column, v))
+                    )
+                    .join(") OR (")
+            );
+        }
+
+        if (selection.sort) {
+            query.orderBy(
+                `"${selection.sort.annotationName}" ${selection.sort.ascending ? "ASC" : "DESC"}`
+            );
+        }
+    }
+
+    /**
+     * Handles file download logic.
+     */
+    private async handleFileDownload(
+        sql: string,
+        format: "csv" | "json" | "parquet"
+    ): Promise<DownloadResult> {
         if (this.downloadService.isFileSystemAccessible) {
             const downloadDir = await this.downloadService.getDefaultDownloadDirectory();
-            const lowerCaseUserAgent = navigator.userAgent.toLowerCase();
-            const separator = lowerCaseUserAgent.includes("Windows") ? "\\" : "/";
+            const separator = navigator.userAgent.toLowerCase().includes("windows") ? "\\" : "/";
             const destination = `${downloadDir}${separator}file-selection-${Date.now().toLocaleString(
                 "en-us"
             )}`;
-            await this.databaseService.saveQuery(destination, sqlBuilder.toSQL(), format);
+            await this.databaseService.saveQuery(destination, sql, format);
             return {
                 downloadRequestId: uniqueId(),
                 msg: `File downloaded to ${destination}.${format}`,
@@ -224,7 +216,7 @@ export default class DatabaseFileService implements FileService {
             };
         }
 
-        const buffer = await this.databaseService.saveQuery(uniqueId(), sqlBuilder.toSQL(), format);
+        const buffer = await this.databaseService.saveQuery(uniqueId(), sql, format);
         const name = `file-selection-${new Date()}.${format}`;
         return this.downloadService.download(
             {
