@@ -43,7 +43,7 @@ export default function FilePrompt(props: Props) {
                 const { name, extensionGuess } = getNameAndTypeFromSourceUrl(dataSourceURL);
                 props.onSelectFile({
                     name,
-                    type: extensionGuess as "csv" | "json" | "parquet",
+                    type: extensionGuess,
                     uri: dataSourceURL,
                 });
             }

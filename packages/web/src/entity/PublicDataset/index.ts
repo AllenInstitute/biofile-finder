@@ -1,3 +1,6 @@
+import FileExplorerURL, {
+    FileExplorerURLComponents,
+} from "../../../../core/entity/FileExplorerURL";
 import { FmsFileAnnotation } from "../../../../core/services/FileService";
 
 /**
@@ -16,6 +19,8 @@ export interface PublicDatasetProps {
     created?: string;
     published?: string;
     related_publication?: string;
+    related_publication_link?: string;
+    specific_query?: string; // A pre-set query that we will attempt to load by default
     version?: string;
     source?: string; // Indicate whether the dataset comes from internal (AICS) or external (other) source
 }
@@ -52,7 +57,12 @@ export const DatasetAnnotations = {
     FILE_COUNT: new DatasetAnnotation("File count", "file_count", 89),
     PUBLICATION_DATE: new DatasetAnnotation("Publication date", "published", 128),
     RELATED_PUBLICATON: new DatasetAnnotation("Related publication", "related_publication", 178),
+    RELATED_PUBLICATION_LINK: new DatasetAnnotation(
+        "Related publication link",
+        "related_publication_link"
+    ),
     SOURCE: new DatasetAnnotation("Source", "source"),
+    SPECIFIC_QUERY: new DatasetAnnotation("Specific query", "specific_query"),
     VERSION: new DatasetAnnotation("Version", "version"),
 };
 
@@ -143,6 +153,14 @@ export default class PublicDataset {
             return "";
         }
         return description as string;
+    }
+
+    public get presetQuery(): FileExplorerURLComponents | undefined {
+        if (!this.datasetDetails.specific_query) {
+            return;
+        } else {
+            return FileExplorerURL.decode(this.datasetDetails.specific_query);
+        }
     }
 
     public getFirstAnnotationValue(annotationName: string): string | number | boolean | undefined {

@@ -13,7 +13,7 @@ import * as React from "react";
 
 import DatasetRow from "./DatasetRow";
 import useDatasetDetails from "./useDatasetDetails";
-import {
+import PublicDataset, {
     PublicDatasetProps,
     DATASET_TABLE_FIELDS,
     DatasetAnnotations,
@@ -25,6 +25,7 @@ import styles from "./DatasetTable.module.css";
 
 interface DatasetTableProps {
     filters?: FileFilter[];
+    onLoadDataset: (dataset: PublicDataset) => void;
 }
 
 export default function DatasetTable(props: DatasetTableProps) {
@@ -53,7 +54,13 @@ export default function DatasetTable(props: DatasetTableProps) {
         defaultRender: IRenderFunction<IDetailsRowProps> | undefined
     ): JSX.Element => {
         if (rowProps && defaultRender) {
-            return <DatasetRow rowProps={rowProps} defaultRender={defaultRender} />;
+            return (
+                <DatasetRow
+                    rowProps={rowProps}
+                    defaultRender={defaultRender}
+                    onLoadDataset={props.onLoadDataset}
+                />
+            );
         }
         return <></>;
     };
@@ -75,11 +82,14 @@ export default function DatasetTable(props: DatasetTableProps) {
     ) {
         const fieldContent = item[column?.fieldName as keyof PublicDatasetProps] as string;
         if (!fieldContent) return <>--</>;
-        if (column?.fieldName === DatasetAnnotations.RELATED_PUBLICATON.name && item?.doi) {
+        if (
+            column?.fieldName === DatasetAnnotations.RELATED_PUBLICATON.name &&
+            (item?.related_publication_link || item?.doi)
+        ) {
             return (
                 <a
                     className={classNames(styles.link, styles.doubleLine)}
-                    href={item.doi}
+                    href={item.related_publication_link || item.doi}
                     target="_blank"
                     rel="noopener noreferrer"
                 >

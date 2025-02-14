@@ -1,6 +1,7 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
+import { noop } from "lodash";
 import * as React from "react";
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -19,7 +20,7 @@ describe("<DatasetTable />", () => {
     const mockRouter = createBrowserRouter([
         {
             path: "/",
-            element: <DatasetTable />,
+            element: <DatasetTable onLoadDataset={noop} />,
         },
         {
             path: "/app",
