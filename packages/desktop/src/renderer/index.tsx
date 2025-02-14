@@ -36,15 +36,12 @@ const KeyDownHandler: React.FC<{ clearStore: () => void }> = ({ clearStore }) =>
 // Clears the persistent store but retains `Environment` to prevent misalignment
 // between the data source and the selected menu item in the app.
 const clearPersistentStore = () => {
-    const currentEnvironment = global.environment || "PRODUCTION";
+    const currentEnvironment =
+        persistentConfigService.get(PersistedConfigKeys.Environment) || "PRODUCTION";
     persistentConfigService.clear();
     persistentConfigService.persist({ [PersistedConfigKeys.Environment]: currentEnvironment });
     window.location.reload();
 };
-
-if (!global.environment) {
-    global.environment = "PRODUCTION";
-}
 
 // Application analytics/metrics
 const frontendInsights = new FrontendInsights(
@@ -121,7 +118,9 @@ function renderFmsFileExplorer() {
         <Provider store={store}>
             <>
                 <KeyDownHandler clearStore={clearPersistentStore} />
-                <FmsFileExplorer environment={global.environment} />
+                <FmsFileExplorer
+                    environment={persistentConfigService.get(PersistedConfigKeys.Environment)}
+                />
             </>
         </Provider>,
         document.getElementById(APP_ID)
@@ -130,7 +129,7 @@ function renderFmsFileExplorer() {
 
 // Listen for environment updates from the main process.
 ipcRenderer.on("environment-changed", (_, newEnvironment: string) => {
-    global.environment = newEnvironment;
+    persistentConfigService.persist(PersistedConfigKeys.Environment, newEnvironment);
     renderFmsFileExplorer();
 });
 

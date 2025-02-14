@@ -1,6 +1,11 @@
-import { MenuItemConstructorOptions } from "electron";
+import { Menu, MenuItemConstructorOptions } from "electron";
+
+import getMenuTemplate from "../menu";
 import { GlobalVariableChannels, Environment } from "../../util/constants";
-import { updateEnvironment } from "../envManager";
+import PersistentConfigServiceElectron from "../../services/PersistentConfigServiceElectron";
+import { PersistedConfigKeys } from "../../../../core/services";
+
+const persistentConfigService = new PersistentConfigServiceElectron();
 
 export function getDataSourceMenu(): MenuItemConstructorOptions {
     return {
@@ -9,10 +14,17 @@ export function getDataSourceMenu(): MenuItemConstructorOptions {
             {
                 label: "Localhost",
                 type: "radio",
-                checked: global.environment === Environment.LOCALHOST,
+                checked:
+                    persistentConfigService.get(PersistedConfigKeys.Environment) ===
+                    Environment.LOCALHOST,
                 click: (_, focusedWindow) => {
                     if (focusedWindow) {
-                        updateEnvironment(Environment.LOCALHOST);
+                        persistentConfigService.persist(
+                            PersistedConfigKeys.Environment,
+                            Environment.LOCALHOST
+                        );
+                        const newMenu = Menu.buildFromTemplate(getMenuTemplate());
+                        Menu.setApplicationMenu(newMenu);
                         focusedWindow.webContents.send(GlobalVariableChannels.BaseUrl, {
                             environment: Environment.LOCALHOST,
                         });
@@ -27,10 +39,17 @@ export function getDataSourceMenu(): MenuItemConstructorOptions {
             {
                 label: "Staging",
                 type: "radio",
-                checked: global.environment === Environment.STAGING,
+                checked:
+                    persistentConfigService.get(PersistedConfigKeys.Environment) ===
+                    Environment.STAGING,
                 click: (_, focusedWindow) => {
                     if (focusedWindow) {
-                        updateEnvironment(Environment.STAGING);
+                        persistentConfigService.persist(
+                            PersistedConfigKeys.Environment,
+                            Environment.STAGING
+                        );
+                        const newMenu = Menu.buildFromTemplate(getMenuTemplate());
+                        Menu.setApplicationMenu(newMenu);
                         focusedWindow.webContents.send(GlobalVariableChannels.BaseUrl, {
                             environment: Environment.STAGING,
                         });
@@ -41,10 +60,17 @@ export function getDataSourceMenu(): MenuItemConstructorOptions {
             {
                 label: "Production",
                 type: "radio",
-                checked: global.environment === Environment.PRODUCTION,
+                checked:
+                    persistentConfigService.get(PersistedConfigKeys.Environment) ===
+                    Environment.PRODUCTION,
                 click: (_, focusedWindow) => {
                     if (focusedWindow) {
-                        updateEnvironment(Environment.PRODUCTION);
+                        persistentConfigService.persist(
+                            PersistedConfigKeys.Environment,
+                            Environment.PRODUCTION
+                        );
+                        const newMenu = Menu.buildFromTemplate(getMenuTemplate());
+                        Menu.setApplicationMenu(newMenu);
                         focusedWindow.webContents.send(GlobalVariableChannels.BaseUrl, {
                             environment: Environment.PRODUCTION,
                         });

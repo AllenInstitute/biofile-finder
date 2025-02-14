@@ -1,14 +1,20 @@
 import * as path from "path";
 import { app, BrowserWindow, Menu } from "electron";
+
 import getMenuTemplate from "./menu";
-import { loadEnvironment } from "./envManager";
 import ExecutionEnvServicElectron from "../services/ExecutionEnvServiceElectron";
 import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
+import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
+import { Environment } from "../util/constants";
+import { PersistedConfigKeys } from "../../../core/services";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
-loadEnvironment();
+const persistentConfigService = new PersistentConfigServiceElectron();
+const newEnvironment =
+    persistentConfigService.get(PersistedConfigKeys.Environment) || Environment.PRODUCTION;
+persistentConfigService.persist(PersistedConfigKeys.Environment, newEnvironment);
 
 // Build and set the initial menu.
 const menu = Menu.buildFromTemplate(getMenuTemplate());
@@ -45,7 +51,10 @@ const createMainWindow = () => {
 
     // When the renderer finishes loading, send the current environment.
     mainWindow.webContents.on("did-finish-load", () => {
-        mainWindow?.webContents.send("environment-changed", global.environment);
+        mainWindow?.webContents.send(
+            "environment-changed",
+            persistentConfigService.get(PersistedConfigKeys.Environment)
+        );
     });
 
     mainWindow.once("ready-to-show", () => {
