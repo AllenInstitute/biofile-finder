@@ -7,6 +7,4 @@
 ## Testing
 <!-- Describe testing steps used to validate these changes, including automated and/or manual testing. -->
 
-- [ ] GH Actions workflows pass
-
 <!-- ## Screenshots (if relevant) -->
