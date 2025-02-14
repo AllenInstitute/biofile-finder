@@ -202,6 +202,8 @@ export default class DatabaseFileService implements FileService {
         sql: string,
         format: "csv" | "json" | "parquet"
     ): Promise<DownloadResult> {
+        // If the file system is accessible we can just have DuckDB write the
+        // output query directly to the system rather than to a buffer then the file
         if (this.downloadService.isFileSystemAccessible) {
             const downloadDir = await this.downloadService.getDefaultDownloadDirectory();
             const separator = navigator.userAgent.toLowerCase().includes("windows") ? "\\" : "/";

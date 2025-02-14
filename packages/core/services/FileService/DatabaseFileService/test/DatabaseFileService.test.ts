@@ -129,7 +129,7 @@ describe("DatabaseFileService", () => {
                     indexRanges: [
                         { start: 0, end: 0 },
                         { start: 2, end: 2 },
-                    ], // Two uniqe files
+                    ], // Two unique files
                     filters: {},
                     sort: undefined,
                 },
