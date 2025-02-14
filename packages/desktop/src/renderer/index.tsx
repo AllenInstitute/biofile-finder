@@ -16,7 +16,6 @@ import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron
 import FileViewerServiceElectron from "../services/FileViewerServiceElectron";
 import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
-import { GlobalVariableChannels } from "../util/constants";
 import useKeyDown from "../../../core/hooks/useKeyDown";
 import "../../../core/styles/global.css";
 
@@ -37,15 +36,11 @@ const KeyDownHandler: React.FC<{ clearStore: () => void }> = ({ clearStore }) =>
 // Clears the persistent store but retains `Environment` to prevent misalignment
 // between the data source and the selected menu item in the app.
 const clearPersistentStore = () => {
-    const currentEnvironment = global.environment;
+    const currentEnvironment =
+        persistentConfigService.get(PersistedConfigKeys.Environment) || "PRODUCTION";
     persistentConfigService.clear();
     persistentConfigService.persist({ [PersistedConfigKeys.Environment]: currentEnvironment });
     window.location.reload();
-};
-
-const initializeEnvironment = () => {
-    const savedEnvironment = persistentConfigService.get(PersistedConfigKeys.Environment);
-    global.environment = savedEnvironment || "PRODUCTION";
 };
 
 // Application analytics/metrics
@@ -121,21 +116,21 @@ store.subscribe(() => {
 function renderFmsFileExplorer() {
     render(
         <Provider store={store}>
-            <React.Fragment>
+            <>
                 <KeyDownHandler clearStore={clearPersistentStore} />
-                <FmsFileExplorer environment={global.environment} />
-            </React.Fragment>
+                <FmsFileExplorer
+                    environment={persistentConfigService.get(PersistedConfigKeys.Environment)}
+                />
+            </>
         </Provider>,
         document.getElementById(APP_ID)
     );
 }
 
-// Listen for IPC updates to global variables
-ipcRenderer.addListener(GlobalVariableChannels.BaseUrl, (_, { environment }) => {
-    global.environment = environment;
-    persistentConfigService.persist({ [PersistedConfigKeys.Environment]: environment });
+// Listen for environment updates from the main process.
+ipcRenderer.on("environment-changed", (_, newEnvironment: string) => {
+    persistentConfigService.persist(PersistedConfigKeys.Environment, newEnvironment);
     renderFmsFileExplorer();
 });
 
-initializeEnvironment();
 renderFmsFileExplorer();
