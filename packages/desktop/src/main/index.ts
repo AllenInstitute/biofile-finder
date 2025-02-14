@@ -49,14 +49,6 @@ const createMainWindow = () => {
         width: 1200,
     });
 
-    // When the renderer finishes loading, send the current environment.
-    mainWindow.webContents.on("did-finish-load", () => {
-        mainWindow?.webContents.send(
-            "environment-changed",
-            persistentConfigService.get(PersistedConfigKeys.Environment)
-        );
-    });
-
     mainWindow.once("ready-to-show", () => {
         if (mainWindow) {
             mainWindow.show();
