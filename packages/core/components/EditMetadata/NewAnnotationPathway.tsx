@@ -144,7 +144,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
         }
     };
 
-    const getFieldNameValidationErrors = (value: string) => {
+    const validateFieldName = (value: string) => {
         const matchingAnnotation = similarExistingFields.find(
             (annotation) =>
                 annotation.key.toLocaleLowerCase().trim() === value.toLocaleLowerCase().trim()
@@ -247,7 +247,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                     [styles.textFieldError]: hasNameErrors,
                 })}
                 onChange={(ev, newValue) => onChangeAlphanumericField(ev, newValue)}
-                onGetErrorMessage={getFieldNameValidationErrors}
+                onGetErrorMessage={validateFieldName}
                 placeholder="Add a new field name..."
                 validateOnFocusOut
                 value={newFieldName}
