@@ -40,7 +40,8 @@ jobs:
           github_token: ${{ secrets.github_token }}
           package_root: "packages/desktop"
           release: false  # No release, just build
-          config_overrides: ${{ github.event.inputs.os == 'macos-latest' && format('{"mac": {"target": "default", "arch": "%s"}, "linux": null, "win": null}', github.event.inputs.mac_arch) || '{}' }}
+          Invalid workflow file: .github/workflows/manual-build.yml#L43
+          config_overrides: ${{ github.event.inputs.os == 'macos-latest' && format("{\"mac\": {\"target\": \"default\", \"arch\": \"%s\"}, \"linux\": null, \"win\": null}", github.event.inputs.mac_arch) || '{}' }}
           windows_certs: ${{ secrets.CSC_LINK }}
           windows_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}
 
