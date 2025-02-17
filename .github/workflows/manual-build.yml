@@ -4,21 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       os:
-        description: "Operating System / Build target"
+        description: "Operating System"
         required: true
         type: choice
         options:
           - ubuntu-latest
           - windows-latest
           - macos-latest
-      mac_arch:
-        description: "Mac target architecture (only used when os is macos-latest)"
-        required: false
-        default: universal
-        type: choice
-        options:
-          - universal
-          - x64
+          - macos-13
 
 jobs:
   build:
@@ -41,20 +34,13 @@ jobs:
           github_token: ${{ secrets.github_token }}
           package_root: "packages/desktop"
           release: false  # No release, just build
-          # When on macos-latest and mac_arch is set to x64, override the build configuration.
-          config_overrides: ${{ 
-            github.event.inputs.os == 'macos-latest' && github.event.inputs.mac_arch == 'x64'
-              ? '{"mac": {"target": [{"target": "dmg", "arch": ["x64"]}]}}'
-              : '{}' 
-          }}
           windows_certs: ${{ secrets.CSC_LINK }}
           windows_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.inputs.os == 'macos-latest' && github.event.inputs.mac_arch == 'x64' 
-                    ? 'electron-build-macos-x64' 
-                    : format('electron-build-%s', github.event.inputs.os) }}
-          path: packages/desktop/build
-          retention-days: 7
+          name: electron-build-${{ github.event.inputs.os }}
+          path: |
+            packages/desktop/build
+          retention-days: 7  # Artifacts will be stored for 7 days
