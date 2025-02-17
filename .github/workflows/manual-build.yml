@@ -11,6 +11,13 @@ on:
           - ubuntu-latest
           - windows-latest
           - macos-latest
+      mac_arch:
+        description: "Target Mac Architecture (only used for macos-latest)"
+        required: false
+        type: choice
+        options:
+          - x64
+          - arm64
 
 jobs:
   build:
@@ -33,13 +40,14 @@ jobs:
           github_token: ${{ secrets.github_token }}
           package_root: "packages/desktop"
           release: false  # No release, just build
+          args: >
+            ${{ github.event.inputs.os == 'macos-latest' && github.event.inputs.mac_arch != '' && ('--mac --' + github.event.inputs.mac_arch) || '' }}
           windows_certs: ${{ secrets.CSC_LINK }}
           windows_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: electron-build-${{ github.event.inputs.os }}
-          path: |
-            packages/desktop/build
-          retention-days: 7  # Artifacts will be stored for 7 days
+          name: electron-build-${{ github.event.inputs.os }}-${{ github.event.inputs.mac_arch || 'default' }}
+          path: packages/desktop/build
+          retention-days: 7
