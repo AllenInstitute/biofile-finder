@@ -32,22 +32,45 @@ jobs:
         with:
           node-version: 18
 
-      - name: Build/release Electron app
+      - name: Build/release Electron app (non-mac)
+        if: ${{ github.event.inputs.os != 'macos-latest' }}
         uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
         env:
           AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
         with:
           github_token: ${{ secrets.github_token }}
           package_root: "packages/desktop"
-          release: false  # No release, just build
-          Invalid workflow file: .github/workflows/manual-build.yml#L43
-          config_overrides: ${{ github.event.inputs.os == 'macos-latest' ? format("{\"mac\": {\"target\": \"default\", \"arch\": \"%s\"}, \"linux\": null, \"win\": null}", github.event.inputs.mac_arch) : '{}' }}
+          release: false
           windows_certs: ${{ secrets.CSC_LINK }}
           windows_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}
 
-      - name: Upload build artifacts
+      - name: Build/release Electron app (mac)
+        if: ${{ github.event.inputs.os == 'macos-latest' }}
+        uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
+        env:
+          AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
+        with:
+          github_token: ${{ secrets.github_token }}
+          package_root: "packages/desktop"
+          release: false
+          # Override configuration to build only mac with the chosen architecture.
+          config_overrides: >
+            {"mac": {"target": "default", "arch": "${{ github.event.inputs.mac_arch }}"}, "linux": null, "win": null}
+          windows_certs: ${{ secrets.CSC_LINK }}
+          windows_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}
+
+      - name: Upload build artifacts (non-mac)
+        if: ${{ github.event.inputs.os != 'macos-latest' }}
         uses: actions/upload-artifact@v4
         with:
-          name: electron-build-${{ github.event.inputs.os }}-${{ github.event.inputs.mac_arch || 'default' }}
+          name: electron-build-${{ github.event.inputs.os }}
+          path: packages/desktop/build
+          retention-days: 7
+
+      - name: Upload build artifacts (mac)
+        if: ${{ github.event.inputs.os == 'macos-latest' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-build-macos-${{ github.event.inputs.mac_arch }}
           path: packages/desktop/build
           retention-days: 7
