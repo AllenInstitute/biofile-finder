@@ -51,6 +51,7 @@ import FileSelection from "../../entity/FileSelection";
 import NumericRange from "../../entity/NumericRange";
 import FileExplorerURL, { DEFAULT_AICS_FMS_QUERY } from "../../entity/FileExplorerURL";
 import { ModalType } from "../../components/Modal";
+import useFilteredSelection from "../../hooks/useFilteredSelection";
 
 export const DEFAULT_QUERY_NAME = "New Query";
 
@@ -516,24 +517,26 @@ const editFilesLogic = createLogic({
             deps.getState()
         );
         const {
-            payload: { annotations, filters },
+            payload: { annotations, filters, user },
         } = deps.action as EditFilesAction;
 
         // Gather up the files for the files selected currently
         // if filters is present then actual "selected" files
         // are the ones that match the filters, this happens when
         // editing a whole folder for example
-        let filesSelected;
-        if (filters) {
+        let filesSelected: FileDetail[];
+        if (filters?.length) {
             const fileSet = new FileSet({
                 filters,
                 fileService,
                 sort: sortColumn,
             });
             const totalFileCount = await fileSet.fetchTotalCount();
+            console.log("FILTERS", filters, totalFileCount);
             filesSelected = await fileSet.fetchFileRange(0, totalFileCount);
         } else {
             filesSelected = await fileSelection.fetchAllDetails();
+            console.log("non-filters", filesSelected.length)
         }
 
         // Break files into batches of 10 File IDs
@@ -568,7 +571,8 @@ const editFilesLogic = createLogic({
                     (fileId) =>
                         new Promise<void>(async (resolve, reject) => {
                             fileService
-                                .editFile(fileId, annotations, annotationNameToAnnotationMap)
+                                // TODO: USER HERE NEEDS TO BE MORE SPECIFIC IF WE HAVE IT LIKE ON DESKTOP
+                                .editFile(fileId, annotations, annotationNameToAnnotationMap, user)
                                 .then((_) => {
                                     totalFileEdited += 1;
                                     onProgress();

@@ -20,6 +20,7 @@ interface NewAnnotationProps {
     onDismiss: () => void;
     onUnsavedChanges: () => void;
     selectedFileCount: number;
+    user?: string; // TODO: Use when anya's stuff is merged in
 }
 
 /**

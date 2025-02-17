@@ -54,7 +54,8 @@ export default interface FileService {
     editFile(
         fileId: string,
         annotations: AnnotationNameToValuesMap,
-        annotationNameToAnnotationMap?: Record<string, Annotation>
+        annotationNameToAnnotationMap?: Record<string, Annotation>,
+        user?: string
     ): Promise<void>;
     getAggregateInformation(fileSelection: FileSelection): Promise<SelectionAggregationResult>;
     getCountOfMatchingFiles(fileSet: FileSet): Promise<number>;

@@ -276,18 +276,21 @@ export interface EditFilesAction {
     payload: {
         annotations: { [name: string]: AnnotationValue[] };
         filters?: FileFilter[];
+        user?: string;
     };
 }
 
 export function editFiles(
     annotations: { [name: string]: AnnotationValue[] },
-    filters?: FileFilter[]
+    filters?: FileFilter[],
+    user?: string
 ): EditFilesAction {
     return {
         type: EDIT_FILES,
         payload: {
             annotations,
             filters,
+            user,
         },
     };
 }

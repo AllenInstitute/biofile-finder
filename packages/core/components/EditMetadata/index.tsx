@@ -16,6 +16,7 @@ interface EditMetadataProps {
     className?: string;
     onDismiss: () => void;
     onUnsavedChanges: (hasUnsavedChanges: boolean) => void;
+    user?: string;
 }
 
 /**
@@ -57,12 +58,14 @@ export default function EditMetadataForm(props: EditMetadataProps) {
                     <ExistingAnnotationPathway
                         onDismiss={props.onDismiss}
                         selectedFileCount={fileCount}
+                        user={props.user}
                     />
                 ) : (
                     <NewAnnotationPathway
                         onDismiss={props.onDismiss}
                         onUnsavedChanges={() => props.onUnsavedChanges(true)}
                         selectedFileCount={fileCount}
+                        user={props.user}
                     />
                 )}
             </div>

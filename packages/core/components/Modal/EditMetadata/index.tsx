@@ -22,6 +22,12 @@ const PASSWORD_TO_PROGRAM_MAP: Record<string, string> = {
     SENX6787: "NucMorph",
 };
 
+const PROGRAM_TO_USER_MAP: Record<string, string> = {
+    EMT: "svc_bff_emt",
+    IntegratedNucleus: "svc_bff_integratednucleus",
+    NucMorph: "svc_bff_nucmorph",
+}
+
 /**
  * Dialog to display workflow for editing metadata for selected files
  */
@@ -56,13 +62,14 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
     };
 
     const body =
-        !isQueryingAicsFms || program ? (
+        !isQueryingAicsFms || !!program ? (
             // Use styling on form instead of conditionals to persist rendered data
             <>
                 <EditMetadataForm
                     className={classNames({ [styles.hidden]: showWarning })}
                     onDismiss={onDismissWithWarning}
                     onUnsavedChanges={setHasUnsavedChanges}
+                    user={program && PROGRAM_TO_USER_MAP[program]}
                 />
                 <div className={classNames({ [styles.hidden]: !showWarning })}>
                     <p className={styles.warning}>

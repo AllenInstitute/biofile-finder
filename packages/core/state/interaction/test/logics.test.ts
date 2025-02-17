@@ -801,9 +801,7 @@ describe("Interaction logics", () => {
 
             // Act
             store.dispatch(
-                editFiles({ "Cell Line": ["AICS-12"] }, [
-                    new FileFilter(AnnotationName.KIND, "PNG"),
-                ])
+                editFiles({ "Cell Line": ["AICS-12"] }, [new FileFilter(AnnotationName.KIND, "PNG")])
             );
             await logicMiddleware.whenComplete();
 

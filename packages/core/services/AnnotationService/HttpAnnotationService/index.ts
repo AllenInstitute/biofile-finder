@@ -27,8 +27,8 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
     public static readonly BASE_ANNOTATION_HIERARCHY_ROOT_URL = `${HttpAnnotationService.BASE_ANNOTATION_URL}/hierarchy/root`;
     public static readonly BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL = `${HttpAnnotationService.BASE_ANNOTATION_URL}/hierarchy/under-path`;
     public static readonly BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY = `${HttpAnnotationService.BASE_ANNOTATION_URL}/hierarchy/available`;
-    public static readonly BASE_ANNOTATION_DETAILS_URL = `metadata-management-service/annotation`;
-    public static readonly BASE_ANNOTATION_VALIDATION_URL = `metadata-management-service/validate`;
+    public static readonly BASE_ANNOTATION_DETAILS_URL = `metadata-management-service/1.0/annotation`;
+    public static readonly BASE_ANNOTATION_VALIDATION_URL = `metadata-management-service/1.0/annotation/validate`;
 
     /**
      * Fetch all annotations.
@@ -56,7 +56,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
      * Fetch details about an annotation like its type and dropdown options
      */
     public async fetchAnnotationDetails(name: string): Promise<AnnotationDetails> {
-        const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpAnnotationService.BASE_ANNOTATION_DETAILS_URL}/${name}`;
+        const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpAnnotationService.BASE_ANNOTATION_DETAILS_URL}/${HttpServiceBase.encodeURISection(name)}`;
 
         const response = await this.get<{ annotationTypeName: AnnotationType }>(requestUrl);
         const details = response.data[0];
@@ -159,12 +159,13 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         name: string,
         values: AnnotationValue[]
     ): Promise<boolean> {
-        const requestUrl = `${this.metadataManagementServiceBaseURl}/${
-            HttpAnnotationService.BASE_ANNOTATION_VALIDATION_URL
-        }/${name}?values=${values.join(",")}`;
+        const responses = await Promise.all(values.map(value => (
+            this.get<boolean>(`${this.metadataManagementServiceBaseURl}/${
+                HttpAnnotationService.BASE_ANNOTATION_VALIDATION_URL
+            }/${HttpServiceBase.encodeURISection(name)}?value=${value}`)
+        )));
 
-        const response = await this.get<boolean>(requestUrl);
-        return response.data[0];
+        return responses.every((response) => !!response.data[0]);
     }
 
     private buildQueryParams(param: QueryParam, values: string[]): string {

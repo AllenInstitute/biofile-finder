@@ -16,6 +16,7 @@ import styles from "./EditMetadata.module.css";
 interface ExistingAnnotationProps {
     onDismiss: () => void;
     selectedFileCount: number;
+    user?: string;
 }
 
 /**
@@ -31,8 +32,8 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
     const [dropdownOptions, setDropdownOptions] = React.useState<string[]>();
 
     const annotationValueByNameMap = useAnnotationValueByNameMap();
+    const filters = useSelector(interaction.selectors.getFileFiltersForVisibleModal);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
-
     const annotationOptions = useSelector(metadata.selectors.getEdittableAnnotations).map(
         (annotation) => ({
             key: annotation.name,
@@ -108,7 +109,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 .then((isValid: boolean) => {
                     if (isValid) {
                         dispatch(
-                            interaction.actions.editFiles({ [selectedAnnotation]: [trimmedValues] })
+                            interaction.actions.editFiles({ [selectedAnnotation]: [trimmedValues] }, filters, props.user)
                         );
                         props.onDismiss();
                     } else {
