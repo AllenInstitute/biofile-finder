@@ -14,6 +14,7 @@ on:
       mac_arch:
         description: "Target Mac Architecture (only used for macos-latest)"
         required: false
+        default: arm64
         type: choice
         options:
           - x64
@@ -32,6 +33,36 @@ jobs:
         with:
           node-version: 18
 
+      # For macOS builds, use one of two steps based on the chosen architecture.
+      - name: Build/release Electron app (mac x64)
+        if: ${{ github.event.inputs.os == 'macos-latest' && github.event.inputs.mac_arch == 'x64' }}
+        uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
+        env:
+          AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
+        with:
+          github_token: ${{ secrets.github_token }}
+          package_root: "packages/desktop"
+          release: false
+          # Override configuration to build only a dmg file for Intel (x64)
+          config_overrides: '{"mac": {"target": [{"target": "dmg", "arch": ["x64"]}]}}'
+          windows_certs: ${{ secrets.CSC_LINK }}
+          windows_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}
+
+      - name: Build/release Electron app (mac arm64)
+        if: ${{ github.event.inputs.os == 'macos-latest' && github.event.inputs.mac_arch == 'arm64' }}
+        uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
+        env:
+          AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
+        with:
+          github_token: ${{ secrets.github_token }}
+          package_root: "packages/desktop"
+          release: false
+          # Override configuration to build only a dmg file for Apple Silicon (arm64)
+          config_overrides: '{"mac": {"target": [{"target": "dmg", "arch": ["arm64"]}]}}'
+          windows_certs: ${{ secrets.CSC_LINK }}
+          windows_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}
+
+      # For non-macOS builds, use the normal build step.
       - name: Build/release Electron app (non-mac)
         if: ${{ github.event.inputs.os != 'macos-latest' }}
         uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
@@ -44,33 +75,19 @@ jobs:
           windows_certs: ${{ secrets.CSC_LINK }}
           windows_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}
 
-      - name: Build/release Electron app (mac)
+      # Upload artifacts appropriately.
+      - name: Upload build artifacts (mac)
         if: ${{ github.event.inputs.os == 'macos-latest' }}
-        uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
-        env:
-          AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
+        uses: actions/upload-artifact@v4
         with:
-          github_token: ${{ secrets.github_token }}
-          package_root: "packages/desktop"
-          release: false
-          # Override configuration to build only mac with the chosen architecture.
-          config_overrides: >
-            {"mac": {"target": "default", "arch": "${{ github.event.inputs.mac_arch }}"}, "linux": null, "win": null}
-          windows_certs: ${{ secrets.CSC_LINK }}
-          windows_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}
+          name: electron-build-macos-${{ github.event.inputs.mac_arch }}
+          path: packages/desktop/build
+          retention-days: 7
 
       - name: Upload build artifacts (non-mac)
         if: ${{ github.event.inputs.os != 'macos-latest' }}
         uses: actions/upload-artifact@v4
         with:
           name: electron-build-${{ github.event.inputs.os }}
-          path: packages/desktop/build
-          retention-days: 7
-
-      - name: Upload build artifacts (mac)
-        if: ${{ github.event.inputs.os == 'macos-latest' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: electron-build-macos-${{ github.event.inputs.mac_arch }}
           path: packages/desktop/build
           retention-days: 7
