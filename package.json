@@ -57,7 +57,7 @@
     "husky": "3.1.0",
     "jsdom": "19.x",
     "lint-staged": "10.4.x",
-    "mocha": "9.x",
+    "mocha": "11.x",
     "mock-raf": "1.0.x",
     "npm-run-all": "4.1.x",
     "prettier": "2.1.x",
