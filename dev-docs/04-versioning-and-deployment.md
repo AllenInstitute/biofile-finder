@@ -57,3 +57,16 @@ Github pages site.
     npm run build-executable
     ```
     This command creates a build directory containing an install file (e.g., BioFile Finder-tag.number.dmg). After the build completes, rename the .dmg file to include the current tag number and the target processor (for example, BioFile Finder-tag.number-arm64.dmg or BioFile Finder-tag.number-x86_64.dmg), and upload the file to the release page. If GitHub has already generated .dmg files automatically, you may need to delete them before uploading your build.
+
+
+
+### Development Builds for Specific Branches
+
+You can generate development builds from any branch using the [manual-build](https://github.com/AllenInstitute/biofile-finder/actions/workflows/manual-build.yml) GitHub Action. Select the branch from the dropdown in the GitHub Action interface and choose the appropriate runner environment from the following options:
+```
+ubuntu-latest for Linux builds
+windows-latest for Windows builds
+macOS-latest for ARM builds
+macOS-13 for x86 builds
+```
+Once you trigger the workflow, the process will generate a zipped artifact containing all the build artifacts. Download this artifact from the workflow, unzip it to access the build. Please note that these zipped artifacts are available for 7 days after which they are automatically deleted.
