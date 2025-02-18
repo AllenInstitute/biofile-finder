@@ -2,7 +2,7 @@
 name: UX issue
 about: Request support from UX team
 title: ''
-labels: ''
+labels: UX
 assignees: ''
 
 ---
