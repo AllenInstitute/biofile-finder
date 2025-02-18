@@ -11,6 +11,7 @@ on:
           - ubuntu-latest
           - windows-latest
           - macos-latest
+          - macos-13
 
 jobs:
   build:
