@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
+about: Suggest an idea for this project/app
 title: ''
 labels: ''
 type: Feature
@@ -10,7 +10,7 @@ assignees: ''
 
 ## Use Case
 
-_Please provide a use case to help us understand your request in context._
+_What would you like to do that you cannot currently accomplish? (Provide a detailed use case)_
 
 _Is your feature request related to a problem? e.g., I'm frustrated when [...]_
 

@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Report a problem or bug to help us improve
 title: ''
 labels: bug
 type: Bug
@@ -10,7 +10,7 @@ assignees: ''
 
 ## Description
 
-_A clear description of the bug._
+_A clear description of the problem._
 
 ## Expected Behavior
 

@@ -1,6 +1,6 @@
 ---
-name: UX issue
-about: Request support from UX team
+name: UX request
+about: 'For AICS internal use: Request support from UX team'
 title: ''
 labels: UX
 assignees: ''
@@ -12,7 +12,7 @@ assignees: ''
 - _Problem(s) to solve_
 
 ***
-_Below to be filled out by UX during kickoff Q&A to the best of current understanding._
+_Detail what you already know and/or your best guesses. UX will help fill in blanks once assigned._
 
 ### Size
 _Effort level (xs, sm, m, lg, xl)_
