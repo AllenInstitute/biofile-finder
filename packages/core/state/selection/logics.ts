@@ -48,6 +48,8 @@ import {
     AddDataSourceReloadError,
     setFileView,
     setColumns,
+    COLLAPSE_ALL_FILE_FOLDERS,
+    EXPAND_ALL_FILE_FOLDERS,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -338,6 +340,23 @@ const toggleFileFolderCollapse = createLogic({
         }
     },
     type: [TOGGLE_FILE_FOLDER_COLLAPSE],
+});
+
+/**
+ * Interceptor responsible for transforming TOGGLE_FILE_FOLDER_COLLAPSE actions into
+ * SET_OPEN_FILE_FOLDERS actions by determining whether the file folder is to be considered
+ * open or collapsed.
+ */
+const toggleFileFoldersExpandCollapseAll = createLogic({
+    transform(deps: ReduxLogicDeps, next) {
+        if (deps.action.type === COLLAPSE_ALL_FILE_FOLDERS) {
+            next(setOpenFileFolders([]));
+        } else {
+            // const allFileFolders = selectionSelectors.getAllFileFolders(deps.getState());
+            // console.info(allFileFolders)
+        }
+    },
+    type: [COLLAPSE_ALL_FILE_FOLDERS, EXPAND_ALL_FILE_FOLDERS],
 });
 
 /**
@@ -754,6 +773,7 @@ export default [
     modifyAnnotationHierarchy,
     modifyFileFilters,
     toggleFileFolderCollapse,
+    toggleFileFoldersExpandCollapseAll,
     decodeFileExplorerURLLogics,
     selectNearbyFile,
     setAvailableAnnotationsLogic,

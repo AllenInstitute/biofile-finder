@@ -42,12 +42,18 @@ export default (filters?: FileFilter[], onDismiss?: () => void, isFolder?: boole
                               iconProps: {
                                   iconName: "ExploreContent",
                               },
+                              onClick() {
+                                  dispatch(selection.actions.expandAllFileFolders());
+                              },
                           },
                           {
                               key: "collapse",
                               text: "Collapse all",
                               iconProps: {
                                   iconName: "CollapseContent",
+                              },
+                              onClick() {
+                                  dispatch(selection.actions.collapseAllFileFolders());
                               },
                           },
                       ]),
