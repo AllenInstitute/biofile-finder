@@ -130,7 +130,7 @@ export default class DatabaseFileService implements FileService {
             .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
             .from(this.dataSourceNames);
 
-        this.applySelectionFilters(sqlBuilder, selections);
+        DatabaseFileService.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
 
         return this.handleFileDownload(sqlBuilder.toSQL(), format);
     }
@@ -138,48 +138,35 @@ export default class DatabaseFileService implements FileService {
     /**
      * Processes selections and applies WHERE clause directly to the SQLBuilder.
      */
-    private applySelectionFilters(sqlBuilder: SQLBuilder, selections: Selection[]): void {
-        const uidConditions: string[] = [];
+    public static applySelectionFilters(
+        sqlBuilder: SQLBuilder,
+        selections: Selection[],
+        dataSourceNames: string[]
+    ): void {
+        const subQuerys: string[] = [];
 
-        for (const selection of selections) {
-            const selectionUIDs: string[] = [];
-
-            for (const indexRange of selection.indexRanges) {
+        selections.forEach((selection) => {
+            selection.indexRanges.forEach((indexRange) => {
                 const subQuery = new SQLBuilder()
                     .select(`${DatabaseService.HIDDEN_UID_ANNOTATION}`)
-                    .from(this.dataSourceNames)
+                    .from(dataSourceNames)
                     .offset(indexRange.start)
                     .limit(indexRange.end - indexRange.start + 1);
 
-                this.applyFiltersAndSorting(subQuery, selection);
-
-                if (indexRange.start === indexRange.end) {
-                    selectionUIDs.push(`(${subQuery.toSQL()})`);
-                } else {
-                    uidConditions.push(
-                        `${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`
-                    );
-                }
-            }
-
-            if (selectionUIDs.length > 0) {
-                uidConditions.push(
-                    `${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${selectionUIDs.join(", ")})`
-                );
-            }
-        }
-
-        if (uidConditions.length > 0) {
-            sqlBuilder.whereOr(uidConditions.join(" OR "));
-        }
+                DatabaseFileService.applyFiltersAndSorting(subQuery, selection);
+                subQuerys.push(`${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`);
+            });
+        });
+        // sqlBuilder whereOr isnt implemented, so we add our own "OR"
+        sqlBuilder.where(subQuerys.join(" OR "));
     }
 
     /**
-     * Applies filters and sorting to a query.
+     * Applies filters and sorting to a query. ie Column names, if none then use annotaitonName
      */
-    private applyFiltersAndSorting(query: SQLBuilder, selection: Selection): void {
+    public static applyFiltersAndSorting(subQuery: SQLBuilder, selection: Selection): void {
         if (!isEmpty(selection.filters)) {
-            query.where(
+            subQuery.where(
                 Object.entries(selection.filters)
                     .flatMap(([column, values]) =>
                         values.map((v) => SQLBuilder.regexMatchValueInList(column, v))
@@ -187,9 +174,8 @@ export default class DatabaseFileService implements FileService {
                     .join(") OR (")
             );
         }
-
         if (selection.sort) {
-            query.orderBy(
+            subQuery.orderBy(
                 `"${selection.sort.annotationName}" ${selection.sort.ascending ? "ASC" : "DESC"}`
             );
         }

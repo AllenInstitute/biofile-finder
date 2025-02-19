@@ -104,16 +104,9 @@ describe("DatabaseFileService", () => {
 
     describe("applySelectionFilters", () => {
         // Setup
-        let databaseFileService: DatabaseFileService;
         let sqlBuilder: SQLBuilder;
 
         beforeEach(() => {
-            databaseFileService = new DatabaseFileService({
-                dataSourceNames: ["mock_source"],
-                databaseService,
-                downloadService: new FileDownloadServiceNoop(),
-            });
-
             sqlBuilder = new SQLBuilder().select("*").from("mock_source");
         });
 
@@ -136,7 +129,7 @@ describe("DatabaseFileService", () => {
             ];
 
             // Act
-            databaseFileService["applySelectionFilters"](sqlBuilder, selections);
+            DatabaseFileService.applySelectionFilters(sqlBuilder, selections, ["mock_source"]);
             const modifiedSQL = normalizeSQL(sqlBuilder.toSQL());
 
             // Assert
@@ -155,7 +148,7 @@ describe("DatabaseFileService", () => {
             ];
 
             // Act
-            databaseFileService["applySelectionFilters"](sqlBuilder, selections);
+            DatabaseFileService.applySelectionFilters(sqlBuilder, selections, ["mock_source"]);
             const modifiedSQL = normalizeSQL(sqlBuilder.toSQL());
 
             // Assert
