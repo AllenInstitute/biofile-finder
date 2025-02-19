@@ -222,7 +222,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                 key: `open-with-${name}`,
                 text: name,
                 title: `Open files with ${name}`,
-                disabled: !filters && !fileDetails,
+                disabled: (!filters && !fileDetails) || !fileDetails?.localPath,
                 onClick() {
                     if (filters) {
                         dispatch(interaction.actions.openWith(app, filters));
