@@ -121,14 +121,25 @@ export default class FileSet {
                 fileSet: this,
             });
 
-            // Update cache for files fetched, due to overfetching the indexes updated
-            // in the cache will be inclusive of the range requested but may not necessarily start
-            // at the requested index, therefore here startIndexOfPage is used instead of startIndex
-            for (let i = 0; i < response.length; i++) {
-                this.cache.set(startIndexOfPage + i, response[i]);
-            }
+            // Grab responses and shove them into the cache
+            // while also filtering out the files that outside the range
+            // requested for the response to the caller of fetchFileRange()
+            return response.reduce((filesInRange, file, idxInResponses) => {
+                // Update cache for files fetched, due to overfetching the indexes updated
+                // in the cache will be inclusive of the range requested but may not necessarily start
+                // at the requested index, therefore here startIndexOfPage is used instead of startIndex
+                const idxInFileSet = startIndexOfPage + idxInResponses;
+                this.cache.set(idxInFileSet, file);
 
-            return response;
+                // If the file is within the range requested, add it to the files array
+                // for returning back to the caller of fetchFileRange().
+                // Ranges are inclusive of their bounds
+                if (idxInFileSet >= startIndex && idxInFileSet <= endIndex) {
+                    filesInRange.push(file);
+                }
+
+                return filesInRange;
+            }, [] as FileDetail[]);
         } finally {
             // Clear the previously saved indexes as they are no longer loading
             for (let i = startIndexOfPage; i < startIndexOfPage + limit; i++) {

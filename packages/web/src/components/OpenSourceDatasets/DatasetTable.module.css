@@ -57,11 +57,11 @@
 /* Toggle overlay depending on screen size */
 @media screen and (max-width: 1070px) {
   .overlay {
-    top: 8px;
+    top: 12px;
     right: 0;
     background-image: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.9));
     position: absolute;
-    height: calc(100% - calc(4*var(--margin)));
+    height: calc(100% - calc(3*var(--margin)));
     pointer-events: none;
     width: 86px;
   }

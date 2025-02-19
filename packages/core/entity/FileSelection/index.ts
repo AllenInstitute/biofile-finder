@@ -210,27 +210,13 @@ export default class FileSelection {
      * Fetch metadata for all items selected.
      */
     public async fetchAllDetails(): Promise<FileDetail[]> {
-        const fileRangesByFileSets = this.groupByFileSet();
-        // Load file metadata for every file selected (however do to some performance enhancements
-        // the fetch will overshoot)
         const fileRangePromises: Promise<FileDetail[]>[] = [];
-        fileRangesByFileSets.forEach((ranges, fileSet) => {
+        this.groupByFileSet().forEach((ranges, fileSet) => {
             ranges.forEach((range) => {
                 fileRangePromises.push(fileSet.fetchFileRange(range.from, range.to));
             });
         });
-        await Promise.all(fileRangePromises);
-
-        // Collect the desired files from the fetched files
-        const files: FileDetail[] = [];
-        fileRangesByFileSets.forEach((ranges, fileSet) => {
-            ranges.forEach((range) => {
-                for (let i = range.from; i <= range.to; i++) {
-                    files.push(fileSet.getFileByIndex(i) as FileDetail);
-                }
-            });
-        });
-        return files;
+        return (await Promise.all(fileRangePromises)).flat();
     }
 
     /**
