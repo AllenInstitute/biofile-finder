@@ -143,7 +143,7 @@ export default class DatabaseFileService implements FileService {
         selections: Selection[],
         dataSourceNames: string[]
     ): void {
-        const subQuerys: string[] = [];
+        const subQueries: string[] = [];
 
         selections.forEach((selection) => {
             selection.indexRanges.forEach((indexRange) => {
@@ -154,11 +154,13 @@ export default class DatabaseFileService implements FileService {
                     .limit(indexRange.end - indexRange.start + 1);
 
                 DatabaseFileService.applyFiltersAndSorting(subQuery, selection);
-                subQuerys.push(`${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`);
+                subQueries.push(
+                    `${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`
+                );
             });
         });
         // sqlBuilder whereOr isnt implemented, so we add our own "OR"
-        sqlBuilder.where(subQuerys.join(" OR "));
+        sqlBuilder.where(subQueries.join(" OR "));
     }
 
     /**
