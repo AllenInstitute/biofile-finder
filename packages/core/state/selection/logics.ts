@@ -59,6 +59,7 @@ import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
+import { AnnotationValue } from "../../services/AnnotationService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../services/DataSourceService";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
@@ -343,18 +344,46 @@ const toggleFileFolderCollapse = createLogic({
 });
 
 /**
- * Interceptor responsible for transforming TOGGLE_FILE_FOLDER_COLLAPSE actions into
- * SET_OPEN_FILE_FOLDERS actions by determining whether the file folder is to be considered
- * open or collapsed.
+ * Interceptor responsible for transforming COLLAPSE_ALL_FILE_FOLDERS and EXPAND_ALL_FILE_FOLDERS
+ * actions into SET_OPEN_FILE_FOLDERS actions by either setting to none or recursively
+ * unpacking the directory structure
  */
-const toggleFileFoldersExpandCollapseAll = createLogic({
-    transform(deps: ReduxLogicDeps, next) {
-        if (deps.action.type === COLLAPSE_ALL_FILE_FOLDERS) {
-            next(setOpenFileFolders([]));
-        } else {
-            // const allFileFolders = selectionSelectors.getAllFileFolders(deps.getState());
-            // console.info(allFileFolders)
+const toggleAllFileFolders = createLogic({
+    async process(deps: ReduxLogicDeps, next, done) {
+        const { action, getState } = deps;
+        const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
+        const annotationService = interaction.selectors.getAnnotationService(getState());
+        const selectedFileFilters = selection.selectors.getFileFilters(getState());
+        const fileFoldersToOpen: FileFolder[] = [];
+        // Recursive helper
+        function unpackAllFileFolders(values: string[], pathSoFar: string[]) {
+            values.forEach(async (value) => {
+                fileFoldersToOpen.push(new FileFolder([...pathSoFar, value] as AnnotationValue[]));
+
+                // At end of folder hierarchy
+                if (!!hierarchy.length && pathSoFar.length === hierarchy.length - 1) return;
+
+                const childNodes = await annotationService.fetchHierarchyValuesUnderPath(
+                    hierarchy,
+                    [...pathSoFar, value],
+                    selectedFileFilters
+                );
+                if (childNodes.length) {
+                    // Not a leaf
+                    unpackAllFileFolders(childNodes, [...pathSoFar, value]);
+                }
+            });
         }
+
+        if (action.type === EXPAND_ALL_FILE_FOLDERS) {
+            const rootHierarchyValues = await annotationService.fetchRootHierarchyValues(
+                hierarchy,
+                selectedFileFilters
+            );
+            unpackAllFileFolders(rootHierarchyValues, []);
+        }
+        next(setOpenFileFolders(fileFoldersToOpen));
+        done();
     },
     type: [COLLAPSE_ALL_FILE_FOLDERS, EXPAND_ALL_FILE_FOLDERS],
 });
@@ -773,7 +802,7 @@ export default [
     modifyAnnotationHierarchy,
     modifyFileFilters,
     toggleFileFolderCollapse,
-    toggleFileFoldersExpandCollapseAll,
+    toggleAllFileFolders,
     decodeFileExplorerURLLogics,
     selectNearbyFile,
     setAvailableAnnotationsLogic,
