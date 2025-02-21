@@ -356,12 +356,12 @@ const toggleAllFileFolders = createLogic({
         const selectedFileFilters = selection.selectors.getFileFilters(getState());
         const fileFoldersToOpen: FileFolder[] = [];
         // Recursive helper
-        function unpackAllFileFolders(values: string[], pathSoFar: string[]) {
-            values.forEach(async (value) => {
+        async function unpackAllFileFolders(values: string[], pathSoFar: string[]) {
+            for (const value of values) {
                 fileFoldersToOpen.push(new FileFolder([...pathSoFar, value] as AnnotationValue[]));
 
                 // At end of folder hierarchy
-                if (!!hierarchy.length && pathSoFar.length === hierarchy.length - 1) return;
+                if (!!hierarchy.length && pathSoFar.length === hierarchy.length - 1) continue;
 
                 const childNodes = await annotationService.fetchHierarchyValuesUnderPath(
                     hierarchy,
@@ -372,7 +372,7 @@ const toggleAllFileFolders = createLogic({
                     // Not a leaf
                     unpackAllFileFolders(childNodes, [...pathSoFar, value]);
                 }
-            });
+            }
         }
 
         if (action.type === EXPAND_ALL_FILE_FOLDERS) {
@@ -380,7 +380,7 @@ const toggleAllFileFolders = createLogic({
                 hierarchy,
                 selectedFileFilters
             );
-            unpackAllFileFolders(rootHierarchyValues, []);
+            await unpackAllFileFolders(rootHierarchyValues, []);
         }
         next(setOpenFileFolders(fileFoldersToOpen));
         done();

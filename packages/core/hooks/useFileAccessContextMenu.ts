@@ -192,13 +192,14 @@ export default (filters?: FileFilter[], onDismiss?: () => void, isFolder?: boole
             );
         },
         [
-            filters,
             dispatch,
-            onDismiss,
-            isOnWeb,
-            fileSelection,
-            isQueryingAicsFms,
             fileDetails,
+            fileSelection,
+            filters,
+            isFolder,
+            isOnWeb,
+            isQueryingAicsFms,
+            onDismiss,
             openWithSubMenuItems,
         ]
     );
