@@ -50,6 +50,7 @@ import {
     setColumns,
     COLLAPSE_ALL_FILE_FOLDERS,
     EXPAND_ALL_FILE_FOLDERS,
+    setIsLoadingFullTree,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -349,12 +350,13 @@ const toggleFileFolderCollapse = createLogic({
  * unpacking the directory structure
  */
 const toggleAllFileFolders = createLogic({
-    async process(deps: ReduxLogicDeps, next, done) {
+    async process(deps: ReduxLogicDeps, dispatch, done) {
         const { action, getState } = deps;
         const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
         const annotationService = interaction.selectors.getAnnotationService(getState());
         const selectedFileFilters = selection.selectors.getFileFilters(getState());
         const fileFoldersToOpen: FileFolder[] = [];
+        dispatch(setIsLoadingFullTree(true) as AnyAction);
         // Recursive helper
         async function unpackAllFileFolders(values: string[], pathSoFar: string[]) {
             for (const value of values) {
@@ -382,7 +384,8 @@ const toggleAllFileFolders = createLogic({
             );
             await unpackAllFileFolders(rootHierarchyValues, []);
         }
-        next(setOpenFileFolders(fileFoldersToOpen));
+        dispatch(setOpenFileFolders(fileFoldersToOpen));
+        dispatch(setIsLoadingFullTree(false) as AnyAction);
         done();
     },
     type: [COLLAPSE_ALL_FILE_FOLDERS, EXPAND_ALL_FILE_FOLDERS],

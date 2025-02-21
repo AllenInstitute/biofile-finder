@@ -551,6 +551,25 @@ export function expandAllFileFolders(): ExpandAllFileFoldersAction {
 }
 
 /**
+ * SET_IS_LOADING_FULL_TREE
+ * Intention to set the loading state for all directories in the tree.
+ * Differentiated from isLoading in directory hierarchy node sub-states
+ */
+export const SET_IS_LOADING_FULL_TREE = makeConstant(STATE_BRANCH_NAME, "set-is-loading-full-tree");
+
+export interface SetIsLoadingFullTreeAction {
+    payload: boolean;
+    type: string;
+}
+
+export function setIsLoadingFullTree(isLoadingFullTree: boolean): SetIsLoadingFullTreeAction {
+    return {
+        payload: isLoadingFullTree,
+        type: SET_IS_LOADING_FULL_TREE,
+    };
+}
+
+/**
  * SET_OPEN_FILE_FOLDERS
  * Intention to set which file folders are open as opposed to collapsed
  */

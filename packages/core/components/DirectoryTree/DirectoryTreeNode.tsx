@@ -30,6 +30,8 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const dispatch = useDispatch();
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
+    // Loading from full app state instead of individual node state
+    const isLoadingFullTree = useSelector(selection.selectors.getIsLoadingFullTree);
 
     const fileFolderPath = [...ancestorNodes, currentNode];
     const fileFolder = new FileFolder(fileFolderPath);
@@ -83,7 +85,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
                 fileSet={fileSet}
                 isLeaf={isLeaf}
                 isFocused={collapsed && hasFocus}
-                loading={isLoading}
+                loading={isLoading || isLoadingFullTree}
                 onClick={() => dispatch(selection.actions.toggleFileFolderCollapse(fileFolder))}
                 title={displayValue}
             />
