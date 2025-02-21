@@ -40,6 +40,8 @@ export default function DirectoryTree(props: FileListProps) {
     const fileService = useSelector(interaction.selectors.getFileService);
     const globalFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
+    // Check loading in full app state instead of individual node state
+    const isLoadingFullTree = useSelector(selection.selectors.getIsLoadingFullTree);
     const fileSet = React.useMemo(() => {
         return new FileSet({
             fileService: fileService,
@@ -74,7 +76,7 @@ export default function DirectoryTree(props: FileListProps) {
 
     return (
         <div className={classNames(props.className, styles.container)}>
-            <RootLoadingIndicator visible={isLoading} />
+            <RootLoadingIndicator visible={isLoading || isLoadingFullTree} />
             <ul
                 className={styles.scrollContainer}
                 role="tree"
