@@ -902,9 +902,7 @@ describe("Selection logics", () => {
     });
 
     describe("toggleAllFileFolders", () => {
-        const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
-        const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
-        const annotationHierarchy = annotations.slice(0, 2).map((a) => a.name);
+        const annotationHierarchy = annotationsJson.slice(0, 2).map((a) => a.annotationDisplayName);
         const mockRootValues = [`${annotationHierarchy[0]}1`, `${annotationHierarchy[0]}2`];
         const mockLeafValues = [
             `${annotationHierarchy[1]}1`,
@@ -934,13 +932,11 @@ describe("Selection logics", () => {
         ];
         const mockHttpClient = createMockHttpClient(responseStubs);
         const annotationService = new HttpAnnotationService({
-            fileExplorerServiceBaseUrl,
+            fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
             httpClient: mockHttpClient,
         });
 
         beforeEach(() => {
-            const datasetService = new DatasetService();
-            sinon.stub(interaction.selectors, "getDatasetService").returns(datasetService);
             sinon.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
         });
 
@@ -969,9 +965,6 @@ describe("Selection logics", () => {
         it("dispatches all array combinations for expand all folders actions", async () => {
             // Arrange
             const state = mergeState(initialState, {
-                metadata: {
-                    annotations: [...annotations],
-                },
                 selection: {
                     annotationHierarchy,
                 },
