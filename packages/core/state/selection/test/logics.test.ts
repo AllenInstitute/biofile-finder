@@ -950,10 +950,19 @@ describe("Selection logics", () => {
                 logics: selectionLogics,
                 state: initialState,
             });
+            // not evergreen
+            expect(
+                actions.includesMatch({
+                    type: SET_OPEN_FILE_FOLDERS,
+                    payload: [],
+                })
+            ).to.be.false;
 
             // Act
             store.dispatch(collapseAllFileFolders());
             await logicMiddleware.whenComplete();
+
+            // Assert
             expect(
                 actions.includesMatch({
                     type: SET_OPEN_FILE_FOLDERS,
@@ -993,7 +1002,7 @@ describe("Selection logics", () => {
             const setOpenFileFoldersAction = actions.list.find(
                 (element) => element.type === SET_OPEN_FILE_FOLDERS
             );
-            // Verify arrays contain same elements. Order doesn't matter
+            // Verify action payload contains exact same elements as expectedFilePaths regardless of order
             expect(
                 setOpenFileFoldersAction?.payload.every((filePath: FileFolder) =>
                     expectedFilePaths.includes(filePath)
