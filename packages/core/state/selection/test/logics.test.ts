@@ -982,12 +982,12 @@ describe("Selection logics", () => {
                 logics: selectionLogics,
                 state,
             });
-            const expectedFilePaths = [
-                ...mockRootValues.map((value) => new FileFolder([value])),
-                ...mockRootValues.map((rootValue) =>
-                    mockLeafValues.map((leafValue) => new FileFolder([rootValue, leafValue]))
-                ),
-            ];
+            const expectedFilePaths = [...mockRootValues.map((value) => new FileFolder([value]))];
+            mockRootValues.forEach((rootValue) => {
+                expectedFilePaths.push(
+                    ...mockLeafValues.map((leafValue) => new FileFolder([rootValue, leafValue]))
+                );
+            });
 
             // Act
             store.dispatch(expandAllFileFolders());
@@ -1003,16 +1003,14 @@ describe("Selection logics", () => {
                 (element) => element.type === SET_OPEN_FILE_FOLDERS
             );
             // Verify action payload contains exact same elements as expectedFilePaths regardless of order
-            expect(
-                setOpenFileFoldersAction?.payload.every((filePath: FileFolder) =>
-                    expectedFilePaths.includes(filePath)
-                )
-            );
-            expect(
-                expectedFilePaths.every((filePath) =>
-                    setOpenFileFoldersAction?.payload.includes(filePath)
-                )
-            );
+            expect(setOpenFileFoldersAction?.payload.length).to.equal(expectedFilePaths.length);
+            setOpenFileFoldersAction?.payload.forEach((filePath: FileFolder) => {
+                expect(
+                    expectedFilePaths.some((folder) =>
+                        (folder as FileFolder).equals(filePath as FileFolder)
+                    )
+                ).to.be.true;
+            });
         });
     });
 
