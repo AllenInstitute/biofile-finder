@@ -26,6 +26,10 @@ app.setAppUserModelId("org.aics.alleninstitute.fileexplorer");
 // Prevent window from being garbage collected
 let mainWindow: BrowserWindow | undefined;
 
+// Maximum number of renderer reload attempts
+const MAX_RELOAD_ATTEMPTS = 3;
+let reloadAttempts = 0;
+
 // register handlers called via ipc between renderer and main
 const registerIpcHandlers = () => {
     ExecutionEnvServicElectron.registerIpcHandlers();
@@ -49,7 +53,26 @@ const createMainWindow = () => {
         width: 1200,
     });
 
+    // Listen for renderer crashes and attempt a reload.
+    mainWindow.webContents.on("crashed", (event, killed) => {
+        console.error("Renderer process crashed. Killed:", killed);
+        if (reloadAttempts < MAX_RELOAD_ATTEMPTS) {
+            reloadAttempts++;
+            console.log(`Reloading renderer... attempt ${reloadAttempts}/${MAX_RELOAD_ATTEMPTS}`);
+            setTimeout(() => {
+                if (mainWindow) {
+                    mainWindow.reload();
+                }
+            }, 1000);
+        } else {
+            console.error("Maximum reload attempts reached. Quitting application.");
+            app.quit();
+        }
+    });
+
     mainWindow.once("ready-to-show", () => {
+        // Reset reload counter once the renderer is successfully loaded.
+        reloadAttempts = 0;
         if (mainWindow) {
             mainWindow.show();
         }
