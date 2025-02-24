@@ -982,12 +982,10 @@ describe("Selection logics", () => {
                 logics: selectionLogics,
                 state,
             });
-            const expectedFilePaths = [...mockRootValues.map((value) => new FileFolder([value]))];
-            mockRootValues.forEach((rootValue) => {
-                expectedFilePaths.push(
-                    ...mockLeafValues.map((leafValue) => new FileFolder([rootValue, leafValue]))
-                );
-            });
+            const expectedFilePaths = mockRootValues.flatMap((rootValue) => [
+                new FileFolder([rootValue]),
+                ...mockLeafValues.map((leafValue) => new FileFolder([rootValue, leafValue])),
+            ]);
 
             // Act
             store.dispatch(expandAllFileFolders());
