@@ -48,9 +48,7 @@ import {
     AddDataSourceReloadError,
     setFileView,
     setColumns,
-    COLLAPSE_ALL_FILE_FOLDERS,
     EXPAND_ALL_FILE_FOLDERS,
-    setIsLoadingFullTree,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -349,19 +347,23 @@ const toggleFileFolderCollapse = createLogic({
  * actions into SET_OPEN_FILE_FOLDERS actions by either setting to none or recursively
  * unpacking the directory structure
  */
-const toggleAllFileFolders = createLogic({
+const expandAllFileFolders = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { action, getState } = deps;
+        const { getState } = deps;
         const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
         const annotationService = interaction.selectors.getAnnotationService(getState());
         const selectedFileFilters = selection.selectors.getFileFilters(getState());
-        const fileFoldersToOpen: FileFolder[] = [];
-        dispatch(setIsLoadingFullTree(true) as AnyAction);
+        // Track internally rather than relying on selector (may be out of sync)
+        const openedSoFar: FileFolder[] = [];
         // Recursive helper
         async function unpackAllFileFolders(values: string[], pathSoFar: string[]) {
+            const fileFoldersToOpen: FileFolder[] = values.map(
+                (value) => new FileFolder([...pathSoFar, value] as AnnotationValue[])
+            );
+            // Needs to be set wholesale so must include already opened folderes
+            openedSoFar.push(...fileFoldersToOpen);
+            dispatch(setOpenFileFolders(openedSoFar));
             for (const value of values) {
-                fileFoldersToOpen.push(new FileFolder([...pathSoFar, value] as AnnotationValue[]));
-
                 // At end of folder hierarchy
                 if (!!hierarchy.length && pathSoFar.length === hierarchy.length - 1) continue;
 
@@ -377,18 +379,15 @@ const toggleAllFileFolders = createLogic({
             }
         }
 
-        if (action.type === EXPAND_ALL_FILE_FOLDERS) {
-            const rootHierarchyValues = await annotationService.fetchRootHierarchyValues(
-                hierarchy,
-                selectedFileFilters
-            );
-            await unpackAllFileFolders(rootHierarchyValues, []);
-        }
-        dispatch(setOpenFileFolders(fileFoldersToOpen));
-        dispatch(setIsLoadingFullTree(false) as AnyAction);
+        const rootHierarchyValues = await annotationService.fetchRootHierarchyValues(
+            hierarchy,
+            selectedFileFilters
+        );
+        await unpackAllFileFolders(rootHierarchyValues, []);
+        dispatch(interaction.actions.refresh() as AnyAction); // synchronize UI with state
         done();
     },
-    type: [COLLAPSE_ALL_FILE_FOLDERS, EXPAND_ALL_FILE_FOLDERS],
+    type: [EXPAND_ALL_FILE_FOLDERS],
 });
 
 /**
@@ -805,7 +804,7 @@ export default [
     modifyAnnotationHierarchy,
     modifyFileFilters,
     toggleFileFolderCollapse,
-    toggleAllFileFolders,
+    expandAllFileFolders,
     decodeFileExplorerURLLogics,
     selectNearbyFile,
     setAvailableAnnotationsLogic,

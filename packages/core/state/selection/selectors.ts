@@ -18,7 +18,6 @@ export const getColumns = (state: State) => state.selection.columns;
 export const getFileFilters = (state: State) => state.selection.filters;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getFileView = (state: State) => state.selection.fileView;
-export const getIsLoadingFullTree = (state: State) => state.selection.isLoadingFullTree;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getRecentAnnotations = (state: State) => state.selection.recentAnnotations;
 export const getRequiresDataSourceReload = (state: State) =>

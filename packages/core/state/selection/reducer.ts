@@ -33,7 +33,7 @@ import {
     Column,
     SetColumns,
     SET_COLUMNS,
-    SET_IS_LOADING_FULL_TREE,
+    COLLAPSE_ALL_FILE_FOLDERS,
 } from "./actions";
 import interaction from "../interaction";
 import { FileView, Source } from "../../entity/FileExplorerURL";
@@ -52,7 +52,6 @@ export interface SelectionStateBranch {
     fileSelection: FileSelection;
     fileView: FileView;
     filters: FileFilter[];
-    isLoadingFullTree: boolean;
     openFileFolders: FileFolder[];
     recentAnnotations: string[];
     requiresDataSourceReload?: boolean;
@@ -73,7 +72,6 @@ export const initialState = {
     fileSelection: new FileSelection(),
     fileView: FileView.LIST,
     filters: [],
-    isLoadingFullTree: false,
     openFileFolders: [],
     queries: [],
     recentAnnotations: [],
@@ -197,9 +195,9 @@ export default makeReducer<SelectionStateBranch>(
             availableAnnotationsForHierarchy: action.payload,
             availableAnnotationsForHierarchyLoading: false,
         }),
-        [SET_IS_LOADING_FULL_TREE]: (state, action) => ({
+        [COLLAPSE_ALL_FILE_FOLDERS]: (state) => ({
             ...state,
-            isLoadingFullTree: action.payload,
+            openFileFolders: [],
         }),
         [SET_OPEN_FILE_FOLDERS]: (state, action) => ({
             ...state,

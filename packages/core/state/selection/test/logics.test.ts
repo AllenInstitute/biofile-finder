@@ -25,7 +25,6 @@ import {
     SET_SORT_COLUMN,
     changeDataSources,
     changeSourceMetadata,
-    collapseAllFileFolders,
     expandAllFileFolders,
 } from "../actions";
 import { initialState, interaction } from "../../";
@@ -942,33 +941,6 @@ describe("Selection logics", () => {
 
         afterEach(() => {
             sinon.restore();
-        });
-
-        it("dispatches empty array for collapse all folders actions", async () => {
-            // Arrange
-            const { store, logicMiddleware, actions } = configureMockStore({
-                logics: selectionLogics,
-                state: initialState,
-            });
-            // not evergreen
-            expect(
-                actions.includesMatch({
-                    type: SET_OPEN_FILE_FOLDERS,
-                    payload: [],
-                })
-            ).to.be.false;
-
-            // Act
-            store.dispatch(collapseAllFileFolders());
-            await logicMiddleware.whenComplete();
-
-            // Assert
-            expect(
-                actions.includesMatch({
-                    type: SET_OPEN_FILE_FOLDERS,
-                    payload: [],
-                })
-            ).to.be.true;
         });
 
         it("dispatches all array combinations for expand all folders actions", async () => {
