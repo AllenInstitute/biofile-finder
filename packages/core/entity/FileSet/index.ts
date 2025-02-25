@@ -211,7 +211,7 @@ export default class FileSet {
 
         Object.entries(filtersGroupedByAnnotation).forEach(([_, appliedFilters]) => {
             sqlBuilder.where(
-                appliedFilters.map((filter) => filter.toSQLWhereString()).join(") OR (")
+                appliedFilters.map((filter) => filter.toSQLWhereString()).join(" OR ")
             );
         });
 
