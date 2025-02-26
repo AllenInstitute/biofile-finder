@@ -143,9 +143,9 @@ describe("FileSet", () => {
 
         it("returns slices of the file list represented by the FileSet, specified by index position", async () => {
             const fileService = new HttpFileService();
-            sandbox.replace(fileService, "getFiles", () => Promise.resolve(files.slice(1, 4)));
+            sandbox.replace(fileService, "getFiles", () => Promise.resolve(files.slice(0, 4)));
             const fileSet = new FileSet({ fileService });
-            expect(await fileSet.fetchFileRange(1, 3)).to.deep.equal(files.slice(1, 4)); // Array.prototype.slice is exclusive of end bound
+            expect(await fileSet.fetchFileRange(1, 3)).to.deep.equal(files.slice(1, 4));
         });
 
         it("turns indicies for requested data into a properly formed pagination query", async () => {

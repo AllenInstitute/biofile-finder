@@ -4,6 +4,7 @@ import DatabaseService from "../../../DatabaseService";
 import FileSelection from "../../../../entity/FileSelection";
 import FileSet from "../../../../entity/FileSet";
 import NumericRange from "../../../../entity/NumericRange";
+import SQLBuilder from "../../../../entity/SQLBuilder";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadServiceNoop";
 
@@ -98,6 +99,60 @@ describe("DatabaseFileService", () => {
             const fileSet = new FileSet();
             const count = await fileService.getCountOfMatchingFiles(fileSet);
             expect(count).to.equal(6);
+        });
+    });
+
+    describe("applySelectionFilters", () => {
+        // Setup
+        let sqlBuilder: SQLBuilder;
+
+        beforeEach(() => {
+            sqlBuilder = new SQLBuilder().select("*").from("mock_source");
+        });
+
+        // the sql we produce has new lines that mess up comparison
+        function normalizeSQL(sql: string): string {
+            return sql.replace(/\s+/g, " ").trim();
+        }
+
+        it("correctly modifies SQLBuilder for single index selections (CTRL selection)", () => {
+            // Arrange
+            const selections = [
+                {
+                    indexRanges: [
+                        { start: 0, end: 0 },
+                        { start: 2, end: 2 },
+                    ], // Two unique files
+                    filters: {},
+                    sort: undefined,
+                },
+            ];
+
+            // Act
+            DatabaseFileService.applySelectionFilters(sqlBuilder, selections, ["mock_source"]);
+            const modifiedSQL = normalizeSQL(sqlBuilder.toSQL());
+
+            // Assert
+            expect(modifiedSQL).to.include("OFFSET 0 LIMIT 1");
+            expect(modifiedSQL).to.include("OFFSET 2 LIMIT 1");
+        });
+
+        it("correctly modifies SQLBuilder for contiguous range selections (Shift selection)", () => {
+            // Arrange
+            const selections = [
+                {
+                    indexRanges: [{ start: 0, end: 2 }], // File range
+                    filters: {},
+                    sort: undefined,
+                },
+            ];
+
+            // Act
+            DatabaseFileService.applySelectionFilters(sqlBuilder, selections, ["mock_source"]);
+            const modifiedSQL = normalizeSQL(sqlBuilder.toSQL());
+
+            // Assert
+            expect(modifiedSQL).to.include("OFFSET 0 LIMIT 3");
         });
     });
 });

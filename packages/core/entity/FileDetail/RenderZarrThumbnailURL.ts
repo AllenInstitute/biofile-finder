@@ -103,10 +103,18 @@ export async function renderZarrThumbnailURL(zarrUrl: string): Promise<string | 
                 // Determine a slice of the image that has the best chance at being a good thumbnail.
                 // X and Y will have full range, while Z will be the middle integer.
                 // Non-spatial dims will default to None.
-                const axes = transformAxes(multiscales[0].axes);
+                const defaultAxes = [
+                    { name: "t", type: "time" },
+                    { name: "c", type: "channel" },
+                    { name: "z", type: "space" },
+                    { name: "y", type: "space" },
+                    { name: "x", type: "space" },
+                ];
+                const axes = transformAxes(multiscales[0].axes || defaultAxes);
                 const zIndex = axes.findIndex((item) => item.name === "z");
                 if (zIndex !== -1) {
-                    const zSliceIndex = Math.ceil(lowestResolution.shape[zIndex] / 2);
+                    // if size Z is 1, use Math.floor so we get slice of 0
+                    const zSliceIndex = Math.floor(lowestResolution.shape[zIndex] / 2);
                     axes[zIndex].value = zSliceIndex;
                 }
 
@@ -119,11 +127,17 @@ export async function renderZarrThumbnailURL(zarrUrl: string): Promise<string | 
                 const u16data = lowestResolutionView.data as Uint16Array;
 
                 // Normalize Data to improve image visibility.
-                const min = Math.min(...u16data);
-                const max = Math.max(...u16data);
+                let min = Infinity;
+                let max = -Infinity;
+                const dlength = u16data.length;
+                for (let i = 0; i < dlength; i++) {
+                    min = Math.min(min, u16data[i]);
+                    max = Math.max(max, u16data[i]);
+                }
                 const normalizedData = new Uint8Array(u16data.length);
                 for (let i = 0; i < u16data.length; i++) {
-                    normalizedData[i] = Math.round((255 * (u16data[i] - min)) / (max - min));
+                    // use bitwise shift to truncate decimal
+                    normalizedData[i] = ((255 * (u16data[i] - min)) / (max - min)) << 0;
                 }
 
                 // Build a canvas to put image data onto.

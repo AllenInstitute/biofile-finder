@@ -42,7 +42,7 @@
 .footer {
     position: sticky;
     bottom: 0;
-    padding-top: 1em;
+    padding-top: 20px;
     z-index: 1000; /* float on top of everything*/
 
     /* flex parent */

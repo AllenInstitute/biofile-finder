@@ -104,6 +104,8 @@ export default function App(props: AppProps) {
             })}
             ref={measuredNodeRef}
         >
+            {/* hidden input to capture autofocus on mount */}
+            <input className={styles.hidden} autoFocus />
             <div className={styles.coreAndFileDetails}>
                 <div className={styles.querySidebarAndCenter}>
                     <QuerySidebar className={styles.querySidebar} />

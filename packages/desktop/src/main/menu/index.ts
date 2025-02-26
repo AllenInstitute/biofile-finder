@@ -1,23 +1,26 @@
 import { MenuItemConstructorOptions } from "electron";
 
-import dataSourceMenu from "./data-source";
+import { getDataSourceMenu } from "./data-source";
 
-const template: MenuItemConstructorOptions[] = [];
+function getMenuTemplate(): MenuItemConstructorOptions[] {
+    const template: MenuItemConstructorOptions[] = [];
 
-// Stock Electron menu items
-const defaultMenuItems: MenuItemConstructorOptions[] = [
-    { role: "fileMenu" },
-    {
-        label: "Edit",
-        submenu: [{ role: "copy" }, { role: "cut" }, { role: "paste" }, { role: "selectAll" }],
-    },
-    { role: "viewMenu" },
-    { role: "windowMenu" },
-];
+    // Stock Electron menu items
+    const defaultMenuItems: MenuItemConstructorOptions[] = [
+        { role: "fileMenu" },
+        {
+            label: "Edit",
+            submenu: [{ role: "copy" }, { role: "cut" }, { role: "paste" }, { role: "selectAll" }],
+        },
+        { role: "viewMenu" },
+        { role: "windowMenu" },
+    ];
 
-// If on MacOS, show the "app menu" (only works on MacOS)
-if (process.platform === "darwin") {
-    template.unshift({ role: "appMenu", label: "BioFile Finder" });
+    // If on MacOS, show the "app menu" (only works on MacOS)
+    if (process.platform === "darwin") {
+        template.unshift({ role: "appMenu", label: "BioFile Finder" });
+    }
+    return [...template, ...defaultMenuItems, getDataSourceMenu()];
 }
 
-export default [...template, ...defaultMenuItems, dataSourceMenu];
+export default getMenuTemplate;

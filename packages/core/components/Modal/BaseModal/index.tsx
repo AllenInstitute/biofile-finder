@@ -32,8 +32,7 @@ export default function BaseModal(props: BaseModalProps) {
             isOpen
             onDismiss={onDismiss}
             containerClassName={styles.container}
-            dragOptions={props?.isStatic ? undefined : DRAG_OPTIONS}
-            scrollableContentClassName={styles.scrollableContainer}
+            dragOptions={DRAG_OPTIONS}
             titleAriaId={titleId}
             overlay={{ className: styles.overlay }}
         >
@@ -45,7 +44,7 @@ export default function BaseModal(props: BaseModalProps) {
                 ) : null}
                 <TertiaryButton iconName="Cancel" onClick={onDismiss} title="" />
             </div>
-            {body}
+            <div className={styles.scrollableContent}>{body}</div>
             <div className={styles.footer}>{footer}</div>
         </Modal>
     );

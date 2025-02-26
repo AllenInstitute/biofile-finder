@@ -1,15 +1,23 @@
 import * as path from "path";
-
 import { app, BrowserWindow, Menu } from "electron";
 
-import template from "./menu";
+import getMenuTemplate from "./menu";
 import ExecutionEnvServicElectron from "../services/ExecutionEnvServiceElectron";
 import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
+import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
+import { Environment } from "../util/constants";
+import { PersistedConfigKeys } from "../../../core/services";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
-const menu = Menu.buildFromTemplate(template);
+const persistentConfigService = new PersistentConfigServiceElectron();
+const newEnvironment =
+    persistentConfigService.get(PersistedConfigKeys.Environment) || Environment.PRODUCTION;
+persistentConfigService.persist(PersistedConfigKeys.Environment, newEnvironment);
+
+// Build and set the initial menu.
+const menu = Menu.buildFromTemplate(getMenuTemplate());
 Menu.setApplicationMenu(menu);
 
 // Note: Must match `build.appId` in package.json
@@ -86,7 +94,6 @@ app.on("second-instance", () => {
         if (mainWindow.isMinimized()) {
             mainWindow.restore();
         }
-
         mainWindow.show();
     }
 });
