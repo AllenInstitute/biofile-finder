@@ -1,4 +1,4 @@
-import Annotation from "../../entity/Annotation";
+import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 
@@ -10,6 +10,10 @@ export interface AnnotationDetails {
 }
 
 export default interface AnnotationService {
+    createAnnotation(
+        annotation: Annotation,
+        annotationOptions?: string[]
+    ): Promise<AnnotationResponseMms[] | void>;
     fetchValues(annotation: string): Promise<AnnotationValue[]>;
     fetchAnnotations(): Promise<Annotation[]>;
     fetchAnnotationDetails(name: string): Promise<AnnotationDetails>;

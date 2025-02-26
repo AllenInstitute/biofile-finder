@@ -171,4 +171,13 @@ export default class DatabaseAnnotationService implements AnnotationService {
         // eventually we may want to add some validation to make sure dates are in the correct format, etc.
         return Promise.resolve(true);
     }
+
+    public createAnnotation(annotation: Annotation): Promise<void> {
+        const tableName = this.dataSourceNames.sort().join(DatabaseService.LIST_DELIMITER);
+        return this.databaseService.addNewColumn(
+            tableName,
+            annotation.name,
+            annotation.description
+        );
+    }
 }

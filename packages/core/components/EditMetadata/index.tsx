@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import * as React from "react";
 
 import ExistingAnnotationPathway from "./ExistingAnnotationPathway";
@@ -15,7 +16,7 @@ enum EditMetadataPathway {
 interface EditMetadataProps {
     className?: string;
     onDismiss: () => void;
-    onUnsavedChanges: (hasUnsavedChanges: boolean) => void;
+    setHasUnsavedChanges: (hasUnsavedChanges: boolean) => void;
     user?: string;
 }
 
@@ -31,7 +32,7 @@ export default function EditMetadataForm(props: EditMetadataProps) {
     );
 
     return (
-        <div className={props.className}>
+        <div className={classNames(props.className, styles.root)}>
             <ChoiceGroup
                 className={styles.choiceGroup}
                 defaultSelectedKey={editPathway}
@@ -63,7 +64,7 @@ export default function EditMetadataForm(props: EditMetadataProps) {
                 ) : (
                     <NewAnnotationPathway
                         onDismiss={props.onDismiss}
-                        onUnsavedChanges={() => props.onUnsavedChanges(true)}
+                        setHasUnsavedChanges={(arg) => props.setHasUnsavedChanges(arg)}
                         selectedFileCount={fileCount}
                         user={props.user}
                     />

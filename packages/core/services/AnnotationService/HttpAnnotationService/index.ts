@@ -3,10 +3,10 @@ import { map } from "lodash";
 import IMMUTABLE_ANNOTATION_NAMES from "./immutableAnnotationNames";
 import AnnotationService, { AnnotationDetails, AnnotationValue } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
-import Annotation, { AnnotationResponse } from "../../../entity/Annotation";
+import Annotation, { AnnotationResponse, AnnotationResponseMms } from "../../../entity/Annotation";
+import { AnnotationType, AnnotationTypeIdMap } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
-import { AnnotationType } from "../../../entity/AnnotationFormatter";
 
 enum QueryParam {
     EXCLUDE = "exclude",
@@ -27,8 +27,8 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
     public static readonly BASE_ANNOTATION_HIERARCHY_ROOT_URL = `${HttpAnnotationService.BASE_ANNOTATION_URL}/hierarchy/root`;
     public static readonly BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL = `${HttpAnnotationService.BASE_ANNOTATION_URL}/hierarchy/under-path`;
     public static readonly BASE_AVAILABLE_ANNOTATIONS_UNDER_HIERARCHY = `${HttpAnnotationService.BASE_ANNOTATION_URL}/hierarchy/available`;
-    public static readonly BASE_ANNOTATION_DETAILS_URL = `metadata-management-service/1.0/annotation`;
-    public static readonly BASE_ANNOTATION_VALIDATION_URL = `metadata-management-service/1.0/annotation/validate`;
+    public static readonly BASE_MMS_ANNOTATION_URL = `metadata-management-service/1.0/annotation`;
+    public static readonly BASE_ANNOTATION_VALIDATION_URL = `${HttpAnnotationService.BASE_MMS_ANNOTATION_URL}/validate`;
 
     /**
      * Fetch all annotations.
@@ -56,7 +56,9 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
      * Fetch details about an annotation like its type and dropdown options
      */
     public async fetchAnnotationDetails(name: string): Promise<AnnotationDetails> {
-        const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpAnnotationService.BASE_ANNOTATION_DETAILS_URL}/${HttpServiceBase.encodeURISection(name)}`;
+        const requestUrl = `${this.metadataManagementServiceBaseURl}/${
+            HttpAnnotationService.BASE_MMS_ANNOTATION_URL
+        }/${HttpServiceBase.encodeURISection(name)}`;
 
         const response = await this.get<{ annotationTypeName: AnnotationType }>(requestUrl);
         const details = response.data[0];
@@ -159,16 +161,44 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         name: string,
         values: AnnotationValue[]
     ): Promise<boolean> {
-        const responses = await Promise.all(values.map(value => (
-            this.get<boolean>(`${this.metadataManagementServiceBaseURl}/${
-                HttpAnnotationService.BASE_ANNOTATION_VALIDATION_URL
-            }/${HttpServiceBase.encodeURISection(name)}?value=${value}`)
-        )));
+        const responses = await Promise.all(
+            values.map((value) =>
+                this.get<boolean>(
+                    `${this.metadataManagementServiceBaseURl}/${
+                        HttpAnnotationService.BASE_ANNOTATION_VALIDATION_URL
+                    }/${HttpServiceBase.encodeURISection(name)}?value=${value}`
+                )
+            )
+        );
 
         return responses.every((response) => !!response.data[0]);
     }
 
     private buildQueryParams(param: QueryParam, values: string[]): string {
         return values.map((value) => `${param}=${value}`).join("&");
+    }
+
+    /**
+     * Creates a new annotation via the metadata-management-service
+     * @param annotation The new annotation to create
+     * @param annotationOptions If not empty, pre-set options for annotations of type Dropdown
+     */
+    public async createAnnotation(
+        annotation: Annotation,
+        annotationOptions: string[] = []
+    ): Promise<AnnotationResponseMms[]> {
+        const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpAnnotationService.BASE_MMS_ANNOTATION_URL}/`;
+        const annotationType = annotation.type as AnnotationType;
+        const requestBody = {
+            annotationTypeId: AnnotationTypeIdMap[annotationType],
+            annotationOptions,
+            description: annotation.description,
+            name: annotation.name,
+        };
+        const response = await this.post<AnnotationResponseMms>(
+            requestUrl,
+            JSON.stringify(requestBody)
+        );
+        return response.data;
     }
 }

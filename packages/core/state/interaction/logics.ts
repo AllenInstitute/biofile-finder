@@ -51,7 +51,6 @@ import FileSelection from "../../entity/FileSelection";
 import NumericRange from "../../entity/NumericRange";
 import FileExplorerURL, { DEFAULT_AICS_FMS_QUERY } from "../../entity/FileExplorerURL";
 import { ModalType } from "../../components/Modal";
-import useFilteredSelection from "../../hooks/useFilteredSelection";
 
 export const DEFAULT_QUERY_NAME = "New Query";
 
@@ -536,7 +535,7 @@ const editFilesLogic = createLogic({
             filesSelected = await fileSet.fetchFileRange(0, totalFileCount);
         } else {
             filesSelected = await fileSelection.fetchAllDetails();
-            console.log("non-filters", filesSelected.length)
+            console.log("non-filters", filesSelected.length);
         }
 
         // Break files into batches of 10 File IDs
@@ -579,18 +578,6 @@ const editFilesLogic = createLogic({
                                     resolve();
                                 })
                                 .catch((err) => reject(err));
-                            // try {
-                            //     await fileService.editFile(
-                            //         fileId,
-                            //         annotations,
-                            //         annotationNameToAnnotationMap
-                            //     );
-                            //     totalFileEdited += 1;
-                            //     onProgress();
-                            //     resolve();
-                            // } catch (err) {
-                            //     reject(err);
-                            // }
                         })
                 );
 

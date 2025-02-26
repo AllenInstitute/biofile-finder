@@ -1,6 +1,6 @@
 import { makeConstant } from "@aics/redux-utils";
 
-import Annotation from "../../entity/Annotation";
+import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
 import { DataSource } from "../../services/DataSourceService";
 
 const STATE_BRANCH_NAME = "metadata";
@@ -39,6 +39,31 @@ export interface RequestAnnotationAction {
 export function requestAnnotations(): RequestAnnotationAction {
     return {
         type: REQUEST_ANNOTATIONS,
+    };
+}
+
+/**
+ * CREATE_ANNOTATION
+ *
+ * Intention to create a new annotation in the data service that will become available for grouping, filtering, and sorting files.
+ */
+export const CREATE_ANNOTATION = makeConstant(STATE_BRANCH_NAME, "create-annotation");
+
+export interface CreateAnnotationAction {
+    payload: {
+        annotation: Annotation;
+        annotationOptions?: string[];
+    };
+    type: string;
+}
+
+export function createAnnotation(
+    annotation: Annotation,
+    annotationOptions?: string[]
+): CreateAnnotationAction {
+    return {
+        payload: { annotation, annotationOptions },
+        type: CREATE_ANNOTATION,
     };
 }
 
@@ -123,5 +148,25 @@ export function receiveDatasetManifest(name: string, uri: string): ReceiveDatase
     return {
         payload: { name, uri },
         type: RECEIVE_DATASET_MANIFEST,
+    };
+}
+
+/**
+ * STORE_NEW_ANNOTATION
+ * Temporarily cache a newly created annotation before it is ingested to FES
+ */
+export const STORE_NEW_ANNOTATION = makeConstant(STATE_BRANCH_NAME, "store-new-annotation");
+
+export interface StoreNewAnnotationAction {
+    payload: {
+        annotation: AnnotationResponseMms;
+    };
+    type: string;
+}
+
+export function storeNewAnnotation(annotation: AnnotationResponseMms): StoreNewAnnotationAction {
+    return {
+        payload: { annotation },
+        type: STORE_NEW_ANNOTATION,
     };
 }

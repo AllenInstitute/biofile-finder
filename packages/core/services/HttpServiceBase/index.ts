@@ -65,9 +65,9 @@ export default class HttpServiceBase {
         }
 
         const path = uri.substring(0, queryStringStart);
-        const queryString =  uri.substring(queryStringStart + 1);
+        const queryString = uri.substring(queryStringStart + 1);
 
-        // encode ampersands that do not separate query string components, so 
+        // encode ampersands that do not separate query string components, so
         // handles case like `workflow=R&DExp&cell_line=AICS-46&foo=bar&cTnT%=3.0`
         const encodedQueryString = queryString
             // first need to separate the query string components
@@ -139,9 +139,11 @@ export default class HttpServiceBase {
 
     public async get<T>(url: string, queryArguments?: string[]): Promise<RestServiceResponse<T>> {
         let encodedUrl = HttpServiceBase.encodeURI(url);
-        // if (queryArguments) {
-        //     encodedUrl += `?${queryArguments.map((arg) => HttpServiceBase.encodeURISection(arg)).join("&")}`;
-        // }
+        if (queryArguments) {
+            encodedUrl += `?${queryArguments
+                .map((arg) => HttpServiceBase.encodeURISection(arg))
+                .join("&")}`;
+        }
 
         if (!this.urlToResponseDataCache.has(encodedUrl)) {
             // if this fails, bubble up exception
@@ -248,8 +250,13 @@ export default class HttpServiceBase {
             response = await retry.execute(() => this.httpClient.post(encodedUrl, body, config));
         } catch (err) {
             // Specific errors about the failure from services will be in this path
-            if (axios.isAxiosError(err) && err?.response?.data?.message) {
-                throw new Error(JSON.stringify(err.response.data.message));
+            if (
+                axios.isAxiosError(err) &&
+                (err?.response?.data?.message || err?.response?.data?.error)
+            ) {
+                throw new Error(
+                    JSON.stringify(err.response.data.message || err.response.data.error)
+                );
             }
             throw err;
         }

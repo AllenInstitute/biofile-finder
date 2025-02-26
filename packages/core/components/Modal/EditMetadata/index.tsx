@@ -26,7 +26,7 @@ const PROGRAM_TO_USER_MAP: Record<string, string> = {
     EMT: "svc_bff_emt",
     IntegratedNucleus: "svc_bff_integratednucleus",
     NucMorph: "svc_bff_nucmorph",
-}
+};
 
 /**
  * Dialog to display workflow for editing metadata for selected files
@@ -68,7 +68,7 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
                 <EditMetadataForm
                     className={classNames({ [styles.hidden]: showWarning })}
                     onDismiss={onDismissWithWarning}
-                    onUnsavedChanges={setHasUnsavedChanges}
+                    setHasUnsavedChanges={setHasUnsavedChanges}
                     user={program && PROGRAM_TO_USER_MAP[program]}
                 />
                 <div className={classNames({ [styles.hidden]: !showWarning })}>
