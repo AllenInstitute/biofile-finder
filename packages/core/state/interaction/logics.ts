@@ -489,8 +489,13 @@ const openWithLogic = createLogic({
         } else {
             filesToOpen = await fileSelection.fetchAllDetails();
         }
+
         const filePaths = await Promise.all(
-            filesToOpen.map((file) => executionEnvService.formatPathForHost(file.path))
+            // Default to local path for desktop apps
+            filesToOpen.map((file) => {
+                const filePath = file.localPath ?? file.path;
+                return executionEnvService.formatPathForHost(filePath);
+            })
         );
 
         // Open the files in the specified executable
