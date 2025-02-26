@@ -14,7 +14,7 @@ import { interaction, selection } from "../state";
  * previously saved applications. Can be supplied an array of filters to use
  * to find files to access instead of the currently selected files.
  */
-export default (filters?: FileFilter[], onDismiss?: () => void) => {
+export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
     const dispatch = useDispatch();
     const isOnWeb = useSelector(interaction.selectors.isOnWeb);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
@@ -22,7 +22,7 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
 
     const [fileDetails, setFileDetails] = React.useState<FileDetail>();
 
-    const openWithSubMenuItems = useOpenWithMenuItems(fileDetails, filters);
+    const openWithSubMenuItems = useOpenWithMenuItems(fileDetails, folderFilters);
 
     fileSelection.fetchFocusedItemDetails().then((fileDetails) => {
         setFileDetails(fileDetails);
@@ -33,6 +33,30 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
             evt.preventDefault();
 
             const contextMenuItems: IContextualMenuItem[] = [
+                ...(!folderFilters
+                    ? []
+                    : [
+                          {
+                              key: "expand",
+                              text: "Expand all",
+                              iconProps: {
+                                  iconName: "ExploreContent",
+                              },
+                              onClick() {
+                                  dispatch(selection.actions.expandAllFileFolders());
+                              },
+                          },
+                          {
+                              key: "collapse",
+                              text: "Collapse all",
+                              iconProps: {
+                                  iconName: "CollapseContent",
+                              },
+                              onClick() {
+                                  dispatch(selection.actions.collapseAllFileFolders());
+                              },
+                          },
+                      ]),
                 // Avoid showing default open option when on web
                 ...(isOnWeb
                     ? []
@@ -43,10 +67,10 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                               iconProps: {
                                   iconName: "OpenInNewWindow",
                               },
-                              disabled: !filters && fileSelection.count() === 0,
+                              disabled: !folderFilters && fileSelection.count() === 0,
                               onClick() {
-                                  if (filters) {
-                                      dispatch(interaction.actions.openWithDefault(filters));
+                                  if (folderFilters) {
+                                      dispatch(interaction.actions.openWithDefault(folderFilters));
                                   } else if (fileDetails) {
                                       dispatch(
                                           interaction.actions.openWithDefault(undefined, [
@@ -60,7 +84,7 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                 {
                     key: "open-with",
                     text: "Open with",
-                    disabled: !filters && fileSelection.count() === 0,
+                    disabled: !folderFilters && fileSelection.count() === 0,
                     iconProps: {
                         iconName: "OpenInNewWindow",
                     },
@@ -71,7 +95,7 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                 {
                     key: "save-as",
                     text: "Save metadata as",
-                    disabled: !filters && fileSelection.count() === 0,
+                    disabled: !folderFilters && fileSelection.count() === 0,
                     iconProps: {
                         iconName: "Saveas",
                     },
@@ -86,13 +110,13 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                             {
                                 key: "csv",
                                 text: "CSV",
-                                disabled: !filters && fileSelection.count() === 0,
+                                disabled: !folderFilters && fileSelection.count() === 0,
                                 title: "Download a CSV of the metadata of the selected files",
                                 onClick() {
                                     dispatch(
                                         interaction.actions.showManifestDownloadDialog(
                                             "csv",
-                                            filters
+                                            folderFilters
                                         )
                                     );
                                 },
@@ -104,14 +128,14 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                                       {
                                           key: "json",
                                           text: "JSON",
-                                          disabled: !filters && fileSelection.count() === 0,
+                                          disabled: !folderFilters && fileSelection.count() === 0,
                                           title:
                                               "Download a JSON file of the metadata of the selected files",
                                           onClick() {
                                               dispatch(
                                                   interaction.actions.showManifestDownloadDialog(
                                                       "json",
-                                                      filters
+                                                      folderFilters
                                                   )
                                               );
                                           },
@@ -119,14 +143,14 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                                       {
                                           key: "parquet",
                                           text: "Parquet",
-                                          disabled: !filters && fileSelection.count() === 0,
+                                          disabled: !folderFilters && fileSelection.count() === 0,
                                           title:
                                               "Download a Parquet file of the metadata of the selected files",
                                           onClick() {
                                               dispatch(
                                                   interaction.actions.showManifestDownloadDialog(
                                                       "parquet",
-                                                      filters
+                                                      folderFilters
                                                   )
                                               );
                                           },
@@ -141,7 +165,7 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                               key: "copy-to-cache",
                               text: "Copy to vast",
                               title: "Copy selected files to NAS Cache (VAST)",
-                              disabled: !filters && fileSelection.count() === 0,
+                              disabled: !folderFilters && fileSelection.count() === 0,
                               iconProps: { iconName: "MoveToFolder" },
                               onClick() {
                                   dispatch(interaction.actions.showCopyFileManifest());
@@ -153,7 +177,7 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                     key: "download",
                     text: "Download",
                     title: "Download selected files to a specific directory",
-                    disabled: !filters && fileSelection.count() === 0,
+                    disabled: !folderFilters && fileSelection.count() === 0,
                     iconProps: {
                         iconName: "Download",
                     },
@@ -168,13 +192,13 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
             );
         },
         [
-            filters,
             dispatch,
-            onDismiss,
-            isOnWeb,
-            fileSelection,
-            isQueryingAicsFms,
             fileDetails,
+            fileSelection,
+            folderFilters,
+            isOnWeb,
+            isQueryingAicsFms,
+            onDismiss,
             openWithSubMenuItems,
         ]
     );

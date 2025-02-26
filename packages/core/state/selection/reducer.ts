@@ -33,6 +33,7 @@ import {
     Column,
     SetColumns,
     SET_COLUMNS,
+    COLLAPSE_ALL_FILE_FOLDERS,
 } from "./actions";
 import interaction from "../interaction";
 import { FileView, Source } from "../../entity/FileExplorerURL";
@@ -193,6 +194,10 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             availableAnnotationsForHierarchy: action.payload,
             availableAnnotationsForHierarchyLoading: false,
+        }),
+        [COLLAPSE_ALL_FILE_FOLDERS]: (state) => ({
+            ...state,
+            openFileFolders: [],
         }),
         [SET_OPEN_FILE_FOLDERS]: (state, action) => ({
             ...state,
