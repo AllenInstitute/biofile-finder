@@ -48,6 +48,7 @@ import {
     AddDataSourceReloadError,
     setFileView,
     setColumns,
+    EXPAND_ALL_FILE_FOLDERS,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -57,6 +58,7 @@ import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
+import { AnnotationValue } from "../../services/AnnotationService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../services/DataSourceService";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
@@ -338,6 +340,54 @@ const toggleFileFolderCollapse = createLogic({
         }
     },
     type: [TOGGLE_FILE_FOLDER_COLLAPSE],
+});
+
+/**
+ * Interceptor responsible for transforming COLLAPSE_ALL_FILE_FOLDERS and EXPAND_ALL_FILE_FOLDERS
+ * actions into SET_OPEN_FILE_FOLDERS actions by either setting to none or recursively
+ * unpacking the directory structure
+ */
+const expandAllFileFolders = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { getState } = deps;
+        const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
+        const annotationService = interaction.selectors.getAnnotationService(getState());
+        const selectedFileFilters = selection.selectors.getFileFilters(getState());
+        // Track internally rather than relying on selector (may be out of sync)
+        const openedSoFar: FileFolder[] = [];
+        // Recursive helper
+        async function unpackAllFileFolders(values: string[], pathSoFar: string[]) {
+            const fileFoldersToOpen: FileFolder[] = values.map(
+                (value) => new FileFolder([...pathSoFar, value] as AnnotationValue[])
+            );
+            // Needs to be set wholesale so must include already opened folderes
+            openedSoFar.push(...fileFoldersToOpen);
+            dispatch(setOpenFileFolders(openedSoFar));
+            for (const value of values) {
+                // At end of folder hierarchy
+                if (!!hierarchy.length && pathSoFar.length === hierarchy.length - 1) continue;
+
+                const childNodes = await annotationService.fetchHierarchyValuesUnderPath(
+                    hierarchy,
+                    [...pathSoFar, value],
+                    selectedFileFilters
+                );
+                if (childNodes.length) {
+                    // Not a leaf
+                    unpackAllFileFolders(childNodes, [...pathSoFar, value]);
+                }
+            }
+        }
+
+        const rootHierarchyValues = await annotationService.fetchRootHierarchyValues(
+            hierarchy,
+            selectedFileFilters
+        );
+        await unpackAllFileFolders(rootHierarchyValues, []);
+        dispatch(interaction.actions.refresh() as AnyAction); // synchronize UI with state
+        done();
+    },
+    type: [EXPAND_ALL_FILE_FOLDERS],
 });
 
 /**
@@ -754,6 +804,7 @@ export default [
     modifyAnnotationHierarchy,
     modifyFileFilters,
     toggleFileFolderCollapse,
+    expandAllFileFolders,
     decodeFileExplorerURLLogics,
     selectNearbyFile,
     setAvailableAnnotationsLogic,

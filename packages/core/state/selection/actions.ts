@@ -516,6 +516,41 @@ export function toggleFileFolderCollapse(fileFolder: FileFolder): ToggleFileFold
 }
 
 /**
+ * COLLAPSE_ALL_FILE_FOLDERS
+ * Intention to collapse all file folders
+ */
+export const COLLAPSE_ALL_FILE_FOLDERS = makeConstant(
+    STATE_BRANCH_NAME,
+    "collapse-all-file-folders"
+);
+
+export interface CollapseAllFileFoldersAction {
+    type: string;
+}
+
+export function collapseAllFileFolders(): CollapseAllFileFoldersAction {
+    return {
+        type: COLLAPSE_ALL_FILE_FOLDERS,
+    };
+}
+
+/**
+ * EXPAND_ALL_FILE_FOLDERS
+ * Intention to toggle the given file folder's collapsed state
+ */
+export const EXPAND_ALL_FILE_FOLDERS = makeConstant(STATE_BRANCH_NAME, "expand-all-file-folders");
+
+export interface ExpandAllFileFoldersAction {
+    type: string;
+}
+
+export function expandAllFileFolders(): ExpandAllFileFoldersAction {
+    return {
+        type: EXPAND_ALL_FILE_FOLDERS,
+    };
+}
+
+/**
  * SET_OPEN_FILE_FOLDERS
  * Intention to set which file folders are open as opposed to collapsed
  */

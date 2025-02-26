@@ -33,4 +33,5 @@
     height: var(--row-count-intrisic-height-height);
     font-size: var(--row-count-intrisic-height);
     margin-top: var(--row-count-margin-top);
+    margin-block-end: 0;
 }
