@@ -154,5 +154,45 @@ describe("DatabaseFileService", () => {
             // Assert
             expect(modifiedSQL).to.include("OFFSET 0 LIMIT 3");
         });
+
+        it("correctly applies AND vs OR clauses", () => {
+            const selectionsWithOR = [
+                {
+                    indexRanges: [{ start: 0, end: 2 }], // File range
+                    filters: {
+                        Structure: ["structure1", "structure2"],
+                    },
+                },
+            ];
+            const selectionsWithAND = [
+                {
+                    indexRanges: [{ start: 0, end: 2 }], // File range
+                    filters: {
+                        "Cell Line": ["AICS-01"],
+                        Structure: ["structure1"],
+                    },
+                },
+            ];
+            // Make a separate SQLBuilder for comparison
+            const sqlBuilderAND = new SQLBuilder().select("*").from("mock_source");
+
+            // Act
+            DatabaseFileService.applySelectionFilters(sqlBuilder, selectionsWithOR, [
+                "mock_source",
+            ]);
+            const modifiedSQLWithOR = normalizeSQL(sqlBuilder.toSQL());
+            DatabaseFileService.applySelectionFilters(sqlBuilderAND, selectionsWithAND, [
+                "mock_source",
+            ]);
+            const modifiedSQLWithAND = normalizeSQL(sqlBuilderAND.toSQL());
+
+            // Assert
+            // Uses OR within single filter type
+            expect(modifiedSQLWithOR).to.include("OR");
+            expect(modifiedSQLWithOR).not.to.include("AND");
+            // Uses AND between different filter types
+            expect(modifiedSQLWithAND).to.include("AND");
+            expect(modifiedSQLWithAND).not.to.include("OR");
+        });
     });
 });
