@@ -26,6 +26,9 @@ app.setAppUserModelId("org.aics.alleninstitute.fileexplorer");
 // Prevent window from being garbage collected
 let mainWindow: BrowserWindow | undefined;
 
+// Track if a reload attempt has already been made
+let hasReloaded = false;
+
 // register handlers called via ipc between renderer and main
 const registerIpcHandlers = () => {
     ExecutionEnvServicElectron.registerIpcHandlers();
@@ -47,6 +50,25 @@ const createMainWindow = () => {
             nodeIntegration: true,
         },
         width: 1200,
+    });
+
+    // Listen for renderer crashes and attempt a single reload
+    mainWindow.webContents.on("crashed", (event, killed) => {
+        console.error("Renderer process crashed. Killed:", killed);
+
+        if (!hasReloaded) {
+            hasReloaded = true;
+            console.log("Reloading renderer...");
+            if (mainWindow) {
+                mainWindow.reload();
+            }
+        } else {
+            console.warn("Renderer crashed again.");
+        }
+    });
+
+    mainWindow.webContents.on("did-finish-load", () => {
+        hasReloaded = false;
     });
 
     mainWindow.once("ready-to-show", () => {
