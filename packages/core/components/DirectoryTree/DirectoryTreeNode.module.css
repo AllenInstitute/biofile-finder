@@ -22,7 +22,7 @@
 }
 
 .focused {
-    border: 1px solid var(--highlight-text-color);
+    border: 1px solid var(--highlight-hover-background-color);
     margin: 0;
 }
 
