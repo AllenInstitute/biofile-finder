@@ -169,11 +169,9 @@ export default class DatabaseFileService implements FileService {
     public static applyFiltersAndSorting(subQuery: SQLBuilder, selection: Selection): void {
         if (!isEmpty(selection.filters)) {
             subQuery.where(
-                Object.entries(selection.filters)
-                    .flatMap(([column, values]) =>
-                        values.map((v) => SQLBuilder.regexMatchValueInList(column, v))
-                    )
-                    .join(") OR (")
+                Object.entries(selection.filters).flatMap(([column, values]) =>
+                    values.map((v) => SQLBuilder.regexMatchValueInList(column, v)).join(" OR ")
+                )
             );
         }
         if (selection.sort) {
