@@ -1,3 +1,4 @@
+import { Spinner, SpinnerSize } from "@fluentui/react";
 import { uniqueId } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
@@ -72,9 +73,29 @@ const getAssetDownloadURL = async (os: OS): Promise<string> => {
  * Internal facing page for downloading desktop version of BFF.
  */
 export default function Download() {
+    const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<string>();
+    const [isAicsEmployee, setIsAicsEmployee] = React.useState(false);
+
     const { fileDownloadService } = useSelector(interaction.selectors.getPlatformDependentServices);
-    const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
+    const fileService = useSelector(interaction.selectors.getHttpFileService);
+
+    // Check if AICS employee
+    React.useEffect(() => {
+        setIsLoading(true);
+        fileService
+            .isNetworkAccessible()
+            .then(setIsAicsEmployee)
+            .finally(() => setIsLoading(false));
+    }, [fileService, setIsAicsEmployee]);
+
+    if (!isLoading) {
+        return (
+            <div>
+                <Spinner size={SpinnerSize.large} />
+            </div>
+        );
+    }
 
     // Only show download button if user is an AICS employee
     // should ever get here, but just in case
@@ -99,11 +120,12 @@ export default function Download() {
     };
 
     return (
-        <div className={styles.root}>
+        <div>
             {error && (
-                <div className={styles.section}>
-                    <div className={styles.error}>The following error occurred: {error}</div>
-                </div>
+                <>
+                    <h2>Error</h2>
+                    <p className={styles.error}>{error}</p>
+                </>
             )}
             <div className={styles.section}>
                 <div className={styles.downloadContainer}>
@@ -118,8 +140,8 @@ export default function Download() {
                 </div>
             </div>
             <div className={styles.section}>
-                <h2 className={styles.header}>Installation Instructions</h2>
-                <p>To install the BioFile Finder, follow the OS specific instructions below.</p>
+                <h2>Installation Instructions</h2>
+                <h3>To install the BioFile Finder, follow the OS specific instructions below</h3>
                 <Instructions os={os} />
             </div>
         </div>
