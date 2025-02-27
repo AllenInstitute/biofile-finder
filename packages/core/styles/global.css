@@ -34,8 +34,8 @@ main {
 @supports selector(::-webkit-scrollbar) {
     body *::-webkit-scrollbar {
         background-color: var(--accent-dark);
-        width: 12px;
-        height: 12px;
+        width: var(--scrollbar-size);
+        height: var(--scrollbar-size);
     }
     body *::-webkit-scrollbar-corner {
         background-color: var(--accent-dark);
@@ -94,6 +94,7 @@ body {
     --margin: 12px;
     --transition-duration: 0.5s;
     --font-family: 'Open Sans', sans-serif;
+    --scrollbar-size: 12px;
 }
 
 h1 {

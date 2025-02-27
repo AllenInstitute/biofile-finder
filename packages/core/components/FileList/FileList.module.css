@@ -1,6 +1,7 @@
 .container {
     --row-count-margin-top: 0.05em;
     --row-count-intrisic-height: 12px; /* margin values are relative to this because it is used in font-size declaration */
+    --scrollbar-padded: calc(var(--scrollbar-size) + 2px);
 
     width: 100%;
     height: calc(100% - var(--margin));
@@ -8,18 +9,7 @@
 
 .list {
     height: calc(100% - 3px);
-}
-
-.horizontal-overflow::after {
-    background-image: linear-gradient(to right, transparent, var(--secondary-background-color));
-    bottom: 0;
-    content: " ";
-    height: 100%;
-    right: 0;
-    position: absolute;
-    pointer-events: none;
-    width: 60px;
-    z-index: 11;
+    position: relative;
 }
 
 .row-count-display {
@@ -34,4 +24,38 @@
     font-size: var(--row-count-intrisic-height);
     margin-top: var(--row-count-margin-top);
     margin-block-end: 0;
+}
+
+.horizontal-overflow {
+    background-image: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.9));
+    position: absolute;
+    height: calc(100% - var(--scrollbar-padded));
+    width: 60px;
+    pointer-events: none;
+    opacity: 1;
+    z-index: 10;
+    right: 0;
+}
+
+.horizontal-overflow-adjusted {
+    /* override default class to avoid overlapping scrollbar */
+    right: calc(var(--scrollbar-padded)) !important;
+    pointer-events: none;
+}
+
+.vertical-overflow {
+    background-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.9));
+    position: absolute;
+    height: 50px;
+    width: calc(100% - var(--scrollbar-padded));
+    pointer-events: none;
+    opacity: 1;
+    z-index: 10;
+    bottom: 0;
+}
+
+.vertical-overflow-adjusted {
+    /* override default class to avoid overlapping scrollbar */
+    bottom: var(--scrollbar-padded) !important;
+    pointer-events: none;
 }

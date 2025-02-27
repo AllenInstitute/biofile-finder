@@ -74,6 +74,12 @@ export default function FileList(props: FileListProps) {
     const calculatedHeight = Math.min(MAX_NON_ROOT_HEIGHT, dataDrivenHeight);
     const height = isRoot ? measuredHeight : calculatedHeight;
 
+    // complement to isColumnWidthOverflowing
+    const totalRows =
+        (totalCount || DEFAULT_TOTAL_COUNT) /
+        (fileView === FileView.LIST ? 1 : fileGridColumnCount);
+    const isRowHeightOverflowing = totalRows * rowHeight > height;
+
     const listRef = React.useRef<FixedSizeList | null>(null);
     const gridRef = React.useRef<FixedSizeGrid | null>(null);
     const outerRef = React.useRef<HTMLDivElement | null>(null);
@@ -262,14 +268,24 @@ export default function FileList(props: FileListProps) {
     return (
         <div className={classNames(styles.container, className)}>
             <div
-                className={classNames(styles.list, {
-                    [styles.horizontalOverflow]: isColumnWidthOverflowing,
-                })}
+                className={classNames(styles.list)}
                 style={{
                     height: isRoot ? undefined : `${calculatedHeight}px`,
                 }}
                 ref={measuredNodeRef}
             >
+                <div
+                    className={classNames({
+                        [styles.horizontalOverflow]: isColumnWidthOverflowing,
+                        [styles.horizontalOverflowAdjusted]: isRowHeightOverflowing,
+                    })}
+                ></div>
+                <div
+                    className={classNames({
+                        [styles.verticalOverflow]: isRowHeightOverflowing,
+                        [styles.verticalOverflowAdjusted]: isColumnWidthOverflowing,
+                    })}
+                ></div>
                 {content}
             </div>
             <p className={styles.rowCountDisplay}>
