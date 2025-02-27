@@ -32,6 +32,11 @@
     list-style: none;
 }
 
+/* Add padding to emphasize at end of list */
+.scroll-container li:last-of-type {
+    padding-bottom: 30px;
+}
+
 .error-message {
     position: absolute;
     top: 50%;
@@ -45,4 +50,15 @@
 
 .error-message p {
     margin: 0;
+}
+
+.vertical-overflow {
+    background-image: linear-gradient(to bottom, transparent, var(--secondary-background-color));
+    position: absolute;
+    height: 60px;
+    width: calc(100% - var(--scrollbar-size) - 2px);
+    pointer-events: none;
+    opacity: 1;
+    z-index: 100;
+    bottom: 0;
 }
