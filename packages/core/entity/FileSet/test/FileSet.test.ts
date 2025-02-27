@@ -127,7 +127,7 @@ describe("FileSet", () => {
                 'WHERE (REGEXP_MATCHES("scientist"'
             );
             expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
-                'OR (REGEXP_MATCHES("scientist"'
+                'OR REGEXP_MATCHES("scientist"'
             );
         });
     });

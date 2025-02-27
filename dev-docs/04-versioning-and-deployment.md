@@ -46,20 +46,6 @@ builds of `packages/desktop`, prepare a draft Github release, and upload the bui
 mark whether the release is "pre-release." If it is marked as "pre-release," it will not be accessible for download through the
 Github pages site.
 
-<!-- Added by Brian W 2025-02-18 -->
-7) **Temporary workaround for MacOS Intel Chipsets (as of Feb 2025):**
-    GitHub Actions currently builds .dmg files that don't work for x86 processors and that are interpreted as "damaged" by new MacOS versions. The primary recommendation for building executables for Intel chipsets on MacOS is now to use the [manual-build](https://github.com/AllenInstitute/biofile-finder/actions/workflows/manual-build.yml) GitHub Action. This workflow automatically generates .dmg files for x86 architectures. To build the x86 version, ensure that you select the macOS-13 runner environment in the workflow, which is configured specifically for x86 builds. After the workflow completes, download, unzip and rename the .dmg file to include the current tag number and the target processor.
-
-    If additional customization is needed or if you encounter issues with the workflow, you can use the fallback option locally:
-    <!-- Added by Anya W 2025-01-07 -->
-    Navigate to the `packages/desktop` directory and run:
-    ```
-    npm run build-executable
-    ```
-    This command creates a build directory containing an install file (e.g., BioFile Finder-tag.number.dmg). After the build completes, rename the .dmg file to include the current tag number and the target processor (for example, BioFile Finder-tag.number-arm64.dmg or BioFile Finder-tag.number-x86_64.dmg), and upload the file to the release page. If GitHub has already generated .dmg files automatically, you may need to delete them before uploading your build.
-
-
-
 ### Development Builds for Specific Branches
 
 You can generate development builds from any branch using the [manual-build](https://github.com/AllenInstitute/biofile-finder/actions/workflows/manual-build.yml) GitHub Action. Select the branch from the dropdown in the GitHub Action interface and choose the appropriate runner environment from the following options:
