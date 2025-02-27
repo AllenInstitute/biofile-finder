@@ -47,6 +47,7 @@ const TALL_ROW_HEIGHT = 19;
  */
 export default function FileList(props: FileListProps) {
     const [totalCount, setTotalCount] = React.useState<number | null>(null);
+    const [lastVisibleRowIndex, setLastVisibleRowIndex] = React.useState<number>(0);
     const fileView = useSelector(selection.selectors.getFileView);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const fileGridColumnCount = useSelector(selection.selectors.getFileGridColCount);
@@ -74,11 +75,13 @@ export default function FileList(props: FileListProps) {
     const calculatedHeight = Math.min(MAX_NON_ROOT_HEIGHT, dataDrivenHeight);
     const height = isRoot ? measuredHeight : calculatedHeight;
 
+    const totalRows = Math.ceil(
+        (totalCount || DEFAULT_TOTAL_COUNT) / (fileView === FileView.LIST ? 1 : fileGridColumnCount)
+    );
     // complement to isColumnWidthOverflowing
-    const totalRows =
-        (totalCount || DEFAULT_TOTAL_COUNT) /
-        (fileView === FileView.LIST ? 1 : fileGridColumnCount);
     const isRowHeightOverflowing = totalRows * rowHeight > height;
+    // hide overlay when we reach the bottom of the list
+    const atEndOfList = lastVisibleRowIndex === totalRows - 1;
 
     const listRef = React.useRef<FixedSizeList | null>(null);
     const gridRef = React.useRef<FixedSizeGrid | null>(null);
@@ -202,6 +205,7 @@ export default function FileList(props: FileListProps) {
                             const overscanStopIndex =
                                 overscanRowStopIndex * (overscanColumnStopIndex + 1);
 
+                            setLastVisibleRowIndex(visibleRowStopIndex);
                             onItemsRendered({
                                 // call onItemsRendered from InfiniteLoader
                                 visibleStartIndex,
@@ -222,7 +226,10 @@ export default function FileList(props: FileListProps) {
                                     itemSize={rowHeight} // row height
                                     height={height} // height of the list itself; affects number of rows rendered at any given time
                                     itemCount={totalCount || DEFAULT_TOTAL_COUNT}
-                                    onItemsRendered={onItemsRendered}
+                                    onItemsRendered={(renderProps) => {
+                                        setLastVisibleRowIndex(renderProps.visibleStopIndex);
+                                        onItemsRendered(renderProps);
+                                    }}
                                     outerElementType={Header}
                                     outerRef={outerRef}
                                     ref={callbackRefList}
@@ -282,7 +289,7 @@ export default function FileList(props: FileListProps) {
                 ></div>
                 <div
                     className={classNames({
-                        [styles.verticalOverflow]: isRowHeightOverflowing,
+                        [styles.verticalOverflow]: isRowHeightOverflowing && !atEndOfList,
                         [styles.verticalOverflowAdjusted]: isColumnWidthOverflowing,
                     })}
                 ></div>
