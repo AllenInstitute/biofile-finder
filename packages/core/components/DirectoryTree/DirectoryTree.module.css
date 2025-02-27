@@ -52,13 +52,14 @@
     margin: 0;
 }
 
-.vertical-overflow {
+.vertical-gradient {
     background-image: linear-gradient(to bottom, transparent, var(--secondary-background-color));
     position: absolute;
     height: 60px;
-    width: calc(100% - var(--scrollbar-size) - 2px);
+    width: 100%;
     pointer-events: none;
     opacity: 1;
-    z-index: 100;
+    /* Should cover FileList gradient (10) but not file count (99) or aggregate info (999)*/
+    z-index: 50;
     bottom: 0;
 }

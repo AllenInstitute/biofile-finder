@@ -75,7 +75,7 @@ export default function DirectoryTree(props: FileListProps) {
     return (
         <div className={classNames(props.className, styles.container)}>
             <RootLoadingIndicator visible={isLoading} />
-            <div className={styles.verticalOverflow} />
+            <div className={styles.verticalGradient} />
             <ul
                 className={styles.scrollContainer}
                 role="tree"

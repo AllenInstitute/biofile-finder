@@ -283,14 +283,14 @@ export default function FileList(props: FileListProps) {
             >
                 <div
                     className={classNames({
-                        [styles.horizontalOverflow]: isColumnWidthOverflowing,
-                        [styles.horizontalOverflowAdjusted]: isRowHeightOverflowing,
+                        [styles.horizontalGradient]: isColumnWidthOverflowing,
+                        [styles.horizontalGradientCropped]: isRowHeightOverflowing,
                     })}
                 ></div>
                 <div
                     className={classNames({
-                        [styles.verticalOverflow]: isRowHeightOverflowing && !atEndOfList,
-                        [styles.verticalOverflowAdjusted]: isColumnWidthOverflowing,
+                        [styles.verticalGradient]: isRowHeightOverflowing && !atEndOfList,
+                        [styles.verticalGradientCropped]: isColumnWidthOverflowing,
                     })}
                 ></div>
                 {content}
