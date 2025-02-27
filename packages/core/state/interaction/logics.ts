@@ -616,7 +616,8 @@ const copyFilesLogic = createLogic({
                 return;
             }
 
-            const successfulFiles: string[] = [];
+            const newlyCachedFiles: string[] = [];
+            const extendedExpirationFiles: string[] = [];
             const failedFiles: string[] = [];
 
             Object.entries(cacheStatuses).forEach(([fileId, status]) => {
@@ -625,21 +626,44 @@ const copyFilesLogic = createLogic({
                     status === "DOWNLOAD_IN_PROGRESS" ||
                     status === "DOWNLOAD_STARTED"
                 ) {
-                    successfulFiles.push(fileId);
+                    const file = fileDetails.find((f) => f.id === fileId);
+                    const isAlreadyCached = file?.annotations.some(
+                        ({ name, values }) =>
+                            name === "Should Be in Local Cache" && values[0] === true
+                    );
+                    (isAlreadyCached ? extendedExpirationFiles : newlyCachedFiles).push(fileId);
                 } else {
                     failedFiles.push(fileId);
                 }
             });
 
-            // Dispatch net success message. (Assuming some files were successful)
-            if (successfulFiles.length > 0) {
+            // Dispatch files queued for download
+            if (newlyCachedFiles.length > 0) {
+                const count = newlyCachedFiles.length;
+                const fileLabel = count === 1 ? "file was" : "files were";
                 dispatch(
                     interaction.actions.processSuccess(
                         "moveFilesSuccess",
-                        `${successfulFiles.length} out of ${
-                            Object.keys(cacheStatuses).length
-                        } files were successfully queued for download to NAS (Vast) from cloud. 
-                        Files will be available in the NAS after downloads finish asynchronously`
+                        `${count} ${fileLabel} successfully queued for download to NAS (VAST) from the cloud. 
+                        ${
+                            count === 1 ? "It will be" : "They will be"
+                        } available in the NAS after the download${
+                            count === 1 ? " finishes" : "s finish"
+                        } asynchronously.`
+                    )
+                );
+            }
+
+            // Dispatch files with extended expiration dates.
+            if (extendedExpirationFiles.length > 0) {
+                const count = extendedExpirationFiles.length;
+                const fileLabel = count === 1 ? "file's" : "files'";
+                dispatch(
+                    interaction.actions.processSuccess(
+                        "extendFilesExpirationSuccess",
+                        `${count} ${fileLabel} expiration ${
+                            count === 1 ? "date has" : "dates have"
+                        } been extended.`
                     )
                 );
             }
