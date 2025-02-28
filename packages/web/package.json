@@ -16,24 +16,23 @@
   "author": "Allen Institute for Cell Science",
   "license": "SEE LICENSE IN LICENSE.txt",
   "devDependencies": {
-    "babel-loader": "8.2.x",
+    "babel-loader": "9.2.x",
     "clean-webpack-plugin": "4.x",
     "css-loader": "6.x",
-    "dotenv-webpack": "7.x",
-    "fork-ts-checker-webpack-plugin": "6.x",
+    "fork-ts-checker-webpack-plugin": "9.x",
     "html-webpack-plugin": "5.x",
     "mini-css-extract-plugin": "2.x",
-    "postcss-loader": "6.x",
-    "postcss-preset-env": "7.x",
-    "react-svg-loader": "^3.0.3",
+    "postcss-loader": "8.x",
+    "postcss-preset-env": "10.x",
+    "react-svg-loader": "3.0.x",
     "webpack": "5.x",
     "webpack-bundle-analyzer": "4.x",
     "webpack-cli": "4.x",
     "webpack-dev-server": "4.x"
   },
   "dependencies": {
-    "@duckdb/duckdb-wasm": "^1.28.1-dev106.0",
-    "react-router-dom": "^6.23.1",
-    "regenerator-runtime": "0.13.x"
+    "@duckdb/duckdb-wasm": "1.29.x",
+    "react-router-dom": "7.2.x",
+    "regenerator-runtime": "0.14.x"
   }
 }

@@ -119,9 +119,3 @@ export default function DnDList(props: DnDListProps) {
         </Droppable>
     );
 }
-
-DnDList.defaultProps = {
-    disabledItems: [],
-    highlight: false,
-    isDropDisabled: false,
-};

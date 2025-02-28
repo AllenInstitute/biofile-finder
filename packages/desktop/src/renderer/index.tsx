@@ -4,7 +4,7 @@ import AmplitudeNodePlugin from "@aics/frontend-insights-plugin-amplitude-node";
 import { ipcRenderer } from "electron";
 import { memoize } from "lodash";
 import * as React from "react";
-import { render } from "react-dom";
+import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import FmsFileExplorer from "../../../core/App";
 import { PersistedConfigKeys } from "../../../core/services";
@@ -114,7 +114,8 @@ store.subscribe(() => {
 });
 
 function renderFmsFileExplorer() {
-    render(
+    const root = createRoot(document.getElementById(APP_ID)!);
+    root.render(
         <Provider store={store}>
             <>
                 <KeyDownHandler clearStore={clearPersistentStore} />
@@ -122,8 +123,7 @@ function renderFmsFileExplorer() {
                     environment={persistentConfigService.get(PersistedConfigKeys.Environment)}
                 />
             </>
-        </Provider>,
-        document.getElementById(APP_ID)
+        </Provider>
     );
 }
 

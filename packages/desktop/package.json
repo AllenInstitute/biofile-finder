@@ -61,34 +61,33 @@
   "author": "Allen Institute for Cell Science",
   "license": "SEE LICENSE IN LICENSE.txt",
   "devDependencies": {
-    "@types/semver": "7.3.x",
-    "babel-loader": "8.2.x",
+    "@types/semver": "7.5.x",
+    "babel-loader": "9.2.x",
     "clean-webpack-plugin": "4.x",
     "css-loader": "6.x",
-    "dotenv-webpack": "7.x",
     "electron": "22.3.x",
     "electron-builder": "24.13.x",
     "electron-mocha": "11.0.x",
-    "fork-ts-checker-webpack-plugin": "6.x",
+    "fork-ts-checker-webpack-plugin": "9.x",
     "html-webpack-plugin": "5.x",
     "mini-css-extract-plugin": "2.x",
-    "nock": "13.0.x",
+    "nock": "14.0.x",
     "null-loader": "4.0.x",
-    "postcss-loader": "6.x",
-    "postcss-preset-env": "7.x",
+    "postcss-loader": "8.x",
+    "postcss-preset-env": "10.x",
     "webpack": "5.x",
     "webpack-bundle-analyzer": "4.x",
-    "webpack-cli": "4.x",
-    "webpack-dev-server": "4.x",
-    "xvfb-maybe": "0.2.x"
+    "webpack-cli": "6.x",
+    "webpack-dev-server": "5.x"
   },
   "dependencies": {
     "@aics/frontend-insights": "0.2.x",
     "@aics/frontend-insights-plugin-amplitude-node": "0.2.x",
-    "duckdb": "0.8.x",
+    "duckdb": "1.2.x",
     "electron-store": "8.0.x",
-    "regenerator-runtime": "0.13.x",
-    "semver": "7.3.x",
-    "webpack-node-externals": "^3.0.0"
+    "regenerator-runtime": "0.14.x",
+    "semver": "7.7.x",
+    "stream-browserify": "3.0.x",
+    "webpack-node-externals": "3.0.x"
   }
 }

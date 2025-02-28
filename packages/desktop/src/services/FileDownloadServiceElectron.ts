@@ -3,7 +3,7 @@ import * as http from "http";
 import * as https from "https";
 import * as path from "path";
 
-import { Policy } from "cockatiel";
+import { retry, handleAll, ExponentialBackoff } from "cockatiel";
 import { app, ipcMain, ipcRenderer } from "electron";
 
 import {
@@ -199,7 +199,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         const chunkSize = 1024 * 1024 * 5; // 5MB; arbitrary
 
         // retry policy: 3 times no matter the exception, with randomized exponential backoff between attempts
-        const retry = Policy.handleAll().retry().attempts(3).exponential();
+        const retryPolicy = retry(handleAll, { maxAttempts: 3, backoff: new ExponentialBackoff() });
         let bytesDownloaded = -1;
         while (bytesDownloaded < fileSize) {
             const startByte = bytesDownloaded + 1;
@@ -231,7 +231,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                     start: startByte,
                 };
             }
-            const result = await retry.execute(() =>
+            const result = await retryPolicy.execute(() =>
                 this.downloadOverHttp({
                     downloadRequestId,
                     outFilePath,

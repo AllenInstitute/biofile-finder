@@ -1,5 +1,4 @@
 const { JSDOM } = require("jsdom");
-const createMockRaf = require("mock-raf");
 const { ResizeObserver } = require("resize-observer");
 
 const html = `
@@ -39,10 +38,7 @@ for (const key of NON_ENUMERABLE_KEYS) {
 }
 
 // Other properties to add to global/window
-const mockRaf = createMockRaf();
 [
-    { prop: "requestAnimationFrame", mock: mockRaf.raf },
-    { prop: "cancelAnimationFrame", mock: mockRaf.cancel },
     { prop: "ResizeObserver", mock: ResizeObserver },
 ].forEach(({ prop, mock }) => {
     global[prop] = mock;

@@ -1,6 +1,5 @@
 import classNames from "classnames";
-import debouncePromise from "debounce-promise";
-import { defaults, isFunction } from "lodash";
+import { debounce, defaults, isFunction } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 import { FixedSizeGrid, FixedSizeList } from "react-window";
@@ -142,20 +141,26 @@ export default function FileList(props: FileListProps) {
 
     let content: React.ReactNode;
     if (totalCount === null || totalCount > 0) {
+        // When this component isRoot the height is measured. It takes
+        // a few milliseconds for that to happen along with a re-render, but
+        // by then the <InfiniteLoader /> used here will already have made a
+        // request for files based on that height that it didn't need to
+        // if it had just waited until the measured height was present.
         if (height > 0) {
-            // When this component isRoot the height is measured. It takes
-            // a few milliseconds for that to happen along with a re-render, but
-            // by then the <InfiniteLoader /> used here will already have made a
-            // request for files based on that height that it didn't need to
-            // if it had just waited until the measured height was present.
+            const debouncedFetchFileRange = debounce(
+                // Have to wrap the fetch function because `loadMoreItems`
+                // expect a Promise<void> return value
+                async (startIndex: number, stopIndex: number) => {
+                    fileSet.fetchFileRange(startIndex, stopIndex);
+                },
+                DEBOUNCE_WAIT_FOR_DATA_FETCHING,
+                { leading: false, trailing: true }
+            );
             content = (
                 <InfiniteLoader
                     key={fileSet.instanceId} // force a re-render whenever FileSet changes
                     isItemLoaded={fileSet.isFileMetadataLoadingOrLoaded}
-                    loadMoreItems={debouncePromise<any>(
-                        fileSet.fetchFileRange,
-                        DEBOUNCE_WAIT_FOR_DATA_FETCHING
-                    )}
+                    loadMoreItems={debouncedFetchFileRange}
                     itemCount={totalCount || DEFAULT_TOTAL_COUNT}
                 >
                     {({ onItemsRendered, ref: innerRef }) => {

@@ -1,4 +1,4 @@
-import filesize from "filesize";
+import { filesize } from "filesize";
 import { Spinner, SpinnerSize } from "@fluentui/react";
 import * as React from "react";
 import { useSelector } from "react-redux";

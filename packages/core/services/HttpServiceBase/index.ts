@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from "axios";
-import { Policy } from "cockatiel";
-import LRUCache from "lru-cache";
+import { ExponentialBackoff, handleAll, retry } from "cockatiel";
+import { LRUCache } from "lru-cache";
 
 import { Environment, FESBaseUrl, LoadBalancerBaseUrl, MMSBaseUrl } from "../../constants";
 import RestServiceResponse from "../../entity/RestServiceResponse";
@@ -39,14 +39,7 @@ const CHARACTER_TO_ENCODING_MAP: { [index: string]: string } = {
 
 const MAX_CACHE_SIZE = 1000;
 
-// retry policy: 5 times, with an exponential backoff between attempts
-const retry = Policy.handleAll()
-    .retry()
-    .attempts(5)
-    .exponential({
-        maxAttempts: 5,
-        maxDelay: 10 * 1000,
-    });
+const retryPolicy = retry(handleAll, { maxAttempts: 5, backoff: new ExponentialBackoff() });
 
 /**
  * Base class for services that interact with APIs.
@@ -148,7 +141,7 @@ export default class HttpServiceBase {
 
         if (!this.urlToResponseDataCache.has(encodedUrl)) {
             // if this fails, bubble up exception
-            const response = await retry.execute(() => this.httpClient.get(encodedUrl));
+            const response = await retryPolicy.execute(() => this.httpClient.get(encodedUrl));
 
             if (response.status < 400 && response.data !== undefined) {
                 this.urlToResponseDataCache.set(encodedUrl, response.data);
@@ -187,7 +180,7 @@ export default class HttpServiceBase {
     public async getWithoutCaching<T>(url: string): Promise<RestServiceResponse<T>> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
 
-        const response = await retry.execute(() => this.httpClient.get(encodedUrl));
+        const response = await retryPolicy.execute(() => this.httpClient.get(encodedUrl));
         return new RestServiceResponse(response.data);
     }
 
@@ -198,7 +191,7 @@ export default class HttpServiceBase {
         let response;
         try {
             // if this fails, bubble up exception
-            response = await retry.execute(() => this.httpClient.post(encodedUrl, body, config));
+            response = await retryPolicy.execute(() => this.httpClient.post(encodedUrl, body, config));
         } catch (err) {
             // Specific errors about the failure from services will be in this path
             if (axios.isAxiosError(err) && err?.response?.data?.message) {
@@ -226,7 +219,7 @@ export default class HttpServiceBase {
         let response;
         try {
             // Retry policy wrapped around axios PUT
-            response = await retry.execute(() => this.httpClient.put(encodedUrl, body, config));
+            response = await retryPolicy.execute(() => this.httpClient.put(encodedUrl, body, config));
         } catch (err) {
             if (axios.isAxiosError(err) && err?.response?.data?.message) {
                 throw new Error(JSON.stringify(err.response.data.message));
@@ -248,7 +241,7 @@ export default class HttpServiceBase {
         let response;
         try {
             // if this fails, bubble up exception
-            response = await retry.execute(() => this.httpClient.post(encodedUrl, body, config));
+            response = await retryPolicy.execute(() => this.httpClient.post(encodedUrl, body, config));
         } catch (err) {
             // Specific errors about the failure from services will be in this path
             if (axios.isAxiosError(err) && err?.response?.data?.message) {
@@ -272,7 +265,7 @@ export default class HttpServiceBase {
         let response;
         try {
             // if this fails, bubble up exception
-            response = await retry.execute(() => this.httpClient.patch(encodedUrl, body, config));
+            response = await retryPolicy.execute(() => this.httpClient.patch(encodedUrl, body, config));
         } catch (err) {
             // Specific errors about the failure from services will be in this path
             if (axios.isAxiosError(err) && err?.response?.data?.message) {
@@ -297,7 +290,7 @@ export default class HttpServiceBase {
     public setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl: FESBaseUrl) {
         if (this.fileExplorerServiceBaseUrl !== fileExplorerServiceBaseUrl) {
             // bust cache when base url changes
-            this.urlToResponseDataCache.reset();
+            this.urlToResponseDataCache.clear();
         }
 
         this.fileExplorerServiceBaseUrl = fileExplorerServiceBaseUrl;
@@ -306,7 +299,7 @@ export default class HttpServiceBase {
     public setHttpClient(client: AxiosInstance) {
         if (this.httpClient !== client) {
             // bust cache when http client changes
-            this.urlToResponseDataCache.reset();
+            this.urlToResponseDataCache.clear();
         }
 
         this.httpClient = client;
@@ -327,7 +320,7 @@ export default class HttpServiceBase {
     public setLoadBalancerBaseUrl(loadBalancerBaseUrl: LoadBalancerBaseUrl) {
         if (this.loadBalancerBaseUrl !== loadBalancerBaseUrl) {
             // bust cache when base url changes
-            this.urlToResponseDataCache.reset();
+            this.urlToResponseDataCache.clear();
         }
 
         this.loadBalancerBaseUrl = loadBalancerBaseUrl;
@@ -336,7 +329,7 @@ export default class HttpServiceBase {
     public setMetadataManagementServiceBaseURl(metadataManagementServiceBaseURl: MMSBaseUrl) {
         if (this.metadataManagementServiceBaseURl !== metadataManagementServiceBaseURl) {
             // bust cache when base url changes
-            this.urlToResponseDataCache.reset();
+            this.urlToResponseDataCache.clear();
         }
 
         this.metadataManagementServiceBaseURl = metadataManagementServiceBaseURl;

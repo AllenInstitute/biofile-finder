@@ -6,13 +6,13 @@
 // or a problem with the way mocha resolves the zarrita package. Either way after trying out
 // various solutions like changing Node versions, ts config settings, and package.json settings
 // I am timeboxing this issue and moving on to the next task. - Sean M 08/30/2024
-let zarr: any;
+let zarrita: any;
 const isInTest = typeof global.it === "function";
 if (isInTest) {
-    zarr = {};
+    zarrita = {};
 } else {
-    import("zarrita").then((zarrita) => {
-        zarr = zarrita;
+    import("zarrita").then((zarritaPkg) => {
+        zarrita = zarritaPkg;
     });
 }
 
@@ -30,7 +30,7 @@ interface TransformedAxes {
 
 /** 
 Function to transform metadata array of dims to a map that is easily readable by
-zarr.get function to access a slice of image.
+zarrita.get function to access a slice of image.
 */
 function transformAxes(originalArray: AxisData[]): TransformedAxes[] {
     return originalArray.map((item) => ({
@@ -69,17 +69,17 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 }
 
 /**
- * Main function to attempt to render a usable thumbnail using the lowest
- * resolution present in a zarr image's metadata.
+ * Renders the string form a PNG captured from the lowest resolution
+ * of a .zarr file
  */
-export async function renderZarrThumbnailURL(zarrUrl: string): Promise<string | undefined> {
+export default async (zarrUrl: string): Promise<string | undefined> => {
     try {
         return await retryWithTimeout(
             async () => {
                 // read base image into store
-                const store = new zarr.FetchStore(zarrUrl);
-                const root = zarr.root(store);
-                const group = await zarr.open(root, { kind: "group" });
+                const store = new zarrita.FetchStore(zarrUrl);
+                const root = zarrita.root(store);
+                const group = await zarrita.open(root, { kind: "group" });
 
                 // Check that image has readable metadata structure.
                 // Because zarr images are just directories there is variation here.
@@ -96,7 +96,7 @@ export async function renderZarrThumbnailURL(zarrUrl: string): Promise<string | 
                 const datasets = multiscales[0].datasets;
                 const lowestResolutionDataset = datasets[datasets.length - 1];
                 const lowestResolutionLocation = root.resolve(lowestResolutionDataset.path);
-                const lowestResolution = await zarr.open(lowestResolutionLocation, {
+                const lowestResolution = await zarrita.open(lowestResolutionLocation, {
                     kind: "array",
                 });
 
@@ -120,7 +120,7 @@ export async function renderZarrThumbnailURL(zarrUrl: string): Promise<string | 
 
                 // Create a view (get data) of the determined lowest resolution using the
                 // choices made for each axes.
-                const lowestResolutionView = await zarr.get(
+                const lowestResolutionView = await zarrita.get(
                     lowestResolution,
                     axes.map((item) => item.value)
                 );

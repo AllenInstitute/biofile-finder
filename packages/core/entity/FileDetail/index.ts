@@ -1,6 +1,6 @@
+import useZarrThumbnail from "./useZarrThumbnail";
 import AnnotationName from "../Annotation/AnnotationName";
 import { FmsFileAnnotation } from "../../services/FileService";
-import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
 import { Environment } from "../../constants";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
@@ -263,7 +263,7 @@ export default class FileDetail {
                 return this.downloadPath;
             }
             if (this.path.includes(".zarr")) {
-                return await renderZarrThumbnailURL(this.downloadPath);
+                return await useZarrThumbnail(this.downloadPath);
             }
         }
 

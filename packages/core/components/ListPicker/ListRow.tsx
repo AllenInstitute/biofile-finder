@@ -61,7 +61,7 @@ export default function ListRow(props: Props) {
             >
                 <label className={styles.item}>
                     <div>{item.selected && <Icon iconName="CheckMark" />}</div>
-                    <p>{item.displayValue}</p>
+                    <p>{`${item.displayValue}`}</p>
                 </label>
                 {item.recent && <Icon iconName="Recent" />}
                 {item.loading && <Spinner className={styles.spinner} size={SpinnerSize.small} />}

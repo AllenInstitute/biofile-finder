@@ -2,7 +2,6 @@ const path = require("path");
 
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const Dotenv = require("dotenv-webpack");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
@@ -22,9 +21,6 @@ const BASE_PLUGINS = [
     new MiniCssExtractPlugin({ filename: "[name].[contenthash].css" }),
     new HtmlWebpackPlugin({
         template: path.resolve(__dirname, "index.html"),
-    }),
-    new Dotenv({
-        systemvars: true, // load all system variables in addition to what we find in .env
     }),
 ];
 

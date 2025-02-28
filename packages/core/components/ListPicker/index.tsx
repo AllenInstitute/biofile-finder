@@ -58,7 +58,7 @@ export default function ListPicker(props: ListPickerProps) {
 
     const fuse = React.useMemo(() => new Fuse(items, FUZZY_SEARCH_OPTIONS), [items]);
     const filteredItems = React.useMemo(() => {
-        const filteredRows = searchValue ? fuse.search(searchValue) : items;
+        const filteredRows = searchValue ? fuse.search(searchValue).map(r => r.item) : items;
         return filteredRows.sort((a, b) => {
             // If selected, sort to the top
             if (a.selected !== b.selected) {

@@ -1,5 +1,5 @@
 import { defaults, find, join, map, uniqueId } from "lodash";
-import LRUCache from "lru-cache";
+import { LRUCache } from "lru-cache";
 
 import FileFilter, { FilterType } from "../FileFilter";
 import FileSort from "../FileSort";

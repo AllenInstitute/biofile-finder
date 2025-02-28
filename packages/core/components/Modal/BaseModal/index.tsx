@@ -2,8 +2,9 @@ import { ContextualMenu, IDragOptions, Modal } from "@fluentui/react";
 import { noop } from "lodash";
 import * as React from "react";
 
-import styles from "./BaseModal.module.css";
 import { TertiaryButton } from "../../Buttons";
+
+import styles from "./BaseModal.module.css";
 
 interface BaseModalProps {
     body: React.ReactNode;
@@ -23,7 +24,7 @@ const DRAG_OPTIONS: IDragOptions = {
  * for plugging content into.
  */
 export default function BaseModal(props: BaseModalProps) {
-    const { body, footer, title, onDismiss } = props;
+    const { body, footer = null, title, onDismiss = noop } = props;
 
     const titleId = "base-modal-title";
     return (
@@ -48,8 +49,3 @@ export default function BaseModal(props: BaseModalProps) {
         </Modal>
     );
 }
-
-BaseModal.defaultProps = {
-    footer: null,
-    onDismiss: noop,
-};

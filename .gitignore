@@ -12,5 +12,4 @@ build
 .vscode
 *.log
 *.tgz
-.env
 mise.toml

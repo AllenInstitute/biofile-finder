@@ -2,7 +2,7 @@ import "regenerator-runtime/runtime";
 
 import { memoize } from "lodash";
 import * as React from "react";
-import { render } from "react-dom";
+import { createRoot } from 'react-dom/client';
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
@@ -67,11 +67,11 @@ async function asyncRender() {
         isOnWeb: true,
         platformDependentServices: collectPlatformDependentServices(),
     });
-    render(
+    const root = createRoot(document.getElementById(APP_ID)!);
+    root.render(
         <Provider store={store}>
             <RouterProvider router={router} />
-        </Provider>,
-        document.getElementById(APP_ID)
+        </Provider>
     );
 
     try {

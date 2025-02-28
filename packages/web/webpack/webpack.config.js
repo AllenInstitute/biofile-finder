@@ -98,8 +98,22 @@ module.exports = ({ analyze, production } = {}) => ({
     },
     plugins: getPluginsByEnv(production, analyze),
     resolve: {
+        // These are polyfill modules that are provided by the Node.js runtime
+        // usually. In the browser like this we just need to provide a (blank) polyfill
+        // for these modules. At the time of writing this, just `axios` was causing this
+        // - Sean M. 2/28/25
+        fallback: {
+            assert: false,
+            fs: false,
+            http: false,
+            https: false,
+            path: false,
+            stream: false,
+            url: false,
+            util: false,
+        },
         extensions: [".ts", ".tsx", ".js", ".jsx", ".json", ".png"],
-        mainFields: ["module", "main"],
+        mainFields: ["browser", "module", "main"],
         symlinks: false,
     },
     stats: analyze ? "none" : stats,
