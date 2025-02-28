@@ -53,7 +53,7 @@ const createMainWindow = () => {
     });
 
     // Listen for renderer crashes and attempt a single reload
-    mainWindow.webContents.on("crashed", (event, killed) => {
+    mainWindow.webContents.on("render-process-gone", (event, killed) => {
         console.error("Renderer process crashed. Killed:", killed);
 
         if (!hasReloaded) {
