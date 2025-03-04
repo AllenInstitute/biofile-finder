@@ -77,6 +77,7 @@ const NAS_HOST_PREFIXES: Record<Environment, string> = {
 export interface FmsFile {
     annotations: FmsFileAnnotation[];
     file_id?: string;
+    file_local_path?: string | null;
     file_name?: string;
     file_path?: string;
     file_size?: number;
@@ -92,16 +93,6 @@ export default class FileDetail {
     private readonly env: Environment;
     private readonly uniqueId?: string;
 
-    // REMOVE THIS FUNCITON (BACKWARDS COMPAT)
-    public convertAicsDrivePathToAicsS3Path(path: string): string {
-        const pathWithoutDrive = path.replace(NAS_HOST_PREFIXES[this.env], "");
-        // Should probably record this somewhere we can dynamically adjust to, or perhaps just in the file
-        // document itself, alas for now this will do.
-        return FileDetail.convertAicsS3PathToHttpUrl(
-            `${AICS_FMS_S3_BUCKETS[this.env]}${pathWithoutDrive}`
-        );
-    }
-
     private static convertAicsS3PathToHttpUrl(path: string): string {
         return `${AICS_FMS_S3_URL_PREFIX}${path}`;
     }
@@ -110,6 +101,7 @@ export default class FileDetail {
         this.fileDetail = fileDetail;
         this.env = env;
         this.uniqueId = uniqueId;
+        this.fileDetail.file_local_path = this.localPath;
     }
 
     public get details() {
@@ -157,23 +149,14 @@ export default class FileDetail {
     }
 
     public get cloudPath(): string {
-        //// REMOVE THIS (BACKWARDS COMPAT)
-        if (this.path.startsWith("/allen")) {
-            return this.convertAicsDrivePathToAicsS3Path(this.path);
-        }
-        ////
-
         // AICS FMS files' paths are cloud paths
         return this.path;
     }
 
     public get localPath(): string | null {
-        //// REMOVE THIS (BACKWARDS COMPAT)
-        if (this.path.startsWith("/allen")) {
-            return this.path;
+        if (this.downloadInProgress) {
+            return "Copying to VAST in progress…";
         }
-        ////
-
         if (this.getAnnotation("Cache Eviction Date")) {
             return this.getLocalPath();
         }
@@ -193,12 +176,6 @@ export default class FileDetail {
     }
 
     public get downloadPath(): string {
-        //// REMOVE THIS (BACKWARDS COMPAT)
-        if (this.path.startsWith("/allen")) {
-            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${this.path}`;
-        }
-        ////
-
         const localPath = this.getLocalPath();
         // For AICS files that are available on the Vast, users can use the cloud path, but the
         // download will be faster and not incur egress fees if we download via the local network.
@@ -211,7 +188,7 @@ export default class FileDetail {
 
     public get downloadInProgress(): boolean {
         const shouldBeInLocal = this.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL);
-        return Boolean(shouldBeInLocal) && !this.getLocalPath();
+        return Boolean(shouldBeInLocal) && !this.getAnnotation("Cache Eviction Date");
     }
 
     public get size(): number | undefined {
@@ -239,9 +216,10 @@ export default class FileDetail {
     public getFirstAnnotationValue(annotationName: string): string | number | boolean | undefined {
         return this.getAnnotation(annotationName)?.values[0];
     }
-
     public getAnnotation(annotationName: string): FmsFileAnnotation | undefined {
-        return this.fileDetail.annotations.find((annotation) => annotation.name === annotationName);
+        return this.fileDetail.annotations?.find(
+            (annotation) => annotation.name === annotationName
+        );
     }
 
     public async getPathToThumbnail(): Promise<string | undefined> {

@@ -348,7 +348,7 @@ describe("FileSelection", () => {
             const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
             const queryResult = [];
             for (let i = 0; i < 31; i++) {
-                queryResult.push(i);
+                queryResult.push({ file_id: `${i}` });
             }
             // Due to overfetching the result set we desire is a subsection of query results
             const expectedDetails = queryResult

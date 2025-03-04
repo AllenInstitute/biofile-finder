@@ -25,27 +25,19 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
-    // The path to this file on the host this application is running on
-    // may not match the path to this file stored in the database.
-    // Determine this local path.
-    const [localPath, setLocalPath] = React.useState<string | null>(null);
+    // Format path for mounted users
+    const [formattedLocalPath, setFormattedLocalPath] = React.useState<string | null>(null);
     React.useEffect(() => {
-        let active = true;
-
-        async function formatPathForHost() {
-            if (!fileDetails || !active) return;
-
-            const localPath = fileDetails.localPath;
-            const path = localPath ? await executionEnvService.formatPathForHost(localPath) : null;
-
-            setLocalPath(path);
+        async function formatLocalPath() {
+            const local = fileDetails?.localPath?.trim();
+            if (!local) {
+                setFormattedLocalPath(null);
+                return;
+            }
+            const formatted = await executionEnvService.formatPathForHost(local);
+            setFormattedLocalPath(formatted);
         }
-
-        formatPathForHost();
-
-        return () => {
-            active = false;
-        };
+        formatLocalPath();
     }, [fileDetails, executionEnvService]);
 
     const content: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
@@ -66,15 +58,11 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
             let fmsStateIndicator = false;
 
             if (annotation.name === AnnotationName.LOCAL_FILE_PATH) {
-                if (fileDetails && fileDetails.downloadInProgress) {
-                    annotationValue = "Copying to VAST in progress…";
+                if (fileDetails.downloadInProgress) {
+                    annotationValue = fileDetails.localPath || Annotation.MISSING_VALUE;
                     fmsStateIndicator = true;
-                } else if (localPath === null) {
-                    // localPath hasn't loaded yet or there is no local path annotation
-                    return accum;
                 } else {
-                    // Use the user's /allen mount point, if known
-                    annotationValue = localPath;
+                    annotationValue = formattedLocalPath || Annotation.MISSING_VALUE;
                 }
             }
 
@@ -99,7 +87,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                 />,
             ];
         }, [] as JSX.Element[]);
-    }, [annotations, fileDetails, isLoading, localPath]);
+    }, [annotations, fileDetails, formattedLocalPath, isLoading]);
 
     return <div className={classNames(styles.list, className)}>{content}</div>;
 }

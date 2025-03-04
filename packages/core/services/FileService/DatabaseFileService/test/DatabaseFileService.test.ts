@@ -62,6 +62,7 @@ describe("DatabaseFileService", () => {
                         values: ["6"],
                     },
                 ],
+                file_local_path: null,
             });
         });
     });

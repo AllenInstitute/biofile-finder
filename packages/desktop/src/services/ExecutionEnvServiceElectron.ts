@@ -69,7 +69,8 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
     public async formatPathForHost(posixPath: string): Promise<string> {
         const fmsPath = new FmsFilePath(posixPath);
 
-        if (this.getOS() === "Darwin") {
+        // Only attempt to probe for a mount point if fileShare is defined.
+        if (this.getOS() === "Darwin" && fmsPath.fileShare) {
             const mountPoint = await this.probeForMountPoint(fmsPath.fileShare);
             if (mountPoint) {
                 return fmsPath.withMountPoint(mountPoint).formatForOs(this.getOS());
