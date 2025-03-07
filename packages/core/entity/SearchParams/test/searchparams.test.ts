@@ -157,11 +157,11 @@ describe("SearchParams", () => {
         });
     });
 
-    describe.only("decode", () => {
+    describe("decode", () => {
         it("decodes simple URL", () => {
             // Arrange
             const params = new URLSearchParams();
-            const testUrl = "http://localhost:3000/?";
+            const testUrl = "http://localhost:3000/myfile.csv";
             params.append("url", testUrl);
 
             // Act
@@ -170,7 +170,14 @@ describe("SearchParams", () => {
             // Assert
             expect(result).to.deep.equal({
                 ...EMPTY_QUERY_COMPONENTS,
-                sources: [testUrl],
+                sources: [
+                    {
+                        // This grabs a date and isn't particularly important so just stub it out
+                        name: result.sources[0].name,
+                        type: "csv",
+                        uri: testUrl,
+                    },
+                ],
             });
         });
 
