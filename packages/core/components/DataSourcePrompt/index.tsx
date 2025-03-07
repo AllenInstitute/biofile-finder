@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import FilePrompt from "./FilePrompt";
 import { PrimaryButton, SecondaryButton } from "../Buttons";
-import { Source } from "../../entity/FileExplorerURL";
+import { Source } from "../../entity/SearchParams";
 import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
 

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import FileExplorerURL, { FileExplorerURLComponents, FileView, Source } from "..";
+import SearchParams, { SearchParamsComponents, FileView, Source, EMPTY_QUERY_COMPONENTS } from "..";
 import AnnotationName from "../../Annotation/AnnotationName";
 import FileFilter from "../../FileFilter";
 import ExcludeFilter from "../../FileFilter/ExcludeFilter";
@@ -9,7 +9,7 @@ import IncludeFilter from "../../FileFilter/IncludeFilter";
 import FileFolder from "../../FileFolder";
 import FileSort, { SortOrder } from "../../FileSort";
 
-describe("FileExplorerURL", () => {
+describe("SearchParams", () => {
     const mockSource: Source = {
         name: "Fake Collection",
         type: "csv",
@@ -36,7 +36,7 @@ describe("FileExplorerURL", () => {
                 ["AICS-0", "ACTB-mEGFP", false],
                 ["AICS-0", "ACTB-mEGFP", true],
             ];
-            const components: FileExplorerURLComponents = {
+            const components: SearchParamsComponents = {
                 columns: [],
                 fileView: FileView.LIST,
                 hierarchy: expectedAnnotationNames,
@@ -47,7 +47,7 @@ describe("FileExplorerURL", () => {
             };
 
             // Act
-            const result = FileExplorerURL.encode(components);
+            const result = SearchParams.encode(components);
 
             // Assert
             expect(result).to.be.equal(
@@ -75,7 +75,7 @@ describe("FileExplorerURL", () => {
             const expectedIncludeFilters = [{ annotationName: "Cell Line" }];
             const expectedExcludeFilters = [{ annotationName: "Gene" }];
 
-            const components: FileExplorerURLComponents = {
+            const components: SearchParamsComponents = {
                 columns: [],
                 fileView: FileView.LIST,
                 hierarchy: expectedAnnotationNames,
@@ -96,7 +96,7 @@ describe("FileExplorerURL", () => {
                 sources: [mockSource],
             };
             // Act
-            const result = FileExplorerURL.encode(components);
+            const result = SearchParams.encode(components);
 
             // Assert
             expect(result).to.be.equal(
@@ -114,7 +114,7 @@ describe("FileExplorerURL", () => {
 
         it("Encodes empty state", () => {
             // Arrange
-            const components: FileExplorerURLComponents = {
+            const components: SearchParamsComponents = {
                 columns: [],
                 fileView: FileView.LIST,
                 hierarchy: [],
@@ -124,7 +124,7 @@ describe("FileExplorerURL", () => {
             };
 
             // Act
-            const result = FileExplorerURL.encode(components);
+            const result = SearchParams.encode(components);
 
             // Assert
             expect(result).to.be.equal("");
@@ -132,7 +132,7 @@ describe("FileExplorerURL", () => {
 
         it("encodes source URIs when 'string' type is provided", () => {
             // Arrange
-            const components: FileExplorerURLComponents = {
+            const components: SearchParamsComponents = {
                 columns: [],
                 fileView: FileView.LIST,
                 hierarchy: [],
@@ -148,7 +148,7 @@ describe("FileExplorerURL", () => {
             };
 
             // Act
-            const result = FileExplorerURL.encode(components);
+            const result = SearchParams.encode(components);
 
             // Assert
             expect(result).to.be.equal(
@@ -157,7 +157,23 @@ describe("FileExplorerURL", () => {
         });
     });
 
-    describe("decode", () => {
+    describe.only("decode", () => {
+        it("decodes simple URL", () => {
+            // Arrange
+            const params = new URLSearchParams();
+            const testUrl = "http://localhost:3000/?";
+            params.append("url", testUrl);
+
+            // Act
+            const result = SearchParams.decode(params.toString());
+
+            // Assert
+            expect(result).to.deep.equal({
+                ...EMPTY_QUERY_COMPONENTS,
+                sources: [testUrl],
+            });
+        });
+
         it("Decodes encoded URL", () => {
             // Arrange
             const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid", "Balls?"];
@@ -177,7 +193,7 @@ describe("FileExplorerURL", () => {
                 ["3500000654", "ACTB-mEGFP", false],
                 ["3500000654", "ACTB-mEGFP", true],
             ];
-            const components: FileExplorerURLComponents = {
+            const components: SearchParamsComponents = {
                 columns: [],
                 fileView: FileView.LIST,
                 hierarchy: expectedAnnotationNames,
@@ -198,11 +214,11 @@ describe("FileExplorerURL", () => {
                 sourceMetadata: undefined,
                 sources: [mockSource],
             };
-            const encodedUrl = FileExplorerURL.encode(components);
+            const encodedUrl = SearchParams.encode(components);
             const encodedUrlWithWhitespace = " " + encodedUrl + " ";
 
             // Act
-            const result = FileExplorerURL.decode(encodedUrlWithWhitespace);
+            const result = SearchParams.decode(encodedUrlWithWhitespace);
 
             // Assert
             expect(result).to.deep.equal(components);
@@ -210,7 +226,7 @@ describe("FileExplorerURL", () => {
 
         it("Decodes to empty app state", () => {
             // Arrange
-            const components: FileExplorerURLComponents = {
+            const components: SearchParamsComponents = {
                 columns: [],
                 fileView: FileView.LIST,
                 hierarchy: [],
@@ -220,10 +236,10 @@ describe("FileExplorerURL", () => {
                 sourceMetadata: undefined,
                 sources: [],
             };
-            const encodedUrl = FileExplorerURL.encode(components);
+            const encodedUrl = SearchParams.encode(components);
 
             // Act
-            const result = FileExplorerURL.decode(encodedUrl);
+            const result = SearchParams.decode(encodedUrl);
 
             // Assert
             expect(result).to.deep.equal(components);
@@ -231,7 +247,7 @@ describe("FileExplorerURL", () => {
 
         it("Removes folders that are too deep for hierachy", () => {
             // Arrange
-            const components: FileExplorerURLComponents = {
+            const components: SearchParamsComponents = {
                 columns: [],
                 fileView: FileView.SMALL_THUMBNAIL,
                 hierarchy: ["Cell Line"],
@@ -239,10 +255,10 @@ describe("FileExplorerURL", () => {
                 openFolders: [new FileFolder(["AICS-0"]), new FileFolder(["AICS-0", false])],
                 sources: [],
             };
-            const encodedUrl = FileExplorerURL.encode(components);
+            const encodedUrl = SearchParams.encode(components);
 
             // Act / Assert
-            const { openFolders } = FileExplorerURL.decode(encodedUrl);
+            const { openFolders } = SearchParams.decode(encodedUrl);
             expect(openFolders).to.deep.equal([new FileFolder(["AICS-0"])]);
         });
 
@@ -259,7 +275,7 @@ describe("FileExplorerURL", () => {
                 ["3500000654", "ACTB-mEGFP", false],
                 ["3500000654", "ACTB-mEGFP", true],
             ];
-            const components: FileExplorerURLComponents = {
+            const components: SearchParamsComponents = {
                 columns: [],
                 fileView: FileView.LARGE_THUMBNAIL,
                 hierarchy: expectedAnnotationNames,
@@ -268,10 +284,10 @@ describe("FileExplorerURL", () => {
                 sortColumn: new FileSort(AnnotationName.FILE_PATH, "Garbage" as any),
                 sources: [],
             };
-            const encodedUrl = FileExplorerURL.encode(components);
+            const encodedUrl = SearchParams.encode(components);
 
             // Act / Assert
-            expect(() => FileExplorerURL.decode(encodedUrl)).to.throw();
+            expect(() => SearchParams.decode(encodedUrl)).to.throw();
         });
     });
 
@@ -279,7 +295,7 @@ describe("FileExplorerURL", () => {
         it("converts groupings", () => {
             // Arrange
             const expectedAnnotationNames = ["Cell Line", "Donor Plasmid", "Lifting?"];
-            const components: Partial<FileExplorerURLComponents> = {
+            const components: Partial<SearchParamsComponents> = {
                 hierarchy: expectedAnnotationNames,
                 sources: [mockSourceWithUri],
             };
@@ -289,7 +305,7 @@ describe("FileExplorerURL", () => {
             const expectedResult = `df${expectedPandasGroups.join("")}`;
 
             // Act
-            const result = FileExplorerURL.convertToPython(components, mockOS);
+            const result = SearchParams.convertToPython(components, mockOS);
 
             // Assert
             expect(result).to.contain(expectedResult);
@@ -301,7 +317,7 @@ describe("FileExplorerURL", () => {
                 { name: "Cas9", value: "spCas9" },
                 { name: "Donor Plasmid", value: "ACTB-mEGFP" },
             ];
-            const components: Partial<FileExplorerURLComponents> = {
+            const components: Partial<SearchParamsComponents> = {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 sources: [mockSourceWithUri],
             };
@@ -311,7 +327,7 @@ describe("FileExplorerURL", () => {
             const expectedResult = `df.query('${expectedPandasQueries[0]}').query('${expectedPandasQueries[1]}')`;
 
             // Act
-            const result = FileExplorerURL.convertToPython(components, mockOS);
+            const result = SearchParams.convertToPython(components, mockOS);
 
             // Assert
             expect(result).to.contain(expectedResult);
@@ -323,7 +339,7 @@ describe("FileExplorerURL", () => {
                 { name: "Gene", value: "AAVS1" },
                 { name: "Gene", value: "ACTB" },
             ];
-            const components: Partial<FileExplorerURLComponents> = {
+            const components: Partial<SearchParamsComponents> = {
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 sources: [mockSourceWithUri],
             };
@@ -333,7 +349,7 @@ describe("FileExplorerURL", () => {
             const expectedResult = `df.query('${expectedPandasQueries[0]} | ${expectedPandasQueries[1]}')`;
 
             // Act
-            const result = FileExplorerURL.convertToPython(components, mockOS);
+            const result = SearchParams.convertToPython(components, mockOS);
 
             // Assert
             expect(result).to.contain(expectedResult);
@@ -341,7 +357,7 @@ describe("FileExplorerURL", () => {
 
         it("converts sorts", () => {
             // Arrange
-            const components: Partial<FileExplorerURLComponents> = {
+            const components: Partial<SearchParamsComponents> = {
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
                 sources: [mockSourceWithUri],
             };
@@ -349,7 +365,7 @@ describe("FileExplorerURL", () => {
             const expectedResult = `df${expectedPandasSort}`;
 
             // Act
-            const result = FileExplorerURL.convertToPython(components, mockOS);
+            const result = SearchParams.convertToPython(components, mockOS);
 
             // Assert
             expect(result).to.contain(expectedResult);
@@ -357,13 +373,13 @@ describe("FileExplorerURL", () => {
 
         it("provides info on converting external data source to pandas dataframe", () => {
             // Arrange
-            const components: Partial<FileExplorerURLComponents> = {
+            const components: Partial<SearchParamsComponents> = {
                 sources: [mockSourceWithUri],
             };
             const expectedResult = `df = pd.read_csv('${mockSourceWithUri.uri}').astype('str')`;
 
             // Act
-            const result = FileExplorerURL.convertToPython(components, mockOS);
+            const result = SearchParams.convertToPython(components, mockOS);
 
             // Assert
             expect(result).to.contain(expectedResult);
@@ -371,13 +387,13 @@ describe("FileExplorerURL", () => {
 
         it("adds raw flag in pandas conversion code for Windows OS", () => {
             // Arrange
-            const components: Partial<FileExplorerURLComponents> = {
+            const components: Partial<SearchParamsComponents> = {
                 sources: [mockSourceWithUri],
             };
             const expectedResult = `df = pd.read_csv(r'${mockSourceWithUri.uri}').astype('str')`;
 
             // Act
-            const result = FileExplorerURL.convertToPython(components, "Windows_NT");
+            const result = SearchParams.convertToPython(components, "Windows_NT");
 
             // Assert
             expect(result).to.contain(expectedResult);
@@ -390,7 +406,7 @@ describe("FileExplorerURL", () => {
                 { name: "Cas9", value: "spCas9" },
                 { name: "Donor Plasmid", value: "ACTB-mEGFP" },
             ];
-            const components: Partial<FileExplorerURLComponents> = {
+            const components: Partial<SearchParamsComponents> = {
                 hierarchy: expectedAnnotationNames,
                 filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
@@ -399,7 +415,7 @@ describe("FileExplorerURL", () => {
             const expectedResult = /df\.groupby\(.*\)\.query\(.*\)\.query\(.*\)\.sort_values\(.*\)/i;
 
             // Act
-            const result = FileExplorerURL.convertToPython(components, mockOS);
+            const result = SearchParams.convertToPython(components, mockOS);
 
             // Assert
             expect(result).to.match(expectedResult);

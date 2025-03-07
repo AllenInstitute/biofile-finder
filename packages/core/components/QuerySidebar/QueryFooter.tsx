@@ -23,7 +23,7 @@ interface Props {
 export default function QueryFooter(props: Props) {
     const dispatch = useDispatch();
 
-    const url = useSelector(selection.selectors.getEncodedFileExplorerUrl);
+    const url = useSelector(selection.selectors.getEncodedSearchParams);
 
     const isEmptyQuery = !props.query.parts.sources.length;
 
