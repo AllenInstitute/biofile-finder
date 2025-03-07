@@ -36,7 +36,7 @@ import {
     COLLAPSE_ALL_FILE_FOLDERS,
 } from "./actions";
 import interaction from "../interaction";
-import { FileView, Source } from "../../entity/FileExplorerURL";
+import { FileView, Source } from "../../entity/SearchParams";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";

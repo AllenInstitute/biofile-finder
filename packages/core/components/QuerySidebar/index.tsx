@@ -14,7 +14,7 @@ import { PrimaryButton, useButtonMenu } from "../Buttons";
 import { ModalType } from "../Modal";
 import Tooltip from "../Tooltip";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
-import { DEFAULT_AICS_FMS_QUERY } from "../../entity/FileExplorerURL";
+import { DEFAULT_AICS_FMS_QUERY } from "../../entity/SearchParams";
 import Tutorial from "../../entity/Tutorial";
 import useHelpOptions from "../../hooks/useHelpOptions";
 import { interaction, selection } from "../../state";
@@ -34,7 +34,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
     const queries = useSelector(selection.selectors.getQueries);
     const selectedQuery = useSelector(selection.selectors.getSelectedQuery);
     const dataSources = useSelector(interaction.selectors.getAllDataSources);
-    const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
+    const currentGlobalURL = useSelector(selection.selectors.getEncodedSearchParams);
 
     const helpMenuOptions = useHelpOptions(dispatch);
     const helpMenu = useButtonMenu({

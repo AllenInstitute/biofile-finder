@@ -11,10 +11,10 @@ import FileFilter from "../../../../core/entity/FileFilter";
 
 import styles from "./OpenSourceDatasets.module.css";
 import {
-    FileExplorerURLComponents,
+    SearchParamsComponents,
     getNameAndTypeFromSourceUrl,
     Source,
-} from "../../../../core/entity/FileExplorerURL";
+} from "../../../../core/entity/SearchParams";
 
 /**
  * Page for displaying public-facing datasets
@@ -23,7 +23,7 @@ import {
 export default function OpenSourceDatasets() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
+    const currentGlobalURL = useSelector(selection.selectors.getEncodedSearchParams);
 
     // Begin request action so dataset manifest is ready for table child component
     React.useEffect(() => {
@@ -38,7 +38,7 @@ export default function OpenSourceDatasets() {
     const openDatasetInApp = (
         datasetName: string,
         source: Source,
-        url?: Partial<FileExplorerURLComponents>
+        url?: Partial<SearchParamsComponents>
     ) => {
         dispatch(
             selection.actions.addQuery({
@@ -56,13 +56,11 @@ export default function OpenSourceDatasets() {
         if (!datasetDetails) throw new Error("No dataset provided");
 
         const dataSourceURL = datasetDetails.path;
-        const { name, extensionGuess } = getNameAndTypeFromSourceUrl(dataSourceURL);
         const url = datasetDetails?.presetQuery;
         openDatasetInApp(
             datasetDetails.name,
             {
-                name,
-                type: extensionGuess,
+                ...getNameAndTypeFromSourceUrl(dataSourceURL),
                 uri: dataSourceURL,
             },
             url

@@ -19,7 +19,7 @@ import {
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
-    decodeFileExplorerURL,
+    decodeSearchParams,
     setAnnotationHierarchy,
     selectNearbyFile,
     SET_SORT_COLUMN,
@@ -35,7 +35,7 @@ import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import NumericRange from "../../../entity/NumericRange";
-import FileExplorerURL from "../../../entity/FileExplorerURL";
+import SearchParams from "../../../entity/SearchParams";
 import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
@@ -984,7 +984,7 @@ describe("Selection logics", () => {
         });
     });
 
-    describe("decodeFileExplorerURL", () => {
+    describe("decodeSearchParams", () => {
         const mockDataSources: DataSource[] = [
             {
                 id: "1234148",
@@ -1030,7 +1030,7 @@ describe("Selection logics", () => {
             const filters = [new FileFilter(annotations[3].name, "20x")];
             const openFolders = [["a"], ["a", false]].map((folder) => new FileFolder(folder));
             const sortColumn = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
-            const encodedURL = FileExplorerURL.encode({
+            const encodedURL = SearchParams.encode({
                 hierarchy,
                 filters,
                 openFolders,
@@ -1039,7 +1039,7 @@ describe("Selection logics", () => {
             });
 
             // Act
-            store.dispatch(decodeFileExplorerURL(encodedURL));
+            store.dispatch(decodeSearchParams(encodedURL));
             await logicMiddleware.whenComplete();
 
             // Assert
