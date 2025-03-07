@@ -65,7 +65,12 @@ describe("HttpFileService", () => {
 
             // Act / Assert
             try {
-                await httpFileService.editFile("file_id", { ["Color"]: ["red"] });
+                await httpFileService.editFile(
+                    "file_id",
+                    { ["Color"]: ["red"] },
+                    undefined,
+                    "Unknown"
+                );
                 expect(false, "Expected to throw").to.be.true;
             } catch (e) {
                 expect((e as Error).message).to.equal(

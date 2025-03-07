@@ -54,7 +54,6 @@ export default function BaseComboBox(props: Props) {
             multiSelect={props?.multiSelect}
             options={options}
             onChange={(_ev, option, _ind, value) => props.onChange?.(option, value)}
-            onItemClick={(_, option) => props.onChange?.(option)}
             onRenderItem={(props, defaultRender) => onRenderItem(props, defaultRender)}
             scrollSelectedToTop
             styles={{

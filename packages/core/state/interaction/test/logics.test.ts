@@ -801,9 +801,11 @@ describe("Interaction logics", () => {
 
             // Act
             store.dispatch(
-                editFiles({ "Cell Line": ["AICS-12"] }, [
-                    new FileFilter(AnnotationName.KIND, "PNG"),
-                ])
+                editFiles(
+                    { "Cell Line": ["AICS-12"] },
+                    [new FileFilter(AnnotationName.KIND, "PNG")],
+                    "Test"
+                )
             );
             await logicMiddleware.whenComplete();
 
@@ -853,7 +855,7 @@ describe("Interaction logics", () => {
             });
 
             // Act
-            store.dispatch(editFiles({ "Cell Line": ["AICS-12"] }));
+            store.dispatch(editFiles({ "Cell Line": ["AICS-12"] }, undefined, "Test"));
             await logicMiddleware.whenComplete();
             // Assert
             expect(

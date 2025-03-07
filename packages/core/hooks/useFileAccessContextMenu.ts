@@ -136,7 +136,7 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                         ],
                     },
                 },
-                ...(isQueryingAicsFms
+                ...(isQueryingAicsFms && isOnWeb
                     ? [
                           {
                               key: "edit",
@@ -148,7 +148,10 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                               },
                               onClick() {
                                   dispatch(
-                                      interaction.actions.setVisibleModal(ModalType.EditMetadata)
+                                      interaction.actions.setVisibleModal(
+                                          ModalType.EditMetadata,
+                                          filters
+                                      )
                                   );
                               },
                           },

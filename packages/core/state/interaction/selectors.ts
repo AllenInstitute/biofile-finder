@@ -137,11 +137,11 @@ export const getHttpFileService = createSelector(
         platformDependentServices
     ) =>
         new HttpFileService({
-            applicationVersion,
-            fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
-            loadBalancerBaseUrl: loadBalancerBaseUrl,
-            metadataManagementServiceBaseURl: metadataManagementServiceBaseURL,
             userName,
+            applicationVersion,
+            fileExplorerServiceBaseUrl,
+            loadBalancerBaseUrl,
+            metadataManagementServiceBaseURl: metadataManagementServiceBaseURL,
             downloadService: platformDependentServices.fileDownloadService,
         })
 );
@@ -185,6 +185,7 @@ export const getAnnotationService = createSelector(
         getApplicationVersion,
         getUserName,
         getFileExplorerServiceBaseUrl,
+        getMetadataManagementServiceBaseUrl,
         getSelectedDataSources,
         getPlatformDependentServices,
         getRefreshKey,
@@ -193,6 +194,7 @@ export const getAnnotationService = createSelector(
         applicationVersion,
         userName,
         fileExplorerServiceBaseUrl,
+        metadataManagementServiceBaseUrl,
         dataSources,
         platformDependentServices
     ): AnnotationService => {
@@ -205,7 +207,8 @@ export const getAnnotationService = createSelector(
         return new HttpAnnotationService({
             applicationVersion,
             userName,
-            fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
+            fileExplorerServiceBaseUrl,
+            metadataManagementServiceBaseURl: metadataManagementServiceBaseUrl
         });
     }
 );
@@ -216,7 +219,7 @@ export const getDatasetService = createSelector(
         new DatasetService({
             applicationVersion,
             userName,
-            fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
+            fileExplorerServiceBaseUrl,
         })
 );
 
