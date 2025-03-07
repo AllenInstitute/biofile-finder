@@ -570,7 +570,6 @@ const editFilesLogic = createLogic({
                     (fileId) =>
                         new Promise<void>(async (resolve, reject) => {
                             fileService
-                                // TODO: USER HERE NEEDS TO BE MORE SPECIFIC IF WE HAVE IT LIKE ON DESKTOP
                                 .editFile(fileId, annotations, annotationNameToAnnotationMap, user)
                                 .then((_) => {
                                     totalFileEdited += 1;

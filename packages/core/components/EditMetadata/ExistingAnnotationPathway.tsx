@@ -8,6 +8,7 @@ import MetadataDetails, { ValueCountItem } from "./MetadataDetails";
 import useAnnotationValueByNameMap from "./useAnnotationValueByNameMap";
 import { PrimaryButton, SecondaryButton } from "../Buttons";
 import ComboBox from "../ComboBox";
+import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import { interaction, metadata } from "../../state";
 
@@ -34,13 +35,17 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
     const annotationValueByNameMap = useAnnotationValueByNameMap();
     const filters = useSelector(interaction.selectors.getFileFiltersForVisibleModal);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
-    const annotationOptions = useSelector(metadata.selectors.getEdittableAnnotations).map(
-        (annotation) => ({
-            key: annotation.name,
-            text: annotation.displayName,
-            data: annotation.type,
-        })
-    );
+    const annotationOptions: IComboBoxOption[] = Annotation.sort(
+        useSelector(metadata.selectors.getAnnotations)
+    ).map((annotation) => ({
+        key: annotation.name,
+        text: annotation.displayName,
+        disabled: annotation.isImmutable,
+        title: annotation.isImmutable
+            ? "This field cannot be edited because it is automatically created based on some heuristic"
+            : "",
+        data: annotation.type,
+    }));
 
     const onSelectMetadataField = (
         option: IComboBoxOption | undefined,
@@ -109,7 +114,11 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 .then((isValid: boolean) => {
                     if (isValid) {
                         dispatch(
-                            interaction.actions.editFiles({ [selectedAnnotation]: [trimmedValues] }, filters, props.user)
+                            interaction.actions.editFiles(
+                                { [selectedAnnotation]: [trimmedValues] },
+                                filters,
+                                props.user
+                            )
                         );
                         props.onDismiss();
                     } else {

@@ -53,16 +53,18 @@ export interface CreateAnnotationAction {
     payload: {
         annotation: Annotation;
         annotationOptions?: string[];
+        user?: string;
     };
     type: string;
 }
 
 export function createAnnotation(
     annotation: Annotation,
-    annotationOptions?: string[]
+    annotationOptions?: string[],
+    user?: string
 ): CreateAnnotationAction {
     return {
-        payload: { annotation, annotationOptions },
+        payload: { annotation, annotationOptions, user },
         type: CREATE_ANNOTATION,
     };
 }

@@ -42,7 +42,7 @@ export default function useFilteredSelection() {
             // default to default selection if no filters
             setFilteredSelection(defaultSelection);
         }
-    }, [filters, sortColumn, fileService]);
+    }, [filters, sortColumn, fileService, defaultSelection]);
 
     return filteredSelection;
 }

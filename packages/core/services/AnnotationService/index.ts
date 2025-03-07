@@ -12,7 +12,8 @@ export interface AnnotationDetails {
 export default interface AnnotationService {
     createAnnotation(
         annotation: Annotation,
-        annotationOptions?: string[]
+        annotationOptions?: string[],
+        user?: string
     ): Promise<AnnotationResponseMms[] | void>;
     fetchValues(annotation: string): Promise<AnnotationValue[]>;
     fetchAnnotations(): Promise<Annotation[]>;

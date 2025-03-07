@@ -182,23 +182,37 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
      * Creates a new annotation via the metadata-management-service
      * @param annotation The new annotation to create
      * @param annotationOptions If not empty, pre-set options for annotations of type Dropdown
+     * @param user If not empty, the user of the request
      */
     public async createAnnotation(
         annotation: Annotation,
-        annotationOptions: string[] = []
+        annotationOptions: string[] = [],
+        user?: string
     ): Promise<AnnotationResponseMms[]> {
-        const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpAnnotationService.BASE_MMS_ANNOTATION_URL}/`;
-        const annotationType = annotation.type as AnnotationType;
-        const requestBody = {
-            annotationTypeId: AnnotationTypeIdMap[annotationType],
-            annotationOptions,
-            description: annotation.description,
-            name: annotation.name,
-        };
-        const response = await this.post<AnnotationResponseMms>(
-            requestUrl,
-            JSON.stringify(requestBody)
-        );
-        return response.data;
+        if (!user) {
+            throw new Error("User must be provided to create a metadata field in AICS FMS");
+        }
+        const defaultUser = this.userName;
+        this.setUserName(user);
+
+        try {
+            const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpAnnotationService.BASE_MMS_ANNOTATION_URL}/`;
+            const annotationType = annotation.type as AnnotationType;
+            const requestBody = {
+                annotationTypeId: AnnotationTypeIdMap[annotationType],
+                annotationOptions,
+                description: annotation.description,
+                name: annotation.name,
+            };
+            const response = await this.post<AnnotationResponseMms>(
+                requestUrl,
+                JSON.stringify(requestBody)
+            );
+
+            return response.data;
+        } finally {
+            // Revert back to whatever user before the request
+            this.setUserName(defaultUser);
+        }
     }
 }

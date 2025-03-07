@@ -16,6 +16,8 @@ import styles from "./EditMetadata.module.css";
 // Hard-coded mapping of passwords to programs, due to this being an internal
 // specific feature, this is acceptable for now. However, we should think about
 // a more robust solution in the future such as login or a more secure method.
+// or find a way to get this information passed in via GH secrets to the packaged
+// web bundle
 const PASSWORD_TO_PROGRAM_MAP: Record<string, string> = {
     S6KNQ7SW: "EMT",
     V2SYXAQK: "IntegratedNucleus",

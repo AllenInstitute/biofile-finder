@@ -103,7 +103,7 @@ export default class HttpServiceBase {
 
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
     private applicationVersion = "NOT SET";
-    private userName?: string;
+    protected userName?: string;
     protected readonly pathSuffix: string = "";
     private readonly urlToResponseDataCache = new LRUCache<string, any>({ max: MAX_CACHE_SIZE });
 
@@ -370,7 +370,7 @@ export default class HttpServiceBase {
         this.metadataManagementServiceBaseURl = metadataManagementServiceBaseURl;
     }
 
-    public setUserName(userName: string) {
+    public setUserName(userName?: string) {
         this.userName = userName;
         this.setHeaders();
     }

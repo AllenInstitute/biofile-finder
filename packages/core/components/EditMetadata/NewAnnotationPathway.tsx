@@ -26,7 +26,7 @@ interface NewAnnotationProps {
     onDismiss: () => void;
     setHasUnsavedChanges: (arg: boolean) => void;
     selectedFileCount: number;
-    user?: string; // TODO: Use when anya's stuff is merged in
+    user?: string;
 }
 
 // Simplified version of status message
@@ -65,7 +65,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
     const [hasNameErrors, setHasNameErrors] = React.useState(false);
     const [nameWarnings, setNameWarnings] = React.useState<string[]>([]);
 
-    const annotationOptions = useSelector(metadata.selectors.getEdittableAnnotations).map(
+    const annotationOptions = useSelector(metadata.selectors.getSortedAnnotations).map(
         (annotation) => ({
             key: annotation.name,
             text: annotation.displayName,
@@ -222,12 +222,11 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
             type: newFieldDataType,
         });
         // File editing step occurs after dispatch is processed and status is updated
-        dispatch(metadata.actions.createAnnotation(annotation, dropdownOptions));
+        dispatch(metadata.actions.createAnnotation(annotation, dropdownOptions, props.user));
     }
 
     return (
         <>
-            {/* TO DO: Prevent user from entering a name that collides with existing annotation */}
             <TextField
                 required
                 label="New metadata field name (key)"

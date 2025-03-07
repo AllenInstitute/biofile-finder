@@ -8,6 +8,8 @@ interface Props {
     className?: string;
     invertColor?: boolean;
     size?: SpinnerSize;
+
+    "data-testid"?: string;
 }
 
 export default function LoadingIcon(props: Props) {
@@ -17,6 +19,7 @@ export default function LoadingIcon(props: Props) {
                 [styles.invertColor]: props.invertColor,
             })}
             size={props.size || SpinnerSize.small}
+            data-testid={props["data-testid"]}
         />
     );
 }
