@@ -17,6 +17,7 @@ export interface AnnotationResponse {
     annotationDisplayName: string;
     annotationName: string;
     description: string;
+    isImmutable?: boolean;
     type: AnnotationType;
     isOpenFileLink?: boolean;
     units?: string;
@@ -79,6 +80,10 @@ export default class Annotation {
 
     public get isOpenFileLink(): boolean {
         return this.annotation.isOpenFileLink || false;
+    }
+
+    public get isImmutable(): boolean {
+        return this.annotation.isImmutable || false;
     }
 
     public get units(): string | undefined {

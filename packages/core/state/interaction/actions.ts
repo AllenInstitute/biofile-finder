@@ -276,18 +276,21 @@ export interface EditFilesAction {
     payload: {
         annotations: { [name: string]: AnnotationValue[] };
         filters?: FileFilter[];
+        user?: string;
     };
 }
 
 export function editFiles(
     annotations: { [name: string]: AnnotationValue[] },
-    filters?: FileFilter[]
+    filters?: FileFilter[],
+    user?: string
 ): EditFilesAction {
     return {
         type: EDIT_FILES,
         payload: {
             annotations,
             filters,
+            user,
         },
     };
 }
@@ -610,14 +613,18 @@ export const SET_VISIBLE_MODAL = makeConstant(STATE_BRANCH_NAME, "set-visible-mo
 export interface SetVisibleModalAction {
     type: string;
     payload: {
+        fileFiltersForVisibleModal: FileFilter[];
         visibleModal: ModalType;
     };
 }
 
-export function setVisibleModal(visibleModal: ModalType): SetVisibleModalAction {
+export function setVisibleModal(
+    visibleModal: ModalType,
+    fileFiltersForVisibleModal: FileFilter[] = []
+): SetVisibleModalAction {
     return {
         type: SET_VISIBLE_MODAL,
-        payload: { visibleModal },
+        payload: { visibleModal, fileFiltersForVisibleModal },
     };
 }
 

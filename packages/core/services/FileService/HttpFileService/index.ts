@@ -102,6 +102,9 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     public async getFiles(request: GetFilesRequest): Promise<FileDetail[]> {
         const { from, limit, fileSet } = request;
 
+        if (limit - from > 1000) {
+            throw new Error("uhh" + limit + " " + from);
+        }
         const base = `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}${this.pathSuffix}?from=${from}&limit=${limit}`;
         const requestUrl = join(compact([base, fileSet.toQueryString()]), "&");
 
@@ -143,20 +146,32 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     public async editFile(
         fileId: string,
         annotationNameToValuesMap: AnnotationNameToValuesMap,
-        annotationNameToAnnotationMap?: Record<string, Annotation>
+        annotationNameToAnnotationMap?: Record<string, Annotation>,
+        user?: string
     ): Promise<void> {
-        const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpFileService.BASE_FILE_EDIT_URL}/${fileId}`;
-        const annotations = Object.entries(annotationNameToValuesMap).map(([name, values]) => {
-            const annotationId = annotationNameToAnnotationMap?.[name].id;
-            if (!annotationId) {
-                throw new Error(
-                    `Unable to edit file. Failed to find annotation id for annotation ${name}`
-                );
-            }
-            return { annotationId, values };
-        });
-        const requestBody = JSON.stringify({ customMetadata: { annotations } });
-        await this.put(requestUrl, requestBody);
+        if (!user) {
+            throw new Error("User must be provided to edit file in AICS FMS");
+        }
+        const defaultUser = this.userName;
+        this.setUserName(user);
+
+        try {
+            const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpFileService.BASE_FILE_EDIT_URL}/${fileId}`;
+            const annotations = Object.entries(annotationNameToValuesMap).map(([name, values]) => {
+                const annotationId = annotationNameToAnnotationMap?.[name].id;
+                if (!annotationId) {
+                    throw new Error(
+                        `Unable to edit file. Failed to find annotation id for annotation ${name}`
+                    );
+                }
+                return { annotationId, values };
+            });
+            const requestBody = JSON.stringify({ customMetadata: { annotations } });
+            await this.put(requestUrl, requestBody);
+        } finally {
+            // Revert back to whatever user before the request
+            this.setUserName(defaultUser);
+        }
     }
 
     /**

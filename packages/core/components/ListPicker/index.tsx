@@ -1,9 +1,10 @@
-import { ActionButton, List, Spinner, SpinnerSize } from "@fluentui/react";
+import { ActionButton, List } from "@fluentui/react";
 import classNames from "classnames";
 import Fuse from "fuse.js";
 import * as React from "react";
 
 import ListRow, { ListItem } from "./ListRow";
+import LoadingIcon from "../Icons/LoadingIcon";
 import SearchBox from "../SearchBox";
 import Tooltip from "../Tooltip";
 
@@ -99,7 +100,7 @@ export default function ListPicker(props: ListPickerProps) {
     if (loading) {
         return (
             <div className={styles.container}>
-                <Spinner size={SpinnerSize.small} />
+                <LoadingIcon />
             </div>
         );
     }

@@ -4,6 +4,7 @@ import { createLogic } from "redux-logic";
 import { interaction, metadata, ReduxLogicDeps, selection } from "..";
 import {
     CREATE_ANNOTATION,
+    CreateAnnotationAction,
     RECEIVE_ANNOTATIONS,
     ReceiveAnnotationAction,
     receiveAnnotations,
@@ -117,7 +118,9 @@ const receiveAnnotationsLogic = createLogic({
 const createNewAnnotationLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { getState, httpClient, action } = deps;
-        const { annotation, annotationOptions } = action.payload;
+        const {
+            payload: { annotation, annotationOptions, user },
+        } = action as CreateAnnotationAction;
         const annotationProcessId = annotation.name;
         dispatch(
             interaction.actions.processStart(
@@ -138,7 +141,7 @@ const createNewAnnotationLogic = createLogic({
         // HTTP returns the annotation, DB does not
         await new Promise<AnnotationResponseMms[] | void>((resolve, reject) => {
             annotationService
-                .createAnnotation(annotation, annotationOptions)
+                .createAnnotation(annotation, annotationOptions, user)
                 .then((res) => {
                     // For HTTPS annotations, temporarily capture the returned
                     // annotation metadata so that it can be used to edit file metadata

@@ -1,10 +1,10 @@
 import classNames from "classnames";
-import { Spinner, SpinnerSize } from "@fluentui/react";
 import * as React from "react";
 import { useSelector } from "react-redux";
 import Tippy from "@tippyjs/react";
 import "tippy.js/dist/tippy.css"; // side-effect
 
+import LoadingIcon from "../Icons/LoadingIcon";
 import SvgIcon from "../../components/SvgIcon";
 import { selection } from "../../state";
 import FileSet from "../../entity/FileSet";
@@ -111,7 +111,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
             />
             <h4 className={styles.directoryName}>{title}</h4>
             {selectionCountBadge}
-            {loading && <Spinner size={SpinnerSize.small} />}
+            {loading && <LoadingIcon />}
             {!loading && error && (
                 <Tippy content={error.message}>
                     <SvgIcon
