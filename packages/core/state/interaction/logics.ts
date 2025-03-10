@@ -218,7 +218,9 @@ const downloadFilesLogic = createLogic({
                 id: file.uid,
                 name: file.name,
                 size: file.size,
-                path: file.downloadPath,
+                path: fileDownloadService.isFileSystemAccessible
+                    ? file.localPath || file.path
+                    : file.path,
             }));
         }
 

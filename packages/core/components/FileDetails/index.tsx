@@ -99,9 +99,7 @@ export default function FileDetails(props: Props) {
                 if (fileDetails.size && fileDetails.size > 0) {
                     setCalculatedSize(fileDetails.size);
                 } else {
-                    const { hostname, key } = fileDownloadService.parseS3Url(
-                        fileDetails.downloadPath
-                    );
+                    const { hostname, key } = fileDownloadService.parseS3Url(fileDetails.path);
                     fileDownloadService
                         .calculateS3DirectorySize(hostname, key)
                         .then(setCalculatedSize);
@@ -136,7 +134,9 @@ export default function FileDetails(props: Props) {
                         id: fileDetails.uid,
                         name: fileDetails.name,
                         size: fileDetails.size,
-                        path: fileDetails.downloadPath,
+                        path: fileDownloadService.isFileSystemAccessible
+                            ? fileDetails.localPath || fileDetails.path
+                            : fileDetails.path,
                     },
                 ])
             );
