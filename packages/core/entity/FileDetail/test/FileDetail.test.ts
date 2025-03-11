@@ -4,32 +4,7 @@ import FileDetail from "..";
 import { Environment } from "../../../constants";
 
 describe("FileDetail", () => {
-    describe("file path representation", () => {
-        it("creates downloadPath from /allen path", () => {
-            // Arrange
-            const file_name = "MyFile.txt";
-            const file_id = "c32e3eed66e4416d9532d369ffe1636f";
-
-            // Act
-            const fileDetail = new FileDetail(
-                {
-                    file_path: `production.files.allencell.org/${file_name}`,
-                    file_name: file_name,
-                    file_id: file_id,
-                    annotations: [{ name: "Cache Eviction Date", values: ["SOME DATE"] }],
-                },
-                Environment.PRODUCTION
-            );
-
-            // Assert
-            expect(fileDetail.downloadPath).to.equal(
-                // The downloadPath is HTTP, but will get redirected to HTTPS
-                `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image/allen/programs/allencell/data/proj0/${file_name}`
-            );
-        });
-    });
-
-    describe("getLocalPath", () => {
+    describe("localPath", () => {
         it("creates localPath correctly for production environment", () => {
             // Arrange
             const file_name = "ProdFile.czi";
@@ -48,7 +23,7 @@ describe("FileDetail", () => {
             );
 
             // Assert
-            expect(fileDetail.getLocalPath()).to.equal(
+            expect(fileDetail.localPath).to.equal(
                 `/allen/programs/allencell/data/proj0/${file_name}`
             );
         });
@@ -71,7 +46,7 @@ describe("FileDetail", () => {
             );
 
             // Assert
-            expect(fileDetail.getLocalPath()).to.equal(
+            expect(fileDetail.localPath).to.equal(
                 `/allen/aics/software/apps/staging/fss/data/${file_name}`
             );
         });
