@@ -32,4 +32,8 @@ export default class ExecutionEnvServiceWeb implements ExecutionEnvService {
     public async promptForSaveLocation(): Promise<SaveLocationResolution> {
         throw Error("ExecutionEnvServiceWeb::promptForSaveLocation not yet implemented");
     }
+
+    public openNativeFileBrowser(): void {
+        throw Error("ExecutionEnvServiceWeb::openNativeFileBrowser not yet implemented");
+    }
 }

@@ -470,6 +470,30 @@ export function showManifestDownloadDialog(
     };
 }
 
+// todo should these go here?
+/**
+ * OPEN_NATIVE_FILE_BROWSER
+ *
+ * Open the user's native file browser. Only works in desktop mode.
+ */
+export const OPEN_NATIVE_FILE_BROWSER = makeConstant(STATE_BRANCH_NAME, "open-native-file-browser");
+
+export interface OpenNativeFileBrowserAction {
+    type: string;
+    payload: {
+        fileDetails: FileDetail;
+    };
+}
+
+export function openNativeFileBrowser(fileDetails: FileDetail): OpenNativeFileBrowserAction {
+    return {
+        type: OPEN_NATIVE_FILE_BROWSER,
+        payload: {
+            fileDetails,
+        },
+    };
+}
+
 /**
  * PROMPT_FOR_NEW_EXECUTABLE
  *

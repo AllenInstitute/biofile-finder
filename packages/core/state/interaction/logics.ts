@@ -33,6 +33,8 @@ import {
     hideVisibleModal,
     CopyFilesAction,
     COPY_FILES,
+    OpenNativeFileBrowserAction,
+    OPEN_NATIVE_FILE_BROWSER,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
@@ -664,11 +666,32 @@ const copyFilesLogic = createLogic({
     type: COPY_FILES,
 });
 
+const openNativeFileBrowser = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const {
+            payload: { fileDetails },
+        } = deps.action as OpenNativeFileBrowserAction;
+        const { executionEnvService } = interactionSelectors.getPlatformDependentServices(
+            deps.getState()
+        );
+        try {
+            executionEnvService.openNativeFileBrowser(fileDetails);
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            dispatch(processError("openNativeFileBrowserError", errorMsg));
+        } finally {
+            done();
+        }
+    },
+    type: OPEN_NATIVE_FILE_BROWSER,
+});
+
 export default [
     initializeApp,
     downloadManifest,
     cancelFileDownloadLogic,
     promptForNewExecutable,
+    openNativeFileBrowser,
     openWithDefault,
     openWithLogic,
     downloadFilesLogic,
