@@ -205,13 +205,26 @@ export default abstract class DatabaseService {
             `);
             // Best shot attempt at auto-generating a "File Name"
             // from the "File Path", defaults to full path if this fails
+            // description of SQL:
+            // * COALESCE - returns the first non-null value in the list
+            // * NULLIF - returns null if the two arguments are equal
+            // * REGEXP_REPLACE - replaces a substring with another substring
+            // so we first replace the last file extension with nothing
+            // then check if .ome is at the end of the string and remove it
+            // then if it is null if the string is empty
+            // which we use COALESCE to replace with the full path if so
             commandsToExecute.push(`
                 UPDATE "${name}"
                 SET "${PreDefinedColumn.FILE_NAME}" = COALESCE(
                     NULLIF(
                         REGEXP_REPLACE(
-                            "${PreDefinedColumn.FILE_PATH}",
-                            '^.*/([^/]*?)(\\.[^/.]+)?$', '\\1',
+                            REGEXP_REPLACE(
+                                "${PreDefinedColumn.FILE_PATH}",
+                                '^.*/([^/]*?)(\\.[^/.]+)?$',
+                                '\\1',
+                                ''
+                            ),
+                            '\\.ome$',
                             ''
                         ),
                     ''),
