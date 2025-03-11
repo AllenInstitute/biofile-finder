@@ -141,7 +141,7 @@ export default function FileDetails(props: Props) {
                 ])
             );
         }, 1000); // 1s, in ms (arbitrary)
-    }, [dispatch, fileDetails]);
+    }, [dispatch, fileDetails, fileDownloadService.isFileSystemAccessible]);
 
     return (
         <div
