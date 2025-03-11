@@ -1,11 +1,15 @@
 import childProcess from "child_process";
 
+import * as fs from "fs";
+
 import { expect } from "chai";
-import { createSandbox } from "sinon";
+import { createSandbox, SinonStub, stub } from "sinon";
 
 import FileViewerServiceElectron from "../FileViewerServiceElectron";
 import NotificationServiceElectron from "../NotificationServiceElectron";
-import { RUN_IN_RENDERER } from "../../util/constants";
+import { Environment, RUN_IN_RENDERER } from "../../util/constants";
+import FileDetail from "../../../../core/entity/FileDetail";
+import { FileNotFoundError } from "../../../../core/errors";
 
 describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
     const sandbox = createSandbox();
@@ -67,6 +71,43 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
 
             // Assert
             expect(attemptedToShowError).to.be.true;
+        });
+    });
+
+    describe("openNativeFileBrowser", () => {
+        let existsSyncStub: SinonStub;
+
+        before(() => {
+            existsSyncStub = stub(fs, "existsSync");
+        });
+
+        after(() => {
+            existsSyncStub.restore();
+        });
+
+        it("throws an error if file path does not exist", () => {
+            // Arrange
+            existsSyncStub.returns(false);
+
+            const service = new FileViewerServiceElectron(new UselessNotificationService());
+
+            const fileDetail = new FileDetail(
+                {
+                    annotations: [
+                        {
+                            name: "Cache Eviction Date",
+                            values: ["2000-01-01"],
+                        },
+                    ],
+                    file_path: "/allen/aics/path/to/file.txt",
+                },
+                Environment.TEST
+            );
+
+            // Act + Assert
+            expect(() => {
+                service.openNativeFileBrowser(fileDetail);
+            }).to.throw(FileNotFoundError);
         });
     });
 });

@@ -4,7 +4,7 @@ import * as path from "path";
 
 import { expect } from "chai";
 import { ipcRenderer } from "electron";
-import { createSandbox, SinonStub, stub } from "sinon";
+import { createSandbox } from "sinon";
 
 import {
     ExecutableEnvCancellationToken,
@@ -12,9 +12,7 @@ import {
 } from "./../../../../core/services";
 import ExecutionEnvServiceElectron from "../ExecutionEnvServiceElectron";
 import NotificationServiceElectron from "../NotificationServiceElectron";
-import { Environment, RUN_IN_RENDERER } from "../../util/constants";
-import FileDetail from "../../../../core/entity/FileDetail";
-import { FileNotFoundError } from "../../../../core/errors";
+import { RUN_IN_RENDERER } from "../../util/constants";
 
 describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
     const runningOnMacOS = os.type() === "Darwin";
@@ -249,43 +247,6 @@ describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
 
             // Assert
             expect(result).to.be.true;
-        });
-    });
-
-    describe("openNativeFileBrowser", () => {
-        let existsSyncStub: SinonStub;
-
-        before(() => {
-            existsSyncStub = stub(fs, "existsSync");
-        });
-
-        after(() => {
-            existsSyncStub.restore();
-        });
-
-        it("throws an error if file path does not exist", () => {
-            // Arrange
-            existsSyncStub.returns(false);
-
-            const service = new ExecutionEnvServiceElectron(new NotificationServiceElectron());
-
-            const fileDetail = new FileDetail(
-                {
-                    annotations: [
-                        {
-                            name: "Cache Eviction Date",
-                            values: ["2000-01-01"],
-                        },
-                    ],
-                    file_path: "/allen/aics/path/to/file.txt",
-                },
-                Environment.TEST
-            );
-
-            // Act + Assert
-            expect(() => {
-                service.openNativeFileBrowser(fileDetail);
-            }).to.throw(FileNotFoundError);
         });
     });
 });

@@ -20,8 +20,4 @@ export default class ExecutionEnvServiceNoop implements ExecutionEnvService {
     public promptForFile(): Promise<string> {
         return Promise.resolve("ExecutionEnvServiceNoop::promptForFile");
     }
-
-    public openNativeFileBrowser(): void {
-        console.log("ExecutionEnvServiceNoop::openNativeFileBrowser");
-    }
 }

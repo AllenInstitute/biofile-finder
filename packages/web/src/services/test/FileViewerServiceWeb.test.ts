@@ -18,4 +18,20 @@ describe("FileViewerServiceWeb", () => {
             }
         });
     });
+
+    describe("openNativeFileBrowser", () => {
+        it("throws error (not implemented)", () => {
+            // Arrange
+            const service = new FileViewerServiceWeb();
+
+            // Act / Assert
+            try {
+                service.openNativeFileBrowser();
+            } catch (error) {
+                expect((error as Error).message).to.equal(
+                    "ExecutionEnvServiceWeb::openNativeFileBrowser not yet implemented"
+                );
+            }
+        });
+    });
 });

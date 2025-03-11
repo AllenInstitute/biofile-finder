@@ -2,8 +2,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
-import { dialog, ipcMain, ipcRenderer, shell } from "electron";
-import { existsSync } from "fs";
+import { dialog, ipcMain, ipcRenderer } from "electron";
 
 import {
     ExecutionEnvService,
@@ -12,8 +11,6 @@ import {
 } from "../../../core/services";
 import FmsFilePath from "../domain/FmsFilePath";
 import NotificationServiceElectron from "./NotificationServiceElectron";
-import FileDetail from "../../../core/entity/FileDetail";
-import { FileNotFoundError } from "../../../core/errors";
 
 // Output of os.type()
 type OSType = "Linux" | "Darwin" | "Windows_NT";
@@ -253,17 +250,5 @@ export default class ExecutionEnvServiceElectron implements ExecutionEnvService 
             return ExecutableEnvCancellationToken;
         }
         return result.filePaths[0];
-    }
-
-    // Open the user's native file browser at the localPath of the given file
-    public openNativeFileBrowser(fileDetails: FileDetail): void {
-        if (fileDetails.localPath) {
-            if (!existsSync(fileDetails.localPath)) {
-                throw new FileNotFoundError(
-                    `Cannot open "${fileDetails.localPath}". Is the path accessible?`
-                );
-            }
-            shell.showItemInFolder(fileDetails.localPath);
-        }
     }
 }

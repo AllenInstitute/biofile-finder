@@ -671,11 +671,11 @@ const openNativeFileBrowser = createLogic({
         const {
             payload: { fileDetails },
         } = deps.action as OpenNativeFileBrowserAction;
-        const { executionEnvService } = interactionSelectors.getPlatformDependentServices(
+        const { fileViewerService } = interactionSelectors.getPlatformDependentServices(
             deps.getState()
         );
         try {
-            executionEnvService.openNativeFileBrowser(fileDetails);
+            fileViewerService.openNativeFileBrowser(fileDetails);
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
             dispatch(processError("openNativeFileBrowserError", errorMsg));

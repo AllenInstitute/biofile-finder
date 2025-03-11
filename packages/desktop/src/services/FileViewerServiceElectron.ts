@@ -7,6 +7,10 @@ import fijiViewerStrategy from "./file-viewer-strategy/fijiViewerStrategy";
 import ViewerStrategy from "./file-viewer-strategy/ViewerStrategy";
 import macViewerStrategy from "./file-viewer-strategy/macViewerStrategy";
 import systemDefaultViewerStrategy from "./file-viewer-strategy/systemDefaultViewerStrategy";
+import { FileNotFoundError } from "../../../core/errors";
+import { existsSync } from "fs";
+import FileDetail from "../../../core/entity/FileDetail";
+import { shell } from "electron";
 
 export default class FileViewerServiceElectron implements FileViewerService {
     private notificationService: NotificationServiceElectron;
@@ -42,6 +46,18 @@ export default class FileViewerServiceElectron implements FileViewerService {
             await viewerStrategy(executable, filePaths);
         } catch (error) {
             await reportErrorToUser(error);
+        }
+    }
+
+    // Open the user's native file browser at the localPath of the given file
+    public openNativeFileBrowser(fileDetails: FileDetail): void {
+        if (fileDetails.localPath) {
+            if (!existsSync(fileDetails.localPath)) {
+                throw new FileNotFoundError(
+                    `Cannot open "${fileDetails.localPath}". Is the path accessible?`
+                );
+            }
+            shell.showItemInFolder(fileDetails.localPath);
         }
     }
 }

@@ -58,6 +58,10 @@ describe("Interaction logics", () => {
         open() {
             return Promise.resolve();
         }
+
+        openNativeFileBrowser(): void {
+            console.log("Not implemented");
+        }
     }
 
     class MockDatabaseService extends DatabaseServiceNoop {
@@ -1268,6 +1272,10 @@ describe("Interaction logics", () => {
                     actualFilePaths = filePaths;
                     actualExecutablePath = executablePath;
                     return Promise.resolve();
+                }
+
+                openNativeFileBrowser(): void {
+                    console.log("Not implemented");
                 }
             }
 

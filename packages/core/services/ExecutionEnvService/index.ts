@@ -1,5 +1,3 @@
-import FileDetail from "../../entity/FileDetail";
-
 export interface SaveLocationResolution {
     fileName: string;
     saveLocation: string;
@@ -42,14 +40,6 @@ export default interface ExecutionEnvService {
      * @param reasonForPrompt (Optional) If present, will first display a message to the user notifying them of
      */
     promptForFile(extensions?: string[], reasonForPrompt?: string): Promise<string>;
-
-    /**
-     * TODO: Change "fileDetails" to "localFilePath"?
-     * Opens the user's native file browser at a given path.
-     *
-     * @param fileDetails
-     */
-    openNativeFileBrowser(fileDetails: FileDetail): void;
 }
 
 /**
