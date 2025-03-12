@@ -406,7 +406,7 @@ const decodeSearchParamsLogics = createLogic({
             sortColumn,
             sources,
             sourceMetadata,
-        } = SearchParams.decode(encodedURL);
+        } = SearchParams.decode(encodedURL)[0];
 
         batch(() => {
             dispatch(changeSourceMetadata(sourceMetadata));

@@ -157,7 +157,7 @@ export default class PublicDataset {
         if (!this.datasetDetails.specific_query) {
             return;
         } else {
-            return SearchParams.decode(this.datasetDetails.specific_query);
+            return SearchParams.decode(this.datasetDetails.specific_query)[0];
         }
     }
 

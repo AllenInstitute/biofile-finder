@@ -180,12 +180,16 @@ export default class SearchParams {
      * Decode a previously encoded SearchParams into components that can be rehydrated into the
      * application state
      */
-    public static decode(encodedURL: string): SearchParamsComponents {
+    public static decode(encodedURL: string): SearchParamsComponents[] {
         const params = new URLSearchParams(encodedURL.trim());
         if (params.getAll("url").length > 0) {
-            return SearchParams.decodeSimpleParams(params);
+            return [SearchParams.decodeSimpleParams(params)];
         }
-        return SearchParams.decodeComplexParams(params);
+        if (params.getAll("query").length > 0) {
+            return SearchParams.decodeMultipleQueries(params);
+        }
+        // Default usually
+        return [SearchParams.decodeComplexParams(params)];
     }
 
     private static decodeSimpleParams(params: URLSearchParams): SearchParamsComponents {
@@ -197,6 +201,13 @@ export default class SearchParams {
                 ...getNameAndTypeFromSourceUrl(uri),
             })),
         };
+    }
+
+    private static decodeMultipleQueries(params: URLSearchParams): SearchParamsComponents[] {
+        const queries = params.getAll("query");
+        return queries.map((query) => {
+            // ...some way to re-use decodeComplexParams here
+        });
     }
 
     private static decodeComplexParams(params: URLSearchParams): SearchParamsComponents {
