@@ -1,4 +1,5 @@
 import { ContextualMenuItemType, IContextualMenuItem } from "@fluentui/react";
+import { isNil } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -74,11 +75,7 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                               key: "go-to-file-location",
                               text: "Go to file location",
                               title: "Show selected file in your native file browser",
-                              disabled:
-                                  fileDetails?.localPath === null ||
-                                  fileDetails?.localPath === undefined ||
-                                  fileSelection.count() > 1 ||
-                                  (!filters && fileSelection.count() === 0),
+                              disabled: isNil(fileDetails?.localPath),
                               iconProps: { iconName: "FolderOpen" },
                               onClick() {
                                   if (fileDetails) {
