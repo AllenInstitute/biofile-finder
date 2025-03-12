@@ -470,7 +470,6 @@ export function showManifestDownloadDialog(
     };
 }
 
-// todo should these go here?
 /**
  * OPEN_NATIVE_FILE_BROWSER
  *
