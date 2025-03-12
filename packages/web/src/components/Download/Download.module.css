@@ -1,0 +1,16 @@
+.download-container {
+    display: flex;
+    justify-content: center;
+}
+
+.error {
+    background-color: var(--error-background-color);
+    color: var(--error-text-color);
+}
+
+.section {
+    padding: 40px calc(2 * var(--margin));
+    max-width: 1200px;
+    margin: 0 auto;
+    line-height: 1.5;
+}

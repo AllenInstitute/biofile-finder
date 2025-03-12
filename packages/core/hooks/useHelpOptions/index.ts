@@ -117,17 +117,13 @@ export default function useHelpOptions(
                       },
                   },
               ]),
-        ...(isOnWeb
-            ? []
-            : [
-                  {
-                      key: "download-newest-version",
-                      text: "Download Newest Version",
-                      title: "Opens the BioFile Finder download page in a new window",
-                      href: "https://alleninstitute.github.io/biofile-finder/",
-                      target: "_blank",
-                  },
-              ]),
+        {
+            key: "download-newest-version",
+            text: "Download Newest Version",
+            title: "Opens the BioFile Finder download page in a new window",
+            href: "https://bff.allencell.org/download",
+            target: "_blank",
+        },
         {
             key: "github",
             text: `Visit GitHub page`,
