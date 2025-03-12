@@ -5,7 +5,7 @@ import * as React from "react";
 
 import { SecondaryButton } from "../Buttons";
 import Tooltip from "../Tooltip";
-import { Source, getNameAndTypeFromSourceUrl } from "../../entity/FileExplorerURL";
+import { Source, getNameAndTypeFromSourceUrl } from "../../entity/SearchParams";
 
 import styles from "./FilePrompt.module.css";
 
@@ -40,10 +40,8 @@ export default function FilePrompt(props: Props) {
         (evt: React.FormEvent) => {
             evt.preventDefault();
             if (dataSourceURL) {
-                const { name, extensionGuess } = getNameAndTypeFromSourceUrl(dataSourceURL);
                 props.onSelectFile({
-                    name,
-                    type: extensionGuess,
+                    ...getNameAndTypeFromSourceUrl(dataSourceURL),
                     uri: dataSourceURL,
                 });
             }

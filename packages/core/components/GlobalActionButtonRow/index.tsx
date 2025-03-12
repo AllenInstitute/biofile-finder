@@ -3,7 +3,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { TertiaryButton } from "../Buttons";
-import { FileView } from "../../entity/FileExplorerURL";
+import { FileView } from "../../entity/SearchParams";
 import { selection } from "../../state";
 
 import styles from "./GlobalActionButtonRow.module.css";
