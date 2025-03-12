@@ -4,6 +4,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { TertiaryButton } from "../Buttons";
+import { ContextualMenuItemType } from "../ContextMenu";
 import { ModalType } from "../Modal";
 import Tutorial from "../../entity/Tutorial";
 import { interaction, selection } from "../../state";
@@ -23,6 +24,8 @@ interface Props {
 export default function QueryFooter(props: Props) {
     const dispatch = useDispatch();
 
+    const fileFilters = useSelector(selection.selectors.getFileFilters);
+    const isQueryingAicsFms = useSelector(selection.selectors.isQueryingAicsFms);
     const url = useSelector(selection.selectors.getEncodedFileExplorerUrl);
 
     const isEmptyQuery = !props.query.parts.sources.length;
@@ -69,6 +72,47 @@ export default function QueryFooter(props: Props) {
             onClick: props.onQueryDelete,
         },
     ];
+    const saveQueryAsOptions: IContextualMenuItem[] = [
+        {
+            key: "Save query header",
+            text: "DATA SOURCE TYPES",
+            title: "Types of data sources available for export",
+            itemType: ContextualMenuItemType.Header,
+        },
+        {
+            key: "csv",
+            text: "CSV",
+            title: "Download a CSV containing the results of the current query",
+            onClick() {
+                dispatch(interaction.actions.showManifestDownloadDialog("csv", fileFilters));
+            },
+        },
+        // Can't download JSON or Parquet files when querying AICS FMS
+        ...(isQueryingAicsFms
+            ? []
+            : [
+                  {
+                      key: "json",
+                      text: "JSON",
+                      title: "Download a JSON file containing the result of the current query",
+                      onClick() {
+                          dispatch(
+                              interaction.actions.showManifestDownloadDialog("json", fileFilters)
+                          );
+                      },
+                  },
+                  {
+                      key: "parquet",
+                      text: "Parquet",
+                      title: "Download a Parquet file containing the result of the current query",
+                      onClick() {
+                          dispatch(
+                              interaction.actions.showManifestDownloadDialog("parquet", fileFilters)
+                          );
+                      },
+                  },
+              ]),
+    ];
 
     const onRefresh = throttle(
         () => {
@@ -80,6 +124,13 @@ export default function QueryFooter(props: Props) {
 
     return (
         <div className={styles.container}>
+            <TertiaryButton
+                invertColor
+                disabled={isEmptyQuery}
+                iconName="Saveas"
+                menuItems={saveQueryAsOptions}
+                title="Save query result as..."
+            />
             <TertiaryButton
                 invertColor
                 disabled={isEmptyQuery}
