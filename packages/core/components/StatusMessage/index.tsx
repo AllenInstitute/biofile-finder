@@ -58,12 +58,7 @@ export default function StatusMessage() {
                     let cancelButton;
                     if (onCancel) {
                         cancelButton = (
-                            <SecondaryButton
-                                iconName=""
-                                title="Cancel"
-                                text="CANCEL"
-                                onClick={onCancel}
-                            />
+                            <SecondaryButton iconName="" text="CANCEL" onClick={onCancel} />
                         );
                     } else
                         onDismiss = () =>

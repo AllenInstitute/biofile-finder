@@ -63,7 +63,7 @@ export default function Header() {
                             <Link to="app">
                                 <SecondaryButton
                                     className={styles.startButton}
-                                    title="Get started"
+                                    title="Get started in the app"
                                     text="GET STARTED"
                                 />
                             </Link>

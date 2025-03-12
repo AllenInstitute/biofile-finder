@@ -17,7 +17,9 @@ interface Props {
     menuItems?: IContextualMenuItem[];
     onClick?: () => void;
     text?: string;
-    title: string;
+    // title is only required if tooltip would be different from button text
+    // or if button does not have text (e.g., icon only)
+    title?: string;
 }
 
 /**

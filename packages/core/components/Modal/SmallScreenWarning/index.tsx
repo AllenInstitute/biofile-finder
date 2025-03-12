@@ -33,14 +33,7 @@ export default function SmallScreenWarning({ onDismiss }: ModalProps) {
     return (
         <BaseModal
             body={body}
-            footer={
-                <PrimaryButton
-                    className={styles.okButton}
-                    onClick={_onDismiss}
-                    title="OK"
-                    text="OK"
-                />
-            }
+            footer={<PrimaryButton className={styles.okButton} onClick={_onDismiss} text="OK" />}
             onDismiss={_onDismiss}
             title={title}
         />
