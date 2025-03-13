@@ -6,6 +6,6 @@ export default class FileViewerServiceWeb implements FileViewerService {
     }
 
     public openNativeFileBrowser(): void {
-        throw Error("ExecutionEnvServiceWeb::openNativeFileBrowser not yet implemented");
+        throw Error("FileViewerServiceWeb::openNativeFileBrowser not yet implemented");
     }
 }
