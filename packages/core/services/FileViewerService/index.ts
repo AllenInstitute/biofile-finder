@@ -1,3 +1,5 @@
+import FileDetail from "../../entity/FileDetail";
+
 /**
  * Interface that defines a platform-dependent service for showing files using other applications.
  */
@@ -9,6 +11,13 @@ export default interface FileViewerService {
      * @param filePaths The paths to the files to open
      */
     open(executablePath: string, filePaths: string[]): Promise<void>;
+
+    /**
+     * Opens the user's native file browser at a given path.
+     *
+     * @param fileDetails
+     */
+    openNativeFileBrowser(fileDetails: FileDetail): void;
 }
 
 /**

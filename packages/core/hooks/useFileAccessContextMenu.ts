@@ -1,4 +1,5 @@
 import { ContextualMenuItemType, IContextualMenuItem } from "@fluentui/react";
+import { isNil } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -92,6 +93,24 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
                         items: openWithSubMenuItems,
                     },
                 },
+                ...(isQueryingAicsFms && !isOnWeb
+                    ? [
+                          {
+                              key: "go-to-file-location",
+                              text: "Go to file location",
+                              title: "Show selected file in your native file browser",
+                              disabled: isNil(fileDetails?.localPath),
+                              iconProps: { iconName: "FolderOpen" },
+                              onClick() {
+                                  if (fileDetails) {
+                                      dispatch(
+                                          interaction.actions.openNativeFileBrowser(fileDetails)
+                                      );
+                                  }
+                              },
+                          },
+                      ]
+                    : []),
                 {
                     key: "save-as",
                     text: "Save metadata as",
