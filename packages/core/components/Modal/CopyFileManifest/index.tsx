@@ -182,14 +182,12 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
                         className={styles.cancelButton}
                         onClick={onDismiss}
                         text="CANCEL"
-                        title=""
                     />
                     <PrimaryButton
                         className={styles.confirmButton}
                         disabled={loading || !!error}
                         onClick={onMove}
                         text="CONFIRM"
-                        title=""
                     />
                 </div>
             }

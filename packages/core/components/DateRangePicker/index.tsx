@@ -99,6 +99,7 @@ export default function DateRangePicker(props: DateRangePickerProps) {
                     iconName="Clear"
                     onClick={onReset}
                     title="Reset"
+                    id="reset-date"
                 />
             </div>
         </div>

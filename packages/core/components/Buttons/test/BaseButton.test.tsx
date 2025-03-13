@@ -8,20 +8,21 @@ describe("<BaseButton />", () => {
     it("does not perform click when disabled", () => {
         // Arrange
         const title = "Mock";
+        const testId = "mock-id";
         let wasClicked = false;
         const onClick = () => {
             wasClicked = true;
         };
 
         const { getByTestId } = render(
-            <BaseButton disabled onClick={onClick} iconName="Download" title={title} />
+            <BaseButton disabled onClick={onClick} iconName="Download" title={title} id={testId} />
         );
 
         // (sanity-check) no click
         expect(wasClicked).to.be.false;
 
         // Act
-        fireEvent.click(getByTestId(`base-button-${title}`));
+        fireEvent.click(getByTestId(`base-button-${testId}`));
 
         // Assert
         expect(wasClicked).to.be.false;
@@ -30,20 +31,21 @@ describe("<BaseButton />", () => {
     it("performs click when not disabled", () => {
         // Arrange
         const title = "Mock";
+        const testId = "mock-id";
         let wasClicked = false;
         const onClick = () => {
             wasClicked = true;
         };
 
         const { getByTestId } = render(
-            <BaseButton onClick={onClick} iconName="Download" title={title} />
+            <BaseButton onClick={onClick} iconName="Download" title={title} id={testId} />
         );
 
         // (sanity-check) no click
         expect(wasClicked).to.be.false;
 
         // Act
-        fireEvent.click(getByTestId(`base-button-${title}`));
+        fireEvent.click(getByTestId(`base-button-${testId}`));
 
         // Assert
         expect(wasClicked).to.be.true;

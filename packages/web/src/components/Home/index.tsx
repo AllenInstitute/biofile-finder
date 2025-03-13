@@ -26,7 +26,7 @@ export default function Home() {
                     <PrimaryButton
                         className={styles.optionButton}
                         iconName="Checkmark"
-                        title="Get started"
+                        title="Get started with your own data"
                         text="GET STARTED"
                     />
                 </Link>
@@ -41,7 +41,7 @@ export default function Home() {
                     <PrimaryButton
                         className={styles.optionButton}
                         iconName="List"
-                        title="View datasets"
+                        title="Go to our datasets page"
                         text="VIEW DATASETS"
                     />
                 </Link>

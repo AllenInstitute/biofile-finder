@@ -63,7 +63,7 @@ describe("<DateRangePicker />", () => {
 
         // Hit reset
         expect(onReset.called).to.equal(false);
-        fireEvent.click(getByTestId("base-button-Reset"));
+        fireEvent.click(getByTestId("base-button-reset-date"));
         expect(onReset.called).to.equal(true);
     });
 });

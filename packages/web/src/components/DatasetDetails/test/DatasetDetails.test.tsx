@@ -253,11 +253,11 @@ describe("<DatasetDetails />", () => {
             );
 
             // consistency checks, button exists & no actions fired
-            expect(getByLabelText("Load dataset")).to.exist;
+            expect(getByLabelText(/^Load dataset/)).to.exist;
             expect(onLoadDataset.called).to.equal(false);
 
             // Act
-            fireEvent.click(getByLabelText("Load dataset"));
+            fireEvent.click(getByLabelText(/^Load dataset/));
 
             // Assert
             expect(onLoadDataset.called).to.equal(true);

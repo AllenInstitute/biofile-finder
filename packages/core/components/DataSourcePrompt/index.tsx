@@ -193,12 +193,9 @@ export default function DataSourcePrompt(props: Props) {
                 </DefaultButton>
             )}
             <div className={styles.loadButtonContainer}>
-                {props.hideTitle && (
-                    <SecondaryButton title="Cancel" text="CANCEL" onClick={() => onDismiss()} />
-                )}
+                {props.hideTitle && <SecondaryButton text="CANCEL" onClick={() => onDismiss()} />}
                 <PrimaryButton
                     disabled={!dataSource}
-                    title="Load"
                     text="LOAD"
                     onClick={() => dataSource && onSubmit(dataSource, metadataSource)}
                 />

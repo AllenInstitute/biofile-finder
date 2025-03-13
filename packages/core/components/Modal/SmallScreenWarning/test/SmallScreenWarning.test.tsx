@@ -45,7 +45,7 @@ describe("<SmallScreenWarning />", () => {
         fireEvent.click(checkbox);
         await logicMiddleware.whenComplete();
 
-        const closeButton = await findByTestId("base-button-OK");
+        const closeButton = await findByTestId("base-button-small-screen-ok");
         fireEvent.click(closeButton);
         await logicMiddleware.whenComplete();
 
@@ -76,7 +76,7 @@ describe("<SmallScreenWarning />", () => {
         fireEvent.click(checkbox); // uncheck
         await logicMiddleware.whenComplete();
 
-        const closeButton = await findByTestId("base-button-OK");
+        const closeButton = await findByTestId("base-button-small-screen-ok");
         fireEvent.click(closeButton);
         await logicMiddleware.whenComplete();
 

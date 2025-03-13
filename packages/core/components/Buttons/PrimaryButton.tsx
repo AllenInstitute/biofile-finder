@@ -15,7 +15,7 @@ interface Props {
     menuItems?: IContextualMenuItem[];
     onClick?: () => void;
     text?: string;
-    title: string;
+    title?: string;
 }
 
 /**
