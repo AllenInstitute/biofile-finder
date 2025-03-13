@@ -127,13 +127,6 @@ export default function QueryFooter(props: Props) {
             <TertiaryButton
                 invertColor
                 disabled={isEmptyQuery}
-                iconName="Saveas"
-                menuItems={saveQueryAsOptions}
-                title="Save query result as..."
-            />
-            <TertiaryButton
-                invertColor
-                disabled={isEmptyQuery}
                 iconName="Delete"
                 menuItems={deleteQueryOptions}
                 title="Delete query"
@@ -151,6 +144,13 @@ export default function QueryFooter(props: Props) {
                 iconName="Copy"
                 onClick={() => dispatch(selection.actions.addQuery(props.query))}
                 title="Duplicate query"
+            />
+            <TertiaryButton
+                invertColor
+                disabled={isEmptyQuery}
+                iconName="Save"
+                menuItems={saveQueryAsOptions}
+                title="Save query result as..."
             />
             <TertiaryButton
                 invertColor

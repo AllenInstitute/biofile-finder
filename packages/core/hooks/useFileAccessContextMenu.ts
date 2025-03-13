@@ -97,7 +97,7 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
                     text: "Save metadata as",
                     disabled: !folderFilters && fileSelection.count() === 0,
                     iconProps: {
-                        iconName: "Saveas",
+                        iconName: "Save",
                     },
                     subMenuProps: {
                         items: [
