@@ -79,6 +79,7 @@ export default function TutorialTooltip() {
                         iconName="CaretSolidLeft"
                         onClick={() => setTutorialStepIndex(previousStepIndex)}
                         title="Previous step"
+                        id="tutorial-prev"
                     />
                     <TertiaryButton
                         className={classNames(
@@ -90,6 +91,7 @@ export default function TutorialTooltip() {
                         iconName={tutorial.hasStep(nextStepIndex) ? "CaretSolidRight" : "Checkmark"}
                         onClick={selectNextTutorial}
                         title={tutorial.hasStep(nextStepIndex) ? "Next step" : "Finished"}
+                        id="tutorial-next"
                     />
                 </div>
             </div>
