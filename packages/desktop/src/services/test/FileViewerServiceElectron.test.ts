@@ -1,9 +1,9 @@
 import childProcess from "child_process";
 
-import * as fs from "fs";
+import fs from "fs";
 
 import { expect } from "chai";
-import { createSandbox, SinonStub, stub } from "sinon";
+import { createSandbox } from "sinon";
 
 import FileViewerServiceElectron from "../FileViewerServiceElectron";
 import NotificationServiceElectron from "../NotificationServiceElectron";
@@ -75,19 +75,9 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
     });
 
     describe("openNativeFileBrowser", () => {
-        let existsSyncStub: SinonStub;
-
-        before(() => {
-            existsSyncStub = stub(fs, "existsSync");
-        });
-
-        after(() => {
-            existsSyncStub.restore();
-        });
-
         it("throws an error if file path does not exist", () => {
             // Arrange
-            existsSyncStub.returns(false);
+            sandbox.stub(fs, "existsSync").returns(false);
 
             const service = new FileViewerServiceElectron(new UselessNotificationService());
 
