@@ -148,26 +148,10 @@ export default class FileDetail {
         return path as string;
     }
 
-    public get cloudPath(): string {
-        // AICS FMS files' paths are cloud paths
-        return this.path;
-    }
-
     public get localPath(): string | null {
-        if (this.downloadInProgress) {
-            return "Copying to VAST in progress…";
-        }
-        if (this.getAnnotation("Cache Eviction Date")) {
-            return this.getLocalPath();
-        }
-        return null;
-    }
-
-    public getLocalPath(): string | null {
-        const localPrefix = NAS_HOST_PREFIXES[this.env];
         const cloudPrefix = `${AICS_FMS_S3_URL_PREFIX}${AICS_FMS_S3_BUCKETS[this.env]}`;
-
-        if (this.path.startsWith(cloudPrefix)) {
+        if (this.getAnnotation("Cache Eviction Date") && this.path.startsWith(cloudPrefix)) {
+            const localPrefix = NAS_HOST_PREFIXES[this.env];
             const relativePath = this.path.replace(`${cloudPrefix}`, "");
             return `${localPrefix}${relativePath}`;
         }
@@ -175,20 +159,9 @@ export default class FileDetail {
         return null;
     }
 
-    public get downloadPath(): string {
-        const localPath = this.getLocalPath();
-        // For AICS files that are available on the Vast, users can use the cloud path, but the
-        // download will be faster and not incur egress fees if we download via the local network.
-        if (localPath && localPath.startsWith("/allen") && this.env === Environment.PRODUCTION) {
-            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${localPath}`;
-        }
-        // Otherwise just return path (cloud probably)
-        return this.path;
-    }
-
     public get downloadInProgress(): boolean {
         const shouldBeInLocal = this.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL);
-        return Boolean(shouldBeInLocal) && !this.getAnnotation("Cache Eviction Date");
+        return Boolean(shouldBeInLocal) && !this.localPath;
     }
 
     public get size(): number | undefined {
@@ -234,14 +207,15 @@ export default class FileDetail {
 
         // If no thumbnail present try to render the file itself as the thumbnail
         if (!this.thumbnail) {
+            if (this.path.endsWith(".zarr")) {
+                return renderZarrThumbnailURL(this.path);
+            }
+
             const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
-                this.name.toLowerCase().endsWith(format)
+                this.path.toLowerCase().endsWith(format)
             );
             if (isFileRenderableImage) {
-                return this.downloadPath;
-            }
-            if (this.path.includes(".zarr")) {
-                return await renderZarrThumbnailURL(this.downloadPath);
+                return this.path;
             }
         }
 

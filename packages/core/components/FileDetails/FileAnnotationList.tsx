@@ -68,7 +68,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
 
             if (annotation.name === AnnotationName.FILE_PATH) {
                 // Display the full http://... URL
-                annotationValue = fileDetails.cloudPath;
+                annotationValue = fileDetails.path;
             }
 
             if (annotationValue === Annotation.MISSING_VALUE) {
