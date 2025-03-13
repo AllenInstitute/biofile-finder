@@ -8,6 +8,7 @@ import { TertiaryButton } from "../../Buttons";
 interface BaseModalProps {
     body: React.ReactNode;
     footer?: React.ReactNode;
+    isDraggable?: boolean;
     onDismiss?: () => void;
     title?: string;
 }
@@ -23,7 +24,7 @@ const DRAG_OPTIONS: IDragOptions = {
  * for plugging content into.
  */
 export default function BaseModal(props: BaseModalProps) {
-    const { body, footer, title, onDismiss } = props;
+    const { body, footer, isDraggable, title, onDismiss } = props;
 
     const titleId = "base-modal-title";
     return (
@@ -31,7 +32,7 @@ export default function BaseModal(props: BaseModalProps) {
             isOpen
             onDismiss={onDismiss}
             containerClassName={styles.container}
-            dragOptions={DRAG_OPTIONS}
+            dragOptions={isDraggable ? DRAG_OPTIONS : undefined}
             titleAriaId={titleId}
             overlay={{ className: styles.overlay }}
         >
