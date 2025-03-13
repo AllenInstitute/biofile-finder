@@ -29,7 +29,7 @@ describe("FileViewerServiceWeb", () => {
                 service.openNativeFileBrowser();
             } catch (error) {
                 expect((error as Error).message).to.equal(
-                    "ExecutionEnvServiceWeb::openNativeFileBrowser not yet implemented"
+                    "FileViewerServiceWeb::openNativeFileBrowser not yet implemented"
                 );
             }
         });
