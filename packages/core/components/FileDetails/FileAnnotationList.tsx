@@ -34,10 +34,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
 
         async function formatPathForHost() {
             if (!fileDetails || !active) return;
-
             const localPath = fileDetails.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH);
-            console.log(fileDetails);
-            console.log(localPath);
             if (!localPath) {
                 setLocalPath(null);
                 return;

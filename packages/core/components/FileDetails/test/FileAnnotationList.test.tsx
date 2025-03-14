@@ -83,7 +83,7 @@ describe("<FileAnnotationList />", () => {
                     <FileAnnotationList isLoading={false} fileDetails={fileDetails} />
                 </Provider>
             );
-            console.log(findByText);
+
             // Assert
             await Promise.all([
                 findByText("File Path (Cloud)"),
