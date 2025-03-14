@@ -5,6 +5,8 @@ import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadService, { DownloadResolution, DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
+import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
+import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
@@ -164,7 +166,7 @@ export default class DatabaseFileService implements FileService {
     }
 
     /**
-     * Applies filters and sorting to a query. ie Column names, if none then use annotaitonName
+     * Applies filters and sorting to a query. ie Column names, if none then use annotationName
      */
     public static applyFiltersAndSorting(subQuery: SQLBuilder, selection: Selection): void {
         if (!isEmpty(selection.filters)) {
@@ -172,6 +174,20 @@ export default class DatabaseFileService implements FileService {
                 Object.entries(selection.filters).flatMap(([column, values]) =>
                     values.map((v) => SQLBuilder.regexMatchValueInList(column, v)).join(" OR ")
                 )
+            );
+        }
+        if (selection.include && selection.include.length > 0) {
+            subQuery.where(
+                selection.include
+                    .map((annotationName) => new IncludeFilter(annotationName).toSQLWhereString())
+                    .join(" AND ")
+            );
+        }
+        if (selection.exclude && selection.exclude.length > 0) {
+            subQuery.where(
+                selection.exclude
+                    .map((annotationName) => new ExcludeFilter(annotationName).toSQLWhereString())
+                    .join(" AND ")
             );
         }
         if (selection.sort) {

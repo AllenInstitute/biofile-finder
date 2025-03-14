@@ -108,7 +108,8 @@ const downloadManifest = createLogic({
         const filters = interactionSelectors.getFileFiltersForVisibleModal(deps.getState());
 
         // If we have a specific path to get files from ignore selected files
-        if (filters.length) {
+        // or if no selections, assume downloading full result
+        if (filters.length || (filters.length === 0 && fileSelection.count() === 0)) {
             const fileSet = new FileSet({
                 filters,
                 fileService,
@@ -126,6 +127,7 @@ const downloadManifest = createLogic({
 
         const selections = fileSelection.toCompactSelectionList();
 
+        // if still empty result set, do nothing
         if (isEmpty(selections)) {
             done();
             return;
