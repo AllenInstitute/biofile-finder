@@ -15,6 +15,7 @@ import { interaction } from "../../state";
 
 import styles from "./FileDetails.module.css";
 import { MAX_DOWNLOAD_SIZE_WEB } from "../../services/FileDownloadService";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 
 interface Props {
     className?: string;
@@ -135,7 +136,9 @@ export default function FileDetails(props: Props) {
                         name: fileDetails.name,
                         size: fileDetails.size,
                         path: fileDownloadService.isFileSystemAccessible
-                            ? fileDetails.localPath || fileDetails.path
+                            ? ((fileDetails.getFirstAnnotationValue(
+                                  AnnotationName.LOCAL_FILE_PATH
+                              ) || fileDetails.path) as string)
                             : fileDetails.path,
                     },
                 ])

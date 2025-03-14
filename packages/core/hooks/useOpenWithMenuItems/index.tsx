@@ -8,6 +8,7 @@ import FileFilter from "../../entity/FileFilter";
 import { interaction, metadata } from "../../state";
 
 import styles from "./useOpenWithMenuItems.module.css";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 
 enum AppKeys {
     AGAVE = "agave",
@@ -253,7 +254,8 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                 title: `Open files with ${name}`,
                 disabled:
                     (!filters && !fileDetails) ||
-                    (app.filePath.toLowerCase().includes("zen") && !fileDetails?.localPath),
+                    (app.filePath.toLowerCase().includes("zen") &&
+                        !fileDetails?.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH)),
                 onClick() {
                     if (filters) {
                         dispatch(interaction.actions.openWith(app, filters));

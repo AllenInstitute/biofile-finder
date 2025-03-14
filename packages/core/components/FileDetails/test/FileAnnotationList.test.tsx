@@ -9,6 +9,9 @@ import FileDetail from "../../../entity/FileDetail";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { initialState } from "../../../state";
 import { Environment, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
+import Annotation from "../../../entity/Annotation";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 
 describe("<FileAnnotationList />", () => {
     describe("file path representation", () => {
@@ -25,7 +28,28 @@ describe("<FileAnnotationList />", () => {
             const { store } = configureMockStore({
                 state: mergeState(initialState, {
                     metadata: {
-                        annotations: [...TOP_LEVEL_FILE_ANNOTATIONS],
+                        annotations: [
+                            ...TOP_LEVEL_FILE_ANNOTATIONS,
+                            new Annotation({
+                                annotationDisplayName: "Cache Eviction Date",
+                                annotationName: AnnotationName.CACHE_EVICTION_DATE,
+                                description:
+                                    "Indicates when the cache for this file should be evicted.",
+                                type: AnnotationType.STRING,
+                            }),
+                            new Annotation({
+                                annotationDisplayName: "File Path (Local VAST)",
+                                annotationName: AnnotationName.LOCAL_FILE_PATH,
+                                description: "Local path for the file on the host machine.",
+                                type: AnnotationType.STRING,
+                            }),
+                            new Annotation({
+                                annotationDisplayName: "Should Be in Local Cache",
+                                annotationName: AnnotationName.SHOULD_BE_IN_LOCAL,
+                                description: "Indicates if the file should be cached locally.",
+                                type: AnnotationType.BOOLEAN,
+                            }),
+                        ],
                     },
                     interaction: {
                         platformDependentServices: {
@@ -34,8 +58,8 @@ describe("<FileAnnotationList />", () => {
                     },
                 }),
             });
-
-            const relativePath = "MyFile.txt";
+            const fileName = "MyFile.txt";
+            const relativePath = `/test/${fileName}`;
             const filePath = `test.files.allencell.org/${relativePath}`;
             const fileDetails = new FileDetail(
                 {
@@ -44,7 +68,11 @@ describe("<FileAnnotationList />", () => {
                     file_name: "MyFile.txt",
                     file_size: 7,
                     uploaded: "01/01/01",
-                    annotations: [{ name: "Cache Eviction Date", values: ["SOME DATE"] }],
+                    annotations: [
+                        { name: AnnotationName.CACHE_EVICTION_DATE, values: ["SOME DATE"] },
+                        { name: AnnotationName.SHOULD_BE_IN_LOCAL, values: [true] },
+                        { name: AnnotationName.LOCAL_FILE_PATH, values: [relativePath] },
+                    ],
                 },
                 Environment.TEST
             );
@@ -57,14 +85,12 @@ describe("<FileAnnotationList />", () => {
             );
 
             // Assert
-            for (const cellText of [
-                "File Path (Cloud)",
-                `https://s3.us-west-2.amazonaws.com/${filePath}`,
-                "File Path (Local VAST)",
-                `${hostMountPoint}/${relativePath}`,
-            ]) {
-                expect(await findByText(cellText)).to.not.be.undefined;
-            }
+            await Promise.all([
+                findByText("File Path (Cloud)"),
+                findByText(`https://s3.us-west-2.amazonaws.com/${filePath}`),
+                findByText("File Path (Local VAST)"),
+                findByText(`${hostMountPoint}/${fileName}`),
+            ]);
         });
 
         it("has only cloud file path when no allen mount point is found", () => {
@@ -145,7 +171,7 @@ describe("<FileAnnotationList />", () => {
                     file_name: "MyFile.txt",
                     file_size: 7,
                     uploaded: "01/01/01",
-                    annotations: [{ name: "shouldBeInLocal", values: [true] }],
+                    annotations: [{ name: AnnotationName.SHOULD_BE_IN_LOCAL, values: [true] }],
                 },
                 Environment.TEST
             );

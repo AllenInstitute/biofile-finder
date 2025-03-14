@@ -34,11 +34,15 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
 
         async function formatPathForHost() {
             if (!fileDetails || !active) return;
-
-            const localPath = fileDetails.localPath;
-            const path = localPath ? await executionEnvService.formatPathForHost(localPath) : null;
-
-            setLocalPath(path);
+            const localPath = fileDetails.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH);
+            if (!localPath) {
+                setLocalPath(null);
+                return;
+            }
+            const formattedPath = await executionEnvService.formatPathForHost(localPath as string);
+            if (active) {
+                setLocalPath(formattedPath);
+            }
         }
 
         formatPathForHost();
