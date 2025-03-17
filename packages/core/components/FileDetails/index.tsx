@@ -194,6 +194,15 @@ export default function FileDetails(props: Props) {
                                         menuItems={openWithMenuItems}
                                     />
                                 </StackItem>
+                                <StackItem>
+                                    <PrimaryButton
+                                        className={styles.primaryButton}
+                                        iconName="OpenInNewWindow"
+                                        text="Open selection"
+                                        title="Open selection"
+                                        // onClick={}
+                                    />
+                                </StackItem>
                             </Stack>
                             <p className={styles.fileName}>{fileDetails?.name}</p>
                             <h4>Information</h4>
