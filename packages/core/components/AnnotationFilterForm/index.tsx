@@ -231,7 +231,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                         },
                         {
                             key: FilterType.EXCLUDE,
-                            text: "No value (blank)",
+                            text: "No value",
                         },
                     ]}
                     onChange={(_, option) => onFilterTypeOptionChange(option)}
