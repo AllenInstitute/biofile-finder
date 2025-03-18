@@ -8,6 +8,7 @@ import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
 import useFileDetails from "./useFileDetails";
 import { PrimaryButton } from "../Buttons";
+import useMessageExternalSite from "../../hooks/useMessageExternalSite";
 import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
@@ -77,6 +78,10 @@ export default function FileDetails(props: Props) {
     const [isThumbnailLoading, setIsThumbnailLoading] = React.useState(true);
     const stackTokens: IStackTokens = { childrenGap: 12 + " " + 20 };
     const [calculatedSize, setCalculatedSize] = React.useState<number | null>(null);
+
+    const [sendMessageToVole, VoleIFrame] = useMessageExternalSite(
+        "http://localhost:9020/write_storage"
+    );
 
     const platformDependentServices = useSelector(
         interaction.selectors.getPlatformDependentServices
@@ -200,9 +205,10 @@ export default function FileDetails(props: Props) {
                                         iconName="OpenInNewWindow"
                                         text="Open selection"
                                         title="Open selection"
-                                        // onClick={}
+                                        onClick={() => sendMessageToVole("foo")}
                                     />
                                 </StackItem>
+                                {VoleIFrame}
                             </Stack>
                             <p className={styles.fileName}>{fileDetails?.name}</p>
                             <h4>Information</h4>
