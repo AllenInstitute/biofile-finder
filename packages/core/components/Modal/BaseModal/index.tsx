@@ -1,4 +1,4 @@
-import { ContextualMenu, IDragOptions, Modal } from "@fluentui/react";
+import { Modal } from "@fluentui/react";
 import { noop } from "lodash";
 import * as React from "react";
 
@@ -11,12 +11,6 @@ interface BaseModalProps {
     onDismiss?: () => void;
     title?: string;
 }
-
-const DRAG_OPTIONS: IDragOptions = {
-    moveMenuItemText: "Move",
-    closeMenuItemText: "Close",
-    menu: ContextualMenu,
-};
 
 /**
  * Wrapper around @fluent-ui/react Modal with consistent defaults applied and some layout scaffolding
@@ -31,7 +25,6 @@ export default function BaseModal(props: BaseModalProps) {
             isOpen
             onDismiss={onDismiss}
             containerClassName={styles.container}
-            dragOptions={DRAG_OPTIONS}
             titleAriaId={titleId}
             overlay={{ className: styles.overlay }}
         >

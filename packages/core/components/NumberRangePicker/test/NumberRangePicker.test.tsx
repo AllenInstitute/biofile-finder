@@ -64,7 +64,7 @@ describe("<NumberRangePicker />", () => {
 
         // Hit reset
         expect(onSearch.called).to.equal(false);
-        fireEvent.click(getByTestId("base-button-Reset filter"));
+        fireEvent.click(getByTestId("base-button-reset-filter"));
         expect(onSearch.called).to.equal(true);
 
         // Should reset to min and max values
