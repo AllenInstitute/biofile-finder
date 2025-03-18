@@ -108,5 +108,5 @@ export default function CodeSnippet({ onDismiss }: ModalProps) {
         </>
     );
 
-    return <BaseModal body={body} onDismiss={onDismiss} title="Code snippet" isDraggable />;
+    return <BaseModal body={body} onDismiss={onDismiss} title="Code snippet" />;
 }
