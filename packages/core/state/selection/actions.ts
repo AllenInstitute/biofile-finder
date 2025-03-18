@@ -568,6 +568,18 @@ export function setOpenFileFolders(openFileFolders: FileFolder[]): SetOpenFileFo
     };
 }
 
+export const TOGGLE_NULL_VALUE_GROUPS = makeConstant(STATE_BRANCH_NAME, "toggle-null-value-groups");
+
+export interface SetShowNullValueGroupsAction {
+    type: string;
+}
+
+export function toggleNullValueGroups(): SetShowNullValueGroupsAction {
+    return {
+        type: TOGGLE_NULL_VALUE_GROUPS,
+    };
+}
+
 /**
  * DECODE_FILE_EXPLORER_URL
  *

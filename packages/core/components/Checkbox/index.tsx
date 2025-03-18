@@ -7,6 +7,7 @@ import styles from "./Checkbox.modules.css";
 interface Props {
     className?: string;
     disabled?: boolean;
+    initialValue?: boolean;
     onChange: (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, isCheckedEv?: boolean) => void;
     label: string;
 }
@@ -15,7 +16,7 @@ interface Props {
  * Custom styled wrapper for default fluentui component
  */
 export default function BaseCheckbox(props: Props) {
-    const [isChecked, setChecked] = React.useState(false);
+    const [isChecked, setChecked] = React.useState(!!props.initialValue); // defaults to false
     function onCheckboxChange(
         ev?: React.FormEvent<HTMLElement | HTMLInputElement>,
         isCheckedEv?: boolean
@@ -25,6 +26,8 @@ export default function BaseCheckbox(props: Props) {
     }
     return (
         <Checkbox
+            // defaults to undefined (handles its own state)
+            checked={isChecked}
             className={classNames(props.className, {
                 [styles.disabled]: props.disabled,
                 [styles.checked]: isChecked,

@@ -9,6 +9,7 @@ import { metadata, selection } from "../../state";
 interface Props {
     disabled?: boolean;
     groups: string[];
+    showNullGroups?: boolean;
 }
 
 /**
@@ -16,6 +17,7 @@ interface Props {
  */
 export default function QueryGroup(props: Props) {
     const dispatch = useDispatch();
+    const shouldShowNullGroups = useSelector(selection.selectors.getShouldShowNullGroups);
 
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
@@ -46,6 +48,7 @@ export default function QueryGroup(props: Props) {
                     setSelections={(annotations) => {
                         dispatch(selection.actions.setAnnotationHierarchy(annotations));
                     }}
+                    shouldShowNullGroups={shouldShowNullGroups}
                 />
             )}
             rows={props.groups.map((group) => ({

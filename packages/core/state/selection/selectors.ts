@@ -26,6 +26,7 @@ export const getSelectedDataSources = (state: State) => state.selection.dataSour
 export const getSelectedSourceMetadata = (state: State) => state.selection.sourceMetadata;
 export const getSelectedQuery = (state: State) => state.selection.selectedQuery;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
+export const getShouldShowNullGroups = (state: State) => state.selection.shouldShowNullGroups;
 export const getSortColumn = (state: State) => state.selection.sortColumn;
 export const getTutorial = (state: State) => state.selection.tutorial;
 export const getQueries = (state: State) => state.selection.queries;
