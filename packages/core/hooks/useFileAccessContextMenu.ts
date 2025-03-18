@@ -1,8 +1,9 @@
-import { ContextualMenuItemType, IContextualMenuItem } from "@fluentui/react";
+import { IContextualMenuItem } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useOpenWithMenuItems from "./useOpenWithMenuItems";
+import useSaveMetadataOptions from "./useSaveMetadataOptions";
 import FileDetail from "../entity/FileDetail";
 import FileFilter from "../entity/FileFilter";
 import { interaction, selection } from "../state";
@@ -23,6 +24,7 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
     const [fileDetails, setFileDetails] = React.useState<FileDetail>();
 
     const openWithSubMenuItems = useOpenWithMenuItems(fileDetails, folderFilters);
+    const saveAsSubMenuItems = useSaveMetadataOptions(folderFilters);
 
     fileSelection.fetchFocusedItemDetails().then((fileDetails) => {
         setFileDetails(fileDetails);
@@ -100,63 +102,7 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
                         iconName: "Save",
                     },
                     subMenuProps: {
-                        items: [
-                            {
-                                key: "save-as-title",
-                                text: "DATA SOURCE TYPES",
-                                title: "Types of data sources available for export",
-                                itemType: ContextualMenuItemType.Header,
-                            },
-                            {
-                                key: "csv",
-                                text: "CSV",
-                                disabled: !folderFilters && fileSelection.count() === 0,
-                                title: "Download a CSV of the metadata of the selected files",
-                                onClick() {
-                                    dispatch(
-                                        interaction.actions.showManifestDownloadDialog(
-                                            "csv",
-                                            folderFilters
-                                        )
-                                    );
-                                },
-                            },
-                            // Can't download JSON or Parquet files when querying AICS FMS
-                            ...(isQueryingAicsFms
-                                ? []
-                                : [
-                                      {
-                                          key: "json",
-                                          text: "JSON",
-                                          disabled: !folderFilters && fileSelection.count() === 0,
-                                          title:
-                                              "Download a JSON file of the metadata of the selected files",
-                                          onClick() {
-                                              dispatch(
-                                                  interaction.actions.showManifestDownloadDialog(
-                                                      "json",
-                                                      folderFilters
-                                                  )
-                                              );
-                                          },
-                                      },
-                                      {
-                                          key: "parquet",
-                                          text: "Parquet",
-                                          disabled: !folderFilters && fileSelection.count() === 0,
-                                          title:
-                                              "Download a Parquet file of the metadata of the selected files",
-                                          onClick() {
-                                              dispatch(
-                                                  interaction.actions.showManifestDownloadDialog(
-                                                      "parquet",
-                                                      folderFilters
-                                                  )
-                                              );
-                                          },
-                                      },
-                                  ]),
-                        ],
+                        items: saveAsSubMenuItems,
                     },
                 },
                 ...(isQueryingAicsFms && !isOnWeb
@@ -200,6 +146,7 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
             isQueryingAicsFms,
             onDismiss,
             openWithSubMenuItems,
+            saveAsSubMenuItems,
         ]
     );
 };

@@ -4,13 +4,13 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { TertiaryButton } from "../Buttons";
-import { ContextualMenuItemType } from "../ContextMenu";
 import { ModalType } from "../Modal";
 import Tooltip from "../Tooltip";
 import Tutorial from "../../entity/Tutorial";
 import FileFilter from "../../entity/FileFilter";
 import IncludeFilter from "../../entity/FileFilter/IncludeFilter";
 import FileSet from "../../entity/FileSet";
+import useSaveMetadataOptions from "../../hooks/useSaveMetadataOptions";
 import { interaction, selection } from "../../state";
 import { Query } from "../../state/selection/actions";
 
@@ -32,7 +32,6 @@ interface Props {
 export default function QueryFooter(props: Props) {
     const dispatch = useDispatch();
 
-    const isQueryingAicsFms = useSelector(selection.selectors.isQueryingAicsFms);
     const url = useSelector(selection.selectors.getEncodedFileExplorerUrl);
     const fileService = useSelector(interaction.selectors.getFileService);
     const [totalFileCount, setTotalFileCount] = React.useState(0);
@@ -110,53 +109,7 @@ export default function QueryFooter(props: Props) {
             onClick: props.onQueryDelete,
         },
     ];
-    const saveQueryAsOptions: IContextualMenuItem[] = [
-        {
-            key: "Save query header",
-            text: "DATA SOURCE TYPES",
-            title: "Types of data sources available for export",
-            itemType: ContextualMenuItemType.Header,
-        },
-        {
-            key: "csv",
-            text: "CSV",
-            title: "Download a CSV containing the results of the current query",
-            onClick() {
-                dispatch(interaction.actions.showManifestDownloadDialog("csv", combinedFilters));
-            },
-        },
-        // Can't download JSON or Parquet files when querying AICS FMS
-        ...(isQueryingAicsFms
-            ? []
-            : [
-                  {
-                      key: "json",
-                      text: "JSON",
-                      title: "Download a JSON file containing the result of the current query",
-                      onClick() {
-                          dispatch(
-                              interaction.actions.showManifestDownloadDialog(
-                                  "json",
-                                  combinedFilters
-                              )
-                          );
-                      },
-                  },
-                  {
-                      key: "parquet",
-                      text: "Parquet",
-                      title: "Download a Parquet file containing the result of the current query",
-                      onClick() {
-                          dispatch(
-                              interaction.actions.showManifestDownloadDialog(
-                                  "parquet",
-                                  combinedFilters
-                              )
-                          );
-                      },
-                  },
-              ]),
-    ];
+    const saveQueryAsOptions = useSaveMetadataOptions(combinedFilters, true);
 
     const onRefresh = throttle(
         () => {
