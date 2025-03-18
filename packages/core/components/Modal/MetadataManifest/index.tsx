@@ -64,7 +64,6 @@ export default function MetadataManifest({ onDismiss }: ModalProps) {
                         iconName="Download"
                         onClick={onDownload}
                         text="DOWNLOAD"
-                        title="Download"
                     />
                 </div>
             }
