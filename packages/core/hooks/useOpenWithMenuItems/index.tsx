@@ -11,6 +11,7 @@ import styles from "./useOpenWithMenuItems.module.css";
 
 enum AppKeys {
     AGAVE = "agave",
+    BROWSER = "browser",
     NEUROGLANCER = "neuroglancer",
     SIMULARIUM = "simularium",
     VOLE = "vole",
@@ -19,6 +20,7 @@ enum AppKeys {
 
 interface Apps {
     [AppKeys.AGAVE]: IContextualMenuItem;
+    [AppKeys.BROWSER]: IContextualMenuItem;
     [AppKeys.NEUROGLANCER]: IContextualMenuItem;
     [AppKeys.SIMULARIUM]: IContextualMenuItem;
     [AppKeys.VOLE]: IContextualMenuItem;
@@ -72,11 +74,27 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
             );
         },
     } as IContextualMenuItem,
+    [AppKeys.BROWSER]: {
+        key: AppKeys.BROWSER,
+        text: "Browser",
+        title: `Open files in the current browser in a new tab`,
+        href: fileDetails?.path,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
     [AppKeys.NEUROGLANCER]: {
         key: AppKeys.NEUROGLANCER,
         text: "Neuroglancer",
         title: `Open files with Neuroglancer`,
-        href: `https://neuroglancer-demo.appspot.com/#!{%22layers%22:[{%22source%22:%22zarr://${fileDetails?.cloudPath}%22,%22name%22:%22${fileDetails?.name}%22}]}`,
+        href: `https://neuroglancer-demo.appspot.com/#!{%22layers%22:[{%22source%22:%22zarr://${fileDetails?.path}%22,%22name%22:%22${fileDetails?.name}%22}]}`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -92,7 +110,7 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
         key: AppKeys.SIMULARIUM,
         text: "Simularium",
         title: `Open files with Simularium`,
-        href: `https://simularium.allencell.org/viewer?trajUrl=${fileDetails?.cloudPath}`,
+        href: `https://simularium.allencell.org/viewer?trajUrl=${fileDetails?.path}`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -108,7 +126,7 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
         key: AppKeys.VOLE,
         text: "Vol-E",
         title: `Open files with Vol-E`,
-        href: `https://volumeviewer.allencell.org/viewer?url=${fileDetails?.cloudPath}/`,
+        href: `https://volumeviewer.allencell.org/viewer?url=${fileDetails?.path}/`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -124,7 +142,7 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
         key: AppKeys.VOLVIEW,
         text: "VolView",
         title: `Open files with VolView`,
-        href: `https://volview.kitware.app/?urls=[${fileDetails?.cloudPath}]`,
+        href: `https://volview.kitware.app/?urls=[${fileDetails?.path}]`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -149,6 +167,17 @@ function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
     const fileExt = fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
     const apps = APPS(fileDetails);
     switch (fileExt) {
+        case "bmp":
+        case "html":
+        case "gif":
+        case "jpg":
+        case "jpeg":
+        case "pdf":
+        case "png":
+        case "svg":
+        case "txt":
+        case "xml":
+            return [apps.browser];
         case "simularium":
             return [apps.simularium];
         case "dcm":

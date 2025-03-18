@@ -106,7 +106,7 @@ export default function DatasetDetails(props: DatasetDetailsProps) {
                     <PrimaryButton
                         className={styles.button}
                         iconName="Upload"
-                        title="Load dataset"
+                        title="Load dataset in the app"
                         text="LOAD DATASET"
                         onClick={() => props.onLoadDataset(datasetDetails)}
                     />
