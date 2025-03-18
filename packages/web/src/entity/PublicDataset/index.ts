@@ -1,6 +1,4 @@
-import FileExplorerURL, {
-    FileExplorerURLComponents,
-} from "../../../../core/entity/FileExplorerURL";
+import SearchParams, { SearchParamsComponents } from "../../../../core/entity/SearchParams";
 import { FmsFileAnnotation } from "../../../../core/services/FileService";
 
 /**
@@ -155,11 +153,11 @@ export default class PublicDataset {
         return description as string;
     }
 
-    public get presetQuery(): FileExplorerURLComponents | undefined {
+    public get presetQuery(): SearchParamsComponents | undefined {
         if (!this.datasetDetails.specific_query) {
             return;
         } else {
-            return FileExplorerURL.decode(this.datasetDetails.specific_query);
+            return SearchParams.decode(this.datasetDetails.specific_query);
         }
     }
 

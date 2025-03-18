@@ -22,7 +22,7 @@ export interface Source {
 }
 
 // Components of the application state this captures
-export interface FileExplorerURLComponents {
+export interface SearchParamsComponents {
     columns?: Column[];
     hierarchy: string[];
     fileView?: FileView;
@@ -33,7 +33,7 @@ export interface FileExplorerURLComponents {
     sortColumn?: FileSort;
 }
 
-export const EMPTY_QUERY_COMPONENTS: FileExplorerURLComponents = {
+export const EMPTY_QUERY_COMPONENTS: SearchParamsComponents = {
     hierarchy: [],
     filters: [],
     openFolders: [],
@@ -56,7 +56,7 @@ export const PAST_YEAR_FILTER = new FileFilter(
     AnnotationName.UPLOADED,
     `RANGE(${DATE_LAST_YEAR.toISOString()},${END_OF_TODAY.toISOString()})`
 );
-export const DEFAULT_AICS_FMS_QUERY: FileExplorerURLComponents = {
+export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
     columns: [
         { name: AnnotationName.FILE_NAME, width: 0.4 },
         { name: AnnotationName.KIND, width: 0.2 },
@@ -82,7 +82,7 @@ export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
         console.warn("Assuming the source is csv since no extension was recognized");
         extensionGuess = "csv";
     }
-    return { name, extensionGuess };
+    return { name, type: extensionGuess };
 };
 
 // We want to eventually use shorthands and other tricks to
@@ -118,15 +118,15 @@ class ColumnCoder {
  * that allows users to copy, share, and paste the result back into the app and have the
  * URL decoded & rehydrated back in.
  */
-export default class FileExplorerURL {
+export default class SearchParams {
     /**
-     * Encode this FileExplorerURL into a format easily transferable between users
-     * that can be decoded back into the data used to create this FileExplorerURL.
+     * Encode this SearchParams into a format easily transferable between users
+     * that can be decoded back into the data used to create this SearchParams.
      * Ideally the format this is in would be independent of the format/inner-workings
      * of our application state. As in, the names / system we track data in can change
-     * without breaking an existing FileExplorerURL.
+     * without breaking an existing SearchParams.
      * */
-    public static encode(urlComponents: Partial<FileExplorerURLComponents>): string {
+    public static encode(urlComponents: Partial<SearchParamsComponents>): string {
         const params = new URLSearchParams();
         if (urlComponents.columns?.length) {
             params.append(URLQueryArgShorthands.COLUMNS, ColumnCoder.encode(urlComponents.columns));
@@ -177,12 +177,29 @@ export default class FileExplorerURL {
     }
 
     /**
-     * Decode a previously encoded FileExplorerURL into components that can be rehydrated into the
+     * Decode a previously encoded SearchParams into components that can be rehydrated into the
      * application state
      */
-    public static decode(encodedURL: string): FileExplorerURLComponents {
+    public static decode(encodedURL: string): SearchParamsComponents {
         const params = new URLSearchParams(encodedURL.trim());
+        if (params.getAll("url").length > 0) {
+            return SearchParams.decodeSimpleParams(params);
+        }
+        return SearchParams.decodeComplexParams(params);
+    }
 
+    private static decodeSimpleParams(params: URLSearchParams): SearchParamsComponents {
+        const unparsedURLs = params.getAll("url");
+        return {
+            ...EMPTY_QUERY_COMPONENTS,
+            sources: unparsedURLs.map((uri) => ({
+                uri,
+                ...getNameAndTypeFromSourceUrl(uri),
+            })),
+        };
+    }
+
+    private static decodeComplexParams(params: URLSearchParams): SearchParamsComponents {
         const unparsedSourceMetadata = params.get("sourceMetadata");
         const unparsedOpenFolders = params.getAll("openFolder");
         const unparsedFilters = params.getAll("filter");
@@ -223,10 +240,7 @@ export default class FileExplorerURL {
         };
     }
 
-    public static convertToPython(
-        urlComponents: Partial<FileExplorerURLComponents>,
-        userOS: string
-    ) {
+    public static convertToPython(urlComponents: Partial<SearchParamsComponents>, userOS: string) {
         if (
             (urlComponents?.sources?.length && urlComponents.sources.length > 1) ||
             urlComponents?.sources?.[0]?.name === AICS_FMS_DATA_SOURCE_NAME ||
