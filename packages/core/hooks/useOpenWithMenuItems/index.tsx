@@ -3,6 +3,7 @@ import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
 import { interaction, metadata } from "../../state";
@@ -253,7 +254,8 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                 title: `Open files with ${name}`,
                 disabled:
                     (!filters && !fileDetails) ||
-                    (app.filePath.toLowerCase().includes("zen") && !fileDetails?.localPath),
+                    (app.filePath.toLowerCase().includes("zen") &&
+                        !fileDetails?.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH)),
                 onClick() {
                     if (filters) {
                         dispatch(interaction.actions.openWith(app, filters));

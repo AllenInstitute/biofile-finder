@@ -221,7 +221,8 @@ const downloadFilesLogic = createLogic({
                 name: file.name,
                 size: file.size,
                 path: fileDownloadService.isFileSystemAccessible
-                    ? file.localPath || file.path
+                    ? ((file.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH) ||
+                          file.path) as string)
                     : file.path,
             }));
         }
@@ -497,8 +498,9 @@ const openWithLogic = createLogic({
         const filePaths = await Promise.all(
             // Default to local path for desktop apps
             filesToOpen.map((file) => {
-                const filePath = file.localPath ?? file.path;
-                return executionEnvService.formatPathForHost(filePath);
+                const filePath =
+                    file.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH) ?? file.path;
+                return executionEnvService.formatPathForHost(filePath as string);
             })
         );
 
