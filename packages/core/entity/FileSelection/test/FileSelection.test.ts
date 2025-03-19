@@ -678,14 +678,15 @@ describe("FileSelection", () => {
         it("produces array of selections grouped by fileset", () => {
             // Arrange
             const fuzzyFilterNames: string[] = ["fuzzyFilterName1", "fuzzyFilterName2"];
+            const fuzzyFilterValues: string[] = ["fuzzyFilterValue0", "fuzzyFilterValue1"];
             const includeFilterName = "includeFilterName";
             const excludeFilterName = "excludeFilterName";
             const fileSet1 = new FileSet();
             const fileSet2 = new FileSet({
                 filters: [
                     new FileFilter("filterName", "filterValue"),
-                    new FuzzyFilter(fuzzyFilterNames[0]),
-                    new FuzzyFilter(fuzzyFilterNames[1]),
+                    new FuzzyFilter(fuzzyFilterNames[0], fuzzyFilterValues[0]),
+                    new FuzzyFilter(fuzzyFilterNames[1], fuzzyFilterValues[1]),
                     new IncludeFilter(includeFilterName),
                     new ExcludeFilter(excludeFilterName),
                 ],
@@ -706,7 +707,11 @@ describe("FileSelection", () => {
                 new NumericRange(3).toJSON(),
                 new NumericRange(12, 15).toJSON(),
             ]);
-            expect(selections[1].filters).to.deep.equal({ filterName: ["filterValue"] });
+            expect(selections[1].filters).to.deep.equal({
+                filterName: ["filterValue"],
+                [fuzzyFilterNames[0]]: [fuzzyFilterValues[0]],
+                [fuzzyFilterNames[1]]: [fuzzyFilterValues[1]],
+            });
             expect(selections[1].fuzzy).to.deep.equal([fuzzyFilterNames[0], fuzzyFilterNames[1]]);
             expect(selections[1].include).to.deep.equal([includeFilterName]);
             expect(selections[1].exclude).to.deep.equal([excludeFilterName]);

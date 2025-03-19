@@ -184,7 +184,7 @@ export default function FileDetails(props: Props) {
                                         disabled={isDownloadDisabled}
                                         iconName="Download"
                                         text="Download"
-                                        title="Download"
+                                        title="Download file to local system"
                                         onClick={onDownload}
                                     />
                                 </StackItem>
@@ -193,7 +193,7 @@ export default function FileDetails(props: Props) {
                                         className={styles.primaryButton}
                                         iconName="OpenInNewWindow"
                                         text="Open file"
-                                        title="Open file"
+                                        title="Open file by selected method"
                                         menuItems={openWithMenuItems}
                                     />
                                 </StackItem>

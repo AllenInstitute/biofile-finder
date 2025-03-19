@@ -17,7 +17,9 @@ interface Props {
     menuItems?: IContextualMenuItem[];
     onClick?: () => void;
     text?: string;
-    title: string;
+    // title is only required if tooltip would be different from button text
+    // or if button does not have text (e.g., icon only)
+    title?: string;
 }
 
 /**
@@ -60,7 +62,7 @@ export default function BaseButton(props: Props) {
                     [styles.disabled]: props.disabled,
                     [styles.selected]: props.isSelected,
                 })}
-                data-testid={`base-button-${props.title}`}
+                data-testid={`base-button-${props.id}`}
                 ariaLabel={props.title}
                 disabled={props.disabled}
                 id={props.id}
