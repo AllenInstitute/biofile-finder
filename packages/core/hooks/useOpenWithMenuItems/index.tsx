@@ -3,12 +3,12 @@ import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
 import { interaction, metadata } from "../../state";
 
 import styles from "./useOpenWithMenuItems.module.css";
-import AnnotationName from "../../entity/Annotation/AnnotationName";
 
 enum AppKeys {
     AGAVE = "agave",
