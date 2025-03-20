@@ -17,6 +17,7 @@ import QuerySidebar from "./components/QuerySidebar";
 import { Environment } from "./constants";
 import { interaction, selection } from "./state";
 import useLayoutMeasurements from "./hooks/useLayoutMeasurements";
+import { MessageExternalSiteProvider } from "./hooks/useMessageExternalSite";
 
 import styles from "./App.module.css";
 
@@ -121,7 +122,9 @@ export default function App(props: AppProps) {
                         )}
                     </div>
                 </div>
-                <FileDetails className={styles.fileDetails} />
+                <MessageExternalSiteProvider>
+                    <FileDetails className={styles.fileDetails} />
+                </MessageExternalSiteProvider>
             </div>
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
             <StatusMessage />
