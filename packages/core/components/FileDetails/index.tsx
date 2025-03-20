@@ -73,7 +73,7 @@ function resizeHandleDoubleClick() {
  */
 export default function FileDetails(props: Props) {
     const dispatch = useDispatch();
-    const [fileDetails, isLoading] = useFileDetails();
+    const [fileDetails, isLoading, fileSelection] = useFileDetails();
     const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
     const [isThumbnailLoading, setIsThumbnailLoading] = React.useState(true);
     const stackTokens: IStackTokens = { childrenGap: 12 + " " + 20 };
@@ -148,6 +148,12 @@ export default function FileDetails(props: Props) {
         }, 1000); // 1s, in ms (arbitrary)
     }, [dispatch, fileDetails, fileDownloadService.isFileSystemAccessible]);
 
+    const onOpenSelection = React.useCallback(async () => {
+        const details = await fileSelection.fetchAllDetails();
+        const paths = details.map(({ path }) => path);
+        sendMessageToVole(paths);
+    }, [fileSelection, sendMessageToVole]);
+
     return (
         <div
             className={classNames(styles.root, styles.expandableTransition, props.className)}
@@ -205,7 +211,7 @@ export default function FileDetails(props: Props) {
                                         iconName="OpenInNewWindow"
                                         text="Open selection"
                                         title="Open selection"
-                                        onClick={() => sendMessageToVole("foo")}
+                                        onClick={onOpenSelection}
                                     />
                                 </StackItem>
                                 {VoleIFrame}
