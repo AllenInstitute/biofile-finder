@@ -24,6 +24,8 @@ interface Props {
 const FILE_DETAILS_PANE_ID = "file-details-pane";
 const FILE_DETAILS_WIDTH_ATTRIBUTE = "--file-details-width";
 
+const VOLE_URL = "http://localhost:9020";
+
 function resizeHandleOnMouseDown(mouseDownEvent: React.MouseEvent<HTMLDivElement>) {
     const rootElement: HTMLElement | null = document.getElementById(ROOT_ELEMENT_ID);
     const fileDetailsPane: HTMLElement | null = document.getElementById(FILE_DETAILS_PANE_ID);
@@ -80,7 +82,7 @@ export default function FileDetails(props: Props) {
     const [calculatedSize, setCalculatedSize] = React.useState<number | null>(null);
 
     const [sendMessageToVole, setOnReceiveFromVole] = useMessageExternalSite(
-        "http://localhost:9020/write_storage"
+        `${VOLE_URL}/write_storage`
     );
 
     const platformDependentServices = useSelector(
@@ -150,9 +152,13 @@ export default function FileDetails(props: Props) {
 
     const onOpenSelection = React.useCallback(async () => {
         const details = await fileSelection.fetchAllDetails();
-        const paths = details.map(({ path }) => path);
-        setOnReceiveFromVole(console.log);
-        sendMessageToVole(paths);
+        const scenes = details.map(({ path }) => path);
+        sendMessageToVole({ scenes });
+        setOnReceiveFromVole((message) => {
+            if (message === "SUCCESS") {
+                window.open(`${VOLE_URL}/viewer?url=storage`);
+            }
+        });
     }, [fileSelection, sendMessageToVole, setOnReceiveFromVole]);
 
     return (
