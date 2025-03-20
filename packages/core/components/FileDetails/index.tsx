@@ -79,7 +79,9 @@ export default function FileDetails(props: Props) {
     const stackTokens: IStackTokens = { childrenGap: 12 + " " + 20 };
     const [calculatedSize, setCalculatedSize] = React.useState<number | null>(null);
 
-    const sendMessageToVole = useMessageExternalSite("http://localhost:9020/write_storage");
+    const [sendMessageToVole, setOnReceiveFromVole] = useMessageExternalSite(
+        "http://localhost:9020/write_storage"
+    );
 
     const platformDependentServices = useSelector(
         interaction.selectors.getPlatformDependentServices
@@ -149,8 +151,9 @@ export default function FileDetails(props: Props) {
     const onOpenSelection = React.useCallback(async () => {
         const details = await fileSelection.fetchAllDetails();
         const paths = details.map(({ path }) => path);
+        setOnReceiveFromVole(console.log);
         sendMessageToVole(paths);
-    }, [fileSelection, sendMessageToVole]);
+    }, [fileSelection, sendMessageToVole, setOnReceiveFromVole]);
 
     return (
         <div
