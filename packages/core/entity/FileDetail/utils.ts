@@ -340,7 +340,7 @@ export async function getMultiscale(store: any) {
 
 export async function getMultiscaleWithArray(
     store: any,
-    datasetIndex: -1
+    datasetIndex: number
 ): Promise<{
     arr: any;
     shapes: number[][] | undefined;
@@ -354,6 +354,9 @@ export async function getMultiscaleWithArray(
     }
     const { multiscale, omero, zarr_version } = await getMultiscale(store);
 
+    if (datasetIndex === undefined) {
+        datasetIndex = 0;
+    }
     const paths: Array<string> = multiscale.datasets.map((d) => d.path);
     if (datasetIndex < 0) {
         datasetIndex = paths.length + datasetIndex;

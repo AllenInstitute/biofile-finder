@@ -6,7 +6,7 @@ import { renderThumbnail } from "./ome-zarr";
  */
 export async function renderZarrThumbnailURL(zarrUrl: string): Promise<string | undefined> {
     try {
-        return await renderThumbnail(zarrUrl, 150);
+        return await renderThumbnail(zarrUrl, 150, false, 1000);
     } catch (error) {
         console.error("Failed to render Zarr thumbnail after 3 attempts:", error);
         return undefined; // Return undefined if all attempts fail
