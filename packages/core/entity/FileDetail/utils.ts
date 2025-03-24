@@ -340,7 +340,7 @@ export async function getMultiscale(store: any) {
 
 export async function getMultiscaleWithArray(
     store: any,
-    datasetIndex: 0
+    datasetIndex: -1
 ): Promise<{
     arr: any;
     shapes: number[][] | undefined;

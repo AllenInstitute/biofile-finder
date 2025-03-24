@@ -42,6 +42,7 @@ export async function renderThumbnail(
         store,
         datasetIndex
     );
+    let z_array = arr;
 
     // targetSize is specified, may need to load a different resolution...
     // pick a different dataset level if we want a different size
@@ -91,7 +92,7 @@ export async function renderThumbnail(
             }
         }
         const path = paths[pathIndex];
-        arr = await getArray(store, path, zarr_version);
+        z_array = await getArray(store, path, zarr_version);
     }
 
     // we want to remove any start/end values from window, to calculate min/max
@@ -105,7 +106,7 @@ export async function renderThumbnail(
         });
     }
 
-    return renderImage(arr, multiscale.axes, omero, {}, autoBoost);
+    return renderImage(z_array, multiscale.axes, omero, {}, autoBoost);
 }
 
 export async function renderImage(
