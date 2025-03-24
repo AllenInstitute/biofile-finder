@@ -16,11 +16,6 @@ function slice(start: number | null, stop?: number | null, step: number | null =
     };
 }
 
-// import { ImageAttrs, Multiscale, Omero } from "./types/ome";
-// import { getLutRgb } from "./luts";
-
-/* tslint:disable */
-/* eslint-disable */
 /**
 /* This file was automatically generated from pydantic models by running pydantic2ts.
 /* pydantic2ts --module src/ome_zarr_models/v04/image.py --output ome.ts
@@ -200,9 +195,9 @@ export function getMinMaxValues(chunk2d: any): [number, number] {
     const data = chunk2d.data;
     let maxV = 0;
     let minV = Infinity;
-    let length = chunk2d.data.length;
+    const length = chunk2d.data.length;
     for (let y = 0; y < length; y++) {
-        let rawValue = data[y];
+        const rawValue = data[y];
         maxV = Math.max(maxV, rawValue);
         minV = Math.min(minV, rawValue);
     }
@@ -220,7 +215,7 @@ export function renderTo8bitArray(
     colors: Array<[number, number, number]>,
     luts: Array<string | undefined> | undefined,
     inverteds: Array<boolean> | undefined,
-    autoBoost: boolean = false
+    autoBoost: false
 ) {
     // Render chunks (array) into 2D 8-bit data for new ImageData(arr)
     // if autoBoost is true, check histogram and boost contrast if needed
@@ -239,20 +234,19 @@ export function renderTo8bitArray(
     // load luts if needed
     const lutRgbs = undefined; //luts?.map((lut) => lut && getLutRgb(lut as string));
 
-    // let rgb = [255, 255, 255];
-    let start = performance.now();
+    const start = performance.now();
 
-    let rgba = new Uint8ClampedArray(4 * height * width).fill(0);
+    const rgba = new Uint8ClampedArray(4 * height * width).fill(0);
     let offset = 0;
     for (let p = 0; p < ndChunks.length; p++) {
         offset = 0;
-        let rgb = colors[p];
-        let lutRgb = lutRgbs?.[p];
-        let data = ndChunks[p].data;
-        let range = minMaxValues[p];
-        let inverted = inverteds?.[p];
+        const rgb = colors[p];
+        const lutRgb = lutRgbs?.[p];
+        const data = ndChunks[p].data;
+        const range = minMaxValues[p];
+        const inverted = inverteds?.[p];
         for (let y = 0; y < pixels; y++) {
-            let rawValue = data[y];
+            const rawValue = data[y];
             let fraction = (rawValue - range[0]) / (range[1] - range[0]);
             fraction = Math.min(1, Math.max(0, fraction));
             // for red, green, blue,
@@ -260,7 +254,7 @@ export function renderTo8bitArray(
                 // rgb[i] is 0-255...
                 let v;
                 if (lutRgb) {
-                    let val = (fraction * 255) << 0;
+                    const val = (fraction * 255) << 0;
                     v = lutRgb[val][i];
                     if (inverted) {
                         v = 255 - v;
@@ -282,12 +276,12 @@ export function renderTo8bitArray(
     // if iterating pixels is fast, check histogram and boost contrast if needed
     // Thumbnails are less than 5 millisecs. 512x512 is 10-20 millisecs.
     if (performance.now() - start < 100 && autoBoost) {
-        let bins = 5;
-        let hist = getHistogram(rgba, bins);
+        const bins = 5;
+        const hist = getHistogram(rgba, bins);
         // If top bin, has less than 1% of pixesl, boost contrast
         if (hist[bins - 1] < 1) {
-            let factor = 2;
-            //   rgba = boostContrast(rgba, factor);
+            const factor = 2;
+            boostContrast(rgba, factor);
         }
     }
     return rgba;
@@ -302,7 +296,6 @@ function boostContrast(rgba: Uint8ClampedArray, factor: number) {
             rgba[pixel * 4 + i] = v;
         }
     }
-    return rgba;
 }
 
 function getHistogram(uint8array: Uint8ClampedArray, bins = 5) {
@@ -310,13 +303,13 @@ function getHistogram(uint8array: Uint8ClampedArray, bins = 5) {
     // Returns list of percentages in each bin
     let hist = new Array(bins).fill(0);
     const binSize = 256 / bins;
-    let pixelCount = uint8array.length / 4;
+    const pixelCount = uint8array.length / 4;
     for (let i = 0; i < pixelCount; i++) {
         // get max of r,g,b
         let maxV = uint8array[i * 4];
         maxV = Math.max(uint8array[i * 4 + 1], maxV);
         maxV = Math.max(uint8array[i * 4 + 2], maxV);
-        let bin = Math.floor(maxV / binSize);
+        const bin = Math.floor(maxV / binSize);
         hist[bin] += 1;
     }
     // Normalize to percentage
@@ -347,7 +340,7 @@ export async function getMultiscale(store: any) {
 
 export async function getMultiscaleWithArray(
     store: any,
-    datasetIndex: number = 0
+    datasetIndex: 0
 ): Promise<{
     arr: any;
     shapes: number[][] | undefined;
@@ -368,20 +361,14 @@ export async function getMultiscaleWithArray(
     const path = paths[datasetIndex];
 
     // Get the zarr array
-    let arr;
-    //   try {
-    arr = await getArray(store, path, zarr_version);
-    //   } catch (e) {
-    // console.error("Error opening array", e);
-    // return { arr: undefined, shapes: undefined, multiscale, omero, scales: [], zarr_version };
-    //   }
+    const arr = await getArray(store, path, zarr_version);
 
     // calculate some useful values...
     const shape = arr.shape;
     const scales: Array<number[]> = multiscale.datasets
         .map((ds) => {
             if (Array.isArray(ds.coordinateTransformations)) {
-                let ct = ds.coordinateTransformations.find((ct: any) => "scale" in ct) as {
+                const ct = ds.coordinateTransformations.find((ct: any) => "scale" in ct) as {
                     scale: number[];
                 };
                 return ct.scale;
@@ -413,11 +400,11 @@ export async function getArray(
     zarr_version: 2 | 3 | undefined
 ): Promise<any> {
     // Open the zarr array and check size
-    let root = zarr.root(store);
+    const root = zarr.root(store);
     const openFn =
         zarr_version === 3 ? zarr.open.v3 : zarr_version === 2 ? zarr.open.v2 : zarr.open;
-    let zarrLocation = root.resolve(path);
-    let arr = await openFn(zarrLocation, { kind: "array" });
+    const zarrLocation = root.resolve(path);
+    const arr = await openFn(zarrLocation, { kind: "array" });
 
     return arr;
 }
@@ -429,14 +416,14 @@ export function getSlices(
     indices: { [k: string]: number | [number, number] | undefined }
 ): (number | Slice | undefined)[][] {
     // For each active channel, get a multi-dimensional slice
-    let chSlices = activeChannelIndices.map((chIndex: number) => {
-        let chSlice = shape.map((dimSize, index) => {
-            let name = axesNames[index];
+    const chSlices = activeChannelIndices.map((chIndex: number) => {
+        const chSlice = shape.map((dimSize, index) => {
+            const name = axesNames[index];
             // channel
             if (name == "c") return chIndex;
 
             if (name in indices) {
-                let idx = indices[name];
+                const idx = indices[name];
                 if (Array.isArray(idx)) {
                     return slice(idx[0], idx[1]);
                 } else if (Number.isInteger(idx)) {
