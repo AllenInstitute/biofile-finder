@@ -106,6 +106,7 @@ export default abstract class FileDownloadService extends HttpServiceBase {
                 : url;
 
             try {
+                console.log("listUrl", listUrl);
                 const response = await axios.get(listUrl);
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(response.data, "text/xml");
@@ -124,7 +125,7 @@ export default abstract class FileDownloadService extends HttpServiceBase {
                 }
             } catch (err) {
                 console.error(`Failed to list objects in S3 directory: ${err}`);
-                throw err;
+                // throw err;
             }
         } while (continuationToken);
 
