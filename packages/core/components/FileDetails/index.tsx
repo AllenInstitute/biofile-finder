@@ -152,8 +152,20 @@ export default function FileDetails(props: Props) {
 
     const onOpenSelection = React.useCallback(async () => {
         const details = await fileSelection.fetchAllDetails();
-        const scenes = details.map(({ path }) => path);
-        sendMessageToVole({ scenes });
+        console.log(details);
+        const scenes = [];
+        const meta: Record<string, unknown>[] = [];
+        for (const detail of details) {
+            const sceneMeta: Record<string, unknown> = {};
+            for (const annotation of detail.annotations) {
+                const value =
+                    annotation.values.length === 1 ? annotation.values[0] : annotation.values;
+                sceneMeta[annotation.name] = value;
+            }
+            scenes.push(detail.path);
+            meta.push(sceneMeta);
+        }
+        sendMessageToVole({ scenes, meta });
         setOnReceiveFromVole((message) => {
             if (message === "SUCCESS") {
                 window.open(`${VOLE_URL}/viewer?url=storage`);
