@@ -167,7 +167,12 @@ export default function FileList(props: FileListProps) {
     let content: React.ReactNode;
     if (!!localError) {
         return (
-            <div className={styles.errorMessage}> Something went wrong: {localError.message}</div>
+            <div className={classNames(styles.container, className)}>
+                <div className={styles.errorMessage}>
+                    {" "}
+                    Sorry, some files could not load. Error: {localError.message}
+                </div>
+            </div>
         );
     }
     if (totalCount === null || totalCount > 0) {

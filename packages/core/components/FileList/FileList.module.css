@@ -7,10 +7,11 @@
 }
 
 .error-message {
-    color: var(--error-text-color);
-    margin: var(--margin);
+    color: var(--primary-text-color);
+    margin-bottom: 10px;
     line-height: 1.25;
     font-size: var(--s-paragraph-size);
+    font-style: italic;
 }
 
 .list {
