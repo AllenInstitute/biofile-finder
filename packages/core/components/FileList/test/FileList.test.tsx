@@ -1,6 +1,7 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { render } from "@testing-library/react";
 import { expect } from "chai";
+import { noop } from "lodash";
 import * as React from "react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
@@ -23,7 +24,7 @@ describe("<FileList />", () => {
 
         const { findByText, queryByText } = render(
             <Provider store={store}>
-                <FileList fileSet={fileSet} isRoot={false} sortOrder={4} />
+                <FileList fileSet={fileSet} isRoot={false} sortOrder={4} dispatch={noop} />
             </Provider>
         );
 
@@ -46,7 +47,7 @@ describe("<FileList />", () => {
 
         const { findByText, queryByText } = render(
             <Provider store={store}>
-                <FileList fileSet={fileSet} isRoot={false} sortOrder={4} />
+                <FileList fileSet={fileSet} isRoot={false} sortOrder={4} dispatch={noop} />
             </Provider>
         );
 

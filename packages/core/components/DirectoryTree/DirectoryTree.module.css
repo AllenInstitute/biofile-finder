@@ -39,17 +39,18 @@
 
 .error-message {
     position: absolute;
-    top: 50%;
+    top: 30%;
     transform: translateY(-50%);
     width: 100%;
 
     color: var(--error-text-color); /* defined in App.module.css */
-    font-size: 2rem;
     text-align: center;
+    margin: var(--margin);
+    line-height: 1.5;
 }
 
-.error-message p {
-    margin: 0;
+.error-message h2 {
+    margin: 0 var(--margin);
 }
 
 .vertical-gradient {
