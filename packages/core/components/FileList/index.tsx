@@ -10,6 +10,7 @@ import Header from "./Header";
 import LazilyRenderedRow from "./LazilyRenderedRow";
 import LazilyRenderedThumbnail from "./LazilyRenderedThumbnail";
 import useFileSelector from "./useFileSelector";
+import { Action, setError } from "../DirectoryTree/directory-hierarchy-state";
 import EmptyFileListMessage from "../EmptyFileListMessage";
 import { FileView } from "../../entity/FileExplorerURL";
 import FileSet from "../../entity/FileSet";
@@ -27,6 +28,7 @@ const DEFAULT_TOTAL_COUNT = 1000;
 
 interface FileListProps {
     className?: string;
+    dispatch: (value: Action) => void;
     fileSet: FileSet;
     isRoot: boolean;
     rowHeight?: number; // how tall each row of the list will be, in px
@@ -149,6 +151,15 @@ export default function FileList(props: FileListProps) {
         };
     }, [fileSet]);
 
+    const fileFetchWrapper = async (startIndex: number, endIndex: number) => {
+        try {
+            await fileSet.fetchFileRange(startIndex, endIndex);
+        } catch (err) {
+            props.dispatch(setError(err as Error, true));
+            throw err;
+        }
+    };
+
     let content: React.ReactNode;
     if (totalCount === null || totalCount > 0) {
         if (height > 0) {
@@ -162,7 +173,7 @@ export default function FileList(props: FileListProps) {
                     key={fileSet.instanceId} // force a re-render whenever FileSet changes
                     isItemLoaded={fileSet.isFileMetadataLoadingOrLoaded}
                     loadMoreItems={debouncePromise<any>(
-                        fileSet.fetchFileRange,
+                        fileFetchWrapper,
                         DEBOUNCE_WAIT_FOR_DATA_FETCHING
                     )}
                     itemCount={totalCount || DEFAULT_TOTAL_COUNT}

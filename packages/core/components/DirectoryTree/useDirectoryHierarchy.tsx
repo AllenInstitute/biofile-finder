@@ -138,7 +138,12 @@ const useDirectoryHierarchy = (
                 if (!cancel) {
                     dispatch(
                         receiveContent(
-                            <FileList fileSet={fileSet} isRoot={isRoot} sortOrder={sortOrder} />
+                            <FileList
+                                fileSet={fileSet}
+                                isRoot={isRoot}
+                                sortOrder={sortOrder}
+                                dispatch={dispatch}
+                            />
                         )
                     );
                 }
