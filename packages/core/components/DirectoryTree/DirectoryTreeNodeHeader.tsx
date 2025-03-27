@@ -2,9 +2,8 @@ import classNames from "classnames";
 import { Spinner, SpinnerSize } from "@fluentui/react";
 import * as React from "react";
 import { useSelector } from "react-redux";
-import Tippy from "@tippyjs/react";
-import "tippy.js/dist/tippy.css"; // side-effect
 
+import Tooltip from "../Tooltip";
 import SvgIcon from "../../components/SvgIcon";
 import { selection } from "../../state";
 import FileSet from "../../entity/FileSet";
@@ -112,8 +111,8 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
             <h4 className={styles.directoryName}>{title}</h4>
             {selectionCountBadge}
             {loading && <Spinner size={SpinnerSize.small} />}
-            {!loading && error && (
-                <Tippy content={error.message}>
+            {!loading && error && collapsed && (
+                <Tooltip content={error.message}>
                     <SvgIcon
                         className={styles.errorIcon}
                         height={ICON_SIZE}
@@ -121,7 +120,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
                         viewBox="0 0 24 24"
                         width={ICON_SIZE}
                     />
-                </Tippy>
+                </Tooltip>
             )}
         </span>
     );

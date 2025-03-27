@@ -39,7 +39,7 @@
 }
 
 .error-icon {
-    fill: var(--error-background-color); /* defined in App.module.css */;
+    fill: var(--error-status-text-color);
 }
 
 .directory-name {
