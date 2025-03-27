@@ -147,26 +147,28 @@ export default class HttpServiceBase {
         const encodedUrl = HttpServiceBase.encodeURI(url);
 
         if (!this.urlToResponseDataCache.has(encodedUrl)) {
+            let response;
             // if this fails, bubble up exception
             try {
-                const response = await retry.execute(() => this.httpClient.get(encodedUrl));
-
-                if (response.status < 400 && response.data !== undefined) {
-                    this.urlToResponseDataCache.set(encodedUrl, response.data);
-                } else {
-                    // by default axios will reject if does not satisfy: status >= 200 && status < 300
-                    throw new Error(`Request for ${encodedUrl} failed`);
-                }
+                response = await retry.execute(() => this.httpClient.get(encodedUrl));
             } catch (err) {
+                // Specific errors about the failure from services will be in this path
                 if (
                     axios.isAxiosError(err) &&
                     (err?.response?.data?.message || err?.response?.data?.error)
                 ) {
                     throw new Error(
-                        JSON.stringify(err.response.data.message || err?.response?.data?.error)
+                        JSON.stringify(err.response.data.message || err.response.data.error)
                     );
                 }
                 throw err;
+            }
+
+            if (response.status < 400 && response.data !== undefined) {
+                this.urlToResponseDataCache.set(encodedUrl, response.data);
+            } else {
+                // by default axios will reject if does not satisfy: status >= 200 && status < 300
+                throw new Error(`Request for ${encodedUrl} failed`);
             }
         }
 
