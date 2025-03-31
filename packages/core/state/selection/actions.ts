@@ -568,14 +568,23 @@ export function setOpenFileFolders(openFileFolders: FileFolder[]): SetOpenFileFo
     };
 }
 
+/**
+ * TOGGLE_NULL_VALUE_GROUPS
+ *
+ * Intention to set whether to include groups of files that don't have any value for a given annotation.
+ * If showNullValues param is present, uses that boolean value.
+ * Otherwise, toggles existing setting
+ */
 export const TOGGLE_NULL_VALUE_GROUPS = makeConstant(STATE_BRANCH_NAME, "toggle-null-value-groups");
 
 export interface SetShowNullValueGroupsAction {
     type: string;
+    payload: boolean | undefined;
 }
 
-export function toggleNullValueGroups(): SetShowNullValueGroupsAction {
+export function toggleNullValueGroups(showNullValues?: boolean): SetShowNullValueGroupsAction {
     return {
+        payload: showNullValues,
         type: TOGGLE_NULL_VALUE_GROUPS,
     };
 }

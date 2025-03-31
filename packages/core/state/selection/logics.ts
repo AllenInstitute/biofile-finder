@@ -49,6 +49,7 @@ import {
     setFileView,
     setColumns,
     EXPAND_ALL_FILE_FOLDERS,
+    toggleNullValueGroups,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -403,6 +404,7 @@ const decodeFileExplorerURLLogics = createLogic({
             fileView,
             filters,
             openFolders,
+            showNoValueGroups,
             sortColumn,
             sources,
             sourceMetadata,
@@ -417,6 +419,7 @@ const decodeFileExplorerURLLogics = createLogic({
             fileView && dispatch(setFileView(fileView) as AnyAction);
             dispatch(setOpenFileFolders(openFolders));
             dispatch(setSortColumn(sortColumn));
+            dispatch(toggleNullValueGroups(showNoValueGroups) as AnyAction);
         });
         done();
     },

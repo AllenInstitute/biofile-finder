@@ -83,6 +83,7 @@ export const getCurrentQueryParts = createSelector(
         getFileFilters,
         getFileView,
         getOpenFileFolders,
+        getShouldShowNullGroups,
         getSortColumn,
         getSelectedDataSources,
         getSelectedSourceMetadata,
@@ -93,6 +94,7 @@ export const getCurrentQueryParts = createSelector(
         filters,
         fileView,
         openFolders,
+        showNoValueGroups,
         sortColumn,
         sources,
         sourceMetadata
@@ -102,6 +104,7 @@ export const getCurrentQueryParts = createSelector(
         fileView,
         filters,
         openFolders,
+        showNoValueGroups,
         sortColumn,
         sources,
         sourceMetadata,

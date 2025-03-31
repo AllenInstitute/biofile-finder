@@ -8,7 +8,7 @@ import ListRow, { ListItem } from "./ListRow";
 import Checkbox from "../Checkbox";
 import SearchBox from "../SearchBox";
 import Tooltip from "../Tooltip";
-import { selection } from "../../state";
+import { interaction, selection } from "../../state";
 
 import styles from "./ListPicker.module.css";
 
@@ -164,7 +164,10 @@ export default function ListPicker(props: ListPickerProps) {
                     {shouldShowNullGroups !== undefined && ( // avoid colliding with falsy value
                         <Checkbox
                             className={styles.checkbox}
-                            onChange={() => dispatch(selection.actions.toggleNullValueGroups())}
+                            onChange={() => {
+                                dispatch(selection.actions.toggleNullValueGroups());
+                                dispatch(interaction.actions.refresh());
+                            }}
                             label="Show files with no value in results"
                             initialValue={shouldShowNullGroups}
                         />

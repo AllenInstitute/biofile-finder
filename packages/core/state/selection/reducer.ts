@@ -206,9 +206,10 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             openFileFolders: action.payload,
         }),
-        [TOGGLE_NULL_VALUE_GROUPS]: (state) => ({
+        [TOGGLE_NULL_VALUE_GROUPS]: (state, action) => ({
             ...state,
-            shouldShowNullGroups: !state.shouldShowNullGroups,
+            shouldShowNullGroups:
+                action.payload !== undefined ? action.payload : !state.shouldShowNullGroups,
         }),
         [interaction.actions.INITIALIZE_APP]: (state) => ({
             ...state,
