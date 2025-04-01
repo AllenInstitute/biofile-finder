@@ -169,7 +169,7 @@ export default function FileList(props: FileListProps) {
         return (
             <div className={classNames(styles.container, className)}>
                 <div className={styles.errorMessage}>
-                    Sorry, some files could not load. Error: {localError.message}
+                    Some files could not be loaded. Error: {localError.message}
                 </div>
             </div>
         );
