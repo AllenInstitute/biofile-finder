@@ -26,15 +26,11 @@
     width: 100%;
     margin: 0;
     padding: 0;
+    padding-bottom: 30px; /* add scroll buffer to outermost list*/
 }
 
 .scroll-container li {
     list-style: none;
-}
-
-/* Add padding to emphasize at end of list */
-.scroll-container li:last-of-type {
-    padding-bottom: 30px;
 }
 
 .error-message {

@@ -53,6 +53,8 @@ import {
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
+import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
+import { ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import Annotation from "../../entity/Annotation";
 import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
@@ -354,6 +356,7 @@ const expandAllFileFolders = createLogic({
         const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
         const annotationService = interaction.selectors.getAnnotationService(getState());
         const selectedFileFilters = selection.selectors.getFileFilters(getState());
+        const shouldShowNullGroups = selection.selectors.getShouldShowNullGroups(getState());
         // Track internally rather than relying on selector (may be out of sync)
         const openedSoFar: FileFolder[] = [];
         // Recursive helper
@@ -361,18 +364,21 @@ const expandAllFileFolders = createLogic({
             const fileFoldersToOpen: FileFolder[] = values.map(
                 (value) => new FileFolder([...pathSoFar, value] as AnnotationValue[])
             );
-            // Needs to be set wholesale so must include already opened folderes
+            // Needs to be set wholesale so must include already opened folders
             openedSoFar.push(...fileFoldersToOpen);
             dispatch(setOpenFileFolders(openedSoFar));
             for (const value of values) {
                 // At end of folder hierarchy
                 if (!!hierarchy.length && pathSoFar.length === hierarchy.length - 1) continue;
 
-                const childNodes = await annotationService.fetchHierarchyValuesUnderPath(
+                const childNodes = await findChildNodes({
+                    ancestorNodes: pathSoFar,
+                    currentNode: value,
+                    selectedFileFilters,
                     hierarchy,
-                    [...pathSoFar, value],
-                    selectedFileFilters
-                );
+                    annotationService,
+                    shouldShowNullGroups,
+                });
                 if (childNodes.length) {
                     // Not a leaf
                     unpackAllFileFolders(childNodes, [...pathSoFar, value]);
@@ -380,10 +386,16 @@ const expandAllFileFolders = createLogic({
             }
         }
 
-        const rootHierarchyValues = await annotationService.fetchRootHierarchyValues(
+        const rootHierarchyValues = await findChildNodes({
+            currentNode: ROOT_NODE,
+            selectedFileFilters,
             hierarchy,
-            selectedFileFilters
-        );
+            annotationService,
+            shouldShowNullGroups,
+        });
+        if (shouldShowNullGroups) {
+            rootHierarchyValues.push("No value");
+        }
         await unpackAllFileFolders(rootHierarchyValues, []);
         dispatch(interaction.actions.refresh() as AnyAction); // synchronize UI with state
         done();

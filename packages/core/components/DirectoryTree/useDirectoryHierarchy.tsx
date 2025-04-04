@@ -1,4 +1,4 @@
-import { defaults, isEmpty, find, pull, take, uniqWith, zip } from "lodash";
+import { defaults, find, pull, take, uniqWith, zip } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -10,13 +10,16 @@ import {
     State,
     receiveContent,
     reducer,
+    ROOT_NODE,
+    NO_VALUE_NODE,
 } from "./directory-hierarchy-state";
+import { findChildNodes } from "./findChildNodes";
 import FileList from "../FileList";
 import FileFilter from "../../entity/FileFilter";
+import ExcludeFilter from "../../entity/FileFilter/ExcludeFilter";
 import FileSet from "../../entity/FileSet";
 import { ValueError } from "../../errors";
 import { interaction, metadata, selection } from "../../state";
-import { naturalComparator } from "../../util/strings";
 
 export interface UseDirectoryHierarchyParams {
     ancestorNodes?: string[];
@@ -30,8 +33,6 @@ export interface UseAnnotationHierarchyReturnValue {
     isLeaf: boolean;
     state: State;
 }
-
-export const ROOT_NODE = "root_node_sentinal_value";
 
 const DEFAULTS = {
     ancestorNodes: [],
@@ -109,6 +110,7 @@ const useDirectoryHierarchy = (
     const includeFilters = useSelector(selection.selectors.getAnnotationsRequired);
     const selectedFileFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
+    const shouldShowNullGroups = useSelector(selection.selectors.getShouldShowNullGroups);
     const [state, dispatch] = React.useReducer(reducer, {
         ...INITIAL_STATE,
         isLoading: !collapsed,
@@ -156,40 +158,16 @@ const useDirectoryHierarchy = (
                         annotations,
                         (annotation) => annotation.name === annotationNameAtDepth
                     );
-                    const userSelectedFiltersForCurrentAnnotation = selectedFileFilters
-                        .filter((filter) => filter.name === annotationNameAtDepth)
-                        .map((filter) => filter.value);
-
-                    let values: any[];
-                    if (isRoot) {
-                        values = await annotationService.fetchRootHierarchyValues(
-                            hierarchy,
-                            selectedFileFilters
-                        );
-                    } else {
-                        values = await annotationService.fetchHierarchyValuesUnderPath(
-                            hierarchy,
-                            pathToNode,
-                            selectedFileFilters
-                        );
-                    }
-
-                    const filteredValues = values.filter((value) => {
-                        if (includeFilters?.some((filter) => filter.name === annotationNameAtDepth))
-                            return true;
-                        if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
-                            if (
-                                fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationNameAtDepth)
-                            ) {
-                                // There can only be one selected value for fuzzy search, so reverse match
-                                return value.includes(userSelectedFiltersForCurrentAnnotation[0]);
-                            }
-                            return userSelectedFiltersForCurrentAnnotation.includes(value);
-                        }
-                        return true;
+                    const allChildNodes = await findChildNodes({
+                        ancestorNodes,
+                        currentNode,
+                        fileSet,
+                        selectedFileFilters,
+                        hierarchy,
+                        annotationService,
+                        shouldShowNullGroups,
                     });
-
-                    const nodes = filteredValues.sort(naturalComparator).map((value, idx) => {
+                    const nodes = allChildNodes.map((value, idx) => {
                         let childNodeSortOrder: number;
                         if (isRoot) {
                             // First level of folders; use order produced by sort operation.
@@ -199,7 +177,7 @@ const useDirectoryHierarchy = (
                                 idxWithinSourceList: idx,
                                 parentDepth: depth,
                                 parentSortOrder: sortOrder,
-                                sourceListLength: filteredValues.length,
+                                sourceListLength: allChildNodes.length,
                             });
                         }
 
@@ -209,6 +187,9 @@ const useDirectoryHierarchy = (
                             take(pathToChildNode, depth + 1)
                         ).map((pair) => {
                             const [name, value] = pair as [string, string];
+                            if (value === NO_VALUE_NODE) {
+                                return new ExcludeFilter(name);
+                            }
                             return new FileFilter(name, value);
                         });
 
@@ -233,12 +214,17 @@ const useDirectoryHierarchy = (
                             sort: sortColumn,
                         });
 
+                        const displayValue =
+                            value === NO_VALUE_NODE
+                                ? `No value ("${hierarchy[depth]}")`
+                                : annotationAtDepth?.getDisplayValue(value) || value;
+
                         return (
                             <DirectoryTreeNode
                                 key={`${pathToChildNode.join(":")}|${hierarchy.join(":")}`}
                                 ancestorNodes={pathToNode}
                                 currentNode={value}
-                                displayValue={annotationAtDepth?.getDisplayValue(value) || value}
+                                displayValue={displayValue}
                                 fileSet={childNodeFileSet}
                                 sortOrder={childNodeSortOrder}
                             />
@@ -281,6 +267,7 @@ const useDirectoryHierarchy = (
         isRoot,
         isLeaf,
         selectedFileFilters,
+        shouldShowNullGroups,
         sortColumn,
         sortOrder,
     ]);
