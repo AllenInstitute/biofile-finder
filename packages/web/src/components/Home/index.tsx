@@ -49,7 +49,7 @@ export default function Home() {
         },
     ];
     return (
-        <div className={styles.root}>
+        <div>
             <div className={styles.banner}>
                 <div className={classNames(styles.section, styles.bannerContent)}>
                     <Stack
