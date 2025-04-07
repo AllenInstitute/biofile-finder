@@ -15,9 +15,9 @@ enum AppKeys {
     BROWSER = "browser",
     NEUROGLANCER = "neuroglancer",
     SIMULARIUM = "simularium",
+    VALIDATOR = "validator",
     VOLE = "vole",
     VOLVIEW = "volview",
-    VALIDATOR = "validator",
 }
 
 interface Apps {
@@ -25,9 +25,9 @@ interface Apps {
     [AppKeys.BROWSER]: IContextualMenuItem;
     [AppKeys.NEUROGLANCER]: IContextualMenuItem;
     [AppKeys.SIMULARIUM]: IContextualMenuItem;
+    [AppKeys.VALIDATOR]: IContextualMenuItem;
     [AppKeys.VOLE]: IContextualMenuItem;
     [AppKeys.VOLVIEW]: IContextualMenuItem;
-    [AppKeys.VALIDATOR]: IContextualMenuItem;
 }
 
 const SUPPORTED_APPS_HEADER = {
@@ -125,6 +125,22 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
             );
         },
     } as IContextualMenuItem,
+    [AppKeys.VALIDATOR]: {
+        key: AppKeys.VALIDATOR,
+        text: "OME NGFF Validator",
+        title: `Open files with OME NGFF Validator`,
+        href: `https://ome.github.io/ome-ngff-validator/?source=${fileDetails?.path}`,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
     [AppKeys.VOLE]: {
         key: AppKeys.VOLE,
         text: "Vol-E",
@@ -146,22 +162,6 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
         text: "VolView",
         title: `Open files with VolView`,
         href: `https://volview.kitware.app/?urls=[${fileDetails?.path}]`,
-        disabled: !fileDetails?.path,
-        target: "_blank",
-        onRenderContent(props, defaultRenders) {
-            return (
-                <>
-                    {defaultRenders.renderItemName(props)}
-                    <span className={styles.secondaryText}>Web</span>
-                </>
-            );
-        },
-    } as IContextualMenuItem,
-    [AppKeys.VALIDATOR]: {
-        key: AppKeys.VALIDATOR,
-        text: "OME NGFF Validator",
-        title: `Open files with OME NGFF Validator`,
-        href: `https://ome.github.io/ome-ngff-validator/?source=${fileDetails?.path}`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
