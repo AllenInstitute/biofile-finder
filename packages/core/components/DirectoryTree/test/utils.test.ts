@@ -1,7 +1,16 @@
+import { createMockHttpClient, ResponseStub } from "@aics/redux-utils";
 import { expect } from "chai";
-import { pick } from "lodash";
+import { get as _get, pick } from "lodash";
 
+import { NO_VALUE_NODE } from "../directory-hierarchy-state";
+import { findChildNodes } from "../findChildNodes";
 import { calcNodeSortOrder } from "../useDirectoryHierarchy";
+import { FESBaseUrl } from "../../../constants";
+import Annotation from "../../../entity/Annotation";
+import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
+import FileSet from "../../../entity/FileSet";
+import FileFilter from "../../../entity/FileFilter";
+import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 
 describe("DirectoryTree utilities", () => {
     describe("calcNodeSortOrder", () => {
@@ -57,6 +66,150 @@ describe("DirectoryTree utilities", () => {
                 // Assert
                 expect(sortOrder).to.equal(spec.expectation);
             });
+        });
+    });
+    describe("findChildNodes", () => {
+        // Create mock annotations and hierarchy
+        const firstAnn = new Annotation({
+            annotationDisplayName: "Annotation1",
+            annotationName: "annotation1",
+            description: "",
+            type: "Text",
+        });
+        const secondAnn = new Annotation({
+            annotationDisplayName: "Annotation2",
+            annotationName: "annotation2",
+            description: "",
+            type: "Text",
+        });
+        const topLevelHierarchyValues = ["first", "second", "third", "fourth"];
+        const secondLevelHierarchyValues = ["a", "b", "c"];
+        const responseStubs: ResponseStub[] = [
+            {
+                when: (config) =>
+                    _get(config, "url", "").includes(
+                        `&path=${firstAnn.displayName}&filter=${firstAnn.displayName}=fourth&filter=${firstAnn.displayName}=fourth`
+                    ),
+                respondWith: {
+                    data: {
+                        data: ["Incorrect"], // This is an intentional dud, we should not hit this endpoint
+                    },
+                },
+            },
+            {
+                when: (config) =>
+                    _get(config, "url", "").includes(
+                        `&path=${firstAnn.displayName}&filter=${firstAnn.displayName}=fourth`
+                    ),
+                respondWith: {
+                    data: {
+                        data: ["Correct"],
+                    },
+                },
+            },
+            {
+                when: (config) =>
+                    _get(config, "url", "").includes(
+                        `${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?order=${firstAnn.displayName}`
+                    ),
+                respondWith: {
+                    data: { data: topLevelHierarchyValues },
+                },
+            },
+            {
+                when: (config) =>
+                    _get(config, "url", "").includes(
+                        `${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?order=${secondAnn.displayName}`
+                    ),
+                respondWith: {
+                    data: { data: secondLevelHierarchyValues },
+                },
+            },
+            {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${firstAnn.name}/values`,
+                respondWith: {
+                    data: { data: topLevelHierarchyValues },
+                },
+            },
+            {
+                when: (config) =>
+                    _get(config, "url", "").includes(
+                        `${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}?order=${firstAnn.displayName}&order=${secondAnn.displayName}&path=${firstAnn.displayName}`
+                    ),
+                respondWith: {
+                    data: {
+                        data: secondLevelHierarchyValues,
+                    },
+                },
+            },
+        ];
+        const mockHttpClient = createMockHttpClient(responseStubs);
+        const annotationService = new HttpAnnotationService({
+            fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+            httpClient: mockHttpClient,
+        });
+        const hierarchy = [firstAnn.displayName, secondAnn.displayName];
+
+        it('finds child nodes without "showNullValue" applied', async () => {
+            const childNodes = await findChildNodes({
+                annotationService,
+                currentNode: firstAnn.displayName,
+                hierarchy,
+                shouldShowNullGroups: false,
+                selectedFileFilters: [],
+            });
+            expect(childNodes.includes(NO_VALUE_NODE)).to.be.false;
+            expect(childNodes).to.deep.equal(secondLevelHierarchyValues);
+        });
+        it("includes the NO_VALUE node when showNullValue is applied", async () => {
+            const childNodes = await findChildNodes({
+                annotationService,
+                currentNode: firstAnn.displayName,
+                hierarchy,
+                shouldShowNullGroups: true,
+                selectedFileFilters: [],
+            });
+            expect(childNodes.includes(NO_VALUE_NODE)).to.be.true;
+        });
+        it("excludes the NO_VALUE node when annotation has filter applied", async () => {
+            const secondAnnFilter = new FileFilter(
+                secondAnn.displayName,
+                secondLevelHierarchyValues[1]
+            );
+            const childNodes = await findChildNodes({
+                annotationService,
+                currentNode: firstAnn.displayName,
+                hierarchy,
+                shouldShowNullGroups: true,
+                selectedFileFilters: [secondAnnFilter],
+            });
+            expect(childNodes.includes(NO_VALUE_NODE)).to.be.false;
+            expect(childNodes).to.deep.equal([secondLevelHierarchyValues[1]]);
+        });
+        it("returns only the NO_VALUE node when annotation has exclude filter applied", async () => {
+            const secondAnnFilter = new ExcludeFilter(secondAnn.displayName);
+            const childNodes = await findChildNodes({
+                annotationService,
+                currentNode: firstAnn.displayName,
+                hierarchy,
+                shouldShowNullGroups: true,
+                selectedFileFilters: [secondAnnFilter],
+            });
+            expect(childNodes.includes(NO_VALUE_NODE)).to.be.true;
+            expect(childNodes.length).to.equal(1);
+        });
+        it("combines duplicate filters", async () => {
+            const firstAnnFilter = new FileFilter(firstAnn.displayName, topLevelHierarchyValues[3]);
+            const fileSet = new FileSet({ filters: [firstAnnFilter] });
+            const childNodes = await findChildNodes({
+                annotationService,
+                currentNode: firstAnn.displayName,
+                fileSet,
+                hierarchy,
+                shouldShowNullGroups: false,
+                selectedFileFilters: [firstAnnFilter],
+            });
+            expect(childNodes).to.deep.equal(["Correct"]);
         });
     });
 });

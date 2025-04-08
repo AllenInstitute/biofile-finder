@@ -1,10 +1,10 @@
 import { defaults, isEmpty, pull } from "lodash";
 
+import { NO_VALUE_NODE, ROOT_NODE } from "./directory-hierarchy-state";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import { AnnotationService } from "../../services";
 import { naturalComparator } from "../../util/strings";
-import { NO_VALUE_NODE, ROOT_NODE } from "./directory-hierarchy-state";
 
 export interface FindChildNodesParams {
     ancestorNodes?: string[];
@@ -39,13 +39,13 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
         (fileSet?.filters || [])?.filter((filter) => !selectedFileFilters.includes(filter))
     );
     const includeFilters = combinedFileFilters
-        .filter((f) => f.type === FilterType.ANY)
+        .filter((f) => f.type === FilterType.ANY && !fileSet?.includeFilters?.includes(f))
         .concat(fileSet?.includeFilters || []);
     const excludeFilters = combinedFileFilters
-        .filter((f) => f.type === FilterType.EXCLUDE)
+        .filter((f) => f.type === FilterType.EXCLUDE && !fileSet?.excludeFilters?.includes(f))
         .concat(fileSet?.excludeFilters || []);
     const fuzzyFilters = combinedFileFilters
-        .filter((f) => f.type === FilterType.FUZZY)
+        .filter((f) => f.type === FilterType.FUZZY && !fileSet?.fuzzyFilters?.includes(f))
         .concat(fileSet?.fuzzyFilters || []);
 
     // if at root of hierarchy, currentNode will be set to the sentinal "ROOT_NODE"
