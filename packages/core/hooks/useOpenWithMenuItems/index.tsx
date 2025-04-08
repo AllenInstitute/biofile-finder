@@ -15,6 +15,7 @@ enum AppKeys {
     BROWSER = "browser",
     NEUROGLANCER = "neuroglancer",
     SIMULARIUM = "simularium",
+    VALIDATOR = "validator",
     VOLE = "vole",
     VOLVIEW = "volview",
 }
@@ -24,6 +25,7 @@ interface Apps {
     [AppKeys.BROWSER]: IContextualMenuItem;
     [AppKeys.NEUROGLANCER]: IContextualMenuItem;
     [AppKeys.SIMULARIUM]: IContextualMenuItem;
+    [AppKeys.VALIDATOR]: IContextualMenuItem;
     [AppKeys.VOLE]: IContextualMenuItem;
     [AppKeys.VOLVIEW]: IContextualMenuItem;
 }
@@ -123,6 +125,22 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
             );
         },
     } as IContextualMenuItem,
+    [AppKeys.VALIDATOR]: {
+        key: AppKeys.VALIDATOR,
+        text: "OME NGFF Validator",
+        title: `Open files with OME NGFF Validator`,
+        href: `https://ome.github.io/ome-ngff-validator/?source=${fileDetails?.path}`,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
     [AppKeys.VOLE]: {
         key: AppKeys.VOLE,
         text: "Vol-E",
@@ -192,7 +210,7 @@ function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
         case "": // No extension
             return isLikelyLocalFile
                 ? [apps.agave, apps.neuroglancer, apps.vole]
-                : [apps.vole, apps.neuroglancer, apps.agave];
+                : [apps.vole, apps.neuroglancer, apps.agave, apps.validator];
         default:
             return [];
     }
