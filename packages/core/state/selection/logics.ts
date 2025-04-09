@@ -54,7 +54,7 @@ import {
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
-import { ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
+import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import Annotation from "../../entity/Annotation";
 import FileExplorerURL from "../../entity/FileExplorerURL";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
@@ -394,7 +394,7 @@ const expandAllFileFolders = createLogic({
             shouldShowNullGroups,
         });
         if (shouldShowNullGroups) {
-            rootHierarchyValues.push("No value");
+            rootHierarchyValues.push(NO_VALUE_NODE);
         }
         await unpackAllFileFolders(rootHierarchyValues, []);
         dispatch(interaction.actions.refresh() as AnyAction); // synchronize UI with state
