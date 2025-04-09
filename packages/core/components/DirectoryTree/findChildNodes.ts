@@ -13,13 +13,14 @@ export interface FindChildNodesParams {
     annotationService: AnnotationService;
     fileSet?: FileSet;
     selectedFileFilters?: FileFilter[];
-    shouldShowNullGroups: boolean;
+    shouldShowNullGroups?: boolean;
 }
 
 const DEFAULTS = {
     ancestorNodes: [],
     currentNode: ROOT_NODE,
     selectedFileFilters: [],
+    shouldShowNullGroups: false,
 };
 
 export async function findChildNodes(params: FindChildNodesParams): Promise<string[]> {
@@ -48,8 +49,9 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     const depth = pathToNode.length;
     const annotationNameAtDepth = hierarchy[depth];
     const userSelectedFiltersForCurrentAnnotation = combinedFileFilters
-        .filter((filter) => filter.name === annotationNameAtDepth)
-        .filter((filter) => filter.type !== FilterType.EXCLUDE)
+        .filter(
+            (filter) => filter.name === annotationNameAtDepth && filter.type !== FilterType.EXCLUDE
+        )
         .map((filter) => filter.value);
 
     if (isRoot) {
@@ -59,6 +61,7 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
             combinedFileFilters
         );
     } else if (shouldShowNullGroups) {
+        // Fetch all values under node, ignoring past hierarchy
         values = await annotationService.fetchRootHierarchyValues(
             [annotationNameAtDepth],
             combinedFileFilters
