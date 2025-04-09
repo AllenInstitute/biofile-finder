@@ -6,6 +6,10 @@
     flex-direction: column;
 }
 
+.tree-node-hidden {
+    display: none;
+}
+
 .directory-header {
     cursor: pointer;
     margin: 2px;
