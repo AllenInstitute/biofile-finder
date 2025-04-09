@@ -94,7 +94,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
             aria-level={ancestorNodes.length + 1} // aria-level is 1-indexed
         >
             <DirectoryTreeNodeHeader
-                collapsed={collapsed || Boolean(error)}
+                collapsed={collapsed}
                 error={error}
                 fileSet={fileSet}
                 isLeaf={isLeaf}
@@ -105,7 +105,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
             />
             <ul
                 className={classNames(styles.children, {
-                    [styles.collapsed]: collapsed || Boolean(error),
+                    [styles.collapsed]: collapsed,
                     [styles.fileList]: isLeaf,
                 })}
                 style={{ paddingLeft: `${ICON_SIZE + 8}px` }}

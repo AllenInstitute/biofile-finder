@@ -92,12 +92,13 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             );
         }
 
-        if (fileInfo.data instanceof Uint8Array) {
-            downloadUrl = URL.createObjectURL(new Blob([fileInfo.data]));
-        } else if (fileInfo.data instanceof Blob) {
-            downloadUrl = URL.createObjectURL(fileInfo.data);
-        } else if (typeof fileInfo.data === "string") {
-            const dataAsBlob = new Blob([fileInfo.data], { type: "application/json" });
+        const path = fileInfo.data || fileInfo.path;
+        if (path instanceof Uint8Array) {
+            downloadUrl = URL.createObjectURL(new Blob([path]));
+        } else if (path instanceof Blob) {
+            downloadUrl = URL.createObjectURL(path);
+        } else if (typeof path === "string" && !destination) {
+            const dataAsBlob = new Blob([path], { type: "application/json" });
             downloadUrl = URL.createObjectURL(dataAsBlob);
         } else {
             return this.downloadHttpFile(fileInfo, downloadRequestId, onProgress, destination);

@@ -49,6 +49,7 @@ const TALL_ROW_HEIGHT = 19;
  */
 export default function FileList(props: FileListProps) {
     const [totalCount, setTotalCount] = React.useState<number | null>(null);
+    const [localError, setLocalError] = React.useState<Error>();
     const [lastVisibleRowIndex, setLastVisibleRowIndex] = React.useState<number>(0);
     const fileView = useSelector(selection.selectors.getFileView);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
@@ -152,15 +153,27 @@ export default function FileList(props: FileListProps) {
     }, [fileSet]);
 
     const fileFetchWrapper = async (startIndex: number, endIndex: number) => {
+        setLocalError(undefined); // reset
         try {
             await fileSet.fetchFileRange(startIndex, endIndex);
         } catch (err) {
-            props.dispatch(setError(err as Error, true));
+            props.dispatch(setError(err as Error, isRoot));
+            // Root has its own error handling
+            if (!isRoot) setLocalError(err as Error);
             throw err;
         }
     };
 
     let content: React.ReactNode;
+    if (!!localError) {
+        return (
+            <div className={classNames(styles.container, className)}>
+                <div className={styles.errorMessage}>
+                    Some files could not be loaded. Error: {localError.message}
+                </div>
+            </div>
+        );
+    }
     if (totalCount === null || totalCount > 0) {
         if (height > 0) {
             // When this component isRoot the height is measured. It takes

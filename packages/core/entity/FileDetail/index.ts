@@ -194,7 +194,7 @@ export default class FileDetail {
 
         // If no thumbnail present try to render the file itself as the thumbnail
         if (!this.thumbnail) {
-            if (this.path.endsWith(".zarr")) {
+            if (this.path.includes(".zarr")) {
                 return renderZarrThumbnailURL(this.path);
             }
 
