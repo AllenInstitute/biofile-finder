@@ -32,6 +32,13 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     } = defaults({}, params, DEFAULTS);
 
     const isRoot = currentNode === ROOT_NODE;
+    const excludeFilters = fileSet.filters
+        .filter((f) => f.type === FilterType.EXCLUDE && !fileSet?.excludeFilters?.includes(f))
+        .concat(fileSet?.excludeFilters || []);
+    if (excludeFilters?.some((filter) => filter.name === annotationNameAtDepth)) {
+        // User does not want this annotation, don't return any values
+        return shouldShowNullGroups ? [NO_VALUE_NODE] : [];
+    }
 
     // If at root of hierarchy, currentNode will be set to "ROOT_NODE"
     // We trim that from the path as it is not meaningful in this context
@@ -42,9 +49,7 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     const depth = pathToNode.length;
     const annotationNameAtDepth = hierarchy[depth];
     const userSelectedFiltersForCurrentAnnotation = fileSet.filters
-        .filter(
-            (filter) => filter.name === annotationNameAtDepth && filter.type !== FilterType.EXCLUDE
-        )
+        .filter((filter) => filter.name === annotationNameAtDepth)
         .map((filter) => filter.value);
 
     if (shouldShowNullGroups) {
@@ -70,9 +75,6 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     const includeFilters = fileSet.filters
         .filter((f) => f.type === FilterType.ANY && !fileSet?.includeFilters?.includes(f))
         .concat(fileSet?.includeFilters || []);
-    const excludeFilters = fileSet.filters
-        .filter((f) => f.type === FilterType.EXCLUDE && !fileSet?.excludeFilters?.includes(f))
-        .concat(fileSet?.excludeFilters || []);
     const fuzzyFilters = fileSet.filters
         .filter((f) => f.type === FilterType.FUZZY && !fileSet?.fuzzyFilters?.includes(f))
         .concat(fileSet?.fuzzyFilters || []);
@@ -81,9 +83,6 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     if (includeFilters?.some((filter) => filter.name === annotationNameAtDepth)) {
         // User wants this annotation
         filteredValues = values;
-    } else if (excludeFilters?.some((filter) => filter.name === annotationNameAtDepth)) {
-        // User does not want this annotation
-        filteredValues = [];
     } else if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
         if (fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationNameAtDepth)) {
             filteredValues = values.filter((value) =>
@@ -101,7 +100,6 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     const filteredValuesSorted = filteredValues.sort(naturalComparator);
 
     // Don't include the "NO VALUE" folder if we're already applying filters on this annotation
-    // unless it's an exclude filter
     const allChildNodes =
         !shouldShowNullGroups || userSelectedFiltersForCurrentAnnotation.length
             ? filteredValuesSorted
