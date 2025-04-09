@@ -38,18 +38,9 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     const combinedFileFilters = selectedFileFilters.concat(
         (fileSet?.filters || [])?.filter((filter) => !selectedFileFilters.includes(filter))
     );
-    const includeFilters = combinedFileFilters
-        .filter((f) => f.type === FilterType.ANY && !fileSet?.includeFilters?.includes(f))
-        .concat(fileSet?.includeFilters || []);
-    const excludeFilters = combinedFileFilters
-        .filter((f) => f.type === FilterType.EXCLUDE && !fileSet?.excludeFilters?.includes(f))
-        .concat(fileSet?.excludeFilters || []);
-    const fuzzyFilters = combinedFileFilters
-        .filter((f) => f.type === FilterType.FUZZY && !fileSet?.fuzzyFilters?.includes(f))
-        .concat(fileSet?.fuzzyFilters || []);
 
-    // if at root of hierarchy, currentNode will be set to the sentinal "ROOT_NODE"
-    // we need to trim that from the path as its not meaningful in this context
+    // If at root of hierarchy, currentNode will be set to "ROOT_NODE"
+    // We trim that from the path as it is not meaningful in this context
     const pathToNode = pull([...ancestorNodes, currentNode], ROOT_NODE);
 
     let values: string[] = [];
@@ -80,6 +71,17 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
         );
     }
 
+    // Each specialized filter may be in one or both of `selectedFilters` and `fileSet.[specialized filter type]`.
+    // Avoid double-counting
+    const includeFilters = combinedFileFilters
+        .filter((f) => f.type === FilterType.ANY && !fileSet?.includeFilters?.includes(f))
+        .concat(fileSet?.includeFilters || []);
+    const excludeFilters = combinedFileFilters
+        .filter((f) => f.type === FilterType.EXCLUDE && !fileSet?.excludeFilters?.includes(f))
+        .concat(fileSet?.excludeFilters || []);
+    const fuzzyFilters = combinedFileFilters
+        .filter((f) => f.type === FilterType.FUZZY && !fileSet?.fuzzyFilters?.includes(f))
+        .concat(fileSet?.fuzzyFilters || []);
     const filteredValues = values
         .filter((value) => {
             if (includeFilters?.some((filter) => filter.name === annotationNameAtDepth))
