@@ -76,30 +76,35 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     const fuzzyFilters = fileSet.filters
         .filter((f) => f.type === FilterType.FUZZY && !fileSet?.fuzzyFilters?.includes(f))
         .concat(fileSet?.fuzzyFilters || []);
-    const filteredValues = values
-        .filter((value) => {
-            // TO DO: Simplify
-            if (includeFilters?.some((filter) => filter.name === annotationNameAtDepth))
-                return true;
-            if (excludeFilters?.some((filter) => filter.name === annotationNameAtDepth))
-                return false;
-            if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
-                if (fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationNameAtDepth)) {
-                    // There can only be one selected value for fuzzy search, so reverse match
-                    return value.includes(userSelectedFiltersForCurrentAnnotation[0]);
-                }
-                return userSelectedFiltersForCurrentAnnotation.includes(value);
-            }
-            return true;
-        })
-        .map((value) => value.toString())
-        .sort(naturalComparator);
+
+    let filteredValues: string[];
+    if (includeFilters?.some((filter) => filter.name === annotationNameAtDepth)) {
+        // User wants this annotation
+        filteredValues = values;
+    } else if (excludeFilters?.some((filter) => filter.name === annotationNameAtDepth)) {
+        // User does not want this annotation
+        filteredValues = [];
+    } else if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
+        if (fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationNameAtDepth)) {
+            filteredValues = values.filter((value) =>
+                value.includes(userSelectedFiltersForCurrentAnnotation[0])
+            );
+        } else {
+            filteredValues = values.filter((value) =>
+                userSelectedFiltersForCurrentAnnotation.includes(value)
+            );
+        }
+    } else {
+        // No filters exclude this annotation
+        filteredValues = values;
+    }
+    const filteredValuesSorted = filteredValues.sort(naturalComparator);
 
     // Don't include the "NO VALUE" folder if we're already applying filters on this annotation
     // unless it's an exclude filter
     const allChildNodes =
         !shouldShowNullGroups || userSelectedFiltersForCurrentAnnotation.length
-            ? filteredValues
-            : [...filteredValues, NO_VALUE_NODE];
+            ? filteredValuesSorted
+            : [...filteredValuesSorted, NO_VALUE_NODE];
     return allChildNodes;
 }
