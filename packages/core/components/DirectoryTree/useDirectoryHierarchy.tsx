@@ -105,9 +105,6 @@ const useDirectoryHierarchy = (
     const hierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const fileService = useSelector(interaction.selectors.getFileService);
-    const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
-    const excludeFilters = useSelector(selection.selectors.getAnnotationsFilteredOut);
-    const includeFilters = useSelector(selection.selectors.getAnnotationsRequired);
     const selectedFileFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
     const shouldShowNullGroups = useSelector(selection.selectors.getShouldShowNullGroups);
@@ -162,7 +159,6 @@ const useDirectoryHierarchy = (
                         ancestorNodes,
                         currentNode,
                         fileSet,
-                        selectedFileFilters,
                         hierarchy,
                         annotationService,
                         shouldShowNullGroups,
@@ -195,16 +191,8 @@ const useDirectoryHierarchy = (
 
                         // Filters are a combination of any user-selected filters and the filters
                         // at a particular path in the hierarchy.
-                        //
-                        // Remove any user-applied filters for any annotation within the current path.
-                        // E.g., if under the path "AICS-12" -> "ZSD-1", and a user has applied the filters FileFilter("Channel Type", "Raw 488nm")
-                        // and FileFilter("Cell Line", "AICS-33"), we do not want to include the latter in the query for this FileList.
-                        const hierarchyAnnotationNames = new Set(hierarchy);
-                        const userAppliedFilters = selectedFileFilters.filter(
-                            (f) => !hierarchyAnnotationNames.has(f.name)
-                        );
                         const filters = uniqWith(
-                            [...hierarchyFilters, ...userAppliedFilters],
+                            [...hierarchyFilters, ...selectedFileFilters],
                             (a, b) => a.equals(b)
                         );
 
@@ -258,12 +246,9 @@ const useDirectoryHierarchy = (
         annotationService,
         currentNode,
         collapsed,
-        excludeFilters,
         fileService,
         fileSet,
-        fuzzyFilters,
         hierarchy,
-        includeFilters,
         isRoot,
         isLeaf,
         selectedFileFilters,

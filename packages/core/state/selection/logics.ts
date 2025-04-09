@@ -355,8 +355,13 @@ const expandAllFileFolders = createLogic({
         const { getState } = deps;
         const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
         const annotationService = interaction.selectors.getAnnotationService(getState());
-        const selectedFileFilters = selection.selectors.getFileFilters(getState());
+        const globalFileFilters = selection.selectors.getFileFilters(getState());
         const shouldShowNullGroups = selection.selectors.getShouldShowNullGroups(getState());
+        const fileService = interaction.selectors.getFileService(getState());
+        const fileSet = new FileSet({
+            fileService,
+            filters: globalFileFilters,
+        });
         // Track internally rather than relying on selector (may be out of sync)
         const openedSoFar: FileFolder[] = [];
         // Recursive helper
@@ -374,7 +379,7 @@ const expandAllFileFolders = createLogic({
                 const childNodes = await findChildNodes({
                     ancestorNodes: pathSoFar,
                     currentNode: value,
-                    selectedFileFilters,
+                    fileSet,
                     hierarchy,
                     annotationService,
                     shouldShowNullGroups,
@@ -388,7 +393,7 @@ const expandAllFileFolders = createLogic({
 
         const rootHierarchyValues = await findChildNodes({
             currentNode: ROOT_NODE,
-            selectedFileFilters,
+            fileSet,
             hierarchy,
             annotationService,
             shouldShowNullGroups,

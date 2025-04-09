@@ -161,6 +161,8 @@ export default function ListPicker(props: ListPickerProps) {
                             Clear all
                         </ActionButton>
                     </Tooltip>
+                    {/* If shouldShowNullGroups is undefined, it's a component that doesn't require the checkbox
+                        If set to true or false, we want the checkbox to render */}
                     {shouldShowNullGroups !== undefined && ( // avoid colliding with falsy value
                         <Checkbox
                             className={styles.checkbox}

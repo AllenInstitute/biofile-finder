@@ -26,7 +26,6 @@ export default function BaseCheckbox(props: Props) {
     }
     return (
         <Checkbox
-            // defaults to undefined (handles its own state)
             checked={isChecked}
             className={classNames(props.className, {
                 [styles.disabled]: props.disabled,

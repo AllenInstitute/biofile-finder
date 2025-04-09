@@ -1,7 +1,7 @@
 import { defaults, isEmpty, pull } from "lodash";
 
 import { NO_VALUE_NODE, ROOT_NODE } from "./directory-hierarchy-state";
-import FileFilter, { FilterType } from "../../entity/FileFilter";
+import { FilterType } from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import { AnnotationService } from "../../services";
 import { naturalComparator } from "../../util/strings";
@@ -11,15 +11,13 @@ export interface FindChildNodesParams {
     currentNode: string;
     hierarchy: string[];
     annotationService: AnnotationService;
-    fileSet?: FileSet;
-    selectedFileFilters?: FileFilter[];
+    fileSet: FileSet;
     shouldShowNullGroups?: boolean;
 }
 
 const DEFAULTS = {
     ancestorNodes: [],
     currentNode: ROOT_NODE,
-    selectedFileFilters: [],
     shouldShowNullGroups: false,
 };
 
@@ -30,15 +28,10 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
         fileSet,
         hierarchy,
         annotationService,
-        selectedFileFilters,
         shouldShowNullGroups,
     } = defaults({}, params, DEFAULTS);
 
     const isRoot = currentNode === ROOT_NODE;
-
-    const combinedFileFilters = selectedFileFilters.concat(
-        (fileSet?.filters || [])?.filter((filter) => !selectedFileFilters.includes(filter))
-    );
 
     // If at root of hierarchy, currentNode will be set to "ROOT_NODE"
     // We trim that from the path as it is not meaningful in this context
@@ -48,45 +41,44 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
 
     const depth = pathToNode.length;
     const annotationNameAtDepth = hierarchy[depth];
-    const userSelectedFiltersForCurrentAnnotation = combinedFileFilters
+    const userSelectedFiltersForCurrentAnnotation = fileSet.filters
         .filter(
             (filter) => filter.name === annotationNameAtDepth && filter.type !== FilterType.EXCLUDE
         )
         .map((filter) => filter.value);
 
-    if (isRoot) {
-        const rootHierarchy = shouldShowNullGroups ? [annotationNameAtDepth] : hierarchy;
-        values = await annotationService.fetchRootHierarchyValues(
-            rootHierarchy,
-            combinedFileFilters
-        );
-    } else if (shouldShowNullGroups) {
-        // Fetch all values under node, ignoring past hierarchy
+    if (shouldShowNullGroups) {
+        // Fetch all values under current node, ignoring past hierarchy
+        // Including the full hierarchy would filter out files that miss any part of the hierarchy
         values = await annotationService.fetchRootHierarchyValues(
             [annotationNameAtDepth],
-            combinedFileFilters
+            fileSet.filters
         );
+    } else if (isRoot) {
+        values = await annotationService.fetchRootHierarchyValues(hierarchy, fileSet.filters);
     } else {
         values = await annotationService.fetchHierarchyValuesUnderPath(
             hierarchy,
             pathToNode,
-            combinedFileFilters
+            fileSet.filters
         );
     }
 
     // Each specialized filter may be in one or both of `selectedFilters` and `fileSet.[specialized filter type]`.
     // Avoid double-counting
-    const includeFilters = combinedFileFilters
+    // TO DO: Get rid
+    const includeFilters = fileSet.filters
         .filter((f) => f.type === FilterType.ANY && !fileSet?.includeFilters?.includes(f))
         .concat(fileSet?.includeFilters || []);
-    const excludeFilters = combinedFileFilters
+    const excludeFilters = fileSet.filters
         .filter((f) => f.type === FilterType.EXCLUDE && !fileSet?.excludeFilters?.includes(f))
         .concat(fileSet?.excludeFilters || []);
-    const fuzzyFilters = combinedFileFilters
+    const fuzzyFilters = fileSet.filters
         .filter((f) => f.type === FilterType.FUZZY && !fileSet?.fuzzyFilters?.includes(f))
         .concat(fileSet?.fuzzyFilters || []);
     const filteredValues = values
         .filter((value) => {
+            // TO DO: Simplify
             if (includeFilters?.some((filter) => filter.name === annotationNameAtDepth))
                 return true;
             if (excludeFilters?.some((filter) => filter.name === annotationNameAtDepth))
