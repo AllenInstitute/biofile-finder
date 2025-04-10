@@ -30,6 +30,7 @@ interface Props {
         item: ListItem<Annotation>
     ) => React.ReactElement<ListItem<Annotation>>;
     setSelections: (annotations: string[]) => void;
+    shouldShowNullGroups?: boolean;
 }
 
 /**
@@ -112,6 +113,7 @@ export default function AnnotationPicker(props: Props) {
                     : undefined
             }
             onDeselectAll={() => props.setSelections([])}
+            shouldShowNullGroups={props.shouldShowNullGroups}
             subMenuRenderer={props.annotationSubMenuRenderer}
         />
     );

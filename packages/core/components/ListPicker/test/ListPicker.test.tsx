@@ -1,11 +1,14 @@
+import { configureMockStore } from "@aics/redux-utils";
 import { render, fireEvent } from "@testing-library/react";
 import { expect } from "chai";
 import { noop } from "lodash";
 import * as React from "react";
+import { Provider } from "react-redux";
 import sinon from "sinon";
 
 import ListPicker from "..";
 import { ListItem } from "../ListRow";
+import { initialState } from "../../../state";
 
 describe("<ListPicker />", () => {
     const LISTROW_TESTID_PREFIX = "default-button-";
@@ -18,15 +21,20 @@ describe("<ListPicker />", () => {
             displayValue: val,
             value: val,
         }));
+        const { store } = configureMockStore({
+            state: initialState,
+        });
 
         // Act / Assert
         const { getAllByRole, getByTestId } = render(
-            <ListPicker
-                items={items}
-                onDeselect={onDeselect}
-                onDeselectAll={noop}
-                onSelect={onSelect}
-            />
+            <Provider store={store}>
+                <ListPicker
+                    items={items}
+                    onDeselect={onDeselect}
+                    onDeselectAll={noop}
+                    onSelect={onSelect}
+                />
+            </Provider>
         );
 
         // Should render both list items + a reset button
@@ -55,15 +63,20 @@ describe("<ListPicker />", () => {
             displayValue: val,
             value: val,
         }));
+        const { store } = configureMockStore({
+            state: initialState,
+        });
 
         // Act / Assert
         const { getByTestId, getByRole } = render(
-            <ListPicker
-                items={items}
-                onDeselect={onDeselect}
-                onDeselectAll={noop}
-                onSelect={onSelect}
-            />
+            <Provider store={store}>
+                <ListPicker
+                    items={items}
+                    onDeselect={onDeselect}
+                    onDeselectAll={noop}
+                    onSelect={onSelect}
+                />
+            </Provider>
         );
 
         // Should render both list items
@@ -90,15 +103,20 @@ describe("<ListPicker />", () => {
             displayValue: val,
             value: val,
         }));
+        const { store } = configureMockStore({
+            state: initialState,
+        });
 
         // Act / Assert
         const { getByText } = render(
-            <ListPicker
-                items={items}
-                onDeselect={onDeselect}
-                onDeselectAll={onDeselectAll}
-                onSelect={onSelect}
-            />
+            <Provider store={store}>
+                <ListPicker
+                    items={items}
+                    onDeselect={onDeselect}
+                    onDeselectAll={onDeselectAll}
+                    onSelect={onSelect}
+                />
+            </Provider>
         );
 
         // Hit reset
@@ -117,15 +135,20 @@ describe("<ListPicker />", () => {
             displayValue: val,
             value: val,
         }));
+        const { store } = configureMockStore({
+            state: initialState,
+        });
 
         // Act / Assert
         const { getByText } = render(
-            <ListPicker
-                items={items}
-                onDeselect={onDeselect}
-                onDeselectAll={onDeselectAll}
-                onSelect={onSelect}
-            />
+            <Provider store={store}>
+                <ListPicker
+                    items={items}
+                    onDeselect={onDeselect}
+                    onDeselectAll={onDeselectAll}
+                    onSelect={onSelect}
+                />
+            </Provider>
         );
 
         // Hit reset
@@ -142,14 +165,19 @@ describe("<ListPicker />", () => {
             displayValue: val,
             value: val,
         }));
+        const { store } = configureMockStore({
+            state: initialState,
+        });
         const { getByText } = render(
-            <ListPicker
-                items={items}
-                onDeselect={noop}
-                onDeselectAll={noop}
-                onSelectAll={onSelectAll}
-                onSelect={noop}
-            />
+            <Provider store={store}>
+                <ListPicker
+                    items={items}
+                    onDeselect={noop}
+                    onDeselectAll={noop}
+                    onSelectAll={onSelectAll}
+                    onSelect={noop}
+                />
+            </Provider>
         );
 
         // (sanity-check)
@@ -170,14 +198,19 @@ describe("<ListPicker />", () => {
             displayValue: val,
             value: val,
         }));
+        const { store } = configureMockStore({
+            state: initialState,
+        });
         const { getByText } = render(
-            <ListPicker
-                items={items}
-                onDeselect={noop}
-                onDeselectAll={noop}
-                onSelectAll={onSelectAll}
-                onSelect={noop}
-            />
+            <Provider store={store}>
+                <ListPicker
+                    items={items}
+                    onDeselect={noop}
+                    onDeselectAll={noop}
+                    onSelectAll={onSelectAll}
+                    onSelect={noop}
+                />
+            </Provider>
         );
 
         // (sanity-check)
@@ -197,8 +230,13 @@ describe("<ListPicker />", () => {
             displayValue: val,
             value: val,
         }));
+        const { store } = configureMockStore({
+            state: initialState,
+        });
         const { getByText } = render(
-            <ListPicker items={items} onDeselect={noop} onDeselectAll={noop} onSelect={noop} />
+            <Provider store={store}>
+                <ListPicker items={items} onDeselect={noop} onDeselectAll={noop} onSelect={noop} />
+            </Provider>
         );
 
         // Act / Assert
