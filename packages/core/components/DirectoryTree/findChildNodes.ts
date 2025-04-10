@@ -1,7 +1,6 @@
 import { defaults, isEmpty, pull } from "lodash";
 
 import { NO_VALUE_NODE, ROOT_NODE } from "./directory-hierarchy-state";
-import { FilterType } from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import { AnnotationService } from "../../services";
 import { naturalComparator } from "../../util/strings";
@@ -32,14 +31,6 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     } = defaults({}, params, DEFAULTS);
 
     const isRoot = currentNode === ROOT_NODE;
-    const excludeFilters = fileSet.filters
-        .filter((f) => f.type === FilterType.EXCLUDE && !fileSet?.excludeFilters?.includes(f))
-        .concat(fileSet?.excludeFilters || []);
-    if (excludeFilters?.some((filter) => filter.name === annotationNameAtDepth)) {
-        // User does not want this annotation, don't return any values
-        return shouldShowNullGroups ? [NO_VALUE_NODE] : [];
-    }
-
     // If at root of hierarchy, currentNode will be set to "ROOT_NODE"
     // We trim that from the path as it is not meaningful in this context
     const pathToNode = pull([...ancestorNodes, currentNode], ROOT_NODE);
@@ -48,6 +39,11 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
 
     const depth = pathToNode.length;
     const annotationNameAtDepth = hierarchy[depth];
+    if (fileSet.excludeFilters?.some((filter) => filter.name === annotationNameAtDepth)) {
+        // User does not want this annotation, don't return any values
+        return shouldShowNullGroups ? [NO_VALUE_NODE] : [];
+    }
+
     const userSelectedFiltersForCurrentAnnotation = fileSet.filters
         .filter((filter) => filter.name === annotationNameAtDepth)
         .map((filter) => filter.value);
@@ -69,22 +65,12 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
         );
     }
 
-    // Each specialized filter may be in one or both of `selectedFilters` and `fileSet.[specialized filter type]`.
-    // Avoid double-counting
-    // TO DO: Get rid
-    const includeFilters = fileSet.filters
-        .filter((f) => f.type === FilterType.ANY && !fileSet?.includeFilters?.includes(f))
-        .concat(fileSet?.includeFilters || []);
-    const fuzzyFilters = fileSet.filters
-        .filter((f) => f.type === FilterType.FUZZY && !fileSet?.fuzzyFilters?.includes(f))
-        .concat(fileSet?.fuzzyFilters || []);
-
     let filteredValues: string[];
-    if (includeFilters?.some((filter) => filter.name === annotationNameAtDepth)) {
+    if (fileSet.includeFilters?.some((filter) => filter.name === annotationNameAtDepth)) {
         // User wants this annotation
         filteredValues = values;
     } else if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
-        if (fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationNameAtDepth)) {
+        if (fileSet.fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationNameAtDepth)) {
             filteredValues = values.filter((value) =>
                 value.includes(userSelectedFiltersForCurrentAnnotation[0])
             );
