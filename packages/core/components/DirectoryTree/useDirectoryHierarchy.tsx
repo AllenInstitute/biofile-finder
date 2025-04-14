@@ -16,7 +16,6 @@ import {
 import { findChildNodes } from "./findChildNodes";
 import FileList from "../FileList";
 import FileFilter from "../../entity/FileFilter";
-import ExcludeFilter from "../../entity/FileFilter/ExcludeFilter";
 import FileSet from "../../entity/FileSet";
 import { ValueError } from "../../errors";
 import { interaction, metadata, selection } from "../../state";
@@ -183,9 +182,6 @@ const useDirectoryHierarchy = (
                             take(pathToChildNode, depth + 1)
                         ).map((pair) => {
                             const [name, value] = pair as [string, string];
-                            if (value === NO_VALUE_NODE) {
-                                return new ExcludeFilter(name);
-                            }
                             return new FileFilter(name, value);
                         });
 
