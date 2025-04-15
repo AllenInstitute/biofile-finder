@@ -2,7 +2,8 @@ import { defaults, isEmpty, pull } from "lodash";
 
 import { NO_VALUE_NODE, ROOT_NODE } from "./directory-hierarchy-state";
 import FileSet from "../../entity/FileSet";
-import { AnnotationService } from "../../services";
+import ExcludeFilter from "../../entity/FileFilter/ExcludeFilter";
+import { AnnotationService, FileService } from "../../services";
 import { naturalComparator } from "../../util/strings";
 
 export interface FindChildNodesParams {
@@ -10,6 +11,7 @@ export interface FindChildNodesParams {
     currentNode: string;
     hierarchy: string[];
     annotationService: AnnotationService;
+    fileService: FileService;
     fileSet: FileSet;
     shouldShowNullGroups?: boolean;
 }
@@ -27,6 +29,7 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
         fileSet,
         hierarchy,
         annotationService,
+        fileService,
         shouldShowNullGroups,
     } = defaults({}, params, DEFAULTS);
 
@@ -84,11 +87,16 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
         filteredValues = values;
     }
     const filteredValuesSorted = filteredValues.sort(naturalComparator);
-
-    // Don't include the "NO VALUE" folder if we're already applying filters on this annotation
-    const allChildNodes =
-        !shouldShowNullGroups || userSelectedFiltersForCurrentAnnotation.length
-            ? filteredValuesSorted
-            : [...filteredValuesSorted, NO_VALUE_NODE];
-    return allChildNodes;
+    if (!shouldShowNullGroups || userSelectedFiltersForCurrentAnnotation.length) {
+        return filteredValuesSorted;
+    } else {
+        // Check whether we should include the 'no value' folder by getting a count
+        const noValueCount = await fileService.getCountOfMatchingFiles(
+            new FileSet({
+                fileService,
+                filters: [...fileSet.filters, new ExcludeFilter(annotationNameAtDepth)],
+            })
+        );
+        return noValueCount > 0 ? [...filteredValuesSorted, NO_VALUE_NODE] : filteredValuesSorted;
+    }
 }

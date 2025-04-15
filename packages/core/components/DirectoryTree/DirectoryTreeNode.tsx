@@ -30,7 +30,6 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
     const dispatch = useDispatch();
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
-    const [totalCount, setTotalCount] = React.useState<number>();
 
     const fileFolderPath = [...ancestorNodes, currentNode];
     const fileFolder = new FileFolder(fileFolderPath);
@@ -49,19 +48,6 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
         // _directly_ underneath this folder, as a child?"
         return fileSelection.isFocused(fileSet);
     }, [fileSelection, fileSet, collapsed]);
-
-    // Check file count to avoid displaying empty folders
-    React.useEffect(() => {
-        let cancel = false;
-        fileSet.fetchTotalCount().then((count) => {
-            if (!cancel) {
-                setTotalCount(count);
-            }
-        });
-        return () => {
-            cancel = true;
-        };
-    }, [fileSet]);
 
     const {
         isLeaf,
@@ -85,9 +71,7 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
 
     return (
         <li
-            className={classNames(styles.treeNodeContainer, {
-                [styles.treeNodeHidden]: totalCount === 0,
-            })}
+            className={styles.treeNodeContainer}
             ref={node}
             role="treeitem"
             aria-expanded={collapsed ? "false" : "true"}

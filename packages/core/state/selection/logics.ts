@@ -382,6 +382,7 @@ const expandAllFileFolders = createLogic({
                     fileSet,
                     hierarchy,
                     annotationService,
+                    fileService,
                     shouldShowNullGroups,
                 });
                 if (childNodes.length) {
@@ -396,6 +397,7 @@ const expandAllFileFolders = createLogic({
             fileSet,
             hierarchy,
             annotationService,
+            fileService,
             shouldShowNullGroups,
         });
         if (shouldShowNullGroups) {

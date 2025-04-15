@@ -160,6 +160,7 @@ const useDirectoryHierarchy = (
                         fileSet,
                         hierarchy,
                         annotationService,
+                        fileService,
                         shouldShowNullGroups,
                     });
                     const nodes = allChildNodes.map((value, idx) => {

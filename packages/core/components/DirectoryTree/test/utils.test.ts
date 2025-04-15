@@ -11,6 +11,8 @@ import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
 import FileSet from "../../../entity/FileSet";
 import FileFilter from "../../../entity/FileFilter";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
+import HttpFileService from "../../../services/FileService/HttpFileService";
+import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("DirectoryTree utilities", () => {
     describe("calcNodeSortOrder", () => {
@@ -82,6 +84,7 @@ describe("DirectoryTree utilities", () => {
             description: "",
             type: "Text",
         });
+        const noValueAnnotation = "NoValueAnn";
         const topLevelHierarchyValues = ["first", "second", "third", "fourth"];
         const secondLevelHierarchyValues = ["a", "b", "c"];
         const responseStubs: ResponseStub[] = [
@@ -126,6 +129,15 @@ describe("DirectoryTree utilities", () => {
                 },
             },
             {
+                when: (config) =>
+                    _get(config, "url", "").includes(
+                        `${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?order=${noValueAnnotation}`
+                    ),
+                respondWith: {
+                    data: { data: [] },
+                },
+            },
+            {
                 when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${firstAnn.name}/values`,
                 respondWith: {
                     data: { data: topLevelHierarchyValues },
@@ -142,9 +154,26 @@ describe("DirectoryTree utilities", () => {
                     },
                 },
             },
+            {
+                when: `${FESBaseUrl.TEST}/${HttpFileService.BASE_FILE_COUNT_URL}?exclude=${secondAnn.displayName}`,
+                respondWith: {
+                    data: { data: [10] },
+                },
+            },
+            {
+                when: `${FESBaseUrl.TEST}/${HttpFileService.BASE_FILE_COUNT_URL}?exclude=${noValueAnnotation}`,
+                respondWith: {
+                    data: { data: [0] },
+                },
+            },
         ];
         const mockHttpClient = createMockHttpClient(responseStubs);
         const annotationService = new HttpAnnotationService({
+            fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+            httpClient: mockHttpClient,
+        });
+        const fileService = new HttpFileService({
+            downloadService: new FileDownloadServiceNoop(),
             fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
             httpClient: mockHttpClient,
         });
@@ -154,6 +183,7 @@ describe("DirectoryTree utilities", () => {
             const fileSet = new FileSet({ filters: [] });
             const childNodes = await findChildNodes({
                 annotationService,
+                fileService,
                 currentNode: firstAnn.displayName,
                 hierarchy,
                 shouldShowNullGroups: false,
@@ -166,6 +196,7 @@ describe("DirectoryTree utilities", () => {
             const fileSet = new FileSet({ filters: [] });
             const childNodes = await findChildNodes({
                 annotationService,
+                fileService,
                 currentNode: firstAnn.displayName,
                 hierarchy,
                 shouldShowNullGroups: true,
@@ -173,12 +204,25 @@ describe("DirectoryTree utilities", () => {
             });
             expect(childNodes.includes(NO_VALUE_NODE)).to.be.true;
         });
+        it("excludes the NO_VALUE node when no files exist for that node", async () => {
+            const fileSet = new FileSet({ filters: [] });
+            const childNodes = await findChildNodes({
+                annotationService,
+                fileService,
+                currentNode: firstAnn.displayName,
+                hierarchy: [firstAnn.displayName, noValueAnnotation],
+                shouldShowNullGroups: true,
+                fileSet,
+            });
+            expect(childNodes.includes(NO_VALUE_NODE)).to.be.false;
+        });
         it("excludes the NO_VALUE node when annotation has filter applied", async () => {
             const fileSet = new FileSet({
                 filters: [new FileFilter(secondAnn.displayName, secondLevelHierarchyValues[1])],
             });
             const childNodes = await findChildNodes({
                 annotationService,
+                fileService,
                 currentNode: firstAnn.displayName,
                 hierarchy,
                 shouldShowNullGroups: true,
@@ -191,6 +235,7 @@ describe("DirectoryTree utilities", () => {
             const fileSet = new FileSet({ filters: [new ExcludeFilter(secondAnn.displayName)] });
             const childNodes = await findChildNodes({
                 annotationService,
+                fileService,
                 currentNode: firstAnn.displayName,
                 hierarchy,
                 shouldShowNullGroups: true,
@@ -199,17 +244,5 @@ describe("DirectoryTree utilities", () => {
             expect(childNodes.includes(NO_VALUE_NODE)).to.be.true;
             expect(childNodes.length).to.equal(1);
         });
-        // it("combines duplicate filters", async () => {
-        //     const firstAnnFilter = new FileFilter(firstAnn.displayName, topLevelHierarchyValues[3]);
-        //     const fileSet = new FileSet({ filters: [firstAnnFilter] });
-        //     const childNodes = await findChildNodes({
-        //         annotationService,
-        //         currentNode: firstAnn.displayName,
-        //         fileSet,
-        //         hierarchy,
-        //         shouldShowNullGroups: false,
-        //     });
-        //     expect(childNodes).to.deep.equal(["Correct"]);
-        // });
     });
 });
