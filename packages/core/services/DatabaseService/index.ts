@@ -183,18 +183,7 @@ export default abstract class DatabaseService {
                 ALTER TABLE "${name}"
                 ADD COLUMN ${DatabaseService.HIDDEN_UID_ANNOTATION} INT
             `,
-            // Altering tables to add primary keys or serially generated columns
-            // isn't yet supported in DuckDB, so this does a serially generated
-            // column addition manually
-            `
-                UPDATE "${name}"
-                SET "${DatabaseService.HIDDEN_UID_ANNOTATION}" = SQ.row
-                FROM (
-                    SELECT "${PreDefinedColumn.FILE_PATH}", ROW_NUMBER() OVER (ORDER BY "${PreDefinedColumn.FILE_PATH}") AS row
-                    FROM "${name}"
-                ) AS SQ
-                WHERE "${name}"."${PreDefinedColumn.FILE_PATH}" = SQ."${PreDefinedColumn.FILE_PATH}";
-            `,
+            this.getUpdateHiddenUIDSQL(name),
         ];
 
         const dataSourceColumns = await this.getColumnsOnDataSource(name);
@@ -236,6 +225,21 @@ export default abstract class DatabaseService {
 
         // Because we edited the column names this cache is now invalid
         this.dataSourceToAnnotationsMap.delete(name);
+    }
+
+    private getUpdateHiddenUIDSQL(tableName: string): string {
+        // Altering tables to add primary keys or serially generated columns
+        // isn't yet supported in DuckDB, so this does a serially generated
+        // column addition manually
+        return `
+            UPDATE "${tableName}"
+            SET "${DatabaseService.HIDDEN_UID_ANNOTATION}" = SQ.row
+            FROM (
+                SELECT "${PreDefinedColumn.FILE_PATH}", ROW_NUMBER() OVER (ORDER BY "${PreDefinedColumn.FILE_PATH}") AS row
+                FROM "${tableName}"
+            ) AS SQ
+            WHERE "${tableName}"."${PreDefinedColumn.FILE_PATH}" = SQ."${PreDefinedColumn.FILE_PATH}";
+        `;
     }
 
     /*
@@ -353,24 +357,6 @@ export default abstract class DatabaseService {
         return blankColumnQueryResult.map((row) => row.row);
     }
 
-    private async getRowsWhereColumnIsNotUniqueOrBlank(
-        dataSource: string,
-        column: string
-    ): Promise<number[]> {
-        const duplicateColumnQueryResult = await this.query(`
-            SELECT ROW_NUMBER() OVER () AS row        
-            FROM "${dataSource}"            
-            WHERE "${column}" IN (
-                SELECT "${column}"
-                FROM "${dataSource}"
-                WHERE TRIM("${column}") IS NOT NULL
-                GROUP BY "${column}"
-                HAVING COUNT(*) > 1
-            )
-        `);
-        return duplicateColumnQueryResult.map((row) => row.row);
-    }
-
     private async aggregateDataSources(dataSources: Source[]): Promise<void> {
         const viewName = dataSources
             .map((source) => source.name)
@@ -432,6 +418,9 @@ export default abstract class DatabaseService {
             // to avoid adding duplicate columns
             newColumns.forEach((column) => columnsSoFar.add(column));
         }
+
+        // Reset hidden UID to avoid conflicts in previous auto-generation
+        await this.execute(this.getUpdateHiddenUIDSQL(viewName));
     }
 
     public async fetchAnnotations(dataSourceNames: string[]): Promise<Annotation[]> {
