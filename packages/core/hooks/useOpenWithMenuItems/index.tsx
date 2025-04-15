@@ -204,6 +204,7 @@ function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
         case "dvi":
         case "n5":
             return [apps.neuroglancer];
+        case "tif":
         case "tiff":
             return [apps.agave];
         case "zarr":
