@@ -13,11 +13,11 @@ const MessageExternalSiteContext = React.createContext<MessageExternalSiteContex
 
 /**
  * A provider component for the `useMessageExternalSite` hook, which lazily creates and manages an
- * invisible `iframe` when we want to communicate with an external site.
+ * invisible `iframe` when we want to post a message to an external site.
  *
  * This exists separately from the hook so that the `iframe` can be placed in a stable location in
- * the document, allowing the hook to be used in components that re-render often without reloading
- * the `iframe` over and over.
+ * the document, allowing the hook to be used in components that unmount and re-mount often without
+ * reloading the `iframe` over and over.
  */
 const MessageExternalSiteProvider: React.FC = ({ children }) => {
     const [iFrameUrl, setIFrameUrl] = React.useState<string | null>(null);
@@ -91,7 +91,7 @@ const MessageExternalSiteProvider: React.FC = ({ children }) => {
 };
 
 /**
- * A hook for sending messages to/from an external site, by lazily creating an `iframe` when a
+ * A hook for posting messages to/from an external site, by lazily creating an `iframe` when a
  * message is sent.
  *
  * `MessageExternalSiteProvider` must be a parent of the component using this hook, to place the
