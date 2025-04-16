@@ -68,11 +68,10 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
         );
     }
 
-    let filteredValues: string[];
-    if (fileSet.includeFilters?.some((filter) => filter.name === annotationNameAtDepth)) {
-        // User wants this annotation
-        filteredValues = values;
-    } else if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
+    // If the annotation is in 'includeFilters' or if no filters are applied, we can use all the values
+    let filteredValues = values;
+    // If filter(s) are selected for this annotation, we should only use the selected values
+    if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
         if (fileSet.fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationNameAtDepth)) {
             filteredValues = values.filter((value) =>
                 value.includes(userSelectedFiltersForCurrentAnnotation[0])
@@ -82,10 +81,8 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
                 userSelectedFiltersForCurrentAnnotation.includes(value)
             );
         }
-    } else {
-        // No filters exclude this annotation
-        filteredValues = values;
     }
+
     const filteredValuesSorted = filteredValues.sort(naturalComparator);
     if (!shouldShowNullGroups || userSelectedFiltersForCurrentAnnotation.length) {
         return filteredValuesSorted;
