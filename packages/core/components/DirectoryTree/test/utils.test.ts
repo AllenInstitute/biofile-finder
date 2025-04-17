@@ -133,7 +133,13 @@ describe("DirectoryTree utilities", () => {
                 },
             },
             {
-                when: `${FESBaseUrl.TEST}/${HttpFileService.BASE_FILE_COUNT_URL}?exclude=${secondAnn.displayName}`,
+                when: (config) => {
+                    const url = _get(config, "url", "");
+                    return (
+                        url.includes(`${FESBaseUrl.TEST}/${HttpFileService.BASE_FILE_COUNT_URL}`) &&
+                        url.includes(`exclude=${secondAnn.displayName}`)
+                    );
+                },
                 respondWith: {
                     data: { data: [10] },
                 },
@@ -209,7 +215,7 @@ describe("DirectoryTree utilities", () => {
             expect(childNodes.includes(NO_VALUE_NODE)).to.be.false;
             expect(childNodes).to.deep.equal([secondLevelHierarchyValues[1]]);
         });
-        it("returns only the NO_VALUE node when annotation has exclude filter applied", async () => {
+        it("returns only the NO_VALUE node when annotation has exclude filter applied and NO_VALUE has files", async () => {
             const fileSet = new FileSet({ filters: [new ExcludeFilter(secondAnn.displayName)] });
             const childNodes = await findChildNodes({
                 annotationService,

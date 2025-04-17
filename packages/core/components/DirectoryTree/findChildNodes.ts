@@ -97,11 +97,11 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     const filteredValuesSorted = filteredValues.sort(naturalComparator);
     // Don't add NO_VALUE_NODE if there are user-applied filters for the annotation
     if (
-        !shouldShowNullGroups ||
-        noValueFileCount === 0 ||
-        userSelectedFiltersForCurrentAnnotation.length
+        shouldShowNullGroups &&
+        noValueFileCount > 0 &&
+        !userSelectedFiltersForCurrentAnnotation.length
     ) {
-        return filteredValuesSorted;
+        return [...filteredValuesSorted, NO_VALUE_NODE];
     }
-    return [...filteredValuesSorted, NO_VALUE_NODE];
+    return filteredValuesSorted;
 }
