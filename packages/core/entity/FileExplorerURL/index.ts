@@ -221,7 +221,7 @@ export default class FileExplorerURL {
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
                 .map((parsedFolder) => new FileFolder(parsedFolder)),
-            showNoValueGroups: !!showNoValueGroupsString
+            showNoValueGroups: showNoValueGroupsString
                 ? JSON.parse(showNoValueGroupsString)
                 : false,
             sortColumn: parsedSort
