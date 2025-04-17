@@ -30,7 +30,7 @@ enum DirectoryHierarchyAction {
  * Special node types
  * Defined here to avoid circular dependencies
  */
-export const ROOT_NODE = "root_node_sentinal_value";
+export const ROOT_NODE = "root_node_sentinel_value";
 export const NO_VALUE_NODE = "no_value_node";
 
 /**
