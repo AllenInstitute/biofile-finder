@@ -74,6 +74,7 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
         if (fileSet.fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationNameAtDepth)) {
             filteredValues = values.filter((value) =>
+                // If a user applies a fuzzy filter to an annotation, they can't add any other filters for it
                 value.includes(userSelectedFiltersForCurrentAnnotation[0])
             );
         } else {
