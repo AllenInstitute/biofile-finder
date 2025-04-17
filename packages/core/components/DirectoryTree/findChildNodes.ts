@@ -42,9 +42,19 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
 
     const depth = pathToNode.length;
     const annotationNameAtDepth = hierarchy[depth];
+    let noValueFileCount = 0;
+    if (shouldShowNullGroups) {
+        // Check whether we should include the 'no value' folder by getting a count
+        noValueFileCount = await fileService.getCountOfMatchingFiles(
+            new FileSet({
+                fileService,
+                filters: [...fileSet.filters, new ExcludeFilter(annotationNameAtDepth)],
+            })
+        );
+    }
     if (fileSet.excludeFilters?.some((filter) => filter.name === annotationNameAtDepth)) {
         // User does not want files with this annotation; don't return any non-null values.
-        return shouldShowNullGroups ? [NO_VALUE_NODE] : [];
+        return shouldShowNullGroups && noValueFileCount > 0 ? [NO_VALUE_NODE] : [];
     }
 
     const userSelectedFiltersForCurrentAnnotation = fileSet.filters
@@ -85,16 +95,13 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     }
 
     const filteredValuesSorted = filteredValues.sort(naturalComparator);
-    if (!shouldShowNullGroups || userSelectedFiltersForCurrentAnnotation.length) {
+    // Don't add NO_VALUE_NODE if there are user-applied filters for the annotation
+    if (
+        !shouldShowNullGroups ||
+        noValueFileCount === 0 ||
+        userSelectedFiltersForCurrentAnnotation.length
+    ) {
         return filteredValuesSorted;
-    } else {
-        // Check whether we should include the 'no value' folder by getting a count
-        const noValueCount = await fileService.getCountOfMatchingFiles(
-            new FileSet({
-                fileService,
-                filters: [...fileSet.filters, new ExcludeFilter(annotationNameAtDepth)],
-            })
-        );
-        return noValueCount > 0 ? [...filteredValuesSorted, NO_VALUE_NODE] : filteredValuesSorted;
     }
+    return [...filteredValuesSorted, NO_VALUE_NODE];
 }
