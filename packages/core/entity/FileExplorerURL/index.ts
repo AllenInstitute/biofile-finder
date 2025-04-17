@@ -173,7 +173,7 @@ export default class FileExplorerURL {
         if (urlComponents.sortColumn) {
             params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
         }
-        if (!!urlComponents.showNoValueGroups) {
+        if (urlComponents.showNoValueGroups) {
             // Include if explicitly set to true, ignore if undefined or false
             params.append("showNulls", "true");
         }
