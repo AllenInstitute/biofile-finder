@@ -43,7 +43,7 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     const depth = pathToNode.length;
     const annotationNameAtDepth = hierarchy[depth];
     if (fileSet.excludeFilters?.some((filter) => filter.name === annotationNameAtDepth)) {
-        // User does not want this annotation, don't return any values
+        // User does not want files with this annotation; don't return any non-null values.
         return shouldShowNullGroups ? [NO_VALUE_NODE] : [];
     }
 
