@@ -8,8 +8,8 @@ import { calcNodeSortOrder } from "../useDirectoryHierarchy";
 import { FESBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
-import FileSet from "../../../entity/FileSet";
 import FileFilter from "../../../entity/FileFilter";
+import FileSet from "../../../entity/FileSet";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
@@ -88,28 +88,6 @@ describe("DirectoryTree utilities", () => {
         const topLevelHierarchyValues = ["first", "second", "third", "fourth"];
         const secondLevelHierarchyValues = ["a", "b", "c"];
         const responseStubs: ResponseStub[] = [
-            {
-                when: (config) =>
-                    _get(config, "url", "").includes(
-                        `&path=${firstAnn.displayName}&filter=${firstAnn.displayName}=fourth&filter=${firstAnn.displayName}=fourth`
-                    ),
-                respondWith: {
-                    data: {
-                        data: ["Incorrect"], // This is an intentional dud, we should not hit this endpoint
-                    },
-                },
-            },
-            {
-                when: (config) =>
-                    _get(config, "url", "").includes(
-                        `&path=${firstAnn.displayName}&filter=${firstAnn.displayName}=fourth`
-                    ),
-                respondWith: {
-                    data: {
-                        data: ["Correct"],
-                    },
-                },
-            },
             {
                 when: (config) =>
                     _get(config, "url", "").includes(
