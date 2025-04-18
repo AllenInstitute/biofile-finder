@@ -31,6 +31,7 @@ export interface FileExplorerURLComponents {
     filters: FileFilter[];
     openFolders: FileFolder[];
     sortColumn?: FileSort;
+    showNoValueGroups?: boolean; // Include "no value" folders when grouping
 }
 
 export const EMPTY_QUERY_COMPONENTS: FileExplorerURLComponents = {
@@ -172,6 +173,10 @@ export default class FileExplorerURL {
         if (urlComponents.sortColumn) {
             params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
         }
+        if (urlComponents.showNoValueGroups) {
+            // Include if explicitly set to true, ignore if undefined or false
+            params.append("showNulls", "true");
+        }
 
         return params.toString();
     }
@@ -190,6 +195,7 @@ export default class FileExplorerURL {
         const hierarchy = params.getAll("group");
         const unparsedSort = params.get("sort");
         const unparsedColumns = params.get(URLQueryArgShorthands.COLUMNS) || "";
+        const showNoValueGroupsString = params.get("showNulls");
         const fileView = (params.get(URLQueryArgShorthands.FILE_VIEW) as FileView) || FileView.LIST;
         const hierarchyDepth = hierarchy.length;
 
@@ -215,6 +221,9 @@ export default class FileExplorerURL {
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
                 .map((parsedFolder) => new FileFolder(parsedFolder)),
+            showNoValueGroups: showNoValueGroupsString
+                ? JSON.parse(showNoValueGroupsString)
+                : false,
             sortColumn: parsedSort
                 ? new FileSort(parsedSort.annotationName, parsedSort.order || SortOrder.ASC)
                 : undefined,
