@@ -97,7 +97,7 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
         key: AppKeys.NEUROGLANCER,
         text: "Neuroglancer",
         title: `Open files with Neuroglancer`,
-        href: `https://neuroglancer-demo.appspot.com/#!{%22layers%22:[{%22source%22:%22zarr://${fileDetails?.path}%22,%22name%22:%22${fileDetails?.name}%22}]}`,
+        href: `https://neuroglancer-demo.appspot.com/#!{%22layers%22:[{%22source%22:%22${fileDetails?.path.includes(".n5") ? "n5" : "zarr"}://${fileDetails?.path}%22,%22name%22:%22${fileDetails?.name}%22}]}`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
