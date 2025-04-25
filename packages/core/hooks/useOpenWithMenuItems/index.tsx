@@ -182,9 +182,12 @@ function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
 
     const isLikelyLocalFile =
         !fileDetails.path.startsWith("http") && !fileDetails.path.startsWith("s3");
-
+    
     const fileExt = fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
     const apps = APPS(fileDetails);
+
+    // Check for common file extensions first
+
     switch (fileExt) {
         case "bmp":
         case "html":
@@ -202,8 +205,6 @@ function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
         case "dcm":
             return [apps.volview];
         case "dvi":
-        case "n5":
-            return [apps.neuroglancer];
         case "tif":
         case "tiff":
             return [apps.agave];
@@ -212,9 +213,22 @@ function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
             return isLikelyLocalFile
                 ? [apps.agave, apps.neuroglancer, apps.vole]
                 : [apps.vole, apps.neuroglancer, apps.agave, apps.validator];
-        default:
-            return [];
+        
     }
+        
+    // Now check for special cases where the path may include a subpath into the container
+
+    if (fileDetails.path.includes(".n5")) {
+        return [apps.neuroglancer];
+    }
+
+    if (fileDetails.path.includes(".zarr")) {
+        return isLikelyLocalFile
+            ? [apps.agave, apps.neuroglancer, apps.vole]
+            : [apps.vole, apps.neuroglancer, apps.agave, apps.validator];
+    }
+
+    return [];
 }
 
 export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMenuItem[] => {
