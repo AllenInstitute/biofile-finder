@@ -2,6 +2,7 @@ import { defaults, isEmpty, pull } from "lodash";
 
 import { NO_VALUE_NODE, ROOT_NODE } from "./directory-hierarchy-state";
 import FileSet from "../../entity/FileSet";
+import { FilterType } from "../../entity/FileFilter";
 import ExcludeFilter from "../../entity/FileFilter/ExcludeFilter";
 import { AnnotationService, FileService } from "../../services";
 import { naturalComparator } from "../../util/strings";
@@ -58,7 +59,12 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     }
 
     const userSelectedFiltersForCurrentAnnotation = fileSet.filters
-        .filter((filter) => filter.name === annotationNameAtDepth)
+        .filter(
+            (filter) =>
+                filter.name === annotationNameAtDepth &&
+                !filter.value.includes("RANGE") && // 'RANGE' filters are handled by the value fetching endpoint
+                filter.type !== FilterType.ANY // 'Include' filters have a blank value and shouldn't be counted here
+        )
         .map((filter) => filter.value);
 
     if (shouldShowNullGroups) {
@@ -80,7 +86,7 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
 
     // If the annotation is in 'includeFilters' or if no filters are applied, we can use all the values
     let filteredValues = values;
-    // If filter(s) are selected for this annotation, we should only use the selected values
+    // If specific value filter(s) are selected for this annotation, we should only use the selected values
     if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
         if (fileSet.fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationNameAtDepth)) {
             filteredValues = values.filter((value) =>
