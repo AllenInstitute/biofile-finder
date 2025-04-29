@@ -666,6 +666,7 @@ const addQueryLogic = createLogic({
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());
         } catch (err) {
+            console.error("full error", err);
             const errMsg = (err as Error).message || "Unknown error while adding query";
             console.error(errMsg);
             if (err instanceof DataSourcePreparationError) {
@@ -758,6 +759,7 @@ const replaceDataSourceLogic = createLogic({
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());
         } catch (err) {
+            console.error("full error", err);
             const errMsg = (err as Error).message || "Unknown error while replacing data source";
             console.error(errMsg);
             if (err instanceof DataSourcePreparationError) {
