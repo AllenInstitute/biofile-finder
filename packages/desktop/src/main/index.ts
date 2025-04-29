@@ -82,7 +82,9 @@ const createMainWindow = () => {
         mainWindow = undefined;
     });
 
-    // Customize window.open or target="_blank" calls that create new Electron windows
+    // Customize window.open or target="_blank" calls that create new Electron windows.
+    // Used for all external links, but specifically necessary for opening the Labkey Plate UI
+    // and any other web page with an "unsaved changes" alert
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
         // Creating a new BrowserWindow allows us to set event handlers on child windows
         const childWindow = new BrowserWindow({ parent: mainWindow });
