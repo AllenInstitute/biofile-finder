@@ -44,6 +44,7 @@ export default function DataSourcePrompt(props: Props) {
     };
 
     const onSubmit = (dataSource: Source, metadataSource?: Source) => {
+        console.info("dataSource", dataSource);
         if (requiresDataSourceReload || query) {
             if (metadataSource) {
                 dispatch(selection.actions.changeSourceMetadata(metadataSource));

@@ -22,7 +22,9 @@ export default function FilePrompt(props: Props) {
     const [dataSourceURL, setDataSourceURL] = React.useState("");
 
     const onChooseFile = (evt: React.FormEvent<HTMLInputElement>) => {
+        console.info("onChooseFile evt.target", evt.target);
         const selectedFile = (evt.target as HTMLInputElement).files?.[0];
+        console.info("selectedFile", selectedFile);
         if (selectedFile) {
             // Grab name minus extension
             const nameAndExtension = selectedFile.name.split(".");
@@ -32,6 +34,7 @@ export default function FilePrompt(props: Props) {
                 alert("Invalid file type. Please select a .csv, .json, or .parquet file.");
                 return;
             }
+            console.info("name and extension", name, extension);
 
             props.onSelectFile({ name, type: extension, uri: selectedFile });
         }

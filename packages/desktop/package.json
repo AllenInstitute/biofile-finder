@@ -37,7 +37,8 @@
       ]
     },
     "win": {
-      "target": "portable"
+      "target": "portable",
+      "artifactName": "${productName}-v${version}.${ext}"
     },
     "publish": {
       "provider": "github"
