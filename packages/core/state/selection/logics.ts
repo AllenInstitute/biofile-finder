@@ -570,6 +570,7 @@ const changeDataSourceLogic = createLogic({
     type: CHANGE_DATA_SOURCES,
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: selectedDataSources } = deps.action as ChangeDataSourcesAction;
+        console.info("made it into changeDataSource logic with payload", selectedDataSources);
         const dataSources = interaction.selectors.getAllDataSources(deps.getState());
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
@@ -592,6 +593,7 @@ const changeDataSourceLogic = createLogic({
 
         // It is possible the user was sent a novel data source in the URL
         if (selectedDataSources.length > existingSelectedDataSources.length) {
+            console.info("dispatching receiveDataSources", newSelectedDataSources);
             dispatch(
                 metadata.actions.receiveDataSources([...dataSources, ...newSelectedDataSources])
             );
@@ -603,6 +605,7 @@ const changeDataSourceLogic = createLogic({
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());
         } catch (err) {
+            console.error("full error:", err);
             const errMsg = (err as Error).message || "Unknown error while changing data source";
             if (err instanceof DataSourcePreparationError) {
                 // Avoid re-appending the same error message to the state,

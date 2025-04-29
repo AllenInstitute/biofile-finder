@@ -87,11 +87,15 @@ export default class DatabaseServiceElectron extends DatabaseService {
                 source = uri;
             } else {
                 source = path.resolve(os.tmpdir(), name);
+                console.info("source in electron addDS", source);
                 const arrayBuffer = await uri.arrayBuffer();
+                console.info("arrayBuffer in electron addDS", arrayBuffer);
                 const writeStream = fs.createWriteStream(source);
+                console.info("writeStream in electron addDS", writeStream);
                 await new Promise<void>((resolve, reject) => {
                     writeStream.write(Buffer.from(arrayBuffer), (error) => {
                         if (error) {
+                            console.error("error in write stream", error);
                             reject(error);
                         } else {
                             resolve();

@@ -50,6 +50,7 @@ export default function DataSourcePrompt(props: Props) {
                 dispatch(selection.actions.changeSourceMetadata(metadataSource));
             }
 
+            console.info("requiresDataSourceReload", requiresDataSourceReload);
             if (requiresDataSourceReload) {
                 dispatch(selection.actions.replaceDataSource(dataSource));
             } else {

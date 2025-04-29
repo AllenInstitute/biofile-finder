@@ -87,6 +87,7 @@ export default abstract class DatabaseService {
         dataSources: Source[],
         skipNormalization = false
     ): Promise<void> {
+        console.info("preparing data sources", dataSources);
         await Promise.all(
             dataSources
                 .filter((dataSource) => !this.existingDataSources.has(dataSource.name))
@@ -118,8 +119,10 @@ export default abstract class DatabaseService {
         }
 
         try {
+            console.info("adding data source", name);
             // Add the data source as a table on the database
             await this.addDataSource(name, type, uri);
+            console.info("success adding", name);
 
             // Add data source name to in-memory set
             // for quick data source checks
