@@ -1,5 +1,5 @@
 import * as path from "path";
-import { app, BrowserWindow, Menu } from "electron";
+import { app, BrowserWindow, dialog, Menu } from "electron";
 
 import getMenuTemplate from "./menu";
 import ExecutionEnvServicElectron from "../services/ExecutionEnvServiceElectron";
@@ -80,6 +80,29 @@ const createMainWindow = () => {
     mainWindow.on("closed", () => {
         // Dereference the window
         mainWindow = undefined;
+    });
+
+    // Customize window.open or target="_blank" calls that create new Electron windows
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+        // Creating a new BrowserWindow allows us to set event handlers on child windows
+        const childWindow = new BrowserWindow({ parent: mainWindow });
+        childWindow.loadURL(url);
+        // Catch 'beforeunload' events from web page since Electron handles these differently from browser
+        childWindow.webContents.on("will-prevent-unload", (ev: Event) => {
+            const options = {
+                type: "question",
+                buttons: ["Cancel", "Leave"],
+                message: "Leave site?",
+                detail: "Changes you made may not be saved.",
+            };
+            const shouldLeave = dialog.showMessageBoxSync(childWindow, options) === 1;
+            if (shouldLeave) {
+                ev.preventDefault();
+                childWindow.destroy();
+            }
+        });
+        // Prevent default behavior, avoid duplicate windows
+        return { action: "deny" };
     });
 
     if (isDevelopment) {
