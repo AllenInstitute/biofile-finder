@@ -91,11 +91,11 @@ const createMainWindow = () => {
         childWindow.webContents.on("will-prevent-unload", (ev: Event) => {
             const options = {
                 type: "question",
-                buttons: ["Cancel", "Leave"],
+                buttons: ["Leave", "Cancel"],
                 message: "Leave site?",
                 detail: "Changes you made may not be saved.",
             };
-            const shouldLeave = dialog.showMessageBoxSync(childWindow, options) === 1;
+            const shouldLeave = dialog.showMessageBoxSync(childWindow, options) === 0;
             if (shouldLeave) {
                 ev.preventDefault();
                 childWindow.destroy();
