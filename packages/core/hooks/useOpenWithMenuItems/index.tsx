@@ -11,6 +11,8 @@ import useMessageExternalSite from "../useMessageExternalSite";
 
 import styles from "./useOpenWithMenuItems.module.css";
 
+const VOLE_BASE_URL = "https://vole.allencell.org";
+
 enum AppKeys {
     AGAVE = "agave",
     BROWSER = "browser",
@@ -133,7 +135,7 @@ const APPS = (
         className: styles.desktopMenuItem,
         text: "Vol-E",
         title: `Open file with Vol-E`,
-        href: `https://vole.allencell.org/viewer?url=${fileDetails?.path}/`,
+        href: `${VOLE_BASE_URL}/viewer?url=${fileDetails?.path}/`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -229,7 +231,7 @@ export default (
     );
     const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
     const [sendMessageToVole, setOnReceiveFromVole] = useMessageExternalSite(
-        "https://vole.allencell.org/write_storage"
+        `${VOLE_BASE_URL}/write_storage`
     );
 
     const openSelectionInVole = React.useCallback(
@@ -253,7 +255,7 @@ export default (
             sendMessageToVole({ scenes, meta });
             setOnReceiveFromVole((message) => {
                 if (message === "SUCCESS") {
-                    window.open("https://vole.allencell.org/viewer?url=storage");
+                    window.open(`${VOLE_BASE_URL}/viewer?url=storage`);
                 }
             });
         },
