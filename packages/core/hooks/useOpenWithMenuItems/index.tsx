@@ -240,18 +240,22 @@ export default (
         for (const detail of details) {
             const sceneMeta: Record<string, unknown> = {};
             for (const annotation of detail.annotations) {
-                const singleValue = annotation.values.length === 1;
-                const value = singleValue ? annotation.values[0] : annotation.values;
+                const isSingleValue = annotation.values.length === 1;
+                const value = isSingleValue ? annotation.values[0] : annotation.values;
                 sceneMeta[annotation.name] = value;
             }
             scenes.push(detail.path);
             meta.push(sceneMeta);
         }
 
+        // Start on the focused scene
+        const scene = details.findIndex((detail) => detail.path === fileDetails?.path);
+        const sceneStr = scene < 0 ? "" : `&scene=${scene}`;
+
         sendMessageToVole({ scenes, meta });
         setOnReceiveFromVole((message) => {
             if (message === "SUCCESS") {
-                window.open(`${VOLE_BASE_URL}/viewer?url=storage`);
+                window.open(`${VOLE_BASE_URL}/viewer?url=storage${sceneStr}`);
             }
         });
     }, [fileDetails, fileSelection, sendMessageToVole, setOnReceiveFromVole]);
