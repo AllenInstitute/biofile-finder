@@ -105,31 +105,31 @@ export default function App(props: AppProps) {
             })}
             ref={measuredNodeRef}
         >
-            {/* hidden input to capture autofocus on mount */}
-            <input className={styles.hidden} autoFocus />
-            <div className={styles.coreAndFileDetails}>
-                <div className={styles.querySidebarAndCenter}>
-                    <QuerySidebar className={styles.querySidebar} />
-                    <div className={styles.center}>
-                        {!requiresDataSourceReload &&
-                        (hasQuerySelected || window.location.search) ? (
-                            <>
-                                <GlobalActionButtonRow className={styles.globalButtonRow} />
-                                <DirectoryTree className={styles.fileList} />
-                            </>
-                        ) : (
-                            <DataSourcePrompt className={styles.dataSourcePrompt} />
-                        )}
+            <MessageExternalSiteProvider>
+                {/* hidden input to capture autofocus on mount */}
+                <input className={styles.hidden} autoFocus />
+                <div className={styles.coreAndFileDetails}>
+                    <div className={styles.querySidebarAndCenter}>
+                        <QuerySidebar className={styles.querySidebar} />
+                        <div className={styles.center}>
+                            {!requiresDataSourceReload &&
+                            (hasQuerySelected || window.location.search) ? (
+                                <>
+                                    <GlobalActionButtonRow className={styles.globalButtonRow} />
+                                    <DirectoryTree className={styles.fileList} />
+                                </>
+                            ) : (
+                                <DataSourcePrompt className={styles.dataSourcePrompt} />
+                            )}
+                        </div>
                     </div>
-                </div>
-                <MessageExternalSiteProvider>
                     <FileDetails className={styles.fileDetails} />
-                </MessageExternalSiteProvider>
-            </div>
-            <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
-            <StatusMessage />
-            <Modal />
-            <TutorialTooltip />
+                </div>
+                <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
+                <StatusMessage />
+                <Modal />
+                <TutorialTooltip />
+            </MessageExternalSiteProvider>
         </div>
     );
 }
