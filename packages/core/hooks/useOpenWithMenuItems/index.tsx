@@ -4,8 +4,10 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import FileDetail from "../../entity/FileDetail";
+import FileSelection from "../../entity/FileSelection";
 import FileFilter from "../../entity/FileFilter";
 import { interaction, metadata } from "../../state";
+import useMessageExternalSite from "../useMessageExternalSite";
 
 import styles from "./useOpenWithMenuItems.module.css";
 
@@ -41,7 +43,11 @@ const UNSUPPORTED_APPS_HEADER = {
     itemType: ContextualMenuItemType.Header,
 };
 
-const APPS = (fileDetails?: FileDetail): Apps => ({
+const APPS = (
+    fileDetails: FileDetail | undefined,
+    fileSelection: FileSelection,
+    openSelectionInVole: (e: React.MouseEvent<HTMLButtonElement>) => void
+): Apps => ({
     [AppKeys.AGAVE]: {
         key: AppKeys.AGAVE,
         // TODO: Upgrade styling here
@@ -124,16 +130,28 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
     } as IContextualMenuItem,
     [AppKeys.VOLE]: {
         key: AppKeys.VOLE,
+        className: styles.desktopMenuItem,
         text: "Vol-E",
-        title: `Open files with Vol-E`,
-        href: `https://volumeviewer.allencell.org/viewer?url=${fileDetails?.path}/`,
+        title: `Open file with Vol-E`,
+        href: `https://vole.allencell.org/viewer?url=${fileDetails?.path}/`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
+            const isMultiSelection = fileSelection ? fileSelection.count() > 1 : false;
+            const secondaryText = isMultiSelection ? "| Web" : "Web";
             return (
                 <>
                     {defaultRenders.renderItemName(props)}
-                    <span className={styles.secondaryText}>Web</span>
+                    {isMultiSelection && (
+                        <DefaultButton
+                            className={styles.infoButton}
+                            title="Open all selected files with Vol-E"
+                            onClick={openSelectionInVole}
+                        >
+                            Open selected
+                        </DefaultButton>
+                    )}
+                    <span className={styles.secondaryText}>{secondaryText}</span>
                 </>
             );
         },
@@ -156,7 +174,7 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
     } as IContextualMenuItem,
 });
 
-function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
+function getSupportedApps(apps: Apps, fileDetails?: FileDetail): IContextualMenuItem[] {
     if (!fileDetails) {
         return [];
     }
@@ -165,7 +183,6 @@ function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
         !fileDetails.path.startsWith("http") && !fileDetails.path.startsWith("s3");
 
     const fileExt = fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
-    const apps = APPS(fileDetails);
     switch (fileExt) {
         case "bmp":
         case "html":
@@ -197,7 +214,11 @@ function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
     }
 }
 
-export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMenuItem[] => {
+export default (
+    fileDetails: FileDetail | undefined,
+    fileSelection: FileSelection,
+    filters?: FileFilter[]
+): IContextualMenuItem[] => {
     const dispatch = useDispatch();
     const isOnWeb = useSelector(interaction.selectors.isOnWeb);
     const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
@@ -207,6 +228,37 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
     const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
+    const [sendMessageToVole, setOnReceiveFromVole] = useMessageExternalSite(
+        "https://vole.allencell.org/write_storage"
+    );
+
+    const openSelectionInVole = React.useCallback(
+        async (e: React.MouseEvent<HTMLButtonElement>) => {
+            e.preventDefault();
+            const details = await fileSelection.fetchAllDetails();
+            const scenes = [];
+            const meta: Record<string, unknown>[] = [];
+
+            for (const detail of details) {
+                const sceneMeta: Record<string, unknown> = {};
+                for (const annotation of detail.annotations) {
+                    const singleValue = annotation.values.length === 1;
+                    const value = singleValue ? annotation.values[0] : annotation.values;
+                    sceneMeta[annotation.name] = value;
+                }
+                scenes.push(detail.path);
+                meta.push(sceneMeta);
+            }
+
+            sendMessageToVole({ scenes, meta });
+            setOnReceiveFromVole((message) => {
+                if (message === "SUCCESS") {
+                    window.open("https://vole.allencell.org/viewer?url=storage");
+                }
+            });
+        },
+        [fileSelection, sendMessageToVole, setOnReceiveFromVole]
+    );
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
@@ -273,9 +325,10 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         })
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    const supportedApps = [...getSupportedApps(fileDetails), ...userApps];
+    const apps = APPS(fileDetails, fileSelection, openSelectionInVole);
+    const supportedApps = [...getSupportedApps(apps, fileDetails), ...userApps];
     // Grab every other known app
-    const unsupportedApps = Object.values(APPS(fileDetails))
+    const unsupportedApps = Object.values(apps)
         .filter((app) => supportedApps.every((item) => item.key !== app.key))
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 

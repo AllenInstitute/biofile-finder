@@ -116,7 +116,7 @@ export default function FileDetails(props: Props) {
     }, [fileDetails, fileDownloadService, isOnWeb, isZarr]);
 
     const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
-    const openWithMenuItems = useOpenWithMenuItems(fileDetails || undefined);
+    const openWithMenuItems = useOpenWithMenuItems(fileDetails ?? undefined, fileSelection);
 
     // Disable download of large Zarrs ( > 2GB).
     const isDownloadDisabled = fileDetails
