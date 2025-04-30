@@ -7,7 +7,9 @@ import { findChildNodes } from "../findChildNodes";
 import { calcNodeSortOrder } from "../useDirectoryHierarchy";
 import { FESBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
+import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import FileFilter from "../../../entity/FileFilter";
 import FileSet from "../../../entity/FileSet";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
@@ -76,17 +78,24 @@ describe("DirectoryTree utilities", () => {
             annotationDisplayName: "Annotation1",
             annotationName: "annotation1",
             description: "",
-            type: "Text",
+            type: AnnotationType.STRING,
         });
         const secondAnn = new Annotation({
             annotationDisplayName: "Annotation2",
             annotationName: "annotation2",
             description: "",
-            type: "Text",
+            type: AnnotationType.STRING,
+        });
+        const numericAnn = new Annotation({
+            annotationDisplayName: "NumericAnn",
+            annotationName: "numericAnn",
+            description: "",
+            type: AnnotationType.NUMBER,
         });
         const noValueAnnotation = "NoValueAnn";
         const topLevelHierarchyValues = ["first", "second", "third", "fourth"];
         const secondLevelHierarchyValues = ["a", "b", "c"];
+        const numericHierarchyValues = [1, 2, 3, 4, 5];
         const responseStubs: ResponseStub[] = [
             {
                 when: (config) =>
@@ -104,6 +113,19 @@ describe("DirectoryTree utilities", () => {
                     ),
                 respondWith: {
                     data: { data: secondLevelHierarchyValues },
+                },
+            },
+            {
+                when: (config) => {
+                    const url = _get(config, "url", "");
+                    return (
+                        url.includes(
+                            `${FESBaseUrl.TEST}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}`
+                        ) && url.includes(`order=${numericAnn.displayName}`)
+                    );
+                },
+                respondWith: {
+                    data: { data: numericHierarchyValues },
                 },
             },
             {
@@ -227,6 +249,32 @@ describe("DirectoryTree utilities", () => {
             });
             expect(childNodes.includes(NO_VALUE_NODE)).to.be.true;
             expect(childNodes.length).to.equal(1);
+        });
+        it("returns all appropriate values when range is applied", async () => {
+            const fileSet = new FileSet({
+                filters: [new FileFilter(numericAnn.displayName, "RANGE(1,5)")],
+            });
+            const childNodes = await findChildNodes({
+                annotationService,
+                fileService,
+                currentNode: numericAnn.displayName,
+                hierarchy: [firstAnn.displayName, numericAnn.displayName],
+                shouldShowNullGroups: false,
+                fileSet,
+            });
+            expect(childNodes).to.deep.equal(numericHierarchyValues);
+        });
+        it("returns all values when 'include' filter is applied on hierarchy field", async () => {
+            const fileSet = new FileSet({ filters: [new IncludeFilter(secondAnn.displayName)] });
+            const childNodes = await findChildNodes({
+                annotationService,
+                fileService,
+                currentNode: firstAnn.displayName,
+                hierarchy,
+                shouldShowNullGroups: false,
+                fileSet,
+            });
+            expect(childNodes).to.deep.equal(secondLevelHierarchyValues);
         });
     });
 });

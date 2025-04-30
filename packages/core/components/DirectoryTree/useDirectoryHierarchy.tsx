@@ -15,7 +15,7 @@ import {
 } from "./directory-hierarchy-state";
 import { findChildNodes } from "./findChildNodes";
 import FileList from "../FileList";
-import FileFilter from "../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import { ValueError } from "../../errors";
 import { interaction, metadata, selection } from "../../state";
@@ -178,6 +178,8 @@ const useDirectoryHierarchy = (
                         }
 
                         const pathToChildNode = [...pathToNode, value];
+                        // Filters are a combination of any user-selected filters and the filters
+                        // at a particular path in the hierarchy.
                         const hierarchyFilters: FileFilter[] = zip<string, string>(
                             take(hierarchy, depth + 1),
                             take(pathToChildNode, depth + 1)
@@ -185,11 +187,18 @@ const useDirectoryHierarchy = (
                             const [name, value] = pair as [string, string];
                             return new FileFilter(name, value);
                         });
-
-                        // Filters are a combination of any user-selected filters and the filters
-                        // at a particular path in the hierarchy.
+                        // If we are grouping by a field (e.g., barcode)
+                        // and also have filters applied for that field (e.g., barcode=1234, barcode=1357),
+                        // then at the barcode=1234 group we should remove the barcode=1357 filter
+                        const nonHierarchyFilters = selectedFileFilters.filter(
+                            (f) =>
+                                !(
+                                    take(hierarchy, depth + 1).includes(f.name) &&
+                                    f.type === FilterType.DEFAULT
+                                )
+                        );
                         const filters = uniqWith(
-                            [...hierarchyFilters, ...selectedFileFilters],
+                            [...hierarchyFilters, ...nonHierarchyFilters],
                             (a, b) => a.equals(b)
                         );
 
