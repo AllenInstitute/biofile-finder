@@ -8,7 +8,6 @@ import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
 import useFileDetails from "./useFileDetails";
 import { PrimaryButton } from "../Buttons";
-import useMessageExternalSite from "../../hooks/useMessageExternalSite";
 import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
@@ -23,8 +22,6 @@ interface Props {
 
 const FILE_DETAILS_PANE_ID = "file-details-pane";
 const FILE_DETAILS_WIDTH_ATTRIBUTE = "--file-details-width";
-
-const VOLE_URL = "http://localhost:9020";
 
 function resizeHandleOnMouseDown(mouseDownEvent: React.MouseEvent<HTMLDivElement>) {
     const rootElement: HTMLElement | null = document.getElementById(ROOT_ELEMENT_ID);
@@ -80,10 +77,6 @@ export default function FileDetails(props: Props) {
     const [isThumbnailLoading, setIsThumbnailLoading] = React.useState(true);
     const stackTokens: IStackTokens = { childrenGap: 12 + " " + 20 };
     const [calculatedSize, setCalculatedSize] = React.useState<number | null>(null);
-
-    const [sendMessageToVole, setOnReceiveFromVole] = useMessageExternalSite(
-        `${VOLE_URL}/write_storage`
-    );
 
     const platformDependentServices = useSelector(
         interaction.selectors.getPlatformDependentServices
@@ -150,29 +143,6 @@ export default function FileDetails(props: Props) {
         }, 1000); // 1s, in ms (arbitrary)
     }, [dispatch, fileDetails, fileDownloadService.isFileSystemAccessible]);
 
-    const onOpenSelection = React.useCallback(async () => {
-        const details = await fileSelection.fetchAllDetails();
-        console.log(details);
-        const scenes = [];
-        const meta: Record<string, unknown>[] = [];
-        for (const detail of details) {
-            const sceneMeta: Record<string, unknown> = {};
-            for (const annotation of detail.annotations) {
-                const value =
-                    annotation.values.length === 1 ? annotation.values[0] : annotation.values;
-                sceneMeta[annotation.name] = value;
-            }
-            scenes.push(detail.path);
-            meta.push(sceneMeta);
-        }
-        sendMessageToVole({ scenes, meta });
-        setOnReceiveFromVole((message) => {
-            if (message === "SUCCESS") {
-                window.open(`${VOLE_URL}/viewer?url=storage`);
-            }
-        });
-    }, [fileSelection, sendMessageToVole, setOnReceiveFromVole]);
-
     return (
         <div
             className={classNames(styles.root, styles.expandableTransition, props.className)}
@@ -222,15 +192,6 @@ export default function FileDetails(props: Props) {
                                         text="Open file"
                                         title="Open file"
                                         menuItems={openWithMenuItems}
-                                    />
-                                </StackItem>
-                                <StackItem>
-                                    <PrimaryButton
-                                        className={styles.primaryButton}
-                                        iconName="OpenInNewWindow"
-                                        text="Open selection"
-                                        title="Open selection"
-                                        onClick={onOpenSelection}
                                     />
                                 </StackItem>
                             </Stack>
