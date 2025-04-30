@@ -45,11 +45,7 @@ const UNSUPPORTED_APPS_HEADER = {
     itemType: ContextualMenuItemType.Header,
 };
 
-const APPS = (
-    fileDetails: FileDetail | undefined,
-    fileSelection: FileSelection,
-    openSelectionInVole: (e: React.MouseEvent<HTMLButtonElement>) => void
-): Apps => ({
+const APPS = (fileDetails: FileDetail | undefined, openInVole: () => void): Apps => ({
     [AppKeys.AGAVE]: {
         key: AppKeys.AGAVE,
         // TODO: Upgrade styling here
@@ -134,26 +130,14 @@ const APPS = (
         key: AppKeys.VOLE,
         className: styles.desktopMenuItem,
         text: "Vol-E",
-        title: `Open file with Vol-E`,
-        href: `${VOLE_BASE_URL}/viewer?url=${fileDetails?.path}/`,
+        title: `Open files with Vol-E`,
+        onClick: openInVole,
         disabled: !fileDetails?.path,
-        target: "_blank",
         onRenderContent(props, defaultRenders) {
-            const isMultiSelection = fileSelection ? fileSelection.count() > 1 : false;
-            const secondaryText = isMultiSelection ? "| Web" : "Web";
             return (
                 <>
                     {defaultRenders.renderItemName(props)}
-                    {isMultiSelection && (
-                        <DefaultButton
-                            className={styles.infoButton}
-                            title="Open all selected files with Vol-E"
-                            onClick={openSelectionInVole}
-                        >
-                            Open selected
-                        </DefaultButton>
-                    )}
-                    <span className={styles.secondaryText}>{secondaryText}</span>
+                    <span className={styles.secondaryText}>Web</span>
                 </>
             );
         },
@@ -176,6 +160,10 @@ const APPS = (
     } as IContextualMenuItem,
 });
 
+function getFileExtension(fileDetails: FileDetail): string {
+    return fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
+}
+
 function getSupportedApps(apps: Apps, fileDetails?: FileDetail): IContextualMenuItem[] {
     if (!fileDetails) {
         return [];
@@ -184,7 +172,7 @@ function getSupportedApps(apps: Apps, fileDetails?: FileDetail): IContextualMenu
     const isLikelyLocalFile =
         !fileDetails.path.startsWith("http") && !fileDetails.path.startsWith("s3");
 
-    const fileExt = fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
+    const fileExt = getFileExtension(fileDetails);
     switch (fileExt) {
         case "bmp":
         case "html":
@@ -234,33 +222,39 @@ export default (
         `${VOLE_BASE_URL}/write_storage`
     );
 
-    const openSelectionInVole = React.useCallback(
-        async (e: React.MouseEvent<HTMLButtonElement>) => {
-            e.preventDefault();
-            const details = await fileSelection.fetchAllDetails();
-            const scenes = [];
-            const meta: Record<string, unknown>[] = [];
+    const openSelectionInVole = React.useCallback(async () => {
+        const allDetails = await fileSelection.fetchAllDetails();
+        const details = allDetails.filter((detail) => {
+            const fileExt = getFileExtension(detail);
+            return fileExt === "zarr" || fileExt === "";
+        });
+        if (details.length < 2) {
+            // just opening one file? use the regular old query parameter
+            window.open(`${VOLE_BASE_URL}/viewer?url=${fileDetails?.path}/`);
+            return;
+        }
 
-            for (const detail of details) {
-                const sceneMeta: Record<string, unknown> = {};
-                for (const annotation of detail.annotations) {
-                    const singleValue = annotation.values.length === 1;
-                    const value = singleValue ? annotation.values[0] : annotation.values;
-                    sceneMeta[annotation.name] = value;
-                }
-                scenes.push(detail.path);
-                meta.push(sceneMeta);
+        const scenes = [];
+        const meta: Record<string, unknown>[] = [];
+
+        for (const detail of details) {
+            const sceneMeta: Record<string, unknown> = {};
+            for (const annotation of detail.annotations) {
+                const singleValue = annotation.values.length === 1;
+                const value = singleValue ? annotation.values[0] : annotation.values;
+                sceneMeta[annotation.name] = value;
             }
+            scenes.push(detail.path);
+            meta.push(sceneMeta);
+        }
 
-            sendMessageToVole({ scenes, meta });
-            setOnReceiveFromVole((message) => {
-                if (message === "SUCCESS") {
-                    window.open(`${VOLE_BASE_URL}/viewer?url=storage`);
-                }
-            });
-        },
-        [fileSelection, sendMessageToVole, setOnReceiveFromVole]
-    );
+        sendMessageToVole({ scenes, meta });
+        setOnReceiveFromVole((message) => {
+            if (message === "SUCCESS") {
+                window.open(`${VOLE_BASE_URL}/viewer?url=storage`);
+            }
+        });
+    }, [fileDetails, fileSelection, sendMessageToVole, setOnReceiveFromVole]);
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
@@ -327,7 +321,7 @@ export default (
         })
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    const apps = APPS(fileDetails, fileSelection, openSelectionInVole);
+    const apps = APPS(fileDetails, openSelectionInVole);
     const supportedApps = [...getSupportedApps(apps, fileDetails), ...userApps];
     // Grab every other known app
     const unsupportedApps = Object.values(apps)
