@@ -1,6 +1,6 @@
 {
   "name": "root",
-  "version": "6.5.1",
+  "version": "8.4.1",
   "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
   "engines": {
     "node": "18.x",
