@@ -128,7 +128,6 @@ const APPS = (fileDetails: FileDetail | undefined, openInVole: () => void): Apps
     } as IContextualMenuItem,
     [AppKeys.VOLE]: {
         key: AppKeys.VOLE,
-        className: styles.desktopMenuItem,
         text: "Vol-E",
         title: `Open files with Vol-E`,
         onClick: openInVole,
