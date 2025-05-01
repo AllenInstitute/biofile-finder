@@ -11,7 +11,7 @@ import useMessageExternalSite from "../useMessageExternalSite";
 
 import styles from "./useOpenWithMenuItems.module.css";
 
-const VOLE_BASE_URL = "https://vole.allencell.org";
+const VOLE_BASE_URL = "http://localhost:9020";
 
 enum AppKeys {
     AGAVE = "agave",
@@ -227,11 +227,6 @@ export default (
             const fileExt = getFileExtension(detail);
             return fileExt === "zarr" || fileExt === "";
         });
-        if (details.length < 2) {
-            // just opening one file? use the regular old query parameter
-            window.open(`${VOLE_BASE_URL}/viewer?url=${fileDetails?.path}/`);
-            return;
-        }
 
         const scenes = [];
         const meta: Record<string, unknown>[] = [];
@@ -248,13 +243,19 @@ export default (
         }
 
         // Start on the focused scene
-        const scene = details.findIndex((detail) => detail.path === fileDetails?.path);
-        const sceneStr = scene < 0 ? "" : `&scene=${scene}`;
+        const sceneIdx = details.findIndex((detail) => detail.path === fileDetails?.path);
+        const sceneStr = sceneIdx < 1 ? "" : `&scene=${sceneIdx}`;
 
         sendMessageToVole({ scenes, meta });
         setOnReceiveFromVole((message) => {
             if (message === "SUCCESS") {
-                window.open(`${VOLE_BASE_URL}/viewer?url=storage${sceneStr}`);
+                // Prefer putting the URLs directly in the query string for easy sharing, if the
+                // length of the URL would be reasonable.
+                const useStorage =
+                    details.length > 5 ||
+                    details.reduce((acc, detail) => acc + detail.path.length + 1, 0) > 250;
+                const url = useStorage ? "storage" : details.map((detail) => detail.path).join("+");
+                window.open(`${VOLE_BASE_URL}/viewer?url=${url}${sceneStr}`);
             }
         });
     }, [fileDetails, fileSelection, sendMessageToVole, setOnReceiveFromVole]);
