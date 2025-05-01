@@ -94,7 +94,7 @@ const MessageExternalSiteProvider: React.FC = ({ children }) => {
  * A hook for posting messages to/from an external site, by lazily creating an `iframe` when a
  * message is sent.
  *
- * `MessageExternalSiteProvider` must be a parent of the component using this hook, to place the
+ * `MessageExternalSiteProvider` must be an ancestor of the component using this hook, to place the
  * `iframe` somewhere stable in the document.
  */
 const useMessageExternalSite = <Tx extends NonNullable<unknown>>(
