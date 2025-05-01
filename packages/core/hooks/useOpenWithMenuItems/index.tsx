@@ -221,7 +221,7 @@ export default (
         `${VOLE_BASE_URL}/write_storage`
     );
 
-    const openSelectionInVole = React.useCallback(async () => {
+    const openInVole = React.useCallback(async () => {
         const allDetails = await fileSelection.fetchAllDetails();
         const details = allDetails.filter((detail) => {
             const fileExt = getFileExtension(detail);
@@ -325,7 +325,7 @@ export default (
         })
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    const apps = APPS(fileDetails, openSelectionInVole);
+    const apps = APPS(fileDetails, openInVole);
     const supportedApps = [...getSupportedApps(apps, fileDetails), ...userApps];
     // Grab every other known app
     const unsupportedApps = Object.values(apps)
