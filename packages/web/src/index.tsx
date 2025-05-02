@@ -25,29 +25,34 @@ import styles from "./src.module.css";
 
 const APP_ID = "biofile-finder";
 
-const router = createBrowserRouter([
+const router = createBrowserRouter(
+    [
+        {
+            element: <Layout />,
+            children: [
+                {
+                    path: "/",
+                    element: <Home />, // Splash page
+                },
+                {
+                    path: "learn",
+                    element: <Learn />,
+                },
+                {
+                    path: "app",
+                    element: <FmsFileExplorer className={styles.app} />,
+                },
+                {
+                    path: "datasets",
+                    element: <OpenSourceDatasets />,
+                },
+            ],
+        },
+    ],
     {
-        element: <Layout />,
-        children: [
-            {
-                path: "/",
-                element: <Home />, // Splash page
-            },
-            {
-                path: "learn",
-                element: <Learn />,
-            },
-            {
-                path: "app",
-                element: <FmsFileExplorer className={styles.app} />,
-            },
-            {
-                path: "datasets",
-                element: <OpenSourceDatasets />,
-            },
-        ],
-    },
-]);
+        basename: "/dist",
+    }
+);
 
 async function asyncRender() {
     const databaseService = new DatabaseServiceWeb();
