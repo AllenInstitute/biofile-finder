@@ -3,15 +3,24 @@ import * as os from "os";
 import * as path from "path";
 
 import duckdb from "duckdb";
+import { app, ipcMain, ipcRenderer } from "electron";
 
 import { DatabaseService } from "../../../core/services";
 
 export default class DatabaseServiceElectron extends DatabaseService {
     private database: duckdb.Database;
+    public static GET_APPDATA_PATH = "get-app-data-path";
 
     constructor() {
         super();
         this.database = new duckdb.Database(":memory:");
+    }
+    public static registerIpcHandlers() {
+        // Handler for returning where the downloads directory lives on this computer
+        async function getAppDataPath() {
+            return app.getPath("appData");
+        }
+        ipcMain.handle(DatabaseServiceElectron.GET_APPDATA_PATH, getAppDataPath);
     }
 
     /**
@@ -75,6 +84,10 @@ export default class DatabaseServiceElectron extends DatabaseService {
         });
     }
 
+    public getAppDataPath(): Promise<string> {
+        return ipcRenderer.invoke(DatabaseServiceElectron.GET_APPDATA_PATH);
+    }
+
     protected async addDataSource(
         name: string,
         type: "csv" | "json" | "parquet",
@@ -87,6 +100,8 @@ export default class DatabaseServiceElectron extends DatabaseService {
                 source = uri;
             } else {
                 source = path.resolve(os.tmpdir(), name);
+                console.info("homedir", os.homedir());
+                console.info("appData", await this.getAppDataPath());
                 console.info("source with tmpdir in electron addDS", source);
                 // const arrayBuffer = await uri.arrayBuffer();
                 const text = await uri.text();

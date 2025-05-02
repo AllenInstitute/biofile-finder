@@ -8,6 +8,7 @@ import NotificationServiceElectron from "../services/NotificationServiceElectron
 import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
 import { Environment } from "../util/constants";
 import { PersistedConfigKeys } from "../../../core/services";
+import DatabaseServiceElectron from "../services/DatabaseServiceElectron";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -34,6 +35,7 @@ const registerIpcHandlers = () => {
     ExecutionEnvServicElectron.registerIpcHandlers();
     FileDownloadServiceElectron.registerIpcHandlers();
     NotificationServiceElectron.registerIpcHandlers();
+    DatabaseServiceElectron.registerIpcHandlers();
 };
 
 const createMainWindow = () => {
@@ -55,6 +57,8 @@ const createMainWindow = () => {
     // Listen for renderer crashes and attempt a single reload
     mainWindow.webContents.on("render-process-gone", (event, killed) => {
         console.error("Renderer process crashed. Killed:", killed);
+        // console.info('temp', app.getPath('temp'));
+        // console.info('appData', app.getPath('appData'));
 
         if (!hasReloaded) {
             hasReloaded = true;
