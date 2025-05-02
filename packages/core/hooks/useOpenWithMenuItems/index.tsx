@@ -11,7 +11,7 @@ import useMessageExternalSite from "../useMessageExternalSite";
 
 import styles from "./useOpenWithMenuItems.module.css";
 
-const VOLE_BASE_URL = "http://localhost:9020";
+const VOLE_BASE_URL = "https://vole.allencell.org";
 
 enum AppKeys {
     AGAVE = "agave",
