@@ -26,6 +26,7 @@ export const getSelectedDataSources = (state: State) => state.selection.dataSour
 export const getSelectedSourceMetadata = (state: State) => state.selection.sourceMetadata;
 export const getSelectedQuery = (state: State) => state.selection.selectedQuery;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
+export const getShouldShowNullGroups = (state: State) => state.selection.shouldShowNullGroups;
 export const getSortColumn = (state: State) => state.selection.sortColumn;
 export const getTutorial = (state: State) => state.selection.tutorial;
 export const getQueries = (state: State) => state.selection.queries;
@@ -82,6 +83,7 @@ export const getCurrentQueryParts = createSelector(
         getFileFilters,
         getFileView,
         getOpenFileFolders,
+        getShouldShowNullGroups,
         getSortColumn,
         getSelectedDataSources,
         getSelectedSourceMetadata,
@@ -92,6 +94,7 @@ export const getCurrentQueryParts = createSelector(
         filters,
         fileView,
         openFolders,
+        showNoValueGroups,
         sortColumn,
         sources,
         sourceMetadata
@@ -101,6 +104,7 @@ export const getCurrentQueryParts = createSelector(
         fileView,
         filters,
         openFolders,
+        showNoValueGroups,
         sortColumn,
         sources,
         sourceMetadata,
@@ -141,11 +145,15 @@ export const getGroupedByFilterName = createSelector(
         const annotationNameToInstanceMap = keyBy(annotations, "name");
         const filters = map(globalFilters, (filter: FileFilter) => {
             const annotation = annotationNameToInstanceMap[filter.name];
+            const displayValue =
+                filter.type === FilterType.ANY || filter.type === FilterType.EXCLUDE
+                    ? ""
+                    : annotation?.getDisplayValue(filter.value);
             return {
                 displayName: annotation?.displayName,
                 name: filter.name,
                 value: filter.value,
-                displayValue: annotation?.getDisplayValue(filter.value),
+                displayValue,
                 type: filter?.type || FilterType.DEFAULT,
             };
         }).filter((filter) => filter.displayValue !== undefined);

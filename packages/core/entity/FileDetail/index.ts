@@ -92,16 +92,6 @@ export default class FileDetail {
     private readonly env: Environment;
     private readonly uniqueId?: string;
 
-    // REMOVE THIS FUNCITON (BACKWARDS COMPAT)
-    public convertAicsDrivePathToAicsS3Path(path: string): string {
-        const pathWithoutDrive = path.replace(NAS_HOST_PREFIXES[this.env], "");
-        // Should probably record this somewhere we can dynamically adjust to, or perhaps just in the file
-        // document itself, alas for now this will do.
-        return FileDetail.convertAicsS3PathToHttpUrl(
-            `${AICS_FMS_S3_BUCKETS[this.env]}${pathWithoutDrive}`
-        );
-    }
-
     private static convertAicsS3PathToHttpUrl(path: string): string {
         return `${AICS_FMS_S3_URL_PREFIX}${path}`;
     }
@@ -156,20 +146,10 @@ export default class FileDetail {
         return path as string;
     }
 
-    public get localPath(): string | null {
-        const cloudPrefix = `${AICS_FMS_S3_URL_PREFIX}${AICS_FMS_S3_BUCKETS[this.env]}`;
-        if (this.getAnnotation("Cache Eviction Date") && this.path.startsWith(cloudPrefix)) {
-            const localPrefix = NAS_HOST_PREFIXES[this.env];
-            const relativePath = this.path.replace(`${cloudPrefix}`, "");
-            return `${localPrefix}${relativePath}`;
-        }
-
-        return null;
-    }
-
     public get downloadInProgress(): boolean {
         const shouldBeInLocal = this.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL);
-        return Boolean(shouldBeInLocal) && !this.localPath;
+        const cacheEvictionDate = this.getAnnotation(AnnotationName.CACHE_EVICTION_DATE);
+        return !cacheEvictionDate && shouldBeInLocal === true;
     }
 
     public get size(): number | undefined {
@@ -214,7 +194,7 @@ export default class FileDetail {
 
         // If no thumbnail present try to render the file itself as the thumbnail
         if (!this.thumbnail) {
-            if (this.path.endsWith(".zarr")) {
+            if (this.path.includes(".zarr")) {
                 return renderZarrThumbnailURL(this.path);
             }
 

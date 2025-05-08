@@ -6,6 +6,14 @@
     height: calc(100% - var(--margin));
 }
 
+.error-message {
+    color: var(--primary-text-color);
+    margin-bottom: 10px;
+    line-height: 1.25;
+    font-size: var(--s-paragraph-size);
+    font-style: italic;
+}
+
 .list {
     height: calc(100% - 3px);
     position: relative;

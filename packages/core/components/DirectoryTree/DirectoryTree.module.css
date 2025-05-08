@@ -26,30 +26,27 @@
     width: 100%;
     margin: 0;
     padding: 0;
+    padding-bottom: 30px; /* add scroll buffer to outermost list*/
 }
 
 .scroll-container li {
     list-style: none;
 }
 
-/* Add padding to emphasize at end of list */
-.scroll-container li:last-of-type {
-    padding-bottom: 30px;
-}
-
 .error-message {
     position: absolute;
-    top: 50%;
+    top: 30%;
     transform: translateY(-50%);
     width: 100%;
 
     color: var(--error-text-color); /* defined in App.module.css */
-    font-size: 2rem;
     text-align: center;
+    margin: var(--margin);
+    line-height: 1.5;
 }
 
-.error-message p {
-    margin: 0;
+.error-message h2 {
+    margin: 0 var(--margin);
 }
 
 .vertical-gradient {

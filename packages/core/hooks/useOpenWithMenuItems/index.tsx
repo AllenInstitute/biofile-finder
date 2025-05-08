@@ -3,6 +3,7 @@ import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileDetail from "../../entity/FileDetail";
 import FileSelection from "../../entity/FileSelection";
 import FileFilter from "../../entity/FileFilter";
@@ -18,6 +19,7 @@ enum AppKeys {
     BROWSER = "browser",
     NEUROGLANCER = "neuroglancer",
     SIMULARIUM = "simularium",
+    VALIDATOR = "validator",
     VOLE = "vole",
     VOLVIEW = "volview",
 }
@@ -27,6 +29,7 @@ interface Apps {
     [AppKeys.BROWSER]: IContextualMenuItem;
     [AppKeys.NEUROGLANCER]: IContextualMenuItem;
     [AppKeys.SIMULARIUM]: IContextualMenuItem;
+    [AppKeys.VALIDATOR]: IContextualMenuItem;
     [AppKeys.VOLE]: IContextualMenuItem;
     [AppKeys.VOLVIEW]: IContextualMenuItem;
 }
@@ -98,7 +101,9 @@ const APPS = (fileDetails: FileDetail | undefined, openInVole: () => void): Apps
         key: AppKeys.NEUROGLANCER,
         text: "Neuroglancer",
         title: `Open files with Neuroglancer`,
-        href: `https://neuroglancer-demo.appspot.com/#!{%22layers%22:[{%22source%22:%22zarr://${fileDetails?.path}%22,%22name%22:%22${fileDetails?.name}%22}]}`,
+        href: `https://neuroglancer-demo.appspot.com/#!{%22layers%22:[{%22source%22:%22${
+            fileDetails?.path.includes(".n5") ? "n5" : "zarr"
+        }://${fileDetails?.path}%22,%22name%22:%22${fileDetails?.name}%22}]}`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -115,6 +120,22 @@ const APPS = (fileDetails: FileDetail | undefined, openInVole: () => void): Apps
         text: "Simularium",
         title: `Open files with Simularium`,
         href: `https://simularium.allencell.org/viewer?trajUrl=${fileDetails?.path}`,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
+    [AppKeys.VALIDATOR]: {
+        key: AppKeys.VALIDATOR,
+        text: "OME NGFF Validator",
+        title: `Open files with OME NGFF Validator`,
+        href: `https://ome.github.io/ome-ngff-validator/?source=${fileDetails?.path}`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -172,6 +193,9 @@ function getSupportedApps(apps: Apps, fileDetails?: FileDetail): IContextualMenu
         !fileDetails.path.startsWith("http") && !fileDetails.path.startsWith("s3");
 
     const fileExt = getFileExtension(fileDetails);
+
+    // Check for common file extensions first
+
     switch (fileExt) {
         case "bmp":
         case "html":
@@ -189,18 +213,29 @@ function getSupportedApps(apps: Apps, fileDetails?: FileDetail): IContextualMenu
         case "dcm":
             return [apps.volview];
         case "dvi":
-        case "n5":
-            return [apps.neuroglancer];
+        case "tif":
         case "tiff":
             return [apps.agave];
         case "zarr":
         case "": // No extension
             return isLikelyLocalFile
                 ? [apps.agave, apps.neuroglancer, apps.vole]
-                : [apps.vole, apps.neuroglancer, apps.agave];
-        default:
-            return [];
+                : [apps.vole, apps.neuroglancer, apps.agave, apps.validator];
     }
+
+    // Now check for special cases where the path may include a subpath into the container
+
+    if (fileDetails.path.includes(".n5")) {
+        return [apps.neuroglancer];
+    }
+
+    if (fileDetails.path.includes(".zarr")) {
+        return isLikelyLocalFile
+            ? [apps.agave, apps.neuroglancer, apps.vole]
+            : [apps.vole, apps.neuroglancer, apps.agave, apps.validator];
+    }
+
+    return [];
 }
 
 export default (
@@ -305,7 +340,8 @@ export default (
                 title: `Open files with ${name}`,
                 disabled:
                     (!filters && !fileDetails) ||
-                    (app.filePath.toLowerCase().includes("zen") && !fileDetails?.localPath),
+                    (app.filePath.toLowerCase().includes("zen") &&
+                        !fileDetails?.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH)),
                 onClick() {
                     if (filters) {
                         dispatch(interaction.actions.openWith(app, filters));

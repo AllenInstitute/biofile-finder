@@ -15,6 +15,7 @@ import { interaction } from "../../state";
 
 import styles from "./FileDetails.module.css";
 import { MAX_DOWNLOAD_SIZE_WEB } from "../../services/FileDownloadService";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 
 interface Props {
     className?: string;
@@ -135,7 +136,9 @@ export default function FileDetails(props: Props) {
                         name: fileDetails.name,
                         size: fileDetails.size,
                         path: fileDownloadService.isFileSystemAccessible
-                            ? fileDetails.localPath || fileDetails.path
+                            ? ((fileDetails.getFirstAnnotationValue(
+                                  AnnotationName.LOCAL_FILE_PATH
+                              ) || fileDetails.path) as string)
                             : fileDetails.path,
                     },
                 ])
@@ -181,7 +184,7 @@ export default function FileDetails(props: Props) {
                                         disabled={isDownloadDisabled}
                                         iconName="Download"
                                         text="Download"
-                                        title="Download"
+                                        title="Download file to local system"
                                         onClick={onDownload}
                                     />
                                 </StackItem>
@@ -190,7 +193,7 @@ export default function FileDetails(props: Props) {
                                         className={styles.primaryButton}
                                         iconName="OpenInNewWindow"
                                         text="Open file"
-                                        title="Open file"
+                                        title="Open file by selected method"
                                         menuItems={openWithMenuItems}
                                     />
                                 </StackItem>
