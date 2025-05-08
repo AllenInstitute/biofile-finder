@@ -3,7 +3,7 @@
   --inner-header-padding: 6px;
 
   position: sticky;
-  top: var(--inner-header-padding);
+  top: 0;
 
   /* NOTE! If this changes, you must also update a corresponding constant regarding the
   height of the header used to determine whether the currectly focused item is visible
@@ -59,6 +59,7 @@
 .list-parent {
   /* bizarrely necessary in order to not have the first list item initially render underneath the header */
   transform: translateY(0px);
+  margin-top: 5px; /* small space between header and first item of list */
 }
 
 .list-parent > div > div:nth-child(even) > div {

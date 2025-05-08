@@ -26,11 +26,16 @@
     padding-left: 0;
 }
 
+.cell > span, .cell div {
+    user-select: text;
+}
+
 .key {
     /* flex child */
     flex: 1 1 40%;
 
     font-weight: 500;
+    padding-right: var(--margin);
 }
 
 .link {
@@ -55,4 +60,35 @@
 
 .fms-state-indicator {
     font-style: italic;
+}
+
+.value-truncated {
+    min-height: 30px;
+    max-height: 90px;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 4 !important; /* number of lines to show */
+            line-clamp: 4; 
+    -webkit-box-orient: vertical !important;
+    word-wrap: break-word !important;
+}
+
+.expand-button {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--aqua);
+    padding: 0 5px;
+}
+
+.expand-button:hover {
+    color: var(--bright-aqua);
+    cursor: pointer;
+}
+
+.expand-button-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    padding-right: var(--margin);
 }
