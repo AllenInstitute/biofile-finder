@@ -1,3 +1,4 @@
+import { noop } from "lodash";
 import React from "react";
 
 type MessageExternalSiteContextType = {
@@ -5,7 +6,6 @@ type MessageExternalSiteContextType = {
     setOnReceive: (onReceive: ((message: unknown) => void) | undefined) => void;
 };
 
-const noop = () => undefined;
 const MessageExternalSiteContext = React.createContext<MessageExternalSiteContextType>({
     send: noop,
     setOnReceive: noop,
