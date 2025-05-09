@@ -25,6 +25,7 @@ export default class Annotation {
     public static MISSING_VALUE = " -- ";
 
     private readonly annotation: AnnotationResponse;
+    public readonly children: Annotation[];
     private readonly formatter: AnnotationFormatter;
 
     public static sort(annotations: Annotation[]): Annotation[] {
@@ -40,8 +41,9 @@ export default class Annotation {
         );
     }
 
-    constructor(annotation: AnnotationResponse) {
+    constructor(annotation: AnnotationResponse, children: Annotation[] = []) {
         this.annotation = annotation;
+        this.children = children;
 
         this.formatter = annotationFormatterFactory(this.annotation.type);
     }
@@ -64,6 +66,10 @@ export default class Annotation {
 
     public get isOpenFileLink(): boolean {
         return this.annotation.isOpenFileLink || false;
+    }
+
+    public get isParent(): boolean {
+        return this.children.length > 0;
     }
 
     public get units(): string | undefined {
@@ -93,13 +99,12 @@ export default class Annotation {
             // part of the "annotations" list
             const correspondingAnnotation = file.getAnnotation(this.name);
             if (!correspondingAnnotation) {
-                value = Annotation.MISSING_VALUE;
-            } else {
-                value = correspondingAnnotation.values;
+                return Annotation.MISSING_VALUE;
             }
+            value = correspondingAnnotation.values;
         }
 
-        if (value === Annotation.MISSING_VALUE || value === null) {
+        if (value === null) {
             return Annotation.MISSING_VALUE;
         }
 

@@ -446,8 +446,31 @@ export default abstract class DatabaseService {
                 this.fetchAnnotationTypes(),
             ]);
             const annotations = rows.map(
-                (row) =>
-                    new Annotation({
+                (row) => {
+                    const children: Annotation[] = [];
+                    if (row["data_type"].includes("STRUCT")) {
+                        let structure = row["data_type"].split("STRUCT(")[1];
+                        structure = structure.substring(0, structure.length - 1);
+                        children.push(...structure.split(',').map((child: any) => {
+                            const [childName, childType] = child.split(' ');
+                            return new Annotation({
+                                annotationName: childName,
+                                annotationDisplayName: childName,
+                                description: annotationNameToDescriptionMap[childName] || "",
+                                isOpenFileLink:
+                                    annotationNameToTypeMap[childName] ===
+                                    DatabaseService.OPEN_FILE_LINK_TYPE,
+                                type:
+                                    annotationNameToTypeMap[childName] ===
+                                    DatabaseService.OPEN_FILE_LINK_TYPE
+                                        ? AnnotationType.STRING
+                                        : annotationNameToTypeMap[childName] || DatabaseService.columnTypeToAnnotationType(childType),
+                            }, [])
+                        }
+                        )
+                        );
+                    }
+                    return new Annotation({
                         annotationName: row["column_name"],
                         annotationDisplayName: row["column_name"],
                         description: annotationNameToDescriptionMap[row["column_name"]] || "",
@@ -460,7 +483,8 @@ export default abstract class DatabaseService {
                                 ? AnnotationType.STRING
                                 : annotationNameToTypeMap[row["column_name"]] ||
                                   DatabaseService.columnTypeToAnnotationType(row["data_type"]),
-                    })
+                    }, children);
+                }
             );
             this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);
         }

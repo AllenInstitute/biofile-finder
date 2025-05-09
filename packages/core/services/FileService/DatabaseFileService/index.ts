@@ -28,7 +28,7 @@ export default class DatabaseFileService implements FileService {
     private readonly dataSourceNames: string[];
 
     private static convertDatabaseRowToFileDetail(
-        row: { [key: string]: string },
+        row: { [key: string]: any },
         env: Environment
     ): FileDetail {
         const uniqueId: string | undefined = row[DatabaseService.HIDDEN_UID_ANNOTATION];
@@ -47,9 +47,9 @@ export default class DatabaseFileService implements FileService {
                     )
                     .map(([name, values]) => ({
                         name,
-                        values: `${values}`
+                        values: JSON.stringify(values)
                             .split(DatabaseService.LIST_DELIMITER)
-                            .map((value: string) => value.trim()),
+                            .map((value: string) => JSON.parse(value.trim()))
                     })),
             },
             env,

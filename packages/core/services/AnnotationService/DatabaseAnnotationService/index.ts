@@ -109,7 +109,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
             .flatMap((row) =>
                 isNil(row[annotation])
                     ? []
-                    : `${row[annotation]}`.split(DatabaseService.LIST_DELIMITER)
+                    : JSON.stringify(row[annotation]).split(DatabaseService.LIST_DELIMITER)
             )
             .map((value) => value.trim());
         return uniq(rowsSplitByDelimiter);

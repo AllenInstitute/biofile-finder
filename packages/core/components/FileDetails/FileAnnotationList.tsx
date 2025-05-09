@@ -96,6 +96,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                     className={styles.row}
                     name={annotation.displayName}
                     value={annotationValue}
+                    theRealestValue={fileDetails.getAnnotation(annotation.name)?.values as any}
                     fmsStateIndicator={fmsStateIndicator}
                 />,
             ];

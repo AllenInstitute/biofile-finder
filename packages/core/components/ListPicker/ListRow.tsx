@@ -9,6 +9,7 @@ import { AnnotationValue } from "../../services/AnnotationService";
 import styles from "./ListRow.module.css";
 
 export interface ListItem<T = any> {
+    children?: T[];
     disabled?: boolean;
     loading?: boolean;
     recent?: boolean;
@@ -42,30 +43,46 @@ export default function ListRow(props: Props) {
     if (!item) {
         return null;
     }
+    console.log("item.children", item.value, item.children);
 
     return (
-        <Tooltip content={`${item.displayValue}${item.description ? `: ${item.description}` : ""}`}>
-            <DefaultButton
-                className={classNames(styles.itemContainer, {
-                    [styles.selected]: item.selected,
-                    [styles.disabled]: item.disabled,
-                    [styles.divider]: item.isDivider,
-                })}
-                menuIconProps={{
-                    iconName: props.subMenuRenderer && !item.isDivider ? "ChevronRight" : undefined,
-                }}
-                menuProps={props.subMenuRenderer ? buttonMenu : undefined}
-                data-testid={`default-button-${item.displayValue}`}
-                disabled={item.disabled}
-                onClick={() => (item.selected ? props.onDeselect(item) : props.onSelect(item))}
-            >
-                <label className={styles.item}>
-                    <div>{item.selected && <Icon iconName="CheckMark" />}</div>
-                    <p>{item.displayValue}</p>
-                </label>
-                {item.recent && <Icon iconName="Recent" />}
-                {item.loading && <Spinner className={styles.spinner} size={SpinnerSize.small} />}
-            </DefaultButton>
-        </Tooltip>
+        <div>
+            <Tooltip content={`${item.displayValue}${item.description ? `: ${item.description}` : ""}`}>
+                <DefaultButton
+                    className={classNames(styles.itemContainer, {
+                        [styles.selected]: item.selected,
+                        [styles.disabled]: item.disabled,
+                        [styles.divider]: item.isDivider,
+                    })}
+                    menuIconProps={{
+                        iconName: props.subMenuRenderer && !item.isDivider ? "ChevronRight" : undefined,
+                    }}
+                    menuProps={props.subMenuRenderer ? buttonMenu : undefined}
+                    data-testid={`default-button-${item.displayValue}`}
+                    disabled={item.disabled}
+                    onClick={() => (item.selected ? props.onDeselect(item) : props.onSelect(item))}
+                >
+                    <label className={styles.item}>
+                        <div>{item.selected && <Icon iconName="CheckMark" />}</div>
+                        <p>{item.displayValue}</p>
+                    </label>
+                    {item.recent && <Icon iconName="Recent" />}
+                    {item.loading && <Spinner className={styles.spinner} size={SpinnerSize.small} />}
+                </DefaultButton>
+            </Tooltip>
+            {item.children?.map(child => {
+                <ListRow
+                    {...props}
+                    item={{
+                        children: [],
+                        displayValue: child,
+                        value: child,
+                        description: "what",
+                        selected: false,
+                        data: child
+                    }}
+                />
+            })}
+        </div>
     );
 }

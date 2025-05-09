@@ -70,6 +70,7 @@ export default function AnnotationPicker(props: Props) {
             displayValue: annotation.displayName,
             recent: recentAnnotationNames.includes(annotation.name) && !selected,
             loading: props.disableUnavailableAnnotations && areAvailableAnnotationLoading,
+            children: annotation.children
         };
     };
 

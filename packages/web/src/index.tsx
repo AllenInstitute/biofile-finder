@@ -31,10 +31,6 @@ const router = createBrowserRouter(
             element: <Layout />,
             children: [
                 {
-                    path: "/",
-                    element: <Home />, // Splash page
-                },
-                {
                     path: "learn",
                     element: <Learn />,
                 },
@@ -46,12 +42,16 @@ const router = createBrowserRouter(
                     path: "datasets",
                     element: <OpenSourceDatasets />,
                 },
+                {
+                    path: "*",
+                    element: <Home />, // Splash page
+                },
             ],
         },
     ],
-    {
-        basename: "/dist",
-    }
+    // {
+    //     basename: "/dist",
+    // }
 );
 
 async function asyncRender() {

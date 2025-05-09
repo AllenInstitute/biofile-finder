@@ -11,6 +11,7 @@ interface FileAnnotationRowProps {
     className?: string;
     name: string;
     value: string;
+    theRealestValue?: object[];
     fmsStateIndicator?: boolean;
 }
 
@@ -46,6 +47,45 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
             dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
         };
     };
+
+    console.log("the realest value", props.theRealestValue)
+    const firstRealItem = props.theRealestValue?.[0];
+    const isJSONGuy = typeof firstRealItem === 'object' && !Array.isArray(firstRealItem) && firstRealItem !== null;
+    if (props.theRealestValue && isJSONGuy) {
+        console.log("IS JSON GUY");
+
+        props.theRealestValue.map(value => {
+            console.log("child value", value, (Array.isArray(value) ? value : [value]))
+        })
+        return (
+            <div className={classNames(props.className, styles.row)}>
+                <Cell
+                    className={classNames(styles.cell, styles.key, {
+                        [styles.smallFont]: shouldDisplaySmallFont,
+                    })}
+                    columnKey="key"
+                    width={1}
+                    title={annotationNameToAnnotationMap[props.name]?.description}
+                >
+                    <span
+                        style={{ userSelect: "text" }}
+                        onContextMenu={onContextMenuHandlerFactory(props.name)}
+                    >
+                        {props.name}
+                    </span>
+                </Cell>
+                {props.theRealestValue.map(value => (
+                    Object.entries(value).map(vv => (
+                        <FileAnnotationRow
+                            {...props}
+                            value={String(vv)}
+                            theRealestValue={(Array.isArray(vv) ? vv : [vv])}
+                        />
+                    ))
+                ))}
+            </div>
+        )
+    }
 
     return (
         <div className={classNames(props.className, styles.row)}>
