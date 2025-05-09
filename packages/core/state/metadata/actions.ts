@@ -119,14 +119,13 @@ export const REQUEST_DATASET_MANIFEST = makeConstant(STATE_BRANCH_NAME, "request
 export interface RequestDatasetManifest {
     payload: {
         name: string;
-        uri: string;
     };
     type: string;
 }
 
-export function requestDatasetManifest(name: string, uri: string): RequestDatasetManifest {
+export function requestDatasetManifest(name: string): RequestDatasetManifest {
     return {
-        payload: { name, uri },
+        payload: { name },
         type: REQUEST_DATASET_MANIFEST,
     };
 }

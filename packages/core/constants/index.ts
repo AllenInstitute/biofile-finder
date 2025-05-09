@@ -89,3 +89,10 @@ export enum LoadBalancerBaseUrl {
     PRODUCTION = "http://aics.corp.alleninstitute.org",
     TEST = "http://test-aics.corp.alleninstitute.org",
 }
+
+export enum DatasetBucketUrl {
+    LOCALHOST = "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com",
+    STAGING = "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com",
+    PRODUCTION = "https://biofile-finder-datasets.s3.us-west-2.amazonaws.com",
+    TEST = "http://test-aics.corp.alleninstitute.org",
+}

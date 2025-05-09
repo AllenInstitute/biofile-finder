@@ -124,12 +124,7 @@ describe("Metadata logics", () => {
             });
 
             // Act
-            store.dispatch(
-                requestDatasetManifest(
-                    datasetManifestSource.name,
-                    datasetManifestSource.uri as string
-                )
-            );
+            store.dispatch(requestDatasetManifest(datasetManifestSource.name));
             await logicMiddleware.whenComplete();
 
             // Assert

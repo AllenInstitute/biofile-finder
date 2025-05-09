@@ -16,6 +16,7 @@ import HttpFileService from "../../services/FileService/HttpFileService";
 import { ModalType } from "../../components/Modal";
 import {
     AICS_FMS_DATA_SOURCE_NAME,
+    DatasetBucketUrl,
     FESBaseUrl,
     MMSBaseUrl,
     LoadBalancerBaseUrl,
@@ -56,6 +57,11 @@ export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee
 export const getFileExplorerServiceBaseUrl = createSelector(
     [getEnvironment],
     (environment) => FESBaseUrl[environment]
+);
+
+export const getDatasetBucketUrl = createSelector(
+    [getEnvironment],
+    (environment) => DatasetBucketUrl[environment]
 );
 
 export const getLoadBalancerBaseUrl = createSelector(
@@ -208,7 +214,7 @@ export const getAnnotationService = createSelector(
             applicationVersion,
             userName,
             fileExplorerServiceBaseUrl,
-            metadataManagementServiceBaseURl: metadataManagementServiceBaseUrl
+            metadataManagementServiceBaseURl: metadataManagementServiceBaseUrl,
         });
     }
 );

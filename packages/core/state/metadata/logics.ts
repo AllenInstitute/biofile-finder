@@ -202,9 +202,9 @@ const requestDataSources = createLogic({
  */
 const requestPasswordMapping = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        // const result = await deps.httpClient.get("https://raw.githubusercontent.com/AllenInstitute/biofile-finder/refs/heads/feature/metadata-editing/restrict-annotations/packages/core/util/temp_passwords.json")
-        const passwordToProgramMap = {};
-        dispatch(receivePasswordMapping(passwordToProgramMap));
+        const datasetBucketUrl = interaction.selectors.getDatasetBucketUrl(deps.getState());
+        const result = await deps.httpClient.get(`${datasetBucketUrl}/metadata_passwords.json`);
+        dispatch(receivePasswordMapping(result.data));
         done();
     },
     type: REQUEST_PASSWORD_MAPPING,
@@ -217,17 +217,17 @@ const requestPasswordMapping = createLogic({
 const requestDatasetManifest = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const {
-            payload: { name, uri },
+            payload: { name },
         } = deps.action as RequestDatasetManifest;
+        const datasetBucketUrl = interaction.selectors.getDatasetBucketUrl(deps.getState());
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
 
         try {
-            if (uri) {
-                await databaseService.prepareDataSources([{ name, type: "csv", uri }]);
-                dispatch(receiveDatasetManifest(name, uri));
-            }
+            const uri = `${datasetBucketUrl}/Dataset+Manifest.csv`;
+            await databaseService.prepareDataSources([{ name, type: "csv", uri }]);
+            dispatch(receiveDatasetManifest(name, uri));
         } catch (err) {
             console.error("Failed to add dataset manifest", err);
         } finally {
