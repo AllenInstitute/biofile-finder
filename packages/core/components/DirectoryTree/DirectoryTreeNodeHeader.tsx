@@ -9,6 +9,7 @@ import { selection } from "../../state";
 import FileSet from "../../entity/FileSet";
 import { ERROR_ICON_PATH_DATA } from "../../icons";
 import useFileAccessContextMenu from "../../hooks/useFileAccessContextMenu";
+import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 
 import styles from "./DirectoryTreeNode.module.css";
 
@@ -47,10 +48,19 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
     const { collapsed, error, fileSet, isLeaf, isFocused, loading, onClick, title } = props;
 
     const [isContextMenuActive, setContextMenuActive] = React.useState(false);
+
+    const [measuredNodeRef, _, measuredWidth] = useLayoutMeasurements<HTMLDivElement>();
     // Shorten folder title length to approximately one line
     // Some overflow is acceptable as long as the folder doesn't wrap to more than two lines
-    const isLongHeader = title.length > 110;
-    const titleShortened = title.slice(0, 50) + "..." + title.slice(-50);
+    const { isLongHeader, titleShortened } = React.useMemo(() => {
+        // Current element width divided by approximate character width in pixels
+        const widthInCharacters = measuredWidth / 10;
+        const titleShortened =
+            title.slice(0, widthInCharacters / 2) + "..." + title.slice(-widthInCharacters / 2);
+        const isLongHeader = title.length > widthInCharacters && widthInCharacters !== 0; // Width will be zero in unit tests
+        return { isLongHeader, titleShortened };
+    }, [measuredWidth, title]);
+
     const fileSelections = useSelector(selection.selectors.getFileSelection);
     const countSelectionsUnderneathFolder = React.useMemo(() => {
         return fileSelections.count(fileSet.filters);
@@ -94,6 +104,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
             data-testid="treeitemheader"
             onClick={onClick}
             onContextMenu={onContextMenu}
+            ref={measuredNodeRef}
         >
             <SvgIcon
                 className={classNames(styles.icon, {
