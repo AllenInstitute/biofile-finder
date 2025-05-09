@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import QueryPart from ".";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
-import { Source } from "../../entity/FileExplorerURL";
+import { Source } from "../../entity/SearchParams";
 import { interaction, metadata, selection } from "../../state";
 
 interface Props {

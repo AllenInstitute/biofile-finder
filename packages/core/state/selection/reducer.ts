@@ -37,7 +37,7 @@ import {
     TOGGLE_NULL_VALUE_GROUPS,
 } from "./actions";
 import interaction from "../interaction";
-import { FileView, Source } from "../../entity/FileExplorerURL";
+import { FileView, Source } from "../../entity/SearchParams";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";

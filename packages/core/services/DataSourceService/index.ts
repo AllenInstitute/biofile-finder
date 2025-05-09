@@ -1,4 +1,4 @@
-import { Source } from "../../entity/FileExplorerURL";
+import { Source } from "../../entity/SearchParams";
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 
 export interface DataSource extends Source {
