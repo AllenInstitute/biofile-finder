@@ -12,7 +12,7 @@ import LazilyRenderedThumbnail from "./LazilyRenderedThumbnail";
 import useFileSelector from "./useFileSelector";
 import { Action, setError } from "../DirectoryTree/directory-hierarchy-state";
 import EmptyFileListMessage from "../EmptyFileListMessage";
-import { FileView } from "../../entity/FileExplorerURL";
+import { FileView } from "../../entity/SearchParams";
 import FileSet from "../../entity/FileSet";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileAccessContextMenu from "../../hooks/useFileAccessContextMenu";

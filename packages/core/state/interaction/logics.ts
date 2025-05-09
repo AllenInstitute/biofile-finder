@@ -47,7 +47,7 @@ import FileDetail from "../../entity/FileDetail";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileSelection from "../../entity/FileSelection";
 import NumericRange from "../../entity/NumericRange";
-import FileExplorerURL, { DEFAULT_AICS_FMS_QUERY } from "../../entity/FileExplorerURL";
+import SearchParams, { DEFAULT_AICS_FMS_QUERY } from "../../entity/SearchParams";
 import { ModalType } from "../../components/Modal";
 
 export const DEFAULT_QUERY_NAME = "New Query";
@@ -72,7 +72,7 @@ const initializeApp = createLogic({
             dispatch(
                 selection.actions.addQuery({
                     name: DEFAULT_QUERY_NAME,
-                    parts: FileExplorerURL.decode(window.location.search),
+                    parts: SearchParams.decode(window.location.search),
                 })
             );
         } else if (queries.length) {
