@@ -9,6 +9,8 @@ import {
     requestDataSources,
     receiveDatasetManifest,
     requestDatasetManifest,
+    RECEIVE_PASSWORD_MAPPING,
+    requestPasswordMapping,
 } from "../actions";
 import metadataLogics from "../logics";
 import { initialState, interaction } from "../../";
@@ -130,6 +132,27 @@ describe("Metadata logics", () => {
                         "https://biofile-finder-datasets.s3.us-west-2.amazonaws.com/Dataset+Manifest.csv"
                     )
                 )
+            ).to.be.true;
+        });
+    });
+
+    describe("requestPasswordMapping", () => {
+        it(`Processes requestPasswordMapping into RECEIVE_PASSWORD_MAPPING action`, async () => {
+            // Arrange
+            const { actions, logicMiddleware, store } = configureMockStore({
+                state: initialState,
+                logics: metadataLogics,
+            });
+
+            // Act
+            store.dispatch(requestPasswordMapping());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: RECEIVE_PASSWORD_MAPPING,
+                })
             ).to.be.true;
         });
     });
