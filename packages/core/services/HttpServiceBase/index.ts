@@ -147,8 +147,22 @@ export default class HttpServiceBase {
         const encodedUrl = HttpServiceBase.encodeURI(url);
 
         if (!this.urlToResponseDataCache.has(encodedUrl)) {
+            let response;
             // if this fails, bubble up exception
-            const response = await retry.execute(() => this.httpClient.get(encodedUrl));
+            try {
+                response = await retry.execute(() => this.httpClient.get(encodedUrl));
+            } catch (err) {
+                // Specific errors about the failure from services will be in this path
+                if (
+                    axios.isAxiosError(err) &&
+                    (err?.response?.data?.message || err?.response?.data?.error)
+                ) {
+                    throw new Error(
+                        JSON.stringify(err.response.data.message || err.response.data.error)
+                    );
+                }
+                throw err;
+            }
 
             if (response.status < 400 && response.data !== undefined) {
                 this.urlToResponseDataCache.set(encodedUrl, response.data);

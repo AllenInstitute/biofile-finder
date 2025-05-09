@@ -42,14 +42,14 @@ describe("<TutorialTooltip />", () => {
         expect(() => getByText(stepTwoMessage)).to.throw();
 
         // Act
-        fireEvent.click(getByTestId("base-button-Next step"));
+        fireEvent.click(getByTestId("base-button-tutorial-next"));
 
         // Assert
         expect(getByText(stepTwoMessage)).to.exist;
         expect(() => getByText(stepOneMessage)).to.throw();
 
         // Act
-        fireEvent.click(getByTestId("base-button-Previous step"));
+        fireEvent.click(getByTestId("base-button-tutorial-prev"));
 
         // Assert
         expect(getByText(stepOneMessage)).to.exist;
@@ -86,7 +86,7 @@ describe("<TutorialTooltip />", () => {
         expect(getByText(formattedTutorial)).to.exist;
 
         // Act
-        fireEvent.click(getByTestId("base-button-Finished"));
+        fireEvent.click(getByTestId("base-button-tutorial-next"));
 
         // Assert
         expect(() => getByText(formattedTutorial)).to.throw();

@@ -92,16 +92,6 @@ export default class FileDetail {
     private readonly env: Environment;
     private readonly uniqueId?: string;
 
-    // REMOVE THIS FUNCITON (BACKWARDS COMPAT)
-    public convertAicsDrivePathToAicsS3Path(path: string): string {
-        const pathWithoutDrive = path.replace(NAS_HOST_PREFIXES[this.env], "");
-        // Should probably record this somewhere we can dynamically adjust to, or perhaps just in the file
-        // document itself, alas for now this will do.
-        return FileDetail.convertAicsS3PathToHttpUrl(
-            `${AICS_FMS_S3_BUCKETS[this.env]}${pathWithoutDrive}`
-        );
-    }
-
     private static convertAicsS3PathToHttpUrl(path: string): string {
         return `${AICS_FMS_S3_URL_PREFIX}${path}`;
     }
@@ -156,62 +146,10 @@ export default class FileDetail {
         return path as string;
     }
 
-    public get cloudPath(): string {
-        //// REMOVE THIS (BACKWARDS COMPAT)
-        if (this.path.startsWith("/allen")) {
-            return this.convertAicsDrivePathToAicsS3Path(this.path);
-        }
-        ////
-
-        // AICS FMS files' paths are cloud paths
-        return this.path;
-    }
-
-    public get localPath(): string | null {
-        //// REMOVE THIS (BACKWARDS COMPAT)
-        if (this.path.startsWith("/allen")) {
-            return this.path;
-        }
-        ////
-
-        if (this.getAnnotation("Cache Eviction Date")) {
-            return this.getLocalPath();
-        }
-        return null;
-    }
-
-    public getLocalPath(): string | null {
-        const localPrefix = NAS_HOST_PREFIXES[this.env];
-        const cloudPrefix = `${AICS_FMS_S3_URL_PREFIX}${AICS_FMS_S3_BUCKETS[this.env]}`;
-
-        if (this.path.startsWith(cloudPrefix)) {
-            const relativePath = this.path.replace(`${cloudPrefix}`, "");
-            return `${localPrefix}${relativePath}`;
-        }
-
-        return null;
-    }
-
-    public get downloadPath(): string {
-        //// REMOVE THIS (BACKWARDS COMPAT)
-        if (this.path.startsWith("/allen")) {
-            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${this.path}`;
-        }
-        ////
-
-        const localPath = this.getLocalPath();
-        // For AICS files that are available on the Vast, users can use the cloud path, but the
-        // download will be faster and not incur egress fees if we download via the local network.
-        if (localPath && localPath.startsWith("/allen") && this.env === Environment.PRODUCTION) {
-            return `http://aics.corp.alleninstitute.org/labkey/fmsfiles/image${localPath}`;
-        }
-        // Otherwise just return path (cloud probably)
-        return this.path;
-    }
-
     public get downloadInProgress(): boolean {
         const shouldBeInLocal = this.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL);
-        return Boolean(shouldBeInLocal) && !this.getLocalPath();
+        const cacheEvictionDate = this.getAnnotation(AnnotationName.CACHE_EVICTION_DATE);
+        return !cacheEvictionDate && shouldBeInLocal === true;
     }
 
     public get size(): number | undefined {
@@ -256,14 +194,15 @@ export default class FileDetail {
 
         // If no thumbnail present try to render the file itself as the thumbnail
         if (!this.thumbnail) {
+            if (this.path.includes(".zarr")) {
+                return renderZarrThumbnailURL(this.path);
+            }
+
             const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
-                this.name.toLowerCase().endsWith(format)
+                this.path.toLowerCase().endsWith(format)
             );
             if (isFileRenderableImage) {
-                return this.downloadPath;
-            }
-            if (this.path.includes(".zarr")) {
-                return await renderZarrThumbnailURL(this.downloadPath);
+                return this.path;
             }
         }
 

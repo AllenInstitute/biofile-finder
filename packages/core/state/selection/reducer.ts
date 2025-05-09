@@ -34,6 +34,7 @@ import {
     SetColumns,
     SET_COLUMNS,
     COLLAPSE_ALL_FILE_FOLDERS,
+    TOGGLE_NULL_VALUE_GROUPS,
 } from "./actions";
 import interaction from "../interaction";
 import { FileView, Source } from "../../entity/SearchParams";
@@ -57,6 +58,7 @@ export interface SelectionStateBranch {
     requiresDataSourceReload?: boolean;
     selectedQuery?: string;
     shouldDisplaySmallFont: boolean;
+    shouldShowNullGroups: boolean;
     sortColumn?: FileSort;
     sourceMetadata?: Source;
     queries: Query[];
@@ -77,6 +79,7 @@ export const initialState = {
     recentAnnotations: [],
     requiresDataSourceReload: false,
     shouldDisplaySmallFont: false,
+    shouldShowNullGroups: false,
 };
 
 export default makeReducer<SelectionStateBranch>(
@@ -202,6 +205,11 @@ export default makeReducer<SelectionStateBranch>(
         [SET_OPEN_FILE_FOLDERS]: (state, action) => ({
             ...state,
             openFileFolders: action.payload,
+        }),
+        [TOGGLE_NULL_VALUE_GROUPS]: (state, action) => ({
+            ...state,
+            shouldShowNullGroups:
+                action.payload !== undefined ? action.payload : !state.shouldShowNullGroups,
         }),
         [interaction.actions.INITIALIZE_APP]: (state) => ({
             ...state,

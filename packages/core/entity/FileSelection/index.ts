@@ -496,7 +496,8 @@ export default class FileSelection {
     public toCompactSelectionList(): Selection[] {
         return [...this.groupByFileSet().entries()].map(([fileSet, selectedRanges]) => ({
             filters: fileSet.filters.reduce((accum, filter) => {
-                if (filter.type === FilterType.DEFAULT) {
+                // Include values for fuzzy filters if present
+                if (filter.type === FilterType.DEFAULT || filter.type === FilterType.FUZZY) {
                     return {
                         ...accum,
                         [filter.name]: [...(accum[filter.name] || []), filter.value],

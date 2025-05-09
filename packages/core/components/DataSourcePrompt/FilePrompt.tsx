@@ -72,13 +72,12 @@ export default function FilePrompt(props: Props) {
             <form>
                 <label
                     aria-label="Browse for a file on your machine"
-                    title="Browse for a file on your machine"
                     htmlFor="data-source-selector"
                 >
                     <SecondaryButton
                         iconName="DocumentSearch"
                         text="Choose file"
-                        title="Choose file"
+                        title="Browse for a file on your machine"
                     />
                 </label>
                 <input

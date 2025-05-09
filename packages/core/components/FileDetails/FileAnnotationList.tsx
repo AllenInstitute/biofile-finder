@@ -33,12 +33,13 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
         let active = true;
 
         async function formatPathForHost() {
-            if (!fileDetails || !active) return;
-
-            const localPath = fileDetails.localPath;
-            const path = localPath ? await executionEnvService.formatPathForHost(localPath) : null;
-
-            setLocalPath(path);
+            if (!active) return;
+            const localPath = fileDetails?.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH);
+            const formatted =
+                typeof localPath === "string"
+                    ? await executionEnvService.formatPathForHost(localPath)
+                    : null;
+            setLocalPath(formatted);
         }
 
         formatPathForHost();
@@ -80,7 +81,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
 
             if (annotation.name === AnnotationName.FILE_PATH) {
                 // Display the full http://... URL
-                annotationValue = fileDetails.cloudPath;
+                annotationValue = fileDetails.path;
             }
 
             if (annotationValue === Annotation.MISSING_VALUE) {

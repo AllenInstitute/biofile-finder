@@ -10,6 +10,7 @@ import Header from "./Header";
 import LazilyRenderedRow from "./LazilyRenderedRow";
 import LazilyRenderedThumbnail from "./LazilyRenderedThumbnail";
 import useFileSelector from "./useFileSelector";
+import { Action, setError } from "../DirectoryTree/directory-hierarchy-state";
 import EmptyFileListMessage from "../EmptyFileListMessage";
 import { FileView } from "../../entity/SearchParams";
 import FileSet from "../../entity/FileSet";
@@ -27,6 +28,7 @@ const DEFAULT_TOTAL_COUNT = 1000;
 
 interface FileListProps {
     className?: string;
+    dispatch: (value: Action) => void;
     fileSet: FileSet;
     isRoot: boolean;
     rowHeight?: number; // how tall each row of the list will be, in px
@@ -47,6 +49,7 @@ const TALL_ROW_HEIGHT = 19;
  */
 export default function FileList(props: FileListProps) {
     const [totalCount, setTotalCount] = React.useState<number | null>(null);
+    const [localError, setLocalError] = React.useState<Error>();
     const [lastVisibleRowIndex, setLastVisibleRowIndex] = React.useState<number>(0);
     const fileView = useSelector(selection.selectors.getFileView);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
@@ -149,7 +152,28 @@ export default function FileList(props: FileListProps) {
         };
     }, [fileSet]);
 
+    const fileFetchWrapper = async (startIndex: number, endIndex: number) => {
+        setLocalError(undefined); // reset
+        try {
+            await fileSet.fetchFileRange(startIndex, endIndex);
+        } catch (err) {
+            props.dispatch(setError(err as Error, isRoot));
+            // Root has its own error handling
+            if (!isRoot) setLocalError(err as Error);
+            throw err;
+        }
+    };
+
     let content: React.ReactNode;
+    if (!!localError) {
+        return (
+            <div className={classNames(styles.container, className)}>
+                <div className={styles.errorMessage}>
+                    Some files could not be loaded. Error: {localError.message}
+                </div>
+            </div>
+        );
+    }
     if (totalCount === null || totalCount > 0) {
         if (height > 0) {
             // When this component isRoot the height is measured. It takes
@@ -162,7 +186,7 @@ export default function FileList(props: FileListProps) {
                     key={fileSet.instanceId} // force a re-render whenever FileSet changes
                     isItemLoaded={fileSet.isFileMetadataLoadingOrLoaded}
                     loadMoreItems={debouncePromise<any>(
-                        fileSet.fetchFileRange,
+                        fileFetchWrapper,
                         DEBOUNCE_WAIT_FOR_DATA_FETCHING
                     )}
                     itemCount={totalCount || DEFAULT_TOTAL_COUNT}
