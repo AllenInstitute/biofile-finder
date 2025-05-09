@@ -735,6 +735,16 @@ const removeQueryLogic = createLogic({
     type: REMOVE_QUERY,
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const queries = selectionSelectors.getQueries(deps.getState());
+        // If we're removing the last query, we should also remove the query args
+        if (queries.length === 0) {
+            const emptyUrl =
+                window.location.protocol +
+                "//" +
+                window.location.host +
+                window.location.pathname +
+                "?";
+            window.history.pushState({ path: emptyUrl }, "", emptyUrl);
+        }
         dispatch(changeQuery(queries[0]));
         done();
     },
