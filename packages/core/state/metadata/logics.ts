@@ -10,9 +10,11 @@ import {
     receiveAnnotations,
     receiveDatasetManifest,
     receiveDataSources,
+    receivePasswordMapping,
     REQUEST_ANNOTATIONS,
     REQUEST_DATA_SOURCES,
     REQUEST_DATASET_MANIFEST,
+    REQUEST_PASSWORD_MAPPING,
     RequestDatasetManifest,
     STORE_NEW_ANNOTATION,
     storeNewAnnotation,
@@ -194,6 +196,21 @@ const requestDataSources = createLogic({
 });
 
 /**
+ * Interceptor responsible for the REQUEST_PASSWORD_MAPPING action
+ * which is used to request the password mapping for AICS FMS as a placeholder for
+ * a more robust auth solution
+ */
+const requestPasswordMapping = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        // const result = await deps.httpClient.get("https")
+        const passwordToProgramMap = {};
+        dispatch(receivePasswordMapping(passwordToProgramMap));
+        done();
+    },
+    type: REQUEST_PASSWORD_MAPPING,
+});
+
+/**
  * Interceptor responsible for passing the REQUEST_DATASET_MANIFEST action to the database service.
  * Outputs RECEIVE_DATASET_MANIFEST action to request state.
  */
@@ -253,5 +270,6 @@ export default [
     receiveAnnotationsLogic,
     requestDataSources,
     requestDatasetManifest,
+    requestPasswordMapping,
     storeNewAnnotationLogic,
 ];

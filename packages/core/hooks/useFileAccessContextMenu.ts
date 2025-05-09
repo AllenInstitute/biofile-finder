@@ -136,7 +136,7 @@ export default (filters?: FileFilter[], onDismiss?: () => void) => {
                         ],
                     },
                 },
-                ...(isQueryingAicsFms && isOnWeb
+                ...(isQueryingAicsFms
                     ? [
                           {
                               key: "edit",

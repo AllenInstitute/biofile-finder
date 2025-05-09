@@ -10,6 +10,7 @@ import styles from "./PasswordForm.module.css";
 interface Props {
     isInvalidPassword: boolean;
     isInvalidSelection: boolean;
+    loading: boolean;
     onCancel: () => void;
     onEnterPassword: (password: string) => void;
     validPrograms?: string[];
@@ -20,6 +21,18 @@ interface Props {
  */
 export default function PasswordForm(props: Props) {
     const [password, setPassword] = React.useState("");
+
+    if (props.loading) {
+        return (
+            <>
+                <p>
+                    Requesting available programs. This may take a few seconds, if you continue to
+                    see This contact Software Support.
+                </p>
+                <LoadingIcon />
+            </>
+        );
+    }
 
     if (!props.validPrograms) {
         return (

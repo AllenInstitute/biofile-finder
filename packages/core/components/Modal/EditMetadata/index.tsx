@@ -9,7 +9,7 @@ import BaseModal from "../BaseModal";
 import { PrimaryButton, SecondaryButton } from "../../Buttons";
 import EditMetadataForm from "../../EditMetadata";
 import useFilteredSelection from "../../../hooks/useFilteredSelection";
-import { selection } from "../../../state";
+import { metadata, selection } from "../../../state";
 
 import styles from "./EditMetadata.module.css";
 
@@ -47,6 +47,7 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
     const [isInvalidPassword, setIsInvalidPassword] = React.useState(false);
     const [program, setProgram] = React.useState<string>();
     const isQueryingAicsFms = useSelector(selection.selectors.isQueryingAicsFms);
+    const passwordToProgramMap = useSelector(metadata.selectors.getPasswordToProgramMap);
 
     const fileSelection = useFilteredSelection();
     const programsInSelection = useAnnotationValues(fileSelection, "Program") as
@@ -62,6 +63,12 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
         if (hasUnsavedChanges) setShowWarning(true);
         else onDismiss();
     }
+
+    React.useEffect(() => {
+        if (!passwordToProgramMap) {
+            metadata.actions.requestPasswordMapping();
+        }
+    }, [metadata, passwordToProgramMap]);
 
     const onEnterPassword = (password: string) => {
         const program = programsInSelection?.includes(PASSWORD_TO_PROGRAM_MAP[password])
@@ -103,6 +110,7 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
                 onCancel={onDismiss}
                 onEnterPassword={onEnterPassword}
                 validPrograms={programsInSelection}
+                loading={!passwordToProgramMap}
             />
         );
 
