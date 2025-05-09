@@ -42,7 +42,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
         text: annotation.displayName,
         disabled: annotation.isImmutable,
         title: annotation.isImmutable
-            ? "This field cannot be edited because it is automatically created based on some heuristic"
+            ? "This field cannot be edited because it is automatically created based on another metadata field."
             : "",
         data: annotation.type,
     }));

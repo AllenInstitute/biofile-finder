@@ -10,7 +10,6 @@ export default new Set([
     "Cell Line R And D",
     "Cell Line Source",
     "Cell Population Id",
-    ,
     "Channel Number 405",
     "Channel Number 638",
     "Channel Number Brightfield",

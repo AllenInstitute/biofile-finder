@@ -26,7 +26,7 @@ export default function PasswordForm(props: Props) {
             <>
                 <p>
                     A password is required for editing or creating new metadata. Each password is
-                    specific to a program, only files associated with that program can be edited.
+                    specific to a program; only files associated with that program can be edited.
                     Talk to your program lead for the password.
                 </p>
                 <LoadingIcon />
@@ -38,8 +38,8 @@ export default function PasswordForm(props: Props) {
     if (props.isInvalidSelection) {
         infoMessage = (
             <p className={styles.errorMessage}>
-                The files you have selected do not share the same program or do not have a program
-                at all.
+                The files you have selected do not share the same program or do not have any program
+                value.
             </p>
         );
     } else if (props.isInvalidPassword) {
@@ -62,7 +62,7 @@ export default function PasswordForm(props: Props) {
         <>
             <p>
                 A password is required for editing or creating new metadata. Each password is
-                specific to a program, only files associated with that program can be edited. Talk
+                specific to a program; only files associated with that program can be edited. Talk
                 to your program lead for the password.
             </p>
             {infoMessage}

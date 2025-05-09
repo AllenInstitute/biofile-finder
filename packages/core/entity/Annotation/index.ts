@@ -82,6 +82,12 @@ export default class Annotation {
         return this.annotation.isOpenFileLink || false;
     }
 
+    /**
+     * Whether or not this annotation is immutable. Immutable annotations are not expected to change
+     * over time, and are not expected to be updated by the user. Examples include file size, file
+     * name, file path, etc. Mutable annotations are expected to be updated by the user, and can
+     * change over time. Examples include Gene, Cell Line, Program, etc.
+     */
     public get isImmutable(): boolean {
         return this.annotation.isImmutable || false;
     }

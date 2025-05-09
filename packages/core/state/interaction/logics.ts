@@ -531,11 +531,9 @@ const editFilesLogic = createLogic({
                 sort: sortColumn,
             });
             const totalFileCount = await fileSet.fetchTotalCount();
-            console.log("FILTERS", filters, totalFileCount);
             filesSelected = await fileSet.fetchFileRange(0, totalFileCount);
         } else {
             filesSelected = await fileSelection.fetchAllDetails();
-            console.log("non-filters", filesSelected.length);
         }
 
         // Break files into batches of 10 File IDs

@@ -20,6 +20,7 @@ import styles from "./EditMetadata.module.css";
 // web bundle
 // TODO: Actually lets try to request this from GH or something..?
 const PASSWORD_TO_PROGRAM_MAP: Record<string, string> = {
+    J9LDD013: "CellMorph",
     S6KNQ7SW: "EMT",
     HU7Y56YT: "Endothelial",
     V2SYXAQK: "IntegratedNucleus",

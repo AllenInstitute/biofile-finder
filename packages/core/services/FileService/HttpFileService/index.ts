@@ -102,9 +102,6 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     public async getFiles(request: GetFilesRequest): Promise<FileDetail[]> {
         const { from, limit, fileSet } = request;
 
-        if (limit - from > 1000) {
-            throw new Error("uhh" + limit + " " + from);
-        }
         const base = `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}${this.pathSuffix}?from=${from}&limit=${limit}`;
         const requestUrl = join(compact([base, fileSet.toQueryString()]), "&");
 
