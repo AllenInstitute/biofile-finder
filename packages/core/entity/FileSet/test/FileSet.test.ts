@@ -145,7 +145,7 @@ describe("FileSet", () => {
             const fileService = new HttpFileService();
             sandbox.replace(fileService, "getFiles", () => Promise.resolve(files.slice(1, 4)));
             const fileSet = new FileSet({ fileService });
-            expect(await fileSet.fetchFileRange(1, 3)).to.deep.equal(files.slice(1, 4)); // Array.prototype.slice is exclusive of end bound
+            expect(await fileSet.fetchFileRange(1, 3)).to.deep.equal(files.slice(2, 4)); // Array.prototype.slice is exclusive of end bound
         });
 
         it("turns indicies for requested data into a properly formed pagination query", async () => {

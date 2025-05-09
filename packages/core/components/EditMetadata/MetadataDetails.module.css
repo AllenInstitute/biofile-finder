@@ -58,6 +58,7 @@
 .stack-item-left {
   padding-top: 5px;
   width: 300px;
+  max-width: calc(50% - 10px);
 }
 
 .stack-item-center {
@@ -66,6 +67,7 @@
 
 .stack-item-right {
   width: 300px;
+  max-width: calc(50% - 10px);
 }
 
 .read-only-placeholder {

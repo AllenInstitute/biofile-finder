@@ -1,12 +1,4 @@
-import {
-    IComboBoxOption,
-    IconButton,
-    Spinner,
-    SpinnerSize,
-    Stack,
-    StackItem,
-    TextField,
-} from "@fluentui/react";
+import { IconButton, Spinner, SpinnerSize, Stack, StackItem, TextField } from "@fluentui/react";
 import classNames from "classnames";
 import Fuse from "fuse.js";
 import * as React from "react";
@@ -33,8 +25,8 @@ enum EditStep {
 interface NewAnnotationProps {
     onDismiss: () => void;
     setHasUnsavedChanges: (arg: boolean) => void;
-    annotationOptions: { key: string; text: string; data: string }[];
     selectedFileCount: number;
+    user?: string;
 }
 
 // Simplified version of status message
@@ -63,20 +55,25 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
 
     const [step, setStep] = React.useState<EditStep>(EditStep.CREATE_FIELD);
     const [newValues, setNewValues] = React.useState<AnnotationValue | undefined>();
-    const [newFieldName, setNewFieldName] = React.useState<string>("");
-    const [newFieldDescription, setNewFieldDescription] = React.useState<string>("");
-    const [newFieldDataType, setNewFieldDataType] = React.useState<AnnotationType>(
-        AnnotationType.STRING
-    );
-    const [newDropdownOption, setNewDropdownOption] = React.useState<string>("");
-    const [dropdownOptions, setDropdownOptions] = React.useState<IComboBoxOption[]>([]);
+    const [newFieldName, setNewFieldName] = React.useState("");
+    const [newFieldDescription, setNewFieldDescription] = React.useState("");
+    const [newFieldDataType, setNewFieldDataType] = React.useState(AnnotationType.STRING);
+    const [newDropdownOption, setNewDropdownOption] = React.useState("");
+    const [dropdownOptions, setDropdownOptions] = React.useState<string[]>([]);
     const [submissionStatus, setSubmissionStatus] = React.useState<AnnotationStatus | undefined>();
     // Distinguish between errors (blocking) and warnings
-    const [hasNameErrors, setHasNameErrors] = React.useState<boolean>(false);
-    const [nameWarnings, setNameWarnings] = React.useState<any[]>([]);
+    const [hasNameErrors, setHasNameErrors] = React.useState(false);
+    const [nameWarnings, setNameWarnings] = React.useState<string[]>([]);
 
-    const fuse = React.useMemo(() => new Fuse(props.annotationOptions, FUZZY_SEARCH_OPTIONS), [
-        props.annotationOptions,
+    const annotationOptions = useSelector(metadata.selectors.getSortedAnnotations).map(
+        (annotation) => ({
+            key: annotation.name,
+            text: annotation.displayName,
+            data: annotation.type,
+        })
+    );
+    const fuse = React.useMemo(() => new Fuse(annotationOptions, FUZZY_SEARCH_OPTIONS), [
+        annotationOptions,
     ]);
     const similarExistingFields = React.useMemo(() => fuse.search(newFieldName), [
         newFieldName,
@@ -164,7 +161,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
             );
         } else if (similarExistingFields.length > 0) {
             // Similar but not exact match, just warn for the 3 most similar (arbitrary small number)
-            setNameWarnings(similarExistingFields.slice(0, 3));
+            setNameWarnings(similarExistingFields.slice(0, 3).map((field) => field.key));
             setHasNameErrors(false);
         } else {
             // Reset existing warnings & errors
@@ -180,7 +177,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                     Caution: Similar field name(s)/key(s) found.
                     <ul className={styles.warningMessageFields}>
                         {nameWarnings.map((name) => {
-                            return <li key={name.key}> {name.key} </li>;
+                            return <li key={name}> {name} </li>;
                         })}
                     </ul>
                     You may want to switch to <i>Existing field</i> to edit pre-existing or try an
@@ -194,18 +191,14 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
         evt.preventDefault();
         if (
             newDropdownOption &&
-            !dropdownOptions.filter((opt) => opt.key === newDropdownOption).length
+            !dropdownOptions.filter((opt) => opt === newDropdownOption).length
         ) {
-            const newOptionAsIComboBox: IComboBoxOption = {
-                key: newDropdownOption,
-                text: newDropdownOption,
-            };
-            setDropdownOptions([...dropdownOptions, newOptionAsIComboBox]);
+            setDropdownOptions([...dropdownOptions, newDropdownOption]);
             setNewDropdownOption("");
         }
     };
 
-    const removeDropdownChip = (optionToRemove: IComboBoxOption) => {
+    const removeDropdownChip = (optionToRemove: string) => {
         setDropdownOptions(dropdownOptions.filter((opt) => opt !== optionToRemove));
     };
 
@@ -229,17 +222,11 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
             type: newFieldDataType,
         });
         // File editing step occurs after dispatch is processed and status is updated
-        dispatch(
-            metadata.actions.createAnnotation(
-                annotation,
-                dropdownOptions.map((opt) => opt.text)
-            )
-        );
+        dispatch(metadata.actions.createAnnotation(annotation, dropdownOptions, props.user));
     }
 
     return (
         <>
-            {/* TO DO: Prevent user from entering a name that collides with existing annotation */}
             <TextField
                 required
                 label="New metadata field name (key)"
@@ -269,14 +256,16 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                         selectedKey={newFieldDataType || undefined}
                         label="Data type"
                         placeholder="Select a data type..."
-                        options={Object.values(AnnotationType).map((type) => {
-                            const text =
-                                type === AnnotationType.BOOLEAN ? "Boolean (true/false)" : type;
-                            return {
-                                key: type,
-                                text,
-                            };
-                        })}
+                        options={Object.values(AnnotationType)
+                            .filter((type) => type !== AnnotationType.LOOKUP)
+                            .map((type) => {
+                                const text =
+                                    type === AnnotationType.BOOLEAN ? "Boolean (true/false)" : type;
+                                return {
+                                    key: type,
+                                    text,
+                                };
+                            })}
                         onChange={(option) =>
                             setNewFieldDataType(
                                 (option?.key as AnnotationType) || AnnotationType.STRING
@@ -301,12 +290,9 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                             </form>
                             <div>
                                 {dropdownOptions.map((option) => (
-                                    <div
-                                        key={option.key}
-                                        className={styles.selectedOptionContainer}
-                                    >
-                                        <Tooltip content={option.text}>
-                                            <p className={styles.selectedOption}>{option.text}</p>
+                                    <div key={option} className={styles.selectedOptionContainer}>
+                                        <Tooltip content={option}>
+                                            <p className={styles.selectedOption}>{option}</p>
                                         </Tooltip>
                                         <IconButton
                                             className={styles.selectedOptionButton}

@@ -53,16 +53,18 @@ export interface CreateAnnotationAction {
     payload: {
         annotation: Annotation;
         annotationOptions?: string[];
+        user?: string;
     };
     type: string;
 }
 
 export function createAnnotation(
     annotation: Annotation,
-    annotationOptions?: string[]
+    annotationOptions?: string[],
+    user?: string
 ): CreateAnnotationAction {
     return {
-        payload: { annotation, annotationOptions },
+        payload: { annotation, annotationOptions, user },
         type: CREATE_ANNOTATION,
     };
 }
@@ -117,14 +119,13 @@ export const REQUEST_DATASET_MANIFEST = makeConstant(STATE_BRANCH_NAME, "request
 export interface RequestDatasetManifest {
     payload: {
         name: string;
-        uri: string;
     };
     type: string;
 }
 
-export function requestDatasetManifest(name: string, uri: string): RequestDatasetManifest {
+export function requestDatasetManifest(name: string): RequestDatasetManifest {
     return {
-        payload: { name, uri },
+        payload: { name },
         type: REQUEST_DATASET_MANIFEST,
     };
 }
@@ -168,5 +169,45 @@ export function storeNewAnnotation(annotation: AnnotationResponseMms): StoreNewA
     return {
         payload: { annotation },
         type: STORE_NEW_ANNOTATION,
+    };
+}
+
+/**
+ * REQUEST_PASSWORD_MAPPING
+ *
+ * Intention to request password mapping for AICS FMS - this is a temporary solution
+ * until we have a more robust solution for handling passwords in the app.
+ */
+export const REQUEST_PASSWORD_MAPPING = makeConstant(STATE_BRANCH_NAME, "request-password-mapping");
+
+export interface RequestPasswordMappingAction {
+    type: string;
+}
+
+export function requestPasswordMapping(): RequestPasswordMappingAction {
+    return {
+        type: REQUEST_PASSWORD_MAPPING,
+    };
+}
+
+/**
+ * RECEIVE_PASSWORD_MAPPING
+ *
+ * Intention to store password mapping for AICS FMS - this is a temporary solution
+ * until we have a more robust solution for handling passwords in the app.
+ */
+export const RECEIVE_PASSWORD_MAPPING = makeConstant(STATE_BRANCH_NAME, "receive-password-mapping");
+
+export interface ReceivePasswordMappingAction {
+    payload: Record<string, string>;
+    type: string;
+}
+
+export function receivePasswordMapping(
+    passwordToProgramMap: Record<string, string>
+): ReceivePasswordMappingAction {
+    return {
+        payload: passwordToProgramMap,
+        type: RECEIVE_PASSWORD_MAPPING,
     };
 }

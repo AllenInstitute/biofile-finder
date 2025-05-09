@@ -1,7 +1,6 @@
 import {
     DetailsList,
     IColumn,
-    IComboBoxOption,
     Icon,
     IDetailsRowProps,
     IRenderFunction,
@@ -17,6 +16,7 @@ import ChoiceGroup from "../ChoiceGroup";
 import ComboBox from "../ComboBox";
 import DateTimePicker from "../DateRangePicker/DateTimePicker";
 import DurationForm from "../DurationForm";
+import LoadingIcon from "../Icons/LoadingIcon";
 import NumberField from "../NumberRangePicker/NumberField";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 
@@ -29,7 +29,7 @@ export interface ValueCountItem {
 }
 
 interface DetailsListProps {
-    dropdownOptions?: IComboBoxOption[];
+    dropdownOptions?: string[];
     fieldType?: AnnotationType;
     items: ValueCountItem[];
     onChange: (value: string | undefined) => void;
@@ -41,8 +41,9 @@ interface DetailsListProps {
  * and provides an field for user to input new values.
  * Used by both the new & existing annotation pathways
  */
-export default function EditMetadataDetailsList(props: DetailsListProps) {
+export default function MetadataDetails(props: DetailsListProps) {
     const { items } = props;
+    const isLoading = !items.length;
     const renderRow = (
         rowProps: IDetailsRowProps | undefined,
         defaultRender: IRenderFunction<IDetailsRowProps> | undefined
@@ -119,17 +120,21 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                 return (
                     <DurationForm onChange={(duration) => props.onChange(duration.toString())} />
                 );
+            case AnnotationType.LOOKUP:
             case AnnotationType.DROPDOWN:
-                if (props?.dropdownOptions) {
-                    return (
-                        <ComboBox
-                            className={rootStyles.comboBox}
-                            options={props?.dropdownOptions || []}
-                            label=""
-                            placeholder="Select value(s)..."
-                        />
-                    );
-                }
+                return (
+                    <ComboBox
+                        className={rootStyles.comboBox}
+                        options={(props?.dropdownOptions || []).map((opt) => ({
+                            key: opt,
+                            text: opt,
+                        }))}
+                        disabled={!props.dropdownOptions?.length}
+                        label=""
+                        placeholder="Select value(s)..."
+                        onChange={(opt) => props.onChange(opt?.text)}
+                    />
+                );
             case AnnotationType.STRING:
             default:
                 return (
@@ -181,6 +186,7 @@ export default function EditMetadataDetailsList(props: DetailsListProps) {
                         onRenderRow={(props, defaultRender) => renderRow(props, defaultRender)}
                         onRenderItemColumn={renderItemColumn}
                     />
+                    {isLoading && <LoadingIcon invertColor />}
                 </StackItem>
                 <StackItem grow className={styles.stackItemRight}>
                     <h4 className={styles.valuesTitle}>Replace with</h4>

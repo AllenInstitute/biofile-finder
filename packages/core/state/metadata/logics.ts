@@ -4,14 +4,17 @@ import { createLogic } from "redux-logic";
 import { interaction, metadata, ReduxLogicDeps, selection } from "..";
 import {
     CREATE_ANNOTATION,
+    CreateAnnotationAction,
     RECEIVE_ANNOTATIONS,
     ReceiveAnnotationAction,
     receiveAnnotations,
     receiveDatasetManifest,
     receiveDataSources,
+    receivePasswordMapping,
     REQUEST_ANNOTATIONS,
     REQUEST_DATA_SOURCES,
     REQUEST_DATASET_MANIFEST,
+    REQUEST_PASSWORD_MAPPING,
     RequestDatasetManifest,
     STORE_NEW_ANNOTATION,
     storeNewAnnotation,
@@ -117,7 +120,9 @@ const receiveAnnotationsLogic = createLogic({
 const createNewAnnotationLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { getState, httpClient, action } = deps;
-        const { annotation, annotationOptions } = action.payload;
+        const {
+            payload: { annotation, annotationOptions, user },
+        } = action as CreateAnnotationAction;
         const annotationProcessId = annotation.name;
         dispatch(
             interaction.actions.processStart(
@@ -138,7 +143,7 @@ const createNewAnnotationLogic = createLogic({
         // HTTP returns the annotation, DB does not
         await new Promise<AnnotationResponseMms[] | void>((resolve, reject) => {
             annotationService
-                .createAnnotation(annotation, annotationOptions)
+                .createAnnotation(annotation, annotationOptions, user)
                 .then((res) => {
                     // For HTTPS annotations, temporarily capture the returned
                     // annotation metadata so that it can be used to edit file metadata
@@ -191,23 +196,38 @@ const requestDataSources = createLogic({
 });
 
 /**
+ * Interceptor responsible for the REQUEST_PASSWORD_MAPPING action
+ * which is used to request the password mapping for AICS FMS as a placeholder for
+ * a more robust auth solution
+ */
+const requestPasswordMapping = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const datasetBucketUrl = interaction.selectors.getDatasetBucketUrl(deps.getState());
+        const result = await deps.httpClient.get(`${datasetBucketUrl}/metadata_passwords.json`);
+        dispatch(receivePasswordMapping(result.data));
+        done();
+    },
+    type: REQUEST_PASSWORD_MAPPING,
+});
+
+/**
  * Interceptor responsible for passing the REQUEST_DATASET_MANIFEST action to the database service.
  * Outputs RECEIVE_DATASET_MANIFEST action to request state.
  */
 const requestDatasetManifest = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const {
-            payload: { name, uri },
+            payload: { name },
         } = deps.action as RequestDatasetManifest;
+        const datasetBucketUrl = interaction.selectors.getDatasetBucketUrl(deps.getState());
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
 
         try {
-            if (uri) {
-                await databaseService.prepareDataSources([{ name, type: "csv", uri }]);
-                dispatch(receiveDatasetManifest(name, uri));
-            }
+            const uri = `${datasetBucketUrl}/Dataset+Manifest.csv`;
+            await databaseService.prepareDataSources([{ name, type: "csv", uri }]);
+            dispatch(receiveDatasetManifest(name, uri));
         } catch (err) {
             console.error("Failed to add dataset manifest", err);
         } finally {
@@ -250,5 +270,6 @@ export default [
     receiveAnnotationsLogic,
     requestDataSources,
     requestDatasetManifest,
+    requestPasswordMapping,
     storeNewAnnotationLogic,
 ];

@@ -3,7 +3,6 @@ import { useDispatch } from "react-redux";
 
 import DatasetTable from "./DatasetTable";
 import DatasetDetails from "../DatasetDetails";
-import { DatasetManifestUrl } from "../../constants";
 import { DatasetAnnotations } from "../../entity/PublicDataset";
 import { metadata } from "../../../../core/state";
 import FileFilter from "../../../../core/entity/FileFilter";
@@ -18,12 +17,7 @@ export default function OpenSourceDatasets() {
     const dispatch = useDispatch();
     // Begin request action so dataset manifest is ready for table child component
     React.useEffect(() => {
-        dispatch(
-            metadata.actions.requestDatasetManifest(
-                "Dataset Manifest",
-                DatasetManifestUrl.PRODUCTION
-            )
-        );
+        dispatch(metadata.actions.requestDatasetManifest("Dataset Manifest"));
     }, [dispatch]);
 
     const internalDatasetFilter = new FileFilter(

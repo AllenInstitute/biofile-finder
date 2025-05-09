@@ -68,7 +68,3 @@
     margin-left: auto;
     padding-left: 6px;
 }
-
-.spinner > div {
-   border-color: var(--primary-text-color) var(--primary-background-color) var(--primary-background-color);
-}

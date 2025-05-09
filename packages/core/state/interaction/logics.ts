@@ -516,15 +516,15 @@ const editFilesLogic = createLogic({
             deps.getState()
         );
         const {
-            payload: { annotations, filters },
+            payload: { annotations, filters, user },
         } = deps.action as EditFilesAction;
 
         // Gather up the files for the files selected currently
         // if filters is present then actual "selected" files
         // are the ones that match the filters, this happens when
         // editing a whole folder for example
-        let filesSelected;
-        if (filters) {
+        let filesSelected: FileDetail[];
+        if (filters?.length) {
             const fileSet = new FileSet({
                 filters,
                 fileService,
@@ -568,7 +568,7 @@ const editFilesLogic = createLogic({
                     (fileId) =>
                         new Promise<void>(async (resolve, reject) => {
                             fileService
-                                .editFile(fileId, annotations, annotationNameToAnnotationMap)
+                                .editFile(fileId, annotations, annotationNameToAnnotationMap, user)
                                 .then((_) => {
                                     totalFileEdited += 1;
                                     onProgress();
