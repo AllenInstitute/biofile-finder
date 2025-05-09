@@ -199,9 +199,7 @@ export function requestPasswordMapping(): RequestPasswordMappingAction {
 export const RECEIVE_PASSWORD_MAPPING = makeConstant(STATE_BRANCH_NAME, "receive-password-mapping");
 
 export interface ReceivePasswordMappingAction {
-    payload: {
-        passwordToProgramMap: Record<string, string>;
-    };
+    payload: Record<string, string>;
     type: string;
 }
 
@@ -209,7 +207,7 @@ export function receivePasswordMapping(
     passwordToProgramMap: Record<string, string>
 ): ReceivePasswordMappingAction {
     return {
-        payload: { passwordToProgramMap },
+        payload: passwordToProgramMap,
         type: RECEIVE_PASSWORD_MAPPING,
     };
 }
