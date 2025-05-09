@@ -97,12 +97,7 @@ describe("Metadata logics", () => {
     });
 
     describe("requestDataManifest", () => {
-        const datasetManifestSource: DataSource = {
-            id: "123414",
-            name: "Dataset Manifest",
-            type: "csv",
-            uri: "fake-uri.test",
-        };
+        const datasetManifestSource = "Dataset Manifest";
         class MockDatabaseService extends DatabaseServiceNoop {
             public async addDataSource(): Promise<void> {
                 return Promise.resolve();
@@ -124,15 +119,15 @@ describe("Metadata logics", () => {
             });
 
             // Act
-            store.dispatch(requestDatasetManifest(datasetManifestSource.name));
+            store.dispatch(requestDatasetManifest(datasetManifestSource));
             await logicMiddleware.whenComplete();
 
             // Assert
             expect(
                 actions.includesMatch(
                     receiveDatasetManifest(
-                        datasetManifestSource.name,
-                        datasetManifestSource.uri as string
+                        datasetManifestSource,
+                        "https://biofile-finder-datasets.s3.us-west-2.amazonaws.com/Dataset+Manifest.csv"
                     )
                 )
             ).to.be.true;
