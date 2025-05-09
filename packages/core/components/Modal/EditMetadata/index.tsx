@@ -13,23 +13,8 @@ import { metadata, selection } from "../../../state";
 
 import styles from "./EditMetadata.module.css";
 
-// Hard-coded mapping of passwords to programs, due to this being an internal
-// specific feature, this is acceptable for now. However, we should think about
-// a more robust solution in the future such as login or a more secure method.
-// or find a way to get this information passed in via GH secrets to the packaged
-// web bundle
-// TODO: Actually lets try to request this from GH or something..?
-const PASSWORD_TO_PROGRAM_MAP: Record<string, string> = {
-    J9LDD013: "CellMorph",
-    S6KNQ7SW: "EMT",
-    HU7Y56YT: "Endothelial",
-    V2SYXAQK: "IntegratedNucleus",
-    V6B94P9Q: "Lumenoid",
-    SENX6787: "NucMorph",
-    X3794B91: "Synthoid",
-};
-
 const PROGRAM_TO_USER_MAP: Record<string, string> = {
+    CellMorph: "svc_bff_cellmorph",
     EMT: "svc_bff_emt",
     Endothelial: "svc_bff_endothelial",
     IntegratedNucleus: "svc_bff_integratednucleus",
@@ -72,11 +57,13 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
     }, [dispatch, metadata, passwordToProgramMap]);
 
     const onEnterPassword = (password: string) => {
-        const program = programsInSelection?.includes(PASSWORD_TO_PROGRAM_MAP[password])
-            ? PASSWORD_TO_PROGRAM_MAP[password]
-            : undefined;
-        setProgram(program);
-        setIsInvalidPassword(!program);
+        if (passwordToProgramMap) {
+            const program = programsInSelection?.includes(passwordToProgramMap[password])
+                ? passwordToProgramMap[password]
+                : undefined;
+            setProgram(program);
+            setIsInvalidPassword(!program);
+        }
     };
 
     const body =
