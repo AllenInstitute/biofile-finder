@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import * as React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import PasswordForm from "./PasswordForm";
 import useAnnotationValues from "./useAnnotationValues";
@@ -42,6 +42,7 @@ const PROGRAM_TO_USER_MAP: Record<string, string> = {
  * Dialog to display workflow for editing metadata for selected files
  */
 export default function EditMetadata({ onDismiss }: ModalProps) {
+    const dispatch = useDispatch();
     const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState<boolean>(false);
     const [showWarning, setShowWarning] = React.useState<boolean>(false);
     const [isInvalidPassword, setIsInvalidPassword] = React.useState(false);
@@ -66,9 +67,9 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
 
     React.useEffect(() => {
         if (!passwordToProgramMap) {
-            metadata.actions.requestPasswordMapping();
+            dispatch(metadata.actions.requestPasswordMapping());
         }
-    }, [metadata, passwordToProgramMap]);
+    }, [dispatch, metadata, passwordToProgramMap]);
 
     const onEnterPassword = (password: string) => {
         const program = programsInSelection?.includes(PASSWORD_TO_PROGRAM_MAP[password])

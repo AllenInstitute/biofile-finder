@@ -202,7 +202,7 @@ const requestDataSources = createLogic({
  */
 const requestPasswordMapping = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        // const result = await deps.httpClient.get("https")
+        // const result = await deps.httpClient.get("https://raw.githubusercontent.com/AllenInstitute/biofile-finder/refs/heads/feature/metadata-editing/restrict-annotations/packages/core/util/temp_passwords.json")
         const passwordToProgramMap = {};
         dispatch(receivePasswordMapping(passwordToProgramMap));
         done();
