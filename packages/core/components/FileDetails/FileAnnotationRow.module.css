@@ -76,10 +76,9 @@
 }
 
 .expand-button {
-    font-size: 14px;
-    font-weight: 800;
+    font-size: 12px;
+    font-weight: 700;
     color: var(--aqua);
-    padding: 0 5px;
 }
 
 .expand-button:hover {
