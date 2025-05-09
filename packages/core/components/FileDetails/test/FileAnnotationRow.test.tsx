@@ -1,5 +1,5 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
-import { render } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
@@ -44,6 +44,55 @@ describe("<FileAnnotationRow />", () => {
                     shouldDisplaySmallFont
                 );
             });
+        });
+
+        it("displays expand/collapse buttons for long annotations", async () => {
+            // Arrange
+            const annotationName = "test-annotation-name";
+            const annotationValueSuperLong = "This sentence contains 38 characters. "
+                .repeat(10)
+                .trim();
+            const { store, logicMiddleware } = configureMockStore({ state: initialState });
+
+            const { getByTestId, queryByTestId, getByText } = render(
+                <Provider store={store}>
+                    <FileAnnotationRow name={annotationName} value={annotationValueSuperLong} />
+                </Provider>
+            );
+
+            // Act / Assert
+            expect(queryByTestId("expand-metadata")).to.exist;
+            expect(queryByTestId("collapse-metadata")).not.to.exist;
+            expect(getByText(annotationValueSuperLong).classList.contains(styles.valueTruncated)).to
+                .be.true;
+
+            fireEvent.click(getByTestId("expand-metadata"));
+            await logicMiddleware.whenComplete();
+
+            expect(queryByTestId("collapse-metadata")).to.exist;
+            expect(queryByTestId("expand-metadata")).not.to.exist;
+            expect(getByText(annotationValueSuperLong).classList.contains(styles.valueTruncated)).to
+                .be.false;
+        });
+
+        it("hides expand/collapse buttons for short annotations", () => {
+            // Arrange
+            const annotationName = "test-annotation-name";
+            const annotationValueShort = "This sentence contains 38 characters.";
+            const { store } = configureMockStore({ state: initialState });
+
+            // Act
+            const { getByText, queryByTestId } = render(
+                <Provider store={store}>
+                    <FileAnnotationRow name={annotationName} value={annotationValueShort} />
+                </Provider>
+            );
+
+            // Assert
+            expect(queryByTestId("expand-metadata")).not.to.exist;
+            expect(queryByTestId("collapse-metadata")).not.to.exist;
+            expect(getByText(annotationValueShort).classList.contains(styles.valueTruncated)).to.be
+                .false;
         });
     });
 });

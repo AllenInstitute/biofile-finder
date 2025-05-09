@@ -134,6 +134,9 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                                         iconName={
                                             showLongValue ? "ChevronUpSmall" : "ChevronDownSmall"
                                         }
+                                        data-testid={
+                                            showLongValue ? "collapse-metadata" : "expand-metadata"
+                                        }
                                         onClick={() => setShowLongValue(!showLongValue)}
                                     />
                                 </Tooltip>
