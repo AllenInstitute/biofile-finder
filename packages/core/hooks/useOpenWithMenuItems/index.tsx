@@ -97,7 +97,9 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
         key: AppKeys.NEUROGLANCER,
         text: "Neuroglancer",
         title: `Open files with Neuroglancer`,
-        href: `https://neuroglancer-demo.appspot.com/#!{%22layers%22:[{%22source%22:%22${fileDetails?.path.includes(".n5") ? "n5" : "zarr"}://${fileDetails?.path}%22,%22name%22:%22${fileDetails?.name}%22}]}`,
+        href: `https://neuroglancer-demo.appspot.com/#!{%22layers%22:[{%22source%22:%22${
+            fileDetails?.path.includes(".n5") ? "n5" : "zarr"
+        }://${fileDetails?.path}%22,%22name%22:%22${fileDetails?.name}%22}]}`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -182,7 +184,7 @@ function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
 
     const isLikelyLocalFile =
         !fileDetails.path.startsWith("http") && !fileDetails.path.startsWith("s3");
-    
+
     const fileExt = fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
     const apps = APPS(fileDetails);
 
@@ -213,9 +215,8 @@ function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
             return isLikelyLocalFile
                 ? [apps.agave, apps.neuroglancer, apps.vole]
                 : [apps.vole, apps.neuroglancer, apps.agave, apps.validator];
-        
     }
-        
+
     // Now check for special cases where the path may include a subpath into the container
 
     if (fileDetails.path.includes(".n5")) {

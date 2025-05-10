@@ -9,7 +9,7 @@ import LazilyRenderedThumbnail from "../LazilyRenderedThumbnail";
 import { initialState } from "../../../state";
 import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
-import { FileView } from "../../../entity/FileExplorerURL";
+import { FileView } from "../../../entity/SearchParams";
 import { Environment } from "../../../constants";
 
 describe("<LazilyRenderedThumbnail />", () => {

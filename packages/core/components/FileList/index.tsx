@@ -12,7 +12,7 @@ import LazilyRenderedThumbnail from "./LazilyRenderedThumbnail";
 import useFileSelector from "./useFileSelector";
 import { Action, setError } from "../DirectoryTree/directory-hierarchy-state";
 import EmptyFileListMessage from "../EmptyFileListMessage";
-import { FileView } from "../../entity/FileExplorerURL";
+import { FileView } from "../../entity/SearchParams";
 import FileSet from "../../entity/FileSet";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileAccessContextMenu from "../../hooks/useFileAccessContextMenu";
@@ -40,8 +40,8 @@ const DEFAULTS = {
 };
 
 const MAX_NON_ROOT_HEIGHT = 300;
-const SMALL_ROW_HEIGHT = 17;
-const TALL_ROW_HEIGHT = 19;
+const SMALL_ROW_HEIGHT = 20;
+const TALL_ROW_HEIGHT = 24;
 
 /**
  * Wrapper for react-window-infinite-loader and react-window that knows how to lazily fetch its own data. It will lay

@@ -32,7 +32,7 @@ interface Props {
 export default function QueryFooter(props: Props) {
     const dispatch = useDispatch();
 
-    const url = useSelector(selection.selectors.getEncodedFileExplorerUrl);
+    const url = useSelector(selection.selectors.getEncodedSearchParams);
     const fileService = useSelector(interaction.selectors.getFileService);
     const [totalFileCount, setTotalFileCount] = React.useState(0);
     const combinedFilters = React.useMemo(() => {

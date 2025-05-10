@@ -3,7 +3,7 @@ import { createSelector } from "reselect";
 
 import { State } from "../";
 import Annotation from "../../entity/Annotation";
-import FileExplorerURL, { FileExplorerURLComponents, FileView } from "../../entity/FileExplorerURL";
+import SearchParams, { SearchParamsComponents, FileView } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import { getAnnotations } from "../metadata/selectors";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
@@ -98,7 +98,7 @@ export const getCurrentQueryParts = createSelector(
         sortColumn,
         sources,
         sourceMetadata
-    ): FileExplorerURLComponents => ({
+    ): SearchParamsComponents => ({
         columns,
         hierarchy,
         fileView,
@@ -111,9 +111,8 @@ export const getCurrentQueryParts = createSelector(
     })
 );
 
-export const getEncodedFileExplorerUrl = createSelector(
-    [getCurrentQueryParts],
-    (queryParts): string => FileExplorerURL.encode(queryParts)
+export const getEncodedSearchParams = createSelector([getCurrentQueryParts], (queryParts): string =>
+    SearchParams.encode(queryParts)
 );
 
 export const getPythonConversion = createSelector(
@@ -126,7 +125,7 @@ export const getPythonConversion = createSelector(
         getSelectedDataSources,
     ],
     (platformDependentServices, hierarchy, filters, openFolders, sortColumn, sources) => {
-        return FileExplorerURL.convertToPython(
+        return SearchParams.convertToPython(
             {
                 hierarchy,
                 filters,
