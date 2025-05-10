@@ -10,6 +10,7 @@
     vertical-align: middle;
     font-size: initial;
     height: 100%;
+    line-height: normal;
 }
 
 .cell:first-of-type {
