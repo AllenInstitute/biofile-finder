@@ -1,6 +1,7 @@
-import { configureMockStore } from "@aics/redux-utils";
+import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { render, fireEvent } from "@testing-library/react";
 import { expect } from "chai";
+import { noop } from "lodash";
 import * as React from "react";
 import { Provider } from "react-redux";
 
@@ -44,7 +45,7 @@ describe("<Query />", () => {
         expect(() => getByTestId("expand-button")).to.throw();
     });
 
-    it("renders spinner when loading", () => {
+    it("renders spinner when loading an FMS source", () => {
         // Arrange
         const { store } = configureMockStore({
             state: initialState,
@@ -89,6 +90,80 @@ describe("<Query />", () => {
                             filters: [],
                             hierarchy: [],
                             sources: [{ name: "Test Source" }],
+                            openFolders: [],
+                        },
+                    }}
+                />
+            </Provider>
+        );
+
+        // Assert
+        expect(() => getByTestId("query-spinner")).to.throw();
+    });
+
+    it("renders spinner when loading an external source", () => {
+        // Arrange
+        const { store } = configureMockStore({
+            state: initialState,
+        });
+        Object.defineProperty(window, "location", {
+            value: {
+                search: "mock-query-param=true",
+                assign: noop,
+            },
+        });
+
+        // Act
+        const { getByTestId } = render(
+            <Provider store={store}>
+                <Query
+                    isSelected
+                    query={{
+                        name: "Test Data Source",
+                        parts: {
+                            filters: [],
+                            hierarchy: [],
+                            sources: [],
+                            openFolders: [],
+                        },
+                    }}
+                />
+            </Provider>
+        );
+
+        // Assert
+        expect(getByTestId("query-spinner")).to.exist;
+    });
+
+    it("does not render spinner if there's a data source error", () => {
+        // Arrange
+        const state = mergeState(initialState, {
+            selection: {
+                requiresDataSourceReload: true,
+            },
+        });
+        const { store } = configureMockStore({
+            state,
+        });
+
+        Object.defineProperty(window, "location", {
+            value: {
+                search: "mock-query-param=true",
+                assign: noop,
+            },
+        });
+
+        // Act
+        const { getByTestId } = render(
+            <Provider store={store}>
+                <Query
+                    isSelected
+                    query={{
+                        name: "Test Failing Source",
+                        parts: {
+                            filters: [],
+                            hierarchy: [],
+                            sources: [],
                             openFolders: [],
                         },
                     }}
