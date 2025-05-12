@@ -77,7 +77,7 @@ const initializeApp = createLogic({
                     })
                 );
             } catch (err) {
-                // Parsing error from FileExplorerURL.decode
+                // Parsing error from SearchParams.decode
                 dispatch(
                     selection.actions.addDataSourceReloadError(
                         DEFAULT_QUERY_NAME,
