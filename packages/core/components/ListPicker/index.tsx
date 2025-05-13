@@ -2,11 +2,14 @@ import { ActionButton, List } from "@fluentui/react";
 import classNames from "classnames";
 import Fuse from "fuse.js";
 import * as React from "react";
+import { useDispatch } from "react-redux";
 
 import ListRow, { ListItem } from "./ListRow";
+import Checkbox from "../Checkbox";
 import LoadingIcon from "../Icons/LoadingIcon";
 import SearchBox from "../SearchBox";
 import Tooltip from "../Tooltip";
+import { interaction, selection } from "../../state";
 
 import styles from "./ListPicker.module.css";
 
@@ -22,6 +25,7 @@ interface ListPickerProps {
     onSelect: (item: ListItem) => void;
     onSelectAll?: () => void;
     onRenderSubMenuList?: (item: ListItem) => React.ReactNode;
+    shouldShowNullGroups?: boolean;
     subMenuRenderer?: (item: ListItem) => React.ReactElement<ListItem>;
 }
 
@@ -53,8 +57,10 @@ export default function ListPicker(props: ListPickerProps) {
         onDeselectAll,
         onSelect,
         onSelectAll,
+        shouldShowNullGroups,
     } = props;
 
+    const dispatch = useDispatch();
     const [searchValue, setSearchValue] = React.useState("");
 
     const fuse = React.useMemo(() => new Fuse(items, FUZZY_SEARCH_OPTIONS), [items]);
@@ -156,6 +162,19 @@ export default function ListPicker(props: ListPickerProps) {
                             Clear all
                         </ActionButton>
                     </Tooltip>
+                    {/* If shouldShowNullGroups is undefined, it's a component that doesn't require the checkbox
+                        If set to true or false, we want the checkbox to render */}
+                    {shouldShowNullGroups !== undefined && ( // avoid colliding with falsy value
+                        <Checkbox
+                            className={styles.checkbox}
+                            onChange={() => {
+                                dispatch(selection.actions.toggleNullValueGroups());
+                                dispatch(interaction.actions.refresh());
+                            }}
+                            label="Show files with no value in results"
+                            initialValue={shouldShowNullGroups}
+                        />
+                    )}
                 </div>
             </div>
             <div className={styles.mainContent} data-is-scrollable="true">

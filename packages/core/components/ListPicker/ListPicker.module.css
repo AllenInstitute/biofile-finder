@@ -95,3 +95,7 @@
 .action-button.select-all-button i {
     font-size: var(--l-paragraph-size);
 }
+
+.checkbox > label span{
+    font-size: var(--m-paragraph-size);
+}

@@ -1,15 +1,15 @@
+import { Spinner, SpinnerSize } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
-import Tippy from "@tippyjs/react";
-import "tippy.js/dist/tippy.css"; // side-effect
 
-import LoadingIcon from "../Icons/LoadingIcon";
+import Tooltip from "../Tooltip";
 import SvgIcon from "../../components/SvgIcon";
 import { selection } from "../../state";
 import FileSet from "../../entity/FileSet";
 import { ERROR_ICON_PATH_DATA } from "../../icons";
 import useFileAccessContextMenu from "../../hooks/useFileAccessContextMenu";
+import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 
 import styles from "./DirectoryTreeNode.module.css";
 
@@ -48,6 +48,18 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
     const { collapsed, error, fileSet, isLeaf, isFocused, loading, onClick, title } = props;
 
     const [isContextMenuActive, setContextMenuActive] = React.useState(false);
+
+    const [measuredNodeRef, _, measuredWidth] = useLayoutMeasurements<HTMLDivElement>();
+    // Shorten folder title length to approximately one line
+    // Some overflow is acceptable as long as the folder doesn't wrap to more than two lines
+    const { isLongHeader, titleShortened } = React.useMemo(() => {
+        // Current element width divided by approximate character width in pixels
+        const widthInCharacters = measuredWidth / 10;
+        const titleShortened =
+            title.slice(0, widthInCharacters / 2) + "..." + title.slice(-widthInCharacters / 2);
+        const isLongHeader = title.length > widthInCharacters && widthInCharacters !== 0; // Width will be zero in unit tests
+        return { isLongHeader, titleShortened };
+    }, [measuredWidth, title]);
 
     const fileSelections = useSelector(selection.selectors.getFileSelection);
     const countSelectionsUnderneathFolder = React.useMemo(() => {
@@ -92,6 +104,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
             data-testid="treeitemheader"
             onClick={onClick}
             onContextMenu={onContextMenu}
+            ref={measuredNodeRef}
         >
             <SvgIcon
                 className={classNames(styles.icon, {
@@ -109,11 +122,11 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
                 viewBox="0 0 24 24"
                 width={ICON_SIZE}
             />
-            <h4 className={styles.directoryName}>{title}</h4>
+            <h4 className={styles.directoryName}>{isLongHeader ? titleShortened : title}</h4>
             {selectionCountBadge}
-            {loading && <LoadingIcon />}
-            {!loading && error && (
-                <Tippy content={error.message}>
+            {loading && <Spinner size={SpinnerSize.small} />}
+            {!loading && error && collapsed && (
+                <Tooltip content={error.message}>
                     <SvgIcon
                         className={styles.errorIcon}
                         height={ICON_SIZE}
@@ -121,7 +134,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
                         viewBox="0 0 24 24"
                         width={ICON_SIZE}
                     />
-                </Tippy>
+                </Tooltip>
             )}
         </span>
     );

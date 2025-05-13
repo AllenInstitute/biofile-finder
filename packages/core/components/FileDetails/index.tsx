@@ -15,6 +15,7 @@ import { interaction } from "../../state";
 
 import styles from "./FileDetails.module.css";
 import { MAX_DOWNLOAD_SIZE_WEB } from "../../services/FileDownloadService";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 
 interface Props {
     className?: string;
@@ -99,9 +100,7 @@ export default function FileDetails(props: Props) {
                 if (fileDetails.size && fileDetails.size > 0) {
                     setCalculatedSize(fileDetails.size);
                 } else {
-                    const { hostname, key } = fileDownloadService.parseS3Url(
-                        fileDetails.downloadPath
-                    );
+                    const { hostname, key } = fileDownloadService.parseS3Url(fileDetails.path);
                     fileDownloadService
                         .calculateS3DirectorySize(hostname, key)
                         .then(setCalculatedSize);
@@ -136,12 +135,16 @@ export default function FileDetails(props: Props) {
                         id: fileDetails.uid,
                         name: fileDetails.name,
                         size: fileDetails.size,
-                        path: fileDetails.downloadPath,
+                        path: fileDownloadService.isFileSystemAccessible
+                            ? ((fileDetails.getFirstAnnotationValue(
+                                  AnnotationName.LOCAL_FILE_PATH
+                              ) || fileDetails.path) as string)
+                            : fileDetails.path,
                     },
                 ])
             );
         }, 1000); // 1s, in ms (arbitrary)
-    }, [dispatch, fileDetails]);
+    }, [dispatch, fileDetails, fileDownloadService.isFileSystemAccessible]);
 
     return (
         <div
@@ -181,7 +184,7 @@ export default function FileDetails(props: Props) {
                                         disabled={isDownloadDisabled}
                                         iconName="Download"
                                         text="Download"
-                                        title="Download"
+                                        title="Download file to local system"
                                         onClick={onDownload}
                                     />
                                 </StackItem>
@@ -190,7 +193,7 @@ export default function FileDetails(props: Props) {
                                         className={styles.primaryButton}
                                         iconName="OpenInNewWindow"
                                         text="Open file"
-                                        title="Open file"
+                                        title="Open file by selected method"
                                         menuItems={openWithMenuItems}
                                     />
                                 </StackItem>

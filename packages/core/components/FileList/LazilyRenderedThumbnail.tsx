@@ -6,7 +6,7 @@ import { OnSelect } from "./useFileSelector";
 import LoadingIcon from "../Icons/LoadingIcon";
 import Tooltip from "../Tooltip";
 import FileThumbnail from "../../components/FileThumbnail";
-import { FileView } from "../../entity/FileExplorerURL";
+import { FileView } from "../../entity/SearchParams";
 import FileSet from "../../entity/FileSet";
 import { selection } from "../../state";
 

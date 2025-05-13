@@ -78,6 +78,7 @@ export default function DirectoryTree(props: FileListProps) {
     return (
         <div className={classNames(props.className, styles.container)}>
             <RootLoadingIndicator visible={isLoading} />
+            <div className={styles.verticalGradient} />
             <ul
                 className={styles.scrollContainer}
                 role="tree"
@@ -88,8 +89,8 @@ export default function DirectoryTree(props: FileListProps) {
                 {!error && content}
                 {error && (
                     <aside className={styles.errorMessage}>
-                        <p>Whoops! Something went wrong:</p>
-                        <p>{error.message}</p>
+                        <h2>Whoops! Something went wrong:</h2>
+                        <h2>{error.message}</h2>
                     </aside>
                 )}
             </ul>

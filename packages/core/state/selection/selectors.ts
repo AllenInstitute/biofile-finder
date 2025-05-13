@@ -3,7 +3,7 @@ import { createSelector } from "reselect";
 
 import { State } from "../";
 import Annotation from "../../entity/Annotation";
-import FileExplorerURL, { FileExplorerURLComponents, FileView } from "../../entity/FileExplorerURL";
+import SearchParams, { SearchParamsComponents, FileView } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import { getAnnotations } from "../metadata/selectors";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
@@ -26,6 +26,7 @@ export const getSelectedDataSources = (state: State) => state.selection.dataSour
 export const getSelectedSourceMetadata = (state: State) => state.selection.sourceMetadata;
 export const getSelectedQuery = (state: State) => state.selection.selectedQuery;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
+export const getShouldShowNullGroups = (state: State) => state.selection.shouldShowNullGroups;
 export const getSortColumn = (state: State) => state.selection.sortColumn;
 export const getTutorial = (state: State) => state.selection.tutorial;
 export const getQueries = (state: State) => state.selection.queries;
@@ -82,6 +83,7 @@ export const getCurrentQueryParts = createSelector(
         getFileFilters,
         getFileView,
         getOpenFileFolders,
+        getShouldShowNullGroups,
         getSortColumn,
         getSelectedDataSources,
         getSelectedSourceMetadata,
@@ -92,24 +94,25 @@ export const getCurrentQueryParts = createSelector(
         filters,
         fileView,
         openFolders,
+        showNoValueGroups,
         sortColumn,
         sources,
         sourceMetadata
-    ): FileExplorerURLComponents => ({
+    ): SearchParamsComponents => ({
         columns,
         hierarchy,
         fileView,
         filters,
         openFolders,
+        showNoValueGroups,
         sortColumn,
         sources,
         sourceMetadata,
     })
 );
 
-export const getEncodedFileExplorerUrl = createSelector(
-    [getCurrentQueryParts],
-    (queryParts): string => FileExplorerURL.encode(queryParts)
+export const getEncodedSearchParams = createSelector([getCurrentQueryParts], (queryParts): string =>
+    SearchParams.encode(queryParts)
 );
 
 export const getPythonConversion = createSelector(
@@ -122,7 +125,7 @@ export const getPythonConversion = createSelector(
         getSelectedDataSources,
     ],
     (platformDependentServices, hierarchy, filters, openFolders, sortColumn, sources) => {
-        return FileExplorerURL.convertToPython(
+        return SearchParams.convertToPython(
             {
                 hierarchy,
                 filters,
@@ -141,11 +144,15 @@ export const getGroupedByFilterName = createSelector(
         const annotationNameToInstanceMap = keyBy(annotations, "name");
         const filters = map(globalFilters, (filter: FileFilter) => {
             const annotation = annotationNameToInstanceMap[filter.name];
+            const displayValue =
+                filter.type === FilterType.ANY || filter.type === FilterType.EXCLUDE
+                    ? ""
+                    : annotation?.getDisplayValue(filter.value);
             return {
                 displayName: annotation?.displayName,
                 name: filter.name,
                 value: filter.value,
-                displayValue: annotation?.getDisplayValue(filter.value),
+                displayValue,
                 type: filter?.type || FilterType.DEFAULT,
             };
         }).filter((filter) => filter.displayValue !== undefined);

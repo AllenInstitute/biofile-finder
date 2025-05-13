@@ -45,18 +45,14 @@ builds of `packages/desktop`, prepare a draft Github release, and upload the bui
 6) [Update the GitHub release](https://github.com/AllenInstitute/biofile-finder/releases) once the Github action in Step 4 is finished, manually edit the Github release which was drafted as part of Step 4. Format its release name with the date (consistent with other release names), add a description of the changes, and optionally
 mark whether the release is "pre-release." If it is marked as "pre-release," it will not be accessible for download through the
 Github pages site.
-<!-- Added by Anya W 2025-01-07 -->
-7) **Temporary workaround for MacOS** (as of Jan 2025): GitHub Actions currently builds .dmg files that don't work for x86 processors and that are interpreted as "damaged" by new MacOS versions. To get around this, follow the instructions below to [manually build executables](#manually-building-an-executable). You will need to do this separately for both arm64 and x86, and each build process **must be done on a machine that uses the correct processor** (e.g., on a computer with an Intel chip for the x86 build). 
-  
-    After building, change the .dmg name to match the current tag number and the processor that the build is for (e.g., `BioFile Finder-tag.number-arm64.dmg` or `BioFile Finder-tag.number-x86_64.dmg`), and upload these to the release page. You may need to delete existing .dmg files from the release if GitHub has already generated them automatically.
 
-    If the build doesn't work (e.g., says it's damaged when downloaded from GitHub), change the `mac` build arch in `/desktop/package.json` from `"universal"` to whichever processor you're targeting (e.g., `"arm64"`).
+### Development Builds for Specific Branches
 
-## Manually building an executable
-To manually build an executable for the desktop app, run the following from inside the `packages/desktop` directory:
+You can generate development builds from any branch using the [manual-build](https://github.com/AllenInstitute/biofile-finder/actions/workflows/manual-build.yml) GitHub Action. Select the branch from the dropdown in the GitHub Action interface and choose the appropriate runner environment from the following options:
 ```
-npm run build-executable
+ubuntu-latest for Linux builds
+windows-latest for Windows builds
+macOS-latest for ARM builds
+macOS-13 for x86 builds
 ```
-This will create a `build` directory in `packages/desktop`, where it will package the app based on your current branch. The directory will contain an install file (e.g., `BioFile Finder-tag.number.dmg` if built on a Mac). 
-
-If needed, this install file can be manually added to a GitHub release. Note that this is currently necessary in order to release BFF for Macs that use Intel chips, since the GitHub workflow only generates working executables for ARM processors (Apple Silicon chips).
+Once you trigger the workflow, the process will generate a zipped artifact containing all the build artifacts. Download this artifact from the workflow, unzip it to access the build. Please note that these zipped artifacts are available for 7 days after which they are automatically deleted.

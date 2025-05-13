@@ -10,6 +10,8 @@ import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadService, { DownloadResolution, DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
+import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
+import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
@@ -135,47 +137,87 @@ export default class DatabaseFileService implements FileService {
             .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
             .from(this.dataSourceNames);
 
+        DatabaseFileService.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
+
+        return this.handleFileDownload(sqlBuilder.toSQL(), format);
+    }
+
+    /**
+     * Processes selections and applies WHERE clause directly to the SQLBuilder.
+     */
+    public static applySelectionFilters(
+        sqlBuilder: SQLBuilder,
+        selections: Selection[],
+        dataSourceNames: string[]
+    ): void {
+        const subQueries: string[] = [];
+
         selections.forEach((selection) => {
             selection.indexRanges.forEach((indexRange) => {
                 const subQuery = new SQLBuilder()
                     .select(`${DatabaseService.HIDDEN_UID_ANNOTATION}`)
-                    .from(this.dataSourceNames)
+                    .from(dataSourceNames)
                     .offset(indexRange.start)
                     .limit(indexRange.end - indexRange.start + 1);
 
-                if (!isEmpty(selection.filters)) {
-                    subQuery.where(
-                        Object.entries(selection.filters)
-                            .flatMap(([column, values]) =>
-                                values.map((v) => SQLBuilder.regexMatchValueInList(column, v))
-                            )
-                            .join(") OR (")
-                    );
-                }
-                if (selection.sort) {
-                    subQuery.orderBy(
-                        `"${selection.sort.annotationName}" ${
-                            selection.sort.ascending ? "ASC" : "DESC"
-                        }`
-                    );
-                }
-
-                sqlBuilder.whereOr(
+                DatabaseFileService.applyFiltersAndSorting(subQuery, selection);
+                subQueries.push(
                     `${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`
                 );
             });
         });
+        // sqlBuilder whereOr isnt implemented, so we add our own "OR"
+        sqlBuilder.where(subQueries.join(" OR "));
+    }
 
+    /**
+     * Applies filters and sorting to a query. ie Column names, if none then use annotationName
+     */
+    public static applyFiltersAndSorting(subQuery: SQLBuilder, selection: Selection): void {
+        if (!isEmpty(selection.filters)) {
+            subQuery.where(
+                Object.entries(selection.filters).flatMap(([column, values]) =>
+                    values.map((v) => SQLBuilder.regexMatchValueInList(column, v)).join(" OR ")
+                )
+            );
+        }
+        if (selection.include && selection.include.length > 0) {
+            subQuery.where(
+                selection.include
+                    .map((annotationName) => new IncludeFilter(annotationName).toSQLWhereString())
+                    .join(" AND ")
+            );
+        }
+        if (selection.exclude && selection.exclude.length > 0) {
+            subQuery.where(
+                selection.exclude
+                    .map((annotationName) => new ExcludeFilter(annotationName).toSQLWhereString())
+                    .join(" AND ")
+            );
+        }
+        if (selection.sort) {
+            subQuery.orderBy(
+                `"${selection.sort.annotationName}" ${selection.sort.ascending ? "ASC" : "DESC"}`
+            );
+        }
+    }
+
+    /**
+     * Handles file download logic.
+     */
+    private async handleFileDownload(
+        sql: string,
+        format: "csv" | "json" | "parquet"
+    ): Promise<DownloadResult> {
         // If the file system is accessible we can just have DuckDB write the
         // output query directly to the system rather than to a buffer then the file
         if (this.downloadService.isFileSystemAccessible) {
             const downloadDir = await this.downloadService.getDefaultDownloadDirectory();
-            const lowerCaseUserAgent = navigator.userAgent.toLowerCase();
-            const separator = lowerCaseUserAgent.includes("Windows") ? "\\" : "/";
+            const separator = navigator.userAgent.toLowerCase().includes("windows") ? "\\" : "/";
             const destination = `${downloadDir}${separator}file-selection-${Date.now().toLocaleString(
                 "en-us"
             )}`;
-            await this.databaseService.saveQuery(destination, sqlBuilder.toSQL(), format);
+            await this.databaseService.saveQuery(destination, sql, format);
             return {
                 downloadRequestId: uniqueId(),
                 msg: `File downloaded to ${destination}.${format}`,
@@ -183,7 +225,7 @@ export default class DatabaseFileService implements FileService {
             };
         }
 
-        const buffer = await this.databaseService.saveQuery(uniqueId(), sqlBuilder.toSQL(), format);
+        const buffer = await this.databaseService.saveQuery(uniqueId(), sql, format);
         const name = `file-selection-${new Date()}.${format}`;
         return this.downloadService.download(
             {

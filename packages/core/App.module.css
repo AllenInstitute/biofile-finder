@@ -91,3 +91,10 @@
     /* flex child */
     flex: 0 0 var(--file-details-width);
 }
+
+.hidden {
+    /* arbitrarily large to move input off-screen */
+    left: -100%;
+    top: -100%;
+    position: absolute;
+}

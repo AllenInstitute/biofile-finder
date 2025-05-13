@@ -3,6 +3,7 @@ import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
 import { interaction, metadata } from "../../state";
@@ -11,16 +12,20 @@ import styles from "./useOpenWithMenuItems.module.css";
 
 enum AppKeys {
     AGAVE = "agave",
+    BROWSER = "browser",
     NEUROGLANCER = "neuroglancer",
     SIMULARIUM = "simularium",
+    VALIDATOR = "validator",
     VOLE = "vole",
     VOLVIEW = "volview",
 }
 
 interface Apps {
     [AppKeys.AGAVE]: IContextualMenuItem;
+    [AppKeys.BROWSER]: IContextualMenuItem;
     [AppKeys.NEUROGLANCER]: IContextualMenuItem;
     [AppKeys.SIMULARIUM]: IContextualMenuItem;
+    [AppKeys.VALIDATOR]: IContextualMenuItem;
     [AppKeys.VOLE]: IContextualMenuItem;
     [AppKeys.VOLVIEW]: IContextualMenuItem;
 }
@@ -72,11 +77,29 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
             );
         },
     } as IContextualMenuItem,
+    [AppKeys.BROWSER]: {
+        key: AppKeys.BROWSER,
+        text: "Browser",
+        title: `Open files in the current browser in a new tab`,
+        href: fileDetails?.path,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
     [AppKeys.NEUROGLANCER]: {
         key: AppKeys.NEUROGLANCER,
         text: "Neuroglancer",
         title: `Open files with Neuroglancer`,
-        href: `https://neuroglancer-demo.appspot.com/#!{%22layers%22:[{%22source%22:%22zarr://${fileDetails?.cloudPath}%22,%22name%22:%22${fileDetails?.name}%22}]}`,
+        href: `https://neuroglancer-demo.appspot.com/#!{%22layers%22:[{%22source%22:%22${
+            fileDetails?.path.includes(".n5") ? "n5" : "zarr"
+        }://${fileDetails?.path}%22,%22name%22:%22${fileDetails?.name}%22}]}`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -92,7 +115,23 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
         key: AppKeys.SIMULARIUM,
         text: "Simularium",
         title: `Open files with Simularium`,
-        href: `https://simularium.allencell.org/viewer?trajUrl=${fileDetails?.cloudPath}`,
+        href: `https://simularium.allencell.org/viewer?trajUrl=${fileDetails?.path}`,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
+    [AppKeys.VALIDATOR]: {
+        key: AppKeys.VALIDATOR,
+        text: "OME NGFF Validator",
+        title: `Open files with OME NGFF Validator`,
+        href: `https://ome.github.io/ome-ngff-validator/?source=${fileDetails?.path}`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -108,7 +147,7 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
         key: AppKeys.VOLE,
         text: "Vol-E",
         title: `Open files with Vol-E`,
-        href: `https://volumeviewer.allencell.org/viewer?url=${fileDetails?.cloudPath}/`,
+        href: `https://volumeviewer.allencell.org/viewer?url=${fileDetails?.path}/`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -124,7 +163,7 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
         key: AppKeys.VOLVIEW,
         text: "VolView",
         title: `Open files with VolView`,
-        href: `https://volview.kitware.app/?urls=[${fileDetails?.cloudPath}]`,
+        href: `https://volview.kitware.app/?urls=[${fileDetails?.path}]`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -148,24 +187,49 @@ function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
 
     const fileExt = fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
     const apps = APPS(fileDetails);
+
+    // Check for common file extensions first
+
     switch (fileExt) {
+        case "bmp":
+        case "html":
+        case "gif":
+        case "jpg":
+        case "jpeg":
+        case "pdf":
+        case "png":
+        case "svg":
+        case "txt":
+        case "xml":
+            return [apps.browser];
         case "simularium":
             return [apps.simularium];
         case "dcm":
             return [apps.volview];
         case "dvi":
-        case "n5":
-            return [apps.neuroglancer];
+        case "tif":
         case "tiff":
             return [apps.agave];
         case "zarr":
         case "": // No extension
             return isLikelyLocalFile
                 ? [apps.agave, apps.neuroglancer, apps.vole]
-                : [apps.vole, apps.neuroglancer, apps.agave];
-        default:
-            return [];
+                : [apps.vole, apps.neuroglancer, apps.agave, apps.validator];
     }
+
+    // Now check for special cases where the path may include a subpath into the container
+
+    if (fileDetails.path.includes(".n5")) {
+        return [apps.neuroglancer];
+    }
+
+    if (fileDetails.path.includes(".zarr")) {
+        return isLikelyLocalFile
+            ? [apps.agave, apps.neuroglancer, apps.vole]
+            : [apps.vole, apps.neuroglancer, apps.agave, apps.validator];
+    }
+
+    return [];
 }
 
 export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMenuItem[] => {
@@ -222,7 +286,10 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                 key: `open-with-${name}`,
                 text: name,
                 title: `Open files with ${name}`,
-                disabled: !filters && !fileDetails,
+                disabled:
+                    (!filters && !fileDetails) ||
+                    (app.filePath.toLowerCase().includes("zen") &&
+                        !fileDetails?.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH)),
                 onClick() {
                     if (filters) {
                         dispatch(interaction.actions.openWith(app, filters));

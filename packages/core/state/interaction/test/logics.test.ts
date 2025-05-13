@@ -1490,9 +1490,9 @@ describe("Interaction logics", () => {
     });
 
     describe("openWith", () => {
-        const files: { file_path: string }[] = [];
+        const files: { file_path: string; annotations: any[] }[] = [];
         for (let i = 0; i <= 100; i++) {
-            files.push({ file_path: `/allen/file_${i}.ext` });
+            files.push({ file_path: `/allen/file_${i}.ext`, annotations: [] });
         }
         const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
         const responseStub = {

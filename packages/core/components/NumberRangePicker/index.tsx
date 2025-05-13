@@ -135,6 +135,7 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                             title="Reset filter"
                             onClick={onResetSearch}
                             iconName="Clear"
+                            id="reset-filter"
                         />
                     </div>
                 </div>

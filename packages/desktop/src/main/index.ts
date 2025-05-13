@@ -1,15 +1,23 @@
 import * as path from "path";
+import { app, BrowserWindow, dialog, Menu } from "electron";
 
-import { app, BrowserWindow, Menu } from "electron";
-
-import template from "./menu";
+import getMenuTemplate from "./menu";
 import ExecutionEnvServicElectron from "../services/ExecutionEnvServiceElectron";
 import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
+import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
+import { Environment } from "../util/constants";
+import { PersistedConfigKeys } from "../../../core/services";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
-const menu = Menu.buildFromTemplate(template);
+const persistentConfigService = new PersistentConfigServiceElectron();
+const newEnvironment =
+    persistentConfigService.get(PersistedConfigKeys.Environment) || Environment.PRODUCTION;
+persistentConfigService.persist(PersistedConfigKeys.Environment, newEnvironment);
+
+// Build and set the initial menu.
+const menu = Menu.buildFromTemplate(getMenuTemplate());
 Menu.setApplicationMenu(menu);
 
 // Note: Must match `build.appId` in package.json
@@ -17,6 +25,9 @@ app.setAppUserModelId("org.aics.alleninstitute.fileexplorer");
 
 // Prevent window from being garbage collected
 let mainWindow: BrowserWindow | undefined;
+
+// Track if a reload attempt has already been made
+let hasReloaded = false;
 
 // register handlers called via ipc between renderer and main
 const registerIpcHandlers = () => {
@@ -41,6 +52,25 @@ const createMainWindow = () => {
         width: 1200,
     });
 
+    // Listen for renderer crashes and attempt a single reload
+    mainWindow.webContents.on("render-process-gone", (event, killed) => {
+        console.error("Renderer process crashed. Killed:", killed);
+
+        if (!hasReloaded) {
+            hasReloaded = true;
+            console.log("Reloading renderer...");
+            if (mainWindow) {
+                mainWindow.reload();
+            }
+        } else {
+            console.warn("Renderer crashed again.");
+        }
+    });
+
+    mainWindow.webContents.on("did-finish-load", () => {
+        hasReloaded = false;
+    });
+
     mainWindow.once("ready-to-show", () => {
         if (mainWindow) {
             mainWindow.show();
@@ -50,6 +80,31 @@ const createMainWindow = () => {
     mainWindow.on("closed", () => {
         // Dereference the window
         mainWindow = undefined;
+    });
+
+    // Customize window.open or target="_blank" calls that create new Electron windows.
+    // Used for all external links, but specifically necessary for opening the Labkey Plate UI
+    // and any other web page with an "unsaved changes" alert
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+        // Creating a new BrowserWindow allows us to set event handlers on child windows
+        const childWindow = new BrowserWindow({ parent: mainWindow });
+        childWindow.loadURL(url);
+        // Catch 'beforeunload' events from web page since Electron handles these differently from browser
+        childWindow.webContents.on("will-prevent-unload", (ev: Event) => {
+            const options = {
+                type: "question",
+                buttons: ["Leave", "Cancel"],
+                message: "Leave site?",
+                detail: "Changes you made may not be saved.",
+            };
+            const shouldLeave = dialog.showMessageBoxSync(childWindow, options) === 0;
+            if (shouldLeave) {
+                ev.preventDefault();
+                childWindow.destroy();
+            }
+        });
+        // Prevent default behavior, avoid duplicate windows
+        return { action: "deny" };
     });
 
     if (isDevelopment) {
@@ -86,7 +141,6 @@ app.on("second-instance", () => {
         if (mainWindow.isMinimized()) {
             mainWindow.restore();
         }
-
         mainWindow.show();
     }
 });

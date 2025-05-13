@@ -127,7 +127,7 @@ describe("FileSet", () => {
                 'WHERE (REGEXP_MATCHES("scientist"'
             );
             expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
-                'OR (REGEXP_MATCHES("scientist"'
+                'OR REGEXP_MATCHES("scientist"'
             );
         });
     });
@@ -143,7 +143,7 @@ describe("FileSet", () => {
 
         it("returns slices of the file list represented by the FileSet, specified by index position", async () => {
             const fileService = new HttpFileService();
-            sandbox.replace(fileService, "getFiles", () => Promise.resolve(files.slice(1, 4)));
+            sandbox.replace(fileService, "getFiles", () => Promise.resolve(files.slice(0, 4)));
             const fileSet = new FileSet({ fileService });
             expect(await fileSet.fetchFileRange(1, 3)).to.deep.equal(files.slice(2, 4)); // Array.prototype.slice is exclusive of end bound
         });

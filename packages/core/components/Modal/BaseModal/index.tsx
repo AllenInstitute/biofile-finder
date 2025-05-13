@@ -1,4 +1,4 @@
-import { ContextualMenu, IDragOptions, Modal } from "@fluentui/react";
+import { Modal } from "@fluentui/react";
 import { noop } from "lodash";
 import * as React from "react";
 
@@ -13,12 +13,6 @@ interface BaseModalProps {
     isStatic?: boolean; // Not draggable
 }
 
-const DRAG_OPTIONS: IDragOptions = {
-    moveMenuItemText: "Move",
-    closeMenuItemText: "Close",
-    menu: ContextualMenu,
-};
-
 /**
  * Wrapper around @fluent-ui/react Modal with consistent defaults applied and some layout scaffolding
  * for plugging content into.
@@ -32,8 +26,6 @@ export default function BaseModal(props: BaseModalProps) {
             isOpen
             onDismiss={onDismiss}
             containerClassName={styles.container}
-            dragOptions={props?.isStatic ? undefined : DRAG_OPTIONS}
-            scrollableContentClassName={styles.scrollableContainer}
             titleAriaId={titleId}
             overlay={{ className: styles.overlay }}
         >
@@ -45,7 +37,7 @@ export default function BaseModal(props: BaseModalProps) {
                 ) : null}
                 <TertiaryButton iconName="Cancel" onClick={onDismiss} title="" />
             </div>
-            {body}
+            <div className={styles.scrollableContent}>{body}</div>
             <div className={styles.footer}>{footer}</div>
         </Modal>
     );

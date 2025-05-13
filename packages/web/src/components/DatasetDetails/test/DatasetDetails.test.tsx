@@ -1,15 +1,16 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
-import { get as _get } from "lodash";
+import { get as _get, noop } from "lodash";
 import * as React from "react";
 import { Provider } from "react-redux";
+import { spy } from "sinon";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import DatasetDetails from "../";
 import PublicDataset, { DATASET_DISPLAY_FIELDS } from "../../../entity/PublicDataset";
 import { makePublicDatasetMock } from "../../../entity/PublicDataset/mocks";
-import { initialState, selection } from "../../../../../core/state";
+import { initialState } from "../../../../../core/state";
 import DatabaseServiceNoop from "../../../../../core/services/DatabaseService/DatabaseServiceNoop";
 
 describe("<DatasetDetails />", () => {
@@ -17,7 +18,7 @@ describe("<DatasetDetails />", () => {
         const mockRouter = createBrowserRouter([
             {
                 path: "/",
-                element: <DatasetDetails />,
+                element: <DatasetDetails onLoadDataset={noop} />,
             },
         ]);
         it("renders correct dataset field names and values for a fully defined dataset", () => {
@@ -139,7 +140,7 @@ describe("<DatasetDetails />", () => {
         const mockRouter = createBrowserRouter([
             {
                 path: "/",
-                element: <DatasetDetails />,
+                element: <DatasetDetails onLoadDataset={noop} />,
             },
         ]);
         const mockDescriptionShort = "This is a string that has 40 characters.";
@@ -227,27 +228,20 @@ describe("<DatasetDetails />", () => {
         });
     });
     describe("loadDataset", () => {
+        const onLoadDataset = spy();
         const mockRouter = createBrowserRouter([
             {
                 path: "/",
-                element: <DatasetDetails />,
-            },
-            {
-                path: "/app",
-                element: <></>,
+                element: <DatasetDetails onLoadDataset={onLoadDataset} />,
             },
         ]);
-        it("calls dispatch", () => {
+        it("calls loadDataset with data", () => {
             const mockDataset = makePublicDatasetMock("test-id");
 
             // Arrange
-            const { store, actions } = configureMockStore({
+            const { store } = configureMockStore({
                 state: mergeState(initialState, {
                     interaction: {
-                        isOnWeb: true,
-                        platformDependentServices: {
-                            databaseService: new DatabaseServiceNoop(),
-                        },
                         selectedPublicDataset: mockDataset,
                     },
                 }),
@@ -259,19 +253,15 @@ describe("<DatasetDetails />", () => {
             );
 
             // consistency checks, button exists & no actions fired
-            expect(getByLabelText("Load dataset")).to.exist;
-            expect(actions.list.length).to.equal(0);
+            expect(getByLabelText(/^Load dataset/)).to.exist;
+            expect(onLoadDataset.called).to.equal(false);
 
             // Act
-            fireEvent.click(getByLabelText("Load dataset"));
+            fireEvent.click(getByLabelText(/^Load dataset/));
 
             // Assert
-            expect(actions.list.length).to.equal(1);
-            expect(
-                actions.includesMatch({
-                    type: selection.actions.ADD_QUERY,
-                })
-            ).to.equal(true);
+            expect(onLoadDataset.called).to.equal(true);
+            expect(onLoadDataset.getCalls()[0].args).to.contain(mockDataset);
         });
     });
 });

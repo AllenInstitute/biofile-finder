@@ -49,7 +49,7 @@ import FileDetail from "../../entity/FileDetail";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileSelection from "../../entity/FileSelection";
 import NumericRange from "../../entity/NumericRange";
-import FileExplorerURL, { DEFAULT_AICS_FMS_QUERY } from "../../entity/FileExplorerURL";
+import SearchParams, { DEFAULT_AICS_FMS_QUERY } from "../../entity/SearchParams";
 import { ModalType } from "../../components/Modal";
 
 export const DEFAULT_QUERY_NAME = "New Query";
@@ -74,7 +74,7 @@ const initializeApp = createLogic({
             dispatch(
                 selection.actions.addQuery({
                     name: DEFAULT_QUERY_NAME,
-                    parts: FileExplorerURL.decode(window.location.search),
+                    parts: SearchParams.decode(window.location.search),
                 })
             );
         } else if (queries.length) {
@@ -110,7 +110,8 @@ const downloadManifest = createLogic({
         const filters = interactionSelectors.getFileFiltersForVisibleModal(deps.getState());
 
         // If we have a specific path to get files from ignore selected files
-        if (filters.length) {
+        // or if no selections, assume downloading full result
+        if (filters.length || (filters.length === 0 && fileSelection.count() === 0)) {
             const fileSet = new FileSet({
                 filters,
                 fileService,
@@ -128,6 +129,7 @@ const downloadManifest = createLogic({
 
         const selections = fileSelection.toCompactSelectionList();
 
+        // if still empty result set, do nothing
         if (isEmpty(selections)) {
             done();
             return;
@@ -220,7 +222,10 @@ const downloadFilesLogic = createLogic({
                 id: file.uid,
                 name: file.name,
                 size: file.size,
-                path: file.downloadPath,
+                path: fileDownloadService.isFileSystemAccessible
+                    ? ((file.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH) ||
+                          file.path) as string)
+                    : file.path,
             }));
         }
 
@@ -491,8 +496,14 @@ const openWithLogic = createLogic({
         } else {
             filesToOpen = await fileSelection.fetchAllDetails();
         }
+
         const filePaths = await Promise.all(
-            filesToOpen.map((file) => executionEnvService.formatPathForHost(file.path))
+            // Default to local path for desktop apps
+            filesToOpen.map((file) => {
+                const filePath =
+                    file.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH) ?? file.path;
+                return executionEnvService.formatPathForHost(filePath as string);
+            })
         );
 
         // Open the files in the specified executable
@@ -706,7 +717,8 @@ const copyFilesLogic = createLogic({
                 return;
             }
 
-            const successfulFiles: string[] = [];
+            const newlyCachedFiles: string[] = [];
+            const extendedExpirationFiles: string[] = [];
             const failedFiles: string[] = [];
 
             Object.entries(cacheStatuses).forEach(([fileId, status]) => {
@@ -715,21 +727,44 @@ const copyFilesLogic = createLogic({
                     status === "DOWNLOAD_IN_PROGRESS" ||
                     status === "DOWNLOAD_STARTED"
                 ) {
-                    successfulFiles.push(fileId);
+                    const file = fileDetails.find((f) => f.id === fileId);
+                    const isAlreadyCached = file?.annotations.some(
+                        ({ name, values }) =>
+                            name === "Should Be in Local Cache" && values[0] === true
+                    );
+                    (isAlreadyCached ? extendedExpirationFiles : newlyCachedFiles).push(fileId);
                 } else {
                     failedFiles.push(fileId);
                 }
             });
 
-            // Dispatch net success message. (Assuming some files were successful)
-            if (successfulFiles.length > 0) {
+            // Dispatch files queued for download
+            if (newlyCachedFiles.length > 0) {
+                const count = newlyCachedFiles.length;
+                const fileLabel = count === 1 ? "file was" : "files were";
                 dispatch(
                     interaction.actions.processSuccess(
                         "moveFilesSuccess",
-                        `${successfulFiles.length} out of ${
-                            Object.keys(cacheStatuses).length
-                        } files were successfully queued for download to NAS (Vast) from cloud. 
-                        Files will be available in the NAS after downloads finish asynchronously`
+                        `${count} ${fileLabel} successfully queued for download to NAS (VAST) from the cloud. 
+                        ${
+                            count === 1 ? "It will be" : "They will be"
+                        } available in the NAS after the download${
+                            count === 1 ? " finishes" : "s finish"
+                        } asynchronously.`
+                    )
+                );
+            }
+
+            // Dispatch files with extended expiration dates.
+            if (extendedExpirationFiles.length > 0) {
+                const count = extendedExpirationFiles.length;
+                const fileLabel = count === 1 ? "file's" : "files'";
+                dispatch(
+                    interaction.actions.processSuccess(
+                        "extendFilesExpirationSuccess",
+                        `${count} ${fileLabel} expiration ${
+                            count === 1 ? "date has" : "dates have"
+                        } been extended.`
                     )
                 );
             }

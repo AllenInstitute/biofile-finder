@@ -7,7 +7,7 @@ import { ModalType } from "../../components/Modal";
 import { AnnotationValue } from "../../services/AnnotationService";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import FileDetail from "../../entity/FileDetail";
-import { Source } from "../../entity/FileExplorerURL";
+import { Source } from "../../entity/SearchParams";
 import { FileInfo } from "../../services";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
 

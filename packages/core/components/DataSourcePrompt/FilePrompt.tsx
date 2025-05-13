@@ -5,7 +5,7 @@ import * as React from "react";
 
 import { SecondaryButton } from "../Buttons";
 import Tooltip from "../Tooltip";
-import { Source, getNameAndTypeFromSourceUrl } from "../../entity/FileExplorerURL";
+import { Source, getNameAndTypeFromSourceUrl } from "../../entity/SearchParams";
 
 import styles from "./FilePrompt.module.css";
 
@@ -40,10 +40,8 @@ export default function FilePrompt(props: Props) {
         (evt: React.FormEvent) => {
             evt.preventDefault();
             if (dataSourceURL) {
-                const { name, extensionGuess } = getNameAndTypeFromSourceUrl(dataSourceURL);
                 props.onSelectFile({
-                    name,
-                    type: extensionGuess as "csv" | "json" | "parquet",
+                    ...getNameAndTypeFromSourceUrl(dataSourceURL),
                     uri: dataSourceURL,
                 });
             }
@@ -74,13 +72,12 @@ export default function FilePrompt(props: Props) {
             <form>
                 <label
                     aria-label="Browse for a file on your machine"
-                    title="Browse for a file on your machine"
                     htmlFor="data-source-selector"
                 >
                     <SecondaryButton
                         iconName="DocumentSearch"
                         text="Choose file"
-                        title="Choose file"
+                        title="Browse for a file on your machine"
                     />
                 </label>
                 <input

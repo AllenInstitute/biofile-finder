@@ -38,7 +38,8 @@ export default class DatabaseServiceWeb extends DatabaseService {
         }
 
         const resultName = `${destination}.${format}`;
-        const finalSQL = `COPY (${sql}) TO '${resultName}' (FORMAT '${format}');`;
+        const formatOptions = format === "json" ? ", ARRAY true" : "";
+        const finalSQL = `COPY (${sql}) TO '${resultName}' (FORMAT '${format}'${formatOptions});`;
         const connection = await this.database.connect();
         try {
             await connection.send(finalSQL);

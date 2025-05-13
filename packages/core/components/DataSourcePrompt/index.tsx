@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import FilePrompt from "./FilePrompt";
 import { PrimaryButton, SecondaryButton } from "../Buttons";
-import { Source } from "../../entity/FileExplorerURL";
+import { Source } from "../../entity/SearchParams";
 import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
 
@@ -193,12 +193,9 @@ export default function DataSourcePrompt(props: Props) {
                 </DefaultButton>
             )}
             <div className={styles.loadButtonContainer}>
-                {props.hideTitle && (
-                    <SecondaryButton title="Cancel" text="CANCEL" onClick={() => onDismiss()} />
-                )}
+                {props.hideTitle && <SecondaryButton text="CANCEL" onClick={() => onDismiss()} />}
                 <PrimaryButton
                     disabled={!dataSource}
-                    title="Load"
                     text="LOAD"
                     onClick={() => dataSource && onSubmit(dataSource, metadataSource)}
                 />

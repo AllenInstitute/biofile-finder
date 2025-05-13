@@ -10,8 +10,9 @@ import Header from "./Header";
 import LazilyRenderedRow from "./LazilyRenderedRow";
 import LazilyRenderedThumbnail from "./LazilyRenderedThumbnail";
 import useFileSelector from "./useFileSelector";
+import { Action, setError } from "../DirectoryTree/directory-hierarchy-state";
 import EmptyFileListMessage from "../EmptyFileListMessage";
-import { FileView } from "../../entity/FileExplorerURL";
+import { FileView } from "../../entity/SearchParams";
 import FileSet from "../../entity/FileSet";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileAccessContextMenu from "../../hooks/useFileAccessContextMenu";
@@ -27,6 +28,7 @@ const DEFAULT_TOTAL_COUNT = 1000;
 
 interface FileListProps {
     className?: string;
+    dispatch: (value: Action) => void;
     fileSet: FileSet;
     isRoot: boolean;
     rowHeight?: number; // how tall each row of the list will be, in px
@@ -38,8 +40,8 @@ const DEFAULTS = {
 };
 
 const MAX_NON_ROOT_HEIGHT = 300;
-const SMALL_ROW_HEIGHT = 17;
-const TALL_ROW_HEIGHT = 19;
+const SMALL_ROW_HEIGHT = 20;
+const TALL_ROW_HEIGHT = 24;
 
 /**
  * Wrapper for react-window-infinite-loader and react-window that knows how to lazily fetch its own data. It will lay
@@ -47,6 +49,8 @@ const TALL_ROW_HEIGHT = 19;
  */
 export default function FileList(props: FileListProps) {
     const [totalCount, setTotalCount] = React.useState<number | null>(null);
+    const [localError, setLocalError] = React.useState<Error>();
+    const [lastVisibleRowIndex, setLastVisibleRowIndex] = React.useState<number>(0);
     const fileView = useSelector(selection.selectors.getFileView);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const fileGridColumnCount = useSelector(selection.selectors.getFileGridColCount);
@@ -73,6 +77,14 @@ export default function FileList(props: FileListProps) {
     const dataDrivenHeight = rowHeight * (totalCount || DEFAULT_TOTAL_COUNT) + 3 * rowHeight; // adding three additional rowHeights leaves room for the header + horz. scroll bar
     const calculatedHeight = Math.min(MAX_NON_ROOT_HEIGHT, dataDrivenHeight);
     const height = isRoot ? measuredHeight : calculatedHeight;
+
+    const totalRows = Math.ceil(
+        (totalCount || DEFAULT_TOTAL_COUNT) / (fileView === FileView.LIST ? 1 : fileGridColumnCount)
+    );
+    // complement to isColumnWidthOverflowing
+    const isRowHeightOverflowing = totalRows * rowHeight > height;
+    // hide overlay when we reach the bottom of the list
+    const atEndOfList = lastVisibleRowIndex === totalRows - 1;
 
     const listRef = React.useRef<FixedSizeList | null>(null);
     const gridRef = React.useRef<FixedSizeGrid | null>(null);
@@ -140,7 +152,28 @@ export default function FileList(props: FileListProps) {
         };
     }, [fileSet]);
 
+    const fileFetchWrapper = async (startIndex: number, endIndex: number) => {
+        setLocalError(undefined); // reset
+        try {
+            await fileSet.fetchFileRange(startIndex, endIndex);
+        } catch (err) {
+            props.dispatch(setError(err as Error, isRoot));
+            // Root has its own error handling
+            if (!isRoot) setLocalError(err as Error);
+            throw err;
+        }
+    };
+
     let content: React.ReactNode;
+    if (!!localError) {
+        return (
+            <div className={classNames(styles.container, className)}>
+                <div className={styles.errorMessage}>
+                    Some files could not be loaded. Error: {localError.message}
+                </div>
+            </div>
+        );
+    }
     if (totalCount === null || totalCount > 0) {
         if (height > 0) {
             // When this component isRoot the height is measured. It takes
@@ -153,7 +186,7 @@ export default function FileList(props: FileListProps) {
                     key={fileSet.instanceId} // force a re-render whenever FileSet changes
                     isItemLoaded={fileSet.isFileMetadataLoadingOrLoaded}
                     loadMoreItems={debouncePromise<any>(
-                        fileSet.fetchFileRange,
+                        fileFetchWrapper,
                         DEBOUNCE_WAIT_FOR_DATA_FETCHING
                     )}
                     itemCount={totalCount || DEFAULT_TOTAL_COUNT}
@@ -196,6 +229,7 @@ export default function FileList(props: FileListProps) {
                             const overscanStopIndex =
                                 overscanRowStopIndex * (overscanColumnStopIndex + 1);
 
+                            setLastVisibleRowIndex(visibleRowStopIndex);
                             onItemsRendered({
                                 // call onItemsRendered from InfiniteLoader
                                 visibleStartIndex,
@@ -216,7 +250,10 @@ export default function FileList(props: FileListProps) {
                                     itemSize={rowHeight} // row height
                                     height={height} // height of the list itself; affects number of rows rendered at any given time
                                     itemCount={totalCount || DEFAULT_TOTAL_COUNT}
-                                    onItemsRendered={onItemsRendered}
+                                    onItemsRendered={(renderProps) => {
+                                        setLastVisibleRowIndex(renderProps.visibleStopIndex);
+                                        onItemsRendered(renderProps);
+                                    }}
                                     outerElementType={Header}
                                     outerRef={outerRef}
                                     ref={callbackRefList}
@@ -262,14 +299,24 @@ export default function FileList(props: FileListProps) {
     return (
         <div className={classNames(styles.container, className)}>
             <div
-                className={classNames(styles.list, {
-                    [styles.horizontalOverflow]: isColumnWidthOverflowing,
-                })}
+                className={classNames(styles.list)}
                 style={{
                     height: isRoot ? undefined : `${calculatedHeight}px`,
                 }}
                 ref={measuredNodeRef}
             >
+                <div
+                    className={classNames({
+                        [styles.horizontalGradient]: isColumnWidthOverflowing,
+                        [styles.horizontalGradientCropped]: isRowHeightOverflowing,
+                    })}
+                ></div>
+                <div
+                    className={classNames({
+                        [styles.verticalGradient]: isRowHeightOverflowing && !atEndOfList,
+                        [styles.verticalGradientCropped]: isColumnWidthOverflowing,
+                    })}
+                ></div>
                 {content}
             </div>
             <p className={styles.rowCountDisplay}>

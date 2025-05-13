@@ -5,7 +5,7 @@ import {
     ResponseStub,
 } from "@aics/redux-utils";
 import { expect } from "chai";
-import { shuffle } from "lodash";
+import { get as _get, shuffle } from "lodash";
 import sinon from "sinon";
 
 import {
@@ -19,12 +19,13 @@ import {
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
-    decodeFileExplorerURL,
+    decodeSearchParams,
     setAnnotationHierarchy,
     selectNearbyFile,
     SET_SORT_COLUMN,
     changeDataSources,
     changeSourceMetadata,
+    expandAllFileFolders,
 } from "../actions";
 import { initialState, interaction } from "../../";
 import { FESBaseUrl } from "../../../constants";
@@ -34,12 +35,13 @@ import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
 import NumericRange from "../../../entity/NumericRange";
-import FileExplorerURL from "../../../entity/FileExplorerURL";
+import SearchParams from "../../../entity/SearchParams";
 import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
 import { DatasetService } from "../../../services";
+import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../../services/DataSourceService";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
@@ -898,7 +900,91 @@ describe("Selection logics", () => {
         });
     });
 
-    describe("decodeFileExplorerURL", () => {
+    describe("toggleAllFileFolders", () => {
+        const annotationHierarchy = annotationsJson.slice(0, 2).map((a) => a.annotationDisplayName);
+        const mockRootValues = [`${annotationHierarchy[0]}1`, `${annotationHierarchy[0]}2`];
+        const mockLeafValues = [
+            `${annotationHierarchy[1]}1`,
+            `${annotationHierarchy[1]}2`,
+            `${annotationHierarchy[1]}3`,
+        ];
+
+        const responseStubs = [
+            {
+                when: (config: any) =>
+                    _get(config, "url", "").includes(
+                        HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL
+                    ),
+                respondWith: {
+                    data: { data: mockRootValues },
+                },
+            },
+            {
+                when: (config: any) =>
+                    _get(config, "url", "").includes(
+                        `${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}`
+                    ),
+                respondWith: {
+                    data: { data: mockLeafValues },
+                },
+            },
+        ];
+        const mockHttpClient = createMockHttpClient(responseStubs);
+        const annotationService = new HttpAnnotationService({
+            fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+            httpClient: mockHttpClient,
+        });
+
+        beforeEach(() => {
+            sinon.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("dispatches all array combinations for expand all folders actions", async () => {
+            // Arrange
+            const state = mergeState(initialState, {
+                selection: {
+                    annotationHierarchy,
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
+            const expectedFilePaths = mockRootValues.flatMap((rootValue) => [
+                new FileFolder([rootValue]),
+                ...mockLeafValues.map((leafValue) => new FileFolder([rootValue, leafValue])),
+            ]);
+
+            // Act
+            store.dispatch(expandAllFileFolders());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_OPEN_FILE_FOLDERS,
+                })
+            ).to.be.true;
+            const setOpenFileFoldersAction = actions.list.find(
+                (element) => element.type === SET_OPEN_FILE_FOLDERS
+            );
+            // Verify action payload contains exact same elements as expectedFilePaths regardless of order
+            expect(setOpenFileFoldersAction?.payload.length).to.equal(expectedFilePaths.length);
+            setOpenFileFoldersAction?.payload.forEach((filePath: FileFolder) => {
+                expect(
+                    expectedFilePaths.some((folder) =>
+                        (folder as FileFolder).equals(filePath as FileFolder)
+                    )
+                ).to.be.true;
+            });
+        });
+    });
+
+    describe("decodeSearchParams", () => {
         const mockDataSources: DataSource[] = [
             {
                 id: "1234148",
@@ -944,7 +1030,7 @@ describe("Selection logics", () => {
             const filters = [new FileFilter(annotations[3].name, "20x")];
             const openFolders = [["a"], ["a", false]].map((folder) => new FileFolder(folder));
             const sortColumn = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
-            const encodedURL = FileExplorerURL.encode({
+            const encodedURL = SearchParams.encode({
                 hierarchy,
                 filters,
                 openFolders,
@@ -953,7 +1039,7 @@ describe("Selection logics", () => {
             });
 
             // Act
-            store.dispatch(decodeFileExplorerURL(encodedURL));
+            store.dispatch(decodeSearchParams(encodedURL));
             await logicMiddleware.whenComplete();
 
             // Assert

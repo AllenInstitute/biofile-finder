@@ -26,6 +26,7 @@
     width: 100%;
     margin: 0;
     padding: 0;
+    padding-bottom: 30px; /* add scroll buffer to outermost list*/
 }
 
 .scroll-container li {
@@ -34,15 +35,28 @@
 
 .error-message {
     position: absolute;
-    top: 50%;
+    top: 30%;
     transform: translateY(-50%);
     width: 100%;
 
     color: var(--error-text-color); /* defined in App.module.css */
-    font-size: 2rem;
     text-align: center;
+    margin: var(--margin);
+    line-height: 1.5;
 }
 
-.error-message p {
-    margin: 0;
+.error-message h2 {
+    margin: 0 var(--margin);
+}
+
+.vertical-gradient {
+    background-image: linear-gradient(to bottom, transparent, var(--secondary-background-color));
+    position: absolute;
+    height: 60px;
+    width: 100%;
+    pointer-events: none;
+    opacity: 1;
+    /* Should cover FileList gradient (10) but not file count (99) or aggregate info (999)*/
+    z-index: 50;
+    bottom: 0;
 }

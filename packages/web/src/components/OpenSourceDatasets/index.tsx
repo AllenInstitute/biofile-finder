@@ -1,13 +1,19 @@
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 import DatasetTable from "./DatasetTable";
 import DatasetDetails from "../DatasetDetails";
-import { DatasetAnnotations } from "../../entity/PublicDataset";
-import { metadata } from "../../../../core/state";
+import PublicDataset, { DatasetAnnotations } from "../../entity/PublicDataset";
+import { metadata, selection } from "../../../../core/state";
 import FileFilter from "../../../../core/entity/FileFilter";
 
 import styles from "./OpenSourceDatasets.module.css";
+import {
+    SearchParamsComponents,
+    getNameAndTypeFromSourceUrl,
+    Source,
+} from "../../../../core/entity/SearchParams";
 
 /**
  * Page for displaying public-facing datasets
@@ -15,10 +21,45 @@ import styles from "./OpenSourceDatasets.module.css";
  */
 export default function OpenSourceDatasets() {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const currentGlobalURL = useSelector(selection.selectors.getEncodedSearchParams);
+
     // Begin request action so dataset manifest is ready for table child component
     React.useEffect(() => {
         dispatch(metadata.actions.requestDatasetManifest("Dataset Manifest"));
     }, [dispatch]);
+
+    const openDatasetInApp = (
+        datasetName: string,
+        source: Source,
+        url?: Partial<SearchParamsComponents>
+    ) => {
+        dispatch(
+            selection.actions.addQuery({
+                name: `New ${source.name} Query on ${datasetName || "open-source dataset"}`,
+                parts: { ...url, sources: [source] },
+            })
+        );
+        navigate({
+            pathname: "/app",
+            search: `?${currentGlobalURL}`,
+        });
+    };
+
+    const loadDataset = (datasetDetails?: PublicDataset) => {
+        if (!datasetDetails) throw new Error("No dataset provided");
+
+        const dataSourceURL = datasetDetails.path;
+        const url = datasetDetails?.presetQuery;
+        openDatasetInApp(
+            datasetDetails.name,
+            {
+                ...getNameAndTypeFromSourceUrl(dataSourceURL),
+                uri: dataSourceURL,
+            },
+            url
+        );
+    };
 
     const internalDatasetFilter = new FileFilter(
         DatasetAnnotations.SOURCE.displayLabel,
@@ -51,9 +92,9 @@ export default function OpenSourceDatasets() {
                     <div className={styles.tableTitle}>
                         Datasets from the Allen Institute for Cell Science
                     </div>
-                    <DatasetTable filters={[internalDatasetFilter]} />
+                    <DatasetTable filters={[internalDatasetFilter]} onLoadDataset={loadDataset} />
                     <div className={styles.tableTitle}>Additional contributed datasets</div>
-                    <DatasetTable filters={[externalDatasetFilter]} />
+                    <DatasetTable filters={[externalDatasetFilter]} onLoadDataset={loadDataset} />
                     <p>
                         Want to include your dataset? Send us a request on
                         <a
@@ -78,7 +119,7 @@ export default function OpenSourceDatasets() {
                     </p>
                 </div>
             </div>
-            <DatasetDetails />
+            <DatasetDetails onLoadDataset={loadDataset} />
         </>
     );
 }

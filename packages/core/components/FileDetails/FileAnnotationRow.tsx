@@ -1,7 +1,9 @@
+import { Icon } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import Tooltip from "../Tooltip";
 import Cell from "../../components/FileRow/Cell";
 import { interaction, metadata, selection } from "../../state";
 
@@ -20,12 +22,16 @@ interface FileAnnotationRowProps {
  */
 export default function FileAnnotationRow(props: FileAnnotationRowProps) {
     const dispatch = useDispatch();
+    const trimmedValue = props.value.trim();
+    const [showLongValue, setShowLongValue] = React.useState(false);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
 
     const isOpenFileLink = annotationNameToAnnotationMap[props.name]?.isOpenFileLink;
+    // Character length approximately exceeds 4 lines of text
+    const isLongValue: boolean = trimmedValue.trim().length > 160;
 
     const onContextMenuHandlerFactory = (clipboardText: string) => {
         return (evt: React.MouseEvent) => {
@@ -42,6 +48,35 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                         navigator.clipboard.writeText(clipboardText);
                     },
                 },
+                ...(isLongValue
+                    ? showLongValue
+                        ? [
+                              {
+                                  key: "collapse",
+                                  text: "Collapse",
+                                  title: "Collapse metadata field",
+                                  iconProps: {
+                                      iconName: "CollapseContent",
+                                  },
+                                  onClick: () => {
+                                      setShowLongValue(false);
+                                  },
+                              },
+                          ]
+                        : [
+                              {
+                                  key: "expand",
+                                  text: "Expand",
+                                  title: "Expand metadata field",
+                                  iconProps: {
+                                      iconName: "ExploreContent",
+                                  },
+                                  onClick: () => {
+                                      setShowLongValue(true);
+                                  },
+                              },
+                          ]
+                    : []),
             ];
             dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
         };
@@ -75,19 +110,38 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                 {isOpenFileLink ? (
                     <a
                         className={styles.link}
-                        onContextMenu={onContextMenuHandlerFactory(props.value.trim())}
-                        href={props.value.trim()}
+                        onContextMenu={onContextMenuHandlerFactory(trimmedValue)}
+                        href={trimmedValue}
                         rel="noreferrer"
                         target="_blank"
                     >
-                        {props.value.trim()}
+                        {trimmedValue}
                     </a>
                 ) : (
-                    <span
-                        style={{ userSelect: "text" }}
-                        onContextMenu={onContextMenuHandlerFactory(props.value.trim())}
-                    >
-                        {props.value.trim()}
+                    <span onContextMenu={onContextMenuHandlerFactory(trimmedValue)}>
+                        <div
+                            className={classNames({
+                                [styles.valueTruncated]: !showLongValue && isLongValue,
+                            })}
+                        >
+                            {trimmedValue}
+                        </div>
+                        {isLongValue && (
+                            <div className={styles.expandButtonWrapper}>
+                                <Tooltip content={showLongValue ? "Collapse text" : "Expand text"}>
+                                    <Icon
+                                        className={styles.expandButton}
+                                        iconName={
+                                            showLongValue ? "ChevronUpSmall" : "ChevronDownSmall"
+                                        }
+                                        data-testid={
+                                            showLongValue ? "collapse-metadata" : "expand-metadata"
+                                        }
+                                        onClick={() => setShowLongValue(!showLongValue)}
+                                    />
+                                </Tooltip>
+                            </div>
+                        )}
                     </span>
                 )}
             </Cell>

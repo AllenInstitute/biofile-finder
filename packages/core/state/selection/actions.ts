@@ -9,10 +9,10 @@ import NumericRange from "../../entity/NumericRange";
 import Tutorial from "../../entity/Tutorial";
 import {
     EMPTY_QUERY_COMPONENTS,
-    FileExplorerURLComponents,
+    SearchParamsComponents,
     FileView,
     Source,
-} from "../../entity/FileExplorerURL";
+} from "../../entity/SearchParams";
 
 const STATE_BRANCH_NAME = "selection";
 
@@ -282,12 +282,12 @@ export const ADD_QUERY = makeConstant(STATE_BRANCH_NAME, "add-query");
 
 export interface Query {
     name: string;
-    parts: FileExplorerURLComponents;
+    parts: SearchParamsComponents;
 }
 
 interface PartialQuery {
     name: string;
-    parts: Partial<FileExplorerURLComponents>;
+    parts: Partial<SearchParamsComponents>;
 }
 
 export interface AddQuery {
@@ -516,6 +516,41 @@ export function toggleFileFolderCollapse(fileFolder: FileFolder): ToggleFileFold
 }
 
 /**
+ * COLLAPSE_ALL_FILE_FOLDERS
+ * Intention to collapse all file folders
+ */
+export const COLLAPSE_ALL_FILE_FOLDERS = makeConstant(
+    STATE_BRANCH_NAME,
+    "collapse-all-file-folders"
+);
+
+export interface CollapseAllFileFoldersAction {
+    type: string;
+}
+
+export function collapseAllFileFolders(): CollapseAllFileFoldersAction {
+    return {
+        type: COLLAPSE_ALL_FILE_FOLDERS,
+    };
+}
+
+/**
+ * EXPAND_ALL_FILE_FOLDERS
+ * Intention to toggle the given file folder's collapsed state
+ */
+export const EXPAND_ALL_FILE_FOLDERS = makeConstant(STATE_BRANCH_NAME, "expand-all-file-folders");
+
+export interface ExpandAllFileFoldersAction {
+    type: string;
+}
+
+export function expandAllFileFolders(): ExpandAllFileFoldersAction {
+    return {
+        type: EXPAND_ALL_FILE_FOLDERS,
+    };
+}
+
+/**
  * SET_OPEN_FILE_FOLDERS
  * Intention to set which file folders are open as opposed to collapsed
  */
@@ -534,20 +569,41 @@ export function setOpenFileFolders(openFileFolders: FileFolder[]): SetOpenFileFo
 }
 
 /**
+ * TOGGLE_NULL_VALUE_GROUPS
+ *
+ * Intention to set whether to include groups of files that don't have any value for a given annotation.
+ * If showNullValues param is present, uses that boolean value.
+ * Otherwise, toggles existing setting
+ */
+export const TOGGLE_NULL_VALUE_GROUPS = makeConstant(STATE_BRANCH_NAME, "toggle-null-value-groups");
+
+export interface SetShowNullValueGroupsAction {
+    type: string;
+    payload: boolean | undefined;
+}
+
+export function toggleNullValueGroups(showNullValues?: boolean): SetShowNullValueGroupsAction {
+    return {
+        payload: showNullValues,
+        type: TOGGLE_NULL_VALUE_GROUPS,
+    };
+}
+
+/**
  * DECODE_FILE_EXPLORER_URL
  *
  * Intention to decode an incoming file explorer URL into application state
  */
 export const DECODE_FILE_EXPLORER_URL = makeConstant(STATE_BRANCH_NAME, "decode-file-explorer-url");
 
-export interface DecodeFileExplorerURLAction {
+export interface DecodeSearchParamsAction {
     payload: string;
     type: string;
 }
 
-export function decodeFileExplorerURL(decodedFileExplorerURL: string): DecodeFileExplorerURLAction {
+export function decodeSearchParams(decodedSearchParams: string): DecodeSearchParamsAction {
     return {
-        payload: decodedFileExplorerURL,
+        payload: decodedSearchParams,
         type: DECODE_FILE_EXPLORER_URL,
     };
 }

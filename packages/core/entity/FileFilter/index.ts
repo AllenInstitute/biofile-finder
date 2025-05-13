@@ -1,4 +1,5 @@
 import SQLBuilder from "../SQLBuilder";
+import { NO_VALUE_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 
 export interface FileFilterJson {
     name: string;
@@ -41,7 +42,7 @@ export default class FileFilter {
     ) {
         this.annotationName = annotationName;
         this.annotationValue = annotationValue;
-        this.filterType = filterType;
+        this.filterType = annotationValue === NO_VALUE_NODE ? FilterType.EXCLUDE : filterType;
     }
 
     public get name() {

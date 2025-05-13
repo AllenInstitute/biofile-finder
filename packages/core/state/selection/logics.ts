@@ -24,7 +24,7 @@ import {
     SetAnnotationHierarchyAction,
     RemoveFromAnnotationHierarchyAction,
     ReorderAnnotationHierarchyAction,
-    decodeFileExplorerURL,
+    decodeSearchParams,
     ADD_QUERY,
     AddQuery,
     changeQuery,
@@ -48,15 +48,20 @@ import {
     AddDataSourceReloadError,
     setFileView,
     setColumns,
+    EXPAND_ALL_FILE_FOLDERS,
+    toggleNullValueGroups,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
+import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
+import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import Annotation from "../../entity/Annotation";
-import FileExplorerURL from "../../entity/FileExplorerURL";
+import SearchParams from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
+import { AnnotationValue } from "../../services/AnnotationService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../services/DataSourceService";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
@@ -341,10 +346,75 @@ const toggleFileFolderCollapse = createLogic({
 });
 
 /**
- * Interceptor responsible for processing DECODE_FILE_EXPLORER_URL actions into various
- * other actions responsible for rehydrating the FileExplorerURL into application state.
+ * Interceptor responsible for transforming COLLAPSE_ALL_FILE_FOLDERS and EXPAND_ALL_FILE_FOLDERS
+ * actions into SET_OPEN_FILE_FOLDERS actions by either setting to none or recursively
+ * unpacking the directory structure
  */
-const decodeFileExplorerURLLogics = createLogic({
+const expandAllFileFolders = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { getState } = deps;
+        const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
+        const annotationService = interaction.selectors.getAnnotationService(getState());
+        const globalFileFilters = selection.selectors.getFileFilters(getState());
+        const shouldShowNullGroups = selection.selectors.getShouldShowNullGroups(getState());
+        const fileService = interaction.selectors.getFileService(getState());
+        const fileSet = new FileSet({
+            fileService,
+            filters: globalFileFilters,
+        });
+        // Track internally rather than relying on selector (may be out of sync)
+        const openedSoFar: FileFolder[] = [];
+        // Recursive helper
+        async function unpackAllFileFolders(values: string[], pathSoFar: string[]) {
+            const fileFoldersToOpen: FileFolder[] = values.map(
+                (value) => new FileFolder([...pathSoFar, value] as AnnotationValue[])
+            );
+            // Needs to be set wholesale so must include already opened folders
+            openedSoFar.push(...fileFoldersToOpen);
+            dispatch(setOpenFileFolders(openedSoFar));
+            for (const value of values) {
+                // At end of folder hierarchy
+                if (!!hierarchy.length && pathSoFar.length === hierarchy.length - 1) continue;
+
+                const childNodes = await findChildNodes({
+                    ancestorNodes: pathSoFar,
+                    currentNode: value,
+                    fileSet,
+                    hierarchy,
+                    annotationService,
+                    fileService,
+                    shouldShowNullGroups,
+                });
+                if (childNodes.length) {
+                    // Not a leaf
+                    unpackAllFileFolders(childNodes, [...pathSoFar, value]);
+                }
+            }
+        }
+
+        const rootHierarchyValues = await findChildNodes({
+            currentNode: ROOT_NODE,
+            fileSet,
+            hierarchy,
+            annotationService,
+            fileService,
+            shouldShowNullGroups,
+        });
+        if (shouldShowNullGroups) {
+            rootHierarchyValues.push(NO_VALUE_NODE);
+        }
+        await unpackAllFileFolders(rootHierarchyValues, []);
+        dispatch(interaction.actions.refresh() as AnyAction); // synchronize UI with state
+        done();
+    },
+    type: [EXPAND_ALL_FILE_FOLDERS],
+});
+
+/**
+ * Interceptor responsible for processing DECODE_FILE_EXPLORER_URL actions into various
+ * other actions responsible for rehydrating the SearchParams into application state.
+ */
+const decodeSearchParamsLogics = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
         const {
@@ -353,10 +423,11 @@ const decodeFileExplorerURLLogics = createLogic({
             fileView,
             filters,
             openFolders,
+            showNoValueGroups,
             sortColumn,
             sources,
             sourceMetadata,
-        } = FileExplorerURL.decode(encodedURL);
+        } = SearchParams.decode(encodedURL);
 
         batch(() => {
             dispatch(changeSourceMetadata(sourceMetadata));
@@ -367,6 +438,7 @@ const decodeFileExplorerURLLogics = createLogic({
             fileView && dispatch(setFileView(fileView) as AnyAction);
             dispatch(setOpenFileFolders(openFolders));
             dispatch(setSortColumn(sortColumn));
+            dispatch(toggleNullValueGroups(showNoValueGroups) as AnyAction);
         });
         done();
     },
@@ -646,7 +718,7 @@ const changeQueryLogic = createLogic({
 
         if (newlySelectedQuery) {
             dispatch(
-                decodeFileExplorerURL(FileExplorerURL.encode(newlySelectedQuery.parts)) as AnyAction
+                decodeSearchParams(SearchParams.encode(newlySelectedQuery.parts)) as AnyAction
             );
         }
         dispatch(setQueries(updatedQueries));
@@ -754,7 +826,8 @@ export default [
     modifyAnnotationHierarchy,
     modifyFileFilters,
     toggleFileFolderCollapse,
-    decodeFileExplorerURLLogics,
+    expandAllFileFolders,
+    decodeSearchParamsLogics,
     selectNearbyFile,
     setAvailableAnnotationsLogic,
     changeDataSourceLogic,

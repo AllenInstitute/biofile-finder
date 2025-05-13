@@ -17,7 +17,7 @@
     display: none;
 }
 
-.centeringParent {
+.centering-parent {
     display: flex;
     font-size: var(--l-paragraph-size);
     font-weight: 500;
