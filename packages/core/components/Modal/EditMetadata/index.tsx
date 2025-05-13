@@ -54,7 +54,7 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
         if (!passwordToProgramMap) {
             dispatch(metadata.actions.requestPasswordMapping());
         }
-    }, [dispatch, metadata, passwordToProgramMap]);
+    }, [dispatch, passwordToProgramMap]);
 
     const onEnterPassword = (password: string) => {
         if (passwordToProgramMap) {
