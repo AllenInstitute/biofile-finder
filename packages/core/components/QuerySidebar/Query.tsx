@@ -33,8 +33,10 @@ export default function Query(props: QueryProps) {
 
     const shouldHaveDataSource = !!window.location.search;
     const hasDataSource = !!props.query.parts.sources.length;
+    const hasReloadError = useSelector(selection.selectors.getRequiresDataSourceReload);
     const isLoading =
-        (shouldHaveDataSource && !hasDataSource) || props.query.name === AICS_FMS_DATA_SOURCE_NAME;
+        (shouldHaveDataSource && !hasDataSource && !hasReloadError) ||
+        props.query.name === AICS_FMS_DATA_SOURCE_NAME;
 
     const [isExpanded, setIsExpanded] = React.useState(false);
     React.useEffect(() => {

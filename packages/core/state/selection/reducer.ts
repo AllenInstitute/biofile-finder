@@ -21,6 +21,7 @@ import {
     ChangeQuery,
     REMOVE_QUERY,
     RemoveQuery,
+    RESET_QUERY_FIELDS,
     ChangeDataSourcesAction,
     SetSortColumnAction,
     SetFileFiltersAction,
@@ -152,6 +153,18 @@ export default makeReducer<SelectionStateBranch>(
         [REMOVE_QUERY]: (state, action: RemoveQuery) => ({
             ...state,
             queries: state.queries.filter((query) => query.name !== action.payload),
+        }),
+        [RESET_QUERY_FIELDS]: (state) => ({
+            ...state,
+            annotationHierarchy: initialState.annotationHierarchy,
+            columns: initialState.columns,
+            filters: initialState.filters,
+            fileView: initialState.fileView,
+            openFileFolders: initialState.openFileFolders,
+            shouldShowNullGroups: initialState.shouldShowNullGroups,
+            sortColumn: undefined,
+            dataSources: initialState.dataSources,
+            sourceMetadata: undefined,
         }),
         [SET_QUERIES]: (state, action: SetQueries) => ({
             ...state,

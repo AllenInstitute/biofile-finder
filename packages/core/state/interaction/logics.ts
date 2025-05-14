@@ -71,12 +71,22 @@ const initializeApp = createLogic({
         // If there are query args representing a query we can extract that
         // into the query to render (ex. when refreshing a page)
         if (isOnWeb && window.location.search) {
-            dispatch(
-                selection.actions.addQuery({
-                    name: DEFAULT_QUERY_NAME,
-                    parts: SearchParams.decode(window.location.search),
-                })
-            );
+            try {
+                dispatch(
+                    selection.actions.addQuery({
+                        name: DEFAULT_QUERY_NAME,
+                        parts: SearchParams.decode(window.location.search),
+                    })
+                );
+            } catch (err) {
+                // Parsing error from SearchParams.decode
+                dispatch(
+                    selection.actions.addDataSourceReloadError(
+                        DEFAULT_QUERY_NAME,
+                        (err as Error).message
+                    )
+                );
+            }
         } else if (queries.length) {
             dispatch(selection.actions.changeQuery(queries[0]));
         } else if (isAicsEmployee) {

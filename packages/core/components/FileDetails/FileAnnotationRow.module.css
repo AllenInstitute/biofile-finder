@@ -79,6 +79,7 @@
     font-size: 12px;
     font-weight: 700;
     color: var(--aqua);
+    padding: 0 5px;
 }
 
 .expand-button:hover {
@@ -89,5 +90,4 @@
 .expand-button-wrapper {
     display: flex;
     justify-content: flex-end;
-    padding-right: var(--margin);
 }
