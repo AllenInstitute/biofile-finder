@@ -3,12 +3,18 @@ import { makeReducer } from "@aics/redux-utils";
 import Annotation from "../../entity/Annotation";
 import { DataSource } from "../../services/DataSourceService";
 
-import { RECEIVE_ANNOTATIONS, RECEIVE_DATA_SOURCES, RECEIVE_DATASET_MANIFEST } from "./actions";
+import {
+    RECEIVE_ANNOTATIONS,
+    RECEIVE_DATA_SOURCES,
+    RECEIVE_DATASET_MANIFEST,
+    RECEIVE_PASSWORD_MAPPING,
+} from "./actions";
 
 export interface MetadataStateBranch {
     annotations: Annotation[];
     dataSources: DataSource[];
     datasetManifestSource?: DataSource;
+    passwordToProgramMap?: Record<string, string>;
 }
 
 export const initialState = {
@@ -30,6 +36,10 @@ export default makeReducer<MetadataStateBranch>(
         [RECEIVE_DATASET_MANIFEST]: (state, action) => ({
             ...state,
             datasetManifestSource: action.payload,
+        }),
+        [RECEIVE_PASSWORD_MAPPING]: (state, action) => ({
+            ...state,
+            passwordToProgramMap: action.payload,
         }),
     },
     initialState

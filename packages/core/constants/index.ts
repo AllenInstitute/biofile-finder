@@ -18,18 +18,21 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         annotationName: AnnotationName.FILE_ID,
         description: "ID for file.",
         type: AnnotationType.STRING,
+        isImmutable: true,
     }),
     new Annotation({
         annotationDisplayName: "File Name",
         annotationName: AnnotationName.FILE_NAME,
         description: "Name of file.",
         type: AnnotationType.STRING,
+        isImmutable: true,
     }),
     new Annotation({
         annotationDisplayName: "File Path (Cloud)",
         annotationName: AnnotationName.FILE_PATH,
         description: "Path to file in the cloud.",
         type: AnnotationType.STRING,
+        isImmutable: true,
     }),
     new Annotation({
         annotationDisplayName: "Size",
@@ -37,18 +40,21 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         description: "Size of file on disk.",
         type: AnnotationType.NUMBER,
         units: "bytes",
+        isImmutable: true,
     }),
     new Annotation({
         annotationDisplayName: "Thumbnail Path",
         annotationName: AnnotationName.THUMBNAIL_PATH,
         description: "Path to thumbnail file in storage.",
         type: AnnotationType.STRING,
+        isImmutable: true,
     }),
     new Annotation({
         annotationDisplayName: "Uploaded",
         annotationName: AnnotationName.UPLOADED,
         description: "Date and time file was uploaded.",
         type: AnnotationType.DATETIME,
+        isImmutable: true,
     }),
 ];
 
@@ -64,15 +70,22 @@ export enum FESBaseUrl {
 }
 
 export enum MMSBaseUrl {
-    LOCALHOST = "http://localhost:9060",
-    STAGING = "http://stg-aics-api",
-    PRODUCTION = "http://prod-aics-api",
-    TEST = "http://test-aics-api",
+    LOCALHOST = "https://localhost:9060",
+    STAGING = "https://stg-aics.corp.alleninstitute.org",
+    PRODUCTION = "https://aics.corp.alleninstitute.org",
+    TEST = "http://test-aics-mms-api.corp.alleninstitute.org",
 }
 
 export enum LoadBalancerBaseUrl {
     LOCALHOST = "http://localhost:8080",
     STAGING = "http://stg-aics.corp.alleninstitute.org",
     PRODUCTION = "http://aics.corp.alleninstitute.org",
+    TEST = "http://test-aics.corp.alleninstitute.org",
+}
+
+export enum DatasetBucketUrl {
+    LOCALHOST = "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com",
+    STAGING = "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com",
+    PRODUCTION = "https://biofile-finder-datasets.s3.us-west-2.amazonaws.com",
     TEST = "http://test-aics.corp.alleninstitute.org",
 }

@@ -27,6 +27,7 @@ import {
     DataSourcePromptInfo,
     PromptForDataSource,
     SET_SELECTED_PUBLIC_DATASET,
+    SetVisibleModalAction,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -168,10 +169,10 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             environment: action.payload.environment,
         }),
-        [SET_VISIBLE_MODAL]: (state, action) => ({
+        [SET_VISIBLE_MODAL]: (state, action: SetVisibleModalAction) => ({
             ...state,
-            ...action.payload,
-            fileFiltersForVisibleModal: [],
+            fileFiltersForVisibleModal: action.payload.fileFiltersForVisibleModal,
+            visibleModal: action.payload.visibleModal,
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action: ShowManifestDownloadDialogAction) => ({
             ...state,

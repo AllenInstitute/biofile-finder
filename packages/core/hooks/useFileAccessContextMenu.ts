@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import useOpenWithMenuItems from "./useOpenWithMenuItems";
 import useSaveMetadataOptions from "./useSaveMetadataOptions";
+import { ModalType } from "../components/Modal";
 import FileDetail from "../entity/FileDetail";
 import FileFilter from "../entity/FileFilter";
 import { interaction, selection } from "../state";
@@ -101,10 +102,29 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
                     iconProps: {
                         iconName: "Save",
                     },
-                    subMenuProps: {
-                        items: saveAsSubMenuItems,
-                    },
+                    subMenuProps: { items: saveAsSubMenuItems },
                 },
+                ...(isQueryingAicsFms
+                    ? [
+                          {
+                              key: "edit",
+                              text: "Edit metadata",
+                              title: "Edit metadata for selected files",
+                              disabled: !folderFilters && fileSelection.count() === 0,
+                              iconProps: {
+                                  iconName: "Edit",
+                              },
+                              onClick() {
+                                  dispatch(
+                                      interaction.actions.setVisibleModal(
+                                          ModalType.EditMetadata,
+                                          folderFilters
+                                      )
+                                  );
+                              },
+                          },
+                      ]
+                    : []),
                 ...(isQueryingAicsFms && !isOnWeb
                     ? [
                           {

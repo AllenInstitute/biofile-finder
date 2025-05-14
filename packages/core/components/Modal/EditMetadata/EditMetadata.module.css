@@ -1,0 +1,26 @@
+.footer {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.footer-align-right {
+  width: 100%;
+  display: flex;
+}
+
+.footer-align-right > * {
+  margin-left: 10px;
+  width: min-content;
+}
+
+.footer-align-right > *:first-child{
+  margin-left: auto;
+}
+
+.hidden {
+  display: none;
+}
+
+.warning {
+  font-size: var(--l-paragraph-size);
+}

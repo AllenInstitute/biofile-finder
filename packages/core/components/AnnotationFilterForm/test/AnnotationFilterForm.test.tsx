@@ -7,6 +7,7 @@ import { createSandbox } from "sinon";
 
 import AnnotationFilterForm from "..";
 import Annotation from "../../../entity/Annotation";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
 import { initialState, reducer, reduxLogics, interaction, selection } from "../../../state";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
@@ -20,7 +21,7 @@ describe("<AnnotationFilterForm />", () => {
             annotationDisplayName: "Foo",
             annotationName: "foo",
             description: "",
-            type: "Text",
+            type: AnnotationType.STRING,
         });
 
         const sandbox = createSandbox();
@@ -169,7 +170,7 @@ describe("<AnnotationFilterForm />", () => {
             annotationDisplayName: "Foo",
             annotationName: "foo",
             description: "",
-            type: "YesNo",
+            type: AnnotationType.BOOLEAN,
         });
 
         const responseStub = {
@@ -268,7 +269,7 @@ describe("<AnnotationFilterForm />", () => {
             annotationDisplayName: "Foo",
             annotationName: "foo",
             description: "",
-            type: "Number",
+            type: AnnotationType.NUMBER,
         });
 
         const sandbox = createSandbox();
@@ -323,7 +324,7 @@ describe("<AnnotationFilterForm />", () => {
             annotationDisplayName: "Foo",
             annotationName: "foo",
             description: "",
-            type: "Duration",
+            type: AnnotationType.DURATION,
         });
 
         const sandbox = createSandbox();

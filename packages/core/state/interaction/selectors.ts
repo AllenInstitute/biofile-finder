@@ -16,6 +16,7 @@ import HttpFileService from "../../services/FileService/HttpFileService";
 import { ModalType } from "../../components/Modal";
 import {
     AICS_FMS_DATA_SOURCE_NAME,
+    DatasetBucketUrl,
     FESBaseUrl,
     MMSBaseUrl,
     LoadBalancerBaseUrl,
@@ -56,6 +57,11 @@ export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee
 export const getFileExplorerServiceBaseUrl = createSelector(
     [getEnvironment],
     (environment) => FESBaseUrl[environment]
+);
+
+export const getDatasetBucketUrl = createSelector(
+    [getEnvironment],
+    (environment) => DatasetBucketUrl[environment]
 );
 
 export const getLoadBalancerBaseUrl = createSelector(
@@ -137,11 +143,11 @@ export const getHttpFileService = createSelector(
         platformDependentServices
     ) =>
         new HttpFileService({
-            applicationVersion,
-            fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
-            loadBalancerBaseUrl: loadBalancerBaseUrl,
-            metadataManagementServiceBaseURl: metadataManagementServiceBaseURL,
             userName,
+            applicationVersion,
+            fileExplorerServiceBaseUrl,
+            loadBalancerBaseUrl,
+            metadataManagementServiceBaseURl: metadataManagementServiceBaseURL,
             downloadService: platformDependentServices.fileDownloadService,
         })
 );
@@ -185,6 +191,7 @@ export const getAnnotationService = createSelector(
         getApplicationVersion,
         getUserName,
         getFileExplorerServiceBaseUrl,
+        getMetadataManagementServiceBaseUrl,
         getSelectedDataSources,
         getPlatformDependentServices,
         getRefreshKey,
@@ -193,6 +200,7 @@ export const getAnnotationService = createSelector(
         applicationVersion,
         userName,
         fileExplorerServiceBaseUrl,
+        metadataManagementServiceBaseUrl,
         dataSources,
         platformDependentServices
     ): AnnotationService => {
@@ -205,7 +213,8 @@ export const getAnnotationService = createSelector(
         return new HttpAnnotationService({
             applicationVersion,
             userName,
-            fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
+            fileExplorerServiceBaseUrl,
+            metadataManagementServiceBaseURl: metadataManagementServiceBaseUrl,
         });
     }
 );
@@ -216,7 +225,7 @@ export const getDatasetService = createSelector(
         new DatasetService({
             applicationVersion,
             userName,
-            fileExplorerServiceBaseUrl: fileExplorerServiceBaseUrl,
+            fileExplorerServiceBaseUrl,
         })
 );
 

@@ -1,6 +1,7 @@
 import { expect } from "chai";
 
 import { PersistedConfigKeys } from "../../../../core/services";
+import { AnnotationType } from "../../../../core/entity/AnnotationFormatter";
 import { Environment, RUN_IN_RENDERER } from "../../util/constants";
 import PersistentConfigServiceElectron from "../PersistentConfigServiceElectron";
 
@@ -127,7 +128,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                         annotationDisplayName: "Foo",
                         annotationName: "foo",
                         description: "foo-long",
-                        type: "string",
+                        type: AnnotationType.STRING,
                         units: "string",
                     },
                 ],

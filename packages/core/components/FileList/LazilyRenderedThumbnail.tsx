@@ -1,9 +1,9 @@
-import { Spinner, SpinnerSize } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
 import { OnSelect } from "./useFileSelector";
+import LoadingIcon from "../Icons/LoadingIcon";
 import Tooltip from "../Tooltip";
 import FileThumbnail from "../../components/FileThumbnail";
 import { FileView } from "../../entity/SearchParams";
@@ -136,7 +136,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
         // Grid will attempt to render a cell even if we're past the total index
         content = (
             <div className={styles.loadingContainer}>
-                <Spinner data-testid="loading-spinner" size={SpinnerSize.small} />
+                <LoadingIcon data-testid="loading-spinner" />
             </div>
         );
     } // No `else` since if past total index we stil want empty content to fill up the outer grid

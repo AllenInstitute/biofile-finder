@@ -6,6 +6,7 @@ import { Provider } from "react-redux";
 import * as sinon from "sinon";
 
 import Annotation from "../../../entity/Annotation";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileDetail from "../../../entity/FileDetail";
 import FileSet from "../../../entity/FileSet";
 import { initialState } from "../../../state";
@@ -18,7 +19,7 @@ describe("<LazilyRenderedRow />", () => {
         annotationDisplayName: "Name",
         annotationName: "file_name",
         description: "name of file",
-        type: "Text",
+        type: AnnotationType.STRING,
     });
 
     function makeItemData() {
