@@ -33,6 +33,7 @@ import {
     REPLACE_DATA_SOURCE,
     ReplaceDataSource,
     REMOVE_QUERY,
+    resetQueryProperties,
     changeDataSources,
     ChangeDataSourcesAction,
     CHANGE_DATA_SOURCES,
@@ -735,10 +736,10 @@ const removeQueryLogic = createLogic({
     type: REMOVE_QUERY,
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const queries = selectionSelectors.getQueries(deps.getState());
-        // If removing the last query, must also remove the query params from the URL
+        // If removing the last query, must also reset query-related properties in store
+        // which has a side effect of removing the query params from the URL
         if (queries.length === 0) {
-            const emptySearchParamUrl = window.location.toString().split("?")[0];
-            window.history.pushState({ path: emptySearchParamUrl }, "", emptySearchParamUrl);
+            dispatch(resetQueryProperties());
         }
         dispatch(changeQuery(queries[0]));
         done();

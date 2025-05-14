@@ -355,6 +355,24 @@ export function removeQuery(queryName: string): RemoveQuery {
 }
 
 /**
+ * RESET_QUERY_FIELDS
+ *
+ * Intention is to reset all query-related state properties to their default values.
+ * Necessary when clearing the last query from the query list
+ */
+export const RESET_QUERY_FIELDS = makeConstant(STATE_BRANCH_NAME, "reset-query-fields");
+
+export interface ResetQueryFields {
+    type: string;
+}
+
+export function resetQueryProperties(): ResetQueryFields {
+    return {
+        type: RESET_QUERY_FIELDS,
+    };
+}
+
+/**
  * REPLACE_DATA_SOURCE
  *
  * Intention to replace the current data source with a new one.
