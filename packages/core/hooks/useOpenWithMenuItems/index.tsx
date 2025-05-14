@@ -182,8 +182,7 @@ function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
         return [];
     }
 
-    const isLikelyLocalFile =
-        !fileDetails.path.startsWith("http") && !fileDetails.path.startsWith("s3");
+    const isLikelyLocalFile = fileDetails.isLikelyLocalFile;
 
     const fileExt = fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
     const apps = APPS(fileDetails);
