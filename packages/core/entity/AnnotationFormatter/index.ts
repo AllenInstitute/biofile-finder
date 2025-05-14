@@ -12,7 +12,21 @@ export enum AnnotationType {
     STRING = "Text",
     BOOLEAN = "YesNo",
     DURATION = "Duration",
+    DROPDOWN = "Dropdown",
+    LOOKUP = "Lookup",
 }
+
+// ID table source via Labkey server: executeQuery.view?schemaName=filemetadata&query.queryName=AnnotationType
+export const AnnotationTypeIdMap = {
+    [AnnotationType.STRING]: 1,
+    [AnnotationType.NUMBER]: 2,
+    [AnnotationType.BOOLEAN]: 3,
+    [AnnotationType.DATETIME]: 4,
+    [AnnotationType.DROPDOWN]: 5,
+    [AnnotationType.LOOKUP]: 6,
+    [AnnotationType.DATE]: 7,
+    [AnnotationType.DURATION]: 8,
+};
 
 export interface AnnotationFormatter {
     displayValue(value: any, unit?: string): string;

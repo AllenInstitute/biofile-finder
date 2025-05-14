@@ -1,20 +1,29 @@
 import { uniqBy } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { interaction, ReduxLogicDeps, selection } from "..";
+import { interaction, metadata, ReduxLogicDeps, selection } from "..";
 import {
+    CREATE_ANNOTATION,
+    CreateAnnotationAction,
     RECEIVE_ANNOTATIONS,
     ReceiveAnnotationAction,
     receiveAnnotations,
     receiveDatasetManifest,
     receiveDataSources,
+    receivePasswordMapping,
     REQUEST_ANNOTATIONS,
     REQUEST_DATA_SOURCES,
     REQUEST_DATASET_MANIFEST,
+    REQUEST_PASSWORD_MAPPING,
     RequestDatasetManifest,
+    STORE_NEW_ANNOTATION,
+    storeNewAnnotation,
+    StoreNewAnnotationAction,
 } from "./actions";
 import * as metadataSelectors from "./selectors";
+import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
+import { AnnotationType, AnnotationTypeIdMap } from "../../entity/AnnotationFormatter";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 
@@ -108,6 +117,63 @@ const receiveAnnotationsLogic = createLogic({
     type: RECEIVE_ANNOTATIONS,
 });
 
+const createNewAnnotationLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { getState, httpClient, action } = deps;
+        const {
+            payload: { annotation, annotationOptions, user },
+        } = action as CreateAnnotationAction;
+        const annotationProcessId = annotation.name;
+        dispatch(
+            interaction.actions.processStart(
+                annotationProcessId,
+                `Creating new field "${annotation.name}"...`
+            )
+        );
+
+        const annotationService = interaction.selectors.getAnnotationService(getState());
+        const applicationVersion = interaction.selectors.getApplicationVersion(getState());
+        if (annotationService instanceof HttpAnnotationService) {
+            if (applicationVersion) {
+                annotationService.setApplicationVersion(applicationVersion);
+            }
+            annotationService.setHttpClient(httpClient);
+        }
+
+        // HTTP returns the annotation, DB does not
+        await new Promise<AnnotationResponseMms[] | void>((resolve, reject) => {
+            annotationService
+                .createAnnotation(annotation, annotationOptions, user)
+                .then((res) => {
+                    // For HTTPS annotations, temporarily capture the returned
+                    // annotation metadata so that it can be used to edit file metadata
+                    if (res?.[0].annotationId) {
+                        dispatch(storeNewAnnotation(res?.[0]));
+                    }
+
+                    dispatch(
+                        interaction.actions.processSuccess(
+                            annotationProcessId,
+                            `Successfully created new field "${annotation.name}"`
+                        )
+                    );
+                    resolve(res);
+                })
+                .catch((err) => {
+                    const msg = `Sorry, creation of field name/key "${annotation.name}" failed${
+                        err?.message
+                            ? `: ${err.message}`
+                            : ". Please try again later or contact the support team for further assistance."
+                    }`;
+                    dispatch(interaction.actions.processError(annotationProcessId, msg));
+                    reject(err);
+                })
+                .finally(() => done());
+        });
+    },
+    type: CREATE_ANNOTATION,
+});
+
 /**
  * Interceptor responsible for turning REQUEST_DATA_SOURCES action into a network call for data source. Outputs
  * RECEIVE_DATA_SOURCES action.
@@ -130,23 +196,38 @@ const requestDataSources = createLogic({
 });
 
 /**
+ * Interceptor responsible for the REQUEST_PASSWORD_MAPPING action
+ * which is used to request the password mapping for AICS FMS as a placeholder for
+ * a more robust auth solution
+ */
+const requestPasswordMapping = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const datasetBucketUrl = interaction.selectors.getDatasetBucketUrl(deps.getState());
+        const result = await deps.httpClient.get(`${datasetBucketUrl}/metadata_passwords.json`);
+        dispatch(receivePasswordMapping(result.data));
+        done();
+    },
+    type: REQUEST_PASSWORD_MAPPING,
+});
+
+/**
  * Interceptor responsible for passing the REQUEST_DATASET_MANIFEST action to the database service.
  * Outputs RECEIVE_DATASET_MANIFEST action to request state.
  */
 const requestDatasetManifest = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const {
-            payload: { name, uri },
+            payload: { name },
         } = deps.action as RequestDatasetManifest;
+        const datasetBucketUrl = interaction.selectors.getDatasetBucketUrl(deps.getState());
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
 
         try {
-            if (uri) {
-                await databaseService.prepareDataSources([{ name, type: "csv", uri }]);
-                dispatch(receiveDatasetManifest(name, uri));
-            }
+            const uri = `${datasetBucketUrl}/Dataset+Manifest.csv`;
+            await databaseService.prepareDataSources([{ name, type: "csv", uri }]);
+            dispatch(receiveDatasetManifest(name, uri));
         } catch (err) {
             console.error("Failed to add dataset manifest", err);
         } finally {
@@ -156,9 +237,39 @@ const requestDatasetManifest = createLogic({
     type: REQUEST_DATASET_MANIFEST,
 });
 
+/**
+ * This is a workaround to get new annotations to temporarily show up in the store after creation
+ * so that they can be used in file metadata editing regardless of whether they've been fully ingested
+ */
+const storeNewAnnotationLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const {
+            payload: { annotation },
+        } = deps.action as StoreNewAnnotationAction;
+        const annotations = metadata.selectors.getAnnotations(deps.getState());
+        const type =
+            Object.keys(AnnotationTypeIdMap).find(
+                (key) => AnnotationTypeIdMap[key as AnnotationType] === annotation.annotationTypeId
+            ) || AnnotationType.STRING;
+        const newMmsAnnotation = new Annotation({
+            annotationName: annotation.name,
+            annotationDisplayName: annotation.name,
+            annotationId: annotation.annotationId,
+            description: annotation.description,
+            type: type as AnnotationType,
+        });
+        dispatch(receiveAnnotations([...annotations, newMmsAnnotation]));
+        done();
+    },
+    type: STORE_NEW_ANNOTATION,
+});
+
 export default [
+    createNewAnnotationLogic,
     requestAnnotations,
     receiveAnnotationsLogic,
     requestDataSources,
     requestDatasetManifest,
+    requestPasswordMapping,
+    storeNewAnnotationLogic,
 ];

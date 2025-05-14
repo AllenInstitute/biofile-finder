@@ -22,6 +22,7 @@ import { createSandbox } from "sinon";
 import { FESBaseUrl, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import { FmsFileAnnotation } from "../../../services/FileService";
 import FileFilter from "../../../entity/FileFilter";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
@@ -44,13 +45,13 @@ describe("<DirectoryTree />", () => {
         annotationDisplayName: "Foo",
         annotationName: "foo",
         description: "",
-        type: "Text",
+        type: AnnotationType.STRING,
     });
     const barAnnotation = new Annotation({
         annotationDisplayName: "Bar",
         annotationName: "bar",
         description: "",
-        type: "Text",
+        type: AnnotationType.STRING,
     });
 
     const baseDisplayAnnotations = TOP_LEVEL_FILE_ANNOTATIONS.filter(

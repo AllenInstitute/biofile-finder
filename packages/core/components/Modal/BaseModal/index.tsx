@@ -10,6 +10,7 @@ interface BaseModalProps {
     footer?: React.ReactNode;
     onDismiss?: () => void;
     title?: string;
+    isStatic?: boolean; // Not draggable
 }
 
 /**
@@ -45,4 +46,5 @@ export default function BaseModal(props: BaseModalProps) {
 BaseModal.defaultProps = {
     footer: null,
     onDismiss: noop,
+    isStatic: false,
 };

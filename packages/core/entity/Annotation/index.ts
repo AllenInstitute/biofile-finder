@@ -1,7 +1,10 @@
 import { get as _get, sortBy } from "lodash";
 
 import AnnotationName from "./AnnotationName";
-import annotationFormatterFactory, { AnnotationFormatter } from "../AnnotationFormatter";
+import annotationFormatterFactory, {
+    AnnotationFormatter,
+    AnnotationType,
+} from "../AnnotationFormatter";
 import FileDetail from "../FileDetail";
 import { AnnotationValue } from "../../services/AnnotationService";
 
@@ -9,12 +12,25 @@ import { AnnotationValue } from "../../services/AnnotationService";
  * Expected JSON structure of an annotation returned from the query service.
  */
 export interface AnnotationResponse {
+    // Undefined when pulled from a non-AICS FMS data source
+    annotationId?: number;
     annotationDisplayName: string;
     annotationName: string;
     description: string;
-    type: string;
+    isImmutable?: boolean;
+    type: AnnotationType;
     isOpenFileLink?: boolean;
     units?: string;
+}
+
+/**
+ * MMS queries return a different JSON structure than FES
+ */
+export interface AnnotationResponseMms {
+    annotationId: number;
+    annotationTypeId: number;
+    description: "string";
+    name: string;
 }
 
 /**
@@ -58,7 +74,7 @@ export default class Annotation {
         return this.annotation.annotationName;
     }
 
-    public get type(): string {
+    public get type(): string | AnnotationType {
         return this.annotation.type;
     }
 
@@ -66,8 +82,22 @@ export default class Annotation {
         return this.annotation.isOpenFileLink || false;
     }
 
+    /**
+     * Whether or not this annotation is immutable. Immutable annotations are not expected to change
+     * over time, and are not expected to be updated by the user. Examples include file size, file
+     * name, file path, etc. Mutable annotations are expected to be updated by the user, and can
+     * change over time. Examples include Gene, Cell Line, Program, etc.
+     */
+    public get isImmutable(): boolean {
+        return this.annotation.isImmutable || false;
+    }
+
     public get units(): string | undefined {
         return this.annotation.units;
+    }
+
+    public get id(): number | undefined {
+        return this.annotation.annotationId;
     }
 
     /**

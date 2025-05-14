@@ -1,0 +1,47 @@
+.display-block {
+  display: block;
+}
+
+.dateTimeWrapper {
+  display: flex;
+}
+
+.date-range-root {
+  width: 300px;
+  min-width: 145px;
+}
+
+.date-range-text-field div, .time-picker {
+  background-color: var(--secondary-background-color);
+  border: none;
+  border-radius: var(--small-border-radius);
+  color: var(--primary-text-color);
+}
+
+.date-range-text-field div::after, .time-picker:focus-visible {    
+  border: 1px solid var(--aqua);
+  outline: none;
+}
+
+.date-range-text-field > div, .time-picker {
+  border: 1px solid var(--border-color)
+}
+
+.date-range-text-field i, .time-picker i {
+  color: var(--primary-text-color);
+}
+
+.read-only-placeholder {
+  margin-right: 20px;
+  font-style: italic;
+  font-size: var(--s-paragraph-size) !important; /* override FluentUI button callout font size*/
+  color: var(--primary-text-color);
+}
+
+.time-picker {
+  height: 34px;
+  margin: 0 0 5px 5px;
+  color-scheme: dark;
+  width: 150px;
+  padding: 0 5px;
+}

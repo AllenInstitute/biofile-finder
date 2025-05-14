@@ -58,32 +58,26 @@ export default class HttpServiceBase {
      */
     public static encodeURI(uri: string) {
         const queryStringStart = uri.indexOf("?");
-        let path = uri;
-        let queryString = "";
-        if (queryStringStart !== -1) {
-            path = uri.substring(0, queryStringStart);
-            queryString = uri.substring(queryStringStart + 1);
-        }
 
-        if (!queryString) {
+        // If no query arguments, return the original URI
+        if (queryStringStart === -1 || queryStringStart === uri.length - 1) {
             return uri;
         }
 
-        // encode ampersands that do not separate query string components, so first
-        // need to separate the query string components (which are split by ampersands themselves)
-        // handles case like `workflow=R&DExp&cell_line=AICS-46&foo=bar&cTnT%=3.0`
-        const re = /&(?=(?:[^&])+\=)/g;
-        const queryStringComponents = queryString.split(re);
+        const path = uri.substring(0, queryStringStart);
+        const queryString = uri.substring(queryStringStart + 1);
 
-        const encodedQueryString = queryStringComponents
+        // encode ampersands that do not separate query string components, so
+        // handles case like `workflow=R&DExp&cell_line=AICS-46&foo=bar&cTnT%=3.0`
+        const encodedQueryString = queryString
+            // first need to separate the query string components
+            // (which are split by ampersands themselves)
+            .split(/&(?=(?:[^&])+\=)/g)
+            // Then encode each individual component
             .map((keyValuePair) => this.encodeURISection(keyValuePair))
             .join("&");
 
-        if (encodedQueryString) {
-            return `${path}?${encodedQueryString}`;
-        }
-
-        return path;
+        return `${path}?${encodedQueryString}`;
     }
 
     /**
@@ -109,7 +103,7 @@ export default class HttpServiceBase {
 
     protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
     private applicationVersion = "NOT SET";
-    private userName?: string;
+    protected userName?: string;
     protected readonly pathSuffix: string = "";
     private readonly urlToResponseDataCache = new LRUCache<string, any>({ max: MAX_CACHE_SIZE });
 
@@ -143,8 +137,13 @@ export default class HttpServiceBase {
         }
     }
 
-    public async get<T>(url: string): Promise<RestServiceResponse<T>> {
-        const encodedUrl = HttpServiceBase.encodeURI(url);
+    public async get<T>(url: string, queryArguments?: string[]): Promise<RestServiceResponse<T>> {
+        let encodedUrl = HttpServiceBase.encodeURI(url);
+        if (queryArguments) {
+            encodedUrl += `?${queryArguments
+                .map((arg) => HttpServiceBase.encodeURISection(arg))
+                .join("&")}`;
+        }
 
         if (!this.urlToResponseDataCache.has(encodedUrl)) {
             let response;
@@ -265,6 +264,35 @@ export default class HttpServiceBase {
             response = await retry.execute(() => this.httpClient.post(encodedUrl, body, config));
         } catch (err) {
             // Specific errors about the failure from services will be in this path
+            if (
+                axios.isAxiosError(err) &&
+                (err?.response?.data?.message || err?.response?.data?.error)
+            ) {
+                throw new Error(
+                    JSON.stringify(err.response.data.message || err.response.data.error)
+                );
+            }
+            throw err;
+        }
+
+        if (response.status >= 400 || response.data === undefined) {
+            // by default axios will reject if does not satisfy: status >= 200 && status < 300
+            throw new Error(`Request for ${encodedUrl} failed`);
+        }
+
+        return new RestServiceResponse(response.data);
+    }
+
+    public async put<T>(url: string, body: string): Promise<RestServiceResponse<T>> {
+        const encodedUrl = HttpServiceBase.encodeURI(url);
+        const config = { headers: { "Content-Type": "application/json" } };
+
+        let response;
+        try {
+            // if this fails, bubble up exception
+            response = await retry.execute(() => this.httpClient.put(encodedUrl, body, config));
+        } catch (err) {
+            // Specific errors about the failure from services will be in this path
             if (axios.isAxiosError(err) && err?.response?.data?.message) {
                 throw new Error(JSON.stringify(err.response.data.message));
             }
@@ -356,7 +384,7 @@ export default class HttpServiceBase {
         this.metadataManagementServiceBaseURl = metadataManagementServiceBaseURl;
     }
 
-    public setUserName(userName: string) {
+    public setUserName(userName?: string) {
         this.userName = userName;
         this.setHeaders();
     }

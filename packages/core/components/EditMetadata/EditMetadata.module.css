@@ -1,0 +1,163 @@
+.root {
+  --edit-form-field-width: 350px
+}
+
+.combo-box {
+  width: var(--edit-form-field-width);
+  padding-bottom: var(--margin);
+}
+
+.choice-group {
+  padding-bottom: var(--margin);
+}
+
+.chips {
+  padding-left: 5px;
+}
+
+.error-message {
+  color: var(--error-status-text-color);
+  line-height: 1.5;
+}
+
+.warning-message {
+  color: var(--warning-status-text-color);
+  line-height: 1.5;
+  font-size: 12px;
+  top: -5px;
+  position: relative;
+  margin-bottom: 5px;
+  max-width: var(--edit-form-field-width);
+}
+
+.warning-message-fields {
+  margin-block: 0;
+}
+
+.status-message {
+  color: var(--info-status-text-color);
+  display: flex;
+}
+
+.spinner {
+  margin: 0 0.5em;
+}
+
+.spinner > div {
+  border-color: var(--info-status-background-color) var(--info-status-text-color) var(--info-status-text-color);
+}
+
+.footer {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.footer-align-right {
+  width: 100%;
+  display: flex;
+}
+
+.footer-align-right > * {
+  margin-left: 10px;
+  width: min-content;
+}
+
+.footer-align-right > *:first-child{
+  margin-left: auto;
+}
+
+.primary-button:disabled {
+  background-color: var(--border-color);
+  color: var(--primary-text-color)
+}
+
+.submit-icon {
+  align-items: center;
+  border-radius: var(--small-border-radius);
+  cursor: pointer;
+  display: flex;
+  padding: 0 0.5em;
+}
+
+.submit-icon.disabled {
+  cursor: default;
+  opacity: 0.8;
+}
+
+.submit-icon:hover:not(.disabled), .submit-icon:focus:not(.disabled) {
+  background-color: var(--highlight-background-color);
+  color: var(--highlight-text-color);
+}
+
+.selected-option-container {
+  display: flex;
+  margin-left: var(--margin);
+}
+
+.selected-option {
+  align-items: center;
+  display: flex;
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: min-content;
+  white-space: nowrap;
+}
+
+.selected-option-button {
+  color: var(--primary-text-color);
+  margin-left: 10px;
+}
+
+.selected-option-button:hover {
+  background-color: unset;
+  color: var(--highlight-text-color);
+}
+
+.text-field {
+  padding-bottom: var(--margin);
+  width: var(--edit-form-field-width);
+}
+
+.text-field > div > label, .text-field > div > label::after {
+  color: var(--secondary-text-color) !important;
+  font-size: var(--l-paragraph-size);
+}
+
+.text-field :is(input), .text-field :is(textarea) {
+  background-color: var(--secondary-background-color) !important;
+  color: var(--secondary-text-color) !important;
+  border-radius: 4px;
+}
+
+.text-field > div:focus, .text-field div:focus-visible, .text-field:focus-visible, .text-field > div:active {
+  outline: none;
+}
+
+.text-field > div > div {
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--secondary-background-color) !important;
+  color: var(--secondary-text-color) !important;
+}
+
+.text-field > div > div::after {
+  border: 1px solid var(--aqua);
+  border-radius: 4px;
+  outline: none;
+}
+
+.text-field > div > div > *::placeholder {
+  color: var(--secondary-text-color);
+  font-style: italic;
+}
+
+.text-field > div > div:hover {
+  border: 1px solid var(--border-color)
+}
+
+.text-field-error > div > div  {
+  border: 1px solid var(--error-status-text-color);
+  border-radius: 4px;
+}

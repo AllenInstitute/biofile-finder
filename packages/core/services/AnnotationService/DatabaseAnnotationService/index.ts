@@ -1,8 +1,9 @@
 import { isNil, uniq } from "lodash";
 
-import AnnotationService, { AnnotationValue } from "..";
+import AnnotationService, { AnnotationDetails, AnnotationValue } from "..";
 import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
@@ -38,6 +39,27 @@ export default class DatabaseAnnotationService implements AnnotationService {
      */
     public fetchAnnotations(): Promise<Annotation[]> {
         return this.databaseService.fetchAnnotations(this.dataSourceNames);
+    }
+
+    /**
+     * Fetch details about annotations like their type and dropdown options
+     * this isn't necessarily something we need to do for database annotations
+     * so this might just be cruft we can remove with adjustments to the AICS FMS
+     * data flow by having types be passed as is in the annotation response (big lift in FES)
+     */
+    public async fetchAnnotationDetails(name: string): Promise<AnnotationDetails> {
+        const annotationNameToTypeMap = await this.databaseService.fetchAnnotationTypes();
+        const type = annotationNameToTypeMap[name] as AnnotationType;
+        // If the annotation type is not recognized, default to string
+        // this may happen for types like "Open file link"
+        if (!Object.values(AnnotationType).includes(type) || type === AnnotationType.LOOKUP) {
+            return { type: AnnotationType.STRING };
+        }
+        if (type === AnnotationType.DROPDOWN) {
+            const dropdownOptions = await this.fetchValues(name);
+            return { type, dropdownOptions: dropdownOptions as string[] };
+        }
+        return { type };
     }
 
     /**
@@ -139,5 +161,23 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 return annotations;
             }, [] as string[])
             .filter((annotation) => !annotationSet.has(annotation));
+    }
+
+    /**
+     * Validate annotation values according the type the annotation they belong to.
+     */
+    public validateAnnotationValues(_name: string, _values: AnnotationValue[]): Promise<boolean> {
+        // At the moment we don't have any constraints we need to adhere to for edits to annotation values
+        // eventually we may want to add some validation to make sure dates are in the correct format, etc.
+        return Promise.resolve(true);
+    }
+
+    public createAnnotation(annotation: Annotation): Promise<void> {
+        const tableName = this.dataSourceNames.sort().join(DatabaseService.LIST_DELIMITER);
+        return this.databaseService.addNewColumn(
+            tableName,
+            annotation.name,
+            annotation.description
+        );
     }
 }

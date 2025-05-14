@@ -1,4 +1,6 @@
+import { AnnotationValue } from "../AnnotationService";
 import { DownloadResult } from "../FileDownloadService";
+import Annotation from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
@@ -38,6 +40,10 @@ export interface Selection {
     include?: string[];
 }
 
+export interface AnnotationNameToValuesMap {
+    [name: string]: AnnotationValue[];
+}
+
 export default interface FileService {
     fileExplorerServiceBaseUrl?: string;
     download(
@@ -45,7 +51,13 @@ export default interface FileService {
         selections: Selection[],
         format: "csv" | "json" | "parquet"
     ): Promise<DownloadResult>;
-    getCountOfMatchingFiles(fileSet: FileSet): Promise<number>;
+    editFile(
+        fileId: string,
+        annotations: AnnotationNameToValuesMap,
+        annotationNameToAnnotationMap?: Record<string, Annotation>,
+        user?: string
+    ): Promise<void>;
     getAggregateInformation(fileSelection: FileSelection): Promise<SelectionAggregationResult>;
+    getCountOfMatchingFiles(fileSet: FileSet): Promise<number>;
     getFiles(request: GetFilesRequest): Promise<FileDetail[]>;
 }

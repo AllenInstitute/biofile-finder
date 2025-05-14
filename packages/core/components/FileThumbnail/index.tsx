@@ -1,9 +1,10 @@
 import classNames from "classnames";
 import * as React from "react";
-import { Spinner, SpinnerSize } from "@fluentui/react";
+import { SpinnerSize } from "@fluentui/react";
 
-import { NO_IMAGE_ICON_PATH_DATA } from "../../icons";
+import LoadingIcon from "../Icons/LoadingIcon";
 import SvgIcon from "../SvgIcon";
+import { NO_IMAGE_ICON_PATH_DATA } from "../../icons";
 
 import styles from "./FileThumbnail.module.css";
 
@@ -36,7 +37,7 @@ export default function FileThumbnail(props: Props) {
                     maxWidth: props.width,
                 }}
             >
-                <Spinner size={SpinnerSize.large} />
+                <LoadingIcon size={SpinnerSize.large} />
             </div>
         );
     }
