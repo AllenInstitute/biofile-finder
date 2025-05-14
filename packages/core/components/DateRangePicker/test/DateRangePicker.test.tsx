@@ -11,18 +11,18 @@ describe("<DateRangePicker />", () => {
     it("renders inputs for start and end dates with selectable date pickers", () => {
         // Arrange
         const onSearch = sinon.spy();
-        const { getAllByLabelText, getAllByRole, getByLabelText, getByRole } = render(
+        const { getAllByText, getAllByRole, getByRole, getByText } = render(
             <DateRangePicker onSearch={onSearch} onReset={noop} currentRange={undefined} />
         );
 
         // Should render both input fields
         expect(getAllByRole("combobox").length).to.equal(2);
-        expect(getAllByLabelText(/start/).length).to.equal(1);
-        expect(getAllByLabelText(/end/).length).to.equal(1);
+        expect(getAllByText(/Start/).length).to.equal(1);
+        expect(getAllByText(/End/).length).to.equal(1);
 
         // Select a start date
         expect(onSearch.called).to.equal(false);
-        fireEvent.click(getByLabelText(/start/));
+        fireEvent.click(getByText(/Start/));
         fireEvent.click(getByRole("button", { name: /^18,\s/ }));
         expect(onSearch.called).to.equal(true);
 
@@ -31,7 +31,7 @@ describe("<DateRangePicker />", () => {
 
         // Select an end date
         expect(onSearch.called).to.equal(false);
-        fireEvent.click(getByLabelText(/end/));
+        fireEvent.click(getByText(/End/));
         fireEvent.click(getByRole("button", { name: /^20,\s/ }));
         expect(onSearch.called).to.equal(true);
     });

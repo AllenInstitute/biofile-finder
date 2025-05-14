@@ -1,6 +1,6 @@
 import { makeConstant } from "@aics/redux-utils";
 
-import Annotation from "../../entity/Annotation";
+import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
 import { DataSource } from "../../services/DataSourceService";
 
 const STATE_BRANCH_NAME = "metadata";
@@ -39,6 +39,33 @@ export interface RequestAnnotationAction {
 export function requestAnnotations(): RequestAnnotationAction {
     return {
         type: REQUEST_ANNOTATIONS,
+    };
+}
+
+/**
+ * CREATE_ANNOTATION
+ *
+ * Intention to create a new annotation in the data service that will become available for grouping, filtering, and sorting files.
+ */
+export const CREATE_ANNOTATION = makeConstant(STATE_BRANCH_NAME, "create-annotation");
+
+export interface CreateAnnotationAction {
+    payload: {
+        annotation: Annotation;
+        annotationOptions?: string[];
+        user?: string;
+    };
+    type: string;
+}
+
+export function createAnnotation(
+    annotation: Annotation,
+    annotationOptions?: string[],
+    user?: string
+): CreateAnnotationAction {
+    return {
+        payload: { annotation, annotationOptions, user },
+        type: CREATE_ANNOTATION,
     };
 }
 
@@ -92,14 +119,13 @@ export const REQUEST_DATASET_MANIFEST = makeConstant(STATE_BRANCH_NAME, "request
 export interface RequestDatasetManifest {
     payload: {
         name: string;
-        uri: string;
     };
     type: string;
 }
 
-export function requestDatasetManifest(name: string, uri: string): RequestDatasetManifest {
+export function requestDatasetManifest(name: string): RequestDatasetManifest {
     return {
-        payload: { name, uri },
+        payload: { name },
         type: REQUEST_DATASET_MANIFEST,
     };
 }
@@ -123,5 +149,65 @@ export function receiveDatasetManifest(name: string, uri: string): ReceiveDatase
     return {
         payload: { name, uri },
         type: RECEIVE_DATASET_MANIFEST,
+    };
+}
+
+/**
+ * STORE_NEW_ANNOTATION
+ * Temporarily cache a newly created annotation before it is ingested to FES
+ */
+export const STORE_NEW_ANNOTATION = makeConstant(STATE_BRANCH_NAME, "store-new-annotation");
+
+export interface StoreNewAnnotationAction {
+    payload: {
+        annotation: AnnotationResponseMms;
+    };
+    type: string;
+}
+
+export function storeNewAnnotation(annotation: AnnotationResponseMms): StoreNewAnnotationAction {
+    return {
+        payload: { annotation },
+        type: STORE_NEW_ANNOTATION,
+    };
+}
+
+/**
+ * REQUEST_PASSWORD_MAPPING
+ *
+ * Intention to request password mapping for AICS FMS - this is a temporary solution
+ * until we have a more robust solution for handling passwords in the app.
+ */
+export const REQUEST_PASSWORD_MAPPING = makeConstant(STATE_BRANCH_NAME, "request-password-mapping");
+
+export interface RequestPasswordMappingAction {
+    type: string;
+}
+
+export function requestPasswordMapping(): RequestPasswordMappingAction {
+    return {
+        type: REQUEST_PASSWORD_MAPPING,
+    };
+}
+
+/**
+ * RECEIVE_PASSWORD_MAPPING
+ *
+ * Intention to store password mapping for AICS FMS - this is a temporary solution
+ * until we have a more robust solution for handling passwords in the app.
+ */
+export const RECEIVE_PASSWORD_MAPPING = makeConstant(STATE_BRANCH_NAME, "receive-password-mapping");
+
+export interface ReceivePasswordMappingAction {
+    payload: Record<string, string>;
+    type: string;
+}
+
+export function receivePasswordMapping(
+    passwordToProgramMap: Record<string, string>
+): ReceivePasswordMappingAction {
+    return {
+        payload: passwordToProgramMap,
+        type: RECEIVE_PASSWORD_MAPPING,
     };
 }

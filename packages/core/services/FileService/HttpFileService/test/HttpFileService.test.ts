@@ -2,7 +2,7 @@ import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 
 import HttpFileService from "..";
-import { FESBaseUrl, LoadBalancerBaseUrl } from "../../../../constants";
+import { FESBaseUrl, LoadBalancerBaseUrl, MMSBaseUrl } from "../../../../constants";
 import FileSelection from "../../../../entity/FileSelection";
 import FileSet from "../../../../entity/FileSet";
 import NumericRange from "../../../../entity/NumericRange";
@@ -11,6 +11,7 @@ import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadSe
 describe("HttpFileService", () => {
     const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
     const loadBalancerBaseUrl = LoadBalancerBaseUrl.TEST;
+    const metadataManagementServiceBaseURl = MMSBaseUrl.TEST;
     const fileIds = ["abc123", "def456", "ghi789", "jkl012"];
     const files = fileIds.map((file_id) => ({
         file_id,
@@ -43,6 +44,39 @@ describe("HttpFileService", () => {
             const data = response;
             expect(data.length).to.equal(1);
             expect(data[0].id).to.equal(files[0]["file_id"]);
+        });
+    });
+
+    describe("editFile", () => {
+        const httpClient = createMockHttpClient([
+            {
+                when: () => true,
+                respondWith: {},
+            },
+        ]);
+
+        it("fails if unable to find id of annotation", async () => {
+            // Arrange
+            const httpFileService = new HttpFileService({
+                metadataManagementServiceBaseURl,
+                httpClient,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+
+            // Act / Assert
+            try {
+                await httpFileService.editFile(
+                    "file_id",
+                    { ["Color"]: ["red"] },
+                    undefined,
+                    "Unknown"
+                );
+                expect(false, "Expected to throw").to.be.true;
+            } catch (e) {
+                expect((e as Error).message).to.equal(
+                    "Unable to edit file. Failed to find annotation id for annotation Color"
+                );
+            }
         });
     });
 
