@@ -43,7 +43,7 @@ interface AppProps {
 }
 
 export default function App(props: AppProps) {
-    const { environment = Environment.PRODUCTION } = {};
+    const { environment = Environment.PRODUCTION } = props;
 
     const dispatch = useDispatch();
     const hasQuerySelected = useSelector(selection.selectors.hasQuerySelected);

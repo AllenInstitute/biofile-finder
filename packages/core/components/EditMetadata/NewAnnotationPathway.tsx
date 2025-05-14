@@ -1,4 +1,4 @@
-import { IconButton, Spinner, SpinnerSize, Stack, StackItem, TextField } from "@fluentui/react";
+import { IconButton, Stack, StackItem, TextField } from "@fluentui/react";
 import classNames from "classnames";
 import Fuse from "fuse.js";
 import * as React from "react";
@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import MetadataDetails, { ValueCountItem } from "./MetadataDetails";
 import { PrimaryButton, SecondaryButton } from "../Buttons";
 import ComboBox from "../ComboBox";
+import LoadingIcon from "../Icons/LoadingIcon";
 import Tooltip from "../Tooltip";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
@@ -333,7 +334,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                             )}
                         >
                             {submissionStatus.status === ProcessStatus.STARTED && (
-                                <Spinner className={styles.spinner} size={SpinnerSize.small} />
+                                <LoadingIcon className={styles.spinner} />
                             )}
                             {submissionStatus?.message}
                         </div>

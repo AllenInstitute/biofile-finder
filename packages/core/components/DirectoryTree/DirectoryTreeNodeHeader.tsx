@@ -1,8 +1,8 @@
-import { Spinner, SpinnerSize } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
+import LoadingIcon from "../Icons/LoadingIcon";
 import Tooltip from "../Tooltip";
 import SvgIcon from "../../components/SvgIcon";
 import { selection } from "../../state";
@@ -124,7 +124,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
             />
             <h4 className={styles.directoryName}>{isLongHeader ? titleShortened : title}</h4>
             {selectionCountBadge}
-            {loading && <Spinner size={SpinnerSize.small} />}
+            {loading && <LoadingIcon />}
             {!loading && error && collapsed && (
                 <Tooltip content={error.message}>
                     <SvgIcon
