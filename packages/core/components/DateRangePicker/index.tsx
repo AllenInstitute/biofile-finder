@@ -16,21 +16,11 @@ interface DateRangePickerProps {
     currentRange: FileFilter | undefined;
 }
 
-// Because the datestring comes in as an ISO formatted date like 2021-01-02
-// creating a new date from that would result in a date displayed as the
-// day before due to the UTC offset, to account for this we can add in the offset
-// ahead of time.
-export function extractDateFromDateString(dateString?: string): Date | undefined {
-    if (!dateString) {
-        return undefined;
-    }
-    const date = new Date(dateString);
-    date.setMinutes(date.getTimezoneOffset());
-    return date;
-}
-
 const DATE_ABSOLUTE_MIN = new Date();
 DATE_ABSOLUTE_MIN.setFullYear(2000);
+// End of today
+const DATE_ABSOLUTE_MAX = new Date();
+DATE_ABSOLUTE_MAX.setHours(23, 59, 59);
 
 /**
  * This component renders a simple form for selecting a minimum and maximum date range
@@ -50,10 +40,16 @@ export default function DateRangePicker(props: DateRangePickerProps) {
             // To handle that, we subtract a day from the upper bound used by the filter, then present the result
             oldEndDate.setDate(oldEndDate.getDate() - 1);
         }
-        const endOfToday = new Date();
-        endOfToday.setHours(23, 59, 59);
         const newStartDate = startDate || oldStartDate || DATE_ABSOLUTE_MIN;
-        const newEndDate = endDate || oldEndDate || endOfToday;
+        const newEndDate = endDate || oldEndDate || DATE_ABSOLUTE_MAX;
+        // Avoid re-triggering search if the values haven't changed
+        if (
+            newStartDate?.valueOf() === oldStartDate?.valueOf() &&
+            newEndDate?.valueOf() === oldEndDate?.valueOf()
+        ) {
+            return;
+        }
+
         if (newStartDate && newEndDate) {
             // Add 1 day to endDate to account for RANGE() filter upper bound exclusivity
             const newEndDatePlusOne = new Date(newEndDate);
@@ -73,7 +69,7 @@ export default function DateRangePicker(props: DateRangePickerProps) {
                 <DateTimePicker
                     placeholder="Start of date range"
                     onSelectDate={(v) => (v ? onDateRangeSelection(v, null) : onReset())}
-                    defaultDate={extractDateFromDateString(startDate?.toISOString())}
+                    defaultDate={startDate}
                 />
                 <div className={styles.dateRangeSeparator}>
                     <Icon iconName="Forward" />
@@ -81,7 +77,7 @@ export default function DateRangePicker(props: DateRangePickerProps) {
                 <DateTimePicker
                     placeholder="End of date range"
                     onSelectDate={(v) => (v ? onDateRangeSelection(null, v) : onReset())}
-                    defaultDate={extractDateFromDateString(endDate?.toISOString())}
+                    defaultDate={endDate}
                 />
                 <TertiaryButton
                     className={styles.clearButton}
