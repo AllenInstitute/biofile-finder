@@ -1,17 +1,11 @@
-import {
-    MessageBar,
-    MessageBarType,
-    ProgressIndicator,
-    Spinner,
-    SpinnerSize,
-    Stack,
-} from "@fluentui/react";
+import { MessageBar, MessageBarType, ProgressIndicator, Stack } from "@fluentui/react";
 import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { SecondaryButton } from "../Buttons";
+import LoadingIcon from "../Icons/LoadingIcon";
 import { interaction } from "../../state";
 import { StatusUpdate, ProcessStatus } from "../../state/interaction/actions";
 
@@ -87,7 +81,7 @@ export default function StatusMessage() {
                         >
                             <div className={styles.centeringParent}>
                                 {progress === undefined && status === ProcessStatus.STARTED && (
-                                    <Spinner className={styles.spinner} size={SpinnerSize.small} />
+                                    <LoadingIcon className={styles.spinner} />
                                 )}
                                 <div
                                     dangerouslySetInnerHTML={{ __html: msg }}

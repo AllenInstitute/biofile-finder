@@ -4,17 +4,16 @@ import { useNavigate } from "react-router-dom";
 
 import DatasetTable from "./DatasetTable";
 import DatasetDetails from "../DatasetDetails";
-import { DatasetManifestUrl } from "../../constants";
 import PublicDataset, { DatasetAnnotations } from "../../entity/PublicDataset";
 import { metadata, selection } from "../../../../core/state";
 import FileFilter from "../../../../core/entity/FileFilter";
 
 import styles from "./OpenSourceDatasets.module.css";
 import {
-    FileExplorerURLComponents,
+    SearchParamsComponents,
     getNameAndTypeFromSourceUrl,
     Source,
-} from "../../../../core/entity/FileExplorerURL";
+} from "../../../../core/entity/SearchParams";
 
 /**
  * Page for displaying public-facing datasets
@@ -23,22 +22,17 @@ import {
 export default function OpenSourceDatasets() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const currentGlobalURL = useSelector(selection.selectors.getEncodedFileExplorerUrl);
+    const currentGlobalURL = useSelector(selection.selectors.getEncodedSearchParams);
 
     // Begin request action so dataset manifest is ready for table child component
     React.useEffect(() => {
-        dispatch(
-            metadata.actions.requestDatasetManifest(
-                "Dataset Manifest",
-                DatasetManifestUrl.PRODUCTION
-            )
-        );
+        dispatch(metadata.actions.requestDatasetManifest("Dataset Manifest"));
     }, [dispatch]);
 
     const openDatasetInApp = (
         datasetName: string,
         source: Source,
-        url?: Partial<FileExplorerURLComponents>
+        url?: Partial<SearchParamsComponents>
     ) => {
         dispatch(
             selection.actions.addQuery({
@@ -56,13 +50,11 @@ export default function OpenSourceDatasets() {
         if (!datasetDetails) throw new Error("No dataset provided");
 
         const dataSourceURL = datasetDetails.path;
-        const { name, extensionGuess } = getNameAndTypeFromSourceUrl(dataSourceURL);
         const url = datasetDetails?.presetQuery;
         openDatasetInApp(
             datasetDetails.name,
             {
-                name,
-                type: extensionGuess,
+                ...getNameAndTypeFromSourceUrl(dataSourceURL),
                 uri: dataSourceURL,
             },
             url

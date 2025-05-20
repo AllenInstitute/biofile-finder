@@ -1,0 +1,109 @@
+.wrapper {
+  padding: var(--margin);
+  margin: var(--margin) 0;
+  border: 1px solid var(--border-color);
+  border-radius: var(--small-border-radius);
+}
+
+.details-header > div, .details-header > div:hover, .details-header span {
+  background-color: var(--primary-background-color);
+  color: var(--secondary-text-color);
+  font-size: var(--xs-paragraph-size);
+  height: 36px;
+}
+
+.details-header > div {
+  padding-top: 5px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.details-header > div > div:hover {
+  background-color: unset;
+}
+
+.column-right-align span, .column-right-align-cell {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.table-row {
+  position: relative;
+  cursor: default;
+}
+
+.table-row > div:first-child {
+  color: var(--secondary-text-color);
+  background-color: unset;
+  font-size: var(--l-paragraph-size);
+  font-weight: 400;
+}
+
+.table-row > div:hover:first-child, .table-row > div:hover {
+  color: var(--secondary-text-color);
+}
+
+.table-title {
+  padding-bottom: 5px;
+}
+
+.values-title {
+  padding-bottom: 5px;
+  padding-left: 35px;
+}
+
+.stack {
+  width: 100%;
+}
+
+.stack-item-left {
+  padding-top: 5px;
+  width: 300px;
+  max-width: calc(50% - 10px);
+}
+
+.stack-item-center {
+  padding-bottom: 14px;
+}
+
+.stack-item-right {
+  width: 300px;
+  max-width: calc(50% - 10px);
+}
+
+.read-only-placeholder {
+  margin-right: 20px;
+  font-style: italic;
+  color: var(--primary-text-color);
+}
+
+.input-field input {
+  background-color: var(--secondary-background-color);
+  border-radius: var(--small-border-radius);
+  border: 1px solid var(--border-color);
+  color: var(--secondary-text-color);
+  outline: none;
+  padding: 6px;
+  font-size: var(--s-paragraph-size);
+  width: 100%;
+  min-width: fit-content;
+}
+
+.input-field:active > input, .input-field > input:active, 
+.input-field:focus > input, .input-field > input:focus,
+.input-field:focus-within > input, .input-field > input:focus-within  {
+  border: 1px solid var(--aqua);
+}
+
+.input-wrapper {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.no-padding {
+  padding-bottom: 0;
+}
+
+.forward-icon {
+ padding-right: 20px;
+}

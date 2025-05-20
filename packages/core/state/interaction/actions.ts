@@ -4,9 +4,10 @@ import { uniqueId } from "lodash";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import FileFilter from "../../entity/FileFilter";
 import { ModalType } from "../../components/Modal";
+import { AnnotationValue } from "../../services/AnnotationService";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import FileDetail from "../../entity/FileDetail";
-import { Source } from "../../entity/FileExplorerURL";
+import { Source } from "../../entity/SearchParams";
 import { FileInfo } from "../../services";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
 
@@ -264,6 +265,35 @@ export const initializeApp = (payload: { environment: string }) => ({
     type: INITIALIZE_APP,
     payload,
 });
+
+/**
+ * Edit the currently selected files with the given metadata
+ */
+export const EDIT_FILES = makeConstant(STATE_BRANCH_NAME, "edit-files");
+
+export interface EditFilesAction {
+    type: string;
+    payload: {
+        annotations: { [name: string]: AnnotationValue[] };
+        filters?: FileFilter[];
+        user?: string;
+    };
+}
+
+export function editFiles(
+    annotations: { [name: string]: AnnotationValue[] },
+    filters?: FileFilter[],
+    user?: string
+): EditFilesAction {
+    return {
+        type: EDIT_FILES,
+        payload: {
+            annotations,
+            filters,
+            user,
+        },
+    };
+}
 
 /**
  * PROCESS AND STATUS RELATED ENUMS, INTERFACES, ETC.
@@ -583,14 +613,18 @@ export const SET_VISIBLE_MODAL = makeConstant(STATE_BRANCH_NAME, "set-visible-mo
 export interface SetVisibleModalAction {
     type: string;
     payload: {
+        fileFiltersForVisibleModal: FileFilter[];
         visibleModal: ModalType;
     };
 }
 
-export function setVisibleModal(visibleModal: ModalType): SetVisibleModalAction {
+export function setVisibleModal(
+    visibleModal: ModalType,
+    fileFiltersForVisibleModal: FileFilter[] = []
+): SetVisibleModalAction {
     return {
         type: SET_VISIBLE_MODAL,
-        payload: { visibleModal },
+        payload: { visibleModal, fileFiltersForVisibleModal },
     };
 }
 

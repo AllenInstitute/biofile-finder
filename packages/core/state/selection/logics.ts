@@ -24,7 +24,7 @@ import {
     SetAnnotationHierarchyAction,
     RemoveFromAnnotationHierarchyAction,
     ReorderAnnotationHierarchyAction,
-    decodeFileExplorerURL,
+    decodeSearchParams,
     ADD_QUERY,
     AddQuery,
     changeQuery,
@@ -33,6 +33,7 @@ import {
     REPLACE_DATA_SOURCE,
     ReplaceDataSource,
     REMOVE_QUERY,
+    resetQueryProperties,
     changeDataSources,
     ChangeDataSourcesAction,
     CHANGE_DATA_SOURCES,
@@ -56,7 +57,7 @@ import * as selectionSelectors from "./selectors";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import Annotation from "../../entity/Annotation";
-import FileExplorerURL from "../../entity/FileExplorerURL";
+import SearchParams from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -412,9 +413,9 @@ const expandAllFileFolders = createLogic({
 
 /**
  * Interceptor responsible for processing DECODE_FILE_EXPLORER_URL actions into various
- * other actions responsible for rehydrating the FileExplorerURL into application state.
+ * other actions responsible for rehydrating the SearchParams into application state.
  */
-const decodeFileExplorerURLLogics = createLogic({
+const decodeSearchParamsLogics = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
         const {
@@ -427,7 +428,7 @@ const decodeFileExplorerURLLogics = createLogic({
             sortColumn,
             sources,
             sourceMetadata,
-        } = FileExplorerURL.decode(encodedURL);
+        } = SearchParams.decode(encodedURL);
 
         batch(() => {
             dispatch(changeSourceMetadata(sourceMetadata));
@@ -718,7 +719,7 @@ const changeQueryLogic = createLogic({
 
         if (newlySelectedQuery) {
             dispatch(
-                decodeFileExplorerURL(FileExplorerURL.encode(newlySelectedQuery.parts)) as AnyAction
+                decodeSearchParams(SearchParams.encode(newlySelectedQuery.parts)) as AnyAction
             );
         }
         dispatch(setQueries(updatedQueries));
@@ -735,6 +736,11 @@ const removeQueryLogic = createLogic({
     type: REMOVE_QUERY,
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const queries = selectionSelectors.getQueries(deps.getState());
+        // If removing the last query, must also reset query-related properties in store
+        // which has a side effect of removing the query params from the URL
+        if (queries.length === 0) {
+            dispatch(resetQueryProperties());
+        }
         dispatch(changeQuery(queries[0]));
         done();
     },
@@ -827,7 +833,7 @@ export default [
     modifyFileFilters,
     toggleFileFolderCollapse,
     expandAllFileFolders,
-    decodeFileExplorerURLLogics,
+    decodeSearchParamsLogics,
     selectNearbyFile,
     setAvailableAnnotationsLogic,
     changeDataSourceLogic,

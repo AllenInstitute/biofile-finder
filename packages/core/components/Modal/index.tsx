@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { interaction } from "../../state";
 import CodeSnippet from "./CodeSnippet";
 import DataSource from "./DataSource";
+import EditMetadata from "./EditMetadata";
 import MetadataManifest from "./MetadataManifest";
 import SmallScreenWarning from "./SmallScreenWarning";
 import CopyFileManifest from "./CopyFileManifest";
@@ -16,8 +17,9 @@ export enum ModalType {
     CodeSnippet = 1,
     CopyFileManifest = 2,
     DataSource = 3,
-    MetadataManifest = 4,
-    SmallScreenWarning = 5,
+    EditMetadata = 4,
+    MetadataManifest = 5,
+    SmallScreenWarning = 6,
 }
 
 /**
@@ -34,14 +36,16 @@ export default function Modal() {
     switch (visibleModal) {
         case ModalType.CodeSnippet:
             return <CodeSnippet onDismiss={onDismiss} />;
+        case ModalType.CopyFileManifest:
+            return <CopyFileManifest onDismiss={onDismiss} />;
         case ModalType.DataSource:
             return <DataSource onDismiss={onDismiss} />;
+        case ModalType.EditMetadata:
+            return <EditMetadata onDismiss={onDismiss} />;
         case ModalType.MetadataManifest:
             return <MetadataManifest onDismiss={onDismiss} />;
         case ModalType.SmallScreenWarning:
             return <SmallScreenWarning onDismiss={onDismiss} />;
-        case ModalType.CopyFileManifest:
-            return <CopyFileManifest onDismiss={onDismiss} />;
         default:
             return null;
     }

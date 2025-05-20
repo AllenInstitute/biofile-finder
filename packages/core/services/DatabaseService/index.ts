@@ -3,7 +3,7 @@ import { isEmpty } from "lodash";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
-import { Source } from "../../entity/FileExplorerURL";
+import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
@@ -53,9 +53,9 @@ export default abstract class DatabaseService {
         _uri: string | File
     ): Promise<void>;
 
-    protected abstract execute(_sql: string): Promise<void>;
+    public abstract execute(_sql: string): Promise<void>;
 
-    private static columnTypeToAnnotationType(columnType: string): string {
+    private static columnTypeToAnnotationType(columnType: string): AnnotationType {
         switch (columnType) {
             case "INTEGER":
             case "BIGINT":
@@ -458,7 +458,7 @@ export default abstract class DatabaseService {
                             annotationNameToTypeMap[row["column_name"]] ===
                             DatabaseService.OPEN_FILE_LINK_TYPE
                                 ? AnnotationType.STRING
-                                : annotationNameToTypeMap[row["column_name"]] ||
+                                : (annotationNameToTypeMap[row["column_name"]] as AnnotationType) ||
                                   DatabaseService.columnTypeToAnnotationType(row["data_type"]),
                     })
             );
@@ -500,7 +500,7 @@ export default abstract class DatabaseService {
         }
     }
 
-    private async fetchAnnotationTypes(): Promise<Record<string, string>> {
+    public async fetchAnnotationTypes(): Promise<Record<string, string>> {
         // Unless we have actually added the source metadata table we can't fetch the types
         if (!this.existingDataSources.has(this.SOURCE_METADATA_TABLE)) {
             return {};
@@ -529,6 +529,23 @@ export default abstract class DatabaseService {
                 return {};
             }
             throw err;
+        }
+    }
+
+    public async addNewColumn(
+        datasourceName: string,
+        columnName: string,
+        description?: string
+    ): Promise<void> {
+        await this.execute(`ALTER TABLE "${datasourceName}" ADD COLUMN "${columnName}" VARCHAR;`);
+
+        // Cache is now invalid since we added a column
+        this.dataSourceToAnnotationsMap.delete(datasourceName);
+
+        if (description?.trim() && this.existingDataSources.has(this.SOURCE_METADATA_TABLE)) {
+            await this
+                .execute(`INSERT INTO "${this.SOURCE_METADATA_TABLE}" ("Column Name", "Description")
+                    VALUES ('${columnName}', '${description}');`);
         }
     }
 }

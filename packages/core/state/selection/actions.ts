@@ -9,10 +9,10 @@ import NumericRange from "../../entity/NumericRange";
 import Tutorial from "../../entity/Tutorial";
 import {
     EMPTY_QUERY_COMPONENTS,
-    FileExplorerURLComponents,
+    SearchParamsComponents,
     FileView,
     Source,
-} from "../../entity/FileExplorerURL";
+} from "../../entity/SearchParams";
 
 const STATE_BRANCH_NAME = "selection";
 
@@ -282,12 +282,12 @@ export const ADD_QUERY = makeConstant(STATE_BRANCH_NAME, "add-query");
 
 export interface Query {
     name: string;
-    parts: FileExplorerURLComponents;
+    parts: SearchParamsComponents;
 }
 
 interface PartialQuery {
     name: string;
-    parts: Partial<FileExplorerURLComponents>;
+    parts: Partial<SearchParamsComponents>;
 }
 
 export interface AddQuery {
@@ -351,6 +351,24 @@ export function removeQuery(queryName: string): RemoveQuery {
     return {
         payload: queryName,
         type: REMOVE_QUERY,
+    };
+}
+
+/**
+ * RESET_QUERY_FIELDS
+ *
+ * Intention is to reset all query-related state properties to their default values.
+ * Necessary when clearing the last query from the query list
+ */
+export const RESET_QUERY_FIELDS = makeConstant(STATE_BRANCH_NAME, "reset-query-fields");
+
+export interface ResetQueryFields {
+    type: string;
+}
+
+export function resetQueryProperties(): ResetQueryFields {
+    return {
+        type: RESET_QUERY_FIELDS,
     };
 }
 
@@ -596,14 +614,14 @@ export function toggleNullValueGroups(showNullValues?: boolean): SetShowNullValu
  */
 export const DECODE_FILE_EXPLORER_URL = makeConstant(STATE_BRANCH_NAME, "decode-file-explorer-url");
 
-export interface DecodeFileExplorerURLAction {
+export interface DecodeSearchParamsAction {
     payload: string;
     type: string;
 }
 
-export function decodeFileExplorerURL(decodedFileExplorerURL: string): DecodeFileExplorerURLAction {
+export function decodeSearchParams(decodedSearchParams: string): DecodeSearchParamsAction {
     return {
-        payload: decodedFileExplorerURL,
+        payload: decodedSearchParams,
         type: DECODE_FILE_EXPLORER_URL,
     };
 }

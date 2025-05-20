@@ -146,6 +146,10 @@ export default class FileDetail {
         return path as string;
     }
 
+    public get isLikelyLocalFile(): boolean {
+        return !this.path.startsWith("http") && !this.path.startsWith("s3");
+    }
+
     public get downloadInProgress(): boolean {
         const shouldBeInLocal = this.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL);
         const cacheEvictionDate = this.getAnnotation(AnnotationName.CACHE_EVICTION_DATE);
@@ -194,7 +198,8 @@ export default class FileDetail {
 
         // If no thumbnail present try to render the file itself as the thumbnail
         if (!this.thumbnail) {
-            if (this.path.includes(".zarr")) {
+            // Cannot currently read locally stored zarrs on web
+            if (this.path.includes(".zarr") && !this.isLikelyLocalFile) {
                 return renderZarrThumbnailURL(this.path);
             }
 
