@@ -121,7 +121,13 @@ export default class FileDetail {
     public get name(): string {
         const name = this.fileDetail.file_name || this.getFirstAnnotationValue("File Name");
         if (name === undefined) {
-            throw new Error("File Name is not defined");
+            try {
+                // Same pattern as DatabaseService uses to auto-generate names
+                return this.path.replace(/^.*\/([^\/]*?)(\\.[^\/.]+)?$/, "$1");
+            } catch {
+                // File Path is also undefined
+                throw new Error("File Name is not defined");
+            }
         }
         return name as string;
     }
