@@ -6,6 +6,9 @@ const msInADay = 24 * msInAnHour;
 export default {
     displayValue(value: string | number): string {
         let remainingMs = Number(value);
+        // Without this check, would return 0 as a number rather than string
+        if (!remainingMs) return "0S";
+
         let display = "";
 
         function addUnit(unitInMs: number, unit: string, useFloor = true) {
