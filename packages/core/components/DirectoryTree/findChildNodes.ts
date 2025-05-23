@@ -62,7 +62,7 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
         .filter(
             (filter) =>
                 filter.name === annotationNameAtDepth &&
-                !filter.value.includes("RANGE") && // 'RANGE' filters are handled by the value fetching endpoint
+                !filter.value.toString().includes("RANGE") && // 'RANGE' filters are handled by the value fetching endpoint
                 filter.type !== FilterType.ANY // 'Include' filters have a blank value and shouldn't be counted here
         )
         .map((filter) => filter.value);
