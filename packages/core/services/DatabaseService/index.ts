@@ -188,17 +188,21 @@ export default abstract class DatabaseService {
 
         const dataSourceColumns = await this.getColumnsOnDataSource(name);
 
-        // First checks if a "File Name" already exists,
-        // then makes best shot attempt at auto-generating a "File Name"
-        // from the "File Path", then defaults to full path if this fails
-        // Description of SQL:
-        // * COALESCE - returns the first non-null value in the list
-        // * NULLIF - returns null if the two arguments are equal
-        // * REGEXP_REPLACE - replaces a substring with another substring
-        // so we first replace the last file extension with nothing
-        // then check if .ome is at the end of the string and remove it
-        // then if it is null if the string is empty
-        // which we use COALESCE to replace with the full path if so
+        /**
+         * First checks if a "File Name" already exists,
+         * then makes best shot attempt at auto-generating a "File Name"
+         * from the "File Path", then defaults to full path if this fails.
+         *
+         * Description of SQL:
+         * - COALESCE - returns the first non-null value in the list
+         * - NULLIF - returns null if the two arguments are equal
+         * - REGEXP_REPLACE - replaces a substring with another substring
+         * First creates a "trimmed path" by replacing the last file extension and
+         * any directories in the "File Path" with empty strings.
+         * Then checks for and removes .ome at the end of the "trimmed path".
+         * If the "trimmed path" is an empty string, sets the generated file name to NULL.
+         * Then uses COALESCE to default to the full path if generated file name is NULL.
+         */
         const fileNameGenerationSQL = `
                 UPDATE "${name}"
                 SET "${PreDefinedColumn.FILE_NAME}" = COALESCE(
