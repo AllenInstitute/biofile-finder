@@ -56,8 +56,10 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
         // Current element width divided by approximate character width in pixels
         const widthInCharacters = measuredWidth / 10;
         const titleShortened =
-            title.slice(0, widthInCharacters / 2) + "..." + title.slice(-widthInCharacters / 2);
-        const isLongHeader = title.length > widthInCharacters && widthInCharacters !== 0; // Width will be zero in unit tests
+            title.toString().slice(0, widthInCharacters / 2) +
+            "..." +
+            title.toString().slice(-widthInCharacters / 2);
+        const isLongHeader = title.toString().length > widthInCharacters && widthInCharacters !== 0; // Width will be zero in unit tests
         return { isLongHeader, titleShortened };
     }, [measuredWidth, title]);
 

@@ -15,8 +15,8 @@ describe("Annotation formatters", () => {
         });
 
         it("displays false as 'False'", () => {
-            ["false", "False", false].forEach(() =>
-                expect(booleanFormatter.displayValue("false")).to.equal("False")
+            ["false", "False", false].forEach((input) =>
+                expect(booleanFormatter.displayValue(input)).to.equal("False")
             );
         });
 
@@ -105,6 +105,10 @@ describe("Annotation formatters", () => {
             expect(numberFormatter.displayValue(3)).to.equal("3");
         });
 
+        it("formats zero as a string", () => {
+            expect(numberFormatter.displayValue(0)).to.equal("0");
+        });
+
         it("formats a number with units", () => {
             expect(numberFormatter.displayValue(3, "moles")).to.equal("3 moles");
         });
@@ -142,6 +146,15 @@ describe("Annotation formatters", () => {
 
         it("formats a duration with less than a second", () => {
             expect(durationFormatter.displayValue(125)).to.equal("0.125S");
+        });
+
+        it("formats zero duration to a string", () => {
+            expect(durationFormatter.displayValue(0)).to.equal("0S");
+        });
+
+        it("extracts zero duration with and without units", () => {
+            expect(durationFormatter.valueOf("0")).to.equal(0);
+            expect(durationFormatter.valueOf("0S")).to.equal(0);
         });
 
         it("extracts time in milliseconds from formatted duration strings", () => {
