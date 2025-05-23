@@ -15,7 +15,6 @@ import DirectoryTreeNodeHeader from "../DirectoryTreeNodeHeader";
 
 describe("<DirectoryTreeNodeHeader />", () => {
     // Arrange
-    const { store } = configureMockStore({ state: initialState });
     const sandbox = createSandbox();
     const fileSet = new FileSet();
     const ref = { current: null };
@@ -45,6 +44,7 @@ describe("<DirectoryTreeNodeHeader />", () => {
     }
 
     it("truncates long folder names", async () => {
+        const { store } = configureMockStore({ state: initialState });
         const longTitle = "This string contains 36 characters. ".repeat(10).trim();
 
         const { getByText, queryByText } = render(
