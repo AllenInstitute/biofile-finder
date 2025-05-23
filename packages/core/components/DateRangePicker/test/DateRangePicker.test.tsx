@@ -40,7 +40,7 @@ describe("<DateRangePicker />", () => {
         // Arrange
         const currentRange = new FileFilter(
             "date",
-            `RANGE(2024-02-21T08:00:00.000Z,2024-03-21T08:00:00.000Z)`
+            `RANGE(2024-02-21T00:00:00.000Z,2024-03-21T00:00:00.000Z)`
         );
         const { getByText } = render(
             <DateRangePicker onSearch={noop} onReset={noop} currentRange={currentRange} />
