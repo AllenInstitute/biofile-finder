@@ -26,8 +26,15 @@ export default {
         if (startDate && endDate) {
             return `${formatDate(startDate)}, ${formatDate(endDate)}`;
         } else {
-            const date = new Date(value);
-            return formatDate(date);
+            try {
+                const date = new Date(value);
+                return formatDate(date);
+            } catch {
+                // If can't convert the value to a date,
+                // send error to console instead of throwing so app doesn't crash
+                console.error(`Unable to convert value ${value} to Date`);
+                return "";
+            }
         }
     },
 

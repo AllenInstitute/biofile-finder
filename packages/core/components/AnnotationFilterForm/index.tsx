@@ -169,6 +169,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                         onSearch={onSearch}
                         onReset={onDeselectAll}
                         currentRange={filtersForAnnotation?.[0]}
+                        type={props.annotation.type}
                     />
                 );
             case AnnotationType.NUMBER:
