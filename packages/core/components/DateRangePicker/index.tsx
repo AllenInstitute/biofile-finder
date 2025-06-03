@@ -1,13 +1,13 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
 
+import DateTimePicker from "./DateTimePicker";
 import { TertiaryButton } from "../Buttons";
 import FileFilter from "../../entity/FileFilter";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import { extractDatesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/date-time-formatter";
 
 import styles from "./DateRangePicker.module.css";
-import DateTimePicker from "./DateTimePicker";
 
 interface DateRangePickerProps {
     className?: string;
@@ -24,13 +24,13 @@ interface DateRangePickerProps {
 // ahead of time.
 // Update 06/2025: This is only true for `DATE` types, not `DATETIME`,
 // and may only work for certain time zones
-export function addTimeZoneOffset(oldDate?: Date): Date | undefined {
-    if (!oldDate) {
+function addTimeZoneOffset(date?: Date): Date | undefined {
+    if (!date) {
         return undefined;
     }
-    const date = new Date(oldDate);
-    date.setMinutes(date.getTimezoneOffset());
-    return date;
+    const offsetDate = new Date(date);
+    offsetDate.setMinutes(offsetDate.getTimezoneOffset());
+    return offsetDate;
 }
 
 const DATE_ABSOLUTE_MIN = new Date();
