@@ -73,7 +73,7 @@ describe("<DateRangePicker />", () => {
         });
 
         // FMS formats dates as YYYY-MM-DDT00:00:00.000Z where time is ignored
-        // so any date filter should drop the time info and only use the date part regardless of time zone
+        // so any date filter should drop the time info and only use the date part
         times.forEach((time) => {
             it(`calls onSearch ignoring time data for type DATE at ${time}`, () => {
                 // Arrange

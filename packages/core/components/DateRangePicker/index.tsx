@@ -72,11 +72,11 @@ export default function DateRangePicker(props: DateRangePickerProps) {
             // Add 1 day to endDate to account for RANGE() filter upper bound exclusivity
             const newEndDatePlusOne = new Date(newEndDate);
             newEndDatePlusOne.setDate(newEndDatePlusOne.getDate() + 1);
-            // Use full ISO string for DATETIMES
+            // Use full ISO string for DATETIME data types
             let rangeString = `RANGE(${newStartDate.toISOString()},${newEndDatePlusOne.toISOString()})`;
 
             if (props?.type === AnnotationType.DATE) {
-                // AICS formats DATE types as yyy-mm-dd with the time data zeroed out
+                // AICS formats DATE types as yyyy-mm-dd with the time data zeroed out
                 const dateFormatter = annotationFormatterFactory(AnnotationType.DATE);
                 const startString = dateFormatter.displayValue(newStartDate);
                 const endString = dateFormatter.displayValue(newEndDate);
@@ -87,6 +87,7 @@ export default function DateRangePicker(props: DateRangePickerProps) {
                 ) {
                     return;
                 }
+                // Use current FES format for date ranges
                 rangeString = `RANGE(${startString}T00:00:00.000Z,${dateFormatter.displayValue(
                     newEndDatePlusOne
                 )}T00:00:00.000Z)`;
@@ -95,6 +96,7 @@ export default function DateRangePicker(props: DateRangePickerProps) {
         }
     }
 
+    // Avoid re-renders if value of filter hasn't changed
     const { startDate, endDate } = React.useMemo(() => {
         const { startDate, endDate } = extractDatesFromRangeOperatorFilterString(
             currentRange?.value
