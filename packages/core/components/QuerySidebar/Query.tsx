@@ -135,21 +135,18 @@ export default function Query(props: QueryProps) {
                         {Object.entries(
                             queryComponents.filters.reduce((accum, filter) => {
                                 let value = "";
-                                // Don't show a count for ranges (e.g., date range)
-                                if (!filter.value.toString().includes("RANGE")) {
-                                    switch (filter.type) {
-                                        case FilterType.ANY:
-                                            value = "Any value";
-                                            break;
-                                        case FilterType.EXCLUDE:
-                                            value = "No value";
-                                            break;
-                                        default:
-                                            value = (
-                                                (Number(accum[filter.name]) || 0) + 1
-                                            ).toString();
-                                    }
+                                switch (filter.type) {
+                                    case FilterType.ANY:
+                                        value = "any value";
+                                        break;
+                                    case FilterType.EXCLUDE:
+                                        value = "no value";
+                                        break;
+                                    default:
+                                        value = ((Number(accum[filter.name]) || 0) + 1).toString();
                                 }
+                                // Special case for ranges since we don't know the exact count
+                                if (filter.value.toString().includes("RANGE")) value = "range";
                                 return {
                                     ...accum,
                                     [filter.name]: value,

@@ -242,9 +242,8 @@ describe("<Query />", () => {
             );
 
             // Assert
-            expect(getByText(new RegExp(rangeFilterName))).to.exist;
-            expect(() => getByText(new RegExp(`${rangeFilterName} \\(`))).to.throw();
-            expect(() => getByText(/RANGE/)).to.throw();
+            expect(getByText(new RegExp(`${rangeFilterName} \\(range\\)`))).to.exist;
+            expect(() => getByText(/RANGE\(/)).to.throw();
         });
 
         it("shows description instead of count for special filter types", () => {
@@ -278,8 +277,8 @@ describe("<Query />", () => {
             );
 
             // Assert
-            expect(getByText(new RegExp(`${includeFilterName} \\(Any value\\)`))).to.exist;
-            expect(getByText(new RegExp(`${excludeFilterName} \\(No value\\)`))).to.exist;
+            expect(getByText(new RegExp(`${includeFilterName} \\(any value\\)`))).to.exist;
+            expect(getByText(new RegExp(`${excludeFilterName} \\(no value\\)`))).to.exist;
         });
     });
 });
