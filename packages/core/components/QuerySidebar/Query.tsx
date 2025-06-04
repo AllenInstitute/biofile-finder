@@ -11,6 +11,7 @@ import QueryGroup from "../QueryPart/QueryGroup";
 import QuerySort from "../QueryPart/QuerySort";
 import Tooltip from "../Tooltip";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
+import { FilterType } from "../../entity/FileFilter";
 import { interaction, metadata, selection } from "../../state";
 import { Query as QueryType } from "../../state/selection/actions";
 
@@ -110,6 +111,7 @@ export default function Query(props: QueryProps) {
                         data-testid="expand-button"
                     />
                 </div>
+                {!isExpanded && <hr className={styles.divider}></hr>}
                 <p className={styles.displayRow}>
                     <strong>Data source:</strong>{" "}
                     {queryComponents.sources.map((source) => source.name).join(", ")}
@@ -128,9 +130,36 @@ export default function Query(props: QueryProps) {
                 )}
                 {!!queryComponents.filters.length && (
                     <p className={styles.displayRow}>
-                        <strong>Filter:</strong>{" "}
-                        {queryComponents.filters
-                            .map((filter) => `${filter.name}: ${filter.value}`)
+                        <strong>Filter{queryComponents.filters.length > 1 ? "s" : ""}:</strong>{" "}
+                        {/* Show a condensed version of the filters list with counts instead of values */}
+                        {Object.entries(
+                            queryComponents.filters.reduce((accum, filter) => {
+                                let value = "";
+                                // Don't show a count for ranges (e.g., date range)
+                                if (!filter.value.toString().includes("RANGE")) {
+                                    switch (filter.type) {
+                                        case FilterType.ANY:
+                                            value = "Any value";
+                                            break;
+                                        case FilterType.EXCLUDE:
+                                            value = "No value";
+                                            break;
+                                        default:
+                                            value = (
+                                                (Number(accum[filter.name]) || 0) + 1
+                                            ).toString();
+                                    }
+                                }
+                                return {
+                                    ...accum,
+                                    [filter.name]: value,
+                                };
+                            }, {} as { [index: string]: string })
+                        )
+                            .map(([name, value]) => {
+                                if (value === "") return name;
+                                return `${name} (${value})`;
+                            })
                             .join(", ")}
                     </p>
                 )}
