@@ -6,8 +6,11 @@ import * as React from "react";
 import { Provider } from "react-redux";
 
 import Query from "../Query";
-import { initialState } from "../../../state";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../../constants";
+import FileFilter from "../../../entity/FileFilter";
+import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
+import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
+import { initialState } from "../../../state";
 
 describe("<Query />", () => {
     it("expands and collapses when clicked", async () => {
@@ -173,5 +176,110 @@ describe("<Query />", () => {
 
         // Assert
         expect(() => getByTestId("query-spinner")).to.throw();
+    });
+
+    describe("displays condensed list of filters when collapsed", () => {
+        it("gives a count of values for regular filters", () => {
+            // Arrange
+            const { store } = configureMockStore({
+                state: initialState,
+            });
+            const multiValueFilterName = "Colors";
+            const multiValueList = ["red", "blue", "green"];
+            const filters = multiValueList.map(
+                (color) => new FileFilter(multiValueFilterName, color)
+            );
+
+            // Act
+            const { getByText } = render(
+                <Provider store={store}>
+                    <Query
+                        isSelected={false}
+                        query={{
+                            name: "Test Random Query",
+                            parts: {
+                                filters,
+                                hierarchy: [],
+                                sources: [{ name: "Test Source" }],
+                                openFolders: [],
+                            },
+                        }}
+                    />
+                </Provider>
+            );
+
+            // Assert
+            expect(getByText(new RegExp(multiValueFilterName))).to.exist;
+            expect(getByText(new RegExp(`\\(${multiValueList.length}\\)`))).to.exist; // '(3)'
+        });
+
+        it("does not show details for range filters", () => {
+            // Arrange
+            const { store } = configureMockStore({
+                state: initialState,
+            });
+            const rangeFilterName = "Uploaded";
+            const filters = [
+                new FileFilter(rangeFilterName, `RANGE(${new Date(0)},${new Date()})`),
+            ];
+
+            // Act
+            const { getByText } = render(
+                <Provider store={store}>
+                    <Query
+                        isSelected={false}
+                        query={{
+                            name: "Test Random Query",
+                            parts: {
+                                filters,
+                                hierarchy: [],
+                                sources: [{ name: "Test Source" }],
+                                openFolders: [],
+                            },
+                        }}
+                    />
+                </Provider>
+            );
+
+            // Assert
+            expect(getByText(new RegExp(rangeFilterName))).to.exist;
+            expect(() => getByText(new RegExp(`${rangeFilterName} \\(`))).to.throw();
+            expect(() => getByText(/RANGE/)).to.throw();
+        });
+
+        it("shows description instead of count for special filter types", () => {
+            // Arrange
+            const { store } = configureMockStore({
+                state: initialState,
+            });
+            const includeFilterName = "Filter A";
+            const excludeFilterName = "Filter B";
+            const filters = [
+                new IncludeFilter(includeFilterName),
+                new ExcludeFilter(excludeFilterName),
+            ];
+
+            // Act
+            const { getByText } = render(
+                <Provider store={store}>
+                    <Query
+                        isSelected={false}
+                        query={{
+                            name: "Test Random Query",
+                            parts: {
+                                filters,
+                                hierarchy: [],
+                                sources: [{ name: "Test Source" }],
+                                openFolders: [],
+                            },
+                        }}
+                    />
+                </Provider>
+            );
+
+            // Assert
+            expect(getByText(new RegExp(`${includeFilterName} \\(Any value\\)`))).to.exist;
+            expect(getByText(new RegExp(`${excludeFilterName} \\(No value\\)`))).to.exist;
+        });
     });
 });
