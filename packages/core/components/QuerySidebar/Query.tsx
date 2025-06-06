@@ -52,6 +52,35 @@ export default function Query(props: QueryProps) {
         [props.query?.parts, currentQueryParts, props.isSelected]
     );
 
+    const condensedFilterString = React.useMemo(() => {
+        return Object.entries(
+            queryComponents.filters.reduce((accum, filter) => {
+                let value = "";
+                switch (filter.type) {
+                    case FilterType.ANY:
+                        value = "any value";
+                        break;
+                    case FilterType.EXCLUDE:
+                        value = "no value";
+                        break;
+                    default:
+                        value = ((Number(accum[filter.name]) || 0) + 1).toString();
+                }
+                // Special case for ranges since we don't know the exact count
+                if (filter.value.toString().includes("RANGE")) value = "range";
+                return {
+                    ...accum,
+                    [filter.name]: value,
+                };
+            }, {} as { [index: string]: string })
+        )
+            .map(([name, value]) => {
+                if (value === "") return name;
+                return `${name} (${value})`;
+            })
+            .join(", ");
+    }, [queryComponents]);
+
     const onQueryUpdate = (updatedQuery: QueryType) => {
         const updatedQueries = queries.map((query) =>
             query.name === props.query.name ? updatedQuery : query
@@ -132,32 +161,7 @@ export default function Query(props: QueryProps) {
                     <p className={styles.displayRow}>
                         <strong>Filter{queryComponents.filters.length > 1 ? "s" : ""}:</strong>{" "}
                         {/* Show a condensed version of the filters list with counts instead of values */}
-                        {Object.entries(
-                            queryComponents.filters.reduce((accum, filter) => {
-                                let value = "";
-                                switch (filter.type) {
-                                    case FilterType.ANY:
-                                        value = "any value";
-                                        break;
-                                    case FilterType.EXCLUDE:
-                                        value = "no value";
-                                        break;
-                                    default:
-                                        value = ((Number(accum[filter.name]) || 0) + 1).toString();
-                                }
-                                // Special case for ranges since we don't know the exact count
-                                if (filter.value.toString().includes("RANGE")) value = "range";
-                                return {
-                                    ...accum,
-                                    [filter.name]: value,
-                                };
-                            }, {} as { [index: string]: string })
-                        )
-                            .map(([name, value]) => {
-                                if (value === "") return name;
-                                return `${name} (${value})`;
-                            })
-                            .join(", ")}
+                        {condensedFilterString}
                     </p>
                 )}
                 {!!queryComponents.sortColumn && (
