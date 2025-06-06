@@ -29,17 +29,19 @@ export default {
     },
 
     valueOf(value: any) {
-        // Check for pre-formatted duration strings: must have at least one of #D, #H, #M, or #S in that order
-        const regexMatch = value.match(
-            /^(([0-9]+)D)?\s?(([0-9]+)H)?\s?(([0-9]+)M)?\s?(([0-9]*\.?[0-9]+)S)?$/
-        );
-        if (regexMatch) {
-            // Capture group order is [full string, aD, a, bH, b, cM, c, dS, d]
-            const daysInMs = (Number(regexMatch[2]) || 0) * msInADay;
-            const hrsInMs = (Number(regexMatch[4]) || 0) * msInAnHour;
-            const minsInMs = (Number(regexMatch[6]) || 0) * msInAMinute;
-            const secsInMs = (Number(regexMatch[8]) || 0) * msInASecond;
-            return daysInMs + hrsInMs + minsInMs + secsInMs;
+        if (typeof value === "string") {
+            // Check for pre-formatted duration strings: must have at least one of #D, #H, #M, or #S in that order
+            const regexMatch = value.match(
+                /^(([0-9]+)D)?\s?(([0-9]+)H)?\s?(([0-9]+)M)?\s?(([0-9]*\.?[0-9]+)S)?$/
+            );
+            if (regexMatch) {
+                // Capture group order is [full string, aD, a, bH, b, cM, c, dS, d]
+                const daysInMs = (Number(regexMatch[2]) || 0) * msInADay;
+                const hrsInMs = (Number(regexMatch[4]) || 0) * msInAnHour;
+                const minsInMs = (Number(regexMatch[6]) || 0) * msInAMinute;
+                const secsInMs = (Number(regexMatch[8]) || 0) * msInASecond;
+                return daysInMs + hrsInMs + minsInMs + secsInMs;
+            }
         }
         return Number(value);
     },

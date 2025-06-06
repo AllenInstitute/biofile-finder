@@ -12,8 +12,15 @@ export default {
                 options
             )}`;
         } else {
-            const date = new Date(value);
-            return date.toLocaleString(undefined, options);
+            try {
+                const date = new Date(value);
+                return date.toLocaleString(undefined, options);
+            } catch {
+                // If can't convert the value to a date,
+                // send error to console instead of throwing so app doesn't crash
+                console.error(`Unable to convert value ${value} to Date`);
+                return "";
+            }
         }
     },
 
