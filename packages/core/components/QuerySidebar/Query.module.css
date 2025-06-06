@@ -24,6 +24,7 @@
 
 .display-row {
     margin: 8px 0;
+    line-height: 1.5;
 }
 
 .display-row, .collapse-button i {
@@ -32,6 +33,10 @@
 
 .display-row > strong {
     font-weight: 600;
+}
+
+.divider {
+    margin-block-start: 5px;
 }
 
 .container {
@@ -54,6 +59,10 @@
 .container:hover:not(.selected) .expand-button {
     color: var(--highlight-text-color);
     background: none;
+}
+
+.container:hover:not(.selected) .divider {
+    background: var(--highlight-text-color);
 }
 
 .header {
