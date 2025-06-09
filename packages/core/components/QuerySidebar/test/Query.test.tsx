@@ -218,9 +218,11 @@ describe("<Query />", () => {
             const { store } = configureMockStore({
                 state: initialState,
             });
-            const rangeFilterName = "Uploaded";
+            const dateRangeFilterName = "Uploaded";
+            const numberRangeFilterName = "Count";
             const filters = [
-                new FileFilter(rangeFilterName, `RANGE(${new Date(0)},${new Date()})`),
+                new FileFilter(dateRangeFilterName, `RANGE(${new Date(0)},${new Date()})`),
+                new FileFilter(numberRangeFilterName, `RANGE(0.123,45.678)`),
             ];
 
             // Act
@@ -242,8 +244,48 @@ describe("<Query />", () => {
             );
 
             // Assert
-            expect(getByText(new RegExp(`${rangeFilterName} \\(range\\)`))).to.exist;
+            expect(getByText(new RegExp(`${dateRangeFilterName} \\(range\\)`))).to.exist;
+            expect(getByText(new RegExp(`${numberRangeFilterName} \\(range\\)`))).to.exist;
             expect(() => getByText(/RANGE\(/)).to.throw();
+        });
+
+        it("avoids false matches with values containing 'range'", () => {
+            // Arrange
+            const { store } = configureMockStore({
+                state: initialState,
+            });
+            const filterName1 = "Not a range filter";
+            const filterName2 = "Also not a range filter";
+
+            const filters = [
+                new FileFilter(filterName1, `RANGE`),
+                new FileFilter(filterName1, "RANGE(oops"),
+                new FileFilter(filterName1, "RANGEoops2)"),
+                new FileFilter(filterName2, `STRANGE(1,2)`),
+            ];
+
+            // Act
+            const { getByText } = render(
+                <Provider store={store}>
+                    <Query
+                        isSelected={false}
+                        query={{
+                            name: "Test Random Query",
+                            parts: {
+                                filters,
+                                hierarchy: [],
+                                sources: [{ name: "Test Source" }],
+                                openFolders: [],
+                            },
+                        }}
+                    />
+                </Provider>
+            );
+
+            // Assert
+            expect(getByText(new RegExp(`${filterName1} \\(3\\)`))).to.exist;
+            expect(getByText(new RegExp(`${filterName2} \\(1\\)`))).to.exist;
+            expect(() => getByText(/\(range\)/)).to.throw();
         });
 
         it("shows description instead of count for special filter types", () => {

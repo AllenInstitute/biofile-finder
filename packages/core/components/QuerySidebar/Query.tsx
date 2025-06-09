@@ -67,7 +67,7 @@ export default function Query(props: QueryProps) {
                         value = ((Number(accum[filter.name]) || 0) + 1).toString();
                 }
                 // Special case for ranges since we don't know the exact count
-                if (filter.value.toString().includes("RANGE")) value = "range";
+                if (filter.value.toString().match(/^RANGE\((.*)\)$/)) value = "range";
                 return {
                     ...accum,
                     [filter.name]: value,
