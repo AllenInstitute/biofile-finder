@@ -16,6 +16,7 @@ enum EditMetadataPathway {
 interface EditMetadataProps {
     className?: string;
     onDismiss: () => void;
+    onDelete: (annotationToDelete: string) => void;
     setHasUnsavedChanges: (hasUnsavedChanges: boolean) => void;
     user?: string;
 }
@@ -58,6 +59,7 @@ export default function EditMetadataForm(props: EditMetadataProps) {
                 {editPathway === EditMetadataPathway.EXISTING ? (
                     <ExistingAnnotationPathway
                         onDismiss={props.onDismiss}
+                        onDelete={props.onDelete}
                         selectedFileCount={fileCount}
                         user={props.user}
                     />

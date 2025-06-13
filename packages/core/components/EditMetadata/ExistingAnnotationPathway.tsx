@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import MetadataDetails, { ValueCountItem } from "./MetadataDetails";
 import useAnnotationValueByNameMap from "./useAnnotationValueByNameMap";
-import { PrimaryButton, SecondaryButton } from "../Buttons";
+import { LinkLikeButton, PrimaryButton, SecondaryButton } from "../Buttons";
 import ComboBox from "../ComboBox";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
@@ -16,6 +16,7 @@ import styles from "./EditMetadata.module.css";
 
 interface ExistingAnnotationProps {
     onDismiss: () => void;
+    onDelete: (annotationToDelete: string) => void;
     selectedFileCount: number;
     user?: string;
 }
@@ -105,6 +106,13 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
         }
     };
 
+    function onClickDelete(selectedAnnotation: string) {
+        if (selectedAnnotation) {
+            console.info("attempting to delete", selectedAnnotation, "from files");
+            props.onDelete(selectedAnnotation);
+        }
+    }
+
     function onSubmit() {
         const trimmedValues = newValues?.trim();
         const newValuesAsArray = newValues?.split(",").map((value) => value.trim());
@@ -137,15 +145,26 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
 
     return (
         <>
-            <ComboBox
-                className={styles.comboBox}
-                label="Select a metadata field"
-                placeholder="Select a field..."
-                selectedKey={selectedAnnotation}
-                options={annotationOptions}
-                onChange={onSelectMetadataField}
-                disabled={!annotationOptions.length}
-            />
+            <div className={styles.flexWrapper}>
+                <ComboBox
+                    className={styles.comboBox}
+                    label="Select a metadata field"
+                    placeholder="Select a field..."
+                    selectedKey={selectedAnnotation}
+                    options={annotationOptions}
+                    onChange={onSelectMetadataField}
+                    disabled={!annotationOptions.length}
+                />
+                {!!selectedAnnotation && (
+                    <div className={styles.deleteButton}>
+                        <LinkLikeButton
+                            onClick={() => onClickDelete(selectedAnnotation)}
+                            text="Delete"
+                            title="Delete metadata field and values"
+                        />
+                    </div>
+                )}
+            </div>
             {!!selectedAnnotation && (
                 <MetadataDetails
                     dropdownOptions={dropdownOptions}

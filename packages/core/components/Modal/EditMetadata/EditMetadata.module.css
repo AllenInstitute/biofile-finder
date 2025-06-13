@@ -1,3 +1,20 @@
+.error-message {
+  background-color: var(--error-status-background-color);
+  border: var(--error-background-color) 1px solid;
+  color: var(--error-status-text-color);
+  padding: 10px;
+  border-radius: 4px;
+  font-size: var(--l-paragraph-size);
+}
+
+.error-message-icon {
+  padding: 0 8px;
+  font-weight: 600;
+  top: 3px;
+  position: relative;
+  font-size: 18px;
+}
+
 .footer {
   margin-top: 20px;
   width: 100%;

@@ -15,9 +15,18 @@
   padding-left: 5px;
 }
 
+.delete-button {
+  align-self: flex-end;
+  padding: var(--margin);
+}
+
 .error-message {
   color: var(--error-status-text-color);
   line-height: 1.5;
+}
+
+.flex-wrapper {
+  display: flex;
 }
 
 .warning-message {
