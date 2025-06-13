@@ -35,6 +35,9 @@ import {
     COPY_FILES,
     EDIT_FILES,
     EditFilesAction,
+    editFiles,
+    DeleteMetadataAction,
+    DELETE_METADATA,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
@@ -525,6 +528,21 @@ const openWithLogic = createLogic({
 });
 
 /**
+ * Interceptor responsible for translating a DELETE_METADATA action
+ * into an EDIT_FILES action
+ */
+const deleteMetadataLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch) {
+        const filters = interactionSelectors.getFileFiltersForVisibleModal(deps.getState());
+        const {
+            payload: { annotationName, user },
+        } = deps.action as DeleteMetadataAction;
+        dispatch(editFiles({ [annotationName]: [] }, filters, user));
+    },
+    type: DELETE_METADATA,
+});
+
+/**
  * Interceptor responsible for translating an EDIT_FILES action into a progress tracked
  * series of edits on the files currently selected.
  */
@@ -807,6 +825,7 @@ const copyFilesLogic = createLogic({
 export default [
     initializeApp,
     downloadManifest,
+    deleteMetadataLogic,
     editFilesLogic,
     cancelFileDownloadLogic,
     promptForNewExecutable,

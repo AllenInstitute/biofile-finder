@@ -296,6 +296,29 @@ export function editFiles(
 }
 
 /**
+ * Delete metadata from a set of files by transforming into an edit
+ */
+export const DELETE_METADATA = makeConstant(STATE_BRANCH_NAME, "delete-metadata");
+
+export interface DeleteMetadataAction {
+    type: string;
+    payload: {
+        annotationName: string;
+        user?: string;
+    };
+}
+
+export function deleteMetadata(annotationName: string, user?: string): DeleteMetadataAction {
+    return {
+        type: DELETE_METADATA,
+        payload: {
+            annotationName,
+            user,
+        },
+    };
+}
+
+/**
  * PROCESS AND STATUS RELATED ENUMS, INTERFACES, ETC.
  */
 

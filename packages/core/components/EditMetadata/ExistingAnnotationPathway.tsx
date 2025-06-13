@@ -108,7 +108,6 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
 
     function onClickDelete(selectedAnnotation: string) {
         if (selectedAnnotation) {
-            console.info("attempting to delete", selectedAnnotation, "from files");
             props.onDelete(selectedAnnotation);
         }
     }

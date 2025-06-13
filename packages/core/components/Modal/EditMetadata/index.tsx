@@ -1,5 +1,6 @@
 import { Icon } from "@fluentui/react";
 import classNames from "classnames";
+import { uniqueId } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -10,7 +11,7 @@ import BaseModal from "../BaseModal";
 import { PrimaryButton, SecondaryButton } from "../../Buttons";
 import EditMetadataForm from "../../EditMetadata";
 import useFilteredSelection from "../../../hooks/useFilteredSelection";
-import { metadata, selection } from "../../../state";
+import { interaction, metadata, selection } from "../../../state";
 
 import styles from "./EditMetadata.module.css";
 
@@ -31,7 +32,7 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
     const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState<boolean>(false);
     const [showUnsavedWarning, setShowUnsavedWarning] = React.useState<boolean>(false);
-    const [showDeleteWarning, setShowDeleteWarning] = React.useState<string>("");
+    const [annotationToDelete, setAnnotationToDelete] = React.useState<string>("");
     const [isInvalidPassword, setIsInvalidPassword] = React.useState(false);
     const [program, setProgram] = React.useState<string>();
     const isQueryingAicsFms = useSelector(selection.selectors.isQueryingAicsFms);
@@ -52,10 +53,6 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
         else onDismiss();
     }
 
-    function onClickDelete(annotationToDelete: string) {
-        setShowDeleteWarning(annotationToDelete);
-    }
-
     React.useEffect(() => {
         if (!passwordToProgramMap) {
             dispatch(metadata.actions.requestPasswordMapping());
@@ -73,7 +70,19 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
     };
 
     const onDeleteMetadata = () => {
-        console.info("Deletion placeholder");
+        if (program) {
+            dispatch(
+                interaction.actions.deleteMetadata(annotationToDelete, PROGRAM_TO_USER_MAP[program])
+            );
+            onDismiss();
+        } else {
+            dispatch(
+                interaction.actions.processError(
+                    uniqueId(),
+                    "Must have a valid program to delete metadata from files."
+                )
+            );
+        }
     };
 
     const unsavedChangesWarning = (
@@ -96,7 +105,7 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
     const deleteMetadataWarning = (
         <>
             <p className={styles.warning}>
-                <b>{showDeleteWarning}</b> and all associated values will be deleted from selected
+                <b>{annotationToDelete}</b> and all associated values will be deleted from selected
                 files.
             </p>
             <p className={styles.errorMessage}>
@@ -104,7 +113,7 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
                 This action is destructive and permanent.
             </p>
             <div className={classNames(styles.footer, styles.footerAlignRight)}>
-                <SecondaryButton title="" text="Back" onClick={() => setShowDeleteWarning("")} />
+                <SecondaryButton title="" text="Back" onClick={() => setAnnotationToDelete("")} />
                 <PrimaryButton title="" text="Delete" onClick={onDeleteMetadata} />
             </div>
         </>
@@ -116,9 +125,9 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
             <>
                 <EditMetadataForm
                     className={classNames({
-                        [styles.hidden]: showUnsavedWarning || showDeleteWarning,
+                        [styles.hidden]: showUnsavedWarning || annotationToDelete,
                     })}
-                    onDelete={onClickDelete}
+                    onDelete={setAnnotationToDelete}
                     onDismiss={onDismissWithWarning}
                     setHasUnsavedChanges={setHasUnsavedChanges}
                     user={program && PROGRAM_TO_USER_MAP[program]}
@@ -127,7 +136,7 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
                  * prioritizing unsaved changes warning (on exit) over deletion
                  */}
                 {showUnsavedWarning && unsavedChangesWarning}
-                {showDeleteWarning && !showUnsavedWarning && deleteMetadataWarning}
+                {annotationToDelete && !showUnsavedWarning && deleteMetadataWarning}
             </>
         ) : (
             <PasswordForm
@@ -141,12 +150,12 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
         );
 
     const title = React.useMemo(() => {
-        if (showDeleteWarning !== "") {
+        if (annotationToDelete !== "") {
             return `Warning! You are deleting metadata. ${filesSelectedCountString}`;
         } else if (showUnsavedWarning) {
             return "Warning! Edits in progress.";
         } else return `Edit metadata ${filesSelectedCountString}`;
-    }, [showDeleteWarning, showUnsavedWarning, filesSelectedCountString]);
+    }, [annotationToDelete, showUnsavedWarning, filesSelectedCountString]);
 
     return <BaseModal body={body} isStatic onDismiss={onDismissWithWarning} title={title} />;
 }
