@@ -20,6 +20,8 @@ interface Props {
     // title is only required if tooltip would be different from button text
     // or if button does not have text (e.g., icon only)
     title?: string;
+    // default to all-caps except for link-like buttons
+    useSentenceCase?: boolean;
 }
 
 /**
@@ -40,7 +42,9 @@ export default function BaseButton(props: Props) {
                     iconName={props.iconName}
                 />
             )}
-            <span className={styles.buttonText}>{props.text?.toUpperCase()}</span>
+            <span className={styles.buttonText}>
+                {props?.useSentenceCase ? props.text : props.text?.toUpperCase()}
+            </span>
         </span>
     );
 

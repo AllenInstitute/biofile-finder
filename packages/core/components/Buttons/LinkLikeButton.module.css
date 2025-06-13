@@ -1,0 +1,19 @@
+.button {
+  background: none;
+  color: var(--highlight-background-color);
+  border: none;
+  font-size: small;
+  padding: 0;
+  justify-content: flex-start;
+  width: fit-content;
+}
+
+.button span {
+  font-weight: unset;
+  margin: 0;
+}
+
+.button:hover, .button:focus {
+  background-color: unset;
+  color: var(--highlight-hover-background-color);
+}
