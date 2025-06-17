@@ -11,6 +11,7 @@ import QueryGroup from "../QueryPart/QueryGroup";
 import QuerySort from "../QueryPart/QuerySort";
 import Tooltip from "../Tooltip";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
+import { FilterType } from "../../entity/FileFilter";
 import { interaction, metadata, selection } from "../../state";
 import { Query as QueryType } from "../../state/selection/actions";
 
@@ -50,6 +51,35 @@ export default function Query(props: QueryProps) {
                 : props.query?.parts,
         [props.query?.parts, currentQueryParts, props.isSelected]
     );
+
+    const condensedFilterString = React.useMemo(() => {
+        return Object.entries(
+            queryComponents.filters.reduce((accum, filter) => {
+                let value = "";
+                switch (filter.type) {
+                    case FilterType.ANY:
+                        value = "any value";
+                        break;
+                    case FilterType.EXCLUDE:
+                        value = "no value";
+                        break;
+                    default:
+                        value = ((Number(accum[filter.name]) || 0) + 1).toString();
+                }
+                // Special case for ranges since we don't know the exact count
+                if (filter.value.toString().match(/^RANGE\((.*)\)$/)) value = "range";
+                return {
+                    ...accum,
+                    [filter.name]: value,
+                };
+            }, {} as { [index: string]: string })
+        )
+            .map(([name, value]) => {
+                if (value === "") return name;
+                return `${name} (${value})`;
+            })
+            .join(", ");
+    }, [queryComponents]);
 
     const onQueryUpdate = (updatedQuery: QueryType) => {
         const updatedQueries = queries.map((query) =>
@@ -110,6 +140,7 @@ export default function Query(props: QueryProps) {
                         data-testid="expand-button"
                     />
                 </div>
+                {!isExpanded && <hr className={styles.divider}></hr>}
                 <p className={styles.displayRow}>
                     <strong>Data source:</strong>{" "}
                     {queryComponents.sources.map((source) => source.name).join(", ")}
@@ -128,10 +159,9 @@ export default function Query(props: QueryProps) {
                 )}
                 {!!queryComponents.filters.length && (
                     <p className={styles.displayRow}>
-                        <strong>Filter:</strong>{" "}
-                        {queryComponents.filters
-                            .map((filter) => `${filter.name}: ${filter.value}`)
-                            .join(", ")}
+                        <strong>Filter{queryComponents.filters.length > 1 ? "s" : ""}:</strong>{" "}
+                        {/* Show a condensed version of the filters list with counts instead of values */}
+                        {condensedFilterString}
                     </p>
                 )}
                 {!!queryComponents.sortColumn && (
