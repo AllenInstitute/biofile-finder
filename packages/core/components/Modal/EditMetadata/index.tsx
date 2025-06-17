@@ -1,6 +1,4 @@
-import { Icon } from "@fluentui/react";
 import classNames from "classnames";
-import { uniqueId } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -11,7 +9,7 @@ import BaseModal from "../BaseModal";
 import { PrimaryButton, SecondaryButton } from "../../Buttons";
 import EditMetadataForm from "../../EditMetadata";
 import useFilteredSelection from "../../../hooks/useFilteredSelection";
-import { interaction, metadata, selection } from "../../../state";
+import { metadata, selection } from "../../../state";
 
 import styles from "./EditMetadata.module.css";
 
@@ -32,7 +30,7 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
     const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState<boolean>(false);
     const [showUnsavedWarning, setShowUnsavedWarning] = React.useState<boolean>(false);
-    const [annotationToDelete, setAnnotationToDelete] = React.useState<string>("");
+    const [isDeleting, setIsDeleting] = React.useState<boolean>(false);
     const [isInvalidPassword, setIsInvalidPassword] = React.useState(false);
     const [program, setProgram] = React.useState<string>();
     const isQueryingAicsFms = useSelector(selection.selectors.isQueryingAicsFms);
@@ -69,74 +67,35 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
         }
     };
 
-    const onDeleteMetadata = () => {
-        if (program) {
-            dispatch(
-                interaction.actions.deleteMetadata(annotationToDelete, PROGRAM_TO_USER_MAP[program])
-            );
-            onDismiss();
-        } else {
-            dispatch(
-                interaction.actions.processError(
-                    uniqueId(),
-                    "Must have a valid program to delete metadata from files."
-                )
-            );
-        }
-    };
-
-    const unsavedChangesWarning = (
-        <>
-            <p className={styles.warning}>
-                Some edits will not be completed and could cause inaccuracies. Are you sure you want
-                to quit now?
-            </p>
-            <div className={classNames(styles.footer, styles.footerAlignRight)}>
-                <SecondaryButton
-                    title=""
-                    text="Back"
-                    onClick={() => setShowUnsavedWarning(false)}
-                />
-                <PrimaryButton title="" text="Yes, Quit" onClick={onDismiss} />
-            </div>
-        </>
-    );
-
-    const deleteMetadataWarning = (
-        <>
-            <p className={styles.warning}>
-                <b>{annotationToDelete}</b> and all associated values will be deleted from selected
-                files.
-            </p>
-            <p className={styles.errorMessage}>
-                <Icon className={styles.errorMessageIcon} iconName="Warning" />
-                This action is destructive and permanent.
-            </p>
-            <div className={classNames(styles.footer, styles.footerAlignRight)}>
-                <SecondaryButton title="" text="Back" onClick={() => setAnnotationToDelete("")} />
-                <PrimaryButton title="" text="Delete" onClick={onDeleteMetadata} />
-            </div>
-        </>
-    );
-
     const body =
         !isQueryingAicsFms || !!program ? (
             // Use styling on form instead of conditionals to persist rendered data
             <>
                 <EditMetadataForm
                     className={classNames({
-                        [styles.hidden]: showUnsavedWarning || annotationToDelete,
+                        [styles.hidden]: showUnsavedWarning,
                     })}
-                    onDelete={setAnnotationToDelete}
+                    onSelectDelete={setIsDeleting}
                     onDismiss={onDismissWithWarning}
                     setHasUnsavedChanges={setHasUnsavedChanges}
                     user={program && PROGRAM_TO_USER_MAP[program]}
                 />
-                {/** Use conditional instead of styling so can't be accidentally accessed,
-                 * prioritizing unsaved changes warning (on exit) over deletion
-                 */}
-                {showUnsavedWarning && unsavedChangesWarning}
-                {annotationToDelete && !showUnsavedWarning && deleteMetadataWarning}
+                {showUnsavedWarning && (
+                    <>
+                        <p className={styles.warning}>
+                            Some edits will not be completed and could cause inaccuracies. Are you
+                            sure you want to quit now?
+                        </p>
+                        <div className={classNames(styles.footer, styles.footerAlignRight)}>
+                            <SecondaryButton
+                                title=""
+                                text="Back"
+                                onClick={() => setShowUnsavedWarning(false)}
+                            />
+                            <PrimaryButton title="" text="Yes, Quit" onClick={onDismiss} />
+                        </div>
+                    </>
+                )}
             </>
         ) : (
             <PasswordForm
@@ -150,12 +109,12 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
         );
 
     const title = React.useMemo(() => {
-        if (annotationToDelete !== "") {
+        if (isDeleting) {
             return `Warning! You are deleting metadata. ${filesSelectedCountString}`;
         } else if (showUnsavedWarning) {
             return "Warning! Edits in progress.";
         } else return `Edit metadata ${filesSelectedCountString}`;
-    }, [annotationToDelete, showUnsavedWarning, filesSelectedCountString]);
+    }, [isDeleting, showUnsavedWarning, filesSelectedCountString]);
 
     return <BaseModal body={body} isStatic onDismiss={onDismissWithWarning} title={title} />;
 }

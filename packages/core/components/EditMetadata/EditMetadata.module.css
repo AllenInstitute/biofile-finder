@@ -20,9 +20,34 @@
   padding: var(--margin);
 }
 
+.delete-warning {
+  font-size: var(--l-paragraph-size);
+}
+
 .error-message {
   color: var(--error-status-text-color);
   line-height: 1.5;
+}
+
+.error-message-section {
+  background-color: var(--error-status-background-color);
+  border: var(--error-background-color) 1px solid;
+  color: var(--error-status-text-color);
+  padding: 10px;
+  border-radius: 4px;
+  font-size: var(--l-paragraph-size);
+}
+
+.error-message-icon {
+  padding: 0 8px;
+  font-weight: 600;
+  top: 3px;
+  position: relative;
+  font-size: 18px;
+}
+
+.hidden {
+  display: none;
 }
 
 .flex-wrapper {

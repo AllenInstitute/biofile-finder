@@ -1,4 +1,4 @@
-import { IComboBoxOption } from "@fluentui/react";
+import { IComboBoxOption, Icon } from "@fluentui/react";
 import classNames from "classnames";
 import { uniqueId } from "lodash";
 import * as React from "react";
@@ -16,7 +16,7 @@ import styles from "./EditMetadata.module.css";
 
 interface ExistingAnnotationProps {
     onDismiss: () => void;
-    onDelete: (annotationToDelete: string) => void;
+    onSelectDelete: (isDeleting: boolean) => void;
     selectedFileCount: number;
     user?: string;
 }
@@ -32,6 +32,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
     const [selectedAnnotation, setSelectedAnnotation] = React.useState<string>();
     const [annotationType, setAnnotationType] = React.useState<AnnotationType>();
     const [dropdownOptions, setDropdownOptions] = React.useState<string[]>();
+    const [isDeleting, setIsDeleting] = React.useState<boolean>(false);
 
     const annotationValueByNameMap = useAnnotationValueByNameMap();
     const filters = useSelector(interaction.selectors.getFileFiltersForVisibleModal);
@@ -106,10 +107,9 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
         }
     };
 
-    function onClickDelete(selectedAnnotation: string) {
-        if (selectedAnnotation) {
-            props.onDelete(selectedAnnotation);
-        }
+    function onClickDelete(isDeleting: boolean) {
+        setIsDeleting(isDeleting);
+        props.onSelectDelete(isDeleting);
     }
 
     function onSubmit() {
@@ -142,7 +142,33 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
         }
     }
 
-    return (
+    const onDeleteMetadata = () => {
+        if (selectedAnnotation) {
+            dispatch(interaction.actions.deleteMetadata(selectedAnnotation, props.user));
+            props.onDismiss();
+        }
+    };
+
+    const deleteMetadataWarning = (
+        <>
+            <p className={styles.deleteWarning}>
+                <b>{selectedAnnotation}</b> and all associated values will be deleted from selected
+                files.
+            </p>
+            <p className={styles.errorMessageSection}>
+                <Icon className={styles.errorMessageIcon} iconName="Warning" />
+                This action is destructive and permanent.
+            </p>
+            <div className={classNames(styles.footer, styles.footerAlignRight)}>
+                <SecondaryButton title="" text="Back" onClick={() => onClickDelete(false)} />
+                <PrimaryButton title="" text="Delete" onClick={onDeleteMetadata} />
+            </div>
+        </>
+    );
+
+    return isDeleting ? (
+        deleteMetadataWarning
+    ) : (
         <>
             <div className={styles.flexWrapper}>
                 <ComboBox
@@ -157,7 +183,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 {!!selectedAnnotation && (
                     <div className={styles.deleteButton}>
                         <LinkLikeButton
-                            onClick={() => onClickDelete(selectedAnnotation)}
+                            onClick={() => onClickDelete(true)}
                             text="Delete"
                             title="Delete metadata field and values"
                         />
