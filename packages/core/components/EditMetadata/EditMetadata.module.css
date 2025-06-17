@@ -20,7 +20,7 @@
   padding: var(--margin);
 }
 
-.delete-warning-message {
+.delete-warning {
   font-size: var(--l-paragraph-size);
 }
 .delete-warning-section {
@@ -29,7 +29,6 @@
   color: var(--error-status-text-color);
   padding: 10px;
   border-radius: 4px;
-  font-size: var(--l-paragraph-size);
 }
 
 .delete-warning-section > i {

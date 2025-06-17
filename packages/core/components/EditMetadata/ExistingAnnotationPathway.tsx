@@ -150,8 +150,8 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
     };
 
     const deleteMetadataWarning = (
-        <>
-            <p className={styles.deleteWarningMessage}>
+        <div className={styles.deleteWarning}>
+            <p>
                 <b>{selectedAnnotation}</b> and all associated values will be deleted from selected
                 files.
             </p>
@@ -163,7 +163,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
                 <SecondaryButton title="" text="Back" onClick={() => onClickDelete(false)} />
                 <PrimaryButton title="" text="Delete" onClick={onDeleteMetadata} />
             </div>
-        </>
+        </div>
     );
 
     return isDeleting ? (
