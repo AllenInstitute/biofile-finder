@@ -23,6 +23,7 @@ import {
     openWithDefault,
     downloadFiles,
     editFiles,
+    deleteMetadata,
 } from "../actions";
 import {
     ExecutableEnvCancellationToken,
@@ -923,6 +924,58 @@ describe("Interaction logics", () => {
                     payload: {
                         data: {
                             status: ProcessStatus.SUCCEEDED,
+                        },
+                    },
+                })
+            ).to.be.false;
+        });
+
+        // Deletion is essentially a wrapper for editing but without values
+        it("deletes metadata from files", async () => {
+            // Arrange
+            const state = mergeState(initialState, {
+                selection: {
+                    fileSelection: fakeSelection,
+                },
+                metadata: {
+                    annotations: mockAnnotations,
+                },
+                interaction: {
+                    platformDependentServices: {
+                        fileDownloadService: downloadService,
+                    },
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: reduxLogics,
+            });
+
+            // Act
+            store.dispatch(deleteMetadata("Cell Line", "Test"));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            // Should transform into an edit action
+            expect(actions.includesMatch(editFiles({ "Cell Line": [] }, [], "Test"))).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.SUCCEEDED,
+                        },
+                    },
+                })
+            ).to.be.true;
+
+            // Make sure this isn't evergreen
+            expect(
+                actions.includesMatch({
+                    type: SET_STATUS,
+                    payload: {
+                        data: {
+                            status: ProcessStatus.ERROR,
                         },
                     },
                 })

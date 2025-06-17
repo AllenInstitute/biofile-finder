@@ -4,7 +4,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import FilePrompt from "./FilePrompt";
-import { PrimaryButton, SecondaryButton } from "../Buttons";
+import { LinkLikeButton, PrimaryButton, SecondaryButton } from "../Buttons";
 import { Source } from "../../entity/SearchParams";
 import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
@@ -185,12 +185,10 @@ export default function DataSourcePrompt(props: Props) {
                     <FilePrompt onSelectFile={setMetadataSource} selectedFile={metadataSource} />
                 </>
             ) : (
-                <DefaultButton
-                    className={styles.linkLikeButton}
+                <LinkLikeButton
                     onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-                >
-                    (Optional) Add metadata source
-                </DefaultButton>
+                    text="(Optional) Add metadata source"
+                />
             )}
             <div className={styles.loadButtonContainer}>
                 {props.hideTitle && <SecondaryButton text="CANCEL" onClick={() => onDismiss()} />}

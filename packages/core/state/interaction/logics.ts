@@ -6,23 +6,23 @@ import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import {
     DOWNLOAD_MANIFEST,
     DownloadManifestAction,
-    processSuccess,
     processError,
-    removeStatus,
+    processProgress,
     processStart,
+    processSuccess,
+    removeStatus,
     SHOW_CONTEXT_MENU,
     CANCEL_FILE_DOWNLOAD,
-    cancelFileDownload,
     CancelFileDownloadAction,
+    cancelFileDownload,
     REFRESH,
     OPEN_WITH,
-    openWith,
     OpenWithAction,
+    openWith,
     OPEN_WITH_DEFAULT,
-    processProgress,
+    OpenWithDefaultAction,
     DOWNLOAD_FILES,
     DownloadFilesAction,
-    OpenWithDefaultAction,
     PROMPT_FOR_NEW_EXECUTABLE,
     setUserSelectedApplication,
     INITIALIZE_APP,
@@ -31,10 +31,13 @@ import {
     SetIsSmallScreenAction,
     setVisibleModal,
     hideVisibleModal,
-    CopyFilesAction,
     COPY_FILES,
+    CopyFilesAction,
     EDIT_FILES,
     EditFilesAction,
+    editFiles,
+    DELETE_METADATA,
+    DeleteMetadataAction,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
@@ -525,6 +528,21 @@ const openWithLogic = createLogic({
 });
 
 /**
+ * Interceptor responsible for translating a DELETE_METADATA action
+ * into an EDIT_FILES action
+ */
+const deleteMetadataLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch) {
+        const filters = interactionSelectors.getFileFiltersForVisibleModal(deps.getState());
+        const {
+            payload: { annotationName, user },
+        } = deps.action as DeleteMetadataAction;
+        dispatch(editFiles({ [annotationName]: [] }, filters, user));
+    },
+    type: DELETE_METADATA,
+});
+
+/**
  * Interceptor responsible for translating an EDIT_FILES action into a progress tracked
  * series of edits on the files currently selected.
  */
@@ -805,16 +823,17 @@ const copyFilesLogic = createLogic({
 });
 
 export default [
-    initializeApp,
+    cancelFileDownloadLogic,
+    copyFilesLogic,
+    deleteMetadataLogic,
+    downloadFilesLogic,
     downloadManifest,
     editFilesLogic,
-    cancelFileDownloadLogic,
-    promptForNewExecutable,
+    initializeApp,
     openWithDefault,
     openWithLogic,
-    downloadFilesLogic,
-    showContextMenu,
+    promptForNewExecutable,
     refresh,
     setIsSmallScreen,
-    copyFilesLogic,
+    showContextMenu,
 ];

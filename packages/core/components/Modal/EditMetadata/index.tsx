@@ -29,7 +29,8 @@ const PROGRAM_TO_USER_MAP: Record<string, string> = {
 export default function EditMetadata({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
     const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState<boolean>(false);
-    const [showWarning, setShowWarning] = React.useState<boolean>(false);
+    const [showUnsavedWarning, setShowUnsavedWarning] = React.useState<boolean>(false);
+    const [isDeleting, setIsDeleting] = React.useState<boolean>(false);
     const [isInvalidPassword, setIsInvalidPassword] = React.useState(false);
     const [program, setProgram] = React.useState<string>();
     const isQueryingAicsFms = useSelector(selection.selectors.isQueryingAicsFms);
@@ -46,7 +47,7 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
     })`;
 
     function onDismissWithWarning() {
-        if (hasUnsavedChanges) setShowWarning(true);
+        if (hasUnsavedChanges) setShowUnsavedWarning(true);
         else onDismiss();
     }
 
@@ -71,12 +72,15 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
             // Use styling on form instead of conditionals to persist rendered data
             <>
                 <EditMetadataForm
-                    className={classNames({ [styles.hidden]: showWarning })}
+                    className={classNames({
+                        [styles.hidden]: showUnsavedWarning,
+                    })}
+                    onSelectDelete={setIsDeleting}
                     onDismiss={onDismissWithWarning}
                     setHasUnsavedChanges={setHasUnsavedChanges}
                     user={program && PROGRAM_TO_USER_MAP[program]}
                 />
-                <div className={classNames({ [styles.hidden]: !showWarning })}>
+                <div className={classNames({ [styles.hidden]: !showUnsavedWarning })}>
                     <p className={styles.warning}>
                         Some edits will not be completed and could cause inaccuracies. Are you sure
                         you want to quit now?
@@ -85,7 +89,7 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
                         <SecondaryButton
                             title=""
                             text="Back"
-                            onClick={() => setShowWarning(false)}
+                            onClick={() => setShowUnsavedWarning(false)}
                         />
                         <PrimaryButton title="" text="Yes, Quit" onClick={onDismiss} />
                     </div>
@@ -102,16 +106,13 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
             />
         );
 
-    return (
-        <BaseModal
-            body={body}
-            isStatic
-            onDismiss={onDismissWithWarning}
-            title={
-                showWarning
-                    ? "Warning! Edits in progress."
-                    : `Edit metadata ${filesSelectedCountString}`
-            }
-        />
-    );
+    const title = React.useMemo(() => {
+        if (isDeleting) {
+            return `Warning! You are deleting metadata. ${filesSelectedCountString}`;
+        } else if (showUnsavedWarning) {
+            return "Warning! Edits in progress.";
+        } else return `Edit metadata ${filesSelectedCountString}`;
+    }, [isDeleting, showUnsavedWarning, filesSelectedCountString]);
+
+    return <BaseModal body={body} isStatic onDismiss={onDismissWithWarning} title={title} />;
 }
