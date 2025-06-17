@@ -296,7 +296,7 @@ export function editFiles(
 }
 
 /**
- * Delete metadata from a set of files by transforming into an edit
+ * Delete metadata from a set of files by transforming action into an edit action
  */
 export const DELETE_METADATA = makeConstant(STATE_BRANCH_NAME, "delete-metadata");
 

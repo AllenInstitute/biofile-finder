@@ -151,12 +151,12 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
 
     const deleteMetadataWarning = (
         <>
-            <p className={styles.deleteWarning}>
+            <p className={styles.deleteWarningMessage}>
                 <b>{selectedAnnotation}</b> and all associated values will be deleted from selected
                 files.
             </p>
-            <p className={styles.errorMessageSection}>
-                <Icon className={styles.errorMessageIcon} iconName="Warning" />
+            <p className={styles.deleteWarningSection}>
+                <Icon iconName="Warning" />
                 This action is destructive and permanent.
             </p>
             <div className={classNames(styles.footer, styles.footerAlignRight)}>

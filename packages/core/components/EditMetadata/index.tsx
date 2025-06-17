@@ -41,7 +41,7 @@ export default function EditMetadataForm(props: EditMetadataProps) {
         <div className={classNames(props.className, styles.root)}>
             <ChoiceGroup
                 className={classNames(styles.choiceGroup, {
-                    [styles.hidden]: isDeleting, // Don't show options while delete warning is active
+                    [styles.hidden]: isDeleting, // Hide radio while delete warning is active
                 })}
                 defaultSelectedKey={editPathway}
                 onChange={(_ev, option) =>

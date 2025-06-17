@@ -80,22 +80,20 @@ export default function EditMetadata({ onDismiss }: ModalProps) {
                     setHasUnsavedChanges={setHasUnsavedChanges}
                     user={program && PROGRAM_TO_USER_MAP[program]}
                 />
-                {showUnsavedWarning && (
-                    <>
-                        <p className={styles.warning}>
-                            Some edits will not be completed and could cause inaccuracies. Are you
-                            sure you want to quit now?
-                        </p>
-                        <div className={classNames(styles.footer, styles.footerAlignRight)}>
-                            <SecondaryButton
-                                title=""
-                                text="Back"
-                                onClick={() => setShowUnsavedWarning(false)}
-                            />
-                            <PrimaryButton title="" text="Yes, Quit" onClick={onDismiss} />
-                        </div>
-                    </>
-                )}
+                <div className={classNames({ [styles.hidden]: !showUnsavedWarning })}>
+                    <p className={styles.warning}>
+                        Some edits will not be completed and could cause inaccuracies. Are you sure
+                        you want to quit now?
+                    </p>
+                    <div className={classNames(styles.footer, styles.footerAlignRight)}>
+                        <SecondaryButton
+                            title=""
+                            text="Back"
+                            onClick={() => setShowUnsavedWarning(false)}
+                        />
+                        <PrimaryButton title="" text="Yes, Quit" onClick={onDismiss} />
+                    </div>
+                </div>
             </>
         ) : (
             <PasswordForm

@@ -20,16 +20,10 @@
   padding: var(--margin);
 }
 
-.delete-warning {
+.delete-warning-message {
   font-size: var(--l-paragraph-size);
 }
-
-.error-message {
-  color: var(--error-status-text-color);
-  line-height: 1.5;
-}
-
-.error-message-section {
+.delete-warning-section {
   background-color: var(--error-status-background-color);
   border: var(--error-background-color) 1px solid;
   color: var(--error-status-text-color);
@@ -38,7 +32,7 @@
   font-size: var(--l-paragraph-size);
 }
 
-.error-message-icon {
+.delete-warning-section > i {
   padding: 0 8px;
   font-weight: 600;
   top: 3px;
@@ -46,12 +40,17 @@
   font-size: 18px;
 }
 
-.hidden {
-  display: none;
+.error-message {
+  color: var(--error-status-text-color);
+  line-height: 1.5;
 }
 
 .flex-wrapper {
   display: flex;
+}
+
+.hidden {
+  display: none;
 }
 
 .warning-message {
