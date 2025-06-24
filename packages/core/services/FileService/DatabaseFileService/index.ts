@@ -242,7 +242,7 @@ export default class DatabaseFileService implements FileService {
         const tableName = this.dataSourceNames.sort().join(", ");
         const columnAssignments = Object.entries(annotations).map(([name, values]) => {
             let valueString = `'${values.join(DatabaseService.LIST_DELIMITER)}'`;
-            if (values.length === 0) valueString = "NULL";
+            if (values.length === 0) valueString = "NULL"; // Empty value array means deletion
             return `"${name}" = ${valueString}`;
         });
         const sql = `\

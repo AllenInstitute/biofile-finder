@@ -199,10 +199,12 @@ describe("DatabaseFileService", () => {
 
     describe("editFiles", () => {
         const uidField = DatabaseService.HIDDEN_UID_ANNOTATION;
+        const fileUid = "a1b2c3d4";
         const sandbox = createSandbox();
         afterEach(() => {
             sandbox.restore();
         });
+        // Custom mock to allow spying on `execute` args
         class MockDatabaseEditService extends DatabaseService {
             public execute(_sql: string): Promise<void> {
                 return Promise.resolve();
@@ -233,11 +235,11 @@ describe("DatabaseFileService", () => {
             const annotationName = "Test Annotation";
             const annotationValue = "Some value";
             // Act
-            await fileService.editFile("123", { [annotationName]: [annotationValue] });
+            await fileService.editFile(fileUid, { [annotationName]: [annotationValue] });
 
             // Assert
             expect(sqlSpy.called).to.be.true;
-            const regex = new RegExp(String.raw`WHERE ${uidField} \= \'123\'`);
+            const regex = new RegExp(String.raw`WHERE ${uidField} \= \'${fileUid}\'`);
             expect(sqlSpy.calledWith(match(regex))).to.be.true;
         });
 
@@ -252,7 +254,7 @@ describe("DatabaseFileService", () => {
             const annotationName = "Test Annotation";
             const annotationValue = "Some value";
             // Act
-            await fileService.editFile("123", { [annotationName]: [annotationValue] });
+            await fileService.editFile(fileUid, { [annotationName]: [annotationValue] });
 
             // Assert
             expect(sqlSpy.called).to.be.true;
@@ -275,7 +277,7 @@ describe("DatabaseFileService", () => {
 
             const annotationValue = "Some value";
             // Act
-            await fileService.editFile("123", {
+            await fileService.editFile(fileUid, {
                 [annotationName1]: [annotationValue],
                 [annotationName2]: [annotationValue],
             });
@@ -296,7 +298,7 @@ describe("DatabaseFileService", () => {
             });
             const sqlSpy = sandbox.spy(databaseEditService, "execute");
             const annotationName = "Test Annotation";
-            await fileService.editFile("123", { [annotationName]: [] });
+            await fileService.editFile(fileUid, { [annotationName]: [] });
 
             expect(sqlSpy.called).to.be.true;
             const regex = new RegExp(String.raw`SET \"${annotationName}\" \= NULL`);

@@ -542,7 +542,7 @@ const deleteMetadataLogic = createLogic({
             dispatch(editFiles({ [annotationName]: [] }, filters, user));
         } catch (err) {
             // Dispatch an event to alert the user of the failure
-            // We shouldn't reach this unless fails before `editFilesLogic` reaches its own error handling
+            // We shouldn't reach this unless logic fails before `editFilesLogic` reaches its own error handling
             const errorMsg = `Failed to delete metadata from files, some may have been edited. Details:<br/>${
                 err instanceof Error ? err.message : err
             }`;
