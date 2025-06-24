@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { createSandbox, match } from "sinon";
 
 import DatabaseService from "../../../DatabaseService";
 import FileSelection from "../../../../entity/FileSelection";
@@ -193,6 +194,113 @@ describe("DatabaseFileService", () => {
             // Uses AND between different filter types
             expect(modifiedSQLWithAND).to.include("AND");
             expect(modifiedSQLWithAND).not.to.include("OR");
+        });
+    });
+
+    describe("editFiles", () => {
+        const uidField = DatabaseService.HIDDEN_UID_ANNOTATION;
+        const sandbox = createSandbox();
+        afterEach(() => {
+            sandbox.restore();
+        });
+        class MockDatabaseEditService extends DatabaseService {
+            public execute(_sql: string): Promise<void> {
+                return Promise.resolve();
+            }
+
+            public saveQuery(): Promise<Uint8Array> {
+                return Promise.reject("MockDatabaseEditService:saveQuery");
+            }
+
+            public query(): Promise<{ [key: string]: string }[]> {
+                return Promise.reject("MockDatabaseEditService:query");
+            }
+
+            protected addDataSource(): Promise<void> {
+                return Promise.reject("MockDatabaseEditService:addDataSource");
+            }
+        }
+        const databaseEditService = new MockDatabaseEditService();
+
+        it("issues request to edit files matching given parameters", async () => {
+            // Arrange
+            const fileService = new DatabaseFileService({
+                dataSourceNames: ["Mock Source"],
+                databaseService: databaseEditService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+            const sqlSpy = sandbox.spy(databaseEditService, "execute");
+            const annotationName = "Test Annotation";
+            const annotationValue = "Some value";
+            // Act
+            await fileService.editFile("123", { [annotationName]: [annotationValue] });
+
+            // Assert
+            expect(sqlSpy.called).to.be.true;
+            const regex = new RegExp(String.raw`WHERE ${uidField} \= \'123\'`);
+            expect(sqlSpy.calledWith(match(regex))).to.be.true;
+        });
+
+        it("issues request to edit single value for files", async () => {
+            // Arrange
+            const fileService = new DatabaseFileService({
+                dataSourceNames: ["Mock Source"],
+                databaseService: databaseEditService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+            const sqlSpy = sandbox.spy(databaseEditService, "execute");
+            const annotationName = "Test Annotation";
+            const annotationValue = "Some value";
+            // Act
+            await fileService.editFile("123", { [annotationName]: [annotationValue] });
+
+            // Assert
+            expect(sqlSpy.called).to.be.true;
+            const regex = new RegExp(
+                String.raw`SET \"${annotationName}\" \= \'${annotationValue}\'`
+            );
+            expect(sqlSpy.calledWith(match(regex))).to.be.true;
+        });
+
+        it("issues request to edit multiple annotations for files", async () => {
+            // Arrange
+            const fileService = new DatabaseFileService({
+                dataSourceNames: ["Mock Source"],
+                databaseService: databaseEditService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+            const sqlSpy = sandbox.spy(databaseEditService, "execute");
+            const annotationName1 = "Test Annotation 1";
+            const annotationName2 = "Test Annotation 2";
+
+            const annotationValue = "Some value";
+            // Act
+            await fileService.editFile("123", {
+                [annotationName1]: [annotationValue],
+                [annotationName2]: [annotationValue],
+            });
+
+            // Assert
+            expect(sqlSpy.called).to.be.true;
+            const regex = new RegExp(
+                String.raw`SET \"${annotationName1}\" \= \'${annotationValue}\', \"${annotationName2}\" \=`
+            );
+            expect(sqlSpy.calledWith(match(regex))).to.be.true;
+        });
+
+        it("issues request to delete metadata from files", async () => {
+            const fileService = new DatabaseFileService({
+                dataSourceNames: ["Mock Source"],
+                databaseService: databaseEditService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+            const sqlSpy = sandbox.spy(databaseEditService, "execute");
+            const annotationName = "Test Annotation";
+            await fileService.editFile("123", { [annotationName]: [] });
+
+            expect(sqlSpy.called).to.be.true;
+            const regex = new RegExp(String.raw`SET \"${annotationName}\" \= NULL`);
+            expect(sqlSpy.calledWith(match(regex))).to.be.true;
         });
     });
 });
