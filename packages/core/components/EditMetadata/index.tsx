@@ -16,6 +16,7 @@ enum EditMetadataPathway {
 interface EditMetadataProps {
     className?: string;
     onDismiss: () => void;
+    onSelectDelete: (isDeleting: boolean) => void;
     setHasUnsavedChanges: (hasUnsavedChanges: boolean) => void;
     user?: string;
 }
@@ -30,11 +31,18 @@ export default function EditMetadataForm(props: EditMetadataProps) {
     const [editPathway, setEditPathway] = React.useState<EditMetadataPathway>(
         EditMetadataPathway.EXISTING
     );
+    const [isDeleting, setIsDeleting] = React.useState<boolean>(false);
+    const onSelectDelete = (isDeleting: boolean) => {
+        setIsDeleting(isDeleting);
+        props.onSelectDelete(isDeleting);
+    };
 
     return (
         <div className={classNames(props.className, styles.root)}>
             <ChoiceGroup
-                className={styles.choiceGroup}
+                className={classNames(styles.choiceGroup, {
+                    [styles.hidden]: isDeleting, // Hide radio while delete warning is active
+                })}
                 defaultSelectedKey={editPathway}
                 onChange={(_ev, option) =>
                     setEditPathway(
@@ -58,6 +66,7 @@ export default function EditMetadataForm(props: EditMetadataProps) {
                 {editPathway === EditMetadataPathway.EXISTING ? (
                     <ExistingAnnotationPathway
                         onDismiss={props.onDismiss}
+                        onSelectDelete={onSelectDelete}
                         selectedFileCount={fileCount}
                         user={props.user}
                     />

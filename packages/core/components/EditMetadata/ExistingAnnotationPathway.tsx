@@ -1,4 +1,4 @@
-import { IComboBoxOption } from "@fluentui/react";
+import { IComboBoxOption, Icon } from "@fluentui/react";
 import classNames from "classnames";
 import { uniqueId } from "lodash";
 import * as React from "react";
@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import MetadataDetails, { ValueCountItem } from "./MetadataDetails";
 import useAnnotationValueByNameMap from "./useAnnotationValueByNameMap";
-import { PrimaryButton, SecondaryButton } from "../Buttons";
+import { LinkLikeButton, PrimaryButton, SecondaryButton } from "../Buttons";
 import ComboBox from "../ComboBox";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
@@ -16,6 +16,7 @@ import styles from "./EditMetadata.module.css";
 
 interface ExistingAnnotationProps {
     onDismiss: () => void;
+    onSelectDelete: (isDeleting: boolean) => void;
     selectedFileCount: number;
     user?: string;
 }
@@ -31,6 +32,7 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
     const [selectedAnnotation, setSelectedAnnotation] = React.useState<string>();
     const [annotationType, setAnnotationType] = React.useState<AnnotationType>();
     const [dropdownOptions, setDropdownOptions] = React.useState<string[]>();
+    const [isDeleting, setIsDeleting] = React.useState<boolean>(false);
 
     const annotationValueByNameMap = useAnnotationValueByNameMap();
     const filters = useSelector(interaction.selectors.getFileFiltersForVisibleModal);
@@ -105,6 +107,11 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
         }
     };
 
+    function onClickDelete(isDeleting: boolean) {
+        setIsDeleting(isDeleting);
+        props.onSelectDelete(isDeleting);
+    }
+
     function onSubmit() {
         const trimmedValues = newValues?.trim();
         const newValuesAsArray = newValues?.split(",").map((value) => value.trim());
@@ -135,17 +142,54 @@ export default function ExistingAnnotationPathway(props: ExistingAnnotationProps
         }
     }
 
-    return (
+    const onDeleteMetadata = () => {
+        if (selectedAnnotation) {
+            dispatch(interaction.actions.deleteMetadata(selectedAnnotation, props.user));
+            props.onDismiss();
+        }
+    };
+
+    const deleteMetadataWarning = (
+        <div className={styles.deleteWarning}>
+            <p>
+                <b>{selectedAnnotation}</b> and all associated values will be deleted from selected
+                files.
+            </p>
+            <p className={styles.deleteWarningSection}>
+                <Icon iconName="Warning" />
+                This action is destructive and permanent.
+            </p>
+            <div className={classNames(styles.footer, styles.footerAlignRight)}>
+                <SecondaryButton title="" text="Back" onClick={() => onClickDelete(false)} />
+                <PrimaryButton title="" text="Delete" onClick={onDeleteMetadata} />
+            </div>
+        </div>
+    );
+
+    return isDeleting ? (
+        deleteMetadataWarning
+    ) : (
         <>
-            <ComboBox
-                className={styles.comboBox}
-                label="Select a metadata field"
-                placeholder="Select a field..."
-                selectedKey={selectedAnnotation}
-                options={annotationOptions}
-                onChange={onSelectMetadataField}
-                disabled={!annotationOptions.length}
-            />
+            <div className={styles.flexWrapper}>
+                <ComboBox
+                    className={styles.comboBox}
+                    label="Select a metadata field"
+                    placeholder="Select a field..."
+                    selectedKey={selectedAnnotation}
+                    options={annotationOptions}
+                    onChange={onSelectMetadataField}
+                    disabled={!annotationOptions.length}
+                />
+                {!!selectedAnnotation && (
+                    <div className={styles.deleteButton}>
+                        <LinkLikeButton
+                            onClick={() => onClickDelete(true)}
+                            text="Delete"
+                            title="Delete metadata field and values"
+                        />
+                    </div>
+                )}
+            </div>
             {!!selectedAnnotation && (
                 <MetadataDetails
                     dropdownOptions={dropdownOptions}

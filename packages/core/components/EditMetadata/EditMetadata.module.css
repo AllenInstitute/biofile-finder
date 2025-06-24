@@ -15,9 +15,41 @@
   padding-left: 5px;
 }
 
+.delete-button {
+  align-self: flex-end;
+  padding: var(--margin);
+}
+
+.delete-warning {
+  font-size: var(--l-paragraph-size);
+}
+.delete-warning-section {
+  background-color: var(--error-status-background-color);
+  border: var(--error-background-color) 1px solid;
+  color: var(--error-status-text-color);
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.delete-warning-section > i {
+  padding: 0 8px;
+  font-weight: 600;
+  top: 3px;
+  position: relative;
+  font-size: 18px;
+}
+
 .error-message {
   color: var(--error-status-text-color);
   line-height: 1.5;
+}
+
+.flex-wrapper {
+  display: flex;
+}
+
+.hidden {
+  display: none;
 }
 
 .warning-message {
