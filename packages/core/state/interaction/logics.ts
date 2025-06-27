@@ -532,12 +532,24 @@ const openWithLogic = createLogic({
  * into an EDIT_FILES action
  */
 const deleteMetadataLogic = createLogic({
-    async process(deps: ReduxLogicDeps, dispatch) {
+    async process(deps: ReduxLogicDeps, dispatch, done) {
         const filters = interactionSelectors.getFileFiltersForVisibleModal(deps.getState());
+        const deleteRequestId = uniqueId();
         const {
             payload: { annotationName, user },
         } = deps.action as DeleteMetadataAction;
-        dispatch(editFiles({ [annotationName]: [] }, filters, user));
+        try {
+            dispatch(editFiles({ [annotationName]: [] }, filters, user));
+        } catch (err) {
+            // Dispatch an event to alert the user of the failure
+            // We shouldn't reach this unless logic fails before `editFilesLogic` reaches its own error handling
+            const errorMsg = `Failed to delete metadata from files, some may have been edited. Details:<br/>${
+                err instanceof Error ? err.message : err
+            }`;
+            dispatch(processError(deleteRequestId, errorMsg));
+        } finally {
+            done();
+        }
     },
     type: DELETE_METADATA,
 });
