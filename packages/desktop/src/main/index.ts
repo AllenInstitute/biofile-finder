@@ -107,6 +107,24 @@ const createMainWindow = () => {
         return { action: "deny" };
     });
 
+    /***
+     * Catch 'beforeunload' events since Electron handles these differently from browser
+     * Similar to above, but for main window instead of child window
+     */
+    mainWindow.webContents.on("will-prevent-unload", (ev: Event) => {
+        const options = {
+            type: "question",
+            buttons: ["Leave", "Cancel"],
+            message: "Leave site?",
+            detail:
+                "Edits to external data sources may not be saved. Download query results to save edits.",
+        };
+        if (mainWindow) {
+            const shouldLeave = dialog.showMessageBoxSync(mainWindow, options) === 0;
+            if (shouldLeave) ev.preventDefault(); // Unblock & perform the blocked action (e.g., leave, reload)
+        }
+    });
+
     if (isDevelopment) {
         mainWindow
             .loadURL(`http://localhost:${process.env.WEBPACK_DEV_SERVER_PORT}`)
