@@ -63,6 +63,7 @@ export default function App(props: AppProps) {
             event.preventDefault();
 
             // Legacy support (e.g. Chrome/Edge < 119): Allows custom messages
+            // Deprecated, does not affect modern browsers
             event.returnValue =
                 "Edits to external data sources will not be saved. Make sure to download the result in order to keep your changes";
         };

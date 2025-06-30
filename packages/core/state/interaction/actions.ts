@@ -420,7 +420,7 @@ export function processInfo(
             data: {
                 fileId,
                 msg,
-                status: ProcessStatus.NOT_SET,
+                status: ProcessStatus.NOT_SET, // default: info
             },
             processId,
             onCancel,

@@ -552,9 +552,9 @@ const editFilesLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
-        const sortColumn = selection.selectors.getSortColumn(deps.getState());
         const hasUnsavedChanges = interaction.selectors.getHasUnsavedChanges(deps.getState());
         const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
+        const sortColumn = selection.selectors.getSortColumn(deps.getState());
         const annotationNameToAnnotationMap = metadata.selectors.getAnnotationNameToAnnotationMap(
             deps.getState()
         );
@@ -630,7 +630,7 @@ const editFilesLogic = createLogic({
                 dispatch(setHasUnsavedChanges());
                 dispatch(
                     processInfo(
-                        "edit-info-msg",
+                        "edit-info-message",
                         "Edits made to external data sources are not permanent. Make sure to save/download data to keep your edited versions."
                     )
                 );
